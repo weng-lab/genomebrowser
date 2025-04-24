@@ -12,9 +12,7 @@ function fakeFetch(domain: string) {
 
   const randomStrings = Array.from({ length: 7 }, (_, i) => {
     const length = Math.floor(rng(i) * 10) + 5;
-    return Array.from({ length }, (_, j) =>
-      String.fromCharCode(97 + Math.floor(rng(i * length + j) * 26))
-    ).join("");
+    return Array.from({ length }, (_, j) => String.fromCharCode(97 + Math.floor(rng(i * length + j) * 26))).join("");
   });
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -26,15 +24,17 @@ function fakeFetch(domain: string) {
 }
 
 export function useTrackFetcher() {
+  // Subscriptions (refetch called on change)
   const domain = useBrowserStore((state) => state.domain);
-  const setTrackData = useTrackStore((state) => state.setTrackData);
-  const [isLoading, setIsLoading] = useState(false);
+  const setDelta = useBrowserStore((state) => state.setDelta);
+  // State
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    setIsLoading(true);
+  // Refetch
+  const setTrackData = useTrackStore((state) => state.setTrackData);
+  const refetch = () => {
     setError(null);
-    
     fakeFetch(domain)
       .then((data) => {
         setTrackData((data as { data: string[] }).data);
@@ -43,9 +43,14 @@ export function useTrackFetcher() {
         setError(err);
       })
       .finally(() => {
-        setIsLoading(false);
+        setLoading(false);
+        setDelta(0);
       });
-  }, [domain, setTrackData]);
+  };
 
-  return { isLoading, error };
-} 
+  useEffect(() => {
+    refetch();
+  }, [domain]);
+
+  return { loading, error, refetch, setLoading };
+}

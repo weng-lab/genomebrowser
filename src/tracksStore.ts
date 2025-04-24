@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-interface Track {
+export interface Track {
   id: number;
   data: string;
   height: number;
@@ -28,7 +28,7 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     { id: 4, data: "", height: 80, color: "#caffbf", alt: "#b1ffa6" },
     { id: 5, data: "", height: 60, color: "#9bf6ff", alt: "#82dde6" },
     { id: 6, data: "", height: 40, color: "#a0c4ff", alt: "#87abf6" },
-    { id: 7, data: "", height: 20, color: "#bdb2ff", alt: "#a499f6" },
+    { id: 7, data: "", height: 35, color: "#bdb2ff", alt: "#a499f6" },
   ] as Track[],
   updateColor: (id: number, color: string) =>
     set((state) => ({
