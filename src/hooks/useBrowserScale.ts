@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useBrowserStore } from "./browserStore";
+import { useBrowserStore } from "../store/browserStore";
 
 function useBrowserScale() {
   const [scale, setScale] = useState(1);

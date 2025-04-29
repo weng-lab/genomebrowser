@@ -14,7 +14,7 @@ export const useBrowserStore = create<BrowserStore>((set) => ({
   domain: "",
   delta: 0,
   svgRef: null,
-  setDomain: (domain: string) => set({ domain }),
+  setDomain: (domain: string) => {set({ domain })},
   setDelta: (delta: number) => set({ delta }),
   setSvgRef: (ref: RefObject<SVGSVGElement | null>) => set({ svgRef: ref }),
 }));

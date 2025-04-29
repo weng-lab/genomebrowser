@@ -1,9 +1,9 @@
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { useEffect, useRef, useState } from "react";
-import { useBrowserStore } from "./browserStore";
-import useBrowserScale from "./useBrowserScale";
+import { useBrowserStore } from "../../store/browserStore";
+import useBrowserScale from "../../hooks/useBrowserScale";
 
-export default function DragTrack({ children }: { children: React.ReactNode }) {
+export default function DragTrack({ children, id }: { children: React.ReactNode; id: string }) {
   const [dragging, setDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const nodeRef = useRef<SVGGElement>(null);
@@ -42,7 +42,7 @@ export default function DragTrack({ children }: { children: React.ReactNode }) {
       onDrag={(e, d) => handleDrag(e, d)}
       onStop={handleStop}
     >
-      <g ref={nodeRef} height="100%" style={{ cursor: dragging ? "grabbing" : "grab" }}>
+      <g id={`drag-track-${id}`} ref={nodeRef} height="100%" style={{ cursor: dragging ? "grabbing" : "grab" }}>
         {children}
       </g>
     </Draggable>

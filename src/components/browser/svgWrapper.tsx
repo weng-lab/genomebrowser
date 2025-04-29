@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
 import { useRef } from "react";
-import { useBrowserStore } from "./browserStore";
-import { useTrackStore } from "./tracksStore";
+import { useBrowserStore } from "../../store/browserStore";
+import { useTrackStore } from "../../store/tracksStore";
 
 export default function SvgWrapper({ children }: { children: React.ReactNode }) {
   const setSvgRef = useBrowserStore((state) => state.setSvgRef);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useBrowserStore } from "../browserStore";
-import { useTrackStore } from "../tracksStore";
+import { useBrowserStore } from "../store/browserStore";
+import { useTrackStore } from "../store/tracksStore";
 
 // Move the fakeFetch function outside or to a separate API utility file
 function fakeFetch(domain: string) {
@@ -28,7 +28,6 @@ export function useTrackFetcher() {
   const domain = useBrowserStore((state) => state.domain);
   const setDelta = useBrowserStore((state) => state.setDelta);
   // State
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   // Refetch
@@ -43,7 +42,6 @@ export function useTrackFetcher() {
         setError(err);
       })
       .finally(() => {
-        setLoading(false);
         setDelta(0);
       });
   };
@@ -52,5 +50,5 @@ export function useTrackFetcher() {
     refetch();
   }, [domain]);
 
-  return { loading, error, refetch, setLoading };
+  return { error, refetch };
 }
