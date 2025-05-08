@@ -27,7 +27,10 @@ export default function DragTrack({ children, id }: { children: React.ReactNode;
 
   const setDomain = useBrowserStore((state) => state.setDomain);
   const handleStop = () => {
-    if (Math.abs(delta) < 10) return;
+    if (Math.abs(delta) < 10) {
+      setDelta(0);
+      return;
+    }
     setPosition({ x: delta, y: 0 });
     setDomain(Math.random().toString(36).substring(7));
     setDragging(false);

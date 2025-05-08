@@ -7,7 +7,7 @@ import { useTrackStore } from "../../store/tracksStore";
 export default function SvgWrapper({ children }: { children: React.ReactNode }) {
   const setSvgRef = useBrowserStore((state) => state.setSvgRef);
   const totalHeight = useTrackStore((state) => state.getTotalHeight());
-
+  const browserWidth = useBrowserStore((state) => state.browserWidth);
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function SvgWrapper({ children }: { children: React.ReactNode }) 
   return (
     <svg
       ref={svgRef}
-      viewBox={`0 0 1000 ${totalHeight}`}
+      viewBox={`0 0 ${browserWidth} ${totalHeight}`}
       width="100%"
       height="100%"
       style={{

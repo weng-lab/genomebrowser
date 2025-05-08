@@ -2,10 +2,13 @@ import { create } from "zustand";
 
 export interface Track {
   id: string;
+  title: string;
   data: string;
   height: number;
   color: string;
   alt: string;
+  actualHeight: number;
+  titleSize: number;
 }
 
 interface TrackStore {
@@ -28,6 +31,7 @@ interface TrackStore {
   insertTrack: (track: Track, index: number) => void;
   removeTrack: (id: string) => void;
   updateTrack: <K extends keyof Track>(id: string, key: K, value: Track[K]) => void;
+  getDimensions: (id: string) => any;
 }
 
 export const useTrackStore = create<TrackStore>((set, get) => ({
@@ -47,7 +51,10 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     })),
   getTotalHeight: () => {
     const state = get();
-    return state.tracks.reduce((acc, curr) => acc + curr.height, 0);
+    return state.tracks.reduce((acc, curr) => {
+      const { wrapperHeight } = get().getDimensions(curr.id);
+      return acc + wrapperHeight;
+    }, 0);
   },
   getTrackIndex: (id: string) => {
     const state = get();
@@ -60,7 +67,10 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
   getPrevHeights: (id: string) => {
     const state = get();
     const index = state.getTrackIndex(id);
-    return state.tracks.slice(0, index).reduce((acc, curr) => acc + curr.height, 0);
+    return state.tracks.slice(0, index).reduce((acc, curr) => {
+      const { wrapperHeight } = get().getDimensions(curr.id);
+      return acc + wrapperHeight;
+    }, 0);
   },
   getTrackLength: () => {
     const state = get();
@@ -83,7 +93,10 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
   },
   getDistances: (id: string) => {
     const state = get();
-    const heights = state.tracks.map((track) => track.height);
+    const heights = state.tracks.map((track) => {
+      const { wrapperHeight } = get().getDimensions(track.id);
+      return wrapperHeight;
+    });
     const index = state.getTrackIndex(id);
     let distances = new Array(heights.length).fill(0);
     distances = heights.map((_, i) => {
@@ -127,4 +140,22 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     set((state) => ({
       tracks: state.tracks.map((item) => (item.id === id ? { ...item, [key]: value } : item)),
     })),
+  getDimensions: (id: string) => {
+    const state = get();
+    const track = state.getTrack(id);
+    if (!track) {
+      throw new Error("Track not found");
+    }
+    const trackMargin = track.height / 6;
+    const titleSize = track.titleSize || trackMargin * 2.5;
+    const titleMargin = track.title ? titleSize + 5 : 0;
+    const totalVerticalMargin = trackMargin + titleMargin;
+    const wrapperHeight = track.height + totalVerticalMargin;
+    return {
+      trackMargin,
+      titleSize,
+      totalVerticalMargin,
+      wrapperHeight,
+    };
+  },
 }));

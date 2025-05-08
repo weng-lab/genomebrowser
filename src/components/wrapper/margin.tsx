@@ -1,10 +1,11 @@
-import SettingsIcon from "../../assets/settingsIcon";
-import TopIcon from "../../assets/topIcon";
+import SettingsIcon from "../../icons/settingsIcon";
+import TopIcon from "../../icons/topIcon";
 import { useModalStore } from "../../store/modalStore";
 import { useRef } from "react";
 import { useTrackStore } from "../../store/tracksStore";
 
 export default function Margin({
+  marginLabel,
   id,
   height,
   color,
@@ -12,6 +13,7 @@ export default function Margin({
   onHover,
   onLeave,
 }: {
+  marginLabel: string;
   id: string;
   height: number;
   color: string;
@@ -72,7 +74,7 @@ export default function Margin({
           userSelect: "none",
         }}
       >
-        {id}
+        {marginLabel}
       </text>
       <MarginTick position={height} width={width} fontSize={8}>
         0
