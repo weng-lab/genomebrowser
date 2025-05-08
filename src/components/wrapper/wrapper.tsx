@@ -8,17 +8,14 @@ import LoadingSpinner from "../../icons/loadingSpinner";
 import ErrorIcon from "../../icons/errorIcon";
 
 export interface WrapperProps {
-  transform: string;
-  color: string;
   id: string;
-  title: string;
-  shortLabel: string;
+  transform: string;
   loading: boolean;
   error: string;
   children: React.ReactNode;
 }
 
-export default function Wrapper({ children, transform, color, id, title, shortLabel, loading, error }: WrapperProps) {
+export default function Wrapper({ children, transform, id, loading, error }: WrapperProps) {
   const [swapping, setSwapping] = useState(false);
   const [hover, setHover] = useState(false);
 
@@ -37,13 +34,18 @@ export default function Wrapper({ children, transform, color, id, title, shortLa
 
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const browserWidth = useBrowserStore((state) => state.browserWidth);
-  const trackWidth = useBrowserStore((state) => state.trackWidth);
+  const trackWidth = browserWidth - marginWidth;
   const getDimensions = useTrackStore((state) => state.getDimensions);
+  const getShortLabel = useTrackStore((state) => state.getShortLabel);
+  const getField = useTrackStore((state) => state.getField);
+  
+  // get fields from track
+  const color = getField(id, "color");
+  const title = getField(id, "title");
+  const shortLabel = getShortLabel(id);
   const { trackMargin, titleSize, totalVerticalMargin, wrapperHeight } = getDimensions(id);
-
+  
   const spinnerSize = wrapperHeight / 3;
-
-  const marginLabel = getShortLabel(shortLabel || "", title || "");
 
   return (
     <g id={`wrapper-${id}`} transform={transform}>
@@ -95,11 +97,12 @@ export default function Wrapper({ children, transform, color, id, title, shortLa
         </text>
         {/* margin */}
         <Margin
-          marginLabel={marginLabel}
+          marginLabel={shortLabel}
           id={id}
           height={wrapperHeight}
           color={color}
           swapping={swapping}
+          verticalMargin={totalVerticalMargin}
           onHover={onHover}
           onLeave={onLeave}
         />
@@ -117,9 +120,3 @@ export default function Wrapper({ children, transform, color, id, title, shortLa
     </g>
   );
 }
-
-const getShortLabel = (shortLabel: string, title: string) => {
-  if (shortLabel) return shortLabel;
-  if (!title || !title.substring || !title.length) return "";
-  return title.length <= 20 ? title : title.substring(0, 20) + "...";
-};

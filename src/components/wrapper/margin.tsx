@@ -12,12 +12,14 @@ export default function Margin({
   swapping,
   onHover,
   onLeave,
+  verticalMargin,
 }: {
   marginLabel: string;
   id: string;
   height: number;
   color: string;
   swapping: boolean;
+  verticalMargin: number;
   onHover: () => void;
   onLeave: () => void;
 }) {
@@ -79,7 +81,7 @@ export default function Margin({
       <MarginTick position={height} width={width} fontSize={8}>
         0
       </MarginTick>
-      <MarginTick position={height / 4} width={width} fontSize={8}>
+      <MarginTick position={verticalMargin} width={width} fontSize={8}>
         100
       </MarginTick>
       <line stroke="#ccc" x1={width} x2={width} y1={0} y2={height} />

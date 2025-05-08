@@ -1,30 +1,46 @@
 import { create } from "zustand";
-
-export interface Track {
-  id: string;
-  title: string;
-  data: string;
-  height: number;
-  color: string;
-  alt: string;
-  actualHeight: number;
-  titleSize: number;
+import { BigWigProps } from "../components/tracks/bigwig/types";
+// All avaliable track types
+export enum TrackType {
+  BigWig = "bigwig",
+  BigBed = "bigbed"
 }
+
+// Shared properties for all tracks
+export interface Shared {
+  id: string;
+  height: number;
+  trackType: TrackType;
+  color?: string;
+}
+
+// Display properties for all tracks
+export interface Display {
+  title: string;
+  titleSize?: number;
+  shortLabel?: string;
+}
+
+// Base properties for all tracks
+export type Base = Shared & Display;
+
+// Track type includes all specific track types + base properties
+export type Track = Base & (BigWigProps);
 
 interface TrackStore {
   tracks: Track[];
   setTracks: (tracks: Track[]) => void;
   updateColor: (id: string, color: string) => void;
   updateHeight: (id: string, height: number) => void;
-  updateText: (id: string, text: string) => void;
+  // updateText: (id: string, text: string) => void;
   // internal functions
   getTotalHeight: () => number;
   getTrackLength: () => number;
   getPrevHeights: (id: string) => number;
   getDistances: (id: string) => number[];
   getTrack: (id: string) => Track | undefined;
-  setTrackData: (data: string[]) => void;
-  setLoading: () => void;
+  // setTrackData: (data: string[]) => void;
+  // setLoading: () => void;
   getTrackIndex: (id: string) => number;
   getTrackbyIndex: (index: number) => Track | undefined;
   shiftTracks: (id: string, index: number) => void;
@@ -32,11 +48,30 @@ interface TrackStore {
   removeTrack: (id: string) => void;
   updateTrack: <K extends keyof Track>(id: string, key: K, value: Track[K]) => void;
   getDimensions: (id: string) => any;
+  getShortLabel: (id: string) => string;
+  getField: (id: string, field: string) => any;
 }
 
 export const useTrackStore = create<TrackStore>((set, get) => ({
   tracks: [] as Track[],
   setTracks: (tracks: Track[]) => set({ tracks }),
+  getField: (id: string, field: string) => {
+    const track = get().getTrack(id);
+    if (!track) {
+      throw new Error("Track not found");
+    }
+    return track[field as keyof Track];
+  },
+  getShortLabel: (id: string) => {
+    const track = get().getTrack(id);
+    if (!track) {
+      throw new Error("Track not found");
+    }
+    const { title, shortLabel } = track;
+    if (shortLabel) return shortLabel;
+    if (!title || !title.substring || !title.length) return "";
+    return title.length <= 20 ? title : title.substring(0, 20) + "...";
+  },
   updateColor: (id: string, color: string) =>
     set((state) => ({
       tracks: state.tracks.map((item, _) => (item.id === id ? { ...item, color } : item)),
@@ -45,10 +80,10 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     set((state) => ({
       tracks: state.tracks.map((item) => (item.id === id ? { ...item, height } : item)),
     })),
-  updateText: (id: string, text: string) =>
-    set((state) => ({
-      tracks: state.tracks.map((item) => (item.id === id ? { ...item, data: text } : item)),
-    })),
+  // updateText: (id: string, text: string) =>
+  //   set((state) => ({
+  //     tracks: state.tracks.map((item) => (item.id === id ? { ...item, data: text } : item)),
+  //   })),
   getTotalHeight: () => {
     const state = get();
     return state.tracks.reduce((acc, curr) => {
@@ -76,21 +111,21 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     const state = get();
     return state.tracks.length;
   },
-  setTrackData: (data: string[]) =>
-    set((state) => ({
-      tracks: state.tracks.map((track, i) => ({
-        ...track,
-        data: data[i] || track.data,
-      })),
-    })),
-  setLoading: () => {
-    set((state) => ({
-      tracks: state.tracks.map((track) => ({
-        ...track,
-        data: "LOADING",
-      })),
-    }));
-  },
+  // setTrackData: (data: string[]) =>
+  //   set((state) => ({
+  //     tracks: state.tracks.map((track, i) => ({
+  //       ...track,
+  //       data: data[i] || track.data,
+  //     })),
+  //   })),
+  // setLoading: () => {
+  //   set((state) => ({
+  //     tracks: state.tracks.map((track) => ({
+  //       ...track,
+  //       data: "LOADING",
+  //     })),
+  //   }));
+  // },
   getDistances: (id: string) => {
     const state = get();
     const heights = state.tracks.map((track) => {

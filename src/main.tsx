@@ -1,19 +1,19 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
-import { Track, useTrackStore } from "./store/tracksStore";
+import { Track, TrackType, useTrackStore } from "./store/tracksStore";
 import { useBrowserStore } from "./store/browserStore";
 
 function Main() {
-  const tracks = [
-    { id: "1", title: "Track 1", titleSize: 12, data: "", height: 90, color: "#ffadad", alt: "#ff9494" },
-    { id: "2", title: "Track 2", titleSize: 12, data: "", height: 50, color: "#ffd6a5", alt: "#ffc78c" },
-    { id: "3", title: "Track 3", titleSize: 12, data: "", height: 75, color: "#fdffb6", alt: "#f4f68d" },
-    { id: "4", title: "Track 4", titleSize: 12, data: "", height: 80, color: "#caffbf", alt: "#b1ffa6" },
-    { id: "5", title: "Track 5", titleSize: 12, data: "", height: 60, color: "#9bf6ff", alt: "#82dde6" },
-    { id: "6", title: "Track 6", titleSize: 12, data: "", height: 40, color: "#a0c4ff", alt: "#87abf6" },
-    { id: "7", title: "Track 7", titleSize: 12, data: "", height: 45, color: "#bdb2ff", alt: "#a499f6" },
-  ] as Track[];
+  const tracks: Track[] = [
+    { id: "1", title: "Track 1", titleSize: 12, data: "", height: 90, color: "#ffadad", trackType: TrackType.BigWig },
+    { id: "2", title: "Track 2", titleSize: 12, data: "", height: 50, color: "#ffd6a5", trackType: TrackType.BigWig },
+    { id: "3", title: "Track 3", titleSize: 12, data: "", height: 75, color: "#fdffb6", trackType: TrackType.BigWig },
+    { id: "4", title: "Track 4", titleSize: 12, data: "", height: 80, color: "#caffbf", trackType: TrackType.BigWig },
+    { id: "5", title: "Track 5", titleSize: 12, data: "", height: 60, color: "#9bf6ff", trackType: TrackType.BigWig },
+    { id: "6", title: "Track 6", titleSize: 12, data: "", height: 40, color: "#a0c4ff", trackType: TrackType.BigWig },
+    { id: "7", title: "Track 7", titleSize: 12, data: "", height: 45, color: "#bdb2ff", trackType: TrackType.BigWig },
+  ];
 
   // Domain change
   const setDomain = useBrowserStore((state) => state.setDomain);
