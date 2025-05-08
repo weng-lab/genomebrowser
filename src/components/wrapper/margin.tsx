@@ -48,6 +48,9 @@ export default function Margin({
     shiftTracks(id, 0);
   };
 
+  const getField = useTrackStore((state) => state.getField);
+  const range = getField(id, "range");
+
   return (
     <g id={`margin-${id}`} height={height} preserveAspectRatio="xMinYMin meet">
       <rect
@@ -78,12 +81,16 @@ export default function Margin({
       >
         {marginLabel}
       </text>
-      <MarginTick position={height} width={width} fontSize={8}>
-        0
-      </MarginTick>
-      <MarginTick position={verticalMargin} width={width} fontSize={8}>
-        100
-      </MarginTick>
+      {range && (
+        <>
+          <MarginTick position={height} width={width} fontSize={8}>
+            {range.min}
+          </MarginTick>
+          <MarginTick position={verticalMargin} width={width} fontSize={8}>
+            {range.max}
+          </MarginTick>
+        </>
+      )}
       <line stroke="#ccc" x1={width} x2={width} y1={0} y2={height} />
       <svg x={width / 10} y={height / 2 + 5} width={35} height={20} cursor={"pointer"}>
         <g ref={settingsRef} onClick={handleShowModal}>

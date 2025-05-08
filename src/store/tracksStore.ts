@@ -60,7 +60,11 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     if (!track) {
       throw new Error("Track not found");
     }
-    return track[field as keyof Track];
+    const result = track[field as keyof Track];
+    if (!result) {
+      return null;
+    }
+    return result;
   },
   getShortLabel: (id: string) => {
     const track = get().getTrack(id);
