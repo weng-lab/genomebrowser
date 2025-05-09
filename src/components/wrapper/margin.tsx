@@ -84,10 +84,10 @@ export default function Margin({
       {range && (
         <>
           <MarginTick position={height} width={width} fontSize={8}>
-            {range.min}
+            {range.min.toFixed(2)}
           </MarginTick>
           <MarginTick position={verticalMargin} width={width} fontSize={8}>
-            {range.max}
+            {range.max.toFixed(2)}
           </MarginTick>
         </>
       )}

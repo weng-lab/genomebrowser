@@ -32,7 +32,7 @@ export default function DragTrack({ children, id }: { children: React.ReactNode;
       return;
     }
     setPosition({ x: delta, y: 0 });
-    setDomain(Math.random().toString(36).substring(7));
+    setDomain({start: 0, end: 1000, chromosome: "chr1"});
     setDragging(false);
   };
 

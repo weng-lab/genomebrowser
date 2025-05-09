@@ -31,7 +31,14 @@ export default function DisplayTrack({ index }: { index: number }) {
     <Wrapper id={track.id} transform={transform} error={error} loading={loading}>
       {/* switch based on track type */}
       {track.trackType === TrackType.BigWig && (
-        <FullBigWig id={track.id} data={data} range={track.range} height={track.height} color={track.color} />
+        <FullBigWig
+          trackType={track.trackType}
+          id={track.id}
+          data={data}
+          range={track.range}
+          height={track.height}
+          color={track.color}
+        />
       )}
     </Wrapper>
   );

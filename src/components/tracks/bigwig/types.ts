@@ -1,9 +1,6 @@
+import { Shared } from "../../../store/tracksStore";
 
-export interface BigWigProps {
-  data: ValuedPoint[];
-  height: number;
-  color: string;
-  id: string;
+export interface BigWigProps extends Shared {
   range: YRange;
 }
 
