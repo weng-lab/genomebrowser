@@ -17,11 +17,10 @@ import {
   ValuedPoint,
   ytransform,
   svgPoint,
-  Data,
   createCopy,
 } from "./types";
 
-type Props = BigWigProps & {data: ValuedPoint[]}
+type Props = BigWigProps & { data: ValuedPoint[] };
 
 export default function FullBigWig(props: Props) {
   const trackWidth = useBrowserStore((state) => state.trackWidth);
@@ -32,8 +31,8 @@ export default function FullBigWig(props: Props) {
   // Process data once and memoize the result
   const processedData = useMemo(() => {
     const copy = createCopy(props.data);
-    // const copy = [...props.data] as Data;
     const range = props.range || getRange(copy);
+    // keep baseline at 0 if min is not negative
     const effectiveRange = {
       min: range.min > 0 ? 0 : range.min,
       max: range.max,
@@ -79,7 +78,7 @@ export default function FullBigWig(props: Props) {
 
   const color = props.color || "#000000";
   const lightColor = lighten(color, 0.5);
-  
+
   const svgRef = useBrowserStore((state) => state.svgRef);
   const mouseOver = (e: React.MouseEvent<SVGElement>) => {
     if (!svgRef || !svgRef.current) return;
@@ -87,7 +86,7 @@ export default function FullBigWig(props: Props) {
     setX(pos[0]);
     setValue(props.data.find((p) => p.x === Math.floor(pos[0] - 150))?.min);
   };
-  
+
   const mouseOut = () => {
     setX(undefined);
   };

@@ -28,8 +28,9 @@ export default function Margin({
   const showModal = useModalStore((state) => state.showModal);
   const settingsRef = useRef<SVGGElement>(null);
 
-  const index = useTrackStore((state) => state.getTrackIndex(id));
+  const getTrackIndex = useTrackStore((state) => state.getTrackIndex);
   const shiftTracks = useTrackStore((state) => state.shiftTracks);
+  const index = getTrackIndex(id);
 
   const handleShowModal = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
@@ -53,6 +54,7 @@ export default function Margin({
 
   return (
     <g id={`margin-${id}`} height={height} preserveAspectRatio="xMinYMin meet">
+      {/* margin background */}
       <rect
         className="swap-handle"
         x={0}
@@ -64,23 +66,25 @@ export default function Margin({
         onMouseMove={onHover}
         onMouseLeave={onLeave}
       />
+      {/* colored bar */}
       <rect x={0} y={0} width={width / 15} height={height} stroke="#000000" strokeWidth={0.5} fill={color} />
-      <text
-        fontSize={`${fontSize}px`}
-        y={height / 2}
-        x={width / 10}
-        alignmentBaseline="middle"
-        style={{
-          pointerEvents: "none",
-          WebkitTouchCallout: "none",
-          WebkitUserSelect: "none",
-          MozUserSelect: "none",
-          msUserSelect: "none",
-          userSelect: "none",
-        }}
-      >
+      {/* margin label */}
+      <text fontSize={`${fontSize}px`} y={height / 2} x={width / 10} alignmentBaseline="middle">
         {marginLabel}
       </text>
+      {/* modal icon */}
+      <g ref={settingsRef} onClick={handleShowModal} style={{ cursor: "pointer" }}>
+        <SettingsIcon x={width / 10} y={height / 2 + 2} height={15} width={15} />
+        <circle cx={width / 10 + 7.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
+      </g>
+      {/* bring to top icon */}
+      {index > 0 && (
+        <g onClick={handleBringToTop} style={{ cursor: "pointer" }}>
+          <TopIcon x={width / 10 + 15} y={height / 2 + 4} height={15} width={15} />
+          <circle cx={width / 10 + 22.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
+        </g>
+      )}
+      {/* margin ticks */}
       {range && (
         <>
           <MarginTick position={height} width={width} fontSize={8}>
@@ -91,19 +95,8 @@ export default function Margin({
           </MarginTick>
         </>
       )}
+      {/* margin right edge */}
       <line stroke="#ccc" x1={width} x2={width} y1={0} y2={height} />
-      <svg x={width / 10} y={height / 2 + 5} width={35} height={20} cursor={"pointer"}>
-        <g ref={settingsRef} onClick={handleShowModal}>
-          <circle cx={7.5} cy={7.5} r={7.5} strokeWidth={0} fill="transparent" />
-          <SettingsIcon x={0} y={0} height={15} width={15} />
-        </g>
-        {index > 0 && (
-          <g onClick={handleBringToTop}>
-            <circle cx={22.5} cy={7.5} r={7.5} strokeWidth={0} fill="transparent" />
-            <TopIcon x={15} y={2} height={15} width={15} />
-          </g>
-        )}
-      </svg>
     </g>
   );
 }
@@ -121,21 +114,7 @@ function MarginTick({
 }) {
   return (
     <>
-      <text
-        textAnchor="end"
-        alignmentBaseline="middle"
-        y={position - 3}
-        x={width * 0.94}
-        fontSize={`${fontSize}px`}
-        style={{
-          pointerEvents: "none",
-          WebkitTouchCallout: "none",
-          WebkitUserSelect: "none",
-          MozUserSelect: "none",
-          msUserSelect: "none",
-          userSelect: "none",
-        }}
-      >
+      <text textAnchor="end" alignmentBaseline="middle" y={position - 3} x={width * 0.94} fontSize={`${fontSize}px`}>
         {children}
       </text>
       <line x1={width * 0.96} x2={width} y1={position} y2={position} stroke="#aaa" />
