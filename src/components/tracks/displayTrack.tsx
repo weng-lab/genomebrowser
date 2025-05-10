@@ -34,25 +34,21 @@ export default function DisplayTrack({ id }: { id: string }) {
   );
 }
 
+const trackComponents = {
+  [TrackType.BigWig]: {
+    [DisplayMode.Full]: FullBigWig,
+  },
+  [TrackType.BigBed]: {
+    [DisplayMode.Full]: FullBigWig,
+  },
+  [TrackType.Transcript]: {
+    [DisplayMode.Full]: FullBigWig,
+  },
+};
+
 function getTrackComponent(track: Track, data: any) {
-  switch (track.trackType) {
-    case TrackType.BigWig:
-      if (track.displayMode === DisplayMode.Full) {
-        return (
-          <FullBigWig
-            trackType={track.trackType}
-            displayMode={track.displayMode}
-            id={track.id}
-            data={data}
-            range={track.range}
-            height={track.height}
-            color={track.color}
-          />
-        );
-      } else {
-        return <></>;
-      }
-    default:
-      return <></>;
-  }
+  const Component = trackComponents[track.trackType][track.displayMode];
+  if (!Component) return null;
+  return <Component {...track} data={data} />;
 }
+

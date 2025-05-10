@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { RefObject } from "react";
 import { Domain } from "../utils/types";
 
-interface IntitialBrowserState {
+export interface IntitialBrowserState {
   domain: Domain;
   marginWidth: number;
   trackWidth: number;
@@ -29,9 +29,9 @@ export const useBrowserStore = create<BrowserStore>((set) => ({
   domain: { chromosome: "chr1", start: 0, end: 1350 },
   delta: 0,
   svgRef: null,
-  browserWidth: 1500,
-  trackWidth: 1350,
-  marginWidth: 150,
+  browserWidth: 0,
+  trackWidth: 0,
+  marginWidth: 0,
   initialize: (state: IntitialBrowserState) => {
     set({
       domain: state.domain,

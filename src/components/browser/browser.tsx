@@ -1,12 +1,12 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { Track, useTrackStore } from "../../store/trackStore";
 import DisplayTrack from "../tracks/displayTrack";
 import Modal from "../modal/modal";
 import SVGWrapper from "./svgWrapper";
 import useTrackData from "../../hooks/useTrackData";
-import { useBrowserStore } from "../../store/browserStore";
+import { IntitialBrowserState, useBrowserStore } from "../../store/browserStore";
 
-export default function Browser({ tracks }: { tracks: Track[] }) {
+export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {
   // Store functions
   const setTracks = useTrackStore((state) => state.setTracks);
   const initialize = useBrowserStore((state) => state.initialize);
@@ -14,13 +14,9 @@ export default function Browser({ tracks }: { tracks: Track[] }) {
 
   // Initialize state
   useEffect(() => {
-    initialize({
-      domain: { chromosome: "chr18", start: 35494852, end: 35514000 },
-      marginWidth: 150,
-      trackWidth: 1350,
-    });
+    initialize(state);
     setTracks(tracks);
-  }, [tracks, initialize, setTracks]);
+  }, [tracks, initialize, setTracks, state]);
 
   useTrackData();
 

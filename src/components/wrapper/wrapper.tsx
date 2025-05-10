@@ -97,8 +97,8 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
         </text>
         {/* margin */}
         <Margin
-          marginLabel={shortLabel}
           id={id}
+          marginLabel={shortLabel}
           height={wrapperHeight}
           color={color}
           swapping={swapping}
@@ -112,7 +112,7 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
             width={browserWidth}
             height={wrapperHeight}
             fill={color || "transparent"}
-            fillOpacity={0.45}
+            fillOpacity={0.25}
             style={{ pointerEvents: "none" }}
           />
         )}

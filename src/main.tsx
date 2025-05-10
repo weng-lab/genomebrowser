@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
 import { DisplayMode, Track, TrackType, useTrackStore } from "./store/trackStore";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import { IntitialBrowserState } from "./store/browserStore";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -44,11 +45,17 @@ function Main() {
     },
   ];
 
+  const initialState: IntitialBrowserState = {
+    domain: { chromosome: "chr18", start: 35494852, end: 35514000 },
+    marginWidth: 125,
+    trackWidth: 1375,
+  };
+
   return (
     <div>
       <Action />
       <ApolloProvider client={client}>
-        <Browser tracks={tracks} />
+        <Browser state={initialState} tracks={tracks} />
       </ApolloProvider>
     </div>
   );

@@ -3,6 +3,7 @@ import TopIcon from "../../icons/topIcon";
 import { useModalStore } from "../../store/modalStore";
 import { useRef } from "react";
 import { useTrackStore } from "../../store/trackStore";
+import { useBrowserStore } from "../../store/browserStore";
 
 export default function Margin({
   marginLabel,
@@ -23,7 +24,7 @@ export default function Margin({
   onHover: () => void;
   onLeave: () => void;
 }) {
-  const width = 150;
+  const marginWidth = useBrowserStore((state) => state.marginWidth);
   const fontSize = 10;
   const showModal = useModalStore((state) => state.showModal);
   const settingsRef = useRef<SVGGElement>(null);
@@ -59,7 +60,7 @@ export default function Margin({
         className="swap-handle"
         x={0}
         y={0}
-        width={width}
+        width={marginWidth}
         height={height}
         fill={"white"}
         style={{ cursor: swapping ? "grabbing" : "grab" }}
@@ -67,36 +68,36 @@ export default function Margin({
         onMouseLeave={onLeave}
       />
       {/* colored bar */}
-      <rect x={0} y={0} width={width / 15} height={height} stroke="#000000" strokeWidth={0.5} fill={color} />
+      <rect x={0} y={0} width={marginWidth / 15} height={height} stroke="#000000" strokeWidth={0.5} fill={color} />
       {/* margin label */}
-      <text fontSize={`${fontSize}px`} y={height / 2} x={width / 10} alignmentBaseline="middle">
+      <text fontSize={`${fontSize}px`} y={height / 2} x={marginWidth / 10} alignmentBaseline="middle">
         {marginLabel}
       </text>
       {/* modal icon */}
       <g ref={settingsRef} onClick={handleShowModal} style={{ cursor: "pointer" }}>
-        <SettingsIcon x={width / 10} y={height / 2 + 2} height={15} width={15} />
-        <circle cx={width / 10 + 7.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
+        <SettingsIcon x={marginWidth / 10} y={height / 2 + 2} height={15} width={15} />
+        <circle cx={marginWidth / 10 + 7.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
       </g>
       {/* bring to top icon */}
       {index > 0 && (
         <g onClick={handleBringToTop} style={{ cursor: "pointer" }}>
-          <TopIcon x={width / 10 + 15} y={height / 2 + 4} height={15} width={15} />
-          <circle cx={width / 10 + 22.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
+          <TopIcon x={marginWidth / 10 + 15} y={height / 2 + 4} height={15} width={15} />
+          <circle cx={marginWidth / 10 + 22.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
         </g>
       )}
       {/* margin ticks */}
       {range && (
         <>
-          <MarginTick position={height} width={width} fontSize={8}>
+          <MarginTick position={height} width={marginWidth} fontSize={8}>
             {range.min.toFixed(2)}
           </MarginTick>
-          <MarginTick position={verticalMargin} width={width} fontSize={8}>
+          <MarginTick position={verticalMargin} width={marginWidth} fontSize={8}>
             {range.max.toFixed(2)}
           </MarginTick>
         </>
       )}
       {/* margin right edge */}
-      <line stroke="#ccc" x1={width} x2={width} y1={0} y2={height} />
+      <line stroke="#ccc" x1={marginWidth} x2={marginWidth} y1={0} y2={height} />
     </g>
   );
 }

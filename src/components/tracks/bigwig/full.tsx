@@ -2,24 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 import { useBrowserStore } from "../../../store/browserStore";
 import { lighten } from "../../../utils/color";
 import ClipPath from "../../svg/clipPath";
+
 import {
   BigWigData,
   BigZoomData,
-  clampData,
+  ValuedPoint,
   dataType,
   DataType,
   BigWigProps,
-  getRange,
-  l,
   Paths,
-  renderBigWig,
   RenderedBigWigData,
-  ValuedPoint,
-  ytransform,
-  svgPoint,
-  createCopy,
 } from "./types";
+
 import { useTrackStore } from "../../../store/trackStore";
+import { createCopy, getRange, l, renderBigWig, ytransform } from "./helpers";
+import { svgPoint } from "../../../utils/svg";
 
 type Props = BigWigProps & { data: BigWigData[] | undefined };
 
@@ -28,6 +25,7 @@ export default function FullBigWig(props: Props) {
   const domain = useBrowserStore((state) => state.domain);
   const updateTrack = useTrackStore((state) => state.updateTrack);
   const delta = useBrowserStore((state) => state.delta);
+  const marginWidth = useBrowserStore((state) => state.marginWidth);
 
   const [x, setX] = useState<number>();
   const [value, setValue] = useState<number>();
@@ -99,7 +97,7 @@ export default function FullBigWig(props: Props) {
     if (!svgRef || !svgRef.current) return;
     const pos = svgPoint(svgRef.current, e);
     setX(pos[0]);
-    const adjustedX = Math.round(pos[0] - 150);
+    const adjustedX = Math.round(pos[0] - marginWidth);
     const point = rendered.renderPoints.find((r) => r.min < Infinity && r.max > -Infinity && r.x === adjustedX);
     setValue(point?.max);
   };
@@ -138,7 +136,7 @@ function Tooltip({ x, value, trackHeight }: { x: number | undefined; value: numb
   if (!x) return null;
   return (
     <g>
-      <line stroke="#444" x1={x ? x - 150 : 0} x2={x ? x - 150 : 0} y1={0} y2={trackHeight} />
+      <line stroke="#444" x1={x ? x - marginWidth : 0} x2={x ? x - marginWidth : 0} y1={0} y2={trackHeight} />
       {/* Background rectangle */}
       <rect
         x={x - marginWidth + 5}
