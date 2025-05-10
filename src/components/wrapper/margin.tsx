@@ -2,7 +2,7 @@ import SettingsIcon from "../../icons/settingsIcon";
 import TopIcon from "../../icons/topIcon";
 import { useModalStore } from "../../store/modalStore";
 import { useRef } from "react";
-import { useTrackStore } from "../../store/tracksStore";
+import { useTrackStore } from "../../store/trackStore";
 
 export default function Margin({
   marginLabel,

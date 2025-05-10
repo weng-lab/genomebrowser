@@ -1,31 +1,30 @@
-import { useEffect } from "react";
-import { Track, useTrackStore } from "../../store/tracksStore";
+import { useEffect, useMemo } from "react";
+import { Track, useTrackStore } from "../../store/trackStore";
 import DisplayTrack from "../tracks/displayTrack";
 import Modal from "../modal/modal";
 import SVGWrapper from "./svgWrapper";
+import useTrackData from "../../hooks/useTrackData";
+import { useBrowserStore } from "../../store/browserStore";
 
 export default function Browser({ tracks }: { tracks: Track[] }) {
   // Store functions
   const setTracks = useTrackStore((state) => state.setTracks);
-  const trackLength = useTrackStore((state) => state.getTrackLength());
-  // const setLoading = useTrackStore((state) => state.setLoading);
+  const initialize = useBrowserStore((state) => state.initialize);
+  const getTrackIds = useTrackStore((state) => state.getTrackIds);
 
   // Initialize state
   useEffect(() => {
+    initialize({
+      domain: { chromosome: "chr18", start: 35494852, end: 35514000 },
+      marginWidth: 150,
+      trackWidth: 1350,
+    });
     setTracks(tracks);
-    // setLoading();
-  }, [tracks]);
+  }, [tracks, initialize, setTracks]);
 
-  // // Track fetcher
-  // const { error, refetch } = useTrackFetcher();
-  // useEffect(() => {
-  //   refetch();
-  // }, []);
+  useTrackData();
 
-  // // Error handling
-  // if (error) {
-  //   return <div>Error: {error.message}</div>;
-  // }
+  const trackIds = getTrackIds();
 
   return (
     <div
@@ -38,9 +37,9 @@ export default function Browser({ tracks }: { tracks: Track[] }) {
       }}
     >
       <SVGWrapper>
-        {Array.from({ length: trackLength }).map((_, index) => (
-          <DisplayTrack key={index} index={index} />
-        ))}
+        {trackIds.map((id) => {
+          return <DisplayTrack key={id} id={id} />;
+        })}
       </SVGWrapper>
       <Modal />
     </div>

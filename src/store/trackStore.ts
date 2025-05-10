@@ -3,7 +3,12 @@ import { BigWigProps } from "../components/tracks/bigwig/types";
 // All avaliable track types
 export enum TrackType {
   BigWig = "bigwig",
-  BigBed = "bigbed"
+  BigBed = "bigbed",
+  Transcript = "transcript",
+}
+
+export enum DisplayMode {
+  Full = "full",
 }
 
 // Shared properties for all tracks
@@ -12,6 +17,7 @@ export interface Shared {
   height: number;
   trackType: TrackType;
   color?: string;
+  displayMode: DisplayMode;
 }
 
 // Display properties for all tracks
@@ -25,22 +31,19 @@ export interface Display {
 export type Base = Shared & Display;
 
 // Track type includes all specific track types + base properties
-export type Track = Base & (BigWigProps);
+export type Track = Base & BigWigProps;
 
 interface TrackStore {
   tracks: Track[];
   setTracks: (tracks: Track[]) => void;
   updateColor: (id: string, color: string) => void;
   updateHeight: (id: string, height: number) => void;
-  // updateText: (id: string, text: string) => void;
-  // internal functions
   getTotalHeight: () => number;
   getTrackLength: () => number;
+  getTrackIds: () => string[];
   getPrevHeights: (id: string) => number;
   getDistances: (id: string) => number[];
   getTrack: (id: string) => Track | undefined;
-  // setTrackData: (data: string[]) => void;
-  // setLoading: () => void;
   getTrackIndex: (id: string) => number;
   getTrackbyIndex: (index: number) => Track | undefined;
   shiftTracks: (id: string, index: number) => void;
@@ -50,11 +53,13 @@ interface TrackStore {
   getDimensions: (id: string) => any;
   getShortLabel: (id: string) => string;
   getField: (id: string, field: string) => any;
+  getIndexByType: (id: string) => number;
 }
 
 export const useTrackStore = create<TrackStore>((set, get) => ({
   tracks: [] as Track[],
   setTracks: (tracks: Track[]) => set({ tracks }),
+  getTrackIds: () => get().tracks.map((track) => track.id),
   getField: (id: string, field: string) => {
     const track = get().getTrack(id);
     if (!track) {
@@ -115,21 +120,6 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     const state = get();
     return state.tracks.length;
   },
-  // setTrackData: (data: string[]) =>
-  //   set((state) => ({
-  //     tracks: state.tracks.map((track, i) => ({
-  //       ...track,
-  //       data: data[i] || track.data,
-  //     })),
-  //   })),
-  // setLoading: () => {
-  //   set((state) => ({
-  //     tracks: state.tracks.map((track) => ({
-  //       ...track,
-  //       data: "LOADING",
-  //     })),
-  //   }));
-  // },
   getDistances: (id: string) => {
     const state = get();
     const heights = state.tracks.map((track) => {
@@ -196,5 +186,14 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
       totalVerticalMargin,
       wrapperHeight,
     };
+  },
+  getIndexByType: (id: string) => {
+    const state = get();
+    const thisTrack = state.getTrack(id);
+    if (!thisTrack) return -1;
+    const index = state.tracks
+      .filter((track) => track.trackType === thisTrack.trackType)
+      .findIndex((track) => track.id === id);
+    return index;
   },
 }));

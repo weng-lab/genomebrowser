@@ -1,60 +1,49 @@
-import { create } from "zustand"
+import { ApolloError } from "@apollo/client";
+import { create } from "zustand";
+import { Result } from "../api/fetchTrackData";
+import { Track, TrackType } from "./trackStore";
 
-interface TrackDataStore {
-  // Map of track ID to its data array
-  trackData: Record<string, any[]>
-  
-  // Get data for a specific track
-  getTrackData: (trackId: string) => any[]
-  
-  // Set data for a specific track
-  setTrackData: (trackId: string, data: any[]) => void
-  
-  // Update data for a specific track
-  updateTrackData: (trackId: string, data: any[]) => void
-  
-  // Remove data for a specific track
-  removeTrackData: (trackId: string) => void
-  
-  // Clear all track data
-  clearAllTrackData: () => void
+interface DataStore {
+  data: Map<string, any>;
+  loading: boolean;
+  getData: (id: string) => { data: any; error: ApolloError | undefined; loading: boolean };
+  setDataById: (id: string, data: any, error: ApolloError | undefined) => void;
+  setData: (result: Result, tracks: Track[], getIndexByType: (id: string) => number) => void;
+  setLoading: (loading: boolean) => void;
 }
 
-const useTrackDataStore = create<TrackDataStore>((set, get) => ({
-  trackData: {},
-  
-  getTrackData: (trackId: string) => {
-    return get().trackData[trackId] || []
+export const useDataStore = create<DataStore>((set, get) => ({
+  data: new Map<string, { data: any; error: ApolloError | undefined }>(),
+  loading: true,
+  getData: (id: string) => {
+    const state = get();
+    const result = state.data.get(id);
+    return { data: result?.data, error: result?.error, loading: state.loading };
   },
-  
-  setTrackData: (trackId: string, data: any[]) => {
-    set((state) => ({
-      trackData: {
-        ...state.trackData,
-        [trackId]: data,
-      },
-    }))
-  },
-  
-  updateTrackData: (trackId: string, data: any[]) => {
-    set((state) => ({
-      trackData: {
-        ...state.trackData,
-        [trackId]: [...(state.trackData[trackId] || []), ...data],
-      },
-    }))
-  },
-  
-  removeTrackData: (trackId: string) => {
-    set((state) => {
-      const { [trackId]: removed, ...remaining } = state.trackData
-      return { trackData: remaining }
-    })
-  },
-  
-  clearAllTrackData: () => {
-    set({ trackData: {} })
-  },
-}))
+  setDataById: (id: string, data: any, error: ApolloError | undefined) =>
+    set((state) => ({ data: state.data.set(id, { data, error }) })),
+  setData: (result: Result, tracks: Track[], getIndexByType: (id: string) => number) => {
+    const { bigResult } = result;
 
-export default useTrackDataStore
+    const processTrackData = (trackId: string, resultData: any, resultError: ApolloError | undefined) => {
+      const state = get();
+      const index = getIndexByType(trackId);
+      if (index === -1) return;
+      const trackData = resultData[index];
+      state.setDataById(trackId, trackData, resultError);
+    };
+
+    for (const track of tracks) {
+      switch (track.trackType) {
+        case TrackType.BigWig:
+          if (!bigResult.data) return;
+          processTrackData(track.id, bigResult.data, bigResult.error);
+          break;
+        default:
+          break;
+      }
+    }
+    set({ loading: false });
+  },
+  setLoading: (loading: boolean) => set({ loading }),
+}));

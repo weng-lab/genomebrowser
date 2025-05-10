@@ -1,7 +1,8 @@
-import { Shared } from "../../../store/tracksStore";
+import { Shared } from "../../../store/trackStore";
 
 export interface BigWigProps extends Shared {
-  range: YRange;
+  range?: YRange;
+  url?: string;
 }
 
 // export interface FullBigWigProps extends BaseBigWigProps {
@@ -76,13 +77,13 @@ export function dataType(data: any): DataType {
  */
 export function createCopy(data: Data | undefined): Data {
   if (dataType(data) === DataType.BigWigData) {
-    return (data as BigWigData[]).map((a) => ({ ...a })) as BigWigData[];
+      return (data as BigWigData[]).map(a => ({ ...a })) as BigWigData[];
   } else if (dataType(data) === DataType.BigZoomData) {
-    return (data as BigZoomData[]).map((a) => ({ ...a })) as BigZoomData[];
+      return (data as BigZoomData[]).map(a => ({ ...a })) as BigZoomData[];
   } else if (dataType(data) === DataType.ValuedPoint) {
-    return (data as ValuedPoint[]).map((a) => ({ ...a })) as ValuedPoint[];
+      return (data as ValuedPoint[]).map(a => ({ ...a })) as ValuedPoint[];
   }
-  return [];
+  return []
 }
 // Helper function for getRange
 const calculateRange = <T>(data: T[], getValue: (d: T) => number): YRange => {
@@ -189,49 +190,49 @@ export function renderBigWig(data: BigWigData[] | BigZoomData[] | undefined | nu
 
 export const clampData = (data: Data, range: YRange): Data => {
   switch (dataType(data)) {
-      case DataType.BigWigData:
-          (data as BigWigData[]).forEach((element: BigWigData) => {
-              if (element.value < range.min) {
-                  element.value = range.min;
-              }
-              if (element.value > range.max) {
-                  element.value = range.max;
-              }
-          });
-          return data
-      case DataType.BigZoomData:
-          (data as BigZoomData[]).forEach((element: BigZoomData) => {
-              if (element.minVal < range.min) {
-                  element.minVal = range.min;
-              }
-              if (element.maxVal > range.max) {
-                  element.maxVal = range.max;
-              }
-          })
-          return data
-      case DataType.ValuedPoint:
-          (data as ValuedPoint[]).forEach((element: ValuedPoint) => {
-              if (element.min < range.min) {
-                  element.min = range.min;
-              }
-              if (element.max > range.max) {
-                  element.max = range.max;
-              }
-          })
-          return data
-      default:
-          return []
+    case DataType.BigWigData:
+      (data as BigWigData[]).forEach((element: BigWigData) => {
+        if (element.value < range.min) {
+          element.value = range.min;
+        }
+        if (element.value > range.max) {
+          element.value = range.max;
+        }
+      });
+      return data;
+    case DataType.BigZoomData:
+      (data as BigZoomData[]).forEach((element: BigZoomData) => {
+        if (element.minVal < range.min) {
+          element.minVal = range.min;
+        }
+        if (element.maxVal > range.max) {
+          element.maxVal = range.max;
+        }
+      });
+      return data;
+    case DataType.ValuedPoint:
+      (data as ValuedPoint[]).forEach((element: ValuedPoint) => {
+        if (element.min < range.min) {
+          element.min = range.min;
+        }
+        if (element.max > range.max) {
+          element.max = range.max;
+        }
+      });
+      return data;
+    default:
+      return [];
   }
-}
+};
 
 export const svgPoint = (svg: SVGSVGElement, event: React.MouseEvent<SVGElement>) => {
   if (svg.createSVGPoint && svg) {
-      let point = svg.createSVGPoint()
-      point.x = event.clientX
-      point.y = event.clientY
-      point = point.matrixTransform(svg!.getScreenCTM()!.inverse())
-      return [point.x, point.y]
+    let point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    point = point.matrixTransform(svg!.getScreenCTM()!.inverse());
+    return [point.x, point.y];
   }
-  const rect = svg.getBoundingClientRect()
-  return [event.clientX - rect.left - svg.clientLeft, event.clientY - rect.top - svg.clientTop]
-}
+  const rect = svg.getBoundingClientRect();
+  return [event.clientX - rect.left - svg.clientLeft, event.clientY - rect.top - svg.clientTop];
+};

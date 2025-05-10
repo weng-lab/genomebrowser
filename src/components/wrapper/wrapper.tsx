@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import DragTrack from "./dragTrack";
 import Margin from "./margin";
 import SwapTrack from "./swapTrack";
-import { useTrackStore } from "../../store/tracksStore";
+import { useTrackStore } from "../../store/trackStore";
 import { useBrowserStore } from "../../store/browserStore";
 import LoadingSpinner from "../../icons/loadingSpinner";
 import ErrorIcon from "../../icons/errorIcon";
@@ -11,7 +11,7 @@ export interface WrapperProps {
   id: string;
   transform: string;
   loading: boolean;
-  error: string;
+  error: string | undefined;
   children: React.ReactNode;
 }
 
@@ -38,13 +38,13 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
   const getDimensions = useTrackStore((state) => state.getDimensions);
   const getShortLabel = useTrackStore((state) => state.getShortLabel);
   const getField = useTrackStore((state) => state.getField);
-  
+
   // get fields from track
   const color = getField(id, "color");
   const title = getField(id, "title");
   const shortLabel = getShortLabel(id);
   const { trackMargin, titleSize, totalVerticalMargin, wrapperHeight } = getDimensions(id);
-  
+
   const spinnerSize = wrapperHeight / 3;
 
   return (

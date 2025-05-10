@@ -1,38 +1,70 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
-import { Track, TrackType, useTrackStore } from "./store/tracksStore";
+import { DisplayMode, Track, TrackType, useTrackStore } from "./store/trackStore";
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+
+const client = new ApolloClient({
+  uri: "https://ga.staging.wenglab.org/graphql",
+  cache: new InMemoryCache(),
+  connectToDevTools: true,
+});
 
 function Main() {
   const tracks: Track[] = [
-    { id: "1", title: "Track 1", titleSize: 12, data: [], range: { min: -.5, max: .5 }, height: 90, color: "#ffadad", trackType: TrackType.BigWig },
-    { id: "2", title: "Track 2", titleSize: 12, data: [], range: { min: -.5, max: .5 }, height: 90, color: "#adffad", trackType: TrackType.BigWig },
-    { id: "3", title: "Track 3", titleSize: 12, data: [], range: { min: -.5, max: .5 }, height: 90, color: "#adadff", trackType: TrackType.BigWig },
-
+    {
+      id: "1",
+      title: "Track 1",
+      titleSize: 12,
+      height: 100,
+      color: "#ffadad",
+      trackType: TrackType.BigWig,
+      displayMode: DisplayMode.Full,
+      url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
+    },
+    {
+      id: "2",
+      title: "Track 2",
+      titleSize: 12,
+      height: 100,
+      color: "#adffad",
+      trackType: TrackType.BigWig,
+      displayMode: DisplayMode.Full,
+      url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
+    },
+    {
+      id: "3",
+      title: "Track 3",
+      titleSize: 12,
+      height: 100,
+      color: "#adadff",
+      trackType: TrackType.BigWig,
+      displayMode: DisplayMode.Full,
+      url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
+    },
   ];
 
   return (
     <div>
       <Action />
-      <Browser tracks={tracks} />
+      <ApolloProvider client={client}>
+        <Browser tracks={tracks} />
+      </ApolloProvider>
     </div>
   );
 }
 
-function Action(){
+function Action() {
   const updateTrack = useTrackStore((state) => state.updateTrack);
 
   const onClick = () => {
-    const min = Math.random() * -1;
-    const max = Math.random();
+    const max = Math.random() * 100;
     const height = Math.random() * 100 + 50;
-    updateTrack("1", "range", { min, max });
+    updateTrack("1", "range", { min: 0, max });
     updateTrack("2", "height", height);
-  }  
+  };
 
-  return (
-    <button onClick={onClick}>Click for action</button>
-  )
+  return <button onClick={onClick}>Click for action</button>;
 }
 
 createRoot(document.getElementById("root")!).render(

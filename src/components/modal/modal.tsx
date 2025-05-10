@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { useModalStore } from "../../store/modalStore";
-import { useTrackStore } from "../../store/tracksStore";
+import { useTrackStore } from "../../store/trackStore";
 
 export default function Modal() {
   const { id, open, closeModal, position } = useModalStore();

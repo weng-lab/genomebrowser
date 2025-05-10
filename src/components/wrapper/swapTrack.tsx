@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import useBrowserScale from "../../hooks/useBrowserScale";
 import { useBrowserStore } from "../../store/browserStore";
-import { useTrackStore } from "../../store/tracksStore";
+import { useTrackStore } from "../../store/trackStore";
 
 function SwapTrack({ id, children, setSwapping }: { id: string; children: React.ReactNode; setSwapping: (swapping: boolean) => void }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });

@@ -1,45 +1,58 @@
-import { TrackType, useTrackStore } from "../../store/tracksStore";
+import { ApolloError } from "@apollo/client";
+import { useEffect, useState } from "react";
+import { useDataStore } from "../../store/dataStore";
+import { DisplayMode, Track, TrackType, useTrackStore } from "../../store/trackStore";
 import Wrapper from "../wrapper/wrapper";
 import FullBigWig from "./bigwig/full";
-import { ValuedPoint } from "./bigwig/types";
 
-const useTrackData = (_: string) => {
-  const TEST_DATA: ValuedPoint[] = (() => {
-    const results: ValuedPoint[] = [];
-    for (let i = 0; i < 1350; ++i) {
-      results.push({
-        x: i,
-        max: Math.sin((i * 2.0 * Math.PI) / 100.0),
-        min: Math.sin((i * 2.0 * Math.PI) / 100.0),
-      });
-    }
-    return results;
-  })();
-  return { data: TEST_DATA, error: "", loading: false };
-};
+export default function DisplayTrack({ id }: { id: string }) {
+  const getTrack = useTrackStore((state) => state.getTrack);
+  const getPrevHeights = useTrackStore((state) => state.getPrevHeights);
+  const getData = useDataStore((state) => state.getData);
 
-export default function DisplayTrack({ index }: { index: number }) {
-  const track = useTrackStore((state) => state.getTrackbyIndex(index));
-  if (!track) return null;
+  const [data, setData] = useState<any>(undefined);
+  const [error, setError] = useState<ApolloError | undefined>(undefined);
+  const loading = useDataStore((state) => state.loading);
 
-  const { data, error, loading } = useTrackData(track.id);
+  const trackData = getData(id);
+  const prevHeights = getPrevHeights(id);
 
-  const prevHeights = useTrackStore((state) => state.getPrevHeights(track.id));
+  useEffect(() => {
+    if (loading || !trackData) return;
+    setData(trackData.data.data);
+    setError(trackData.error);
+  }, [loading, trackData]);
+
   const transform = `translate(0, ${prevHeights})`;
 
+  const track = getTrack(id);
+
   return (
-    <Wrapper id={track.id} transform={transform} error={error} loading={loading}>
-      {/* switch based on track type */}
-      {track.trackType === TrackType.BigWig && (
-        <FullBigWig
-          trackType={track.trackType}
-          id={track.id}
-          data={data}
-          range={track.range}
-          height={track.height}
-          color={track.color}
-        />
-      )}
+    <Wrapper id={id} transform={transform} error={error?.message} loading={loading}>
+      {track && data ? getTrackComponent(track, data) : <></>}
     </Wrapper>
   );
+}
+
+function getTrackComponent(track: Track, data: any) {
+  switch (track.trackType) {
+    case TrackType.BigWig:
+      if (track.displayMode === DisplayMode.Full) {
+        return (
+          <FullBigWig
+            trackType={track.trackType}
+            displayMode={track.displayMode}
+            id={track.id}
+            data={data}
+            range={track.range}
+            height={track.height}
+            color={track.color}
+          />
+        );
+      } else {
+        return <></>;
+      }
+    default:
+      return <></>;
+  }
 }
