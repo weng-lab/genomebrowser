@@ -35,8 +35,9 @@ export default function FullBigWig(props: Props) {
   }, [props.data, props.range]);
 
   useEffect(() => {
-    updateTrack(props.id, "range", range);
-  }, [props.range]);
+    if (props.range) return;
+    // updateTrack(props.id, "range", range);
+  }, [range, updateTrack, props.id, props.range]);
 
   const dataCopy = useMemo(() => createCopy(props.data ?? []), [props.data]);
 
@@ -49,26 +50,21 @@ export default function FullBigWig(props: Props) {
   );
 
   const paths: Paths = useMemo(() => {
-    const y = ytransform(rendered.range, props.height);
     const renderPoints = rendered.renderPoints.filter((v) => v.min < Infinity && v.max > -Infinity);
-    const effectiveRange = {
-      min: Math.min(range.min, 0),
-      max: range.max,
-    };
+    
     const clampedData = renderPoints.map((point) => {
-      const min = Math.max(point.min, effectiveRange.min);
-      const max = Math.min(point.max, effectiveRange.max);
+      const min = Math.max(point.min, range.min);
+      const max = Math.min(point.max, range.max);
       return {
         x: point.x,
         min: min,
         max: max,
-      };
+      } as ValuedPoint;
     });
-
-    // Pre-calculate the clampY function to avoid repeated calculations
+    
+    const y = ytransform(range, props.height);
     const clampY = (value: number) => Math.max(0, Math.min(props.height, y(value)));
 
-    // Pre-calculate all y values to avoid repeated calculations
     const yValues = clampedData.map((point) => ({
       min: clampY(point.min),
       max: clampY(point.max),

@@ -1,10 +1,15 @@
-import { useEffect } from "react";
-import { Track, useTrackStore } from "../../store/trackStore";
+import { memo, useCallback, useDebugValue, useEffect } from "react";
+import { Track, useTrackIds, useTrackStore } from "../../store/trackStore";
 import DisplayTrack from "../tracks/displayTrack";
 import Modal from "../modal/modal";
 import SVGWrapper from "./svgWrapper";
 import useTrackData from "../../hooks/useTrackData";
 import { IntitialBrowserState, useBrowserStore } from "../../store/browserStore";
+
+function useTest() {
+  useDebugValue("test");
+  useTrackData();
+}
 
 export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {
   // Store functions
@@ -16,11 +21,11 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Int
   useEffect(() => {
     initialize(state);
     setTracks(tracks);
-  }, [tracks, initialize, setTracks, state]);
+  }, [tracks, setTracks, state, initialize]);
 
-  useTrackData();
+  useTest();
 
-  const trackIds = getTrackIds();
+  const trackIds = useCallback(getTrackIds, [getTrackIds])();
 
   return (
     <div

@@ -29,9 +29,9 @@ export const useBrowserStore = create<BrowserStore>((set) => ({
   domain: { chromosome: "chr1", start: 0, end: 1350 },
   delta: 0,
   svgRef: null,
-  browserWidth: 0,
-  trackWidth: 0,
-  marginWidth: 0,
+  browserWidth: 1500,
+  trackWidth: 1350,
+  marginWidth: 150,
   initialize: (state: IntitialBrowserState) => {
     set({
       domain: state.domain,
