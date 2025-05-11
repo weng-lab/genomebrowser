@@ -6,8 +6,6 @@ import Wrapper from "../wrapper/wrapper";
 import FullBigWig from "./bigwig/full";
 
 export default function DisplayTrack({ id }: { id: string }) {
-  const getTrack = useTrackStore((state) => state.getTrack);
-  const getPrevHeights = useTrackStore((state) => state.getPrevHeights);
   const getData = useDataStore((state) => state.getData);
 
   const [data, setData] = useState<any>(undefined);
@@ -15,7 +13,6 @@ export default function DisplayTrack({ id }: { id: string }) {
   const loading = useDataStore((state) => state.loading);
 
   const trackData = getData(id);
-  const prevHeights = getPrevHeights(id);
 
   useEffect(() => {
     if (loading || !trackData) return;
@@ -23,10 +20,9 @@ export default function DisplayTrack({ id }: { id: string }) {
     setError(trackData.error);
   }, [loading, trackData]);
 
+  const track = useTrackStore((state) => state.getTrack(id));
+  const prevHeights = useTrackStore((state) => state.getPrevHeights(id));
   const transform = `translate(0, ${prevHeights})`;
-
-  const track = getTrack(id);
-
   return (
     <Wrapper id={id} transform={transform} error={error?.message} loading={loading}>
       {track && data ? getTrackComponent(track, data) : <></>}
@@ -51,4 +47,3 @@ function getTrackComponent(track: Track, data: any) {
   if (!Component) return null;
   return <Component {...track} data={data} />;
 }
-

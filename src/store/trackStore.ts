@@ -36,6 +36,7 @@ export type Track = Base & BigWigProps;
 
 interface TrackStore {
   tracks: Track[];
+  ids: string[];
   setTracks: (tracks: Track[]) => void;
   updateColor: (id: string, color: string) => void;
   updateHeight: (id: string, height: number) => void;
@@ -59,8 +60,9 @@ interface TrackStore {
 
 export const useTrackStore = create<TrackStore>((set, get) => ({
   tracks: [] as Track[],
-  setTracks: (tracks: Track[]) => set({ tracks }),
-  getTrackIds: () => get().tracks.map((track) => track.id),
+  ids: [] as string[],
+  setTracks: (tracks: Track[]) => set({ tracks, ids: tracks.map((track) => track.id) }),
+  getTrackIds: () => get().ids,
   getField: (id: string, field: string) => {
     const track = get().getTrack(id);
     if (!track) {
@@ -148,7 +150,7 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     }
     tracks.splice(state.getTrackIndex(id), 1); // Remove track from original position
     tracks.splice(index, 0, track); // Insert track at new index
-    set({ tracks });
+    set({ tracks, ids: tracks.map((track) => track.id) });
   },
   getTrackbyIndex: (index: number) => {
     const state = get();
@@ -158,13 +160,13 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     const state = get();
     const tracks = [...state.tracks];
     tracks.splice(index, 0, track);
-    set({ tracks });
+    set({ tracks, ids: tracks.map((track) => track.id) });
   },
   removeTrack: (id: string) => {
     const state = get();
     const tracks = [...state.tracks];
     tracks.splice(state.getTrackIndex(id), 1);
-    set({ tracks });
+    set({ tracks, ids: tracks.map((track) => track.id) });
   },
   updateTrack: <K extends keyof Track>(id: string, key: K, value: Track[K]) =>
     set((state) => ({

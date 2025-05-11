@@ -66,9 +66,9 @@ function Action() {
 
   const onClick = () => {
     const max = Math.random() * 100;
-    // const height = Math.random() * 100 + 50;
+    const height = Math.random() * 100 + 50;
     updateTrack("1", "range", { min: 0, max });
-    // updateTrack("2", "height", height);
+    updateTrack("2", "height", height);
   };
 
   return <button onClick={onClick}>Click for action</button>;
