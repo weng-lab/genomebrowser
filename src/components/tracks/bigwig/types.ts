@@ -62,6 +62,6 @@ export function dataType(data: any): DataType {
 }
 
 export type Paths = {
-  maxPath: string;
+  // maxPath: string;
   minPath: string;
 };

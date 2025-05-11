@@ -6,15 +6,18 @@ import { Track, TrackType } from "./trackStore";
 interface DataStore {
   data: Map<string, any>;
   loading: boolean;
+  fetching: boolean;
   getData: (id: string) => { data: any; error: ApolloError | undefined; loading: boolean };
   setDataById: (id: string, data: any, error: ApolloError | undefined) => void;
   setData: (result: Result, tracks: Track[], getIndexByType: (id: string) => number) => void;
   setLoading: (loading: boolean) => void;
+  setFetching: (fetching: boolean) => void;
 }
 
 export const useDataStore = create<DataStore>((set, get) => ({
   data: new Map<string, { data: any; error: ApolloError | undefined }>(),
   loading: true,
+  fetching: true,
   getData: (id: string) => {
     const state = get();
     const result = state.data.get(id);
@@ -43,7 +46,8 @@ export const useDataStore = create<DataStore>((set, get) => ({
           break;
       }
     }
-    set({ loading: false });
+    set({ loading: false, fetching: false });
   },
   setLoading: (loading: boolean) => set({ loading }),
+  setFetching: (fetching: boolean) => set({ fetching }),
 }));

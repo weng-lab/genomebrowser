@@ -11,7 +11,6 @@ export default function DisplayTrack({ id }: { id: string }) {
   const [error, setError] = useState<ApolloError | undefined>(undefined);
   const loading = useDataStore((state) => state.loading);
 
-
   useEffect(() => {
     if (loading || !data) return;
     setError(data.error);

@@ -1,5 +1,5 @@
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useBrowserStore } from "../../store/browserStore";
 import useBrowserScale from "../../hooks/useBrowserScale";
 
@@ -35,16 +35,27 @@ export default function DragTrack({ children, id }: { children: React.ReactNode;
     setDragging(false);
   };
 
+  const cursor = useMemo(() => {
+    if (dragging) return "grabbing";
+    if (delta != 0) return "default";
+    return "grab";
+  }, [delta, dragging]);
+
+  const canDrag = useMemo(() => {
+    return delta != 0 ? () => false : () => {};
+  }, [delta]);
+
   return (
     <Draggable
       nodeRef={nodeRef as unknown as React.RefObject<HTMLElement>}
       scale={scale}
       position={position}
       axis="x"
+      onStart={canDrag}
       onDrag={(e, d) => handleDrag(e, d)}
       onStop={handleStop}
     >
-      <g id={`drag-track-${id}`} ref={nodeRef} height="100%" style={{ cursor: dragging ? "grabbing" : "grab" }}>
+      <g id={`drag-track-${id}`} ref={nodeRef} height="100%" style={{ cursor }}>
         {children}
       </g>
     </Draggable>
