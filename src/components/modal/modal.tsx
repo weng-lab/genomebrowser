@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { useModalStore } from "../../store/modalStore";
 import { useTrackStore } from "../../store/trackStore";
+import { useDataStore } from "../../store/dataStore";
 
 export default function Modal() {
   const { id, open, closeModal, position } = useModalStore();
@@ -20,7 +21,7 @@ export default function Modal() {
 
   const track = useTrackStore((state) => state.getTrack(id));
   const modalRef = useRef<HTMLDivElement>(null);
-  
+
   if (!track) return null;
   if (!open) return null;
   return (
@@ -59,7 +60,9 @@ export default function Modal() {
         >
           <CloseButton handleClose={closeModal} color={getTextColor(track.color || "transparent")} />
           <div style={{ margin: "10px" }}>
-            <div style={{ paddingBottom: "0px", fontSize: "1.2em", fontWeight: "bold" }}>Configure {track.data}</div>
+            <div style={{ paddingBottom: "0px", fontSize: "1.2em", fontWeight: "bold" }}>
+              Configure {track.shortLabel || track.title}
+            </div>
           </div>
         </div>
         <ModalContent id={id} />
@@ -72,7 +75,7 @@ function ModalContent({ id }: { id: string | null }) {
   if (!id) return null;
   const track = useTrackStore((state) => state.getTrack(id));
   if (!track) return null;
-  return <div style={{ padding: 5 }}>{track.data}</div>;
+  return <div style={{ padding: 5 }}>{track.shortLabel || track.title}</div>;
 }
 
 function CloseButton({ handleClose, color }: { handleClose: () => void; color: string }) {

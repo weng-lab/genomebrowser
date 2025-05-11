@@ -19,13 +19,14 @@ interface BrowserState {
 
 interface BrowserStore extends BrowserState {
   setDomain: (domain: Domain) => void;
+  shiftDomain: () => void;
   setDelta: (delta: number) => void;
   setSvgRef: (ref: RefObject<SVGSVGElement | null>) => void;
   initialize: (state: IntitialBrowserState) => void;
 }
 
 // TODO: set a better default state
-export const useBrowserStore = create<BrowserStore>((set) => ({
+export const useBrowserStore = create<BrowserStore>((set, get) => ({
   domain: { chromosome: "chr1", start: 0, end: 1350 },
   delta: 0,
   svgRef: null,
@@ -42,6 +43,11 @@ export const useBrowserStore = create<BrowserStore>((set) => ({
   },
   setDomain: (domain: Domain) => {
     set({ domain });
+  },
+  shiftDomain: () => {
+    const state = get();
+    const shift = Math.floor((state.delta / state.trackWidth) * (state.domain.end - state.domain.start));
+    set({ domain: { ...state.domain, start: state.domain.start - shift, end: state.domain.end - shift } });
   },
   setDelta: (delta: number) => set({ delta }),
   setSvgRef: (ref: RefObject<SVGSVGElement | null>) => set({ svgRef: ref }),

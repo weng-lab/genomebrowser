@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import { Track, useTrackStore } from "../../store/trackStore";
-import DisplayTrack from "../tracks/displayTrack";
-import Modal from "../modal/modal";
-import SVGWrapper from "./svgWrapper";
-import useTrackData from "../../hooks/useTrackData";
+import TrackDataFetcher from "./trackDataFetcher";
 import { IntitialBrowserState, useBrowserStore } from "../../store/browserStore";
+import { Track, useTrackStore } from "../../store/trackStore";
+import Modal from "../modal/modal";
+import DisplayTrack from "../tracks/displayTrack";
+import SVGWrapper from "./svgWrapper";
 
 export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {
   // Store functions
@@ -28,7 +28,7 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Int
         height: "auto",
       }}
     >
-      <TrackData />
+      <TrackDataFetcher />
       <SVGWrapper>
         {trackIds.map((id) => {
           return <DisplayTrack key={id} id={id} />;
@@ -37,9 +37,4 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Int
       <Modal />
     </div>
   );
-}
-
-function TrackData() {
-  useTrackData();
-  return null;
 }

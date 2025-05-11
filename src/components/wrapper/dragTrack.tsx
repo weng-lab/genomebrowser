@@ -10,10 +10,10 @@ export default function DragTrack({ children, id }: { children: React.ReactNode;
 
   const delta = useBrowserStore((state) => state.delta);
   const setDelta = useBrowserStore((state) => state.setDelta);
+  const shiftDomain = useBrowserStore((state) => state.shiftDomain);
 
   const scale = useBrowserScale();
 
-  // when delta changes, update the position of the track if not dragging
   useEffect(() => {
     if (dragging) return;
     setPosition({ x: delta, y: 0 });
@@ -25,14 +25,13 @@ export default function DragTrack({ children, id }: { children: React.ReactNode;
     setDelta(delta + d.deltaX);
   };
 
-  const setDomain = useBrowserStore((state) => state.setDomain);
   const handleStop = () => {
     if (Math.abs(delta) < 10) {
       setDelta(0);
       return;
     }
     setPosition({ x: delta, y: 0 });
-    setDomain({start: 0, end: 1000, chromosome: "chr1"});
+    shiftDomain();
     setDragging(false);
   };
 

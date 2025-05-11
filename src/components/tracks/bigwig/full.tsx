@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useBrowserStore } from "../../../store/browserStore";
 import { lighten } from "../../../utils/color";
-import ClipPath from "../../svg/clipPath";
+import ClipPath from "./clipPath";
 
 import {
   BigWigData,
@@ -31,13 +31,12 @@ export default function FullBigWig(props: Props) {
   const [value, setValue] = useState<number>();
 
   const range = useMemo(() => {
-    return props.range || getRange(props.data ?? []);
-  }, [props.data, props.range]);
+    return getRange(props.data ?? []);
+  }, [props.data]);
 
   useEffect(() => {
-    if (props.range) return;
-    // updateTrack(props.id, "range", range);
-  }, [range, updateTrack, props.id, props.range]);
+    updateTrack(props.id, "range", range);
+  }, [range, props.id, updateTrack]);
 
   const dataCopy = useMemo(() => createCopy(props.data ?? []), [props.data]);
 
@@ -51,7 +50,7 @@ export default function FullBigWig(props: Props) {
 
   const paths: Paths = useMemo(() => {
     const renderPoints = rendered.renderPoints.filter((v) => v.min < Infinity && v.max > -Infinity);
-    
+
     const clampedData = renderPoints.map((point) => {
       const min = Math.max(point.min, range.min);
       const max = Math.min(point.max, range.max);
@@ -61,7 +60,7 @@ export default function FullBigWig(props: Props) {
         max: max,
       } as ValuedPoint;
     });
-    
+
     const y = ytransform(range, props.height);
     const clampY = (value: number) => Math.max(0, Math.min(props.height, y(value)));
 

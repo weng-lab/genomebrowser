@@ -6,19 +6,16 @@ import Wrapper from "../wrapper/wrapper";
 import FullBigWig from "./bigwig/full";
 
 export default function DisplayTrack({ id }: { id: string }) {
-  const getData = useDataStore((state) => state.getData);
+  const data = useDataStore((state) => state.data.get(id));
 
-  const [data, setData] = useState<any>(undefined);
   const [error, setError] = useState<ApolloError | undefined>(undefined);
   const loading = useDataStore((state) => state.loading);
 
-  const trackData = getData(id);
 
   useEffect(() => {
-    if (loading || !trackData) return;
-    setData(trackData.data.data);
-    setError(trackData.error);
-  }, [loading, trackData]);
+    if (loading || !data) return;
+    setError(data.error);
+  }, [loading, data]);
 
   const track = useTrackStore((state) => state.getTrack(id));
   const prevHeights = useTrackStore((state) => state.getPrevHeights(id));
@@ -45,5 +42,5 @@ const trackComponents = {
 function getTrackComponent(track: Track, data: any) {
   const Component = trackComponents[track.trackType][track.displayMode];
   if (!Component) return null;
-  return <Component {...track} data={data} />;
+  return <Component {...track} data={data.data.data} />;
 }

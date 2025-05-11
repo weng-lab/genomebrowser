@@ -1,6 +1,6 @@
 import { ApolloError } from "@apollo/client";
 import { create } from "zustand";
-import { Result } from "../api/fetchTrackData";
+import { Result } from "../api/types";
 import { Track, TrackType } from "./trackStore";
 
 interface DataStore {
