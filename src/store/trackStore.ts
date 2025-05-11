@@ -200,9 +200,3 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     return index;
   },
 }));
-
-export function useTrackIds() {
-  const getTrackIds = useTrackStore((state) => state.getTrackIds);
-  const tracks = useTrackStore((state) => state.tracks);
-  return useMemo(() => getTrackIds(), [getTrackIds, tracks]);
-}

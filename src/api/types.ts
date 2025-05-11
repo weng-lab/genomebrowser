@@ -1,9 +1,10 @@
 import { ApolloError } from "@apollo/client";
+import { Data } from "../components/tracks/bigwig/types";
 
 export interface Result {
   bigResult: {
-    data: any; // TODO: type this
+    data: Data | undefined;
     error: ApolloError | undefined;
-  }; // add more result types here and combine the loading boolean
+  };
   loading: boolean;
 }
