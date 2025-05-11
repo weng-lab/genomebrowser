@@ -18,13 +18,13 @@ export default function TrackDataFetcher() {
   const [fetch, bigResult] = useLazyQuery(BIGDATA_QUERY);
 
   useEffect(() => {
-    const bigTracks = tracks.filter((track) => track.trackType === TrackType.BigWig);
     const visibleWidth = domain.end - domain.start;
     const expandedDomain: Domain = {
       chromosome: domain.chromosome,
       start: domain.start - visibleWidth,
       end: domain.end + visibleWidth,
     };
+    const bigTracks = tracks.filter((track) => track.trackType === TrackType.BigWig);
     const bigRequests = buildBigRequests(bigTracks, expandedDomain);
     fetch({ variables: { bigRequests } });
     setFetching(true);

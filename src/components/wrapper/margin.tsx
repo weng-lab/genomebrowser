@@ -50,8 +50,7 @@ export default function Margin({
     shiftTracks(id, 0);
   };
 
-  const getField = useTrackStore((state) => state.getField);
-  const range = getField(id, "range");
+  const range = useTrackStore((state) => state.getTrack(id)?.range);
 
   return (
     <g

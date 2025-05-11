@@ -9,9 +9,9 @@ export default function SvgWrapper({ children }: { children: React.ReactNode }) 
   const setSvgRef = useBrowserStore((state) => state.setSvgRef);
   const totalHeight = useTrackStore((state) => state.getTotalHeight());
   const browserWidth = useBrowserStore((state) => state.browserWidth);
-  const fetching = useDataStore((state) => state.fetching);
   const svgRef = useRef<SVGSVGElement>(null);
-
+  const fetching = useDataStore((state) => state.fetching);
+  
   useEffect(() => {
     setSvgRef(svgRef);
   }, [svgRef]);
@@ -31,8 +31,8 @@ export default function SvgWrapper({ children }: { children: React.ReactNode }) 
         <rect
           width={browserWidth}
           height={totalHeight}
-          fill={"#000000"}
-          fillOpacity={0.05}
+          fill={"#ffffff"}
+          fillOpacity={0.5}
           style={{ pointerEvents: "all" }}
         />
       )}

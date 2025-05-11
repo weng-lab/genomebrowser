@@ -1,11 +1,19 @@
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import useBrowserScale from "../../hooks/useBrowserScale";
 import { useBrowserStore } from "../../store/browserStore";
 import { useTrackStore } from "../../store/trackStore";
 
-function SwapTrack({ id, children, setSwapping }: { id: string; children: React.ReactNode; setSwapping: (swapping: boolean) => void }) {
+function SwapTrack({
+  id,
+  children,
+  setSwapping,
+}: {
+  id: string;
+  children: React.ReactNode;
+  setSwapping: (swapping: boolean) => void;
+}) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [delta, setDelta] = useState(0);
@@ -14,7 +22,8 @@ function SwapTrack({ id, children, setSwapping }: { id: string; children: React.
 
   const shiftTracks = useTrackStore((state) => state.shiftTracks);
   const getDistances = useTrackStore((state) => state.getDistances);
-  const getPrevHeights = useTrackStore((state) => state.getPrevHeights);
+  const getTrackIndex = useTrackStore((state) => state.getTrackIndex);
+  const prevHeights = useTrackStore((state) => state.getPrevHeights(id));
 
   const handleDrag = (e: DraggableEvent, d: DraggableData) => {
     e.preventDefault();
@@ -33,6 +42,8 @@ function SwapTrack({ id, children, setSwapping }: { id: string; children: React.
     const closestIndex = distances.reduce((prevIndex, currDistance, currIndex) => {
       return Math.abs(currDistance - delta) < Math.abs(distances[prevIndex] - delta) ? currIndex : prevIndex;
     }, 0);
+    const index = getTrackIndex(id);
+    if (closestIndex === index) return;
     shiftTracks(id, closestIndex);
     setDelta(0);
   };
@@ -44,11 +55,11 @@ function SwapTrack({ id, children, setSwapping }: { id: string; children: React.
       axis="y"
       handle=".swap-handle"
       nodeRef={nodeRef as unknown as React.RefObject<HTMLElement>}
-      onDrag={(e, d) => handleDrag(e, d)}
+      onDrag={handleDrag}
       onStop={handleStop}
     >
       <g id={`swap-track-${id}`} ref={nodeRef}>
-        {!dragging ? children : <Clone position={getPrevHeights(id) + position.y}>{children}</Clone>}
+        {dragging ? <Clone position={prevHeights + position.y}>{children}</Clone> : children}
       </g>
     </Draggable>
   );

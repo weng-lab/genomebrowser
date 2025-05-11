@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DragTrack from "./dragTrack";
 import Margin from "./margin";
 import SwapTrack from "./swapTrack";
@@ -26,24 +26,16 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
     setHover(false);
   };
 
-  useEffect(() => {
-    if (!swapping) {
-      setHover(false);
-    }
-  }, [swapping]);
-
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const browserWidth = useBrowserStore((state) => state.browserWidth);
   const trackWidth = browserWidth - marginWidth;
   const getDimensions = useTrackStore((state) => state.getDimensions);
-  const getShortLabel = useTrackStore((state) => state.getShortLabel);
-  const getField = useTrackStore((state) => state.getField);
+  const createShortLabel = useTrackStore((state) => state.createShortLabel);
 
-  // get fields from track
-  const color = getField(id, "color");
-  const title = getField(id, "title");
-  const shortLabel = getShortLabel(id);
+  const color = useTrackStore((state) => state.getTrack(id)?.color);
+  const title = useTrackStore((state) => state.getTrack(id)?.title);
   const { trackMargin, titleSize, totalVerticalMargin, wrapperHeight } = getDimensions(id);
+  const shortLabel = createShortLabel(id);
 
   const spinnerSize = wrapperHeight / 3;
 
@@ -100,7 +92,7 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
           id={id}
           marginLabel={shortLabel}
           height={wrapperHeight}
-          color={color}
+          color={color || "#ffffff"}
           swapping={swapping}
           verticalMargin={totalVerticalMargin}
           onHover={onHover}

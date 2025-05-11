@@ -37,6 +37,7 @@ export default function FullBigWig(props: Props) {
   }, [props.data]);
 
   useEffect(() => {
+    if (props.range?.max === range?.max && props.range?.min === range?.min) return;
     updateTrack(props.id, "range", range);
   }, [range, props.id, updateTrack]);
 

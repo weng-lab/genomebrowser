@@ -37,22 +37,17 @@ interface TrackStore {
   tracks: Track[];
   ids: string[];
   setTracks: (tracks: Track[]) => void;
-  updateColor: (id: string, color: string) => void;
-  updateHeight: (id: string, height: number) => void;
   getTotalHeight: () => number;
-  getTrackLength: () => number;
-  getTrackIds: () => string[];
   getPrevHeights: (id: string) => number;
   getDistances: (id: string) => number[];
   getTrack: (id: string) => Track | undefined;
   getTrackIndex: (id: string) => number;
-  getTrackbyIndex: (index: number) => Track | undefined;
   shiftTracks: (id: string, index: number) => void;
   insertTrack: (track: Track, index: number) => void;
   removeTrack: (id: string) => void;
   updateTrack: <K extends keyof Track>(id: string, key: K, value: Track[K]) => void;
   getDimensions: (id: string) => any;
-  getShortLabel: (id: string) => string;
+  createShortLabel: (id: string) => string;
   getField: (id: string, field: string) => any;
   getIndexByType: (id: string) => number;
 }
@@ -73,7 +68,7 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     }
     return result;
   },
-  getShortLabel: (id: string) => {
+  createShortLabel: (id: string) => {
     const track = get().getTrack(id);
     if (!track) {
       throw new Error("Track not found");
@@ -83,18 +78,6 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     if (!title || !title.substring || !title.length) return "";
     return title.length <= 20 ? title : title.substring(0, 20) + "...";
   },
-  updateColor: (id: string, color: string) =>
-    set((state) => ({
-      tracks: state.tracks.map((item, _) => (item.id === id ? { ...item, color } : item)),
-    })),
-  updateHeight: (id: string, height: number) =>
-    set((state) => ({
-      tracks: state.tracks.map((item) => (item.id === id ? { ...item, height } : item)),
-    })),
-  // updateText: (id: string, text: string) =>
-  //   set((state) => ({
-  //     tracks: state.tracks.map((item) => (item.id === id ? { ...item, data: text } : item)),
-  //   })),
   getTotalHeight: () => {
     const state = get();
     return state.tracks.reduce((acc, curr) => {
@@ -117,10 +100,6 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
       const { wrapperHeight } = get().getDimensions(curr.id);
       return acc + wrapperHeight;
     }, 0);
-  },
-  getTrackLength: () => {
-    const state = get();
-    return state.tracks.length;
   },
   getDistances: (id: string) => {
     const state = get();
@@ -167,10 +146,11 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     tracks.splice(state.getTrackIndex(id), 1);
     set({ tracks, ids: tracks.map((track) => track.id) });
   },
-  updateTrack: <K extends keyof Track>(id: string, key: K, value: Track[K]) =>
+  updateTrack: <K extends keyof Track>(id: string, key: K, value: Track[K]) => {
     set((state) => ({
       tracks: state.tracks.map((item) => (item.id === id ? { ...item, [key]: value } : item)),
-    })),
+    }));
+  },
   getDimensions: (id: string) => {
     const state = get();
     const track = state.getTrack(id);
