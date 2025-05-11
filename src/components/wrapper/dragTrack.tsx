@@ -26,13 +26,13 @@ export default function DragTrack({ children, id }: { children: React.ReactNode;
   };
 
   const handleStop = () => {
+    setDragging(false);
     if (Math.abs(delta) < 10) {
       setDelta(0);
       return;
     }
     setPosition({ x: delta, y: 0 });
     shiftDomain();
-    setDragging(false);
   };
 
   const cursor = useMemo(() => {

@@ -1,5 +1,5 @@
 import Full from "./full";
 
-export type { FullBigWigProps, DenseBigWigProps } from "./types";
+export type { BigWigProps } from "./types";
 
 export { Full };

@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { BigWigProps } from "../components/tracks/bigwig/types";
-import { useMemo } from "react";
 // All avaliable track types
 export enum TrackType {
   BigWig = "bigwig",

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useBrowserStore } from "../../../store/browserStore";
-import { lighten } from "../../../utils/color";
 import ClipPath from "./clipPath";
 
 import {
