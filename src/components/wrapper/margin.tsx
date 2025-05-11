@@ -54,7 +54,13 @@ export default function Margin({
   const range = getField(id, "range");
 
   return (
-    <g id={`margin-${id}`} height={height} preserveAspectRatio="xMinYMin meet">
+    <g
+      id={`margin-${id}`}
+      height={height}
+      preserveAspectRatio="xMinYMin meet"
+      onMouseMove={onHover}
+      onMouseLeave={onLeave}
+    >
       {/* margin background */}
       <rect
         className="swap-handle"
@@ -64,8 +70,6 @@ export default function Margin({
         height={height}
         fill={"white"}
         style={{ cursor: swapping ? "grabbing" : "grab" }}
-        onMouseMove={onHover}
-        onMouseLeave={onLeave}
       />
       {/* colored bar */}
       <rect x={0} y={0} width={marginWidth / 15} height={height} stroke="#000000" strokeWidth={0.5} fill={color} />
