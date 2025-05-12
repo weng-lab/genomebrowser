@@ -57,16 +57,31 @@ export default function FullBigWig(props: Props) {
     const y = ytransform(range, props.height);
     const clampY = (value: number) => Math.max(0, Math.min(props.height, y(value)));
 
-    const yValues = renderPoints.map((point) => ({
-      min: clampY(point.min),
-    }));
+    const yValues = renderPoints.map((point) => {
+      const clampedY = clampY(point.min);
+      return {
+        value: clampedY,
+        isClamped: point.min > range.max
+      };
+    });
+
+    // Generate the main path
+    const path = renderPoints.reduce((path, cv, ci) => {
+      const prevY = ci > 0 ? yValues[ci - 1].value : clampY(0);
+      return path + (cv.x ? l(cv.x, prevY) : "") + l(cv.x, yValues[ci].value);
+    }, "M 0 " + clampY(0.0) + " ") + l(trackWidth, clampY(0.0));
+
+    // Generate clamped markers
+    const clampedMarkers = renderPoints.map((point, i) => {
+      if (yValues[i].isClamped) {
+        return `M ${point.x} 0 l 0 2`;
+      }
+      return '';
+    }).join(' ');
 
     return {
-      minPath:
-        renderPoints.reduce((path, cv, ci) => {
-          const prevY = ci > 0 ? yValues[ci - 1].min : clampY(0);
-          return path + (cv.x ? l(cv.x, prevY) : "") + l(cv.x, yValues[ci].min);
-        }, "M 0 " + clampY(0.0) + " ") + l(trackWidth, clampY(0.0)),
+      path,
+      clampedMarkers
     };
   }, [rendered, props.height, trackWidth, range]);
 
@@ -91,7 +106,8 @@ export default function FullBigWig(props: Props) {
       <defs>
         <ClipPath id={props.id} width={trackWidth} height={props.height} />
       </defs>
-      <path d={paths.minPath} fill={props.color || "#000000"} style={{ clipPath: `url(#${props.id})` }} />
+      <path d={paths.path} fill={props.color || "#000000"} style={{ clipPath: `url(#${props.id})` }} />
+      <path d={paths.clampedMarkers} stroke="red" strokeWidth="1" fill="none" />
       {/* tooltip */}
       {delta === 0 && (
         <g transform={`translate(${w}, 0)`}>
