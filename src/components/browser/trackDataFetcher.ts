@@ -11,6 +11,7 @@ export default function TrackDataFetcher() {
   const [result, setResult] = useState<Result>({ bigResult: { data: undefined, error: undefined }, loading: true });
   const domain = useBrowserStore((state) => state.domain);
   const tracks = useTrackStore((state) => state.tracks);
+  const multiplier = useBrowserStore((state) => state.multiplier);
   const setData = useDataStore((state) => state.setData);
   const setFetching = useDataStore((state) => state.setFetching);
   const getIndexByType = useTrackStore((state) => state.getIndexByType);
@@ -19,16 +20,17 @@ export default function TrackDataFetcher() {
 
   useEffect(() => {
     const visibleWidth = domain.end - domain.start;
+    const sidePiece = Math.floor(visibleWidth * (multiplier - 1) / 2)
     const expandedDomain: Domain = {
       chromosome: domain.chromosome,
-      start: domain.start - visibleWidth,
-      end: domain.end + visibleWidth,
+      start: domain.start - sidePiece,
+      end: domain.end + sidePiece,
     };
     const bigTracks = tracks.filter((track) => track.trackType === TrackType.BigWig);
     const bigRequests = buildBigRequests(bigTracks, expandedDomain);
     fetch({ variables: { bigRequests } });
     setFetching(true);
-  }, [domain, tracks, fetch]);
+  }, [domain, tracks, fetch, multiplier]);
 
   useEffect(() => {
     if (bigResult.loading || bigResult.data === undefined) return;
