@@ -5,6 +5,7 @@ import { Track, useTrackStore } from "../../store/trackStore";
 import Modal from "../modal/modal";
 import DisplayTrack from "../tracks/displayTrack";
 import SVGWrapper from "./svgWrapper";
+import ContextMenu from "../contextMenu/contextMenul";
 
 export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {
   // Store functions
@@ -35,6 +36,7 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Int
         })}
       </SVGWrapper>
       <Modal />
+      <ContextMenu />
     </div>
   );
 }

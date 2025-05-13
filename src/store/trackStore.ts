@@ -9,6 +9,9 @@ export enum TrackType {
 
 export enum DisplayMode {
   Full = "full",
+  Dense = "dense",
+  Squish = "squish",
+  Pack = "pack",
 }
 
 // Shared properties for all tracks

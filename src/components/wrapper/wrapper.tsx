@@ -2,10 +2,11 @@ import { useState } from "react";
 import DragTrack from "./dragTrack";
 import Margin from "./margin";
 import SwapTrack from "./swapTrack";
-import { useTrackStore } from "../../store/trackStore";
+import { DisplayMode, TrackType, useTrackStore } from "../../store/trackStore";
 import { useBrowserStore } from "../../store/browserStore";
 import LoadingSpinner from "../../icons/loadingSpinner";
 import ErrorIcon from "../../icons/errorIcon";
+import { useContextMenuStore } from "../../store/contestMenuStore";
 
 export interface WrapperProps {
   id: string;
@@ -38,7 +39,7 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
   const shortLabel = createShortLabel(id);
 
   const spinnerSize = wrapperHeight / 3;
-
+  const setContextMenu = useContextMenuStore((state) => state.setContextMenu);
   return (
     <g id={`wrapper-${id}`} transform={transform}>
       <SwapTrack id={id} setSwapping={setSwapping}>
@@ -72,7 +73,15 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
         {/* track */}
         {!loading && !error && (
           <DragTrack id={id}>
-            <g transform={`translate(${marginWidth},${totalVerticalMargin})`}>{children}</g>
+            <g
+              transform={`translate(${marginWidth},${totalVerticalMargin})`}
+              onContextMenu={(e: React.MouseEvent<SVGGElement>) => {
+                e.preventDefault();
+                setContextMenu(true, id, e.pageX, e.pageY);
+              }}
+            >
+              {children}
+            </g>
           </DragTrack>
         )}
         {/* title */}

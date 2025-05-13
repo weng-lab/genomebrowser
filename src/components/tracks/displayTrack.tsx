@@ -4,6 +4,7 @@ import { useDataStore } from "../../store/dataStore";
 import { DisplayMode, Track, TrackType, useTrackStore } from "../../store/trackStore";
 import Wrapper from "../wrapper/wrapper";
 import FullBigWig from "./bigwig/full";
+import DenseBigWig from "./bigwig/dense";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const data = useDataStore((state) => state.data.get(id));
@@ -26,9 +27,10 @@ export default function DisplayTrack({ id }: { id: string }) {
   );
 }
 
-const trackComponents = {
+export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, React.ComponentType<any>>>> = {
   [TrackType.BigWig]: {
     [DisplayMode.Full]: FullBigWig,
+    [DisplayMode.Dense]: DenseBigWig,
   },
   [TrackType.BigBed]: {
     [DisplayMode.Full]: FullBigWig,
