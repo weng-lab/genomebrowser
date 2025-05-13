@@ -10,7 +10,8 @@ export default function ContextMenu() {
   const menuRef = useRef<HTMLDivElement>(null);
   const track = useTrackStore((state) => state.getTrack(id || ""));
   const updateTrack = useTrackStore((state) => state.updateTrack);
-  const [hovered, setHovered] = useState<DisplayMode | null>(null);
+  const removeTrack = useTrackStore((state) => state.removeTrack);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -33,10 +34,14 @@ export default function ContextMenu() {
   const items = trackComponents[track.trackType];
   const options = Object.keys(items) as DisplayMode[];
 
-  const handleClick = (mode: DisplayMode) => {
+  const handleClick = (mode: string) => {
     if (!id) return;
     setContextMenu(false, id, x, y);
-    updateTrack(id, "displayMode", mode);
+    if (mode === "hide") {
+      removeTrack(id);
+    } else {
+      updateTrack(id, "displayMode", mode as DisplayMode);
+    }
   };
 
   return (
@@ -52,33 +57,61 @@ export default function ContextMenu() {
         zIndex: 1000,
       }}
     >
-      {options.map((mode) => {
-        return (
-          <div
-            key={mode}
-            style={{
-              background: getBackground(currentMode, hovered, mode),
-              padding: 5,
-              cursor: hovered === mode ? "pointer" : "default",
-            }}
-            onMouseEnter={() => setHovered(mode)}
-            onMouseLeave={() => setHovered(null)}
-            onClick={() => handleClick(mode)}
-          >
-            {mode}
-          </div>
-        );
-      })}
+      {options.map((mode) => (
+        <OptionButton
+          key={mode}
+          mode={mode}
+          currentMode={currentMode}
+          hovered={hovered}
+          setHovered={setHovered}
+          handleClick={handleClick}
+        />
+      ))}
+      <OptionButton
+        mode={"remove"}
+        currentMode={currentMode}
+        hovered={hovered}
+        setHovered={setHovered}
+        handleClick={handleClick}
+      />
+      <OptionButton
+        mode={"download"}
+        currentMode={currentMode}
+        hovered={hovered}
+        setHovered={setHovered}
+        handleClick={handleClick}
+      />
     </div>
   );
 }
 
-const getBackground = (currentMode: DisplayMode, hovered: DisplayMode | null, mode: DisplayMode) => {
-  if (currentMode === mode) {
-    return "gray";
-  }
-  if (hovered === mode) {
-    return "lightgray";
-  }
-  return "white";
-};
+function OptionButton({
+  mode,
+  currentMode,
+  hovered,
+  setHovered,
+  handleClick,
+}: {
+  mode: string;
+  currentMode: string;
+  hovered: string | null;
+  setHovered: (hovered: string | null) => void;
+  handleClick: (mode: string) => void;
+}) {
+  return (
+    <div
+      key={mode}
+      style={{
+        background: currentMode === mode ? "#d0d0d0" : hovered === mode ? "#f0f0f0" : "#ffffff",
+        padding: 5,
+        cursor: hovered === mode ? "pointer" : "default",
+        fontSize: 12,
+      }}
+      onMouseEnter={() => setHovered(mode)}
+      onMouseLeave={() => setHovered(null)}
+      onClick={() => handleClick(mode)}
+    >
+      {mode}
+    </div>
+  );
+}

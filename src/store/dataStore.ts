@@ -17,7 +17,7 @@ interface DataStore {
 export const useDataStore = create<DataStore>((set, get) => ({
   data: new Map<string, { data: any; error: ApolloError | undefined }>(),
   loading: true,
-  fetching: true,
+  fetching: false,
   getData: (id: string) => {
     const state = get();
     const result = state.data.get(id);

@@ -11,7 +11,7 @@ export default function SvgWrapper({ children }: { children: React.ReactNode }) 
   const browserWidth = useBrowserStore((state) => state.browserWidth);
   const svgRef = useRef<SVGSVGElement>(null);
   const fetching = useDataStore((state) => state.fetching);
-  
+
   useEffect(() => {
     setSvgRef(svgRef);
   }, [svgRef]);

@@ -55,7 +55,15 @@ function Main() {
     <div>
       <Action />
       <ApolloProvider client={client}>
+        {/* <div
+          style={{
+            width: "50%",
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        > */}
         <Browser state={initialState} tracks={tracks} />
+        {/* </div> */}
       </ApolloProvider>
     </div>
   );

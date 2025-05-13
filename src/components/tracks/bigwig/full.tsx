@@ -16,14 +16,11 @@ import {
 import { useTrackStore } from "../../../store/trackStore";
 import { createCopy, getRange, l, renderBigWig, ytransform } from "./helpers";
 import { svgPoint } from "../../../utils/svg";
+import { TrackDimensions } from "../types";
 
-type Props = BigWigProps & { data: BigWigData[] | undefined };
+type Props = BigWigProps & { data: BigWigData[] | undefined; dimensions: TrackDimensions };
 
-export default function FullBigWig(props: Props) {
-  const w = useBrowserStore((state) => state.trackWidth);
-  const multiplier = useBrowserStore((state) => state.multiplier);
-  const trackWidth = w * multiplier;
-  const sidePiece = (multiplier - 1) / 2;
+export default function FullBigWig({ data, range, id, height, color, dimensions }: Props) {
   const domain = useBrowserStore((state) => state.domain);
   const updateTrack = useTrackStore((state) => state.updateTrack);
   const delta = useBrowserStore((state) => state.delta);
@@ -32,41 +29,41 @@ export default function FullBigWig(props: Props) {
   const [x, setX] = useState<number>();
   const [value, setValue] = useState<number>();
 
-  const range = useMemo(() => {
-    const length = props.data?.length ?? 0;
-    const middleSectionSize = length / multiplier;
-    const startIndex = Math.floor(sidePiece * middleSectionSize);
-    const endIndex = Math.floor((sidePiece + 1) * middleSectionSize);
-    const middleSlice = props.data?.slice(startIndex, endIndex);
+  const realRange = useMemo(() => {
+    const length = data?.length ?? 0;
+    const middleSectionSize = length / dimensions.multiplier;
+    const startIndex = Math.floor(dimensions.sidePortion * middleSectionSize);
+    const endIndex = Math.floor((dimensions.sidePortion + 1) * middleSectionSize);
+    const middleSlice = data?.slice(startIndex, endIndex);
     return getRange(middleSlice ?? []);
-  }, [props.data, multiplier, sidePiece]);
+  }, [data, dimensions.multiplier, dimensions.sidePortion]);
 
   useEffect(() => {
-    if (props.range?.max === range?.max && props.range?.min === range?.min) return;
-    updateTrack(props.id, "range", range);
-  }, [range, props.id, updateTrack]);
+    if (range?.max === range?.max && range?.min === range?.min) return;
+    updateTrack(id, "range", realRange);
+  }, [realRange, id, updateTrack]);
 
-  const dataCopy = useMemo(() => createCopy(props.data ?? []), [props.data]);
+  const dataCopy = useMemo(() => createCopy(data ?? []), [data]);
 
   const rendered: RenderedBigWigData = useMemo(
     () =>
       dataCopy && dataCopy.length && dataType(dataCopy) === DataType.ValuedPoint
-        ? { renderPoints: dataCopy as ValuedPoint[], range: props.range || getRange(dataCopy) }
-        : renderBigWig(dataCopy as BigWigData[] | BigZoomData[], trackWidth),
-    [dataCopy, trackWidth, domain]
+        ? { renderPoints: dataCopy as ValuedPoint[], range: range || getRange(dataCopy) }
+        : renderBigWig(dataCopy as BigWigData[] | BigZoomData[], dimensions.totalWidth),
+    [dataCopy, dimensions.totalWidth, domain]
   );
 
   const paths: Paths = useMemo(() => {
     const renderPoints = rendered.renderPoints.filter((v) => v.min < Infinity && v.max > -Infinity);
 
-    const y = ytransform(range, props.height);
-    const clampY = (value: number) => Math.max(0, Math.min(props.height, y(value)));
+    const y = ytransform(realRange, height);
+    const clampY = (value: number) => Math.max(0, Math.min(height, y(value)));
 
     const yValues = renderPoints.map((point) => {
       const clampedY = clampY(point.min);
       return {
         value: clampedY,
-        isClamped: point.min > range.max,
+        isClamped: point.min > realRange.max,
       };
     });
 
@@ -75,7 +72,7 @@ export default function FullBigWig(props: Props) {
       renderPoints.reduce((path, cv, ci) => {
         const prevY = ci > 0 ? yValues[ci - 1].value : clampY(0);
         return path + (cv.x ? l(cv.x, prevY) : "") + l(cv.x, yValues[ci].value);
-      }, "M 0 " + clampY(0.0) + " ") + l(trackWidth, clampY(0.0));
+      }, "M 0 " + clampY(0.0) + " ") + l(dimensions.totalWidth, clampY(0.0));
 
     // Generate clamped markers
     const clampedMarkers = renderPoints
@@ -91,7 +88,7 @@ export default function FullBigWig(props: Props) {
       path,
       clampedMarkers,
     };
-  }, [rendered, props.height, trackWidth, range]);
+  }, [rendered, height, dimensions.viewWidth, realRange]);
 
   const svgRef = useBrowserStore((state) => state.svgRef);
   const mouseOver = (e: React.MouseEvent<SVGElement>) => {
@@ -99,8 +96,8 @@ export default function FullBigWig(props: Props) {
     const pos = svgPoint(svgRef.current, e);
     setX(pos[0]);
     const len = rendered.renderPoints.length;
-    const middleSectionSize = len / multiplier;
-    const adjustedX = Math.round(pos[0] - marginWidth) + Math.floor(sidePiece * middleSectionSize);
+    const middleSectionSize = len / dimensions.multiplier;
+    const adjustedX = Math.round(pos[0] - marginWidth) + Math.floor(dimensions.sidePortion * middleSectionSize);
     const point = rendered.renderPoints.find((r) => r.min < Infinity && r.max > -Infinity && r.x === adjustedX);
     setValue(point?.max);
   };
@@ -111,28 +108,28 @@ export default function FullBigWig(props: Props) {
 
   return (
     <g
-      width={trackWidth}
-      height={props.height}
-      clipPath={`url(#${props.id})`}
-      transform={`translate(-${w * sidePiece}, 0)`}
+      width={dimensions.totalWidth}
+      height={height}
+      clipPath={`url(#${id})`}
+      transform={`translate(-${dimensions.sideWidth}, 0)`}
     >
-      <rect width={trackWidth} height={props.height} fill={"white"} />
+      <rect width={dimensions.totalWidth} height={height} fill={"white"} />
       <defs>
-        <ClipPath id={props.id} width={w * multiplier} height={props.height} />
+        <ClipPath id={id} width={dimensions.totalWidth} height={height} />
       </defs>
-      <path d={paths.path} fill={props.color || "#000000"} style={{ clipPath: `url(#${props.id})` }} />
+      <path d={paths.path} fill={color || "#000000"} style={{ clipPath: `url(#${id})` }} />
       <path d={paths.clampedMarkers} stroke="red" strokeWidth="1" fill="none" />
       {/* tooltip */}
       {delta === 0 && (
-        <g transform={`translate(${w * sidePiece}, 0)`}>
-          <Tooltip x={x} value={value} trackHeight={props.height} />
+        <g transform={`translate(${dimensions.sideWidth}, 0)`}>
+          <Tooltip x={x} value={value} trackHeight={height} />
         </g>
       )}
       {/* Interactive area */}
       <rect
-        width={w}
-        height={props.height}
-        transform={`translate(${w * sidePiece}, 0)`}
+        width={dimensions.viewWidth}
+        height={height}
+        transform={`translate(${dimensions.sideWidth}, 0)`}
         fill={"transparent"}
         onMouseMove={(e: React.MouseEvent<SVGElement>) => {
           mouseOver(e);

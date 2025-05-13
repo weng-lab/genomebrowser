@@ -14,7 +14,7 @@ export const BIGDATA_QUERY = gql`
   }
 `;
 
-interface BigRequest {
+export interface BigRequest {
   url: string;
   chr1: string;
   start: number;

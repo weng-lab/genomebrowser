@@ -94,6 +94,42 @@ export function renderBigWig(data: BigWigData[] | BigZoomData[] | undefined | nu
   return result;
 }
 
+export const renderDense = (data: ValuedPoint[]) => {
+  const domain = { start: data[0].x, end: data[data.length - 1].x };
+  const x = trackXTransform(
+    domain,
+    data.map((d) => {
+      return { start: d.x, end: d.x + 1 };
+    }),
+    100.0
+  );
+
+  const initialValues: ValuedPoint[] = [];
+  for (let i = 0; i <= 100; ++i) {
+    initialValues.push({
+      x: i,
+      max: -Infinity,
+      min: Infinity,
+    });
+  }
+  return data.reduce(
+    (c, point) => {
+      const cxs = Math.floor(x(point.x)),
+        cxe = Math.floor(x(point.x));
+      if (point.min < c.renderPoints[cxs].min) c.renderPoints[cxs].min = point.min;
+      if (point.max > c.renderPoints[cxs].max) c.renderPoints[cxs].max = point.max;
+      for (let i = cxs + 1; i <= cxe; ++i) {
+        c.renderPoints[i].min = point.min;
+        c.renderPoints[i].max = point.max;
+      }
+      if (point.min < c.range.min) c.range.min = point.min;
+      if (point.max > c.range.max) c.range.max = point.max;
+      return c;
+    },
+    { renderPoints: initialValues, range: { max: -Infinity, min: Infinity } }
+  );
+};
+
 /**
  * Creates a shallow copy of the data passed to the FullBigWig component
  * @param data The bigwig track data
