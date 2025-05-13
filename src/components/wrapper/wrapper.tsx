@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import DragTrack from "./dragTrack";
 import Margin from "./margin";
 import SwapTrack from "./swapTrack";
-import { DisplayMode, TrackType, useTrackStore } from "../../store/trackStore";
+import { useTrackStore } from "../../store/trackStore";
 import { useBrowserStore } from "../../store/browserStore";
 import LoadingSpinner from "../../icons/loadingSpinner";
 import ErrorIcon from "../../icons/errorIcon";
@@ -20,16 +20,16 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
   const [swapping, setSwapping] = useState(false);
   const [hover, setHover] = useState(false);
 
-  const onHover = () => {
+  const onHover = useCallback(() => {
     setHover(true);
-  };
-  const onLeave = () => {
+  }, []);
+  const onLeave = useCallback(() => {
     setHover(false);
-  };
+  }, []);
 
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const browserWidth = useBrowserStore((state) => state.browserWidth);
-  const trackWidth = browserWidth - marginWidth;
+  const trackWidth = useMemo(() => browserWidth - marginWidth, [browserWidth, marginWidth]);
   const getDimensions = useTrackStore((state) => state.getDimensions);
   const createShortLabel = useTrackStore((state) => state.createShortLabel);
 
@@ -40,6 +40,7 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
 
   const spinnerSize = wrapperHeight / 3;
   const setContextMenu = useContextMenuStore((state) => state.setContextMenu);
+
   return (
     <g id={`wrapper-${id}`} transform={transform}>
       <SwapTrack id={id} setSwapping={setSwapping}>

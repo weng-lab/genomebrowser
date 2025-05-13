@@ -1,5 +1,5 @@
 import { ApolloError } from "@apollo/client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDataStore } from "../../store/dataStore";
 import { DisplayMode, Track, TrackType, useTrackStore } from "../../store/trackStore";
 import Wrapper from "../wrapper/wrapper";
@@ -19,10 +19,11 @@ export default function DisplayTrack({ id }: { id: string }) {
 
   const track = useTrackStore((state) => state.getTrack(id));
   const prevHeights = useTrackStore((state) => state.getPrevHeights(id));
-  const transform = `translate(0, ${prevHeights})`;
+  const transform = useMemo(() => `translate(0, ${prevHeights})`, [prevHeights]);
+  const trackComponent = useMemo(() => (track && data ? getTrackComponent(track, data) : <></>), [track, data]);
   return (
     <Wrapper id={id} transform={transform} error={error?.message} loading={loading}>
-      {track && data ? getTrackComponent(track, data) : <></>}
+      {trackComponent}
     </Wrapper>
   );
 }
