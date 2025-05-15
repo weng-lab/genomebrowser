@@ -2,10 +2,11 @@ import { Result } from "../../api/types";
 import { useDataStore } from "../../store/dataStore";
 import { useEffect, useState } from "react";
 import { useBrowserStore } from "../../store/browserStore";
-import { TrackType, useTrackStore } from "../../store/trackStore";
+import { useTrackStore } from "../../store/trackStore";
 import { buildBigRequests, BIGDATA_QUERY, BigRequest } from "../../api/bigRequests";
 import { useLazyQuery } from "@apollo/client";
 import { Domain } from "../../utils/types";
+import { TrackType } from "../tracks/types";
 
 export default function TrackDataFetcher() {
   const [result, setResult] = useState<Result>({ bigResult: { data: undefined, error: undefined }, loading: true });
@@ -22,7 +23,7 @@ export default function TrackDataFetcher() {
 
   useEffect(() => {
     const visibleWidth = domain.end - domain.start;
-    const sidePiece = Math.floor(visibleWidth * (multiplier - 1) / 2)
+    const sidePiece = Math.floor((visibleWidth * (multiplier - 1)) / 2);
     const expandedDomain: Domain = {
       chromosome: domain.chromosome,
       start: domain.start - sidePiece,
@@ -33,11 +34,11 @@ export default function TrackDataFetcher() {
     setBigRequests(bigRequests);
   }, [domain, tracks.length, trackIds, fetch, multiplier]);
 
-  useEffect(()=>{
+  useEffect(() => {
     if (bigRequests.length === 0) return;
     fetch({ variables: { bigRequests } });
     setFetching(true);
-  }, [bigRequests, fetch, setFetching])
+  }, [bigRequests, fetch, setFetching]);
 
   useEffect(() => {
     if (bigResult.loading || bigResult.data === undefined) return;

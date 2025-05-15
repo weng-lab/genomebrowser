@@ -6,7 +6,6 @@ import { TranscriptConfig, TranscriptList, TranscriptRow } from "./types";
 import ClipPath from "../../svg/clipPath";
 import { mergeTranscripts, renderTranscript } from "./helper";
 import { useTrackStore } from "../../../store/trackStore";
-import { useBrowserStore } from "../../../store/browserStore";
 
 interface SquishTranscriptProps {
   id: string;
@@ -23,7 +22,6 @@ export function bestFontSize(height: number): number {
 }
 
 export default function SquishTranscript({ id, data, geneName, rowHeight, dimensions, color }: SquishTranscriptProps) {
-  const domain = useBrowserStore((state) => state.domain);
   const { totalWidth, sideWidth } = dimensions;
   const x = useXTransform(totalWidth);
   const fontSize = bestFontSize(rowHeight) * 1.25;
@@ -32,9 +30,9 @@ export default function SquishTranscript({ id, data, geneName, rowHeight, dimens
     () =>
       groupFeatures(data?.map((gene) => mergeTranscripts(gene, geneName)) || [], x, fontSize).map((group, i) => ({
         y: i * rowHeight,
-        transcripts: group.map((transcript) => renderTranscript(transcript, x, domain, rowHeight, totalWidth)),
+        transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, totalWidth)),
       })),
-    [data, rowHeight, totalWidth, domain]
+    [data, rowHeight, totalWidth]
   );
 
   const height = useMemo(() => Math.max(rowHeight * rendered.length, 35), [rowHeight, rendered.length]);

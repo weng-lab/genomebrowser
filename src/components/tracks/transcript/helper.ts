@@ -61,11 +61,11 @@ export function mergeUTRs(utrs: GenomicElement[]): GenomicElement[] {
 export function renderTranscript(
   uTranscript: Transcript,
   x: (value: number) => number,
-  domain: { start: number; end: number },
+  // domain: { start: number; end: number },
   rowHeight: number,
   width: number
 ): RenderedTranscript {
-  const transcript = convertTranscriptCoordinates(uTranscript, x, domain);
+  const transcript = convertTranscriptCoordinates(uTranscript, x);
   const paths = {
     exons: transcript.exons?.reduce((p, exon) => p + exonPath(exon, rowHeight / 2, rowHeight, width), "") || "",
     introns: intronPath(
@@ -83,7 +83,7 @@ export function renderTranscript(
 export function convertTranscriptCoordinates(
   transcript: Transcript,
   x: (x: number) => number,
-  domain: { start: number; end: number }
+  // domain: { start: number; end: number }
 ): Transcript {
   return {
     strand: transcript.strand,
@@ -96,8 +96,8 @@ export function convertTranscriptCoordinates(
     },
     exons:
       transcript.exons
-        ?.filter((exon) => exon.coordinates.end > domain.start && exon.coordinates.start < domain.end)
-        .map((exon) => ({
+        // ?.filter((exon) => exon.coordinates.end > domain.start && exon.coordinates.start < domain.end)
+        ?.map((exon) => ({
           coordinates: {
             start: x(exon.coordinates.start),
             end: x(exon.coordinates.end),
