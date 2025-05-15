@@ -6,9 +6,10 @@ export interface IntitialBrowserState {
   domain: Domain;
   marginWidth: number;
   trackWidth: number;
+  multiplier: number;
 }
 
-interface BrowserState {
+interface BrowserStore {
   domain: Domain;
   delta: number;
   svgRef: RefObject<SVGSVGElement | null> | null;
@@ -16,9 +17,6 @@ interface BrowserState {
   trackWidth: number;
   marginWidth: number;
   multiplier: number;
-}
-
-interface BrowserStore extends BrowserState {
   setDomain: (domain: Domain) => void;
   shiftDomain: () => void;
   setDelta: (delta: number) => void;
@@ -42,6 +40,7 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
       browserWidth: state.trackWidth + state.marginWidth,
       trackWidth: state.trackWidth,
       marginWidth: state.marginWidth,
+      multiplier: state.multiplier,
     });
   },
   setDomain: (domain: Domain) => {

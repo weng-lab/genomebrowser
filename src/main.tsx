@@ -42,6 +42,7 @@ function Main() {
     domain: { chromosome: "chr18", start: 35494852, end: 35514000 },
     marginWidth: 150,
     trackWidth: 1350,
+    multiplier: 3,
   };
 
   return (

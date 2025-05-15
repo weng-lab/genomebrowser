@@ -1,35 +1,11 @@
 import { create } from "zustand";
-import { BaseConfig, TrackType } from "../components/tracks/types";
 import { BigWigConfig } from "../components/tracks/bigwig/types";
 import { BigBedConfig } from "../components/tracks/bigbed/types";
+import { TranscriptConfig } from "../components/tracks/transcript/types";
+import { MotifConfig } from "../components/tracks/motif/types";
+import { ImportanceConfig } from "../components/tracks/importance/types";
+import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 
-export interface TranscriptConfig extends BaseConfig {
-  trackType: TrackType.Transcript;
-  refetch: () => void;
-  assembly: string;
-  version: number;
-}
-
-export interface MotifConfig extends BaseConfig {
-  trackType: TrackType.Motif;
-  consensusRegex: string;
-  peaksAccession: string;
-  assembly: string;
-}
-
-export interface ImportanceConfig extends BaseConfig {
-  trackType: TrackType.Importance;
-  url: string;
-  signalURL: string;
-}
-
-export interface LDTrackConfig extends BaseConfig {
-  trackType: TrackType.LDTrack;
-  signalURL: string;
-  assembly: string;
-}
-
-// Track type includes all specific track types + base properties
 export type Track = BigWigConfig | BigBedConfig | TranscriptConfig | MotifConfig | ImportanceConfig | LDTrackConfig;
 
 interface TrackStore {
