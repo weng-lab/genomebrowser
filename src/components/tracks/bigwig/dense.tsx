@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Data, DataType, dataType, RenderedBigWigData } from "./types";
+import { useEffect, useMemo, useState } from "react";
+import { BigWigConfig, Data, DataType, dataType, RenderedBigWigData } from "./types";
 import { BigZoomData } from "./types";
 import { ValuedPoint } from "./types";
 import { getRange, renderDense } from "./helpers";
@@ -11,6 +11,7 @@ import { useBrowserStore } from "../../../store/browserStore";
 import { TrackDimensions } from "../types";
 import { svgPoint } from "../../../utils/svg";
 import { Tooltip } from "./tooltip";
+import { useTrackStore } from "../../../store/trackStore";
 
 interface DenseBigWigProps {
   id: string;
@@ -20,8 +21,9 @@ interface DenseBigWigProps {
   dimensions: TrackDimensions;
 }
 
-export default function DenseBigWig({id, data, color, height, dimensions}: DenseBigWigProps) {
+export default function DenseBigWig({ id, data, color, height, dimensions }: DenseBigWigProps) {
   const { multiplier, sideWidth, sidePortion, totalWidth, viewWidth } = dimensions;
+  const editTrack = useTrackStore((state) => state.editTrack);
   const delta = useBrowserStore((state) => state.delta);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const [x, setX] = useState<number>();
@@ -35,6 +37,10 @@ export default function DenseBigWig({id, data, color, height, dimensions}: Dense
     const middleSlice = data?.slice(startIndex, endIndex);
     return getRange(middleSlice ?? []);
   }, [data, multiplier, sidePortion]);
+
+  useEffect(() => {
+    editTrack<BigWigConfig>(id, { range: range });
+  }, [range, id, editTrack]);
 
   const rendered: RenderedBigWigData = useMemo(
     () =>
