@@ -36,6 +36,19 @@ function Main() {
       url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
       rowHeight: 20,
     },
+    {
+      id: "3",
+      title: "Track 3",
+      titleSize: 12,
+      height: 50,
+      color: "#adadff",
+      trackType: TrackType.Transcript,
+      assembly: "GRCh38",
+      version: 47,
+      refetch: () => {},
+      displayMode: DisplayMode.Squish,
+      rowHeight: 12
+    },
   ];
 
   const initialState: IntitialBrowserState = {

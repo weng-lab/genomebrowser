@@ -9,3 +9,10 @@ export const svgPoint = (svg: SVGSVGElement, event: React.MouseEvent<SVGElement>
   const rect = svg.getBoundingClientRect();
   return [event.clientX - rect.left - svg.clientLeft, event.clientY - rect.top - svg.clientTop];
 };
+
+export function m(x: number, y: number): string {
+  return ` M ${x} ${y}`;
+}
+export function l(x: number, y: number): string {
+  return ` L ${x} ${y}`;
+}

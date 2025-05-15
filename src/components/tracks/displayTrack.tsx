@@ -9,6 +9,7 @@ import FullBigWig from "./bigwig/full";
 import { DisplayMode, TrackDimensions, TrackType } from "./types";
 import Wrapper from "./wrapper/wrapper";
 import SquishBigBed from "./bigbed/squish";
+import SquishTranscript from "./transcript/squish";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -61,7 +62,7 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
     [DisplayMode.Squish]: SquishBigBed,
   },
   [TrackType.Transcript]: {
-    [DisplayMode.Full]: () => <></>,
+    [DisplayMode.Squish]: SquishTranscript,
   },
   [TrackType.Motif]: {
     [DisplayMode.Full]: () => <></>,
@@ -75,6 +76,9 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
 };
 
 function getTrackComponent(track: Track, data: any, dimensions: TrackDimensions) {
+  if (track.trackType === TrackType.Transcript) {
+    console.log(data);
+  }
   const Component = trackComponents[track.trackType][track.displayMode];
   if (!Component) return null;
   return <Component {...track} data={data.data} dimensions={dimensions} />;

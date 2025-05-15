@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { BigWigConfig, Data, DataType, dataType, RenderedBigWigData } from "./types";
-import { BigZoomData } from "./types";
-import { ValuedPoint } from "./types";
-import { getRange, renderDense } from "./helpers";
-import { renderBigWig } from "./helpers";
-import { BigWigData } from "./types";
-import { ytransform } from "./helpers";
-import { lighten } from "../../../utils/color";
 import { useBrowserStore } from "../../../store/browserStore";
-import { TrackDimensions } from "../types";
-import { svgPoint } from "../../../utils/svg";
-import { Tooltip } from "./tooltip";
 import { useTrackStore } from "../../../store/trackStore";
+import { lighten } from "../../../utils/color";
+import { svgPoint } from "../../../utils/svg";
+import { TrackDimensions } from "../types";
+import { getRange, renderBigWig, renderDense, ytransform } from "./helpers";
+import { Tooltip } from "./tooltip";
+import {
+  BigWigConfig,
+  BigWigData,
+  BigZoomData,
+  Data,
+  DataType,
+  dataType,
+  RenderedBigWigData,
+  ValuedPoint,
+} from "./types";
 
 interface DenseBigWigProps {
   id: string;

@@ -145,7 +145,3 @@ export function createCopy(data: Data | undefined): Data {
   }
   return [];
 }
-
-export function l(x: number, y: number): string {
-  return ` L ${x} ${y}`;
-}

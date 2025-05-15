@@ -15,8 +15,8 @@ import {
 } from "./types";
 
 import { useTrackStore } from "../../../store/trackStore";
-import { createCopy, getRange, l, renderBigWig, ytransform } from "./helpers";
-import { svgPoint } from "../../../utils/svg";
+import { createCopy, getRange, renderBigWig, ytransform } from "./helpers";
+import { svgPoint, l } from "../../../utils/svg";
 import { TrackDimensions } from "../types";
 import { Tooltip } from "./tooltip";
 import { BigWigConfig } from "./types";
