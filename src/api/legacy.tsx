@@ -1,47 +1,15 @@
 import { gql, useLazyQuery } from "@apollo/client";
 import { useEffect, useMemo, useState } from "react";
-import { BIGDATA_QUERY, BigRequest } from "./bigRequests";
-import { VARIANT_QUERY } from "./types";
-import { TRANSCRIPT_GENES_QUERY } from "./types";
-import { MOTIF_QUERY } from "./types";
-import type { ImportanceTrackSequence, Rect as MotifRect } from "./types";
-import { useBrowserStore } from "../store/browserStore";
-import { useTrackStore, TranscriptConfig } from "../store/trackStore";
-import { useDataStore } from "../store/dataStore";
+import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { TrackType } from "../components/tracks/types";
-
-export type TranscriptRequest = {
-  chromosome: string;
-  assembly: string;
-  start: number;
-  end: number;
-  version: number;
-};
-
-type MotifRequest = {
-  consensus_regex: string;
-  peaks_accession: string;
-  range: {
-    chromosome: string;
-    start: number;
-    end: number;
-  };
-  assembly: string;
-  prange: {
-    chrom: string;
-    chrom_start: number;
-    chrom_end: number;
-  };
-};
-
-type LDRequest = {
-  assembly: string;
-  coordinates: {
-    chromosome: string;
-    start: number;
-    end: number;
-  };
-};
+import { useBrowserStore } from "../store/browserStore";
+import { useDataStore } from "../store/dataStore";
+import { useTrackStore } from "../store/trackStore";
+import { BIGDATA_QUERY, BigRequest } from "./bigRequests";
+import { ImportanceTrackSequence } from "./importanceRequests";
+import { LDRequest, VARIANT_QUERY } from "./ldRequests";
+import { MOTIF_QUERY, MotifRect, MotifRequest } from "./motifRequests";
+import { TRANSCRIPT_GENES_QUERY, TranscriptRequest } from "./transcriptRequests";
 
 function LegacyDataFetcher() {
   const [bigRequests, setBigRequests] = useState<BigRequest[]>();

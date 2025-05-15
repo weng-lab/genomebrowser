@@ -1,9 +1,8 @@
-import { useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
 import { useContextMenuStore } from "../../store/contestMenuStore";
+import { useTrackStore } from "../../store/trackStore";
 import { trackComponents } from "../tracks/displayTrack";
-import { DisplayMode, useTrackStore } from "../../store/trackStore";
-import { useEffect, useRef } from "react";
+import { DisplayMode } from "../tracks/types";
 
 export default function ContextMenu() {
   const { open, id, x, y, setContextMenu } = useContextMenuStore();
