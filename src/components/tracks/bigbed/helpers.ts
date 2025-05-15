@@ -1,5 +1,5 @@
-import { Domain } from "../../../utils/types";
-import { Rect } from "./types";
+import { groupFeatures } from "../../../utils/coordinates";
+import { Rect, SquishRect } from "./types";
 
 /**
  * Renders dense BigBed data to SVG rectangles; overlapping regions are merged into single rectangles.
@@ -23,27 +23,27 @@ export function renderDenseBigBedData(data: Rect[], x: (value: number) => number
   return results;
 }
 
-export function testRender(data: Rect[], totalWidth: number, domain: Domain) {
-  const visibleWidth = domain.end - domain.start;
-  const sidePiece = Math.floor(visibleWidth * (1.5 - 1) / 2)
-  const expandedDomain: Domain = {
-    chromosome: domain.chromosome,
-    start: domain.start - sidePiece,
-    end: domain.end + sidePiece,
-  };
-  const results: Rect[] = [];
-  const domainWidth = expandedDomain.end - expandedDomain.start;
-  data.forEach((current) => {
-    console.log(current, domain)
-    const start = ((current.start - domain.start) / domainWidth) * totalWidth;
-    const end = ((current.end - domain.start) / domainWidth) * totalWidth;
-    results.push({
-      start,
-      end,
-      color: current.color,
-      name: current.name,
-      score: current.score,
-    });
-  });
-  return results;
+export function renderSquishBigBedData(data: Rect[], x: (value: number) => number): SquishRect[][] {
+  return groupFeatures(
+    data
+      .sort((a, b) => a.start - b.start)
+      .map((x) => ({
+        coordinates: { start: x.start, end: x.end },
+        color: x.color,
+        name: "",
+        score: x.score,
+        rectname: x.name,
+      })),
+    x,
+    0
+  ).map((group) =>
+    group.map((feature) => ({
+      start: x(feature.coordinates.start) < 0 ? 0 : x(feature.coordinates.start),
+      end: x(feature.coordinates.end),
+      color: feature.color,
+      rectname: feature.rectname,
+      name: feature.rectname,
+      score: feature.score,
+    }))
+  );
 }

@@ -1,16 +1,22 @@
 import { ApolloError } from "@apollo/client";
 import { useEffect, useMemo, useState } from "react";
-import { useDataStore } from "../../store/dataStore";
-import { DisplayMode, Track, TrackType, useTrackStore } from "../../store/trackStore";
-import Wrapper from "./wrapper/wrapper";
-import FullBigWig from "./bigwig/full";
-import DenseBigWig from "./bigwig/dense";
-import { TrackDimensions } from "./types";
 import { useBrowserStore } from "../../store/browserStore";
+import { useDataStore } from "../../store/dataStore";
+import { Track, useTrackStore } from "../../store/trackStore";
 import DenseBigBed from "./bigbed/dense";
+import DenseBigWig from "./bigwig/dense";
+import FullBigWig from "./bigwig/full";
+import { DisplayMode, TrackDimensions, TrackType } from "./types";
+import Wrapper from "./wrapper/wrapper";
+import SquishBigBed from "./bigbed/squish";
 
 export default function DisplayTrack({ id }: { id: string }) {
+  const track = useTrackStore((state) => state.getTrack(id));
   const data = useDataStore((state) => state.data.get(id));
+  const [error, setError] = useState<ApolloError | undefined>(undefined);
+  const loading = useDataStore((state) => state.loading);
+
+  // Dimensions
   const trackWidth = useBrowserStore((state) => state.trackWidth);
   const multiplier = useBrowserStore((state) => state.multiplier);
   const sidePortion = (multiplier - 1) / 2;
@@ -22,21 +28,22 @@ export default function DisplayTrack({ id }: { id: string }) {
     multiplier,
   };
 
-  const [error, setError] = useState<ApolloError | undefined>(undefined);
-  const loading = useDataStore((state) => state.loading);
-
+  // Error handling
   useEffect(() => {
     if (loading || !data) return;
     setError(data.error);
   }, [loading, data]);
 
-  const track = useTrackStore((state) => state.getTrack(id));
+  // Stack track
   const prevHeights = useTrackStore((state) => state.getPrevHeights(id));
   const transform = useMemo(() => `translate(0, ${prevHeights})`, [prevHeights]);
+
+  // Track component
   const trackComponent = useMemo(
     () => (track && data ? getTrackComponent(track, data, trackDimensions) : <></>),
     [track, data, trackDimensions]
   );
+
   return (
     <Wrapper id={id} transform={transform} error={error?.message} loading={loading}>
       {trackComponent}
@@ -51,7 +58,7 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
   },
   [TrackType.BigBed]: {
     [DisplayMode.Dense]: DenseBigBed,
-    [DisplayMode.Squish]: () => <></>,
+    [DisplayMode.Squish]: SquishBigBed,
   },
   [TrackType.Transcript]: {
     [DisplayMode.Full]: () => <></>,

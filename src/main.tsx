@@ -1,9 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
-import { BigWigConfig, DisplayMode, Track, TrackType, useTrackStore } from "./store/trackStore";
+import { Track, useTrackStore } from "./store/trackStore";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { IntitialBrowserState } from "./store/browserStore";
+import { DisplayMode, TrackType } from "./components/tracks/types";
+import { BigWigConfig } from "./components/tracks/bigwig/types";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -53,7 +55,7 @@ function Main() {
             marginRight: "auto",
           }}
         > */}
-          <Browser state={initialState} tracks={tracks} />
+        <Browser state={initialState} tracks={tracks} />
         {/* </div> */}
       </ApolloProvider>
     </div>

@@ -1,4 +1,10 @@
-import { TrackType } from "../../../store/trackStore";
+import { BaseConfig, TrackType } from "../types";
+
+export interface BigWigConfig extends BaseConfig {
+  trackType: TrackType.BigWig;
+  url: string;
+  range?: YRange;
+}
 
 export type YRange = {
   min: number;

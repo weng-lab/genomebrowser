@@ -1,45 +1,7 @@
 import { create } from "zustand";
-import { YRange } from "../components/tracks/bigwig/types";
-// All avaliable track types
-export enum TrackType {
-  BigWig = "bigwig",
-  BigBed = "bigbed",
-  Transcript = "transcript",
-  Motif = "motif",
-  Importance = "importance",
-  LDTrack = "ldtrack",
-}
-
-export enum DisplayMode {
-  Full = "full",
-  Dense = "dense",
-  Squish = "squish",
-  Pack = "pack",
-}
-
-// Shared properties for all tracks
-export interface BaseConfig {
-  id: string;
-  height: number;
-  trackType: TrackType;
-  displayMode: DisplayMode;
-  title: string;
-  titleSize?: number;
-  shortLabel?: string;
-  color?: string;
-}
-
-export interface BigWigConfig extends BaseConfig {
-  trackType: TrackType.BigWig;
-  url: string;
-  range?: YRange;
-}
-
-export interface BigBedConfig extends BaseConfig {
-  trackType: TrackType.BigBed;
-  url: string;
-  rowHeight?: number;
-}
+import { BaseConfig, TrackType } from "../components/tracks/types";
+import { BigWigConfig } from "../components/tracks/bigwig/types";
+import { BigBedConfig } from "../components/tracks/bigbed/types";
 
 export interface TranscriptConfig extends BaseConfig {
   trackType: TrackType.Transcript;

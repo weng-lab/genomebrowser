@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useBrowserStore } from "../../../store/browserStore";
-import ClipPath from "./clipPath";
+import ClipPath from "../../svg/clipPath";
 
 import {
   BigWigData,
@@ -14,11 +14,12 @@ import {
   YRange,
 } from "./types";
 
-import { BigWigConfig, useTrackStore } from "../../../store/trackStore";
+import { useTrackStore } from "../../../store/trackStore";
 import { createCopy, getRange, l, renderBigWig, ytransform } from "./helpers";
 import { svgPoint } from "../../../utils/svg";
 import { TrackDimensions } from "../types";
 import { Tooltip } from "./tooltip";
+import { BigWigConfig } from "./types";
 
 type FullBigWigProps = {
   data: Data;
@@ -31,7 +32,6 @@ type FullBigWigProps = {
 
 export default function FullBigWig({ data, range, id, height, color, dimensions }: FullBigWigProps) {
   const { multiplier, sideWidth, sidePortion, totalWidth, viewWidth } = dimensions;
-  const domain = useBrowserStore((state) => state.domain);
   const editTrack = useTrackStore((state) => state.editTrack);
   const delta = useBrowserStore((state) => state.delta);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
@@ -60,7 +60,7 @@ export default function FullBigWig({ data, range, id, height, color, dimensions 
       dataCopy && dataCopy.length && dataType(dataCopy) === DataType.ValuedPoint
         ? { renderPoints: dataCopy as ValuedPoint[], range: range || getRange(dataCopy) }
         : renderBigWig(dataCopy as BigWigData[] | BigZoomData[], totalWidth),
-    [dataCopy, totalWidth, domain]
+    [dataCopy, totalWidth]
   );
 
   const paths: Paths = useMemo(() => {

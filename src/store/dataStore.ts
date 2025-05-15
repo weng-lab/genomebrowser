@@ -1,7 +1,8 @@
 import { ApolloError } from "@apollo/client";
 import { create } from "zustand";
 import { Result } from "../api/types";
-import { Track, TrackType } from "./trackStore";
+import { Track } from "./trackStore";
+import { TrackType } from "../components/tracks/types";
 
 interface DataStore {
   data: Map<string, any>;

@@ -1,6 +1,6 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { Rect } from "./types";
-import ClipPath from "../bigwig/clipPath";
+import ClipPath from "../../svg/clipPath";
 import { renderDenseBigBedData } from "./helpers";
 import { TrackDimensions } from "../types";
 import { useXTransform } from "../../../hooks/useXTransform";
@@ -14,22 +14,18 @@ interface DenseBigBedProps {
 }
 
 function DenseBigBed({ id, data, height, color, dimensions }: DenseBigBedProps) {
-  const x = useXTransform(dimensions.totalWidth);
+  const { totalWidth, sideWidth } = dimensions;
+  const x = useXTransform(totalWidth);
 
   const rendered: Rect[] = useMemo(() => {
     return renderDenseBigBedData(data || [], x);
   }, [data, x]);
 
   return (
-    <g
-      width={dimensions.totalWidth}
-      height={height}
-      clipPath={`url(#${id})`}
-      transform={`translate(-${dimensions.sideWidth}, 0)`}
-    >
-      <rect width={dimensions.totalWidth} height={height} fill={"white"} />
+    <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
+      <rect width={totalWidth} height={height} fill={"white"} />
       <defs>
-        <ClipPath id={id} width={dimensions.totalWidth} height={height} />
+        <ClipPath id={id} width={totalWidth} height={height} />
       </defs>
       {rendered.map((rect, i) => (
         <rect

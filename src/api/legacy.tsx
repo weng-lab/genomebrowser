@@ -6,8 +6,9 @@ import { TRANSCRIPT_GENES_QUERY } from "./types";
 import { MOTIF_QUERY } from "./types";
 import type { ImportanceTrackSequence, Rect as MotifRect } from "./types";
 import { useBrowserStore } from "../store/browserStore";
-import { TrackType, useTrackStore, TranscriptConfig } from "../store/trackStore";
+import { useTrackStore, TranscriptConfig } from "../store/trackStore";
 import { useDataStore } from "../store/dataStore";
+import { TrackType } from "../components/tracks/types";
 
 export type TranscriptRequest = {
   chromosome: string;
