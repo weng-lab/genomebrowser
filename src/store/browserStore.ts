@@ -23,6 +23,7 @@ interface BrowserStore {
   setSvgRef: (ref: RefObject<SVGSVGElement | null>) => void;
   initialize: (state: IntitialBrowserState) => void;
   getExpandedDomain: () => Domain;
+  getDomain: () => Domain;
 }
 
 // TODO: set a better default state
@@ -57,12 +58,15 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
   getExpandedDomain: () => {
     const state = get();
     const visibleWidth = state.domain.end - state.domain.start;
-    const sidePiece = Math.floor(visibleWidth * (state.multiplier - 1) / 2)
+    const sidePiece = Math.floor((visibleWidth * (state.multiplier - 1)) / 2);
     const expandedDomain: Domain = {
       chromosome: state.domain.chromosome,
       start: state.domain.start - sidePiece,
       end: state.domain.end + sidePiece,
     };
-    return expandedDomain
-  }
+    return expandedDomain;
+  },
+  getDomain: () => {
+    return get().domain;
+  },
 }));

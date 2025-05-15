@@ -26,7 +26,7 @@ export default function SquishBigBed({ id, data, rowHeight, dimensions }: Squish
   const rendered: SquishRect[][] = useMemo(() => {
     const d = data ? [...data] : [];
     return renderSquishBigBedData(d, x);
-  }, [data, totalWidth]);
+  }, [data, totalWidth, x]);
 
   const height = rowHeight * rendered.length || MINIMUM_HEIGHT;
 

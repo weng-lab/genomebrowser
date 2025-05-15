@@ -82,7 +82,7 @@ export function renderTranscript(
 
 export function convertTranscriptCoordinates(
   transcript: Transcript,
-  x: (x: number) => number,
+  x: (x: number) => number
   // domain: { start: number; end: number }
 ): Transcript {
   return {
@@ -111,6 +111,15 @@ export function convertTranscriptCoordinates(
             })) || [],
         })) || [],
   };
+}
+
+export function sortedTranscripts(genes: TranscriptList[]): Transcript[] {
+  return genes
+    .reduce<Transcript[]>((cpacked, gene) => {
+      gene.transcripts.forEach((transcript) => cpacked.push({ ...transcript, strand: gene.strand }));
+      return cpacked;
+    }, [])
+    .sort((a, b) => a.coordinates.start - b.coordinates.start);
 }
 
 export function intronPath(start: number, end: number, strand: string, y: number, h: number, w: number): string {

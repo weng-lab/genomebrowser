@@ -10,6 +10,7 @@ import { DisplayMode, TrackDimensions, TrackType } from "./types";
 import Wrapper from "./wrapper/wrapper";
 import SquishBigBed from "./bigbed/squish";
 import SquishTranscript from "./transcript/squish";
+import PackTranscript from "./transcript/pack";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -21,13 +22,17 @@ export default function DisplayTrack({ id }: { id: string }) {
   const trackWidth = useBrowserStore((state) => state.trackWidth);
   const multiplier = useBrowserStore((state) => state.multiplier);
   const sidePortion = (multiplier - 1) / 2;
-  const trackDimensions: TrackDimensions = {
-    totalWidth: trackWidth * multiplier,
-    viewWidth: trackWidth,
-    sideWidth: sidePortion * trackWidth,
-    sidePortion,
-    multiplier,
-  };
+
+  const trackDimensions = useMemo(() => {
+    const dim: TrackDimensions = {
+      totalWidth: trackWidth * multiplier,
+      viewWidth: trackWidth,
+      sideWidth: sidePortion * trackWidth,
+      sidePortion,
+      multiplier,
+    };
+    return dim;
+  }, [trackWidth, multiplier, sidePortion]);
 
   // Error handling
   useEffect(() => {
@@ -63,6 +68,7 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
   },
   [TrackType.Transcript]: {
     [DisplayMode.Squish]: SquishTranscript,
+    [DisplayMode.Pack]: PackTranscript,
   },
   [TrackType.Motif]: {
     [DisplayMode.Full]: () => <></>,
@@ -76,9 +82,6 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
 };
 
 function getTrackComponent(track: Track, data: any, dimensions: TrackDimensions) {
-  if (track.trackType === TrackType.Transcript) {
-    console.log(data);
-  }
   const Component = trackComponents[track.trackType][track.displayMode];
   if (!Component) return null;
   return <Component {...track} data={data.data} dimensions={dimensions} />;

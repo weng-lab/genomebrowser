@@ -32,7 +32,7 @@ export default function SquishTranscript({ id, data, geneName, rowHeight, dimens
         y: i * rowHeight,
         transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, totalWidth)),
       })),
-    [data, rowHeight, totalWidth]
+    [data, rowHeight, totalWidth, x, fontSize]
   );
 
   const height = useMemo(() => Math.max(rowHeight * rendered.length, 35), [rowHeight, rendered.length]);
