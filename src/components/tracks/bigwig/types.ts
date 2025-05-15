@@ -1,10 +1,5 @@
-import { Base, TrackType } from "../../../store/trackStore";
+import { TrackType } from "../../../store/trackStore";
 
-export interface BigWigProps extends Base {
-  trackType: TrackType.BigWig;
-  range?: YRange;
-  url?: string;
-}
 export type YRange = {
   min: number;
   max: number;

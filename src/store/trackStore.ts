@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { BigWigProps } from "../components/tracks/bigwig/types";
+import { YRange } from "../components/tracks/bigwig/types";
 // All avaliable track types
 export enum TrackType {
   BigWig = "bigwig",
@@ -18,58 +18,57 @@ export enum DisplayMode {
 }
 
 // Shared properties for all tracks
-export interface Shared {
+export interface BaseConfig {
   id: string;
   height: number;
   trackType: TrackType;
-  color?: string;
   displayMode: DisplayMode;
-}
-
-// Display properties for all tracks
-export interface Display {
   title: string;
   titleSize?: number;
   shortLabel?: string;
+  color?: string;
 }
 
-// Base properties for all tracks
-export interface Base extends Shared, Display {}
+export interface BigWigConfig extends BaseConfig {
+  trackType: TrackType.BigWig;
+  url: string;
+  range?: YRange;
+}
 
-interface BigBedProps extends Base {
+export interface BigBedConfig extends BaseConfig {
   trackType: TrackType.BigBed;
   url: string;
-  rowHeight: number;
+  rowHeight?: number;
 }
 
-interface TrancriptProps extends Base {
+export interface TranscriptConfig extends BaseConfig {
   trackType: TrackType.Transcript;
   refetch: () => void;
   assembly: string;
   version: number;
 }
 
-interface MotifProps extends Base {
+export interface MotifConfig extends BaseConfig {
   trackType: TrackType.Motif;
   consensusRegex: string;
   peaksAccession: string;
   assembly: string;
 }
 
-interface ImportanceProps extends Base {
+export interface ImportanceConfig extends BaseConfig {
   trackType: TrackType.Importance;
   url: string;
   signalURL: string;
 }
 
-interface LDTrackProps extends Base {
+export interface LDTrackConfig extends BaseConfig {
   trackType: TrackType.LDTrack;
   signalURL: string;
   assembly: string;
 }
 
 // Track type includes all specific track types + base properties
-export type Track = BigWigProps | BigBedProps | TrancriptProps | MotifProps | ImportanceProps | LDTrackProps;
+export type Track = BigWigConfig | BigBedConfig | TranscriptConfig | MotifConfig | ImportanceConfig | LDTrackConfig;
 
 interface TrackStore {
   tracks: Track[];
@@ -83,11 +82,12 @@ interface TrackStore {
   shiftTracks: (id: string, index: number) => void;
   insertTrack: (track: Track, index: number) => void;
   removeTrack: (id: string) => void;
-  updateTrack: <K extends keyof Track>(id: string, key: K, value: Track[K]) => void;
+  // updateTrack: <K extends keyof Track>(id: string, key: K, value: Track[K]) => void;
   getDimensions: (id: string) => any;
   createShortLabel: (id: string) => string;
   getField: (id: string, field: string) => any;
   getIndexByType: (id: string) => number;
+  editTrack: <T extends Track>(id: string, partial: Partial<T>) => void;
 }
 
 export const useTrackStore = create<TrackStore>((set, get) => ({
@@ -184,10 +184,17 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     tracks.splice(state.getTrackIndex(id), 1);
     set({ tracks, ids: tracks.map((track) => track.id) });
   },
-  updateTrack: <K extends keyof Track>(id: string, key: K, value: Track[K]) => {
-    set((state) => ({
-      tracks: state.tracks.map((item) => (item.id === id ? { ...item, [key]: value } : item)),
-    }));
+  editTrack: <T extends Track>(id: string, partial: Partial<T>): void => {
+    set((state) => {
+      const updatedTracks = state.tracks.map((track) => {
+        if (track.id === id) {
+          const newTrack = { ...track, ...partial };
+          return newTrack;
+        }
+        return track;
+      });
+      return { tracks: updatedTracks };
+    });
   },
   getDimensions: (id: string) => {
     const state = get();

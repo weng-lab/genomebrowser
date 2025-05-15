@@ -35,7 +35,7 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
   browserWidth: 1500,
   trackWidth: 1350,
   marginWidth: 150,
-  multiplier: 1.5,
+  multiplier: 3,
   initialize: (state: IntitialBrowserState) => {
     set({
       domain: state.domain,

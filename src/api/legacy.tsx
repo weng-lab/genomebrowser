@@ -6,9 +6,8 @@ import { TRANSCRIPT_GENES_QUERY } from "./types";
 import { MOTIF_QUERY } from "./types";
 import type { ImportanceTrackSequence, Rect as MotifRect } from "./types";
 import { useBrowserStore } from "../store/browserStore";
-import { TrackType, useTrackStore } from "../store/trackStore";
+import { TrackType, useTrackStore, TranscriptConfig } from "../store/trackStore";
 import { useDataStore } from "../store/dataStore";
-import { Domain } from "../utils/types";
 
 export type TranscriptRequest = {
   chromosome: string;
@@ -59,7 +58,7 @@ function LegacyDataFetcher() {
 
   const setDelta = useBrowserStore((state) => state.setDelta);
   const tracks = useTrackStore((state) => state.tracks);
-  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const editTrack = useTrackStore((state) => state.editTrack);
   const currDomain = useBrowserStore((state) => state.domain);
   const setData = useDataStore((state) => state.setDataById);
   const setLoading = useDataStore((state) => state.setLoading);
@@ -83,7 +82,7 @@ function LegacyDataFetcher() {
     );
     const transcriptTrack = tracks.find((track) => track.trackType === TrackType.Transcript);
     if (transcriptTrack) {
-      // updateTrack(transcriptTrack.id, "refetch", fetchGene);
+      editTrack<TranscriptConfig>(transcriptTrack.id, { refetch: fetchGene });
       setTranscriptRequest({
         chromosome: domain.chromosome,
         assembly: transcriptTrack.assembly,

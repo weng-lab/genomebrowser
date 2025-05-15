@@ -5,7 +5,7 @@ import { Track, useTrackStore } from "../../store/trackStore";
 import Modal from "../modal/modal";
 import DisplayTrack from "../tracks/displayTrack";
 import SVGWrapper from "./svgWrapper";
-import ContextMenu from "../contextMenu/contextMenul";
+import ContextMenu from "../contextMenu/contextMenu";
 import LegacyDataFetcher from "../../api/legacy";
 
 export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {

@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
-import { DisplayMode, Track, TrackType, useTrackStore } from "./store/trackStore";
+import { BigWigConfig, DisplayMode, Track, TrackType, useTrackStore } from "./store/trackStore";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { IntitialBrowserState } from "./store/browserStore";
 
@@ -38,34 +38,34 @@ function Main() {
 
   const initialState: IntitialBrowserState = {
     domain: { chromosome: "chr18", start: 35494852, end: 35514000 },
-    marginWidth: 125,
-    trackWidth: 1375,
+    marginWidth: 150,
+    trackWidth: 1350,
   };
 
   return (
     <div>
       <Action />
       <ApolloProvider client={client}>
-        <div
+        {/* <div
           style={{
             width: "50%",
             marginLeft: "auto",
             marginRight: "auto",
           }}
-        >
-        <Browser state={initialState} tracks={tracks} />
-        </div>
+        > */}
+          <Browser state={initialState} tracks={tracks} />
+        {/* </div> */}
       </ApolloProvider>
     </div>
   );
 }
 
 function Action() {
-  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const editTrack = useTrackStore((state) => state.editTrack);
 
   const onClick = () => {
     const height = Math.random() * 100 + 50;
-    updateTrack("2", "height", height);
+    editTrack<BigWigConfig>("2", { height: height });
   };
 
   return <button onClick={onClick}>Click for action</button>;

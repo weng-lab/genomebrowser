@@ -54,16 +54,16 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
     [DisplayMode.Squish]: () => <></>,
   },
   [TrackType.Transcript]: {
-    [DisplayMode.Full]: FullBigWig,
+    [DisplayMode.Full]: () => <></>,
   },
   [TrackType.Motif]: {
-    [DisplayMode.Full]: FullBigWig,
+    [DisplayMode.Full]: () => <></>,
   },
   [TrackType.Importance]: {
-    [DisplayMode.Full]: FullBigWig,
+    [DisplayMode.Full]: () => <></>,
   },
   [TrackType.LDTrack]: {
-    [DisplayMode.Full]: FullBigWig,
+    [DisplayMode.Full]: () => <></>,
   },
 };
 
