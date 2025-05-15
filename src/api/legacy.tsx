@@ -64,17 +64,10 @@ function LegacyDataFetcher() {
   const setData = useDataStore((state) => state.setDataById);
   const setLoading = useDataStore((state) => state.setLoading);
   const setFetching = useDataStore((state) => state.setFetching);
-  const multiplier = useBrowserStore((state) => state.multiplier);
+  const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
 
   const domain = useMemo(() => {
-    const visibleWidth = currDomain.end - currDomain.start;
-    const sidePiece = Math.floor(visibleWidth * (multiplier - 1) / 2)
-    const expandedDomain: Domain = {
-      chromosome: currDomain.chromosome,
-      start: currDomain.start - sidePiece,
-      end: currDomain.end + sidePiece,
-    };
-    return expandedDomain
+    return getExpandedDomain();
   }, [currDomain]);
 
   useEffect(() => {
@@ -90,7 +83,7 @@ function LegacyDataFetcher() {
     );
     const transcriptTrack = tracks.find((track) => track.trackType === TrackType.Transcript);
     if (transcriptTrack) {
-      updateTrack(transcriptTrack.id, "refetch", fetchGene);
+      // updateTrack(transcriptTrack.id, "refetch", fetchGene);
       setTranscriptRequest({
         chromosome: domain.chromosome,
         assembly: transcriptTrack.assembly,

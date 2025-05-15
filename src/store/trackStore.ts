@@ -34,27 +34,42 @@ export interface Display {
 }
 
 // Base properties for all tracks
-export type Base = Shared & Display;
+export interface Base extends Shared, Display {}
 
+interface BigBedProps extends Base {
+  trackType: TrackType.BigBed;
+  url: string;
+  rowHeight: number;
+}
 
-interface TrancriptProps {
+interface TrancriptProps extends Base {
+  trackType: TrackType.Transcript;
   refetch: () => void;
   assembly: string;
   version: number;
 }
 
-interface MotifProps {
+interface MotifProps extends Base {
+  trackType: TrackType.Motif;
   consensusRegex: string;
   peaksAccession: string;
+  assembly: string;
 }
 
-interface ImportanceProps {
+interface ImportanceProps extends Base {
+  trackType: TrackType.Importance;
+  url: string;
   signalURL: string;
 }
 
+interface LDTrackProps extends Base {
+  trackType: TrackType.LDTrack;
+  signalURL: string;
+  assembly: string;
+}
 
 // Track type includes all specific track types + base properties
-export type Track = Base & BigWigProps & TrancriptProps & MotifProps & ImportanceProps;
+export type Track = BigWigProps | BigBedProps | TrancriptProps | MotifProps | ImportanceProps | LDTrackProps;
 
 interface TrackStore {
   tracks: Track[];

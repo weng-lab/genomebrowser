@@ -1,6 +1,7 @@
-import { Shared } from "../../../store/trackStore";
+import { Base, TrackType } from "../../../store/trackStore";
 
-export interface BigWigProps extends Shared {
+export interface BigWigProps extends Base {
+  trackType: TrackType.BigWig;
   range?: YRange;
   url?: string;
 }

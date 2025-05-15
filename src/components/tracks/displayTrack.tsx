@@ -7,6 +7,7 @@ import FullBigWig from "./bigwig/full";
 import DenseBigWig from "./bigwig/dense";
 import { TrackDimensions } from "./types";
 import { useBrowserStore } from "../../store/browserStore";
+import DenseBigBed from "./bigbed/dense";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const data = useDataStore((state) => state.data.get(id));
@@ -32,7 +33,10 @@ export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
   const prevHeights = useTrackStore((state) => state.getPrevHeights(id));
   const transform = useMemo(() => `translate(0, ${prevHeights})`, [prevHeights]);
-  const trackComponent = useMemo(() => (track && data ? getTrackComponent(track, data, trackDimensions) : <></>), [track, data, trackDimensions]);
+  const trackComponent = useMemo(
+    () => (track && data ? getTrackComponent(track, data, trackDimensions) : <></>),
+    [track, data, trackDimensions]
+  );
   return (
     <Wrapper id={id} transform={transform} error={error?.message} loading={loading}>
       {trackComponent}
@@ -46,7 +50,8 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
     [DisplayMode.Dense]: DenseBigWig,
   },
   [TrackType.BigBed]: {
-    [DisplayMode.Full]: FullBigWig,
+    [DisplayMode.Dense]: DenseBigBed,
+    [DisplayMode.Squish]: () => <></>,
   },
   [TrackType.Transcript]: {
     [DisplayMode.Full]: FullBigWig,

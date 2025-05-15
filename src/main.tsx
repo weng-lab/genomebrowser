@@ -27,21 +27,12 @@ function Main() {
       id: "2",
       title: "Track 2",
       titleSize: 12,
-      height: 100,
+      height: 50,
       color: "#adffad",
-      trackType: TrackType.BigWig,
-      displayMode: DisplayMode.Full,
-      url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
-    },
-    {
-      id: "3",
-      title: "Track 3",
-      titleSize: 12,
-      height: 100,
-      color: "#adadff",
-      trackType: TrackType.BigWig,
-      displayMode: DisplayMode.Full,
-      url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
+      trackType: TrackType.BigBed,
+      displayMode: DisplayMode.Dense,
+      url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
+      rowHeight: 20,
     },
   ];
 
@@ -55,15 +46,15 @@ function Main() {
     <div>
       <Action />
       <ApolloProvider client={client}>
-        {/* <div
+        <div
           style={{
             width: "50%",
             marginLeft: "auto",
             marginRight: "auto",
           }}
-        > */}
+        >
         <Browser state={initialState} tracks={tracks} />
-        {/* </div> */}
+        </div>
       </ApolloProvider>
     </div>
   );
@@ -73,9 +64,7 @@ function Action() {
   const updateTrack = useTrackStore((state) => state.updateTrack);
 
   const onClick = () => {
-    const max = Math.random() * 100;
     const height = Math.random() * 100 + 50;
-    updateTrack("1", "range", { min: 0, max });
     updateTrack("2", "height", height);
   };
 
