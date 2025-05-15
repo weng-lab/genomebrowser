@@ -6,6 +6,7 @@ import Modal from "../modal/modal";
 import DisplayTrack from "../tracks/displayTrack";
 import SVGWrapper from "./svgWrapper";
 import ContextMenu from "../contextMenu/contextMenul";
+import LegacyDataFetcher from "../../api/legacy";
 
 export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {
   // Store functions
@@ -29,7 +30,8 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Int
         height: "auto",
       }}
     >
-      <TrackDataFetcher />
+      {/* <TrackDataFetcher /> */}
+      <LegacyDataFetcher />
       <SVGWrapper>
         {trackIds.map((id) => {
           return <DisplayTrack key={id} id={id} />;

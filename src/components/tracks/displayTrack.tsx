@@ -51,10 +51,19 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
   [TrackType.Transcript]: {
     [DisplayMode.Full]: FullBigWig,
   },
+  [TrackType.Motif]: {
+    [DisplayMode.Full]: FullBigWig,
+  },
+  [TrackType.Importance]: {
+    [DisplayMode.Full]: FullBigWig,
+  },
+  [TrackType.LDTrack]: {
+    [DisplayMode.Full]: FullBigWig,
+  },
 };
 
 function getTrackComponent(track: Track, data: any, dimensions: TrackDimensions) {
   const Component = trackComponents[track.trackType][track.displayMode];
   if (!Component) return null;
-  return <Component {...track} data={data.data.data} dimensions={dimensions} />;
+  return <Component {...track} data={data.data} dimensions={dimensions} />;
 }

@@ -5,6 +5,9 @@ export enum TrackType {
   BigWig = "bigwig",
   BigBed = "bigbed",
   Transcript = "transcript",
+  Motif = "motif",
+  Importance = "importance",
+  LDTrack = "ldtrack",
 }
 
 export enum DisplayMode {
@@ -33,8 +36,25 @@ export interface Display {
 // Base properties for all tracks
 export type Base = Shared & Display;
 
+
+interface TrancriptProps {
+  refetch: () => void;
+  assembly: string;
+  version: number;
+}
+
+interface MotifProps {
+  consensusRegex: string;
+  peaksAccession: string;
+}
+
+interface ImportanceProps {
+  signalURL: string;
+}
+
+
 // Track type includes all specific track types + base properties
-export type Track = Base & BigWigProps;
+export type Track = Base & BigWigProps & TrancriptProps & MotifProps & ImportanceProps;
 
 interface TrackStore {
   tracks: Track[];

@@ -21,6 +21,7 @@ import { TrackDimensions } from "../types";
 type Props = BigWigProps & { data: BigWigData[] | undefined; dimensions: TrackDimensions };
 
 export default function FullBigWig({ data, range, id, height, color, dimensions }: Props) {
+  console.log(data);
   const domain = useBrowserStore((state) => state.domain);
   const updateTrack = useTrackStore((state) => state.updateTrack);
   const delta = useBrowserStore((state) => state.delta);
