@@ -1,9 +1,10 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import useBrowserScale from "../../../hooks/useBrowserScale";
 import { useBrowserStore } from "../../../store/browserStore";
 import { useTrackStore } from "../../../store/trackStore";
+import { RULER_HEIGHT } from "../ruler/ruler";
 
 function SwapTrack({
   id,
@@ -48,6 +49,8 @@ function SwapTrack({
     setDelta(0);
   };
 
+  const handleStart = id === "ruler" ? () => false : () => {};
+
   return (
     <Draggable
       scale={scale}
@@ -55,11 +58,12 @@ function SwapTrack({
       axis="y"
       handle=".swap-handle"
       nodeRef={nodeRef as unknown as React.RefObject<HTMLElement>}
+      onStart={handleStart}
       onDrag={handleDrag}
       onStop={handleStop}
     >
       <g id={`swap-track-${id}`} ref={nodeRef}>
-        {dragging ? <Clone position={prevHeights + position.y}>{children}</Clone> : children}
+        {dragging ? <Clone position={prevHeights + position.y + RULER_HEIGHT}>{children}</Clone> : children}
       </g>
     </Draggable>
   );

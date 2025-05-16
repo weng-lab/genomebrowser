@@ -6,6 +6,8 @@ import DisplayTrack from "../tracks/displayTrack";
 import SVGWrapper from "./svgWrapper";
 import ContextMenu from "../contextMenu/contextMenu";
 import LegacyDataFetcher from "../../api/legacy";
+import Ruler from "../tracks/ruler/ruler";
+import Wrapper from "../tracks/wrapper/wrapper";
 
 export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {
   // Store functions
@@ -32,6 +34,9 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Int
       {/* <TrackDataFetcher /> */}
       <LegacyDataFetcher />
       <SVGWrapper>
+        <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
+          <Ruler height={70} />
+        </Wrapper>
         {trackIds.map((id) => {
           return <DisplayTrack key={id} id={id} />;
         })}

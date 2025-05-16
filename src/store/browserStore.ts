@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { RefObject } from "react";
+import { RefObject, useMemo } from "react";
 import { Domain } from "../utils/types";
+import { TrackDimensions } from "../components/tracks/types";
 
 export interface IntitialBrowserState {
   domain: Domain;
@@ -24,6 +25,7 @@ interface BrowserStore {
   initialize: (state: IntitialBrowserState) => void;
   getExpandedDomain: () => Domain;
   getDomain: () => Domain;
+  getTrackDimensions: () => TrackDimensions;
 }
 
 // TODO: set a better default state
@@ -68,5 +70,19 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
   },
   getDomain: () => {
     return get().domain;
+  },
+  getTrackDimensions: () => {
+    const trackWidth = get().trackWidth;
+    const multiplier = get().multiplier;
+    const sidePortion = (multiplier - 1) / 2;
+
+    const dim: TrackDimensions = {
+      totalWidth: trackWidth * multiplier,
+      viewWidth: trackWidth,
+      sideWidth: sidePortion * trackWidth,
+      sidePortion,
+      multiplier,
+    };
+    return dim;
   },
 }));

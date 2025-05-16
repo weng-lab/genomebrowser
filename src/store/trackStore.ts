@@ -5,6 +5,8 @@ import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { MotifConfig } from "../components/tracks/motif/types";
 import { ImportanceConfig } from "../components/tracks/importance/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
+import { RULER_HEIGHT } from "../components/tracks/ruler/ruler";
+
 
 export type Track = BigWigConfig | BigBedConfig | TranscriptConfig | MotifConfig | ImportanceConfig | LDTrackConfig;
 
@@ -45,6 +47,9 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     return result;
   },
   createShortLabel: (id: string) => {
+    if (id === "ruler") {
+      return "Ruler";
+    }
     const track = get().getTrack(id);
     if (!track) {
       throw new Error("Track not found");
@@ -135,6 +140,14 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     });
   },
   getDimensions: (id: string) => {
+    if (id === "ruler") {
+      return {
+        trackMargin: 0,
+        titleSize: 0,
+        totalVerticalMargin: 0,
+        wrapperHeight: RULER_HEIGHT,
+      };
+    }
     const state = get();
     const track = state.getTrack(id);
     if (!track) {

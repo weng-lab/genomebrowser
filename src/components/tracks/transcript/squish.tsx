@@ -39,7 +39,6 @@ export default function SquishTranscript({ id, data, geneName, rowHeight, dimens
 
   const editTrack = useTrackStore((state) => state.editTrack);
   useEffect(() => {
-    console.log(height);
     editTrack<TranscriptConfig>(id, { height });
   }, [height]);
 

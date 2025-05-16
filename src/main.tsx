@@ -47,7 +47,7 @@ function Main() {
       version: 47,
       refetch: () => {},
       displayMode: DisplayMode.Squish,
-      rowHeight: 12
+      rowHeight: 12,
     },
   ];
 

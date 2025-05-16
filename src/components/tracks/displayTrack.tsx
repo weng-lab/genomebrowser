@@ -11,28 +11,15 @@ import Wrapper from "./wrapper/wrapper";
 import SquishBigBed from "./bigbed/squish";
 import SquishTranscript from "./transcript/squish";
 import PackTranscript from "./transcript/pack";
+import { RULER_HEIGHT } from "./ruler/ruler";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
   const data = useDataStore((state) => state.data.get(id));
   const [error, setError] = useState<ApolloError | undefined>(undefined);
   const loading = useDataStore((state) => state.loading);
-
-  // Dimensions
-  const trackWidth = useBrowserStore((state) => state.trackWidth);
-  const multiplier = useBrowserStore((state) => state.multiplier);
-  const sidePortion = (multiplier - 1) / 2;
-
-  const trackDimensions = useMemo(() => {
-    const dim: TrackDimensions = {
-      totalWidth: trackWidth * multiplier,
-      viewWidth: trackWidth,
-      sideWidth: sidePortion * trackWidth,
-      sidePortion,
-      multiplier,
-    };
-    return dim;
-  }, [trackWidth, multiplier, sidePortion]);
+  const getTrackDimensions = useBrowserStore((state) => state.getTrackDimensions);
+  const trackDimensions = getTrackDimensions();
 
   // Error handling
   useEffect(() => {
@@ -42,7 +29,7 @@ export default function DisplayTrack({ id }: { id: string }) {
 
   // Stack track
   const prevHeights = useTrackStore((state) => state.getPrevHeights(id));
-  const transform = useMemo(() => `translate(0, ${prevHeights})`, [prevHeights]);
+  const transform = useMemo(() => `translate(0, ${prevHeights + RULER_HEIGHT})`, [prevHeights]);
 
   // Track component
   const trackComponent = useMemo(

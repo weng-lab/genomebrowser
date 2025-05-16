@@ -5,6 +5,7 @@ export interface TranscriptConfig extends BaseConfig {
   refetch: () => void;
   assembly: string;
   version: number;
+  rowHeight: number;
 }
 
 export interface Transcript {

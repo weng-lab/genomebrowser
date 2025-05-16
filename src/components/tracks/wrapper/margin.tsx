@@ -4,6 +4,7 @@ import { useModalStore } from "../../../store/modalStore";
 import { useRef } from "react";
 import { useTrackStore } from "../../../store/trackStore";
 import { useBrowserStore } from "../../../store/browserStore";
+import { BigWigConfig } from "../bigwig/types";
 
 export default function Margin({
   marginLabel,
@@ -50,7 +51,7 @@ export default function Margin({
     shiftTracks(id, 0);
   };
 
-  const range = useTrackStore((state) => state.getTrack(id)?.range);
+  const range = useTrackStore((state) => (state.getTrack(id) as BigWigConfig)?.range);
 
   return (
     <g
@@ -68,7 +69,7 @@ export default function Margin({
         width={marginWidth}
         height={height}
         fill={"white"}
-        style={{ cursor: swapping ? "grabbing" : "grab" }}
+        style={{ cursor: id === "ruler" ? "default" : swapping ? "grabbing" : "grab" }}
       />
       {/* colored bar */}
       <rect x={0} y={0} width={marginWidth / 15} height={height} stroke="#000000" strokeWidth={0.5} fill={color} />
@@ -77,10 +78,12 @@ export default function Margin({
         {marginLabel}
       </text>
       {/* modal icon */}
-      <g ref={settingsRef} onClick={handleShowModal} style={{ cursor: "pointer" }}>
-        <SettingsIcon x={marginWidth / 10} y={height / 2 + 2} height={15} width={15} />
-        <circle cx={marginWidth / 10 + 7.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
-      </g>
+      {id !== "ruler" && (
+        <g ref={settingsRef} onClick={handleShowModal} style={{ cursor: "pointer" }}>
+          <SettingsIcon x={marginWidth / 10} y={height / 2 + 2} height={15} width={15} />
+          <circle cx={marginWidth / 10 + 7.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
+        </g>
+      )}
       {/* bring to top icon */}
       {index > 0 && (
         <g onClick={handleBringToTop} style={{ cursor: "pointer" }}>
