@@ -8,7 +8,6 @@ interface DataStore {
   data: Map<string, any>;
   loading: boolean;
   fetching: boolean;
-  getData: (id: string) => { data: any; error: ApolloError | undefined; loading: boolean };
   setDataById: (id: string, data: any, error: ApolloError | undefined) => void;
   setData: (result: Result, tracks: Track[], getIndexByType: (id: string) => number) => void;
   setLoading: (loading: boolean) => void;
@@ -19,11 +18,6 @@ export const useDataStore = create<DataStore>((set, get) => ({
   data: new Map<string, { data: any; error: ApolloError | undefined }>(),
   loading: true,
   fetching: false,
-  getData: (id: string) => {
-    const state = get();
-    const result = state.data.get(id);
-    return { data: result?.data, error: result?.error, loading: state.loading };
-  },
   setDataById: (id: string, data: any, error: ApolloError | undefined) =>
     set((state) => ({ data: state.data.set(id, { data, error }) })),
   setData: (result: Result, tracks: Track[], getIndexByType: (id: string) => number) => {

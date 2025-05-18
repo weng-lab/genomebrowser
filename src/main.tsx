@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
 import { Track, useTrackStore } from "./store/trackStore";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
-import { IntitialBrowserState } from "./store/browserStore";
+import { IntitialBrowserState, useBrowserStore } from "./store/browserStore";
 import { DisplayMode, TrackType } from "./components/tracks/types";
 import { BigWigConfig } from "./components/tracks/bigwig/types";
 
@@ -61,27 +61,31 @@ function Main() {
   return (
     <div>
       <Action />
+      <DomainView />
       <ApolloProvider client={client}>
-        {/* <div
-          style={{
-            width: "50%",
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}
-        > */}
         <Browser state={initialState} tracks={tracks} />
-        {/* </div> */}
       </ApolloProvider>
     </div>
   );
 }
 
+function DomainView() {
+  const domain = useBrowserStore((state) => state.domain);
+  return (
+    <div>
+      {domain.chromosome}:{domain.start}-{domain.end}
+    </div>
+  );
+}
+
 function Action() {
-  const editTrack = useTrackStore((state) => state.editTrack);
+  // const editTrack = useTrackStore((state) => state.editTrack);
+  const setDomain = useBrowserStore((state) => state.setDomain);
 
   const onClick = () => {
-    const height = Math.random() * 100 + 50;
-    editTrack<BigWigConfig>("2", { height: height });
+    // const height = Math.random() * 100 + 50;
+    // editTrack<BigWigConfig>("2", { height: height });
+    setDomain({ chromosome: "chr18", start: 35482597, end: 35501745 });
   };
 
   return <button onClick={onClick}>Click for action</button>;
