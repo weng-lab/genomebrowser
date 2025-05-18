@@ -19,11 +19,11 @@ export default function Ruler() {
   useEffect(() => {
     if (fetching) return;
     setDomain(getExpandedDomain());
-  }, [fetching]);
+  }, [fetching, getExpandedDomain]);
 
   const renderedContent = useMemo(() => {
     const len = domain.end - domain.start;
-    const nticks = 20; 
+    const nticks = 20;
     const step = Math.pow(10.0, Math.floor(Math.log10(Math.ceil(len / nticks)))) * 6;
     const viewDomain = getDomain();
     const gscale = ((Math.ceil(viewDomain.end / step) - Math.ceil(viewDomain.start / step)) * step) / 2;
@@ -34,7 +34,14 @@ export default function Ruler() {
     for (let i = Math.ceil(domain.start / step); i < Math.ceil(domain.end / step); ++i) {
       gelems.push(
         <g key={"ruler_" + i}>
-          <line x1={x(i * step)} x2={x(i * step)} y1={RULER_HEIGHT * 0.6} y2={RULER_HEIGHT * 0.9} stroke="#000" strokeWidth={0.5} />
+          <line
+            x1={x(i * step)}
+            x2={x(i * step)}
+            y1={RULER_HEIGHT * 0.6}
+            y2={RULER_HEIGHT * 0.9}
+            stroke="#000"
+            strokeWidth={0.5}
+          />
           {i >= Math.ceil(domain.start / step) && (
             <text
               style={{
@@ -102,7 +109,7 @@ export default function Ruler() {
         {gelems}
       </g>
     );
-  }, [domain]);
+  }, [domain, getDomain, x, totalWidth, sideWidth]);
 
   return renderedContent;
 }

@@ -1,6 +1,6 @@
 import { Result } from "../../api/types";
 import { useDataStore } from "../../store/dataStore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useBrowserStore } from "../../store/browserStore";
 import { useTrackStore } from "../../store/trackStore";
 import { buildBigRequests, BIGDATA_QUERY, BigRequest } from "../../api/bigRequests";
@@ -21,6 +21,8 @@ export default function TrackDataFetcher() {
   const [fetch, bigResult] = useLazyQuery(BIGDATA_QUERY);
   const [bigRequests, setBigRequests] = useState<BigRequest[]>([]);
 
+  const tracksLength = useMemo(() => tracks.length, [tracks]);
+
   useEffect(() => {
     const visibleWidth = domain.end - domain.start;
     const sidePiece = Math.floor((visibleWidth * (multiplier - 1)) / 2);
@@ -32,7 +34,7 @@ export default function TrackDataFetcher() {
     const bigTracks = tracks.filter((track) => track.trackType === TrackType.BigWig);
     const bigRequests = buildBigRequests(bigTracks, expandedDomain);
     setBigRequests(bigRequests);
-  }, [domain, tracks.length, trackIds, fetch, multiplier]);
+  }, [domain, tracksLength, trackIds, fetch, multiplier]);
 
   useEffect(() => {
     if (bigRequests.length === 0) return;
@@ -49,7 +51,7 @@ export default function TrackDataFetcher() {
     if (result.loading) return;
     setDelta(0);
     setData(result, tracks, getIndexByType);
-  }, [result]);
+  }, [result, tracks, getIndexByType, setData, setDelta]);
 
   return null;
 }

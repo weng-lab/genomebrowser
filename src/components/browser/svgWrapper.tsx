@@ -15,7 +15,7 @@ export default function SvgWrapper({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     setSvgRef(svgRef);
-  }, [svgRef]);
+  }, [svgRef, setSvgRef]);
 
   return (
     <svg

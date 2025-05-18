@@ -51,7 +51,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions }: Den
       data && data.length && dataType(data) === DataType.ValuedPoint
         ? renderDense(data as ValuedPoint[])
         : renderBigWig(data as BigWigData[] | BigZoomData[], 100),
-    [data, totalWidth]
+    [data]
   );
 
   const stopColors = useMemo(() => {

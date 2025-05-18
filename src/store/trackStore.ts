@@ -7,9 +7,14 @@ import { ImportanceConfig } from "../components/tracks/importance/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { RULER_HEIGHT } from "../components/tracks/ruler/ruler";
 
+type WrapperDimensions = {
+  trackMargin: number;
+  titleSize: number;
+  totalVerticalMargin: number;
+  wrapperHeight: number;
+};
 
 export type Track = BigWigConfig | BigBedConfig | TranscriptConfig | MotifConfig | ImportanceConfig | LDTrackConfig;
-
 interface TrackStore {
   tracks: Track[];
   ids: string[];
@@ -22,10 +27,8 @@ interface TrackStore {
   shiftTracks: (id: string, index: number) => void;
   insertTrack: (track: Track, index: number) => void;
   removeTrack: (id: string) => void;
-  // updateTrack: <K extends keyof Track>(id: string, key: K, value: Track[K]) => void;
-  getDimensions: (id: string) => any;
+  getDimensions: (id: string) => WrapperDimensions;
   createShortLabel: (id: string) => string;
-  getField: (id: string, field: string) => any;
   getIndexByType: (id: string) => number;
   editTrack: <T extends Track>(id: string, partial: Partial<T>) => void;
 }
@@ -34,18 +37,6 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
   tracks: [] as Track[],
   ids: [] as string[],
   setTracks: (tracks: Track[]) => set({ tracks, ids: tracks.map((track) => track.id) }),
-  getTrackIds: () => get().ids,
-  getField: (id: string, field: string) => {
-    const track = get().getTrack(id);
-    if (!track) {
-      throw new Error("Track not found");
-    }
-    const result = track[field as keyof Track];
-    if (!result) {
-      return null;
-    }
-    return result;
-  },
   createShortLabel: (id: string) => {
     if (id === "ruler") {
       return "Ruler";

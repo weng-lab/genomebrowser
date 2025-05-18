@@ -22,20 +22,12 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Int
   }, [tracks, setTracks, state, initialize]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "auto",
-      }}
-    >
+    <>
       {/* <TrackDataFetcher /> */}
       <LegacyDataFetcher />
       <SVGWrapper>
         <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
-          <Ruler height={70} />
+          <Ruler />
         </Wrapper>
         {trackIds.map((id) => {
           return <DisplayTrack key={id} id={id} />;
@@ -43,6 +35,6 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Int
       </SVGWrapper>
       <Modal />
       <ContextMenu />
-    </div>
+    </>
   );
 }

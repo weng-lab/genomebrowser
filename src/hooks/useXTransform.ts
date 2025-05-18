@@ -13,7 +13,7 @@ export function useXTransform(totalWidth: number) {
     if (fetching == false) {
       setDomain(getExpandedDomain());
     }
-  }, [fetching]);
+  }, [fetching, getExpandedDomain]);
 
   return useMemo(() => {
     return xtransform(domain, totalWidth);

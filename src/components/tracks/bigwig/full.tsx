@@ -60,7 +60,7 @@ export default function FullBigWig({ data, range, id, height, color, dimensions 
       dataCopy && dataCopy.length && dataType(dataCopy) === DataType.ValuedPoint
         ? { renderPoints: dataCopy as ValuedPoint[], range: range || getRange(dataCopy) }
         : renderBigWig(dataCopy as BigWigData[] | BigZoomData[], totalWidth),
-    [dataCopy, totalWidth]
+    [dataCopy, totalWidth, range]
   );
 
   const paths: Paths = useMemo(() => {
@@ -98,7 +98,7 @@ export default function FullBigWig({ data, range, id, height, color, dimensions 
       path,
       clampedMarkers,
     };
-  }, [rendered, height, viewWidth, realRange]);
+  }, [rendered, height, realRange, totalWidth]);
 
   const svgRef = useBrowserStore((state) => state.svgRef);
   const mouseOver = (e: React.MouseEvent<SVGElement>) => {

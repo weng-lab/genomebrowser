@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { RefObject, useMemo } from "react";
+import { RefObject } from "react";
 import { Domain } from "../utils/types";
 import { TrackDimensions } from "../components/tracks/types";
 

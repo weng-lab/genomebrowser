@@ -38,6 +38,8 @@ export default function ContextMenu() {
     setContextMenu(false, id, x, y);
     if (mode === "hide") {
       removeTrack(id);
+    } else if (mode === "download") {
+      // downloadTrack(id);
     } else {
       editTrack(id, { displayMode: mode as DisplayMode });
     }

@@ -32,7 +32,7 @@ export default function SquishTranscript({ id, data, geneName, rowHeight, dimens
         y: i * rowHeight,
         transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, totalWidth)),
       })),
-    [data, rowHeight, totalWidth, x, fontSize]
+    [data, rowHeight, totalWidth, x, fontSize, geneName]
   );
 
   const height = useMemo(() => Math.max(rowHeight * rendered.length, 35), [rowHeight, rendered.length]);
@@ -40,7 +40,7 @@ export default function SquishTranscript({ id, data, geneName, rowHeight, dimens
   const editTrack = useTrackStore((state) => state.editTrack);
   useEffect(() => {
     editTrack<TranscriptConfig>(id, { height });
-  }, [height]);
+  }, [height, editTrack, id]);
 
   return (
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth},0)`}>
