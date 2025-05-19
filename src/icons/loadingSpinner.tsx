@@ -10,11 +10,11 @@ const PATH2 = `M26.013,10.047l1.654-2.866c-2.198-1.272-4.743-2.012-7.466-2.012h0
  * @param width the width of the element relative to the containing SVG.
  * @param height the height of the element relative to the containing SVG.
  */
-export default function LoadingSpinner({ width, height }: { width: number; height: number }) {
+export default function LoadingSpinner({ width, height, color }: { width: number; height: number; color: string }) {
   return (
     <svg width={width} height={height} viewBox="0 0 40 40">
-      <path opacity="0.2" fill="#000" d={PATH1}></path>
-      <path fill="#000" d={PATH2}>
+      <path opacity="0.2" fill={color} d={PATH1}></path>
+      <path fill={color} d={PATH2}>
         <animateTransform
           attributeType="xml"
           attributeName="transform"

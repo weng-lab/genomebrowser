@@ -86,8 +86,8 @@ function Action() {
   const onClick = () => {
     // const height = Math.random() * 100 + 50;
     // editTrack<BigWigConfig>("2", { height: height });
-    setDomain({ chromosome: "chr18", start: 35482597, end: 35501745 });
-    setBackground("#ffffff");
+    // setDomain({ chromosome: "chr18", start: 35482597, end: 35501745 });
+    setBackground("#AEA4BF");
   };
 
   return <button onClick={onClick}>Click for action</button>;

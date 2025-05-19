@@ -9,8 +9,8 @@ export interface ThemeStore {
 }
 
 export const useTheme = create<ThemeStore>((set) => ({
-  background: "#2e2b28",
-  text: "#fff",
+  background: "#afafaf",
+  text: "#000",
   setBackground: (background: Color) => {
     set({ background });
     set({ text: getTextColor(background) });

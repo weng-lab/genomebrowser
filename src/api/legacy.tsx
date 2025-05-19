@@ -33,6 +33,7 @@ function LegacyDataFetcher() {
   const setLoading = useDataStore((state) => state.setLoading);
   const setFetching = useDataStore((state) => state.setFetching);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
+  const loading = useDataStore((state) => state.loading);
 
   const domain = useMemo(() => {
     return getExpandedDomain();
@@ -142,7 +143,6 @@ function LegacyDataFetcher() {
 
   useEffect(() => {
     if (bigLoading || geneLoading || motifLoading || ImportanceLoading || snpLoading) return;
-    setFetching(false);
     let bigIndex = 0;
     tracks.forEach((track) => {
       if (track.trackType === TrackType.BigWig || track.trackType === TrackType.BigBed) {
@@ -213,6 +213,7 @@ function LegacyDataFetcher() {
     ImportanceError,
     snpData,
     snpError,
+    loading
   ]);
 
   return null;

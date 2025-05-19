@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import DragTrack from "./dragTrack";
 import Margin from "./margin";
 import SwapTrack from "./swapTrack";
@@ -44,19 +44,24 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
 
   const { background, text } = useTheme();
 
+  useEffect(() => {
+    console.log("loading", loading);
+    console.log("error", error);
+  }, [loading, error]);
+
   return (
     <g id={`wrapper-${id}`} transform={transform}>
       <SwapTrack id={id} setSwapping={setSwapping}>
         {/* background */}
         <rect width={browserWidth} height={wrapperHeight} fill={background} style={{ pointerEvents: "none" }} />
         {/* loading */}
-        {loading && (
+        {loading && !error && (
           <g
             transform={`translate(${marginWidth + (trackWidth - spinnerSize) / 2},${
               (wrapperHeight - spinnerSize) / 2
             })`}
           >
-            <LoadingSpinner width={spinnerSize} height={spinnerSize} />
+            <LoadingSpinner color={text} width={spinnerSize} height={spinnerSize} />
           </g>
         )}
         {/* error */}
@@ -66,9 +71,9 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
               (wrapperHeight - spinnerSize) / 2
             })`}
           >
-            <ErrorIcon width={spinnerSize} height={spinnerSize} />
+            <ErrorIcon color={text} width={spinnerSize} height={spinnerSize} />
             <g transform={`translate(${spinnerSize / 2},${spinnerSize + 10})`}>
-              <text textAnchor="middle" fontSize={`${titleSize}px`}>
+              <text fill={text} textAnchor="middle" fontSize={`${titleSize}px`}>
                 {error}
               </text>
             </g>

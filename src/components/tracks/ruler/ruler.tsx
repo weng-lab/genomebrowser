@@ -114,7 +114,7 @@ export default function Ruler() {
         {gelems}
       </g>
     );
-  }, [domain, getDomain, x, totalWidth, sideWidth]);
+  }, [domain, getDomain, x, totalWidth, sideWidth, text]);
 
   return renderedContent;
 }
