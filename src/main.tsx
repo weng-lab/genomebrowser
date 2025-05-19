@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
 import { Track } from "./store/trackStore";
@@ -6,6 +6,7 @@ import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { IntitialBrowserState, useBrowserStore } from "./store/browserStore";
 import { DisplayMode, TrackType } from "./components/tracks/types";
 import { useTheme } from "./store/themeStore";
+import { Vibrant } from "./utils/color";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -20,7 +21,7 @@ function Main() {
       title: "Track 1",
       titleSize: 12,
       height: 100,
-      color: "#e60049",
+      color: Vibrant[6],
       trackType: TrackType.BigWig,
       displayMode: DisplayMode.Full,
       url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
@@ -30,7 +31,7 @@ function Main() {
       title: "Track 2",
       titleSize: 12,
       height: 50,
-      color: "#0bb4ff",
+      color: Vibrant[7],
       trackType: TrackType.BigBed,
       displayMode: DisplayMode.Dense,
       url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
@@ -41,7 +42,7 @@ function Main() {
       title: "Track 3",
       titleSize: 12,
       height: 50,
-      color: "#50e991",
+      color: Vibrant[8],
       trackType: TrackType.Transcript,
       assembly: "GRCh38",
       version: 47,
@@ -57,6 +58,11 @@ function Main() {
     trackWidth: 1350,
     multiplier: 3,
   };
+
+  const setBackground = useTheme((state) => state.setBackground);
+  useEffect(() => {
+    setBackground("#252525");
+  }, []);
 
   return (
     <div>
