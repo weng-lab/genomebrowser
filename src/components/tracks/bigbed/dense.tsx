@@ -4,6 +4,7 @@ import ClipPath from "../../svg/clipPath";
 import { renderDenseBigBedData } from "./helpers";
 import { TrackDimensions } from "../types";
 import { useXTransform } from "../../../hooks/useXTransform";
+import { useTheme } from "../../../store/themeStore";
 
 interface DenseBigBedProps {
   height: number;
@@ -21,9 +22,11 @@ function DenseBigBed({ id, data, height, color, dimensions }: DenseBigBedProps) 
     return renderDenseBigBedData(data || [], x);
   }, [data, x]);
 
+  const { background } = useTheme();
+
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
-      <rect width={totalWidth} height={height} fill={"white"} />
+      <rect width={totalWidth} height={height} fill={background} />
       <defs>
         <ClipPath id={id} width={totalWidth} height={height} />
       </defs>

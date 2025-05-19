@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useTrackStore } from "../../../store/trackStore";
 import { useBrowserStore } from "../../../store/browserStore";
 import { BigWigConfig } from "../bigwig/types";
+import { useTheme } from "../../../store/themeStore";
 
 export default function Margin({
   marginLabel,
@@ -52,7 +53,7 @@ export default function Margin({
   };
 
   const range = useTrackStore((state) => (state.getTrack(id) as BigWigConfig)?.range);
-
+  const { background, text } = useTheme();
   return (
     <g
       id={`margin-${id}`}
@@ -68,42 +69,42 @@ export default function Margin({
         y={0}
         width={marginWidth}
         height={height}
-        fill={"white"}
+        fill={background}
         style={{ cursor: id === "ruler" ? "default" : swapping ? "grabbing" : "grab" }}
       />
       {/* colored bar */}
       <rect x={0} y={0} width={marginWidth / 15} height={height} stroke="#000000" strokeWidth={0.5} fill={color} />
       {/* margin label */}
-      <text fontSize={`${fontSize}px`} y={height / 2} x={marginWidth / 10} alignmentBaseline="middle">
+      <text fill={text} fontSize={`${fontSize}px`} y={height / 2} x={marginWidth / 10} alignmentBaseline="middle">
         {marginLabel}
       </text>
       {/* modal icon */}
       {id !== "ruler" && (
         <g ref={settingsRef} onClick={handleShowModal} style={{ cursor: "pointer" }}>
-          <SettingsIcon x={marginWidth / 10} y={height / 2 + 2} height={15} width={15} />
+          <SettingsIcon x={marginWidth / 10} y={height / 2 + 2} height={15} width={15} fill={text} />
           <circle cx={marginWidth / 10 + 7.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
         </g>
       )}
       {/* bring to top icon */}
       {index > 0 && (
         <g onClick={handleBringToTop} style={{ cursor: "pointer" }}>
-          <TopIcon x={marginWidth / 10 + 15} y={height / 2 + 4} height={15} width={15} />
+          <TopIcon x={marginWidth / 10 + 15} y={height / 2 + 4} height={15} width={15} fill={text} />
           <circle cx={marginWidth / 10 + 22.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
         </g>
       )}
       {/* margin ticks */}
       {range && (
         <>
-          <MarginTick position={height} width={marginWidth} fontSize={8}>
+          <MarginTick color={text} position={height} width={marginWidth} fontSize={8}>
             {range.min.toFixed(2)}
           </MarginTick>
-          <MarginTick position={verticalMargin} width={marginWidth} fontSize={8}>
+          <MarginTick color={text} position={verticalMargin} width={marginWidth} fontSize={8}>
             {range.max.toFixed(2)}
           </MarginTick>
         </>
       )}
       {/* margin right edge */}
-      <line stroke="#ccc" x1={marginWidth} x2={marginWidth} y1={0} y2={height} />
+      <line stroke={"#ccc"} x1={marginWidth} x2={marginWidth} y1={0} y2={height} />
     </g>
   );
 }
@@ -113,18 +114,27 @@ function MarginTick({
   width,
   children,
   fontSize,
+  color,
 }: {
   position: number;
   width: number;
   fontSize: number;
   children: React.ReactNode;
+  color: string;
 }) {
   return (
     <>
-      <text textAnchor="end" alignmentBaseline="middle" y={position - 3} x={width * 0.94} fontSize={`${fontSize}px`}>
+      <text
+        fill={color}
+        textAnchor="end"
+        alignmentBaseline="middle"
+        y={position - 3}
+        x={width * 0.94}
+        fontSize={`${fontSize}px`}
+      >
         {children}
       </text>
-      <line x1={width * 0.96} x2={width} y1={position} y2={position} stroke="#aaa" />
+      <line x1={width * 0.96} x2={width} y1={position} y2={position} stroke={color} />
     </>
   );
 }

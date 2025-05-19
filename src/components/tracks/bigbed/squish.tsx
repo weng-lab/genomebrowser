@@ -5,6 +5,7 @@ import { BigBedConfig, Rect, SquishRect } from "./types";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { renderSquishBigBedData } from "./helpers";
 import { useTrackStore } from "../../../store/trackStore";
+import { useTheme } from "../../../store/themeStore";
 
 interface SquishBigBedProps {
   id: string;
@@ -34,9 +35,11 @@ export default function SquishBigBed({ id, data, rowHeight, dimensions }: Squish
     editTrack<BigBedConfig>(id, { height });
   }, [height, id, editTrack]);
 
+  const { background } = useTheme();
+
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
-      <rect width={totalWidth} height={height} fill="white" />
+      <rect width={totalWidth} height={height} fill={background} />
       <defs>
         <ClipPath id={id} width={totalWidth} height={height} />
       </defs>

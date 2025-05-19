@@ -3,6 +3,7 @@ import { useXTransform } from "../../../hooks/useXTransform";
 import { useBrowserStore } from "../../../store/browserStore";
 import { useDataStore } from "../../../store/dataStore";
 import { Domain } from "../../../utils/types";
+import { useTheme } from "../../../store/themeStore";
 
 export const RULER_HEIGHT = 80;
 
@@ -20,6 +21,8 @@ export default function Ruler() {
     if (fetching) return;
     setDomain(getExpandedDomain());
   }, [fetching, getExpandedDomain]);
+
+  const { text } = useTheme();
 
   const renderedContent = useMemo(() => {
     const len = domain.end - domain.start;
@@ -39,7 +42,7 @@ export default function Ruler() {
             x2={x(i * step)}
             y1={RULER_HEIGHT * 0.6}
             y2={RULER_HEIGHT * 0.9}
-            stroke="#000"
+            stroke={text}
             strokeWidth={0.5}
           />
           {i >= Math.ceil(domain.start / step) && (
@@ -52,6 +55,7 @@ export default function Ruler() {
                 msUserSelect: "none",
                 userSelect: "none",
               }}
+              fill={text}
               textAnchor="end"
               fontSize={RULER_HEIGHT / 6 + "px"}
               x={x(i * step) - 5}
@@ -71,7 +75,7 @@ export default function Ruler() {
           x2={x(gdomain.start)}
           y1={RULER_HEIGHT * 0.1}
           y2={RULER_HEIGHT * 0.4}
-          stroke="#000"
+          stroke={text}
           strokeWidth={0.5}
         />
         <line
@@ -79,7 +83,7 @@ export default function Ruler() {
           x2={x(gdomain.end)}
           y1={RULER_HEIGHT * 0.1}
           y2={RULER_HEIGHT * 0.4}
-          stroke="#000"
+          stroke={text}
           strokeWidth={0.5}
         />
         <line
@@ -87,7 +91,7 @@ export default function Ruler() {
           x2={x(gdomain.end)}
           y1={RULER_HEIGHT * 0.25}
           y2={RULER_HEIGHT * 0.25}
-          stroke="#000"
+          stroke={text}
           strokeWidth={0.5}
         />
         <text
@@ -103,6 +107,7 @@ export default function Ruler() {
           y={RULER_HEIGHT * 0.35}
           fontSize={RULER_HEIGHT / 6 + "px"}
           textAnchor="end"
+          fill={text}
         >
           {lengthFormat(gdomain.end - gdomain.start)}
         </text>

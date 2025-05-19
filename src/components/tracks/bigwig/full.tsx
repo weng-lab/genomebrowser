@@ -20,6 +20,7 @@ import { svgPoint, l } from "../../../utils/svg";
 import { TrackDimensions } from "../types";
 import { Tooltip } from "./tooltip";
 import { BigWigConfig } from "./types";
+import { useTheme } from "../../../store/themeStore";
 
 type FullBigWigProps = {
   data: Data;
@@ -118,9 +119,11 @@ export default function FullBigWig({ data, range, id, height, color, dimensions 
     setX(undefined);
   };
 
+  const { background } = useTheme();
+
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
-      <rect width={totalWidth} height={height} fill={"white"} />
+      <rect width={totalWidth} height={height} fill={background} />
       <defs>
         <ClipPath id={id} width={totalWidth} height={height} />
       </defs>

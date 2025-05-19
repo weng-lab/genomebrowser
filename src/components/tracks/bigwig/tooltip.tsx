@@ -1,4 +1,5 @@
 import { useBrowserStore } from "../../../store/browserStore";
+import { useTheme } from "../../../store/themeStore";
 
 export function Tooltip({
   x,
@@ -10,25 +11,27 @@ export function Tooltip({
   trackHeight: number;
 }) {
   const marginWidth = useBrowserStore((state) => state.marginWidth);
+  const { background, text } = useTheme();
   if (!x) return null;
+
   return (
     <>
-      <line stroke="#444" x1={x ? x - marginWidth : 0} x2={x ? x - marginWidth : 0} y1={0} y2={trackHeight} />
+      <line stroke={text} x1={x ? x - marginWidth : 0} x2={x ? x - marginWidth : 0} y1={0} y2={trackHeight} />
       {/* Background rectangle */}
       <rect
         x={x - marginWidth + 5}
         y={2}
         width={value ? value.toFixed(2).length * 6 + 1 : 0}
         height={16}
-        fill="white"
-        stroke="#444"
+        fill={background}
+        stroke={text}
         strokeWidth={0.5}
         rx={2}
       />
       <text
         x={x - marginWidth + 7}
         y={15}
-        fill="#444"
+        fill={text}
         fontSize={12}
         style={{
           visibility: value !== undefined ? "visible" : "hidden",

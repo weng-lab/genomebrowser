@@ -7,6 +7,7 @@ import { useBrowserStore } from "../../../store/browserStore";
 import LoadingSpinner from "../../../icons/loadingSpinner";
 import ErrorIcon from "../../../icons/errorIcon";
 import { useContextMenuStore } from "../../../store/contestMenuStore";
+import { useTheme } from "../../../store/themeStore";
 
 export interface WrapperProps {
   id: string;
@@ -41,11 +42,13 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
   const spinnerSize = wrapperHeight / 3;
   const setContextMenu = useContextMenuStore((state) => state.setContextMenu);
 
+  const { background, text } = useTheme();
+
   return (
     <g id={`wrapper-${id}`} transform={transform}>
       <SwapTrack id={id} setSwapping={setSwapping}>
         {/* background */}
-        <rect width={browserWidth} height={wrapperHeight} fill={"white"} style={{ pointerEvents: "none" }} />
+        <rect width={browserWidth} height={wrapperHeight} fill={background} style={{ pointerEvents: "none" }} />
         {/* loading */}
         {loading && (
           <g
@@ -87,7 +90,7 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
         )}
         {/* title */}
         <text
-          fill={"#000000"}
+          fill={text}
           x={marginWidth + trackWidth / 2}
           y={titleSize / 2 + 5}
           fontSize={`${titleSize}px`}
@@ -102,7 +105,7 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
           id={id}
           marginLabel={shortLabel}
           height={wrapperHeight}
-          color={color || "#ffffff"}
+          color={color || background}
           swapping={swapping}
           verticalMargin={totalVerticalMargin}
           onHover={onHover}

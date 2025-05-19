@@ -33,7 +33,7 @@ export default function SvgWrapper({ children }: { children: React.ReactNode }) 
           width={browserWidth}
           height={totalHeight + RULER_HEIGHT}
           fill={"#ffffff"}
-          fillOpacity={0.5}
+          fillOpacity={0.35}
           style={{ pointerEvents: "all" }}
         />
       )}

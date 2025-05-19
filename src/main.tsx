@@ -1,11 +1,11 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
-import { Track, useTrackStore } from "./store/trackStore";
+import { Track } from "./store/trackStore";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { IntitialBrowserState, useBrowserStore } from "./store/browserStore";
 import { DisplayMode, TrackType } from "./components/tracks/types";
-import { BigWigConfig } from "./components/tracks/bigwig/types";
+import { useTheme } from "./store/themeStore";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -20,7 +20,7 @@ function Main() {
       title: "Track 1",
       titleSize: 12,
       height: 100,
-      color: "#ffadad",
+      color: "#e60049",
       trackType: TrackType.BigWig,
       displayMode: DisplayMode.Full,
       url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
@@ -30,7 +30,7 @@ function Main() {
       title: "Track 2",
       titleSize: 12,
       height: 50,
-      color: "#adffad",
+      color: "#0bb4ff",
       trackType: TrackType.BigBed,
       displayMode: DisplayMode.Dense,
       url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
@@ -41,7 +41,7 @@ function Main() {
       title: "Track 3",
       titleSize: 12,
       height: 50,
-      color: "#adadff",
+      color: "#50e991",
       trackType: TrackType.Transcript,
       assembly: "GRCh38",
       version: 47,
@@ -81,11 +81,13 @@ function DomainView() {
 function Action() {
   // const editTrack = useTrackStore((state) => state.editTrack);
   const setDomain = useBrowserStore((state) => state.setDomain);
+  const setBackground = useTheme((state) => state.setBackground);
 
   const onClick = () => {
     // const height = Math.random() * 100 + 50;
     // editTrack<BigWigConfig>("2", { height: height });
     setDomain({ chromosome: "chr18", start: 35482597, end: 35501745 });
+    setBackground("#ffffff");
   };
 
   return <button onClick={onClick}>Click for action</button>;

@@ -7,6 +7,7 @@ import { renderTranscript, sortedTranscripts } from "./helper";
 import { groupFeatures } from "../../../utils/coordinates";
 import ClipPath from "../../svg/clipPath";
 import { useTrackStore } from "../../../store/trackStore";
+import { useTheme } from "../../../store/themeStore";
 
 interface PackTranscriptProps {
   id: string;
@@ -38,9 +39,11 @@ export default function PackTranscript({ id, data, rowHeight, dimensions, color 
     editTrack<TranscriptConfig>(id, { height });
   }, [height, id, editTrack]);
 
+  const { background } = useTheme();
+
   return (
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth},0)`}>
-      <rect width={totalWidth} height={height} fill="white" />
+      <rect width={totalWidth} height={height} fill={background} />
       <defs>
         <ClipPath id={id} width={totalWidth} height={rendered.length * rowHeight} />
       </defs>

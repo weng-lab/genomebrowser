@@ -1,6 +1,7 @@
 function TopIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
+      fill={props.fill || "#000000"}
       x={props.x}
       y={props.y}
       width={props.width}

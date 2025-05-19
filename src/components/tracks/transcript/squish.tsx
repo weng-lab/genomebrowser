@@ -6,6 +6,7 @@ import { TranscriptConfig, TranscriptList, TranscriptRow } from "./types";
 import ClipPath from "../../svg/clipPath";
 import { mergeTranscripts, renderTranscript } from "./helper";
 import { useTrackStore } from "../../../store/trackStore";
+import { useTheme } from "../../../store/themeStore";
 
 interface SquishTranscriptProps {
   id: string;
@@ -42,9 +43,11 @@ export default function SquishTranscript({ id, data, geneName, rowHeight, dimens
     editTrack<TranscriptConfig>(id, { height });
   }, [height, editTrack, id]);
 
+  const { background } = useTheme();
+
   return (
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth},0)`}>
-      <rect width={totalWidth} height={height} fill="white" />
+      <rect width={totalWidth} height={height} fill={background} />
       <defs>
         <ClipPath id={id} width={totalWidth} height={rendered.length * rowHeight} />
       </defs>

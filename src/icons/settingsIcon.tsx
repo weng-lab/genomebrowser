@@ -3,7 +3,7 @@ import React from "react";
 function SettingsIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
-      fill="#000000"
+      fill={props.fill || "#000000"}
       cursor={"pointer"}
       x={props.x}
       y={props.y}
