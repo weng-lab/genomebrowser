@@ -1,4 +1,4 @@
-import { StrictMode, useEffect } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
 import { Track } from "./store/trackStore";
@@ -7,6 +7,8 @@ import { IntitialBrowserState, useBrowserStore } from "./store/browserStore";
 import { DisplayMode, TrackType } from "./components/tracks/types";
 import { useTheme } from "./store/themeStore";
 import { Vibrant } from "./utils/color";
+import { create } from "zustand";
+import { Rect } from "./components/tracks/bigbed/types";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -14,7 +16,16 @@ const client = new ApolloClient({
   connectToDevTools: true,
 });
 
+const useStore = create<{ name: string; setName: (name: string) => void }>((set) => ({
+  name: "test",
+  setName: (name: string) => set({ name }),
+}));
+
 function Main() {
+  const setName = useStore((state) => state.setName);
+  const TT = (rect: Rect) => {
+    return <text>{rect.name}</text>;
+  };
   const tracks: Track[] = [
     {
       id: "1",
@@ -37,14 +48,15 @@ function Main() {
       url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
       rowHeight: 20,
       onClick: (rect) => {
-        console.log(rect);
+        setName(rect.name + " clicked");
       },
-      onMouseOver: (rect) => {
-        console.log(rect);
+      onHover: (rect) => {
+        setName(rect.name + " hovered");
       },
-      onMouseOut: (rect) => {
-        console.log(rect);
+      onLeave: () => {
+        setName("...");
       },
+      tooltip: TT,
     },
     {
       id: "3",
@@ -68,13 +80,8 @@ function Main() {
     multiplier: 3,
   };
 
-  const setBackground = useTheme((state) => state.setBackground);
-  useEffect(() => {
-    setBackground("#252525");
-  }, []);
-
   return (
-    <div>
+    <div style={{ width: "90%" }}>
       <Action />
       <DomainView />
       <ApolloProvider client={client}>
@@ -86,9 +93,13 @@ function Main() {
 
 function DomainView() {
   const domain = useBrowserStore((state) => state.domain);
+  const name = useStore((state) => state.name);
   return (
     <div>
-      {domain.chromosome}:{domain.start}-{domain.end}
+      <div>{name}</div>
+      <div>
+        {domain.chromosome}:{domain.start}-{domain.end}
+      </div>
     </div>
   );
 }

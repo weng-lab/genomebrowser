@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import DragTrack from "./dragTrack";
 import Margin from "./margin";
 import SwapTrack from "./swapTrack";
@@ -21,13 +21,6 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
   const [swapping, setSwapping] = useState(false);
   const [hover, setHover] = useState(false);
 
-  const onHover = useCallback(() => {
-    setHover(true);
-  }, []);
-  const onLeave = useCallback(() => {
-    setHover(false);
-  }, []);
-
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const browserWidth = useBrowserStore((state) => state.browserWidth);
   const trackWidth = useMemo(() => browserWidth - marginWidth, [browserWidth, marginWidth]);
@@ -44,10 +37,12 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
 
   const { background, text } = useTheme();
 
-  useEffect(() => {
-    console.log("loading", loading);
-    console.log("error", error);
-  }, [loading, error]);
+  const marginHover = useCallback(() => {
+    setHover(true);
+  }, []);
+  const marginLeave = useCallback(() => {
+    setHover(false);
+  }, []);
 
   return (
     <g id={`wrapper-${id}`} transform={transform}>
@@ -113,8 +108,8 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
           color={color || background}
           swapping={swapping}
           verticalMargin={totalVerticalMargin}
-          onHover={onHover}
-          onLeave={onLeave}
+          onHover={marginHover}
+          onLeave={marginLeave}
         />
         {/* hover effect */}
         {hover && (

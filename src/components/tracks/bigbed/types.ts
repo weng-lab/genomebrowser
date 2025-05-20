@@ -5,8 +5,8 @@ export interface BigBedConfig extends BaseConfig {
   url: string;
   rowHeight?: number;
   onClick?: (rect: Rect) => void;
-  onMouseOver?: (rect: Rect) => void;
-  onMouseOut?: (rect: Rect) => void;
+  onHover?: (rect: Rect) => void;
+  onLeave?: (rect: Rect) => void;
   tooltip?: React.FC<SquishRect>;
 }
 

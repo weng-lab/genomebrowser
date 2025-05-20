@@ -18,9 +18,9 @@ import { useTrackStore } from "../../../store/trackStore";
 import { createCopy, getRange, renderBigWig, ytransform } from "./helpers";
 import { svgPoint, l } from "../../../utils/svg";
 import { TrackDimensions } from "../types";
-import { Tooltip } from "./tooltip";
 import { BigWigConfig } from "./types";
 import { useTheme } from "../../../store/themeStore";
+import { Tooltip } from "./tooltip";
 
 type FullBigWigProps = {
   data: Data;

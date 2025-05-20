@@ -8,6 +8,7 @@ import ContextMenu from "../contextMenu/contextMenu";
 import LegacyDataFetcher from "../../api/legacy";
 import Ruler from "../tracks/ruler/ruler";
 import Wrapper from "../tracks/wrapper/wrapper";
+import Tooltip from "../tooltip/tooltip";
 
 export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {
   // Store functions
@@ -32,9 +33,10 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Int
         {trackIds.map((id) => {
           return <DisplayTrack key={id} id={id} />;
         })}
+        <Tooltip />
       </SVGWrapper>
-      <Modal />
       <ContextMenu />
+      <Modal />
     </>
   );
 }
