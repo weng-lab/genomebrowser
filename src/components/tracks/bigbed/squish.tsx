@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { createElement, useEffect, useMemo } from "react";
 import ClipPath from "../../svg/clipPath";
 import { TrackDimensions } from "../types";
 import { BigBedConfig, Rect, SquishRect } from "./types";
@@ -6,6 +6,10 @@ import { useXTransform } from "../../../hooks/useXTransform";
 import { renderSquishBigBedData } from "./helpers";
 import { useTrackStore } from "../../../store/trackStore";
 import { useTheme } from "../../../store/themeStore";
+import { useTooltipStore } from "../../../store/tooltipStore";
+import { svgPoint } from "../../../utils/svg";
+import { useBrowserStore } from "../../../store/browserStore";
+import { useTooltip } from "../../../hooks/useTooltip";
 
 interface SquishBigBedProps {
   id: string;
@@ -14,8 +18,9 @@ interface SquishBigBedProps {
   rowHeight: number;
   dimensions: TrackDimensions;
   onClick?: (rect: Rect) => void;
-  onMouseOver?: (rect: Rect) => void;
-  onMouseOut?: (rect: Rect) => void;
+  onHover?: (rect: Rect) => void;
+  onLeave?: () => void;
+  tooltip?: React.FC<Rect>;
 }
 
 const MINIMUM_HEIGHT = 12;
@@ -26,8 +31,9 @@ export default function SquishBigBed({
   dimensions,
   color,
   onClick,
-  onMouseOver,
-  onMouseOut,
+  onHover,
+  onLeave,
+  tooltip,
 }: SquishBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
   const x = useXTransform(totalWidth);
@@ -50,16 +56,23 @@ export default function SquishBigBed({
     }
   };
 
-  const handleMouseOver = (rect: Rect) => {
-    if (onMouseOver) {
-      onMouseOver(rect);
+  const {show, hide} = useTooltip()
+  const handleMouseOver = (rect: Rect, e: React.MouseEvent<SVGGElement>) => {
+    if (onHover) {
+      onHover(rect);
     }
+    let content = <></>;
+    if (tooltip) {
+      content = createElement(tooltip, rect);
+    }
+    show(e, content);
   };
 
-  const handleMouseOut = (rect: Rect) => {
-    if (onMouseOut) {
-      onMouseOut(rect);
+  const handleMouseOut = () => {
+    if (onLeave) {
+      onLeave();
     }
+    hide();
   };
 
   const { background } = useTheme();
@@ -82,8 +95,8 @@ export default function SquishBigBed({
               y={rowHeight * 0.2}
               fill={rect.color || color}
               onClick={() => handleClick(rect)}
-              onMouseOver={() => handleMouseOver(rect)}
-              onMouseOut={() => handleMouseOut(rect)}
+              onMouseOver={(e) => handleMouseOver(rect, e)}
+              onMouseOut={() => handleMouseOut()}
             />
           ))}
         </g>

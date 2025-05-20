@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { createElement, useMemo } from "react";
 import { Rect } from "./types";
 import ClipPath from "../../svg/clipPath";
 import { renderDenseBigBedData } from "./helpers";
 import { TrackDimensions } from "../types";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { useTheme } from "../../../store/themeStore";
+import { useTooltip } from "../../../hooks/useTooltip";
 
 interface DenseBigBedProps {
   height: number;
@@ -13,11 +14,12 @@ interface DenseBigBedProps {
   id: string;
   dimensions: TrackDimensions;
   onClick?: (rect: Rect) => void;
-  onMouseOver?: (rect: Rect) => void;
-  onMouseOut?: (rect: Rect) => void;
+  onHover?: (rect: Rect) => void;
+  onLeave?: (rect: Rect) => void;
+  tooltip?: React.FC<Rect>;
 }
 
-function DenseBigBed({ id, data, height, color, dimensions, onClick, onMouseOver, onMouseOut }: DenseBigBedProps) {
+function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, onLeave, tooltip }: DenseBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
   const x = useXTransform(totalWidth);
 
@@ -33,16 +35,23 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onMouseOver
     }
   };
 
-  const handleMouseOver = (rect: Rect) => {
-    if (onMouseOver) {
-      onMouseOver(rect);
+  const { show, hide } = useTooltip();
+  const handleMouseOver = (rect: Rect, e: React.MouseEvent<SVGGElement>) => {
+    if (onHover) {
+      onHover(rect);
     }
+    let content = createElement(defaultTooltip, rect);
+    if (tooltip) {
+      content = createElement(tooltip, rect);
+    }
+    show(e, content);
   };
 
   const handleMouseOut = (rect: Rect) => {
-    if (onMouseOut) {
-      onMouseOut(rect);
+    if (onLeave) {
+      onLeave(rect);
     }
+    hide();
   };
 
   return (
@@ -61,7 +70,7 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onMouseOver
           y={height * 0.2}
           fill={rect.color || color}
           onClick={() => handleClick(rect)}
-          onMouseOver={() => handleMouseOver(rect)}
+          onMouseOver={(e) => handleMouseOver(rect, e)}
           onMouseOut={() => handleMouseOut(rect)}
         />
       ))}
@@ -69,3 +78,7 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onMouseOver
   );
 }
 export default DenseBigBed;
+
+function defaultTooltip(rect: Rect) {
+  return <div>{rect.name}</div>;
+}

@@ -9,8 +9,8 @@ export interface ThemeStore {
 }
 
 export const useTheme = create<ThemeStore>((set) => ({
-  background: "#afafaf",
-  text: "#000",
+  background: "#ffffff",
+  text: "#000000",
   setBackground: (background: Color) => {
     set({ background });
     set({ text: getTextColor(background) });
@@ -31,3 +31,6 @@ export function getTextColor(backgroundColor: string): string {
   // Use white text for darker backgrounds, black for lighter ones
   return luminance > 0.5 ? "#000000" : "#ffffff";
 }
+
+// background: "#afafaf",
+// text: "#000",
