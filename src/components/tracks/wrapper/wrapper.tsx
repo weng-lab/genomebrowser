@@ -6,7 +6,7 @@ import { useTrackStore } from "../../../store/trackStore";
 import { useBrowserStore } from "../../../store/browserStore";
 import LoadingSpinner from "../../../icons/loadingSpinner";
 import ErrorIcon from "../../../icons/errorIcon";
-import { useContextMenuStore } from "../../../store/contestMenuStore";
+import { useContextMenuStore } from "../../../store/contextMenuStore";
 import { useTheme } from "../../../store/themeStore";
 
 export interface WrapperProps {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useContextMenuStore } from "../../store/contestMenuStore";
+import { useContextMenuStore } from "../../store/contextMenuStore";
 import { useTrackStore } from "../../store/trackStore";
 import { trackComponents } from "../tracks/displayTrack";
 import { DisplayMode } from "../tracks/types";
