@@ -4,6 +4,10 @@ export interface BigBedConfig extends BaseConfig {
   trackType: TrackType.BigBed;
   url: string;
   rowHeight?: number;
+  onClick?: (rect: Rect) => void;
+  onMouseOver?: (rect: Rect) => void;
+  onMouseOut?: (rect: Rect) => void;
+  tooltip?: React.FC<SquishRect>;
 }
 
 export interface Rect {

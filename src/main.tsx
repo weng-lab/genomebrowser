@@ -36,6 +36,15 @@ function Main() {
       displayMode: DisplayMode.Dense,
       url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
       rowHeight: 20,
+      onClick: (rect) => {
+        console.log(rect);
+      },
+      onMouseOver: (rect) => {
+        console.log(rect);
+      },
+      onMouseOut: (rect) => {
+        console.log(rect);
+      },
     },
     {
       id: "3",

@@ -10,16 +10,25 @@ import { useTheme } from "../../../store/themeStore";
 interface SquishBigBedProps {
   id: string;
   data: Rect[];
+  color: string;
   rowHeight: number;
   dimensions: TrackDimensions;
+  onClick?: (rect: Rect) => void;
+  onMouseOver?: (rect: Rect) => void;
+  onMouseOut?: (rect: Rect) => void;
 }
 
-// onClick: (rect: Rect) => void;
-// onMouseOver: (rect: Rect) => void;
-// onMouseOut: () => void;
-
 const MINIMUM_HEIGHT = 12;
-export default function SquishBigBed({ id, data, rowHeight, dimensions }: SquishBigBedProps) {
+export default function SquishBigBed({
+  id,
+  data,
+  rowHeight,
+  dimensions,
+  color,
+  onClick,
+  onMouseOver,
+  onMouseOut,
+}: SquishBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
   const x = useXTransform(totalWidth);
   const editTrack = useTrackStore((state) => state.editTrack);
@@ -35,6 +44,24 @@ export default function SquishBigBed({ id, data, rowHeight, dimensions }: Squish
     editTrack<BigBedConfig>(id, { height });
   }, [height, id, editTrack]);
 
+  const handleClick = (rect: Rect) => {
+    if (onClick) {
+      onClick(rect);
+    }
+  };
+
+  const handleMouseOver = (rect: Rect) => {
+    if (onMouseOver) {
+      onMouseOver(rect);
+    }
+  };
+
+  const handleMouseOut = (rect: Rect) => {
+    if (onMouseOut) {
+      onMouseOut(rect);
+    }
+  };
+
   const { background } = useTheme();
 
   return (
@@ -47,23 +74,16 @@ export default function SquishBigBed({ id, data, rowHeight, dimensions }: Squish
         <g transform={`translate(0, ${i * rowHeight})`} key={`group_${i}`}>
           {group.map((rect, j) => (
             <rect
-              // style={{ cursor: props.onClick ? "pointer" : "default" }}
+              style={{ cursor: onClick ? "pointer" : "default" }}
               key={`${id}_${j}`}
               height={rowHeight * 0.6}
               width={rect.end - rect.start < 1 ? 1 : rect.end - rect.start}
               x={rect.start}
               y={rowHeight * 0.2}
-              fill={rect.color}
-              // onClick={() => props.onClick && props.onClick(rect)}
-              // onMouseOut={() => {
-              //   props.onMouseOut && props.onMouseOut();
-              //   mouseOut();
-              // }}
-              // onMouseOver={(e: React.MouseEvent<SVGRectElement>) => {
-              //   e.persist();
-              //   props.onMouseOver && props.onMouseOver(rect);
-              //   mouseOver(e, rect);
-              // }}
+              fill={rect.color || color}
+              onClick={() => handleClick(rect)}
+              onMouseOver={() => handleMouseOver(rect)}
+              onMouseOut={() => handleMouseOut(rect)}
             />
           ))}
         </g>

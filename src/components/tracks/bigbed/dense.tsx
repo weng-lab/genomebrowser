@@ -12,9 +12,12 @@ interface DenseBigBedProps {
   color: string;
   id: string;
   dimensions: TrackDimensions;
+  onClick?: (rect: Rect) => void;
+  onMouseOver?: (rect: Rect) => void;
+  onMouseOut?: (rect: Rect) => void;
 }
 
-function DenseBigBed({ id, data, height, color, dimensions }: DenseBigBedProps) {
+function DenseBigBed({ id, data, height, color, dimensions, onClick, onMouseOver, onMouseOut }: DenseBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
   const x = useXTransform(totalWidth);
 
@@ -24,6 +27,24 @@ function DenseBigBed({ id, data, height, color, dimensions }: DenseBigBedProps) 
 
   const { background } = useTheme();
 
+  const handleClick = (rect: Rect) => {
+    if (onClick) {
+      onClick(rect);
+    }
+  };
+
+  const handleMouseOver = (rect: Rect) => {
+    if (onMouseOver) {
+      onMouseOver(rect);
+    }
+  };
+
+  const handleMouseOut = (rect: Rect) => {
+    if (onMouseOut) {
+      onMouseOut(rect);
+    }
+  };
+
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
       <rect width={totalWidth} height={height} fill={background} />
@@ -32,23 +53,16 @@ function DenseBigBed({ id, data, height, color, dimensions }: DenseBigBedProps) 
       </defs>
       {rendered.map((rect, i) => (
         <rect
-          // style={{ cursor: props.onClick ? "pointer" : "default" }}
+          style={{ cursor: onClick ? "pointer" : "default" }}
           key={`${id}_${i}`}
           height={height * 0.6}
           width={rect.end - rect.start}
           x={rect.start}
           y={height * 0.2}
           fill={rect.color || color}
-          // onClick={() => props.onClick && props.onClick(rect)}
-          // onMouseOut={() => {
-          //   props.onMouseOut && props.onMouseOut();
-          //   mouseOut();
-          // }}
-          // onMouseOver={(e: React.MouseEvent<SVGRectElement>) => {
-          //   e.persist();
-          //   props.onMouseOver && props.onMouseOver(rect);
-          //   mouseOver(e, rect);
-          // }}
+          onClick={() => handleClick(rect)}
+          onMouseOver={() => handleMouseOver(rect)}
+          onMouseOut={() => handleMouseOut(rect)}
         />
       ))}
     </g>
