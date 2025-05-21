@@ -1,13 +1,14 @@
-import { useEffect, useMemo } from "react";
+import { createElement, useEffect, useMemo } from "react";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { TrackDimensions } from "../types";
 import { bestFontSize } from "./squish";
-import { TranscriptConfig, TranscriptList, TranscriptRow } from "./types";
+import { Transcript, TranscriptConfig, TranscriptList, TranscriptRow } from "./types";
 import { renderTranscript, sortedTranscripts } from "./helper";
 import { groupFeatures } from "../../../utils/coordinates";
 import ClipPath from "../../svg/clipPath";
 import { useTrackStore } from "../../../store/trackStore";
 import { useTheme } from "../../../store/themeStore";
+import { useTooltipStore } from "../../../store/tooltipStore";
 
 interface PackTranscriptProps {
   id: string;
@@ -15,9 +16,23 @@ interface PackTranscriptProps {
   dimensions: TrackDimensions;
   data: TranscriptList[];
   color: string;
+  onClick?: (transcript: Transcript) => void;
+  onHover?: (transcript: Transcript) => void;
+  onLeave?: () => void;
+  tooltip?: React.FC<Transcript>;
 }
 
-export default function PackTranscript({ id, data, rowHeight, dimensions, color }: PackTranscriptProps) {
+export default function PackTranscript({
+  id,
+  data,
+  rowHeight,
+  dimensions,
+  color,
+  onClick,
+  onHover,
+  onLeave,
+  tooltip,
+}: PackTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const x = useXTransform(totalWidth);
 
@@ -39,7 +54,31 @@ export default function PackTranscript({ id, data, rowHeight, dimensions, color 
     editTrack<TranscriptConfig>(id, { height });
   }, [height, id, editTrack]);
 
-  const { background } = useTheme();
+  const { background, text } = useTheme();
+
+  const handleClick = (transcript: Transcript) => {
+    if (onClick) {
+      onClick(transcript);
+    }
+  };
+  const showTooltip = useTooltipStore((state) => state.showTooltip);
+  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
+  const handleHover = (e: React.MouseEvent<SVGPathElement>, transcript: Transcript) => {
+    if (onHover) {
+      onHover(transcript);
+    }
+    let content = <text fill={text}>{transcript.name}</text>;
+    if (tooltip) {
+      content = createElement(tooltip, transcript);
+    }
+    showTooltip(content, e.clientX, e.clientY);
+  };
+  const handleLeave = () => {
+    if (onLeave) {
+      onLeave();
+    }
+    hideTooltip();
+  };
 
   return (
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth},0)`}>
@@ -62,10 +101,10 @@ export default function PackTranscript({ id, data, rowHeight, dimensions, color 
                 fill={transcript.transcript.color || color}
                 strokeWidth={rowHeight / 16}
                 d={transcript.paths.introns + transcript.paths.exons}
-                // style={{ cursor: props.onTranscriptClick ? "pointer" : "default" }}
-                // onMouseOver={(e: React.MouseEvent<SVGPathElement>) => mouseOver(e, transcript.transcript)}
-                // onMouseOut={mouseOut}
-                // onClick={() => props.onTranscriptClick && props.onTranscriptClick(transcript.transcript)}
+                style={{ cursor: onClick ? "pointer" : "default" }}
+                onClick={() => handleClick(transcript.transcript)}
+                onMouseOver={(e: React.MouseEvent<SVGPathElement>) => handleHover(e, transcript.transcript)}
+                onMouseOut={handleLeave}
               />
               <text
                 fill={transcript.transcript.color || color}

@@ -1,25 +1,7 @@
-import { useBrowserStore } from "../../../store/browserStore";
-import { useTheme } from "../../../store/themeStore";
-
-export function Tooltip({
-  x,
-  value,
-  trackHeight,
-}: {
-  x: number | undefined;
-  value: number | undefined;
-  trackHeight: number;
-}) {
-  const marginWidth = useBrowserStore((state) => state.marginWidth);
-  const { background, text } = useTheme();
-  if (!x) return null;
-
+export function Tooltip({ value, background, text }: { value: number | undefined; background: string; text: string }) {
   return (
-    <>
-      <line stroke={text} x1={x ? x - marginWidth : 0} x2={x ? x - marginWidth : 0} y1={0} y2={trackHeight} />
-      {/* Background rectangle */}
+    <g>
       <rect
-        x={x - marginWidth + 5}
         y={2}
         width={value ? value.toFixed(2).length * 6 + 1 : 0}
         height={16}
@@ -29,7 +11,7 @@ export function Tooltip({
         rx={2}
       />
       <text
-        x={x - marginWidth + 7}
+        x={2}
         y={15}
         fill={text}
         fontSize={12}
@@ -40,6 +22,6 @@ export function Tooltip({
       >
         {value?.toFixed(2)}
       </text>
-    </>
+    </g>
   );
 }

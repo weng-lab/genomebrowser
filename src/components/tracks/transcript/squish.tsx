@@ -1,12 +1,13 @@
-import { useEffect, useMemo } from "react";
+import { createElement, useEffect, useMemo } from "react";
 import { groupFeatures } from "../../../utils/coordinates";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { TrackDimensions } from "../types";
-import { TranscriptConfig, TranscriptList, TranscriptRow } from "./types";
+import { Transcript, TranscriptConfig, TranscriptList, TranscriptRow } from "./types";
 import ClipPath from "../../svg/clipPath";
 import { mergeTranscripts, renderTranscript } from "./helper";
 import { useTrackStore } from "../../../store/trackStore";
 import { useTheme } from "../../../store/themeStore";
+import { useTooltipStore } from "../../../store/tooltipStore";
 
 interface SquishTranscriptProps {
   id: string;
@@ -15,6 +16,10 @@ interface SquishTranscriptProps {
   geneName: string;
   rowHeight: number;
   color: string;
+  onClick?: (transcript: Transcript) => void;
+  onHover?: (transcript: Transcript) => void;
+  onLeave?: () => void;
+  tooltip?: React.FC<Transcript>;
 }
 
 export function bestFontSize(height: number): number {
@@ -22,7 +27,18 @@ export function bestFontSize(height: number): number {
   return height / 6;
 }
 
-export default function SquishTranscript({ id, data, geneName, rowHeight, dimensions, color }: SquishTranscriptProps) {
+export default function SquishTranscript({
+  id,
+  data,
+  geneName,
+  rowHeight,
+  dimensions,
+  color,
+  onClick,
+  onHover,
+  onLeave,
+  tooltip,
+}: SquishTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const x = useXTransform(totalWidth);
   const fontSize = bestFontSize(rowHeight) * 1.25;
@@ -43,8 +59,32 @@ export default function SquishTranscript({ id, data, geneName, rowHeight, dimens
     editTrack<TranscriptConfig>(id, { height });
   }, [height, editTrack, id]);
 
-  const { background } = useTheme();
+  const { background, text } = useTheme();
 
+  const handleClick = (transcript: Transcript) => {
+    if (onClick) {
+      onClick(transcript);
+    }
+  };
+  const showTooltip = useTooltipStore((state) => state.showTooltip);
+  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
+  const handleMouseOver = (e: React.MouseEvent<SVGPathElement>, transcript: Transcript) => {
+    if (onHover) {
+      onHover(transcript);
+    }
+    let content = <text fill={text}>{transcript.name}</text>;
+    if (tooltip) {
+      content = createElement(tooltip, transcript);
+    }
+    showTooltip(content, e.clientX, e.clientY);
+  };
+
+  const handleMouseOut = () => {
+    if (onLeave) {
+      onLeave();
+    }
+    hideTooltip();
+  };
   return (
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth},0)`}>
       <rect width={totalWidth} height={height} fill={background} />
@@ -66,10 +106,10 @@ export default function SquishTranscript({ id, data, geneName, rowHeight, dimens
                 fill={transcript.transcript.color || color}
                 strokeWidth={rowHeight / 16}
                 d={transcript.paths.introns + transcript.paths.exons}
-                // style={{ cursor: onTranscriptClick ? "pointer" : "default" }}
-                // onMouseOver={(e: React.MouseEvent<SVGPathElement>) => mouseOver(e, transcript.transcript)}
-                // onMouseOut={mouseOut}
-                // onClick={() => props.onTranscriptClick && props.onTranscriptClick(transcript.transcript)}
+                style={{ cursor: onClick ? "pointer" : "default" }}
+                onClick={() => handleClick(transcript.transcript)}
+                onMouseOver={(e: React.MouseEvent<SVGPathElement>) => handleMouseOver(e, transcript.transcript)}
+                onMouseOut={handleMouseOut}
               />
               <text
                 fill={transcript.transcript.color || color}

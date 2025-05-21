@@ -7,9 +7,6 @@ import { renderSquishBigBedData } from "./helpers";
 import { useTrackStore } from "../../../store/trackStore";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
-import { svgPoint } from "../../../utils/svg";
-import { useBrowserStore } from "../../../store/browserStore";
-import { useTooltip } from "../../../hooks/useTooltip";
 
 interface SquishBigBedProps {
   id: string;
@@ -36,6 +33,8 @@ export default function SquishBigBed({
   tooltip,
 }: SquishBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
+  const { background, text } = useTheme();
+
   const x = useXTransform(totalWidth);
   const editTrack = useTrackStore((state) => state.editTrack);
 
@@ -56,26 +55,25 @@ export default function SquishBigBed({
     }
   };
 
-  const {show, hide} = useTooltip()
+  const showTooltip = useTooltipStore((state) => state.showTooltip);
+  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
   const handleMouseOver = (rect: Rect, e: React.MouseEvent<SVGGElement>) => {
     if (onHover) {
       onHover(rect);
     }
-    let content = <></>;
+    let content = <text fill={text}>{rect.name}</text>;
     if (tooltip) {
       content = createElement(tooltip, rect);
     }
-    show(e, content);
+    showTooltip(content, e.clientX, e.clientY);
   };
 
   const handleMouseOut = () => {
     if (onLeave) {
       onLeave();
     }
-    hide();
+    hideTooltip();
   };
-
-  const { background } = useTheme();
 
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
