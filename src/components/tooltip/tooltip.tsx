@@ -13,8 +13,7 @@ export default function Tooltip() {
   const trackWidth = useBrowserStore((state) => state.browserWidth);
 
   useEffect(() => {
-    if (!ref.current) return;
-    if (!browserRef || !browserRef.current) return;
+    if (!ref.current || !browserRef || !browserRef.current) return;
     const pos = svgPoint(browserRef.current, x, y);
     const tempX = pos[0];
     const tempY = pos[1];
