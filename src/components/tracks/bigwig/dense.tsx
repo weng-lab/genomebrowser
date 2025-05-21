@@ -3,29 +3,19 @@ import { useBrowserStore } from "../../../store/browserStore";
 import { useTrackStore } from "../../../store/trackStore";
 import { lighten } from "../../../utils/color";
 import { svgPoint } from "../../../utils/svg";
-import { TrackDimensions } from "../types";
 import { getRange, renderBigWig, renderDense, ytransform } from "./helpers";
 import {
   BigWigConfig,
   BigWigData,
   BigZoomData,
-  Data,
   DataType,
   dataType,
+  DenseBigWigProps,
   RenderedBigWigData,
   ValuedPoint,
 } from "./types";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
-
-interface DenseBigWigProps {
-  id: string;
-  data: Data;
-  color: string;
-  height: number;
-  dimensions: TrackDimensions;
-  tooltip?: React.FC<number>;
-}
 
 export default function DenseBigWig({ id, data, color, height, dimensions, tooltip }: DenseBigWigProps) {
   const { multiplier, sideWidth, sidePortion, totalWidth, viewWidth } = dimensions;
@@ -81,7 +71,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
     const point = data[Math.round(x)] as BigWigData;
     let content = <text fill={text}>{point.value.toFixed(2)}</text>;
     if (tooltip) {
-      content = createElement(tooltip, point.value);
+      content = createElement(tooltip, point);
     }
     showTooltip(content, e.clientX, e.clientY);
   };
