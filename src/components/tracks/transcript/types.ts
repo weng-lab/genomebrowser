@@ -1,11 +1,36 @@
-import { BaseConfig, TrackType } from "../types";
+import { BaseConfig, TrackDimensions, TrackType } from "../types";
 
 export interface TranscriptConfig extends BaseConfig {
   trackType: TrackType.Transcript;
   refetch: () => void;
   assembly: string;
   version: number;
-  rowHeight: number;
+  height: number;
+}
+
+export interface SquishTranscriptProps {
+  id: string;
+  data: TranscriptList[];
+  dimensions: TrackDimensions;
+  geneName: string;
+  height: number;
+  color: string;
+  onClick?: (transcript: Transcript) => void;
+  onHover?: (transcript: Transcript) => void;
+  onLeave?: () => void;
+  tooltip?: React.FC<Transcript>;
+}
+
+export interface PackTranscriptProps {
+  id: string;
+  height: number;
+  dimensions: TrackDimensions;
+  data: TranscriptList[];
+  color: string;
+  onClick?: (transcript: Transcript) => void;
+  onHover?: (transcript: Transcript) => void;
+  onLeave?: () => void;
+  tooltip?: React.FC<Transcript>;
 }
 
 export interface Transcript {

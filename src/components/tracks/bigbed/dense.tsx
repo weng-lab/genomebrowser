@@ -2,21 +2,10 @@ import { createElement, useMemo } from "react";
 import { Rect } from "./types";
 import ClipPath from "../../svg/clipPath";
 import { renderDenseBigBedData } from "./helpers";
-import { TrackDimensions } from "../types";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
-interface DenseBigBedProps {
-  height: number;
-  data: Rect[];
-  color: string;
-  id: string;
-  dimensions: TrackDimensions;
-  onClick?: (rect: Rect) => void;
-  onHover?: (rect: Rect) => void;
-  onLeave?: (rect: Rect) => void;
-  tooltip?: React.FC<Rect>;
-}
+import { DenseBigBedProps } from "./types";
 
 function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, onLeave, tooltip }: DenseBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;

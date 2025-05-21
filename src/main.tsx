@@ -41,12 +41,11 @@ function Main() {
       id: "2",
       title: "Track 2",
       titleSize: 12,
-      height: 50,
+      height: 14,
       color: Vibrant[7],
       trackType: TrackType.BigBed,
       displayMode: DisplayMode.Dense,
       url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
-      rowHeight: 20,
       onClick: (rect) => {
         setName(rect.name + " clicked");
       },
@@ -68,7 +67,6 @@ function Main() {
       version: 47,
       refetch: () => {},
       displayMode: DisplayMode.Squish,
-      rowHeight: 12,
     },
   ];
 

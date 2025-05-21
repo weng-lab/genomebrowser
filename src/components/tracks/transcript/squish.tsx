@@ -1,26 +1,12 @@
-import { createElement, useEffect, useMemo } from "react";
+import { createElement, useMemo } from "react";
 import { groupFeatures } from "../../../utils/coordinates";
 import { useXTransform } from "../../../hooks/useXTransform";
-import { TrackDimensions } from "../types";
-import { Transcript, TranscriptConfig, TranscriptList, TranscriptRow } from "./types";
+import { SquishTranscriptProps, Transcript, TranscriptRow } from "./types";
 import ClipPath from "../../svg/clipPath";
 import { mergeTranscripts, renderTranscript } from "./helper";
-import { useTrackStore } from "../../../store/trackStore";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
-
-interface SquishTranscriptProps {
-  id: string;
-  data: TranscriptList[];
-  dimensions: TrackDimensions;
-  geneName: string;
-  rowHeight: number;
-  color: string;
-  onClick?: (transcript: Transcript) => void;
-  onHover?: (transcript: Transcript) => void;
-  onLeave?: () => void;
-  tooltip?: React.FC<Transcript>;
-}
+import { useRowHeight } from "../../../hooks/useRowHeight";
 
 export function bestFontSize(height: number): number {
   if (height / 6 < 10) return height < 10 ? height : 10;
@@ -31,7 +17,7 @@ export default function SquishTranscript({
   id,
   data,
   geneName,
-  rowHeight,
+  height,
   dimensions,
   color,
   onClick,
@@ -41,6 +27,9 @@ export default function SquishTranscript({
 }: SquishTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const x = useXTransform(totalWidth);
+
+  const rowHeight = useRowHeight(height, data.length, id);
+
   const fontSize = bestFontSize(rowHeight) * 1.25;
 
   const rendered: TranscriptRow[] = useMemo(
@@ -51,14 +40,7 @@ export default function SquishTranscript({
       })),
     [data, rowHeight, totalWidth, x, fontSize, geneName]
   );
-
-  const height = useMemo(() => Math.max(rowHeight * rendered.length, 35), [rowHeight, rendered.length]);
-
-  const editTrack = useTrackStore((state) => state.editTrack);
-  useEffect(() => {
-    editTrack<TranscriptConfig>(id, { height });
-  }, [height, editTrack, id]);
-
+  
   const { background, text } = useTheme();
 
   const handleClick = (transcript: Transcript) => {
