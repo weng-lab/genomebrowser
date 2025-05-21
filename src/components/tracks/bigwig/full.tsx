@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { createElement, useEffect, useMemo, useState } from "react";
 import { useBrowserStore } from "../../../store/browserStore";
 import ClipPath from "../../svg/clipPath";
 
@@ -20,7 +20,7 @@ import { svgPoint, l } from "../../../utils/svg";
 import { TrackDimensions } from "../types";
 import { BigWigConfig } from "./types";
 import { useTheme } from "../../../store/themeStore";
-import { Tooltip } from "./tooltip";
+import { useTooltipStore } from "../../../store/tooltipStore";
 
 type FullBigWigProps = {
   data: Data;
@@ -29,16 +29,16 @@ type FullBigWigProps = {
   height: number;
   color: string;
   dimensions: TrackDimensions;
+  tooltip?: React.FC<number>;
 };
 
-export default function FullBigWig({ data, range, id, height, color, dimensions }: FullBigWigProps) {
+export default function FullBigWig({ data, range, id, height, color, dimensions, tooltip }: FullBigWigProps) {
   const { multiplier, sideWidth, sidePortion, totalWidth, viewWidth } = dimensions;
   const editTrack = useTrackStore((state) => state.editTrack);
   const delta = useBrowserStore((state) => state.delta);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
 
   const [x, setX] = useState<number>();
-  const [value, setValue] = useState<number>();
 
   const realRange = useMemo(() => {
     const length = data?.length ?? 0;
@@ -101,10 +101,12 @@ export default function FullBigWig({ data, range, id, height, color, dimensions 
     };
   }, [rendered, height, realRange, totalWidth]);
 
+  const showTooltip = useTooltipStore((state) => state.showTooltip);
+  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
   const svgRef = useBrowserStore((state) => state.svgRef);
   const mouseOver = (e: React.MouseEvent<SVGElement>) => {
     if (!svgRef || !svgRef.current) return;
-    const pos = svgPoint(svgRef.current, e);
+    const pos = svgPoint(svgRef.current, e.clientX, e.clientY);
     setX(pos[0]);
     const len = data.length;
     const adjustedX = Math.round(pos[0] - marginWidth);
@@ -112,14 +114,19 @@ export default function FullBigWig({ data, range, id, height, color, dimensions 
     const end = start * 2;
     const x = (adjustedX / viewWidth) * (end - start) + start;
     const point = data[Math.round(x)] as BigWigData;
-    setValue(point.value);
+    let content = <text fill={text}>{point.value.toFixed(2)}</text>;
+    if (tooltip) {
+      content = createElement(tooltip, point.value);
+    }
+    showTooltip(content, e.clientX, e.clientY);
   };
 
   const mouseOut = () => {
     setX(undefined);
+    hideTooltip();
   };
 
-  const { background } = useTheme();
+  const { background, text } = useTheme();
 
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
@@ -129,11 +136,14 @@ export default function FullBigWig({ data, range, id, height, color, dimensions 
       </defs>
       <path d={paths.path} fill={color || "#000000"} style={{ clipPath: `url(#${id})` }} />
       <path d={paths.clampedMarkers} stroke="red" strokeWidth="1" fill="none" />
-      {/* tooltip */}
-      {delta === 0 && (
-        <g transform={`translate(${sideWidth}, 0)`}>
-          <Tooltip x={x} value={value} trackHeight={height} />
-        </g>
+      {!delta && (
+        <line
+          stroke={text}
+          x1={x ? x - marginWidth + sideWidth : 0}
+          x2={x ? x - marginWidth + sideWidth : 0}
+          y1={0}
+          y2={height}
+        />
       )}
       {/* Interactive area */}
       <rect

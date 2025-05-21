@@ -56,7 +56,6 @@ function Main() {
       onLeave: () => {
         setName("...");
       },
-      tooltip: TT,
     },
     {
       id: "3",
@@ -106,14 +105,13 @@ function DomainView() {
 
 function Action() {
   // const editTrack = useTrackStore((state) => state.editTrack);
-  const setDomain = useBrowserStore((state) => state.setDomain);
   const setBackground = useTheme((state) => state.setBackground);
 
   const onClick = () => {
     // const height = Math.random() * 100 + 50;
     // editTrack<BigWigConfig>("2", { height: height });
     // setDomain({ chromosome: "chr18", start: 35482597, end: 35501745 });
-    setBackground("#AEA4BF");
+    setBackground("#000");
   };
 
   return <button onClick={onClick}>Click for action</button>;

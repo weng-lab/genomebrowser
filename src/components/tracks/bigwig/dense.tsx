@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { createElement, useEffect, useMemo, useState } from "react";
 import { useBrowserStore } from "../../../store/browserStore";
 import { useTrackStore } from "../../../store/trackStore";
 import { lighten } from "../../../utils/color";
 import { svgPoint } from "../../../utils/svg";
 import { TrackDimensions } from "../types";
 import { getRange, renderBigWig, renderDense, ytransform } from "./helpers";
-import { Tooltip } from "./tooltip";
 import {
   BigWigConfig,
   BigWigData,
@@ -16,6 +15,8 @@ import {
   RenderedBigWigData,
   ValuedPoint,
 } from "./types";
+import { useTheme } from "../../../store/themeStore";
+import { useTooltipStore } from "../../../store/tooltipStore";
 
 interface DenseBigWigProps {
   id: string;
@@ -23,15 +24,15 @@ interface DenseBigWigProps {
   color: string;
   height: number;
   dimensions: TrackDimensions;
+  tooltip?: React.FC<number>;
 }
 
-export default function DenseBigWig({ id, data, color, height, dimensions }: DenseBigWigProps) {
+export default function DenseBigWig({ id, data, color, height, dimensions, tooltip }: DenseBigWigProps) {
   const { multiplier, sideWidth, sidePortion, totalWidth, viewWidth } = dimensions;
   const editTrack = useTrackStore((state) => state.editTrack);
   const delta = useBrowserStore((state) => state.delta);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const [x, setX] = useState<number>();
-  const [value, setValue] = useState<number>();
 
   const range = useMemo(() => {
     const length = data?.length ?? 0;
@@ -63,10 +64,14 @@ export default function DenseBigWig({ id, data, color, height, dimensions }: Den
     });
   }, [color, rendered, range]);
 
+  const { text } = useTheme();
+
+  const showTooltip = useTooltipStore((state) => state.showTooltip);
+  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
   const svgRef = useBrowserStore((state) => state.svgRef);
   const mouseOver = (e: React.MouseEvent<SVGElement>) => {
     if (!svgRef || !svgRef.current) return;
-    const pos = svgPoint(svgRef.current, e);
+    const pos = svgPoint(svgRef.current, e.clientX, e.clientY);
     setX(pos[0]);
     const len = data.length;
     const adjustedX = Math.round(pos[0] - marginWidth);
@@ -74,11 +79,16 @@ export default function DenseBigWig({ id, data, color, height, dimensions }: Den
     const end = start + len / multiplier;
     const x = (adjustedX / viewWidth) * (end - start) + start;
     const point = data[Math.round(x)] as BigWigData;
-    setValue(point.value);
+    let content = <text fill={text}>{point.value.toFixed(2)}</text>;
+    if (tooltip) {
+      content = createElement(tooltip, point.value);
+    }
+    showTooltip(content, e.clientX, e.clientY);
   };
 
   const mouseOut = () => {
     setX(undefined);
+    hideTooltip();
   };
 
   return (
@@ -91,11 +101,14 @@ export default function DenseBigWig({ id, data, color, height, dimensions }: Den
         </linearGradient>
       </defs>
       <rect width={totalWidth} x={0} y={height / 3.0} height={height / 3.0} fill={`url('#${id}')`} />
-      {/* tooltip */}
-      {delta === 0 && (
-        <g transform={`translate(${sideWidth}, 0)`}>
-          <Tooltip x={x} value={value} trackHeight={height} />
-        </g>
+      {!delta && (
+        <line
+          stroke={text}
+          x1={x ? x - marginWidth + sideWidth : 0}
+          x2={x ? x - marginWidth + sideWidth : 0}
+          y1={0}
+          y2={height}
+        />
       )}
       {/* Interactive area */}
       <rect

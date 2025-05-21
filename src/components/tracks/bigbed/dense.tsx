@@ -5,8 +5,7 @@ import { renderDenseBigBedData } from "./helpers";
 import { TrackDimensions } from "../types";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { useTheme } from "../../../store/themeStore";
-import { useTooltip } from "../../../hooks/useTooltip";
-
+import { useTooltipStore } from "../../../store/tooltipStore";
 interface DenseBigBedProps {
   height: number;
   data: Rect[];
@@ -27,7 +26,7 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, on
     return renderDenseBigBedData(data || [], x);
   }, [data, x]);
 
-  const { background } = useTheme();
+  const { background, text } = useTheme();
 
   const handleClick = (rect: Rect) => {
     if (onClick) {
@@ -35,23 +34,24 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, on
     }
   };
 
-  const { show, hide } = useTooltip();
+  const showTooltip = useTooltipStore((state) => state.showTooltip);
+  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
   const handleMouseOver = (rect: Rect, e: React.MouseEvent<SVGGElement>) => {
     if (onHover) {
       onHover(rect);
     }
-    let content = createElement(defaultTooltip, rect);
+    let content = <text fill={text}>{rect.name}</text>;
     if (tooltip) {
       content = createElement(tooltip, rect);
     }
-    show(e, content);
+    showTooltip(content, e.clientX, e.clientY);
   };
 
   const handleMouseOut = (rect: Rect) => {
     if (onLeave) {
       onLeave(rect);
     }
-    hide();
+    hideTooltip();
   };
 
   return (
@@ -78,7 +78,3 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, on
   );
 }
 export default DenseBigBed;
-
-function defaultTooltip(rect: Rect) {
-  return <div>{rect.name}</div>;
-}
