@@ -1,9 +1,29 @@
-import { BaseConfig, TrackType } from "../types";
+import { BaseConfig, TrackDimensions, TrackType } from "../types";
 
 export interface BigWigConfig extends BaseConfig {
   trackType: TrackType.BigWig;
   url: string;
   range?: YRange;
+  tooltip?: React.FC<BigWigData>;
+}
+
+export type FullBigWigProps = {
+  data: Data;
+  range: YRange;
+  id: string;
+  height: number;
+  color: string;
+  dimensions: TrackDimensions;
+  tooltip?: React.FC<BigWigData>;
+};
+
+export interface DenseBigWigProps {
+  id: string;
+  data: Data;
+  color: string;
+  height: number;
+  dimensions: TrackDimensions;
+  tooltip?: React.FC<BigWigData>;
 }
 
 export type YRange = {

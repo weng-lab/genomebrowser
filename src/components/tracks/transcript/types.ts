@@ -6,6 +6,7 @@ export interface TranscriptConfig extends BaseConfig {
   assembly: string;
   version: number;
   height: number;
+  tooltip?: React.FC<Transcript>;
 }
 
 export interface SquishTranscriptProps {

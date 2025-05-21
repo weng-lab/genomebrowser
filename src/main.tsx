@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
 import { Track } from "./store/trackStore";
@@ -9,6 +9,8 @@ import { useTheme } from "./store/themeStore";
 import { Vibrant } from "./utils/color";
 import { create } from "zustand";
 import { Rect } from "./components/tracks/bigbed/types";
+import { Transcript } from "./components/tracks/transcript/types";
+import { BigWigData } from "./components/tracks/bigwig/types";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -23,9 +25,37 @@ const useStore = create<{ name: string; setName: (name: string) => void }>((set)
 
 function Main() {
   const setName = useStore((state) => state.setName);
-  const TT = (rect: Rect) => {
-    return <text>{rect.name}</text>;
+
+  const TT = (value: BigWigData | Rect | Transcript) => {
+    const textRef = useRef<SVGTextElement>(null);
+    const [width, setWidth] = useState(0);
+    const { text, background } = useTheme();
+
+    let content = "";
+    if ("value" in value) {
+      content = value.value.toFixed(2);
+    }
+    if ("name" in value) {
+      content = value.name || "";
+    }
+
+    useEffect(() => {
+      if (textRef.current) {
+        const width = textRef.current.getBBox().width;
+        setWidth(width);
+      }
+    }, [value, textRef.current, setWidth]);
+
+    return (
+      <g style={{ filter: `drop-shadow(0 0 2px ${text})` }}>
+        <rect rx={2} y={-15} width={width + 10} height={20} fill={background} />
+        <text ref={textRef} x={5} y={0} fill={text}>
+          {content}
+        </text>
+      </g>
+    );
   };
+
   const tracks: Track[] = [
     {
       id: "1",
@@ -36,6 +66,7 @@ function Main() {
       trackType: TrackType.BigWig,
       displayMode: DisplayMode.Full,
       url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
+      tooltip: TT,
     },
     {
       id: "2",
@@ -55,6 +86,7 @@ function Main() {
       onLeave: () => {
         setName("...");
       },
+      tooltip: TT,
     },
     {
       id: "3",
@@ -67,6 +99,7 @@ function Main() {
       version: 47,
       refetch: () => {},
       displayMode: DisplayMode.Squish,
+      tooltip: TT,
     },
   ];
 

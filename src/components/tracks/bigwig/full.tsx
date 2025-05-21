@@ -10,27 +10,15 @@ import {
   DataType,
   Paths,
   RenderedBigWigData,
-  Data,
-  YRange,
+  FullBigWigProps,
 } from "./types";
 
 import { useTrackStore } from "../../../store/trackStore";
 import { createCopy, getRange, renderBigWig, ytransform } from "./helpers";
 import { svgPoint, l } from "../../../utils/svg";
-import { TrackDimensions } from "../types";
 import { BigWigConfig } from "./types";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
-
-type FullBigWigProps = {
-  data: Data;
-  range: YRange;
-  id: string;
-  height: number;
-  color: string;
-  dimensions: TrackDimensions;
-  tooltip?: React.FC<number>;
-};
 
 export default function FullBigWig({ data, range, id, height, color, dimensions, tooltip }: FullBigWigProps) {
   const { multiplier, sideWidth, sidePortion, totalWidth, viewWidth } = dimensions;
@@ -116,7 +104,7 @@ export default function FullBigWig({ data, range, id, height, color, dimensions,
     const point = data[Math.round(x)] as BigWigData;
     let content = <text fill={text}>{point.value.toFixed(2)}</text>;
     if (tooltip) {
-      content = createElement(tooltip, point.value);
+      content = createElement(tooltip, point);
     }
     showTooltip(content, e.clientX, e.clientY);
   };
