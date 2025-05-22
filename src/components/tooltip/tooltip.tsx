@@ -1,6 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import { useBrowserStore } from "../../store/browserStore";
 import { useTooltipStore } from "../../store/tooltipStore";
-import { useEffect, useRef, useState } from "react";
 import { svgPoint } from "../../utils/svg";
 
 export default function Tooltip() {
