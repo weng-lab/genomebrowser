@@ -24,7 +24,7 @@ export default function PackTranscript({
   const { totalWidth, sideWidth } = dimensions;
   const x = useXTransform(totalWidth);
 
-  const rowHeight = useRowHeight(height, data.length, id);
+  const rowHeight = useRowHeight(data.length, id);
 
   const fontSize = bestFontSize(rowHeight) * 1.25;
   const rendered: TranscriptRow[] = useMemo(
