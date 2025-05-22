@@ -30,7 +30,7 @@ export default function SquishBigBed({
     return renderSquishBigBedData(d, x);
   }, [data, x]);
 
-  const rowHeight = useRowHeight(height, rendered.length, id);
+  const rowHeight = useRowHeight(rendered.length, id);
 
   const handleClick = (rect: Rect) => {
     if (onClick) {
