@@ -3,7 +3,6 @@ import { BaseConfig, TrackType, TrackDimensions } from "../types";
 export interface BigBedConfig extends BaseConfig {
   trackType: TrackType.BigBed;
   url: string;
-  rowHeight?: number;
   onClick?: (rect: Rect) => void;
   onHover?: (rect: Rect) => void;
   onLeave?: (rect: Rect) => void;

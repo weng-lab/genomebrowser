@@ -213,7 +213,7 @@ function LegacyDataFetcher() {
     ImportanceError,
     snpData,
     snpError,
-    loading
+    loading,
   ]);
 
   return null;
