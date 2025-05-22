@@ -15,6 +15,7 @@ type WrapperDimensions = {
 };
 
 export type Track = BigWigConfig | BigBedConfig | TranscriptConfig | MotifConfig | ImportanceConfig | LDTrackConfig;
+
 interface TrackStore {
   tracks: Track[];
   ids: string[];

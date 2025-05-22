@@ -1,6 +1,6 @@
-import { BaseConfig, TrackType } from "../types";
+import { Config, TrackType } from "../types";
 
-export interface ImportanceConfig extends BaseConfig {
+export interface ImportanceConfig extends Config<any> {
   trackType: TrackType.Importance;
   url: string;
   signalURL: string;

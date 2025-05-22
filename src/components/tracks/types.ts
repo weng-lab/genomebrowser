@@ -14,15 +14,28 @@ export enum DisplayMode {
   Pack = "pack",
 }
 
-export interface BaseConfig {
-  id: string;
-  height: number;
-  trackType: TrackType;
-  displayMode: DisplayMode;
-  title: string;
+// Interaction configuration for all tracks
+export interface InteractionConfig<Item> {
+  onClick?: (item: Item) => void;
+  onHover?: (item: Item) => void;
+  onLeave?: (item: Item) => void;
+  tooltip?: React.FC<Item>;
+}
+
+// Display configuration for all tracks
+export interface DisplayConfig {
   titleSize?: number;
   shortLabel?: string;
   color?: string;
+}
+
+// All new configs should extend this interface
+export interface Config<Item> extends InteractionConfig<Item>, DisplayConfig {
+  id: string;
+  trackType: TrackType;
+  displayMode: DisplayMode;
+  title: string;
+  height: number;
 }
 
 export interface TrackDimensions {
