@@ -16,6 +16,7 @@ import {
 } from "./types";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
+import DefaultTooltip from "../../tooltip/defaultTooltip";
 
 export default function DenseBigWig({ id, data, color, height, dimensions, tooltip }: DenseBigWigProps) {
   const { multiplier, sideWidth, sidePortion, totalWidth, viewWidth } = dimensions;
@@ -69,7 +70,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
     const end = start + len / multiplier;
     const x = (adjustedX / viewWidth) * (end - start) + start;
     const point = data[Math.round(x)] as BigWigData;
-    let content = <text fill={text}>{point.value.toFixed(2)}</text>;
+    let content = <DefaultTooltip value={point.value.toFixed(2)} />;
     if (tooltip) {
       content = createElement(tooltip, point);
     }

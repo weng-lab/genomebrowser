@@ -7,6 +7,7 @@ import { mergeTranscripts, renderTranscript } from "./helper";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
 import { useRowHeight } from "../../../hooks/useRowHeight";
+import DefaultTooltip from "../../tooltip/defaultTooltip";
 
 export function bestFontSize(height: number): number {
   if (height / 6 < 10) return height < 10 ? height : 10;
@@ -40,8 +41,8 @@ export default function SquishTranscript({
       })),
     [data, rowHeight, totalWidth, x, fontSize, geneName]
   );
-  
-  const { background, text } = useTheme();
+
+  const { background } = useTheme();
 
   const handleClick = (transcript: Transcript) => {
     if (onClick) {
@@ -54,7 +55,7 @@ export default function SquishTranscript({
     if (onHover) {
       onHover(transcript);
     }
-    let content = <text fill={text}>{transcript.name}</text>;
+    let content = <DefaultTooltip value={transcript.name || ""} />;
     if (tooltip) {
       content = createElement(tooltip, transcript);
     }

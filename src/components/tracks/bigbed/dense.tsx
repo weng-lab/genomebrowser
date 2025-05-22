@@ -6,6 +6,7 @@ import { useXTransform } from "../../../hooks/useXTransform";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
 import { DenseBigBedProps } from "./types";
+import DefaultTooltip from "../../tooltip/defaultTooltip";
 
 function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, onLeave, tooltip }: DenseBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
@@ -15,7 +16,7 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, on
     return renderDenseBigBedData(data || [], x);
   }, [data, x]);
 
-  const { background, text } = useTheme();
+  const { background } = useTheme();
 
   const handleClick = (rect: Rect) => {
     if (onClick) {
@@ -29,7 +30,7 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, on
     if (onHover) {
       onHover(rect);
     }
-    let content = <text fill={text}>{rect.name}</text>;
+    let content = <DefaultTooltip value={rect.name || ""} />;
     if (tooltip) {
       content = createElement(tooltip, rect);
     }

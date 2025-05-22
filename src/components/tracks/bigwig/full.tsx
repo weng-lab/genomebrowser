@@ -19,6 +19,7 @@ import { svgPoint, l } from "../../../utils/svg";
 import { BigWigConfig } from "./types";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
+import DefaultTooltip from "../../tooltip/defaultTooltip";
 
 export default function FullBigWig({ data, range, id, height, color, dimensions, tooltip }: FullBigWigProps) {
   const { multiplier, sideWidth, sidePortion, totalWidth, viewWidth } = dimensions;
@@ -102,7 +103,7 @@ export default function FullBigWig({ data, range, id, height, color, dimensions,
     const end = start * 2;
     const x = (adjustedX / viewWidth) * (end - start) + start;
     const point = data[Math.round(x)] as BigWigData;
-    let content = <text fill={text}>{point.value.toFixed(2)}</text>;
+    let content = <DefaultTooltip value={point.value.toFixed(2)} />;
     if (tooltip) {
       content = createElement(tooltip, point);
     }
