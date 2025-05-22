@@ -1,6 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTheme } from "../../store/themeStore";
-import { useRef, useState } from "react";
 
 export default function DefaultTooltip({ value }: { value: string }) {
   const textRef = useRef<SVGTextElement>(null);

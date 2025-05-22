@@ -1,14 +1,14 @@
 import { useEffect } from "react";
+import LegacyDataFetcher from "../../api/legacy";
 import { IntitialBrowserState, useBrowserStore } from "../../store/browserStore";
 import { Track, useTrackStore } from "../../store/trackStore";
-import Modal from "../modal/modal";
-import DisplayTrack from "../tracks/displayTrack";
-import SVGWrapper from "./svgWrapper";
 import ContextMenu from "../contextMenu/contextMenu";
-import LegacyDataFetcher from "../../api/legacy";
+import Modal from "../modal/modal";
+import Tooltip from "../tooltip/tooltip";
+import DisplayTrack from "../tracks/displayTrack";
 import Ruler from "../tracks/ruler/ruler";
 import Wrapper from "../tracks/wrapper/wrapper";
-import Tooltip from "../tooltip/tooltip";
+import SVGWrapper from "./svgWrapper";
 
 export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {
   // Store functions

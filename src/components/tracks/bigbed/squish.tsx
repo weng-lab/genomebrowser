@@ -21,7 +21,7 @@ export default function SquishBigBed({
   tooltip,
 }: SquishBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
-  const { background, text } = useTheme();
+  const { background } = useTheme();
 
   const x = useXTransform(totalWidth);
 
