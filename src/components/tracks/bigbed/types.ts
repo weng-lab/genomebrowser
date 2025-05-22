@@ -1,27 +1,11 @@
-import { BaseConfig, TrackType, TrackDimensions } from "../types";
+import { TrackType, TrackDimensions, Config } from "../types";
 
-export interface BigBedConfig extends BaseConfig {
+export interface BigBedConfig extends Config<Rect> {
   trackType: TrackType.BigBed;
   url: string;
-  onClick?: (rect: Rect) => void;
-  onHover?: (rect: Rect) => void;
-  onLeave?: (rect: Rect) => void;
-  tooltip?: React.FC<Rect>;
 }
 
-export interface SquishBigBedProps {
-  id: string;
-  data: Rect[];
-  color: string;
-  height: number;
-  dimensions: TrackDimensions;
-  onClick?: (rect: Rect) => void;
-  onHover?: (rect: Rect) => void;
-  onLeave?: () => void;
-  tooltip?: React.FC<Rect>;
-}
-
-export interface DenseBigBedProps {
+interface BigBedProps {
   id: string;
   data: Rect[];
   color: string;
@@ -32,6 +16,10 @@ export interface DenseBigBedProps {
   onLeave?: (rect: Rect) => void;
   tooltip?: React.FC<Rect>;
 }
+
+export interface SquishBigBedProps extends BigBedProps {}
+
+export interface DenseBigBedProps extends BigBedProps {}
 
 export interface Rect {
   start: number;

@@ -1,6 +1,6 @@
-import { BaseConfig, TrackType } from "../types";
+import { Config, TrackType } from "../types";
 
-export interface LDTrackConfig extends BaseConfig {
+export interface LDTrackConfig extends Config<any> {
   trackType: TrackType.LDTrack;
   signalURL: string;
   assembly: string;
