@@ -7,6 +7,7 @@ import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
 import { SquishBigBedProps } from "./types";
 import { useRowHeight } from "../../../hooks/useRowHeight";
+import DefaultTooltip from "../../tooltip/defaultTooltip";
 
 export default function SquishBigBed({
   id,
@@ -43,16 +44,16 @@ export default function SquishBigBed({
     if (onHover) {
       onHover(rect);
     }
-    let content = <text fill={text}>{rect.name}</text>;
+    let content = <DefaultTooltip value={rect.name || ""} />;
     if (tooltip) {
       content = createElement(tooltip, rect);
     }
     showTooltip(content, e.clientX, e.clientY);
   };
 
-  const handleMouseOut = () => {
+  const handleMouseOut = (rect: Rect) => {
     if (onLeave) {
-      onLeave();
+      onLeave(rect);
     }
     hideTooltip();
   };
@@ -76,7 +77,7 @@ export default function SquishBigBed({
               fill={rect.color || color}
               onClick={() => handleClick(rect)}
               onMouseOver={(e) => handleMouseOver(rect, e)}
-              onMouseOut={() => handleMouseOut()}
+              onMouseOut={() => handleMouseOut(rect)}
             />
           ))}
         </g>

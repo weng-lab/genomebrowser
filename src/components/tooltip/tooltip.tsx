@@ -11,6 +11,7 @@ export default function Tooltip() {
   const ref = useRef<SVGGElement>(null);
   const delta = useBrowserStore((state) => state.delta);
   const trackWidth = useBrowserStore((state) => state.browserWidth);
+  const offset = 15;
 
   useEffect(() => {
     if (!ref.current || !browserRef || !browserRef.current) return;
@@ -18,7 +19,7 @@ export default function Tooltip() {
     const tempX = pos[0];
     const tempY = pos[1];
     const width = ref.current.getBoundingClientRect().width;
-    const newX = tempX > trackWidth - width ? tempX - width - 15 : tempX + 15;
+    const newX = tempX > trackWidth - width - offset ? tempX - width - offset : tempX + offset;
     const newY = tempY;
     setNewX(newX);
     setNewY(newY);

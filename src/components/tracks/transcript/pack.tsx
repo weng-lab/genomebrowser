@@ -8,6 +8,7 @@ import ClipPath from "../../svg/clipPath";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
 import { useRowHeight } from "../../../hooks/useRowHeight";
+import DefaultTooltip from "../../tooltip/defaultTooltip";
 
 export default function PackTranscript({
   id,
@@ -35,7 +36,7 @@ export default function PackTranscript({
     [data, rowHeight, totalWidth, x, fontSize]
   );
 
-  const { background, text } = useTheme();
+  const { background } = useTheme();
 
   const handleClick = (transcript: Transcript) => {
     if (onClick) {
@@ -48,7 +49,7 @@ export default function PackTranscript({
     if (onHover) {
       onHover(transcript);
     }
-    let content = <text fill={text}>{transcript.name}</text>;
+    let content = <DefaultTooltip value={transcript.name || ""} />;
     if (tooltip) {
       content = createElement(tooltip, transcript);
     }
