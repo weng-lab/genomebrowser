@@ -23,7 +23,7 @@ export default function Tooltip() {
     const newY = tempY;
     setNewX(newX);
     setNewY(newY);
-  }, [show, content]);
+  }, [show, content, x, y, trackWidth, browserRef]);
 
   if (!show || delta) return null;
   return (

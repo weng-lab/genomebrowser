@@ -11,7 +11,7 @@ export default function DefaultTooltip({ value }: { value: string }) {
       const width = textRef.current.getBBox().width;
       setWidth(width);
     }
-  }, [value, textRef.current, setWidth]);
+  }, [value, textRef, setWidth]);
 
   return (
     <g style={{ filter: `drop-shadow(0 0 2px ${text})` }}>

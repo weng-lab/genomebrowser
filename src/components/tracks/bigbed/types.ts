@@ -17,9 +17,9 @@ interface BigBedProps {
   tooltip?: React.FC<Rect>;
 }
 
-export interface SquishBigBedProps extends BigBedProps {}
+export type SquishBigBedProps = BigBedProps;
 
-export interface DenseBigBedProps extends BigBedProps {}
+export type DenseBigBedProps = BigBedProps;
 
 export interface Rect {
   start: number;

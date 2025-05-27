@@ -23,7 +23,7 @@ export interface SquishTranscriptProps extends TranscriptProps {
   geneName: string;
 }
 
-export interface PackTranscriptProps extends TranscriptProps {}
+export type PackTranscriptProps = TranscriptProps;
 
 export interface Transcript {
   id: string;

@@ -37,7 +37,7 @@ function LegacyDataFetcher() {
 
   const domain = useMemo(() => {
     return getExpandedDomain();
-  }, [currDomain]);
+  }, [currDomain, getExpandedDomain]);
 
   useEffect(() => {
     setBigRequests(

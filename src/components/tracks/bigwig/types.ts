@@ -18,7 +18,7 @@ interface BigWigProps {
 export interface FullBigWigProps extends BigWigProps {
   range: YRange;
 }
-export interface DenseBigWigProps extends BigWigProps {}
+export type DenseBigWigProps = BigWigProps;
 
 export type YRange = {
   min: number;
