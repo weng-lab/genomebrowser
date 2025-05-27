@@ -75,11 +75,13 @@ function Main() {
   };
 
   return (
-    <div style={{ width: "90%" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <Action />
       <DomainView />
       <ApolloProvider client={client}>
-        <Browser state={initialState} tracks={tracks} />
+        <div style={{ width: "90%" }}>
+          <Browser state={initialState} tracks={tracks} />
+        </div>
       </ApolloProvider>
     </div>
   );

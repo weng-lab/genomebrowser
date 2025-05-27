@@ -10,11 +10,21 @@ C207.39,178.225,194.59,193.87,196.013,212.359z`;
  * @param width the width of the icon relative to the containing SVG.
  * @param height the height of the icon relative to the containing SVG.
  */
-export default function ErrorIcon({ width, height, color }: { width: number; height: number; color: string }) {
+export default function ErrorIcon({
+  width,
+  height,
+  outline,
+  inside,
+}: {
+  width: number;
+  height: number;
+  outline: string;
+  inside: string;
+}) {
   return (
     <svg width={width} height={height} viewBox="0 0 451.74 481.74">
-      <path fill={color} d={PATH1} />
-      <path fill={color} d="M225.879,63.025l183.467,325.689H42.413L225.879,63.025L225.879,63.025z" />
+      <path fill={outline} d={PATH1} />
+      <path fill={inside} d="M225.879,63.025l183.467,325.689H42.413L225.879,63.025L225.879,63.025z" />
       <g>
         <path fill="#3F4448;" d={PATH2} />
         <circle fill="#3F4448" cx="225.879" cy="336.092" r="17.067" />

@@ -66,7 +66,7 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
               (wrapperHeight - spinnerSize) / 2
             })`}
           >
-            <ErrorIcon color={text} width={spinnerSize} height={spinnerSize} />
+            <ErrorIcon outline={text} inside={background} width={spinnerSize} height={spinnerSize} />
             <g transform={`translate(${spinnerSize / 2},${spinnerSize + 10})`}>
               <text fill={text} textAnchor="middle" fontSize={`${titleSize}px`}>
                 {error}

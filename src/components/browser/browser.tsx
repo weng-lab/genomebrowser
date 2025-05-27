@@ -9,6 +9,7 @@ import DisplayTrack from "../tracks/displayTrack";
 import Ruler from "../tracks/ruler/ruler";
 import Wrapper from "../tracks/wrapper/wrapper";
 import SVGWrapper from "./svgWrapper";
+import SelectRegion from "../tracks/ruler/selectRegion";
 
 export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {
   // Store functions
@@ -27,6 +28,7 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Int
       {/* <TrackDataFetcher /> */}
       <LegacyDataFetcher />
       <SVGWrapper>
+        <SelectRegion />
         <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
           <Ruler />
         </Wrapper>
