@@ -189,3 +189,17 @@ export function exonPath(exon: Exon, y: number, h: number, w: number): string {
       : l(exon.coordinates.start, ehn) + l(exon.coordinates.start, eh))
   );
 }
+
+export const getRealTranscript = (transcript: Transcript, reverseX: (value: number) => number) => {
+  const realStart = reverseX(transcript.coordinates.start);
+  const realEnd = reverseX(transcript.coordinates.end);
+  const realDomain = {
+    start: Math.round(realStart),
+    end: Math.round(realEnd),
+  };
+  const realTranscript = {
+    ...transcript,
+    coordinates: realDomain,
+  };
+  return realTranscript;
+};

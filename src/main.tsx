@@ -8,6 +8,7 @@ import { DisplayMode, TrackType } from "./components/tracks/types";
 import { useTheme } from "./store/themeStore";
 import { Vibrant } from "./utils/color";
 import { create } from "zustand";
+import { Transcript } from "./components/tracks/transcript/types";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -22,6 +23,8 @@ const useStore = create<{ name: string; setName: (name: string) => void }>((set)
 
 function Main() {
   const setName = useStore((state) => state.setName);
+  const addHighlight = useBrowserStore((state) => state.addHighlight);
+  const removeHighlight = useBrowserStore((state) => state.removeHighlight);
 
   const tracks: Track[] = [
     {
@@ -45,12 +48,24 @@ function Main() {
       url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
       onClick: (rect) => {
         setName(rect.name + " clicked");
+        const id = (rect.name || "ihqoviun") + "-clicked";
+        addHighlight({
+          id,
+          domain: { start: rect.start, end: rect.end },
+          color: rect.color || "blue",
+        });
       },
       onHover: (rect) => {
         setName(rect.name + " hovered");
+        addHighlight({
+          id: rect.name || "ihqoviun",
+          domain: { start: rect.start, end: rect.end },
+          color: rect.color || "blue",
+        });
       },
       onLeave: (rect) => {
         setName(rect.name + " left");
+        removeHighlight(rect.name || "ihqoviun");
       },
     },
     {
@@ -64,6 +79,18 @@ function Main() {
       version: 47,
       refetch: () => {},
       displayMode: DisplayMode.Squish,
+      onHover: (item: Transcript) => {
+        console.log(item);
+        addHighlight({
+          id: item.name || "dsadsfd",
+          domain: { start: item.coordinates.start, end: item.coordinates.end },
+          color: item.color || "blue",
+        });
+      },
+      onLeave: (item: Transcript) => {
+        console.log(item);
+        removeHighlight(item.name || "dsadsfd");
+      },
     },
   ];
 
@@ -72,6 +99,10 @@ function Main() {
     marginWidth: 150,
     trackWidth: 1350,
     multiplier: 3,
+    highlights: [
+      { id: "1", color: "#ffaabb", domain: { chromosome: "chr18", start: 35496000, end: 35502000 } },
+      { id: "2", color: "#aaffbb", domain: { chromosome: "chr18", start: 35494852, end: 35514000 } },
+    ],
   };
 
   return (

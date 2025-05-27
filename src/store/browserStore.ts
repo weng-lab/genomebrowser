@@ -2,12 +2,13 @@ import { create } from "zustand";
 import { RefObject } from "react";
 import { Domain } from "../utils/types";
 import { TrackDimensions } from "../components/tracks/types";
-
+import { Highlight } from "../components/highlight/types";
 export interface IntitialBrowserState {
   domain: Domain;
   marginWidth: number;
   trackWidth: number;
   multiplier: number;
+  highlights?: Highlight[];
 }
 
 interface BrowserStore {
@@ -18,6 +19,7 @@ interface BrowserStore {
   trackWidth: number;
   marginWidth: number;
   multiplier: number;
+  highlights: Highlight[];
   getDomain: () => Domain;
   getExpandedDomain: () => Domain;
   setDomain: (domain: Domain) => void;
@@ -26,6 +28,13 @@ interface BrowserStore {
   setSvgRef: (ref: RefObject<SVGSVGElement | null>) => void;
   initialize: (state: IntitialBrowserState) => void;
   getTrackDimensions: () => TrackDimensions;
+  /**
+   * Add a highlight to the browser.
+   * If the chromosome is not specified, it will assume the current chromosome.
+   * @param highlight - The highlight to add
+   */
+  addHighlight: (highlight: Highlight) => void;
+  removeHighlight: (id: string) => void;
 }
 
 export const useBrowserStore = create<BrowserStore>((set, get) => ({
@@ -36,6 +45,7 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
   trackWidth: 1350,
   marginWidth: 150,
   multiplier: 3,
+  highlights: [],
   initialize: (state: IntitialBrowserState) => {
     set({
       domain: state.domain,
@@ -43,6 +53,7 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
       trackWidth: state.trackWidth,
       marginWidth: state.marginWidth,
       multiplier: state.multiplier,
+      highlights: state.highlights || [],
     });
   },
   setDomain: (domain: Domain) => {
@@ -91,5 +102,16 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
       multiplier,
     };
     return dim;
+  },
+  addHighlight: (highlight: Highlight) => {
+    const state = get();
+    const existingHighlight = state.highlights.find((h) => h.id === highlight.id);
+    if (existingHighlight) {
+      return;
+    }
+    set((state) => ({ highlights: [...state.highlights, highlight] }));
+  },
+  removeHighlight: (id: string) => {
+    set((state) => ({ highlights: state.highlights.filter((h) => h.id !== id) }));
   },
 }));

@@ -16,7 +16,7 @@ interface TranscriptProps {
   color: string;
   onClick?: (transcript: Transcript) => void;
   onHover?: (transcript: Transcript) => void;
-  onLeave?: () => void;
+  onLeave?: (transcript: Transcript) => void;
   tooltip?: React.FC<Transcript>;
 }
 export interface SquishTranscriptProps extends TranscriptProps {

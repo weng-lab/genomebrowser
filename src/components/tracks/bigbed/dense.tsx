@@ -1,7 +1,7 @@
 import { createElement, useMemo } from "react";
 import { Rect } from "./types";
 import ClipPath from "../../svg/clipPath";
-import { renderDenseBigBedData } from "./helpers";
+import { getRealRect, renderDenseBigBedData } from "./helpers";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
@@ -10,7 +10,7 @@ import DefaultTooltip from "../../tooltip/defaultTooltip";
 
 function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, onLeave, tooltip }: DenseBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
-  const x = useXTransform(totalWidth);
+  const { x, reverseX } = useXTransform(totalWidth);
 
   const rendered: Rect[] = useMemo(() => {
     return renderDenseBigBedData(data || [], x);
@@ -19,27 +19,30 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, on
   const { background } = useTheme();
 
   const handleClick = (rect: Rect) => {
+    const realRect = getRealRect(rect, reverseX);
     if (onClick) {
-      onClick(rect);
+      onClick(realRect);
     }
   };
 
   const showTooltip = useTooltipStore((state) => state.showTooltip);
   const hideTooltip = useTooltipStore((state) => state.hideTooltip);
   const handleMouseOver = (rect: Rect, e: React.MouseEvent<SVGGElement>) => {
+    const realRect = getRealRect(rect, reverseX);
     if (onHover) {
-      onHover(rect);
+      onHover(realRect);
     }
     let content = <DefaultTooltip value={rect.name || ""} />;
     if (tooltip) {
-      content = createElement(tooltip, rect);
+      content = createElement(tooltip, realRect);
     }
     showTooltip(content, e.clientX, e.clientY);
   };
 
   const handleMouseOut = (rect: Rect) => {
+    const realRect = getRealRect(rect, reverseX);
     if (onLeave) {
-      onLeave(rect);
+      onLeave(realRect);
     }
     hideTooltip();
   };

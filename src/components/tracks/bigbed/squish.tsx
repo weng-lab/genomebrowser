@@ -2,7 +2,7 @@ import { createElement, useMemo } from "react";
 import ClipPath from "../../svg/clipPath";
 import { Rect, SquishRect } from "./types";
 import { useXTransform } from "../../../hooks/useXTransform";
-import { renderSquishBigBedData } from "./helpers";
+import { getRealRect, renderSquishBigBedData } from "./helpers";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
 import { SquishBigBedProps } from "./types";
@@ -23,7 +23,7 @@ export default function SquishBigBed({
   const { totalWidth, sideWidth } = dimensions;
   const { background } = useTheme();
 
-  const x = useXTransform(totalWidth);
+  const { x, reverseX } = useXTransform(totalWidth);
 
   const rendered: SquishRect[][] = useMemo(() => {
     const d = data ? [...data] : [];
@@ -33,27 +33,30 @@ export default function SquishBigBed({
   const rowHeight = useRowHeight(rendered.length, id);
 
   const handleClick = (rect: Rect) => {
+    const realRect = getRealRect(rect, reverseX);
     if (onClick) {
-      onClick(rect);
+      onClick(realRect);
     }
   };
 
   const showTooltip = useTooltipStore((state) => state.showTooltip);
   const hideTooltip = useTooltipStore((state) => state.hideTooltip);
   const handleMouseOver = (rect: Rect, e: React.MouseEvent<SVGGElement>) => {
+    const realRect = getRealRect(rect, reverseX);
     if (onHover) {
-      onHover(rect);
+      onHover(realRect);
     }
-    let content = <DefaultTooltip value={rect.name || ""} />;
+    let content = <DefaultTooltip value={realRect.name || ""} />;
     if (tooltip) {
-      content = createElement(tooltip, rect);
+      content = createElement(tooltip, realRect);
     }
     showTooltip(content, e.clientX, e.clientY);
   };
 
   const handleMouseOut = (rect: Rect) => {
+    const realRect = getRealRect(rect, reverseX);
     if (onLeave) {
-      onLeave(rect);
+      onLeave(realRect);
     }
     hideTooltip();
   };

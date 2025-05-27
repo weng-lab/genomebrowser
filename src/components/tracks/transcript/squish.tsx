@@ -3,7 +3,7 @@ import { groupFeatures } from "../../../utils/coordinates";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { SquishTranscriptProps, Transcript, TranscriptRow } from "./types";
 import ClipPath from "../../svg/clipPath";
-import { mergeTranscripts, renderTranscript } from "./helper";
+import { getRealTranscript, mergeTranscripts, renderTranscript } from "./helper";
 import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
 import { useRowHeight } from "../../../hooks/useRowHeight";
@@ -27,7 +27,7 @@ export default function SquishTranscript({
   tooltip,
 }: SquishTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
-  const x = useXTransform(totalWidth);
+  const { x, reverseX } = useXTransform(totalWidth);
 
   const rowHeight = useRowHeight(data.length, id);
 
@@ -45,26 +45,30 @@ export default function SquishTranscript({
   const { background } = useTheme();
 
   const handleClick = (transcript: Transcript) => {
+    const realTranscript = getRealTranscript(transcript, reverseX);
     if (onClick) {
-      onClick(transcript);
+      onClick(realTranscript);
     }
   };
+
   const showTooltip = useTooltipStore((state) => state.showTooltip);
   const hideTooltip = useTooltipStore((state) => state.hideTooltip);
   const handleMouseOver = (e: React.MouseEvent<SVGPathElement>, transcript: Transcript) => {
+    const realTranscript = getRealTranscript(transcript, reverseX);
     if (onHover) {
-      onHover(transcript);
+      onHover(realTranscript);
     }
-    let content = <DefaultTooltip value={transcript.name || ""} />;
+    let content = <DefaultTooltip value={realTranscript.name || ""} />;
     if (tooltip) {
-      content = createElement(tooltip, transcript);
+      content = createElement(tooltip, realTranscript);
     }
     showTooltip(content, e.clientX, e.clientY);
   };
 
-  const handleMouseOut = () => {
+  const handleMouseOut = (transcript: Transcript) => {
+    const realTranscript = getRealTranscript(transcript, reverseX);
     if (onLeave) {
-      onLeave();
+      onLeave(realTranscript);
     }
     hideTooltip();
   };
@@ -92,7 +96,7 @@ export default function SquishTranscript({
                 style={{ cursor: onClick ? "pointer" : "default" }}
                 onClick={() => handleClick(transcript.transcript)}
                 onMouseOver={(e: React.MouseEvent<SVGPathElement>) => handleMouseOver(e, transcript.transcript)}
-                onMouseOut={handleMouseOut}
+                onMouseOut={() => handleMouseOut(transcript.transcript)}
               />
               <text
                 fill={transcript.transcript.color || color}

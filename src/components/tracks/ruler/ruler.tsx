@@ -15,7 +15,7 @@ export default function Ruler() {
   const getDomain = useBrowserStore((state) => state.getDomain);
   const [domain, setDomain] = useState<Domain>(getExpandedDomain());
   const fetching = useDataStore((state) => state.fetching);
-  const x = useXTransform(totalWidth);
+  const {x} = useXTransform(totalWidth);
 
   useEffect(() => {
     if (fetching) return;

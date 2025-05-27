@@ -47,3 +47,14 @@ export function renderSquishBigBedData(data: Rect[], x: (value: number) => numbe
     }))
   );
 }
+
+export const getRealRect = (rect: Rect, reverseX: (value: number) => number) => {
+  const realStart = reverseX(rect.start);
+  const realEnd = reverseX(rect.end);
+  const realRect = {
+    ...rect,
+    start: Math.round(realStart),
+    end: Math.round(realEnd),
+  };
+  return realRect;
+};

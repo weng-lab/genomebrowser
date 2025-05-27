@@ -29,6 +29,10 @@ export function xtransform(domain: Domain, width: number): (i: number) => number
   return (i: number) => ((i - domain.start) * width) / (domain.end - domain.start);
 }
 
+export function reverseXTransform(domain: Domain, width: number): (i: number) => number {
+  return (i: number) => (i * (domain.end - domain.start)) / width + domain.start;
+}
+
 export function ytransform(range: YRange, height: number): (i: number) => number {
   return (i: number) => (range.max === range.min ? 0 : ((range.max - i) * height) / (range.max - range.min));
 }

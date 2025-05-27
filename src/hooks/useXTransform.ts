@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { xtransform } from "../components/tracks/bigwig/helpers";
+import { reverseXTransform, xtransform } from "../components/tracks/bigwig/helpers";
 import { useBrowserStore } from "../store/browserStore";
 import { useDataStore } from "../store/dataStore";
 import { Domain } from "../utils/types";
@@ -15,7 +15,13 @@ export function useXTransform(totalWidth: number) {
     }
   }, [fetching, getExpandedDomain]);
 
-  return useMemo(() => {
+  const x = useMemo(() => {
     return xtransform(domain, totalWidth);
   }, [totalWidth, domain]);
+
+  const reverseX = useMemo(() => {
+    return reverseXTransform(domain, totalWidth);
+  }, [totalWidth, domain]);
+
+  return { x, reverseX };
 }

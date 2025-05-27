@@ -2,7 +2,7 @@ import { createElement, useMemo } from "react";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { bestFontSize } from "./squish";
 import { PackTranscriptProps, Transcript, TranscriptRow } from "./types";
-import { renderTranscript, sortedTranscripts } from "./helper";
+import { getRealTranscript, renderTranscript, sortedTranscripts } from "./helper";
 import { groupFeatures } from "../../../utils/coordinates";
 import ClipPath from "../../svg/clipPath";
 import { useTheme } from "../../../store/themeStore";
@@ -22,7 +22,7 @@ export default function PackTranscript({
   tooltip,
 }: PackTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
-  const x = useXTransform(totalWidth);
+  const { x, reverseX } = useXTransform(totalWidth);
 
   const rowHeight = useRowHeight(data.length, id);
 
@@ -39,25 +39,28 @@ export default function PackTranscript({
   const { background } = useTheme();
 
   const handleClick = (transcript: Transcript) => {
+    const realTranscript = getRealTranscript(transcript, reverseX);
     if (onClick) {
-      onClick(transcript);
+      onClick(realTranscript);
     }
   };
   const showTooltip = useTooltipStore((state) => state.showTooltip);
   const hideTooltip = useTooltipStore((state) => state.hideTooltip);
   const handleHover = (e: React.MouseEvent<SVGPathElement>, transcript: Transcript) => {
+    const realTranscript = getRealTranscript(transcript, reverseX);
     if (onHover) {
-      onHover(transcript);
+      onHover(realTranscript);
     }
-    let content = <DefaultTooltip value={transcript.name || ""} />;
+    let content = <DefaultTooltip value={realTranscript.name || ""} />;
     if (tooltip) {
-      content = createElement(tooltip, transcript);
+      content = createElement(tooltip, realTranscript);
     }
     showTooltip(content, e.clientX, e.clientY);
   };
-  const handleLeave = () => {
+  const handleLeave = (transcript: Transcript) => {
+    const realTranscript = getRealTranscript(transcript, reverseX);
     if (onLeave) {
-      onLeave();
+      onLeave(realTranscript);
     }
     hideTooltip();
   };
@@ -86,7 +89,7 @@ export default function PackTranscript({
                 style={{ cursor: onClick ? "pointer" : "default" }}
                 onClick={() => handleClick(transcript.transcript)}
                 onMouseOver={(e: React.MouseEvent<SVGPathElement>) => handleHover(e, transcript.transcript)}
-                onMouseOut={handleLeave}
+                onMouseOut={() => handleLeave(transcript.transcript)}
               />
               <text
                 fill={transcript.transcript.color || color}
