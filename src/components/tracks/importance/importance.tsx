@@ -4,7 +4,7 @@ import { Letter } from "./letter";
 import { ImportanceProps } from "./types";
 
 export default function Importance({ data, annotations, dimensions, height, zeroLineProps }: ImportanceProps) {
-  const { totalWidth: width, sideWidth } = dimensions;
+  const { viewWidth: width } = dimensions;
   const [selection] = useState<[number, number] | null>(null);
   const [rendered, transform, rawTransform] = useRenderedImportanceTrackData(data, height);
 
@@ -73,7 +73,7 @@ export default function Importance({ data, annotations, dimensions, height, zero
   }, [rendered, width, zero, height, zeroLineProps]);
 
   return (
-    <g width={width} height={height} transform={`translate(-${sideWidth}, 0)`}>
+    <g width={width} height={height}>
       {selection !== null && (
         <rect
           fill="#93ceed"

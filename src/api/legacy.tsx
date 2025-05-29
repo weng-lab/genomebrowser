@@ -6,10 +6,10 @@ import { useBrowserStore } from "../store/browserStore";
 import { useDataStore } from "../store/dataStore";
 import { useTrackStore } from "../store/trackStore";
 import { BIGDATA_QUERY, BigRequest } from "./bigRequests";
-import { ImportanceTrackSequence } from "./importanceRequests";
 import { LDRequest, VARIANT_QUERY } from "./ldRequests";
 import { MOTIF_QUERY, MotifRect, MotifRequest } from "./motifRequests";
 import { TRANSCRIPT_GENES_QUERY, TranscriptRequest } from "./transcriptRequests";
+import { ImportanceTrackSequence } from "../components/tracks/importance/types";
 
 function LegacyDataFetcher() {
   const [bigRequests, setBigRequests] = useState<BigRequest[]>();
@@ -92,9 +92,9 @@ function LegacyDataFetcher() {
       });
       requests.push({
         url: importanceTrack.signalURL,
-        chr1: domain.chromosome,
-        start: domain.start,
-        end: domain.end,
+        chr1: currDomain.chromosome,
+        start: currDomain.start,
+        end: currDomain.end,
       });
       setImportanceRequest(requests);
     }
