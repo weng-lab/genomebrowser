@@ -10,7 +10,6 @@ import { useDataStore } from "../../store/dataStore";
 export default function Highlights() {
   // domain
   const fetching = useDataStore((state) => state.fetching);
-  const domain = useBrowserStore((state) => state.domain);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const [browserDomain, setBrowserDomain] = useState<Domain>(getExpandedDomain());
   const delta = useBrowserStore((state) => state.delta);
