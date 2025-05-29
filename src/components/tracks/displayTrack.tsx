@@ -13,6 +13,8 @@ import SquishTranscript from "./transcript/squish";
 import PackTranscript from "./transcript/pack";
 import { RULER_HEIGHT } from "./ruler/ruler";
 import Importance from "./importance/importance";
+import DenseMotif from "./motif/dense";
+import SquishMotif from "./motif/squish";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -59,7 +61,8 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
     [DisplayMode.Pack]: PackTranscript,
   },
   [TrackType.Motif]: {
-    [DisplayMode.Full]: () => <></>,
+    [DisplayMode.Dense]: DenseMotif,
+    [DisplayMode.Squish]: SquishMotif,
   },
   [TrackType.Importance]: {
     [DisplayMode.Full]: Importance,
