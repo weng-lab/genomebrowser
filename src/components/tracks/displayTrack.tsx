@@ -12,6 +12,7 @@ import SquishBigBed from "./bigbed/squish";
 import SquishTranscript from "./transcript/squish";
 import PackTranscript from "./transcript/pack";
 import { RULER_HEIGHT } from "./ruler/ruler";
+import Importance from "./importance/importance";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -38,7 +39,7 @@ export default function DisplayTrack({ id }: { id: string }) {
   );
 
   return (
-    <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data }>
+    <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data}>
       {trackComponent}
     </Wrapper>
   );
@@ -61,7 +62,7 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
     [DisplayMode.Full]: () => <></>,
   },
   [TrackType.Importance]: {
-    [DisplayMode.Full]: () => <></>,
+    [DisplayMode.Full]: Importance,
   },
   [TrackType.LDTrack]: {
     [DisplayMode.Full]: () => <></>,
