@@ -8,6 +8,7 @@ import { Highlight } from "./types";
 
 export default function Highlights() {
   // domain
+  const domain = useBrowserStore((state) => state.domain);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const [browserDomain, setBrowserDomain] = useState<Domain>(getExpandedDomain());
   const delta = useBrowserStore((state) => state.delta);
@@ -16,7 +17,7 @@ export default function Highlights() {
       // only update when not dragging
       setBrowserDomain(getExpandedDomain());
     }
-  }, [delta, getExpandedDomain]);
+  }, [delta, getExpandedDomain, domain]);
 
   // highlights
   const highlights = useBrowserStore((state) => state.highlights);
