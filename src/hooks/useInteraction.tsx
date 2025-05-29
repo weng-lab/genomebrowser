@@ -22,7 +22,7 @@ export default function useInteraction<T>({
   onClick: ((item: T) => void) | undefined;
   onHover: ((item: T) => void) | undefined;
   onLeave: ((item: T) => void) | undefined;
-  tooltip: React.FC<any> | undefined;
+  tooltip: React.FC<T> | undefined;
 }) {
   const showTooltip = useTooltipStore((state) => state.showTooltip);
   const hideTooltip = useTooltipStore((state) => state.hideTooltip);
@@ -32,7 +32,7 @@ export default function useInteraction<T>({
       if (onHover) {
         onHover(item);
       }
-      const content = tooltip ? createElement(tooltip, item) : <DefaultTooltip value={fallback} />;
+      const content = tooltip ? createElement(tooltip as React.FC<any>, item) : <DefaultTooltip value={fallback} />;
       showTooltip(content, e.clientX, e.clientY);
     },
     [onHover, tooltip, showTooltip]
@@ -62,35 +62,4 @@ export default function useInteraction<T>({
     handleHover,
     handleLeave,
   };
-}
-
-function Test({
-  onClick,
-  onHover,
-  onLeave,
-  tooltip,
-}: {
-  onClick: (item: string) => void;
-  onHover: (item: string) => void;
-  onLeave: (item: string) => void;
-  tooltip?: React.FC<string>;
-}) {
-  const { handleClick, handleHover, handleLeave } = useInteraction({
-    onClick,
-    onHover,
-    onLeave,
-    tooltip,
-  });
-
-  return (
-    <div>
-      <button
-        onMouseOver={(e) => handleHover("item", "value", e)}
-        onMouseLeave={() => handleLeave("item")}
-        onClick={() => handleClick("item")}
-      >
-        Hover
-      </button>
-    </div>
-  );
 }
