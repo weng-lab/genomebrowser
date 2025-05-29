@@ -1,12 +1,10 @@
-import { createElement, useMemo } from "react";
-import { Rect } from "./types";
-import ClipPath from "../../svg/clipPath";
-import { getRealRect, renderDenseBigBedData } from "./helpers";
+import { useMemo } from "react";
+import useInteraction from "../../../hooks/useInteraction";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { useTheme } from "../../../store/themeStore";
-import { useTooltipStore } from "../../../store/tooltipStore";
-import { DenseBigBedProps } from "./types";
-import DefaultTooltip from "../../tooltip/defaultTooltip";
+import ClipPath from "../../svg/clipPath";
+import { getRealRect, renderDenseBigBedData } from "./helpers";
+import { DenseBigBedProps, Rect } from "./types";
 
 function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, onLeave, tooltip }: DenseBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
@@ -18,34 +16,12 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, on
 
   const { background } = useTheme();
 
-  const handleClick = (rect: Rect) => {
-    const realRect = getRealRect(rect, reverseX);
-    if (onClick) {
-      onClick(realRect);
-    }
-  };
-
-  const showTooltip = useTooltipStore((state) => state.showTooltip);
-  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
-  const handleMouseOver = (rect: Rect, e: React.MouseEvent<SVGGElement>) => {
-    const realRect = getRealRect(rect, reverseX);
-    if (onHover) {
-      onHover(realRect);
-    }
-    let content = <DefaultTooltip value={rect.name || ""} />;
-    if (tooltip) {
-      content = createElement(tooltip, realRect);
-    }
-    showTooltip(content, e.clientX, e.clientY);
-  };
-
-  const handleMouseOut = (rect: Rect) => {
-    const realRect = getRealRect(rect, reverseX);
-    if (onLeave) {
-      onLeave(realRect);
-    }
-    hideTooltip();
-  };
+  const { handleClick, handleHover, handleLeave } = useInteraction({
+    onClick,
+    onHover,
+    onLeave,
+    tooltip,
+  });
 
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
@@ -53,20 +29,23 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, on
       <defs>
         <ClipPath id={id} width={totalWidth} height={height} />
       </defs>
-      {rendered.map((rect, i) => (
-        <rect
-          style={{ cursor: onClick ? "pointer" : "default" }}
-          key={`${id}_${i}`}
-          height={height * 0.6}
-          width={rect.end - rect.start}
-          x={rect.start}
-          y={height * 0.2}
-          fill={rect.color || color}
-          onClick={() => handleClick(rect)}
-          onMouseOver={(e) => handleMouseOver(rect, e)}
-          onMouseOut={() => handleMouseOut(rect)}
-        />
-      ))}
+      {rendered.map((rect, i) => {
+        const realRect = getRealRect(rect, reverseX);
+        return (
+          <rect
+            style={{ cursor: onClick ? "pointer" : "default" }}
+            key={`${id}_${i}`}
+            height={height * 0.6}
+            width={rect.end - rect.start}
+            x={rect.start}
+            y={height * 0.2}
+            fill={rect.color || color}
+            onClick={() => handleClick(realRect)}
+            onMouseOver={(e) => handleHover(realRect, rect.name || "", e)}
+            onMouseOut={() => handleLeave(realRect)}
+          />
+        );
+      })}
     </g>
   );
 }

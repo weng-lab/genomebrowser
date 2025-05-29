@@ -1,13 +1,12 @@
-import { createElement, useMemo } from "react";
-import { groupFeatures } from "../../../utils/coordinates";
+import { useMemo } from "react";
+import useInteraction from "../../../hooks/useInteraction";
+import { useRowHeight } from "../../../hooks/useRowHeight";
 import { useXTransform } from "../../../hooks/useXTransform";
-import { SquishTranscriptProps, Transcript, TranscriptRow } from "./types";
+import { useTheme } from "../../../store/themeStore";
+import { groupFeatures } from "../../../utils/coordinates";
 import ClipPath from "../../svg/clipPath";
 import { getRealTranscript, mergeTranscripts, renderTranscript } from "./helper";
-import { useTheme } from "../../../store/themeStore";
-import { useTooltipStore } from "../../../store/tooltipStore";
-import { useRowHeight } from "../../../hooks/useRowHeight";
-import DefaultTooltip from "../../tooltip/defaultTooltip";
+import { SquishTranscriptProps, TranscriptRow } from "./types";
 
 export function bestFontSize(height: number): number {
   if (height / 6 < 10) return height < 10 ? height : 10;
@@ -44,34 +43,13 @@ export default function SquishTranscript({
 
   const { background } = useTheme();
 
-  const handleClick = (transcript: Transcript) => {
-    const realTranscript = getRealTranscript(transcript, reverseX);
-    if (onClick) {
-      onClick(realTranscript);
-    }
-  };
+  const { handleClick, handleHover, handleLeave } = useInteraction({
+    onClick,
+    onHover,
+    onLeave,
+    tooltip,
+  });
 
-  const showTooltip = useTooltipStore((state) => state.showTooltip);
-  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
-  const handleMouseOver = (e: React.MouseEvent<SVGPathElement>, transcript: Transcript) => {
-    const realTranscript = getRealTranscript(transcript, reverseX);
-    if (onHover) {
-      onHover(realTranscript);
-    }
-    let content = <DefaultTooltip value={realTranscript.name || ""} />;
-    if (tooltip) {
-      content = createElement(tooltip, realTranscript);
-    }
-    showTooltip(content, e.clientX, e.clientY);
-  };
-
-  const handleMouseOut = (transcript: Transcript) => {
-    const realTranscript = getRealTranscript(transcript, reverseX);
-    if (onLeave) {
-      onLeave(realTranscript);
-    }
-    hideTooltip();
-  };
   return (
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth},0)`}>
       <rect width={totalWidth} height={height} fill={background} />
@@ -86,37 +64,42 @@ export default function SquishTranscript({
           width={totalWidth}
           key={`row_${k}`}
         >
-          {group.transcripts.map((transcript, j) => (
-            <g key={`transcript_${j}`}>
-              <path
-                stroke={transcript.transcript.color || color}
-                fill={transcript.transcript.color || color}
-                strokeWidth={rowHeight / 16}
-                d={transcript.paths.introns + transcript.paths.exons}
-                style={{ cursor: onClick ? "pointer" : "default" }}
-                onClick={() => handleClick(transcript.transcript)}
-                onMouseOver={(e: React.MouseEvent<SVGPathElement>) => handleMouseOver(e, transcript.transcript)}
-                onMouseOut={() => handleMouseOut(transcript.transcript)}
-              />
-              <text
-                fill={transcript.transcript.color || color}
-                fontSize={fontSize}
-                x={transcript.transcript.coordinates.end + 5}
-                y={rowHeight / 2}
-                dominantBaseline="middle"
-                style={{
-                  pointerEvents: "none",
-                  WebkitTouchCallout: "none",
-                  WebkitUserSelect: "none",
-                  MozUserSelect: "none",
-                  msUserSelect: "none",
-                  userSelect: "none",
-                }}
-              >
-                {transcript.transcript.name}
-              </text>
-            </g>
-          ))}
+          {group.transcripts.map((transcript, j) => {
+            const realTranscript = getRealTranscript(transcript.transcript, reverseX);
+            return (
+              <g key={`transcript_${j}`}>
+                <path
+                  stroke={transcript.transcript.color || color}
+                  fill={transcript.transcript.color || color}
+                  strokeWidth={rowHeight / 16}
+                  d={transcript.paths.introns + transcript.paths.exons}
+                  style={{ cursor: onClick ? "pointer" : "default" }}
+                  onClick={() => handleClick(realTranscript)}
+                  onMouseOver={(e: React.MouseEvent<SVGPathElement>) =>
+                    handleHover(realTranscript, realTranscript.name || "", e)
+                  }
+                  onMouseOut={() => handleLeave(realTranscript)}
+                />
+                <text
+                  fill={transcript.transcript.color || color}
+                  fontSize={fontSize}
+                  x={transcript.transcript.coordinates.end + 5}
+                  y={rowHeight / 2}
+                  dominantBaseline="middle"
+                  style={{
+                    pointerEvents: "none",
+                    WebkitTouchCallout: "none",
+                    WebkitUserSelect: "none",
+                    MozUserSelect: "none",
+                    msUserSelect: "none",
+                    userSelect: "none",
+                  }}
+                >
+                  {transcript.transcript.name}
+                </text>
+              </g>
+            );
+          })}
         </g>
       ))}
     </g>
