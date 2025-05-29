@@ -26,7 +26,7 @@ interface TrackStore {
   getTrack: (id: string) => Track | undefined;
   getTrackIndex: (id: string) => number;
   shiftTracks: (id: string, index: number) => void;
-  insertTrack: (track: Track, index: number) => void;
+  insertTrack: (track: Track, index?: number) => void;
   removeTrack: (id: string) => void;
   getDimensions: (id: string) => WrapperDimensions;
   createShortLabel: (id: string) => string;
@@ -107,16 +107,21 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     const state = get();
     return state.tracks[index];
   },
-  insertTrack: (track: Track, index: number) => {
+  insertTrack: (track: Track, index?: number) => {
     const state = get();
+    if (state.getTrack(track.id) !== undefined) return;
     const tracks = [...state.tracks];
-    tracks.splice(index, 0, track);
+    tracks.splice(index || tracks.length, 0, track);
     set({ tracks, ids: tracks.map((track) => track.id) });
   },
   removeTrack: (id: string) => {
     const state = get();
     const tracks = [...state.tracks];
-    tracks.splice(state.getTrackIndex(id), 1);
+    const index = state.getTrackIndex(id);
+    if (index === -1) {
+      return;
+    }
+    tracks.splice(index, 1);
     set({ tracks, ids: tracks.map((track) => track.id) });
   },
   editTrack: <T extends Track>(id: string, partial: Partial<T>): void => {

@@ -1,14 +1,14 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import Browser from "./components/browser/browser";
-import { Track } from "./store/trackStore";
+import { Track, useTrackStore } from "./store/trackStore";
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { IntitialBrowserState, useBrowserStore } from "./store/browserStore";
 import { DisplayMode, TrackType } from "./components/tracks/types";
-import { useTheme } from "./store/themeStore";
 import { Vibrant } from "./utils/color";
 import { create } from "zustand";
 import { Transcript } from "./components/tracks/transcript/types";
+import { ImportanceConfig } from "./components/tracks/importance/types";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -121,6 +121,29 @@ function Main() {
 function DomainView() {
   const domain = useBrowserStore((state) => state.domain);
   const name = useStore((state) => state.name);
+  const insertTrack = useTrackStore((state) => state.insertTrack);
+  const removeTrack = useTrackStore((state) => state.removeTrack);
+
+  const importanceTrack: ImportanceConfig = {
+    id: "importance",
+    title: "Importance",
+    titleSize: 12,
+    height: 75,
+    color: Vibrant[9],
+    trackType: TrackType.Importance,
+    url: "gs://gcp.wenglab.org/hg38.2bit",
+    displayMode: DisplayMode.Full,
+    signalURL: "gs://gcp.wenglab.org/hg38.phyloP100way.bigWig",
+  };
+
+  useEffect(() => {
+    if (domain.end - domain.start <= 2000) {
+      insertTrack(importanceTrack);
+    } else {
+      removeTrack("importance");
+    }
+  }, [domain]);
+
   return (
     <div>
       <div>{name}</div>
@@ -132,14 +155,10 @@ function DomainView() {
 }
 
 function Action() {
-  // const editTrack = useTrackStore((state) => state.editTrack);
-  const setBackground = useTheme((state) => state.setBackground);
+  const setDomain = useBrowserStore((state) => state.setDomain);
 
   const onClick = () => {
-    // const height = Math.random() * 100 + 50;
-    // editTrack<BigWigConfig>("2", { height: height });
-    // setDomain({ chromosome: "chr18", start: 35482597, end: 35501745 });
-    setBackground("#000");
+    setDomain({ chromosome: "chr18", start: 35500000, end: 35502000 });
   };
 
   return <button onClick={onClick}>Click for action</button>;
