@@ -92,6 +92,25 @@ function Main() {
         removeHighlight(item.name || "dsadsfd");
       },
     },
+    {
+      id: "4",
+      title: "motif",
+      titleSize: 12,
+      height: 100,
+      color: Vibrant[2],
+      trackType: TrackType.Motif,
+      displayMode: DisplayMode.Squish,
+      assembly: "GRCh38",
+      consensusRegex: "cca[cg]cag[ag]gggcgc[ct]",
+      peaksAccession: "ENCSR857PBV",
+      occurences: false,
+      onHover: (rect) => {
+        console.log(rect);
+      },
+      onLeave: (rect) => {
+        console.log(rect);
+      },
+    },
   ];
 
   const initialState: IntitialBrowserState = {
