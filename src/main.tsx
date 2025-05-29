@@ -29,7 +29,7 @@ function Main() {
   const tracks: Track[] = [
     {
       id: "1",
-      title: "Track 1",
+      title: "bigWig",
       titleSize: 12,
       height: 100,
       color: Vibrant[6],
@@ -39,7 +39,7 @@ function Main() {
     },
     {
       id: "2",
-      title: "Track 2",
+      title: "bigBed",
       titleSize: 12,
       height: 14,
       color: Vibrant[7],
@@ -70,7 +70,7 @@ function Main() {
     },
     {
       id: "3",
-      title: "Track 3",
+      title: "genes",
       titleSize: 12,
       height: 50,
       color: Vibrant[8],
@@ -126,10 +126,10 @@ function DomainView() {
 
   const importanceTrack: ImportanceConfig = {
     id: "importance",
-    title: "Importance",
+    title: "importance",
     titleSize: 12,
     height: 75,
-    color: Vibrant[9],
+    color: Vibrant[0],
     trackType: TrackType.Importance,
     url: "gs://gcp.wenglab.org/hg38.2bit",
     displayMode: DisplayMode.Full,
