@@ -1,9 +1,8 @@
-import { createElement, useMemo } from "react";
+import { useMemo } from "react";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { DenseMotifProps, MotifRect } from "./types";
 import { renderDenseMotifData } from "./helpers";
 import ClipPath from "../../svg/clipPath";
-import { useTooltipStore } from "../../../store/tooltipStore";
 import DefaultMotifTooltip from "./defaultMotifTooltip";
 import useInteraction from "../../../hooks/useInteraction";
 
