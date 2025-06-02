@@ -1,11 +1,11 @@
-import { createElement, useMemo } from "react";
+import { useMemo } from "react";
 import { useRowHeight } from "../../../hooks/useRowHeight";
 import { useXTransform } from "../../../hooks/useXTransform";
-import { useTooltipStore } from "../../../store/tooltipStore";
 import ClipPath from "../../svg/clipPath";
 import { renderSquishMotifData } from "./helpers";
 import { MotifRect, SquishMotifProps } from "./types";
 import DefaultMotifTooltip from "./defaultMotifTooltip";
+import useInteraction from "../../../hooks/useInteraction";
 
 export default function SquishMotif({
   id,
@@ -14,6 +14,7 @@ export default function SquishMotif({
   dimensions,
   peakColor,
   color,
+  onClick,
   onHover,
   onLeave,
   tooltip,
@@ -26,25 +27,12 @@ export default function SquishMotif({
 
   const rowHeight = useRowHeight(rendered.length, id);
 
-  const showTooltip = useTooltipStore((state) => state.showTooltip);
-  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
-  const handleMouseOver = (rect: MotifRect, e: React.MouseEvent<SVGGElement>) => {
-    if (onHover) {
-      onHover(rect);
-    }
-    let content = <DefaultMotifTooltip rect={rect} />;
-    if (tooltip) {
-      content = createElement(tooltip, rect);
-    }
-    showTooltip(content, e.clientX, e.clientY);
-  };
-
-  const handleMouseOut = (rect: MotifRect) => {
-    if (onLeave) {
-      onLeave(rect);
-    }
-    hideTooltip();
-  };
+  const { handleClick, handleHover, handleLeave } = useInteraction({
+    onClick,
+    onHover,
+    onLeave,
+    tooltip: tooltip || DefaultMotifTooltip,
+  });
 
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
@@ -78,11 +66,12 @@ export default function SquishMotif({
               y={rowHeight * 0.2}
               fill={color || "#000088"}
               style={{ cursor: "pointer" }}
-              onMouseOut={() => handleMouseOut(rect)}
+              onClick={() => handleClick(rect)}
               onMouseOver={(e: React.MouseEvent<SVGRectElement>) => {
                 e.persist();
-                if (rect.pwm) handleMouseOver(rect, e);
+                if (rect.pwm) handleHover(rect, "", e);
               }}
+              onMouseOut={() => handleLeave(rect)}
             />
           ))}
         </g>

@@ -16,6 +16,7 @@ export interface MotifProps {
   dimensions: TrackDimensions;
   peakColor: string;
   color: string;
+  onClick?: (rect: MotifRect) => void;
   onHover?: (rect: MotifRect) => void;
   onLeave?: (rect: MotifRect) => void;
   tooltip?: React.FC<MotifRect>;

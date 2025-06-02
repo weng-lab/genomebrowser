@@ -5,6 +5,7 @@ import { renderDenseMotifData } from "./helpers";
 import ClipPath from "../../svg/clipPath";
 import { useTooltipStore } from "../../../store/tooltipStore";
 import DefaultMotifTooltip from "./defaultMotifTooltip";
+import useInteraction from "../../../hooks/useInteraction";
 
 export default function DenseMotif({
   id,
@@ -13,6 +14,7 @@ export default function DenseMotif({
   dimensions,
   peakColor,
   color,
+  onClick,
   onHover,
   onLeave,
   tooltip,
@@ -22,25 +24,12 @@ export default function DenseMotif({
   const rendered: MotifRect[] = useMemo(() => renderDenseMotifData(data.occurrenceRect, x), [data]);
   const renderedPeaks: MotifRect[] = useMemo(() => renderDenseMotifData(data.peaks, x), [data]);
 
-  const showTooltip = useTooltipStore((state) => state.showTooltip);
-  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
-  const handleMouseOver = (rect: MotifRect, e: React.MouseEvent<SVGRectElement>) => {
-    if (onHover) {
-      onHover(rect);
-    }
-    let content = <DefaultMotifTooltip rect={rect} />;
-    if (tooltip) {
-      content = createElement(tooltip, rect);
-    }
-    showTooltip(content, e.clientX, e.clientY);
-  };
-
-  const handleMouseOut = (rect: MotifRect) => {
-    if (onLeave) {
-      onLeave(rect);
-    }
-    hideTooltip();
-  };
+  const { handleClick, handleHover, handleLeave } = useInteraction({
+    onClick,
+    onHover,
+    onLeave,
+    tooltip: tooltip || DefaultMotifTooltip,
+  });
 
   return (
     <g id={id} height={height} width={totalWidth} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
@@ -68,11 +57,12 @@ export default function DenseMotif({
           y={height * 0.2}
           fill={color || "#000088"}
           style={{ cursor: "pointer" }}
-          onMouseOut={() => handleMouseOut(rect)}
+          onClick={() => handleClick(rect)}
           onMouseOver={(e: React.MouseEvent<SVGRectElement>) => {
             e.persist();
-            if (rect.pwm) handleMouseOver(rect, e);
+            if (rect.pwm) handleHover(rect, "", e);
           }}
+          onMouseOut={() => handleLeave(rect)}
         />
       ))}
     </g>

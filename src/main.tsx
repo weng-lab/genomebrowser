@@ -95,7 +95,7 @@ function Main() {
       title: "motif",
       titleSize: 12,
       height: 100,
-      color: Vibrant[2],
+      color: Vibrant[1],
       peakColor: Vibrant[3],
       trackType: TrackType.Motif,
       displayMode: DisplayMode.Squish,
