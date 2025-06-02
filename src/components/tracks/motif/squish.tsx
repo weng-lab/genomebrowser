@@ -3,9 +3,9 @@ import { useRowHeight } from "../../../hooks/useRowHeight";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { useTooltipStore } from "../../../store/tooltipStore";
 import ClipPath from "../../svg/clipPath";
-import DefaultTooltip from "../../tooltip/defaultTooltip";
 import { renderSquishMotifData } from "./helpers";
 import { MotifRect, SquishMotifProps } from "./types";
+import DefaultMotifTooltip from "./defaultMotifTooltip";
 
 export default function SquishMotif({
   id,
@@ -32,7 +32,7 @@ export default function SquishMotif({
     if (onHover) {
       onHover(rect);
     }
-    let content = <DefaultTooltip value={rect.start.toString()} />;
+    let content = <DefaultMotifTooltip rect={rect} />;
     if (tooltip) {
       content = createElement(tooltip, rect);
     }

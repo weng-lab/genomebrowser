@@ -3,8 +3,8 @@ import { useXTransform } from "../../../hooks/useXTransform";
 import { DenseMotifProps, MotifRect } from "./types";
 import { renderDenseMotifData } from "./helpers";
 import ClipPath from "../../svg/clipPath";
-import DefaultTooltip from "../../tooltip/defaultTooltip";
 import { useTooltipStore } from "../../../store/tooltipStore";
+import DefaultMotifTooltip from "./defaultMotifTooltip";
 
 export default function DenseMotif({
   id,
@@ -28,7 +28,7 @@ export default function DenseMotif({
     if (onHover) {
       onHover(rect);
     }
-    let content = <DefaultTooltip value={rect.start.toString()} />;
+    let content = <DefaultMotifTooltip rect={rect} />;
     if (tooltip) {
       content = createElement(tooltip, rect);
     }
