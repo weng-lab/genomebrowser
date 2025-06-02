@@ -80,7 +80,6 @@ function Main() {
       refetch: () => {},
       displayMode: DisplayMode.Squish,
       onHover: (item: Transcript) => {
-        console.log(item);
         addHighlight({
           id: item.name || "dsadsfd",
           domain: { start: item.coordinates.start, end: item.coordinates.end },
@@ -88,7 +87,6 @@ function Main() {
         });
       },
       onLeave: (item: Transcript) => {
-        console.log(item);
         removeHighlight(item.name || "dsadsfd");
       },
     },
@@ -98,11 +96,12 @@ function Main() {
       titleSize: 12,
       height: 100,
       color: Vibrant[2],
+      peakColor: Vibrant[3],
       trackType: TrackType.Motif,
       displayMode: DisplayMode.Squish,
       assembly: "GRCh38",
-      consensusRegex: "cca[cg]cag[ag]gggcgc[ct]",
-      peaksAccession: "ENCSR857PBV",
+      consensusRegex: "gcca[cg][ct]ag[ag]gggcgc",
+      peaksAccession: "ENCFF992CTF",
       occurences: false,
       onHover: (rect) => {
         console.log(rect);
@@ -114,7 +113,7 @@ function Main() {
   ];
 
   const initialState: IntitialBrowserState = {
-    domain: { chromosome: "chr18", start: 35494852, end: 35514000 },
+    domain: { chromosome: "chr6", start: 21592768, end: 21598619 },
     marginWidth: 150,
     trackWidth: 1350,
     multiplier: 3,
