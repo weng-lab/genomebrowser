@@ -4,6 +4,7 @@ import { Letter } from "./letter";
 import { ImportanceProps } from "./types";
 
 export default function Importance({ data, annotations, dimensions, height, zeroLineProps }: ImportanceProps) {
+  console.log(data)
   const { viewWidth: width } = dimensions;
   const [selection] = useState<[number, number] | null>(null);
   const [rendered, transform, rawTransform] = useRenderedImportanceTrackData(data, height);
