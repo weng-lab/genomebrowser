@@ -23,8 +23,8 @@ import DefaultTooltip from "../../tooltip/defaultTooltip";
 
 export default function FullBigWig({ data, range, id, height, color, dimensions, tooltip }: FullBigWigProps) {
   const { sideWidth, viewWidth, totalWidth } = dimensions;
-  const sidePortion = (totalWidth / viewWidth - 1) / 2;
   const multiplier = useBrowserStore((state) => state.multiplier);
+  const sidePortion = (multiplier - 1) / 2;
   const editTrack = useTrackStore((state) => state.editTrack);
   const delta = useBrowserStore((state) => state.delta);
   const marginWidth = useBrowserStore((state) => state.marginWidth);

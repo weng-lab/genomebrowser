@@ -2,11 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { useModalStore } from "../../store/modalStore";
 import { useTrackStore } from "../../store/trackStore";
+import { TrackType } from "../tracks/types";
+import UniversalForm from "./forms/base";
+import Height from "./forms/height";
+import TranscriptForm from "./forms/transcriptVersion";
 
 export default function Modal() {
   const { id, open, closeModal, position } = useModalStore();
   const [dragPos, setDragPos] = useState(position);
   const [dragging, setDragging] = useState(false);
+
   const handleDrag = (e: DraggableEvent, data: DraggableData) => {
     e.preventDefault();
     setDragPos({ x: data.x, y: data.y });
@@ -17,6 +22,16 @@ export default function Modal() {
     if (!open) return;
     setDragPos(position);
   }, [open, position]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeModal();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [closeModal]);
 
   const track = useTrackStore((state) => state.getTrack(id));
   const modalRef = useRef<HTMLDivElement>(null);
@@ -34,8 +49,8 @@ export default function Modal() {
       <div
         ref={modalRef}
         style={{
-          width: "500px",
-          height: "100px",
+          width: "auto",
+          height: "auto",
           backgroundColor: "white",
           position: "fixed",
           top: 0,
@@ -72,8 +87,32 @@ export default function Modal() {
 
 function ModalContent({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
-  if (!track) return null;
-  return <div style={{ padding: 5 }}>{track.shortLabel || track.title}</div>;
+  if (!track) return "no configuration available";
+  const forms = (() => {
+    switch (track.trackType) {
+      case TrackType.BigWig:
+        return <></>;
+      case TrackType.BigBed:
+        return <></>;
+      case TrackType.Transcript:
+        return <TranscriptForm track={track} />;
+      case TrackType.Motif:
+        return <></>;
+      case TrackType.Importance:
+        return <></>;
+      case TrackType.LDTrack:
+        return <></>;
+      default:
+        return <></>;
+    }
+  })();
+  return (
+    <>
+      <UniversalForm track={track} />
+      <Height id={id} defaultHeight={track.height} />
+      {forms}
+    </>
+  );
 }
 
 function CloseButton({ handleClose, color }: { handleClose: () => void; color: string }) {
