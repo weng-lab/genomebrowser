@@ -19,7 +19,9 @@ import { useTooltipStore } from "../../../store/tooltipStore";
 import DefaultTooltip from "../../tooltip/defaultTooltip";
 
 export default function DenseBigWig({ id, data, color, height, dimensions, tooltip }: DenseBigWigProps) {
-  const { multiplier, sideWidth, sidePortion, totalWidth, viewWidth } = dimensions;
+  const { sideWidth, viewWidth, totalWidth } = dimensions;
+  const sidePortion = (totalWidth / viewWidth - 1) / 2;
+  const multiplier = useBrowserStore((state) => state.multiplier);
   const editTrack = useTrackStore((state) => state.editTrack);
   const delta = useBrowserStore((state) => state.delta);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
@@ -92,7 +94,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
         </linearGradient>
       </defs>
       <rect width={totalWidth} x={0} y={height / 3.0} height={height / 3.0} fill={`url('#${id}')`} />
-      {!delta && (
+      {!delta && x && (
         <line
           stroke={text}
           x1={x ? x - marginWidth + sideWidth : 0}

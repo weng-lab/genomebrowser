@@ -79,10 +79,8 @@ export const ImportanceComponent: Story = {
     height: 70,
     dimensions: {
       totalWidth: 1000,
-      multiplier: 1,
       viewWidth: 1000,
       sideWidth: 0,
-      sidePortion: 0,
     },
     data: data,
   },

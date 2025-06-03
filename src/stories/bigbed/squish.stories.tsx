@@ -22,10 +22,8 @@ export const Squish: Story = {
     height: 60,
     dimensions: {
       totalWidth: 1000,
-      multiplier: 1,
       viewWidth: 1000,
       sideWidth: 0,
-      sidePortion: 0,
     },
     data: [
       { start: 30, end: 100 },

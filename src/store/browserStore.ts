@@ -95,11 +95,9 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
     const sidePortion = (multiplier - 1) / 2;
 
     const dim: TrackDimensions = {
-      totalWidth: trackWidth * multiplier,
       viewWidth: trackWidth,
       sideWidth: sidePortion * trackWidth,
-      sidePortion,
-      multiplier,
+      totalWidth: trackWidth * multiplier,
     };
     return dim;
   },
