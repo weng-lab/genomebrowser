@@ -101,7 +101,6 @@ function Main() {
     //   assembly: "GRCh38",
     //   consensusRegex: "gcca[cg][ct]ag[ag]gggcgc",
     //   peaksAccession: "ENCFF992CTF",
-    //   occurences: false,
     //   onHover: (rect) => {
     //     console.log(rect);
     //   },
