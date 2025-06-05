@@ -5,7 +5,6 @@ export interface MotifConfig extends Config<any> {
   consensusRegex: string;
   peaksAccession: string;
   assembly: string;
-  occurences: boolean;
   peakColor?: string;
 }
 
