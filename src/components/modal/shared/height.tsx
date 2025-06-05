@@ -6,6 +6,7 @@ export default function Height({ id, defaultHeight }: { id: string; defaultHeigh
   const editTrack = useTrackStore((state) => state.editTrack);
   const MIN_HEIGHT = 20;
   const MAX_HEIGHT = 300;
+
   const callback = (value: string) => {
     const height = Number(value) < MIN_HEIGHT ? MIN_HEIGHT : Number(value) > MAX_HEIGHT ? MAX_HEIGHT : Number(value);
     editTrack(id, { height: height });
@@ -22,8 +23,8 @@ export default function Height({ id, defaultHeight }: { id: string; defaultHeigh
   };
 
   return (
-    <Form>
-      Height: <Value defaultValue={defaultHeight} validate={validate} callback={callback} />
+    <Form title="Height">
+      <Value defaultValue={defaultHeight} validate={validate} callback={callback} />
     </Form>
   );
 }

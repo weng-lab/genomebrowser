@@ -1,8 +1,9 @@
 import { useState } from "react";
-import Form from "./form";
+import Form from "../shared/form";
 import { TranscriptConfig } from "../../tracks/transcript/types";
 import { useTrackStore } from "../../../store/trackStore";
 import { useBrowserStore } from "../../../store/browserStore";
+import { getTextColor } from "../modal";
 
 export enum TranscriptHumanVersion {
   V29 = 29,
@@ -24,6 +25,7 @@ export default function TranscriptForm({ track }: { track: TranscriptConfig }) {
     const human = Object.values(TranscriptHumanVersion).includes(version as TranscriptHumanVersion);
     editTrack(track.id, { version: version, assembly: human ? "GRCH38" : "mm10" });
     const domain = getExpandedDomain();
+    if (!track.refetch) return;
     track.refetch({
       variables: {
         assembly: track.assembly,
@@ -35,24 +37,28 @@ export default function TranscriptForm({ track }: { track: TranscriptConfig }) {
     });
   };
 
-  const buttonStyle = (version: TranscriptHumanVersion | TranscriptMouseVersion) => ({
-    backgroundColor: selectedButton === version ? track.color : "#858585",
-    color: "white",
+  const buttonStyle = (selected: boolean) => ({
+    backgroundColor: selected ? track.color : "#aaaaaa",
+    color: getTextColor(selected ? track.color || "#000000" : "#aaaaaa"),
     marginRight: "5px",
     padding: "10px",
     border: "none",
     borderRadius: "5px",
     cursor: "pointer",
   });
+
   const humanAssembly = track.assembly.toLowerCase() === "grch38";
   return (
-    <Form>
-      <div>
-        <div>{humanAssembly ? "Human Assembly Version" : "Mouse Assembly Version"}</div>
+    <Form title={humanAssembly ? "Human Assembly Version" : "Mouse Assembly Version"}>
+      <div style={{ display: "flex", flexDirection: "row", gap: "5px" }}>
         {Object.values(humanAssembly ? TranscriptHumanVersion : TranscriptMouseVersion)
           .filter((version) => !isNaN(Number(version)))
           .map((version, index) => (
-            <button key={index} onClick={() => handleButtonClick(Number(version))} style={buttonStyle(Number(version))}>
+            <button
+              key={index}
+              onClick={() => handleButtonClick(Number(version))}
+              style={buttonStyle(selectedButton === Number(version))}
+            >
               {version}
             </button>
           ))}

@@ -1,33 +1,33 @@
-import { useEffect, useState } from "react";
-
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 
 export default function Value({
   defaultValue,
   validate,
   callback,
 }: {
-  defaultValue: any;
+  defaultValue: number;
   validate: (value: string) => string | undefined;
   callback: (value: string) => void;
 }) {
-  const [value, setValue] = useState<string>(String(defaultValue));
   const inputRef = useRef<HTMLInputElement>(null);
+  const [value, setValue] = useState<string>(String(defaultValue));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
   };
 
   useEffect(() => {
+    if (value === String(defaultValue)) return;
+    const newValue = value ? value : String(defaultValue);
+    const delay = value ? 500 : 2000;
     const timeout = setTimeout(() => {
       const message = validate(value);
-      const height = value ? value : defaultValue;
-      if (!message) callback(height);
+      if (!message) callback(newValue);
       if (inputRef.current) {
         inputRef.current.setCustomValidity(message || "");
         inputRef.current.reportValidity();
       }
-    }, 500);
+    }, delay);
     return () => clearTimeout(timeout);
   }, [value]);
 
@@ -35,9 +35,16 @@ export default function Value({
     <input
       ref={inputRef}
       type="number"
-      value={value || ""}
+      step="any"
+      placeholder={formatValue(Number(defaultValue))}
       onChange={handleChange}
       style={{ appearance: "textfield" }}
     />
   );
+}
+
+function formatValue(num: number) {
+  if (Number.isNaN(num) || Number(num) === 0) return "";
+  if (Number.isInteger(num)) return num.toString();
+  return Number(num.toFixed(2)).toString();
 }

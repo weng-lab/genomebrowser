@@ -4,9 +4,9 @@ import { Config, TrackDimensions, TrackType } from "../types";
 
 export interface TranscriptConfig extends Config<Transcript> {
   trackType: TrackType.Transcript;
-  refetch: LazyQueryExecFunction<any, OperationVariables>;
   assembly: string;
   version: number;
+  refetch?: LazyQueryExecFunction<any, OperationVariables>;
   geneName?: string;
 }
 

@@ -21,7 +21,16 @@ import { useTheme } from "../../../store/themeStore";
 import { useTooltipStore } from "../../../store/tooltipStore";
 import DefaultTooltip from "../../tooltip/defaultTooltip";
 
-export default function FullBigWig({ data, range, id, height, color, dimensions, tooltip }: FullBigWigProps) {
+export default function FullBigWig({
+  data,
+  range,
+  customRange,
+  id,
+  height,
+  color,
+  dimensions,
+  tooltip,
+}: FullBigWigProps) {
   const { sideWidth, viewWidth, totalWidth } = dimensions;
   const multiplier = useBrowserStore((state) => state.multiplier);
   const sidePortion = (multiplier - 1) / 2;
@@ -38,12 +47,10 @@ export default function FullBigWig({ data, range, id, height, color, dimensions,
     const endIndex = Math.floor((sidePortion + 1) * middleSectionSize);
     const middleSlice = data?.slice(startIndex, endIndex);
     const newRange = getRange(middleSlice ?? []);
+    editTrack<BigWigConfig>(id, { range: newRange });
+    if (customRange) return customRange;
     return newRange;
-  }, [data, multiplier, sidePortion]);
-
-  useEffect(() => {
-    editTrack<BigWigConfig>(id, { range: realRange });
-  }, [realRange, id, editTrack]);
+  }, [data, customRange, multiplier, sidePortion, editTrack, id]);
 
   const dataCopy = useMemo(() => createCopy(data ?? []), [data]);
 

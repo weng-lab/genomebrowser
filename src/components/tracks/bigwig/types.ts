@@ -4,6 +4,7 @@ export interface BigWigConfig extends Config<BigWigData> {
   trackType: TrackType.BigWig;
   url: string;
   range?: YRange;
+  customRange?: YRange;
 }
 
 interface BigWigProps {
@@ -17,6 +18,7 @@ interface BigWigProps {
 
 export interface FullBigWigProps extends BigWigProps {
   range: YRange;
+  customRange?: YRange;
 }
 export type DenseBigWigProps = BigWigProps;
 

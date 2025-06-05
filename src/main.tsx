@@ -41,7 +41,7 @@ function Main() {
       id: "2",
       title: "bigBed",
       titleSize: 12,
-      height: 14,
+      height: 20,
       color: Vibrant[7],
       trackType: TrackType.BigBed,
       displayMode: DisplayMode.Dense,
@@ -77,7 +77,6 @@ function Main() {
       trackType: TrackType.Transcript,
       assembly: "GRCh38",
       version: 47,
-      refetch: () => {},
       displayMode: DisplayMode.Squish,
       onHover: (item: Transcript) => {
         addHighlight({
