@@ -3,6 +3,7 @@ import { HexColorPicker } from "react-colorful";
 import useDebounce from "../../../hooks/useDebounce";
 import { Track, useTrackStore } from "../../../store/trackStore";
 import Form from "./form";
+import DisplayMode from "./forms/display";
 
 export default function UniversalForm({ track }: { track: Track }) {
   const [title, setTitle] = useState(track.title);
@@ -18,11 +19,13 @@ export default function UniversalForm({ track }: { track: Track }) {
   };
 
   return (
-    <Form>
-      <div>Color: </div>
-      <ColorPicker color={track.color || ""} onChange={handleColorChange} />
-      <div>Title: </div>
-      <input id="titleInput" type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+    <Form title="">
+      <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "5px" }}>
+        <div style={{ fontWeight: "bold" }}>Color: </div>
+        <ColorPicker color={track.color || ""} onChange={handleColorChange} />
+        <div style={{ fontWeight: "bold" }}>Title: </div>
+        <input id="titleInput" type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+      </div>
     </Form>
   );
 }

@@ -3,9 +3,12 @@ import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { useModalStore } from "../../store/modalStore";
 import { useTrackStore } from "../../store/trackStore";
 import { TrackType } from "../tracks/types";
-import UniversalForm from "./forms/base";
-import Height from "./forms/height";
-import TranscriptForm from "./forms/transcriptVersion";
+import UniversalForm from "./shared/base";
+import Display from "./shared/display";
+import Height from "./shared/height";
+import TranscriptForm from "./transcript/version";
+import Range from "./bigWig/range";
+import GeneName from "./transcript/geneName";
 
 export default function Modal() {
   const { id, open, closeModal, position } = useModalStore();
@@ -91,11 +94,16 @@ function ModalContent({ id }: { id: string }) {
   const forms = (() => {
     switch (track.trackType) {
       case TrackType.BigWig:
-        return <></>;
+        return <Range id={id} defaultRange={track.range} customRange={track.customRange} />;
       case TrackType.BigBed:
         return <></>;
       case TrackType.Transcript:
-        return <TranscriptForm track={track} />;
+        return (
+          <>
+            <TranscriptForm track={track} />
+            <GeneName id={id} name={track.geneName || ""} />
+          </>
+        );
       case TrackType.Motif:
         return <></>;
       case TrackType.Importance:
@@ -109,7 +117,10 @@ function ModalContent({ id }: { id: string }) {
   return (
     <>
       <UniversalForm track={track} />
-      <Height id={id} defaultHeight={track.height} />
+      <div style={{ display: "flex", flexDirection: "row", gap: "5px" }}>
+        <Height id={id} defaultHeight={track.height} />
+        <Display id={track.id} trackType={track.trackType} />
+      </div>
       {forms}
     </>
   );
@@ -137,7 +148,7 @@ function CloseButton({ handleClose, color }: { handleClose: () => void; color: s
   );
 }
 
-function getTextColor(backgroundColor: string): string {
+export function getTextColor(backgroundColor: string): string {
   // Handle empty or invalid colors
   if (!backgroundColor) return "#000000";
   // Remove # from string

@@ -53,6 +53,9 @@ export default function Margin({
   };
 
   const range = useTrackStore((state) => (state.getTrack(id) as BigWigConfig)?.range);
+  const customRange = useTrackStore((state) => (state.getTrack(id) as BigWigConfig)?.customRange);
+  const viewableRange = customRange || range;
+
   const { background, text } = useTheme();
   return (
     <g
@@ -93,13 +96,13 @@ export default function Margin({
         </g>
       )}
       {/* margin ticks */}
-      {range && (
+      {viewableRange && (
         <>
           <MarginTick color={text} position={height} width={marginWidth} fontSize={8}>
-            {range.min.toFixed(2)}
+            {viewableRange.min.toFixed(2)}
           </MarginTick>
           <MarginTick color={text} position={verticalMargin} width={marginWidth} fontSize={8}>
-            {range.max.toFixed(2)}
+            {viewableRange.max.toFixed(2)}
           </MarginTick>
         </>
       )}
