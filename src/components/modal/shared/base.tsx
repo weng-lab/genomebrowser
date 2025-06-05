@@ -3,7 +3,6 @@ import { HexColorPicker } from "react-colorful";
 import useDebounce from "../../../hooks/useDebounce";
 import { Track, useTrackStore } from "../../../store/trackStore";
 import Form from "./form";
-import DisplayMode from "./forms/display";
 
 export default function UniversalForm({ track }: { track: Track }) {
   const [title, setTitle] = useState(track.title);

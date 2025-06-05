@@ -47,10 +47,12 @@ export default function FullBigWig({
     const endIndex = Math.floor((sidePortion + 1) * middleSectionSize);
     const middleSlice = data?.slice(startIndex, endIndex);
     const newRange = getRange(middleSlice ?? []);
-    editTrack<BigWigConfig>(id, { range: newRange });
-    if (customRange) return customRange;
     return newRange;
-  }, [data, customRange, multiplier, sidePortion, editTrack, id]);
+  }, [data, multiplier, sidePortion]);
+
+  useEffect(() => {
+    editTrack<BigWigConfig>(id, { range: realRange });
+  }, [realRange]);
 
   const dataCopy = useMemo(() => createCopy(data ?? []), [data]);
 
@@ -65,14 +67,14 @@ export default function FullBigWig({
   const paths: Paths = useMemo(() => {
     const renderPoints = rendered.renderPoints.filter((v) => v.min < Infinity && v.max > -Infinity);
 
-    const y = ytransform(realRange, height);
+    const y = ytransform(customRange || realRange, height);
     const clampY = (value: number) => Math.max(0, Math.min(height, y(value)));
 
     const yValues = renderPoints.map((point) => {
       const clampedY = clampY(point.min);
       return {
         value: clampedY,
-        isClamped: point.min > realRange.max,
+        isClamped: point.min > (customRange || realRange).max,
       };
     });
 
@@ -97,7 +99,7 @@ export default function FullBigWig({
       path,
       clampedMarkers,
     };
-  }, [rendered, height, realRange, totalWidth]);
+  }, [rendered, height, customRange, realRange, totalWidth]);
 
   const showTooltip = useTooltipStore((state) => state.showTooltip);
   const hideTooltip = useTooltipStore((state) => state.hideTooltip);
