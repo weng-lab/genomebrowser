@@ -8,8 +8,9 @@ import Form from "./form";
 export default function Display({ id, trackType }: { id: string; trackType: TrackType }) {
   const items = trackComponents[trackType];
   const options = Object.keys(items) as Options[];
-  const currentMode = useTrackStore((state) => state.getTrack(id)?.displayMode);
-  const color = useTrackStore((state) => state.getTrack(id)?.color);
+  const track = useTrackStore((state) => state.getTrack(id));
+  const currentMode = track?.displayMode;
+  const color = track?.color;
   const editTrack = useTrackStore((state) => state.editTrack);
 
   const buttonStyle = (selected: boolean) => ({
@@ -25,6 +26,8 @@ export default function Display({ id, trackType }: { id: string; trackType: Trac
   const handleButtonClick = (option: Options) => {
     editTrack(id, { displayMode: option });
   };
+
+  if (!track) return null;
 
   return (
     <Form title="Display Mode">
