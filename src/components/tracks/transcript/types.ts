@@ -1,8 +1,10 @@
+import { OperationVariables } from "@apollo/client";
+import { LazyQueryExecFunction } from "@apollo/client/react/types/types";
 import { Config, TrackDimensions, TrackType } from "../types";
 
 export interface TranscriptConfig extends Config<Transcript> {
   trackType: TrackType.Transcript;
-  refetch: () => void;
+  refetch: LazyQueryExecFunction<any, OperationVariables>;
   assembly: string;
   version: number;
   geneName?: string;

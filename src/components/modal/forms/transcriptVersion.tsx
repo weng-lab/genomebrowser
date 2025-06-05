@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Form from "./form";
 import { TranscriptConfig } from "../../tracks/transcript/types";
 import { useTrackStore } from "../../../store/trackStore";
+import { useBrowserStore } from "../../../store/browserStore";
 
 export enum TranscriptHumanVersion {
   V29 = 29,
@@ -16,15 +17,22 @@ export enum TranscriptMouseVersion {
 export default function TranscriptForm({ track }: { track: TranscriptConfig }) {
   const editTrack = useTrackStore((state) => state.editTrack);
   const [selectedButton, setSelectedButton] = useState<number | null>(track.version);
-
-  useEffect(() => {
-    setSelectedButton(track.version);
-  }, [track.version]);
+  const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
 
   const handleButtonClick = (version: TranscriptHumanVersion | TranscriptMouseVersion) => {
     setSelectedButton(version);
     const human = Object.values(TranscriptHumanVersion).includes(version as TranscriptHumanVersion);
     editTrack(track.id, { version: version, assembly: human ? "GRCH38" : "mm10" });
+    const domain = getExpandedDomain();
+    track.refetch({
+      variables: {
+        assembly: track.assembly,
+        chromosome: domain.chromosome,
+        start: domain.start,
+        end: domain.end,
+        version: version,
+      },
+    });
   };
 
   const buttonStyle = (version: TranscriptHumanVersion | TranscriptMouseVersion) => ({
