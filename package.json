@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
-    "@tanstack/react-form": "^1.12.0",
     "graphql": "^16.11.0",
     "logojs-react": "^2.1.1",
     "react": "^18.3.1",
