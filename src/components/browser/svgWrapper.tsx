@@ -17,6 +17,7 @@ export default function SvgWrapper({ children }: { children: React.ReactNode }) 
 
   return (
     <svg
+      id="browserSVG"
       ref={svgRef}
       viewBox={`0 0 ${browserWidth} ${totalHeight + RULER_HEIGHT}`}
       width="100%"

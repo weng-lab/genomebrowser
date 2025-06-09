@@ -81,20 +81,22 @@ export default function Margin({
       <text fill={text} fontSize={`${fontSize}px`} y={height / 2} x={marginWidth / 10} alignmentBaseline="middle">
         {marginLabel}
       </text>
-      {/* modal icon */}
-      {id !== "ruler" && (
-        <g ref={settingsRef} onClick={handleShowModal} style={{ cursor: "pointer" }}>
-          <SettingsIcon x={marginWidth / 10} y={height / 2 + 2} height={15} width={15} fill={text} />
-          <circle cx={marginWidth / 10 + 7.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
-        </g>
-      )}
-      {/* bring to top icon */}
-      {index > 0 && (
-        <g onClick={handleBringToTop} style={{ cursor: "pointer" }}>
-          <TopIcon x={marginWidth / 10 + 15} y={height / 2 + 4} height={15} width={15} fill={text} />
-          <circle cx={marginWidth / 10 + 22.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
-        </g>
-      )}
+      <g id={`margin-buttons-${id}`}>
+        {/* modal icon */}
+        {id !== "ruler" && (
+          <g ref={settingsRef} onClick={handleShowModal} style={{ cursor: "pointer" }}>
+            <SettingsIcon x={marginWidth / 10} y={height / 2 + 2} height={15} width={15} fill={text} />
+            <circle cx={marginWidth / 10 + 7.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
+          </g>
+        )}
+        {/* bring to top icon */}
+        {index > 0 && (
+          <g onClick={handleBringToTop} style={{ cursor: "pointer" }}>
+            <TopIcon x={marginWidth / 10 + 15} y={height / 2 + 4} height={15} width={15} fill={text} />
+            <circle cx={marginWidth / 10 + 22.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
+          </g>
+        )}
+      </g>
       {/* margin ticks */}
       {viewableRange && (
         <>
