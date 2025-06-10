@@ -53,7 +53,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
     const renderPoints = rendered.renderPoints.filter((v) => v.min < Infinity && v.max > -Infinity);
     return renderPoints.map((point) => {
       const yValue = y(point.max);
-      return lighten(color, yValue / 3);
+      return lighten(color, yValue / 2);
     });
   }, [color, rendered, range]);
 

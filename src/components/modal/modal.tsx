@@ -9,6 +9,7 @@ import Height from "./shared/height";
 import TranscriptForm from "./transcript/version";
 import Range from "./bigWig/range";
 import GeneName from "./transcript/geneName";
+import { DownloadForm } from "./shared/download";
 
 export default function Modal() {
   const { id, open, closeModal, position } = useModalStore();
@@ -122,6 +123,7 @@ function ModalContent({ id }: { id: string }) {
         <Display id={track.id} trackType={track.trackType} />
       </div>
       {forms}
+      <DownloadForm track={track} />
     </>
   );
 }
@@ -163,3 +165,36 @@ export function getTextColor(backgroundColor: string): string {
   // Use white text for darker backgrounds, black for lighter ones
   return luminance > 0.5 ? "#000000" : "#ffffff";
 }
+
+export function shadeColor(color: string, percent: number) {
+  var R = parseInt(color.substring(1, 3), 16);
+  var G = parseInt(color.substring(3, 5), 16);
+  var B = parseInt(color.substring(5, 7), 16);
+
+  R = (R * (100 + percent)) / 100;
+  G = (G * (100 + percent)) / 100;
+  B = (B * (100 + percent)) / 100;
+
+  R = R < 255 ? R : 255;
+  G = G < 255 ? G : 255;
+  B = B < 255 ? B : 255;
+
+  R = Math.round(R);
+  G = Math.round(G);
+  B = Math.round(B);
+
+  var RR = R.toString(16).length == 1 ? "0" + R.toString(16) : R.toString(16);
+  var GG = G.toString(16).length == 1 ? "0" + G.toString(16) : G.toString(16);
+  var BB = B.toString(16).length == 1 ? "0" + B.toString(16) : B.toString(16);
+
+  return "#" + RR + GG + BB;
+}
+
+export const isDark = (color: string) => {
+  const hex = color.slice(1);
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance < 0.5;
+};

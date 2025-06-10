@@ -3,11 +3,17 @@ import { useContextMenuStore } from "../../store/contextMenuStore";
 import { useTrackStore } from "../../store/trackStore";
 import { trackComponents } from "../tracks/displayTrack";
 import { DisplayMode } from "../tracks/types";
+import { useDataStore } from "../../store/dataStore";
+import { useBrowserStore } from "../../store/browserStore";
+import { downloadBedGraph, downloadSVG } from "../../utils/download";
 
 export default function ContextMenu() {
   const { open, id, x, y, setContextMenu } = useContextMenuStore();
   const menuRef = useRef<HTMLDivElement>(null);
   const track = useTrackStore((state) => state.getTrack(id || ""));
+  const data = useDataStore((state) => state.data.get(id || ""));
+  const getDomain = useBrowserStore((state) => state.getExpandedDomain);
+  const domain = getDomain();
   const editTrack = useTrackStore((state) => state.editTrack);
   const removeTrack = useTrackStore((state) => state.removeTrack);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -29,6 +35,7 @@ export default function ContextMenu() {
   }, [open, setContextMenu, id, x, y]);
 
   if (!track) return null;
+  if (!data) return null;
   const currentMode = track.displayMode;
   const items = trackComponents[track.trackType];
   const options = Object.keys(items) as DisplayMode[];
@@ -36,10 +43,10 @@ export default function ContextMenu() {
   const handleClick = (mode: string) => {
     if (!id) return;
     setContextMenu(false, id, x, y);
-    if (mode === "hide") {
+    if (mode === "remove") {
       removeTrack(id);
     } else if (mode === "download") {
-      // downloadTrack(id);
+      downloadSVG(id, track.title, true);
     } else {
       editTrack(id, { displayMode: mode as DisplayMode });
     }
