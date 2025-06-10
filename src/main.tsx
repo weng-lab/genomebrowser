@@ -1,14 +1,10 @@
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import Browser from "./components/browser/browser";
-import { Track, useTrackStore } from "./store/trackStore";
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
-import { IntitialBrowserState, useBrowserStore } from "./store/browserStore";
-import { DisplayMode, TrackType } from "./components/tracks/types";
-import { Vibrant } from "./utils/color";
 import { create } from "zustand";
-import { Transcript } from "./components/tracks/transcript/types";
-import { ImportanceConfig } from "./components/tracks/importance/types";
+import { Browser, DisplayMode, ImportanceConfig, Track, TrackType, Transcript, useTrackStore } from "./lib";
+import { IntitialBrowserState, useBrowserStore } from "./store/browserStore";
+import { Vibrant } from "./utils/color";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",

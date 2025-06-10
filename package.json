@@ -1,8 +1,21 @@
 {
   "name": "track-logic",
-  "private": true,
+  "private": false,
   "version": "0.0.0",
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/track-logic.umd.js",
+  "module": "dist/track-logic.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/track-logic.es.js",
+      "require": "./dist/track-logic.umd.js",
+      "types": "./dist/lib.d.ts"
+    }
+  },
+  "types": "dist/lib.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -30,6 +43,7 @@
     "@storybook/addon-onboarding": "9.0.4",
     "@storybook/addon-vitest": "9.0.4",
     "@storybook/react-vite": "9.0.4",
+    "@types/node": "^24.0.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
@@ -45,6 +59,7 @@
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",
     "vite": "^6.3.5",
-    "vitest": "^3.2.0"
+    "vitest": "^3.2.0",
+    "vite-plugin-dts": "^4.2.3"
   }
 }
