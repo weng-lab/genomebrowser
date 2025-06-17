@@ -46,3 +46,6 @@ export type { Highlight };
 
 import { DisplayMode, TrackType } from "./components/tracks/types";
 export { DisplayMode, TrackType };
+
+import { Vibrant, Pastels } from "./utils/color";
+export { Vibrant, Pastels };
