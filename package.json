@@ -20,7 +20,7 @@
   "dependencies": {
     "@apollo/client": "^3.13.8",
     "graphql": "^16.11.0",
-    "logots-react": "link:../../Users/MSI/AppData/Local/pnpm/global/5/node_modules/logots-react",
+    "logots-react": "^1.0.2",
     "react-colorful": "^5.6.1",
     "react-draggable": "^4.4.6",
     "zustand": "^5.0.3"

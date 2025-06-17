@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  logots-react: link:../../Users/MSI/AppData/Local/pnpm/global/5/node_modules/logots-react
-
 importers:
 
   .:
@@ -18,8 +15,8 @@ importers:
         specifier: ^16.11.0
         version: 16.11.0
       logots-react:
-        specifier: link:../../Users/MSI/AppData/Local/pnpm/global/5/node_modules/logots-react
-        version: link:../../Users/MSI/AppData/Local/pnpm/global/5/node_modules/logots-react
+        specifier: ^1.0.2
+        version: 1.0.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react:
         specifier: ^19.0.0
         version: 19.1.0
@@ -1589,6 +1586,12 @@ packages:
 
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+
+  logots-react@1.0.2:
+    resolution: {integrity: sha512-RbRNtLpa7fBb/BZFqLJfc6p1mhQQ2kuv+7HTyuWdEqtCmZBk+sMO4wJ+YF3cgvxMaxkBPLLx+pgM677RkLKqpw==}
+    peerDependencies:
+      react: ^19.1.0
+      react-dom: ^19.1.0
 
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
@@ -3743,6 +3746,11 @@ snapshots:
   lodash.merge@4.6.2: {}
 
   lodash@4.17.21: {}
+
+  logots-react@1.0.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   loose-envify@1.4.0:
     dependencies:
