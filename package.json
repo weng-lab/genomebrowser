@@ -8,13 +8,6 @@
   ],
   "main": "dist/track-logic.umd.js",
   "module": "dist/track-logic.es.js",
-  "exports": {
-    ".": {
-      "import": "./dist/track-logic.es.js",
-      "require": "./dist/track-logic.umd.js",
-      "types": "./dist/lib.d.ts"
-    }
-  },
   "types": "dist/lib.d.ts",
   "scripts": {
     "dev": "vite",
@@ -27,12 +20,14 @@
   "dependencies": {
     "@apollo/client": "^3.13.8",
     "graphql": "^16.11.0",
-    "logojs-react": "^2.1.1",
-    "react": "^18.3.1",
+    "logots-react": "link:../../Users/MSI/AppData/Local/pnpm/global/5/node_modules/logots-react",
     "react-colorful": "^5.6.1",
-    "react-dom": "^18.3.1",
     "react-draggable": "^4.4.6",
     "zustand": "^5.0.3"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.0.0",
@@ -58,7 +53,7 @@
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",
     "vite": "^6.3.5",
-    "vitest": "^3.2.0",
-    "vite-plugin-dts": "^4.2.3"
+    "vite-plugin-dts": "^4.2.3",
+    "vitest": "^3.2.0"
   }
 }

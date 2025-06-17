@@ -1,8 +1,7 @@
-import { DNALogo } from "logojs-react";
+import { DNALogo } from "logots-react";
 import { MotifRect } from "./types";
 
 export const DefaultMotifTooltip = (rect: MotifRect) => {
-  console.log(rect);
   return (
     <g transform={`translate(0, ${-150})`}>
       <rect

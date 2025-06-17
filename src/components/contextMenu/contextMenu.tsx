@@ -4,16 +4,13 @@ import { useTrackStore } from "../../store/trackStore";
 import { trackComponents } from "../tracks/displayTrack";
 import { DisplayMode } from "../tracks/types";
 import { useDataStore } from "../../store/dataStore";
-import { useBrowserStore } from "../../store/browserStore";
-import { downloadBedGraph, downloadSVG } from "../../utils/download";
+import { downloadSVG } from "../../utils/download";
 
 export default function ContextMenu() {
   const { open, id, x, y, setContextMenu } = useContextMenuStore();
   const menuRef = useRef<HTMLDivElement>(null);
   const track = useTrackStore((state) => state.getTrack(id || ""));
   const data = useDataStore((state) => state.data.get(id || ""));
-  const getDomain = useBrowserStore((state) => state.getExpandedDomain);
-  const domain = getDomain();
   const editTrack = useTrackStore((state) => state.editTrack);
   const removeTrack = useTrackStore((state) => state.removeTrack);
   const [hovered, setHovered] = useState<string | null>(null);
