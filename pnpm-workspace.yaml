@@ -2,5 +2,3 @@ ignoredBuiltDependencies:
   - esbuild
 onlyBuiltDependencies:
   - esbuild
-overrides:
-  logots-react: link:../../Users/MSI/AppData/Local/pnpm/global/5/node_modules/logots-react
