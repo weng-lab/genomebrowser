@@ -1,6 +1,6 @@
 import { createElement, useMemo } from "react";
 import { ImportanceTrackDataPoint } from "./types";
-import { A, C, G, T } from "logojs-react";
+import { A, C, G, T } from "logots-react";
 import React from "react";
 
 const COMPONENT_MAP = new Map([
@@ -47,7 +47,7 @@ const LetterComponent: React.FC<LetterProps> = (props) => {
         onMouseUp={props.onMouseUp}
       />
       <g transform={`${s} translate(${props.x},${y}) scale(${props.xScale},${scale})`}>
-        {createElement(COMPONENT_MAP.get(props.base)!, {
+        {createElement(COMPONENT_MAP.get(props.base)! as React.ComponentType<{ fill?: string }>, {
           fill: COLOR_MAP.get(props.base),
         })}
       </g>
