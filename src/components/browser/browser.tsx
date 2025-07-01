@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import LegacyDataFetcher from "../../api/legacy";
-import { IntitialBrowserState, useBrowserStore } from "../../store/browserStore";
+import { InitialBrowserState, useBrowserStore } from "../../store/browserStore";
 import { Track, useTrackStore } from "../../store/trackStore";
 import ContextMenu from "../contextMenu/contextMenu";
 import Modal from "../modal/modal";
@@ -12,7 +12,7 @@ import SVGWrapper from "./svgWrapper";
 import SelectRegion from "../tracks/ruler/selectRegion";
 import Highlights from "../highlight/highlights";
 
-export default function Browser({ tracks, state }: { tracks: Track[]; state: IntitialBrowserState }) {
+export default function Browser({ tracks, state }: { tracks: Track[]; state: InitialBrowserState }) {
   // Store functions
   const setTracks = useTrackStore((state) => state.setTracks);
   const initialize = useBrowserStore((state) => state.initialize);

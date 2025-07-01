@@ -1,4 +1,4 @@
-import { DNALogo } from "logots-react";
+import { DNALogo } from "logo-test";
 import { MotifRect } from "./types";
 
 export const DefaultMotifTooltip = (rect: MotifRect) => {

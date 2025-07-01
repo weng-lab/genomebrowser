@@ -1,6 +1,6 @@
 import { createElement, useMemo } from "react";
 import { ImportanceTrackDataPoint } from "./types";
-import { A, C, G, T } from "logots-react";
+import { A, C, G, T } from "logo-test";
 import React from "react";
 
 const COMPONENT_MAP = new Map([

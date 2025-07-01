@@ -3,7 +3,7 @@ import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { create } from "zustand";
 import { Browser, DisplayMode, ImportanceConfig, Track, TrackType, Transcript, useTrackStore } from "./lib";
-import { IntitialBrowserState, useBrowserStore } from "./store/browserStore";
+import { InitialBrowserState, useBrowserStore } from "./store/browserStore";
 import { Vibrant } from "./utils/color";
 
 const client = new ApolloClient({
@@ -106,7 +106,7 @@ function Main() {
     },
   ];
 
-  const initialState: IntitialBrowserState = {
+  const initialState: InitialBrowserState = {
     domain: { chromosome: "chr6", start: 21592768, end: 21598619 },
     marginWidth: 150,
     trackWidth: 1350,
