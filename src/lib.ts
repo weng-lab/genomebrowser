@@ -31,8 +31,8 @@ import {
 export type { TranscriptConfig, SquishTranscriptProps, PackTranscriptProps, TranscriptList, Transcript };
 
 // Stores
-import { useBrowserStore, type IntitialBrowserState } from "./store/browserStore";
-export { useBrowserStore, type IntitialBrowserState };
+import { useBrowserStore, type InitialBrowserState } from "./store/browserStore";
+export { useBrowserStore, type InitialBrowserState };
 
 import { useTrackStore, type Track } from "./store/trackStore";
 export { useTrackStore, type Track };
@@ -49,3 +49,6 @@ export { DisplayMode, TrackType };
 
 import { Vibrant, Pastels } from "./utils/color";
 export { Vibrant, Pastels };
+
+import { Domain, Chromosome } from "./utils/types";
+export type { Domain, Chromosome };

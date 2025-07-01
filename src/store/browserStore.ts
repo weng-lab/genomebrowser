@@ -3,7 +3,7 @@ import { RefObject } from "react";
 import { Domain } from "../utils/types";
 import { TrackDimensions } from "../components/tracks/types";
 import { Highlight } from "../components/highlight/types";
-export interface IntitialBrowserState {
+export interface InitialBrowserState {
   domain: Domain;
   marginWidth: number;
   trackWidth: number;
@@ -26,7 +26,7 @@ interface BrowserStore {
   shiftDomain: () => void;
   setDelta: (delta: number) => void;
   setSvgRef: (ref: RefObject<SVGSVGElement | null>) => void;
-  initialize: (state: IntitialBrowserState) => void;
+  initialize: (state: InitialBrowserState) => void;
   getTrackDimensions: () => TrackDimensions;
   /**
    * Add a highlight to the browser.
@@ -46,7 +46,7 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
   marginWidth: 150,
   multiplier: 3,
   highlights: [],
-  initialize: (state: IntitialBrowserState) => {
+  initialize: (state: InitialBrowserState) => {
     set({
       domain: state.domain,
       browserWidth: state.trackWidth + state.marginWidth,
