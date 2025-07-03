@@ -1,3 +1,4 @@
+"use client";
 import { gql, useLazyQuery } from "@apollo/client";
 import { useEffect, useMemo, useState } from "react";
 import { TranscriptConfig } from "../components/tracks/transcript/types";

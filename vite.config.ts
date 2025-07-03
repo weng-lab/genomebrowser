@@ -20,7 +20,7 @@ export default defineConfig({
       entry: path.resolve(__dirname, "src/lib.ts"),
       name: "track-logic",
       fileName: (format) => `track-logic.${format}.js`,
-      formats: ["es", "cjs", "umd"],
+      formats: ["es"],
     },
     rollupOptions: {
       external: ["react", "react-dom"],

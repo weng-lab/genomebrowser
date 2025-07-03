@@ -23,9 +23,8 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Ini
     initialize(state);
     setTracks(tracks);
   }, [tracks, setTracks, state, initialize]);
-
   return (
-    <>
+    <div>
       <LegacyDataFetcher />
       <SVGWrapper>
         <SelectRegion />
@@ -40,6 +39,6 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Ini
       </SVGWrapper>
       <ContextMenu />
       <Modal />
-    </>
+    </div>
   );
 }
