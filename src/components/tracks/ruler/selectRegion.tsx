@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, useState } from "react";
 import { useBrowserStore } from "../../../store/browserStore";
 import { createPortal } from "react-dom";

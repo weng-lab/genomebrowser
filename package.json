@@ -6,7 +6,6 @@
   "files": [
     "dist"
   ],
-  "main": "dist/track-logic.umd.js",
   "module": "dist/track-logic.es.js",
   "types": "dist/lib.d.ts",
   "scripts": {
@@ -18,15 +17,15 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@apollo/client": "^3.13.8",
-    "graphql": "^16.11.0",
+    "@apollo/client": "^3.11.10",
+    "graphql": "^16.9.0",
     "react-colorful": "^5.6.1",
     "react-draggable": "^4.4.6",
     "zustand": "^5.0.3"
   },
   "peerDependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.0.0",
