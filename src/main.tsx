@@ -63,6 +63,13 @@ function Main() {
         setName(rect.name + " left");
         removeHighlight(rect.name || "ihqoviun");
       },
+      tooltip: (rect) => {
+        return <div>
+          <div>
+            {rect.name}
+          </div>
+        </div>
+      },
     },
     {
       id: "3",
