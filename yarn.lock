@@ -3714,6 +3714,11 @@ lodash@^4.17.21, lodash@~4.17.15:
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
+logo-test@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/logo-test/-/logo-test-0.0.2.tgz#6f1ed395beb0d93c787dbfb93a2c11e15820b624"
+  integrity sha512-AS9UnaITFeE6ZH7HKFW+v8qiIcOiDGyqtBrXzH8xlGQrBnw2Yh6KqOXnCuAw3G4UrTW9MeEtY7r3W3UxT+iCWw==
+
 loose-envify@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/loose-envify/-/loose-envify-1.4.0.tgz#71ee51fa7be4caec1a63839f7e682d8132d30caf"
