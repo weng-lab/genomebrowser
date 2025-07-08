@@ -10,6 +10,10 @@ export interface BigRequest {
   end: number;
 }
 
+export interface BigResponse {
+  bigRequests: { data: any }[];
+}
+
 // Transcript request type
 export interface TranscriptRequest {
   chromosome: string;
@@ -17,6 +21,10 @@ export interface TranscriptRequest {
   start: number;
   end: number;
   version: number;
+}
+
+export interface GeneResponse {
+  gene: any;
 }
 
 // Motif request type
@@ -36,6 +44,11 @@ export interface MotifRequest {
   };
 }
 
+export interface MotifResponse {
+  meme_occurrences: any[];
+  peaks: { peaks: any[] };
+}
+
 // LD track request type
 export interface LDRequest {
   assembly: string;
@@ -44,6 +57,10 @@ export interface LDRequest {
     start: number;
     end: number;
   };
+}
+
+export interface LDResponse {
+  snpQuery: any[];
 }
 
 // Motif result rectangle type (used in results processing)
