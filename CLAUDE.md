@@ -11,6 +11,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run storybook` - Run Storybook development server on port 6006
 - `npm run build-storybook` - Build Storybook for deployment
 
+## Data Fetching Architecture
+
+The project uses a **clean, trigger-based data fetching system**:
+
+**DataStore Controls Fetching**: The `dataStore` contains:
+- `shouldFetch: boolean` flag to control when fetching occurs
+- `triggerFetch()` action to initiate data fetching
+- `setShouldFetch(false)` to reset after completion
+
+**CleanDataFetcher Component** (`src/api/cleanDataFetcher.tsx`):
+- Replaces the complex `LegacyDataFetcher` with clean, maintainable code
+- Single useEffect with all fetch logic contained within (no dependency cycles)
+- Uses existing API request builders and GraphQL queries
+- Maintains existing BigWig/BigBed batching efficiency
+- Triggers on: track count changes, domain changes, or `shouldFetch` flag
+
+**Fetch Flow**:
+1. Track count increases OR domain changes OR `triggerFetch()` called
+2. `shouldFetch` flag set to true
+3. Single useEffect executes with loading guards to prevent concurrent fetching
+4. All track types fetched concurrently using existing batching
+5. Results populate `dataStore` via separate results processing useEffect
+6. `shouldFetch` flag reset to false
+
 ## Testing
 
 This project uses Vitest with Storybook integration and Playwright for browser testing:
