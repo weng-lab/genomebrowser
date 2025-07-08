@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import LegacyDataFetcher from "../../api/legacy";
+import CleanDataFetcher from "../../api/cleanDataFetcher";
 import { InitialBrowserState, useBrowserStore } from "../../store/browserStore";
 import { Track, useTrackStore } from "../../store/trackStore";
+import { useDataStore } from "../../store/dataStore";
 import ContextMenu from "../contextMenu/contextMenu";
 import Modal from "../modal/modal";
 import Tooltip from "../tooltip/tooltip";
@@ -17,15 +18,19 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Ini
   const setTracks = useTrackStore((state) => state.setTracks);
   const initialize = useBrowserStore((state) => state.initialize);
   const trackIds = useTrackStore((state) => state.ids);
+  const triggerFetch = useDataStore((state) => state.triggerFetch);
 
-  // Initialize state
+  // Initialize state and trigger fetch when tracks change
   useEffect(() => {
     initialize(state);
     setTracks(tracks);
-  }, [tracks, setTracks, state, initialize]);
+    if (tracks.length > 0) {
+      triggerFetch();
+    }
+  }, [tracks, setTracks, state, initialize, triggerFetch]);
   return (
     <div>
-      <LegacyDataFetcher />
+      <CleanDataFetcher />
       <SVGWrapper>
         <SelectRegion />
         <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
