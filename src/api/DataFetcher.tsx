@@ -9,15 +9,16 @@ import { useDataStore } from "../store/dataStore";
 import { useTrackStore } from "../store/trackStore";
 
 import { BIGDATA_QUERY, MOTIF_QUERY, TRANSCRIPT_GENES_QUERY, VARIANT_QUERY } from "./queries";
-import { buildAllRequests } from "./dataFetchingUtils";
+import { buildAllRequests } from "./requestBuilder";
 import { executeAllQueries } from "./queryExecutor";
 import { processAllResults } from "./resultsProcessor";
 
-function CleanDataFetcher() {
+function DataFetcher() {
   const [fetchBigData, { data: bigData, loading: bigLoading, error: bigError }] = useLazyQuery(BIGDATA_QUERY);
   const [fetchMotif, { data: motifData, loading: motifLoading, error: motifError }] = useLazyQuery(MOTIF_QUERY);
   const [fetchGene, { data: geneData, loading: geneLoading, error: geneError }] = useLazyQuery(TRANSCRIPT_GENES_QUERY);
-  const [fetchImportance, { data: importanceData, loading: importanceLoading, error: importanceError }] = useLazyQuery(BIGDATA_QUERY);
+  const [fetchImportance, { data: importanceData, loading: importanceLoading, error: importanceError }] =
+    useLazyQuery(BIGDATA_QUERY);
   const [fetchSnps, { data: snpData, loading: snpLoading, error: snpError }] = useLazyQuery(gql(VARIANT_QUERY));
 
   const tracks = useTrackStore((state) => state.tracks);
@@ -25,7 +26,7 @@ function CleanDataFetcher() {
   const domain = useBrowserStore((state) => state.domain);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const setDelta = useBrowserStore((state) => state.setDelta);
-  
+
   const shouldFetch = useDataStore((state) => state.shouldFetch);
   const setData = useDataStore((state) => state.setDataById);
   const setLoading = useDataStore((state) => state.setLoading);
@@ -34,7 +35,7 @@ function CleanDataFetcher() {
 
   useEffect(() => {
     if (!shouldFetch || tracks.length === 0) return;
-    
+
     // Loading guard to prevent concurrent fetching
     if (bigLoading || geneLoading || motifLoading || importanceLoading || snpLoading) {
       return;
@@ -42,16 +43,16 @@ function CleanDataFetcher() {
 
     const fetchAllData = async () => {
       setFetching(true);
-      
+
       // Build all requests using utility functions
       const requests = buildAllRequests(tracks, getExpandedDomain(), domain);
-      
+
       // Set up transcript refetch function if needed
       const transcriptTrack = tracks.find((track) => track.trackType === TrackType.Transcript);
       if (transcriptTrack && requests.transcriptRequest) {
         editTrack<TranscriptConfig>(transcriptTrack.id, { refetch: fetchGene });
       }
-      
+
       // Execute all queries using utility function
       await executeAllQueries(requests, {
         fetchBigData,
@@ -60,7 +61,7 @@ function CleanDataFetcher() {
         fetchImportance,
         fetchSnps,
       });
-      
+
       setShouldFetch(false);
     };
 
@@ -128,4 +129,4 @@ function CleanDataFetcher() {
   return null;
 }
 
-export default CleanDataFetcher;
+export default DataFetcher;

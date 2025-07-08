@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import CleanDataFetcher from "../../api/cleanDataFetcher";
+import DataFetcher from "../../api/DataFetcher";
 import { InitialBrowserState, useBrowserStore } from "../../store/browserStore";
 import { Track, useTrackStore } from "../../store/trackStore";
 import { useDataStore } from "../../store/dataStore";
@@ -28,9 +28,10 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Ini
       triggerFetch();
     }
   }, [tracks, setTracks, state, initialize, triggerFetch]);
+
   return (
     <div>
-      <CleanDataFetcher />
+      <DataFetcher />
       <SVGWrapper>
         <SelectRegion />
         <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
