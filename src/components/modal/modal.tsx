@@ -10,6 +10,8 @@ import TranscriptForm from "./transcript/version";
 import Range from "./bigWig/range";
 import GeneName from "./transcript/geneName";
 import { DownloadForm } from "./shared/download";
+import Gap from "./bulkbed/gap";
+import DatasetList from "./bulkbed/datasetList";
 
 export default function Modal() {
   const { id, open, closeModal, position } = useModalStore();
@@ -111,6 +113,13 @@ function ModalContent({ id }: { id: string }) {
         return <></>;
       case TrackType.LDTrack:
         return <></>;
+      case TrackType.BulkBed:
+        return (
+          <>
+            <Gap id={id} defaultGap={track.gap || 0} />
+            <DatasetList datasets={track.datasets || []} />
+          </>
+        );
       default:
         return <></>;
     }
