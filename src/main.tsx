@@ -2,7 +2,16 @@ import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { create } from "zustand";
-import { Browser, BulkBedConfig, DisplayMode, ImportanceConfig, Track, TrackType, Transcript, useTrackStore } from "./lib";
+import {
+  Browser,
+  BulkBedConfig,
+  DisplayMode,
+  ImportanceConfig,
+  Track,
+  TrackType,
+  Transcript,
+  useTrackStore,
+} from "./lib";
 import { InitialBrowserState, useBrowserStore } from "./store/browserStore";
 import { Vibrant } from "./utils/color";
 
@@ -66,9 +75,7 @@ function Main() {
       tooltip: (rect) => {
         return (
           <g>
-            <text>
-              {rect.name}
-            </text>
+            <text>{rect.name}</text>
           </g>
         );
       },
@@ -122,10 +129,19 @@ function Main() {
       color: Vibrant[2],
       trackType: TrackType.BulkBed,
       displayMode: DisplayMode.Full,
-      urls: [
-        "https://downloads.wenglab.org/ChIP_ENCSR000AKA-ENCSR000AKC-ENCSR000AKF-ENCSR000AKE-ENCSR000AKD-ENCSR000AOX.bigBed",
-        "https://downloads.wenglab.org/ChIP_ENCSR000EWA-ENCSR000AKP-ENCSR000EWC-ENCSR000DWB-ENCSR000EWB-ENCSR000APE.bigBed",
-        "https://downloads.wenglab.org/ChIP_ENCSR000ARA-ENCSR000AQW-ENCSR000AQY-ENCSR000AQX-ENCSR000ASX-ENCSR000ARZ.bigBed"
+      datasets: [
+        {
+          name: "ChIP Dataset 1",
+          url: "https://downloads.wenglab.org/ChIP_ENCSR000AKA-ENCSR000AKC-ENCSR000AKF-ENCSR000AKE-ENCSR000AKD-ENCSR000AOX.bigBed",
+        },
+        {
+          name: "ChIP Dataset 2",
+          url: "https://downloads.wenglab.org/ChIP_ENCSR000EWA-ENCSR000AKP-ENCSR000EWC-ENCSR000DWB-ENCSR000EWB-ENCSR000APE.bigBed",
+        },
+        {
+          name: "ChIP Dataset 3",
+          url: "https://downloads.wenglab.org/ChIP_ENCSR000ARA-ENCSR000AQW-ENCSR000AQY-ENCSR000AQX-ENCSR000ASX-ENCSR000ARZ.bigBed",
+        },
       ],
       onClick: (rect) => {
         const id = (rect.name || "bulk-clicked") + "-clicked";
@@ -148,11 +164,16 @@ function Main() {
       tooltip: (rect) => {
         return (
           <g>
-            <rect width={100} height={100} fill="red" />
-            <text x={0} y={0}>This is {rect.name}</text>
+            <rect width={160} height={45} fill="white" stroke="none" filter="drop-shadow(2px 2px 2px rgba(0,0,0,0.2))" />
+            <text x={10} y={20} fontSize={12} fontWeight="bold">
+              {rect.name}
+            </text>
+            <text x={10} y={35} fontSize={12}>
+              {rect.datasetName}
+            </text>
           </g>
-        )
-      }
+        );
+      },
     } as BulkBedConfig,
   ];
 

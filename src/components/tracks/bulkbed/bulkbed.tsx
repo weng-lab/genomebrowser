@@ -1,8 +1,9 @@
 import DenseBigBed from "../bigbed/dense";
-import { BulkBedProps, Rect } from "./types";
+import { BulkBedProps, BulkBedRect } from "./types";
 
 export default function BulkBed({
   data,
+  datasets,
   id,
   color,
   height,
@@ -22,26 +23,50 @@ export default function BulkBed({
   const instanceHeight = (height - totalGaps) / data.length;
 
   return (
-    <>
-      {data.map((dataset: Rect[], i) => {
+    <g id={id}>
+      {data.map((dataset: BulkBedRect[], i) => {
         const yOffset = i * (instanceHeight + gap);
+        const datasetName = datasets[i]?.name || `Dataset ${i + 1}`;
+        
+        // Create enhanced handlers that enrich rect with datasetName
+        const enhancedOnHover = (rect: any) => {
+          const enrichedRect: BulkBedRect = { ...rect, datasetName };
+          if (onHover) onHover(enrichedRect);
+        };
+        
+        const enhancedOnLeave = (rect: any) => {
+          const enrichedRect: BulkBedRect = { ...rect, datasetName };
+          if (onLeave) onLeave(enrichedRect);
+        };
+        
+        const enhancedOnClick = (rect: any) => {
+          const enrichedRect: BulkBedRect = { ...rect, datasetName };
+          if (onClick) onClick(enrichedRect);
+        };
+        
+        // Create enhanced tooltip that already has datasetName
+        const enhancedTooltip = tooltip ? (rect: any) => {
+          const enrichedRect: BulkBedRect = { ...rect, datasetName };
+          return tooltip(enrichedRect);
+        } : undefined;
+        
         return (
-          <g key={`${id}-${i}`} transform={`translate(0, ${yOffset})`}>
+          <g key={`${datasetName}`} transform={`translate(0, ${yOffset})`} >
             <DenseBigBed
               data={dataset}
-              id={`${id}-${i}`}
+              id={`${datasetName}`}
               color={color}
               height={instanceHeight}
               dimensions={dimensions}
               verticalPadding={0}
-              onClick={() => {}}
-              onHover={() => {}}
-              onLeave={() => {}}
-              tooltip={() => null}
+              onClick={enhancedOnClick}
+              onHover={enhancedOnHover}
+              onLeave={enhancedOnLeave}
+              tooltip={enhancedTooltip}
             />
           </g>
         );
       })}
-    </>
+    </g>
   );
 }
