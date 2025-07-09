@@ -5,8 +5,8 @@ export { Browser };
 import { BigBedConfig, SquishBigBedProps, DenseBigBedProps, Rect } from "./components/tracks/bigbed/types";
 export type { BigBedConfig, SquishBigBedProps, DenseBigBedProps, Rect };
 
-import { BulkBedConfig, BulkBedProps } from "./components/tracks/bulkbed/types";
-export type { BulkBedConfig, BulkBedProps };
+import { BulkBedConfig, BulkBedProps, BulkBedDataset, BulkBedRect } from "./components/tracks/bulkbed/types";
+export type { BulkBedConfig, BulkBedProps, BulkBedDataset, BulkBedRect };
 
 import {
   BigWigConfig,
