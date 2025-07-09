@@ -3,17 +3,20 @@ import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
 import { BigResponse, GeneResponse, MotifResponse, LDResponse, MotifRect } from "./apiTypes";
 import { ImportanceTrackSequence } from "../components/tracks/importance/types";
+import { BulkBedConfig } from "../components/tracks/bulkbed/types";
 
 export interface QueryResults {
   bigData?: BigResponse;
   geneData?: GeneResponse;
   motifData?: MotifResponse;
   importanceData?: BigResponse;
+  bulkBedData?: BigResponse;
   snpData?: LDResponse;
   bigError?: ApolloError;
   geneError?: ApolloError;
   motifError?: ApolloError;
   importanceError?: ApolloError;
+  bulkBedError?: ApolloError;
   snpError?: ApolloError;
 }
 
@@ -131,6 +134,40 @@ function processImportanceResults(
 }
 
 /**
+ * Process BulkBed results
+ */
+function processBulkBedResults(
+  tracks: Track[],
+  bulkBedData: BigResponse | undefined,
+  bulkBedError: ApolloError | undefined
+): ProcessedResult[] {
+  if (!bulkBedData) return [];
+  const bulkBedTracks = tracks.filter((track): track is BulkBedConfig => 
+    track.trackType === TrackType.BulkBed
+  );
+
+  if (bulkBedTracks.length === 0) return [];
+
+  let responseIndex = 0;
+  return bulkBedTracks.map((track) => {
+    const urlCount = track.urls.length;
+    const trackData = bulkBedError
+      ? null
+      : bulkBedData?.bigRequests
+          ?.slice(responseIndex, responseIndex + urlCount)
+          ?.map((response) => response?.data || []) || [];
+    
+    responseIndex += urlCount;
+    
+    return {
+      trackId: track.id,
+      data: trackData,
+      error: bulkBedError,
+    };
+  });
+}
+
+/**
  * Process LD track results
  */
 function processLDResults(
@@ -171,6 +208,7 @@ export function processAllResults(tracks: Track[], results: QueryResults): Proce
   processedResults.push(...processTranscriptResults(tracks, results.geneData, results.geneError));
   processedResults.push(...processMotifResults(tracks, results.motifData, results.motifError));
   processedResults.push(...processImportanceResults(tracks, results.importanceData, results.importanceError));
+  processedResults.push(...processBulkBedResults(tracks, results.bulkBedData, results.bulkBedError));
   processedResults.push(...processLDResults(tracks, results.snpData, results.snpError));
 
   return processedResults;

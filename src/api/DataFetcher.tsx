@@ -19,6 +19,7 @@ function DataFetcher() {
   const [fetchGene, { data: geneData, loading: geneLoading, error: geneError }] = useLazyQuery(TRANSCRIPT_GENES_QUERY);
   const [fetchImportance, { data: importanceData, loading: importanceLoading, error: importanceError }] =
     useLazyQuery(BIGDATA_QUERY);
+  const [fetchBulkBed, { data: bulkBedData, loading: bulkBedLoading, error: bulkBedError }] = useLazyQuery(BIGDATA_QUERY);
   const [fetchSnps, { data: snpData, loading: snpLoading, error: snpError }] = useLazyQuery(gql(VARIANT_QUERY));
 
   const tracks = useTrackStore((state) => state.tracks);
@@ -37,7 +38,7 @@ function DataFetcher() {
     if (!shouldFetch || tracks.length === 0) return;
 
     // Loading guard to prevent concurrent fetching
-    if (bigLoading || geneLoading || motifLoading || importanceLoading || snpLoading) {
+    if (bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading) {
       return;
     }
 
@@ -59,6 +60,7 @@ function DataFetcher() {
         fetchGene,
         fetchMotif,
         fetchImportance,
+        fetchBulkBed,
         fetchSnps,
       });
 
@@ -80,18 +82,20 @@ function DataFetcher() {
 
   // Simple results processing using utility function
   useEffect(() => {
-    if (bigLoading || geneLoading || motifLoading || importanceLoading || snpLoading) return;
+    if (bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading) return;
 
     const results = processAllResults(tracks, {
       bigData,
       geneData,
       motifData,
       importanceData,
+      bulkBedData,
       snpData,
       bigError,
       geneError,
       motifError,
       importanceError,
+      bulkBedError,
       snpError,
     });
 
@@ -108,16 +112,19 @@ function DataFetcher() {
     geneData,
     motifData,
     importanceData,
+    bulkBedData,
     snpData,
     bigError,
     geneError,
     motifError,
     importanceError,
+    bulkBedError,
     snpError,
     bigLoading,
     geneLoading,
     motifLoading,
     importanceLoading,
+    bulkBedLoading,
     snpLoading,
     tracks,
     setData,

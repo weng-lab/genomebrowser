@@ -2,7 +2,7 @@ import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { create } from "zustand";
-import { Browser, DisplayMode, ImportanceConfig, Track, TrackType, Transcript, useTrackStore } from "./lib";
+import { Browser, BulkBedConfig, DisplayMode, ImportanceConfig, Track, TrackType, Transcript, useTrackStore } from "./lib";
 import { InitialBrowserState, useBrowserStore } from "./store/browserStore";
 import { Vibrant } from "./utils/color";
 
@@ -64,11 +64,13 @@ function Main() {
         removeHighlight(rect.name || "ihqoviun");
       },
       tooltip: (rect) => {
-        return <div>
-          <div>
-            {rect.name}
-          </div>
-        </div>
+        return (
+          <g>
+            <text>
+              {rect.name}
+            </text>
+          </g>
+        );
       },
     },
     {
@@ -111,10 +113,52 @@ function Main() {
         console.log(rect);
       },
     },
+    {
+      id: "5",
+      title: "bulk BigBed",
+      titleSize: 12,
+      height: 30,
+      gap: 2,
+      color: Vibrant[2],
+      trackType: TrackType.BulkBed,
+      displayMode: DisplayMode.Full,
+      urls: [
+        "https://downloads.wenglab.org/ChIP_ENCSR000AKA-ENCSR000AKC-ENCSR000AKF-ENCSR000AKE-ENCSR000AKD-ENCSR000AOX.bigBed",
+        "https://downloads.wenglab.org/ChIP_ENCSR000EWA-ENCSR000AKP-ENCSR000EWC-ENCSR000DWB-ENCSR000EWB-ENCSR000APE.bigBed",
+        "https://downloads.wenglab.org/ChIP_ENCSR000ARA-ENCSR000AQW-ENCSR000AQY-ENCSR000AQX-ENCSR000ASX-ENCSR000ARZ.bigBed"
+      ],
+      onClick: (rect) => {
+        const id = (rect.name || "bulk-clicked") + "-clicked";
+        addHighlight({
+          id,
+          domain: { start: rect.start, end: rect.end },
+          color: rect.color || "orange",
+        });
+      },
+      onHover: (rect) => {
+        addHighlight({
+          id: rect.name || "bulk-hover",
+          domain: { start: rect.start, end: rect.end },
+          color: rect.color || "orange",
+        });
+      },
+      onLeave: (rect) => {
+        removeHighlight(rect.name || "bulk-hover");
+      },
+      tooltip: (rect) => {
+        return (
+          <g>
+            <rect width={100} height={100} fill="red" />
+            <text x={0} y={0}>This is {rect.name}</text>
+          </g>
+        )
+      }
+    } as BulkBedConfig,
   ];
 
   const initialState: InitialBrowserState = {
-    domain: { chromosome: "chr6", start: 21592768, end: 21598619 },
+    // chr12:53,380,037-53,380,206
+    domain: { chromosome: "chr12", start: 53380037 - 20000, end: 53380206 + 20000 },
     marginWidth: 150,
     trackWidth: 1350,
     multiplier: 3,

@@ -7,6 +7,7 @@ export interface QueryExecutors {
   fetchGene: LazyQueryExecFunction<unknown, OperationVariables>;
   fetchMotif: LazyQueryExecFunction<unknown, OperationVariables>;
   fetchImportance: LazyQueryExecFunction<unknown, OperationVariables>;
+  fetchBulkBed: LazyQueryExecFunction<unknown, OperationVariables>;
   fetchSnps: LazyQueryExecFunction<unknown, OperationVariables>;
 }
 
@@ -34,6 +35,11 @@ export async function executeAllQueries(requests: AllRequests, executors: QueryE
   // Execute importance queries
   if (requests.importanceRequests.length > 0) {
     promises.push(executors.fetchImportance({ variables: { bigRequests: requests.importanceRequests } }));
+  }
+
+  // Execute BulkBed queries
+  if (requests.bulkBedRequests.length > 0) {
+    promises.push(executors.fetchBulkBed({ variables: { bigRequests: requests.bulkBedRequests } }));
   }
 
   // Execute LD query
