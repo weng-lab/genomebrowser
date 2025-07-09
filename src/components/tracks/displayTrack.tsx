@@ -15,6 +15,7 @@ import { RULER_HEIGHT } from "./ruler/ruler";
 import Importance from "./importance/importance";
 import DenseMotif from "./motif/dense";
 import SquishMotif from "./motif/squish";
+import BulkBed from "./bulkbed/bulkbed";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -69,6 +70,9 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
   },
   [TrackType.LDTrack]: {
     [DisplayMode.Full]: () => <></>,
+  },
+  [TrackType.BulkBed]: {
+    [DisplayMode.Full]: BulkBed,
   },
 };
 

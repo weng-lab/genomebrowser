@@ -1,6 +1,6 @@
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { InitialBrowserState, useBrowserStore } from "./store/browserStore";
-import { Browser, DisplayMode, Track, TrackType, Transcript, Vibrant } from "./lib";
+import { Browser, DisplayMode, Track, TrackType, Transcript, Vibrant, BulkBedConfig } from "./lib";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -91,6 +91,39 @@ export default function TestPage() {
         console.log(rect);
       },
     },
+    {
+      id: "5",
+      title: "bulk BigBed",
+      titleSize: 12,
+      height: 80,
+      color: Vibrant[2],
+      trackType: TrackType.BulkBed,
+      displayMode: DisplayMode.Full,
+      urls: [
+        "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
+        "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
+        "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed"
+      ],
+      gap: 4,
+      onClick: (rect) => {
+        const id = (rect.name || "bulk-clicked") + "-clicked";
+        addHighlight({
+          id,
+          domain: { start: rect.start, end: rect.end },
+          color: rect.color || "orange",
+        });
+      },
+      onHover: (rect) => {
+        addHighlight({
+          id: rect.name || "bulk-hover",
+          domain: { start: rect.start, end: rect.end },
+          color: rect.color || "orange",
+        });
+      },
+      onLeave: (rect) => {
+        removeHighlight(rect.name || "bulk-hover");
+      },
+    } as BulkBedConfig,
   ];
 
   const initialState: InitialBrowserState = {

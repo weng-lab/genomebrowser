@@ -5,6 +5,7 @@ export enum TrackType {
   Motif = "motif",
   Importance = "importance",
   LDTrack = "ldtrack",
+  BulkBed = "bulkbed",
 }
 
 export enum DisplayMode {

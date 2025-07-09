@@ -6,7 +6,7 @@ import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderDenseBigBedData } from "./helpers";
 import { DenseBigBedProps, Rect } from "./types";
 
-function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, onLeave, tooltip }: DenseBigBedProps) {
+function DenseBigBed({ id, data, height, color, dimensions, verticalPadding = 0.2, onClick, onHover, onLeave, tooltip }: DenseBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
 
@@ -31,14 +31,16 @@ function DenseBigBed({ id, data, height, color, dimensions, onClick, onHover, on
       </defs>
       {rendered.map((rect, i) => {
         const realRect = getRealRect(rect, reverseX);
+        const rectHeight = height * (1 - 2 * verticalPadding);
+        const yOffset = height * verticalPadding;
         return (
           <rect
             style={{ cursor: onClick ? "pointer" : "default" }}
             key={`${id}_${i}`}
-            height={height * 0.6}
+            height={rectHeight}
             width={rect.end - rect.start}
             x={rect.start}
-            y={height * 0.2}
+            y={yOffset}
             fill={rect.color || color}
             onClick={() => handleClick(realRect)}
             onMouseOver={(e) => handleHover(realRect, rect.name || "", e)}
