@@ -35,14 +35,20 @@ export function buildBulkBedRequests(tracks: Track[], domain: Domain): BigReques
     .filter((track): track is BulkBedConfig => 
       track.trackType === TrackType.BulkBed
     )
-    .flatMap((track) => 
-      track.urls.map((url) => ({
-        url,
+    .flatMap((track) => {
+      // Handle both new datasets format and legacy urls format
+      const datasets = track.datasets || (track.urls || []).map((url, i) => ({ 
+        name: `Dataset ${i + 1}`, 
+        url 
+      }));
+      
+      return datasets.map((dataset) => ({
+        url: dataset.url,
         chr1: domain.chromosome,
         start: domain.start,
         end: domain.end,
-      }))
-    );
+      }));
+    });
 }
 
 /**

@@ -150,14 +150,27 @@ function processBulkBedResults(
 
   let responseIndex = 0;
   return bulkBedTracks.map((track) => {
-    const urlCount = track.urls.length;
+    // Handle both new datasets format and legacy urls format
+    const datasets = track.datasets || (track.urls || []).map((url, i) => ({ 
+      name: `Dataset ${i + 1}`, 
+      url 
+    }));
+    
+    const datasetCount = datasets.length;
     const trackData = bulkBedError
       ? null
       : bulkBedData?.bigRequests
-          ?.slice(responseIndex, responseIndex + urlCount)
-          ?.map((response) => response?.data || []) || [];
+          ?.slice(responseIndex, responseIndex + datasetCount)
+          ?.map((response, index) => {
+            const rects = response?.data || [];
+            // Add datasetName to each rect
+            return rects.map((rect: any) => ({
+              ...rect,
+              datasetName: datasets[index].name
+            }));
+          }) || [];
     
-    responseIndex += urlCount;
+    responseIndex += datasetCount;
     
     return {
       trackId: track.id,
