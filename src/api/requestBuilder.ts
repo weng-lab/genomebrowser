@@ -2,12 +2,14 @@ import { Domain } from "../utils/types";
 import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
 import { BigRequest, TranscriptRequest, MotifRequest, LDRequest } from "./apiTypes";
+import { BulkBedConfig } from "../components/tracks/bulkbed/types";
 
 export interface AllRequests {
   bigRequests: BigRequest[];
   transcriptRequest?: TranscriptRequest;
   motifRequest?: MotifRequest;
   importanceRequests: BigRequest[];
+  bulkBedRequests: BigRequest[];
   ldRequest?: LDRequest;
 }
 
@@ -23,6 +25,24 @@ export function buildBigRequests(tracks: Track[], domain: Domain): BigRequest[] 
       start: domain.start,
       end: domain.end,
     }));
+}
+
+/**
+ * Build BulkBed requests for given tracks
+ */
+export function buildBulkBedRequests(tracks: Track[], domain: Domain): BigRequest[] {
+  return tracks
+    .filter((track): track is BulkBedConfig => 
+      track.trackType === TrackType.BulkBed
+    )
+    .flatMap((track) => 
+      track.urls.map((url) => ({
+        url,
+        chr1: domain.chromosome,
+        start: domain.start,
+        end: domain.end,
+      }))
+    );
 }
 
 /**
@@ -114,6 +134,7 @@ export function buildAllRequests(tracks: Track[], expandedDomain: Domain, curren
     transcriptRequest: buildTranscriptRequest(tracks, expandedDomain),
     motifRequest: buildMotifRequest(tracks, expandedDomain),
     importanceRequests: buildImportanceRequests(tracks, expandedDomain, currentDomain),
+    bulkBedRequests: buildBulkBedRequests(tracks, expandedDomain),
     ldRequest: buildLDRequest(tracks, expandedDomain),
   };
 }

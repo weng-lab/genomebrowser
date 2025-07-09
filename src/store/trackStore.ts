@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { BigWigConfig } from "../components/tracks/bigwig/types";
 import { BigBedConfig } from "../components/tracks/bigbed/types";
+import { BulkBedConfig } from "../components/tracks/bulkbed/types";
 import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { MotifConfig } from "../components/tracks/motif/types";
 import { ImportanceConfig } from "../components/tracks/importance/types";
@@ -14,7 +15,7 @@ type WrapperDimensions = {
   wrapperHeight: number;
 };
 
-export type Track = BigWigConfig | BigBedConfig | TranscriptConfig | MotifConfig | ImportanceConfig | LDTrackConfig;
+export type Track = BigWigConfig | BigBedConfig | BulkBedConfig | TranscriptConfig | MotifConfig | ImportanceConfig | LDTrackConfig;
 
 interface TrackStore {
   tracks: Track[];

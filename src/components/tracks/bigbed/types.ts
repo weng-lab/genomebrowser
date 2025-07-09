@@ -11,6 +11,7 @@ interface BigBedProps {
   color: string;
   height: number;
   dimensions: TrackDimensions;
+  verticalPadding?: number; // Vertical padding as fraction of height (default 0.2 = 20%)
   onClick?: (rect: Rect) => void;
   onHover?: (rect: Rect) => void;
   onLeave?: (rect: Rect) => void;
