@@ -4,9 +4,10 @@ import { createRoot } from "react-dom/client";
 import { create } from "zustand";
 import {
   Browser,
-  BulkBedConfig,
+  BulkBedRect,
   DisplayMode,
   ImportanceConfig,
+  Rect,
   Track,
   TrackType,
   Transcript,
@@ -14,6 +15,7 @@ import {
 } from "./lib";
 import { InitialBrowserState, useBrowserStore } from "./store/browserStore";
 import { Vibrant } from "./utils/color";
+import { bigBedExample, bigWigExample, bulkBedExample, motifExample, transcriptExample } from "./tracks";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -32,35 +34,10 @@ function Main() {
   const removeHighlight = useBrowserStore((state) => state.removeHighlight);
 
   const tracks: Track[] = [
+    bigWigExample,
     {
-      id: "1",
-      title: "bigWig",
-      titleSize: 12,
-      height: 100,
-      color: Vibrant[6],
-      trackType: TrackType.BigWig,
-      displayMode: DisplayMode.Full,
-      url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
-    },
-    {
-      id: "2",
-      title: "bigBed",
-      titleSize: 12,
-      height: 20,
-      color: Vibrant[7],
-      trackType: TrackType.BigBed,
-      displayMode: DisplayMode.Dense,
-      url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
-      onClick: (rect) => {
-        setName(rect.name + " clicked");
-        const id = (rect.name || "ihqoviun") + "-clicked";
-        addHighlight({
-          id,
-          domain: { start: rect.start, end: rect.end },
-          color: rect.color || "blue",
-        });
-      },
-      onHover: (rect) => {
+      ...bigBedExample,
+      onHover: (rect: Rect) => {
         setName(rect.name + " hovered");
         addHighlight({
           id: rect.name || "ihqoviun",
@@ -68,28 +45,13 @@ function Main() {
           color: rect.color || "blue",
         });
       },
-      onLeave: (rect) => {
+      onLeave: (rect: Rect) => {
         setName(rect.name + " left");
         removeHighlight(rect.name || "ihqoviun");
       },
-      tooltip: (rect) => {
-        return (
-          <g>
-            <text>{rect.name}</text>
-          </g>
-        );
-      },
     },
     {
-      id: "3",
-      title: "genes",
-      titleSize: 12,
-      height: 50,
-      color: Vibrant[8],
-      trackType: TrackType.Transcript,
-      assembly: "GRCh38",
-      version: 47,
-      displayMode: DisplayMode.Squish,
+      ...transcriptExample,
       onHover: (item: Transcript) => {
         addHighlight({
           id: item.name || "dsadsfd",
@@ -101,39 +63,32 @@ function Main() {
         removeHighlight(item.name || "dsadsfd");
       },
     },
+    motifExample,
     {
-      id: "4",
-      title: "motif",
-      titleSize: 12,
-      height: 100,
-      color: Vibrant[1],
-      peakColor: Vibrant[3],
-      trackType: TrackType.Motif,
-      displayMode: DisplayMode.Squish,
-      assembly: "GRCh38",
-      consensusRegex: "gcca[cg][ct]ag[ag]gggcgc",
-      peaksAccession: "ENCFF992CTF",
-      onHover: (rect) => {
-        console.log(rect);
+      ...bulkBedExample,
+      onClick: (rect: BulkBedRect) => {
+        const id = (rect.name || "bulk-clicked") + "-clicked";
+        addHighlight({
+          id,
+          domain: { start: rect.start, end: rect.end },
+          color: rect.color || "orange",
+        });
       },
-      onLeave: (rect) => {
-        console.log(rect);
+      onHover: (rect: BulkBedRect) => {
+        addHighlight({
+          id: rect.name || "bulk-hover",
+          domain: { start: rect.start, end: rect.end },
+          color: rect.color || "orange",
+        });
+      },
+      onLeave: (rect: BulkBedRect) => {
+        removeHighlight(rect.name || "bulk-hover");
       },
     },
     {
-      id: "5",
-      title: "bulk BigBed",
-      titleSize: 12,
-      height: 30,
-      gap: 2,
-      color: Vibrant[2],
-      trackType: TrackType.BulkBed,
-      displayMode: DisplayMode.Full,
+      ...bulkBedExample,
+      id: "dsfgh",
       datasets: [
-        {
-          name: "ChIP Dataset 1",
-          url: "https://downloads.wenglab.org/ChIP_ENCSR000AKA-ENCSR000AKC-ENCSR000AKF-ENCSR000AKE-ENCSR000AKD-ENCSR000AOX.bigBed",
-        },
         {
           name: "ChIP Dataset 2",
           url: "https://downloads.wenglab.org/ChIP_ENCSR000EWA-ENCSR000AKP-ENCSR000EWC-ENCSR000DWB-ENCSR000EWB-ENCSR000APE.bigBed",
@@ -142,46 +97,19 @@ function Main() {
           name: "ChIP Dataset 3",
           url: "https://downloads.wenglab.org/ChIP_ENCSR000ARA-ENCSR000AQW-ENCSR000AQY-ENCSR000AQX-ENCSR000ASX-ENCSR000ARZ.bigBed",
         },
+        {
+          name: "ChIP Dataset 1",
+          url: "https://downloads.wenglab.org/ChIP_ENCSR000AKA-ENCSR000AKC-ENCSR000AKF-ENCSR000AKE-ENCSR000AKD-ENCSR000AOX.bigBed",
+        },
       ],
-      onClick: (rect) => {
-        const id = (rect.name || "bulk-clicked") + "-clicked";
-        addHighlight({
-          id,
-          domain: { start: rect.start, end: rect.end },
-          color: rect.color || "orange",
-        });
-      },
-      onHover: (rect) => {
-        addHighlight({
-          id: rect.name || "bulk-hover",
-          domain: { start: rect.start, end: rect.end },
-          color: rect.color || "orange",
-        });
-      },
-      onLeave: (rect) => {
-        removeHighlight(rect.name || "bulk-hover");
-      },
-      tooltip: (rect) => {
-        return (
-          <g>
-            <rect width={160} height={45} fill="white" stroke="none" filter="drop-shadow(2px 2px 2px rgba(0,0,0,0.2))" />
-            <text x={10} y={20} fontSize={12} fontWeight="bold">
-              {rect.name}
-            </text>
-            <text x={10} y={35} fontSize={12}>
-              {rect.datasetName}
-            </text>
-          </g>
-        );
-      },
-    } as BulkBedConfig,
+    },
   ];
 
   const initialState: InitialBrowserState = {
     // chr12:53,380,037-53,380,206
     domain: { chromosome: "chr12", start: 53380037 - 20000, end: 53380206 + 20000 },
-    marginWidth: 150,
-    trackWidth: 1350,
+    marginWidth: 100,
+    trackWidth: 1400,
     multiplier: 3,
     highlights: [
       { id: "1", color: "#ffaabb", domain: { chromosome: "chr18", start: 35496000, end: 35502000 } },

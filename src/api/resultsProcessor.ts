@@ -148,13 +148,10 @@ function processBulkBedResults(
 
   let responseIndex = 0;
   return bulkBedTracks.map((track) => {
-    // Handle both new datasets format and legacy urls format
-    const datasets =
-      track.datasets ||
-      (track.urls || []).map((url, i) => ({
-        name: `Dataset ${i + 1}`,
-        url,
-      }));
+    const datasets = track.datasets.map((dataset, i) => ({
+      name: `Dataset ${i + 1}`,
+      url: dataset.url,
+    }));
 
     const datasetCount = datasets.length;
     const trackData = bulkBedError
