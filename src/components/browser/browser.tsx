@@ -12,6 +12,13 @@ import Wrapper from "../tracks/wrapper/wrapper";
 import SVGWrapper from "./svgWrapper";
 import SelectRegion from "../tracks/ruler/selectRegion";
 import Highlights from "../highlight/highlights";
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+
+const client = new ApolloClient({
+  uri: "https://ga.staging.wenglab.org/graphql",
+  cache: new InMemoryCache(),
+  connectToDevTools: true,
+});
 
 export default function Browser({ tracks, state }: { tracks: Track[]; state: InitialBrowserState }) {
   // Store functions
@@ -31,7 +38,9 @@ export default function Browser({ tracks, state }: { tracks: Track[]; state: Ini
 
   return (
     <div>
-      <DataFetcher />
+      <ApolloProvider client={client}>
+        <DataFetcher />
+      </ApolloProvider>
       <SVGWrapper>
         <SelectRegion />
         <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
