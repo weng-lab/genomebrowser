@@ -15,7 +15,14 @@ type WrapperDimensions = {
   wrapperHeight: number;
 };
 
-export type Track = BigWigConfig | BigBedConfig | BulkBedConfig | TranscriptConfig | MotifConfig | ImportanceConfig | LDTrackConfig;
+export type Track =
+  | BigWigConfig
+  | BigBedConfig
+  | BulkBedConfig
+  | TranscriptConfig
+  | MotifConfig
+  | ImportanceConfig
+  | LDTrackConfig;
 
 interface TrackStore {
   tracks: Track[];
