@@ -32,16 +32,13 @@ export function buildBigRequests(tracks: Track[], domain: Domain): BigRequest[] 
  */
 export function buildBulkBedRequests(tracks: Track[], domain: Domain): BigRequest[] {
   return tracks
-    .filter((track): track is BulkBedConfig => 
-      track.trackType === TrackType.BulkBed
-    )
+    .filter((track): track is BulkBedConfig => track.trackType === TrackType.BulkBed)
     .flatMap((track) => {
-      // Handle both new datasets format and legacy urls format
-      const datasets = track.datasets || (track.urls || []).map((url, i) => ({ 
-        name: `Dataset ${i + 1}`, 
-        url 
+      const datasets = track.datasets.map((dataset, i) => ({
+        name: `Dataset ${i + 1}`,
+        url: dataset.url,
       }));
-      
+
       return datasets.map((dataset) => ({
         url: dataset.url,
         chr1: domain.chromosome,
