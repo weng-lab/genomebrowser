@@ -28,7 +28,6 @@ function generateBedGraph(data: any[], domain: Domain): BedGraphFormat[] {
   const step = (domain.end - domain.start) / data.length;
   return data
     .map((d: any, index: number) => {
-      console.log(d)
       const start = Math.floor(domain.start + index * step);
       const end = Math.floor(domain.start + (index + 1) * step);
       // filter out points with the same chromStart and chromEnd
@@ -43,15 +42,13 @@ function generateBedGraph(data: any[], domain: Domain): BedGraphFormat[] {
     .filter((d: BedGraphFormat | null) => d !== null);
 }
 
-
 export function downloadBedRegion(id: string, data: Rect[], domain: Domain) {
   const bed = generateBed(data, domain);
   if (bed.length === 0) return;
   const header = `chrom\tchromStart\tchromEnd\tname\tscore\tstrand\titemRgb`;
   const rows = bed
     .map(
-      (d: BedFormat) =>
-        `${d.chrom}\t${d.chromStart}\t${d.chromEnd}\t${d.name}\t${d.score}\t${d.strand}\t${d.itemRgb}`
+      (d: BedFormat) => `${d.chrom}\t${d.chromStart}\t${d.chromEnd}\t${d.name}\t${d.score}\t${d.strand}\t${d.itemRgb}`
     )
     .join("\n");
   const outputString = [header, rows].join("\n");

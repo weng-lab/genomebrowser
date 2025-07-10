@@ -19,7 +19,8 @@ function DataFetcher() {
   const [fetchGene, { data: geneData, loading: geneLoading, error: geneError }] = useLazyQuery(TRANSCRIPT_GENES_QUERY);
   const [fetchImportance, { data: importanceData, loading: importanceLoading, error: importanceError }] =
     useLazyQuery(BIGDATA_QUERY);
-  const [fetchBulkBed, { data: bulkBedData, loading: bulkBedLoading, error: bulkBedError }] = useLazyQuery(BIGDATA_QUERY);
+  const [fetchBulkBed, { data: bulkBedData, loading: bulkBedLoading, error: bulkBedError }] =
+    useLazyQuery(BIGDATA_QUERY);
   const [fetchSnps, { data: snpData, loading: snpLoading, error: snpError }] = useLazyQuery(gql(VARIANT_QUERY));
 
   const tracks = useTrackStore((state) => state.tracks);
@@ -126,7 +127,6 @@ function DataFetcher() {
     importanceLoading,
     bulkBedLoading,
     snpLoading,
-    tracks,
     setData,
     setDelta,
     setLoading,
