@@ -1,4 +1,3 @@
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { create } from "zustand";
@@ -16,12 +15,6 @@ import {
 import { InitialBrowserState, useBrowserStore } from "./store/browserStore";
 import { Vibrant } from "./utils/color";
 import { bigBedExample, bigWigExample, bulkBedExample, motifExample, transcriptExample } from "./tracks";
-
-const client = new ApolloClient({
-  uri: "https://ga.staging.wenglab.org/graphql",
-  cache: new InMemoryCache(),
-  connectToDevTools: true,
-});
 
 const useStore = create<{ name: string; setName: (name: string) => void }>((set) => ({
   name: "test",
@@ -121,11 +114,9 @@ function Main() {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <Action />
       <DomainView />
-      <ApolloProvider client={client}>
-        <div style={{ width: "90%" }}>
-          <Browser state={initialState} tracks={tracks} />
-        </div>
-      </ApolloProvider>
+      <div style={{ width: "90%" }}>
+        <Browser state={initialState} tracks={tracks} />
+      </div>
     </div>
   );
 }
