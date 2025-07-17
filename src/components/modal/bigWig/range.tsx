@@ -15,7 +15,7 @@ export default function Range({
 }) {
   const editTrack = useTrackStore((state) => state.editTrack);
   const validateMin = (value: string) => {
-    const num = Number(value);
+    const num = Number(value  );
     if (Number.isNaN(num)) return "Invalid number";
     const maxValue = customRange?.max || defaultRange?.max;
     if (maxValue !== undefined && num >= maxValue) {
