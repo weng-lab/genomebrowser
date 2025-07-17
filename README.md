@@ -65,7 +65,7 @@ function GenomeBrowserExample() {
 
 // Use the stores to access information
 function DomainDisplay({browserStore} : {browserStore: BrowserStoreInstance}) {
-  // Use Zustand-like selectors for accessing the stores
+  // Zustand-like selectors for getting fields and functions
   const domain = browserStore((state) => state.domain)
   return (
     <h1>{domain.chromosome}:{domain.start}-{domain.end}</h1>
@@ -74,7 +74,32 @@ function DomainDisplay({browserStore} : {browserStore: BrowserStoreInstance}) {
 
 ```
 
-## Track Types
+## Browser Configuration
+
+### State Example
+
+```tsx
+const initialState: InitialBrowserState = {
+  domain: {
+    chromosome: "chr1",
+    start: 1000000,
+    end: 2000000,
+  },
+  marginWidth: 150, // Width of the track margins
+  trackWidth: 1350, // Width of the viewable track area
+  multiplier: 3, // Data fetching multiplier for smooth panning
+  highlights: [
+    // Optional: initial highlights
+    {
+      id: "highlight1",
+      color: "#ffaabb",
+      domain: { chromosome: "chr1", start: 1500000, end: 1600000 },
+    },
+  ],
+};
+```
+
+## Track Examples
 
 ### BigWig Tracks
 
@@ -85,11 +110,10 @@ Display continuous signal data (e.g., ChIP-seq, RNA-seq signals).
   id: "signal",
   title: "Signal Data",
   trackType: TrackType.BigWig,
-  displayMode: DisplayMode.Full, // or DisplayMode.Dense
+  displayMode: DisplayMode.Full, // Multiple display modes supported
   height: 100,
   color: "#3498db",
   url: "https://example.com/signal.bw",
-  range: [0, 100], // Optional: custom Y-axis range
 }
 ```
 
@@ -102,13 +126,13 @@ Display discrete genomic regions (e.g., peaks, annotations).
   id: "peaks",
   title: "Peak Calls",
   trackType: TrackType.BigBed,
-  displayMode: DisplayMode.Dense, // or DisplayMode.Squish
+  displayMode: DisplayMode.Dense,
   height: 20,
   color: "#e74c3c",
   url: "https://example.com/peaks.bigBed",
-  onClick: (rect) => console.log("Clicked:", rect),
+  onClick: (rect) => console.log("Clicked:", rect), // Mouse interactivitiy
   onHover: (rect) => console.log("Hovered:", rect),
-  tooltip: (rect) => <text>{rect.name}</text>,
+  tooltip: (rect) => <text>{rect.name}</text>, // Custom svg tooltips
 }
 ```
 
@@ -141,40 +165,15 @@ Display gene annotations and transcripts.
   id: "genes",
   title: "Gene Annotations",
   trackType: TrackType.Transcript,
-  displayMode: DisplayMode.Squish, // or DisplayMode.Pack
+  displayMode: DisplayMode.Squish,
   height: 50,
   color: "#2ecc71",
-  assembly: "GRCh38", // or "mm10"
+  assembly: "GRCh38", // "mm10" also supported
   version: 47, // GENCODE version
 }
 ```
 
 Explore our comprehensive [Storybook]() documentation for detailed information about additional track types and their configuration options.
-
-## Browser Configuration
-
-### Initial State
-
-```tsx
-const initialState: InitialBrowserState = {
-  domain: {
-    chromosome: "chr1",
-    start: 1000000,
-    end: 2000000,
-  },
-  marginWidth: 150, // Width of track labels
-  trackWidth: 1350, // Width of track data area
-  multiplier: 3, // Data fetching multiplier for smooth panning
-  highlights: [
-    // Optional: initial highlights
-    {
-      id: "highlight1",
-      color: "#ffaabb",
-      domain: { chromosome: "chr1", start: 1500000, end: 1600000 },
-    },
-  ],
-};
-```
 
 ## Development
 
@@ -194,13 +193,6 @@ npm run build
 # Run linting
 npm run lint
 ```
-
-## Browser Support
-
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
 
 ## Contributing
 

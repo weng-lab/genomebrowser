@@ -8,7 +8,8 @@ import {
   TrackType,
   TranscriptConfig,
   Vibrant,
-} from "./lib";
+} from "../src/lib";
+import React from "react";
 
 export const bigWigExample: BigWigConfig = {
   id: "1",
