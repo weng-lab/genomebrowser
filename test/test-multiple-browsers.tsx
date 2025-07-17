@@ -8,8 +8,8 @@ import {
   TrackType,
   DisplayMode,
   Vibrant,
-} from "./lib";
-import { StrictMode } from "react";
+} from "../src/lib";
+import React, { StrictMode } from "react";
 
 // Example tracks for testing
 const tracks1: Track[] = [
@@ -22,7 +22,7 @@ const tracks1: Track[] = [
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
-  }
+  },
 ];
 
 const tracks2: Track[] = [
@@ -115,7 +115,6 @@ export default function MultipleBrowserDemo() {
     </div>
   );
 }
-
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { gql, useLazyQuery } from "@apollo/client";
 import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { TrackType } from "../components/tracks/types";
@@ -23,7 +23,7 @@ function DataFetcher() {
 
   const tracks = useTrackStore((state) => state.tracks);
   const editTrack = useTrackStore((state) => state.editTrack);
-  
+
   const domain = useBrowserStore((state) => state.domain);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const setDelta = useBrowserStore((state) => state.setDelta);
@@ -32,11 +32,15 @@ function DataFetcher() {
   const setLoading = useDataStore((state) => state.setLoading);
   const setFetching = useDataStore((state) => state.setFetching);
 
+  const loading = useMemo(() => {
+    return bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading;
+  }, [bigLoading, geneLoading, motifLoading, importanceLoading, bulkBedLoading, snpLoading]);
+
   useEffect(() => {
     if (tracks.length === 0) return;
 
     // Loading guard to prevent concurrent fetching
-    if (bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading) {
+    if (loading) {
       return;
     }
 
@@ -62,12 +66,12 @@ function DataFetcher() {
     fetchAllData().catch((error) => {
       console.error("Error fetching data:", error);
     });
-  }, [domain.chromosome, domain.start, domain.end, tracks.length]);
+  }, [domain.chromosome, domain.start, domain.end, tracks.length, loading]);
 
   // Simple results processing using utility function
   useEffect(() => {
-    if (bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading) return;
-    console.log("Processing results");
+    if (loading) return;
+
     const results = processAllResults(tracks, {
       bigData,
       geneData,
@@ -104,12 +108,7 @@ function DataFetcher() {
     importanceError,
     bulkBedError,
     snpError,
-    bigLoading,
-    geneLoading,
-    motifLoading,
-    importanceLoading,
-    bulkBedLoading,
-    snpLoading,
+    loading,
     setData,
     setDelta,
     setLoading,
