@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { useBrowserStore } from "../../store/browserStore";
-import { useTooltipStore } from "../../store/tooltipStore";
+import { useBrowserStore, useTooltipStore } from "../../store/BrowserContext";
 import { svgPoint } from "../../utils/svg";
 
 export default function Tooltip() {
-  const { content, x, y, show } = useTooltipStore();
+  const content = useTooltipStore((state) => state.content);
+  const x = useTooltipStore((state) => state.x);
+  const y = useTooltipStore((state) => state.y);
+  const show = useTooltipStore((state) => state.show);
   const [newX, setNewX] = useState(0);
   const [newY, setNewY] = useState(0);
   const browserRef = useBrowserStore((state) => state.svgRef);

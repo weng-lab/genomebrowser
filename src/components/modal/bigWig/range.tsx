@@ -1,5 +1,5 @@
 import Refresh from "../../../icons/refresh";
-import { useTrackStore } from "../../../store/trackStore";
+import { useTrackStore } from "../../../store/BrowserContext";
 import { YRange } from "../../tracks/bigwig/types";
 import Form from "../shared/form";
 import Value from "../shared/value";

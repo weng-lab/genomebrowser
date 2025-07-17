@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import useInteraction from "../../../hooks/useInteraction";
 import { useRowHeight } from "../../../hooks/useRowHeight";
 import { useXTransform } from "../../../hooks/useXTransform";
-import { useTheme } from "../../../store/themeStore";
+import { useTheme } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderSquishBigBedData } from "./helpers";
 import { SquishBigBedProps, SquishRect } from "./types";
@@ -19,7 +19,7 @@ export default function SquishBigBed({
   tooltip,
 }: SquishBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
-  const { background } = useTheme();
+  const background = useTheme((state) => state.background);
 
   const { x, reverseX } = useXTransform(totalWidth);
 

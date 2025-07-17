@@ -4,15 +4,16 @@ import { create } from "zustand";
 import {
   Browser,
   BulkBedRect,
+  createTrackStore,
   DisplayMode,
   ImportanceConfig,
   Rect,
   Track,
   TrackType,
   Transcript,
-  useTrackStore,
 } from "./lib";
-import { InitialBrowserState, useBrowserStore } from "./store/browserStore";
+import { createBrowserStore, InitialBrowserState, BrowserStoreInstance } from "./store/browserStore";
+import { TrackStoreInstance } from "./store/trackStore";
 import { Vibrant } from "./utils/color";
 import { bigBedExample, bigWigExample, bulkBedExample, motifExample, transcriptExample } from "./tracks";
 
@@ -23,8 +24,22 @@ const useStore = create<{ name: string; setName: (name: string) => void }>((set)
 
 function Main() {
   const setName = useStore((state) => state.setName);
-  const addHighlight = useBrowserStore((state) => state.addHighlight);
-  const removeHighlight = useBrowserStore((state) => state.removeHighlight);
+
+  const initialState: InitialBrowserState = {
+    // chr12:53,380,037-53,380,206
+    domain: { chromosome: "chr12", start: 53380037 - 20000, end: 53380206 + 20000 },
+    marginWidth: 100,
+    trackWidth: 1400,
+    multiplier: 3,
+    highlights: [
+      { id: "1", color: "#ffaabb", domain: { chromosome: "chr18", start: 35496000, end: 35502000 } },
+      { id: "2", color: "#aaffbb", domain: { chromosome: "chr18", start: 35494852, end: 35514000 } },
+    ],
+  };
+
+  const browserStore = createBrowserStore(initialState);
+  const addHighlight = browserStore((state) => state.addHighlight);
+  const removeHighlight = browserStore((state) => state.removeHighlight);
 
   const tracks: Track[] = [
     bigWigExample,
@@ -98,34 +113,30 @@ function Main() {
     },
   ];
 
-  const initialState: InitialBrowserState = {
-    // chr12:53,380,037-53,380,206
-    domain: { chromosome: "chr12", start: 53380037 - 20000, end: 53380206 + 20000 },
-    marginWidth: 100,
-    trackWidth: 1400,
-    multiplier: 3,
-    highlights: [
-      { id: "1", color: "#ffaabb", domain: { chromosome: "chr18", start: 35496000, end: 35502000 } },
-      { id: "2", color: "#aaffbb", domain: { chromosome: "chr18", start: 35494852, end: 35514000 } },
-    ],
-  };
+  const trackStore = createTrackStore(tracks);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <Action />
-      <DomainView />
+      <Action browserStore={browserStore} />
+      <DomainView browserStore={browserStore} trackStore={trackStore} />
       <div style={{ width: "90%" }}>
-        <Browser state={initialState} tracks={tracks} />
+        <Browser browserStore={browserStore} trackStore={trackStore} />
       </div>
     </div>
   );
 }
 
-function DomainView() {
-  const domain = useBrowserStore((state) => state.domain);
+function DomainView({
+  browserStore,
+  trackStore,
+}: {
+  browserStore: BrowserStoreInstance;
+  trackStore: TrackStoreInstance;
+}) {
+  const domain = browserStore((state) => state.domain);
   const name = useStore((state) => state.name);
-  const insertTrack = useTrackStore((state) => state.insertTrack);
-  const removeTrack = useTrackStore((state) => state.removeTrack);
+  const insertTrack = trackStore((state) => state.insertTrack);
+  const removeTrack = trackStore((state) => state.removeTrack);
 
   const importanceTrack: ImportanceConfig = {
     id: "importance",
@@ -157,8 +168,8 @@ function DomainView() {
   );
 }
 
-function Action() {
-  const setDomain = useBrowserStore((state) => state.setDomain);
+function Action({ browserStore }: { browserStore: BrowserStoreInstance }) {
+  const setDomain = browserStore((state) => state.setDomain);
 
   const onClick = () => {
     setDomain({ chromosome: "chr18", start: 35500000, end: 35502000 });

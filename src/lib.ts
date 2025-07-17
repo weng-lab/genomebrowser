@@ -33,15 +33,12 @@ import {
 } from "./components/tracks/transcript/types";
 export type { TranscriptConfig, SquishTranscriptProps, PackTranscriptProps, TranscriptList, Transcript };
 
-// Stores
-import { useBrowserStore, type InitialBrowserState } from "./store/browserStore";
-export { useBrowserStore, type InitialBrowserState };
+// Store Factory Functions
+import { createBrowserStore, type InitialBrowserState, type BrowserStoreInstance } from "./store/browserStore";
+export { createBrowserStore, type InitialBrowserState, type BrowserStoreInstance };
 
-import { useTrackStore, type Track } from "./store/trackStore";
-export { useTrackStore, type Track };
-
-import { useDataStore } from "./store/dataStore";
-export { useDataStore };
+import { createTrackStore, type Track, type TrackStoreInstance } from "./store/trackStore";
+export { createTrackStore, type Track, type TrackStoreInstance };
 
 // Misc.
 import { Highlight } from "./components/highlight/types";

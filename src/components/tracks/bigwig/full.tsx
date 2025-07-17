@@ -1,5 +1,5 @@
-import { createElement, useEffect, useMemo, useState } from "react";
-import { useBrowserStore } from "../../../store/browserStore";
+import { useEffect, useMemo, useState } from "react";
+import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 
 import {
@@ -13,13 +13,11 @@ import {
   FullBigWigProps,
 } from "./types";
 
-import { useTrackStore } from "../../../store/trackStore";
 import { createCopy, getRange, renderBigWig, ytransform } from "./helpers";
 import { svgPoint, l } from "../../../utils/svg";
 import { BigWigConfig } from "./types";
 import { useTheme } from "../../../store/themeStore";
-import { useTooltipStore } from "../../../store/tooltipStore";
-import DefaultTooltip from "../../tooltip/defaultTooltip";
+import useInteraction from "../../../hooks/useInteraction";
 
 export default function FullBigWig({
   data,
@@ -101,32 +99,16 @@ export default function FullBigWig({
     };
   }, [rendered, height, customRange, realRange, totalWidth]);
 
-  const showTooltip = useTooltipStore((state) => state.showTooltip);
-  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
+  const { handleHover, handleLeave } = useInteraction<BigWigData>({
+    onClick: undefined,
+    onHover: undefined,
+    onLeave: undefined,
+    tooltip,
+  });
   const svgRef = useBrowserStore((state) => state.svgRef);
-  const mouseOver = (e: React.MouseEvent<SVGElement>) => {
-    if (!svgRef || !svgRef.current) return;
-    const pos = svgPoint(svgRef.current, e.clientX, e.clientY);
-    setX(pos[0]);
-    const len = data.length;
-    const adjustedX = Math.round(pos[0] - marginWidth);
-    const start = len / multiplier;
-    const end = start * 2;
-    const x = (adjustedX / viewWidth) * (end - start) + start;
-    const point = data[Math.round(x)] as BigWigData;
-    let content = <DefaultTooltip value={point.value.toFixed(2)} />;
-    if (tooltip) {
-      content = createElement(tooltip, point);
-    }
-    showTooltip(content, e.clientX, e.clientY);
-  };
 
-  const mouseOut = () => {
-    setX(undefined);
-    hideTooltip();
-  };
-
-  const { background, text } = useTheme();
+  const background = useTheme((state) => state.background);
+  const text = useTheme((state) => state.text);
 
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
@@ -151,10 +133,24 @@ export default function FullBigWig({
         height={height}
         transform={`translate(${sideWidth}, 0)`}
         fill={"transparent"}
-        onMouseMove={(e: React.MouseEvent<SVGElement>) => {
-          mouseOver(e);
+        onMouseMove={(e) => {
+          if (!svgRef || !svgRef.current || !data || data.length === 0) return;
+          const pos = svgPoint(svgRef.current, e.clientX, e.clientY);
+          setX(pos[0]);
+          const len = data.length;
+          const adjustedX = Math.round(pos[0] - marginWidth);
+          const start = len / multiplier;
+          const end = start * 2;
+          const xIdx = (adjustedX / viewWidth) * (end - start) + start;
+          const index = Math.round(xIdx);
+          if (index < 0 || index >= data.length) return;
+          const point = data[index] as BigWigData;
+          handleHover(point, point.value?.toFixed(2) ?? "", e);
         }}
-        onMouseOut={mouseOut}
+        onMouseOut={() => {
+          setX(undefined);
+          handleLeave({ chr: "", start: 0, end: 0, value: 0 });
+        }}
       />
     </g>
   );

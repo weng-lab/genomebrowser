@@ -1,6 +1,6 @@
 import Form from "../shared/form";
-import { useTrackStore } from "../../../store/trackStore";
 import { TranscriptConfig } from "../../tracks/transcript/types";
+import { useTrackStore } from "../../../store/BrowserContext";
 
 export default function GeneName({ id, name }: { id: string; name: string }) {
   const editTrack = useTrackStore((state) => state.editTrack);

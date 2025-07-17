@@ -3,9 +3,9 @@ import { downloadBedRegion, downloadBedGraph, downloadSVG } from "../../../utils
 import { TrackType } from "../../tracks/types";
 import Form from "./form";
 import { getTextColor, isDark, shadeColor } from "../modal";
-import { Track } from "../../../store/trackStore";
-import { useBrowserStore } from "../../../store/browserStore";
+import { useBrowserStore } from "../../../store/BrowserContext";
 import { useDataStore } from "../../../store/dataStore";
+import { Track } from "../../../store/trackStore";
 
 export const downloadButtonStyle = {
   cursor: "pointer",
@@ -39,7 +39,7 @@ export function DownloadForm({ track }: { track: Track }) {
   const handleRegionSVG = () => {
     downloadSVG(track.id, track.title, true);
   };
-  
+
   const handleDataURL = () => {
     if (track.trackType === TrackType.BigWig) {
       navigator.clipboard.writeText(track.url || "");
@@ -85,7 +85,7 @@ export function DownloadForm({ track }: { track: Track }) {
           >
             Locus SVG
           </button>
-          {track.trackType === TrackType.BigWig || track.trackType === TrackType.BigBed && track.url ? (
+          {track.trackType === TrackType.BigWig || (track.trackType === TrackType.BigBed && track.url) ? (
             <button
               style={{
                 ...downloadButtonStyle,
@@ -108,4 +108,3 @@ export function DownloadForm({ track }: { track: Track }) {
     </Form>
   );
 }
-

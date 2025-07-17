@@ -24,7 +24,7 @@ export type Track =
   | ImportanceConfig
   | LDTrackConfig;
 
-interface TrackStore {
+export interface TrackStore {
   tracks: Track[];
   ids: string[];
   setTracks: (tracks: Track[]) => void;
@@ -42,11 +42,14 @@ interface TrackStore {
   editTrack: <T extends Track>(id: string, partial: Partial<T>) => void;
 }
 
-export const useTrackStore = create<TrackStore>((set, get) => ({
-  tracks: [] as Track[],
-  ids: [] as string[],
-  setTracks: (tracks: Track[]) => set({ tracks, ids: tracks.map((track) => track.id) }),
-  createShortLabel: (id: string) => {
+export type TrackStoreInstance = ReturnType<typeof createTrackStore>;
+
+export function createTrackStore(tracks: Track[] = []) {
+  return create<TrackStore>((set, get) => ({
+    tracks,
+    ids: tracks.map((track) => track.id),
+    setTracks: (tracks: Track[]) => set({ tracks, ids: tracks.map((track) => track.id) }),
+    createShortLabel: (id: string) => {
     if (id === "ruler") {
       return "Ruler";
     }
@@ -156,7 +159,7 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
     const state = get();
     const track = state.getTrack(id);
     if (!track) {
-      throw new Error("Track not found");
+      throw new Error(`Track not found: ${id}`);
     }
     const trackMargin = track.height / 6;
     const titleSize = track.titleSize || trackMargin * 2.5;
@@ -179,4 +182,5 @@ export const useTrackStore = create<TrackStore>((set, get) => ({
       .findIndex((track) => track.id === id);
     return index;
   },
-}));
+  }));
+}

@@ -1,9 +1,8 @@
 import { useState } from "react";
 import Form from "../shared/form";
 import { TranscriptConfig } from "../../tracks/transcript/types";
-import { useTrackStore } from "../../../store/trackStore";
-import { useBrowserStore } from "../../../store/browserStore";
 import { getTextColor } from "../modal";
+import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 
 export enum TranscriptHumanVersion {
   V29 = 29,
@@ -19,12 +18,12 @@ export default function TranscriptForm({ track }: { track: TranscriptConfig }) {
   const editTrack = useTrackStore((state) => state.editTrack);
   const [selectedButton, setSelectedButton] = useState<number | null>(track.version);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
+  const domain = getExpandedDomain();
 
   const handleButtonClick = (version: TranscriptHumanVersion | TranscriptMouseVersion) => {
     setSelectedButton(version);
     const human = Object.values(TranscriptHumanVersion).includes(version as TranscriptHumanVersion);
     editTrack(track.id, { version: version, assembly: human ? "GRCH38" : "mm10" });
-    const domain = getExpandedDomain();
     if (!track.refetch) return;
     track.refetch({
       variables: {
