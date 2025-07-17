@@ -7,14 +7,21 @@ interface ContextMenuState {
   y: number;
 }
 
-interface ContextMenuStore extends ContextMenuState {
+export interface ContextMenuStore extends ContextMenuState {
   setContextMenu: (open: boolean, id: string, x: number, y: number) => void;
 }
 
-export const useContextMenuStore = create<ContextMenuStore>((set) => ({
-  open: false,
-  id: null,
-  x: 0,
-  y: 0,
-  setContextMenu: (open: boolean, id: string, x: number, y: number) => set({ open, id, x, y }),
-}));
+export type ContextMenuStoreInstance = ReturnType<typeof createContextMenuStore>;
+
+export function createContextMenuStore() {
+  return create<ContextMenuStore>((set) => ({
+    open: false,
+    id: null,
+    x: 0,
+    y: 0,
+    setContextMenu: (open: boolean, id: string, x: number, y: number) => set({ open, id, x, y }),
+  }));
+}
+
+// Legacy export for backward compatibility
+export const useContextMenuStore = createContextMenuStore();

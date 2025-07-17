@@ -11,7 +11,7 @@ export interface InitialBrowserState {
   highlights?: Highlight[];
 }
 
-interface BrowserStore {
+export interface BrowserStore {
   domain: Domain;
   delta: number;
   svgRef: RefObject<SVGSVGElement | null> | null;
@@ -37,25 +37,28 @@ interface BrowserStore {
   removeHighlight: (id: string) => void;
 }
 
-export const useBrowserStore = create<BrowserStore>((set, get) => ({
-  domain: { chromosome: "chr1", start: 0, end: 1350 },
-  delta: 0,
-  svgRef: null,
-  browserWidth: 1500,
-  trackWidth: 1350,
-  marginWidth: 150,
-  multiplier: 3,
-  highlights: [],
-  initialize: (state: InitialBrowserState) => {
-    set({
-      domain: state.domain,
-      browserWidth: state.trackWidth + state.marginWidth,
-      trackWidth: state.trackWidth,
-      marginWidth: state.marginWidth,
-      multiplier: state.multiplier,
-      highlights: state.highlights || [],
-    });
-  },
+export type BrowserStoreInstance = ReturnType<typeof createBrowserStore>;
+
+export function createBrowserStore(initialState: InitialBrowserState) {
+  return create<BrowserStore>((set, get) => ({
+    domain: initialState.domain,
+    delta: 0,
+    svgRef: null,
+    browserWidth: initialState.trackWidth + initialState.marginWidth,
+    trackWidth: initialState.trackWidth,
+    marginWidth: initialState.marginWidth,
+    multiplier: initialState.multiplier,
+    highlights: initialState.highlights || [],
+    initialize: (state: InitialBrowserState) => {
+      set({
+        domain: state.domain,
+        browserWidth: state.trackWidth + state.marginWidth,
+        trackWidth: state.trackWidth,
+        marginWidth: state.marginWidth,
+        multiplier: state.multiplier,
+        highlights: state.highlights || [],
+      });
+    },
   setDomain: (domain: Domain) => {
     const state = get();
     if (domain.start == state.domain.start && domain.end == state.domain.end) {
@@ -109,7 +112,8 @@ export const useBrowserStore = create<BrowserStore>((set, get) => ({
     }
     set((state) => ({ highlights: [...state.highlights, highlight] }));
   },
-  removeHighlight: (id: string) => {
-    set((state) => ({ highlights: state.highlights.filter((h) => h.id !== id) }));
-  },
-}));
+    removeHighlight: (id: string) => {
+      set((state) => ({ highlights: state.highlights.filter((h) => h.id !== id) }));
+    },
+  }));
+}

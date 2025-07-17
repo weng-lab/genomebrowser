@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import useInteraction from "../../../hooks/useInteraction";
 import { useXTransform } from "../../../hooks/useXTransform";
-import { useTheme } from "../../../store/themeStore";
+import { useTheme } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderDenseBigBedData } from "./helpers";
 import { DenseBigBedProps, Rect } from "./types";
@@ -14,7 +14,7 @@ function DenseBigBed({ id, data, height, color, dimensions, verticalPadding = 0.
     return renderDenseBigBedData(data || [], x);
   }, [data, x]);
 
-  const { background } = useTheme();
+  const background = useTheme((state) => state.background);
 
   const { handleClick, handleHover, handleLeave } = useInteraction({
     onClick,

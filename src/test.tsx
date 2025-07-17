@@ -1,6 +1,6 @@
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
-import { InitialBrowserState, useBrowserStore } from "./store/browserStore";
-import { Browser, DisplayMode, Track, TrackType, Transcript, Vibrant, BulkBedConfig } from "./lib";
+import { createBrowserStore, InitialBrowserState } from "./store/browserStore";
+import { Browser, DisplayMode, Track, TrackType, Transcript, Vibrant, BulkBedConfig, createTrackStore } from "./lib";
 
 const client = new ApolloClient({
   uri: "https://ga.staging.wenglab.org/graphql",
@@ -9,8 +9,19 @@ const client = new ApolloClient({
 });
 
 export default function TestPage() {
-  const addHighlight = useBrowserStore((state) => state.addHighlight);
-  const removeHighlight = useBrowserStore((state) => state.removeHighlight);
+  const initialState: InitialBrowserState = {
+    domain: { chromosome: "chr6", start: 21592768, end: 21598619 },
+    marginWidth: 150,
+    trackWidth: 1350,
+    multiplier: 3,
+    highlights: [
+      { id: "1", color: "#ffaabb", domain: { chromosome: "chr18", start: 35496000, end: 35502000 } },
+      { id: "2", color: "#aaffbb", domain: { chromosome: "chr18", start: 35494852, end: 35514000 } },
+    ],
+  };
+  const browserStore = createBrowserStore(initialState);
+  const addHighlight = browserStore((state) => state.addHighlight);
+  const removeHighlight = browserStore((state) => state.removeHighlight);
 
   const tracks: Track[] = [
     {
@@ -102,7 +113,7 @@ export default function TestPage() {
       urls: [
         "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
         "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
-        "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed"
+        "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
       ],
       gap: 4,
       onClick: (rect) => {
@@ -126,22 +137,13 @@ export default function TestPage() {
     } as BulkBedConfig,
   ];
 
-  const initialState: InitialBrowserState = {
-    domain: { chromosome: "chr6", start: 21592768, end: 21598619 },
-    marginWidth: 150,
-    trackWidth: 1350,
-    multiplier: 3,
-    highlights: [
-      { id: "1", color: "#ffaabb", domain: { chromosome: "chr18", start: 35496000, end: 35502000 } },
-      { id: "2", color: "#aaffbb", domain: { chromosome: "chr18", start: 35494852, end: 35514000 } },
-    ],
-  };
+  const trackStore = createTrackStore(tracks);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <ApolloProvider client={client}>
         <div style={{ width: "90%" }}>
-          <Browser state={initialState} tracks={tracks} />
+          <Browser browserStore={browserStore} trackStore={trackStore} />
         </div>
       </ApolloProvider>
     </div>

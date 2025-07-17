@@ -1,5 +1,5 @@
 import { createElement, useCallback } from "react";
-import { useTooltipStore } from "../store/tooltipStore";
+import { useTooltipStore } from "../store/BrowserContext";
 import DefaultTooltip from "../components/tooltip/defaultTooltip";
 
 /**

@@ -1,6 +1,6 @@
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useBrowserStore } from "../../../store/browserStore";
+import { useBrowserStore } from "../../../store/BrowserContext";
 import useBrowserScale from "../../../hooks/useBrowserScale";
 
 export default function DragTrack({ children, id }: { children: React.ReactNode; id: string }) {

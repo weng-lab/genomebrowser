@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { useBrowserStore } from "../../store/browserStore";
-import { useTrackStore } from "../../store/trackStore";
+import { useBrowserStore, useTrackStore, useDataStore } from "../../store/BrowserContext";
 import { Domain } from "../../utils/types";
 import { RULER_HEIGHT } from "../tracks/ruler/ruler";
 import DragTrack from "../tracks/wrapper/dragTrack";
 import { Highlight } from "./types";
-import { useDataStore } from "../../store/dataStore";
 
 export default function Highlights() {
   // domain

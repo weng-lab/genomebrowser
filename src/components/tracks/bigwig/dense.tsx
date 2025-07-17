@@ -1,6 +1,5 @@
-import { createElement, useEffect, useMemo, useState } from "react";
-import { useBrowserStore } from "../../../store/browserStore";
-import { useTrackStore } from "../../../store/trackStore";
+import { useEffect, useMemo, useState } from "react";
+import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import { lighten } from "../../../utils/color";
 import { svgPoint } from "../../../utils/svg";
 import { getRange, renderBigWig, renderDense, ytransform } from "./helpers";
@@ -15,8 +14,7 @@ import {
   ValuedPoint,
 } from "./types";
 import { useTheme } from "../../../store/themeStore";
-import { useTooltipStore } from "../../../store/tooltipStore";
-import DefaultTooltip from "../../tooltip/defaultTooltip";
+import useInteraction from "../../../hooks/useInteraction";
 
 export default function DenseBigWig({ id, data, color, height, dimensions, tooltip }: DenseBigWigProps) {
   const { sideWidth, viewWidth, totalWidth } = dimensions;
@@ -57,32 +55,16 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
     });
   }, [color, rendered, range]);
 
-  const { text } = useTheme();
+  const text = useTheme((state) => state.text);
 
-  const showTooltip = useTooltipStore((state) => state.showTooltip);
-  const hideTooltip = useTooltipStore((state) => state.hideTooltip);
+  const { handleHover, handleLeave } = useInteraction<BigWigData>({
+    onClick: undefined,
+    onHover: undefined,
+    onLeave: undefined,
+    tooltip,
+  });
+
   const svgRef = useBrowserStore((state) => state.svgRef);
-  const mouseOver = (e: React.MouseEvent<SVGElement>) => {
-    if (!svgRef || !svgRef.current) return;
-    const pos = svgPoint(svgRef.current, e.clientX, e.clientY);
-    setX(pos[0]);
-    const len = data.length;
-    const adjustedX = Math.round(pos[0] - marginWidth);
-    const start = len / multiplier;
-    const end = start + len / multiplier;
-    const x = (adjustedX / viewWidth) * (end - start) + start;
-    const point = data[Math.round(x)] as BigWigData;
-    let content = <DefaultTooltip value={point.value.toFixed(2)} />;
-    if (tooltip) {
-      content = createElement(tooltip, point);
-    }
-    showTooltip(content, e.clientX, e.clientY);
-  };
-
-  const mouseOut = () => {
-    setX(undefined);
-    hideTooltip();
-  };
 
   return (
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth}, 0)`}>
@@ -109,10 +91,24 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
         height={height}
         transform={`translate(${sideWidth}, 0)`}
         fill={"transparent"}
-        onMouseMove={(e: React.MouseEvent<SVGElement>) => {
-          mouseOver(e);
+        onMouseMove={e => {
+          if (!svgRef || !svgRef.current || !data || data.length === 0) return;
+          const pos = svgPoint(svgRef.current, e.clientX, e.clientY);
+          setX(pos[0]);
+          const len = data.length;
+          const adjustedX = Math.round(pos[0] - marginWidth);
+          const start = len / multiplier;
+          const end = start + len / multiplier;
+          const xIdx = (adjustedX / viewWidth) * (end - start) + start;
+          const index = Math.round(xIdx);
+          if (index < 0 || index >= data.length) return;
+          const point = data[index] as BigWigData;
+          handleHover(point, point.value?.toFixed(2) ?? "", e);
         }}
-        onMouseOut={mouseOut}
+        onMouseOut={() => {
+          setX(undefined);
+          handleLeave({ chr: '', start: 0, end: 0, value: 0 });
+        }}
       />
     </g>
   );

@@ -2,8 +2,7 @@ import React, { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import useBrowserScale from "../../../hooks/useBrowserScale";
-import { useBrowserStore } from "../../../store/browserStore";
-import { useTrackStore } from "../../../store/trackStore";
+import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import { RULER_HEIGHT } from "../ruler/ruler";
 
 function SwapTrack({

@@ -1,8 +1,13 @@
-import { useEffect } from "react";
+import { useMemo } from "react";
 import DataFetcher from "../../api/DataFetcher";
-import { InitialBrowserState, useBrowserStore } from "../../store/browserStore";
-import { Track, useTrackStore } from "../../store/trackStore";
-import { useDataStore } from "../../store/dataStore";
+import { BrowserStoreInstance } from "../../store/browserStore";
+import { TrackStoreInstance } from "../../store/trackStore";
+import { createDataStore } from "../../store/dataStore";
+import { createContextMenuStore } from "../../store/contextMenuStore";
+import { createModalStore } from "../../store/modalStore";
+import { createTooltipStore } from "../../store/tooltipStore";
+import { createThemeStore } from "../../store/themeStore";
+import { BrowserProvider } from "../../store/BrowserContext";
 import ContextMenu from "../contextMenu/contextMenu";
 import Modal from "../modal/modal";
 import Tooltip from "../tooltip/tooltip";
@@ -20,40 +25,55 @@ const client = new ApolloClient({
   connectToDevTools: true,
 });
 
-export default function Browser({ tracks, state }: { tracks: Track[]; state: InitialBrowserState }) {
-  // Store functions
-  const setTracks = useTrackStore((state) => state.setTracks);
-  const initialize = useBrowserStore((state) => state.initialize);
-  const trackIds = useTrackStore((state) => state.ids);
-  const triggerFetch = useDataStore((state) => state.triggerFetch);
+interface BrowserProps {
+  browserStore: BrowserStoreInstance;
+  trackStore: TrackStoreInstance;
+}
 
-  // Initialize state and trigger fetch when tracks change
-  useEffect(() => {
-    initialize(state);
-    setTracks(tracks);
-    if (tracks.length > 0) {
-      triggerFetch();
-    }
-  }, [tracks, setTracks, state, initialize, triggerFetch]);
+export default function Browser({ browserStore, trackStore }: BrowserProps) {
+  // Create internal stores for this browser instance
+  const dataStore = useMemo(() => createDataStore(), []);
+  const contextMenuStore = useMemo(() => createContextMenuStore(), []);
+  const modalStore = useMemo(() => createModalStore(), []);
+  const tooltipStore = useMemo(() => createTooltipStore(), []);
+  const themeStore = useMemo(() => createThemeStore(), []);
+
+  // Create context value
+  const contextValue = useMemo(
+    () => ({
+      browserStore,
+      trackStore,
+      dataStore,
+      contextMenuStore,
+      modalStore,
+      tooltipStore,
+      themeStore,
+    }),
+    [browserStore, trackStore, dataStore, contextMenuStore, modalStore, tooltipStore, themeStore]
+  );
+
+  const trackIds = trackStore((state) => state.ids);
 
   return (
-    <div>
-      <ApolloProvider client={client}>
-        <DataFetcher />
-      </ApolloProvider>
-      <SVGWrapper>
-        <SelectRegion />
-        <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
-          <Ruler />
-        </Wrapper>
-        {trackIds.map((id) => {
-          return <DisplayTrack key={id} id={id} />;
-        })}
-        <Highlights />
-        <Tooltip />
-      </SVGWrapper>
-      <ContextMenu />
-      <Modal />
-    </div>
+    <BrowserProvider value={contextValue}>
+      <div>
+        <ApolloProvider client={client}>
+          <DataFetcher />
+        </ApolloProvider>
+        <SVGWrapper>
+          <SelectRegion />
+          <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
+            <Ruler />
+          </Wrapper>
+          {trackIds.map((id) => {
+            return <DisplayTrack key={id} id={id} />;
+          })}
+          <Highlights />
+          <Tooltip />
+        </SVGWrapper>
+        <ContextMenu />
+        <Modal />
+      </div>
+    </BrowserProvider>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { BigBedConfig } from "../components/tracks/bigbed/types";
-import { useTrackStore } from "../store/trackStore";
+import { useTrackStore } from "../store/BrowserContext";
 
 export function useRowHeight(rowCount: number, id: string, rowHeight: number = 12) {
   const editTrack = useTrackStore((state) => state.editTrack);

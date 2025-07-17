@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import useDebounce from "../../../hooks/useDebounce";
-import { Track, useTrackStore } from "../../../store/trackStore";
+import { Track } from "../../../store/trackStore";
+import { useTrackStore } from "../../../store/BrowserContext";
 import Form from "./form";
 
 export default function UniversalForm({ track }: { track: Track }) {

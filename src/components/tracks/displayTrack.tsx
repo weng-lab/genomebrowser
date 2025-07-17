@@ -1,8 +1,7 @@
 import { ApolloError } from "@apollo/client";
 import { useEffect, useMemo, useState } from "react";
-import { useBrowserStore } from "../../store/browserStore";
-import { useDataStore } from "../../store/dataStore";
-import { Track, useTrackStore } from "../../store/trackStore";
+import { useBrowserStore, useDataStore, useTrackStore } from "../../store/BrowserContext";
+import { Track } from "../../store/trackStore";
 import DenseBigBed from "./bigbed/dense";
 import DenseBigWig from "./bigwig/dense";
 import FullBigWig from "./bigwig/full";

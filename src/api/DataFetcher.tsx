@@ -4,9 +4,7 @@ import { gql, useLazyQuery } from "@apollo/client";
 import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { TrackType } from "../components/tracks/types";
 
-import { useBrowserStore } from "../store/browserStore";
-import { useDataStore } from "../store/dataStore";
-import { useTrackStore } from "../store/trackStore";
+import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
 
 import { BIGDATA_QUERY, MOTIF_QUERY, TRANSCRIPT_GENES_QUERY, VARIANT_QUERY } from "./queries";
 import { buildAllRequests } from "./requestBuilder";
@@ -29,14 +27,12 @@ function DataFetcher() {
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const setDelta = useBrowserStore((state) => state.setDelta);
 
-  const shouldFetch = useDataStore((state) => state.shouldFetch);
   const setData = useDataStore((state) => state.setDataById);
   const setLoading = useDataStore((state) => state.setLoading);
   const setFetching = useDataStore((state) => state.setFetching);
-  const setShouldFetch = useDataStore((state) => state.setShouldFetch);
 
   useEffect(() => {
-    if (!shouldFetch || tracks.length === 0) return;
+    if (tracks.length === 0) return;
 
     // Loading guard to prevent concurrent fetching
     if (bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading) {
@@ -45,17 +41,13 @@ function DataFetcher() {
 
     const fetchAllData = async () => {
       setFetching(true);
-
-      // Build all requests using utility functions
       const requests = buildAllRequests(tracks, getExpandedDomain(), domain);
 
-      // Set up transcript refetch function if needed
       const transcriptTrack = tracks.find((track) => track.trackType === TrackType.Transcript);
       if (transcriptTrack && requests.transcriptRequest) {
         editTrack<TranscriptConfig>(transcriptTrack.id, { refetch: fetchGene });
       }
 
-      // Execute all queries using utility function
       await executeAllQueries(requests, {
         fetchBigData,
         fetchGene,
@@ -64,27 +56,17 @@ function DataFetcher() {
         fetchBulkBed,
         fetchSnps,
       });
-
-      setShouldFetch(false);
     };
 
     fetchAllData().catch((error) => {
       console.error("Error fetching data:", error);
-      setShouldFetch(false);
     });
-  }, [shouldFetch]);
-
-  // Trigger fetch on domain or track changes
-  useEffect(() => {
-    if (tracks.length > 0) {
-      setShouldFetch(true);
-    }
   }, [domain.chromosome, domain.start, domain.end, tracks.length]);
 
   // Simple results processing using utility function
   useEffect(() => {
     if (bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading) return;
-
+    console.log("Processing results");
     const results = processAllResults(tracks, {
       bigData,
       geneData,

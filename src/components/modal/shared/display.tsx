@@ -1,4 +1,4 @@
-import { useTrackStore } from "../../../store/trackStore";
+import { useTrackStore } from "../../../store/BrowserContext";
 import { trackComponents } from "../../tracks/displayTrack";
 import { TrackType } from "../../tracks/types";
 import { DisplayMode as Options } from "../../tracks/types";
