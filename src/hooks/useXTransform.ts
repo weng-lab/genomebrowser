@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { reverseXTransform, xtransform } from "../components/tracks/bigwig/helpers";
-import { useBrowserStore } from "../store/browserStore";
-import { useDataStore } from "../store/dataStore";
+import { useBrowserStore, useDataStore } from "../store/BrowserContext";
 import { Domain } from "../utils/types";
 
 export function useXTransform(totalWidth: number) {

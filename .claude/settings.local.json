@@ -1,9 +1,6 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(npx tsc:*)",
-      "Bash(npx eslint:*)"
-    ],
+    "allow": ["Bash(npx tsc:*)", "Bash(npx eslint:*)", "Bash(npm run lint)"],
     "deny": []
   }
 }

@@ -1,11 +1,8 @@
 import SettingsIcon from "../../../icons/settingsIcon";
 import TopIcon from "../../../icons/topIcon";
-import { useModalStore } from "../../../store/modalStore";
+import { useModalStore, useTrackStore, useBrowserStore, useTheme } from "../../../store/BrowserContext";
 import { useRef } from "react";
-import { useTrackStore } from "../../../store/trackStore";
-import { useBrowserStore } from "../../../store/browserStore";
 import { BigWigConfig } from "../bigwig/types";
-import { useTheme } from "../../../store/themeStore";
 
 export default function Margin({
   marginLabel,
@@ -56,7 +53,9 @@ export default function Margin({
   const customRange = useTrackStore((state) => (state.getTrack(id) as BigWigConfig)?.customRange);
   const viewableRange = customRange || range;
 
-  const { background, text } = useTheme();
+  const background = useTheme((state) => state.background);
+  const text = useTheme((state) => state.text);
+
   return (
     <g
       id={`margin-${id}`}

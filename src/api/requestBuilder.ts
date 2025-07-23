@@ -90,17 +90,18 @@ export function buildMotifRequest(tracks: Track[], domain: Domain): MotifRequest
 
 /**
  * Build importance requests for given tracks (first importance track found)
+ * Use currentDomain to get only the viewable region (avoids large requests)
  */
-export function buildImportanceRequests(tracks: Track[], expandedDomain: Domain, currentDomain: Domain): BigRequest[] {
+export function buildImportanceRequests(tracks: Track[], currentDomain: Domain): BigRequest[] {
   const importanceTrack = tracks.find((track) => track.trackType === TrackType.Importance);
   if (!importanceTrack) return [];
 
   return [
     {
       url: importanceTrack.url || "",
-      chr1: expandedDomain.chromosome,
-      start: expandedDomain.start,
-      end: expandedDomain.end,
+      chr1: currentDomain.chromosome,
+      start: currentDomain.start,
+      end: currentDomain.end,
     },
     {
       url: importanceTrack.signalURL,
@@ -136,7 +137,7 @@ export function buildAllRequests(tracks: Track[], expandedDomain: Domain, curren
     bigRequests: buildBigRequests(tracks, expandedDomain),
     transcriptRequest: buildTranscriptRequest(tracks, expandedDomain),
     motifRequest: buildMotifRequest(tracks, expandedDomain),
-    importanceRequests: buildImportanceRequests(tracks, expandedDomain, currentDomain),
+    importanceRequests: buildImportanceRequests(tracks, currentDomain),
     bulkBedRequests: buildBulkBedRequests(tracks, expandedDomain),
     ldRequest: buildLDRequest(tracks, expandedDomain),
   };

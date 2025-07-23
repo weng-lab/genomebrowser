@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
-import { useModalStore } from "../../store/modalStore";
-import { useTrackStore } from "../../store/trackStore";
+import { useModalStore, useTrackStore } from "../../store/BrowserContext";
 import { TrackType } from "../tracks/types";
 import UniversalForm from "./shared/base";
 import Display from "./shared/display";
@@ -14,7 +13,11 @@ import Gap from "./bulkbed/gap";
 import DatasetList from "./bulkbed/datasetList";
 
 export default function Modal() {
-  const { id, open, closeModal, position } = useModalStore();
+  const id = useModalStore((state) => state.id);
+  const open = useModalStore((state) => state.open);
+  const closeModal = useModalStore((state) => state.closeModal);
+  const position = useModalStore((state) => state.position);
+
   const [dragPos, setDragPos] = useState(position);
   const [dragging, setDragging] = useState(false);
 
@@ -176,9 +179,9 @@ export function getTextColor(backgroundColor: string): string {
 }
 
 export function shadeColor(color: string, percent: number) {
-  var R = parseInt(color.substring(1, 3), 16);
-  var G = parseInt(color.substring(3, 5), 16);
-  var B = parseInt(color.substring(5, 7), 16);
+  let R = parseInt(color.substring(1, 3), 16);
+  let G = parseInt(color.substring(3, 5), 16);
+  let B = parseInt(color.substring(5, 7), 16);
 
   R = (R * (100 + percent)) / 100;
   G = (G * (100 + percent)) / 100;
@@ -192,9 +195,9 @@ export function shadeColor(color: string, percent: number) {
   G = Math.round(G);
   B = Math.round(B);
 
-  var RR = R.toString(16).length == 1 ? "0" + R.toString(16) : R.toString(16);
-  var GG = G.toString(16).length == 1 ? "0" + G.toString(16) : G.toString(16);
-  var BB = B.toString(16).length == 1 ? "0" + B.toString(16) : B.toString(16);
+  const RR = R.toString(16).length == 1 ? "0" + R.toString(16) : R.toString(16);
+  const GG = G.toString(16).length == 1 ? "0" + G.toString(16) : G.toString(16);
+  const BB = B.toString(16).length == 1 ? "0" + B.toString(16) : B.toString(16);
 
   return "#" + RR + GG + BB;
 }

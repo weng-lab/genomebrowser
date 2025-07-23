@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useXTransform } from "../../../hooks/useXTransform";
-import { useBrowserStore } from "../../../store/browserStore";
-import { useDataStore } from "../../../store/dataStore";
+import { useBrowserStore, useDataStore, useTheme } from "../../../store/BrowserContext";
 import { Domain } from "../../../utils/types";
-import { useTheme } from "../../../store/themeStore";
 
 export const RULER_HEIGHT = 80;
 
@@ -15,14 +13,14 @@ export default function Ruler() {
   const getDomain = useBrowserStore((state) => state.getDomain);
   const [domain, setDomain] = useState<Domain>(getExpandedDomain());
   const fetching = useDataStore((state) => state.fetching);
-  const {x} = useXTransform(totalWidth);
+  const { x } = useXTransform(totalWidth);
 
   useEffect(() => {
     if (fetching) return;
     setDomain(getExpandedDomain());
   }, [fetching, getExpandedDomain]);
 
-  const { text } = useTheme();
+  const text = useTheme((state) => state.text);
 
   const renderedContent = useMemo(() => {
     const len = domain.end - domain.start;

@@ -2,12 +2,9 @@ import { useCallback, useMemo, useState } from "react";
 import DragTrack from "./dragTrack";
 import Margin from "./margin";
 import SwapTrack from "./swapTrack";
-import { useTrackStore } from "../../../store/trackStore";
-import { useBrowserStore } from "../../../store/browserStore";
+import { useTrackStore, useBrowserStore, useContextMenuStore, useTheme } from "../../../store/BrowserContext";
 import LoadingSpinner from "../../../icons/loadingSpinner";
 import ErrorIcon from "../../../icons/errorIcon";
-import { useContextMenuStore } from "../../../store/contextMenuStore";
-import { useTheme } from "../../../store/themeStore";
 
 export interface WrapperProps {
   id: string;
@@ -27,15 +24,16 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
   const getDimensions = useTrackStore((state) => state.getDimensions);
   const createShortLabel = useTrackStore((state) => state.createShortLabel);
 
-  const color = useTrackStore((state) => state.getTrack(id)?.color);
-  const title = useTrackStore((state) => state.getTrack(id)?.title);
+  const color = useTrackStore((state) => state.getTrack(id)?.color) || "";
+  const title = useTrackStore((state) => state.getTrack(id)?.title) || "";
   const { trackMargin, titleSize, totalVerticalMargin, wrapperHeight } = getDimensions(id);
   const shortLabel = createShortLabel(id);
 
   const spinnerSize = wrapperHeight / 3;
   const setContextMenu = useContextMenuStore((state) => state.setContextMenu);
 
-  const { background, text } = useTheme();
+  const text = useTheme((state) => state.text);
+  const background = useTheme((state) => state.background);
 
   const marginHover = useCallback(() => {
     setHover(true);

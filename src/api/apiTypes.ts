@@ -23,7 +23,7 @@ export interface TranscriptRequest {
   version: number;
 }
 
-export interface GeneResponse {
+export interface TranscriptResponse {
   gene: any;
 }
 

@@ -1,13 +1,13 @@
 import { ApolloError } from "@apollo/client";
 import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
-import { BigResponse, GeneResponse, MotifResponse, LDResponse, MotifRect } from "./apiTypes";
+import { BigResponse, TranscriptResponse, MotifResponse, LDResponse, MotifRect } from "./apiTypes";
 import { ImportanceTrackSequence } from "../components/tracks/importance/types";
 import { BulkBedConfig } from "../components/tracks/bulkbed/types";
 
 export interface QueryResults {
   bigData?: BigResponse;
-  geneData?: GeneResponse;
+  geneData?: TranscriptResponse;
   motifData?: MotifResponse;
   importanceData?: BigResponse;
   bulkBedData?: BigResponse;
@@ -51,7 +51,7 @@ function processBigWigResults(
  */
 function processTranscriptResults(
   tracks: Track[],
-  geneData: GeneResponse | undefined,
+  geneData: TranscriptResponse | undefined,
   geneError: ApolloError | undefined
 ): ProcessedResult[] {
   if (!geneData) return [];
@@ -87,7 +87,7 @@ function processMotifResults(
                 start: occurrence.genomic_region.start,
                 end: occurrence.genomic_region.end,
                 pwm: occurrence.motif.pwm,
-              } as MotifRect)
+              }) as MotifRect
           ) || [],
         peaks:
           motifData?.peaks?.peaks?.map(
@@ -95,7 +95,7 @@ function processMotifResults(
               ({
                 start: peak.chrom_start,
                 end: peak.chrom_end,
-              } as MotifRect)
+              }) as MotifRect
           ) || [],
       };
 

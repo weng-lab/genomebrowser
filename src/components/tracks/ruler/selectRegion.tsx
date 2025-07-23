@@ -1,10 +1,7 @@
-'use client';
 import { useEffect, useState } from "react";
-import { useBrowserStore } from "../../../store/browserStore";
+import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import { createPortal } from "react-dom";
-import { useTrackStore } from "../../../store/trackStore";
 import { RULER_HEIGHT } from "./ruler";
-import { useDataStore } from "../../../store/dataStore";
 export default function SelectRegion() {
   const browserWidth = useBrowserStore((state) => state.browserWidth);
   const margin = useBrowserStore((state) => state.marginWidth);
@@ -15,7 +12,7 @@ export default function SelectRegion() {
   const browserRef = useBrowserStore((state) => state.svgRef);
   const domain = useBrowserStore((state) => state.domain);
   const setDomain = useBrowserStore((state) => state.setDomain);
-  const setFetching = useDataStore((state) => state.setFetching);
+  // const setFetching = useDataStore((state) => state.setFetching);
 
   const handleMouseDown = (event: React.MouseEvent) => {
     if (!browserRef || !browserRef.current) return null;
@@ -57,7 +54,6 @@ export default function SelectRegion() {
     const newEnd = domain.start + endScale * domainWidth;
     const newDomain = { chromosome: domain.chromosome, start: Math.round(newStart), end: Math.round(newEnd) };
     setRegion([0, 0]);
-    setFetching(true);
     setDomain(newDomain);
   };
 

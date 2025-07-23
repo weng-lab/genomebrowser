@@ -8,14 +8,21 @@ export interface ThemeStore {
   setBackground: (background: Color) => void;
 }
 
-export const useTheme = create<ThemeStore>((set) => ({
-  background: "#ffffff",
-  text: "#000000",
-  setBackground: (background: Color) => {
-    set({ background });
-    set({ text: getTextColor(background) });
-  },
-}));
+export type ThemeStoreInstance = ReturnType<typeof createThemeStore>;
+
+export function createThemeStore() {
+  return create<ThemeStore>((set) => ({
+    background: "#ffffff",
+    text: "#000000",
+    setBackground: (background: Color) => {
+      set({ background });
+      set({ text: getTextColor(background) });
+    },
+  }));
+}
+
+// Legacy export for backward compatibility
+export const useTheme = createThemeStore();
 
 // 2e2b28
 

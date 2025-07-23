@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [
     react(),
     dts({
-      exclude: ["**/*.stories.tsx", "./src/main.tsx"],
+      exclude: ["**/*.stories.tsx", "./test"],
       tsconfigPath: "./tsconfig.app.json",
     }),
   ],

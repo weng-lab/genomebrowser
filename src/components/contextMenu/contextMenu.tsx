@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { useContextMenuStore } from "../../store/contextMenuStore";
-import { useTrackStore } from "../../store/trackStore";
+import { useContextMenuStore, useTrackStore, useDataStore } from "../../store/BrowserContext";
 import { trackComponents } from "../tracks/displayTrack";
 import { DisplayMode } from "../tracks/types";
-import { useDataStore } from "../../store/dataStore";
 import { downloadSVG } from "../../utils/download";
 
 export default function ContextMenu() {
-  const { open, id, x, y, setContextMenu } = useContextMenuStore();
+  const open = useContextMenuStore((state) => state.open);
+  const id = useContextMenuStore((state) => state.id);
+  const x = useContextMenuStore((state) => state.x);
+  const y = useContextMenuStore((state) => state.y);
+  const setContextMenu = useContextMenuStore((state) => state.setContextMenu);
   const menuRef = useRef<HTMLDivElement>(null);
   const track = useTrackStore((state) => state.getTrack(id || ""));
   const data = useDataStore((state) => state.data.get(id || ""));

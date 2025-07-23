@@ -32,91 +32,11 @@ pnpm add track-logic
 
 ```tsx
 import React from "react";
-import { Browser, Track, TrackType, DisplayMode, InitialBrowserState, useBrowserStore } from "track-logic";
+import { Browser, Track, InitialBrowserState, createBrowserStore, createTrackStore, BrowserStoreInstance } from "track-logic";
 
 function GenomeBrowserExample() {
-  // example interactions with the browserStore
-  const addHighlight = useBrowserStore((state) => state.addHighlight);
-  const removeHighlight = useBrowserStore((state) => state.removeHighlight);
-
   // Define your tracks
-  const tracks: Track[] = [
-    {
-      id: "signal-track",
-      title: "DNase Signal",
-      trackType: TrackType.BigWig,
-      displayMode: DisplayMode.Full,
-      height: 100,
-      color: "#3498db",
-      url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
-    },
-    {
-      id: "peaks-track",
-      title: "cCREs",
-      trackType: TrackType.BigBed,
-      displayMode: DisplayMode.Dense,
-      height: 20,
-      color: "#e74c3c",
-      url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
-      onClick: (rect) => {
-        addHighlight({
-          id: `${rect.name}-clicked`,
-          domain: { start: rect.start, end: rect.end },
-          color: "#f39c12",
-        });
-      },
-      onHover: (rect) => {
-        addHighlight({
-          id: rect.name || "hover",
-          domain: { start: rect.start, end: rect.end },
-          color: "#f39c12",
-        });
-      },
-      onLeave: (rect) => {
-        removeHighlight(rect.name || "hover");
-      },
-    },
-    {
-      id: "genes-track",
-      title: "Genes",
-      trackType: TrackType.Transcript,
-      displayMode: DisplayMode.Squish,
-      height: 50,
-      color: "#2ecc71",
-      assembly: "GRCh38",
-      version: 47,
-    },
-    {
-      id: "bulk-chip-data",
-      title: "ChIP-seq Data",
-      trackType: TrackType.BulkBed,
-      displayMode: DisplayMode.Full,
-      height: 30,
-      gap: 2,
-      color: "#9b59b6",
-      datasets: [
-        {
-          name: "H3K4me3",
-          url: "https://downloads.wenglab.org/ChIP_ENCSR000AKA-ENCSR000AKC-ENCSR000AKF-ENCSR000AKE-ENCSR000AKD-ENCSR000AOX.bigBed",
-        },
-        {
-          name: "H3K27ac",
-          url: "https://downloads.wenglab.org/ChIP_ENCSR000EWA-ENCSR000AKP-ENCSR000EWC-ENCSR000DWB-ENCSR000EWB-ENCSR000APE.bigBed",
-        },
-      ],
-      tooltip: (rect) => (
-        <g>
-          <rect width={160} height={45} fill="white" stroke="black" />
-          <text x={10} y={20} fontSize={12} fontWeight="bold">
-            {rect.name}
-          </text>
-          <text x={10} y={35} fontSize={12}>
-            Dataset: {rect.datasetName}
-          </text>
-        </g>
-      ),
-    },
-  ];
+  const initialTracks: Track[] = [...];
 
   // Configure initial browser state
   const initialState: InitialBrowserState = {
@@ -130,18 +50,56 @@ function GenomeBrowserExample() {
     multiplier: 3, // a multiplier to fetch more data for smooth panning
   };
 
+  // Create stores to hold browser data
+  const browserStore = createBrowserStore(initialState)
+  const trackStore = createTrackStore(initialTracks)
+
   return (
     <div style={{ width: "90%", margin: "0 auto" }}>
       <h1>My Genome Browser</h1>
-      <Browser state={initialState} tracks={tracks} />
+      <DomainDisplay browserStore={browserStore} />
+      <Browser browserStore={browserStore} trackStore={trackStore} />
     </div>
   );
 }
 
-export default GenomeBrowserExample;
+// Use the stores to access information
+function DomainDisplay({browserStore} : {browserStore: BrowserStoreInstance}) {
+  // Zustand-like selectors for getting fields and functions
+  const domain = browserStore((state) => state.domain)
+  return (
+    <h1>{domain.chromosome}:{domain.start}-{domain.end}</h1>
+  )
+}
+
 ```
 
-## Track Types
+## Browser Configuration
+
+### State Example
+
+```tsx
+const initialState: InitialBrowserState = {
+  domain: {
+    chromosome: "chr1",
+    start: 1000000,
+    end: 2000000,
+  },
+  marginWidth: 150, // Width of the track margins
+  trackWidth: 1350, // Width of the viewable track area
+  multiplier: 3, // Data fetching multiplier for smooth panning
+  highlights: [
+    // Optional: initial highlights
+    {
+      id: "highlight1",
+      color: "#ffaabb",
+      domain: { chromosome: "chr1", start: 1500000, end: 1600000 },
+    },
+  ],
+};
+```
+
+## Track Examples
 
 ### BigWig Tracks
 
@@ -152,11 +110,10 @@ Display continuous signal data (e.g., ChIP-seq, RNA-seq signals).
   id: "signal",
   title: "Signal Data",
   trackType: TrackType.BigWig,
-  displayMode: DisplayMode.Full, // or DisplayMode.Dense
+  displayMode: DisplayMode.Full, // Multiple display modes supported
   height: 100,
   color: "#3498db",
   url: "https://example.com/signal.bw",
-  range: [0, 100], // Optional: custom Y-axis range
 }
 ```
 
@@ -169,13 +126,13 @@ Display discrete genomic regions (e.g., peaks, annotations).
   id: "peaks",
   title: "Peak Calls",
   trackType: TrackType.BigBed,
-  displayMode: DisplayMode.Dense, // or DisplayMode.Squish
+  displayMode: DisplayMode.Dense,
   height: 20,
   color: "#e74c3c",
   url: "https://example.com/peaks.bigBed",
-  onClick: (rect) => console.log("Clicked:", rect),
+  onClick: (rect) => console.log("Clicked:", rect), // Mouse interactivitiy
   onHover: (rect) => console.log("Hovered:", rect),
-  tooltip: (rect) => <text>{rect.name}</text>,
+  tooltip: (rect) => <text>{rect.name}</text>, // Custom svg tooltips
 }
 ```
 
@@ -208,40 +165,15 @@ Display gene annotations and transcripts.
   id: "genes",
   title: "Gene Annotations",
   trackType: TrackType.Transcript,
-  displayMode: DisplayMode.Squish, // or DisplayMode.Pack
+  displayMode: DisplayMode.Squish,
   height: 50,
   color: "#2ecc71",
-  assembly: "GRCh38", // or "mm10"
+  assembly: "GRCh38", // "mm10" also supported
   version: 47, // GENCODE version
 }
 ```
 
 Explore our comprehensive [Storybook]() documentation for detailed information about additional track types and their configuration options.
-
-## Browser Configuration
-
-### Initial State
-
-```tsx
-const initialState: InitialBrowserState = {
-  domain: {
-    chromosome: "chr1",
-    start: 1000000,
-    end: 2000000,
-  },
-  marginWidth: 150, // Width of track labels
-  trackWidth: 1350, // Width of track data area
-  multiplier: 3, // Data fetching multiplier for smooth panning
-  highlights: [
-    // Optional: initial highlights
-    {
-      id: "highlight1",
-      color: "#ffaabb",
-      domain: { chromosome: "chr1", start: 1500000, end: 1600000 },
-    },
-  ],
-};
-```
 
 ## Development
 
@@ -261,13 +193,6 @@ npm run build
 # Run linting
 npm run lint
 ```
-
-## Browser Support
-
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
 
 ## Contributing
 

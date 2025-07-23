@@ -1,7 +1,7 @@
 {
   "name": "track-logic",
   "private": false,
-  "version": "0.0.3",
+  "version": "0.0.5",
   "license": "MIT",
   "type": "module",
   "files": [
@@ -15,12 +15,13 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@apollo/client": "^3.11.10",
     "graphql": "^16.9.0",
-    "logo-test": "^0.0.3",
+    "logo-test": "^0.0.4",
     "react-colorful": "^5.6.1",
     "react-draggable": "^4.4.6",
     "zustand": "^5.0.3"
@@ -49,6 +50,7 @@
     "eslint-plugin-storybook": "9.0.4",
     "globals": "^16.0.0",
     "playwright": "^1.52.0",
+    "prettier": "3.6.2",
     "storybook": "9.0.4",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",

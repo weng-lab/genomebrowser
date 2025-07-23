@@ -1,8 +1,7 @@
 import { ApolloError } from "@apollo/client";
 import { useEffect, useMemo, useState } from "react";
-import { useBrowserStore } from "../../store/browserStore";
-import { useDataStore } from "../../store/dataStore";
-import { Track, useTrackStore } from "../../store/trackStore";
+import { useBrowserStore, useDataStore, useTrackStore } from "../../store/BrowserContext";
+import { Track } from "../../store/trackStore";
 import DenseBigBed from "./bigbed/dense";
 import DenseBigWig from "./bigwig/dense";
 import FullBigWig from "./bigwig/full";
@@ -79,16 +78,18 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
 function getTrackComponent(track: Track, data: any, dimensions: TrackDimensions) {
   const Component = trackComponents[track.trackType][track.displayMode];
   if (!Component) return null;
-  
+
   // Special handling for BulkBed tracks to include datasets information
   if (track.trackType === "bulkbed") {
     const bulkBedTrack = track as any; // Type assertion for BulkBedConfig
-    const datasets = bulkBedTrack.datasets || (bulkBedTrack.urls || []).map((url: string, i: number) => ({ 
-      name: `Dataset ${i + 1}`, 
-      url 
-    }));
+    const datasets =
+      bulkBedTrack.datasets ||
+      (bulkBedTrack.urls || []).map((url: string, i: number) => ({
+        name: `Dataset ${i + 1}`,
+        url,
+      }));
     return <Component {...track} data={data.data} dimensions={dimensions} datasets={datasets} />;
   }
-  
+
   return <Component {...track} data={data.data} dimensions={dimensions} />;
 }
