@@ -18,8 +18,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/lib.ts"),
-      name: "track-logic",
-      fileName: (format) => `track-logic.${format}.js`,
+      name: "genomebrowser",
+      fileName: (format) => `genomebrowser.${format}.js`,
       formats: ["es"],
     },
     rollupOptions: {

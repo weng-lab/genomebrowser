@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is **track-logic**, a React-based genome browser library for visualizing genomic data. It's built as a reusable npm package that provides interactive genomic visualization components with support for multiple track types (BigWig, BigBed, Transcript, etc.).
+This is **@weng-lab/genomebrowser**, a React-based genome browser library for visualizing genomic data. It's built as a reusable npm package that provides interactive genomic visualization components with support for multiple track types (BigWig, BigBed, Transcript, etc.).
 
 ## Development Commands
 

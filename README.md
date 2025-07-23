@@ -17,22 +17,22 @@ A powerful, interactive React-based genome browser for visualizing genomic data.
 ## Installation
 
 ```bash
-npm install track-logic
+npm install @weng-lab/genomebrowser
 ```
 
 ```bash
-yarn add track-logic
+yarn add @weng-lab/genomebrowser
 ```
 
 ```bash
-pnpm add track-logic
+pnpm add @weng-lab/genomebrowser
 ```
 
 ## Quick Start
 
 ```tsx
 import React from "react";
-import { Browser, Track, InitialBrowserState, createBrowserStore, createTrackStore, BrowserStoreInstance } from "track-logic";
+import { Browser, Track, InitialBrowserState, createBrowserStore, createTrackStore, BrowserStoreInstance } from "@weng-lab/genomebrowser";
 
 function GenomeBrowserExample() {
   // Define your tracks

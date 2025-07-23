@@ -1,13 +1,13 @@
 {
-  "name": "track-logic",
+  "name": "@weng-lab/genomebrowser",
   "private": false,
-  "version": "0.0.5",
+  "version": "1.0.0",
   "license": "MIT",
   "type": "module",
   "files": [
     "dist"
   ],
-  "module": "dist/track-logic.es.js",
+  "module": "dist/genomebrowser.es.js",
   "types": "dist/lib.d.ts",
   "scripts": {
     "dev": "vite",
