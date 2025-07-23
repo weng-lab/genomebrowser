@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import { createPortal } from "react-dom";

@@ -23,7 +23,6 @@ function DataFetcher() {
 
   const tracks = useTrackStore((state) => state.tracks);
   const editTrack = useTrackStore((state) => state.editTrack);
-
   const domain = useBrowserStore((state) => state.domain);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const setDelta = useBrowserStore((state) => state.setDelta);
