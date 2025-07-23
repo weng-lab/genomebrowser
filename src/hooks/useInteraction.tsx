@@ -32,9 +32,7 @@ export default function useInteraction<T>({
       if (onHover) {
         onHover(item);
       }
-      const content = tooltip 
-        ? createElement(tooltip, item) 
-        : <DefaultTooltip value={fallback} />;
+      const content = tooltip ? createElement(tooltip, item) : <DefaultTooltip value={fallback} />;
       showTooltip(content, e.clientX, e.clientY);
     },
     [onHover, tooltip, showTooltip]

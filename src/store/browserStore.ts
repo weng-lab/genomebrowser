@@ -59,59 +59,59 @@ export function createBrowserStore(initialState: InitialBrowserState) {
         highlights: state.highlights || [],
       });
     },
-  setDomain: (domain: Domain) => {
-    const state = get();
-    if (domain.start == state.domain.start && domain.end == state.domain.end) {
-      return;
-    }
-    set({ domain });
-  },
-  shiftDomain: () => {
-    const state = get();
-    const shift = Math.floor((state.delta / state.trackWidth) * (state.domain.end - state.domain.start));
-    const newDomain = {
-      chromosome: state.domain.chromosome,
-      start: state.domain.start - shift,
-      end: state.domain.end - shift,
-    };
-    get().setDomain(newDomain);
-  },
-  setDelta: (delta: number) => set({ delta }),
-  setSvgRef: (ref: RefObject<SVGSVGElement | null>) => set({ svgRef: ref }),
-  getExpandedDomain: () => {
-    const state = get();
-    const visibleWidth = state.domain.end - state.domain.start;
-    const sidePiece = Math.floor((visibleWidth * (state.multiplier - 1)) / 2);
-    const expandedDomain: Domain = {
-      chromosome: state.domain.chromosome,
-      start: state.domain.start - sidePiece,
-      end: state.domain.end + sidePiece,
-    };
-    return expandedDomain;
-  },
-  getDomain: () => {
-    return get().domain;
-  },
-  getTrackDimensions: () => {
-    const trackWidth = get().trackWidth;
-    const multiplier = get().multiplier;
-    const sidePortion = (multiplier - 1) / 2;
+    setDomain: (domain: Domain) => {
+      const state = get();
+      if (domain.start == state.domain.start && domain.end == state.domain.end) {
+        return;
+      }
+      set({ domain });
+    },
+    shiftDomain: () => {
+      const state = get();
+      const shift = Math.floor((state.delta / state.trackWidth) * (state.domain.end - state.domain.start));
+      const newDomain = {
+        chromosome: state.domain.chromosome,
+        start: state.domain.start - shift,
+        end: state.domain.end - shift,
+      };
+      get().setDomain(newDomain);
+    },
+    setDelta: (delta: number) => set({ delta }),
+    setSvgRef: (ref: RefObject<SVGSVGElement | null>) => set({ svgRef: ref }),
+    getExpandedDomain: () => {
+      const state = get();
+      const visibleWidth = state.domain.end - state.domain.start;
+      const sidePiece = Math.floor((visibleWidth * (state.multiplier - 1)) / 2);
+      const expandedDomain: Domain = {
+        chromosome: state.domain.chromosome,
+        start: state.domain.start - sidePiece,
+        end: state.domain.end + sidePiece,
+      };
+      return expandedDomain;
+    },
+    getDomain: () => {
+      return get().domain;
+    },
+    getTrackDimensions: () => {
+      const trackWidth = get().trackWidth;
+      const multiplier = get().multiplier;
+      const sidePortion = (multiplier - 1) / 2;
 
-    const dim: TrackDimensions = {
-      viewWidth: trackWidth,
-      sideWidth: sidePortion * trackWidth,
-      totalWidth: trackWidth * multiplier,
-    };
-    return dim;
-  },
-  addHighlight: (highlight: Highlight) => {
-    const state = get();
-    const existingHighlight = state.highlights.find((h) => h.id === highlight.id);
-    if (existingHighlight) {
-      return;
-    }
-    set((state) => ({ highlights: [...state.highlights, highlight] }));
-  },
+      const dim: TrackDimensions = {
+        viewWidth: trackWidth,
+        sideWidth: sidePortion * trackWidth,
+        totalWidth: trackWidth * multiplier,
+      };
+      return dim;
+    },
+    addHighlight: (highlight: Highlight) => {
+      const state = get();
+      const existingHighlight = state.highlights.find((h) => h.id === highlight.id);
+      if (existingHighlight) {
+        return;
+      }
+      set((state) => ({ highlights: [...state.highlights, highlight] }));
+    },
     removeHighlight: (id: string) => {
       set((state) => ({ highlights: state.highlights.filter((h) => h.id !== id) }));
     },

@@ -137,7 +137,7 @@ export function buildAllRequests(tracks: Track[], expandedDomain: Domain, curren
     bigRequests: buildBigRequests(tracks, expandedDomain),
     transcriptRequest: buildTranscriptRequest(tracks, expandedDomain),
     motifRequest: buildMotifRequest(tracks, expandedDomain),
-    importanceRequests: buildImportanceRequests(tracks, currentDomain), 
+    importanceRequests: buildImportanceRequests(tracks, currentDomain),
     bulkBedRequests: buildBulkBedRequests(tracks, expandedDomain),
     ldRequest: buildLDRequest(tracks, expandedDomain),
   };

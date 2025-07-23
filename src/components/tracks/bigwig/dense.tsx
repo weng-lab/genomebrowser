@@ -91,7 +91,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
         height={height}
         transform={`translate(${sideWidth}, 0)`}
         fill={"transparent"}
-        onMouseMove={e => {
+        onMouseMove={(e) => {
           if (!svgRef || !svgRef.current || !data || data.length === 0) return;
           const pos = svgPoint(svgRef.current, e.clientX, e.clientY);
           setX(pos[0]);
@@ -107,7 +107,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
         }}
         onMouseOut={() => {
           setX(undefined);
-          handleLeave({ chr: '', start: 0, end: 0, value: 0 });
+          handleLeave({ chr: "", start: 0, end: 0, value: 0 });
         }}
       />
     </g>

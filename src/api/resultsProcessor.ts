@@ -87,7 +87,7 @@ function processMotifResults(
                 start: occurrence.genomic_region.start,
                 end: occurrence.genomic_region.end,
                 pwm: occurrence.motif.pwm,
-              } as MotifRect)
+              }) as MotifRect
           ) || [],
         peaks:
           motifData?.peaks?.peaks?.map(
@@ -95,7 +95,7 @@ function processMotifResults(
               ({
                 start: peak.chrom_start,
                 end: peak.chrom_end,
-              } as MotifRect)
+              }) as MotifRect
           ) || [],
       };
 

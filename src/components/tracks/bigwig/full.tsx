@@ -78,10 +78,13 @@ export default function FullBigWig({
 
     // Generate the main path
     const path =
-      renderPoints.reduce((path, cv, ci) => {
-        const prevY = ci > 0 ? yValues[ci - 1].value : clampY(0);
-        return path + (cv.x ? l(cv.x, prevY) : "") + l(cv.x, yValues[ci].value);
-      }, "M 0 " + clampY(0.0) + " ") + l(totalWidth, clampY(0.0));
+      renderPoints.reduce(
+        (path, cv, ci) => {
+          const prevY = ci > 0 ? yValues[ci - 1].value : clampY(0);
+          return path + (cv.x ? l(cv.x, prevY) : "") + l(cv.x, yValues[ci].value);
+        },
+        "M 0 " + clampY(0.0) + " "
+      ) + l(totalWidth, clampY(0.0));
 
     // Generate clamped markers
     const clampedMarkers = renderPoints

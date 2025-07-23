@@ -6,7 +6,18 @@ import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderDenseBigBedData } from "./helpers";
 import { DenseBigBedProps, Rect } from "./types";
 
-function DenseBigBed({ id, data, height, color, dimensions, verticalPadding = 0.2, onClick, onHover, onLeave, tooltip }: DenseBigBedProps) {
+function DenseBigBed({
+  id,
+  data,
+  height,
+  color,
+  dimensions,
+  verticalPadding = 0.2,
+  onClick,
+  onHover,
+  onLeave,
+  tooltip,
+}: DenseBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
 
