@@ -98,9 +98,9 @@ export function buildImportanceRequests(tracks: Track[], expandedDomain: Domain,
   return [
     {
       url: importanceTrack.url || "",
-      chr1: expandedDomain.chromosome,
-      start: expandedDomain.start,
-      end: expandedDomain.end,
+      chr1: currentDomain.chromosome,
+      start: currentDomain.start,
+      end: currentDomain.end,
     },
     {
       url: importanceTrack.signalURL,
