@@ -69,3 +69,15 @@ export interface MotifRect {
   end: number;
   pwm?: number[][];
 }
+
+export interface MethylCRequest {
+  url: string;
+  chr1: string;
+  start: number;
+  end: number;
+  preRenderedWidth: number;
+}
+
+export interface MethylCResponse {
+  bigRequests: { data: any }[];
+}
