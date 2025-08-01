@@ -9,19 +9,25 @@ const methylCTrack: MethylCConfig = {
   title: "MethylC Track",
   titleSize: 12,
   height: 100,
-  color: "#4287f5",
+  color: "#000000",
+  colors: {
+    cpg: "#648bd8", // rgb(100, 139, 216)
+    chg: "#ff944d", // rgb(255, 148, 77)
+    chh: "#ff00ff", // rgb(255, 0, 255)
+    depth: "#525252", // rgb(82, 82, 82)
+  },
   urls: {
     plusStrand: {
-      cpg: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw", color: "#000000" },
-      chg: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw", color: "#000000" },
-      chh: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw", color: "#000000" },
-      depth: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw", color: "#000000" },
+      cpg: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw" },
+      chg: { url: "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw" },
+      chh: { url: "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw" },
+      depth: { url: "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw" },
     },
     minusStrand: {
-      cpg: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw", color: "#000000" },
-      chg: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw", color: "#000000" },
-      chh: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw", color: "#000000" },
-      depth: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw", color: "#000000" },
+      cpg: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw" },
+      chg: { url: "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw" },
+      chh: { url: "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw" },
+      depth: { url: "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw" },
     },
   },
 };
