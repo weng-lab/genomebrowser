@@ -8,6 +8,7 @@ export interface BigRequest {
   chr1: string;
   start: number;
   end: number;
+  preRenderedWidth?: number;
 }
 
 export interface BigResponse {

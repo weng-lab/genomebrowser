@@ -26,6 +26,9 @@ function DataFetcher() {
   const domain = useBrowserStore((state) => state.domain);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const setDelta = useBrowserStore((state) => state.setDelta);
+  const trackWidth = useBrowserStore((state) => state.trackWidth);
+  const multiplier = useBrowserStore((state) => state.multiplier);
+  const preRenderedWidth = useMemo(() => trackWidth * multiplier, [trackWidth, multiplier]);
 
   const setData = useDataStore((state) => state.setDataById);
   const setLoading = useDataStore((state) => state.setLoading);
@@ -45,7 +48,7 @@ function DataFetcher() {
 
     const fetchAllData = async () => {
       setFetching(true);
-      const requests = buildAllRequests(tracks, getExpandedDomain(), domain);
+      const requests = buildAllRequests(tracks, getExpandedDomain(), domain, preRenderedWidth-1);
 
       const transcriptTrack = tracks.find((track) => track.trackType === TrackType.Transcript);
       if (transcriptTrack && requests.transcriptRequest) {

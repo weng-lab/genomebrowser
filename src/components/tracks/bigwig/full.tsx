@@ -148,7 +148,7 @@ export default function FullBigWig({
           const index = Math.round(xIdx);
           if (index < 0 || index >= data.length) return;
           const point = data[index] as BigWigData;
-          handleHover(point, point.value?.toFixed(2) ?? "", e);
+          handleHover(point, point.value?.toFixed(2) ?? (point as unknown as ValuedPoint).max.toFixed(2) ?? "", e);
         }}
         onMouseOut={() => {
           setX(undefined);

@@ -16,7 +16,7 @@ export interface AllRequests {
 /**
  * Build BigWig/BigBed requests for given tracks
  */
-export function buildBigRequests(tracks: Track[], domain: Domain): BigRequest[] {
+export function buildBigRequests(tracks: Track[], domain: Domain, preRenderedWidth: number): BigRequest[] {
   return tracks
     .filter((track) => track.trackType === TrackType.BigWig || track.trackType === TrackType.BigBed)
     .map((track) => ({
@@ -24,6 +24,7 @@ export function buildBigRequests(tracks: Track[], domain: Domain): BigRequest[] 
       chr1: domain.chromosome,
       start: domain.start,
       end: domain.end,
+      preRenderedWidth,
     }));
 }
 
@@ -132,9 +133,9 @@ export function buildLDRequest(tracks: Track[], domain: Domain): LDRequest | und
 /**
  * Build all requests for all track types in one coordinated call
  */
-export function buildAllRequests(tracks: Track[], expandedDomain: Domain, currentDomain: Domain): AllRequests {
+export function buildAllRequests(tracks: Track[], expandedDomain: Domain, currentDomain: Domain, preRenderedWidth: number): AllRequests {
   return {
-    bigRequests: buildBigRequests(tracks, expandedDomain),
+    bigRequests: buildBigRequests(tracks, expandedDomain, preRenderedWidth),
     transcriptRequest: buildTranscriptRequest(tracks, expandedDomain),
     motifRequest: buildMotifRequest(tracks, expandedDomain),
     importanceRequests: buildImportanceRequests(tracks, currentDomain),
