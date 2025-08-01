@@ -72,11 +72,18 @@ export interface MotifRect {
 }
 
 export interface MethylCRequest {
-  url: string;
-  chr1: string;
-  start: number;
-  end: number;
-  preRenderedWidth: number;
+  plusStrand: {
+    cpgPlus: BigRequest;
+    chgPlus: BigRequest;
+    chhPlus: BigRequest;
+    depthPlus: BigRequest;
+  };
+  minusStrand: {
+    cpgMinus: BigRequest;
+    chgMinus: BigRequest;
+    chhMinus: BigRequest;
+    depthMinus: BigRequest;
+  };
 }
 
 export interface MethylCResponse {

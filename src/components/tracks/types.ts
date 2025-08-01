@@ -14,6 +14,8 @@ export enum DisplayMode {
   Dense = "dense",
   Squish = "squish",
   Pack = "pack",
+  Combined = "combined",
+  Split = "split",
 }
 
 // Interaction configuration for all tracks

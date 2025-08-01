@@ -3,7 +3,7 @@ import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
 import { BigRequest, TranscriptRequest, MotifRequest, LDRequest } from "./apiTypes";
 import { BulkBedConfig } from "../components/tracks/bulkbed/types";
-
+import { MethylCConfig } from "../components/tracks/methylC/types";
 export interface AllRequests {
   bigRequests: BigRequest[];
   transcriptRequest?: TranscriptRequest;
@@ -11,6 +11,7 @@ export interface AllRequests {
   importanceRequests: BigRequest[];
   bulkBedRequests: BigRequest[];
   ldRequest?: LDRequest;
+  methylCRequest?: BigRequest[];
 }
 
 /**
@@ -28,7 +29,7 @@ export function buildBigRequests(tracks: Track[], domain: Domain, preRenderedWid
     }));
 }
 
-/**
+/**`
  * Build BulkBed requests for given tracks
  */
 export function buildBulkBedRequests(tracks: Track[], domain: Domain): BigRequest[] {
@@ -130,10 +131,48 @@ export function buildLDRequest(tracks: Track[], domain: Domain): LDRequest | und
   };
 }
 
+export function buildMethylCRequest(
+  tracks: Track[],
+  domain: Domain,
+  preRenderedWidth: number
+): BigRequest[] | undefined {
+  const methylCTracks = tracks.filter((track) => track.trackType === TrackType.MethylC) as MethylCConfig[];
+  if (methylCTracks.length === 0) return undefined;
+
+  const createRequest = (url: string, domain: Domain, preRenderedWidth: number): BigRequest => {
+    return {
+      url,
+      chr1: domain.chromosome,
+      start: domain.start,
+      end: domain.end,
+      preRenderedWidth,
+    };
+  };
+
+  const requests: BigRequest[] = methylCTracks.flatMap((track) => {
+    return [
+      createRequest(track.urls.plusStrand.cpg.url, domain, preRenderedWidth),
+      createRequest(track.urls.plusStrand.chg.url, domain, preRenderedWidth),
+      createRequest(track.urls.plusStrand.chh.url, domain, preRenderedWidth),
+      createRequest(track.urls.plusStrand.depth.url, domain, preRenderedWidth),
+      createRequest(track.urls.minusStrand.cpg.url, domain, preRenderedWidth),
+      createRequest(track.urls.minusStrand.chg.url, domain, preRenderedWidth),
+      createRequest(track.urls.minusStrand.chh.url, domain, preRenderedWidth),
+      createRequest(track.urls.minusStrand.depth.url, domain, preRenderedWidth),
+    ];
+  });
+  return requests;
+}
+
 /**
  * Build all requests for all track types in one coordinated call
  */
-export function buildAllRequests(tracks: Track[], expandedDomain: Domain, currentDomain: Domain, preRenderedWidth: number): AllRequests {
+export function buildAllRequests(
+  tracks: Track[],
+  expandedDomain: Domain,
+  currentDomain: Domain,
+  preRenderedWidth: number
+): AllRequests {
   return {
     bigRequests: buildBigRequests(tracks, expandedDomain, preRenderedWidth),
     transcriptRequest: buildTranscriptRequest(tracks, expandedDomain),
@@ -141,5 +180,6 @@ export function buildAllRequests(tracks: Track[], expandedDomain: Domain, curren
     importanceRequests: buildImportanceRequests(tracks, currentDomain),
     bulkBedRequests: buildBulkBedRequests(tracks, expandedDomain),
     ldRequest: buildLDRequest(tracks, expandedDomain),
+    methylCRequest: buildMethylCRequest(tracks, expandedDomain, preRenderedWidth),
   };
 }

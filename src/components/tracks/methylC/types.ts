@@ -1,33 +1,36 @@
-import { Config, DisplayMode, TrackType } from "../types";
+import { BigWigData, ValuedPoint } from "../bigwig/types";
+import { Config, DisplayMode, TrackDimensions, TrackType } from "../types";
 
 export interface MethylCConfig extends Config<MethylData> {
   trackType: TrackType.MethylC;
-  url: string;
-  displayMode: DisplayMode.Full;
-  colors: {
-    CpG: string;
-    CHG: string;
-    CHH: string;
-    readDepth: string;
-    noData: string;
-  };
+  displayMode: DisplayMode.Split | DisplayMode.Combined;
+  urls: {
+    plusStrand: {
+      cpg: {url: string, color: string},
+      chg: {url: string, color: string},
+      chh: {url: string, color: string},
+      depth: {url: string, color: string},
+    },
+    minusStrand: {
+      cpg: {url: string, color: string},
+      chg: {url: string, color: string},
+      chh: {url: string, color: string},
+      depth: {url: string, color: string},
+    }
+  }
 }
 
-export type MethylData = unknown;
+export type MethylData = ValuedPoint[][];
 
-export const methylCConfig: MethylCConfig = {
-  trackType: TrackType.MethylC,
-  url: "",
-  displayMode: DisplayMode.Full,
-  id: "",
-  title: "",
-  height: 100,
-  color: "#000000",
-  colors: {
-    CpG: "#000000",
-    CHG: "#000000",
-    CHH: "#000000",
-    readDepth: "#000000",
-    noData: "#000000",
-  },
-};
+export interface MethylCProps {
+  id: string;
+  height: number;
+  color: string;
+  data: MethylData;
+  dimensions: TrackDimensions;
+  tooltip?: React.FC<BigWigData>;
+  onClick?: (item: BigWigData) => void;
+  onHover?: (item: BigWigData) => void;
+  onLeave?: (item: BigWigData) => void;
+}
+

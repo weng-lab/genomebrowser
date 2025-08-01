@@ -3,7 +3,6 @@ import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
 import { BigResponse, TranscriptResponse, MotifResponse, LDResponse, MotifRect } from "./apiTypes";
 import { ImportanceTrackSequence } from "../components/tracks/importance/types";
-import { BulkBedConfig } from "../components/tracks/bulkbed/types";
 
 export interface QueryResults {
   bigData?: BigResponse;
@@ -18,6 +17,8 @@ export interface QueryResults {
   importanceError?: ApolloError;
   bulkBedError?: ApolloError;
   snpError?: ApolloError;
+  methylCData?: BigResponse;
+  methylCError?: ApolloError;
 }
 
 export interface ProcessedResult {
@@ -142,7 +143,7 @@ function processBulkBedResults(
   bulkBedError: ApolloError | undefined
 ): ProcessedResult[] {
   if (!bulkBedData) return [];
-  const bulkBedTracks = tracks.filter((track): track is BulkBedConfig => track.trackType === TrackType.BulkBed);
+  const bulkBedTracks = tracks.filter((track) => track.trackType === TrackType.BulkBed);
 
   if (bulkBedTracks.length === 0) return [];
 
@@ -171,6 +172,27 @@ function processBulkBedResults(
       trackId: track.id,
       data: trackData,
       error: bulkBedError,
+    };
+  });
+}
+
+function processMethylCResults(
+  tracks: Track[],
+  methylCData: BigResponse | undefined,
+  methylCError: ApolloError | undefined
+): ProcessedResult[] {
+  if (!methylCData) return [];
+  const methylCTracks = tracks.filter((track) => track.trackType === TrackType.MethylC);
+  if (methylCTracks.length === 0) return [];
+
+  return methylCTracks.map((track, index) => {
+    const trackData = methylCError
+      ? null
+      : methylCData?.bigRequests?.slice(index * 8, index * 8 + 8)?.map((response) => response?.data) || [];
+    return {
+      trackId: track.id,
+      data: trackData,
+      error: methylCError,
     };
   });
 }
@@ -218,6 +240,6 @@ export function processAllResults(tracks: Track[], results: QueryResults): Proce
   processedResults.push(...processImportanceResults(tracks, results.importanceData, results.importanceError));
   processedResults.push(...processBulkBedResults(tracks, results.bulkBedData, results.bulkBedError));
   processedResults.push(...processLDResults(tracks, results.snpData, results.snpError));
-
+  processedResults.push(...processMethylCResults(tracks, results.methylCData, results.methylCError));
   return processedResults;
 }

@@ -15,6 +15,7 @@ import Importance from "./importance/importance";
 import DenseMotif from "./motif/dense";
 import SquishMotif from "./motif/squish";
 import BulkBed from "./bulkbed/bulkbed";
+import MethylC from "./methylC/methylc";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -72,6 +73,10 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
   },
   [TrackType.BulkBed]: {
     [DisplayMode.Full]: BulkBed,
+  },
+  [TrackType.MethylC]: {
+    [DisplayMode.Combined]: MethylC,
+    [DisplayMode.Split]: MethylC,
   },
 };
 
