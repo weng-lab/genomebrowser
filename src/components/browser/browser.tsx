@@ -17,13 +17,6 @@ import Wrapper from "../tracks/wrapper/wrapper";
 import SVGWrapper from "./svgWrapper";
 import SelectRegion from "../tracks/ruler/selectRegion";
 import Highlights from "../highlight/highlights";
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
-
-const client = new ApolloClient({
-  uri: "https://ga.staging.wenglab.org/graphql",
-  cache: new InMemoryCache(),
-  connectToDevTools: true,
-});
 
 interface BrowserProps {
   browserStore: BrowserStoreInstance;
@@ -56,24 +49,20 @@ export default function Browser({ browserStore, trackStore }: BrowserProps) {
 
   return (
     <BrowserProvider value={contextValue}>
-      <div>
-        <ApolloProvider client={client}>
-          <DataFetcher />
-        </ApolloProvider>
-        <SVGWrapper>
-          <SelectRegion />
-          <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
-            <Ruler />
-          </Wrapper>
-          {trackIds.map((id) => {
-            return <DisplayTrack key={id} id={id} />;
-          })}
-          <Highlights />
-          <Tooltip />
-        </SVGWrapper>
-        <ContextMenu />
-        <Modal />
-      </div>
+      <DataFetcher />
+      <SVGWrapper>
+        <SelectRegion />
+        <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
+          <Ruler />
+        </Wrapper>
+        {trackIds.map((id) => {
+          return <DisplayTrack key={id} id={id} />;
+        })}
+        <Highlights />
+        <Tooltip />
+      </SVGWrapper>
+      <ContextMenu />
+      <Modal />
     </BrowserProvider>
   );
 }
