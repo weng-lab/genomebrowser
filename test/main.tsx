@@ -16,6 +16,7 @@ import {
   InitialBrowserState,
   BrowserStoreInstance,
   Vibrant,
+  GQLWrapper,
 } from "../src/lib";
 import { bigBedExample, bigWigExample, bulkBedExample, motifExample, transcriptExample } from "./tracks";
 
@@ -139,7 +140,9 @@ function Main() {
       <Action browserStore={browserStore} />
       <DomainView browserStore={browserStore} trackStore={trackStore} />
       <div style={{ width: "90%" }}>
-        <Browser browserStore={browserStore} trackStore={trackStore} />
+        <GQLWrapper>
+          <Browser browserStore={browserStore} trackStore={trackStore} />
+        </GQLWrapper>
       </div>
     </div>
   );
