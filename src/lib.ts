@@ -55,3 +55,6 @@ export type { Domain, Chromosome };
 
 import GQLWrapper from "./components/browser/GQLWrapper";
 export { GQLWrapper };
+
+import Cytobands from "./components/cytoband/cytobands";
+export { Cytobands };
