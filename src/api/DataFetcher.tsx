@@ -31,6 +31,10 @@ function DataFetcher() {
   const setLoading = useDataStore((state) => state.setLoading);
   const setFetching = useDataStore((state) => state.setFetching);
 
+  const trackWidth = useBrowserStore((state) => state.trackWidth);
+  const multiplier = useBrowserStore((state) => state.multiplier);
+  const preRenderedWidth = useMemo(() => trackWidth * multiplier, [trackWidth, multiplier]);
+
   const loading = useMemo(() => {
     return bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading;
   }, [bigLoading, geneLoading, motifLoading, importanceLoading, bulkBedLoading, snpLoading]);
@@ -45,7 +49,7 @@ function DataFetcher() {
 
     const fetchAllData = async () => {
       setFetching(true);
-      const requests = buildAllRequests(tracks, getExpandedDomain(), domain);
+      const requests = buildAllRequests(tracks, getExpandedDomain(), domain, preRenderedWidth);
 
       const transcriptTrack = tracks.find((track) => track.trackType === TrackType.Transcript);
       if (transcriptTrack && requests.transcriptRequest) {
@@ -61,16 +65,14 @@ function DataFetcher() {
         fetchSnps,
       });
     };
-
     fetchAllData().catch((error) => {
       console.error("Error fetching data:", error);
     });
-  }, [domain.chromosome, domain.start, domain.end, tracks.length, loading]);
+  }, [domain.chromosome, domain.start, domain.end, tracks.length]);
 
   // Simple results processing using utility function
   useEffect(() => {
     if (loading) return;
-
     const results = processAllResults(tracks, {
       bigData,
       geneData,
@@ -85,12 +87,10 @@ function DataFetcher() {
       bulkBedError,
       snpError,
     });
-
     // Update data store with all processed results
     results.forEach((result) => {
       setData(result.trackId, result.data, result.error);
     });
-
     setDelta(0);
     setLoading(false);
     setFetching(false);
