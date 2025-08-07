@@ -28,7 +28,7 @@ function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: 
     };
   }, [data, height, colors, range]);
 
-  const { mouseState, handleMouseMove, handleMouseOut } = useMouseToIndex(svgRef, totalWidth, marginWidth, sideWidth);
+  const { mouseState, updateMouseState, clearMouseState } = useMouseToIndex(svgRef, totalWidth, marginWidth, sideWidth);
 
   // Line position
   const linePosition = useMemo(() => {
@@ -75,12 +75,12 @@ function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: 
         transform={`translate(${sideWidth}, 0)`}
         fill={"transparent"}
         onMouseMove={(e) => {
-          handleMouseMove(e);
-          handleHover(tooltipValues, "", e);
+          updateMouseState(e);
+          handleHover({ tooltipValues }, "", e);
         }}
         onMouseOut={() => {
-          handleMouseOut();
-          handleLeave(tooltipValues);
+          clearMouseState();
+          handleLeave({ tooltipValues });
         }}
       />
     </g>

@@ -12,7 +12,7 @@ export function useMouseToIndex(
     index: number | null;
   }>({ pos: null, index: null });
 
-  const handleMouseMove = useCallback(
+  const updateMouseState = useCallback(
     (e: React.MouseEvent) => {
       if (!svgRef) return;
       const result = getPosAndIndex(e, svgRef, dataLength, marginWidth);
@@ -21,14 +21,14 @@ export function useMouseToIndex(
     [svgRef, dataLength, marginWidth]
   );
 
-  const handleMouseOut = useCallback(() => {
+  const clearMouseState = useCallback(() => {
     setMouseState({ pos: null, index: null });
   }, []);
 
   return {
     mouseState,
-    handleMouseMove,
-    handleMouseOut,
+    updateMouseState,
+    clearMouseState,
   };
 }
 
