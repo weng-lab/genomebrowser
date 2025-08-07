@@ -2,7 +2,7 @@ import { useState } from "react";
 import { downloadBedRegion, downloadBedGraph, downloadSVG } from "../../../utils/download";
 import { TrackType } from "../../tracks/types";
 import Form from "./form";
-import { getTextColor, isDark, shadeColor } from "../modal";
+import { getTextColor, isDark, shadeColor } from "../helpers";
 import { useBrowserStore } from "../../../store/BrowserContext";
 import { useDataStore } from "../../../store/dataStore";
 import { Track } from "../../../store/trackStore";

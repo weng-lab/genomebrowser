@@ -2,7 +2,7 @@ import { useTrackStore } from "../../../store/BrowserContext";
 import { trackComponents } from "../../tracks/displayTrack";
 import { TrackType } from "../../tracks/types";
 import { DisplayMode as Options } from "../../tracks/types";
-import { getTextColor } from "../modal";
+import { getButtonColors } from "../helpers";
 import Form from "./form";
 
 export default function Display({ id, trackType }: { id: string; trackType: TrackType }) {
@@ -13,15 +13,19 @@ export default function Display({ id, trackType }: { id: string; trackType: Trac
   const color = track?.color;
   const editTrack = useTrackStore((state) => state.editTrack);
 
-  const buttonStyle = (selected: boolean) => ({
-    backgroundColor: selected ? color : "#aaaaaa",
-    color: getTextColor(selected ? color || "#000000" : "#aaaaaa"),
-    marginRight: "5px",
-    padding: "10px",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-  });
+  const buttonStyle = (selected: boolean) => {
+    const trackColor = color || "#000000";
+    const colors = getButtonColors(trackColor, selected);
+    
+    return {
+      ...colors,
+      marginRight: "5px",
+      padding: "10px",
+      border: "none",
+      borderRadius: "5px",
+      cursor: "pointer",
+    };
+  };
 
   const handleButtonClick = (option: Options) => {
     editTrack(id, { displayMode: option });

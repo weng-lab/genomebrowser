@@ -31,7 +31,7 @@ function Main() {
 
   const initialState: InitialBrowserState = {
     // chr12:53,380,037-53,380,206
-    domain: { chromosome: "chr12", start: 53380037 - 1000000, end: 53380206 + 1000000 },
+    domain: { chromosome: "chr12", start: 53380037 - 20000, end: 53380206 + 20000 },
     marginWidth: 100,
     trackWidth: 1400,
     multiplier: 3,
