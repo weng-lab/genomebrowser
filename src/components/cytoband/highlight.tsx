@@ -1,9 +1,7 @@
-import React from "react";
-
 import { CytobandHighlightProps, ShortHighlightProps } from "./types";
 
-const CytobandHighlight: React.FC<CytobandHighlightProps> = (props) =>
-  props.x(props.highlight.end) - props.x(props.highlight.start) < 10 ? (
+export default function CytobandHighlight(props: CytobandHighlightProps) {
+  return props.x(props.highlight.end) - props.x(props.highlight.start) < 10 ? (
     <ShortHighlight highlight={props.highlight} x={props.x} height={props.height} />
   ) : (
     <rect
@@ -17,8 +15,10 @@ const CytobandHighlight: React.FC<CytobandHighlightProps> = (props) =>
       onClick={props.onClick}
     />
   );
+}
 
-const ShortHighlight: React.FC<ShortHighlightProps> = ({ highlight, height, x }) => {
+function ShortHighlight(props: ShortHighlightProps) {
+  const { highlight, height, x } = props;
   const PATH1 = `M ${x(highlight.start) - 5} 0 L ${x(highlight.start)} ${height * 0.2} L ${x(highlight.start) + 5} 0`;
   const PATH2 = `M ${x(highlight.start) - 5} ${height} L ${x(highlight.start)} ${height * 0.8} L ${x(highlight.start) + 5} ${height}`;
   return (
@@ -27,6 +27,4 @@ const ShortHighlight: React.FC<ShortHighlightProps> = ({ highlight, height, x })
       <path d={PATH2} stroke={highlight.color || "#ff0000"} strokeWidth={3} fill="none" />
     </>
   );
-};
-
-export default CytobandHighlight;
+}

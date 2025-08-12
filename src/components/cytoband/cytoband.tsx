@@ -1,4 +1,3 @@
-import React from "react";
 import { lighten } from "../../utils/color";
 import { CytobandColors, CytobandProps } from "./types";
 
@@ -8,7 +7,7 @@ const COLOR_MAP: Map<string, (c: CytobandColors) => string> = new Map([
   ["gneg", (c: CytobandColors) => lighten(c.default, 0.9)],
 ]);
 
-const Cytoband: React.FC<CytobandProps> = (props) => {
+export default function Cytoband(props: CytobandProps) {
   const color =
     props.type.slice(0, 4) === "gpos"
       ? lighten(props.colors.default, 1.0 - +props.type.replace(/gpos/g, "") / 100.0)
@@ -23,5 +22,4 @@ const Cytoband: React.FC<CytobandProps> = (props) => {
       fillOpacity={props.opacity}
     />
   );
-};
-export default Cytoband;
+}
