@@ -1,4 +1,3 @@
-import React from "react";
 import { CentromereProps } from "./types";
 
 function centromerePath(x: number, width: number, height: number, opening: boolean): string {
@@ -7,7 +6,6 @@ function centromerePath(x: number, width: number, height: number, opening: boole
     : `M ${x + width} ${height * 0.1} L ${x} ${height / 2} L ${x + width} ${height * 0.9}`;
 }
 
-const Centromere: React.FC<CentromereProps> = (props) => (
-  <path d={centromerePath(props.x, props.width, props.height, props.opening)} fill={props.color} />
-);
-export default Centromere;
+export default function Centromere(props: CentromereProps) {
+  return <path d={centromerePath(props.x, props.width, props.height, props.opening)} fill={props.color} />;
+}
