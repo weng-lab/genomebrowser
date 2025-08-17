@@ -21,7 +21,7 @@
   "dependencies": {
     "@apollo/client": "^3.11.10",
     "graphql": "^16.9.0",
-    "logo-test": "^0.0.4",
+    "logo-test": "^0.0.5",
     "react-colorful": "^5.6.1",
     "react-draggable": "^4.4.6",
     "zustand": "^5.0.3"
@@ -34,8 +34,6 @@
     "@chromatic-com/storybook": "^4.0.0",
     "@eslint/js": "^9.22.0",
     "@storybook/addon-a11y": "9.0.4",
-    "@storybook/addon-docs": "9.0.4",
-    "@storybook/addon-onboarding": "9.0.4",
     "@storybook/addon-vitest": "9.0.4",
     "@storybook/react-vite": "9.0.4",
     "@types/node": "^24.0.0",
