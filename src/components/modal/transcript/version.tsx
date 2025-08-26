@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Form from "../shared/form";
 import { TranscriptConfig } from "../../tracks/transcript/types";
-import { getTextColor } from "../modal";
+import { getButtonColors } from "../helpers";
 import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 
 export enum TranscriptHumanVersion {
@@ -36,15 +36,19 @@ export default function TranscriptForm({ track }: { track: TranscriptConfig }) {
     });
   };
 
-  const buttonStyle = (selected: boolean) => ({
-    backgroundColor: selected ? track.color : "#aaaaaa",
-    color: getTextColor(selected ? track.color || "#000000" : "#aaaaaa"),
-    marginRight: "5px",
-    padding: "10px",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-  });
+  const buttonStyle = (selected: boolean) => {
+    const trackColor = track.color || "#000000";
+    const colors = getButtonColors(trackColor, selected);
+    
+    return {
+      ...colors,
+      marginRight: "5px",
+      padding: "10px",
+      border: "none",
+      borderRadius: "5px",
+      cursor: "pointer",
+    };
+  };
 
   const humanAssembly = track.assembly.toLowerCase() === "grch38";
   return (

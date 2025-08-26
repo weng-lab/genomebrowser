@@ -28,13 +28,14 @@ function DataFetcher() {
   const domain = useBrowserStore((state) => state.domain);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const setDelta = useBrowserStore((state) => state.setDelta);
-  const trackWidth = useBrowserStore((state) => state.trackWidth);
-  const multiplier = useBrowserStore((state) => state.multiplier);
-  const preRenderedWidth = useMemo(() => trackWidth * multiplier, [trackWidth, multiplier]);
 
   const setData = useDataStore((state) => state.setDataById);
   const setLoading = useDataStore((state) => state.setLoading);
   const setFetching = useDataStore((state) => state.setFetching);
+
+  const trackWidth = useBrowserStore((state) => state.trackWidth);
+  const multiplier = useBrowserStore((state) => state.multiplier);
+  const preRenderedWidth = useMemo(() => trackWidth * multiplier, [trackWidth, multiplier]);
 
   const loading = useMemo(() => {
     return (
@@ -69,16 +70,14 @@ function DataFetcher() {
         fetchMethylC,
       });
     };
-
     fetchAllData().catch((error) => {
       console.error("Error fetching data:", error);
     });
-  }, [domain.chromosome, domain.start, domain.end, tracks.length, loading]);
+  }, [domain.chromosome, domain.start, domain.end, tracks.length]);
 
   // Simple results processing using utility function
   useEffect(() => {
     if (loading) return;
-
     const results = processAllResults(tracks, {
       bigData,
       geneData,
@@ -95,12 +94,10 @@ function DataFetcher() {
       methylCError,
       methylCData,
     });
-
     // Update data store with all processed results
     results.forEach((result) => {
       setData(result.trackId, result.data, result.error);
     });
-
     setDelta(0);
     setLoading(false);
     setFetching(false);

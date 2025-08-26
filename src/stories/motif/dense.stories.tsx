@@ -4,7 +4,6 @@ import DenseMotif from "../../components/tracks/motif/dense";
 const meta: Meta<typeof DenseMotif> = {
   title: "Motif/Dense",
   component: DenseMotif,
-  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <svg width={1000}>

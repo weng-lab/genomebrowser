@@ -51,7 +51,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
     const renderPoints = rendered.renderPoints.filter((v) => v.min < Infinity && v.max > -Infinity);
     return renderPoints.map((point) => {
       const yValue = y(point.max);
-      return lighten(color, yValue / 2);
+      return lighten(color, yValue / 1.25);
     });
   }, [color, rendered, range]);
 
@@ -103,7 +103,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
           const index = Math.round(xIdx);
           if (index < 0 || index >= data.length) return;
           const point = data[index] as BigWigData;
-          handleHover(point, point.value?.toFixed(2) ?? "", e);
+          handleHover(point, point.value?.toFixed(2) ?? (point as unknown as ValuedPoint).max?.toFixed(2) ?? "", e);
         }}
         onMouseOut={() => {
           setX(undefined);

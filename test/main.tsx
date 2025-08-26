@@ -16,6 +16,8 @@ import {
   InitialBrowserState,
   BrowserStoreInstance,
   Vibrant,
+  Cytobands,
+  GQLWrapper,
 } from "../src/lib";
 import { bigBedExample, bigWigExample, bulkBedExample, motifExample, transcriptExample } from "./tracks";
 
@@ -139,7 +141,9 @@ function Main() {
       <Action browserStore={browserStore} />
       <DomainView browserStore={browserStore} trackStore={trackStore} />
       <div style={{ width: "90%" }}>
-        <Browser browserStore={browserStore} trackStore={trackStore} />
+        <GQLWrapper>
+          <Browser browserStore={browserStore} trackStore={trackStore} />
+        </GQLWrapper>
       </div>
     </div>
   );
@@ -179,6 +183,11 @@ function DomainView({
 
   return (
     <div>
+      <svg width={700} height={20}>
+        <GQLWrapper>
+          <Cytobands assembly="hg38" currentDomain={domain} />
+        </GQLWrapper>
+      </svg>
       <div>{name}</div>
       <div>
         {domain.chromosome}:{domain.start}-{domain.end}
@@ -191,7 +200,7 @@ function Action({ browserStore }: { browserStore: BrowserStoreInstance }) {
   const setDomain = browserStore((state) => state.setDomain);
 
   const onClick = () => {
-    setDomain({ chromosome: "chr18", start: 35500000, end: 35502000 });
+    setDomain({ chromosome: "chr18", start: 32300000, end: 38702000 });
   };
 
   return <button onClick={onClick}>Click for action</button>;

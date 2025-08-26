@@ -5,7 +5,6 @@ import { BigWigData } from "../../components/tracks/bigwig/types";
 const meta: Meta<typeof FullBigWig> = {
   title: "BigWig/Full",
   component: FullBigWig,
-  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <svg width={1000}>
