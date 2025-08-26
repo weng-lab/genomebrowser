@@ -4,7 +4,6 @@ import SquishMotif from "../../components/tracks/motif/squish";
 const meta: Meta<typeof SquishMotif> = {
   title: "Motif/Squish",
   component: SquishMotif,
-  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <svg width={1000}>
