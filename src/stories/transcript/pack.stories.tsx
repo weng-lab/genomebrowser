@@ -5,7 +5,6 @@ import { TranscriptList } from "../../components/tracks/transcript/types";
 const meta: Meta<typeof PackTranscript> = {
   title: "Transcript/Pack",
   component: PackTranscript,
-  tags: ["autodocs"],
   decorators: [
     (Story) => {
       return (

@@ -5,7 +5,6 @@ import { Rect } from "../../components/tracks/bigbed/types";
 const meta: Meta<typeof SquishBigBed> = {
   title: "BigBed/Squish",
   component: SquishBigBed,
-  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <svg width={1000}>

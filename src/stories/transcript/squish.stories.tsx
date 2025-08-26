@@ -5,7 +5,6 @@ import { TranscriptList } from "../../components/tracks/transcript/types";
 const meta: Meta<typeof SquishTranscript> = {
   title: "Transcript/Squish",
   component: SquishTranscript,
-  tags: ["autodocs"],
   decorators: [
     (Story) => {
       return (

@@ -5,7 +5,6 @@ import { Rect } from "../../components/tracks/bigbed/types";
 const meta: Meta<typeof DenseBigBed> = {
   title: "BigBed/Dense",
   component: DenseBigBed,
-  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <svg width={1000}>

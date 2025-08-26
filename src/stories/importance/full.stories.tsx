@@ -5,7 +5,6 @@ import { ImportanceTrackSequence } from "../../components/tracks/importance/type
 const meta: Meta<typeof Importance> = {
   title: "Importance/Full",
   component: Importance,
-  tags: ["autodocs"],
   decorators: [
     (Story) => (
       <svg width={1000}>
