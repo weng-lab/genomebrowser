@@ -56,7 +56,7 @@ export function generateLineGraph(
 function validateAndNormalizeData(data: ValuedPoint[], customRange?: YRange) {
   if (!data || data.length === 0) return null;
 
-  const range = customRange || { min: 0, max: getMaxValue(data) };
+  const range = customRange || { min: getMinValue(data), max: getMaxValue(data) };
   const rangeSize = range.max - range.min;
   if (rangeSize <= 0) return null;
 
@@ -77,4 +77,8 @@ function normalizePoint(point: ValuedPoint, range: YRange, rangeSize: number, he
 // Helper function to calculate max value for scaling
 function getMaxValue(data: ValuedPoint[]): number {
   return Math.max(...data.map((point) => point.max));
+}
+
+function getMinValue(data: ValuedPoint[]): number {
+  return Math.min(...data.map((point) => point.min));
 }

@@ -4,7 +4,6 @@ import { useBrowserStore, useDataStore, useTrackStore } from "../../store/Browse
 import { Track } from "../../store/trackStore";
 import DenseBigBed from "./bigbed/dense";
 import DenseBigWig from "./bigwig/dense";
-import FullBigWig from "./bigwig/full";
 import { DisplayMode, TrackDimensions, TrackType } from "./types";
 import Wrapper from "./wrapper/wrapper";
 import SquishBigBed from "./bigbed/squish";
@@ -17,6 +16,8 @@ import SquishMotif from "./motif/squish";
 import BulkBed from "./bulkbed/bulkbed";
 import SplitMethylC from "./methylC/split";
 import CombinedMethylC from "./methylC/combined";
+import ReworkBigWig from "./bigwig/rework";
+import FullBigWig from "./bigwig/full";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -52,7 +53,7 @@ export default function DisplayTrack({ id }: { id: string }) {
 export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, React.ComponentType<any>>>> = {
   [TrackType.BigWig]: {
     [DisplayMode.Full]: FullBigWig,
-    [DisplayMode.Dense]: DenseBigWig,
+    [DisplayMode.Dense]: ReworkBigWig,
   },
   [TrackType.BigBed]: {
     [DisplayMode.Dense]: DenseBigBed,

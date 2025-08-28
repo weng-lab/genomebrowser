@@ -13,17 +13,17 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
   const background = useTheme((state) => state.background);
 
   const forwardData = {
-    depth: tooltipValues[3]?.max || 0,
-    cg: tooltipValues[0]?.max || 0,
-    chg: tooltipValues[1]?.max || 0,
-    chh: tooltipValues[2]?.max || 0,
+    depth: tooltipValues[3]?.max || -1,
+    cg: tooltipValues[0]?.max || -1,
+    chg: tooltipValues[1]?.max || -1,
+    chh: tooltipValues[2]?.max || -1,
   };
 
   const reverseData = {
-    depth: tooltipValues[7]?.max || 0,
-    cg: tooltipValues[4]?.max || 0,
-    chg: tooltipValues[5]?.max || 0,
-    chh: tooltipValues[6]?.max || 0,
+    depth: tooltipValues[7]?.max || -1,
+    cg: tooltipValues[4]?.max || -1,
+    chg: tooltipValues[5]?.max || -1,
+    chh: tooltipValues[6]?.max || -1,
   };
 
   const rowHeight = 20;
@@ -47,7 +47,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           Depth
         </text>
         <text x={labelWidth + 10} y={rowHeight + 15} fill={text} fontSize="12">
-          {Math.round(forwardData.depth)}
+          {forwardData.depth === -1 ? "N/A" : Math.round(forwardData.depth)}
         </text>
 
         {/* Forward CG */}
@@ -56,7 +56,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CG
         </text>
         <text x={labelWidth + 10} y={rowHeight * 2 + 15} fill={text} fontSize="12">
-          {forwardData.cg.toFixed(2)}
+          {forwardData.cg === -1 ? "N/A" : forwardData.cg.toFixed(2)}
         </text>
 
         {/* Forward CHG */}
@@ -65,7 +65,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CHG
         </text>
         <text x={labelWidth + 10} y={rowHeight * 3 + 15} fill={text} fontSize="12">
-          {forwardData.chg.toFixed(2)}
+          {forwardData.chg === -1 ? "N/A" : forwardData.chg.toFixed(2)}
         </text>
 
         {/* Forward CHH */}
@@ -74,7 +74,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CHH
         </text>
         <text x={labelWidth + 10} y={rowHeight * 4 + 15} fill={text} fontSize="12">
-          {forwardData.chh.toFixed(2)}
+          {forwardData.chh === -1 ? "N/A" : forwardData.chh.toFixed(2)}
         </text>
 
         {/* Reverse section header */}
@@ -88,7 +88,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           Depth
         </text>
         <text x={labelWidth + 10} y={rowHeight * 6 + 23} fill={text} fontSize="12">
-          {Math.round(reverseData.depth)}
+          {reverseData.depth === -1 ? "N/A" : Math.round(reverseData.depth)}
         </text>
 
         {/* Reverse CG */}
@@ -97,7 +97,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CG
         </text>
         <text x={labelWidth + 10} y={rowHeight * 7 + 23} fill={text} fontSize="12">
-          {reverseData.cg.toFixed(2)}
+          {reverseData.cg === -1 ? "N/A" : reverseData.cg.toFixed(2)}
         </text>
 
         {/* Reverse CHG */}
@@ -106,7 +106,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CHG
         </text>
         <text x={labelWidth + 10} y={rowHeight * 8 + 23} fill={text} fontSize="12">
-          {reverseData.chg.toFixed(2)}
+          {reverseData.chg === -1 ? "N/A" : reverseData.chg.toFixed(2)}
         </text>
 
         {/* Reverse CHH */}
@@ -115,7 +115,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CHH
         </text>
         <text x={labelWidth + 10} y={rowHeight * 9 + 23} fill={text} fontSize="12">
-          {reverseData.chh.toFixed(2)}
+          {reverseData.chh === -1 ? "N/A" : reverseData.chh.toFixed(2)}
         </text>
       </g>
     </g>
