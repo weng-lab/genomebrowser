@@ -66,6 +66,10 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
   );
 }
 
+/**
+ * Draw to the point's position, at the zeroPoint, then draw up to it's value, over 1 pixel, then back down.
+ * Drawing to the zeroPoint is necessart to ensure proper rendering of null values.
+ */
 function generateSignal(data: ValuedPoint[], height: number, color: string, range?: YRange) {
   const dataRange = {
     min: data.map((point) => point.min).reduce((a, b) => Math.min(a, b), Infinity),
@@ -81,8 +85,10 @@ function generateSignal(data: ValuedPoint[], height: number, color: string, rang
     const minY = linearScale(point.min, currentRange, { min: 0, max: height });
     const maxY = linearScale(point.max, currentRange, { min: 0, max: height });
 
-    minPath += l(point.x, height - minY) + l(point.x + 1, height - minY) + l(point.x + 1, zeroPoint);
-    maxPath += l(point.x, height - maxY) + l(point.x + 1, height - maxY) + l(point.x + 1, zeroPoint);
+    minPath +=
+      l(point.x, zeroPoint) + l(point.x, height - minY) + l(point.x + 1, height - minY) + l(point.x + 1, zeroPoint);
+    maxPath +=
+      l(point.x, zeroPoint) + l(point.x, height - maxY) + l(point.x + 1, height - maxY) + l(point.x + 1, zeroPoint);
   });
 
   return (

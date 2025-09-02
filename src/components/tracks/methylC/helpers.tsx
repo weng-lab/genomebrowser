@@ -1,3 +1,4 @@
+import { lighten } from "../../../utils/color";
 import { m, l } from "../../../utils/svg";
 import { ValuedPoint, YRange } from "../bigwig/types";
 
@@ -14,16 +15,34 @@ export function generateSignal(
   const { range, rangeSize } = validation;
   const startY = inverted ? 0 : height;
   let pathString = m(0, startY);
+  let grayPathString = m(0, startY);
 
   data.forEach((point) => {
     const normalized = normalizePoint(point, range, rangeSize, height, inverted);
     const returnY = inverted ? 0 : height;
 
     // Draw to bar height, across 1 pixel, then back to baseline
-    pathString += l(normalized.x, normalized.y) + l(normalized.x + 1, normalized.y) + l(normalized.x + 1, returnY);
+    if (point.max !== null || point.min !== null) {
+      // Draw a gray bar for null values
+      grayPathString +=
+        l(normalized.x, returnY) +
+        l(normalized.x, inverted ? height : 0) +
+        l(normalized.x + 1, inverted ? height : 0) +
+        l(normalized.x + 1, returnY);
+    }
+    pathString +=
+      l(normalized.x, returnY) +
+      l(normalized.x, normalized.y) +
+      l(normalized.x + 1, normalized.y) +
+      l(normalized.x + 1, returnY);
   });
 
-  return <path d={pathString} fill={color} />;
+  return (
+    <>
+      <path d={grayPathString} fill={lighten(color, 0.5)} fillOpacity={0.2} />
+      <path d={pathString} fill={color} />
+    </>
+  );
 }
 
 export function generateLineGraph(
