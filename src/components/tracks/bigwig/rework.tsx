@@ -48,12 +48,18 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
         onMouseMove={(e) => {
           updateMouseState(e);
           if (mouseState.index === null) return;
-          const max = (data[mouseState.index] as ValuedPoint).max.toFixed(2);
-          handleHover(max, String(max), e);
+          const max = (data[mouseState.index] as ValuedPoint).max;
+          const min = (data[mouseState.index] as ValuedPoint).min;
+          if (!max || !min) return;
+          if (max === min) {
+            handleHover(max, String(max.toFixed(2)), e);
+            return;
+          }
+          handleHover(max, "max: " + String(max.toFixed(2)) + " min: " + String(min.toFixed(2)), e);
         }}
         onMouseOut={() => {
           clearMouseState();
-          handleLeave({ tooltipValues: "" });
+          handleLeave({});
         }}
       />
     </g>
