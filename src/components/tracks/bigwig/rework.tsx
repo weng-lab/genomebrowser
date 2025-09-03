@@ -12,6 +12,10 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
   const svgRef = useBrowserStore((state) => state.svgRef);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
 
+  const hasNegatives = useMemo(() => {
+    return data.some((point) => (point as ValuedPoint).min < 0);
+  }, [data]);
+
   const signals = useMemo(() => {
     return generateSignal(data as ValuedPoint[], height, color, customRange);
   }, [data, height, color, customRange]);
@@ -51,7 +55,7 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
           const max = (data[mouseState.index] as ValuedPoint).max;
           const min = (data[mouseState.index] as ValuedPoint).min;
           if (!max || !min) return;
-          if (max === min) {
+          if (max === min || !hasNegatives) {
             handleHover(max, String(max.toFixed(2)), e);
             return;
           }

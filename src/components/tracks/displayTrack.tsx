@@ -17,7 +17,6 @@ import BulkBed from "./bulkbed/bulkbed";
 import SplitMethylC from "./methylC/split";
 import CombinedMethylC from "./methylC/combined";
 import ReworkBigWig from "./bigwig/rework";
-import FullBigWig from "./bigwig/full";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -52,8 +51,8 @@ export default function DisplayTrack({ id }: { id: string }) {
 
 export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, React.ComponentType<any>>>> = {
   [TrackType.BigWig]: {
-    [DisplayMode.Full]: FullBigWig,
-    [DisplayMode.Dense]: ReworkBigWig,
+    [DisplayMode.Full]: ReworkBigWig,
+    [DisplayMode.Dense]: DenseBigWig,
   },
   [TrackType.BigBed]: {
     [DisplayMode.Dense]: DenseBigBed,

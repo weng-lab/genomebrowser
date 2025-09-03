@@ -11,6 +11,7 @@ import {
   BigWigConfig,
 } from "../src/lib";
 import { createRoot } from "react-dom/client";
+import { transcriptExample } from "./tracks";
 
 const methylCTrack: MethylCConfig = {
   id: "methylC",
@@ -50,7 +51,7 @@ const bigWig: BigWigConfig = {
   titleSize: 12,
   height: 100,
   color: "#000000",
-  url: "https://users.wenglab.org/mezaj/EB100001/EB100001_cpg_pos.bw",
+  url: "https://users.wenglab.org/sheddn/igSCREEN_RNA/ENCSR033XWU-CD4_Tcells.bw",
 };
 
 const phyloP: BigWigConfig = {
@@ -67,13 +68,13 @@ const phyloP: BigWigConfig = {
 
 export default function MethylCTest() {
   const browserStore = createBrowserStore({
-    domain: { chromosome: "chr12", start: 53380037 - 20000, end: 53380206 + 20000 },
+    domain: { chromosome: "chr12", start: 6768869 - 20000, end: 6819793 + 20000 },
     marginWidth: 100,
     trackWidth: 1400,
     multiplier: 3,
   });
 
-  const trackStore = createTrackStore([methylCTrack, bigWig, phyloP]);
+  const trackStore = createTrackStore([transcriptExample, methylCTrack, bigWig, phyloP]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
