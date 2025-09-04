@@ -1,6 +1,6 @@
 import { Meta, StoryObj } from "@storybook/react-vite";
 import DenseBigWig from "../../components/tracks/bigwig/dense";
-import { BigWigData } from "../../components/tracks/bigwig/types";
+import { ValuedPoint } from "../../components/tracks/bigwig/types";
 
 const meta: Meta<typeof DenseBigWig> = {
   title: "BigWig/Dense",
@@ -16,14 +16,13 @@ const meta: Meta<typeof DenseBigWig> = {
 export default meta;
 type Story = StoryObj<typeof DenseBigWig>;
 
-const TEST_DATA: BigWigData[] = (() => {
-  const results: BigWigData[] = [];
+const TEST_DATA: ValuedPoint[] = (() => {
+  const results: ValuedPoint[] = [];
   for (let i = 0; i < 1000; ++i) {
     results.push({
-      start: i,
-      end: i + 1,
-      chr: "",
-      value: Math.sin((i * 2.0 * Math.PI) / 100.0),
+      x: i,
+      min: Math.sin((i * 2.0 * Math.PI) / 100.0),
+      max: Math.sin((i * 2.0 * Math.PI) / 100.0),
     });
   }
   return results;

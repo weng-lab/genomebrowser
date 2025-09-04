@@ -15,7 +15,6 @@ import DenseMotif from "./motif/dense";
 import SquishMotif from "./motif/squish";
 import BulkBed from "./bulkbed/bulkbed";
 import SplitMethylC from "./methylC/split";
-import CombinedMethylC from "./methylC/combined";
 import ReworkBigWig from "./bigwig/rework";
 
 export default function DisplayTrack({ id }: { id: string }) {

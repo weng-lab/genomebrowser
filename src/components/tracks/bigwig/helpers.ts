@@ -14,10 +14,10 @@ export const getRange = (data: Data): YRange => {
   if (!data.length) return { min: 0, max: 0 };
 
   switch (dataType(data)) {
-    case DataType.BigWigData:
-      return calculateRange(data as BigWigData[], (d) => d.value);
-    case DataType.BigZoomData:
-      return calculateRange(data as BigZoomData[], (d) => d.maxVal);
+    // case DataType.BigWigData:
+    //   return calculateRange(data as BigWigData[], (d) => d.value);
+    // case DataType.BigZoomData:
+    //   return calculateRange(data as BigZoomData[], (d) => d.maxVal);
     case DataType.ValuedPoint:
       return calculateRange(data as ValuedPoint[], (d) => d.max);
     default:
@@ -140,12 +140,12 @@ export const renderDense = (data: ValuedPoint[]) => {
  * @returns a shallow copy of the data
  */
 export function createCopy(data: Data | undefined): Data {
-  if (dataType(data) === DataType.BigWigData) {
-    return (data as BigWigData[]).map((a) => ({ ...a })) as BigWigData[];
-  } else if (dataType(data) === DataType.BigZoomData) {
-    return (data as BigZoomData[]).map((a) => ({ ...a })) as BigZoomData[];
-  } else if (dataType(data) === DataType.ValuedPoint) {
-    return (data as ValuedPoint[]).map((a) => ({ ...a })) as ValuedPoint[];
-  }
-  return [];
+  // if (dataType(data) === DataType.BigWigData) {
+  //   return (data as BigWigData[]).map((a) => ({ ...a })) as BigWigData[];
+  // } else if (dataType(data) === DataType.BigZoomData) {
+  //   return (data as BigZoomData[]).map((a) => ({ ...a })) as BigZoomData[];
+  // } else if (dataType(data) === DataType.ValuedPoint) {
+  return (data as ValuedPoint[]).map((a) => ({ ...a })) as ValuedPoint[];
+  // }
+  // return [];
 }

@@ -2,18 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 
-import {
-  BigWigData,
-  BigZoomData,
-  ValuedPoint,
-  dataType,
-  DataType,
-  Paths,
-  RenderedBigWigData,
-  FullBigWigProps,
-} from "./types";
+import { ValuedPoint, Paths, RenderedBigWigData, FullBigWigProps } from "./types";
 
-import { createCopy, getRange, renderBigWig, ytransform } from "./helpers";
+import { createCopy, getRange, ytransform } from "./helpers";
 import { svgPoint, l } from "../../../utils/svg";
 import { BigWigConfig } from "./types";
 import { useTheme } from "../../../store/themeStore";
