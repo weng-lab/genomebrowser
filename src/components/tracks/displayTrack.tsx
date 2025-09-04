@@ -43,8 +43,8 @@ export default function DisplayTrack({ id }: { id: string }) {
   );
 
   return (
-    <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data}>
-      {!error && trackComponent}
+    <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data || data.data.length === 0}>
+      {trackComponent}
     </Wrapper>
   );
 }
@@ -76,7 +76,7 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
     [DisplayMode.Full]: BulkBed,
   },
   [TrackType.MethylC]: {
-    [DisplayMode.Combined]: CombinedMethylC,
+    // [DisplayMode.Combined]: CombinedMethylC,
     [DisplayMode.Split]: SplitMethylC,
   },
 };

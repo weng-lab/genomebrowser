@@ -81,7 +81,6 @@ function DataFetcher() {
     const results = processAllResults(tracks, {
       bigData,
       geneData,
-      motifData,
       importanceData,
       bulkBedData,
       snpData,
@@ -93,6 +92,7 @@ function DataFetcher() {
       bulkBedError,
       snpError,
       methylCError,
+      motifData,
     });
     // Update data store with all processed results
     results.forEach((result) => {
