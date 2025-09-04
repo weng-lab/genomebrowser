@@ -27,13 +27,10 @@ export default function SquishTranscript({
 }: SquishTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
-  const fontSize = 12;
+  const fontSize = 10;
 
-  const grouped = useMemo(
-    () => groupFeatures(data?.map((gene) => mergeTranscripts(gene, geneName)) || [], x, fontSize),
-    [data, x, geneName]
-  );
-
+  const merged = useMemo(() => data?.map((gene) => mergeTranscripts(gene, geneName)), [data, geneName]);
+  const grouped = useMemo(() => groupFeatures(merged, x, fontSize), [merged, x, fontSize]);
   const rowHeight = useRowHeight(grouped.length, id);
 
   const rendered: TranscriptRow[] = useMemo(
@@ -42,7 +39,7 @@ export default function SquishTranscript({
         y: i * rowHeight,
         transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, totalWidth)),
       })),
-    [grouped, rowHeight, totalWidth, x, geneName]
+    [grouped, rowHeight, totalWidth, x]
   );
 
   const background = useTheme((state) => state.background);
@@ -58,7 +55,7 @@ export default function SquishTranscript({
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth},0)`}>
       <rect width={totalWidth} height={height} fill={background} />
       <defs>
-        <ClipPath id={id} width={totalWidth} height={rendered.length * rowHeight} />
+        <ClipPath id={id} width={totalWidth} height={grouped.length * rowHeight} />
       </defs>
       {rendered.map((group, k) => (
         <g

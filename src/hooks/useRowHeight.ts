@@ -10,5 +10,5 @@ export function useRowHeight(rowCount: number, id: string, rowHeight: number = 1
     editTrack<BigBedConfig>(id, { height: newHeight });
   }, [rowHeight, id, editTrack, rowCount]);
 
-  return rowHeight + 2;
+  return rowHeight;
 }
