@@ -7,6 +7,7 @@ import { MotifConfig } from "../components/tracks/motif/types";
 import { ImportanceConfig } from "../components/tracks/importance/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { RULER_HEIGHT } from "../components/tracks/ruler/ruler";
+import { MethylCConfig } from "../components/tracks/methylC/types";
 
 type WrapperDimensions = {
   trackMargin: number;
@@ -22,7 +23,8 @@ export type Track =
   | TranscriptConfig
   | MotifConfig
   | ImportanceConfig
-  | LDTrackConfig;
+  | LDTrackConfig
+  | MethylCConfig;
 
 export interface TrackStore {
   tracks: Track[];

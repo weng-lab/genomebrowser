@@ -8,7 +8,6 @@ export interface BulkBedDataset {
 export interface BulkBedConfig extends Config<BulkBedRect> {
   trackType: TrackType.BulkBed;
   datasets: BulkBedDataset[];
-  urls?: string[]; // Legacy support - will be converted to datasets internally
   gap?: number; // Gap between instances
 }
 

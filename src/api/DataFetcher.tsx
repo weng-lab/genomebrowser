@@ -20,6 +20,8 @@ function DataFetcher() {
   const [fetchBulkBed, { data: bulkBedData, loading: bulkBedLoading, error: bulkBedError }] =
     useLazyQuery(BIGDATA_QUERY);
   const [fetchSnps, { data: snpData, loading: snpLoading, error: snpError }] = useLazyQuery(gql(VARIANT_QUERY));
+  const [fetchMethylC, { data: methylCData, loading: methylCLoading, error: methylCError }] =
+    useLazyQuery(BIGDATA_QUERY);
 
   const tracks = useTrackStore((state) => state.tracks);
   const editTrack = useTrackStore((state) => state.editTrack);
@@ -36,8 +38,10 @@ function DataFetcher() {
   const preRenderedWidth = useMemo(() => trackWidth * multiplier, [trackWidth, multiplier]);
 
   const loading = useMemo(() => {
-    return bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading;
-  }, [bigLoading, geneLoading, motifLoading, importanceLoading, bulkBedLoading, snpLoading]);
+    return (
+      bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading || methylCLoading
+    );
+  }, [bigLoading, geneLoading, motifLoading, importanceLoading, bulkBedLoading, snpLoading, methylCLoading]);
 
   useEffect(() => {
     if (tracks.length === 0) return;
@@ -49,7 +53,7 @@ function DataFetcher() {
 
     const fetchAllData = async () => {
       setFetching(true);
-      const requests = buildAllRequests(tracks, getExpandedDomain(), domain, preRenderedWidth);
+      const requests = buildAllRequests(tracks, getExpandedDomain(), domain, preRenderedWidth - 1);
 
       const transcriptTrack = tracks.find((track) => track.trackType === TrackType.Transcript);
       if (transcriptTrack && requests.transcriptRequest) {
@@ -63,6 +67,7 @@ function DataFetcher() {
         fetchImportance,
         fetchBulkBed,
         fetchSnps,
+        fetchMethylC,
       });
     };
     fetchAllData().catch((error) => {
@@ -76,16 +81,18 @@ function DataFetcher() {
     const results = processAllResults(tracks, {
       bigData,
       geneData,
-      motifData,
       importanceData,
       bulkBedData,
       snpData,
+      methylCData,
       bigError,
       geneError,
       motifError,
       importanceError,
       bulkBedError,
       snpError,
+      methylCError,
+      motifData,
     });
     // Update data store with all processed results
     results.forEach((result) => {
@@ -101,12 +108,14 @@ function DataFetcher() {
     importanceData,
     bulkBedData,
     snpData,
+    methylCData,
     bigError,
     geneError,
     motifError,
     importanceError,
     bulkBedError,
     snpError,
+    methylCError,
     loading,
     setData,
     setDelta,

@@ -3,7 +3,6 @@ import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
 import { BigResponse, TranscriptResponse, MotifResponse, LDResponse, MotifRect } from "./apiTypes";
 import { ImportanceTrackSequence } from "../components/tracks/importance/types";
-import { BulkBedConfig } from "../components/tracks/bulkbed/types";
 
 export interface QueryResults {
   bigData?: BigResponse;
@@ -18,6 +17,8 @@ export interface QueryResults {
   importanceError?: ApolloError;
   bulkBedError?: ApolloError;
   snpError?: ApolloError;
+  methylCData?: BigResponse;
+  methylCError?: ApolloError;
 }
 
 export interface ProcessedResult {
@@ -34,7 +35,6 @@ function processBigWigResults(
   bigData: BigResponse | undefined,
   bigError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!bigData) return [];
   const bigTracks = tracks.filter(
     (track) => track.trackType === TrackType.BigWig || track.trackType === TrackType.BigBed
   );
@@ -54,7 +54,6 @@ function processTranscriptResults(
   geneData: TranscriptResponse | undefined,
   geneError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!geneData) return [];
   const transcriptTracks = tracks.filter((track) => track.trackType === TrackType.Transcript);
 
   return transcriptTracks.map((track) => ({
@@ -72,7 +71,6 @@ function processMotifResults(
   motifData: MotifResponse | undefined,
   motifError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!motifData) return [];
   const motifTracks = tracks.filter((track) => track.trackType === TrackType.Motif);
 
   if (motifTracks.length === 0) return [];
@@ -114,7 +112,6 @@ function processImportanceResults(
   importanceData: BigResponse | undefined,
   importanceError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!importanceData) return [];
   const importanceTracks = tracks.filter((track) => track.trackType === TrackType.Importance);
 
   if (importanceTracks.length === 0) return [];
@@ -141,8 +138,7 @@ function processBulkBedResults(
   bulkBedData: BigResponse | undefined,
   bulkBedError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!bulkBedData) return [];
-  const bulkBedTracks = tracks.filter((track): track is BulkBedConfig => track.trackType === TrackType.BulkBed);
+  const bulkBedTracks = tracks.filter((track) => track.trackType === TrackType.BulkBed);
 
   if (bulkBedTracks.length === 0) return [];
 
@@ -175,6 +171,26 @@ function processBulkBedResults(
   });
 }
 
+function processMethylCResults(
+  tracks: Track[],
+  methylCData: BigResponse | undefined,
+  methylCError: ApolloError | undefined
+): ProcessedResult[] {
+  const methylCTracks = tracks.filter((track) => track.trackType === TrackType.MethylC);
+  if (methylCTracks.length === 0) return [];
+
+  return methylCTracks.map((track, index) => {
+    const trackData = methylCError
+      ? null
+      : methylCData?.bigRequests?.slice(index * 8, index * 8 + 8)?.map((response) => response?.data) || [];
+    return {
+      trackId: track.id,
+      data: trackData,
+      error: methylCError,
+    };
+  });
+}
+
 /**
  * Process LD track results
  */
@@ -183,7 +199,6 @@ function processLDResults(
   snpData: LDResponse | undefined,
   snpError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!snpData) return [];
   const ldTracks = tracks.filter((track) => track.trackType === TrackType.LDTrack);
 
   if (ldTracks.length === 0) return [];
@@ -218,6 +233,6 @@ export function processAllResults(tracks: Track[], results: QueryResults): Proce
   processedResults.push(...processImportanceResults(tracks, results.importanceData, results.importanceError));
   processedResults.push(...processBulkBedResults(tracks, results.bulkBedData, results.bulkBedError));
   processedResults.push(...processLDResults(tracks, results.snpData, results.snpError));
-
+  processedResults.push(...processMethylCResults(tracks, results.methylCData, results.methylCError));
   return processedResults;
 }

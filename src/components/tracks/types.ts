@@ -6,6 +6,7 @@ export enum TrackType {
   Importance = "importance",
   LDTrack = "ldtrack",
   BulkBed = "bulkbed",
+  MethylC = "methylc",
 }
 
 export enum DisplayMode {
@@ -13,6 +14,8 @@ export enum DisplayMode {
   Dense = "dense",
   Squish = "squish",
   Pack = "pack",
+  Combined = "combined",
+  Split = "split",
 }
 
 // Interaction configuration for all tracks

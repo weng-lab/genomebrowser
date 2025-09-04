@@ -33,6 +33,9 @@ import {
 } from "./components/tracks/transcript/types";
 export type { TranscriptConfig, SquishTranscriptProps, PackTranscriptProps, TranscriptList, Transcript };
 
+import { MethylCConfig, MethylCProps, MethylData } from "./components/tracks/methylC/types";
+export type { MethylCConfig, MethylCProps, MethylData };
+
 // Store Factory Functions
 import { createBrowserStore, type InitialBrowserState, type BrowserStoreInstance } from "./store/browserStore";
 export { createBrowserStore, type InitialBrowserState, type BrowserStoreInstance };

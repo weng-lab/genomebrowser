@@ -8,6 +8,7 @@ export interface BigRequest {
   chr1: string;
   start: number;
   end: number;
+  preRenderedWidth?: number;
 }
 
 export interface BigResponse {
@@ -68,4 +69,23 @@ export interface MotifRect {
   start: number;
   end: number;
   pwm?: number[][];
+}
+
+export interface MethylCRequest {
+  plusStrand: {
+    cpgPlus: BigRequest;
+    chgPlus: BigRequest;
+    chhPlus: BigRequest;
+    depthPlus: BigRequest;
+  };
+  minusStrand: {
+    cpgMinus: BigRequest;
+    chgMinus: BigRequest;
+    chhMinus: BigRequest;
+    depthMinus: BigRequest;
+  };
+}
+
+export interface MethylCResponse {
+  bigRequests: { data: any }[];
 }
