@@ -44,7 +44,7 @@ export default function DisplayTrack({ id }: { id: string }) {
 
   return (
     <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data}>
-      {trackComponent}
+      {!error && trackComponent}
     </Wrapper>
   );
 }

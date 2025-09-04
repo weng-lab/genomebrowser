@@ -35,7 +35,6 @@ function processBigWigResults(
   bigData: BigResponse | undefined,
   bigError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!bigData) return [];
   const bigTracks = tracks.filter(
     (track) => track.trackType === TrackType.BigWig || track.trackType === TrackType.BigBed
   );
@@ -55,7 +54,6 @@ function processTranscriptResults(
   geneData: TranscriptResponse | undefined,
   geneError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!geneData) return [];
   const transcriptTracks = tracks.filter((track) => track.trackType === TrackType.Transcript);
 
   return transcriptTracks.map((track) => ({
@@ -73,7 +71,6 @@ function processMotifResults(
   motifData: MotifResponse | undefined,
   motifError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!motifData) return [];
   const motifTracks = tracks.filter((track) => track.trackType === TrackType.Motif);
 
   if (motifTracks.length === 0) return [];
@@ -115,7 +112,6 @@ function processImportanceResults(
   importanceData: BigResponse | undefined,
   importanceError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!importanceData) return [];
   const importanceTracks = tracks.filter((track) => track.trackType === TrackType.Importance);
 
   if (importanceTracks.length === 0) return [];
@@ -142,7 +138,6 @@ function processBulkBedResults(
   bulkBedData: BigResponse | undefined,
   bulkBedError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!bulkBedData) return [];
   const bulkBedTracks = tracks.filter((track) => track.trackType === TrackType.BulkBed);
 
   if (bulkBedTracks.length === 0) return [];
@@ -181,7 +176,6 @@ function processMethylCResults(
   methylCData: BigResponse | undefined,
   methylCError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!methylCData) return [];
   const methylCTracks = tracks.filter((track) => track.trackType === TrackType.MethylC);
   if (methylCTracks.length === 0) return [];
 
@@ -205,7 +199,6 @@ function processLDResults(
   snpData: LDResponse | undefined,
   snpError: ApolloError | undefined
 ): ProcessedResult[] {
-  if (!snpData) return [];
   const ldTracks = tracks.filter((track) => track.trackType === TrackType.LDTrack);
 
   if (ldTracks.length === 0) return [];

@@ -85,6 +85,7 @@ function DataFetcher() {
       importanceData,
       bulkBedData,
       snpData,
+      methylCData,
       bigError,
       geneError,
       motifError,
@@ -92,7 +93,6 @@ function DataFetcher() {
       bulkBedError,
       snpError,
       methylCError,
-      methylCData,
     });
     // Update data store with all processed results
     results.forEach((result) => {

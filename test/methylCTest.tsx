@@ -29,16 +29,16 @@ const methylCTrack: MethylCConfig = {
   },
   urls: {
     plusStrand: {
-      cpg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_cpg_pos.bw" },
-      chg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chg_pos.bw" },
-      chh: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chh_pos.bw" },
-      depth: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_coverage_pos.bw" },
+      cpg: { url: "https://users.wenglab.org/mezaj/EB100005/EB100005_cpg_pos.bw" },
+      chg: { url: "https://users.wenglab.org/mezaj/EB100005/EB100005_chg_pos.bw" },
+      chh: { url: "https://users.wenglab.org/mezaj/EB100005/EB100005_chh_pos.bw" },
+      depth: { url: "https://users.wenglab.org/mezaj/EB100005/EB100005_coverage_pos.bw" },
     },
     minusStrand: {
-      cpg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_cpg_neg.bw" },
-      chg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chg_neg.bw" },
-      chh: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chh_neg.bw" },
-      depth: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_coverage_neg.bw" },
+      cpg: { url: "https://users.wenglab.org/mezaj/EB100005/EB100005_cpg_neg.bw" },
+      chg: { url: "https://users.wenglab.org/mezaj/EB100005/EB100005_chg_neg.bw" },
+      chh: { url: "https://users.wenglab.org/mezaj/EB100005/EB100005_chh_neg.bw" },
+      depth: { url: "https://users.wenglab.org/mezaj/EB100005/EB100005_coverage_neg.bw" },
     },
   },
 };
