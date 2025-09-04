@@ -113,7 +113,8 @@ export function createTrackStore(tracks: Track[] = []) {
         throw new Error("Track not found");
       }
       tracks.splice(state.getTrackIndex(id), 1); // Remove track from original position
-      tracks.splice(index, 0, track); // Insert track at new index
+      const realIndex = index === -1 ? tracks.length : index;
+      tracks.splice(realIndex, 0, track); // Insert track at new index
       set({ tracks, ids: tracks.map((track) => track.id) });
     },
     getTrackbyIndex: (index: number) => {
