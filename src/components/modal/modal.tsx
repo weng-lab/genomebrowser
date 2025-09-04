@@ -35,7 +35,7 @@ export default function Modal() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeModal();
+      if (event.key === "Escape" || event.key === "Enter") closeModal();
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => {
@@ -162,4 +162,3 @@ function CloseButton({ handleClose, color }: { handleClose: () => void; color: s
     </svg>
   );
 }
-
