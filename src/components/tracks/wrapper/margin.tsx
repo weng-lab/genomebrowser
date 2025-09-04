@@ -3,6 +3,7 @@ import TopIcon from "../../../icons/topIcon";
 import { useModalStore, useTrackStore, useBrowserStore, useTheme } from "../../../store/BrowserContext";
 import { useRef } from "react";
 import { BigWigConfig } from "../bigwig/types";
+import BottomIcon from "../../../icons/bottomIcon";
 
 export default function Margin({
   marginLabel,
@@ -29,8 +30,12 @@ export default function Margin({
   const settingsRef = useRef<SVGGElement>(null);
 
   const getTrackIndex = useTrackStore((state) => state.getTrackIndex);
+  const length = useTrackStore((state) => state.tracks.length);
   const shiftTracks = useTrackStore((state) => state.shiftTracks);
   const index = getTrackIndex(id);
+
+  const canBringToTop = index > 0;
+  const canBringToBottom = index < length - 1;
 
   const handleShowModal = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
@@ -47,6 +52,11 @@ export default function Margin({
   const handleBringToTop = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
     shiftTracks(id, 0);
+  };
+
+  const handleBringToBottom = (e: React.MouseEvent<SVGSVGElement>) => {
+    e.stopPropagation();
+    shiftTracks(id, -1);
   };
 
   const range = useTrackStore((state) => (state.getTrack(id) as BigWigConfig)?.range);
@@ -89,10 +99,28 @@ export default function Margin({
           </g>
         )}
         {/* bring to top icon */}
-        {index > 0 && (
-          <g onClick={handleBringToTop} style={{ cursor: "pointer" }}>
-            <TopIcon x={marginWidth / 10 + 15} y={height / 2 + 4} height={15} width={15} fill={text} />
+        {id !== "ruler" && (
+          <g onClick={canBringToTop ? handleBringToTop : undefined} style={{ cursor: "pointer" }}>
             <circle cx={marginWidth / 10 + 22.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
+            <TopIcon
+              x={marginWidth / 10 + 15}
+              y={height / 2 + 3}
+              height={15}
+              width={15}
+              fill={canBringToTop ? text : "#ccc"}
+            />
+          </g>
+        )}
+        {id !== "ruler" && (
+          <g onClick={canBringToBottom ? handleBringToBottom : undefined} style={{ cursor: "pointer" }}>
+            <circle cx={marginWidth / 10 + 37.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
+            <BottomIcon
+              x={marginWidth / 10 + 30}
+              y={height / 2 + 2}
+              height={15}
+              width={15}
+              fill={canBringToBottom ? text : "#ccc"}
+            />
           </g>
         )}
       </g>

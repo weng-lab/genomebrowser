@@ -1,4 +1,4 @@
-export default function TopIcon(props: React.SVGProps<SVGSVGElement>) {
+export default function BottomIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       fill={props.fill || "#000000"}
@@ -6,7 +6,6 @@ export default function TopIcon(props: React.SVGProps<SVGSVGElement>) {
       y={props.y}
       width={props.width}
       height={props.height}
-      xmlnsXlink="http://www.w3.org/1999/xlink"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -15,7 +14,7 @@ export default function TopIcon(props: React.SVGProps<SVGSVGElement>) {
         stroke-linecap="round"
         stroke-linejoin="round"
         stroke-width="2"
-        d="M20 4H4m8 3v11m0-11l3 3m-3-3l-3 3"
+        d="M20 20H4m8-3V6m0 11l3-3m-3 3l-3-3"
       />
     </svg>
   );
