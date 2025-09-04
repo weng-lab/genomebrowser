@@ -1,20 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import { lighten } from "../../../utils/color";
-import { svgPoint } from "../../../utils/svg";
-import { getRange, renderBigWig, renderDense, ytransform } from "./helpers";
-import {
-  BigWigConfig,
-  BigWigData,
-  BigZoomData,
-  DataType,
-  dataType,
-  DenseBigWigProps,
-  RenderedBigWigData,
-  ValuedPoint,
-} from "./types";
+import { getRange, renderDense, ytransform } from "./helpers";
+import { BigWigConfig, DenseBigWigProps, RenderedBigWigData, ValuedPoint } from "./types";
 import { useTheme } from "../../../store/themeStore";
 import useInteraction from "../../../hooks/useInteraction";
+import { useMouseToIndex } from "../../../hooks/useMousePosition";
 
 export default function DenseBigWig({ id, data, color, height, dimensions, tooltip }: DenseBigWigProps) {
   const { sideWidth, viewWidth, totalWidth } = dimensions;
@@ -23,7 +14,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
   const editTrack = useTrackStore((state) => state.editTrack);
   const delta = useBrowserStore((state) => state.delta);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
-  const [x, setX] = useState<number>();
+  const svgRef = useBrowserStore((state) => state.svgRef);
 
   const range = useMemo(() => {
     const length = data?.length ?? 0;
@@ -38,11 +29,14 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
     editTrack<BigWigConfig>(id, { range: range });
   }, [range, id, editTrack]);
 
+  const hasNegatives = useMemo(() => {
+    return data.some((point) => (point as ValuedPoint).min < 0);
+  }, [data]);
+
   const rendered: RenderedBigWigData = useMemo(
-    () =>
-      data && data.length && dataType(data) === DataType.ValuedPoint
-        ? renderDense(data as ValuedPoint[])
-        : renderBigWig(data as BigWigData[] | BigZoomData[], 100),
+    () => renderDense(data as ValuedPoint[]),
+    // data && data.length && dataType(data) === DataType.ValuedPoint ?
+    // : renderBigWig(data as BigWigData[] | BigZoomData[], 100),
     [data]
   );
 
@@ -57,14 +51,18 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
 
   const text = useTheme((state) => state.text);
 
-  const { handleHover, handleLeave } = useInteraction<BigWigData>({
+  const { mouseState, updateMouseState, clearMouseState } = useMouseToIndex(svgRef, totalWidth, marginWidth, sideWidth);
+
+  const linePosition = useMemo(() => {
+    return mouseState.pos?.x ? mouseState.pos.x - marginWidth + sideWidth : 0;
+  }, [mouseState.pos?.x, marginWidth, sideWidth]);
+
+  const { handleHover, handleLeave } = useInteraction<ValuedPoint>({
     onClick: undefined,
     onHover: undefined,
     onLeave: undefined,
     tooltip,
   });
-
-  const svgRef = useBrowserStore((state) => state.svgRef);
 
   return (
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth}, 0)`}>
@@ -76,15 +74,8 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
         </linearGradient>
       </defs>
       <rect width={totalWidth} x={0} y={height / 3.0} height={height / 3.0} fill={`url('#${id}')`} />
-      {!delta && x && (
-        <line
-          stroke={text}
-          x1={x ? x - marginWidth + sideWidth : 0}
-          x2={x ? x - marginWidth + sideWidth : 0}
-          y1={0}
-          y2={height}
-        />
-      )}
+      {!delta && linePosition && <line stroke={text} x1={linePosition} x2={linePosition} y1={0} y2={height} />}
+
       {/* Interactive area */}
       <rect
         width={viewWidth}
@@ -92,22 +83,21 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
         transform={`translate(${sideWidth}, 0)`}
         fill={"transparent"}
         onMouseMove={(e) => {
-          if (!svgRef || !svgRef.current || !data || data.length === 0) return;
-          const pos = svgPoint(svgRef.current, e.clientX, e.clientY);
-          setX(pos[0]);
-          const len = data.length;
-          const adjustedX = Math.round(pos[0] - marginWidth);
-          const start = len / multiplier;
-          const end = start + len / multiplier;
-          const xIdx = (adjustedX / viewWidth) * (end - start) + start;
-          const index = Math.round(xIdx);
-          if (index < 0 || index >= data.length) return;
-          const point = data[index] as BigWigData;
-          handleHover(point, point.value?.toFixed(2) ?? (point as unknown as ValuedPoint).max?.toFixed(2) ?? "", e);
+          updateMouseState(e);
+          if (mouseState.index === null) return;
+          const point = data[mouseState.index] as ValuedPoint;
+          const max = point.max;
+          const min = point.min;
+          if (!max || !min) return;
+          if (max === min || !hasNegatives) {
+            handleHover(point, String(max.toFixed(2)), e);
+            return;
+          }
+          handleHover(point, "max: " + String(max.toFixed(2)) + " min: " + String(min.toFixed(2)), e);
         }}
         onMouseOut={() => {
-          setX(undefined);
-          handleLeave({ chr: "", start: 0, end: 0, value: 0 });
+          clearMouseState();
+          handleLeave({ x: 0, min: 0, max: 0 });
         }}
       />
     </g>

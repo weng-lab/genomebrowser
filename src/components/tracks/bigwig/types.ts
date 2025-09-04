@@ -1,6 +1,6 @@
 import { Config, TrackDimensions, TrackType } from "../types";
 
-export interface BigWigConfig extends Config<BigWigData> {
+export interface BigWigConfig extends Config<Data> {
   trackType: TrackType.BigWig;
   url: string;
   range?: YRange;
@@ -13,7 +13,7 @@ interface BigWigProps {
   color: string;
   data: Data;
   dimensions: TrackDimensions;
-  tooltip?: React.FC<BigWigData>;
+  tooltip?: React.FC<Data>;
 }
 
 export interface FullBigWigProps extends BigWigProps {
@@ -51,7 +51,7 @@ export interface BigZoomData {
   sumSquares: number;
 }
 
-export type Data = ValuedPoint[] | BigWigData[] | BigZoomData[];
+export type Data = ValuedPoint[]; // | BigWigData[] | BigZoomData[];
 
 export enum DataType {
   ValuedPoint = "valuedPoint",

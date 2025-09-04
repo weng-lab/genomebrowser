@@ -59,10 +59,12 @@ export default function FullBigWig({
   const dataCopy = useMemo(() => createCopy(data ?? []), [data]);
 
   const rendered: RenderedBigWigData = useMemo(
-    () =>
-      dataCopy && dataCopy.length && dataType(dataCopy) === DataType.ValuedPoint
-        ? { renderPoints: dataCopy as ValuedPoint[], range: range || getRange(dataCopy) }
-        : renderBigWig(dataCopy as BigWigData[] | BigZoomData[], totalWidth),
+    () => {
+      return { renderPoints: dataCopy as ValuedPoint[], range: range || getRange(dataCopy) };
+    },
+    // dataCopy && dataCopy.length && dataType(dataCopy) === DataType.ValuedPoint
+    //   ?
+    //   : renderBigWig(dataCopy as BigWigData[] | BigZoomData[], totalWidth),
     [dataCopy, totalWidth, range]
   );
 
@@ -106,7 +108,7 @@ export default function FullBigWig({
     };
   }, [rendered, height, customRange, realRange, totalWidth]);
 
-  const { handleHover, handleLeave } = useInteraction<BigWigData>({
+  const { handleHover, handleLeave } = useInteraction<ValuedPoint>({
     onClick: undefined,
     onHover: undefined,
     onLeave: undefined,
@@ -151,12 +153,12 @@ export default function FullBigWig({
           const xIdx = (adjustedX / viewWidth) * (end - start) + start;
           const index = Math.round(xIdx);
           if (index < 0 || index >= data.length) return;
-          const point = data[index] as BigWigData;
-          handleHover(point, point.value?.toFixed(2) ?? (point as unknown as ValuedPoint).max?.toFixed(2) ?? "", e);
+          const point = data[index] as ValuedPoint;
+          handleHover(point, point.max?.toFixed(2) ?? "", e);
         }}
         onMouseOut={() => {
           setX(undefined);
-          handleLeave({ chr: "", start: 0, end: 0, value: 0 });
+          handleLeave({ x: 0, min: 0, max: 0 });
         }}
       />
     </g>
