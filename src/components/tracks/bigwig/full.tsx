@@ -19,6 +19,10 @@ import { BigWigConfig } from "./types";
 import { useTheme } from "../../../store/themeStore";
 import useInteraction from "../../../hooks/useInteraction";
 
+/**
+ * @deprecated Use ReworkBigWig instead
+ * Keeping this file in case something breaks
+ */
 export default function FullBigWig({
   data,
   range,
