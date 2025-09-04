@@ -21,10 +21,10 @@ export default function PackTranscript({
 }: PackTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
-  const fontSize = 12;
+  const fontSize = 10;
 
-  const grouped = useMemo(() => groupFeatures(sortedTranscripts(data || []), x, fontSize), [data, x, fontSize]);
-
+  const sorted = useMemo(() => sortedTranscripts(data || []), [data]);
+  const grouped = useMemo(() => groupFeatures(sorted, x, fontSize), [sorted, x, fontSize]);
   const rowHeight = useRowHeight(grouped.length, id);
 
   const rendered: TranscriptRow[] = useMemo(
@@ -49,7 +49,7 @@ export default function PackTranscript({
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth},0)`}>
       <rect width={totalWidth} height={height} fill={background} />
       <defs>
-        <ClipPath id={id} width={totalWidth} height={rendered.length * rowHeight} />
+        <ClipPath id={id} width={totalWidth} height={grouped.length * rowHeight} />
       </defs>
       {rendered.map((group, k) => (
         <g
