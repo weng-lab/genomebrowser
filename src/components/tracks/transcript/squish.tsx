@@ -27,18 +27,22 @@ export default function SquishTranscript({
 }: SquishTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
+  const fontSize = 12;
 
-  const rowHeight = useRowHeight(data.length, id);
+  const grouped = useMemo(
+    () => groupFeatures(data?.map((gene) => mergeTranscripts(gene, geneName)) || [], x, fontSize),
+    [data, x, geneName]
+  );
 
-  const fontSize = bestFontSize(rowHeight) * 1.25;
+  const rowHeight = useRowHeight(grouped.length, id);
 
   const rendered: TranscriptRow[] = useMemo(
     () =>
-      groupFeatures(data?.map((gene) => mergeTranscripts(gene, geneName)) || [], x, fontSize).map((group, i) => ({
+      grouped.map((group, i) => ({
         y: i * rowHeight,
         transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, totalWidth)),
       })),
-    [data, rowHeight, totalWidth, x, fontSize, geneName]
+    [grouped, rowHeight, totalWidth, x, geneName]
   );
 
   const background = useTheme((state) => state.background);
