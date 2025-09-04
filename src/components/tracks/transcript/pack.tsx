@@ -6,7 +6,6 @@ import { useTheme } from "../../../store/BrowserContext";
 import { groupFeatures } from "../../../utils/coordinates";
 import ClipPath from "../../svg/clipPath";
 import { getRealTranscript, renderTranscript, sortedTranscripts } from "./helper";
-import { bestFontSize } from "./squish";
 import { PackTranscriptProps, TranscriptRow } from "./types";
 
 export default function PackTranscript({
@@ -22,17 +21,19 @@ export default function PackTranscript({
 }: PackTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
+  const fontSize = 12;
 
-  const rowHeight = useRowHeight(data.length, id);
+  const grouped = useMemo(() => groupFeatures(sortedTranscripts(data || []), x, fontSize), [data, x, fontSize]);
 
-  const fontSize = bestFontSize(rowHeight) * 1.25;
+  const rowHeight = useRowHeight(grouped.length, id);
+
   const rendered: TranscriptRow[] = useMemo(
     () =>
-      groupFeatures(sortedTranscripts(data || []), x, fontSize).map((group, i) => ({
+      grouped.map((group, i) => ({
         y: i * rowHeight,
         transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, totalWidth)),
       })),
-    [data, rowHeight, totalWidth, x, fontSize]
+    [grouped, rowHeight, totalWidth, x]
   );
 
   const background = useTheme((state) => state.background);
