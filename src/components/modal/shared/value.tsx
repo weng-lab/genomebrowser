@@ -44,7 +44,7 @@ export default function Value({
 }
 
 function formatValue(num: number) {
-  if (Number.isNaN(num) || Number(num) === 0) return "";
+  if (Number.isNaN(num)) return "";
   if (Number.isInteger(num)) return num.toString();
   return Number(num.toFixed(2)).toString();
 }

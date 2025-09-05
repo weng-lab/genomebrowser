@@ -18,6 +18,7 @@ export default function Modal() {
   const open = useModalStore((state) => state.open);
   const closeModal = useModalStore((state) => state.closeModal);
   const position = useModalStore((state) => state.position);
+  const MAX_TITLE_LENGTH = 40;
 
   const [dragPos, setDragPos] = useState(position);
   const [dragging, setDragging] = useState(false);
@@ -85,7 +86,10 @@ export default function Modal() {
           <CloseButton handleClose={closeModal} color={getTextColor(track.color || "transparent")} />
           <div style={{ margin: "10px" }}>
             <div style={{ paddingBottom: "0px", fontSize: "1.2em", fontWeight: "bold" }}>
-              Configure {track.shortLabel || track.title}
+              Configure{" "}
+              {track.shortLabel || track.title.length > MAX_TITLE_LENGTH
+                ? track.title.slice(0, MAX_TITLE_LENGTH) + "..."
+                : track.title}
             </div>
           </div>
         </div>

@@ -47,7 +47,8 @@ const bigWig: BigWigConfig = {
   id: "bigWig",
   trackType: TrackType.BigWig,
   displayMode: DisplayMode.Full,
-  title: "BigWig Track",
+  title:
+    "Homo sapiens activated naive CD4-positive, alpha-beta T cell male adult (43 years) treated with anti-CD3 and anti-CD28 coated beads for 36 hours, 10 ng/mL Interleukin-2 for 5 days",
   titleSize: 12,
   height: 100,
   color: "#000000",
