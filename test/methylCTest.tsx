@@ -51,7 +51,7 @@ const bigWig: BigWigConfig = {
   titleSize: 12,
   height: 100,
   color: "#000000",
-  url: "https://users.wenglab.org/sheddn/igSCREEN_RNA/ENCSR033XWU-CD4_Tcells.bw",
+  url: "https://users.wenglab.org/sheddn/igSCREEN_RNA/ENCSR152FDX-CD4_Tcells.bw",
 };
 
 const phyloP: BigWigConfig = {
@@ -62,7 +62,7 @@ const phyloP: BigWigConfig = {
   titleSize: 12,
   height: 100,
   color: "#000000",
-  range: { min: -2, max: 8 },
+  customRange: { min: -2, max: 8 },
   url: "https://downloads.wenglab.org/hg38.phyloP100way.bw",
 };
 

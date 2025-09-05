@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import { useMouseToIndex } from "../../../hooks/useMousePosition";
-import { useBrowserStore, useTheme } from "../../../store/BrowserContext";
+import { useBrowserStore, useTheme, useTrackStore } from "../../../store/BrowserContext";
 import { l, m } from "../../../utils/svg";
 import ClipPath from "../../svg/clipPath";
-import { FullBigWigProps, ValuedPoint, YRange } from "./types";
+import { BigWigConfig, FullBigWigProps, ValuedPoint, YRange } from "./types";
 import useInteraction from "../../../hooks/useInteraction";
 import { lighten } from "../../../utils/color";
+import { getRange } from "./helpers";
 
 export default function ReworkBigWig({ data, customRange, id, height, color, dimensions, tooltip }: FullBigWigProps) {
   const { sideWidth, totalWidth, viewWidth } = dimensions;
@@ -19,9 +20,17 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
     return data.some((point) => (point as ValuedPoint).min < 0);
   }, [data]);
 
+  const editTrack = useTrackStore((state) => state.editTrack);
+  const viewRange = useMemo(() => {
+    const viewData = data.slice(sideWidth, sideWidth + viewWidth);
+    const newRange = getRange(viewData);
+    editTrack<BigWigConfig>(id, { range: newRange });
+    return newRange;
+  }, [data, sideWidth, viewWidth, id, editTrack]);
+
   const signals = useMemo(() => {
-    return generateSignal(data as ValuedPoint[], height, color, customRange, backgroundColor);
-  }, [data, height, color, customRange]);
+    return generateSignal(data as ValuedPoint[], height, color, customRange || viewRange, backgroundColor);
+  }, [data, height, color, customRange, viewRange]);
 
   const { mouseState, updateMouseState, clearMouseState } = useMouseToIndex(svgRef, totalWidth, marginWidth, sideWidth);
 

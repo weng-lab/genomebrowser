@@ -12,9 +12,9 @@ export default function TopIcon(props: React.SVGProps<SVGSVGElement>) {
     >
       <path
         stroke={props.fill || "#000000"}
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
         d="M20 4H4m8 3v11m0-11l3 3m-3-3l-3 3"
       />
     </svg>
