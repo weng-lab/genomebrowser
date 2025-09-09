@@ -28,8 +28,8 @@ export default function DisplayTrack({ id }: { id: string }) {
 
   // Error handling
   useEffect(() => {
-    if (loading || !data) return;
-    setError(data.error);
+    if (loading || data?.error) return;
+    setError(data?.error);
   }, [loading, data]);
 
   // Stack track
@@ -43,7 +43,7 @@ export default function DisplayTrack({ id }: { id: string }) {
   );
 
   return (
-    <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data || data.data.length === 0}>
+    <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data}>
       {trackComponent}
     </Wrapper>
   );
