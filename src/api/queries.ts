@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { Population } from "../components/tracks/ldtrack/types";
 
 /**
  * All GraphQL queries for the genome browser
@@ -103,3 +104,40 @@ export const VARIANT_QUERY = `
     }
   }
 `;
+
+export const LD_QUERY = gql`
+  query getSNPsforgivengwasStudy($study: [String!]!) {
+    getSNPsforGWASStudies(study: $study) {
+      snpid
+      ldblock
+      rsquare
+      chromosome
+      stop
+      start
+      ldblocksnpid
+      __typename
+    }
+  }
+`;
+
+// export const LD_QUERY = (populations: Population[]) => `
+// query LD($assembly: String!, $snpids: [String!]) {
+//   snpQuery(assembly: $assembly, snpids: $snpids) {
+//     ${populations.map(
+//       (population) => `
+//       ${population.population}_${population.subpopulation || ""}_ld: linkageDisequilibrium(
+//         population: ${population.population}
+//         ${population.subpopulation ? `subpopulation: ${population.subpopulation}` : ""}
+//       ) {
+//         id
+//         rSquared
+//         coordinates(assembly: $assembly) {
+//           start
+//           end
+//         }
+//       }
+//     `
+//     )}
+//   }
+// }
+// `;

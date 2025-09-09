@@ -3,6 +3,7 @@ import {
   BigWigConfig,
   BulkBedConfig,
   DisplayMode,
+  MethylCConfig,
   MotifConfig,
   Rect,
   TrackType,
@@ -109,3 +110,57 @@ export const bulkBedExample: BulkBedConfig = {
     );
   },
 } as BulkBedConfig;
+
+const methylCTrack: MethylCConfig = {
+  id: "methylC",
+  trackType: TrackType.MethylC,
+  displayMode: DisplayMode.Split,
+  title: "MethylC Track",
+  titleSize: 12,
+  height: 100,
+  color: "#000000",
+  colors: {
+    cpg: "#648bd8", // rgb(100, 139, 216)
+    chg: "#ff944d", // rgb(255, 148, 77)
+    chh: "#ff00ff", // rgb(25, 14, 25)
+    depth: "#525252", // rgb(82, 82, 82)
+  },
+  urls: {
+    plusStrand: {
+      cpg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_cpg_pos.bw" },
+      chg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chg_pos.bw" },
+      chh: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chh_pos.bw" },
+      depth: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_coverage_pos.bw" },
+    },
+    minusStrand: {
+      cpg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_cpg_neg.bw" },
+      chg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chg_neg.bw" },
+      chh: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chh_neg.bw" },
+      depth: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_coverage_neg.bw" },
+    },
+  },
+};
+
+const bigWig: BigWigConfig = {
+  id: "bigWig",
+  trackType: TrackType.BigWig,
+  displayMode: DisplayMode.Full,
+  title:
+    "Homo sapiens activated naive CD4-positive, alpha-beta T cell male adult (43 years) treated with anti-CD3 and anti-CD28 coated beads for 36 hours, 10 ng/mL Interleukin-2 for 5 days",
+  titleSize: 12,
+  height: 100,
+  color: "#000000",
+  url: "https://users.wenglab.org/sheddn/igSCREEN_RNA/ENCSR152FDX-CD4_Tcells.bw",
+};
+
+const phyloP: BigWigConfig = {
+  id: "phyloP",
+  trackType: TrackType.BigWig,
+  displayMode: DisplayMode.Full,
+  title: "PhyloP Track",
+  titleSize: 12,
+  height: 100,
+  color: "#000000",
+  customRange: { min: -2, max: 8 },
+  url: "https://downloads.wenglab.org/hg38.phyloP100way.bw",
+};
