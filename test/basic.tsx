@@ -25,16 +25,24 @@ const ldTrack: LDTrackConfig = {
   height: 50,
   titleSize: 12,
   color: "#ff0000",
-  study: ["Fritsche_LG-26691988-Advanced_age-related_macular_degeneration"],
+  study: ["Dastani_Z-22479202-Adiponectin_levels"],
 };
 
 export default function MethylCTest() {
-  // chr6:31867659-31947659
+  // chr19:33415216-33415217
   const browserStore = createBrowserStore({
-    domain: { chromosome: "chr6", start: 31872495, end: 32012496 },
+    domain: { chromosome: "chr19", start: 33415216 - 20000, end: 33415217 + 20000 },
     marginWidth: 100,
     trackWidth: 1400,
     multiplier: 3,
+    highlights: [
+      {
+        id: "highlight",
+        //chr19:33,415,216-33,415,217
+        domain: { chromosome: "chr19", start: 33415216 - 200, end: 33415217 + 200 },
+        color: "#ff0000",
+      },
+    ],
   });
   const trackStore = createTrackStore([transcriptExample, ldTrack, bigBedExample]);
 
