@@ -3,6 +3,7 @@ import { Config, TrackDimensions, TrackType } from "../types";
 export interface LDTrackConfig extends Config<any> {
   trackType: TrackType.LDTrack;
   study: string[];
+  show?: string[];
 }
 
 export type LDProps = {
@@ -11,6 +12,7 @@ export type LDProps = {
   color: string;
   height: number;
   dimensions: TrackDimensions;
+  show?: string[];
   onClick?: (data: any) => void;
   onHover?: (data: any) => void;
   onLeave?: (data: any) => void;
