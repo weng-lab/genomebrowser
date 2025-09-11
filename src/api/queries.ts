@@ -1,5 +1,4 @@
 import { gql } from "@apollo/client";
-import { Population } from "../components/tracks/ldtrack/types";
 
 /**
  * All GraphQL queries for the genome browser

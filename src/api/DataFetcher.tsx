@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useMemo } from "react";
-import { gql, useLazyQuery } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client";
 import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { TrackType } from "../components/tracks/types";
 
 import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
 
-import { BIGDATA_QUERY, MOTIF_QUERY, TRANSCRIPT_GENES_QUERY, VARIANT_QUERY, LD_QUERY } from "./queries";
+import { BIGDATA_QUERY, MOTIF_QUERY, TRANSCRIPT_GENES_QUERY, LD_QUERY } from "./queries";
 import { buildAllRequests } from "./requestBuilder";
 import { executeAllQueries } from "./queryExecutor";
 import { processAllResults } from "./resultsProcessor";

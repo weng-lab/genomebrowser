@@ -117,7 +117,7 @@ export function buildImportanceRequests(tracks: Track[], currentDomain: Domain):
 /**
  * Build LD request for given tracks (first LD track found)
  */
-export function buildLDRequest(tracks: Track[], domain: Domain): LDRequest | undefined {
+export function buildLDRequest(tracks: Track[], _: Domain): LDRequest | undefined {
   const ldTrack = tracks.find((track) => track.trackType === TrackType.LDTrack);
   if (!ldTrack) return undefined;
 
