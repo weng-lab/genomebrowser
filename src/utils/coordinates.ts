@@ -1,3 +1,5 @@
+import { YRange } from "../components/tracks/bigwig/types";
+
 export interface Feature {
   coordinates: { start: number; end: number };
   name: string;
@@ -28,4 +30,14 @@ export function groupFeatures<T extends Feature>(
     if (!foundmatch) cpacked.push([feature]);
     return cpacked;
   }, []);
+}
+
+export function linearScale(value: number, inputRange: YRange, outputRange: YRange): number {
+  const inputSize = inputRange.max - inputRange.min;
+  const outputSize = outputRange.max - outputRange.min;
+
+  if (inputSize === 0) return outputRange.min;
+
+  const normalizedValue = (value - inputRange.min) / inputSize;
+  return outputRange.min + normalizedValue * outputSize;
 }

@@ -7,6 +7,7 @@ import { BigWigConfig, FullBigWigProps, ValuedPoint, YRange } from "./types";
 import useInteraction from "../../../hooks/useInteraction";
 import { lighten } from "../../../utils/color";
 import { getRange } from "./helpers";
+import { linearScale } from "../../../utils/coordinates";
 
 export default function ReworkBigWig({ data, customRange, id, height, color, dimensions, tooltip }: FullBigWigProps) {
   const { sideWidth, totalWidth, viewWidth } = dimensions;
@@ -126,14 +127,4 @@ function generateSignal(data: ValuedPoint[], height: number, color: string, rang
       <path d={clampLow} fill={"red"} />
     </>
   );
-}
-
-function linearScale(value: number, inputRange: YRange, outputRange: YRange): number {
-  const inputSize = inputRange.max - inputRange.min;
-  const outputSize = outputRange.max - outputRange.min;
-
-  if (inputSize === 0) return outputRange.min;
-
-  const normalizedValue = (value - inputRange.min) / inputSize;
-  return outputRange.min + normalizedValue * outputSize;
 }

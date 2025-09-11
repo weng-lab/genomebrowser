@@ -3,6 +3,8 @@ import { useBrowserStore } from "../../../store/BrowserContext";
 import { useTheme } from "../../../store/themeStore";
 import { LDProps } from "./types";
 import useInteraction from "../../../hooks/useInteraction";
+import { linearScale } from "../../../utils/coordinates";
+import { darken, isDark, lighten } from "../../../utils/color";
 
 type SNP = {
   chromosome: string;
@@ -23,6 +25,9 @@ export default function LD({ id, data, height, color, dimensions, onClick, onHov
   const delta = useBrowserStore((state) => state.delta);
   const update = delta === 0;
   const getDomain = useBrowserStore((state) => state.getExpandedDomain);
+  // must add to height
+  const snpHeight = height / 3;
+  const leadHeight = (2 * height) / 3;
 
   const processedData = useMemo(() => {
     const domain = getDomain();
@@ -48,36 +53,7 @@ export default function LD({ id, data, height, color, dimensions, onClick, onHov
     tooltip: tooltip || Tooltip,
   });
 
-  // Function to create arc path between two points
-  const createArcPath = (x1: number, x2: number, y: number, arcHeight: number = 30) => {
-    // Position control point at 1/8 of the distance from x1 to x2
-    const controlX = x1 + (x2 - x1) * 0.5;
-    const controlY = y - arcHeight;
-    return `M ${x1} ${y} Q ${controlX} ${controlY} ${x2} ${y}`;
-  };
-
-  // Function to scale SNP score to stroke width
-  const getStrokeWidthFromScore = (score: string | number): number => {
-    const numScore = typeof score === "string" ? parseFloat(score) : score;
-
-    // Handle invalid scores
-    if (isNaN(numScore)) return 1;
-
-    // Scale from 0.7-1.0 range to 1-6 stroke width range
-    const minScore = 0.7;
-    const maxScore = 1.0;
-    const minStroke = 1;
-    const maxStroke = 6;
-
-    // Clamp the score to the expected range
-    const clampedScore = Math.max(minScore, Math.min(maxScore, numScore));
-
-    // Linear scaling
-    const normalizedScore = (clampedScore - minScore) / (maxScore - minScore);
-    return Math.round(minStroke + normalizedScore * (maxStroke - minStroke));
-  };
-
-  const [hovered, setHovered] = useState<any>(null);
+  const [hovered, setHovered] = useState<SNP | null>(null);
   const [referencedSNPs, setReferencedSNPs] = useState<SNP[]>([]);
   const [referencingSNPs, setReferencingSNPs] = useState<SNP[]>([]);
 
@@ -88,7 +64,6 @@ export default function LD({ id, data, height, color, dimensions, onClick, onHov
       return;
     }
 
-    // Find the SNP that this hovered SNP references
     if (hovered.ldblocksnpid !== "Lead") {
       const referencedSnp = processedData.find((snp: SNP) => snp.snpid === hovered.ldblocksnpid);
       setReferencedSNPs(referencedSnp ? [referencedSnp] : []);
@@ -96,7 +71,6 @@ export default function LD({ id, data, height, color, dimensions, onClick, onHov
       setReferencedSNPs([]);
     }
 
-    // Find all SNPs that reference this hovered SNP
     const snpsReferencingHovered = processedData.filter(
       (snp: SNP) => snp.ldblocksnpid === hovered.snpid && snp.snpid !== hovered.snpid
     );
@@ -107,7 +81,6 @@ export default function LD({ id, data, height, color, dimensions, onClick, onHov
     <g transform={`translate(-${sideWidth}, 0)`}>
       <rect width={totalWidth} height={height} fill={background} />
 
-      {/* Draw arcs from hovered SNP to SNPs it references */}
       {hovered &&
         referencedSNPs.map((referencedSnp, index) => (
           <path
@@ -115,17 +88,16 @@ export default function LD({ id, data, height, color, dimensions, onClick, onHov
             d={createArcPath(
               hovered.pixelStart + (hovered.pixelEnd - hovered.pixelStart) / 2,
               referencedSnp.pixelStart + (referencedSnp.pixelEnd - referencedSnp.pixelStart) / 2,
-              height / 2,
-              40
+              leadHeight,
+              snpHeight,
+              height
             )}
-            stroke={color}
-            strokeWidth={getStrokeWidthFromScore(referencedSnp.rsquare)}
+            stroke={isDark(color) ? lighten(color, 0.5) : darken(color, 0.2)}
+            strokeWidth={getWidth(referencedSnp.rsquare)}
             fill="none"
-            strokeDasharray="5,5"
           />
         ))}
 
-      {/* Draw arcs from SNPs that reference the hovered SNP */}
       {hovered &&
         referencingSNPs.map((referencingSnp, index) => (
           <path
@@ -133,50 +105,25 @@ export default function LD({ id, data, height, color, dimensions, onClick, onHov
             d={createArcPath(
               referencingSnp.pixelStart + (referencingSnp.pixelEnd - referencingSnp.pixelStart) / 2,
               hovered.pixelStart + (hovered.pixelEnd - hovered.pixelStart) / 2,
-              height / 2,
-              30
+              leadHeight,
+              snpHeight,
+              height
             )}
-            stroke={color}
-            strokeWidth={getStrokeWidthFromScore(referencingSnp.rsquare)}
+            stroke={isDark(color) ? lighten(color, 0.5) : darken(color, 0.2)}
+            strokeWidth={getWidth(referencingSnp.rsquare)}
             fill="none"
-            opacity={0.7}
           />
         ))}
-      <g transform={`translate(0, ${height / 2})`}>
+      <g transform={`translate(0, ${height - snpHeight})`}>
         {processedData.map((snp: SNP, i: number) => {
-          // Determine if this SNP should be highlighted
-          const isHovered = hovered && snp.snpid === hovered.snpid;
-          const isReferenced = referencedSNPs.some((ref) => ref.snpid === snp.snpid);
-          const isReferencing = referencingSNPs.some((ref) => ref.snpid === snp.snpid);
-
-          let fillColor = color;
-          let opacity = 1;
-
-          if (hovered) {
-            if (isHovered) {
-              fillColor = "#ff6b6b"; // Red for hovered SNP
-            } else if (isReferenced) {
-              fillColor = "#4ecdc4"; // Teal for referenced SNPs
-              opacity = 0.8;
-            } else if (isReferencing) {
-              fillColor = "#45b7d1"; // Blue for referencing SNPs
-              opacity = 0.8;
-            } else {
-              opacity = 0.3; // Fade out unrelated SNPs
-            }
-          }
-
           return (
             <rect
               key={`${id}_${i}`}
-              height={height / 2}
+              height={isLead(snp) ? leadHeight : snpHeight}
               width={snp.pixelEnd - snp.pixelStart + padding}
               x={snp.pixelStart - padding / 2}
-              y={0}
-              fill={fillColor}
-              opacity={opacity}
-              stroke={isHovered ? "#333" : "none"}
-              strokeWidth={isHovered ? 2 : 0}
+              y={isLead(snp) ? -leadHeight + snpHeight : 0}
+              fill={getFill(snp, color)}
               onClick={() => handleClick(snp)}
               onMouseOver={(e) => {
                 handleHover(snp, "", e);
@@ -195,9 +142,12 @@ export default function LD({ id, data, height, color, dimensions, onClick, onHov
 }
 
 function Tooltip(snp: SNP) {
+  const text = useTheme((state) => state.text);
+  const background = useTheme((state) => state.background);
+
   return (
-    <g>
-      <rect width={150} height={38} y={0} fill="white" stroke="black" strokeWidth={1} />
+    <g style={{ filter: `drop-shadow(0 0 2px ${text})` }}>
+      <rect width={150} height={38} y={0} fill={background} />
       <text fontSize={12} x={5} y={12}>
         {snp.snpid}
       </text>
@@ -205,8 +155,31 @@ function Tooltip(snp: SNP) {
         {snp.chromosome}:{snp.start}-{snp.stop}
       </text>
       <text fontSize={12} x={5} y={36}>
-        {snp.rsquare === "*" ? "Lead" : snp.rsquare}
+        {isLead(snp) ? "Lead" : snp.rsquare}
       </text>
     </g>
   );
 }
+
+const createArcPath = (x1: number, x2: number, y1: number, y2: number, arcHeight: number) => {
+  const controlX = x1 + (x2 - x1) * 0.5;
+  const controlY = y1 - arcHeight;
+  return `M ${x1} ${y1} Q ${controlX} ${controlY} ${x2} ${y2}`;
+};
+
+const getWidth = (score: string): number => {
+  const numScore = parseFloat(score);
+  if (isNaN(numScore)) return 4;
+  return linearScale(numScore, { min: 0.7, max: 1 }, { min: 1, max: 8 });
+};
+
+const isLead = (snp: SNP) => {
+  return snp.rsquare === "*";
+};
+
+const getFill = (snp: SNP, color: string) => {
+  if (isLead(snp)) {
+    return isDark(color) ? lighten(color, 0.5) : darken(color, 0.2);
+  }
+  return color;
+};

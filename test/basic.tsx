@@ -31,12 +31,11 @@ const ldTrack: LDTrackConfig = {
 export default function MethylCTest() {
   // chr6:31867659-31947659
   const browserStore = createBrowserStore({
-    domain: { chromosome: "chr6", start: 32006236 - 50000, end: 32006237 + 50000 },
+    domain: { chromosome: "chr6", start: 31872495, end: 32012496 },
     marginWidth: 100,
     trackWidth: 1400,
     multiplier: 3,
   });
-
   const trackStore = createTrackStore([transcriptExample, ldTrack, bigBedExample]);
 
   const dataStore = createDataStore();
