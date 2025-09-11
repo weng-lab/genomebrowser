@@ -52,16 +52,19 @@ export interface MotifResponse {
 
 // LD track request type
 export interface LDRequest {
-  assembly: string;
-  coordinates: {
-    chromosome: string;
-    start: number;
-    end: number;
-  };
+  study: string[];
 }
 
 export interface LDResponse {
-  snpQuery: any[];
+  getSNPsforGWASStudies: {
+    snpid: string;
+    ldblock: string;
+    rsquare: number;
+    chromosome: string;
+    stop: number;
+    start: number;
+    ldblocksnpid: string;
+  }[];
 }
 
 // Motif result rectangle type (used in results processing)

@@ -19,6 +19,8 @@ export interface QueryResults {
   snpError?: ApolloError;
   methylCData?: BigResponse;
   methylCError?: ApolloError;
+  ldData?: LDResponse;
+  ldError?: ApolloError;
 }
 
 export interface ProcessedResult {
@@ -144,10 +146,11 @@ function processBulkBedResults(
 
   let responseIndex = 0;
   return bulkBedTracks.map((track) => {
-    const datasets = track.datasets.map((dataset, i) => ({
-      name: `Dataset ${i + 1}`,
-      url: dataset.url,
-    }));
+    const datasets =
+      (track as any).datasets?.map((dataset: any, i: number) => ({
+        name: `Dataset ${i + 1}`,
+        url: dataset.url,
+      })) || [];
 
     const datasetCount = datasets.length;
     const trackData = bulkBedError
@@ -203,21 +206,27 @@ function processLDResults(
 
   if (ldTracks.length === 0) return [];
 
-  const processedData = snpError
-    ? null
-    : {
-        snps:
-          snpData?.snpQuery
-            ?.filter((x: { coordinates: unknown }) => x.coordinates)
-            .map((x: { coordinates: unknown }) => ({ ...x, domain: x.coordinates })) || [],
-        ld: [],
-      };
-
   return ldTracks.map((track) => ({
     trackId: track.id,
-    data: processedData,
+    data: snpData?.getSNPsforGWASStudies,
     error: snpError,
   }));
+
+  // const processedData = snpError
+  //   ? null
+  //   : {
+  //       snps:
+  //         snpData?.snpQuery
+  //           ?.filter((x: { coordinates: unknown }) => x.coordinates)
+  //           .map((x: { coordinates: unknown }) => ({ ...x, domain: x.coordinates })) || [],
+  //       ld: [],
+  //     };
+
+  // return ldTracks.map((track) => ({
+  //   trackId: track.id,
+  //   data: processedData,
+  //   error: snpError,
+  // }));
 }
 
 /**
@@ -232,7 +241,8 @@ export function processAllResults(tracks: Track[], results: QueryResults): Proce
   processedResults.push(...processMotifResults(tracks, results.motifData, results.motifError));
   processedResults.push(...processImportanceResults(tracks, results.importanceData, results.importanceError));
   processedResults.push(...processBulkBedResults(tracks, results.bulkBedData, results.bulkBedError));
-  processedResults.push(...processLDResults(tracks, results.snpData, results.snpError));
+  // processedResults.push(...processLDResults(tracks, results.snpData, results.snpError));
   processedResults.push(...processMethylCResults(tracks, results.methylCData, results.methylCError));
+  processedResults.push(...processLDResults(tracks, results.ldData, results.ldError));
   return processedResults;
 }

@@ -16,6 +16,7 @@ import SquishMotif from "./motif/squish";
 import BulkBed from "./bulkbed/bulkbed";
 import SplitMethylC from "./methylC/split";
 import ReworkBigWig from "./bigwig/rework";
+import LD from "./ldtrack/ld";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -27,8 +28,8 @@ export default function DisplayTrack({ id }: { id: string }) {
 
   // Error handling
   useEffect(() => {
-    if (loading || !data) return;
-    setError(data.error);
+    if (loading || data?.error) return;
+    setError(data?.error);
   }, [loading, data]);
 
   // Stack track
@@ -42,7 +43,7 @@ export default function DisplayTrack({ id }: { id: string }) {
   );
 
   return (
-    <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data || data.data.length === 0}>
+    <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data}>
       {trackComponent}
     </Wrapper>
   );
@@ -69,7 +70,7 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
     [DisplayMode.Full]: Importance,
   },
   [TrackType.LDTrack]: {
-    [DisplayMode.Full]: () => <></>,
+    [DisplayMode.Full]: LD,
   },
   [TrackType.BulkBed]: {
     [DisplayMode.Full]: BulkBed,

@@ -118,23 +118,6 @@ function Main() {
   ];
 
   const trackStore = createTrackStore(tracks);
-  const insertTrack = trackStore((state) => state.insertTrack);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      insertTrack({
-        id: "delayed-bigwig",
-        title: "Delayed BigWig Track",
-        titleSize: 12,
-        height: 75,
-        color: Vibrant[1],
-        trackType: TrackType.BigWig,
-        url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
-        displayMode: DisplayMode.Full,
-      });
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>

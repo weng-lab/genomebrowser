@@ -121,14 +121,10 @@ export function buildLDRequest(tracks: Track[], domain: Domain): LDRequest | und
   const ldTrack = tracks.find((track) => track.trackType === TrackType.LDTrack);
   if (!ldTrack) return undefined;
 
-  return {
-    assembly: ldTrack.assembly,
-    coordinates: {
-      chromosome: domain.chromosome,
-      start: domain.start,
-      end: domain.end,
-    },
+  const request = {
+    study: ldTrack.study,
   };
+  return request;
 }
 
 export function buildMethylCRequest(

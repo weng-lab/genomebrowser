@@ -6,7 +6,7 @@ import { TrackType } from "../components/tracks/types";
 
 import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
 
-import { BIGDATA_QUERY, MOTIF_QUERY, TRANSCRIPT_GENES_QUERY, VARIANT_QUERY } from "./queries";
+import { BIGDATA_QUERY, MOTIF_QUERY, TRANSCRIPT_GENES_QUERY, VARIANT_QUERY, LD_QUERY } from "./queries";
 import { buildAllRequests } from "./requestBuilder";
 import { executeAllQueries } from "./queryExecutor";
 import { processAllResults } from "./resultsProcessor";
@@ -19,9 +19,10 @@ function DataFetcher() {
     useLazyQuery(BIGDATA_QUERY);
   const [fetchBulkBed, { data: bulkBedData, loading: bulkBedLoading, error: bulkBedError }] =
     useLazyQuery(BIGDATA_QUERY);
-  const [fetchSnps, { data: snpData, loading: snpLoading, error: snpError }] = useLazyQuery(gql(VARIANT_QUERY));
+  // const [fetchSnps, { data: snpData, loading: snpLoading, error: snpError }] = useLazyQuery(LD_QUERY);
   const [fetchMethylC, { data: methylCData, loading: methylCLoading, error: methylCError }] =
     useLazyQuery(BIGDATA_QUERY);
+  const [fetchLD, { data: ldData, loading: ldLoading, error: ldError }] = useLazyQuery(LD_QUERY);
 
   const tracks = useTrackStore((state) => state.tracks);
   const editTrack = useTrackStore((state) => state.editTrack);
@@ -39,9 +40,16 @@ function DataFetcher() {
 
   const loading = useMemo(() => {
     return (
-      bigLoading || geneLoading || motifLoading || importanceLoading || bulkBedLoading || snpLoading || methylCLoading
+      bigLoading ||
+      geneLoading ||
+      motifLoading ||
+      importanceLoading ||
+      bulkBedLoading ||
+      // snpLoading ||
+      methylCLoading ||
+      ldLoading
     );
-  }, [bigLoading, geneLoading, motifLoading, importanceLoading, bulkBedLoading, snpLoading, methylCLoading]);
+  }, [bigLoading, geneLoading, motifLoading, importanceLoading, bulkBedLoading, methylCLoading, ldLoading]);
 
   useEffect(() => {
     if (tracks.length === 0) return;
@@ -66,8 +74,8 @@ function DataFetcher() {
         fetchMotif,
         fetchImportance,
         fetchBulkBed,
-        fetchSnps,
         fetchMethylC,
+        fetchLD,
       });
     };
     fetchAllData().catch((error) => {
@@ -83,16 +91,18 @@ function DataFetcher() {
       geneData,
       importanceData,
       bulkBedData,
-      snpData,
+      // snpData,
       methylCData,
       bigError,
       geneError,
       motifError,
       importanceError,
       bulkBedError,
-      snpError,
+      // snpError,
       methylCError,
       motifData,
+      ldData,
+      ldError,
     });
     // Update data store with all processed results
     results.forEach((result) => {
@@ -107,15 +117,17 @@ function DataFetcher() {
     motifData,
     importanceData,
     bulkBedData,
-    snpData,
+    // snpData,
     methylCData,
     bigError,
     geneError,
     motifError,
     importanceError,
     bulkBedError,
-    snpError,
+    // snpError,
     methylCError,
+    ldData,
+    ldError,
     loading,
     setData,
     setDelta,
