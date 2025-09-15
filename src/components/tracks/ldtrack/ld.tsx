@@ -5,6 +5,7 @@ import { LDProps } from "./types";
 import useInteraction from "../../../hooks/useInteraction";
 import { linearScale } from "../../../utils/coordinates";
 import { darken, isDark, lighten } from "../../../utils/color";
+import { useXTransform } from "../../../hooks/useXTransform";
 
 type SNP = {
   chromosome: string;
@@ -25,11 +26,13 @@ export default function LD({ id, data, height, color, dimensions, show, onClick,
   const background = useTheme((state) => state.background);
   const text = useTheme((state) => state.text);
   const padding = 4;
-  const delta = useBrowserStore((state) => state.delta);
-  const update = delta === 0;
+
   const getDomain = useBrowserStore((state) => state.getExpandedDomain);
   const editTrack = useTrackStore((state) => state.editTrack);
-  // must add to height
+
+  const { x } = useXTransform(totalWidth);
+
+  // must add up to height
   const snpHeight = height / 3;
   const leadHeight = (2 * height) / 3;
 
@@ -44,11 +47,11 @@ export default function LD({ id, data, height, color, dimensions, show, onClick,
     return (
       withinDomain?.map((snp: SNP) => ({
         ...snp,
-        pixelStart: ((snp.start - domain.start) * totalWidth) / (domain.end - domain.start),
-        pixelEnd: ((snp.stop - domain.start) * totalWidth) / (domain.end - domain.start),
+        pixelStart: x(snp.start),
+        pixelEnd: x(snp.stop),
       })) || []
     );
-  }, [data, update]);
+  }, [data, x]);
 
   const { handleClick, handleHover, handleLeave } = useInteraction({
     onClick,
