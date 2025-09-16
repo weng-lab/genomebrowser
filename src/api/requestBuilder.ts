@@ -117,7 +117,7 @@ export function buildImportanceRequests(tracks: Track[], currentDomain: Domain):
 /**
  * Build LD request for given tracks (first LD track found)
  */
-export function buildLDRequest(tracks: Track[], _: Domain): LDRequest | undefined {
+export function buildLDRequest(tracks: Track[]): LDRequest | undefined {
   const ldTrack = tracks.find((track) => track.trackType === TrackType.LDTrack);
   if (!ldTrack) return undefined;
 
@@ -175,7 +175,7 @@ export function buildAllRequests(
     motifRequest: buildMotifRequest(tracks, expandedDomain),
     importanceRequests: buildImportanceRequests(tracks, currentDomain),
     bulkBedRequests: buildBulkBedRequests(tracks, expandedDomain),
-    ldRequest: buildLDRequest(tracks, expandedDomain),
+    ldRequest: buildLDRequest(tracks),
     methylCRequest: buildMethylCRequest(tracks, expandedDomain, preRenderedWidth),
   };
 }
