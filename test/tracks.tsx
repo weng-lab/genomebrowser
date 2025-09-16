@@ -111,7 +111,7 @@ export const bulkBedExample: BulkBedConfig = {
   },
 } as BulkBedConfig;
 
-const methylCTrack: MethylCConfig = {
+export const methylCTrack: MethylCConfig = {
   id: "methylC",
   trackType: TrackType.MethylC,
   displayMode: DisplayMode.Split,
@@ -141,7 +141,7 @@ const methylCTrack: MethylCConfig = {
   },
 };
 
-const bigWig: BigWigConfig = {
+export const bigWig: BigWigConfig = {
   id: "bigWig",
   trackType: TrackType.BigWig,
   displayMode: DisplayMode.Full,
@@ -153,7 +153,7 @@ const bigWig: BigWigConfig = {
   url: "https://users.wenglab.org/sheddn/igSCREEN_RNA/ENCSR152FDX-CD4_Tcells.bw",
 };
 
-const phyloP: BigWigConfig = {
+export const phyloP: BigWigConfig = {
   id: "phyloP",
   trackType: TrackType.BigWig,
   displayMode: DisplayMode.Full,
