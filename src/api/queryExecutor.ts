@@ -9,7 +9,7 @@ export interface QueryExecutors {
   fetchImportance: LazyQueryExecFunction<unknown, OperationVariables>;
   fetchBulkBed: LazyQueryExecFunction<unknown, OperationVariables>;
   fetchMethylC: LazyQueryExecFunction<unknown, OperationVariables>;
-  fetchLD: LazyQueryExecFunction<unknown, OperationVariables>;
+  // fetchLD: LazyQueryExecFunction<unknown, OperationVariables>;
 }
 
 /**
@@ -44,9 +44,9 @@ export async function executeAllQueries(requests: AllRequests, executors: QueryE
   }
 
   // Execute LD query
-  if (requests.ldRequest) {
-    promises.push(executors.fetchLD({ variables: requests.ldRequest }));
-  }
+  // if (requests.ldRequest) {
+  //   promises.push(executors.fetchLD({ variables: requests.ldRequest }));
+  // }
 
   // Execute MethylC queries
   if (requests.methylCRequest) {

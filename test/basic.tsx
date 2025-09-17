@@ -1,4 +1,4 @@
-import React, { StrictMode } from "react";
+import React, { StrictMode, useEffect, useMemo } from "react";
 import {
   Browser,
   createBrowserStore,
@@ -11,7 +11,9 @@ import {
 import { createRoot } from "react-dom/client";
 import { bigBedExample, transcriptExample } from "./tracks";
 import { LDTrackConfig } from "../src/components/tracks/ldtrack/types";
-import { createDataStore } from "../src/store/dataStore";
+import { createDataStore, DataStoreInstance } from "../src/store/dataStore";
+import { ApolloError, useQuery } from "@apollo/client";
+import { LD_QUERY } from "../src/api/queries";
 
 const ldTrack: LDTrackConfig = {
   id: "ld",
@@ -21,7 +23,6 @@ const ldTrack: LDTrackConfig = {
   height: 50,
   titleSize: 12,
   color: "#ff0000",
-  study: ["Dastani_Z-22479202-Adiponectin_levels"],
 };
 
 export default function MethylCTest() {
@@ -48,10 +49,66 @@ export default function MethylCTest() {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <DomainInfo browserStore={browserStore} />
       <div style={{ width: "90%" }}>
+        <LDDataFetcher ldTrack={ldTrack} browserStore={browserStore} dataStore={dataStore} />
         <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />
       </div>
     </div>
   );
+}
+
+function useCustomData({
+  trackId,
+  data,
+  loading,
+  error,
+  dataStore,
+}: {
+  trackId: string;
+  data: any;
+  loading: boolean;
+  error: ApolloError | undefined;
+  dataStore: DataStoreInstance;
+}) {
+  const setDataById = dataStore((state) => state.setDataById);
+  const fetching = dataStore((state) => state.fetching);
+  const globalLoading = dataStore((state) => state.loading);
+
+  useEffect(() => {
+    if (data && !loading && !error && !fetching && !globalLoading) {
+      setDataById(trackId, data, error);
+    }
+  }, [data, loading, error, fetching, trackId, globalLoading]);
+}
+
+function LDDataFetcher({
+  ldTrack,
+  browserStore,
+  dataStore,
+}: {
+  ldTrack: LDTrackConfig;
+  browserStore: BrowserStoreInstance;
+  dataStore: DataStoreInstance;
+}) {
+  const getExpandedDomain = browserStore((state) => state.getExpandedDomain);
+  const domain = getExpandedDomain();
+  const { data, error, loading } = useQuery(LD_QUERY, {
+    variables: { study: ["Dastani_Z-22479202-Adiponectin_levels"] },
+  });
+
+  const processedData = useMemo(() => {
+    if (data && !error && !loading) {
+      return data.getSNPsforGWASStudies.filter((snp: any) => {
+        const pastStart = snp.start >= domain.start;
+        const behindEnd = snp.stop <= domain.end;
+        const sameDomain = snp.chromosome === domain.chromosome;
+        return pastStart && behindEnd && sameDomain;
+      });
+    }
+    return [];
+  }, [data, error, loading, domain]);
+
+  useCustomData({ trackId: ldTrack.id, data: processedData, loading, error, dataStore });
+  return null;
 }
 
 function DomainInfo({ browserStore }: { browserStore: BrowserStoreInstance }) {

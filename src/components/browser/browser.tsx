@@ -26,7 +26,7 @@ interface BrowserProps {
 
 export default function Browser({ browserStore, trackStore, externalDataStore }: BrowserProps) {
   // Create internal stores for this browser instance
-  const dataStore = useMemo(() => externalDataStore ?? createDataStore(), []);
+  const dataStore = useMemo(() => externalDataStore ?? createDataStore(), [externalDataStore]);
   const contextMenuStore = useMemo(() => createContextMenuStore(), []);
   const modalStore = useMemo(() => createModalStore(), []);
   const tooltipStore = useMemo(() => createTooltipStore(), []);

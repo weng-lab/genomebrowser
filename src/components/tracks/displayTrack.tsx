@@ -41,7 +41,6 @@ export default function DisplayTrack({ id }: { id: string }) {
     () => (track && data ? getTrackComponent(track, data, trackDimensions) : <></>),
     [track, data, trackDimensions]
   );
-
   return (
     <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data}>
       {trackComponent}

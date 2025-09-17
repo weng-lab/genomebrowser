@@ -2,7 +2,6 @@ import { Config, TrackDimensions, TrackType } from "../types";
 
 export interface LDTrackConfig extends Config<any> {
   trackType: TrackType.LDTrack;
-  study: string[];
   show?: string[];
 }
 

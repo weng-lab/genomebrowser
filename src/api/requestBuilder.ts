@@ -10,7 +10,7 @@ export interface AllRequests {
   motifRequest?: MotifRequest;
   importanceRequests: BigRequest[];
   bulkBedRequests: BigRequest[];
-  ldRequest?: LDRequest;
+  // ldRequest?: LDRequest;
   methylCRequest?: BigRequest[];
 }
 
@@ -117,15 +117,15 @@ export function buildImportanceRequests(tracks: Track[], currentDomain: Domain):
 /**
  * Build LD request for given tracks (first LD track found)
  */
-export function buildLDRequest(tracks: Track[]): LDRequest | undefined {
-  const ldTrack = tracks.find((track) => track.trackType === TrackType.LDTrack);
-  if (!ldTrack) return undefined;
+// export function buildLDRequest(tracks: Track[]): LDRequest | undefined {
+//   const ldTrack = tracks.find((track) => track.trackType === TrackType.LDTrack);
+//   if (!ldTrack) return undefined;
 
-  const request = {
-    study: ldTrack.study,
-  };
-  return request;
-}
+//   const request = {
+//     study: ldTrack.study,
+//   };
+//   return request;
+// }
 
 export function buildMethylCRequest(
   tracks: Track[],
@@ -175,7 +175,7 @@ export function buildAllRequests(
     motifRequest: buildMotifRequest(tracks, expandedDomain),
     importanceRequests: buildImportanceRequests(tracks, currentDomain),
     bulkBedRequests: buildBulkBedRequests(tracks, expandedDomain),
-    ldRequest: buildLDRequest(tracks),
+    // ldRequest: buildLDRequest(tracks),
     methylCRequest: buildMethylCRequest(tracks, expandedDomain, preRenderedWidth),
   };
 }

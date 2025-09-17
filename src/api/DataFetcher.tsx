@@ -22,7 +22,7 @@ function DataFetcher() {
   // const [fetchSnps, { data: snpData, loading: snpLoading, error: snpError }] = useLazyQuery(LD_QUERY);
   const [fetchMethylC, { data: methylCData, loading: methylCLoading, error: methylCError }] =
     useLazyQuery(BIGDATA_QUERY);
-  const [fetchLD, { data: ldData, loading: ldLoading, error: ldError }] = useLazyQuery(LD_QUERY);
+  // const [fetchLD, { data: ldData, loading: ldLoading, error: ldError }] = useLazyQuery(LD_QUERY);
 
   const tracks = useTrackStore((state) => state.tracks);
   const editTrack = useTrackStore((state) => state.editTrack);
@@ -39,17 +39,22 @@ function DataFetcher() {
   const preRenderedWidth = useMemo(() => trackWidth * multiplier, [trackWidth, multiplier]);
 
   const loading = useMemo(() => {
-    return (
+    const isLoading =
       bigLoading ||
       geneLoading ||
       motifLoading ||
       importanceLoading ||
       bulkBedLoading ||
       // snpLoading ||
-      methylCLoading ||
-      ldLoading
-    );
-  }, [bigLoading, geneLoading, motifLoading, importanceLoading, bulkBedLoading, methylCLoading, ldLoading]);
+      methylCLoading;
+    // ldLoading;
+    return isLoading;
+  }, [bigLoading, geneLoading, motifLoading, importanceLoading, bulkBedLoading, methylCLoading]);
+
+  useEffect(() => {
+    console.log("loading", loading);
+    setLoading(loading);
+  }, [loading, setLoading]);
 
   useEffect(() => {
     if (tracks.length === 0) return;
@@ -75,7 +80,7 @@ function DataFetcher() {
         fetchImportance,
         fetchBulkBed,
         fetchMethylC,
-        fetchLD,
+        // fetchLD,
       });
     };
     fetchAllData().catch((error) => {
@@ -101,8 +106,8 @@ function DataFetcher() {
       // snpError,
       methylCError,
       motifData,
-      ldData,
-      ldError,
+      // ldData,
+      // ldError,
     });
     // Update data store with all processed results
     results.forEach((result) => {
@@ -126,8 +131,8 @@ function DataFetcher() {
     bulkBedError,
     // snpError,
     methylCError,
-    ldData,
-    ldError,
+    // ldData,
+    // ldError,
     loading,
     setData,
     setDelta,
