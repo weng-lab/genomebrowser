@@ -8,11 +8,11 @@ import {
   GQLWrapper,
   BrowserStoreInstance,
   useCustomData,
+  createDataStore,
 } from "../src/lib";
 import { createRoot } from "react-dom/client";
 import { bigBedExample, transcriptExample } from "./tracks";
 import { LDTrackConfig } from "../src/components/tracks/ldtrack/types";
-import { createDataStore } from "../src/store/dataStore";
 import { useQuery } from "@apollo/client";
 import { LD_QUERY } from "../src/api/queries";
 

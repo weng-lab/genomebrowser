@@ -43,6 +43,9 @@ export { createBrowserStore, type InitialBrowserState, type BrowserStoreInstance
 import { createTrackStore, type Track, type TrackStoreInstance } from "./store/trackStore";
 export { createTrackStore, type Track, type TrackStoreInstance };
 
+import { createDataStore, type DataStoreInstance } from "./store/dataStore";
+export { createDataStore, type DataStoreInstance };
+
 // Misc.
 import { Highlight } from "./components/highlight/types";
 export type { Highlight };

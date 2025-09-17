@@ -3,8 +3,7 @@ import { downloadBedRegion, downloadBedGraph, downloadSVG } from "../../../utils
 import { TrackType } from "../../tracks/types";
 import Form from "./form";
 import { getTextColor, isDark, shadeColor } from "../helpers";
-import { useBrowserStore } from "../../../store/BrowserContext";
-import { useDataStore } from "../../../store/dataStore";
+import { useBrowserStore, useDataStore } from "../../../store/BrowserContext";
 import { Track } from "../../../store/trackStore";
 
 export const downloadButtonStyle = {
