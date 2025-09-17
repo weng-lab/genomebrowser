@@ -61,3 +61,6 @@ export { GQLWrapper };
 
 import Cytobands from "./components/cytoband/cytobands";
 export { Cytobands };
+
+import useCustomData from "./hooks/useCustomData";
+export { useCustomData };
