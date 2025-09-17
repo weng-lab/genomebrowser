@@ -1,4 +1,4 @@
-import React, { StrictMode, useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import {
   Browser,
   createBrowserStore,
@@ -7,12 +7,13 @@ import {
   TrackType,
   GQLWrapper,
   BrowserStoreInstance,
+  useCustomData,
 } from "../src/lib";
 import { createRoot } from "react-dom/client";
 import { bigBedExample, transcriptExample } from "./tracks";
 import { LDTrackConfig } from "../src/components/tracks/ldtrack/types";
-import { createDataStore, DataStoreInstance } from "../src/store/dataStore";
-import { ApolloError, useQuery } from "@apollo/client";
+import { createDataStore } from "../src/store/dataStore";
+import { useQuery } from "@apollo/client";
 import { LD_QUERY } from "../src/api/queries";
 
 const ldTrack: LDTrackConfig = {
@@ -24,106 +25,73 @@ const ldTrack: LDTrackConfig = {
   titleSize: 12,
   color: "#ff0000",
 };
+const browserStore = createBrowserStore({
+  domain: { chromosome: "chr13", start: 33415216 - 20000, end: 33415217 + 20000 },
+  marginWidth: 100,
+  trackWidth: 1400,
+  multiplier: 3,
+  highlights: [
+    {
+      id: "highlight",
+      domain: { chromosome: "chr19", start: 33415216 - 200, end: 33415217 + 200 },
+      color: "#ff0000",
+    },
+  ],
+});
 
-export default function MethylCTest() {
-  // chr19:33415216-33415217
-  const browserStore = createBrowserStore({
-    domain: { chromosome: "chr19", start: 33415216 - 20000, end: 33415217 + 20000 },
-    marginWidth: 100,
-    trackWidth: 1400,
-    multiplier: 3,
-    highlights: [
-      {
-        id: "highlight",
-        //chr19:33,415,216-33,415,217
-        domain: { chromosome: "chr19", start: 33415216 - 200, end: 33415217 + 200 },
-        color: "#ff0000",
-      },
-    ],
-  });
-  const trackStore = createTrackStore([transcriptExample, ldTrack, bigBedExample]);
+const trackStore = createTrackStore([transcriptExample, ldTrack, bigBedExample]);
 
-  const dataStore = createDataStore();
+const dataStore = createDataStore();
+
+/**
+ * This example shows how to use custom data fetching for the LD track. Notice how the stores
+ * are created out of the component. This avoids re-rendering the browser when the data is fetched
+ * in turn avoiding re-initializing the stores.
+ * @returns
+ */
+function MethylCTest() {
+  const setDomain = browserStore((state) => state.setDomain);
+  const response = useLDData();
+  useCustomData(ldTrack.id, response, dataStore);
+
+  useEffect(() => {
+    setDomain({ chromosome: "chr19", start: 33415216 - 20000, end: 33415217 + 20000 });
+  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <DomainInfo browserStore={browserStore} />
       <div style={{ width: "90%" }}>
-        <LDDataFetcher ldTrack={ldTrack} browserStore={browserStore} dataStore={dataStore} />
         <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />
       </div>
     </div>
   );
 }
 
-function useCustomData({
-  trackId,
-  data,
-  loading,
-  error,
-  dataStore,
-}: {
-  trackId: string;
-  data: any;
-  loading: boolean;
-  error: ApolloError | undefined;
-  dataStore: DataStoreInstance;
-}) {
-  const setDataById = dataStore((state) => state.setDataById);
-  const fetching = dataStore((state) => state.fetching);
-  const globalLoading = dataStore((state) => state.loading);
-
-  useEffect(() => {
-    if (data && !loading && !error && !fetching && !globalLoading) {
-      setDataById(trackId, data, error);
-    }
-  }, [data, loading, error, fetching, trackId, globalLoading]);
-}
-
-function LDDataFetcher({
-  ldTrack,
-  browserStore,
-  dataStore,
-}: {
-  ldTrack: LDTrackConfig;
-  browserStore: BrowserStoreInstance;
-  dataStore: DataStoreInstance;
-}) {
-  const getExpandedDomain = browserStore((state) => state.getExpandedDomain);
-  const domain = getExpandedDomain();
+function useLDData() {
   const { data, error, loading } = useQuery(LD_QUERY, {
     variables: { study: ["Dastani_Z-22479202-Adiponectin_levels"] },
   });
 
-  const processedData = useMemo(() => {
-    if (data && !error && !loading) {
-      return data.getSNPsforGWASStudies.filter((snp: any) => {
-        const pastStart = snp.start >= domain.start;
-        const behindEnd = snp.stop <= domain.end;
-        const sameDomain = snp.chromosome === domain.chromosome;
-        return pastStart && behindEnd && sameDomain;
-      });
-    }
-    return [];
-  }, [data, error, loading, domain]);
-
-  useCustomData({ trackId: ldTrack.id, data: processedData, loading, error, dataStore });
-  return null;
+  return { data: data?.getSNPsforGWASStudies, error, loading };
 }
 
 function DomainInfo({ browserStore }: { browserStore: BrowserStoreInstance }) {
   const domain = browserStore((state) => state.domain);
+  const setDomain = browserStore((state) => state.setDomain);
+  const onClick = () => {
+    setDomain({ chromosome: "chr19", start: 33415216 - 20000, end: 33415217 + 20000 });
+  };
   return (
     <div>
+      <button onClick={onClick}>Set Domain</button>
       {domain.chromosome}:{domain.start}-{domain.end}
     </div>
   );
 }
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <GQLWrapper>
-      <MethylCTest />
-    </GQLWrapper>
-  </StrictMode>
+  <GQLWrapper>
+    <MethylCTest />
+  </GQLWrapper>
 );
