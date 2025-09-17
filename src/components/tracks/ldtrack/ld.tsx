@@ -277,7 +277,6 @@ const createArcPath = (sourceSnp: SNP, targetSnp: SNP, height: number, leadHeigh
   const sourceX = sourceSnp.pixelStart + (sourceSnp.pixelEnd - sourceSnp.pixelStart) / 2;
 
   // Calculate correct y-coordinates based on whether each SNP is a lead or regular SNP
-  console.log(targetSnp);
   const targetY = isLead(targetSnp) ? height - leadHeight : height - snpHeight;
   const sourceY = isLead(sourceSnp) ? height - leadHeight : height - snpHeight;
 

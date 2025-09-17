@@ -6,18 +6,19 @@ import DragTrack from "../tracks/wrapper/dragTrack";
 import { Highlight } from "./types";
 
 export default function Highlights() {
-  // domain
   const fetching = useDataStore((state) => state.fetching);
+  const loading = useDataStore((state) => state.loading);
+  const domain = useBrowserStore((state) => state.domain);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const [browserDomain, setBrowserDomain] = useState<Domain>(getExpandedDomain());
   const delta = useBrowserStore((state) => state.delta);
 
   useEffect(() => {
-    if (delta !== 0 || fetching) {
+    if (fetching || loading || delta !== 0) {
       return;
     }
     setBrowserDomain(getExpandedDomain());
-  }, [delta, getExpandedDomain, fetching]);
+  }, [delta, getExpandedDomain, fetching, domain, loading]);
 
   // highlights
   const highlights = useBrowserStore((state) => state.highlights);
