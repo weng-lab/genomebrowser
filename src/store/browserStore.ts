@@ -61,7 +61,11 @@ export function createBrowserStore(initialState: InitialBrowserState) {
     },
     setDomain: (domain: Domain) => {
       const state = get();
-      if (domain.start == state.domain.start && domain.end == state.domain.end) {
+      if (
+        domain.chromosome == state.domain.chromosome &&
+        domain.start == state.domain.start &&
+        domain.end == state.domain.end
+      ) {
         return;
       }
       set({ domain });
