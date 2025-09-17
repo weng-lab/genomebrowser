@@ -6,7 +6,7 @@ import { TrackType } from "../components/tracks/types";
 
 import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
 
-import { BIGDATA_QUERY, MOTIF_QUERY, TRANSCRIPT_GENES_QUERY, LD_QUERY } from "./queries";
+import { BIGDATA_QUERY, MOTIF_QUERY, TRANSCRIPT_GENES_QUERY } from "./queries";
 import { buildAllRequests } from "./requestBuilder";
 import { executeAllQueries } from "./queryExecutor";
 import { processAllResults } from "./resultsProcessor";
@@ -52,7 +52,6 @@ function DataFetcher() {
   }, [bigLoading, geneLoading, motifLoading, importanceLoading, bulkBedLoading, methylCLoading]);
 
   useEffect(() => {
-    console.log("loading", loading);
     setLoading(loading);
   }, [loading, setLoading]);
 

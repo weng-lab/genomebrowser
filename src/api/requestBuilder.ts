@@ -1,7 +1,7 @@
 import { Domain } from "../utils/types";
 import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
-import { BigRequest, TranscriptRequest, MotifRequest, LDRequest } from "./apiTypes";
+import { BigRequest, TranscriptRequest, MotifRequest } from "./apiTypes";
 import { BulkBedConfig } from "../components/tracks/bulkbed/types";
 import { MethylCConfig } from "../components/tracks/methylC/types";
 export interface AllRequests {
