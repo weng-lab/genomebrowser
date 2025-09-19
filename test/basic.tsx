@@ -39,7 +39,7 @@ const browserStore = createBrowserStore({
   ],
 });
 
-const trackStore = createTrackStore([transcriptExample, ldTrack, bigBedExample]);
+const trackStore = createTrackStore([transcriptExample, ldTrack, bigBedExample, { ...bigBedExample, id: "123412" }]);
 
 const dataStore = createDataStore();
 

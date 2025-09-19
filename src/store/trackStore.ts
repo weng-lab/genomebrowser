@@ -8,6 +8,7 @@ import { ImportanceConfig } from "../components/tracks/importance/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { RULER_HEIGHT } from "../components/tracks/ruler/ruler";
 import { MethylCConfig } from "../components/tracks/methylC/types";
+import { TrackType } from "../components/tracks/types";
 
 type WrapperDimensions = {
   trackMargin: number;
@@ -42,6 +43,7 @@ export interface TrackStore {
   createShortLabel: (id: string) => string;
   getIndexByType: (id: string) => number;
   editTrack: <T extends Track>(id: string, partial: Partial<T>) => void;
+  editAllTracksByType: <T extends Track>(trackType: TrackType, partial: Partial<T>) => void;
 }
 
 export type TrackStoreInstance = ReturnType<typeof createTrackStore>;
@@ -142,6 +144,18 @@ export function createTrackStore(tracks: Track[] = []) {
       set((state) => {
         const updatedTracks = state.tracks.map((track) => {
           if (track.id === id) {
+            const newTrack = { ...track, ...partial };
+            return newTrack;
+          }
+          return track;
+        });
+        return { tracks: updatedTracks };
+      });
+    },
+    editAllTracksByType: <T extends Track>(trackType: TrackType, partial: Partial<T>): void => {
+      set((state) => {
+        const updatedTracks = state.tracks.map((track) => {
+          if (track.trackType === trackType) {
             const newTrack = { ...track, ...partial };
             return newTrack;
           }
