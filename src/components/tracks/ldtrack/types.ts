@@ -18,6 +18,20 @@ export type LDProps = {
   tooltip?: React.FC<any>;
 };
 
+export type SNP = {
+  chromosome: string;
+  ldblock: number;
+  ldblocksnpid: string; // Can be comma-separated values for multiple lead SNPs
+  pixelEnd: number;
+  pixelStart: number;
+  rsquare: string; // Can be comma-separated values corresponding to ldblocksnpids
+  snpid: string;
+  start: number;
+  stop: number;
+  sourceSnp?: string; // Added for tracking which SNP this connection comes from
+  targetSnpId?: string; // Added for tracking which specific target this connection is for
+};
+
 export type Population = {
   population: string;
   subpopulation?: string;

@@ -16,6 +16,7 @@ export enum DisplayMode {
   Pack = "pack",
   Combined = "combined",
   Split = "split",
+  Scatter = "scatter",
 }
 
 // Interaction configuration for all tracks
