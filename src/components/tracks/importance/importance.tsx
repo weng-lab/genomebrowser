@@ -1,9 +1,12 @@
 import { Fragment, useCallback, useMemo, useState } from "react";
 import { useRenderedImportanceTrackAnnotations, useRenderedImportanceTrackData } from "./helpers";
 import { Letter } from "./letter";
-import { ImportanceProps } from "./types";
+import { ImportanceProps, ImportanceTrackDataPoint, ImportanceTrackSequence } from "./types";
 
 export default function Importance({ data, annotations, dimensions, height, zeroLineProps }: ImportanceProps) {
+  if ((data as ImportanceTrackDataPoint[]).length === 0 || (data as ImportanceTrackSequence).importance.length === 0) {
+    return null;
+  }
   const { viewWidth: width } = dimensions;
   const [selection] = useState<[number, number] | null>(null);
   const [rendered, transform, rawTransform] = useRenderedImportanceTrackData(data, height);
