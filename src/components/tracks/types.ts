@@ -7,6 +7,7 @@ export enum TrackType {
   LDTrack = "ldtrack",
   BulkBed = "bulkbed",
   MethylC = "methylc",
+  Manhattan = "manhattan",
 }
 
 export enum DisplayMode {

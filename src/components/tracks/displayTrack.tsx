@@ -17,7 +17,7 @@ import BulkBed from "./bulkbed/bulkbed";
 import SplitMethylC from "./methylC/split";
 import ReworkBigWig from "./bigwig/rework";
 import LD from "./ldtrack/ld";
-import Scatter from "./ldtrack/scatter";
+import Scatter from "./manhattan/scatter";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -71,7 +71,6 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
   },
   [TrackType.LDTrack]: {
     [DisplayMode.Full]: LD,
-    [DisplayMode.Scatter]: Scatter,
   },
   [TrackType.BulkBed]: {
     [DisplayMode.Full]: BulkBed,
@@ -79,6 +78,9 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
   [TrackType.MethylC]: {
     // [DisplayMode.Combined]: CombinedMethylC,
     [DisplayMode.Split]: SplitMethylC,
+  },
+  [TrackType.Manhattan]: {
+    [DisplayMode.Full]: Scatter,
   },
 };
 
