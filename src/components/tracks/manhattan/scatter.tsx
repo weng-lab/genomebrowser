@@ -80,26 +80,6 @@ export default function Scatter({
   return (
     <g id={id} transform={`translate(-${sideWidth}, 0)`}>
       <rect width={totalWidth} height={height} fill={background} />
-
-      {cutoffY > 0 && (
-        <>
-          <text x={sideWidth + marginWidth} y={cutoffY} textAnchor="middle" fill={text}>
-            P {">="} {cutoffLabel || cutoffValue}
-          </text>
-
-          <line
-            x1={0}
-            y1={cutoffY}
-            x2={totalWidth}
-            y2={cutoffY}
-            stroke={text}
-            strokeWidth={1}
-            strokeDasharray="3,3"
-            opacity={0.6}
-          />
-        </>
-      )}
-
       {transformedData.map(
         (
           snp: {
@@ -132,6 +112,25 @@ export default function Scatter({
             />
           );
         }
+      )}
+
+      {cutoffY > 0 && (
+        <>
+          <text x={sideWidth + marginWidth} y={cutoffY} textAnchor="middle" fill={text}>
+            P {">="} {cutoffLabel || cutoffValue}
+          </text>
+
+          <line
+            x1={0}
+            y1={cutoffY}
+            x2={totalWidth}
+            y2={cutoffY}
+            stroke={text}
+            strokeWidth={1}
+            strokeDasharray="3,3"
+            opacity={0.6}
+          />
+        </>
       )}
     </g>
   );
