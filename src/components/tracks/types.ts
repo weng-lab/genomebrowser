@@ -7,6 +7,7 @@ export enum TrackType {
   LDTrack = "ldtrack",
   BulkBed = "bulkbed",
   MethylC = "methylc",
+  Manhattan = "manhattan",
 }
 
 export enum DisplayMode {
@@ -16,6 +17,9 @@ export enum DisplayMode {
   Pack = "pack",
   Combined = "combined",
   Split = "split",
+  Scatter = "scatter",
+  LDBlock = "ldblock",
+  GenericLD = "genericld",
 }
 
 // Interaction configuration for all tracks

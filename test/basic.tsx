@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Browser,
   createBrowserStore,
@@ -9,39 +9,36 @@ import {
   BrowserStoreInstance,
   useCustomData,
   createDataStore,
+  DataStoreInstance,
+  LDTrackConfig,
+  ManhattanPoint,
+  ManhattanTrackConfig,
 } from "../src/lib";
 import { createRoot } from "react-dom/client";
-import { bigBedExample, transcriptExample } from "./tracks";
-import { LDTrackConfig } from "../src/components/tracks/ldtrack/types";
-import { useQuery } from "@apollo/client";
-import { LD_QUERY } from "../src/api/queries";
+import { transcriptExample } from "./tracks";
+import { gql, useQuery } from "@apollo/client";
+import { BIGDATA_QUERY, LD_QUERY } from "../src/api/queries";
 
 const ldTrack: LDTrackConfig = {
   id: "ld",
   title: "LD",
   trackType: TrackType.LDTrack,
-  displayMode: DisplayMode.Full,
+  displayMode: DisplayMode.GenericLD,
   height: 50,
   titleSize: 12,
   color: "#ff0000",
 };
-const browserStore = createBrowserStore({
-  domain: { chromosome: "chr13", start: 33415216 - 20000, end: 33415217 + 20000 },
-  marginWidth: 100,
-  trackWidth: 1400,
-  multiplier: 3,
-  highlights: [
-    {
-      id: "highlight",
-      domain: { chromosome: "chr19", start: 33415216 - 200, end: 33415217 + 200 },
-      color: "#ff0000",
-    },
-  ],
-});
 
-const trackStore = createTrackStore([transcriptExample, ldTrack, bigBedExample, { ...bigBedExample, id: "123412" }]);
-
-const dataStore = createDataStore();
+const manhattanTrack: ManhattanTrackConfig = {
+  id: "manhattan",
+  title: "Manhattan",
+  trackType: TrackType.Manhattan,
+  displayMode: DisplayMode.Scatter,
+  height: 75,
+  titleSize: 12,
+  color: "#ff0000",
+  cutoffLabel: "5e-8",
+};
 
 /**
  * This example shows how to use custom data fetching for the LD track. Notice how the stores
@@ -50,14 +47,70 @@ const dataStore = createDataStore();
  * @returns
  */
 function MethylCTest() {
-  const setDomain = browserStore((state) => state.setDomain);
-  const response = useLDData();
-  useCustomData(ldTrack.id, response, dataStore);
+  const browserStore = useMemo(
+    () =>
+      createBrowserStore({
+        // chr19:33,388,478-33,436,600
+        domain: { chromosome: "chr19", start: 33388478, end: 33436600 },
+        marginWidth: 100,
+        trackWidth: 1400,
+        multiplier: 3,
+      }),
+    []
+  );
 
-  useEffect(() => {
-    setDomain({ chromosome: "chr19", start: 33415216 - 20000, end: 33415217 + 20000 });
-  }, []);
+  const [hovered, setHovered] = useState<ManhattanPoint | null>(null);
 
+  const trackStore = useMemo(
+    () =>
+      createTrackStore([
+        transcriptExample,
+        {
+          ...manhattanTrack,
+          onHover: (item) => {
+            setHovered(item);
+          },
+        },
+        {
+          ...ldTrack,
+          onHover: (item) => {
+            setHovered(item);
+          },
+        },
+      ]),
+    [setHovered]
+  );
+  const editTrack = trackStore((state) => state.editTrack);
+
+  const result = useQuery(ldQuery, {
+    variables: {
+      id: [hovered?.snpId],
+    },
+  });
+
+  if (result.data?.snp[0]) {
+    editTrack(manhattanTrack.id, {
+      associatedSnps: result.data.snp[0].linkageDisequilibrium.map((ld: any) => ld.id),
+    });
+    editTrack(ldTrack.id, {
+      associatedSnps: result.data.snp[0].linkageDisequilibrium.map((ld: any) => ld.id),
+      lead: hovered?.snpId,
+    });
+  }
+
+  if (!hovered) {
+    editTrack(manhattanTrack.id, {
+      associatedSnps: [],
+    });
+    editTrack(ldTrack.id, {
+      associatedSnps: [],
+    });
+  }
+
+  const dataStore = useMemo(() => createDataStore(), []);
+
+  useManhattanData(browserStore, dataStore);
+  // useLDData(dataStore);
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <DomainInfo browserStore={browserStore} />
@@ -68,23 +121,94 @@ function MethylCTest() {
   );
 }
 
-function useLDData() {
+function useManhattanData(browserStore: BrowserStoreInstance, dataStore: DataStoreInstance) {
+  const getDomain = browserStore((state) => state.getExpandedDomain);
+  const preRenderedWidth = browserStore((state) => state.trackWidth * state.multiplier);
+  const { data, error, loading } = useQuery(BIGDATA_QUERY, {
+    variables: {
+      bigRequests: [
+        {
+          url: "https://downloads.wenglab.org/pyschscreensumstats/GWAS_fullsumstats/Alzheimers_Bellenguez_meta.formatted.bigBed",
+          chr1: getDomain().chromosome,
+          start: getDomain().start,
+          end: getDomain().end,
+          preRenderedWidth,
+        },
+      ],
+    },
+  });
+
+  const manhattanData = useMemo(() => {
+    if (!data) return [];
+    const points = data.bigRequests[0].data;
+    return points.map((snp: any) => {
+      return {
+        snpId: snp.name.split("_")[0],
+        value: snp.name.split("_")[1],
+        chr: snp.chr,
+        start: snp.start,
+        end: snp.end,
+      } as ManhattanPoint;
+    });
+  }, [data]);
+
+  useCustomData(
+    manhattanTrack.id,
+    {
+      data: manhattanData,
+      error,
+      loading,
+    },
+    dataStore
+  );
+  useCustomData(
+    ldTrack.id,
+    {
+      data: manhattanData,
+      error,
+      loading,
+    },
+    dataStore
+  );
+}
+
+const ldQuery = gql(`
+query snips_in_ld($id: [String]) {
+  snp: snpQuery(assembly: "hg38", snpids: $id) {
+    linkageDisequilibrium(rSquaredThreshold: 0.7, population: EUROPEAN) {
+      id
+      rSquared
+      coordinates(assembly: "hg38") {
+        chromosome
+        start
+        end
+        __typename
+       }
+      __typename
+    }
+  __typename
+  }
+}
+`);
+
+function useLDData(dataStore: DataStoreInstance) {
   const { data, error, loading } = useQuery(LD_QUERY, {
     variables: { study: ["Dastani_Z-22479202-Adiponectin_levels"] },
   });
-
-  return { data: data?.getSNPsforGWASStudies, error, loading };
+  if (data?.getSNPsforGWASStudies) {
+    console.log(data?.getSNPsforGWASStudies);
+  }
+  useCustomData(ldTrack.id, { data: data?.getSNPsforGWASStudies, error, loading }, dataStore);
 }
 
 function DomainInfo({ browserStore }: { browserStore: BrowserStoreInstance }) {
   const domain = browserStore((state) => state.domain);
-  const setDomain = browserStore((state) => state.setDomain);
-  const onClick = () => {
-    setDomain({ chromosome: "chr19", start: 33415216 - 20000, end: 33415217 + 20000 });
-  };
+  // const setDomain = browserStore((state) => state.setDomain);
+  // const onClick = () => {
+  //   setDomain({ chromosome: "chr1", start: 207508704, end: 207528704 });
+  // };
   return (
     <div>
-      <button onClick={onClick}>Set Domain</button>
       {domain.chromosome}:{domain.start}-{domain.end}
     </div>
   );
