@@ -40,7 +40,7 @@ export default function Height({ id, defaultHeight }: { id: string; defaultHeigh
   };
 
   // Count tracks of the same type
-  const sameTypeTracksCount = trackType ? tracks.filter(t => t.trackType === trackType).length : 0;
+  const sameTypeTracksCount = trackType ? tracks.filter((t) => t.trackType === trackType).length : 0;
   const showBulkButton = sameTypeTracksCount > 1;
 
   const getTrackTypeLabel = (trackType: TrackType): string => {
@@ -104,7 +104,7 @@ function ValueWithRef({
   validate,
   callback,
 }: {
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   defaultValue: number;
   validate: (value: string) => string | undefined;
   callback: (value: string) => void;

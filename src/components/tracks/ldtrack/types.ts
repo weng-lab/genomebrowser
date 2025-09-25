@@ -3,6 +3,8 @@ import { Config, TrackDimensions, TrackType } from "../types";
 export interface LDTrackConfig extends Config<any> {
   trackType: TrackType.LDTrack;
   show?: string[];
+  lead?: string;
+  associatedSnps?: string[];
 }
 
 export type LDProps = {

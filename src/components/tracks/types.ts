@@ -18,6 +18,8 @@ export enum DisplayMode {
   Combined = "combined",
   Split = "split",
   Scatter = "scatter",
+  LDBlock = "ldblock",
+  GenericLD = "genericld",
 }
 
 // Interaction configuration for all tracks

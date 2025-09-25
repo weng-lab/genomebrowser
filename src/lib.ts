@@ -36,6 +36,12 @@ export type { TranscriptConfig, SquishTranscriptProps, PackTranscriptProps, Tran
 import { MethylCConfig, MethylCProps, MethylData } from "./components/tracks/methylC/types";
 export type { MethylCConfig, MethylCProps, MethylData };
 
+import { LDTrackConfig, LDProps, SNP } from "./components/tracks/ldtrack/types";
+export type { LDTrackConfig, LDProps, SNP };
+
+import { ManhattanTrackConfig, ManhattanPoint } from "./components/tracks/manhattan/types";
+export type { ManhattanTrackConfig, ManhattanPoint };
+
 // Store Factory Functions
 import { createBrowserStore, type InitialBrowserState, type BrowserStoreInstance } from "./store/browserStore";
 export { createBrowserStore, type InitialBrowserState, type BrowserStoreInstance };

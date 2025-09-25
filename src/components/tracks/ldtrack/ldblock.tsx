@@ -244,14 +244,14 @@ function Tooltip(snp: SNP) {
 
   return (
     <g style={{ filter: `drop-shadow(0 0 2px ${text})` }}>
-      <rect width={150} height={38} y={0} fill={background} />
-      <text fontSize={12} x={5} y={12}>
+      <rect width={180} height={50} y={0} fill={background} />
+      <text fontSize={14} x={5} y={16}>
         {snp.snpid}
       </text>
-      <text fontSize={12} x={5} y={24}>
+      <text fontSize={14} x={5} y={32}>
         {snp.chromosome}:{snp.start}-{snp.stop}
       </text>
-      <text fontSize={12} x={5} y={36}>
+      <text fontSize={14} x={5} y={48}>
         {isLead(snp) ? "Lead" : getPrimaryRSquare(snp)}
       </text>
     </g>

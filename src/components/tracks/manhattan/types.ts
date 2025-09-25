@@ -3,11 +3,18 @@ import { Config, TrackDimensions, TrackType } from "../types";
 
 export interface ManhattanTrackConfig extends Config<any> {
   trackType: TrackType.Manhattan;
+  cutoffValue?: number;
+  cutoffLabel?: string;
+  lead?: string;
+  associatedSnps?: string[]; // list of snpIds to be highlighted
 }
 
 export interface ManhattanProps {
   id: string;
   data: any;
+  cutoffValue?: number;
+  cutoffLabel?: string;
+  associatedSnps?: string[]; // list of snpIds to be highlighted
   height: number;
   color: string;
   dimensions: TrackDimensions;
@@ -21,8 +28,6 @@ export type ManhattanPoint = {
   chr: Chromosome;
   start: number;
   end: number;
-  snpid: string;
-  p_value: number;
-  is_lead: boolean;
-  associated_snps: string[];
+  snpId: string;
+  value: number;
 };

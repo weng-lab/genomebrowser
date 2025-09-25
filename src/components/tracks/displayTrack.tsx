@@ -16,8 +16,9 @@ import SquishMotif from "./motif/squish";
 import BulkBed from "./bulkbed/bulkbed";
 import SplitMethylC from "./methylC/split";
 import ReworkBigWig from "./bigwig/rework";
-import LD from "./ldtrack/ld";
+import LD from "./ldtrack/ldblock";
 import Scatter from "./manhattan/scatter";
+import GenericLD from "./ldtrack/genericld";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -70,7 +71,8 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
     [DisplayMode.Full]: Importance,
   },
   [TrackType.LDTrack]: {
-    [DisplayMode.Full]: LD,
+    [DisplayMode.LDBlock]: LD,
+    [DisplayMode.GenericLD]: GenericLD,
   },
   [TrackType.BulkBed]: {
     [DisplayMode.Full]: BulkBed,
@@ -80,7 +82,7 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
     [DisplayMode.Split]: SplitMethylC,
   },
   [TrackType.Manhattan]: {
-    [DisplayMode.Full]: Scatter,
+    [DisplayMode.Scatter]: Scatter,
   },
 };
 
