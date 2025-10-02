@@ -3,7 +3,10 @@ import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 const client = new ApolloClient({
   uri: "https://screen.api.wenglab.org/graphql",
   cache: new InMemoryCache(),
-  connectToDevTools: true,
+  devtools: {
+    enabled: true,
+    name: "Genome Browser",
+  },
 });
 
 export default function GQLWrapper({ children }: { children: React.ReactNode }) {
