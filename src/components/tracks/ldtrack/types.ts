@@ -5,6 +5,7 @@ export interface LDTrackConfig extends Config<any> {
   show?: string[];
   lead?: string;
   associatedSnps?: string[];
+  showScore?: boolean;
 }
 
 export type LDProps = {
@@ -14,6 +15,7 @@ export type LDProps = {
   height: number;
   dimensions: TrackDimensions;
   show?: string[];
+  showScore?: boolean;
   onClick?: (data: any) => void;
   onHover?: (data: any) => void;
   onLeave?: (data: any) => void;

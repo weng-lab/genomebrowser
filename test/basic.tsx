@@ -27,6 +27,7 @@ const ldTrack: LDTrackConfig = {
   height: 50,
   titleSize: 12,
   color: "#ff0000",
+  showScore: false,
 };
 
 const manhattanTrack: ManhattanTrackConfig = {
@@ -109,8 +110,8 @@ function MethylCTest() {
 
   const dataStore = useMemo(() => createDataStore(), []);
 
-  useManhattanData(browserStore, dataStore);
-  // useLDData(dataStore);
+  // useManhattanData(browserStore, dataStore);
+  useLDData(dataStore);
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <DomainInfo browserStore={browserStore} />
