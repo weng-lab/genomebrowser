@@ -2,27 +2,39 @@ import { compress, decompress } from "lz-string";
 import { BrowserStoreInstance, InitialBrowserState } from "../store/browserStore";
 import { Track, TrackStoreInstance } from "../store/trackStore";
 
-export function getLocalState() {
-  const localBrowserString = sessionStorage.getItem("browserState");
-  const localTrackString = sessionStorage.getItem("trackState");
+export function getLocalBrowserState(prefix?: string) {
+  const localBrowserString = sessionStorage.getItem(`${prefix || ""}browserState`);
   let localBrowserState: InitialBrowserState | undefined;
+
+  if (localBrowserString) {
+    const browserState = deserialize<InitialBrowserState>(localBrowserString);
+    localBrowserState = browserState;
+  }
+  return localBrowserState;
+}
+
+export function getLocalTrackState(prefix?: string) {
+  const localTrackString = sessionStorage.getItem(`${prefix || ""}trackState`);
   let localTrackState: Track[] | undefined;
 
-  if (localBrowserString && localTrackString) {
-    const { browserStore, trackStore } = deserialize(localBrowserString, localTrackString);
-    localBrowserState = browserStore;
+  if (localTrackString) {
+    const trackStore = deserialize<Track[]>(localTrackString);
     localTrackState = trackStore;
   }
-  return { localBrowserState, localTrackState };
+  return localTrackState;
 }
 
-export function setLocalState(browserStore: BrowserStoreInstance, trackStore: TrackStoreInstance) {
-  const { browserString, trackString } = serialize(browserStore, trackStore);
-  sessionStorage.setItem("browserState", browserString);
-  sessionStorage.setItem("trackState", trackString);
+export function setLocalBrowserState(browserStore: BrowserStoreInstance, prefix?: string) {
+  const browserString = serializeBrowserState(browserStore);
+  sessionStorage.setItem(`${prefix || ""}browserState`, browserString);
 }
 
-function serialize(browserStore: BrowserStoreInstance, trackStore: TrackStoreInstance) {
+export function setLocalTrackState(trackStore: TrackStoreInstance, prefix?: string) {
+  const trackString = serializeTrackState(trackStore);
+  sessionStorage.setItem(`${prefix || ""}trackState`, trackString);
+}
+
+function serializeBrowserState(browserStore: BrowserStoreInstance) {
   const browserState = {
     domain: browserStore.getState().domain,
     marginWidth: browserStore.getState().marginWidth,
@@ -31,17 +43,17 @@ function serialize(browserStore: BrowserStoreInstance, trackStore: TrackStoreIns
     highlights: browserStore.getState().highlights,
   };
 
-  const trackList = trackStore.getState().tracks;
-
   const browserString = compress(JSON.stringify(browserState));
-  const trackString = compress(JSON.stringify(trackList));
-
-  return { browserString, trackString };
+  return browserString;
 }
 
-function deserialize(browserString: string, trackString: string) {
-  const browserStore = JSON.parse(decompress(browserString)) as InitialBrowserState;
-  const trackStore = JSON.parse(decompress(trackString)) as Track[];
+function serializeTrackState(trackStore: TrackStoreInstance) {
+  const trackList = trackStore.getState().tracks;
+  const trackString = compress(JSON.stringify(trackList));
+  return trackString;
+}
 
-  return { browserStore, trackStore };
+function deserialize<T>(stateString: string) {
+  const state = JSON.parse(decompress(stateString)) as T;
+  return state;
 }

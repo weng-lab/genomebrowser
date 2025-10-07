@@ -74,5 +74,5 @@ export { Cytobands };
 import useCustomData from "./hooks/useCustomData";
 export { useCustomData };
 
-import { getLocalState, setLocalState } from "./utils/serialize";
-export { getLocalState, setLocalState };
+import { getLocalBrowserState, getLocalTrackState, setLocalBrowserState, setLocalTrackState } from "./utils/serialize";
+export { getLocalBrowserState, getLocalTrackState, setLocalBrowserState, setLocalTrackState };

@@ -20,7 +20,12 @@ import {
   GQLWrapper,
 } from "../src/lib";
 import { bigBedExample, bigWigExample, bulkBedExample, motifExample, transcriptExample } from "./tracks";
-import { getLocalState, setLocalState } from "../src/utils/serialize";
+import {
+  getLocalBrowserState,
+  getLocalTrackState,
+  setLocalBrowserState,
+  setLocalTrackState,
+} from "../src/utils/serialize";
 
 const useStore = create<{ name: string; setName: (name: string) => void }>((set) => ({
   name: "test",
@@ -29,7 +34,8 @@ const useStore = create<{ name: string; setName: (name: string) => void }>((set)
 
 function Main() {
   const setName = useStore((state) => state.setName);
-  const { localBrowserState, localTrackState } = getLocalState();
+  const localBrowserState = getLocalBrowserState();
+  const localTrackState = getLocalTrackState();
   const initialState: InitialBrowserState = localBrowserState || {
     // chr12:53,380,037-53,380,206
     domain: { chromosome: "chr12", start: 53380037 - 20000, end: 53380206 + 20000 },
@@ -182,7 +188,8 @@ function DomainView({
 
 function Action({ browserStore, trackStore }: { browserStore: BrowserStoreInstance; trackStore: TrackStoreInstance }) {
   const onClick = () => {
-    setLocalState(browserStore, trackStore);
+    setLocalBrowserState(browserStore);
+    setLocalTrackState(trackStore);
   };
 
   return <button onClick={onClick}>Save Browser State</button>;
