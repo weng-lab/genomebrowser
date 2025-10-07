@@ -20,6 +20,7 @@ import {
   GQLWrapper,
 } from "../src/lib";
 import { bigBedExample, bigWigExample, bulkBedExample, motifExample, transcriptExample } from "./tracks";
+import { getLocalState, setLocalState } from "../src/utils/serialize";
 
 const useStore = create<{ name: string; setName: (name: string) => void }>((set) => ({
   name: "test",
@@ -28,8 +29,8 @@ const useStore = create<{ name: string; setName: (name: string) => void }>((set)
 
 function Main() {
   const setName = useStore((state) => state.setName);
-
-  const initialState: InitialBrowserState = {
+  const { localBrowserState, localTrackState } = getLocalState();
+  const initialState: InitialBrowserState = localBrowserState || {
     // chr12:53,380,037-53,380,206
     domain: { chromosome: "chr12", start: 53380037 - 20000, end: 53380206 + 20000 },
     marginWidth: 100,
@@ -45,7 +46,7 @@ function Main() {
   const addHighlight = browserStore((state) => state.addHighlight);
   const removeHighlight = browserStore((state) => state.removeHighlight);
 
-  const tracks: Track[] = [
+  const tracks: Track[] = localTrackState || [
     bigWigExample,
     {
       ...bigBedExample,
@@ -121,7 +122,7 @@ function Main() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <Action browserStore={browserStore} />
+      <Action browserStore={browserStore} trackStore={trackStore} />
       <DomainView browserStore={browserStore} trackStore={trackStore} />
       <div style={{ width: "90%" }}>
         <GQLWrapper>
@@ -179,14 +180,12 @@ function DomainView({
   );
 }
 
-function Action({ browserStore }: { browserStore: BrowserStoreInstance }) {
-  const setDomain = browserStore((state) => state.setDomain);
-
+function Action({ browserStore, trackStore }: { browserStore: BrowserStoreInstance; trackStore: TrackStoreInstance }) {
   const onClick = () => {
-    setDomain({ chromosome: "chr18", start: 32300000, end: 38702000 });
+    setLocalState(browserStore, trackStore);
   };
 
-  return <button onClick={onClick}>Click for action</button>;
+  return <button onClick={onClick}>Save Browser State</button>;
 }
 
 createRoot(document.getElementById("root")!).render(

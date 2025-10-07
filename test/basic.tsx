@@ -13,6 +13,7 @@ import {
   LDTrackConfig,
   ManhattanPoint,
   ManhattanTrackConfig,
+  TrackStoreInstance,
 } from "../src/lib";
 import { createRoot } from "react-dom/client";
 import { transcriptExample } from "./tracks";
@@ -110,11 +111,11 @@ function MethylCTest() {
 
   const dataStore = useMemo(() => createDataStore(), []);
 
-  // useManhattanData(browserStore, dataStore);
-  useLDData(dataStore);
+  useManhattanData(browserStore, dataStore);
+  // useLDData(dataStore);
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <DomainInfo browserStore={browserStore} />
+      <DomainInfo browserStore={browserStore} trackStore={trackStore} />
       <div style={{ width: "90%" }}>
         <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />
       </div>
@@ -192,25 +193,19 @@ query snips_in_ld($id: [String]) {
 }
 `);
 
-function useLDData(dataStore: DataStoreInstance) {
-  const { data, error, loading } = useQuery(LD_QUERY, {
-    variables: { study: ["Dastani_Z-22479202-Adiponectin_levels"] },
-  });
-  if (data?.getSNPsforGWASStudies) {
-    console.log(data?.getSNPsforGWASStudies);
-  }
-  useCustomData(ldTrack.id, { data: data?.getSNPsforGWASStudies, error, loading }, dataStore);
-}
-
-function DomainInfo({ browserStore }: { browserStore: BrowserStoreInstance }) {
+function DomainInfo({
+  browserStore,
+  trackStore,
+}: {
+  browserStore: BrowserStoreInstance;
+  trackStore: TrackStoreInstance;
+}) {
   const domain = browserStore((state) => state.domain);
-  // const setDomain = browserStore((state) => state.setDomain);
-  // const onClick = () => {
-  //   setDomain({ chromosome: "chr1", start: 207508704, end: 207528704 });
-  // };
+  const onClick = () => {};
   return (
     <div>
       {domain.chromosome}:{domain.start}-{domain.end}
+      <button onClick={onClick}>Save State</button>
     </div>
   );
 }

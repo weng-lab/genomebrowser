@@ -17,6 +17,9 @@ importers:
       logo-test:
         specifier: ^0.0.5
         version: 0.0.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      lz-string:
+        specifier: ^1.5.0
+        version: 1.5.0
       react:
         specifier: ^18.0.0 || ^19.0.0
         version: 18.3.1

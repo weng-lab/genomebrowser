@@ -22,6 +22,7 @@
     "@apollo/client": "^3.14.0",
     "graphql": "^16.11.0",
     "logo-test": "^0.0.5",
+    "lz-string": "^1.5.0",
     "react-colorful": "^5.6.1",
     "react-draggable": "^4.5.0",
     "zustand": "^5.0.8"
