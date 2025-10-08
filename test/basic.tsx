@@ -48,37 +48,31 @@ const manhattanTrack: ManhattanTrackConfig = {
  * @returns
  */
 function MethylCTest() {
-  const browserStore = useMemo(
-    () =>
-      createBrowserStore({
-        // chr19:33,388,478-33,436,600
-        domain: { chromosome: "chr19", start: 33388478, end: 33436600 },
-        marginWidth: 100,
-        trackWidth: 1400,
-        multiplier: 3,
-      }),
-    []
-  );
+  const browserStore = createBrowserStore({
+    domain: { chromosome: "chr19", start: 33388478, end: 33436600 },
+    marginWidth: 100,
+    trackWidth: 1400,
+    multiplier: 3,
+  });
 
   const [hovered, setHovered] = useState<ManhattanPoint | null>(null);
 
-  const trackStore = useMemo(
-    () =>
-      createTrackStore([
-        transcriptExample,
-        {
-          ...manhattanTrack,
-          onHover: (item) => {
-            setHovered(item);
-          },
+  const trackStore = createTrackStore(
+    [
+      transcriptExample,
+      {
+        ...manhattanTrack,
+        onHover: (item) => {
+          setHovered(item);
         },
-        {
-          ...ldTrack,
-          onHover: (item) => {
-            setHovered(item);
-          },
+      },
+      {
+        ...ldTrack,
+        onHover: (item) => {
+          setHovered(item);
         },
-      ]),
+      },
+    ],
     [setHovered]
   );
   const editTrack = trackStore((state) => state.editTrack);
@@ -108,7 +102,7 @@ function MethylCTest() {
     });
   }
 
-  const dataStore = useMemo(() => createDataStore(), []);
+  const dataStore = createDataStore();
 
   // useManhattanData(browserStore, dataStore);
   useLDData(dataStore);

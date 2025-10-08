@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { RefObject } from "react";
+import { RefObject, useMemo } from "react";
 import { Domain } from "../utils/types";
 import { TrackDimensions } from "../components/tracks/types";
 import { Highlight } from "../components/highlight/types";
@@ -39,7 +39,17 @@ export interface BrowserStore {
 
 export type BrowserStoreInstance = ReturnType<typeof createBrowserStore>;
 
-export function createBrowserStore(initialState: InitialBrowserState) {
+/**
+ * Create a memoized browser store to hold browser configs.
+ * @param initialState - The initial state of the browser
+ * @param deps - The dependencies to track for memoization
+ * @returns The created store
+ */
+export function createBrowserStore(initialState: InitialBrowserState, deps?: React.DependencyList) {
+  return useMemo(() => createBrowserStoreInternal(initialState), deps ?? []);
+}
+
+export function createBrowserStoreInternal(initialState: InitialBrowserState) {
   return create<BrowserStore>((set, get) => ({
     domain: initialState.domain,
     delta: 0,

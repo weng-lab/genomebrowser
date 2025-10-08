@@ -10,6 +10,7 @@ import { RULER_HEIGHT } from "../components/tracks/ruler/ruler";
 import { MethylCConfig } from "../components/tracks/methylC/types";
 import { TrackType } from "../components/tracks/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
+import { useMemo } from "react";
 
 type WrapperDimensions = {
   trackMargin: number;
@@ -50,7 +51,17 @@ export interface TrackStore {
 
 export type TrackStoreInstance = ReturnType<typeof createTrackStore>;
 
-export function createTrackStore(tracks: Track[] = []) {
+/**
+ * Create a memoized track store to hold track configs.
+ * @param tracks - The initial track list
+ * @param deps - The dependencies to track for memoization
+ * @returns The created store
+ */
+export function createTrackStore(tracks: Track[], deps?: React.DependencyList) {
+  return useMemo(() => createTrackStoreInternal(tracks), deps ?? []);
+}
+
+export function createTrackStoreInternal(tracks: Track[] = []) {
   return create<TrackStore>((set, get) => ({
     tracks,
     ids: tracks.map((track) => track.id),

@@ -1,4 +1,5 @@
 import { ApolloError } from "@apollo/client";
+import { useMemo } from "react";
 import { create } from "zustand";
 
 export interface DataStore {
@@ -12,7 +13,11 @@ export interface DataStore {
 
 export type DataStoreInstance = ReturnType<typeof createDataStore>;
 
-export function createDataStore() {
+export function createDataStore(deps?: React.DependencyList) {
+  return useMemo(() => createDataStoreInternal(), deps ?? []);
+}
+
+function createDataStoreInternal() {
   return create<DataStore>((set) => ({
     data: new Map<string, { data: any; error: ApolloError | undefined }>(),
     loading: true,
@@ -23,6 +28,3 @@ export function createDataStore() {
     setFetching: (fetching: boolean) => set({ fetching }),
   }));
 }
-
-// Legacy export for backward compatibility
-// export const useDataStore = createDataStore();
