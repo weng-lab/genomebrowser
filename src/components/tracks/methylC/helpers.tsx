@@ -2,6 +2,43 @@ import { lighten } from "../../../utils/color";
 import { m, l } from "../../../utils/svg";
 import { ValuedPoint, YRange } from "../bigwig/types";
 
+export function generateSignal2(
+  data: ValuedPoint[],
+  height: number,
+  color: string,
+  inverted: boolean = false,
+  range?: YRange
+) {
+  if (!data || data.length === 0) return null;
+
+  const startY = inverted ? 0 : height;
+  let pathString = m(0, startY);
+  let opaquePathString = m(0, startY);
+  data.forEach((point) => {
+    if (point.min === null || point.max === null) return;
+    const normalized = normalizePoint(
+      point,
+      range ?? { min: 0, max: 1 },
+      (range?.max ?? 1) - (range?.min ?? 0),
+      height,
+      inverted
+    );
+    opaquePathString +=
+      l(point.x, startY) +
+      l(normalized.x, inverted ? height : 0) +
+      l(normalized.x + 1, inverted ? height : 0) +
+      l(point.x + 1, startY);
+
+    pathString +=
+      l(point.x, startY) + l(normalized.x, normalized.y) + l(normalized.x + 1, normalized.y) + l(point.x + 1, startY);
+  });
+
+  return {
+    indicator: <path d={opaquePathString} fill={color} fillOpacity={0.2} />,
+    values: <path d={pathString} fill={color} />,
+  };
+}
+
 export function generateSignal(
   data: ValuedPoint[],
   height: number,
@@ -22,24 +59,26 @@ export function generateSignal(
     const returnY = inverted ? 0 : height;
 
     // Draw to bar height, across 1 pixel, then back to baseline
-    if (point.max !== null || point.min !== null) {
-      // Draw a gray bar for null values
+    // Draw a gray bar for null values
+    if (point.min === null || point.max === null) {
       grayPathString +=
         l(normalized.x, returnY) +
         l(normalized.x, inverted ? height : 0) +
         l(normalized.x + 1, inverted ? height : 0) +
         l(normalized.x + 1, returnY);
     }
-    pathString +=
-      l(normalized.x, returnY) +
-      l(normalized.x, normalized.y) +
-      l(normalized.x + 1, normalized.y) +
-      l(normalized.x + 1, returnY);
+    if (point.min !== 0 || point.max !== 0) {
+      pathString +=
+        l(normalized.x, returnY) +
+        l(normalized.x, normalized.y) +
+        l(normalized.x + 1, normalized.y) +
+        l(normalized.x + 1, returnY);
+    }
   });
 
   return (
     <>
-      <path d={grayPathString} fill={lighten(color, 0.5)} fillOpacity={0.2} />
+      <path d={grayPathString} fill={lighten(color, 0.8)} fillOpacity={0.7} />
       <path d={pathString} fill={color} />
     </>
   );

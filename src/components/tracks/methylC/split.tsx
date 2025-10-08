@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useBrowserStore, useTheme } from "../../../store/BrowserContext";
 import { useMouseToIndex } from "../../../hooks/useMousePosition";
 import { MethylCProps } from "./types";
-import { generateSignal, generateLineGraph } from "./helpers";
+import { generateLineGraph, generateSignal2 } from "./helpers";
 import useInteraction from "../../../hooks/useInteraction";
 import DefaultMethylCTooltip from "./defaultMethylCTooltip";
 
@@ -17,14 +17,14 @@ function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: 
   const signals = useMemo(() => {
     const h = height / 2;
     return {
-      cpgPlus: generateSignal(data[0], h, colors.cpg, false, range),
-      chgPlus: generateSignal(data[1], h, colors.chg, false, range),
-      chhPlus: generateSignal(data[2], h, colors.chh, false, range),
-      depthPlus: generateLineGraph(data[3], h, colors.depth, false, range),
-      cpgMinus: generateSignal(data[4], h, colors.cpg, true, range),
-      chgMinus: generateSignal(data[5], h, colors.chg, true, range),
-      chhMinus: generateSignal(data[6], h, colors.chh, true, range),
-      depthMinus: generateLineGraph(data[7], h, colors.depth, true, range),
+      cpgPlus: generateSignal2(data[0], h, colors.cpg, false),
+      chgPlus: generateSignal2(data[1], h, colors.chg, false),
+      chhPlus: generateSignal2(data[2], h, colors.chh, false),
+      depthPlus: generateLineGraph(data[3], h, colors.depth, false),
+      cpgMinus: generateSignal2(data[4], h, colors.cpg, true),
+      chgMinus: generateSignal2(data[5], h, colors.chg, true),
+      chhMinus: generateSignal2(data[6], h, colors.chh, true),
+      depthMinus: generateLineGraph(data[7], h, colors.depth, true),
     };
   }, [data, height, colors, range]);
 
@@ -52,15 +52,25 @@ function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: 
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
       <rect width={totalWidth} height={height} fill={"transparent"} />
       <g id={`${id}-plusStrand`}>
-        {signals.cpgPlus}
-        {signals.chgPlus}
-        {signals.chhPlus}
+        {signals.cpgPlus?.indicator}
+        {signals.chgPlus?.indicator}
+        {signals.chhPlus?.indicator}
+
+        {signals.cpgPlus?.values}
+        {signals.chgPlus?.values}
+        {signals.chhPlus?.values}
+
         {signals.depthPlus}
       </g>
       <g id={`${id}-minusStrand`} transform={`translate(0, ${height / 2})`}>
-        {signals.cpgMinus}
-        {signals.chgMinus}
-        {signals.chhMinus}
+        {signals.cpgMinus?.indicator}
+        {signals.chgMinus?.indicator}
+        {signals.chhMinus?.indicator}
+
+        {signals.cpgMinus?.values}
+        {signals.chgMinus?.values}
+        {signals.chhMinus?.values}
+
         {signals.depthMinus}
       </g>
       {!delta && mouseState.pos?.x && (
