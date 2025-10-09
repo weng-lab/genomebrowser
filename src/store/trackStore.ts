@@ -49,7 +49,12 @@ export interface TrackStore {
   editAllTracksByType: <T extends Track>(trackType: TrackType, partial: Partial<T>) => void;
 }
 
-export type TrackStoreInstance = ReturnType<typeof createTrackStore>;
+export type TrackStoreInstance = ReturnType<typeof createTrackStoreInternal>;
+
+/**
+ * @deprecated Use createTrackStoreMemo instead
+ */
+export const createTrackStore = createTrackStoreInternal;
 
 /**
  * Create a memoized track store to hold track configs.
@@ -57,7 +62,7 @@ export type TrackStoreInstance = ReturnType<typeof createTrackStore>;
  * @param deps - The dependencies to track for memoization
  * @returns The created store
  */
-export function createTrackStore(tracks: Track[], deps?: React.DependencyList) {
+export function createTrackStoreMemo(tracks: Track[], deps?: React.DependencyList) {
   return useMemo(() => createTrackStoreInternal(tracks), deps ?? []);
 }
 

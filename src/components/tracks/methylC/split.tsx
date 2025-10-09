@@ -13,17 +13,16 @@ function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: 
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const text = useTheme((state) => state.text);
 
-  // Signal svg paths generation
   const signals = useMemo(() => {
     const h = height / 2;
     return {
-      cpgPlus: generateSignal2(data[0], h, colors.cpg, false),
-      chgPlus: generateSignal2(data[1], h, colors.chg, false),
-      chhPlus: generateSignal2(data[2], h, colors.chh, false),
+      cpgPlus: generateSignal2(data[0], h, colors.cpg, false, range),
+      chgPlus: generateSignal2(data[1], h, colors.chg, false, range),
+      chhPlus: generateSignal2(data[2], h, colors.chh, false, range),
       depthPlus: generateLineGraph(data[3], h, colors.depth, false),
-      cpgMinus: generateSignal2(data[4], h, colors.cpg, true),
-      chgMinus: generateSignal2(data[5], h, colors.chg, true),
-      chhMinus: generateSignal2(data[6], h, colors.chh, true),
+      cpgMinus: generateSignal2(data[4], h, colors.cpg, true, range),
+      chgMinus: generateSignal2(data[5], h, colors.chg, true, range),
+      chhMinus: generateSignal2(data[6], h, colors.chh, true, range),
       depthMinus: generateLineGraph(data[7], h, colors.depth, true),
     };
   }, [data, height, colors, range]);

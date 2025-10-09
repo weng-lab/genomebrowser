@@ -11,9 +11,19 @@ export interface DataStore {
   setFetching: (fetching: boolean) => void;
 }
 
-export type DataStoreInstance = ReturnType<typeof createDataStore>;
+export type DataStoreInstance = ReturnType<typeof createDataStoreInternal>;
 
-export function createDataStore(deps?: React.DependencyList) {
+/**
+ * @deprecated Use createDataStoreMemo instead
+ */
+export const createDataStore = createDataStoreInternal;
+
+/**
+ * Create a memoized data store to hold data.
+ * @param deps - The dependencies to track for memoization (typically not required)
+ * @returns The created store
+ */
+export function createDataStoreMemo(deps?: React.DependencyList) {
   return useMemo(() => createDataStoreInternal(), deps ?? []);
 }
 

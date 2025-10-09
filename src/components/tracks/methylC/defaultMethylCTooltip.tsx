@@ -2,10 +2,10 @@ import { ValuedPoint } from "../bigwig/types";
 import { useTheme } from "../../../store/BrowserContext";
 
 const COLORS = {
-  cpg: "#20B2AA",
-  chg: "#FF8C00",
-  chh: "#FF1493",
-  depth: "#696969",
+  cpg: "#648bd8", // rgb(100, 139, 216)
+  chg: "#ff944d", // rgb(255, 148, 77)
+  chh: "#ff00ff", // rgb(25, 14, 25)
+  depth: "#525252", // rgb(82, 82, 82)
 };
 
 export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues: ValuedPoint[] }) {

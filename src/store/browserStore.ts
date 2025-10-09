@@ -37,7 +37,12 @@ export interface BrowserStore {
   removeHighlight: (id: string) => void;
 }
 
-export type BrowserStoreInstance = ReturnType<typeof createBrowserStore>;
+export type BrowserStoreInstance = ReturnType<typeof createBrowserStoreInternal>;
+
+/**
+ * @deprecated Use createBrowserStoreMemo instead
+ */
+export const createBrowserStore = createBrowserStoreInternal;
 
 /**
  * Create a memoized browser store to hold browser configs.
@@ -45,7 +50,7 @@ export type BrowserStoreInstance = ReturnType<typeof createBrowserStore>;
  * @param deps - The dependencies to track for memoization
  * @returns The created store
  */
-export function createBrowserStore(initialState: InitialBrowserState, deps?: React.DependencyList) {
+export function createBrowserStoreMemo(initialState: InitialBrowserState, deps?: React.DependencyList) {
   return useMemo(() => createBrowserStoreInternal(initialState), deps ?? []);
 }
 

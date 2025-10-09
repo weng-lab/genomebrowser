@@ -1,12 +1,11 @@
-import React, { StrictMode, useEffect } from "react";
+import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { create } from "zustand";
 import {
   Browser,
-  createTrackStore,
+  createTrackStoreMemo,
+  createBrowserStoreMemo,
   DisplayMode,
   TrackType,
-  createBrowserStore,
   BrowserStoreInstance,
   Cytobands,
   GQLWrapper,
@@ -64,22 +63,17 @@ const methylCTrack: MethylCConfig = {
 };
 
 function Main() {
-  const browserStore = createBrowserStore(
+  const browserStore = createBrowserStoreMemo(
     {
-      // chr7:27,092,993-27,095,996
-      domain: { chromosome: "chr7", start: 27092993, end: 27095996 },
+      domain: { chromosome: "chr19", start: 44905754 - 2000, end: 44909393 + 2000 },
       marginWidth: 100,
       trackWidth: 1400,
       multiplier: 3,
-      highlights: [
-        { id: "1", color: "#ffaabb", domain: { chromosome: "chr18", start: 35496000, end: 35502000 } },
-        { id: "2", color: "#aaffbb", domain: { chromosome: "chr18", start: 35494852, end: 35514000 } },
-      ],
     },
     []
   );
 
-  const trackStore = createTrackStore([transcriptExample, methylCTrack], []);
+  const trackStore = createTrackStoreMemo([transcriptExample, methylCTrack], []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
