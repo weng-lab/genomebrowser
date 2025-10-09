@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import DataFetcher from "../../api/DataFetcher";
 import { BrowserStoreInstance } from "../../store/browserStore";
 import { TrackStoreInstance } from "../../store/trackStore";
-import { createDataStore, DataStoreInstance } from "../../store/dataStore";
+import { createDataStoreMemo, DataStoreInstance } from "../../store/dataStore";
 import { createContextMenuStore } from "../../store/contextMenuStore";
 import { createModalStore } from "../../store/modalStore";
 import { createTooltipStore } from "../../store/tooltipStore";
@@ -26,7 +26,7 @@ interface BrowserProps {
 
 export default function Browser({ browserStore, trackStore, externalDataStore }: BrowserProps) {
   // Create internal stores for this browser instance
-  const dataStore = externalDataStore ?? createDataStore([]);
+  const dataStore = externalDataStore ?? createDataStoreMemo([]);
   const contextMenuStore = useMemo(() => createContextMenuStore(), []);
   const modalStore = useMemo(() => createModalStore(), []);
   const tooltipStore = useMemo(() => createTooltipStore(), []);
