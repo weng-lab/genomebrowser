@@ -1,7 +1,7 @@
 {
   "name": "@weng-lab/genomebrowser",
   "private": false,
-  "version": "1.6.2",
+  "version": "1.6.3",
   "license": "MIT",
   "type": "module",
   "files": [
