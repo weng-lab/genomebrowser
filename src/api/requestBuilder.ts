@@ -25,6 +25,7 @@ export function buildBigRequests(tracks: Track[], domain: Domain, preRenderedWid
       chr1: domain.chromosome,
       start: domain.start,
       end: domain.end,
+      zoomLevel: Math.floor(domain.end - domain.start / preRenderedWidth),
       preRenderedWidth,
     }));
 }

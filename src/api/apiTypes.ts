@@ -9,6 +9,7 @@ export interface BigRequest {
   start: number;
   end: number;
   preRenderedWidth?: number;
+  zoomLevel?: number;
 }
 
 export interface BigResponse {
