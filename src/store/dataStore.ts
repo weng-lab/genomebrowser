@@ -1,14 +1,20 @@
-import { ApolloError } from "@apollo/client";
 import { useMemo } from "react";
 import { create } from "zustand";
 
+export type TrackDataState<T = any> =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'loaded', data: T }
+  | { status: 'error', error: string };
+
 export interface DataStore {
-  data: Map<string, any>;
-  loading: boolean;
-  fetching: boolean;
-  setDataById: (id: string, data: any, error: ApolloError | undefined) => void;
-  setLoading: (loading: boolean) => void;
-  setFetching: (fetching: boolean) => void;
+  trackData: Map<string, TrackDataState>;
+  isFetching: boolean;
+  setTrackData: (id: string, state: TrackDataState) => void;
+  setMultipleTrackData: (updates: Array<{ id: string; state: TrackDataState }>) => void;
+  setFetching: (isFetching: boolean) => void;
+  reset: () => void;
+  getTrackData: (id: string) => TrackDataState | undefined;
 }
 
 export type DataStoreInstance = ReturnType<typeof createDataStoreInternal>;
@@ -28,13 +34,25 @@ export function createDataStoreMemo(deps?: React.DependencyList) {
 }
 
 function createDataStoreInternal() {
-  return create<DataStore>((set) => ({
-    data: new Map<string, { data: any; error: ApolloError | undefined }>(),
-    loading: true,
-    fetching: false,
-    setDataById: (id: string, data: any, error: ApolloError | undefined) =>
-      set((state) => ({ data: state.data.set(id, { data, error }) })),
-    setLoading: (loading: boolean) => set({ loading }),
-    setFetching: (fetching: boolean) => set({ fetching }),
+  return create<DataStore>((set, get) => ({
+    trackData: new Map<string, TrackDataState>(),
+    isFetching: false,
+    setTrackData: (id: string, state: TrackDataState) =>
+      set((store) => {
+        const newMap = new Map(store.trackData);
+        newMap.set(id, state);
+        return { trackData: newMap };
+      }),
+    setMultipleTrackData: (updates: Array<{ id: string; state: TrackDataState }>) =>
+      set((store) => {
+        const newMap = new Map(store.trackData);
+        updates.forEach(({ id, state }) => {
+          newMap.set(id, state);
+        });
+        return { trackData: newMap };
+      }),
+    setFetching: (isFetching: boolean) => set({ isFetching }),
+    reset: () => set({ trackData: new Map(), isFetching: false }),
+    getTrackData: (id: string) => get().trackData.get(id),
   }));
 }

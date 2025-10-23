@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import DataFetcher from "../../api/DataFetcher";
 import { BrowserStoreInstance } from "../../store/browserStore";
 import { TrackStoreInstance } from "../../store/trackStore";
 import { createDataStoreMemo, DataStoreInstance } from "../../store/dataStore";
@@ -7,7 +6,8 @@ import { createContextMenuStore } from "../../store/contextMenuStore";
 import { createModalStore } from "../../store/modalStore";
 import { createTooltipStore } from "../../store/tooltipStore";
 import { createThemeStore } from "../../store/themeStore";
-import { BrowserProvider } from "../../store/BrowserContext";
+import { BrowserProvider, useTrackStore } from "../../store/BrowserContext";
+import { useDataFetcher } from "../../hooks/useDataFetcher";
 import ContextMenu from "../contextMenu/contextMenu";
 import Modal from "../modal/modal";
 import Tooltip from "../tooltip/tooltip";
@@ -22,6 +22,32 @@ interface BrowserProps {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
   externalDataStore?: DataStoreInstance;
+}
+
+// Internal component that uses context hooks
+function BrowserContent() {
+  const trackIds = useTrackStore((state) => state.ids);
+
+  // Fetch data for all tracks
+  useDataFetcher();
+
+  return (
+    <>
+      <SVGWrapper>
+        <SelectRegion />
+        <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
+          <Ruler />
+        </Wrapper>
+        {trackIds.map((id) => {
+          return <DisplayTrack key={id} id={id} />;
+        })}
+        <Highlights />
+        <Tooltip />
+      </SVGWrapper>
+      <ContextMenu />
+      <Modal />
+    </>
+  );
 }
 
 export default function Browser({ browserStore, trackStore, externalDataStore }: BrowserProps) {
@@ -46,24 +72,9 @@ export default function Browser({ browserStore, trackStore, externalDataStore }:
     [browserStore, trackStore, dataStore, contextMenuStore, modalStore, tooltipStore, themeStore]
   );
 
-  const trackIds = trackStore((state) => state.ids);
-
   return (
     <BrowserProvider value={contextValue}>
-      <DataFetcher />
-      <SVGWrapper>
-        <SelectRegion />
-        <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
-          <Ruler />
-        </Wrapper>
-        {trackIds.map((id) => {
-          return <DisplayTrack key={id} id={id} />;
-        })}
-        <Highlights />
-        <Tooltip />
-      </SVGWrapper>
-      <ContextMenu />
-      <Modal />
+      <BrowserContent />
     </BrowserProvider>
   );
 }

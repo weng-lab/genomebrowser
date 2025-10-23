@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useBrowserStore, useTrackStore } from "../../store/BrowserContext";
+import { useBrowserStore, useDataStore, useTrackStore } from "../../store/BrowserContext";
 import { RULER_HEIGHT } from "../tracks/ruler/ruler";
 
 export default function SvgWrapper({ children }: { children: React.ReactNode }) {
@@ -7,7 +7,7 @@ export default function SvgWrapper({ children }: { children: React.ReactNode }) 
   const svgRef = useRef<SVGSVGElement>(null);
   const totalHeight = useTrackStore((state) => state.getTotalHeight());
   const browserWidth = useBrowserStore((state) => state.browserWidth);
-  // const fetching = useDataStore((state) => state.fetching);
+  const isFetching = useDataStore((state) => state.isFetching);
 
   useEffect(() => {
     setSvgRef(svgRef);
@@ -25,7 +25,7 @@ export default function SvgWrapper({ children }: { children: React.ReactNode }) 
       }}
     >
       {children}
-      {/* {fetching && (
+      {isFetching && (
         <rect
           width={browserWidth}
           height={totalHeight + RULER_HEIGHT}
@@ -33,7 +33,7 @@ export default function SvgWrapper({ children }: { children: React.ReactNode }) 
           fillOpacity={0.35}
           style={{ pointerEvents: "all" }}
         />
-      )} */}
+      )}
     </svg>
   );
 }

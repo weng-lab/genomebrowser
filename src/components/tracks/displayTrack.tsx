@@ -1,5 +1,4 @@
-import { ApolloError } from "@apollo/client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useBrowserStore, useDataStore, useTrackStore } from "../../store/BrowserContext";
 import { Track } from "../../store/trackStore";
 import DenseBigBed from "./bigbed/dense";
@@ -22,17 +21,14 @@ import GenericLD from "./ldtrack/genericld";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
-  const data = useDataStore((state) => state.data.get(id));
-  const [error, setError] = useState<ApolloError | undefined>(undefined);
-  const loading = useDataStore((state) => state.loading);
+  const trackDataState = useDataStore((state) => state.trackData.get(id));
   const getTrackDimensions = useBrowserStore((state) => state.getTrackDimensions);
   const trackDimensions = getTrackDimensions();
 
-  // Error handling
-  useEffect(() => {
-    if (loading || data?.error) return;
-    setError(data?.error);
-  }, [loading, data]);
+  // Extract loading and error state from trackDataState
+  const isLoading = !trackDataState || trackDataState.status === 'loading' || trackDataState.status === 'idle';
+  const error = trackDataState?.status === 'error' ? trackDataState.error : undefined;
+  const data = trackDataState?.status === 'loaded' ? trackDataState.data : undefined;
 
   // Stack track
   const prevHeights = useTrackStore((state) => state.getPrevHeights(id));
@@ -44,7 +40,7 @@ export default function DisplayTrack({ id }: { id: string }) {
     [track, data, trackDimensions]
   );
   return (
-    <Wrapper id={id} transform={transform} error={error?.message} loading={!data?.data}>
+    <Wrapper id={id} transform={transform} error={error} loading={isLoading}>
       {trackComponent}
     </Wrapper>
   );
@@ -99,8 +95,8 @@ function getTrackComponent(track: Track, data: any, dimensions: TrackDimensions)
         name: `Dataset ${i + 1}`,
         url,
       }));
-    return <Component {...track} data={data.data} dimensions={dimensions} datasets={datasets} />;
+    return <Component {...track} data={data} dimensions={dimensions} datasets={datasets} />;
   }
 
-  return <Component {...track} data={data.data} dimensions={dimensions} />;
+  return <Component {...track} data={data} dimensions={dimensions} />;
 }

@@ -1,71 +1,27 @@
-import React, { StrictMode } from "react";
+import React, { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Browser,
   createTrackStoreMemo,
   createBrowserStoreMemo,
-  DisplayMode,
-  TrackType,
   BrowserStoreInstance,
-  Cytobands,
   GQLWrapper,
-  MethylCConfig,
-  Vibrant,
+  TrackStoreInstance,
 } from "../src/lib";
-import { transcriptExample } from "./tracks";
-
-const path = "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001";
-
-const methylCTrack: MethylCConfig = {
-  id: "methylC",
-  trackType: TrackType.MethylC,
-  displayMode: DisplayMode.Split,
-  title: "methylC",
-  titleSize: 12,
-  height: 80,
-  color: Vibrant[1],
-  colors: {
-    cpg: "#648bd8", // rgb(100, 139, 216)
-    chg: "#ff944d", // rgb(255, 148, 77)
-    chh: "#ff00ff", // rgb(25, 14, 25)
-    depth: "#525252", // rgb(82, 82, 82)
-  },
-  urls: {
-    plusStrand: {
-      cpg: {
-        url: `${path}_cpg_pos.bw`,
-      },
-      chg: {
-        url: `${path}_chg_pos.bw`,
-      },
-      chh: {
-        url: `${path}_chh_pos.bw`,
-      },
-      depth: {
-        url: `${path}_coverage_pos.bw`,
-      },
-    },
-    minusStrand: {
-      cpg: {
-        url: `${path}_cpg_neg.bw`,
-      },
-      chg: {
-        url: `${path}_chg_neg.bw`,
-      },
-      chh: {
-        url: `${path}_chh_neg.bw`,
-      },
-      depth: {
-        url: `${path}_coverage_neg.bw`,
-      },
-    },
-  },
-};
+import {
+  bigBedExample,
+  bigWigExample,
+  transcriptExample,
+  motifExample,
+  bulkBedExample,
+  methylCTrack,
+  phyloP,
+} from "./tracks";
 
 function Main() {
   const browserStore = createBrowserStoreMemo(
     {
-      domain: { chromosome: "chr19", start: 44905754 - 2000, end: 44909393 + 2000 },
+      domain: { chromosome: "chr19", start: 44905754 - 20000, end: 44909393 + 20000 },
       marginWidth: 100,
       trackWidth: 1400,
       multiplier: 3,
@@ -73,12 +29,15 @@ function Main() {
     []
   );
 
-  const trackStore = createTrackStoreMemo([transcriptExample, methylCTrack], []);
+  const trackStore = createTrackStoreMemo(
+    [transcriptExample, bigWigExample, bigBedExample, motifExample, bulkBedExample, methylCTrack, phyloP],
+    []
+  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <Action browserStore={browserStore} />
-      <DomainView browserStore={browserStore} />
+      <DomainView browserStore={browserStore} trackStore={trackStore} />
       <div style={{ width: "90%" }}>
         <GQLWrapper>
           <Browser browserStore={browserStore} trackStore={trackStore} />
@@ -88,19 +47,18 @@ function Main() {
   );
 }
 
-function DomainView({ browserStore }: { browserStore: BrowserStoreInstance }) {
+function DomainView({
+  browserStore,
+  trackStore,
+}: {
+  browserStore: BrowserStoreInstance;
+  trackStore: TrackStoreInstance;
+}) {
   const domain = browserStore((state) => state.domain);
 
   return (
     <div>
-      <svg width={700} height={20}>
-        <GQLWrapper>
-          <Cytobands assembly="hg38" currentDomain={domain} />
-        </GQLWrapper>
-      </svg>
-      <div>
-        {domain.chromosome}:{domain.start}-{domain.end}
-      </div>
+      {domain.chromosome}:{domain.start}-{domain.end}
     </div>
   );
 }
