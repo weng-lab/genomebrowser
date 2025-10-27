@@ -43,17 +43,16 @@ export function useDataFetcher() {
         fetchMotif,
       };
 
-      // Only set loading state for tracks that don't have data yet
-      // This keeps existing data visible while fetching in background
-      const loadingUpdates = tracks
+      // Initialize tracks that don't have data yet with null data and error
+      const initUpdates = tracks
         .filter((track) => {
           const existingData = getTrackData(track.id);
-          return !existingData || existingData.status === "idle";
+          return !existingData;
         })
-        .map((track) => ({ id: track.id, state: { status: "loading" as const } }));
+        .map((track) => ({ id: track.id, state: { data: null, error: null } }));
 
-      if (loadingUpdates.length > 0) {
-        setMultipleTrackData(loadingUpdates);
+      if (initUpdates.length > 0) {
+        setMultipleTrackData(initUpdates);
       }
 
       // Fetch all tracks in parallel
@@ -66,8 +65,8 @@ export function useDataFetcher() {
             throw new Error(`No fetcher found for track type: ${track.trackType}`);
           }
 
-          // Fetch data
-          const data = await fetcher({
+          // Fetch data and error
+          const result = await fetcher({
             track,
             domain,
             expandedDomain,
@@ -75,7 +74,7 @@ export function useDataFetcher() {
             queries,
           });
 
-          return { id: track.id, data };
+          return { id: track.id, ...result };
         })
       );
 
@@ -83,10 +82,22 @@ export function useDataFetcher() {
       const updates = results.map((result, index) => {
         const trackId = tracks[index].id;
         if (result.status === "fulfilled") {
-          return { id: trackId, state: { status: "loaded" as const, data: result.value.data } };
+          return {
+            id: trackId,
+            state: {
+              data: result.value.data,
+              error: result.value.error,
+            },
+          };
         } else {
           const errorMessage = result.reason instanceof Error ? result.reason.message : "Unknown error";
-          return { id: trackId, state: { status: "error" as const, error: errorMessage } };
+          return {
+            id: trackId,
+            state: {
+              data: null,
+              error: errorMessage,
+            },
+          };
         }
       });
 

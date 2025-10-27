@@ -25,10 +25,10 @@ export default function DisplayTrack({ id }: { id: string }) {
   const getTrackDimensions = useBrowserStore((state) => state.getTrackDimensions);
   const trackDimensions = getTrackDimensions();
 
-  // Extract loading and error state from trackDataState
-  const isLoading = !trackDataState || trackDataState.status === 'loading' || trackDataState.status === 'idle';
-  const error = trackDataState?.status === 'error' ? trackDataState.error : undefined;
-  const data = trackDataState?.status === 'loaded' ? trackDataState.data : undefined;
+  // Infer loading and error state from trackDataState
+  const isLoading = !trackDataState || (trackDataState.data === null && trackDataState.error === null);
+  const error = trackDataState?.error ?? undefined;
+  const data = trackDataState?.data ?? undefined;
 
   // Stack track
   const prevHeights = useTrackStore((state) => state.getPrevHeights(id));

@@ -27,7 +27,7 @@ export function DownloadForm({ track }: { track: Track }) {
   const bgColHover = shadeColor(bgCol, isBackgroundDark ? 30 : -30);
   const fontCol = getTextColor(bgCol);
 
-  const data = trackDataState?.status === 'loaded' ? trackDataState.data : undefined;
+  const data = trackDataState?.data ?? undefined;
 
   const handleRegionData = () => {
     if (track.trackType === TrackType.BigWig) {

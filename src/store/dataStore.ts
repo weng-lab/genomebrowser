@@ -1,11 +1,10 @@
 import { useMemo } from "react";
 import { create } from "zustand";
 
-export type TrackDataState<T = any> =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'loaded', data: T }
-  | { status: 'error', error: string };
+export type TrackDataState<T = any> = {
+  data: T | null;
+  error: string | null;
+};
 
 export interface DataStore {
   trackData: Map<string, TrackDataState>;

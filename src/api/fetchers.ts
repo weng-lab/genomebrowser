@@ -4,13 +4,14 @@ import { TrackType } from "../components/tracks/types";
 import { Domain } from "../utils/types";
 import { BulkBedConfig } from "../components/tracks/bulkbed/types";
 import { MethylCConfig } from "../components/tracks/methylC/types";
-import { ImportanceTrackSequence, ImportanceConfig } from "../components/tracks/importance/types";
+import { ImportanceConfig } from "../components/tracks/importance/types";
 import { MotifRect, MotifConfig } from "../components/tracks/motif/types";
 import { BigWigConfig } from "../components/tracks/bigwig/types";
 import { BigBedConfig } from "../components/tracks/bigbed/types";
 import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
+import { TrackDataState } from "../store/dataStore";
 
 export interface QueryHooks {
   fetchBigData: LazyQueryExecFunction<any, OperationVariables>;
@@ -26,12 +27,12 @@ export type FetcherContext<T extends Track = Track> = {
   queries: QueryHooks;
 };
 
-export type FetchFunction = (ctx: FetcherContext) => Promise<any>;
+export type FetchFunction = (ctx: FetcherContext) => Promise<TrackDataState>;
 
 /**
  * Fetch BigWig data
  */
-async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<any> {
+async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
   const result = await queries.fetchBigData({
@@ -49,13 +50,16 @@ async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<any> {
     },
   });
 
-  return result.data?.bigRequests?.[0]?.data || [];
+  return {
+    data: result.data?.bigRequests?.[0]?.data ?? null,
+    error: result.error?.message ?? null,
+  };
 }
 
 /**
  * Fetch BigBed data
  */
-async function fetchBigBed(ctx: FetcherContext<BigBedConfig>): Promise<any> {
+async function fetchBigBed(ctx: FetcherContext<BigBedConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
   const result = await queries.fetchBigData({
@@ -73,13 +77,16 @@ async function fetchBigBed(ctx: FetcherContext<BigBedConfig>): Promise<any> {
     },
   });
 
-  return result.data?.bigRequests?.[0]?.data || [];
+  return {
+    data: result.data?.bigRequests?.[0]?.data ?? null,
+    error: result.error?.message ?? null,
+  };
 }
 
 /**
  * Fetch Transcript data
  */
-async function fetchTranscript(ctx: FetcherContext<TranscriptConfig>): Promise<any> {
+async function fetchTranscript(ctx: FetcherContext<TranscriptConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, queries } = ctx;
 
   const result = await queries.fetchGene({
@@ -92,13 +99,16 @@ async function fetchTranscript(ctx: FetcherContext<TranscriptConfig>): Promise<a
     },
   });
 
-  return result.data?.gene || [];
+  return {
+    data: result.data?.gene ?? null,
+    error: result.error?.message ?? null,
+  };
 }
 
 /**
  * Fetch Motif data
  */
-async function fetchMotif(ctx: FetcherContext<MotifConfig>): Promise<any> {
+async function fetchMotif(ctx: FetcherContext<MotifConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, queries } = ctx;
 
   const result = await queries.fetchMotif({
@@ -121,30 +131,35 @@ async function fetchMotif(ctx: FetcherContext<MotifConfig>): Promise<any> {
 
   const motifData = result.data;
   return {
-    occurrenceRect:
-      motifData?.meme_occurrences?.map(
-        (occurrence: any) =>
-          ({
-            start: occurrence.genomic_region.start,
-            end: occurrence.genomic_region.end,
-            pwm: occurrence.motif.pwm,
-          }) as MotifRect
-      ) || [],
-    peaks:
-      motifData?.peaks?.peaks?.map(
-        (peak: any) =>
-          ({
-            start: peak.chrom_start,
-            end: peak.chrom_end,
-          }) as MotifRect
-      ) || [],
+    data: motifData
+      ? {
+          occurrenceRect:
+            motifData?.meme_occurrences?.map(
+              (occurrence: any) =>
+                ({
+                  start: occurrence.genomic_region.start,
+                  end: occurrence.genomic_region.end,
+                  pwm: occurrence.motif.pwm,
+                }) as MotifRect
+            ) ?? [],
+          peaks:
+            motifData?.peaks?.peaks?.map(
+              (peak: any) =>
+                ({
+                  start: peak.chrom_start,
+                  end: peak.chrom_end,
+                }) as MotifRect
+            ) ?? [],
+        }
+      : null,
+    error: result.error?.message ?? null,
   };
 }
 
 /**
  * Fetch Importance data
  */
-async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<ImportanceTrackSequence> {
+async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<TrackDataState> {
   const { track, domain, queries } = ctx;
 
   // Use current domain (not expanded) to avoid large requests
@@ -168,15 +183,20 @@ async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<I
   });
 
   return {
-    sequence: (result.data?.bigRequests?.[0]?.data?.[0] as string) || "",
-    importance: result.data?.bigRequests?.[1]?.data?.map((d: { value: number }) => d.value) || [],
+    data: result.data
+      ? {
+          sequence: (result.data.bigRequests?.[0]?.data?.[0] as string) ?? "",
+          importance: result.data.bigRequests?.[1]?.data?.map((d: { value: number }) => d.value) ?? [],
+        }
+      : null,
+    error: result.error?.message ?? null,
   };
 }
 
 /**
  * Fetch BulkBed data
  */
-async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<any> {
+async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, queries } = ctx;
 
   const datasets = track.datasets || [];
@@ -192,21 +212,23 @@ async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<any> {
     },
   });
 
-  return (
-    result.data?.bigRequests?.map((response: any, index: number) => {
-      const rects = response?.data || [];
-      return rects.map((rect: any) => ({
-        ...rect,
-        datasetName: datasets[index]?.name || `Dataset ${index + 1}`,
-      }));
-    }) || []
-  );
+  return {
+    data:
+      result.data?.bigRequests?.map((response: any, index: number) => {
+        const rects = response?.data ?? [];
+        return rects.map((rect: any) => ({
+          ...rect,
+          datasetName: datasets[index]?.name || `Dataset ${index + 1}`,
+        }));
+      }) ?? null,
+    error: result.error?.message ?? null,
+  };
 }
 
 /**
  * Fetch MethylC data
  */
-async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<any> {
+async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
   const createRequest = (url: string) => ({
@@ -232,23 +254,32 @@ async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<any> {
     },
   });
 
-  return result.data?.bigRequests?.map((response: any) => response?.data || []) || [];
+  return {
+    data: result.data?.bigRequests?.map((response: any) => response?.data ?? []) ?? null,
+    error: result.error?.message ?? null,
+  };
 }
 
 /**
  * Fetch LDTrack data
  */
-async function fetchLDTrack(_ctx: FetcherContext<LDTrackConfig>): Promise<any> {
+async function fetchLDTrack(_ctx: FetcherContext<LDTrackConfig>): Promise<TrackDataState> {
   // TODO: Implement LD track fetching when LD_QUERY is available
-  return null;
+  return {
+    data: null,
+    error: null,
+  };
 }
 
 /**
  * Fetch Manhattan plot data
  */
-async function fetchManhattan(_ctx: FetcherContext<ManhattanTrackConfig>): Promise<any> {
+async function fetchManhattan(_ctx: FetcherContext<ManhattanTrackConfig>): Promise<TrackDataState> {
   // TODO: Implement Manhattan plot fetching
-  return [];
+  return {
+    data: null,
+    error: null,
+  };
 }
 
 /**

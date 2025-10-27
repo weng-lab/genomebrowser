@@ -3,6 +3,8 @@ import {
   BigWigConfig,
   BulkBedConfig,
   DisplayMode,
+  LDTrackConfig,
+  ManhattanTrackConfig,
   MethylCConfig,
   MotifConfig,
   Rect,
@@ -163,4 +165,26 @@ export const phyloP: BigWigConfig = {
   color: "#000000",
   customRange: { min: -2, max: 8 },
   url: "https://downloads.wenglab.org/hg38.phyloP100way.bw",
+};
+
+export const ldTrack: LDTrackConfig = {
+  id: "ld",
+  title: "LD",
+  trackType: TrackType.LDTrack,
+  displayMode: DisplayMode.GenericLD,
+  height: 50,
+  titleSize: 12,
+  color: "#ff0000",
+  showScore: false,
+};
+
+export const manhattanTrack: ManhattanTrackConfig = {
+  id: "manhattan",
+  title: "Manhattan",
+  trackType: TrackType.Manhattan,
+  displayMode: DisplayMode.Scatter,
+  height: 75,
+  titleSize: 12,
+  color: "#ff0000",
+  cutoffLabel: "5e-8",
 };

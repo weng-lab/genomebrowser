@@ -23,11 +23,11 @@ export default function useCustomData(
     if (isFetching) return;
 
     if (response.loading) {
-      setTrackData(trackId, { status: 'loading' });
+      setTrackData(trackId, { data: null, error: null });
     } else if (response.error) {
-      setTrackData(trackId, { status: 'error', error: response.error.message });
+      setTrackData(trackId, { data: null, error: response.error.message });
     } else if (response.data) {
-      setTrackData(trackId, { status: 'loaded', data: response.data });
+      setTrackData(trackId, { data: response.data, error: null });
     }
   }, [response.data, response.loading, response.error, isFetching, trackId, setTrackData]);
 }

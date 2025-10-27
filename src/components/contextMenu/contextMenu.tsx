@@ -34,7 +34,7 @@ export default function ContextMenu() {
   }, [open, setContextMenu, id, x, y]);
 
   if (!track) return null;
-  if (!trackDataState || trackDataState.status !== 'loaded') return null;
+  if (!trackDataState || trackDataState.data === null) return null;
   const currentMode = track.displayMode;
   const items = trackComponents[track.trackType];
   const options = Object.keys(items) as DisplayMode[];
