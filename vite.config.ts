@@ -3,6 +3,7 @@ import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import { Buffer } from "buffer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -15,6 +16,21 @@ export default defineConfig({
       tsconfigPath: "./tsconfig.app.json",
     }),
   ],
+  define: {
+    global: "globalThis",
+  },
+  resolve: {
+    alias: {
+      buffer: "buffer",
+    },
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: "globalThis",
+      },
+    },
+  },
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/lib.ts"),

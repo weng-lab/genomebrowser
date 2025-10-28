@@ -89,16 +89,15 @@ export function useDataFetcher() {
               error: result.value.error,
             },
           };
-        } else {
-          const errorMessage = result.reason instanceof Error ? result.reason.message : "Unknown error";
-          return {
-            id: trackId,
-            state: {
-              data: null,
-              error: errorMessage,
-            },
-          };
         }
+        const errorMessage = result.reason instanceof Error ? result.reason.message : "Unknown error";
+        return {
+          id: trackId,
+          state: {
+            data: null,
+            error: errorMessage,
+          },
+        };
       });
 
       setMultipleTrackData(updates);

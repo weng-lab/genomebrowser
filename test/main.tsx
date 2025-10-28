@@ -1,3 +1,6 @@
+import { Buffer } from "buffer";
+globalThis.Buffer = Buffer;
+
 import React, { StrictMode, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -48,25 +51,25 @@ function Main() {
       bulkBedExample,
       methylCTrack,
       phyloP,
-      {
-        ...manhattanTrack,
-        onHover: (item) => {
-          setHovered(item);
-        },
-      },
-      {
-        ...ldTrack,
-        onHover: (item) => {
-          setHovered(item);
-        },
-      },
+      // {
+      //   ...manhattanTrack,
+      //   onHover: (item) => {
+      //     setHovered(item);
+      //   },
+      // },
+      // {
+      //   ...ldTrack,
+      //   onHover: (item) => {
+      //     setHovered(item);
+      //   },
+      // },
     ],
     []
   );
 
   const dataStore = createDataStoreMemo();
 
-  useManhattanData(browserStore, dataStore);
+  // useManhattanData(browserStore, dataStore);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -88,14 +91,14 @@ function DomainView({
 }) {
   const domain = browserStore((state) => state.domain);
   const insertTrack = trackStore((state) => state.insertTrack);
-  useEffect(() => {
-    setTimeout(() => {
-      insertTrack({
-        ...bigWigExample,
-        id: "newTrack",
-      });
-    }, 5000);
-  });
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     insertTrack({
+  //       ...bigWigExample,
+  //       id: "newTrack",
+  //     });
+  //   }, 5000);
+  // });
 
   return (
     <div>

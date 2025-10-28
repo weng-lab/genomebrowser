@@ -13,6 +13,11 @@ import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
 import { TrackDataState } from "../store/dataStore";
 
+import axios from "axios";
+import { AxiosDataLoader, BigWigData, BigWigReader, BigZoomData } from "bigwig-reader";
+import { BigRequest } from "../api-legacy/apiTypes";
+import { getBigWigData, ogBigWigFetcher } from "./getBigWigData";
+
 export interface QueryHooks {
   fetchBigData: LazyQueryExecFunction<any, OperationVariables>;
   fetchGene: LazyQueryExecFunction<any, OperationVariables>;
@@ -33,27 +38,9 @@ export type FetchFunction = (ctx: FetcherContext) => Promise<TrackDataState>;
  * Fetch BigWig data
  */
 async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
-
-  const result = await queries.fetchBigData({
-    variables: {
-      bigRequests: [
-        {
-          url: track.url || "",
-          chr1: expandedDomain.chromosome,
-          start: expandedDomain.start,
-          end: expandedDomain.end,
-          zoomLevel: Math.floor((expandedDomain.end - expandedDomain.start) / preRenderedWidth),
-          preRenderedWidth,
-        },
-      ],
-    },
-  });
-
-  return {
-    data: result.data?.bigRequests?.[0]?.data ?? null,
-    error: result.error?.message ?? null,
-  };
+  const { track, expandedDomain, preRenderedWidth } = ctx;
+  // return await ogBigWigFetcher(ctx);
+  return await getBigWigData(track.url, expandedDomain, preRenderedWidth);
 }
 
 /**
@@ -231,33 +218,51 @@ async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<TrackDa
 async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
-  const createRequest = (url: string) => ({
-    url,
-    chr1: expandedDomain.chromosome,
-    start: expandedDomain.start,
-    end: expandedDomain.end,
-    preRenderedWidth,
-  });
+  const result = await Promise.all([
+    getBigWigData(track.urls.plusStrand.cpg.url, expandedDomain, preRenderedWidth),
+    getBigWigData(track.urls.plusStrand.chg.url, expandedDomain, preRenderedWidth),
+    getBigWigData(track.urls.plusStrand.chh.url, expandedDomain, preRenderedWidth),
+    getBigWigData(track.urls.plusStrand.depth.url, expandedDomain, preRenderedWidth),
+    getBigWigData(track.urls.minusStrand.cpg.url, expandedDomain, preRenderedWidth),
+    getBigWigData(track.urls.minusStrand.chg.url, expandedDomain, preRenderedWidth),
+    getBigWigData(track.urls.minusStrand.chh.url, expandedDomain, preRenderedWidth),
+    getBigWigData(track.urls.minusStrand.depth.url, expandedDomain, preRenderedWidth),
+  ]);
 
-  const result = await queries.fetchBigData({
-    variables: {
-      bigRequests: [
-        createRequest(track.urls.plusStrand.cpg.url),
-        createRequest(track.urls.plusStrand.chg.url),
-        createRequest(track.urls.plusStrand.chh.url),
-        createRequest(track.urls.plusStrand.depth.url),
-        createRequest(track.urls.minusStrand.cpg.url),
-        createRequest(track.urls.minusStrand.chg.url),
-        createRequest(track.urls.minusStrand.chh.url),
-        createRequest(track.urls.minusStrand.depth.url),
-      ],
-    },
-  });
-
+  const data = result.map((r) => r.data);
+  const error = result.map((r) => r.error);
   return {
-    data: result.data?.bigRequests?.map((response: any) => response?.data ?? []) ?? null,
-    error: result.error?.message ?? null,
+    data: data,
+    error: error.find((e) => e !== null) ?? null,
   };
+
+  // const createRequest = (url: string) => ({
+  //   url,
+  //   chr1: expandedDomain.chromosome,
+  //   start: expandedDomain.start,
+  //   end: expandedDomain.end,
+  //   preRenderedWidth,
+  // });
+
+  // const result = await queries.fetchBigData({
+  //   variables: {
+  //     bigRequests: [
+  //       createRequest(track.urls.plusStrand.cpg.url),
+  //       createRequest(track.urls.plusStrand.chg.url),
+  //       createRequest(track.urls.plusStrand.chh.url),
+  //       createRequest(track.urls.plusStrand.depth.url),
+  //       createRequest(track.urls.minusStrand.cpg.url),
+  //       createRequest(track.urls.minusStrand.chg.url),
+  //       createRequest(track.urls.minusStrand.chh.url),
+  //       createRequest(track.urls.minusStrand.depth.url),
+  //     ],
+  //   },
+  // });
+
+  // return {
+  //   data: result.data?.bigRequests?.map((response: any) => response?.data ?? []) ?? null,
+  //   error: result.error?.message ?? null,
+  // };
 }
 
 /**
