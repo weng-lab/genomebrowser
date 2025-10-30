@@ -12,7 +12,7 @@ import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
 import { TrackDataState } from "../store/dataStore";
-import { getBigWigData, ogBigWigFetcher } from "./getBigWigData";
+import { getBigData } from "./getBigWigData";
 
 // An interface for storing avaliable Apollo GQL Queries
 export interface QueryHooks {
@@ -38,7 +38,7 @@ export type FetchFunction = (ctx: FetcherContext) => Promise<TrackDataState>;
  */
 async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, preRenderedWidth } = ctx;
-  const newResult = await getBigWigData(track.url, expandedDomain, preRenderedWidth);
+  const newResult = await getBigData(track.url, expandedDomain, preRenderedWidth);
   return newResult;
 }
 
@@ -48,25 +48,27 @@ async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackData
 async function fetchBigBed(ctx: FetcherContext<BigBedConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
-  const result = await queries.fetchBigData({
-    variables: {
-      bigRequests: [
-        {
-          url: track.url || "",
-          chr1: expandedDomain.chromosome,
-          start: expandedDomain.start,
-          end: expandedDomain.end,
-          zoomLevel: Math.floor((expandedDomain.end - expandedDomain.start) / preRenderedWidth),
-          preRenderedWidth,
-        },
-      ],
-    },
-  });
+  const result = await getBigData(track.url, expandedDomain, preRenderedWidth);
+  return result;
+  // const result = await queries.fetchBigData({
+  //   variables: {
+  //     bigRequests: [
+  //       {
+  //         url: track.url || "",
+  //         chr1: expandedDomain.chromosome,
+  //         start: expandedDomain.start,
+  //         end: expandedDomain.end,
+  //         zoomLevel: Math.floor((expandedDomain.end - expandedDomain.start) / preRenderedWidth),
+  //         preRenderedWidth,
+  //       },
+  //     ],
+  //   },
+  // });
 
-  return {
-    data: result.data?.bigRequests?.[0]?.data ?? null,
-    error: result.error?.message ?? null,
-  };
+  // return {
+  //   data: result.data?.bigRequests?.[0]?.data ?? null,
+  //   error: result.error?.message ?? null,
+  // };
 }
 
 /**
@@ -151,8 +153,8 @@ async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<T
   const now = performance.now();
 
   const results = await Promise.all([
-    getBigWigData(track.url, domain, preRenderedWidth),
-    getBigWigData(track.signalURL, domain),
+    getBigData(track.url, domain, preRenderedWidth),
+    getBigData(track.signalURL, domain),
   ]);
 
   const sequence = results[0].data;
@@ -202,14 +204,14 @@ async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDa
   const { track, expandedDomain, preRenderedWidth } = ctx;
 
   const result = await Promise.all([
-    getBigWigData(track.urls.plusStrand.cpg.url, expandedDomain, preRenderedWidth),
-    getBigWigData(track.urls.plusStrand.chg.url, expandedDomain, preRenderedWidth),
-    getBigWigData(track.urls.plusStrand.chh.url, expandedDomain, preRenderedWidth),
-    getBigWigData(track.urls.plusStrand.depth.url, expandedDomain, preRenderedWidth),
-    getBigWigData(track.urls.minusStrand.cpg.url, expandedDomain, preRenderedWidth),
-    getBigWigData(track.urls.minusStrand.chg.url, expandedDomain, preRenderedWidth),
-    getBigWigData(track.urls.minusStrand.chh.url, expandedDomain, preRenderedWidth),
-    getBigWigData(track.urls.minusStrand.depth.url, expandedDomain, preRenderedWidth),
+    getBigData(track.urls.plusStrand.cpg.url, expandedDomain, preRenderedWidth),
+    getBigData(track.urls.plusStrand.chg.url, expandedDomain, preRenderedWidth),
+    getBigData(track.urls.plusStrand.chh.url, expandedDomain, preRenderedWidth),
+    getBigData(track.urls.plusStrand.depth.url, expandedDomain, preRenderedWidth),
+    getBigData(track.urls.minusStrand.cpg.url, expandedDomain, preRenderedWidth),
+    getBigData(track.urls.minusStrand.chg.url, expandedDomain, preRenderedWidth),
+    getBigData(track.urls.minusStrand.chh.url, expandedDomain, preRenderedWidth),
+    getBigData(track.urls.minusStrand.depth.url, expandedDomain, preRenderedWidth),
   ]);
 
   const data = result.map((r) => r.data);
@@ -218,34 +220,6 @@ async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDa
     data: data,
     error: error.find((e) => e !== null) ?? null,
   };
-
-  // const createRequest = (url: string) => ({
-  //   url,
-  //   chr1: expandedDomain.chromosome,
-  //   start: expandedDomain.start,
-  //   end: expandedDomain.end,
-  //   preRenderedWidth,
-  // });
-
-  // const result = await queries.fetchBigData({
-  //   variables: {
-  //     bigRequests: [
-  //       createRequest(track.urls.plusStrand.cpg.url),
-  //       createRequest(track.urls.plusStrand.chg.url),
-  //       createRequest(track.urls.plusStrand.chh.url),
-  //       createRequest(track.urls.plusStrand.depth.url),
-  //       createRequest(track.urls.minusStrand.cpg.url),
-  //       createRequest(track.urls.minusStrand.chg.url),
-  //       createRequest(track.urls.minusStrand.chh.url),
-  //       createRequest(track.urls.minusStrand.depth.url),
-  //     ],
-  //   },
-  // });
-
-  // return {
-  //   data: result.data?.bigRequests?.map((response: any) => response?.data ?? []) ?? null,
-  //   error: result.error?.message ?? null,
-  // };
 }
 
 /**

@@ -33,7 +33,7 @@ import { useQuery } from "@apollo/client";
 function Main() {
   const browserStore = createBrowserStoreMemo(
     {
-      domain: { chromosome: "chr19", start: 44905754, end: 44905754 + 1000 },
+      domain: { chromosome: "chr19", start: 44905754 - 20000, end: 44905754 + 20000 },
       marginWidth: 100,
       trackWidth: 1400,
       multiplier: 3,
@@ -45,14 +45,14 @@ function Main() {
 
   const trackStore = createTrackStoreMemo(
     [
-      importanceExample,
-      // transcriptExample,
-      // bigWigExample,
-      // bigBedExample,
+      transcriptExample,
+      bigWigExample,
+      bigBedExample,
       // motifExample,
       // bulkBedExample,
       // methylCTrack,
       // phyloP,
+      // importanceExample,
       // {
       //   ...manhattanTrack,
       //   onHover: (item) => {

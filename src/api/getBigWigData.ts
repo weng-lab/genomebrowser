@@ -5,7 +5,7 @@ import { BigWigConfig } from "../components/tracks/bigwig/types";
 import { TrackDataState } from "../store/dataStore";
 import { Domain } from "../utils/types";
 
-export async function getBigWigData(
+export async function getBigData(
   url: string,
   expandedDomain: Domain,
   preRenderedWidth?: number
@@ -43,6 +43,14 @@ export async function getBigWigData(
           expandedDomain.end
         );
         return { data: twoBitData, error: null };
+      case FileType.BigBed:
+        const bigBedData = await reader.readBigBedData(
+          expandedDomain.chromosome,
+          expandedDomain.start,
+          expandedDomain.chromosome,
+          expandedDomain.end
+        );
+        return { data: bigBedData, error: null };
       default:
         return { data: null, error: "Unsupported file type" };
     }
