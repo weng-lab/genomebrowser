@@ -23,6 +23,7 @@ import {
   bulkBedExample,
   methylCTrack,
   phyloP,
+  importanceExample,
   manhattanTrack,
   ldTrack,
 } from "./tracks";
@@ -32,7 +33,7 @@ import { useQuery } from "@apollo/client";
 function Main() {
   const browserStore = createBrowserStoreMemo(
     {
-      domain: { chromosome: "chr19", start: 44905754 - 20000, end: 44909393 + 20000 },
+      domain: { chromosome: "chr19", start: 44905754, end: 44905754 + 1000 },
       marginWidth: 100,
       trackWidth: 1400,
       multiplier: 3,
@@ -44,13 +45,14 @@ function Main() {
 
   const trackStore = createTrackStoreMemo(
     [
-      transcriptExample,
-      bigWigExample,
-      bigBedExample,
-      motifExample,
-      bulkBedExample,
-      methylCTrack,
-      phyloP,
+      importanceExample,
+      // transcriptExample,
+      // bigWigExample,
+      // bigBedExample,
+      // motifExample,
+      // bulkBedExample,
+      // methylCTrack,
+      // phyloP,
       // {
       //   ...manhattanTrack,
       //   onHover: (item) => {
@@ -171,9 +173,7 @@ function useManhattanData(browserStore: BrowserStoreInstance, dataStore: DataSto
 }
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <GQLWrapper>
-      <Main />
-    </GQLWrapper>
-  </StrictMode>
+  <GQLWrapper>
+    <Main />
+  </GQLWrapper>
 );

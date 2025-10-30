@@ -3,6 +3,7 @@ import {
   BigWigConfig,
   BulkBedConfig,
   DisplayMode,
+  ImportanceConfig,
   LDTrackConfig,
   ManhattanTrackConfig,
   MethylCConfig,
@@ -73,6 +74,18 @@ export const motifExample: MotifConfig = {
   onLeave: (rect) => {
     console.log(rect);
   },
+};
+
+export const importanceExample: ImportanceConfig = {
+  id: "importance",
+  title: "importance",
+  titleSize: 12,
+  height: 75,
+  color: Vibrant[0],
+  trackType: TrackType.Importance,
+  url: "https://downloads.wenglab.org/hg38.2bit",
+  displayMode: DisplayMode.Full,
+  signalURL: "https://downloads.wenglab.org/hg38.phyloP100way.bigWig",
 };
 
 export const bulkBedExample: BulkBedConfig = {

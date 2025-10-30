@@ -3,7 +3,6 @@ import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
-import { Buffer } from "buffer";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

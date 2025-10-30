@@ -3,8 +3,8 @@ import { Config, TrackDimensions, TrackType } from "../types";
 
 export interface ImportanceConfig extends Omit<Config<any>, "onHover" | "onLeave"> {
   trackType: TrackType.Importance;
-  url: string;
-  signalURL: string;
+  url: string; // 2bit file
+  signalURL: string; // bigWig signal file
 }
 
 export interface ImportanceProps {

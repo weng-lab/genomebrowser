@@ -12,18 +12,16 @@ import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
 import { TrackDataState } from "../store/dataStore";
-
-import axios from "axios";
-import { AxiosDataLoader, BigWigData, BigWigReader, BigZoomData } from "bigwig-reader";
-import { BigRequest } from "../api-legacy/apiTypes";
 import { getBigWigData, ogBigWigFetcher } from "./getBigWigData";
 
+// An interface for storing avaliable Apollo GQL Queries
 export interface QueryHooks {
   fetchBigData: LazyQueryExecFunction<any, OperationVariables>;
   fetchGene: LazyQueryExecFunction<any, OperationVariables>;
   fetchMotif: LazyQueryExecFunction<any, OperationVariables>;
 }
 
+// Context for the fetch function
 export type FetcherContext<T extends Track = Track> = {
   track: T;
   domain: Domain;
@@ -32,6 +30,7 @@ export type FetcherContext<T extends Track = Track> = {
   queries: QueryHooks;
 };
 
+// Fetch Function signature
 export type FetchFunction = (ctx: FetcherContext) => Promise<TrackDataState>;
 
 /**
@@ -39,8 +38,8 @@ export type FetchFunction = (ctx: FetcherContext) => Promise<TrackDataState>;
  */
 async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, preRenderedWidth } = ctx;
-  // return await ogBigWigFetcher(ctx);
-  return await getBigWigData(track.url, expandedDomain, preRenderedWidth);
+  const newResult = await getBigWigData(track.url, expandedDomain, preRenderedWidth);
+  return newResult;
 }
 
 /**
@@ -147,37 +146,21 @@ async function fetchMotif(ctx: FetcherContext<MotifConfig>): Promise<TrackDataSt
  * Fetch Importance data
  */
 async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<TrackDataState> {
-  const { track, domain, queries } = ctx;
+  const { track, domain, preRenderedWidth } = ctx;
 
-  // Use current domain (not expanded) to avoid large requests
-  const result = await queries.fetchBigData({
-    variables: {
-      bigRequests: [
-        {
-          url: track.url || "",
-          chr1: domain.chromosome,
-          start: domain.start,
-          end: domain.end,
-        },
-        {
-          url: track.signalURL,
-          chr1: domain.chromosome,
-          start: domain.start,
-          end: domain.end,
-        },
-      ],
-    },
-  });
+  const now = performance.now();
 
-  return {
-    data: result.data
-      ? {
-          sequence: (result.data.bigRequests?.[0]?.data?.[0] as string) ?? "",
-          importance: result.data.bigRequests?.[1]?.data?.map((d: { value: number }) => d.value) ?? [],
-        }
-      : null,
-    error: result.error?.message ?? null,
-  };
+  const results = await Promise.all([
+    getBigWigData(track.url, domain, preRenderedWidth),
+    getBigWigData(track.signalURL, domain),
+  ]);
+
+  const sequence = results[0].data;
+  const importance = results[1]?.data?.map((d: { value: number }) => d.value) ?? [];
+
+  const end = performance.now();
+  console.log(`Time taken: ${end - now} milliseconds`);
+  return { data: { sequence, importance }, error: results[0]?.error || results[1]?.error || null };
 }
 
 /**
@@ -216,7 +199,7 @@ async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<TrackDa
  * Fetch MethylC data
  */
 async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
+  const { track, expandedDomain, preRenderedWidth } = ctx;
 
   const result = await Promise.all([
     getBigWigData(track.urls.plusStrand.cpg.url, expandedDomain, preRenderedWidth),
