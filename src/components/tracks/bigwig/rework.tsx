@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useMouseToIndex } from "../../../hooks/useMousePosition";
 import { useBrowserStore, useTheme, useTrackStore } from "../../../store/BrowserContext";
 import { l, m } from "../../../utils/svg";
@@ -24,10 +24,13 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
   const editTrack = useTrackStore((state) => state.editTrack);
   const viewRange = useMemo(() => {
     const viewData = data.slice(sideWidth, sideWidth + viewWidth);
-    const newRange = getRange(viewData);
-    editTrack<BigWigConfig>(id, { range: newRange });
-    return newRange;
-  }, [data, sideWidth, viewWidth, id, editTrack]);
+    return getRange(viewData);
+  }, [data, sideWidth, viewWidth]);
+
+  // Update the track store with the calculated range after render
+  useEffect(() => {
+    editTrack<BigWigConfig>(id, { range: viewRange });
+  }, [id, viewRange, editTrack]);
 
   const signals = useMemo(() => {
     return generateSignal(data as ValuedPoint[], height, color, customRange || viewRange, backgroundColor);

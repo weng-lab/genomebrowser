@@ -6,13 +6,13 @@ import { Domain } from "../utils/types";
 export function useXTransform(totalWidth: number) {
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const [domain, setDomain] = useState<Domain>(getExpandedDomain());
-  const fetching = useDataStore((state) => state.fetching);
+  const isFetching = useDataStore((state) => state.isFetching);
 
   useEffect(() => {
-    if (fetching == false) {
+    if (!isFetching) {
       setDomain(getExpandedDomain());
     }
-  }, [fetching, getExpandedDomain]);
+  }, [isFetching, getExpandedDomain]);
 
   const x = useMemo(() => {
     return xtransform(domain, totalWidth);

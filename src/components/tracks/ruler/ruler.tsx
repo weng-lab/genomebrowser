@@ -12,13 +12,13 @@ export default function Ruler() {
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
   const getDomain = useBrowserStore((state) => state.getDomain);
   const [domain, setDomain] = useState<Domain>(getExpandedDomain());
-  const fetching = useDataStore((state) => state.fetching);
+  const isFetching = useDataStore((state) => state.isFetching);
   const { x } = useXTransform(totalWidth);
 
   useEffect(() => {
-    if (fetching) return;
+    if (isFetching) return;
     setDomain(getExpandedDomain());
-  }, [fetching, getExpandedDomain]);
+  }, [isFetching, getExpandedDomain]);
 
   const text = useTheme((state) => state.text);
 

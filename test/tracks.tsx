@@ -3,6 +3,9 @@ import {
   BigWigConfig,
   BulkBedConfig,
   DisplayMode,
+  ImportanceConfig,
+  LDTrackConfig,
+  ManhattanTrackConfig,
   MethylCConfig,
   MotifConfig,
   Rect,
@@ -73,6 +76,18 @@ export const motifExample: MotifConfig = {
   },
 };
 
+export const importanceExample: ImportanceConfig = {
+  id: "importance",
+  title: "importance",
+  titleSize: 12,
+  height: 75,
+  color: Vibrant[0],
+  trackType: TrackType.Importance,
+  url: "https://downloads.wenglab.org/hg38.2bit",
+  displayMode: DisplayMode.Full,
+  signalURL: "https://downloads.wenglab.org/hg38.phyloP100way.bigWig",
+};
+
 export const bulkBedExample: BulkBedConfig = {
   id: "5",
   title: "bulk BigBed",
@@ -127,16 +142,16 @@ export const methylCTrack: MethylCConfig = {
   },
   urls: {
     plusStrand: {
-      cpg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_cpg_pos.bw" },
-      chg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chg_pos.bw" },
-      chh: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chh_pos.bw" },
-      depth: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_coverage_pos.bw" },
+      cpg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_pos.bw" },
+      chg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_pos.bw" },
+      chh: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_pos.bw" },
+      depth: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_pos.bw" },
     },
     minusStrand: {
-      cpg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_cpg_neg.bw" },
-      chg: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chg_neg.bw" },
-      chh: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_chh_neg.bw" },
-      depth: { url: "https://users.wenglab.org/mezaj/EB100001/EB100001_coverage_neg.bw" },
+      cpg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_neg.bw" },
+      chg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_neg.bw" },
+      chh: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_neg.bw" },
+      depth: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_neg.bw" },
     },
   },
 };
@@ -163,4 +178,26 @@ export const phyloP: BigWigConfig = {
   color: "#000000",
   customRange: { min: -2, max: 8 },
   url: "https://downloads.wenglab.org/hg38.phyloP100way.bw",
+};
+
+export const ldTrack: LDTrackConfig = {
+  id: "ld",
+  title: "LD",
+  trackType: TrackType.LDTrack,
+  displayMode: DisplayMode.GenericLD,
+  height: 50,
+  titleSize: 12,
+  color: "#ff0000",
+  showScore: false,
+};
+
+export const manhattanTrack: ManhattanTrackConfig = {
+  id: "manhattan",
+  title: "Manhattan",
+  trackType: TrackType.Manhattan,
+  displayMode: DisplayMode.Scatter,
+  height: 75,
+  titleSize: 12,
+  color: "#ff0000",
+  cutoffLabel: "5e-8",
 };

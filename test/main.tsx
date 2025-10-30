@@ -1,71 +1,39 @@
-import React, { StrictMode } from "react";
+import { Buffer } from "buffer";
+globalThis.Buffer = Buffer;
+
+import React, { StrictMode, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Browser,
   createTrackStoreMemo,
   createBrowserStoreMemo,
-  DisplayMode,
-  TrackType,
   BrowserStoreInstance,
-  Cytobands,
   GQLWrapper,
-  MethylCConfig,
-  Vibrant,
+  TrackStoreInstance,
+  DataStoreInstance,
+  createDataStoreMemo,
+  ManhattanPoint,
+  useCustomData,
 } from "../src/lib";
-import { transcriptExample } from "./tracks";
-
-const path = "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001";
-
-const methylCTrack: MethylCConfig = {
-  id: "methylC",
-  trackType: TrackType.MethylC,
-  displayMode: DisplayMode.Split,
-  title: "methylC",
-  titleSize: 12,
-  height: 80,
-  color: Vibrant[1],
-  colors: {
-    cpg: "#648bd8", // rgb(100, 139, 216)
-    chg: "#ff944d", // rgb(255, 148, 77)
-    chh: "#ff00ff", // rgb(25, 14, 25)
-    depth: "#525252", // rgb(82, 82, 82)
-  },
-  urls: {
-    plusStrand: {
-      cpg: {
-        url: `${path}_cpg_pos.bw`,
-      },
-      chg: {
-        url: `${path}_chg_pos.bw`,
-      },
-      chh: {
-        url: `${path}_chh_pos.bw`,
-      },
-      depth: {
-        url: `${path}_coverage_pos.bw`,
-      },
-    },
-    minusStrand: {
-      cpg: {
-        url: `${path}_cpg_neg.bw`,
-      },
-      chg: {
-        url: `${path}_chg_neg.bw`,
-      },
-      chh: {
-        url: `${path}_chh_neg.bw`,
-      },
-      depth: {
-        url: `${path}_coverage_neg.bw`,
-      },
-    },
-  },
-};
+import {
+  bigBedExample,
+  bigWigExample,
+  transcriptExample,
+  motifExample,
+  bulkBedExample,
+  methylCTrack,
+  phyloP,
+  importanceExample,
+  manhattanTrack,
+  ldTrack,
+} from "./tracks";
+import { BIGDATA_QUERY, LD_QUERY } from "../src/api-legacy/queries";
+import { useQuery } from "@apollo/client";
 
 function Main() {
   const browserStore = createBrowserStoreMemo(
     {
-      domain: { chromosome: "chr19", start: 44905754 - 2000, end: 44909393 + 2000 },
+      domain: { chromosome: "chr19", start: 44905754 - 20000, end: 44905754 + 20000 },
       marginWidth: 100,
       trackWidth: 1400,
       multiplier: 3,
@@ -73,50 +41,139 @@ function Main() {
     []
   );
 
-  const trackStore = createTrackStoreMemo([transcriptExample, methylCTrack], []);
+  const [hovered, setHovered] = useState<ManhattanPoint | null>(null);
+
+  const trackStore = createTrackStoreMemo(
+    [
+      transcriptExample,
+      bigWigExample,
+      bigBedExample,
+      motifExample,
+      bulkBedExample,
+      methylCTrack,
+      phyloP,
+      // importanceExample,
+      {
+        ...manhattanTrack,
+        onHover: (item) => {
+          setHovered(item);
+        },
+      },
+      {
+        ...ldTrack,
+        onHover: (item) => {
+          setHovered(item);
+        },
+      },
+    ],
+    []
+  );
+
+  const dataStore = createDataStoreMemo();
+
+  useManhattanData(browserStore, dataStore);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <Action browserStore={browserStore} />
-      <DomainView browserStore={browserStore} />
+      <Action browserStore={browserStore} dataStore={dataStore} />
+      <DomainView browserStore={browserStore} trackStore={trackStore} />
       <div style={{ width: "90%" }}>
-        <GQLWrapper>
-          <Browser browserStore={browserStore} trackStore={trackStore} />
-        </GQLWrapper>
+        <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />
       </div>
     </div>
   );
 }
 
-function DomainView({ browserStore }: { browserStore: BrowserStoreInstance }) {
+function DomainView({
+  browserStore,
+  trackStore,
+}: {
+  browserStore: BrowserStoreInstance;
+  trackStore: TrackStoreInstance;
+}) {
   const domain = browserStore((state) => state.domain);
+  const insertTrack = trackStore((state) => state.insertTrack);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     insertTrack({
+  //       ...bigWigExample,
+  //       id: "newTrack",
+  //     });
+  //   }, 5000);
+  // });
 
   return (
     <div>
-      <svg width={700} height={20}>
-        <GQLWrapper>
-          <Cytobands assembly="hg38" currentDomain={domain} />
-        </GQLWrapper>
-      </svg>
-      <div>
-        {domain.chromosome}:{domain.start}-{domain.end}
-      </div>
+      {domain.chromosome}:{domain.start}-{domain.end}
     </div>
   );
 }
 
-function Action({ browserStore }: { browserStore: BrowserStoreInstance }) {
+function Action({ browserStore, dataStore }: { browserStore: BrowserStoreInstance; dataStore: DataStoreInstance }) {
   const setDomain = browserStore((state) => state.setDomain);
+  const reset = dataStore((state) => state.reset);
 
   const onClick = () => {
-    setDomain({ chromosome: "chr18", start: 32300000, end: 38702000 });
+    reset();
+    setDomain({ chromosome: "chr19", start: 44905754 - 40000, end: 44909393 - 20000 });
   };
 
   return <button onClick={onClick}>Click for action</button>;
 }
 
+function useManhattanData(browserStore: BrowserStoreInstance, dataStore: DataStoreInstance) {
+  const getDomain = browserStore((state) => state.getExpandedDomain);
+  const preRenderedWidth = browserStore((state) => state.trackWidth * state.multiplier);
+  const { data, error, loading } = useQuery(BIGDATA_QUERY, {
+    variables: {
+      bigRequests: [
+        {
+          url: "https://downloads.wenglab.org/pyschscreensumstats/GWAS_fullsumstats/Alzheimers_Bellenguez_meta.formatted.bigBed",
+          chr1: getDomain().chromosome,
+          start: getDomain().start,
+          end: getDomain().end,
+          preRenderedWidth,
+        },
+      ],
+    },
+  });
+
+  const manhattanData = useMemo(() => {
+    if (!data) return [];
+    const points = data.bigRequests[0].data;
+    return points.map((snp: any) => {
+      return {
+        snpId: snp.name.split("_")[0],
+        value: snp.name.split("_")[1],
+        chr: snp.chr,
+        start: snp.start,
+        end: snp.end,
+      } as ManhattanPoint;
+    });
+  }, [data]);
+
+  useCustomData(
+    manhattanTrack.id,
+    {
+      data: manhattanData,
+      error,
+      loading,
+    },
+    dataStore
+  );
+  useCustomData(
+    ldTrack.id,
+    {
+      data: manhattanData,
+      error,
+      loading,
+    },
+    dataStore
+  );
+}
+
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
+  <GQLWrapper>
     <Main />
-  </StrictMode>
+  </GQLWrapper>
 );

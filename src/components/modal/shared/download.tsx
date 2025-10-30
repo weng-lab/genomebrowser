@@ -20,18 +20,20 @@ export const downloadButtonStyle = {
 
 export function DownloadForm({ track }: { track: Track }) {
   const getDomain = useBrowserStore((state) => state.getExpandedDomain);
-  const data = useDataStore((state) => state.data.get(track.id || ""));
+  const trackDataState = useDataStore((state) => state.trackData.get(track.id || ""));
   const domain = getDomain();
   const bgCol = track.color || "#ffffff";
   const isBackgroundDark = isDark(bgCol);
   const bgColHover = shadeColor(bgCol, isBackgroundDark ? 30 : -30);
   const fontCol = getTextColor(bgCol);
 
+  const data = trackDataState?.data ?? undefined;
+
   const handleRegionData = () => {
     if (track.trackType === TrackType.BigWig) {
-      downloadBedGraph(track.id, data?.data, domain);
+      downloadBedGraph(track.id, data, domain);
     } else if (track.trackType === TrackType.BigBed) {
-      downloadBedRegion(track.id, data?.data, domain);
+      downloadBedRegion(track.id, data, domain);
     }
   };
 

@@ -12,7 +12,7 @@ export default function ContextMenu() {
   const setContextMenu = useContextMenuStore((state) => state.setContextMenu);
   const menuRef = useRef<HTMLDivElement>(null);
   const track = useTrackStore((state) => state.getTrack(id || ""));
-  const data = useDataStore((state) => state.data.get(id || ""));
+  const trackDataState = useDataStore((state) => state.trackData.get(id || ""));
   const editTrack = useTrackStore((state) => state.editTrack);
   const removeTrack = useTrackStore((state) => state.removeTrack);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -34,7 +34,7 @@ export default function ContextMenu() {
   }, [open, setContextMenu, id, x, y]);
 
   if (!track) return null;
-  if (!data) return null;
+  if (!trackDataState || trackDataState.data === null) return null;
   const currentMode = track.displayMode;
   const items = trackComponents[track.trackType];
   const options = Object.keys(items) as DisplayMode[];
