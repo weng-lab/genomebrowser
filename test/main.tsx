@@ -48,30 +48,30 @@ function Main() {
       transcriptExample,
       bigWigExample,
       bigBedExample,
-      // motifExample,
-      // bulkBedExample,
-      // methylCTrack,
-      // phyloP,
+      motifExample,
+      bulkBedExample,
+      methylCTrack,
+      phyloP,
       // importanceExample,
-      // {
-      //   ...manhattanTrack,
-      //   onHover: (item) => {
-      //     setHovered(item);
-      //   },
-      // },
-      // {
-      //   ...ldTrack,
-      //   onHover: (item) => {
-      //     setHovered(item);
-      //   },
-      // },
+      {
+        ...manhattanTrack,
+        onHover: (item) => {
+          setHovered(item);
+        },
+      },
+      {
+        ...ldTrack,
+        onHover: (item) => {
+          setHovered(item);
+        },
+      },
     ],
     []
   );
 
   const dataStore = createDataStoreMemo();
 
-  // useManhattanData(browserStore, dataStore);
+  useManhattanData(browserStore, dataStore);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>

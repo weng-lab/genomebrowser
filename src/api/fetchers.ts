@@ -46,29 +46,9 @@ async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackData
  * Fetch BigBed data
  */
 async function fetchBigBed(ctx: FetcherContext<BigBedConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
+  const { track, expandedDomain, preRenderedWidth } = ctx;
 
-  const result = await getBigData(track.url, expandedDomain, preRenderedWidth);
-  return result;
-  // const result = await queries.fetchBigData({
-  //   variables: {
-  //     bigRequests: [
-  //       {
-  //         url: track.url || "",
-  //         chr1: expandedDomain.chromosome,
-  //         start: expandedDomain.start,
-  //         end: expandedDomain.end,
-  //         zoomLevel: Math.floor((expandedDomain.end - expandedDomain.start) / preRenderedWidth),
-  //         preRenderedWidth,
-  //       },
-  //     ],
-  //   },
-  // });
-
-  // return {
-  //   data: result.data?.bigRequests?.[0]?.data ?? null,
-  //   error: result.error?.message ?? null,
-  // };
+  return await getBigData(track.url, expandedDomain, preRenderedWidth);
 }
 
 /**
@@ -150,8 +130,6 @@ async function fetchMotif(ctx: FetcherContext<MotifConfig>): Promise<TrackDataSt
 async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<TrackDataState> {
   const { track, domain, preRenderedWidth } = ctx;
 
-  const now = performance.now();
-
   const results = await Promise.all([
     getBigData(track.url, domain, preRenderedWidth),
     getBigData(track.signalURL, domain),
@@ -160,8 +138,6 @@ async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<T
   const sequence = results[0].data;
   const importance = results[1]?.data?.map((d: { value: number }) => d.value) ?? [];
 
-  const end = performance.now();
-  console.log(`Time taken: ${end - now} milliseconds`);
   return { data: { sequence, importance }, error: results[0]?.error || results[1]?.error || null };
 }
 
@@ -169,31 +145,22 @@ async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<T
  * Fetch BulkBed data
  */
 async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, queries } = ctx;
+  const { track, expandedDomain } = ctx;
 
   const datasets = track.datasets || [];
 
-  const result = await queries.fetchBigData({
-    variables: {
-      bigRequests: datasets.map((dataset) => ({
-        url: dataset.url,
-        chr1: expandedDomain.chromosome,
-        start: expandedDomain.start,
-        end: expandedDomain.end,
-      })),
-    },
-  });
+  const results = await Promise.all(datasets.map((dataset) => getBigData(dataset.url, expandedDomain)));
 
   return {
     data:
-      result.data?.bigRequests?.map((response: any, index: number) => {
+      results.map((response: any, index: number) => {
         const rects = response?.data ?? [];
         return rects.map((rect: any) => ({
           ...rect,
           datasetName: datasets[index]?.name || `Dataset ${index + 1}`,
         }));
       }) ?? null,
-    error: result.error?.message ?? null,
+    error: results.find((r) => r.error !== null)?.error ?? null,
   };
 }
 
@@ -226,7 +193,7 @@ async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDa
  * Fetch LDTrack data
  */
 async function fetchLDTrack(_ctx: FetcherContext<LDTrackConfig>): Promise<TrackDataState> {
-  // TODO: Implement LD track fetching when LD_QUERY is available
+  // Returns loading state as useCustomData is required for this track
   return {
     data: null,
     error: null,
@@ -237,7 +204,7 @@ async function fetchLDTrack(_ctx: FetcherContext<LDTrackConfig>): Promise<TrackD
  * Fetch Manhattan plot data
  */
 async function fetchManhattan(_ctx: FetcherContext<ManhattanTrackConfig>): Promise<TrackDataState> {
-  // TODO: Implement Manhattan plot fetching
+  // Returns loading state as useCustomData is required for this track
   return {
     data: null,
     error: null,
