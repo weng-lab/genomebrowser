@@ -44,12 +44,14 @@ export async function getBigData(
         );
         return { data: twoBitData, error: null };
       case FileType.BigBed:
+        console.log("fetching bigbed");
         const bigBedData = await reader.readBigBedData(
           expandedDomain.chromosome,
           expandedDomain.start,
           expandedDomain.chromosome,
           expandedDomain.end
         );
+        console.log(bigBedData);
         return { data: bigBedData, error: null };
       default:
         return { data: null, error: "Unsupported file type" };

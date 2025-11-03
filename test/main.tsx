@@ -14,6 +14,7 @@ import {
   createDataStoreMemo,
   ManhattanPoint,
   useCustomData,
+  Pastels,
 } from "../src/lib";
 import {
   bigBedExample,
@@ -33,7 +34,7 @@ import { useQuery } from "@apollo/client";
 function Main() {
   const browserStore = createBrowserStoreMemo(
     {
-      domain: { chromosome: "chr19", start: 44905754 - 20000, end: 44905754 + 20000 },
+      domain: { chromosome: "chr19", start: 44905754, end: 44905754 + 2000 },
       marginWidth: 100,
       trackWidth: 1400,
       multiplier: 3,
@@ -45,33 +46,33 @@ function Main() {
 
   const trackStore = createTrackStoreMemo(
     [
-      transcriptExample,
-      bigWigExample,
+      // transcriptExample,
+      // bigWigExample,
       bigBedExample,
-      motifExample,
-      bulkBedExample,
-      methylCTrack,
-      phyloP,
+      // motifExample,
+      // bulkBedExample,
+      // methylCTrack,
+      // phyloP,
       // importanceExample,
-      {
-        ...manhattanTrack,
-        onHover: (item) => {
-          setHovered(item);
-        },
-      },
-      {
-        ...ldTrack,
-        onHover: (item) => {
-          setHovered(item);
-        },
-      },
+      // {
+      //   ...manhattanTrack,
+      //   onHover: (item) => {
+      //     setHovered(item);
+      //   },
+      // },
+      // {
+      //   ...ldTrack,
+      //   onHover: (item) => {
+      //     setHovered(item);
+      //   },
+      // },
     ],
     []
   );
 
   const dataStore = createDataStoreMemo();
 
-  useManhattanData(browserStore, dataStore);
+  // useManhattanData(browserStore, dataStore);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -93,14 +94,27 @@ function DomainView({
 }) {
   const domain = browserStore((state) => state.domain);
   const insertTrack = trackStore((state) => state.insertTrack);
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     insertTrack({
-  //       ...bigWigExample,
-  //       id: "newTrack",
-  //     });
-  //   }, 5000);
-  // });
+  useEffect(() => {
+    setTimeout(() => {
+      insertTrack({
+        ...bigWigExample,
+        id: "newTrack",
+        color: Pastels[2],
+      });
+      insertTrack({
+        ...bigWigExample,
+        url: "https://downloads.wenglab.org/igscreen/DNase_Bcells_merged_signal.bigWig",
+        id: "newTracksojansdo",
+        color: Pastels[0],
+      });
+      insertTrack({
+        ...bigWigExample,
+        url: "https://downloads.wenglab.org/igscreen/DNase_Bulk_Tcells_merged_signal.bigWig",
+        id: "oduanuoidsn",
+        color: Pastels[3],
+      });
+    }, 5000);
+  });
 
   return (
     <div>
@@ -115,7 +129,8 @@ function Action({ browserStore, dataStore }: { browserStore: BrowserStoreInstanc
 
   const onClick = () => {
     reset();
-    setDomain({ chromosome: "chr19", start: 44905754 - 40000, end: 44909393 - 20000 });
+    // chr19:44,889,780-44,895,237
+    const width = setDomain({ chromosome: "chr19", start: 44889780, end: 44895237 });
   };
 
   return <button onClick={onClick}>Click for action</button>;

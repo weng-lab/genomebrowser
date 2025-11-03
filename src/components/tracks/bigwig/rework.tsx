@@ -5,7 +5,7 @@ import { l, m } from "../../../utils/svg";
 import ClipPath from "../../svg/clipPath";
 import { BigWigConfig, FullBigWigProps, ValuedPoint, YRange } from "./types";
 import useInteraction from "../../../hooks/useInteraction";
-import { lighten } from "../../../utils/color";
+import { lighten, isDark } from "../../../utils/color";
 import { getRange } from "./helpers";
 import { linearScale } from "../../../utils/coordinates";
 
@@ -99,14 +99,38 @@ function generateSignal(data: ValuedPoint[], height: number, color: string, rang
   const currentRange = range || dataRange;
   const zeroPoint = height - linearScale(0, currentRange, { min: 0, max: height });
 
+  // Use high contrast color for clamping indicators
+  // Need a color that contrasts with BOTH the track color and background
+  const trackIsDark = isDark(color);
+  const bgIsDark = backgroundColor ? isDark(backgroundColor) : false;
+
+  let clampColor: string;
+  if (trackIsDark && bgIsDark) {
+    // Both dark: use bright color (yellow or white)
+    clampColor = "#ffff00"; // Yellow for visibility
+  } else if (!trackIsDark && !bgIsDark) {
+    // Both light: use bright contrasting color (red or magenta)
+    clampColor = "#ff0000"; // Red for visibility
+  } else if (trackIsDark && !bgIsDark) {
+    // Dark track on light background: use a bright color different from both
+    clampColor = "#ff0000"; // Red contrasts with both
+  } else {
+    // Light track on dark background: use a bright color
+    clampColor = "#00ff00"; // Green contrasts with both
+  }
+
   let minPath = m(0, zeroPoint);
   let maxPath = m(0, zeroPoint);
-  let clampHigh = m(0, 0);
-  let clampLow = m(0, height);
+  let clampHigh = "";
+  let clampLow = "";
 
   data.forEach((point) => {
-    const minY = linearScale(point.min, currentRange, { min: 0, max: height });
-    const maxY = linearScale(point.max, currentRange, { min: 0, max: height });
+    // Clamp values to the current range before scaling
+    const clampedMin = Math.max(currentRange.min, Math.min(currentRange.max, point.min));
+    const clampedMax = Math.max(currentRange.min, Math.min(currentRange.max, point.max));
+
+    const minY = linearScale(clampedMin, currentRange, { min: 0, max: height });
+    const maxY = linearScale(clampedMax, currentRange, { min: 0, max: height });
 
     minPath +=
       l(point.x, zeroPoint) + l(point.x, height - minY) + l(point.x + 1, height - minY) + l(point.x + 1, zeroPoint);
@@ -114,10 +138,10 @@ function generateSignal(data: ValuedPoint[], height: number, color: string, rang
       l(point.x, zeroPoint) + l(point.x, height - maxY) + l(point.x + 1, height - maxY) + l(point.x + 1, zeroPoint);
 
     if (range && point.min < range.min) {
-      clampLow += m(point.x, height) + l(point.x, height) + l(point.x + 1, height);
+      clampLow += `M ${point.x} ${height} l 0 -2 `;
     }
     if (range && point.max > range.max) {
-      clampHigh += m(point.x, 0) + l(point.x, 0) + l(point.x + 1, 0);
+      clampHigh += `M ${point.x} 0 l 0 2 `;
     }
   });
 
@@ -126,8 +150,8 @@ function generateSignal(data: ValuedPoint[], height: number, color: string, rang
       {currentRange.min < 0 ? <path d={minPath} fill={lighten(color, 0.2)} /> : null}
       <line x1={0} y1={zeroPoint} x2={4190} y2={zeroPoint} stroke={backgroundColor} strokeWidth={1} />
       <path d={maxPath} fill={color} />
-      <path d={clampHigh} fill={"red"} />
-      <path d={clampLow} fill={"red"} />
+      <path d={clampHigh} stroke={clampColor} strokeWidth="2" fill="none" />
+      <path d={clampLow} stroke={clampColor} strokeWidth="2" fill="none" />
     </>
   );
 }
