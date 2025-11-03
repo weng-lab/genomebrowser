@@ -34,7 +34,8 @@ export const bigBedExample: BigBedConfig = {
   color: Vibrant[7],
   trackType: TrackType.BigBed,
   displayMode: DisplayMode.Dense,
-  url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
+  url: "https://downloads.wenglab.org/igscreen/iCREs.bigBed",
+  // url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
   tooltip: (rect: Rect) => {
     return (
       <g>
