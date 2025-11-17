@@ -5,10 +5,10 @@ type Domain = {
   end: number;
 };
 
-const calculateRange = <T>(data: T[], getValue: (d: T) => number): YRange => ({
-  min: Math.min(...data.map(getValue)),
-  max: Math.max(...data.map(getValue)),
-});
+// const calculateRange = <T>(data: T[], getValue: (d: T) => number): YRange => ({
+//   min: Math.min(...data.map(getValue)),
+//   max: Math.max(...data.map(getValue)),
+// });
 
 export const getRange = (data: Data): YRange => {
   if (!data.length) return { min: 0, max: 0 };
