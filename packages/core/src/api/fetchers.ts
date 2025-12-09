@@ -12,7 +12,7 @@ import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
 import { TrackDataState } from "../store/dataStore";
-import { getBigData } from "./getBigWigData";
+import { ogBigDataFetcher } from "./getBigWigData";
 
 // An interface for storing avaliable Apollo GQL Queries
 export interface QueryHooks {
@@ -37,18 +37,22 @@ export type FetchFunction = (ctx: FetcherContext) => Promise<TrackDataState>;
  * Fetch BigWig data
  */
 async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, preRenderedWidth } = ctx;
-  const newResult = await getBigData(track.url, expandedDomain, preRenderedWidth);
-  return newResult;
+  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
+  return await ogBigDataFetcher(track.url, expandedDomain, preRenderedWidth, queries);
+
+  // const newResult = await getBigData(track.url, expandedDomain, preRenderedWidth);
+  // return newResult;
 }
 
 /**
  * Fetch BigBed data
  */
 async function fetchBigBed(ctx: FetcherContext<BigBedConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, preRenderedWidth } = ctx;
+  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
-  return await getBigData(track.url, expandedDomain, preRenderedWidth);
+  return await ogBigDataFetcher(track.url, expandedDomain, preRenderedWidth, queries);
+  // const { track, expandedDomain, preRenderedWidth } = ctx;
+  // return await getBigData(track.url, expandedDomain, preRenderedWidth);
 }
 
 /**
@@ -128,28 +132,33 @@ async function fetchMotif(ctx: FetcherContext<MotifConfig>): Promise<TrackDataSt
  * Fetch Importance data
  */
 async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<TrackDataState> {
-  const { track, domain, preRenderedWidth } = ctx;
+  const { track, domain, queries } = ctx;
 
   const results = await Promise.all([
-    getBigData(track.url, domain, preRenderedWidth),
-    getBigData(track.signalURL, domain),
+    ogBigDataFetcher(track.url, domain, -1, queries),
+    ogBigDataFetcher(track.signalURL, domain, -1, queries),
   ]);
 
-  const sequence = results[0].data;
+  const sequence = results[0].data[0];
   const importance = results[1]?.data?.map((d: { value: number }) => d.value) ?? [];
 
-  return { data: { sequence, importance }, error: results[0]?.error || results[1]?.error || null };
+  const error = results[0]?.error || results[1]?.error ? results[0]?.error + "\n" + results[1]?.error : null;
+
+  console.log(importance);
+  return { data: { sequence, importance }, error };
 }
 
 /**
  * Fetch BulkBed data
  */
 async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain } = ctx;
+  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
   const datasets = track.datasets || [];
 
-  const results = await Promise.all(datasets.map((dataset) => getBigData(dataset.url, expandedDomain)));
+  const results = await Promise.all(
+    datasets.map((dataset) => ogBigDataFetcher(dataset.url, expandedDomain, preRenderedWidth, queries))
+  );
 
   return {
     data:
@@ -168,17 +177,17 @@ async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<TrackDa
  * Fetch MethylC data
  */
 async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, preRenderedWidth } = ctx;
+  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
   const result = await Promise.all([
-    getBigData(track.urls.plusStrand.cpg.url, expandedDomain, preRenderedWidth),
-    getBigData(track.urls.plusStrand.chg.url, expandedDomain, preRenderedWidth),
-    getBigData(track.urls.plusStrand.chh.url, expandedDomain, preRenderedWidth),
-    getBigData(track.urls.plusStrand.depth.url, expandedDomain, preRenderedWidth),
-    getBigData(track.urls.minusStrand.cpg.url, expandedDomain, preRenderedWidth),
-    getBigData(track.urls.minusStrand.chg.url, expandedDomain, preRenderedWidth),
-    getBigData(track.urls.minusStrand.chh.url, expandedDomain, preRenderedWidth),
-    getBigData(track.urls.minusStrand.depth.url, expandedDomain, preRenderedWidth),
+    ogBigDataFetcher(track.urls.plusStrand.cpg.url, expandedDomain, preRenderedWidth, queries),
+    ogBigDataFetcher(track.urls.plusStrand.chg.url, expandedDomain, preRenderedWidth, queries),
+    ogBigDataFetcher(track.urls.plusStrand.chh.url, expandedDomain, preRenderedWidth, queries),
+    ogBigDataFetcher(track.urls.plusStrand.depth.url, expandedDomain, preRenderedWidth, queries),
+    ogBigDataFetcher(track.urls.minusStrand.cpg.url, expandedDomain, preRenderedWidth, queries),
+    ogBigDataFetcher(track.urls.minusStrand.chg.url, expandedDomain, preRenderedWidth, queries),
+    ogBigDataFetcher(track.urls.minusStrand.chh.url, expandedDomain, preRenderedWidth, queries),
+    ogBigDataFetcher(track.urls.minusStrand.depth.url, expandedDomain, preRenderedWidth, queries),
   ]);
 
   const data = result.map((r) => r.data);
@@ -192,6 +201,7 @@ async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDa
 /**
  * Fetch LDTrack data
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function fetchLDTrack(_ctx: FetcherContext<LDTrackConfig>): Promise<TrackDataState> {
   // Returns loading state as useCustomData is required for this track
   return {
@@ -203,6 +213,7 @@ async function fetchLDTrack(_ctx: FetcherContext<LDTrackConfig>): Promise<TrackD
 /**
  * Fetch Manhattan plot data
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function fetchManhattan(_ctx: FetcherContext<ManhattanTrackConfig>): Promise<TrackDataState> {
   // Returns loading state as useCustomData is required for this track
   return {
