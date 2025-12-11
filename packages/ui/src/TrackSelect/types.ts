@@ -1,4 +1,7 @@
 import { FuseOptionKey } from "fuse.js";
+import {
+  UseTreeItemParameters,
+} from "@mui/x-tree-view/useTreeItem";
 
 export interface SearchTracksProps {
     jsonStructure: string;
@@ -33,3 +36,18 @@ export interface RowInfo {
     experimentAccession: string;
     fileAccession: string;
 }
+
+export type ExtendedTreeItemProps = {
+  icon: string;
+  id: string;
+  label: string;
+};
+
+export interface CustomLabelProps {
+  children: React.ReactNode;
+  icon: React.ElementType | React.ReactElement;
+}
+
+export interface CustomTreeItemProps
+  extends Omit<UseTreeItemParameters, "rootRef">,
+    Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {}
