@@ -9,14 +9,14 @@ function compareElements(a: GenomicElement, b: GenomicElement) {
     : a.coordinates.start - b.coordinates.start;
 }
 
-export function mergeTranscripts(gene: TranscriptList, name?: string): Transcript {
+export function mergeTranscripts(gene: TranscriptList): Transcript {
   const transcripts = gene.transcripts;
   const allExons = transcripts.reduce<Exon[]>((e, t) => [...e, ...(t.exons || [])], []).sort(compareElements);
   const exons =
     allExons.length === 0
       ? []
       : [{ coordinates: { ...allExons[0].coordinates }, UTRs: allExons[0].UTRs && [...allExons[0].UTRs] }];
-  const colors = new Set(gene.transcripts.map((x) => x.color));
+  // const colors = new Set(gene.transcripts.map((x) => x.color));
   allExons.slice(1).forEach((exon) => {
     if (exon.coordinates.start < exons[exons.length - 1].coordinates.end) {
       exons[exons.length - 1].UTRs = [...(exons[exons.length - 1].UTRs || []), ...(exon.UTRs || [])];
@@ -26,11 +26,11 @@ export function mergeTranscripts(gene: TranscriptList, name?: string): Transcrip
   exons.forEach((exon) => {
     exon.UTRs = mergeUTRs(exon.UTRs || []);
   });
-  let color = colors.size === 1 ? colors.values().next().value : undefined;
+  // let color = colors.size === 1 ? colors.values().next().value : undefined;
 
-  if (name) {
-    color = gene.name?.includes(name) ? "#ff5555" : color;
-  }
+  // if (name) {
+  //   color = gene.name?.includes(name) ? "#ff5555" : color;
+  // }
   return {
     name: gene.name || "",
     strand: gene.strand,
@@ -40,7 +40,7 @@ export function mergeTranscripts(gene: TranscriptList, name?: string): Transcrip
       end: Math.max(...allExons.map((e) => e.coordinates.end)),
     },
     exons,
-    color,
+    color: "",
   };
 }
 

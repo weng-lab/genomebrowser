@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 globalThis.Buffer = Buffer;
 
-import React, { StrictMode, useEffect, useMemo, useState } from "react";
+import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Browser,
@@ -12,24 +12,18 @@ import {
   TrackStoreInstance,
   DataStoreInstance,
   createDataStoreMemo,
-  ManhattanPoint,
-  useCustomData,
   Pastels,
 } from "../src/lib";
 import {
   bigBedExample,
   bigWigExample,
-  transcriptExample,
-  motifExample,
-  bulkBedExample,
-  methylCTrack,
-  phyloP,
-  importanceExample,
-  manhattanTrack,
-  ldTrack,
+  // transcriptExample,
+  // motifExample,
+  // bulkBedExample,
+  // methylCTrack,
+  // phyloP,
+  // importanceExample,
 } from "./tracks";
-import { BIGDATA_QUERY, LD_QUERY } from "../src/api/queries";
-import { useQuery } from "@apollo/client";
 
 function Main() {
   const browserStore = createBrowserStoreMemo(
@@ -42,7 +36,7 @@ function Main() {
     []
   );
 
-  const [hovered, setHovered] = useState<ManhattanPoint | null>(null);
+  // const [hovered, setHovered] = useState<ManhattanPoint | null>(null);
 
   const trackStore = createTrackStoreMemo(
     [
@@ -123,69 +117,69 @@ function DomainView({
   );
 }
 
-function Action({ browserStore, dataStore }: { browserStore: BrowserStoreInstance; dataStore: DataStoreInstance }) {
-  const setDomain = browserStore((state) => state.setDomain);
+function Action({ dataStore }: { browserStore: BrowserStoreInstance; dataStore: DataStoreInstance }) {
+  // const setDomain = browserStore((state) => state.setDomain);
   const reset = dataStore((state) => state.reset);
 
   const onClick = () => {
     reset();
     // chr19:44,889,780-44,895,237
-    const width = setDomain({ chromosome: "chr19", start: 44889780, end: 44895237 });
+    // const width = setDomain({ chromosome: "chr19", start: 44889780, end: 44895237 });
   };
 
   return <button onClick={onClick}>Click for action</button>;
 }
 
-function useManhattanData(browserStore: BrowserStoreInstance, dataStore: DataStoreInstance) {
-  const getDomain = browserStore((state) => state.getExpandedDomain);
-  const preRenderedWidth = browserStore((state) => state.trackWidth * state.multiplier);
-  const { data, error, loading } = useQuery(BIGDATA_QUERY, {
-    variables: {
-      bigRequests: [
-        {
-          url: "https://downloads.wenglab.org/pyschscreensumstats/GWAS_fullsumstats/Alzheimers_Bellenguez_meta.formatted.bigBed",
-          chr1: getDomain().chromosome,
-          start: getDomain().start,
-          end: getDomain().end,
-          preRenderedWidth,
-        },
-      ],
-    },
-  });
+// function useManhattanData(browserStore: BrowserStoreInstance, dataStore: DataStoreInstance) {
+//   const getDomain = browserStore((state) => state.getExpandedDomain);
+//   const preRenderedWidth = browserStore((state) => state.trackWidth * state.multiplier);
+//   const { data, error, loading } = useQuery(BIGDATA_QUERY, {
+//     variables: {
+//       bigRequests: [
+//         {
+//           url: "https://downloads.wenglab.org/pyschscreensumstats/GWAS_fullsumstats/Alzheimers_Bellenguez_meta.formatted.bigBed",
+//           chr1: getDomain().chromosome,
+//           start: getDomain().start,
+//           end: getDomain().end,
+//           preRenderedWidth,
+//         },
+//       ],
+//     },
+//   });
 
-  const manhattanData = useMemo(() => {
-    if (!data) return [];
-    const points = data.bigRequests[0].data;
-    return points.map((snp: any) => {
-      return {
-        snpId: snp.name.split("_")[0],
-        value: snp.name.split("_")[1],
-        chr: snp.chr,
-        start: snp.start,
-        end: snp.end,
-      } as ManhattanPoint;
-    });
-  }, [data]);
+//   const manhattanData = useMemo(() => {
+//     if (!data) return [];
+//     const points = data.bigRequests[0].data;
+//     return points.map((snp: any) => {
+//       return {
+//         snpId: snp.name.split("_")[0],
+//         value: snp.name.split("_")[1],
+//         chr: snp.chr,
+//         start: snp.start,
+//         end: snp.end,
+//       } as ManhattanPoint;
+//     });
+//   }, [data]);
 
-  useCustomData(
-    manhattanTrack.id,
-    {
-      data: manhattanData,
-      error,
-      loading,
-    },
-    dataStore
-  );
-  useCustomData(
-    ldTrack.id,
-    {
-      data: manhattanData,
-      error,
-      loading,
-    },
-    dataStore
-  );
-}
+//   useCustomData(
+//     manhattanTrack.id,
+//     {
+//       data: manhattanData,
+//       error,
+//       loading,
+//     },
+//     dataStore
+//   );
+//   useCustomData(
+//     ldTrack.id,
+//     {
+//       data: manhattanData,
+//       error,
+//       loading,
+//     },
+//     dataStore
+//   );
+// }
 
 createRoot(document.getElementById("root")!).render(
   <GQLWrapper>

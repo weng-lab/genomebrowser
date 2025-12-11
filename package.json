@@ -3,7 +3,15 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
+    "build:core": "pnpm --filter @weng-lab/genomebrowser build",
+    "build:ui": "pnpm --filter @weng-lab/genomebrowser-ui build",
     "dev": "pnpm -r dev",
+    "dev:core": "pnpm --filter @weng-lab/genomebrowser dev",
+    "dev:ui": "pnpm --filter @weng-lab/genomebrowser-ui dev",
+    "publish:core": "pnpm --filter @weng-lab/genomebrowser publish",
+    "publish:ui": "pnpm --filter @weng-lab/genomebrowser-ui publish",
+    "version:core": "cd packages/core && pnpm version",
+    "version:ui": "cd packages/ui && pnpm version",
     "lint": "pnpm -r lint"
   },
   "devDependencies": {

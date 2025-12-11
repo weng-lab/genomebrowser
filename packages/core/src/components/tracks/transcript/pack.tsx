@@ -11,9 +11,13 @@ import { PackTranscriptProps, TranscriptRow } from "./types";
 export default function PackTranscript({
   id,
   data,
+  geneName,
   height,
   dimensions,
   color,
+  canonicalName,
+  canonicalColor,
+  highlightColor,
   onClick,
   onHover,
   onLeave,
@@ -61,11 +65,18 @@ export default function PackTranscript({
         >
           {group.transcripts.map((transcript, j) => {
             const realTranscript = getRealTranscript(transcript.transcript, reverseX);
+            console.log(transcript);
+            let fillColor;
+            if (canonicalName?.toLowerCase().includes(transcript.transcript.name.toLowerCase())) {
+              fillColor = canonicalColor;
+            } else if (geneName !== "" && transcript.transcript.name.toLowerCase().includes(geneName?.toLowerCase())) {
+              fillColor = highlightColor;
+            }
             return (
               <g key={`transcript_${j}`}>
                 <path
-                  stroke={transcript.transcript.color || color}
-                  fill={transcript.transcript.color || color}
+                  stroke={fillColor || color}
+                  fill={fillColor || color}
                   strokeWidth={rowHeight / 16}
                   d={transcript.paths.introns + transcript.paths.exons}
                   style={{ cursor: onClick ? "pointer" : "default" }}
@@ -76,7 +87,7 @@ export default function PackTranscript({
                   onMouseOut={() => handleLeave(realTranscript)}
                 />
                 <text
-                  fill={transcript.transcript.color || color}
+                  fill={fillColor || color}
                   fontSize={fontSize}
                   x={transcript.transcript.coordinates.end + 5}
                   y={rowHeight / 2}

@@ -1,6 +1,12 @@
 {
   "permissions": {
-    "allow": ["Bash(npx tsc:*)", "Bash(npx eslint:*)", "Bash(npm run lint)"],
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run lint)",
+      "mcp__Ref__ref_search_documentation",
+      "WebFetch(domain:pnpm.io)"
+    ],
     "deny": []
   }
 }

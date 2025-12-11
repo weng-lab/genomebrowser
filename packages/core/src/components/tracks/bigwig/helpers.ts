@@ -5,10 +5,10 @@ type Domain = {
   end: number;
 };
 
-const calculateRange = <T>(data: T[], getValue: (d: T) => number): YRange => ({
-  min: Math.min(...data.map(getValue)),
-  max: Math.max(...data.map(getValue)),
-});
+// const calculateRange = <T>(data: T[], getValue: (d: T) => number): YRange => ({
+//   min: Math.min(...data.map(getValue)),
+//   max: Math.max(...data.map(getValue)),
+// });
 
 export const getRange = (data: Data): YRange => {
   if (!data.length) return { min: 0, max: 0 };
@@ -19,7 +19,11 @@ export const getRange = (data: Data): YRange => {
     // case DataType.BigZoomData:
     //   return calculateRange(data as BigZoomData[], (d) => d.maxVal);
     case DataType.ValuedPoint:
-      return calculateRange(data as ValuedPoint[], (d) => d.max);
+      const points = data as ValuedPoint[];
+      return {
+        min: Math.min(...points.map((d) => d.min)),
+        max: Math.max(...points.map((d) => d.max)),
+      };
     default:
       return { min: 0, max: 0 };
   }

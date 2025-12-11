@@ -8,6 +8,9 @@ export interface TranscriptConfig extends Config<Transcript> {
   version: number;
   refetch?: LazyQueryExecFunction<any, OperationVariables>;
   geneName?: string;
+  canonicalName: string;
+  canonicalColor?: string;
+  highlightColor?: string; // colors in transcript with name = geneName
 }
 
 interface TranscriptProps {
@@ -16,14 +19,16 @@ interface TranscriptProps {
   dimensions: TrackDimensions;
   height: number;
   color: string;
+  canonicalName?: string;
+  canonicalColor?: string;
+  highlightColor?: string;
   onClick?: (transcript: Transcript) => void;
   onHover?: (transcript: Transcript) => void;
   onLeave?: (transcript: Transcript) => void;
   tooltip?: React.FC<Transcript>;
-}
-export interface SquishTranscriptProps extends TranscriptProps {
   geneName: string;
 }
+export type SquishTranscriptProps = TranscriptProps;
 
 export type PackTranscriptProps = TranscriptProps;
 
