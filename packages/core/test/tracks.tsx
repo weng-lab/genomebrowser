@@ -55,6 +55,10 @@ export const transcriptExample: TranscriptConfig = {
   assembly: "GRCh38",
   version: 47,
   displayMode: DisplayMode.Squish,
+  canonicalColor: "#00ff00",
+  highlightColor: "#ff0000",
+  canonicalName: "APOC1-201",
+  geneName: "APOC1",
 };
 
 export const motifExample: MotifConfig = {
