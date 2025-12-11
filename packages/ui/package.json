@@ -12,6 +12,17 @@
     "format": "prettier --write ."
   },
   "peerDependencies": {
+    "@weng-lab/genomebrowser": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@mui/material": "^7.0.0",
+    "@emotion/react": "^11.0.0",
+    "@emotion/styled": "^11.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "@weng-lab/genomebrowser": "workspace:*",
+    "@mui/material": "^7.0.0",
     "@emotion/react": "^11.0.0",
     "@emotion/styled": "^11.0.0",
     "@mui/material": "^6.0.0",

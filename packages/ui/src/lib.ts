@@ -1,2 +1,2 @@
-import TrackSelect from "./TrackSelect/TrackSelect";
-export {TrackSelect};
+import TrackSelect from "./TrackSelect/TrackSelect.tsx";
+export { TrackSelect };
