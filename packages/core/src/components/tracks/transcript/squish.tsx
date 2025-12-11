@@ -20,6 +20,9 @@ export default function SquishTranscript({
   height,
   dimensions,
   color,
+  canonicalName,
+  canonicalColor,
+  highlightColor,
   onClick,
   onHover,
   onLeave,
@@ -29,7 +32,7 @@ export default function SquishTranscript({
   const { x, reverseX } = useXTransform(totalWidth);
   const fontSize = 10;
 
-  const merged = useMemo(() => data?.map((gene) => mergeTranscripts(gene, geneName)), [data, geneName]);
+  const merged = useMemo(() => data?.map((gene) => mergeTranscripts(gene)), [data, geneName]);
   const grouped = useMemo(() => groupFeatures(merged, x, fontSize), [merged, x, fontSize]);
   const rowHeight = useRowHeight(grouped.length, id);
 
@@ -67,11 +70,17 @@ export default function SquishTranscript({
         >
           {group.transcripts.map((transcript, j) => {
             const realTranscript = getRealTranscript(transcript.transcript, reverseX);
+            let fillColor;
+            if (canonicalName?.toLowerCase().includes(transcript.transcript.name.toLowerCase())) {
+              fillColor = canonicalColor;
+            } else if (geneName !== "" && transcript.transcript.name.toLowerCase().includes(geneName?.toLowerCase())) {
+              fillColor = highlightColor;
+            }
             return (
               <g key={`transcript_${j}`}>
                 <path
-                  stroke={transcript.transcript.color || color}
-                  fill={transcript.transcript.color || color}
+                  stroke={fillColor || color}
+                  fill={fillColor || color}
                   strokeWidth={rowHeight / 16}
                   d={transcript.paths.introns + transcript.paths.exons}
                   style={{ cursor: onClick ? "pointer" : "default" }}
@@ -82,7 +91,7 @@ export default function SquishTranscript({
                   onMouseOut={() => handleLeave(realTranscript)}
                 />
                 <text
-                  fill={transcript.transcript.color || color}
+                  fill={fillColor || color}
                   fontSize={fontSize}
                   x={transcript.transcript.coordinates.end + 5}
                   y={rowHeight / 2}
