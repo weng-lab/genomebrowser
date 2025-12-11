@@ -32,7 +32,7 @@ export default function SquishTranscript({
   const { x, reverseX } = useXTransform(totalWidth);
   const fontSize = 10;
 
-  const merged = useMemo(() => data?.map((gene) => mergeTranscripts(gene)), [data, geneName]);
+  const merged = useMemo(() => data?.map((gene) => mergeTranscripts(gene)), [data]);
   const grouped = useMemo(() => groupFeatures(merged, x, fontSize), [merged, x, fontSize]);
   const rowHeight = useRowHeight(grouped.length, id);
 
