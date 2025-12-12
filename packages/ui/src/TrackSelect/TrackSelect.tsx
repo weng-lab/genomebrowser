@@ -1,4 +1,4 @@
-import { SearchTracksProps } from "./types";
+import { ExtendedTreeItemProps, SearchTracksProps, CustomTreeItemProps } from "./types";
 import { assayTypes, ontologyTypes } from "./consts";
 import { buildTreeView, CustomTreeItem } from "./treeViewHelpers";
 import { searchTracks, getTracksByAssayAndOntology, flattenIntoRow } from "./dataGridHelpers";
@@ -19,8 +19,9 @@ import {
   GridColDef
 } from "@mui/x-data-grid-premium";
 import React, { useMemo, useState } from "react";
+import { TreeViewBaseItem } from "@mui/x-tree-view";
 
-//TODO: making the remove icon for treeview functional, also forgot to add the colors for the assays in treeview with sorted assays
+//TODO add the colors for the assays in treeview with sorted assays
 export default function TrackSelect() {
   const rows = ontologyTypes.flatMap((ontology) =>
     assayTypes.flatMap((assay) =>
@@ -89,6 +90,13 @@ export default function TrackSelect() {
     setRowSelectionModel(newSelection);
   };
 
+  const handleRemoveTreeItem = (item: TreeViewBaseItem<ExtendedTreeItemProps>) => {
+    const updated = new Set(rowSelectionModel.ids); // all of the current ids to be updated
+    const removedIds = item.allExpAccessions;
+    removedIds?.forEach(id => updated.delete(id));
+    handleSelection({ type: "include", ids: updated });
+  };
+
   const columns: GridColDef[] = [
     { field: "displayname", headerName: "Name" },
     { field: "ontology", headerName: "Ontology" },
@@ -153,7 +161,12 @@ export default function TrackSelect() {
               <RichTreeView
                 items={treeItems}
                 defaultExpandedItems={['1']}
-                slots={{ item: CustomTreeItem }}
+                slots={{ item: CustomTreeItem  }}
+                slotProps = {{ 
+                  item: { 
+                    onRemove: handleRemoveTreeItem 
+                  } as Partial<CustomTreeItemProps> // avoiding the slotProps typing error
+                }}
                 sx={{
                   ml: 1,
                   mr: 1,

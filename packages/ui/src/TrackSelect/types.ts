@@ -2,6 +2,7 @@ import { FuseOptionKey } from "fuse.js";
 import {
   UseTreeItemParameters,
 } from "@mui/x-tree-view/useTreeItem";
+import { TreeViewBaseItem } from "@mui/x-tree-view";
 
 export interface SearchTracksProps {
     jsonStructure: string;
@@ -38,9 +39,14 @@ export interface RowInfo {
 }
 
 export type ExtendedTreeItemProps = {
-  icon: string;
   id: string;
   label: string;
+  icon: string;
+  /**
+   * list of all the experimentAccession values in the children/grandchildren of the item
+   * this is used in updating the rowSelectionModel when removing items from the Tree View panel
+   */
+  allExpAccessions?: string[]; 
 };
 
 export interface CustomLabelProps {
@@ -50,4 +56,6 @@ export interface CustomLabelProps {
 
 export interface CustomTreeItemProps
   extends Omit<UseTreeItemParameters, "rootRef">,
-    Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {}
+    Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {
+      onRemove?: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
+    }

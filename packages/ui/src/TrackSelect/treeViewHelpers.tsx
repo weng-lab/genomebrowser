@@ -1,4 +1,4 @@
-import { RowInfo, ExtendedTreeItemProps, CustomLabelProps } from "./types";
+import { RowInfo, ExtendedTreeItemProps, CustomLabelProps, CustomTreeItemProps } from "./types";
 import React from "react";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import {
@@ -8,7 +8,6 @@ import {
 } from "@mui/x-tree-view/TreeItem";
 import {
   useTreeItem,
-  UseTreeItemParameters,
 } from "@mui/x-tree-view/useTreeItem";
 import { TreeItemIcon } from "@mui/x-tree-view/TreeItemIcon";
 import { TreeItemProvider } from "@mui/x-tree-view/TreeItemProvider";
@@ -50,6 +49,7 @@ export function buildTreeView(
         label: row[topLevelType],
         icon: "removeable",
         children: [],
+        allExpAccessions: [],
       };
       topLevelMap.set(row[topLevelType], topLevelNode);
       root.children!.push(topLevelNode);
@@ -64,6 +64,7 @@ export function buildTreeView(
         label: row[secondLevelType],
         icon: "removeable",
         children: [],
+        allExpAccessions: [],
       };
       topLevelNode.children!.push(secondLevelNode);
     }
@@ -94,6 +95,8 @@ export function buildTreeView(
       };
       displayNameNode.children!.push(fileNode);
     }
+    topLevelNode.allExpAccessions!.push(row.experimentAccession);
+    secondLevelNode.allExpAccessions!.push(row.experimentAccession);
   });
   return [root];
 }
@@ -209,15 +212,11 @@ const getIconFromTreeItemType = (itemType: string) => {
   }
 };
 
-interface CustomTreeItemProps
-  extends Omit<UseTreeItemParameters, "rootRef">,
-    Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {}
-
 export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
   props: CustomTreeItemProps,
   ref: React.Ref<HTMLLIElement>,
 ) {
-  const { id, itemId, label, disabled, children, ...other } = props;
+  const { id, itemId, label, disabled, children, onRemove, ...other } = props;
 
   const {
     getContextProviderProps,
@@ -232,7 +231,12 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
 
   const item = useTreeItemModel<ExtendedTreeItemProps>(itemId)!;
   const icon = getIconFromTreeItemType(item.icon);
-
+  
+  const handleRemoveIconClick = (e: React.MouseEvent) => {
+    e.stopPropagation();     // prevent item expand/select
+    onRemove?.(item);
+  }
+  
   return (
     <TreeItemProvider {...getContextProviderProps()}>
       <TreeItemRoot {...getRootProps(other)}>
@@ -243,7 +247,30 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
           <TreeItemCheckbox {...getCheckboxProps()} />
           <CustomLabel
             {...getLabelProps({
-              icon,
+              icon: (
+                item.icon === "removeable" ? (
+                  <Box
+                    onClick={handleRemoveIconClick}
+                    sx={{
+                      width: 20,
+                      height: 20,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      mr: 1,
+                      "&:hover": {
+                        backgroundColor: "rgba(0,0,0,0.1)",
+                      },
+                    }}
+                  >
+                    <IndeterminateCheckBoxRoundedIcon fontSize="small" />
+                  </Box>
+                ) : (
+                  icon 
+                )
+              ),
               expandable: status.expandable && status.expanded,
             })}
           />
