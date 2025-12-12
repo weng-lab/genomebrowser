@@ -74,6 +74,7 @@ export function buildTreeView(
       label: row.displayname,
       icon: "removeable",
       children: [],
+      allExpAccessions: []
     };
     secondLevelNode.children!.push(displayNameNode);
 
@@ -97,6 +98,7 @@ export function buildTreeView(
     }
     topLevelNode.allExpAccessions!.push(row.experimentAccession);
     secondLevelNode.allExpAccessions!.push(row.experimentAccession);
+    displayNameNode.allExpAccessions!.push(row.experimentAccession);
   });
   return [root];
 }
@@ -236,7 +238,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
     e.stopPropagation();     // prevent item expand/select
     onRemove?.(item);
   }
-  
+
   return (
     <TreeItemProvider {...getContextProviderProps()}>
       <TreeItemRoot {...getRootProps(other)}>

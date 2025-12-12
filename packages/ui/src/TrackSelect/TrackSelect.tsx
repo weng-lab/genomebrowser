@@ -45,12 +45,14 @@ export default function TrackSelect() {
     React.useState<GridRowSelectionModel>({ type: "include", ids: new Set() });
 
   const selectedRows = useMemo(() => {
-    return rows.filter((row) =>
+    console.log(filteredRows.filter(row =>
+      rowSelectionModel.ids.has(row.experimentAccession),
+    ))
+    return filteredRows.filter(row =>
       rowSelectionModel.ids.has(row.experimentAccession),
     );
-  }, [rows, rowSelectionModel]);
+  }, [filteredRows, rowSelectionModel]);
 
-  // need to memoize treeItems to avoid infinite rerendering of RichTreeView
   const treeItems = useMemo(() => {
     return buildTreeView(
       selectedRows,

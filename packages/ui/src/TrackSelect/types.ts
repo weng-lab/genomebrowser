@@ -43,7 +43,7 @@ export type ExtendedTreeItemProps = {
   label: string;
   icon: string;
   /**
-   * list of all the experimentAccession values in the children/grandchildren of the item
+   * list of all the experimentAccession values in the children/grandchildren of the item, or the accession of the item itself
    * this is used in updating the rowSelectionModel when removing items from the Tree View panel
    */
   allExpAccessions?: string[]; 
