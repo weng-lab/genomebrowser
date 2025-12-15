@@ -1,7 +1,17 @@
-import { ExtendedTreeItemProps, SearchTracksProps, CustomTreeItemProps } from "./types";
+import { 
+  ExtendedTreeItemProps, 
+  SearchTracksProps, 
+  CustomTreeItemProps, 
+  RowInfo,
+} from "./types";
 import { assayTypes, ontologyTypes } from "./consts";
-import { buildTreeView, CustomTreeItem } from "./treeViewHelpers";
-import { searchTracks, getTracksByAssayAndOntology, flattenIntoRow } from "./dataGridHelpers";
+import { buildSortedAssayTreeView, buildTreeView, CustomTreeItem } from "./treeViewHelpers";
+import { 
+  searchTracks, 
+  getTracksByAssayAndOntology, 
+  flattenIntoRow, 
+  useSelectionStore
+} from "./dataGridHelpers";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { 
   Box, 
@@ -18,10 +28,9 @@ import {
   GridRowSelectionModel,
   GridColDef
 } from "@mui/x-data-grid-premium";
-import React, { useMemo, useState } from "react";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
+import React, { useMemo, useState } from "react";
 
-//TODO add the colors for the assays in treeview with sorted assays
 export default function TrackSelect() {
   const rows = ontologyTypes.flatMap((ontology) =>
     assayTypes.flatMap((assay) =>
@@ -41,26 +50,25 @@ export default function TrackSelect() {
 
   const [sortedAssay, setSortedAssay] = useState(false);
   const [filteredRows, setFilteredRows] = useState(rows);
-  const [rowSelectionModel, setRowSelectionModel] =
-    React.useState<GridRowSelectionModel>({ type: "include", ids: new Set() });
-
-  const selectedRows = useMemo(() => {
-    console.log(filteredRows.filter(row =>
-      rowSelectionModel.ids.has(row.experimentAccession),
-    ))
-    return filteredRows.filter(row =>
-      rowSelectionModel.ids.has(row.experimentAccession),
-    );
-  }, [filteredRows, rowSelectionModel]);
+  const selectedRows = useSelectionStore((s) => s.selectedRows);
+  const selectedIds = useSelectionStore((s) => s.selectedIds);
+  const setSelectedRows = useSelectionStore((s) => s.setSelectedRows);
+  const setSelectedIds = useSelectionStore((s) => s.setSelectedIds);
+  const removeSelectedRowsByIds = useSelectionStore((s) => s.removeRows);
+  const clearSelectedRows = useSelectionStore((s) => s.clear);
 
   const treeItems = useMemo(() => {
-    return buildTreeView(
+    return sortedAssay ? 
+    buildSortedAssayTreeView(
       selectedRows,
       { id: "1", label: "Biosamples", icon: "folder", children: [] },
-      sortedAssay,
+    ) : 
+    buildTreeView(
+      selectedRows,
+      { id: "1", label: "Biosamples", icon: "folder", children: [] },
     );
-  }, [selectedRows]);
-
+  }, [selectedRows, sortedAssay]);
+  
   const handleToggle = () => {
     setSortedAssay(!sortedAssay);
   };
@@ -89,14 +97,20 @@ export default function TrackSelect() {
   };
 
   const handleSelection = (newSelection: GridRowSelectionModel) => {
-    setRowSelectionModel(newSelection);
+    const idsSet = (newSelection && (newSelection as any).ids) ?? new Set<string>();
+    const idsArray = Array.from(idsSet);
+    const newSelectedRows: RowInfo[] = idsArray
+      .map((id) => rows.find((r: any) => r.experimentAccession === id))
+      .filter(Boolean) as RowInfo[];
+    setSelectedRows(newSelectedRows);
+    setSelectedIds(idsArray as string[]);
   };
 
   const handleRemoveTreeItem = (item: TreeViewBaseItem<ExtendedTreeItemProps>) => {
-    const updated = new Set(rowSelectionModel.ids); // all of the current ids to be updated
     const removedIds = item.allExpAccessions;
-    removedIds?.forEach(id => updated.delete(id));
-    handleSelection({ type: "include", ids: updated });
+    if (removedIds && removedIds.length) {
+      removeSelectedRowsByIds(removedIds);
+    }
   };
 
   const columns: GridColDef[] = [
@@ -147,7 +161,7 @@ export default function TrackSelect() {
               groupingColDef={{ leafField: "displayname", display: "flex" }}
               columnVisibilityModel={{ displayname: false }}
               onRowSelectionModelChange={handleSelection}
-              rowSelectionModel={rowSelectionModel}
+              rowSelectionModel={{ type: "include", ids: selectedIds }}
               sx={{ ml: 2, display: "flex" }}
               checkboxSelection
               autosizeOnMount
@@ -185,7 +199,7 @@ export default function TrackSelect() {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => handleSelection({ type: "include", ids: new Set() })}
+            onClick={() => clearSelectedRows()}
             sx={{ mt: 2, justifyContent: "flex-end" }}
           >
             Clear Selection

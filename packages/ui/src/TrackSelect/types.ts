@@ -59,3 +59,15 @@ export interface CustomTreeItemProps
     Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {
       onRemove?: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
     }
+
+export type SelectionState = {
+  selectedRows: RowInfo[];
+  selectedIds: Set<string>;
+};
+
+export type SelectionAction = {
+  setSelectedRows: (rows: RowInfo[]) => void;
+  setSelectedIds: (ids: string[]) => void;
+  removeRows: (ids: Iterable<string>) => void;
+  clear: () => void;
+}

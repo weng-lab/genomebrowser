@@ -1,4 +1,8 @@
-import { RowInfo, ExtendedTreeItemProps, CustomLabelProps, CustomTreeItemProps } from "./types";
+import { 
+  RowInfo, 
+  ExtendedTreeItemProps, 
+  CustomLabelProps, 
+  CustomTreeItemProps } from "./types";
 import React from "react";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import {
@@ -21,6 +25,78 @@ import {
   Typography,
 } from "@mui/material";
 
+export function buildSortedAssayTreeView(
+  selectedRows: RowInfo[],
+  root: TreeViewBaseItem<ExtendedTreeItemProps>,
+): TreeViewBaseItem<ExtendedTreeItemProps>[] {
+  const assayMap = new Map<
+    string,
+    TreeViewBaseItem<ExtendedTreeItemProps>
+  >(); // keep track of top level nodes
+  const ontologyMap = new Map<
+    string,
+    TreeViewBaseItem<ExtendedTreeItemProps>
+  >();
+  const sampleAssayMap = new Map<
+    string,
+    TreeViewBaseItem<ExtendedTreeItemProps>
+  >();
+  let idx = 1;
+
+  selectedRows.forEach((row) => {
+    let assayNode = assayMap.get(row.assay);
+    if (!assayNode) {
+      assayNode = {
+        id: row.assay,
+        label: row.assay,
+        icon: "removeable",
+        children: [],
+        allExpAccessions: [],
+      };
+      assayMap.set(row.assay, assayNode);
+      root.children!.push(assayNode);
+    }
+
+    let ontologyNode = ontologyMap.get(row.ontology + row.assay);
+    if(!ontologyNode) {
+      ontologyNode = {
+        id: row.ontology + "_" + idx++,
+        label: row.ontology,
+        icon: "removeable",
+        children: [],
+        allExpAccessions: []
+      };
+      assayNode.children!.push(ontologyNode);
+      ontologyMap.set(row.ontology + row.assay, ontologyNode);
+    }
+
+    const displayNameNode: TreeViewBaseItem<ExtendedTreeItemProps> = {
+      id: row.displayname + "_" + idx++,
+      label: row.displayname,
+      icon: "removeable",
+      children: [],
+      allExpAccessions: []
+    }
+    ontologyNode.children!.push(displayNameNode);
+
+    let expNode = sampleAssayMap.get(row.displayname + row.assay);
+    if (!expNode) {
+      expNode = {
+        id: row.experimentAccession,
+        label: row.experimentAccession,
+        icon: row.assay,
+        children: [],
+      };
+      sampleAssayMap.set(row.displayname + row.assay, expNode)
+    }
+    displayNameNode.children!.push(expNode);
+    ontologyNode.allExpAccessions!.push(row.experimentAccession);
+    displayNameNode.allExpAccessions!.push(row.experimentAccession);
+  });
+  return [root];
+}
+
+
 /**
  * Create the file directory RichTreeView structure from the selected rows.
  * @param selectedRows selected rows from the DataGrid
@@ -31,73 +107,59 @@ import {
 export function buildTreeView(
   selectedRows: RowInfo[],
   root: TreeViewBaseItem<ExtendedTreeItemProps>,
-  sortedAssay: boolean,
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
-  const topLevelType: keyof RowInfo = sortedAssay ? "assay" : "ontology";
-  const secondLevelType: keyof RowInfo = sortedAssay ? "ontology" : "assay";
-  const topLevelMap = new Map<
+  const ontologyMap = new Map<
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
   >(); // keep track of top level nodes
-  let idx = 1; // appending index to the ids of TreeItems to ensure uniqueness
+  const displayNameMap = new Map<
+    string,
+    TreeViewBaseItem<ExtendedTreeItemProps>
+  >();
+  const sampleAssayMap = new Map<
+    string,
+    TreeViewBaseItem<ExtendedTreeItemProps>
+  >();
 
   selectedRows.forEach((row) => {
-    let topLevelNode = topLevelMap.get(row[topLevelType]);
-    if (!topLevelNode) {
-      topLevelNode = {
-        id: row[topLevelType],
-        label: row[topLevelType],
+    let ontologyNode = ontologyMap.get(row.ontology);
+    if (!ontologyNode) {
+      ontologyNode = {
+        id: row.ontology,
+        label: row.ontology,
         icon: "removeable",
         children: [],
         allExpAccessions: [],
       };
-      topLevelMap.set(row[topLevelType], topLevelNode);
-      root.children!.push(topLevelNode);
+      ontologyMap.set(row.ontology, ontologyNode);
+      root.children!.push(ontologyNode);
     }
 
-    let secondLevelNode = topLevelNode.children!.find(
-      (child) => child.label === row[secondLevelType],
-    );
-    if (!secondLevelNode) {
-      secondLevelNode = {
-        id: row[secondLevelType] + "_" + idx++,
-        label: row[secondLevelType],
+    let displayNameNode = displayNameMap.get(row.displayname);
+    if(!displayNameNode) {
+      displayNameNode = {
+        id: row.displayname,
+        label: row.displayname,
         icon: "removeable",
         children: [],
-        allExpAccessions: [],
+        allExpAccessions: []
       };
-      topLevelNode.children!.push(secondLevelNode);
+      ontologyNode.children!.push(displayNameNode);
+      displayNameMap.set(row.displayname, displayNameNode);
     }
 
-    const displayNameNode: TreeViewBaseItem<ExtendedTreeItemProps> = {
-      id: row.displayname + "_" + idx++,
-      label: row.displayname,
-      icon: "removeable",
-      children: [],
-      allExpAccessions: []
-    };
-    secondLevelNode.children!.push(displayNameNode);
-
-    const expNode: TreeViewBaseItem<ExtendedTreeItemProps> = {
-      id: row.experimentAccession,
-      label: row.experimentAccession,
-      icon: "experiment",
-      children: [],
-    };
+    let expNode = sampleAssayMap.get(row.displayname + row.assay);
+    if (!expNode) {
+      expNode = {
+        id: row.experimentAccession,
+        label: row.experimentAccession,
+        icon: row.assay,
+        children: [],
+      };
+      sampleAssayMap.set(row.displayname + row.assay, expNode)
+    }
     displayNameNode.children!.push(expNode);
-
-    if (row.fileAccession) {
-      // only add if fileAccession exists
-      const fileNode: TreeViewBaseItem<ExtendedTreeItemProps> = {
-        id: row.fileAccession + "_" + idx++,
-        label: row.fileAccession,
-        icon: "file",
-        children: [],
-      };
-      displayNameNode.children!.push(fileNode);
-    }
-    topLevelNode.allExpAccessions!.push(row.experimentAccession);
-    secondLevelNode.allExpAccessions!.push(row.experimentAccession);
+    ontologyNode.allExpAccessions!.push(row.experimentAccession);
     displayNameNode.allExpAccessions!.push(row.experimentAccession);
   });
   return [root];
@@ -105,14 +167,12 @@ export function buildTreeView(
 
 function AccessionIcon(type: string) {
   const colorMap: { [key: string]: string } = {
-    dnase: "#06da93",
-    atac: "#02c7b9",
-    h3k4me3: "#db5379", // chose a random color for this one, check with mansi later
-    chromhmm: "#0097a7",
-    h3k27ac: "#fdc401",
-    ctcf: "#01a6f1",
-    experiment: "#ff2020",
-    file: "#0fb4f1",
+    DNase: "#06da93",
+    ATAC: "#02c7b9",
+    H3K4me3: "#ff2020",
+    ChromHMM: "#0097a7",
+    H3K27ac: "#fdc401",
+    CTCF: "#01a6f1",
   };
   const color = colorMap[type];
   return (

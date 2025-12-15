@@ -12,18 +12,19 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "fuse.js": "^7.1.0"
+    "fuse.js": "^7.1.0",
+    "zustand": "^5.0.8"
   },
   "peerDependencies": {
-    "@weng-lab/genomebrowser": "workspace:*",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@mui/material": "^7.0.0",
+    "@emotion/react": "^11.0.0",
+    "@emotion/styled": "^11.0.0",
     "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.0.0",
     "@mui/x-data-grid": "^8.19.0",
     "@mui/x-data-grid-premium": "^8.19.0",
-    "@emotion/react": "^11.0.0",
-    "@emotion/styled": "^11.0.0"
+    "@weng-lab/genomebrowser": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
