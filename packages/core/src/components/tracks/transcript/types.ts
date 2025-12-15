@@ -8,7 +8,7 @@ export interface TranscriptConfig extends Config<Transcript> {
   version: number;
   refetch?: LazyQueryExecFunction<any, OperationVariables>;
   geneName?: string;
-  canonicalName: string;
+  canonicalName?: string;
   canonicalColor?: string; // colors in transcript with name == canonicalName
   highlightColor?: string; // colors in transcript with name ~= geneName
 }
