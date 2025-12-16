@@ -42,7 +42,7 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
     return mouseState.pos?.x ? mouseState.pos.x - marginWidth + sideWidth : 0;
   }, [mouseState.pos?.x, marginWidth, sideWidth]);
 
-  const background = useTheme((state) => state.background);
+  // const background = useTheme((state) => state.background);
   const text = useTheme((state) => state.text);
 
   const { handleHover, handleLeave } = useInteraction({
@@ -54,7 +54,7 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
 
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
-      <rect width={totalWidth} height={height} fill={background} />
+      {/*<rect width={totalWidth} height={height} fill={background} />*/}
       <defs>
         <ClipPath id={id} width={totalWidth} height={height} />
       </defs>

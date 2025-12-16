@@ -9,7 +9,7 @@ import { createArcPath, getFill, getPrimaryRSquare, getRSquareForTarget, getWidt
 
 export default function LD({ id, data, height, color, dimensions, show, showScore = true, onClick, onHover, onLeave, tooltip }: LDProps) {
   const { totalWidth, sideWidth } = dimensions;
-  const background = useTheme((state) => state.background);
+  // const background = useTheme((state) => state.background);
   const text = useTheme((state) => state.text);
   const padding = 4;
 
@@ -126,7 +126,7 @@ export default function LD({ id, data, height, color, dimensions, show, showScor
 
   return (
     <g transform={`translate(-${sideWidth}, 0)`}>
-      <rect width={totalWidth} height={height} fill={background} />
+      {/*<rect width={totalWidth} height={height} fill={background} />*/}
 
       {/* Render arcs first (behind text) */}
       {referencedSNPs.map((referencedSnp) => {

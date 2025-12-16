@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import useInteraction from "../../../hooks/useInteraction";
 import { useRowHeight } from "../../../hooks/useRowHeight";
 import { useXTransform } from "../../../hooks/useXTransform";
-import { useTheme } from "../../../store/BrowserContext";
+// import { useTheme } from "../../../store/BrowserContext";
 import { groupFeatures } from "../../../utils/coordinates";
 import ClipPath from "../../svg/clipPath";
 import { getRealTranscript, mergeTranscripts, renderTranscript } from "./helper";
@@ -45,7 +45,7 @@ export default function SquishTranscript({
     [grouped, rowHeight, totalWidth, x]
   );
 
-  const background = useTheme((state) => state.background);
+  // const background = useTheme((state) => state.background);
 
   const { handleClick, handleHover, handleLeave } = useInteraction({
     onClick,
@@ -56,7 +56,7 @@ export default function SquishTranscript({
 
   return (
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth},0)`}>
-      <rect width={totalWidth} height={height} fill={background} />
+      {/*<rect width={totalWidth} height={height} fill={background} />*/}
       <defs>
         <ClipPath id={id} width={totalWidth} height={grouped.length * rowHeight} />
       </defs>

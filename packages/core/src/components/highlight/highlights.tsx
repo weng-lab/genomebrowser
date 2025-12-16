@@ -85,7 +85,7 @@ function HighlightRect({
       y={0}
       height={totalHeight}
       fill={highlight.color}
-      fillOpacity={0.2}
+      fillOpacity={highlight.opacity ?? 0.2}
       style={{ pointerEvents: "none" }}
     />
   );

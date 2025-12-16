@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import useInteraction from "../../../hooks/useInteraction";
 import { useRowHeight } from "../../../hooks/useRowHeight";
 import { useXTransform } from "../../../hooks/useXTransform";
-import { useTheme } from "../../../store/BrowserContext";
+// import { useTheme } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderSquishBigBedData } from "./helpers";
 import { SquishBigBedProps, SquishRect } from "./types";
@@ -19,7 +19,7 @@ export default function SquishBigBed({
   tooltip,
 }: SquishBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
-  const background = useTheme((state) => state.background);
+  // const background = useTheme((state) => state.background);
 
   const { x, reverseX } = useXTransform(totalWidth);
 
@@ -39,7 +39,7 @@ export default function SquishBigBed({
 
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
-      <rect width={totalWidth} height={height} fill={background} />
+      {/*<rect width={totalWidth} height={height} fill={background} />*/}
       <defs>
         <ClipPath id={id} width={totalWidth} height={height} />
       </defs>
