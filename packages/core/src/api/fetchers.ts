@@ -1,3 +1,6 @@
+import { Buffer } from "buffer";
+globalThis.Buffer = Buffer;
+
 import { LazyQueryExecFunction, OperationVariables } from "@apollo/client";
 import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
@@ -12,7 +15,7 @@ import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
 import { TrackDataState } from "../store/dataStore";
-import { ogBigDataFetcher } from "./getBigWigData";
+import { getBigData, ogBigDataFetcher } from "./getBigWigData";
 
 // An interface for storing avaliable Apollo GQL Queries
 export interface QueryHooks {
@@ -33,26 +36,36 @@ export type FetcherContext<T extends Track = Track> = {
 // Fetch Function signature
 export type FetchFunction = (ctx: FetcherContext) => Promise<TrackDataState>;
 
+export async function getBigDataRace(
+  url: string,
+  expandedDomain: Domain,
+  preRenderedWidth: number,
+  queries: QueryHooks
+) {
+  const result = await Promise.race([
+    getBigData(url, expandedDomain, preRenderedWidth),
+    ogBigDataFetcher(url, expandedDomain, preRenderedWidth, queries),
+  ]);
+  return result;
+}
+
 /**
  * Fetch BigWig data
  */
 async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, preRenderedWidth, queries } = ctx;
-  return await ogBigDataFetcher(track.url, expandedDomain, preRenderedWidth, queries);
-
-  // const newResult = await getBigData(track.url, expandedDomain, preRenderedWidth);
-  // return newResult;
+  return await getBigDataRace(track.url, expandedDomain, preRenderedWidth, queries);
 }
 
 /**
  * Fetch BigBed data
  */
 async function fetchBigBed(ctx: FetcherContext<BigBedConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
+  // const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
-  return await ogBigDataFetcher(track.url, expandedDomain, preRenderedWidth, queries);
-  // const { track, expandedDomain, preRenderedWidth } = ctx;
-  // return await getBigData(track.url, expandedDomain, preRenderedWidth);
+  // return await ogBigDataFetcher(track.url, expandedDomain, preRenderedWidth, queries);
+  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
+  return await getBigDataRace(track.url, expandedDomain, preRenderedWidth, queries);
 }
 
 /**
@@ -135,8 +148,8 @@ async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<T
   const { track, domain, queries } = ctx;
 
   const results = await Promise.all([
-    ogBigDataFetcher(track.url, domain, -1, queries),
-    ogBigDataFetcher(track.signalURL, domain, -1, queries),
+    getBigDataRace(track.url, domain, -1, queries),
+    getBigDataRace(track.signalURL, domain, -1, queries),
   ]);
 
   const sequence = results[0].data[0];
@@ -157,7 +170,7 @@ async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<TrackDa
   const datasets = track.datasets || [];
 
   const results = await Promise.all(
-    datasets.map((dataset) => ogBigDataFetcher(dataset.url, expandedDomain, preRenderedWidth, queries))
+    datasets.map((dataset) => getBigDataRace(dataset.url, expandedDomain, preRenderedWidth, queries))
   );
 
   return {
@@ -180,14 +193,14 @@ async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDa
   const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
   const result = await Promise.all([
-    ogBigDataFetcher(track.urls.plusStrand.cpg.url, expandedDomain, preRenderedWidth, queries),
-    ogBigDataFetcher(track.urls.plusStrand.chg.url, expandedDomain, preRenderedWidth, queries),
-    ogBigDataFetcher(track.urls.plusStrand.chh.url, expandedDomain, preRenderedWidth, queries),
-    ogBigDataFetcher(track.urls.plusStrand.depth.url, expandedDomain, preRenderedWidth, queries),
-    ogBigDataFetcher(track.urls.minusStrand.cpg.url, expandedDomain, preRenderedWidth, queries),
-    ogBigDataFetcher(track.urls.minusStrand.chg.url, expandedDomain, preRenderedWidth, queries),
-    ogBigDataFetcher(track.urls.minusStrand.chh.url, expandedDomain, preRenderedWidth, queries),
-    ogBigDataFetcher(track.urls.minusStrand.depth.url, expandedDomain, preRenderedWidth, queries),
+    getBigDataRace(track.urls.plusStrand.cpg.url, expandedDomain, preRenderedWidth, queries),
+    getBigDataRace(track.urls.plusStrand.chg.url, expandedDomain, preRenderedWidth, queries),
+    getBigDataRace(track.urls.plusStrand.chh.url, expandedDomain, preRenderedWidth, queries),
+    getBigDataRace(track.urls.plusStrand.depth.url, expandedDomain, preRenderedWidth, queries),
+    getBigDataRace(track.urls.minusStrand.cpg.url, expandedDomain, preRenderedWidth, queries),
+    getBigDataRace(track.urls.minusStrand.chg.url, expandedDomain, preRenderedWidth, queries),
+    getBigDataRace(track.urls.minusStrand.chh.url, expandedDomain, preRenderedWidth, queries),
+    getBigDataRace(track.urls.minusStrand.depth.url, expandedDomain, preRenderedWidth, queries),
   ]);
 
   const data = result.map((r) => r.data);

@@ -37,6 +37,9 @@ export default function All() {
       marginWidth: 100,
       trackWidth: 1400,
       multiplier: 3,
+      highlights: [
+        { color: "#ff0000", id: "odsian", domain: { chromosome: "chr19", start: 44905754, end: 44905754 + 2000 } },
+      ],
     },
     []
   );
