@@ -1,0 +1,74 @@
+import { Box, Paper, Typography } from "@mui/material";
+import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
+import { useMemo } from "react";
+import { rows } from "../consts";
+import {
+  CustomTreeItemProps,
+  ExtendedTreeItemProps,
+  RowInfo,
+  TreeViewWrapperProps,
+} from "../types";
+import { buildTreeView, CustomTreeItem } from "./treeViewHelpers";
+
+export function TreeViewWrapper({ selectedIds, remove }: TreeViewWrapperProps) {
+  console.log("treeview ids: ", selectedIds);
+
+  const rowById = new Map<string, RowInfo>(
+    rows.map((r) => [r.experimentAccession, r]),
+  );
+
+  const handleRemoveTreeItem = (
+    item: TreeViewBaseItem<ExtendedTreeItemProps>,
+  ) => {
+    const removedIds = item.allExpAccessions;
+    if (removedIds && removedIds.length) {
+      const idsToRemove = new Set(removedIds);
+
+      // Also remove any auto-generated group IDs that contain these tracks
+      removedIds.forEach((id) => {
+        const row = rowById.get(id);
+        if (row) {
+          // Add the auto-generated group IDs for this track's ontology and assay
+          idsToRemove.add(`auto-generated-row-ontology/${row.ontology}`);
+          idsToRemove.add(
+            `auto-generated-row-ontology/${row.ontology}-assay/${row.assay}`,
+          );
+        }
+      });
+
+      remove(idsToRemove);
+    }
+  };
+
+  const treeItems = useMemo(() => {
+    return buildTreeView(Array.from(selectedIds), rowById); // TODO: refactor these to put into one function
+  }, [selectedIds]);
+
+  return (
+    <Paper>
+      <Box sx={{ width: "500px", height: "500px", overflow: "auto" }}>
+        <Typography>
+          <Box sx={{ fontWeight: "bold", padding: 2 }}>Active Tracks</Box>
+        </Typography>
+        <RichTreeView
+          items={treeItems}
+          defaultExpandedItems={["1"]}
+          slots={{ item: CustomTreeItem }}
+          slotProps={{
+            item: {
+              onRemove: handleRemoveTreeItem,
+            } as Partial<CustomTreeItemProps>, // avoiding the slotProps typing error
+          }}
+          sx={{
+            ml: 1,
+            mr: 1,
+            height: "fit-content",
+            flexGrow: 1,
+            overflowY: "auto",
+          }}
+          itemChildrenIndentation={0}
+        />
+      </Box>
+    </Paper>
+  );
+}

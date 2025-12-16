@@ -1,40 +1,36 @@
-import { 
-  RowInfo, 
-  ExtendedTreeItemProps, 
-  CustomLabelProps, 
-  CustomTreeItemProps } from "./types";
-import React from "react";
+import Folder from "@mui/icons-material/Folder";
+import IndeterminateCheckBoxRoundedIcon from "@mui/icons-material/IndeterminateCheckBoxRounded";
+import { Box, Typography } from "@mui/material";
+import Collapse from "@mui/material/Collapse";
+import { alpha, styled } from "@mui/material/styles";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import {
   TreeItemCheckbox,
   TreeItemIconContainer,
   TreeItemLabel,
 } from "@mui/x-tree-view/TreeItem";
-import {
-  useTreeItem,
-} from "@mui/x-tree-view/useTreeItem";
 import { TreeItemIcon } from "@mui/x-tree-view/TreeItemIcon";
 import { TreeItemProvider } from "@mui/x-tree-view/TreeItemProvider";
 import { useTreeItemModel } from "@mui/x-tree-view/hooks";
-import Folder from "@mui/icons-material/Folder";
-import IndeterminateCheckBoxRoundedIcon from "@mui/icons-material/IndeterminateCheckBoxRounded";
-import Collapse from "@mui/material/Collapse";
-import { styled, alpha } from "@mui/material/styles";
-import { 
-  Box, 
-  Typography,
-} from "@mui/material";
+import { useTreeItem } from "@mui/x-tree-view/useTreeItem";
+import React from "react";
+import {
+  CustomLabelProps,
+  CustomTreeItemProps,
+  ExtendedTreeItemProps,
+  RowInfo,
+} from "../types";
 
 // export function buildGenericTreeView(
 //   selectedRows: RowInfo[],
 //   root: TreeViewBaseItem<ExtendedTreeItemProps>,
 // ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
 //   const topLevelMap = new Map<
-//     string, 
+//     string,
 //     TreeViewBaseItem<ExtendedTreeItemProps>
 //   >();
 //   const secondLevelMap = new Map<
-//     string, 
+//     string,
 //     TreeViewBaseItem<ExtendedTreeItemProps>
 //   >();
 
@@ -42,12 +38,9 @@ import {
 
 export function buildSortedAssayTreeView(
   selectedIds: string[],
-  rowById: Map<string, RowInfo>
+  rowById: Map<string, RowInfo>,
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
-  const assayMap = new Map<
-    string,
-    TreeViewBaseItem<ExtendedTreeItemProps>
-  >(); // keep track of top level nodes
+  const assayMap = new Map<string, TreeViewBaseItem<ExtendedTreeItemProps>>(); // keep track of top level nodes
   const ontologyMap = new Map<
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
@@ -87,13 +80,13 @@ export function buildSortedAssayTreeView(
     }
 
     let ontologyNode = ontologyMap.get(row.ontology + row.assay);
-    if(!ontologyNode) {
+    if (!ontologyNode) {
       ontologyNode = {
         id: row.ontology + "_" + idx++,
         label: row.ontology,
         icon: "removeable",
         children: [],
-        allExpAccessions: []
+        allExpAccessions: [],
       };
       assayNode.children!.push(ontologyNode);
       ontologyMap.set(row.ontology + row.assay, ontologyNode);
@@ -104,8 +97,8 @@ export function buildSortedAssayTreeView(
       label: row.displayname,
       icon: "removeable",
       children: [],
-      allExpAccessions: []
-    }
+      allExpAccessions: [],
+    };
     ontologyNode.children!.push(displayNameNode);
 
     let expNode = sampleAssayMap.get(row.displayname + row.experimentAccession);
@@ -116,7 +109,7 @@ export function buildSortedAssayTreeView(
         icon: row.assay,
         children: [],
       };
-      sampleAssayMap.set(row.displayname + row.assay, expNode)
+      sampleAssayMap.set(row.displayname + row.assay, expNode);
       displayNameNode.children!.push(expNode);
     }
     ontologyNode.allExpAccessions!.push(row.experimentAccession);
@@ -124,7 +117,6 @@ export function buildSortedAssayTreeView(
   });
   return [root];
 }
-
 
 /**
  * Create the file directory RichTreeView structure from the selected rows.
@@ -135,7 +127,7 @@ export function buildSortedAssayTreeView(
  */
 export function buildTreeView(
   selectedIds: string[],
-  rowById: Map<string, RowInfo>
+  rowById: Map<string, RowInfo>,
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
   const ontologyMap = new Map<
     string,
@@ -161,7 +153,7 @@ export function buildTreeView(
     if (row) acc.push(row);
     return acc;
   }, []);
-  console.log("selectedRows: ", selectedRows)
+  console.log("selectedRows: ", selectedRows);
 
   selectedRows.forEach((row) => {
     if (!row) {
@@ -181,13 +173,13 @@ export function buildTreeView(
     }
 
     let displayNameNode = displayNameMap.get(row.displayname);
-    if(!displayNameNode) {
+    if (!displayNameNode) {
       displayNameNode = {
         id: row.displayname,
         label: row.displayname,
         icon: "removeable",
         children: [],
-        allExpAccessions: []
+        allExpAccessions: [],
       };
       ontologyNode.children!.push(displayNameNode);
       displayNameMap.set(row.displayname, displayNameNode);
@@ -338,11 +330,11 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
 
   const item = useTreeItemModel<ExtendedTreeItemProps>(itemId)!;
   const icon = getIconFromTreeItemType(item.icon);
-  
+
   const handleRemoveIconClick = (e: React.MouseEvent) => {
-    e.stopPropagation();     // prevent item expand/select
+    e.stopPropagation(); // prevent item expand/select
     onRemove?.(item);
-  }
+  };
 
   return (
     <TreeItemProvider {...getContextProviderProps()}>
@@ -354,7 +346,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
           <TreeItemCheckbox {...getCheckboxProps()} />
           <CustomLabel
             {...getLabelProps({
-              icon: (
+              icon:
                 item.icon === "removeable" ? (
                   <Box
                     onClick={handleRemoveIconClick}
@@ -375,9 +367,8 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
                     <IndeterminateCheckBoxRoundedIcon fontSize="small" />
                   </Box>
                 ) : (
-                  icon 
-                )
-              ),
+                  icon
+                ),
               expandable: status.expandable && status.expanded,
             })}
           />

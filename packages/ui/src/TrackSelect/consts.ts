@@ -1,8 +1,18 @@
 import { GridColDef } from "@mui/x-data-grid-premium";
-import { getTracksByAssayAndOntology, flattenIntoRow } from "./dataGridHelpers";
+import {
+  getTracksByAssayAndOntology,
+  flattenIntoRow,
+} from "./DataGrid/dataGridHelpers";
 import { RowInfo } from "./types";
 
-export const assayTypes = ["DNase", "H3K4me3", "H3K27ac", "ATAC", "CTCF", "ChromHMM"];
+export const assayTypes = [
+  "DNase",
+  "H3K4me3",
+  "H3K27ac",
+  "ATAC",
+  "CTCF",
+  "ChromHMM",
+];
 export const ontologyTypes = [
   "Adipose",
   "Adrenal gland",
@@ -64,7 +74,7 @@ export const rows = ontologyTypes.flatMap((ontology) =>
     getTracksByAssayAndOntology(
       assay.toLowerCase(),
       ontology.toLowerCase(),
-    ).map((r) => {
+    ).map((r: any) => {
       const flat = flattenIntoRow(r);
       return {
         ...flat,

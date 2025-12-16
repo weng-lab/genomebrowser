@@ -1,41 +1,39 @@
 import { FuseOptionKey } from "fuse.js";
-import {
-  UseTreeItemParameters,
-} from "@mui/x-tree-view/useTreeItem";
+import { UseTreeItemParameters } from "@mui/x-tree-view/useTreeItem";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 
 export interface SearchTracksProps {
-    jsonStructure: string;
-    query: string;
-    keyWeightMap: FuseOptionKey<any>[];
-    threshold?: number;
-    limit?: number;
+  jsonStructure: string;
+  query: string;
+  keyWeightMap: FuseOptionKey<any>[];
+  threshold?: number;
+  limit?: number;
 }
 
 export interface AssayInfo {
-    assay: string; // dnase, atac, h3k4me3, h3k27ac, ctcf, chromhmm
-    url: string;
-    experimentAccession: string;
-    fileAccession: string;
+  assay: string; // dnase, atac, h3k4me3, h3k27ac, ctcf, chromhmm
+  url: string;
+  experimentAccession: string;
+  fileAccession: string;
 }
 
 export interface TrackInfo {
-    name: string;
-    ontology: string;
-    lifeStage: string;
-    sampleType: string;
-    displayname: string;
-    assays: AssayInfo[];
+  name: string;
+  ontology: string;
+  lifeStage: string;
+  sampleType: string;
+  displayname: string;
+  assays: AssayInfo[];
 }
 
 export interface RowInfo {
-    ontology: string;
-    lifeStage: string;
-    sampleType: string;
-    displayname: string;
-    assay: string;
-    experimentAccession: string;
-    fileAccession: string;
+  ontology: string;
+  lifeStage: string;
+  sampleType: string;
+  displayname: string;
+  assay: string;
+  experimentAccession: string;
+  fileAccession: string;
 }
 
 export type ExtendedTreeItemProps = {
@@ -46,18 +44,18 @@ export type ExtendedTreeItemProps = {
    * list of all the experimentAccession values in the children/grandchildren of the item, or the accession of the item itself
    * this is used in updating the rowSelectionModel when removing items from the Tree View panel
    */
-  allExpAccessions?: string[]; 
+  allExpAccessions?: string[];
 };
 
 export type DataGridWrapperProps = {
   selectedIds: Set<string>;
   setSelected: (ids: Set<string>) => void;
-}
+};
 
 export type TreeViewWrapperProps = {
   selectedIds: Set<string>;
   remove: (removedIds: Set<string>) => void;
-}
+};
 
 export interface CustomLabelProps {
   children: React.ReactNode;
@@ -67,8 +65,8 @@ export interface CustomLabelProps {
 export interface CustomTreeItemProps
   extends Omit<UseTreeItemParameters, "rootRef">,
     Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {
-      onRemove?: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
-    }
+  onRemove?: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
+}
 
 export type SelectionState = {
   selectedIds: Set<string>;
@@ -78,4 +76,4 @@ export type SelectionAction = {
   setSelected: (ids: Set<string>) => void;
   remove: (removedIds: Set<string>) => void;
   clear: () => void;
-}
+};

@@ -1,14 +1,7 @@
-import { 
-  SearchTracksProps, 
-  TrackInfo, 
-  AssayInfo, 
-  RowInfo, 
-  SelectionState, 
-  SelectionAction 
-} from "./types";
-import tracksData from "./modifiedTracks.json";
 import { capitalize } from "@mui/material";
 import Fuse, { FuseResult } from "fuse.js";
+import tracksData from "../modifiedTracks.json";
+import { AssayInfo, RowInfo, SearchTracksProps, TrackInfo } from "../types";
 
 function formatAssayType(assay: string): string {
   switch (assay) {
@@ -33,7 +26,10 @@ function getNestedValue(obj: any, path: string): any {
   return path.split(".").reduce((acc, key) => acc && acc[key], obj);
 }
 
-export function getTracksByAssayAndOntology(assay: string, ontology: string): any[] {
+export function getTracksByAssayAndOntology(
+  assay: string,
+  ontology: string,
+): any[] {
   let res: any[] = [];
   const data = getNestedValue(tracksData, "tracks");
 
@@ -59,9 +55,9 @@ export function getTracksByAssayAndOntology(assay: string, ontology: string): an
  * @returns Flattened RowInfo object
  */
 export function flattenIntoRow(track: TrackInfo | FuseResult<any>): RowInfo {
-  const { name, ontology, lifeStage, sampleType, displayname } =
+  const { ontology, lifeStage, sampleType, displayname } =
     "item" in track ? track.item : track;
-  const { assay, url, experimentAccession, fileAccession } =
+  const { assay, experimentAccession, fileAccession } =
     "item" in track ? track.item.assays[0] : track.assays[0];
 
   return {
