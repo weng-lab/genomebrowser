@@ -49,6 +49,16 @@ export type ExtendedTreeItemProps = {
   allExpAccessions?: string[]; 
 };
 
+export type DataGridWrapperProps = {
+  selectedIds: Set<string>;
+  setSelected: (ids: Set<string>) => void;
+}
+
+export type TreeViewWrapperProps = {
+  selectedIds: Set<string>;
+  remove: (removedIds: Set<string>) => void;
+}
+
 export interface CustomLabelProps {
   children: React.ReactNode;
   icon: React.ElementType | React.ReactElement;
@@ -61,15 +71,11 @@ export interface CustomTreeItemProps
     }
 
 export type SelectionState = {
-  // selectedRows: RowInfo[];
-  selectedIds: string[];
+  selectedIds: Set<string>;
 };
 
 export type SelectionAction = {
-  // setSelectedRows: (rows: RowInfo[]) => void;
-  // setSelectedIds: (ids: string[]) => void;
-  setSelected: (ids: string[]) => void;
-  add: (ids: string[]) => void;
-  remove: (ids: string[]) => void;
+  setSelected: (ids: Set<string>) => void;
+  remove: (removedIds: Set<string>) => void;
   clear: () => void;
 }

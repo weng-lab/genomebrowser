@@ -70,7 +70,7 @@ export function buildSortedAssayTreeView(
     return acc;
   }, []);
 
-  console.log(selectedRows);
+  console.log("selectedRows: ", selectedRows);
 
   selectedRows.forEach((row) => {
     let assayNode = assayMap.get(row.assay);
@@ -161,7 +161,7 @@ export function buildTreeView(
     if (row) acc.push(row);
     return acc;
   }, []);
-  console.log(selectedRows)
+  console.log("selectedRows: ", selectedRows)
 
   selectedRows.forEach((row) => {
     if (!row) {
