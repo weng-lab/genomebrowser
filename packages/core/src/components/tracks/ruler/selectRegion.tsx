@@ -87,7 +87,7 @@ export default function SelectRegion() {
           )
         : null}
       <rect
-        fill="#ffaaff"
+        fill="#ffffff"
         width={browserWidth - margin}
         height={dragRegionHeight}
         x={margin}

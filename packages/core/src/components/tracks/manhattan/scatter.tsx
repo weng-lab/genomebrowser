@@ -21,7 +21,7 @@ export default function Scatter({
   tooltip,
 }: ManhattanProps) {
   const { totalWidth, sideWidth } = dimensions;
-  const background = useTheme((state) => state.background);
+  // const background = useTheme((state) => state.background);
   const text = useTheme((state) => state.text);
   const getDomain = useBrowserStore((state) => state.getExpandedDomain);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
@@ -79,7 +79,7 @@ export default function Scatter({
 
   return (
     <g id={id} transform={`translate(-${sideWidth}, 0)`}>
-      <rect width={totalWidth} height={height} fill={background} />
+      {/*<rect width={totalWidth} height={height} fill={background} />*/}
       {transformedData.map(
         (
           snp: {

@@ -32,7 +32,7 @@ export default function DenseMotif({
 
   return (
     <g id={id} height={height} width={totalWidth} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
-      <rect width={totalWidth} height={height} fill="white" />
+      {/*<rect width={totalWidth} height={height} fill="white" />*/}
       <defs>
         <ClipPath id={id} width={totalWidth} height={height} />
       </defs>

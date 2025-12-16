@@ -38,10 +38,10 @@ function BrowserContent() {
         <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
           <Ruler />
         </Wrapper>
+        <Highlights />
         {trackIds.map((id) => {
           return <DisplayTrack key={id} id={id} />;
         })}
-        <Highlights />
         <Tooltip />
       </SVGWrapper>
       <ContextMenu />

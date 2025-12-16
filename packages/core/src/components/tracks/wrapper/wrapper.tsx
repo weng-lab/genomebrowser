@@ -45,8 +45,6 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
   return (
     <g id={`wrapper-${id}`} transform={transform}>
       <SwapTrack id={id} setSwapping={setSwapping}>
-        {/* background */}
-        <rect width={browserWidth} height={wrapperHeight} fill={background} style={{ pointerEvents: "none" }} />
         {/* loading */}
         {loading && !error && (
           <g

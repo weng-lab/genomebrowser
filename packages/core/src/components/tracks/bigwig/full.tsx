@@ -107,12 +107,12 @@ export default function FullBigWig({
   });
   const svgRef = useBrowserStore((state) => state.svgRef);
 
-  const background = useTheme((state) => state.background);
+  // const background = useTheme((state) => state.background);
   const text = useTheme((state) => state.text);
 
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
-      <rect width={totalWidth} height={height} fill={background} />
+      {/*<rect width={totalWidth} height={height} fill={background} />*/}
       <defs>
         <ClipPath id={id} width={totalWidth} height={height} />
       </defs>

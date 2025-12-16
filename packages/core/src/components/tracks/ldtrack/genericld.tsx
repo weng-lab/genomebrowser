@@ -34,7 +34,7 @@ export default function GenericLD({
   tooltip,
 }: GenericLDProps) {
   const { totalWidth, sideWidth } = dimensions;
-  const background = useTheme((state) => state.background);
+  // const background = useTheme((state) => state.background);
   const { x } = useXTransform(totalWidth);
 
   // must add up to height
@@ -58,7 +58,7 @@ export default function GenericLD({
 
   return (
     <g transform={`translate(-${sideWidth}, 0)`}>
-      <rect width={totalWidth} height={height} fill={background} />
+      {/*<rect width={totalWidth} height={height} fill={background} />*/}
       {associatedSnps?.map((snp, i) => {
         const targetSnp = processedData.find((s) => s.snpId === snp);
         const sourceSnp = processedData.find((s) => s.snpId === lead);
