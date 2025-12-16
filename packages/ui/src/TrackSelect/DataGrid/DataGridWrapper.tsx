@@ -9,14 +9,13 @@ import { DataGridWrapperProps } from "../types";
 export function DataGridWrapper({
   selectedIds,
   setSelected,
+  sortedAssay
 }: DataGridWrapperProps) {
-  console.log("selectedIds datagrid: ", selectedIds);
-
+  const groupingModel = sortedAssay ? ["assay", "ontology"] : ["ontology", "assay"];
   const handleSelection = (newSelection: GridRowSelectionModel) => {
     const idsSet =
       (newSelection && (newSelection as any).ids) ?? new Set<string>();
     setSelected(idsSet);
-    console.log("after handleSelection: ", selectedIds);
   };
 
   return (
@@ -31,7 +30,7 @@ export function DataGridWrapper({
           rows={rows} // using rows instead of filteredRows rn for simplicity
           columns={columns}
           getRowId={(row) => row.experimentAccession}
-          rowGroupingModel={["ontology", "assay"]} // removing sortedAssay for simplicity
+          rowGroupingModel={groupingModel}
           groupingColDef={{ leafField: "displayname", display: "flex" }}
           columnVisibilityModel={{ displayname: false }}
           onRowSelectionModelChange={handleSelection}

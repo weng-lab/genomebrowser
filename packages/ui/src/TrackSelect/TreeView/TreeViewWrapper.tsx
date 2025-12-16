@@ -8,11 +8,9 @@ import {
   RowInfo,
   TreeViewWrapperProps,
 } from "../types";
-import { buildTreeView, CustomTreeItem } from "./treeViewHelpers";
+import { buildSortedAssayTreeView, buildTreeView, CustomTreeItem } from "./treeViewHelpers";
 
-export function TreeViewWrapper({ selectedIds, remove }: TreeViewWrapperProps) {
-  console.log("treeview ids: ", selectedIds);
-
+export function TreeViewWrapper({ selectedIds, remove, sortedAssay }: TreeViewWrapperProps) {
   const rowById = new Map<string, RowInfo>(
     rows.map((r) => [r.experimentAccession, r]),
   );
@@ -33,16 +31,18 @@ export function TreeViewWrapper({ selectedIds, remove }: TreeViewWrapperProps) {
           idsToRemove.add(
             `auto-generated-row-ontology/${row.ontology}-assay/${row.assay}`,
           );
+          idsToRemove.add(
+            `auto-generated-row-assay/${row.assay}-ontology/${row.ontology}`
+          );
         }
       });
-
       remove(idsToRemove);
     }
   };
 
   const treeItems = useMemo(() => {
-    return buildTreeView(Array.from(selectedIds), rowById); // TODO: refactor these to put into one function
-  }, [selectedIds]);
+    return sortedAssay ? buildSortedAssayTreeView(Array.from(selectedIds), rowById) : buildTreeView(Array.from(selectedIds), rowById); // TODO: refactor these to put into one function
+  }, [selectedIds, sortedAssay]);
 
   return (
     <Paper>
@@ -57,7 +57,7 @@ export function TreeViewWrapper({ selectedIds, remove }: TreeViewWrapperProps) {
           slotProps={{
             item: {
               onRemove: handleRemoveTreeItem,
-            } as Partial<CustomTreeItemProps>, // avoiding the slotProps typing error
+            } as Partial<CustomTreeItemProps>, // cast to avoid the slotProps typing error
           }}
           sx={{
             ml: 1,

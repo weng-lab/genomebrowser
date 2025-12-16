@@ -63,8 +63,6 @@ export function buildSortedAssayTreeView(
     return acc;
   }, []);
 
-  console.log("selectedRows: ", selectedRows);
-
   selectedRows.forEach((row) => {
     let assayNode = assayMap.get(row.assay);
     if (!assayNode) {
@@ -112,6 +110,7 @@ export function buildSortedAssayTreeView(
       sampleAssayMap.set(row.displayname + row.assay, expNode);
       displayNameNode.children!.push(expNode);
     }
+    assayNode.allExpAccessions!.push(row.experimentAccession);
     ontologyNode.allExpAccessions!.push(row.experimentAccession);
     displayNameNode.allExpAccessions!.push(row.experimentAccession);
   });
@@ -153,7 +152,6 @@ export function buildTreeView(
     if (row) acc.push(row);
     return acc;
   }, []);
-  console.log("selectedRows: ", selectedRows);
 
   selectedRows.forEach((row) => {
     if (!row) {

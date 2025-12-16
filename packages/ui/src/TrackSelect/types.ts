@@ -50,11 +50,13 @@ export type ExtendedTreeItemProps = {
 export type DataGridWrapperProps = {
   selectedIds: Set<string>;
   setSelected: (ids: Set<string>) => void;
+  sortedAssay: boolean;
 };
 
 export type TreeViewWrapperProps = {
   selectedIds: Set<string>;
   remove: (removedIds: Set<string>) => void;
+  sortedAssay: boolean;
 };
 
 export interface CustomLabelProps {
