@@ -79,7 +79,7 @@ export default function Scatter({
 
   return (
     <g id={id} transform={`translate(-${sideWidth}, 0)`}>
-      {/*<rect width={totalWidth} height={height} fill={background} />*/}
+      <rect width={totalWidth} height={height} fill={"transparent"} />
       {transformedData.map(
         (
           snp: {

@@ -56,7 +56,7 @@ export default function SquishTranscript({
 
   return (
     <g width={totalWidth} height={height} transform={`translate(-${sideWidth},0)`}>
-      {/*<rect width={totalWidth} height={height} fill={background} />*/}
+      <rect width={totalWidth} height={height} fill={"transparent"} />
       <defs>
         <ClipPath id={id} width={totalWidth} height={grouped.length * rowHeight} />
       </defs>

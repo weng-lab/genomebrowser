@@ -7,7 +7,19 @@ import { darken, isDark, lighten } from "../../../utils/color";
 import { useXTransform } from "../../../hooks/useXTransform";
 import { createArcPath, getFill, getPrimaryRSquare, getRSquareForTarget, getWidth, isLead } from "./helpers";
 
-export default function LD({ id, data, height, color, dimensions, show, showScore = true, onClick, onHover, onLeave, tooltip }: LDProps) {
+export default function LD({
+  id,
+  data,
+  height,
+  color,
+  dimensions,
+  show,
+  showScore = true,
+  onClick,
+  onHover,
+  onLeave,
+  tooltip,
+}: LDProps) {
   const { totalWidth, sideWidth } = dimensions;
   // const background = useTheme((state) => state.background);
   const text = useTheme((state) => state.text);
@@ -126,7 +138,7 @@ export default function LD({ id, data, height, color, dimensions, show, showScor
 
   return (
     <g transform={`translate(-${sideWidth}, 0)`}>
-      {/*<rect width={totalWidth} height={height} fill={background} />*/}
+      <rect width={totalWidth} height={height} fill={"transparent"} />
 
       {/* Render arcs first (behind text) */}
       {referencedSNPs.map((referencedSnp) => {
@@ -199,41 +211,43 @@ export default function LD({ id, data, height, color, dimensions, show, showScor
       </g>
 
       {/* Render text labels last (on top of everything) */}
-      {showScore && referencedSNPs.map((referencedSnp) => {
-        const snpCenterX = referencedSnp.pixelStart + (referencedSnp.pixelEnd - referencedSnp.pixelStart) / 2;
-        const labelY = isLead(referencedSnp) ? height - leadHeight - 2 : height - snpHeight - 2; // Just above the SNP rectangle
+      {showScore &&
+        referencedSNPs.map((referencedSnp) => {
+          const snpCenterX = referencedSnp.pixelStart + (referencedSnp.pixelEnd - referencedSnp.pixelStart) / 2;
+          const labelY = isLead(referencedSnp) ? height - leadHeight - 2 : height - snpHeight - 2; // Just above the SNP rectangle
 
-        return (
-          <text
-            key={`reference-label-${referencedSnp.snpid}-${referencedSnp.sourceSnp}`}
-            x={snpCenterX}
-            y={labelY}
-            textAnchor="middle"
-            fontSize="10"
-            fill={text}
-          >
-            {referencedSnp.rsquare}
-          </text>
-        );
-      })}
+          return (
+            <text
+              key={`reference-label-${referencedSnp.snpid}-${referencedSnp.sourceSnp}`}
+              x={snpCenterX}
+              y={labelY}
+              textAnchor="middle"
+              fontSize="10"
+              fill={text}
+            >
+              {referencedSnp.rsquare}
+            </text>
+          );
+        })}
 
-      {showScore && referencingSNPs.map((referencingSnp) => {
-        const snpCenterX = referencingSnp.pixelStart + (referencingSnp.pixelEnd - referencingSnp.pixelStart) / 2;
-        const labelY = isLead(referencingSnp) ? height - leadHeight - 2 : height - snpHeight - 2; // Just above the SNP rectangle
+      {showScore &&
+        referencingSNPs.map((referencingSnp) => {
+          const snpCenterX = referencingSnp.pixelStart + (referencingSnp.pixelEnd - referencingSnp.pixelStart) / 2;
+          const labelY = isLead(referencingSnp) ? height - leadHeight - 2 : height - snpHeight - 2; // Just above the SNP rectangle
 
-        return (
-          <text
-            key={`referencing-label-${referencingSnp.snpid}-${referencingSnp.sourceSnp}`}
-            x={snpCenterX}
-            y={labelY}
-            textAnchor="middle"
-            fontSize="10"
-            fill={text}
-          >
-            {referencingSnp.rsquare}
-          </text>
-        );
-      })}
+          return (
+            <text
+              key={`referencing-label-${referencingSnp.snpid}-${referencingSnp.sourceSnp}`}
+              x={snpCenterX}
+              y={labelY}
+              textAnchor="middle"
+              fontSize="10"
+              fill={text}
+            >
+              {referencingSnp.rsquare}
+            </text>
+          );
+        })}
     </g>
   );
 }

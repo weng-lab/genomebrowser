@@ -58,7 +58,7 @@ export default function GenericLD({
 
   return (
     <g transform={`translate(-${sideWidth}, 0)`}>
-      {/*<rect width={totalWidth} height={height} fill={background} />*/}
+      <rect width={totalWidth} height={height} fill={"transparent"} />
       {associatedSnps?.map((snp, i) => {
         const targetSnp = processedData.find((s) => s.snpId === snp);
         const sourceSnp = processedData.find((s) => s.snpId === lead);

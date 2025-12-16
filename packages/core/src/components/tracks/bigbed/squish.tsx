@@ -39,7 +39,7 @@ export default function SquishBigBed({
 
   return (
     <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
-      {/*<rect width={totalWidth} height={height} fill={background} />*/}
+      <rect width={totalWidth} height={height} fill={"transparent"} />
       <defs>
         <ClipPath id={id} width={totalWidth} height={height} />
       </defs>

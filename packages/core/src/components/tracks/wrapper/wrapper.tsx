@@ -44,7 +44,7 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
 
   return (
     <g id={`wrapper-${id}`} transform={transform}>
-      <SwapTrack id={id} setSwapping={setSwapping}>
+      <SwapTrack id={id} setSwapping={setSwapping} height={wrapperHeight} width={trackWidth}>
         {/* loading */}
         {loading && !error && (
           <g

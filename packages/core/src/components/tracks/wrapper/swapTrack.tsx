@@ -9,16 +9,22 @@ function SwapTrack({
   id,
   children,
   setSwapping,
+  height,
+  width,
 }: {
   id: string;
   children: React.ReactNode;
   setSwapping: (swapping: boolean) => void;
+  height: number;
+  width: number;
 }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [delta, setDelta] = useState(0);
   const nodeRef = useRef<SVGGElement>(null);
   const scale = useBrowserScale();
+
+  const marginWidth = useBrowserStore((state) => state.marginWidth);
 
   const shiftTracks = useTrackStore((state) => state.shiftTracks);
   const getDistances = useTrackStore((state) => state.getDistances);
@@ -62,13 +68,31 @@ function SwapTrack({
       onStop={handleStop}
     >
       <g id={`swap-track-${id}`} ref={nodeRef}>
-        {dragging ? <Clone position={prevHeights + position.y + RULER_HEIGHT}>{children}</Clone> : children}
+        {dragging ? (
+          <Clone height={height} width={width} margin={marginWidth} position={prevHeights + position.y + RULER_HEIGHT}>
+            {children}
+          </Clone>
+        ) : (
+          children
+        )}
       </g>
     </Draggable>
   );
 }
 
-function Clone({ children, position }: { children: React.ReactNode; position: number }) {
+function Clone({
+  children,
+  position,
+  height,
+  width,
+  margin,
+}: {
+  children: React.ReactNode;
+  position: number;
+  height: number;
+  width: number;
+  margin: number;
+}) {
   const browserRef = useBrowserStore((state) => state.svgRef);
   const scale = useBrowserScale();
   const nodeRef = useRef<SVGGElement>(null);
@@ -79,6 +103,7 @@ function Clone({ children, position }: { children: React.ReactNode; position: nu
       position={{ x: 0, y: position }}
     >
       <g ref={nodeRef} style={{ cursor: "grabbing", filter: "drop-shadow(2px 2px 2px gray)" }}>
+        <rect transform={`translate(${margin}, 0)`} width={width} height={height} fill={"white"} />
         {children}
       </g>
     </Draggable>,
