@@ -14,7 +14,7 @@ export async function getBigData(
     const reader = new BigWigReader(dataLoader);
 
     const header = await reader.getHeader();
-
+    preRenderedWidth = preRenderedWidth != -1 ? preRenderedWidth : undefined;
     switch (header.fileType) {
       case FileType.BigWig: {
         const data = await reader.readBigWigData(

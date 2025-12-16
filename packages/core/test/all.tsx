@@ -38,8 +38,8 @@ export default function All() {
       trackWidth: 1400,
       multiplier: 3,
       highlights: [
-        { id: "test", color: "#ff0000", domain: { chromosome: "chr19", start: 44905754, end: 44905754 + 2000 } }
-      ]
+        { id: "test", color: "#ff0000", domain: { chromosome: "chr19", start: 44905754, end: 44905754 + 2000 } },
+      ],
     },
     []
   );
