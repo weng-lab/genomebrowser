@@ -36,17 +36,31 @@ export type FetcherContext<T extends Track = Track> = {
 // Fetch Function signature
 export type FetchFunction = (ctx: FetcherContext) => Promise<TrackDataState>;
 
+// Facade function that calls both fetching methods, and uses the fastest by default
+// If the new function takes a while, the GQL one will be used as a backup
+// Able to log speed as well
 export async function getBigDataRace(
   url: string,
   expandedDomain: Domain,
   preRenderedWidth: number,
   queries: QueryHooks
 ) {
-  const result = await Promise.race([
-    getBigData(url, expandedDomain, preRenderedWidth),
-    ogBigDataFetcher(url, expandedDomain, preRenderedWidth, queries),
-  ]);
-  return result;
+  const startTime = performance.now();
+
+  const [p1, p2] = [
+    getBigData(url, expandedDomain, preRenderedWidth).then((data) => {
+      const elapsed = performance.now() - startTime;
+      return { data, source: "New" as const, elapsed, url };
+    }),
+    ogBigDataFetcher(url, expandedDomain, preRenderedWidth, queries).then((data) => {
+      const elapsed = performance.now() - startTime;
+      return { data, source: "GQL" as const, elapsed, url };
+    }),
+  ];
+
+  const result = await Promise.race([p1, p2]);
+  console.log(result.url, "\n", result.source, "took", result.elapsed.toFixed(2), "ms");
+  return result.data;
 }
 
 /**

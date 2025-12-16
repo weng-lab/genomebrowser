@@ -52,8 +52,8 @@ export default function All() {
       motifExample,
       bulkBedExample,
       methylCTrack,
-      // manhattanTrack,
-      // ldTrack,
+      manhattanTrack,
+      ldTrack,
     ],
     []
   );
