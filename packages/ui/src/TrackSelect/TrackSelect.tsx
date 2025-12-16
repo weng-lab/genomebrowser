@@ -3,6 +3,8 @@ import {
   SearchTracksProps, 
   CustomTreeItemProps, 
   RowInfo,
+  SelectionState,
+  SelectionAction
 } from "./types";
 import { assayTypes, ontologyTypes } from "./consts";
 import { buildSortedAssayTreeView, buildTreeView, CustomTreeItem } from "./treeViewHelpers";
@@ -10,7 +12,6 @@ import {
   searchTracks, 
   getTracksByAssayAndOntology, 
   flattenIntoRow, 
-  useSelectionStore
 } from "./dataGridHelpers";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { 
@@ -30,44 +31,74 @@ import {
 } from "@mui/x-data-grid-premium";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import React, { useMemo, useState } from "react";
+import { create } from 'zustand';
+
+// some attempted configurations:
+// 1. keeping track of only selectedIds in store and looking up row information through selectedIds and rowById in buildTreeView() 
+// 2. keeping track of both selectedIds and selectedRows but having the same setters for them
+// 3. removing store altogether and just trying to keep track of selectedIds through simple array and looking up row information through rowIds
+//    -> doesn't remove items from treeview properly, the item that you try to remove just keeps being added back 
+
+// 4. keeping track of both selectedIds and selectedRows in store and having separate setters for each of them
+//    -> removes items successfully except for when you try to remove assay folder level on sorted assay view, 
+//    but doesn't keep track of selected states properly when you toggle between sorting methods 
+//    (ie when you remove something on one view, it comes back when u toggle to another view)
+
+const useSelectionStore = create<SelectionState & SelectionAction>((set) => ({
+  selectedIds: [],
+  setSelected: (ids: string[]) => set(() => ({ selectedIds: ids })),
+  add: (newIds: string[]) =>
+    set((state) => {
+      const next = new Set(state.selectedIds);
+      for (const id of newIds) next.add(id);
+      return { selectedIds: Array.from(next) };
+    }),
+  remove: (ids: string[]) =>
+    set((state) => {
+      const toRemoveIds: Set<string> = new Set(ids);
+      return {
+        selectedIds: state.selectedIds.filter(
+          (s: any) => !toRemoveIds.has(s),
+        )
+      };
+    }),
+  clear: () => set(() => ({ selectedIds: [] })),
+}));
+
+const rows = ontologyTypes.flatMap((ontology) =>
+  assayTypes.flatMap((assay) =>
+    getTracksByAssayAndOntology(
+      assay.toLowerCase(),
+      ontology.toLowerCase(),
+    ).map((r) => {
+      const flat = flattenIntoRow(r);
+      return {
+        ...flat,
+        assay,
+        ontology,
+      };
+    }),
+  ),
+);
 
 export default function TrackSelect() {
-  const rows = ontologyTypes.flatMap((ontology) =>
-    assayTypes.flatMap((assay) =>
-      getTracksByAssayAndOntology(
-        assay.toLowerCase(),
-        ontology.toLowerCase(),
-      ).map((r) => {
-        const flat = flattenIntoRow(r);
-        return {
-          ...flat,
-          assay,
-          ontology,
-        };
-      }),
-    ),
-  );
+  // map of experimentAccession: rowInfo for faster row lookup
+  const rowById = useMemo(() => {
+    const m = new Map<string, RowInfo>();
+    for (const r of rows) m.set(r.experimentAccession, r);
+    return m;
+  }, [rows]);
 
   const [sortedAssay, setSortedAssay] = useState(false);
   const [filteredRows, setFilteredRows] = useState(rows);
-  const selectedRows = useSelectionStore((s) => s.selectedRows);
   const selectedIds = useSelectionStore((s) => s.selectedIds);
-  const setSelectedRows = useSelectionStore((s) => s.setSelectedRows);
-  const setSelectedIds = useSelectionStore((s) => s.setSelectedIds);
-  const removeSelectedRowsByIds = useSelectionStore((s) => s.removeRows);
-  const clearSelectedRows = useSelectionStore((s) => s.clear);
+  const setSelected = useSelectionStore((s) => s.setSelected);
+  const clear = useSelectionStore((s) => s.clear);
+  const remove = useSelectionStore((s) => s.remove)
 
   const treeItems = useMemo(() => {
-    return sortedAssay ? 
-    buildSortedAssayTreeView(
-      selectedRows,
-      { id: "1", label: "Biosamples", icon: "folder", children: [] },
-    ) : 
-    buildTreeView(
-      selectedRows,
-      { id: "1", label: "Biosamples", icon: "folder", children: [] },
-    );
-  }, [selectedRows, sortedAssay]);
+    return sortedAssay ? buildSortedAssayTreeView(selectedIds, rowById) : buildTreeView(selectedIds, rowById); // TODO: refactor these to put into one function
+  }, [selectedIds, sortedAssay, rowById]);
   
   const handleToggle = () => {
     setSortedAssay(!sortedAssay);
@@ -98,18 +129,14 @@ export default function TrackSelect() {
 
   const handleSelection = (newSelection: GridRowSelectionModel) => {
     const idsSet = (newSelection && (newSelection as any).ids) ?? new Set<string>();
-    const idsArray = Array.from(idsSet);
-    const newSelectedRows: RowInfo[] = idsArray
-      .map((id) => rows.find((r: any) => r.experimentAccession === id))
-      .filter(Boolean) as RowInfo[];
-    setSelectedRows(newSelectedRows);
-    setSelectedIds(idsArray as string[]);
+    const idsArray: string[] = Array.from(idsSet);
+    setSelected(idsArray)
   };
 
   const handleRemoveTreeItem = (item: TreeViewBaseItem<ExtendedTreeItemProps>) => {
     const removedIds = item.allExpAccessions;
     if (removedIds && removedIds.length) {
-      removeSelectedRowsByIds(removedIds);
+      remove(removedIds);
     }
   };
 
@@ -161,7 +188,7 @@ export default function TrackSelect() {
               groupingColDef={{ leafField: "displayname", display: "flex" }}
               columnVisibilityModel={{ displayname: false }}
               onRowSelectionModelChange={handleSelection}
-              rowSelectionModel={{ type: "include", ids: selectedIds }}
+              rowSelectionModel={{ type: "include", ids: new Set<string>(selectedIds) }} // making a new Set here instead of store avoids making infinite calls
               sx={{ ml: 2, display: "flex" }}
               checkboxSelection
               autosizeOnMount
@@ -199,7 +226,7 @@ export default function TrackSelect() {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => clearSelectedRows()}
+            onClick={() => clear()}
             sx={{ mt: 2, justifyContent: "flex-end" }}
           >
             Clear Selection

@@ -61,13 +61,15 @@ export interface CustomTreeItemProps
     }
 
 export type SelectionState = {
-  selectedRows: RowInfo[];
-  selectedIds: Set<string>;
+  // selectedRows: RowInfo[];
+  selectedIds: string[];
 };
 
 export type SelectionAction = {
-  setSelectedRows: (rows: RowInfo[]) => void;
-  setSelectedIds: (ids: string[]) => void;
-  removeRows: (ids: Iterable<string>) => void;
+  // setSelectedRows: (rows: RowInfo[]) => void;
+  // setSelectedIds: (ids: string[]) => void;
+  setSelected: (ids: string[]) => void;
+  add: (ids: string[]) => void;
+  remove: (ids: string[]) => void;
   clear: () => void;
 }

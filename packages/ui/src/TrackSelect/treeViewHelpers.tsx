@@ -25,9 +25,24 @@ import {
   Typography,
 } from "@mui/material";
 
+// export function buildGenericTreeView(
+//   selectedRows: RowInfo[],
+//   root: TreeViewBaseItem<ExtendedTreeItemProps>,
+// ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
+//   const topLevelMap = new Map<
+//     string, 
+//     TreeViewBaseItem<ExtendedTreeItemProps>
+//   >();
+//   const secondLevelMap = new Map<
+//     string, 
+//     TreeViewBaseItem<ExtendedTreeItemProps>
+//   >();
+
+// }
+
 export function buildSortedAssayTreeView(
-  selectedRows: RowInfo[],
-  root: TreeViewBaseItem<ExtendedTreeItemProps>,
+  selectedIds: string[],
+  rowById: Map<string, RowInfo>
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
   const assayMap = new Map<
     string,
@@ -41,7 +56,21 @@ export function buildSortedAssayTreeView(
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
   >();
+  const root: TreeViewBaseItem<ExtendedTreeItemProps> = {
+    id: "1",
+    label: "Biosamples",
+    icon: "folder",
+    children: [],
+  };
   let idx = 1;
+
+  const selectedRows = selectedIds.reduce<RowInfo[]>((acc, id) => {
+    const row = rowById.get(id);
+    if (row) acc.push(row);
+    return acc;
+  }, []);
+
+  console.log(selectedRows);
 
   selectedRows.forEach((row) => {
     let assayNode = assayMap.get(row.assay);
@@ -79,7 +108,7 @@ export function buildSortedAssayTreeView(
     }
     ontologyNode.children!.push(displayNameNode);
 
-    let expNode = sampleAssayMap.get(row.displayname + row.assay);
+    let expNode = sampleAssayMap.get(row.displayname + row.experimentAccession);
     if (!expNode) {
       expNode = {
         id: row.experimentAccession,
@@ -88,8 +117,8 @@ export function buildSortedAssayTreeView(
         children: [],
       };
       sampleAssayMap.set(row.displayname + row.assay, expNode)
+      displayNameNode.children!.push(expNode);
     }
-    displayNameNode.children!.push(expNode);
     ontologyNode.allExpAccessions!.push(row.experimentAccession);
     displayNameNode.allExpAccessions!.push(row.experimentAccession);
   });
@@ -105,8 +134,8 @@ export function buildSortedAssayTreeView(
  * @returns a list of TreeViewBaseItem for RichTreeView
  */
 export function buildTreeView(
-  selectedRows: RowInfo[],
-  root: TreeViewBaseItem<ExtendedTreeItemProps>,
+  selectedIds: string[],
+  rowById: Map<string, RowInfo>
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
   const ontologyMap = new Map<
     string,
@@ -120,8 +149,24 @@ export function buildTreeView(
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
   >();
+  const root: TreeViewBaseItem<ExtendedTreeItemProps> = {
+    id: "1",
+    label: "Biosamples",
+    icon: "folder",
+    children: [],
+  };
+
+  const selectedRows = selectedIds.reduce<RowInfo[]>((acc, id) => {
+    const row = rowById.get(id);
+    if (row) acc.push(row);
+    return acc;
+  }, []);
+  console.log(selectedRows)
 
   selectedRows.forEach((row) => {
+    if (!row) {
+      return;
+    }
     let ontologyNode = ontologyMap.get(row.ontology);
     if (!ontologyNode) {
       ontologyNode = {
@@ -156,9 +201,9 @@ export function buildTreeView(
         icon: row.assay,
         children: [],
       };
-      sampleAssayMap.set(row.displayname + row.assay, expNode)
+      sampleAssayMap.set(row.displayname + row.assay, expNode);
+      displayNameNode.children!.push(expNode);
     }
-    displayNameNode.children!.push(expNode);
     ontologyNode.allExpAccessions!.push(row.experimentAccession);
     displayNameNode.allExpAccessions!.push(row.experimentAccession);
   });

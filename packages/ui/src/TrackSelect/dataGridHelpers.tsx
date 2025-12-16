@@ -9,7 +9,6 @@ import {
 import tracksData from "./modifiedTracks.json";
 import { capitalize } from "@mui/material";
 import Fuse, { FuseResult } from "fuse.js";
-import { create } from 'zustand';
 
 function formatAssayType(assay: string): string {
   switch (assay) {
@@ -114,20 +113,3 @@ export function searchTracks({
   });
   return fuse.search(query, { limit: limit });
 }
-
-export const useSelectionStore = create<SelectionState & SelectionAction>((set) => ({
-  selectedRows: [],
-  selectedIds: new Set<string>(),
-  setSelectedRows: (rows: RowInfo[]) => set(() => ({ selectedRows: rows })),
-  setSelectedIds: (ids: string[]) => set(() => ({ selectedIds: new Set(ids) })),
-  removeRows: (ids: Iterable<string>) =>
-    set((state) => {
-      const toRemove = new Set(ids);
-      return {
-        selectedRows: state.selectedRows.filter(
-          (r: any) => !toRemove.has(r.experimentAccession),
-        ),
-      };
-    }),
-  clear: () => set(() => ({ selectedRows: [] })),
-}));
