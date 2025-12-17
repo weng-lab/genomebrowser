@@ -1,4 +1,3 @@
-import { GridColDef } from "@mui/x-data-grid-premium";
 import {
   getTracksByAssayAndOntology,
   flattenIntoRow,
@@ -57,16 +56,6 @@ export const ontologyTypes = [
   "Urinary Bladder",
   "Uterus",
   "Vagina",
-];
-
-export const columns: GridColDef[] = [
-  { field: "displayname", headerName: "Name" },
-  { field: "ontology", headerName: "Ontology" },
-  { field: "lifeStage", headerName: "Life Stage" },
-  { field: "sampleType", headerName: "Sample Type" },
-  { field: "assay", headerName: "Assay" },
-  { field: "experimentAccession", headerName: "Experiment Accession" },
-  { field: "fileAccession", headerName: "File Accession" },
 ];
 
 export const rows = ontologyTypes.flatMap((ontology) =>

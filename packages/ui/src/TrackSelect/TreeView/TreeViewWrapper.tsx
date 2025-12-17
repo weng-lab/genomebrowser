@@ -31,6 +31,7 @@ export function TreeViewWrapper({ selectedIds, remove, sortedAssay }: TreeViewWr
           idsToRemove.add(
             `auto-generated-row-ontology/${row.ontology}-assay/${row.assay}`,
           );
+          idsToRemove.add(`auto-generated-row-assay/${row.assay}`);
           idsToRemove.add(
             `auto-generated-row-assay/${row.assay}-ontology/${row.ontology}`
           );
@@ -48,7 +49,7 @@ export function TreeViewWrapper({ selectedIds, remove, sortedAssay }: TreeViewWr
     <Paper>
       <Box sx={{ width: "500px", height: "500px", overflow: "auto" }}>
         <Typography>
-          <Box sx={{ fontWeight: "bold", padding: 2 }}>Active Tracks</Box>
+          <Box sx={{ fontWeight: "bold", padding: 2 }}>{selectedIds.size} Active Tracks</Box>
         </Typography>
         <RichTreeView
           items={treeItems}

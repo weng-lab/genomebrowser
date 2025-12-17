@@ -4,7 +4,7 @@ import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
 import { searchTracks, flattenIntoRow } from "./DataGrid/dataGridHelpers";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import { SelectionAction, SelectionState, SearchTracksProps } from "./types";
-import { rows } from "./consts"
+import { rows } from "./consts";
 import { useState } from "react";
 
 const useSelectionStore = create<SelectionState & SelectionAction>((set) => ({
@@ -36,28 +36,30 @@ export default function TrackSelect() {
   const handleToggle = () => {
     setSortedAssay(!sortedAssay);
   };
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value === "") {
       setFilteredRows(rows);
       return;
-  }
-  const props: SearchTracksProps = {
-    jsonStructure: "tracks",
-    query: e.target.value,
-    keyWeightMap: [
-      "displayname",
-      "ontology",
-      "lifeStage",
-      "sampleType",
-      "type",
-      "experimentAccession",
-      "fileAccession",
-    ],
-    limit: 50,
+    }
+    const props: SearchTracksProps = {
+      jsonStructure: "tracks",
+      query: e.target.value,
+      keyWeightMap: [
+        "displayname",
+        "ontology",
+        "lifeStage",
+        "sampleType",
+        "type",
+        "experimentAccession",
+        "fileAccession",
+      ],
+      limit: 50,
+    };
+    const res = searchTracks(props);
+    setFilteredRows(res.map(flattenIntoRow));
   };
-  const res = searchTracks(props);
-  setFilteredRows(res.map(flattenIntoRow));
-};
+
   return (
     <Box width="fit-content">
       <Box display="flex" justifyContent="space-between" sx={{ mb: 3 }}>
@@ -77,7 +79,7 @@ export default function TrackSelect() {
         />
       </Box>
       <Stack direction="row" spacing={2}>
-        <DataGridWrapper selectedIds={selectedIds} setSelected={setSelected} sortedAssay={sortedAssay}/>
+        <DataGridWrapper filteredRows={filteredRows} selectedIds={selectedIds} setSelected={setSelected} sortedAssay={sortedAssay}/>
         <TreeViewWrapper selectedIds={selectedIds} remove={remove} sortedAssay={sortedAssay}/>
       </Stack>
       <Box sx={{ justifyContent: "flex-end" }}>
@@ -92,36 +94,4 @@ export default function TrackSelect() {
       </Box>
     </Box>
   );
-}
-
-{
-  /* <Box display="flex" justifyContent="space-between" sx={{ mb: 3 }}>
-  <TextField
-    id="outlined-suffix-shrink"
-    label="Search"
-    variant="outlined"
-    onChange={handleSearch}
-    sx={{ width: "250px" }}
-  />
-  <FormControlLabel
-    sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}
-    value="Sort by assay"
-    control={<Switch color="primary" onChange={handleToggle} />}
-    label="Sort by assay"
-    labelPlacement="end"
-  />
-</Box> */
-}
-
-{
-  /* <Box sx={{ justifyContent: "flex-end" }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => clear()}
-            sx={{ mt: 2, justifyContent: "flex-end" }}
-          >
-            Clear Selection
-          </Button>
-      </Box> */
 }

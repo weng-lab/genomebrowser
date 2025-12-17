@@ -1,6 +1,6 @@
 import Folder from "@mui/icons-material/Folder";
 import IndeterminateCheckBoxRoundedIcon from "@mui/icons-material/IndeterminateCheckBoxRounded";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Stack } from "@mui/material";
 import Collapse from "@mui/material/Collapse";
 import { alpha, styled } from "@mui/material/styles";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
@@ -21,21 +21,6 @@ import {
   RowInfo,
 } from "../types";
 
-// export function buildGenericTreeView(
-//   selectedRows: RowInfo[],
-//   root: TreeViewBaseItem<ExtendedTreeItemProps>,
-// ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
-//   const topLevelMap = new Map<
-//     string,
-//     TreeViewBaseItem<ExtendedTreeItemProps>
-//   >();
-//   const secondLevelMap = new Map<
-//     string,
-//     TreeViewBaseItem<ExtendedTreeItemProps>
-//   >();
-
-// }
-
 export function buildSortedAssayTreeView(
   selectedIds: string[],
   rowById: Map<string, RowInfo>,
@@ -51,6 +36,7 @@ export function buildSortedAssayTreeView(
   >();
   const root: TreeViewBaseItem<ExtendedTreeItemProps> = {
     id: "1",
+    isAssayItem: false,
     label: "Biosamples",
     icon: "folder",
     children: [],
@@ -68,6 +54,7 @@ export function buildSortedAssayTreeView(
     if (!assayNode) {
       assayNode = {
         id: row.assay,
+        isAssayItem: true,
         label: row.assay,
         icon: "removeable",
         children: [],
@@ -81,6 +68,7 @@ export function buildSortedAssayTreeView(
     if (!ontologyNode) {
       ontologyNode = {
         id: row.ontology + "_" + idx++,
+        isAssayItem: false,
         label: row.ontology,
         icon: "removeable",
         children: [],
@@ -92,6 +80,7 @@ export function buildSortedAssayTreeView(
 
     const displayNameNode: TreeViewBaseItem<ExtendedTreeItemProps> = {
       id: row.displayname + "_" + idx++,
+      isAssayItem: false,
       label: row.displayname,
       icon: "removeable",
       children: [],
@@ -103,6 +92,7 @@ export function buildSortedAssayTreeView(
     if (!expNode) {
       expNode = {
         id: row.experimentAccession,
+        isAssayItem: false,
         label: row.experimentAccession,
         icon: row.assay,
         children: [],
@@ -119,7 +109,7 @@ export function buildSortedAssayTreeView(
 
 /**
  * Create the file directory RichTreeView structure from the selected rows.
- * @param selectedRows selected rows from the DataGrid
+ * @param selectedIds selected ids from the DataGrid
  * @param root first TreeItem node
  * @param sortedAssay boolean indicating whether to sort by assay or ontology first
  * @returns a list of TreeViewBaseItem for RichTreeView
@@ -200,7 +190,7 @@ export function buildTreeView(
   return [root];
 }
 
-function AccessionIcon(type: string) {
+export function AssayIcon(type: string) {
   const colorMap: { [key: string]: string } = {
     DNase: "#06da93",
     ATAC: "#02c7b9",
@@ -236,10 +226,11 @@ const TreeItemRoot = styled("li")(({ theme }) => ({
 const TreeItemLabelText = styled(Typography)({
   color: "black",
   fontFamily: "inherit",
-  fontWeight: 500,
 });
 
 function CustomLabel({ icon: Icon, children, ...other }: CustomLabelProps) {
+  const variant = other.isAssayItem ? "subtitle2" : "body2";
+  const fontWeight = other.isAssayItem ? "bold" : 500;
   return (
     <TreeItemLabel
       {...other}
@@ -260,7 +251,10 @@ function CustomLabel({ icon: Icon, children, ...other }: CustomLabelProps) {
           sx={{ mr: 1, fontSize: "1.2rem" }}
         />
       )}
-      <TreeItemLabelText variant="body2">{children}</TreeItemLabelText>
+      <Stack direction="row" spacing={2} alignItems="center">
+        { other.isAssayItem && AssayIcon(other.id) }
+        <TreeItemLabelText fontWeight={fontWeight} variant={variant}>{children}</TreeItemLabelText>
+      </Stack>
     </TreeItemLabel>
   );
 }
@@ -305,7 +299,7 @@ const getIconFromTreeItemType = (itemType: string) => {
     case "removeable":
       return IndeterminateCheckBoxRoundedIcon;
     default:
-      return AccessionIcon(itemType);
+      return AssayIcon(itemType);
   }
 };
 
@@ -333,7 +327,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
     e.stopPropagation(); // prevent item expand/select
     onRemove?.(item);
   };
-
+  
   return (
     <TreeItemProvider {...getContextProviderProps()}>
       <TreeItemRoot {...getRootProps(other)}>
@@ -368,6 +362,8 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
                   icon
                 ),
               expandable: status.expandable && status.expanded,
+              isAssayItem: item.isAssayItem,
+              id: item.id
             })}
           />
         </TreeItemContent>

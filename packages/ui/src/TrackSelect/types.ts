@@ -40,6 +40,7 @@ export type ExtendedTreeItemProps = {
   id: string;
   label: string;
   icon: string;
+  isAssayItem?: boolean;
   /**
    * list of all the experimentAccession values in the children/grandchildren of the item, or the accession of the item itself
    * this is used in updating the rowSelectionModel when removing items from the Tree View panel
@@ -48,10 +49,15 @@ export type ExtendedTreeItemProps = {
 };
 
 export type DataGridWrapperProps = {
+  filteredRows: RowInfo[];
   selectedIds: Set<string>;
   setSelected: (ids: Set<string>) => void;
   sortedAssay: boolean;
 };
+
+export type DataGridProps = {
+  assay: string;
+}
 
 export type TreeViewWrapperProps = {
   selectedIds: Set<string>;
@@ -60,7 +66,9 @@ export type TreeViewWrapperProps = {
 };
 
 export interface CustomLabelProps {
+  id: string;
   children: React.ReactNode;
+  isAssayItem?: boolean
   icon: React.ElementType | React.ReactElement;
 }
 
