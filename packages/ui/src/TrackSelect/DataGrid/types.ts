@@ -23,6 +23,7 @@ type DataGridWrapperProps = {
   rows: RowInfo[];
   selectedIds: Set<string>;
   setSelected: (ids: Set<string>) => void;
+  setActive: () => void;
   sortedAssay: boolean;
 };
 

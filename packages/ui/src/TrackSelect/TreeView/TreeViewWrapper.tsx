@@ -4,7 +4,7 @@ import { rowById } from "../consts";
 import { CustomTreeItemProps, ExtendedTreeItemProps, TreeViewWrapperProps } from "../types";
 import { CustomTreeItem } from "./treeViewHelpers";
 
-export function TreeViewWrapper({ items, selectedIds, remove }: TreeViewWrapperProps) {
+export function TreeViewWrapper({ items, activeTracks, remove }: TreeViewWrapperProps) {
   const handleRemoveTreeItem = (
     item: TreeViewBaseItem<ExtendedTreeItemProps>,
   ) => {
@@ -35,7 +35,7 @@ export function TreeViewWrapper({ items, selectedIds, remove }: TreeViewWrapperP
     <Paper sx={{ width: "100%" }}>
       <Box sx={{ width: "100%", height: "500px", overflow: "auto" }}>
         <Typography>
-          <Box sx={{ fontWeight: "bold", padding: 2 }}>{selectedIds.size} Active Tracks</Box>
+          <Box sx={{ fontWeight: "bold", padding: 2 }}>{activeTracks.size} Active Tracks</Box>
         </Typography>
         <RichTreeView
           items={items}

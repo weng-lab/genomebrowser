@@ -11,7 +11,7 @@ import {
 } from "@mui/x-data-grid-premium";
 import { RowInfo } from "../types";
 import { DataGridProps } from "./types";
-import { CustomToolbar } from "./CustomToolBar";
+import { CustomToolbar } from "./CustomToolbar";
 import { useEffect, useMemo } from "react";
 import { AssayIcon } from "../TreeView/treeViewHelpers";
 
@@ -97,6 +97,7 @@ export function DataGridWrapper(props: DataGridProps) {
     toolbarIconColor,
     sortedAssay,
     setSelected,
+    setActive,
     rows,
     selectedIds
   } = props;
@@ -115,7 +116,9 @@ export function DataGridWrapper(props: DataGridProps) {
 
   const apiRef = useGridApiRef();
   const groupingModel = sortedAssay ? ["assay", "ontology"] : ["ontology", "assay"];
+  const columnModel = sortedAssay ? sortedByAssayColumns : columns;
 
+  // functions to customize the column and filter panel in the toolbar 
   const filterColumns = ({ columns }: FilterColumnsArgs) => {
     return columns.filter((column) => column.type !== 'custom').map((column) => column.field);
   };
@@ -139,6 +142,7 @@ export function DataGridWrapper(props: DataGridProps) {
   const handleSelection = (newSelection: GridRowSelectionModel) => {
     const idsSet = (newSelection && (newSelection as any).ids) ?? new Set<string>();
     setSelected(idsSet);
+    setActive();
   };
 
   return (
@@ -151,7 +155,7 @@ export function DataGridWrapper(props: DataGridProps) {
         <DataGridPremium
           apiRef={apiRef}
           rows={rows}
-          columns={columns}
+          columns={columnModel}
           getRowId={(row) => row.experimentAccession}
           autosizeOptions={autosizeOptions}
           rowGroupingModel={groupingModel}

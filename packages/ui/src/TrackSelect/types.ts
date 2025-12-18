@@ -58,13 +58,10 @@ export type DataGridWrapperProps = {
   sortedAssay: boolean;
 };
 
-export type DataGridProps = {
-  assay: string;
-}
-
 export type TreeViewWrapperProps = {
   items: TreeViewBaseItem<ExtendedTreeItemProps>[];
   selectedIds: Set<string>;
+  activeTracks: Set<string>;
   remove: (removedIds: Set<string>) => void;
 };
 
@@ -83,10 +80,12 @@ export interface CustomTreeItemProps
 
 export type SelectionState = {
   selectedIds: Set<string>;
+  activeTracks: Set<string>;
 };
 
 export type SelectionAction = {
   setSelected: (ids: Set<string>) => void;
+  setActive: () => void;
   remove: (removedIds: Set<string>) => void;
   clear: () => void;
 };

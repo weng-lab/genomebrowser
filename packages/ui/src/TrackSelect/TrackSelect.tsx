@@ -16,10 +16,12 @@ import { TreeViewBaseItem } from "@mui/x-tree-view";
 
 const useSelectionStore = create<SelectionState & SelectionAction>((set) => ({
   selectedIds: new Set<string>(),
+  activeTracks: new Set<string>(),
   setSelected: (ids: Set<string>) =>
     set(() => ({
       selectedIds: new Set(ids),
     })),
+  setActive: () => set((state) => ({ activeTracks: new Set(Array.from(state.selectedIds).filter(i => i[0] === "E"))})),
   remove: (removedIds: Set<string>) =>
     set((state) => {
       const next = new Set(state.selectedIds);
@@ -35,7 +37,9 @@ export default function TrackSelect() {
   const [sortedAssay, setSortedAssay] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const selectedIds = useSelectionStore((s) => s.selectedIds);
+  const activeTracks = useSelectionStore((s) => s.activeTracks);
   const setSelected = useSelectionStore((s) => s.setSelected);
+  const setActive = useSelectionStore((s) => s.setActive);
   const remove = useSelectionStore((s) => s.remove);
   const clear = useSelectionStore((s) => s.clear);
 
@@ -141,6 +145,8 @@ export default function TrackSelect() {
     setFilteredTreeItems(newTreeItems);
   };
 
+  console.log(selectedIds);
+
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" sx={{ mb: 3 }}>
@@ -149,7 +155,7 @@ export default function TrackSelect() {
           label="Search"
           variant="outlined"
           onChange={handleSearch}
-          sx={{ width: "250px" }}
+          sx={{ width: "400px" }}
         />
         <FormControlLabel
           sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}
@@ -163,14 +169,15 @@ export default function TrackSelect() {
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <DataGridWrapper 
             rows={filteredRows}
-            label={`${selectedIds.size} Available Tracks`}
+            label={`${rows.length} Available Tracks`}
             selectedIds={selectedIds}
             setSelected={setSelected}
+            setActive={setActive}
             sortedAssay={sortedAssay}
           />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <TreeViewWrapper items={filteredTreeItems} selectedIds={selectedIds} remove={remove}/>
+          <TreeViewWrapper items={filteredTreeItems} selectedIds={selectedIds} activeTracks={activeTracks} remove={remove}/>
         </Box>
       </Stack>
       <Box sx={{ justifyContent: "flex-end" }}>
