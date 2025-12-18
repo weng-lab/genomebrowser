@@ -3,9 +3,11 @@ import { create } from "zustand";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
 import { searchTracks, flattenIntoRow } from "./DataGrid/dataGridHelpers";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
-import { SelectionAction, SelectionState, SearchTracksProps } from "./types";
-import { rows } from "./consts";
-import { useState } from "react";
+import { buildSortedAssayTreeView, buildTreeView, searchTreeItems } from "./TreeView/treeViewHelpers";
+import { SelectionAction, SelectionState, SearchTracksProps, ExtendedTreeItemProps } from "./types";
+import { rows, rowById } from "./consts";
+import React, { useState, useMemo, useEffect } from "react";
+import { TreeViewBaseItem } from "@mui/x-tree-view";
 
 const useSelectionStore = create<SelectionState & SelectionAction>((set) => ({
   selectedIds: new Set<string>(),
@@ -26,22 +28,57 @@ const useSelectionStore = create<SelectionState & SelectionAction>((set) => ({
 
 export default function TrackSelect() {
   const [sortedAssay, setSortedAssay] = useState(false);
-  const [filteredRows, setFilteredRows] = useState(rows);
+  const [searchQuery, setSearchQuery] = useState("");
   const selectedIds = useSelectionStore((s) => s.selectedIds);
   const setSelected = useSelectionStore((s) => s.setSelected);
   const remove = useSelectionStore((s) => s.remove);
   const clear = useSelectionStore((s) => s.clear);
-  console.log("s", selectedIds);
+
+  const treeItems = useMemo(() => {
+      return sortedAssay ? buildSortedAssayTreeView(Array.from(selectedIds), 
+      {
+        id: "1",
+        isAssayItem: false,
+        label: "Biosamples",
+        icon: "folder",
+        children: [],
+        allRowInfo: []
+      }, rowById) : 
+      buildTreeView(Array.from(selectedIds), {
+        id: "1",
+        isAssayItem: false,
+        label: "Biosamples",
+        icon: "folder",
+        children: [],
+        allRowInfo: []
+      }, rowById); // TODO: refactor these to put into one function
+  }, [selectedIds, sortedAssay]);
+
+  const [filteredRows, setFilteredRows] = useState(rows);
+  const [filteredTreeItems, setFilteredTreeItems] = useState([{
+        id: "1",
+        isAssayItem: false,
+        label: "Biosamples",
+        icon: "folder",
+        children: [],
+        allRowInfo: []
+      }] as TreeViewBaseItem<ExtendedTreeItemProps>[]);
+
+  useEffect(() => {
+    if (searchQuery === "") {
+      setFilteredTreeItems(treeItems);
+      setFilteredRows(rows);
+    }
+  }, [treeItems, searchQuery]);
 
   const handleToggle = () => {
     setSortedAssay(!sortedAssay);
   };
+  console.log(treeItems);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value === "") {
-      setFilteredRows(rows);
-      return;
-    }
+    setSearchQuery(e.target.value);
+
     const props: SearchTracksProps = {
       jsonStructure: "tracks",
       query: e.target.value,
@@ -56,8 +93,49 @@ export default function TrackSelect() {
       ],
       limit: 50,
     };
-    const res = searchTracks(props);
-    setFilteredRows(res.map(flattenIntoRow));
+
+    const treeSearchProps: SearchTracksProps = {
+      treeItems: treeItems,
+      query: e.target.value,
+      keyWeightMap: [
+        "displayname",
+        "ontology",
+        "lifeStage",
+        "sampleType",
+        "type",
+        "experimentAccession",
+        "fileAccession",
+      ],
+      limit: 50,
+    }
+    const newDataGridRows = searchTracks(props)
+      .map(t => t.item)
+      .map(flattenIntoRow);
+
+    // we only want the intersection of filtered tracks displayed on the DataGrid and user-selected tracks to be displayed on the tree
+    const newDataGridIds = newDataGridRows.map(r => r.experimentAccession);
+    const retIds = searchTreeItems(treeSearchProps)
+      .map(r => r.item.experimentAccession);
+    const newTreeIds = retIds.filter(i => newDataGridIds.includes(i));
+
+    const newTreeItems = sortedAssay ? buildSortedAssayTreeView(newTreeIds, {
+        id: "1",
+        isAssayItem: false,
+        label: "Biosamples",
+        icon: "folder",
+        children: [],
+        allRowInfo: []
+      }, rowById) : buildTreeView(newTreeIds, {
+        id: "1",
+        isAssayItem: false,
+        label: "Biosamples",
+        icon: "folder",
+        children: [],
+        allRowInfo: []
+      }, rowById);
+
+    setFilteredRows(newDataGridRows);
+    setFilteredTreeItems(newTreeItems);
   };
 
   return (
@@ -79,8 +157,14 @@ export default function TrackSelect() {
         />
       </Box>
       <Stack direction="row" spacing={2}>
-        <DataGridWrapper filteredRows={filteredRows} selectedIds={selectedIds} setSelected={setSelected} sortedAssay={sortedAssay}/>
-        <TreeViewWrapper selectedIds={selectedIds} remove={remove} sortedAssay={sortedAssay}/>
+        <DataGridWrapper 
+          rows={filteredRows}
+          label={`${selectedIds.size} Available Tracks`}
+          selectedIds={selectedIds}
+          setSelected={setSelected}
+          sortedAssay={sortedAssay}
+        />
+        <TreeViewWrapper items={filteredTreeItems} selectedIds={selectedIds} remove={remove}/>
       </Stack>
       <Box sx={{ justifyContent: "flex-end" }}>
           <Button

@@ -1,20 +1,14 @@
 import { Box, Paper, Typography } from "@mui/material";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
-import { useMemo } from "react";
-import { rows } from "../consts";
+import { rowById } from "../consts";
 import {
   CustomTreeItemProps,
   ExtendedTreeItemProps,
-  RowInfo,
   TreeViewWrapperProps,
 } from "../types";
-import { buildSortedAssayTreeView, buildTreeView, CustomTreeItem } from "./treeViewHelpers";
+import { CustomTreeItem } from "./treeViewHelpers";
 
-export function TreeViewWrapper({ selectedIds, remove, sortedAssay }: TreeViewWrapperProps) {
-  const rowById = new Map<string, RowInfo>(
-    rows.map((r) => [r.experimentAccession, r]),
-  );
-
+export function TreeViewWrapper({ items, selectedIds, remove }: TreeViewWrapperProps) {
   const handleRemoveTreeItem = (
     item: TreeViewBaseItem<ExtendedTreeItemProps>,
   ) => {
@@ -41,10 +35,6 @@ export function TreeViewWrapper({ selectedIds, remove, sortedAssay }: TreeViewWr
     }
   };
 
-  const treeItems = useMemo(() => {
-    return sortedAssay ? buildSortedAssayTreeView(Array.from(selectedIds), rowById) : buildTreeView(Array.from(selectedIds), rowById); // TODO: refactor these to put into one function
-  }, [selectedIds, sortedAssay]);
-
   return (
     <Paper>
       <Box sx={{ width: "500px", height: "500px", overflow: "auto" }}>
@@ -52,7 +42,7 @@ export function TreeViewWrapper({ selectedIds, remove, sortedAssay }: TreeViewWr
           <Box sx={{ fontWeight: "bold", padding: 2 }}>{selectedIds.size} Active Tracks</Box>
         </Typography>
         <RichTreeView
-          items={treeItems}
+          items={items}
           defaultExpandedItems={["1"]}
           slots={{ item: CustomTreeItem }}
           slotProps={{

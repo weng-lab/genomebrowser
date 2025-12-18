@@ -3,9 +3,10 @@ import { UseTreeItemParameters } from "@mui/x-tree-view/useTreeItem";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 
 export interface SearchTracksProps {
-  jsonStructure: string;
   query: string;
   keyWeightMap: FuseOptionKey<any>[];
+  jsonStructure?: string;
+  treeItems?: TreeViewBaseItem<ExtendedTreeItemProps>[];
   threshold?: number;
   limit?: number;
 }
@@ -46,6 +47,8 @@ export type ExtendedTreeItemProps = {
    * this is used in updating the rowSelectionModel when removing items from the Tree View panel
    */
   allExpAccessions?: string[];
+  // list to allow search functionality in the treeview
+  allRowInfo?: RowInfo[];
 };
 
 export type DataGridWrapperProps = {
@@ -60,9 +63,9 @@ export type DataGridProps = {
 }
 
 export type TreeViewWrapperProps = {
+  items: TreeViewBaseItem<ExtendedTreeItemProps>[];
   selectedIds: Set<string>;
   remove: (removedIds: Set<string>) => void;
-  sortedAssay: boolean;
 };
 
 export interface CustomLabelProps {

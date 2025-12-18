@@ -20,9 +20,12 @@ import {
   ExtendedTreeItemProps,
   RowInfo,
 } from "../types";
+import Fuse, { FuseResult } from "fuse.js";
+import { SearchTracksProps } from "../types";
 
 export function buildSortedAssayTreeView(
   selectedIds: string[],
+  root: TreeViewBaseItem<ExtendedTreeItemProps>,
   rowById: Map<string, RowInfo>,
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
   const assayMap = new Map<string, TreeViewBaseItem<ExtendedTreeItemProps>>(); // keep track of top level nodes
@@ -34,13 +37,6 @@ export function buildSortedAssayTreeView(
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
   >();
-  const root: TreeViewBaseItem<ExtendedTreeItemProps> = {
-    id: "1",
-    isAssayItem: false,
-    label: "Biosamples",
-    icon: "folder",
-    children: [],
-  };
   let idx = 1;
 
   const selectedRows = selectedIds.reduce<RowInfo[]>((acc, id) => {
@@ -103,6 +99,7 @@ export function buildSortedAssayTreeView(
     assayNode.allExpAccessions!.push(row.experimentAccession);
     ontologyNode.allExpAccessions!.push(row.experimentAccession);
     displayNameNode.allExpAccessions!.push(row.experimentAccession);
+    root.allRowInfo!.push(row);
   });
   return [root];
 }
@@ -116,6 +113,7 @@ export function buildSortedAssayTreeView(
  */
 export function buildTreeView(
   selectedIds: string[],
+  root: TreeViewBaseItem<ExtendedTreeItemProps>,
   rowById: Map<string, RowInfo>,
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
   const ontologyMap = new Map<
@@ -130,12 +128,6 @@ export function buildTreeView(
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
   >();
-  const root: TreeViewBaseItem<ExtendedTreeItemProps> = {
-    id: "1",
-    label: "Biosamples",
-    icon: "folder",
-    children: [],
-  };
 
   const selectedRows = selectedIds.reduce<RowInfo[]>((acc, id) => {
     const row = rowById.get(id);
@@ -186,6 +178,7 @@ export function buildTreeView(
     }
     ontologyNode.allExpAccessions!.push(row.experimentAccession);
     displayNameNode.allExpAccessions!.push(row.experimentAccession);
+    root.allRowInfo!.push(row);
   });
   return [root];
 }
@@ -327,7 +320,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
     e.stopPropagation(); // prevent item expand/select
     onRemove?.(item);
   };
-  
+
   return (
     <TreeItemProvider {...getContextProviderProps()}>
       <TreeItemRoot {...getRootProps(other)}>
@@ -372,3 +365,20 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
     </TreeItemProvider>
   );
 });
+
+export function searchTreeItems({
+  treeItems,
+  query,
+  keyWeightMap,
+  threshold,
+  limit = 10
+}: SearchTracksProps): FuseResult<RowInfo>[] {
+  const data = treeItems![0].allRowInfo ?? [];
+  const fuse = new Fuse(data, {
+    includeScore: true,
+    shouldSort: true,
+    threshold: threshold,
+    keys: keyWeightMap,
+  });
+  return fuse.search(query, { limit: limit });
+}

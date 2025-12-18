@@ -54,11 +54,9 @@ export function getTracksByAssayAndOntology(
  * @param track TrackInfo object or FuseResult containing information from JSON file
  * @returns Flattened RowInfo object
  */
-export function flattenIntoRow(track: TrackInfo | FuseResult<any>): RowInfo {
-  const { ontology, lifeStage, sampleType, displayname } =
-    "item" in track ? track.item : track;
-  const { assay, experimentAccession, fileAccession } =
-    "item" in track ? track.item.assays[0] : track.assays[0];
+export function flattenIntoRow(track: TrackInfo): RowInfo {
+  const { ontology, lifeStage, sampleType, displayname } = track;
+  const { assay, experimentAccession, fileAccession } = track.assays[0];
 
   return {
     ontology: capitalize(ontology),
@@ -98,8 +96,8 @@ export function searchTracks({
   keyWeightMap,
   threshold = 0.5,
   limit = 10,
-}: SearchTracksProps): FuseResult<any>[] {
-  const data = getNestedValue(tracksData, jsonStructure);
+}: SearchTracksProps): FuseResult<TrackInfo>[] {
+  const data = getNestedValue(tracksData, jsonStructure ?? "");
 
   const fuse = new Fuse(data, {
     includeScore: true,

@@ -1,14 +1,17 @@
-import { Box, Paper, Typography, Stack } from "@mui/material";
+import { Box, Paper, Stack } from "@mui/material";
 import {
   DataGridPremium,
+  GridToolbarProps,
+  ToolbarPropsOverrides,
   GridRowSelectionModel,
   GridAutosizeOptions,
   useGridApiRef,
   GridColDef
 } from "@mui/x-data-grid-premium";
-import { rows } from "../consts";
-import { DataGridWrapperProps, RowInfo } from "../types";
-import { useEffect } from "react";
+import { RowInfo } from "../types";
+import { DataGridProps } from "./types";
+import { CustomToolbar } from "./CustomToolBar";
+import { useEffect, useMemo } from "react";
 import { AssayIcon } from "../TreeView/treeViewHelpers";
 
 const autosizeOptions: GridAutosizeOptions = {
@@ -54,7 +57,6 @@ const columns: GridColDef<RowInfo>[] = [
           return null;
         }
         const val = params.value;
-        console.log(val)
         return (
           <div><b>{val}</b></div>
         )
@@ -84,12 +86,32 @@ const columns: GridColDef<RowInfo>[] = [
   { field: "fileAccession", headerName: "File Accession" },
 ];
 
-export function DataGridWrapper({
-  filteredRows,
-  selectedIds,
-  setSelected,
-  sortedAssay
-}: DataGridWrapperProps) {
+export function DataGridWrapper(props: DataGridProps) {
+  const {
+    label,
+    labelTooltip,
+    downloadFileName,
+    toolbarSlot,
+    toolbarStyle,
+    toolbarIconColor,
+    sortedAssay,
+    setSelected,
+    rows,
+    selectedIds
+  } = props;
+
+  const CustomToolbarWrapper = useMemo(() => {
+    const customToolbarProps = {
+      label,
+      downloadFileName,
+      labelTooltip,
+      toolbarSlot,
+      toolbarStyle,
+      toolbarIconColor,
+    };
+    return (props: GridToolbarProps & ToolbarPropsOverrides) => <CustomToolbar {...props} {...customToolbarProps} />;
+  }, [label, labelTooltip, toolbarSlot]);
+
   const groupingModel = sortedAssay ? ["assay", "ontology"] : ["ontology", "assay"];
 
   const apiRef = useGridApiRef();
@@ -114,14 +136,9 @@ export function DataGridWrapper({
   return (
     <Paper>
       <Box sx={{ height: "500px", width: "1000px", overflow: "auto" }}>
-        <Typography>
-          <Box sx={{ fontWeight: "bold", padding: 2 }}>
-            {rows.length} available tracks
-          </Box>
-        </Typography>
         <DataGridPremium
-          rows={filteredRows}
-          columns={sortedAssay ? sortedByAssayColumns : columns}
+          rows={rows}
+          columns={columns}
           getRowId={(row) => row.experimentAccession}
           autosizeOptions={autosizeOptions}
           rowGroupingModel={groupingModel}
@@ -129,7 +146,11 @@ export function DataGridWrapper({
           columnVisibilityModel={{ displayname: false }} // so you don't see a second name column
           onRowSelectionModelChange={handleSelection}
           rowSelectionModel={{ type: "include", ids: new Set(selectedIds) }}
+          slots={{
+            toolbar: CustomToolbarWrapper,
+          }}
           sx={{ ml: 2, display: "flex" }}
+          keepNonExistentRowsSelected
           showToolbar
           disableAggregation
           disablePivoting
