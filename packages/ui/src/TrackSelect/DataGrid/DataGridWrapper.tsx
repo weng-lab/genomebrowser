@@ -1,4 +1,4 @@
-import { Box, Paper, Stack } from "@mui/material";
+import { Box, Paper } from "@mui/material";
 import {
   DataGridPremium,
   GridToolbarProps,
@@ -9,11 +9,10 @@ import {
   GridColDef,
   FilterColumnsArgs
 } from "@mui/x-data-grid-premium";
-import { RowInfo } from "../types";
 import { DataGridProps } from "./types";
 import { CustomToolbar } from "./CustomToolbar";
 import { useEffect, useMemo } from "react";
-import { AssayIcon } from "../TreeView/treeViewHelpers";
+import { sortedByAssayColumns, defaultColumns } from "./columns";
 
 const autosizeOptions: GridAutosizeOptions = {
   expand: true,
@@ -22,71 +21,6 @@ const autosizeOptions: GridAutosizeOptions = {
 };
 
 // TODO figure out where mui stores the number of rows in a row grouping so that can be bolded too
-const sortedByAssayColumns: GridColDef<RowInfo>[] = [
-  { field: "displayname", headerName: "Name" },
-  { field: "ontology", headerName: "Ontology" },
-  { field: "lifeStage", headerName: "Life Stage" },
-  { field: "sampleType", headerName: "Sample Type" },
-  { field: "assay", 
-    headerName: "Assay", 
-    renderCell: (params) => {
-      if (params.rowNode.type === 'group') {
-        if (params.value === undefined) {
-          return null;
-        }
-        const val = params.value;
-        return (
-          <Stack direction="row" spacing={2} alignItems="center">
-            {AssayIcon(val)}
-            <div><b>{val}</b></div>
-          </Stack>
-        )
-      }
-    }
-  },
-  { field: "experimentAccession", headerName: "Experiment Accession" },
-  { field: "fileAccession", headerName: "File Accession" },
-];
-
-const columns: GridColDef<RowInfo>[] = [
-  { field: "displayname", headerName: "Name" },
-  { field: "ontology", 
-    headerName: "Ontology",
-    renderCell: (params) => {
-      if (params.rowNode.type === 'group') {
-        if (params.value === undefined) {
-          return null;
-        }
-        const val = params.value;
-        return (
-          <div><b>{val}</b></div>
-        )
-      }
-    }
-  },
-  { field: "lifeStage", headerName: "Life Stage" },
-  { field: "sampleType", headerName: "Sample Type" },
-  { field: "assay", 
-    headerName: "Assay",
-    renderCell: (params) => {
-      if (params.rowNode.type === 'group') {
-        if (params.value === undefined) {
-          return null;
-        }
-        const val = params.value;
-        return (
-          <Stack direction="row" spacing={2} alignItems="center">
-            {AssayIcon(val)}
-            <div>{val}</div>
-          </Stack>
-        )
-      }
-    }
-   },
-  { field: "experimentAccession", headerName: "Experiment Accession" },
-  { field: "fileAccession", headerName: "File Accession" },
-];
-
 export function DataGridWrapper(props: DataGridProps) {
   const {
     label,
@@ -116,7 +50,7 @@ export function DataGridWrapper(props: DataGridProps) {
 
   const apiRef = useGridApiRef();
   const groupingModel = sortedAssay ? ["assay", "ontology"] : ["ontology", "assay"];
-  const columnModel = sortedAssay ? sortedByAssayColumns : columns;
+  const columnModel = sortedAssay ? sortedByAssayColumns : defaultColumns;
 
   // functions to customize the column and filter panel in the toolbar 
   const filterColumns = ({ columns }: FilterColumnsArgs) => {
@@ -137,7 +71,7 @@ export function DataGridWrapper(props: DataGridProps) {
   // otherwise sometimes would snap back to default widths when rows/columns change
   useEffect(() => {
     handleResizeCols();
-  }, [rows, columns, sortedByAssayColumns, handleResizeCols]);
+  }, [rows, defaultColumns, sortedByAssayColumns, handleResizeCols]);
 
   const handleSelection = (newSelection: GridRowSelectionModel) => {
     const idsSet = (newSelection && (newSelection as any).ids) ?? new Set<string>();

@@ -12,6 +12,7 @@ export const assayTypes = [
   "CTCF",
   "ChromHMM",
 ];
+
 export const ontologyTypes = [
   "Adipose",
   "Adrenal gland",

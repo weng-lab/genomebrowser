@@ -99,8 +99,7 @@ export function searchTracks({
   jsonStructure,
   query,
   keyWeightMap,
-  threshold = 0.5,
-  limit = 10,
+  threshold = 0.75,
 }: SearchTracksProps): FuseResult<TrackInfo>[] {
   const data = getNestedValue(tracksData, jsonStructure ?? "");
 
@@ -110,5 +109,5 @@ export function searchTracks({
     threshold: threshold,
     keys: keyWeightMap,
   });
-  return fuse.search(query, { limit: limit });
+  return fuse.search(query);
 }

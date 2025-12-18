@@ -51,18 +51,12 @@ export type ExtendedTreeItemProps = {
   allRowInfo?: RowInfo[];
 };
 
-export type DataGridWrapperProps = {
-  filteredRows: RowInfo[];
-  selectedIds: Set<string>;
-  setSelected: (ids: Set<string>) => void;
-  sortedAssay: boolean;
-};
-
 export type TreeViewWrapperProps = {
   items: TreeViewBaseItem<ExtendedTreeItemProps>[];
   selectedIds: Set<string>;
   activeTracks: Set<string>;
   remove: (removedIds: Set<string>) => void;
+  isSearchResult: boolean;
 };
 
 export interface CustomLabelProps {

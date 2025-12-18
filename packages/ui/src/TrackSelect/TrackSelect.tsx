@@ -36,6 +36,7 @@ const useSelectionStore = create<SelectionState & SelectionAction>((set) => ({
 export default function TrackSelect() {
   const [sortedAssay, setSortedAssay] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchResult, setIsSearchResult] = useState(false);
   const selectedIds = useSelectionStore((s) => s.selectedIds);
   const activeTracks = useSelectionStore((s) => s.activeTracks);
   const setSelected = useSelectionStore((s) => s.setSelected);
@@ -77,13 +78,13 @@ export default function TrackSelect() {
     if (searchQuery === "") {
       setFilteredTreeItems(treeItems);
       setFilteredRows(rows);
+      setIsSearchResult(false);
     }
   }, [treeItems, searchQuery]);
 
   const handleToggle = () => {
     setSortedAssay(!sortedAssay);
   };
-  console.log(treeItems);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -100,7 +101,6 @@ export default function TrackSelect() {
         "experimentAccession",
         "fileAccession",
       ],
-      limit: 50,
     };
 
     const treeSearchProps: SearchTracksProps = {
@@ -115,7 +115,6 @@ export default function TrackSelect() {
         "experimentAccession",
         "fileAccession",
       ],
-      limit: 50,
     }
     const newDataGridRows = searchTracks(dataGridSearchProps)
       .map(t => t.item)
@@ -142,13 +141,14 @@ export default function TrackSelect() {
       }, rowById);
 
     setFilteredRows(newDataGridRows);
+    setIsSearchResult(true);
     setFilteredTreeItems(newTreeItems);
   };
 
   console.log(selectedIds);
 
   return (
-    <Box>
+    <Box sx={{ flex: 1 }}>
       <Box display="flex" justifyContent="space-between" sx={{ mb: 3 }}>
         <TextField
           id="outlined-suffix-shrink"
@@ -166,18 +166,24 @@ export default function TrackSelect() {
         />
       </Box>
       <Stack direction="row" spacing={2} sx={{ width: "100%"}}>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box sx={{ flex: 3, minWidth: 0 }}>
           <DataGridWrapper 
             rows={filteredRows}
-            label={`${rows.length} Available Tracks`}
+            label={isSearchResult ? `${filteredRows.length} Search Results` : `${rows.length} Available Tracks`}
             selectedIds={selectedIds}
             setSelected={setSelected}
             setActive={setActive}
             sortedAssay={sortedAssay}
           />
         </Box>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <TreeViewWrapper items={filteredTreeItems} selectedIds={selectedIds} activeTracks={activeTracks} remove={remove}/>
+        <Box sx={{ flex: 2, minWidth: 0 }}>
+          <TreeViewWrapper 
+            items={filteredTreeItems} 
+            selectedIds={selectedIds} 
+            activeTracks={activeTracks} 
+            remove={remove}
+            isSearchResult={isSearchResult}
+          />
         </Box>
       </Stack>
       <Box sx={{ justifyContent: "flex-end" }}>

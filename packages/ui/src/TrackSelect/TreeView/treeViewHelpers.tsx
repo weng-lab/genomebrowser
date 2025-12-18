@@ -22,6 +22,7 @@ import {
 } from "../types";
 import Fuse, { FuseResult } from "fuse.js";
 import { SearchTracksProps } from "../types";
+import { assayTypes, ontologyTypes } from "../consts";
 
 export function buildSortedAssayTreeView(
   selectedIds: string[],
@@ -101,6 +102,10 @@ export function buildSortedAssayTreeView(
     displayNameNode.allExpAccessions!.push(row.experimentAccession);
     root.allRowInfo!.push(row);
   });
+  // standardize the order of the assay folders everytime one is added
+  root.children!.sort((a, b): number => {
+    return assayTypes.indexOf(a.id) - assayTypes.indexOf(b.id);
+  });
   return [root];
 }
 
@@ -179,6 +184,10 @@ export function buildTreeView(
     ontologyNode.allExpAccessions!.push(row.experimentAccession);
     displayNameNode.allExpAccessions!.push(row.experimentAccession);
     root.allRowInfo!.push(row);
+  });
+  // standardize the order of the assay folders everytime one is added
+  root.children!.sort((a, b): number => {
+    return ontologyTypes.indexOf(a.id) - ontologyTypes.indexOf(b.id);
   });
   return [root];
 }
