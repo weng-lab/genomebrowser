@@ -1,11 +1,7 @@
 import { Box, Paper, Typography } from "@mui/material";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { rowById } from "../consts";
-import {
-  CustomTreeItemProps,
-  ExtendedTreeItemProps,
-  TreeViewWrapperProps,
-} from "../types";
+import { CustomTreeItemProps, ExtendedTreeItemProps, TreeViewWrapperProps } from "../types";
 import { CustomTreeItem } from "./treeViewHelpers";
 
 export function TreeViewWrapper({ items, selectedIds, remove }: TreeViewWrapperProps) {
@@ -36,8 +32,8 @@ export function TreeViewWrapper({ items, selectedIds, remove }: TreeViewWrapperP
   };
 
   return (
-    <Paper>
-      <Box sx={{ width: "500px", height: "500px", overflow: "auto" }}>
+    <Paper sx={{ width: "100%" }}>
+      <Box sx={{ width: "100%", height: "500px", overflow: "auto" }}>
         <Typography>
           <Box sx={{ fontWeight: "bold", padding: 2 }}>{selectedIds.size} Active Tracks</Box>
         </Typography>

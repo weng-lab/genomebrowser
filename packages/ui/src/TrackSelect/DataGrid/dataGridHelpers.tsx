@@ -1,7 +1,12 @@
 import { capitalize } from "@mui/material";
 import Fuse, { FuseResult } from "fuse.js";
 import tracksData from "../modifiedTracks.json";
-import { AssayInfo, RowInfo, SearchTracksProps, TrackInfo } from "../types";
+import { 
+  AssayInfo, 
+  RowInfo, 
+  SearchTracksProps, 
+  TrackInfo
+} from "../types";
 
 function formatAssayType(assay: string): string {
   switch (assay) {

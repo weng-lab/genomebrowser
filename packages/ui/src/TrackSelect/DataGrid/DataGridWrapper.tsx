@@ -6,7 +6,8 @@ import {
   GridRowSelectionModel,
   GridAutosizeOptions,
   useGridApiRef,
-  GridColDef
+  GridColDef,
+  FilterColumnsArgs
 } from "@mui/x-data-grid-premium";
 import { RowInfo } from "../types";
 import { DataGridProps } from "./types";
@@ -20,7 +21,7 @@ const autosizeOptions: GridAutosizeOptions = {
   outliersFactor: 1.5,
 };
 
-// TODO figure out where mui stores the number of rows in a row grouping so i can bold that too
+// TODO figure out where mui stores the number of rows in a row grouping so that can be bolded too
 const sortedByAssayColumns: GridColDef<RowInfo>[] = [
   { field: "displayname", headerName: "Name" },
   { field: "ontology", headerName: "Ontology" },
@@ -112,9 +113,16 @@ export function DataGridWrapper(props: DataGridProps) {
     return (props: GridToolbarProps & ToolbarPropsOverrides) => <CustomToolbar {...props} {...customToolbarProps} />;
   }, [label, labelTooltip, toolbarSlot]);
 
+  const apiRef = useGridApiRef();
   const groupingModel = sortedAssay ? ["assay", "ontology"] : ["ontology", "assay"];
 
-  const apiRef = useGridApiRef();
+  const filterColumns = ({ columns }: FilterColumnsArgs) => {
+    return columns.filter((column) => column.type !== 'custom').map((column) => column.field);
+  };
+
+  const getTogglableColumns = (columns: GridColDef[]) => {
+    return columns.filter((column) => column.type !== 'custom').map((column) => column.field);
+  };
 
   const handleResizeCols = () => {
     // need to check .autosizeColumns since the current was being set with an empty object
@@ -134,9 +142,14 @@ export function DataGridWrapper(props: DataGridProps) {
   };
 
   return (
-    <Paper>
-      <Box sx={{ height: "500px", width: "1000px", overflow: "auto" }}>
+    <Paper sx={{ width: "100%" }}>
+      <Box sx={{
+        height: 500,
+        width: "100%",
+        overflow: "auto",
+      }}>
         <DataGridPremium
+          apiRef={apiRef}
           rows={rows}
           columns={columns}
           getRowId={(row) => row.experimentAccession}
@@ -145,14 +158,26 @@ export function DataGridWrapper(props: DataGridProps) {
           groupingColDef={{ leafField: "displayname", display: "flex" }}
           columnVisibilityModel={{ displayname: false }} // so you don't see a second name column
           onRowSelectionModelChange={handleSelection}
+          rowSelectionPropagation={{ descendants: true }}
           rowSelectionModel={{ type: "include", ids: new Set(selectedIds) }}
           slots={{
             toolbar: CustomToolbarWrapper,
+          }}
+          slotProps={{
+            filterPanel: {
+              filterFormProps: {
+                filterColumns,
+              },
+            },
+            columnsManagement: {
+              getTogglableColumns,
+            },
           }}
           sx={{ ml: 2, display: "flex" }}
           keepNonExistentRowsSelected
           showToolbar
           disableAggregation
+          disableRowSelectionExcludeModel
           disablePivoting
           checkboxSelection
           autosizeOnMount
