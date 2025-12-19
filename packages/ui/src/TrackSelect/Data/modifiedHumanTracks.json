@@ -11,7 +11,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF206VZR/@@download/ENCFF206VZR.bigWig",
           "experimentAccession": "ENCSR391NPE",
-          "fileAccession": null
+          "fileAccession": "ENCFF206VZR"
         },
         {
           "assay": "ctcf",
@@ -32,7 +32,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF731WPS/@@download/ENCFF731WPS.bigWig",
           "experimentAccession": "ENCSR777CQW",
-          "fileAccession": null
+          "fileAccession": "ENCFF731WPS"
         },
         {
           "assay": "ctcf",
@@ -122,7 +122,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF367MFD/@@download/ENCFF367MFD.bigWig",
           "experimentAccession": "ENCSR000AUI",
-          "fileAccession": "ENCFF068LDW"
+          "fileAccession": "ENCFF367MFD"
         },
         {
           "assay": "ctcf",
@@ -149,7 +149,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF017BOZ/@@download/ENCFF017BOZ.bigWig",
           "experimentAccession": "ENCSR000AVF",
-          "fileAccession": "ENCFF187ZQM"
+          "fileAccession": "ENCFF017BOZ"
         },
         {
           "assay": "ctcf",
@@ -182,7 +182,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF213BSP/@@download/ENCFF213BSP.bigWig",
           "experimentAccession": "ENCSR714TJD",
-          "fileAccession": "ENCFF958CFK"
+          "fileAccession": "ENCFF213BSP"
         },
         {
           "assay": "ctcf",
@@ -214,7 +214,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF527UAI/@@download/ENCFF527UAI.bigWig",
           "experimentAccession": "ENCSR059MVB",
-          "fileAccession": "ENCFF102ULC"
+          "fileAccession": "ENCFF527UAI"
         }
       ]
     },
@@ -256,7 +256,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF632AAY/@@download/ENCFF632AAY.bigWig",
           "experimentAccession": "ENCSR685KZA",
-          "fileAccession": "ENCFF044RVB"
+          "fileAccession": "ENCFF632AAY"
         },
         {
           "assay": "atac",
@@ -289,7 +289,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF289NXD/@@download/ENCFF289NXD.bigWig",
           "experimentAccession": "ENCSR003SWN",
-          "fileAccession": "ENCFF916NRZ"
+          "fileAccession": "ENCFF289NXD"
         }
       ]
     },
@@ -451,7 +451,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF010SJK/@@download/ENCFF010SJK.bigWig",
           "experimentAccession": "ENCSR639PCO",
-          "fileAccession": "ENCFF721IBM"
+          "fileAccession": "ENCFF010SJK"
         },
         {
           "assay": "atac",
@@ -484,7 +484,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF151LJA/@@download/ENCFF151LJA.bigWig",
           "experimentAccession": "ENCSR360XNZ",
-          "fileAccession": "ENCFF546IYU"
+          "fileAccession": "ENCFF151LJA"
         }
       ]
     },
@@ -715,7 +715,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF888NJV/@@download/ENCFF888NJV.bigWig",
           "experimentAccession": "ENCSR472BJI",
-          "fileAccession": "ENCFF147IYE"
+          "fileAccession": "ENCFF888NJV"
         }
       ]
     },
@@ -772,7 +772,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF458MRS/@@download/ENCFF458MRS.bigWig",
           "experimentAccession": "ENCSR845GYI",
-          "fileAccession": "ENCFF447EBX"
+          "fileAccession": "ENCFF458MRS"
         }
       ]
     },
@@ -1009,7 +1009,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF135PTF/@@download/ENCFF135PTF.bigWig",
           "experimentAccession": "ENCSR174DBN",
-          "fileAccession": "ENCFF599ITG"
+          "fileAccession": "ENCFF135PTF"
         },
         {
           "assay": "atac",
@@ -1036,7 +1036,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF594SKK/@@download/ENCFF594SKK.bigWig",
           "experimentAccession": "ENCSR168WMQ",
-          "fileAccession": "ENCFF977OWA"
+          "fileAccession": "ENCFF594SKK"
         }
       ]
     },
@@ -1072,7 +1072,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF377XTR/@@download/ENCFF377XTR.bigWig",
           "experimentAccession": "ENCSR473VWE",
-          "fileAccession": "ENCFF746DNB"
+          "fileAccession": "ENCFF377XTR"
         }
       ]
     },
@@ -1192,7 +1192,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF819JGV/@@download/ENCFF819JGV.bigWig",
           "experimentAccession": "ENCSR795NQU",
-          "fileAccession": null
+          "fileAccession": "ENCFF819JGV"
         }
       ]
     },
@@ -1207,7 +1207,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF312YZU/@@download/ENCFF312YZU.bigWig",
           "experimentAccession": "ENCSR549RQM",
-          "fileAccession": null
+          "fileAccession": "ENCFF312YZU"
         }
       ]
     },
@@ -1243,7 +1243,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF766FGE/@@download/ENCFF766FGE.bigWig",
           "experimentAccession": "ENCSR855OKE",
-          "fileAccession": null
+          "fileAccession": "ENCFF766FGE"
         }
       ]
     },
@@ -1279,7 +1279,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF525DJA/@@download/ENCFF525DJA.bigWig",
           "experimentAccession": "ENCSR626ZPK",
-          "fileAccession": "ENCFF483GED"
+          "fileAccession": "ENCFF525DJA"
         }
       ]
     },
@@ -1351,7 +1351,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF486UEU/@@download/ENCFF486UEU.bigWig",
           "experimentAccession": "ENCSR882EIQ",
-          "fileAccession": "ENCFF597DCN"
+          "fileAccession": "ENCFF486UEU"
         }
       ]
     },
@@ -1462,7 +1462,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF356ZKI/@@download/ENCFF356ZKI.bigWig",
           "experimentAccession": "ENCSR407QDX",
-          "fileAccession": "ENCFF940OQY"
+          "fileAccession": "ENCFF356ZKI"
         }
       ]
     },
@@ -1594,7 +1594,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF233LPC/@@download/ENCFF233LPC.bigWig",
           "experimentAccession": "ENCSR006QLV",
-          "fileAccession": "ENCFF060VND"
+          "fileAccession": "ENCFF233LPC"
         }
       ]
     },
@@ -1630,7 +1630,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF200AOX/@@download/ENCFF200AOX.bigWig",
           "experimentAccession": "ENCSR488FJP",
-          "fileAccession": "ENCFF060YXX"
+          "fileAccession": "ENCFF200AOX"
         }
       ]
     },
@@ -1702,7 +1702,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF288VHI/@@download/ENCFF288VHI.bigWig",
           "experimentAccession": "ENCSR575TRE",
-          "fileAccession": "ENCFF621UOH"
+          "fileAccession": "ENCFF288VHI"
         }
       ]
     },
@@ -1744,7 +1744,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF496HBZ/@@download/ENCFF496HBZ.bigWig",
           "experimentAccession": "ENCSR002RFV",
-          "fileAccession": "ENCFF293SFN"
+          "fileAccession": "ENCFF496HBZ"
         }
       ]
     },
@@ -1804,7 +1804,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF922YMQ/@@download/ENCFF922YMQ.bigWig",
           "experimentAccession": "ENCSR082SHT",
-          "fileAccession": null
+          "fileAccession": "ENCFF922YMQ"
         }
       ]
     },
@@ -1840,7 +1840,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF244XNP/@@download/ENCFF244XNP.bigWig",
           "experimentAccession": "ENCSR642HHF",
-          "fileAccession": "ENCFF623WKE"
+          "fileAccession": "ENCFF244XNP"
         }
       ]
     },
@@ -1867,7 +1867,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF988QAR/@@download/ENCFF988QAR.bigWig",
           "experimentAccession": "ENCSR837CSL",
-          "fileAccession": "ENCFF700TZZ"
+          "fileAccession": "ENCFF988QAR"
         },
         {
           "assay": "ctcf",
@@ -1932,7 +1932,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF355RRY/@@download/ENCFF355RRY.bigWig",
           "experimentAccession": "ENCSR086QZY",
-          "fileAccession": "ENCFF672KET"
+          "fileAccession": "ENCFF355RRY"
         },
         {
           "assay": "ctcf",
@@ -1971,7 +1971,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF235TYQ/@@download/ENCFF235TYQ.bigWig",
           "experimentAccession": "ENCSR189QAD",
-          "fileAccession": "ENCFF827GEQ"
+          "fileAccession": "ENCFF235TYQ"
         },
         {
           "assay": "ctcf",
@@ -2094,7 +2094,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF659XPV/@@download/ENCFF659XPV.bigWig",
           "experimentAccession": "ENCSR405ESP",
-          "fileAccession": "ENCFF928LBS"
+          "fileAccession": "ENCFF659XPV"
         },
         {
           "assay": "chromhmm",
@@ -2126,7 +2126,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF860MMV/@@download/ENCFF860MMV.bigWig",
           "experimentAccession": "ENCSR094VJC",
-          "fileAccession": "ENCFF053KMZ"
+          "fileAccession": "ENCFF860MMV"
         },
         {
           "assay": "ctcf",
@@ -2165,7 +2165,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF144JOJ/@@download/ENCFF144JOJ.bigWig",
           "experimentAccession": "ENCSR177QFY",
-          "fileAccession": "ENCFF263CSV"
+          "fileAccession": "ENCFF144JOJ"
         },
         {
           "assay": "ctcf",
@@ -2243,7 +2243,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF735UKH/@@download/ENCFF735UKH.bigWig",
           "experimentAccession": "ENCSR847AIA",
-          "fileAccession": "ENCFF678USC"
+          "fileAccession": "ENCFF735UKH"
         },
         {
           "assay": "chromhmm",
@@ -2302,7 +2302,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF389RGR/@@download/ENCFF389RGR.bigWig",
           "experimentAccession": "ENCSR000DPL",
-          "fileAccession": "ENCFF573ZFG"
+          "fileAccession": "ENCFF389RGR"
         },
         {
           "assay": "ctcf",
@@ -2470,7 +2470,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF437CFO/@@download/ENCFF437CFO.bigWig",
           "experimentAccession": "ENCSR430RVP",
-          "fileAccession": "ENCFF211RIL"
+          "fileAccession": "ENCFF437CFO"
         },
         {
           "assay": "chromhmm",
@@ -2526,7 +2526,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF257QES/@@download/ENCFF257QES.bigWig",
           "experimentAccession": "ENCSR891XGQ",
-          "fileAccession": "ENCFF081IBY"
+          "fileAccession": "ENCFF257QES"
         }
       ]
     },
@@ -2547,7 +2547,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF721FMJ/@@download/ENCFF721FMJ.bigWig",
           "experimentAccession": "ENCSR380KOO",
-          "fileAccession": "ENCFF854IJU"
+          "fileAccession": "ENCFF721FMJ"
         },
         {
           "assay": "chromhmm",
@@ -2573,7 +2573,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF126LKO/@@download/ENCFF126LKO.bigWig",
           "experimentAccession": "ENCSR322TJD",
-          "fileAccession": "ENCFF640NVF"
+          "fileAccession": "ENCFF126LKO"
         }
       ]
     },
@@ -2624,7 +2624,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF651QMY/@@download/ENCFF651QMY.bigWig",
           "experimentAccession": "ENCSR519CFV",
-          "fileAccession": "ENCFF624LJY"
+          "fileAccession": "ENCFF651QMY"
         },
         {
           "assay": "chromhmm",
@@ -2656,7 +2656,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF557HHH/@@download/ENCFF557HHH.bigWig",
           "experimentAccession": "ENCSR982QIF",
-          "fileAccession": "ENCFF935CPK"
+          "fileAccession": "ENCFF557HHH"
         },
         {
           "assay": "ctcf",
@@ -2689,7 +2689,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF118EKX/@@download/ENCFF118EKX.bigWig",
           "experimentAccession": "ENCSR069UMW",
-          "fileAccession": "ENCFF132YWJ"
+          "fileAccession": "ENCFF118EKX"
         },
         {
           "assay": "ctcf",
@@ -2722,7 +2722,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF751GCN/@@download/ENCFF751GCN.bigWig",
           "experimentAccession": "ENCSR510CNG",
-          "fileAccession": "ENCFF153BJG"
+          "fileAccession": "ENCFF751GCN"
         },
         {
           "assay": "ctcf",
@@ -2755,7 +2755,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF643ZMC/@@download/ENCFF643ZMC.bigWig",
           "experimentAccession": "ENCSR000AOQ",
-          "fileAccession": "ENCFF577BWJ"
+          "fileAccession": "ENCFF643ZMC"
         },
         {
           "assay": "ctcf",
@@ -2892,7 +2892,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF781ZDY/@@download/ENCFF781ZDY.bigWig",
           "experimentAccession": "ENCSR000AUP",
-          "fileAccession": "ENCFF350OLM"
+          "fileAccession": "ENCFF781ZDY"
         }
       ]
     },
@@ -2970,7 +2970,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF573FQS/@@download/ENCFF573FQS.bigWig",
           "experimentAccession": "ENCSR077YUA",
-          "fileAccession": "ENCFF061VAL"
+          "fileAccession": "ENCFF573FQS"
         },
         {
           "assay": "atac",
@@ -3003,7 +3003,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF089VAB/@@download/ENCFF089VAB.bigWig",
           "experimentAccession": "ENCSR191ZQT",
-          "fileAccession": "ENCFF807GVN"
+          "fileAccession": "ENCFF089VAB"
         }
       ]
     },
@@ -3057,7 +3057,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF435NQW/@@download/ENCFF435NQW.bigWig",
           "experimentAccession": "ENCSR905TYC",
-          "fileAccession": "ENCFF768NPJ"
+          "fileAccession": "ENCFF435NQW"
         },
         {
           "assay": "ctcf",
@@ -3117,7 +3117,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF853NJX/@@download/ENCFF853NJX.bigWig",
           "experimentAccession": "ENCSR432DPY",
-          "fileAccession": "ENCFF127LVQ"
+          "fileAccession": "ENCFF853NJX"
         },
         {
           "assay": "ctcf",
@@ -3150,7 +3150,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF229WEL/@@download/ENCFF229WEL.bigWig",
           "experimentAccession": "ENCSR748TFF",
-          "fileAccession": null
+          "fileAccession": "ENCFF229WEL"
         },
         {
           "assay": "ctcf",
@@ -3189,7 +3189,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF989SFZ/@@download/ENCFF989SFZ.bigWig",
           "experimentAccession": "ENCSR520BIM",
-          "fileAccession": "ENCFF285STS"
+          "fileAccession": "ENCFF989SFZ"
         },
         {
           "assay": "ctcf",
@@ -3233,7 +3233,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF940UMR/@@download/ENCFF940UMR.bigWig",
           "experimentAccession": "ENCSR596PFU",
-          "fileAccession": "ENCFF138VRG"
+          "fileAccession": "ENCFF940UMR"
         },
         {
           "assay": "ctcf",
@@ -3277,7 +3277,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF575FKS/@@download/ENCFF575FKS.bigWig",
           "experimentAccession": "ENCSR111QCU",
-          "fileAccession": "ENCFF559ALK"
+          "fileAccession": "ENCFF575FKS"
         },
         {
           "assay": "ctcf",
@@ -3304,7 +3304,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF143NJI/@@download/ENCFF143NJI.bigWig",
           "experimentAccession": "ENCSR217AJC",
-          "fileAccession": "ENCFF004VJG"
+          "fileAccession": "ENCFF143NJI"
         },
         {
           "assay": "ctcf",
@@ -3331,7 +3331,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF768ANE/@@download/ENCFF768ANE.bigWig",
           "experimentAccession": "ENCSR408CSV",
-          "fileAccession": "ENCFF476WON"
+          "fileAccession": "ENCFF768ANE"
         },
         {
           "assay": "ctcf",
@@ -3358,7 +3358,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF216XQB/@@download/ENCFF216XQB.bigWig",
           "experimentAccession": "ENCSR988RUI",
-          "fileAccession": "ENCFF751GGW"
+          "fileAccession": "ENCFF216XQB"
         },
         {
           "assay": "ctcf",
@@ -3391,7 +3391,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF040FSN/@@download/ENCFF040FSN.bigWig",
           "experimentAccession": "ENCSR776FPA",
-          "fileAccession": "ENCFF325DXX"
+          "fileAccession": "ENCFF040FSN"
         }
       ]
     },
@@ -3418,7 +3418,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF473LYE/@@download/ENCFF473LYE.bigWig",
           "experimentAccession": "ENCSR978LBY",
-          "fileAccession": "ENCFF878PYH"
+          "fileAccession": "ENCFF473LYE"
         }
       ]
     },
@@ -3706,7 +3706,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF085IYD/@@download/ENCFF085IYD.bigWig",
           "experimentAccession": "ENCSR081OTO",
-          "fileAccession": "ENCFF278ZAD"
+          "fileAccession": "ENCFF085IYD"
         },
         {
           "assay": "ctcf",
@@ -3744,7 +3744,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF800QBA/@@download/ENCFF800QBA.bigWig",
           "experimentAccession": "ENCSR034ZKE",
-          "fileAccession": "ENCFF585QLC"
+          "fileAccession": "ENCFF800QBA"
         },
         {
           "assay": "ctcf",
@@ -3860,7 +3860,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF226UYQ/@@download/ENCFF226UYQ.bigWig",
           "experimentAccession": "ENCSR279KIX",
-          "fileAccession": null
+          "fileAccession": "ENCFF226UYQ"
         },
         {
           "assay": "ctcf",
@@ -3908,7 +3908,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF619JXN/@@download/ENCFF619JXN.bigWig",
           "experimentAccession": "ENCSR571QQB",
-          "fileAccession": "ENCFF221TSA"
+          "fileAccession": "ENCFF619JXN"
         },
         {
           "assay": "ctcf",
@@ -3950,7 +3950,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF264HCG/@@download/ENCFF264HCG.bigWig",
           "experimentAccession": "ENCSR976GAB",
-          "fileAccession": null
+          "fileAccession": "ENCFF264HCG"
         }
       ]
     },
@@ -4088,7 +4088,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF485DKZ/@@download/ENCFF485DKZ.bigWig",
           "experimentAccession": "ENCSR000NPF",
-          "fileAccession": "ENCFF207MNM"
+          "fileAccession": "ENCFF485DKZ"
         },
         {
           "assay": "ctcf",
@@ -4172,7 +4172,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF273JQE/@@download/ENCFF273JQE.bigWig",
           "experimentAccession": "ENCSR798RTU",
-          "fileAccession": "ENCFF506IHN"
+          "fileAccession": "ENCFF273JQE"
         },
         {
           "assay": "chromhmm",
@@ -4213,7 +4213,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF013OYT/@@download/ENCFF013OYT.bigWig",
           "experimentAccession": "ENCSR494MDB",
-          "fileAccession": "ENCFF733OPS"
+          "fileAccession": "ENCFF013OYT"
         },
         {
           "assay": "chromhmm",
@@ -4233,7 +4233,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF572CMJ/@@download/ENCFF572CMJ.bigWig",
           "experimentAccession": "ENCSR297FIU",
-          "fileAccession": null
+          "fileAccession": "ENCFF572CMJ"
         }
       ]
     },
@@ -4254,7 +4254,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF839BEU/@@download/ENCFF839BEU.bigWig",
           "experimentAccession": "ENCSR319HLH",
-          "fileAccession": "ENCFF414KJQ"
+          "fileAccession": "ENCFF839BEU"
         }
       ]
     },
@@ -4275,7 +4275,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF523ZCA/@@download/ENCFF523ZCA.bigWig",
           "experimentAccession": "ENCSR685BBN",
-          "fileAccession": "ENCFF090HMA"
+          "fileAccession": "ENCFF523ZCA"
         }
       ]
     },
@@ -4317,7 +4317,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF184NWF/@@download/ENCFF184NWF.bigWig",
           "experimentAccession": "ENCSR000ASJ",
-          "fileAccession": "ENCFF587XGD"
+          "fileAccession": "ENCFF184NWF"
         },
         {
           "assay": "ctcf",
@@ -4379,7 +4379,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF116NCG/@@download/ENCFF116NCG.bigWig",
           "experimentAccession": "ENCSR012PII",
-          "fileAccession": null
+          "fileAccession": "ENCFF116NCG"
         }
       ]
     },
@@ -4406,7 +4406,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF779ZLB/@@download/ENCFF779ZLB.bigWig",
           "experimentAccession": "ENCSR555VYM",
-          "fileAccession": "ENCFF127TFL"
+          "fileAccession": "ENCFF779ZLB"
         }
       ]
     },
@@ -4448,7 +4448,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF171ZHJ/@@download/ENCFF171ZHJ.bigWig",
           "experimentAccession": "ENCSR197UDN",
-          "fileAccession": "ENCFF412XPV"
+          "fileAccession": "ENCFF171ZHJ"
         }
       ]
     },
@@ -4484,7 +4484,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF373LYP/@@download/ENCFF373LYP.bigWig",
           "experimentAccession": "ENCSR314BEX",
-          "fileAccession": "ENCFF975SNY"
+          "fileAccession": "ENCFF373LYP"
         },
         {
           "assay": "chromhmm",
@@ -4510,7 +4510,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF101SNA/@@download/ENCFF101SNA.bigWig",
           "experimentAccession": "ENCSR041YWB",
-          "fileAccession": "ENCFF027TXS"
+          "fileAccession": "ENCFF101SNA"
         }
       ]
     },
@@ -4531,7 +4531,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF653TLI/@@download/ENCFF653TLI.bigWig",
           "experimentAccession": "ENCSR724GUS",
-          "fileAccession": "ENCFF158WCY"
+          "fileAccession": "ENCFF653TLI"
         },
         {
           "assay": "chromhmm",
@@ -4557,7 +4557,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF606OFL/@@download/ENCFF606OFL.bigWig",
           "experimentAccession": "ENCSR696DVE",
-          "fileAccession": "ENCFF868CTT"
+          "fileAccession": "ENCFF606OFL"
         }
       ]
     },
@@ -4604,7 +4604,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF165YML/@@download/ENCFF165YML.bigWig",
           "experimentAccession": "ENCSR175IGC",
-          "fileAccession": "ENCFF715NMW"
+          "fileAccession": "ENCFF165YML"
         }
       ]
     },
@@ -4631,7 +4631,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF435QDZ/@@download/ENCFF435QDZ.bigWig",
           "experimentAccession": "ENCSR830YQW",
-          "fileAccession": "ENCFF267TXG"
+          "fileAccession": "ENCFF435QDZ"
         }
       ]
     },
@@ -4658,7 +4658,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF702OCF/@@download/ENCFF702OCF.bigWig",
           "experimentAccession": "ENCSR245HFY",
-          "fileAccession": "ENCFF888BMF"
+          "fileAccession": "ENCFF702OCF"
         }
       ]
     },
@@ -4703,7 +4703,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF892JDN/@@download/ENCFF892JDN.bigWig",
           "experimentAccession": "ENCSR546SDM",
-          "fileAccession": null
+          "fileAccession": "ENCFF892JDN"
         },
         {
           "assay": "chromhmm",
@@ -5020,7 +5020,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF427RME/@@download/ENCFF427RME.bigWig",
           "experimentAccession": "ENCSR396RXX",
-          "fileAccession": "ENCFF059IYG"
+          "fileAccession": "ENCFF427RME"
         }
       ]
     },
@@ -5047,7 +5047,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF256WHR/@@download/ENCFF256WHR.bigWig",
           "experimentAccession": "ENCSR561KOM",
-          "fileAccession": "ENCFF591RWC"
+          "fileAccession": "ENCFF256WHR"
         }
       ]
     },
@@ -5143,7 +5143,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF694IFY/@@download/ENCFF694IFY.bigWig",
           "experimentAccession": "ENCSR138DOM",
-          "fileAccession": "ENCFF295CPY"
+          "fileAccession": "ENCFF694IFY"
         }
       ]
     },
@@ -5164,7 +5164,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF604ZNJ/@@download/ENCFF604ZNJ.bigWig",
           "experimentAccession": "ENCSR577GVS",
-          "fileAccession": "ENCFF520TNH"
+          "fileAccession": "ENCFF604ZNJ"
         },
         {
           "assay": "chromhmm",
@@ -5184,7 +5184,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF398ODB/@@download/ENCFF398ODB.bigWig",
           "experimentAccession": "ENCSR669ZGZ",
-          "fileAccession": null
+          "fileAccession": "ENCFF398ODB"
         }
       ]
     },
@@ -5205,7 +5205,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF846OSF/@@download/ENCFF846OSF.bigWig",
           "experimentAccession": "ENCSR769FEY",
-          "fileAccession": "ENCFF612AIR"
+          "fileAccession": "ENCFF846OSF"
         }
       ]
     },
@@ -5226,7 +5226,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF329UOR/@@download/ENCFF329UOR.bigWig",
           "experimentAccession": "ENCSR360IRQ",
-          "fileAccession": "ENCFF811QOJ"
+          "fileAccession": "ENCFF329UOR"
         }
       ]
     },
@@ -5247,7 +5247,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF999RBA/@@download/ENCFF999RBA.bigWig",
           "experimentAccession": "ENCSR406RTH",
-          "fileAccession": "ENCFF440EMT"
+          "fileAccession": "ENCFF999RBA"
         }
       ]
     },
@@ -5322,7 +5322,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF726SZQ/@@download/ENCFF726SZQ.bigWig",
           "experimentAccession": "ENCSR596FCE",
-          "fileAccession": null
+          "fileAccession": "ENCFF726SZQ"
         },
         {
           "assay": "atac",
@@ -5343,7 +5343,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF406WIO/@@download/ENCFF406WIO.bigWig",
           "experimentAccession": "ENCSR677ZIJ",
-          "fileAccession": null
+          "fileAccession": "ENCFF406WIO"
         },
         {
           "assay": "atac",
@@ -5394,7 +5394,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF310XQG/@@download/ENCFF310XQG.bigWig",
           "experimentAccession": "ENCSR398QLU",
-          "fileAccession": null
+          "fileAccession": "ENCFF310XQG"
         }
       ]
     },
@@ -5430,7 +5430,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF431SOK/@@download/ENCFF431SOK.bigWig",
           "experimentAccession": "ENCSR302RKX",
-          "fileAccession": "ENCFF454FEA"
+          "fileAccession": "ENCFF431SOK"
         }
       ]
     },
@@ -5445,7 +5445,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF611GRL/@@download/ENCFF611GRL.bigWig",
           "experimentAccession": "ENCSR810EPZ",
-          "fileAccession": null
+          "fileAccession": "ENCFF611GRL"
         },
         {
           "assay": "chromhmm",
@@ -5471,7 +5471,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF376ATD/@@download/ENCFF376ATD.bigWig",
           "experimentAccession": "ENCSR274VSS",
-          "fileAccession": "ENCFF403ISY"
+          "fileAccession": "ENCFF376ATD"
         }
       ]
     },
@@ -5498,7 +5498,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF334PSV/@@download/ENCFF334PSV.bigWig",
           "experimentAccession": "ENCSR546YQN",
-          "fileAccession": "ENCFF517KZR"
+          "fileAccession": "ENCFF334PSV"
         }
       ]
     },
@@ -5540,7 +5540,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF938RJM/@@download/ENCFF938RJM.bigWig",
           "experimentAccession": "ENCSR553QIO",
-          "fileAccession": "ENCFF341PJV"
+          "fileAccession": "ENCFF938RJM"
         }
       ]
     },
@@ -5585,7 +5585,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF495UDL/@@download/ENCFF495UDL.bigWig",
           "experimentAccession": "ENCSR835OJV",
-          "fileAccession": null
+          "fileAccession": "ENCFF495UDL"
         },
         {
           "assay": "chromhmm",
@@ -5677,7 +5677,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF966FLQ/@@download/ENCFF966FLQ.bigWig",
           "experimentAccession": "ENCSR007HLH",
-          "fileAccession": "ENCFF220LVT"
+          "fileAccession": "ENCFF966FLQ"
         }
       ]
     },
@@ -5704,7 +5704,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF272WIY/@@download/ENCFF272WIY.bigWig",
           "experimentAccession": "ENCSR928PSU",
-          "fileAccession": "ENCFF507AEW"
+          "fileAccession": "ENCFF272WIY"
         },
         {
           "assay": "atac",
@@ -5857,7 +5857,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF644QSV/@@download/ENCFF644QSV.bigWig",
           "experimentAccession": "ENCSR061PIA",
-          "fileAccession": "ENCFF191JSX"
+          "fileAccession": "ENCFF644QSV"
         }
       ]
     },
@@ -5944,7 +5944,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF317LGP/@@download/ENCFF317LGP.bigWig",
           "experimentAccession": "ENCSR925IAP",
-          "fileAccession": "ENCFF466YVQ"
+          "fileAccession": "ENCFF317LGP"
         },
         {
           "assay": "ctcf",
@@ -5971,7 +5971,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF497DMG/@@download/ENCFF497DMG.bigWig",
           "experimentAccession": "ENCSR963LVX",
-          "fileAccession": "ENCFF899GWP"
+          "fileAccession": "ENCFF497DMG"
         },
         {
           "assay": "chromhmm",
@@ -5997,7 +5997,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF715DNL/@@download/ENCFF715DNL.bigWig",
           "experimentAccession": "ENCSR643TBI",
-          "fileAccession": "ENCFF169MHR"
+          "fileAccession": "ENCFF715DNL"
         },
         {
           "assay": "chromhmm",
@@ -6023,7 +6023,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF873VQK/@@download/ENCFF873VQK.bigWig",
           "experimentAccession": "ENCSR606WJA",
-          "fileAccession": "ENCFF015MOG"
+          "fileAccession": "ENCFF873VQK"
         },
         {
           "assay": "chromhmm",
@@ -6049,7 +6049,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF451OTN/@@download/ENCFF451OTN.bigWig",
           "experimentAccession": "ENCSR619POC",
-          "fileAccession": "ENCFF020YCR"
+          "fileAccession": "ENCFF451OTN"
         },
         {
           "assay": "chromhmm",
@@ -6090,7 +6090,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF153ALM/@@download/ENCFF153ALM.bigWig",
           "experimentAccession": "ENCSR499IIR",
-          "fileAccession": "ENCFF379RYN"
+          "fileAccession": "ENCFF153ALM"
         }
       ]
     },
@@ -6111,7 +6111,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF896KEC/@@download/ENCFF896KEC.bigWig",
           "experimentAccession": "ENCSR909ZLE",
-          "fileAccession": "ENCFF976KIV"
+          "fileAccession": "ENCFF896KEC"
         }
       ]
     },
@@ -6159,7 +6159,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF377MKH/@@download/ENCFF377MKH.bigWig",
           "experimentAccession": "ENCSR604JDV",
-          "fileAccession": "ENCFF282SRM"
+          "fileAccession": "ENCFF377MKH"
         }
       ]
     },
@@ -6180,7 +6180,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF692LNN/@@download/ENCFF692LNN.bigWig",
           "experimentAccession": "ENCSR355UYP",
-          "fileAccession": "ENCFF438QTX"
+          "fileAccession": "ENCFF692LNN"
         },
         {
           "assay": "chromhmm",
@@ -6242,7 +6242,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF004SRJ/@@download/ENCFF004SRJ.bigWig",
           "experimentAccession": "ENCSR078LIZ",
-          "fileAccession": "ENCFF173NSX"
+          "fileAccession": "ENCFF004SRJ"
         },
         {
           "assay": "ctcf",
@@ -6280,7 +6280,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF220ZKF/@@download/ENCFF220ZKF.bigWig",
           "experimentAccession": "ENCSR175XPY",
-          "fileAccession": "ENCFF349BGH"
+          "fileAccession": "ENCFF220ZKF"
         },
         {
           "assay": "chromhmm",
@@ -6306,7 +6306,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF650EZM/@@download/ENCFF650EZM.bigWig",
           "experimentAccession": "ENCSR327XTS",
-          "fileAccession": "ENCFF051JTV"
+          "fileAccession": "ENCFF650EZM"
         },
         {
           "assay": "chromhmm",
@@ -6383,7 +6383,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF871ZFZ/@@download/ENCFF871ZFZ.bigWig",
           "experimentAccession": "ENCSR891KSP",
-          "fileAccession": "ENCFF457WMD"
+          "fileAccession": "ENCFF871ZFZ"
         }
       ]
     },
@@ -6410,7 +6410,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF064JOI/@@download/ENCFF064JOI.bigWig",
           "experimentAccession": "ENCSR620AZM",
-          "fileAccession": "ENCFF156DEQ"
+          "fileAccession": "ENCFF064JOI"
         },
         {
           "assay": "chromhmm",
@@ -6604,7 +6604,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF476MBG/@@download/ENCFF476MBG.bigWig",
           "experimentAccession": "ENCSR355GNZ",
-          "fileAccession": null
+          "fileAccession": "ENCFF476MBG"
         },
         {
           "assay": "ctcf",
@@ -6643,7 +6643,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF130NUG/@@download/ENCFF130NUG.bigWig",
           "experimentAccession": "ENCSR443UYU",
-          "fileAccession": "ENCFF811RQX"
+          "fileAccession": "ENCFF130NUG"
         },
         {
           "assay": "ctcf",
@@ -6751,7 +6751,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF942NBZ/@@download/ENCFF942NBZ.bigWig",
           "experimentAccession": "ENCSR630SSL",
-          "fileAccession": "ENCFF300TPQ"
+          "fileAccession": "ENCFF942NBZ"
         }
       ]
     },
@@ -6868,7 +6868,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF341LLL/@@download/ENCFF341LLL.bigWig",
           "experimentAccession": "ENCSR000AQW",
-          "fileAccession": "ENCFF308GJB"
+          "fileAccession": "ENCFF341LLL"
         },
         {
           "assay": "ctcf",
@@ -6906,7 +6906,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF313VVF/@@download/ENCFF313VVF.bigWig",
           "experimentAccession": "ENCSR741STU",
-          "fileAccession": "ENCFF398AIV"
+          "fileAccession": "ENCFF313VVF"
         },
         {
           "assay": "ctcf",
@@ -6938,7 +6938,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF300XQV/@@download/ENCFF300XQV.bigWig",
           "experimentAccession": "ENCSR405FZE",
-          "fileAccession": "ENCFF759WSX"
+          "fileAccession": "ENCFF300XQV"
         },
         {
           "assay": "chromhmm",
@@ -6979,7 +6979,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF994HCY/@@download/ENCFF994HCY.bigWig",
           "experimentAccession": "ENCSR747HAM",
-          "fileAccession": "ENCFF008WQX"
+          "fileAccession": "ENCFF994HCY"
         },
         {
           "assay": "chromhmm",
@@ -7050,7 +7050,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF185MAH/@@download/ENCFF185MAH.bigWig",
           "experimentAccession": "ENCSR892HPQ",
-          "fileAccession": "ENCFF032HUK"
+          "fileAccession": "ENCFF185MAH"
         },
         {
           "assay": "chromhmm",
@@ -7127,7 +7127,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF810PFO/@@download/ENCFF810PFO.bigWig",
           "experimentAccession": "ENCSR055TVU",
-          "fileAccession": "ENCFF579KFE"
+          "fileAccession": "ENCFF810PFO"
         },
         {
           "assay": "atac",
@@ -7160,7 +7160,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF109ZZY/@@download/ENCFF109ZZY.bigWig",
           "experimentAccession": "ENCSR917BHP",
-          "fileAccession": "ENCFF044NRE"
+          "fileAccession": "ENCFF109ZZY"
         }
       ]
     },
@@ -7256,7 +7256,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF314ZFV/@@download/ENCFF314ZFV.bigWig",
           "experimentAccession": "ENCSR492PXH",
-          "fileAccession": "ENCFF011VNN"
+          "fileAccession": "ENCFF314ZFV"
         },
         {
           "assay": "chromhmm",
@@ -7282,7 +7282,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF237BCW/@@download/ENCFF237BCW.bigWig",
           "experimentAccession": "ENCSR324JDC",
-          "fileAccession": "ENCFF615SIJ"
+          "fileAccession": "ENCFF237BCW"
         }
       ]
     },
@@ -7324,7 +7324,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF504UNY/@@download/ENCFF504UNY.bigWig",
           "experimentAccession": "ENCSR193VOB",
-          "fileAccession": "ENCFF300WXD"
+          "fileAccession": "ENCFF504UNY"
         },
         {
           "assay": "ctcf",
@@ -7357,7 +7357,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF466QNQ/@@download/ENCFF466QNQ.bigWig",
           "experimentAccession": "ENCSR349NAK",
-          "fileAccession": "ENCFF040CKW"
+          "fileAccession": "ENCFF466QNQ"
         }
       ]
     },
@@ -7378,7 +7378,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF156YLW/@@download/ENCFF156YLW.bigWig",
           "experimentAccession": "ENCSR200ETW",
-          "fileAccession": "ENCFF084BWL"
+          "fileAccession": "ENCFF156YLW"
         },
         {
           "assay": "chromhmm",
@@ -7410,7 +7410,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF708DDX/@@download/ENCFF708DDX.bigWig",
           "experimentAccession": "ENCSR616PRQ",
-          "fileAccession": "ENCFF543KTX"
+          "fileAccession": "ENCFF708DDX"
         },
         {
           "assay": "ctcf",
@@ -7458,7 +7458,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF955PAU/@@download/ENCFF955PAU.bigWig",
           "experimentAccession": "ENCSR000ALB",
-          "fileAccession": "ENCFF399KTR"
+          "fileAccession": "ENCFF955PAU"
         },
         {
           "assay": "ctcf",
@@ -7562,7 +7562,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF010HOO/@@download/ENCFF010HOO.bigWig",
           "experimentAccession": "ENCSR910PDW",
-          "fileAccession": null
+          "fileAccession": "ENCFF010HOO"
         },
         {
           "assay": "ctcf",
@@ -7631,7 +7631,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF524ZGX/@@download/ENCFF524ZGX.bigWig",
           "experimentAccession": "ENCSR894MOX",
-          "fileAccession": "ENCFF061HFF"
+          "fileAccession": "ENCFF524ZGX"
         },
         {
           "assay": "ctcf",
@@ -7663,7 +7663,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF395YPE/@@download/ENCFF395YPE.bigWig",
           "experimentAccession": "ENCSR095YMD",
-          "fileAccession": "ENCFF586WBH"
+          "fileAccession": "ENCFF395YPE"
         },
         {
           "assay": "ctcf",
@@ -7701,7 +7701,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF322ZPK/@@download/ENCFF322ZPK.bigWig",
           "experimentAccession": "ENCSR522MTS",
-          "fileAccession": "ENCFF344ITP"
+          "fileAccession": "ENCFF322ZPK"
         },
         {
           "assay": "ctcf",
@@ -7733,7 +7733,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF304TYW/@@download/ENCFF304TYW.bigWig",
           "experimentAccession": "ENCSR705BTW",
-          "fileAccession": "ENCFF645DEG"
+          "fileAccession": "ENCFF304TYW"
         },
         {
           "assay": "ctcf",
@@ -7771,7 +7771,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF261VFS/@@download/ENCFF261VFS.bigWig",
           "experimentAccession": "ENCSR204TAU",
-          "fileAccession": "ENCFF044KLK"
+          "fileAccession": "ENCFF261VFS"
         },
         {
           "assay": "ctcf",
@@ -7809,7 +7809,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF058GFX/@@download/ENCFF058GFX.bigWig",
           "experimentAccession": "ENCSR909UAG",
-          "fileAccession": "ENCFF576GES"
+          "fileAccession": "ENCFF058GFX"
         },
         {
           "assay": "ctcf",
@@ -7847,7 +7847,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF037TME/@@download/ENCFF037TME.bigWig",
           "experimentAccession": "ENCSR143XNJ",
-          "fileAccession": "ENCFF764HZI"
+          "fileAccession": "ENCFF037TME"
         },
         {
           "assay": "ctcf",
@@ -7879,7 +7879,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF628RBH/@@download/ENCFF628RBH.bigWig",
           "experimentAccession": "ENCSR463NAD",
-          "fileAccession": "ENCFF719ORU"
+          "fileAccession": "ENCFF628RBH"
         },
         {
           "assay": "ctcf",
@@ -7906,7 +7906,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF322RWX/@@download/ENCFF322RWX.bigWig",
           "experimentAccession": "ENCSR645SYH",
-          "fileAccession": "ENCFF772PDE"
+          "fileAccession": "ENCFF322RWX"
         },
         {
           "assay": "chromhmm",
@@ -7932,7 +7932,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF153OFF/@@download/ENCFF153OFF.bigWig",
           "experimentAccession": "ENCSR679OVD",
-          "fileAccession": "ENCFF223CEC"
+          "fileAccession": "ENCFF153OFF"
         },
         {
           "assay": "chromhmm",
@@ -7964,7 +7964,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF118OBT/@@download/ENCFF118OBT.bigWig",
           "experimentAccession": "ENCSR818PER",
-          "fileAccession": "ENCFF346LEZ"
+          "fileAccession": "ENCFF118OBT"
         },
         {
           "assay": "ctcf",
@@ -8081,7 +8081,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF422UWB/@@download/ENCFF422UWB.bigWig",
           "experimentAccession": "ENCSR579YLO",
-          "fileAccession": "ENCFF244FXK"
+          "fileAccession": "ENCFF422UWB"
         }
       ]
     },
@@ -8102,7 +8102,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF183MQW/@@download/ENCFF183MQW.bigWig",
           "experimentAccession": "ENCSR953ULK",
-          "fileAccession": "ENCFF165UJO"
+          "fileAccession": "ENCFF183MQW"
         },
         {
           "assay": "chromhmm",
@@ -8122,7 +8122,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF500IPG/@@download/ENCFF500IPG.bigWig",
           "experimentAccession": "ENCSR000APN",
-          "fileAccession": null
+          "fileAccession": "ENCFF500IPG"
         },
         {
           "assay": "ctcf",
@@ -8241,7 +8241,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF734YQE/@@download/ENCFF734YQE.bigWig",
           "experimentAccession": "ENCSR000AMR",
-          "fileAccession": "ENCFF883BDY"
+          "fileAccession": "ENCFF734YQE"
         },
         {
           "assay": "ctcf",
@@ -8559,7 +8559,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF352ESC/@@download/ENCFF352ESC.bigWig",
           "experimentAccession": "ENCSR108NVQ",
-          "fileAccession": "ENCFF388QVC"
+          "fileAccession": "ENCFF352ESC"
         },
         {
           "assay": "chromhmm",
@@ -8639,7 +8639,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF509UMN/@@download/ENCFF509UMN.bigWig",
           "experimentAccession": "ENCSR917QEH",
-          "fileAccession": "ENCFF908RLV"
+          "fileAccession": "ENCFF509UMN"
         }
       ]
     },
@@ -8666,7 +8666,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF168UPV/@@download/ENCFF168UPV.bigWig",
           "experimentAccession": "ENCSR822ZIG",
-          "fileAccession": "ENCFF123FVI"
+          "fileAccession": "ENCFF168UPV"
         },
         {
           "assay": "chromhmm",
@@ -8713,7 +8713,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF340UKM/@@download/ENCFF340UKM.bigWig",
           "experimentAccession": "ENCSR666TFS",
-          "fileAccession": "ENCFF675CBC"
+          "fileAccession": "ENCFF340UKM"
         },
         {
           "assay": "chromhmm",
@@ -8766,7 +8766,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF848DAV/@@download/ENCFF848DAV.bigWig",
           "experimentAccession": "ENCSR693VHX",
-          "fileAccession": "ENCFF261DSX"
+          "fileAccession": "ENCFF848DAV"
         },
         {
           "assay": "chromhmm",
@@ -8792,7 +8792,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF337BET/@@download/ENCFF337BET.bigWig",
           "experimentAccession": "ENCSR227FYJ",
-          "fileAccession": "ENCFF846SFT"
+          "fileAccession": "ENCFF337BET"
         },
         {
           "assay": "chromhmm",
@@ -8839,7 +8839,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF579WQH/@@download/ENCFF579WQH.bigWig",
           "experimentAccession": "ENCSR312HLG",
-          "fileAccession": "ENCFF214GOQ"
+          "fileAccession": "ENCFF579WQH"
         },
         {
           "assay": "atac",
@@ -8866,7 +8866,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF638FPK/@@download/ENCFF638FPK.bigWig",
           "experimentAccession": "ENCSR425FUS",
-          "fileAccession": "ENCFF672CVM"
+          "fileAccession": "ENCFF638FPK"
         },
         {
           "assay": "atac",
@@ -8893,7 +8893,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF843YIN/@@download/ENCFF843YIN.bigWig",
           "experimentAccession": "ENCSR680IWU",
-          "fileAccession": "ENCFF125KUI"
+          "fileAccession": "ENCFF843YIN"
         },
         {
           "assay": "atac",
@@ -8920,7 +8920,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF223GDQ/@@download/ENCFF223GDQ.bigWig",
           "experimentAccession": "ENCSR754DRC",
-          "fileAccession": "ENCFF145CKE"
+          "fileAccession": "ENCFF223GDQ"
         },
         {
           "assay": "atac",
@@ -8947,7 +8947,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF985ZFD/@@download/ENCFF985ZFD.bigWig",
           "experimentAccession": "ENCSR489LNU",
-          "fileAccession": "ENCFF435JQR"
+          "fileAccession": "ENCFF985ZFD"
         },
         {
           "assay": "atac",
@@ -8974,7 +8974,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF878HSW/@@download/ENCFF878HSW.bigWig",
           "experimentAccession": "ENCSR540KQC",
-          "fileAccession": "ENCFF177MAG"
+          "fileAccession": "ENCFF878HSW"
         },
         {
           "assay": "atac",
@@ -9052,7 +9052,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF638ZRF/@@download/ENCFF638ZRF.bigWig",
           "experimentAccession": "ENCSR601VHO",
-          "fileAccession": "ENCFF707BCP"
+          "fileAccession": "ENCFF638ZRF"
         },
         {
           "assay": "ctcf",
@@ -9096,7 +9096,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF825YXF/@@download/ENCFF825YXF.bigWig",
           "experimentAccession": "ENCSR736ALU",
-          "fileAccession": "ENCFF880UEZ"
+          "fileAccession": "ENCFF825YXF"
         },
         {
           "assay": "ctcf",
@@ -9140,7 +9140,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF793HOY/@@download/ENCFF793HOY.bigWig",
           "experimentAccession": "ENCSR801IPH",
-          "fileAccession": "ENCFF431FFY"
+          "fileAccession": "ENCFF793HOY"
         },
         {
           "assay": "ctcf",
@@ -9184,7 +9184,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF149TEN/@@download/ENCFF149TEN.bigWig",
           "experimentAccession": "ENCSR948YYZ",
-          "fileAccession": "ENCFF772JUK"
+          "fileAccession": "ENCFF149TEN"
         },
         {
           "assay": "ctcf",
@@ -9216,7 +9216,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF073BDL/@@download/ENCFF073BDL.bigWig",
           "experimentAccession": "ENCSR316LNO",
-          "fileAccession": null
+          "fileAccession": "ENCFF073BDL"
         },
         {
           "assay": "ctcf",
@@ -9249,7 +9249,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF980XLA/@@download/ENCFF980XLA.bigWig",
           "experimentAccession": "ENCSR677LBH",
-          "fileAccession": "ENCFF216VFC"
+          "fileAccession": "ENCFF980XLA"
         },
         {
           "assay": "ctcf",
@@ -9282,7 +9282,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF346QRJ/@@download/ENCFF346QRJ.bigWig",
           "experimentAccession": "ENCSR600TOW",
-          "fileAccession": "ENCFF512IEA"
+          "fileAccession": "ENCFF346QRJ"
         },
         {
           "assay": "ctcf",
@@ -9314,7 +9314,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF284NUP/@@download/ENCFF284NUP.bigWig",
           "experimentAccession": "ENCSR195JWZ",
-          "fileAccession": "ENCFF051GOU"
+          "fileAccession": "ENCFF284NUP"
         },
         {
           "assay": "ctcf",
@@ -9746,7 +9746,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF469WVA/@@download/ENCFF469WVA.bigWig",
           "experimentAccession": "ENCSR000AKC",
-          "fileAccession": "ENCFF280PUF"
+          "fileAccession": "ENCFF469WVA"
         },
         {
           "assay": "ctcf",
@@ -10693,7 +10693,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF558IWG/@@download/ENCFF558IWG.bigWig",
           "experimentAccession": "ENCSR007YOT",
-          "fileAccession": "ENCFF036OWY"
+          "fileAccession": "ENCFF558IWG"
         },
         {
           "assay": "chromhmm",
@@ -10725,7 +10725,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF114QME/@@download/ENCFF114QME.bigWig",
           "experimentAccession": "ENCSR370JJY",
-          "fileAccession": "ENCFF494ASH"
+          "fileAccession": "ENCFF114QME"
         },
         {
           "assay": "ctcf",
@@ -10764,7 +10764,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF641QBD/@@download/ENCFF641QBD.bigWig",
           "experimentAccession": "ENCSR729ENO",
-          "fileAccession": "ENCFF446OPT"
+          "fileAccession": "ENCFF641QBD"
         },
         {
           "assay": "ctcf",
@@ -10797,7 +10797,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF919FBG/@@download/ENCFF919FBG.bigWig",
           "experimentAccession": "ENCSR000ANP",
-          "fileAccession": "ENCFF760NUN"
+          "fileAccession": "ENCFF919FBG"
         },
         {
           "assay": "ctcf",
@@ -10892,7 +10892,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF988WEQ/@@download/ENCFF988WEQ.bigWig",
           "experimentAccession": "ENCSR372FFA",
-          "fileAccession": "ENCFF179HBV"
+          "fileAccession": "ENCFF988WEQ"
         },
         {
           "assay": "ctcf",
@@ -11005,7 +11005,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF730PAV/@@download/ENCFF730PAV.bigWig",
           "experimentAccession": "ENCSR131DVD",
-          "fileAccession": "ENCFF487XII"
+          "fileAccession": "ENCFF730PAV"
         },
         {
           "assay": "chromhmm",
@@ -11052,7 +11052,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF787LMI/@@download/ENCFF787LMI.bigWig",
           "experimentAccession": "ENCSR661KMA",
-          "fileAccession": "ENCFF964OOU"
+          "fileAccession": "ENCFF787LMI"
         },
         {
           "assay": "ctcf",
@@ -11096,7 +11096,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF729LUC/@@download/ENCFF729LUC.bigWig",
           "experimentAccession": "ENCSR324ZNP",
-          "fileAccession": "ENCFF190GZS"
+          "fileAccession": "ENCFF729LUC"
         },
         {
           "assay": "atac",
@@ -11129,7 +11129,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF279SCT/@@download/ENCFF279SCT.bigWig",
           "experimentAccession": "ENCSR957EOR",
-          "fileAccession": "ENCFF212IKP"
+          "fileAccession": "ENCFF279SCT"
         },
         {
           "assay": "atac",
@@ -11162,7 +11162,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF995AGX/@@download/ENCFF995AGX.bigWig",
           "experimentAccession": "ENCSR571CNF",
-          "fileAccession": "ENCFF282JSU"
+          "fileAccession": "ENCFF995AGX"
         },
         {
           "assay": "atac",
@@ -11195,7 +11195,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF448FEB/@@download/ENCFF448FEB.bigWig",
           "experimentAccession": "ENCSR743HTN",
-          "fileAccession": "ENCFF642BED"
+          "fileAccession": "ENCFF448FEB"
         },
         {
           "assay": "atac",
@@ -11228,7 +11228,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF065MMS/@@download/ENCFF065MMS.bigWig",
           "experimentAccession": "ENCSR265SCJ",
-          "fileAccession": "ENCFF503BFJ"
+          "fileAccession": "ENCFF065MMS"
         },
         {
           "assay": "atac",
@@ -11261,7 +11261,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF301DSI/@@download/ENCFF301DSI.bigWig",
           "experimentAccession": "ENCSR671XCL",
-          "fileAccession": "ENCFF442UOG"
+          "fileAccession": "ENCFF301DSI"
         },
         {
           "assay": "atac",
@@ -11294,7 +11294,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF426ZES/@@download/ENCFF426ZES.bigWig",
           "experimentAccession": "ENCSR709PFC",
-          "fileAccession": "ENCFF838KNK"
+          "fileAccession": "ENCFF426ZES"
         },
         {
           "assay": "atac",
@@ -11327,7 +11327,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF937FKH/@@download/ENCFF937FKH.bigWig",
           "experimentAccession": "ENCSR873SVP",
-          "fileAccession": "ENCFF209JIH"
+          "fileAccession": "ENCFF937FKH"
         },
         {
           "assay": "atac",
@@ -11360,7 +11360,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF206GDZ/@@download/ENCFF206GDZ.bigWig",
           "experimentAccession": "ENCSR930EMO",
-          "fileAccession": "ENCFF064VUP"
+          "fileAccession": "ENCFF206GDZ"
         },
         {
           "assay": "atac",
@@ -11393,7 +11393,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF888OJS/@@download/ENCFF888OJS.bigWig",
           "experimentAccession": "ENCSR728KQX",
-          "fileAccession": "ENCFF921VVL"
+          "fileAccession": "ENCFF888OJS"
         },
         {
           "assay": "atac",
@@ -11420,7 +11420,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF225DSH/@@download/ENCFF225DSH.bigWig",
           "experimentAccession": "ENCSR323XBZ",
-          "fileAccession": "ENCFF082LOG"
+          "fileAccession": "ENCFF225DSH"
         },
         {
           "assay": "atac",
@@ -11447,7 +11447,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF380TOJ/@@download/ENCFF380TOJ.bigWig",
           "experimentAccession": "ENCSR871TIY",
-          "fileAccession": "ENCFF917XEI"
+          "fileAccession": "ENCFF380TOJ"
         },
         {
           "assay": "atac",
@@ -11480,7 +11480,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF008HLE/@@download/ENCFF008HLE.bigWig",
           "experimentAccession": "ENCSR108CCH",
-          "fileAccession": "ENCFF547MNW"
+          "fileAccession": "ENCFF008HLE"
         },
         {
           "assay": "atac",
@@ -11513,7 +11513,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF742ERW/@@download/ENCFF742ERW.bigWig",
           "experimentAccession": "ENCSR138ITT",
-          "fileAccession": "ENCFF457FEX"
+          "fileAccession": "ENCFF742ERW"
         },
         {
           "assay": "atac",
@@ -11546,7 +11546,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF412MYA/@@download/ENCFF412MYA.bigWig",
           "experimentAccession": "ENCSR088ZGM",
-          "fileAccession": "ENCFF021HGF"
+          "fileAccession": "ENCFF412MYA"
         },
         {
           "assay": "atac",
@@ -11579,7 +11579,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF100CVT/@@download/ENCFF100CVT.bigWig",
           "experimentAccession": "ENCSR991JSQ",
-          "fileAccession": "ENCFF370MPF"
+          "fileAccession": "ENCFF100CVT"
         },
         {
           "assay": "atac",
@@ -12047,7 +12047,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF352YYH/@@download/ENCFF352YYH.bigWig",
           "experimentAccession": "ENCSR863BVD",
-          "fileAccession": "ENCFF152PBB"
+          "fileAccession": "ENCFF352YYH"
         },
         {
           "assay": "ctcf",
@@ -12089,7 +12089,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF522YPN/@@download/ENCFF522YPN.bigWig",
           "experimentAccession": "ENCSR702OVJ",
-          "fileAccession": "ENCFF720HFS"
+          "fileAccession": "ENCFF522YPN"
         },
         {
           "assay": "ctcf",
@@ -12133,7 +12133,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF320IPT/@@download/ENCFF320IPT.bigWig",
           "experimentAccession": "ENCSR854OXF",
-          "fileAccession": "ENCFF651XRK"
+          "fileAccession": "ENCFF320IPT"
         },
         {
           "assay": "ctcf",
@@ -12177,7 +12177,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF707MHB/@@download/ENCFF707MHB.bigWig",
           "experimentAccession": "ENCSR561VNL",
-          "fileAccession": "ENCFF869EMQ"
+          "fileAccession": "ENCFF707MHB"
         },
         {
           "assay": "ctcf",
@@ -12215,7 +12215,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF135RBK/@@download/ENCFF135RBK.bigWig",
           "experimentAccession": "ENCSR884SIF",
-          "fileAccession": "ENCFF614FJF"
+          "fileAccession": "ENCFF135RBK"
         },
         {
           "assay": "ctcf",
@@ -12293,7 +12293,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF430ZYJ/@@download/ENCFF430ZYJ.bigWig",
           "experimentAccession": "ENCSR150QXE",
-          "fileAccession": "ENCFF817RTJ"
+          "fileAccession": "ENCFF430ZYJ"
         },
         {
           "assay": "chromhmm",
@@ -12319,7 +12319,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF030MCS/@@download/ENCFF030MCS.bigWig",
           "experimentAccession": "ENCSR989PTS",
-          "fileAccession": null
+          "fileAccession": "ENCFF030MCS"
         },
         {
           "assay": "ctcf",
@@ -12352,7 +12352,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF617TKL/@@download/ENCFF617TKL.bigWig",
           "experimentAccession": "ENCSR932QRC",
-          "fileAccession": "ENCFF155GED"
+          "fileAccession": "ENCFF617TKL"
         },
         {
           "assay": "ctcf",
@@ -12411,7 +12411,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF163DHS/@@download/ENCFF163DHS.bigWig",
           "experimentAccession": "ENCSR517NSQ",
-          "fileAccession": "ENCFF955DUI"
+          "fileAccession": "ENCFF163DHS"
         },
         {
           "assay": "ctcf",
@@ -12449,7 +12449,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF111KQW/@@download/ENCFF111KQW.bigWig",
           "experimentAccession": "ENCSR419BNY",
-          "fileAccession": "ENCFF688GJM"
+          "fileAccession": "ENCFF111KQW"
         },
         {
           "assay": "ctcf",
@@ -12507,7 +12507,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF593RGX/@@download/ENCFF593RGX.bigWig",
           "experimentAccession": "ENCSR402JWL",
-          "fileAccession": "ENCFF957OYD"
+          "fileAccession": "ENCFF593RGX"
         },
         {
           "assay": "ctcf",
@@ -12539,7 +12539,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF395BUI/@@download/ENCFF395BUI.bigWig",
           "experimentAccession": "ENCSR557DFM",
-          "fileAccession": "ENCFF190UNW"
+          "fileAccession": "ENCFF395BUI"
         },
         {
           "assay": "chromhmm",
@@ -12571,7 +12571,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF406YGS/@@download/ENCFF406YGS.bigWig",
           "experimentAccession": "ENCSR240GDT",
-          "fileAccession": "ENCFF654FHZ"
+          "fileAccession": "ENCFF406YGS"
         },
         {
           "assay": "ctcf",
@@ -12625,7 +12625,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF509VVM/@@download/ENCFF509VVM.bigWig",
           "experimentAccession": "ENCSR821DYI",
-          "fileAccession": "ENCFF446ELY"
+          "fileAccession": "ENCFF509VVM"
         },
         {
           "assay": "ctcf",
@@ -12672,7 +12672,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF996ISW/@@download/ENCFF996ISW.bigWig",
           "experimentAccession": "ENCSR772ABL",
-          "fileAccession": "ENCFF428HGT"
+          "fileAccession": "ENCFF996ISW"
         },
         {
           "assay": "ctcf",
@@ -12720,7 +12720,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF316SUQ/@@download/ENCFF316SUQ.bigWig",
           "experimentAccession": "ENCSR928HSI",
-          "fileAccession": "ENCFF644MVM"
+          "fileAccession": "ENCFF316SUQ"
         }
       ]
     },
@@ -12747,7 +12747,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF378PDO/@@download/ENCFF378PDO.bigWig",
           "experimentAccession": "ENCSR370OQJ",
-          "fileAccession": "ENCFF119FKH"
+          "fileAccession": "ENCFF378PDO"
         },
         {
           "assay": "ctcf",
@@ -12780,7 +12780,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF982IVZ/@@download/ENCFF982IVZ.bigWig",
           "experimentAccession": "ENCSR342KXD",
-          "fileAccession": "ENCFF454ERF"
+          "fileAccession": "ENCFF982IVZ"
         },
         {
           "assay": "ctcf",
@@ -12885,7 +12885,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF345XIS/@@download/ENCFF345XIS.bigWig",
           "experimentAccession": "ENCSR741HEF",
-          "fileAccession": "ENCFF330KOM"
+          "fileAccession": "ENCFF345XIS"
         },
         {
           "assay": "ctcf",
@@ -12929,7 +12929,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF400FAA/@@download/ENCFF400FAA.bigWig",
           "experimentAccession": "ENCSR645MXO",
-          "fileAccession": "ENCFF663EZB"
+          "fileAccession": "ENCFF400FAA"
         },
         {
           "assay": "ctcf",
@@ -12973,7 +12973,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF346GTT/@@download/ENCFF346GTT.bigWig",
           "experimentAccession": "ENCSR174GMQ",
-          "fileAccession": "ENCFF538YZL"
+          "fileAccession": "ENCFF346GTT"
         },
         {
           "assay": "ctcf",
@@ -13011,7 +13011,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF318ILJ/@@download/ENCFF318ILJ.bigWig",
           "experimentAccession": "ENCSR839GXY",
-          "fileAccession": "ENCFF566UBC"
+          "fileAccession": "ENCFF318ILJ"
         },
         {
           "assay": "ctcf",
@@ -13043,7 +13043,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF006WQG/@@download/ENCFF006WQG.bigWig",
           "experimentAccession": "ENCSR028NXO",
-          "fileAccession": "ENCFF778FFI"
+          "fileAccession": "ENCFF006WQG"
         },
         {
           "assay": "chromhmm",
@@ -13354,7 +13354,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF885SUR/@@download/ENCFF885SUR.bigWig",
           "experimentAccession": "ENCSR000FCH",
-          "fileAccession": "ENCFF439DDQ"
+          "fileAccession": "ENCFF885SUR"
         },
         {
           "assay": "ctcf",
@@ -13402,7 +13402,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF658XKZ/@@download/ENCFF658XKZ.bigWig",
           "experimentAccession": "ENCSR000AOC",
-          "fileAccession": "ENCFF432PYK"
+          "fileAccession": "ENCFF658XKZ"
         },
         {
           "assay": "ctcf",
@@ -13692,7 +13692,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF347LDC/@@download/ENCFF347LDC.bigWig",
           "experimentAccession": "ENCSR507UDH",
-          "fileAccession": "ENCFF137IUT"
+          "fileAccession": "ENCFF347LDC"
         },
         {
           "assay": "ctcf",
@@ -13730,7 +13730,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF795ONN/@@download/ENCFF795ONN.bigWig",
           "experimentAccession": "ENCSR000AMO",
-          "fileAccession": "ENCFF732PJK"
+          "fileAccession": "ENCFF795ONN"
         },
         {
           "assay": "ctcf",
@@ -13774,7 +13774,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF426TLD/@@download/ENCFF426TLD.bigWig",
           "experimentAccession": "ENCSR510VXV",
-          "fileAccession": "ENCFF995LLA"
+          "fileAccession": "ENCFF426TLD"
         },
         {
           "assay": "ctcf",
@@ -14614,7 +14614,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF383GZA/@@download/ENCFF383GZA.bigWig",
           "experimentAccession": "ENCSR919WLM",
-          "fileAccession": "ENCFF695YII"
+          "fileAccession": "ENCFF383GZA"
         },
         {
           "assay": "ctcf",
@@ -14731,7 +14731,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF923EZY/@@download/ENCFF923EZY.bigWig",
           "experimentAccession": "ENCSR223UPC",
-          "fileAccession": "ENCFF052KDI"
+          "fileAccession": "ENCFF923EZY"
         },
         {
           "assay": "chromhmm",
@@ -14757,7 +14757,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF162YIX/@@download/ENCFF162YIX.bigWig",
           "experimentAccession": "ENCSR804MAP",
-          "fileAccession": "ENCFF672FMX"
+          "fileAccession": "ENCFF162YIX"
         },
         {
           "assay": "chromhmm",
@@ -14783,7 +14783,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF392JWG/@@download/ENCFF392JWG.bigWig",
           "experimentAccession": "ENCSR315IRO",
-          "fileAccession": "ENCFF340BGV"
+          "fileAccession": "ENCFF392JWG"
         },
         {
           "assay": "chromhmm",
@@ -14839,7 +14839,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF116HTK/@@download/ENCFF116HTK.bigWig",
           "experimentAccession": "ENCSR346UYQ",
-          "fileAccession": "ENCFF514MWD"
+          "fileAccession": "ENCFF116HTK"
         }
       ]
     },
@@ -14860,7 +14860,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF509YJB/@@download/ENCFF509YJB.bigWig",
           "experimentAccession": "ENCSR763KTE",
-          "fileAccession": "ENCFF617BRH"
+          "fileAccession": "ENCFF509YJB"
         }
       ]
     },
@@ -14881,7 +14881,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF547IQF/@@download/ENCFF547IQF.bigWig",
           "experimentAccession": "ENCSR915ISE",
-          "fileAccession": "ENCFF651MOI"
+          "fileAccession": "ENCFF547IQF"
         }
       ]
     },
@@ -14896,7 +14896,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF101AWQ/@@download/ENCFF101AWQ.bigWig",
           "experimentAccession": "ENCSR187MVB",
-          "fileAccession": null
+          "fileAccession": "ENCFF101AWQ"
         }
       ]
     },
@@ -14923,7 +14923,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF377NQI/@@download/ENCFF377NQI.bigWig",
           "experimentAccession": "ENCSR977FMZ",
-          "fileAccession": "ENCFF222VSV"
+          "fileAccession": "ENCFF377NQI"
         }
       ]
     },
@@ -14950,7 +14950,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF028QQB/@@download/ENCFF028QQB.bigWig",
           "experimentAccession": "ENCSR442OSV",
-          "fileAccession": "ENCFF698IBI"
+          "fileAccession": "ENCFF028QQB"
         }
       ]
     },
@@ -14977,7 +14977,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF463VKU/@@download/ENCFF463VKU.bigWig",
           "experimentAccession": "ENCSR747ZXN",
-          "fileAccession": "ENCFF934KNB"
+          "fileAccession": "ENCFF463VKU"
         }
       ]
     },
@@ -15004,7 +15004,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF699OAR/@@download/ENCFF699OAR.bigWig",
           "experimentAccession": "ENCSR002YRE",
-          "fileAccession": "ENCFF376ZIM"
+          "fileAccession": "ENCFF699OAR"
         },
         {
           "assay": "ctcf",
@@ -15141,7 +15141,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF071JJT/@@download/ENCFF071JJT.bigWig",
           "experimentAccession": "ENCSR429YAE",
-          "fileAccession": "ENCFF064SWK"
+          "fileAccession": "ENCFF071JJT"
         },
         {
           "assay": "chromhmm",
@@ -15182,7 +15182,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF661BET/@@download/ENCFF661BET.bigWig",
           "experimentAccession": "ENCSR729GQT",
-          "fileAccession": "ENCFF545ONK"
+          "fileAccession": "ENCFF661BET"
         },
         {
           "assay": "chromhmm",
@@ -15214,7 +15214,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF236ILC/@@download/ENCFF236ILC.bigWig",
           "experimentAccession": "ENCSR505OPZ",
-          "fileAccession": "ENCFF363NMD"
+          "fileAccession": "ENCFF236ILC"
         },
         {
           "assay": "chromhmm",
@@ -15276,7 +15276,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF206AKV/@@download/ENCFF206AKV.bigWig",
           "experimentAccession": "ENCSR875QDS",
-          "fileAccession": "ENCFF368YTZ"
+          "fileAccession": "ENCFF206AKV"
         },
         {
           "assay": "chromhmm",
@@ -15440,7 +15440,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF849TDM/@@download/ENCFF849TDM.bigWig",
           "experimentAccession": "ENCSR000AKP",
-          "fileAccession": "ENCFF806YEZ"
+          "fileAccession": "ENCFF849TDM"
         },
         {
           "assay": "ctcf",
@@ -16429,7 +16429,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF192JYE/@@download/ENCFF192JYE.bigWig",
           "experimentAccession": "ENCSR660IQS",
-          "fileAccession": "ENCFF118UUV"
+          "fileAccession": "ENCFF192JYE"
         },
         {
           "assay": "chromhmm",
@@ -16476,7 +16476,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF443TJZ/@@download/ENCFF443TJZ.bigWig",
           "experimentAccession": "ENCSR000ALK",
-          "fileAccession": "ENCFF719EBT"
+          "fileAccession": "ENCFF443TJZ"
         },
         {
           "assay": "ctcf",
@@ -16766,7 +16766,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF354FYC/@@download/ENCFF354FYC.bigWig",
           "experimentAccession": "ENCSR438SPO",
-          "fileAccession": "ENCFF929KNV"
+          "fileAccession": "ENCFF354FYC"
         }
       ]
     },
@@ -16787,7 +16787,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF499ZEJ/@@download/ENCFF499ZEJ.bigWig",
           "experimentAccession": "ENCSR230BWN",
-          "fileAccession": "ENCFF729ZPF"
+          "fileAccession": "ENCFF499ZEJ"
         }
       ]
     },
@@ -16883,7 +16883,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF778FKR/@@download/ENCFF778FKR.bigWig",
           "experimentAccession": "ENCSR955IXZ",
-          "fileAccession": "ENCFF477PME"
+          "fileAccession": "ENCFF778FKR"
         },
         {
           "assay": "ctcf",
@@ -16904,7 +16904,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF625VJJ/@@download/ENCFF625VJJ.bigWig",
           "experimentAccession": "ENCSR719FEJ",
-          "fileAccession": null
+          "fileAccession": "ENCFF625VJJ"
         }
       ]
     },
@@ -17105,7 +17105,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF199GYV/@@download/ENCFF199GYV.bigWig",
           "experimentAccession": "ENCSR659RHV",
-          "fileAccession": "ENCFF839JMI"
+          "fileAccession": "ENCFF199GYV"
         },
         {
           "assay": "chromhmm",
@@ -17191,7 +17191,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF955MQX/@@download/ENCFF955MQX.bigWig",
           "experimentAccession": "ENCSR123HEE",
-          "fileAccession": "ENCFF838MXD"
+          "fileAccession": "ENCFF955MQX"
         },
         {
           "assay": "chromhmm",
@@ -17217,7 +17217,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF095QCF/@@download/ENCFF095QCF.bigWig",
           "experimentAccession": "ENCSR321LKT",
-          "fileAccession": "ENCFF231KHQ"
+          "fileAccession": "ENCFF095QCF"
         },
         {
           "assay": "chromhmm",
@@ -17243,7 +17243,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF465FOA/@@download/ENCFF465FOA.bigWig",
           "experimentAccession": "ENCSR912TVO",
-          "fileAccession": "ENCFF114PLO"
+          "fileAccession": "ENCFF465FOA"
         },
         {
           "assay": "chromhmm",
@@ -17581,7 +17581,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF397ZHX/@@download/ENCFF397ZHX.bigWig",
           "experimentAccession": "ENCSR510RPC",
-          "fileAccession": "ENCFF642TNR"
+          "fileAccession": "ENCFF397ZHX"
         },
         {
           "assay": "ctcf",
@@ -17730,7 +17730,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF441OEQ/@@download/ENCFF441OEQ.bigWig",
           "experimentAccession": "ENCSR494WCX",
-          "fileAccession": "ENCFF973MQG"
+          "fileAccession": "ENCFF441OEQ"
         },
         {
           "assay": "ctcf",
@@ -17978,7 +17978,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF960KLD/@@download/ENCFF960KLD.bigWig",
           "experimentAccession": "ENCSR165CDY",
-          "fileAccession": "ENCFF237QAL"
+          "fileAccession": "ENCFF960KLD"
         },
         {
           "assay": "ctcf",
@@ -18091,7 +18091,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF853WPX/@@download/ENCFF853WPX.bigWig",
           "experimentAccession": "ENCSR678LND",
-          "fileAccession": "ENCFF280QYJ"
+          "fileAccession": "ENCFF853WPX"
         },
         {
           "assay": "chromhmm",
@@ -18147,7 +18147,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF275OLK/@@download/ENCFF275OLK.bigWig",
           "experimentAccession": "ENCSR230IMS",
-          "fileAccession": "ENCFF053IVC"
+          "fileAccession": "ENCFF275OLK"
         },
         {
           "assay": "chromhmm",
@@ -18386,7 +18386,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF375YPQ/@@download/ENCFF375YPQ.bigWig",
           "experimentAccession": "ENCSR313CEH",
-          "fileAccession": "ENCFF902HIA"
+          "fileAccession": "ENCFF375YPQ"
         },
         {
           "assay": "ctcf",
@@ -18439,7 +18439,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF504NPN/@@download/ENCFF504NPN.bigWig",
           "experimentAccession": "ENCSR875OQJ",
-          "fileAccession": "ENCFF032IZZ"
+          "fileAccession": "ENCFF504NPN"
         },
         {
           "assay": "ctcf",
@@ -18614,7 +18614,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF155XCD/@@download/ENCFF155XCD.bigWig",
           "experimentAccession": "ENCSR540ADS",
-          "fileAccession": "ENCFF050YYY"
+          "fileAccession": "ENCFF155XCD"
         },
         {
           "assay": "chromhmm",
@@ -18757,7 +18757,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF900HNB/@@download/ENCFF900HNB.bigWig",
           "experimentAccession": "ENCSR550WUX",
-          "fileAccession": "ENCFF022TOZ"
+          "fileAccession": "ENCFF900HNB"
         }
       ]
     },
@@ -18874,7 +18874,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF425YUM/@@download/ENCFF425YUM.bigWig",
           "experimentAccession": "ENCSR000ALW",
-          "fileAccession": "ENCFF009GAZ"
+          "fileAccession": "ENCFF425YUM"
         },
         {
           "assay": "ctcf",
@@ -18939,7 +18939,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF282YCX/@@download/ENCFF282YCX.bigWig",
           "experimentAccession": "ENCSR685JSL",
-          "fileAccession": "ENCFF121TKD"
+          "fileAccession": "ENCFF282YCX"
         }
       ]
     },
@@ -18996,7 +18996,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF063VLJ/@@download/ENCFF063VLJ.bigWig",
           "experimentAccession": "ENCSR752UOD",
-          "fileAccession": "ENCFF935BFQ"
+          "fileAccession": "ENCFF063VLJ"
         },
         {
           "assay": "ctcf",
@@ -19130,7 +19130,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF228CYK/@@download/ENCFF228CYK.bigWig",
           "experimentAccession": "ENCSR886LDA",
-          "fileAccession": "ENCFF165CYH"
+          "fileAccession": "ENCFF228CYK"
         },
         {
           "assay": "atac",
@@ -19178,7 +19178,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF160ZUW/@@download/ENCFF160ZUW.bigWig",
           "experimentAccession": "ENCSR013KEC",
-          "fileAccession": "ENCFF414WEV"
+          "fileAccession": "ENCFF160ZUW"
         },
         {
           "assay": "chromhmm",
@@ -19210,7 +19210,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF052XMR/@@download/ENCFF052XMR.bigWig",
           "experimentAccession": "ENCSR473PNT",
-          "fileAccession": "ENCFF832ZCY"
+          "fileAccession": "ENCFF052XMR"
         }
       ]
     },
@@ -19282,7 +19282,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF376TDW/@@download/ENCFF376TDW.bigWig",
           "experimentAccession": "ENCSR931WLE",
-          "fileAccession": "ENCFF166WND"
+          "fileAccession": "ENCFF376TDW"
         }
       ]
     },
@@ -19309,7 +19309,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF109WCV/@@download/ENCFF109WCV.bigWig",
           "experimentAccession": "ENCSR432LMR",
-          "fileAccession": "ENCFF712FDJ"
+          "fileAccession": "ENCFF109WCV"
         },
         {
           "assay": "ctcf",
@@ -19372,7 +19372,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF950IOX/@@download/ENCFF950IOX.bigWig",
           "experimentAccession": "ENCSR016XBE",
-          "fileAccession": "ENCFF576TRI"
+          "fileAccession": "ENCFF950IOX"
         }
       ]
     },
@@ -19399,7 +19399,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF014NIB/@@download/ENCFF014NIB.bigWig",
           "experimentAccession": "ENCSR461GYN",
-          "fileAccession": "ENCFF298AQY"
+          "fileAccession": "ENCFF014NIB"
         },
         {
           "assay": "ctcf",
@@ -19432,7 +19432,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF909JLH/@@download/ENCFF909JLH.bigWig",
           "experimentAccession": "ENCSR278JAH",
-          "fileAccession": "ENCFF711EZK"
+          "fileAccession": "ENCFF909JLH"
         },
         {
           "assay": "ctcf",
@@ -19465,7 +19465,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF962GLK/@@download/ENCFF962GLK.bigWig",
           "experimentAccession": "ENCSR987FAM",
-          "fileAccession": "ENCFF616FVZ"
+          "fileAccession": "ENCFF962GLK"
         },
         {
           "assay": "ctcf",
@@ -19513,7 +19513,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF398ITJ/@@download/ENCFF398ITJ.bigWig",
           "experimentAccession": "ENCSR438KQU",
-          "fileAccession": "ENCFF261GPQ"
+          "fileAccession": "ENCFF398ITJ"
         },
         {
           "assay": "ctcf",
@@ -19546,7 +19546,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF156GJU/@@download/ENCFF156GJU.bigWig",
           "experimentAccession": "ENCSR011BHU",
-          "fileAccession": "ENCFF062WLH"
+          "fileAccession": "ENCFF156GJU"
         },
         {
           "assay": "ctcf",
@@ -19579,7 +19579,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF224JSW/@@download/ENCFF224JSW.bigWig",
           "experimentAccession": "ENCSR597RXN",
-          "fileAccession": "ENCFF981HHV"
+          "fileAccession": "ENCFF224JSW"
         },
         {
           "assay": "ctcf",
@@ -19612,7 +19612,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF489BZS/@@download/ENCFF489BZS.bigWig",
           "experimentAccession": "ENCSR004YQD",
-          "fileAccession": "ENCFF562LUZ"
+          "fileAccession": "ENCFF489BZS"
         },
         {
           "assay": "ctcf",
@@ -19645,7 +19645,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF371ZKC/@@download/ENCFF371ZKC.bigWig",
           "experimentAccession": "ENCSR344PHP",
-          "fileAccession": "ENCFF198NDW"
+          "fileAccession": "ENCFF371ZKC"
         },
         {
           "assay": "ctcf",
@@ -19678,7 +19678,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF986LOD/@@download/ENCFF986LOD.bigWig",
           "experimentAccession": "ENCSR220TRW",
-          "fileAccession": "ENCFF617PMJ"
+          "fileAccession": "ENCFF986LOD"
         },
         {
           "assay": "ctcf",
@@ -19711,7 +19711,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF703DMY/@@download/ENCFF703DMY.bigWig",
           "experimentAccession": "ENCSR860TEJ",
-          "fileAccession": "ENCFF679AWS"
+          "fileAccession": "ENCFF703DMY"
         },
         {
           "assay": "ctcf",
@@ -19759,7 +19759,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF649LLS/@@download/ENCFF649LLS.bigWig",
           "experimentAccession": "ENCSR004HIE",
-          "fileAccession": "ENCFF353SJI"
+          "fileAccession": "ENCFF649LLS"
         },
         {
           "assay": "ctcf",
@@ -19792,7 +19792,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF694XDN/@@download/ENCFF694XDN.bigWig",
           "experimentAccession": "ENCSR138TQF",
-          "fileAccession": "ENCFF871ZNR"
+          "fileAccession": "ENCFF694XDN"
         },
         {
           "assay": "ctcf",
@@ -19825,7 +19825,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF519CLG/@@download/ENCFF519CLG.bigWig",
           "experimentAccession": "ENCSR520KVD",
-          "fileAccession": "ENCFF834IHE"
+          "fileAccession": "ENCFF519CLG"
         },
         {
           "assay": "ctcf",
@@ -19873,7 +19873,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF242WZH/@@download/ENCFF242WZH.bigWig",
           "experimentAccession": "ENCSR495HIT",
-          "fileAccession": "ENCFF752DGV"
+          "fileAccession": "ENCFF242WZH"
         },
         {
           "assay": "ctcf",
@@ -19906,7 +19906,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF973ZFT/@@download/ENCFF973ZFT.bigWig",
           "experimentAccession": "ENCSR025KPY",
-          "fileAccession": "ENCFF713LKP"
+          "fileAccession": "ENCFF973ZFT"
         },
         {
           "assay": "ctcf",
@@ -19933,7 +19933,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF256VRG/@@download/ENCFF256VRG.bigWig",
           "experimentAccession": "ENCSR195CFR",
-          "fileAccession": "ENCFF084JUK"
+          "fileAccession": "ENCFF256VRG"
         },
         {
           "assay": "chromhmm",
@@ -19965,7 +19965,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF272DJL/@@download/ENCFF272DJL.bigWig",
           "experimentAccession": "ENCSR814KSK",
-          "fileAccession": "ENCFF546VCE"
+          "fileAccession": "ENCFF272DJL"
         },
         {
           "assay": "ctcf",
@@ -19998,7 +19998,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF942YRH/@@download/ENCFF942YRH.bigWig",
           "experimentAccession": "ENCSR532SRK",
-          "fileAccession": "ENCFF352MMI"
+          "fileAccession": "ENCFF942YRH"
         },
         {
           "assay": "ctcf",
@@ -20031,7 +20031,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF156YTC/@@download/ENCFF156YTC.bigWig",
           "experimentAccession": "ENCSR581KPP",
-          "fileAccession": "ENCFF730XOV"
+          "fileAccession": "ENCFF156YTC"
         },
         {
           "assay": "ctcf",
@@ -20064,7 +20064,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF646KVN/@@download/ENCFF646KVN.bigWig",
           "experimentAccession": "ENCSR554HDT",
-          "fileAccession": "ENCFF580GFO"
+          "fileAccession": "ENCFF646KVN"
         },
         {
           "assay": "ctcf",
@@ -20097,7 +20097,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF943HGP/@@download/ENCFF943HGP.bigWig",
           "experimentAccession": "ENCSR641QPH",
-          "fileAccession": "ENCFF557GVR"
+          "fileAccession": "ENCFF943HGP"
         },
         {
           "assay": "ctcf",
@@ -20130,7 +20130,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF658QWN/@@download/ENCFF658QWN.bigWig",
           "experimentAccession": "ENCSR555HJT",
-          "fileAccession": "ENCFF732JQY"
+          "fileAccession": "ENCFF658QWN"
         },
         {
           "assay": "ctcf",
@@ -20193,7 +20193,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF481LLD/@@download/ENCFF481LLD.bigWig",
           "experimentAccession": "ENCSR758OEC",
-          "fileAccession": "ENCFF970LMB"
+          "fileAccession": "ENCFF481LLD"
         },
         {
           "assay": "ctcf",
@@ -20330,7 +20330,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF907XXC/@@download/ENCFF907XXC.bigWig",
           "experimentAccession": "ENCSR305ISQ",
-          "fileAccession": "ENCFF120TOC"
+          "fileAccession": "ENCFF907XXC"
         },
         {
           "assay": "chromhmm",
@@ -20356,7 +20356,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF705FGY/@@download/ENCFF705FGY.bigWig",
           "experimentAccession": "ENCSR447OHF",
-          "fileAccession": "ENCFF370MEL"
+          "fileAccession": "ENCFF705FGY"
         },
         {
           "assay": "chromhmm",
@@ -20412,7 +20412,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF870HKK/@@download/ENCFF870HKK.bigWig",
           "experimentAccession": "ENCSR004EKY",
-          "fileAccession": "ENCFF631LYE"
+          "fileAccession": "ENCFF870HKK"
         }
       ]
     },
@@ -20448,7 +20448,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF106ZZM/@@download/ENCFF106ZZM.bigWig",
           "experimentAccession": "ENCSR694RCH",
-          "fileAccession": "ENCFF910MXI"
+          "fileAccession": "ENCFF106ZZM"
         },
         {
           "assay": "chromhmm",
@@ -20984,7 +20984,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF420RNX/@@download/ENCFF420RNX.bigWig",
           "experimentAccession": "ENCSR687ZCM",
-          "fileAccession": "ENCFF320PWH"
+          "fileAccession": "ENCFF420RNX"
         },
         {
           "assay": "chromhmm",
@@ -21205,7 +21205,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF124NOK/@@download/ENCFF124NOK.bigWig",
           "experimentAccession": "ENCSR775FTU",
-          "fileAccession": "ENCFF581DIL"
+          "fileAccession": "ENCFF124NOK"
         },
         {
           "assay": "chromhmm",
@@ -21321,7 +21321,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF532FVC/@@download/ENCFF532FVC.bigWig",
           "experimentAccession": "ENCSR000ANV",
-          "fileAccession": "ENCFF127SRZ"
+          "fileAccession": "ENCFF532FVC"
         },
         {
           "assay": "ctcf",
@@ -21374,7 +21374,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF626IVN/@@download/ENCFF626IVN.bigWig",
           "experimentAccession": "ENCSR910RFG",
-          "fileAccession": "ENCFF748EFD"
+          "fileAccession": "ENCFF626IVN"
         }
       ]
     },
@@ -21395,7 +21395,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF202XZK/@@download/ENCFF202XZK.bigWig",
           "experimentAccession": "ENCSR141MKN",
-          "fileAccession": "ENCFF221BVQ"
+          "fileAccession": "ENCFF202XZK"
         }
       ]
     },
@@ -21422,7 +21422,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF464STM/@@download/ENCFF464STM.bigWig",
           "experimentAccession": "ENCSR440ZMH",
-          "fileAccession": "ENCFF692PQC"
+          "fileAccession": "ENCFF464STM"
         }
       ]
     },
@@ -21449,7 +21449,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF926THG/@@download/ENCFF926THG.bigWig",
           "experimentAccession": "ENCSR040ZML",
-          "fileAccession": "ENCFF837WOY"
+          "fileAccession": "ENCFF926THG"
         },
         {
           "assay": "atac",
@@ -21482,7 +21482,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF901BFR/@@download/ENCFF901BFR.bigWig",
           "experimentAccession": "ENCSR660EVU",
-          "fileAccession": "ENCFF067FAK"
+          "fileAccession": "ENCFF901BFR"
         },
         {
           "assay": "atac",
@@ -21524,7 +21524,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF902LSI/@@download/ENCFF902LSI.bigWig",
           "experimentAccession": "ENCSR674VPA",
-          "fileAccession": "ENCFF134OLO"
+          "fileAccession": "ENCFF902LSI"
         },
         {
           "assay": "chromhmm",
@@ -21559,7 +21559,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF599VAD/@@download/ENCFF599VAD.bigWig",
           "experimentAccession": "ENCSR120WKZ",
-          "fileAccession": null
+          "fileAccession": "ENCFF599VAD"
         },
         {
           "assay": "chromhmm",
@@ -21591,7 +21591,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF932GWQ/@@download/ENCFF932GWQ.bigWig",
           "experimentAccession": "ENCSR185TFI",
-          "fileAccession": "ENCFF766SYL"
+          "fileAccession": "ENCFF932GWQ"
         }
       ]
     },
@@ -21638,7 +21638,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF170RKK/@@download/ENCFF170RKK.bigWig",
           "experimentAccession": "ENCSR142VGG",
-          "fileAccession": "ENCFF095LZE"
+          "fileAccession": "ENCFF170RKK"
         }
       ]
     },
@@ -21665,7 +21665,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF467TIK/@@download/ENCFF467TIK.bigWig",
           "experimentAccession": "ENCSR507CIJ",
-          "fileAccession": "ENCFF691SRQ"
+          "fileAccession": "ENCFF467TIK"
         }
       ]
     },
@@ -21752,7 +21752,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF926THY/@@download/ENCFF926THY.bigWig",
           "experimentAccession": "ENCSR979YHL",
-          "fileAccession": "ENCFF689AWS"
+          "fileAccession": "ENCFF926THY"
         }
       ]
     },
@@ -21773,7 +21773,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF639YOF/@@download/ENCFF639YOF.bigWig",
           "experimentAccession": "ENCSR259FEJ",
-          "fileAccession": "ENCFF816CVK"
+          "fileAccession": "ENCFF639YOF"
         }
       ]
     },
@@ -21794,7 +21794,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF116PKI/@@download/ENCFF116PKI.bigWig",
           "experimentAccession": "ENCSR324IEM",
-          "fileAccession": "ENCFF543UQM"
+          "fileAccession": "ENCFF116PKI"
         }
       ]
     },
@@ -21821,7 +21821,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF436NYF/@@download/ENCFF436NYF.bigWig",
           "experimentAccession": "ENCSR384AIT",
-          "fileAccession": "ENCFF219MXS"
+          "fileAccession": "ENCFF436NYF"
         }
       ]
     },
@@ -21848,7 +21848,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF556OOW/@@download/ENCFF556OOW.bigWig",
           "experimentAccession": "ENCSR787ZCK",
-          "fileAccession": "ENCFF526YYM"
+          "fileAccession": "ENCFF556OOW"
         }
       ]
     },
@@ -21875,7 +21875,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF757ACV/@@download/ENCFF757ACV.bigWig",
           "experimentAccession": "ENCSR082DLA",
-          "fileAccession": "ENCFF881YDJ"
+          "fileAccession": "ENCFF757ACV"
         },
         {
           "assay": "atac",
@@ -21896,7 +21896,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF848KXX/@@download/ENCFF848KXX.bigWig",
           "experimentAccession": "ENCSR570IJX",
-          "fileAccession": null
+          "fileAccession": "ENCFF848KXX"
         }
       ]
     },
@@ -21923,7 +21923,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF926KJX/@@download/ENCFF926KJX.bigWig",
           "experimentAccession": "ENCSR845VVI",
-          "fileAccession": "ENCFF191RTJ"
+          "fileAccession": "ENCFF926KJX"
         }
       ]
     },
@@ -21950,7 +21950,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF724WVZ/@@download/ENCFF724WVZ.bigWig",
           "experimentAccession": "ENCSR005BTU",
-          "fileAccession": "ENCFF373EXM"
+          "fileAccession": "ENCFF724WVZ"
         }
       ]
     },
@@ -21971,7 +21971,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF104SXO/@@download/ENCFF104SXO.bigWig",
           "experimentAccession": "ENCSR446PXV",
-          "fileAccession": "ENCFF447SLB"
+          "fileAccession": "ENCFF104SXO"
         }
       ]
     },
@@ -21992,7 +21992,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF797TAU/@@download/ENCFF797TAU.bigWig",
           "experimentAccession": "ENCSR052KGC",
-          "fileAccession": "ENCFF206QOX"
+          "fileAccession": "ENCFF797TAU"
         }
       ]
     },
@@ -22034,7 +22034,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF721OCD/@@download/ENCFF721OCD.bigWig",
           "experimentAccession": "ENCSR709GBY",
-          "fileAccession": "ENCFF730FHG"
+          "fileAccession": "ENCFF721OCD"
         }
       ]
     },
@@ -22076,7 +22076,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF616UIE/@@download/ENCFF616UIE.bigWig",
           "experimentAccession": "ENCSR797POI",
-          "fileAccession": "ENCFF274VIH"
+          "fileAccession": "ENCFF616UIE"
         }
       ]
     },
@@ -22103,7 +22103,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF697SJL/@@download/ENCFF697SJL.bigWig",
           "experimentAccession": "ENCSR684GKG",
-          "fileAccession": "ENCFF766SOD"
+          "fileAccession": "ENCFF697SJL"
         },
         {
           "assay": "atac",
@@ -22136,7 +22136,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF665JYB/@@download/ENCFF665JYB.bigWig",
           "experimentAccession": "ENCSR540MGS",
-          "fileAccession": "ENCFF088GSF"
+          "fileAccession": "ENCFF665JYB"
         },
         {
           "assay": "atac",
@@ -22244,7 +22244,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF956EMA/@@download/ENCFF956EMA.bigWig",
           "experimentAccession": "ENCSR701GXD",
-          "fileAccession": "ENCFF029NUW"
+          "fileAccession": "ENCFF956EMA"
         },
         {
           "assay": "atac",
@@ -22286,7 +22286,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF447DVQ/@@download/ENCFF447DVQ.bigWig",
           "experimentAccession": "ENCSR525MZF",
-          "fileAccession": "ENCFF408GEO"
+          "fileAccession": "ENCFF447DVQ"
         }
       ]
     },
@@ -22343,7 +22343,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF802MJK/@@download/ENCFF802MJK.bigWig",
           "experimentAccession": "ENCSR067KOO",
-          "fileAccession": "ENCFF070QLD"
+          "fileAccession": "ENCFF802MJK"
         },
         {
           "assay": "atac",
@@ -22376,7 +22376,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF608XPJ/@@download/ENCFF608XPJ.bigWig",
           "experimentAccession": "ENCSR391EQV",
-          "fileAccession": "ENCFF077KMI"
+          "fileAccession": "ENCFF608XPJ"
         }
       ]
     },
@@ -22433,7 +22433,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF240ZJY/@@download/ENCFF240ZJY.bigWig",
           "experimentAccession": "ENCSR936OPP",
-          "fileAccession": "ENCFF207RGC"
+          "fileAccession": "ENCFF240ZJY"
         }
       ]
     },
@@ -22517,7 +22517,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF900UMO/@@download/ENCFF900UMO.bigWig",
           "experimentAccession": "ENCSR368CYW",
-          "fileAccession": "ENCFF684UUJ"
+          "fileAccession": "ENCFF900UMO"
         },
         {
           "assay": "ctcf",
@@ -22550,7 +22550,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF804XRL/@@download/ENCFF804XRL.bigWig",
           "experimentAccession": "ENCSR007ZSS",
-          "fileAccession": "ENCFF550VYP"
+          "fileAccession": "ENCFF804XRL"
         },
         {
           "assay": "ctcf",
@@ -22577,7 +22577,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF099ERT/@@download/ENCFF099ERT.bigWig",
           "experimentAccession": "ENCSR283SJF",
-          "fileAccession": "ENCFF726YJF"
+          "fileAccession": "ENCFF099ERT"
         },
         {
           "assay": "ctcf",
@@ -22604,7 +22604,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF174GYF/@@download/ENCFF174GYF.bigWig",
           "experimentAccession": "ENCSR519AVF",
-          "fileAccession": "ENCFF229RJS"
+          "fileAccession": "ENCFF174GYF"
         },
         {
           "assay": "ctcf",
@@ -22631,7 +22631,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF956JBC/@@download/ENCFF956JBC.bigWig",
           "experimentAccession": "ENCSR450CSM",
-          "fileAccession": "ENCFF019OYK"
+          "fileAccession": "ENCFF956JBC"
         },
         {
           "assay": "ctcf",
@@ -22673,7 +22673,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF192ADT/@@download/ENCFF192ADT.bigWig",
           "experimentAccession": "ENCSR124VOE",
-          "fileAccession": "ENCFF596SGE"
+          "fileAccession": "ENCFF192ADT"
         },
         {
           "assay": "ctcf",
@@ -22706,7 +22706,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF346DEM/@@download/ENCFF346DEM.bigWig",
           "experimentAccession": "ENCSR685HSP",
-          "fileAccession": "NA"
+          "fileAccession": "ENCFF346DEM"
         },
         {
           "assay": "ctcf",
@@ -22733,7 +22733,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF630UZH/@@download/ENCFF630UZH.bigWig",
           "experimentAccession": "ENCSR211MKD",
-          "fileAccession": "ENCFF034NYB"
+          "fileAccession": "ENCFF630UZH"
         },
         {
           "assay": "ctcf",
@@ -22766,7 +22766,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF618RAO/@@download/ENCFF618RAO.bigWig",
           "experimentAccession": "ENCSR449AXO",
-          "fileAccession": "ENCFF835JIA"
+          "fileAccession": "ENCFF618RAO"
         },
         {
           "assay": "ctcf",
@@ -22798,7 +22798,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF127GNC/@@download/ENCFF127GNC.bigWig",
           "experimentAccession": "ENCSR842NGQ",
-          "fileAccession": "ENCFF633ZGH"
+          "fileAccession": "ENCFF127GNC"
         }
       ]
     },
@@ -22825,7 +22825,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF110SOE/@@download/ENCFF110SOE.bigWig",
           "experimentAccession": "ENCSR799SRL",
-          "fileAccession": "ENCFF872FDO"
+          "fileAccession": "ENCFF110SOE"
         },
         {
           "assay": "chromhmm",
@@ -22896,7 +22896,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF177VFG/@@download/ENCFF177VFG.bigWig",
           "experimentAccession": "ENCSR379WXM",
-          "fileAccession": "ENCFF191YWL"
+          "fileAccession": "ENCFF177VFG"
         },
         {
           "assay": "chromhmm",
@@ -22967,7 +22967,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF311TAY/@@download/ENCFF311TAY.bigWig",
           "experimentAccession": "ENCSR267YXV",
-          "fileAccession": null
+          "fileAccession": "ENCFF311TAY"
         }
       ]
     },
@@ -23054,7 +23054,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF895AAJ/@@download/ENCFF895AAJ.bigWig",
           "experimentAccession": "ENCSR597UDW",
-          "fileAccession": "ENCFF422ACL"
+          "fileAccession": "ENCFF895AAJ"
         },
         {
           "assay": "ctcf",
@@ -23086,7 +23086,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF668LGR/@@download/ENCFF668LGR.bigWig",
           "experimentAccession": "ENCSR857GMX",
-          "fileAccession": "ENCFF024WWN"
+          "fileAccession": "ENCFF668LGR"
         },
         {
           "assay": "ctcf",
@@ -23124,7 +23124,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF611XLA/@@download/ENCFF611XLA.bigWig",
           "experimentAccession": "ENCSR447ZGY",
-          "fileAccession": "ENCFF630BQS"
+          "fileAccession": "ENCFF611XLA"
         },
         {
           "assay": "ctcf",
@@ -23223,7 +23223,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF103MXT/@@download/ENCFF103MXT.bigWig",
           "experimentAccession": "ENCSR000APH",
-          "fileAccession": null
+          "fileAccession": "ENCFF103MXT"
         },
         {
           "assay": "ctcf",
@@ -23276,7 +23276,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF441MGU/@@download/ENCFF441MGU.bigWig",
           "experimentAccession": "ENCSR479IAH",
-          "fileAccession": "ENCFF582GHH"
+          "fileAccession": "ENCFF441MGU"
         },
         {
           "assay": "ctcf",
@@ -23309,7 +23309,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF083NUK/@@download/ENCFF083NUK.bigWig",
           "experimentAccession": "ENCSR268JQE",
-          "fileAccession": "ENCFF942ORX"
+          "fileAccession": "ENCFF083NUK"
         },
         {
           "assay": "chromhmm",
@@ -23392,7 +23392,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF920RTP/@@download/ENCFF920RTP.bigWig",
           "experimentAccession": "ENCSR242AHB",
-          "fileAccession": null
+          "fileAccession": "ENCFF920RTP"
         },
         {
           "assay": "ctcf",
@@ -23515,7 +23515,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF493AZX/@@download/ENCFF493AZX.bigWig",
           "experimentAccession": "ENCSR000EXK",
-          "fileAccession": "ENCFF756NMQ"
+          "fileAccession": "ENCFF493AZX"
         },
         {
           "assay": "ctcf",
@@ -23559,7 +23559,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF907EJV/@@download/ENCFF907EJV.bigWig",
           "experimentAccession": "ENCSR402HFW",
-          "fileAccession": "ENCFF036WJV"
+          "fileAccession": "ENCFF907EJV"
         },
         {
           "assay": "chromhmm",
@@ -23591,7 +23591,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF859IVY/@@download/ENCFF859IVY.bigWig",
           "experimentAccession": "ENCSR137ZID",
-          "fileAccession": "ENCFF236JWD"
+          "fileAccession": "ENCFF859IVY"
         },
         {
           "assay": "ctcf",
@@ -23656,7 +23656,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF306RJQ/@@download/ENCFF306RJQ.bigWig",
           "experimentAccession": "ENCSR868ZOR",
-          "fileAccession": "ENCFF083ENU"
+          "fileAccession": "ENCFF306RJQ"
         },
         {
           "assay": "ctcf",
@@ -23700,7 +23700,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF948MEI/@@download/ENCFF948MEI.bigWig",
           "experimentAccession": "ENCSR245GEV",
-          "fileAccession": "ENCFF682UWZ"
+          "fileAccession": "ENCFF948MEI"
         },
         {
           "assay": "ctcf",
@@ -23744,7 +23744,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF827CBM/@@download/ENCFF827CBM.bigWig",
           "experimentAccession": "ENCSR029SIG",
-          "fileAccession": "ENCFF849YNY"
+          "fileAccession": "ENCFF827CBM"
         },
         {
           "assay": "ctcf",
@@ -23798,7 +23798,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF641QSU/@@download/ENCFF641QSU.bigWig",
           "experimentAccession": "ENCSR612BWE",
-          "fileAccession": "ENCFF317PKP"
+          "fileAccession": "ENCFF641QSU"
         },
         {
           "assay": "chromhmm",
@@ -23839,7 +23839,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF707OIS/@@download/ENCFF707OIS.bigWig",
           "experimentAccession": "ENCSR735SLW",
-          "fileAccession": "ENCFF673DXP"
+          "fileAccession": "ENCFF707OIS"
         },
         {
           "assay": "ctcf",
@@ -23865,7 +23865,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF386EOX/@@download/ENCFF386EOX.bigWig",
           "experimentAccession": "ENCSR034RQV",
-          "fileAccession": null
+          "fileAccession": "ENCFF386EOX"
         },
         {
           "assay": "ctcf",
@@ -23898,7 +23898,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF537PUA/@@download/ENCFF537PUA.bigWig",
           "experimentAccession": "ENCSR826UTD",
-          "fileAccession": "ENCFF319OET"
+          "fileAccession": "ENCFF537PUA"
         },
         {
           "assay": "ctcf",
@@ -23942,7 +23942,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF907RYE/@@download/ENCFF907RYE.bigWig",
           "experimentAccession": "ENCSR769FOC",
-          "fileAccession": "ENCFF465MDM"
+          "fileAccession": "ENCFF907RYE"
         },
         {
           "assay": "ctcf",
@@ -23969,7 +23969,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF518PSI/@@download/ENCFF518PSI.bigWig",
           "experimentAccession": "ENCSR156XNC",
-          "fileAccession": "ENCFF588KRS"
+          "fileAccession": "ENCFF518PSI"
         }
       ]
     },
@@ -24005,7 +24005,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF093NHZ/@@download/ENCFF093NHZ.bigWig",
           "experimentAccession": "ENCSR615HXA",
-          "fileAccession": "ENCFF677KJI"
+          "fileAccession": "ENCFF093NHZ"
         },
         {
           "assay": "chromhmm",
@@ -24031,7 +24031,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF646TTB/@@download/ENCFF646TTB.bigWig",
           "experimentAccession": "ENCSR105EMQ",
-          "fileAccession": "ENCFF986YFL"
+          "fileAccession": "ENCFF646TTB"
         },
         {
           "assay": "chromhmm",
@@ -24063,7 +24063,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF525KQP/@@download/ENCFF525KQP.bigWig",
           "experimentAccession": "ENCSR249IKQ",
-          "fileAccession": "ENCFF474VCQ"
+          "fileAccession": "ENCFF525KQP"
         },
         {
           "assay": "ctcf",
@@ -24096,7 +24096,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF302XLU/@@download/ENCFF302XLU.bigWig",
           "experimentAccession": "ENCSR837SGJ",
-          "fileAccession": "ENCFF675KIN"
+          "fileAccession": "ENCFF302XLU"
         },
         {
           "assay": "ctcf",
@@ -24140,7 +24140,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF249ILQ/@@download/ENCFF249ILQ.bigWig",
           "experimentAccession": "ENCSR440PMP",
-          "fileAccession": "ENCFF996ZNX"
+          "fileAccession": "ENCFF249ILQ"
         },
         {
           "assay": "ctcf",
@@ -24178,7 +24178,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF485RWJ/@@download/ENCFF485RWJ.bigWig",
           "experimentAccession": "ENCSR758KRK",
-          "fileAccession": "ENCFF305GQX"
+          "fileAccession": "ENCFF485RWJ"
         },
         {
           "assay": "ctcf",
@@ -24210,7 +24210,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF918JSW/@@download/ENCFF918JSW.bigWig",
           "experimentAccession": "ENCSR526RGE",
-          "fileAccession": "ENCFF174HPH"
+          "fileAccession": "ENCFF918JSW"
         },
         {
           "assay": "chromhmm",
@@ -24236,7 +24236,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF072GBE/@@download/ENCFF072GBE.bigWig",
           "experimentAccession": "ENCSR066GUY",
-          "fileAccession": "ENCFF137PGF"
+          "fileAccession": "ENCFF072GBE"
         }
       ]
     },
@@ -24272,7 +24272,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF888PXY/@@download/ENCFF888PXY.bigWig",
           "experimentAccession": "ENCSR028QEA",
-          "fileAccession": "ENCFF954NRC"
+          "fileAccession": "ENCFF888PXY"
         },
         {
           "assay": "chromhmm",
@@ -24388,7 +24388,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF217EWG/@@download/ENCFF217EWG.bigWig",
           "experimentAccession": "ENCSR498ZRC",
-          "fileAccession": "ENCFF111SZU"
+          "fileAccession": "ENCFF217EWG"
         },
         {
           "assay": "chromhmm",
@@ -24519,7 +24519,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF142AFQ/@@download/ENCFF142AFQ.bigWig",
           "experimentAccession": "ENCSR717HIA",
-          "fileAccession": "ENCFF120CVA"
+          "fileAccession": "ENCFF142AFQ"
         },
         {
           "assay": "chromhmm",
@@ -25037,7 +25037,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF201DRD/@@download/ENCFF201DRD.bigWig",
           "experimentAccession": "ENCSR922UKO",
-          "fileAccession": "ENCFF165GJZ"
+          "fileAccession": "ENCFF201DRD"
         },
         {
           "assay": "ctcf",
@@ -25070,7 +25070,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF112GCV/@@download/ENCFF112GCV.bigWig",
           "experimentAccession": "ENCSR841AJO",
-          "fileAccession": "ENCFF761PKU"
+          "fileAccession": "ENCFF112GCV"
         },
         {
           "assay": "ctcf",
@@ -25097,7 +25097,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF423GAY/@@download/ENCFF423GAY.bigWig",
           "experimentAccession": "ENCSR763IDK",
-          "fileAccession": "ENCFF466ENV"
+          "fileAccession": "ENCFF423GAY"
         },
         {
           "assay": "ctcf",
@@ -25124,7 +25124,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF912BEJ/@@download/ENCFF912BEJ.bigWig",
           "experimentAccession": "ENCSR250NHD",
-          "fileAccession": null
+          "fileAccession": "ENCFF912BEJ"
         }
       ]
     },
@@ -25258,7 +25258,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF584CKL/@@download/ENCFF584CKL.bigWig",
           "experimentAccession": "ENCSR791ISZ",
-          "fileAccession": "ENCFF619HYF"
+          "fileAccession": "ENCFF584CKL"
         }
       ]
     },
@@ -25285,7 +25285,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF375UAV/@@download/ENCFF375UAV.bigWig",
           "experimentAccession": "ENCSR367WYJ",
-          "fileAccession": "ENCFF520CVN"
+          "fileAccession": "ENCFF375UAV"
         },
         {
           "assay": "chromhmm",
@@ -25386,7 +25386,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF917QCC/@@download/ENCFF917QCC.bigWig",
           "experimentAccession": "ENCSR656ZEQ",
-          "fileAccession": "ENCFF995LGE"
+          "fileAccession": "ENCFF917QCC"
         }
       ]
     },
@@ -25815,7 +25815,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF791CAJ/@@download/ENCFF791CAJ.bigWig",
           "experimentAccession": "ENCSR668EVA",
-          "fileAccession": "ENCFF163VOI"
+          "fileAccession": "ENCFF791CAJ"
         },
         {
           "assay": "ctcf",
@@ -25859,7 +25859,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF337EUB/@@download/ENCFF337EUB.bigWig",
           "experimentAccession": "ENCSR593KDJ",
-          "fileAccession": "ENCFF646DAW"
+          "fileAccession": "ENCFF337EUB"
         },
         {
           "assay": "ctcf",
@@ -25922,7 +25922,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF980FUE/@@download/ENCFF980FUE.bigWig",
           "experimentAccession": "ENCSR074ECR",
-          "fileAccession": "ENCFF722IPW"
+          "fileAccession": "ENCFF980FUE"
         }
       ]
     },
@@ -26217,7 +26217,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF764VSN/@@download/ENCFF764VSN.bigWig",
           "experimentAccession": "ENCSR981UJA",
-          "fileAccession": "ENCFF917LFF"
+          "fileAccession": "ENCFF764VSN"
         },
         {
           "assay": "ctcf",
@@ -26669,7 +26669,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF644HJX/@@download/ENCFF644HJX.bigWig",
           "experimentAccession": "ENCSR203KEU",
-          "fileAccession": null
+          "fileAccession": "ENCFF644HJX"
         },
         {
           "assay": "ctcf",
@@ -26690,7 +26690,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF311XTL/@@download/ENCFF311XTL.bigWig",
           "experimentAccession": "ENCSR987PNT",
-          "fileAccession": null
+          "fileAccession": "ENCFF311XTL"
         },
         {
           "assay": "ctcf",
@@ -26795,7 +26795,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF468UEP/@@download/ENCFF468UEP.bigWig",
           "experimentAccession": "ENCSR641SDI",
-          "fileAccession": "ENCFF800VAP"
+          "fileAccession": "ENCFF468UEP"
         },
         {
           "assay": "atac",
@@ -26833,7 +26833,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF111DLN/@@download/ENCFF111DLN.bigWig",
           "experimentAccession": "ENCSR268ZCF",
-          "fileAccession": "ENCFF237VMY"
+          "fileAccession": "ENCFF111DLN"
         },
         {
           "assay": "ctcf",
@@ -26866,7 +26866,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF124AKT/@@download/ENCFF124AKT.bigWig",
           "experimentAccession": "ENCSR561YSH",
-          "fileAccession": "ENCFF423YBA"
+          "fileAccession": "ENCFF124AKT"
         },
         {
           "assay": "chromhmm",
@@ -26892,7 +26892,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF608MDC/@@download/ENCFF608MDC.bigWig",
           "experimentAccession": "ENCSR807XUB",
-          "fileAccession": "ENCFF122GSI"
+          "fileAccession": "ENCFF608MDC"
         },
         {
           "assay": "ctcf",
@@ -26936,7 +26936,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF322NLT/@@download/ENCFF322NLT.bigWig",
           "experimentAccession": "ENCSR937EVN",
-          "fileAccession": "ENCFF886LUE"
+          "fileAccession": "ENCFF322NLT"
         },
         {
           "assay": "ctcf",
@@ -26974,7 +26974,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF007ZXP/@@download/ENCFF007ZXP.bigWig",
           "experimentAccession": "ENCSR213SMK",
-          "fileAccession": "ENCFF379NYQ"
+          "fileAccession": "ENCFF007ZXP"
         },
         {
           "assay": "chromhmm",
@@ -27006,7 +27006,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF996IKY/@@download/ENCFF996IKY.bigWig",
           "experimentAccession": "ENCSR769CSE",
-          "fileAccession": "ENCFF810CJQ"
+          "fileAccession": "ENCFF996IKY"
         },
         {
           "assay": "chromhmm",
@@ -27038,7 +27038,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF194JWL/@@download/ENCFF194JWL.bigWig",
           "experimentAccession": "ENCSR349VAW",
-          "fileAccession": "ENCFF152TPG"
+          "fileAccession": "ENCFF194JWL"
         },
         {
           "assay": "chromhmm",
@@ -27100,7 +27100,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF203CVC/@@download/ENCFF203CVC.bigWig",
           "experimentAccession": "ENCSR000ANF",
-          "fileAccession": "ENCFF577LEK"
+          "fileAccession": "ENCFF203CVC"
         },
         {
           "assay": "ctcf",
@@ -27162,7 +27162,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF962HWM/@@download/ENCFF962HWM.bigWig",
           "experimentAccession": "ENCSR329FXI",
-          "fileAccession": "ENCFF141YUO"
+          "fileAccession": "ENCFF962HWM"
         },
         {
           "assay": "chromhmm",
@@ -27197,7 +27197,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF702ZYG/@@download/ENCFF702ZYG.bigWig",
           "experimentAccession": "ENCSR919BBI",
-          "fileAccession": null
+          "fileAccession": "ENCFF702ZYG"
         }
       ]
     },
@@ -27212,7 +27212,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF762WCA/@@download/ENCFF762WCA.bigWig",
           "experimentAccession": "ENCSR697MUJ",
-          "fileAccession": null
+          "fileAccession": "ENCFF762WCA"
         }
       ]
     },
@@ -27227,7 +27227,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF926ENP/@@download/ENCFF926ENP.bigWig",
           "experimentAccession": "ENCSR194KGO",
-          "fileAccession": null
+          "fileAccession": "ENCFF926ENP"
         }
       ]
     },
@@ -27242,7 +27242,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF529BXA/@@download/ENCFF529BXA.bigWig",
           "experimentAccession": "ENCSR214UZE",
-          "fileAccession": null
+          "fileAccession": "ENCFF529BXA"
         }
       ]
     },
@@ -27257,7 +27257,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF306MNM/@@download/ENCFF306MNM.bigWig",
           "experimentAccession": "ENCSR340ZTB",
-          "fileAccession": null
+          "fileAccession": "ENCFF306MNM"
         }
       ]
     },
@@ -27272,7 +27272,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF868JPL/@@download/ENCFF868JPL.bigWig",
           "experimentAccession": "ENCSR969HBF",
-          "fileAccession": null
+          "fileAccession": "ENCFF868JPL"
         }
       ]
     },
@@ -27287,7 +27287,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF778DIW/@@download/ENCFF778DIW.bigWig",
           "experimentAccession": "ENCSR156MYA",
-          "fileAccession": null
+          "fileAccession": "ENCFF778DIW"
         }
       ]
     },
@@ -27302,7 +27302,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF974KMJ/@@download/ENCFF974KMJ.bigWig",
           "experimentAccession": "ENCSR334DRN",
-          "fileAccession": null
+          "fileAccession": "ENCFF974KMJ"
         }
       ]
     },
@@ -27317,7 +27317,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF492ROW/@@download/ENCFF492ROW.bigWig",
           "experimentAccession": "ENCSR386CKJ",
-          "fileAccession": null
+          "fileAccession": "ENCFF492ROW"
         }
       ]
     },
@@ -27338,7 +27338,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF971OML/@@download/ENCFF971OML.bigWig",
           "experimentAccession": "ENCSR641YLG",
-          "fileAccession": "ENCFF863OBQ"
+          "fileAccession": "ENCFF971OML"
         }
       ]
     },
@@ -27353,7 +27353,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF926SMH/@@download/ENCFF926SMH.bigWig",
           "experimentAccession": "ENCSR685XVI",
-          "fileAccession": null
+          "fileAccession": "ENCFF926SMH"
         }
       ]
     },
@@ -27440,7 +27440,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF247PMT/@@download/ENCFF247PMT.bigWig",
           "experimentAccession": "ENCSR835MMN",
-          "fileAccession": "ENCFF521JLW"
+          "fileAccession": "ENCFF247PMT"
         }
       ]
     },
@@ -27467,7 +27467,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF262UEH/@@download/ENCFF262UEH.bigWig",
           "experimentAccession": "ENCSR564IGJ",
-          "fileAccession": "ENCFF651WOM"
+          "fileAccession": "ENCFF262UEH"
         },
         {
           "assay": "ctcf",
@@ -27527,7 +27527,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF310VRG/@@download/ENCFF310VRG.bigWig",
           "experimentAccession": "ENCSR655XLM",
-          "fileAccession": "ENCFF552GYH"
+          "fileAccession": "ENCFF310VRG"
         },
         {
           "assay": "chromhmm",
@@ -27664,7 +27664,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF359DGK/@@download/ENCFF359DGK.bigWig",
           "experimentAccession": "ENCSR543CPW",
-          "fileAccession": "ENCFF566FYS"
+          "fileAccession": "ENCFF359DGK"
         }
       ]
     },
@@ -27679,7 +27679,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF494RFU/@@download/ENCFF494RFU.bigWig",
           "experimentAccession": "ENCSR454VRA",
-          "fileAccession": null
+          "fileAccession": "ENCFF494RFU"
         }
       ]
     },
@@ -27715,7 +27715,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF941TND/@@download/ENCFF941TND.bigWig",
           "experimentAccession": "ENCSR892XFG",
-          "fileAccession": "ENCFF978EHV"
+          "fileAccession": "ENCFF941TND"
         },
         {
           "assay": "chromhmm",
@@ -27816,7 +27816,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF118JRY/@@download/ENCFF118JRY.bigWig",
           "experimentAccession": "ENCSR210ZPC",
-          "fileAccession": "ENCFF216WFR"
+          "fileAccession": "ENCFF118JRY"
         },
         {
           "assay": "ctcf",
@@ -27842,7 +27842,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF116TJK/@@download/ENCFF116TJK.bigWig",
           "experimentAccession": "ENCSR209QGZ",
-          "fileAccession": null
+          "fileAccession": "ENCFF116TJK"
         }
       ]
     },
@@ -27992,7 +27992,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF805HXL/@@download/ENCFF805HXL.bigWig",
           "experimentAccession": "ENCSR086XCT",
-          "fileAccession": null
+          "fileAccession": "ENCFF805HXL"
         }
       ]
     },
@@ -28019,7 +28019,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF634AAL/@@download/ENCFF634AAL.bigWig",
           "experimentAccession": "ENCSR343DFX",
-          "fileAccession": "ENCFF077FBW"
+          "fileAccession": "ENCFF634AAL"
         },
         {
           "assay": "ctcf",
@@ -28051,7 +28051,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF502ALL/@@download/ENCFF502ALL.bigWig",
           "experimentAccession": "ENCSR668GBL",
-          "fileAccession": "ENCFF762CST"
+          "fileAccession": "ENCFF502ALL"
         },
         {
           "assay": "ctcf",
@@ -28090,7 +28090,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF987FRB/@@download/ENCFF987FRB.bigWig",
           "experimentAccession": "ENCSR726HTS",
-          "fileAccession": "ENCFF387XJD"
+          "fileAccession": "ENCFF987FRB"
         },
         {
           "assay": "ctcf",
@@ -28128,7 +28128,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF428HQD/@@download/ENCFF428HQD.bigWig",
           "experimentAccession": "ENCSR564WJA",
-          "fileAccession": "ENCFF842QQE"
+          "fileAccession": "ENCFF428HQD"
         },
         {
           "assay": "ctcf",
@@ -28166,7 +28166,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF438NSZ/@@download/ENCFF438NSZ.bigWig",
           "experimentAccession": "ENCSR436JNB",
-          "fileAccession": "ENCFF551GZK"
+          "fileAccession": "ENCFF438NSZ"
         },
         {
           "assay": "ctcf",
@@ -28198,7 +28198,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF709HME/@@download/ENCFF709HME.bigWig",
           "experimentAccession": "ENCSR401KZW",
-          "fileAccession": "ENCFF918PWP"
+          "fileAccession": "ENCFF709HME"
         },
         {
           "assay": "ctcf",
@@ -28230,7 +28230,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF859PGH/@@download/ENCFF859PGH.bigWig",
           "experimentAccession": "ENCSR235ZBF",
-          "fileAccession": "ENCFF271FIA"
+          "fileAccession": "ENCFF859PGH"
         },
         {
           "assay": "chromhmm",
@@ -28256,7 +28256,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF837LGD/@@download/ENCFF837LGD.bigWig",
           "experimentAccession": "ENCSR426VHO",
-          "fileAccession": "ENCFF057BYR"
+          "fileAccession": "ENCFF837LGD"
         },
         {
           "assay": "ctcf",
@@ -28288,7 +28288,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF948AUZ/@@download/ENCFF948AUZ.bigWig",
           "experimentAccession": "ENCSR593INW",
-          "fileAccession": "ENCFF187WMV"
+          "fileAccession": "ENCFF948AUZ"
         },
         {
           "assay": "ctcf",
@@ -28320,7 +28320,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF897ARW/@@download/ENCFF897ARW.bigWig",
           "experimentAccession": "ENCSR170MAJ",
-          "fileAccession": "ENCFF735OIS"
+          "fileAccession": "ENCFF897ARW"
         }
       ]
     },
@@ -28347,7 +28347,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF868GED/@@download/ENCFF868GED.bigWig",
           "experimentAccession": "ENCSR232VZV",
-          "fileAccession": "ENCFF556AWF"
+          "fileAccession": "ENCFF868GED"
         }
       ]
     },
@@ -28539,7 +28539,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF383YEO/@@download/ENCFF383YEO.bigWig",
           "experimentAccession": "ENCSR046DRK",
-          "fileAccession": "ENCFF128WCS"
+          "fileAccession": "ENCFF383YEO"
         }
       ]
     },
@@ -29286,7 +29286,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF339WFQ/@@download/ENCFF339WFQ.bigWig",
           "experimentAccession": "ENCSR976RWL",
-          "fileAccession": "ENCFF417TJV"
+          "fileAccession": "ENCFF339WFQ"
         }
       ]
     },
@@ -29553,7 +29553,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF519AHX/@@download/ENCFF519AHX.bigWig",
           "experimentAccession": "ENCSR728KQL",
-          "fileAccession": "ENCFF406HAS"
+          "fileAccession": "ENCFF519AHX"
         }
       ]
     },
@@ -29619,7 +29619,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF401CHO/@@download/ENCFF401CHO.bigWig",
           "experimentAccession": "ENCSR948CRE",
-          "fileAccession": "ENCFF320MFJ"
+          "fileAccession": "ENCFF401CHO"
         }
       ]
     },
@@ -29685,7 +29685,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF115FLM/@@download/ENCFF115FLM.bigWig",
           "experimentAccession": "ENCSR157WAJ",
-          "fileAccession": "ENCFF027BYQ"
+          "fileAccession": "ENCFF115FLM"
         }
       ]
     },
@@ -29721,7 +29721,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF672SYY/@@download/ENCFF672SYY.bigWig",
           "experimentAccession": "ENCSR684HLM",
-          "fileAccession": "ENCFF302CQX"
+          "fileAccession": "ENCFF672SYY"
         }
       ]
     },
@@ -29757,7 +29757,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF920IQC/@@download/ENCFF920IQC.bigWig",
           "experimentAccession": "ENCSR709KME",
-          "fileAccession": "ENCFF081XPP"
+          "fileAccession": "ENCFF920IQC"
         }
       ]
     },
@@ -29799,7 +29799,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF692UGR/@@download/ENCFF692UGR.bigWig",
           "experimentAccession": "ENCSR100CMZ",
-          "fileAccession": "ENCFF800EYR"
+          "fileAccession": "ENCFF692UGR"
         }
       ]
     },
@@ -29835,7 +29835,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF828MOZ/@@download/ENCFF828MOZ.bigWig",
           "experimentAccession": "ENCSR864RGX",
-          "fileAccession": "ENCFF830VDQ"
+          "fileAccession": "ENCFF828MOZ"
         }
       ]
     },
@@ -29862,7 +29862,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF191NJM/@@download/ENCFF191NJM.bigWig",
           "experimentAccession": "ENCSR453MVF",
-          "fileAccession": "ENCFF665FQE"
+          "fileAccession": "ENCFF191NJM"
         }
       ]
     },
@@ -29904,7 +29904,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF169ABO/@@download/ENCFF169ABO.bigWig",
           "experimentAccession": "ENCSR033WMA",
-          "fileAccession": "ENCFF006ONU"
+          "fileAccession": "ENCFF169ABO"
         }
       ]
     },
@@ -29961,7 +29961,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF665TYI/@@download/ENCFF665TYI.bigWig",
           "experimentAccession": "ENCSR971ETA",
-          "fileAccession": "ENCFF579DHC"
+          "fileAccession": "ENCFF665TYI"
         },
         {
           "assay": "chromhmm",
@@ -30011,7 +30011,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF609WKU/@@download/ENCFF609WKU.bigWig",
           "experimentAccession": "ENCSR582UTE",
-          "fileAccession": null
+          "fileAccession": "ENCFF609WKU"
         }
       ]
     },
@@ -30038,7 +30038,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF732NXU/@@download/ENCFF732NXU.bigWig",
           "experimentAccession": "ENCSR751BHO",
-          "fileAccession": "ENCFF283ZMI"
+          "fileAccession": "ENCFF732NXU"
         },
         {
           "assay": "ctcf",
@@ -30076,7 +30076,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF225PPI/@@download/ENCFF225PPI.bigWig",
           "experimentAccession": "ENCSR133NBJ",
-          "fileAccession": "ENCFF641DNV"
+          "fileAccession": "ENCFF225PPI"
         },
         {
           "assay": "ctcf",
@@ -30193,7 +30193,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF133XXT/@@download/ENCFF133XXT.bigWig",
           "experimentAccession": "ENCSR743DDX",
-          "fileAccession": null
+          "fileAccession": "ENCFF133XXT"
         }
       ]
     },
@@ -30295,7 +30295,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF950NLS/@@download/ENCFF950NLS.bigWig",
           "experimentAccession": "ENCSR001SHB",
-          "fileAccession": "ENCFF664UKA"
+          "fileAccession": "ENCFF950NLS"
         },
         {
           "assay": "chromhmm",
@@ -30327,7 +30327,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF975CDE/@@download/ENCFF975CDE.bigWig",
           "experimentAccession": "ENCSR944KAZ",
-          "fileAccession": "ENCFF751MDE"
+          "fileAccession": "ENCFF975CDE"
         },
         {
           "assay": "ctcf",
@@ -30365,7 +30365,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF493RLF/@@download/ENCFF493RLF.bigWig",
           "experimentAccession": "ENCSR204OJS",
-          "fileAccession": "ENCFF391KDD"
+          "fileAccession": "ENCFF493RLF"
         },
         {
           "assay": "ctcf",
@@ -30398,7 +30398,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF916TLI/@@download/ENCFF916TLI.bigWig",
           "experimentAccession": "ENCSR437QMD",
-          "fileAccession": null
+          "fileAccession": "ENCFF916TLI"
         }
       ]
     },
@@ -30524,7 +30524,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF608YXU/@@download/ENCFF608YXU.bigWig",
           "experimentAccession": "ENCSR011MGQ",
-          "fileAccession": "ENCFF162OOB"
+          "fileAccession": "ENCFF608YXU"
         },
         {
           "assay": "chromhmm",
@@ -30616,7 +30616,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF455VBG/@@download/ENCFF455VBG.bigWig",
           "experimentAccession": "ENCSR726WVB",
-          "fileAccession": "ENCFF011PCV"
+          "fileAccession": "ENCFF455VBG"
         },
         {
           "assay": "chromhmm",
@@ -30642,7 +30642,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF135ZDR/@@download/ENCFF135ZDR.bigWig",
           "experimentAccession": "ENCSR307DQT",
-          "fileAccession": "ENCFF185LXV"
+          "fileAccession": "ENCFF135ZDR"
         },
         {
           "assay": "ctcf",
@@ -30780,7 +30780,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF634LYO/@@download/ENCFF634LYO.bigWig",
           "experimentAccession": "ENCSR413QLR",
-          "fileAccession": "ENCFF508OUM"
+          "fileAccession": "ENCFF634LYO"
         },
         {
           "assay": "ctcf",
@@ -30959,7 +30959,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF787PDH/@@download/ENCFF787PDH.bigWig",
           "experimentAccession": "ENCSR498DCY",
-          "fileAccession": "ENCFF560YNU"
+          "fileAccession": "ENCFF787PDH"
         },
         {
           "assay": "atac",
@@ -31598,7 +31598,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF643EGV/@@download/ENCFF643EGV.bigWig",
           "experimentAccession": "ENCSR222QLW",
-          "fileAccession": "ENCFF540TKM"
+          "fileAccession": "ENCFF643EGV"
         }
       ]
     },
@@ -31655,7 +31655,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF787LLC/@@download/ENCFF787LLC.bigWig",
           "experimentAccession": "ENCSR833OER",
-          "fileAccession": "ENCFF896VDJ"
+          "fileAccession": "ENCFF787LLC"
         },
         {
           "assay": "atac",
@@ -31718,7 +31718,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF906URN/@@download/ENCFF906URN.bigWig",
           "experimentAccession": "ENCSR503BKX",
-          "fileAccession": "ENCFF863YFO"
+          "fileAccession": "ENCFF906URN"
         },
         {
           "assay": "atac",
@@ -31805,7 +31805,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF558QCP/@@download/ENCFF558QCP.bigWig",
           "experimentAccession": "ENCSR608XIG",
-          "fileAccession": "ENCFF290HDV"
+          "fileAccession": "ENCFF558QCP"
         },
         {
           "assay": "chromhmm",
@@ -31831,7 +31831,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF762XSC/@@download/ENCFF762XSC.bigWig",
           "experimentAccession": "ENCSR014TDK",
-          "fileAccession": "ENCFF347MTT"
+          "fileAccession": "ENCFF762XSC"
         },
         {
           "assay": "chromhmm",
@@ -31863,7 +31863,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF487SXN/@@download/ENCFF487SXN.bigWig",
           "experimentAccession": "ENCSR136ZQZ",
-          "fileAccession": "ENCFF229BGF"
+          "fileAccession": "ENCFF487SXN"
         },
         {
           "assay": "ctcf",
@@ -31907,7 +31907,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF246QNM/@@download/ENCFF246QNM.bigWig",
           "experimentAccession": "ENCSR954IGQ",
-          "fileAccession": "ENCFF665CXY"
+          "fileAccession": "ENCFF246QNM"
         },
         {
           "assay": "ctcf",
@@ -32081,7 +32081,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF715NXL/@@download/ENCFF715NXL.bigWig",
           "experimentAccession": "ENCSR819NCZ",
-          "fileAccession": "ENCFF411UVN"
+          "fileAccession": "ENCFF715NXL"
         },
         {
           "assay": "atac",
@@ -32108,7 +32108,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF209NJW/@@download/ENCFF209NJW.bigWig",
           "experimentAccession": "ENCSR041UZZ",
-          "fileAccession": "ENCFF575MWN"
+          "fileAccession": "ENCFF209NJW"
         }
       ]
     },
@@ -32219,7 +32219,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF503ZDS/@@download/ENCFF503ZDS.bigWig",
           "experimentAccession": "ENCSR128HUJ",
-          "fileAccession": "ENCFF807SHG"
+          "fileAccession": "ENCFF503ZDS"
         }
       ]
     },
@@ -32375,7 +32375,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF489NSZ/@@download/ENCFF489NSZ.bigWig",
           "experimentAccession": "ENCSR414QLH",
-          "fileAccession": null
+          "fileAccession": "ENCFF489NSZ"
         }
       ]
     },
@@ -32462,7 +32462,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF762YWL/@@download/ENCFF762YWL.bigWig",
           "experimentAccession": "ENCSR015GFK",
-          "fileAccession": "ENCFF696UEY"
+          "fileAccession": "ENCFF762YWL"
         },
         {
           "assay": "ctcf",
@@ -32494,7 +32494,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF265UKI/@@download/ENCFF265UKI.bigWig",
           "experimentAccession": "ENCSR318HUC",
-          "fileAccession": "ENCFF314WYI"
+          "fileAccession": "ENCFF265UKI"
         },
         {
           "assay": "atac",
@@ -32536,7 +32536,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF740UPD/@@download/ENCFF740UPD.bigWig",
           "experimentAccession": "ENCSR776KLS",
-          "fileAccession": "ENCFF604OZO"
+          "fileAccession": "ENCFF740UPD"
         },
         {
           "assay": "chromhmm",
@@ -32622,7 +32622,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF294TTY/@@download/ENCFF294TTY.bigWig",
           "experimentAccession": "ENCSR303IKJ",
-          "fileAccession": "ENCFF303PLE"
+          "fileAccession": "ENCFF294TTY"
         },
         {
           "assay": "chromhmm",
@@ -32714,7 +32714,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF774RLX/@@download/ENCFF774RLX.bigWig",
           "experimentAccession": "ENCSR500YBS",
-          "fileAccession": "ENCFF321LZL"
+          "fileAccession": "ENCFF774RLX"
         },
         {
           "assay": "ctcf",
@@ -32758,7 +32758,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF050PLB/@@download/ENCFF050PLB.bigWig",
           "experimentAccession": "ENCSR716FUH",
-          "fileAccession": "ENCFF145RER"
+          "fileAccession": "ENCFF050PLB"
         },
         {
           "assay": "ctcf",
@@ -32797,7 +32797,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF546UQS/@@download/ENCFF546UQS.bigWig",
           "experimentAccession": "ENCSR597BWL",
-          "fileAccession": "ENCFF501SGE"
+          "fileAccession": "ENCFF546UQS"
         },
         {
           "assay": "ctcf",
@@ -32835,7 +32835,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF573DJV/@@download/ENCFF573DJV.bigWig",
           "experimentAccession": "ENCSR203KCB",
-          "fileAccession": "ENCFF229BVH"
+          "fileAccession": "ENCFF573DJV"
         },
         {
           "assay": "ctcf",
@@ -32894,7 +32894,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF972ZHA/@@download/ENCFF972ZHA.bigWig",
           "experimentAccession": "ENCSR891BTJ",
-          "fileAccession": "ENCFF901QWB"
+          "fileAccession": "ENCFF972ZHA"
         },
         {
           "assay": "ctcf",
@@ -32932,7 +32932,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF010WWO/@@download/ENCFF010WWO.bigWig",
           "experimentAccession": "ENCSR535GFO",
-          "fileAccession": "ENCFF571BDF"
+          "fileAccession": "ENCFF010WWO"
         },
         {
           "assay": "atac",
@@ -32965,7 +32965,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF549DZD/@@download/ENCFF549DZD.bigWig",
           "experimentAccession": "ENCSR778QHG",
-          "fileAccession": "ENCFF958TLM"
+          "fileAccession": "ENCFF549DZD"
         },
         {
           "assay": "ctcf",
@@ -33003,7 +33003,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF402CVL/@@download/ENCFF402CVL.bigWig",
           "experimentAccession": "ENCSR771YJT",
-          "fileAccession": "ENCFF400NQI"
+          "fileAccession": "ENCFF402CVL"
         },
         {
           "assay": "ctcf",
@@ -33041,7 +33041,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF038BIZ/@@download/ENCFF038BIZ.bigWig",
           "experimentAccession": "ENCSR516LQO",
-          "fileAccession": "ENCFF201UPO"
+          "fileAccession": "ENCFF038BIZ"
         },
         {
           "assay": "ctcf",
@@ -33079,7 +33079,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF758AQR/@@download/ENCFF758AQR.bigWig",
           "experimentAccession": "ENCSR091KXI",
-          "fileAccession": "ENCFF779PMH"
+          "fileAccession": "ENCFF758AQR"
         },
         {
           "assay": "ctcf",
@@ -33147,7 +33147,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF741NZM/@@download/ENCFF741NZM.bigWig",
           "experimentAccession": "ENCSR792VLP",
-          "fileAccession": "ENCFF487CTD"
+          "fileAccession": "ENCFF741NZM"
         },
         {
           "assay": "ctcf",
@@ -33186,7 +33186,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF318ECM/@@download/ENCFF318ECM.bigWig",
           "experimentAccession": "ENCSR208QRN",
-          "fileAccession": "ENCFF339CRV"
+          "fileAccession": "ENCFF318ECM"
         },
         {
           "assay": "ctcf",
@@ -33225,7 +33225,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF532ZGB/@@download/ENCFF532ZGB.bigWig",
           "experimentAccession": "ENCSR640XRV",
-          "fileAccession": "ENCFF252OBP"
+          "fileAccession": "ENCFF532ZGB"
         },
         {
           "assay": "ctcf",
@@ -33269,7 +33269,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF427MZX/@@download/ENCFF427MZX.bigWig",
           "experimentAccession": "ENCSR069EGE",
-          "fileAccession": "ENCFF568IBR"
+          "fileAccession": "ENCFF427MZX"
         },
         {
           "assay": "ctcf",
@@ -33368,7 +33368,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF004BGC/@@download/ENCFF004BGC.bigWig",
           "experimentAccession": "ENCSR425PQI",
-          "fileAccession": "ENCFF727PNB"
+          "fileAccession": "ENCFF004BGC"
         },
         {
           "assay": "chromhmm",
@@ -33388,7 +33388,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF881NZD/@@download/ENCFF881NZD.bigWig",
           "experimentAccession": "ENCSR507SRD",
-          "fileAccession": null
+          "fileAccession": "ENCFF881NZD"
         }
       ]
     },
@@ -33403,7 +33403,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF069DWA/@@download/ENCFF069DWA.bigWig",
           "experimentAccession": "ENCSR955XFL",
-          "fileAccession": null
+          "fileAccession": "ENCFF069DWA"
         }
       ]
     },
@@ -33430,7 +33430,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF370QKJ/@@download/ENCFF370QKJ.bigWig",
           "experimentAccession": "ENCSR554KDG",
-          "fileAccession": "ENCFF530MCT"
+          "fileAccession": "ENCFF370QKJ"
         },
         {
           "assay": "ctcf",
@@ -33457,7 +33457,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF504BRW/@@download/ENCFF504BRW.bigWig",
           "experimentAccession": "ENCSR656PGJ",
-          "fileAccession": "ENCFF548YPZ"
+          "fileAccession": "ENCFF504BRW"
         },
         {
           "assay": "chromhmm",
@@ -33504,7 +33504,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF054VRQ/@@download/ENCFF054VRQ.bigWig",
           "experimentAccession": "ENCSR453MUW",
-          "fileAccession": "ENCFF282VQS"
+          "fileAccession": "ENCFF054VRQ"
         },
         {
           "assay": "ctcf",
@@ -33542,7 +33542,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF174WAB/@@download/ENCFF174WAB.bigWig",
           "experimentAccession": "ENCSR738SXD",
-          "fileAccession": "ENCFF372LSW"
+          "fileAccession": "ENCFF174WAB"
         },
         {
           "assay": "ctcf",
@@ -33590,7 +33590,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF607SXR/@@download/ENCFF607SXR.bigWig",
           "experimentAccession": "ENCSR505YFA",
-          "fileAccession": "ENCFF996QZC"
+          "fileAccession": "ENCFF607SXR"
         },
         {
           "assay": "ctcf",
@@ -33628,7 +33628,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF752LEN/@@download/ENCFF752LEN.bigWig",
           "experimentAccession": "ENCSR948TOS",
-          "fileAccession": "ENCFF117DUU"
+          "fileAccession": "ENCFF752LEN"
         },
         {
           "assay": "ctcf",
@@ -33716,7 +33716,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF039NIU/@@download/ENCFF039NIU.bigWig",
           "experimentAccession": "ENCSR054BKO",
-          "fileAccession": "ENCFF089KQW"
+          "fileAccession": "ENCFF039NIU"
         }
       ]
     },
@@ -33782,7 +33782,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF477FDT/@@download/ENCFF477FDT.bigWig",
           "experimentAccession": "ENCSR189JIH",
-          "fileAccession": "ENCFF181HLF"
+          "fileAccession": "ENCFF477FDT"
         },
         {
           "assay": "ctcf",
@@ -33820,7 +33820,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF154QOP/@@download/ENCFF154QOP.bigWig",
           "experimentAccession": "ENCSR249INE",
-          "fileAccession": "ENCFF370WIV"
+          "fileAccession": "ENCFF154QOP"
         },
         {
           "assay": "ctcf",
@@ -33874,7 +33874,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF092VQF/@@download/ENCFF092VQF.bigWig",
           "experimentAccession": "ENCSR346FVK",
-          "fileAccession": "ENCFF904YBG"
+          "fileAccession": "ENCFF092VQF"
         },
         {
           "assay": "ctcf",
@@ -33912,7 +33912,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF738HRV/@@download/ENCFF738HRV.bigWig",
           "experimentAccession": "ENCSR718BTD",
-          "fileAccession": "ENCFF379GSJ"
+          "fileAccession": "ENCFF738HRV"
         },
         {
           "assay": "ctcf",
@@ -33933,7 +33933,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF450QIY/@@download/ENCFF450QIY.bigWig",
           "experimentAccession": "ENCSR597ULV",
-          "fileAccession": null
+          "fileAccession": "ENCFF450QIY"
         },
         {
           "assay": "ctcf",
@@ -33966,7 +33966,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF949IKU/@@download/ENCFF949IKU.bigWig",
           "experimentAccession": "ENCSR764HZU",
-          "fileAccession": "ENCFF879CSG"
+          "fileAccession": "ENCFF949IKU"
         },
         {
           "assay": "ctcf",
@@ -34050,7 +34050,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF432RWD/@@download/ENCFF432RWD.bigWig",
           "experimentAccession": "ENCSR889TEU",
-          "fileAccession": "ENCFF523VVA"
+          "fileAccession": "ENCFF432RWD"
         },
         {
           "assay": "ctcf",
@@ -34077,7 +34077,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF950LIB/@@download/ENCFF950LIB.bigWig",
           "experimentAccession": "ENCSR966RWA",
-          "fileAccession": "ENCFF888YYK"
+          "fileAccession": "ENCFF950LIB"
         },
         {
           "assay": "ctcf",
@@ -34119,7 +34119,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF365ANP/@@download/ENCFF365ANP.bigWig",
           "experimentAccession": "ENCSR067BGS",
-          "fileAccession": "ENCFF745ELD"
+          "fileAccession": "ENCFF365ANP"
         },
         {
           "assay": "ctcf",
@@ -34437,7 +34437,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF472UDH/@@download/ENCFF472UDH.bigWig",
           "experimentAccession": "ENCSR830EXC",
-          "fileAccession": "ENCFF586MLV"
+          "fileAccession": "ENCFF472UDH"
         },
         {
           "assay": "ctcf",
@@ -34470,7 +34470,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF480FCW/@@download/ENCFF480FCW.bigWig",
           "experimentAccession": "ENCSR299EQJ",
-          "fileAccession": "ENCFF889QTE"
+          "fileAccession": "ENCFF480FCW"
         },
         {
           "assay": "ctcf",
@@ -34503,7 +34503,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF194KAZ/@@download/ENCFF194KAZ.bigWig",
           "experimentAccession": "ENCSR498NGT",
-          "fileAccession": "ENCFF862YHY"
+          "fileAccession": "ENCFF194KAZ"
         },
         {
           "assay": "ctcf",
@@ -34536,7 +34536,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF685BLE/@@download/ENCFF685BLE.bigWig",
           "experimentAccession": "ENCSR152MAZ",
-          "fileAccession": "ENCFF220GPW"
+          "fileAccession": "ENCFF685BLE"
         },
         {
           "assay": "ctcf",
@@ -34569,7 +34569,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF336MIJ/@@download/ENCFF336MIJ.bigWig",
           "experimentAccession": "ENCSR549ZDH",
-          "fileAccession": "ENCFF563YFA"
+          "fileAccession": "ENCFF336MIJ"
         },
         {
           "assay": "ctcf",
@@ -34602,7 +34602,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF679HCC/@@download/ENCFF679HCC.bigWig",
           "experimentAccession": "ENCSR449AUD",
-          "fileAccession": "ENCFF914PSJ"
+          "fileAccession": "ENCFF679HCC"
         },
         {
           "assay": "ctcf",
@@ -34635,7 +34635,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF380WZB/@@download/ENCFF380WZB.bigWig",
           "experimentAccession": "ENCSR872YGQ",
-          "fileAccession": "ENCFF100JXF"
+          "fileAccession": "ENCFF380WZB"
         },
         {
           "assay": "ctcf",
@@ -34668,7 +34668,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF435BRK/@@download/ENCFF435BRK.bigWig",
           "experimentAccession": "ENCSR927IOS",
-          "fileAccession": "ENCFF319HQY"
+          "fileAccession": "ENCFF435BRK"
         },
         {
           "assay": "ctcf",
@@ -34701,7 +34701,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF111ACH/@@download/ENCFF111ACH.bigWig",
           "experimentAccession": "ENCSR723RUM",
-          "fileAccession": "ENCFF543PRC"
+          "fileAccession": "ENCFF111ACH"
         },
         {
           "assay": "ctcf",
@@ -34734,7 +34734,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF969AJT/@@download/ENCFF969AJT.bigWig",
           "experimentAccession": "ENCSR315UUP",
-          "fileAccession": "ENCFF220KZL"
+          "fileAccession": "ENCFF969AJT"
         },
         {
           "assay": "ctcf",
@@ -34767,7 +34767,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF798XFR/@@download/ENCFF798XFR.bigWig",
           "experimentAccession": "ENCSR181OHF",
-          "fileAccession": "ENCFF385OAX"
+          "fileAccession": "ENCFF798XFR"
         }
       ]
     },
@@ -35007,7 +35007,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF343QIC/@@download/ENCFF343QIC.bigWig",
           "experimentAccession": "ENCSR560BEL",
-          "fileAccession": null
+          "fileAccession": "ENCFF343QIC"
         }
       ]
     },
@@ -35028,7 +35028,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF763SFH/@@download/ENCFF763SFH.bigWig",
           "experimentAccession": "ENCSR339XMR",
-          "fileAccession": "ENCFF639KLT"
+          "fileAccession": "ENCFF763SFH"
         }
       ]
     },
@@ -35043,7 +35043,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF906LLL/@@download/ENCFF906LLL.bigWig",
           "experimentAccession": "ENCSR397NQK",
-          "fileAccession": null
+          "fileAccession": "ENCFF906LLL"
         }
       ]
     },
@@ -35064,7 +35064,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF032EHZ/@@download/ENCFF032EHZ.bigWig",
           "experimentAccession": "ENCSR207ABA",
-          "fileAccession": "ENCFF219ZRA"
+          "fileAccession": "ENCFF032EHZ"
         }
       ]
     },
@@ -35085,7 +35085,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF863ICS/@@download/ENCFF863ICS.bigWig",
           "experimentAccession": "ENCSR531VWS",
-          "fileAccession": "ENCFF781HVS"
+          "fileAccession": "ENCFF863ICS"
         }
       ]
     },
@@ -35382,7 +35382,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF224LYA/@@download/ENCFF224LYA.bigWig",
           "experimentAccession": "ENCSR051QLZ",
-          "fileAccession": "ENCFF419XND"
+          "fileAccession": "ENCFF224LYA"
         },
         {
           "assay": "ctcf",
@@ -35415,7 +35415,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF146LLE/@@download/ENCFF146LLE.bigWig",
           "experimentAccession": "ENCSR786VUJ",
-          "fileAccession": "ENCFF066MLC"
+          "fileAccession": "ENCFF146LLE"
         },
         {
           "assay": "ctcf",
@@ -35448,7 +35448,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF028IBW/@@download/ENCFF028IBW.bigWig",
           "experimentAccession": "ENCSR233RWF",
-          "fileAccession": "ENCFF478CLR"
+          "fileAccession": "ENCFF028IBW"
         },
         {
           "assay": "ctcf",
@@ -35481,7 +35481,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF046NYM/@@download/ENCFF046NYM.bigWig",
           "experimentAccession": "ENCSR424IJM",
-          "fileAccession": "ENCFF005KPT"
+          "fileAccession": "ENCFF046NYM"
         },
         {
           "assay": "ctcf",
@@ -35904,7 +35904,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF820MMW/@@download/ENCFF820MMW.bigWig",
           "experimentAccession": "ENCSR855NCG",
-          "fileAccession": "ENCFF393NEJ"
+          "fileAccession": "ENCFF820MMW"
         },
         {
           "assay": "ctcf",
@@ -35937,7 +35937,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF794RDI/@@download/ENCFF794RDI.bigWig",
           "experimentAccession": "ENCSR807TBS",
-          "fileAccession": "ENCFF127DBK"
+          "fileAccession": "ENCFF794RDI"
         },
         {
           "assay": "ctcf",
@@ -35970,7 +35970,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF461GFM/@@download/ENCFF461GFM.bigWig",
           "experimentAccession": "ENCSR116MKX",
-          "fileAccession": "ENCFF018QTQ"
+          "fileAccession": "ENCFF461GFM"
         },
         {
           "assay": "ctcf",
@@ -36003,7 +36003,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF484YUA/@@download/ENCFF484YUA.bigWig",
           "experimentAccession": "ENCSR207FYD",
-          "fileAccession": "ENCFF436OWL"
+          "fileAccession": "ENCFF484YUA"
         },
         {
           "assay": "ctcf",
@@ -36036,7 +36036,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF238JTO/@@download/ENCFF238JTO.bigWig",
           "experimentAccession": "ENCSR668DIS",
-          "fileAccession": "ENCFF971OSG"
+          "fileAccession": "ENCFF238JTO"
         },
         {
           "assay": "ctcf",
@@ -36069,7 +36069,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF750UAD/@@download/ENCFF750UAD.bigWig",
           "experimentAccession": "ENCSR326YRW",
-          "fileAccession": "ENCFF499ALA"
+          "fileAccession": "ENCFF750UAD"
         },
         {
           "assay": "ctcf",
@@ -36102,7 +36102,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF646GXZ/@@download/ENCFF646GXZ.bigWig",
           "experimentAccession": "ENCSR776TJT",
-          "fileAccession": "ENCFF889GHD"
+          "fileAccession": "ENCFF646GXZ"
         },
         {
           "assay": "ctcf",
@@ -36135,7 +36135,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF686LXM/@@download/ENCFF686LXM.bigWig",
           "experimentAccession": "ENCSR524MPL",
-          "fileAccession": "ENCFF922WUL"
+          "fileAccession": "ENCFF686LXM"
         },
         {
           "assay": "ctcf",
@@ -36168,7 +36168,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF701XQB/@@download/ENCFF701XQB.bigWig",
           "experimentAccession": "ENCSR251PPB",
-          "fileAccession": "ENCFF867WWB"
+          "fileAccession": "ENCFF701XQB"
         },
         {
           "assay": "ctcf",
@@ -36201,7 +36201,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF280YLT/@@download/ENCFF280YLT.bigWig",
           "experimentAccession": "ENCSR379DNM",
-          "fileAccession": "ENCFF878BKX"
+          "fileAccession": "ENCFF280YLT"
         },
         {
           "assay": "ctcf",
@@ -36234,7 +36234,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF383TGX/@@download/ENCFF383TGX.bigWig",
           "experimentAccession": "ENCSR681ELN",
-          "fileAccession": "ENCFF507KAZ"
+          "fileAccession": "ENCFF383TGX"
         },
         {
           "assay": "ctcf",
@@ -36267,7 +36267,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF137KZR/@@download/ENCFF137KZR.bigWig",
           "experimentAccession": "ENCSR200JVJ",
-          "fileAccession": "ENCFF345SEW"
+          "fileAccession": "ENCFF137KZR"
         },
         {
           "assay": "ctcf",
@@ -36300,7 +36300,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF419XHK/@@download/ENCFF419XHK.bigWig",
           "experimentAccession": "ENCSR136KIM",
-          "fileAccession": "ENCFF666VNK"
+          "fileAccession": "ENCFF419XHK"
         },
         {
           "assay": "ctcf",
@@ -36462,7 +36462,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF749RKS/@@download/ENCFF749RKS.bigWig",
           "experimentAccession": "ENCSR821CPA",
-          "fileAccession": "ENCFF790FMB"
+          "fileAccession": "ENCFF749RKS"
         }
       ]
     },
@@ -36483,7 +36483,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF091GNW/@@download/ENCFF091GNW.bigWig",
           "experimentAccession": "ENCSR378EPS",
-          "fileAccession": "ENCFF783FUP"
+          "fileAccession": "ENCFF091GNW"
         }
       ]
     },
@@ -36504,7 +36504,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF716ZMD/@@download/ENCFF716ZMD.bigWig",
           "experimentAccession": "ENCSR191YDG",
-          "fileAccession": "ENCFF297LZZ"
+          "fileAccession": "ENCFF716ZMD"
         }
       ]
     },
@@ -36525,7 +36525,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF893MAP/@@download/ENCFF893MAP.bigWig",
           "experimentAccession": "ENCSR200SSJ",
-          "fileAccession": "ENCFF856USO"
+          "fileAccession": "ENCFF893MAP"
         }
       ]
     },
@@ -36552,7 +36552,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF412CXE/@@download/ENCFF412CXE.bigWig",
           "experimentAccession": "ENCSR540XNK",
-          "fileAccession": "ENCFF131HJZ"
+          "fileAccession": "ENCFF412CXE"
         }
       ]
     },
@@ -36579,7 +36579,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF776XVZ/@@download/ENCFF776XVZ.bigWig",
           "experimentAccession": "ENCSR832UMM",
-          "fileAccession": "ENCFF202ADM"
+          "fileAccession": "ENCFF776XVZ"
         }
       ]
     },
@@ -36600,7 +36600,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF937IOV/@@download/ENCFF937IOV.bigWig",
           "experimentAccession": "ENCSR322MTA",
-          "fileAccession": "ENCFF363TNK"
+          "fileAccession": "ENCFF937IOV"
         }
       ]
     },
@@ -36621,7 +36621,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF380KOQ/@@download/ENCFF380KOQ.bigWig",
           "experimentAccession": "ENCSR520QDR",
-          "fileAccession": "ENCFF893FCB"
+          "fileAccession": "ENCFF380KOQ"
         }
       ]
     },
@@ -36642,7 +36642,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF979YMP/@@download/ENCFF979YMP.bigWig",
           "experimentAccession": "ENCSR350UKV",
-          "fileAccession": "ENCFF307HLE"
+          "fileAccession": "ENCFF979YMP"
         }
       ]
     },
@@ -36663,7 +36663,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF311WDO/@@download/ENCFF311WDO.bigWig",
           "experimentAccession": "ENCSR458TOW",
-          "fileAccession": "ENCFF392GLN"
+          "fileAccession": "ENCFF311WDO"
         }
       ]
     },
@@ -36684,7 +36684,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF697UUG/@@download/ENCFF697UUG.bigWig",
           "experimentAccession": "ENCSR787HDF",
-          "fileAccession": "ENCFF240SXY"
+          "fileAccession": "ENCFF697UUG"
         }
       ]
     },
@@ -36705,7 +36705,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF409QDV/@@download/ENCFF409QDV.bigWig",
           "experimentAccession": "ENCSR476IPR",
-          "fileAccession": "ENCFF593NJY"
+          "fileAccession": "ENCFF409QDV"
         }
       ]
     },
@@ -36726,7 +36726,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF819LAM/@@download/ENCFF819LAM.bigWig",
           "experimentAccession": "ENCSR295QZX",
-          "fileAccession": "ENCFF431VVA"
+          "fileAccession": "ENCFF819LAM"
         }
       ]
     },
@@ -36747,7 +36747,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF263PCC/@@download/ENCFF263PCC.bigWig",
           "experimentAccession": "ENCSR538URI",
-          "fileAccession": "ENCFF359NSV"
+          "fileAccession": "ENCFF263PCC"
         }
       ]
     },
@@ -36768,7 +36768,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF689NDO/@@download/ENCFF689NDO.bigWig",
           "experimentAccession": "ENCSR246TTM",
-          "fileAccession": "ENCFF934TRW"
+          "fileAccession": "ENCFF689NDO"
         }
       ]
     },
@@ -36789,7 +36789,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF862SBF/@@download/ENCFF862SBF.bigWig",
           "experimentAccession": "ENCSR746AIX",
-          "fileAccession": "ENCFF254QZL"
+          "fileAccession": "ENCFF862SBF"
         }
       ]
     },
@@ -36810,7 +36810,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF185BYZ/@@download/ENCFF185BYZ.bigWig",
           "experimentAccession": "ENCSR469CFL",
-          "fileAccession": "ENCFF987GHG"
+          "fileAccession": "ENCFF185BYZ"
         }
       ]
     },
@@ -36837,7 +36837,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF256LPT/@@download/ENCFF256LPT.bigWig",
           "experimentAccession": "ENCSR541PLO",
-          "fileAccession": "ENCFF623DFW"
+          "fileAccession": "ENCFF256LPT"
         }
       ]
     },
@@ -36864,7 +36864,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF515AFJ/@@download/ENCFF515AFJ.bigWig",
           "experimentAccession": "ENCSR364OIK",
-          "fileAccession": "ENCFF780NTN"
+          "fileAccession": "ENCFF515AFJ"
         }
       ]
     },
@@ -36885,7 +36885,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF674NLG/@@download/ENCFF674NLG.bigWig",
           "experimentAccession": "ENCSR617GMR",
-          "fileAccession": "ENCFF022RWR"
+          "fileAccession": "ENCFF674NLG"
         }
       ]
     },
@@ -36912,7 +36912,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF566WWM/@@download/ENCFF566WWM.bigWig",
           "experimentAccession": "ENCSR705VSO",
-          "fileAccession": "ENCFF693ZQV"
+          "fileAccession": "ENCFF566WWM"
         }
       ]
     },
@@ -36939,7 +36939,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF958HFA/@@download/ENCFF958HFA.bigWig",
           "experimentAccession": "ENCSR331WMS",
-          "fileAccession": "ENCFF291NFC"
+          "fileAccession": "ENCFF958HFA"
         }
       ]
     },
@@ -36966,7 +36966,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF621DMX/@@download/ENCFF621DMX.bigWig",
           "experimentAccession": "ENCSR474PYR",
-          "fileAccession": "ENCFF089MQX"
+          "fileAccession": "ENCFF621DMX"
         }
       ]
     },
@@ -36987,7 +36987,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF415QNO/@@download/ENCFF415QNO.bigWig",
           "experimentAccession": "ENCSR348YRH",
-          "fileAccession": "ENCFF157BRH"
+          "fileAccession": "ENCFF415QNO"
         }
       ]
     },
@@ -37014,7 +37014,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF830BQT/@@download/ENCFF830BQT.bigWig",
           "experimentAccession": "ENCSR923JIB",
-          "fileAccession": "ENCFF926DTJ"
+          "fileAccession": "ENCFF830BQT"
         }
       ]
     },
@@ -37035,7 +37035,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF006ULZ/@@download/ENCFF006ULZ.bigWig",
           "experimentAccession": "ENCSR078ATS",
-          "fileAccession": "ENCFF817YEB"
+          "fileAccession": "ENCFF006ULZ"
         }
       ]
     },
@@ -37056,7 +37056,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF218ECO/@@download/ENCFF218ECO.bigWig",
           "experimentAccession": "ENCSR458RRZ",
-          "fileAccession": "ENCFF471TIS"
+          "fileAccession": "ENCFF218ECO"
         }
       ]
     },
@@ -37071,7 +37071,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF794LAA/@@download/ENCFF794LAA.bigWig",
           "experimentAccession": "ENCSR700LWI",
-          "fileAccession": null
+          "fileAccession": "ENCFF794LAA"
         }
       ]
     },
@@ -37086,7 +37086,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF554KFX/@@download/ENCFF554KFX.bigWig",
           "experimentAccession": "ENCSR321KDV",
-          "fileAccession": null
+          "fileAccession": "ENCFF554KFX"
         }
       ]
     },
@@ -37107,7 +37107,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF319LCS/@@download/ENCFF319LCS.bigWig",
           "experimentAccession": "ENCSR869TDT",
-          "fileAccession": "ENCFF485MOX"
+          "fileAccession": "ENCFF319LCS"
         }
       ]
     },
@@ -37122,7 +37122,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF830XDO/@@download/ENCFF830XDO.bigWig",
           "experimentAccession": "ENCSR235KRX",
-          "fileAccession": null
+          "fileAccession": "ENCFF830XDO"
         }
       ]
     },
@@ -37143,7 +37143,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF950LVH/@@download/ENCFF950LVH.bigWig",
           "experimentAccession": "ENCSR683RXF",
-          "fileAccession": "ENCFF670CVB"
+          "fileAccession": "ENCFF950LVH"
         }
       ]
     },
@@ -37164,7 +37164,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF303XXZ/@@download/ENCFF303XXZ.bigWig",
           "experimentAccession": "ENCSR958CPV",
-          "fileAccession": "ENCFF921NZD"
+          "fileAccession": "ENCFF303XXZ"
         }
       ]
     },
@@ -37191,7 +37191,7 @@
           "assay": "h3k27ac",
           "url": "https://www.encodeproject.org/files/ENCFF306ZMK/@@download/ENCFF306ZMK.bigWig",
           "experimentAccession": "ENCSR146DPQ",
-          "fileAccession": "ENCFF857KTM"
+          "fileAccession": "ENCFF306ZMK"
         },
         {
           "assay": "atac",

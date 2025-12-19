@@ -2,7 +2,7 @@ import {
   getTracksByAssayAndOntology,
   flattenIntoRow,
 } from "./DataGrid/dataGridHelpers";
-import { RowInfo } from "./types";
+import { RowInfo, TrackInfo } from "./types";
 
 export const assayTypes = [
   "DNase",
@@ -64,7 +64,7 @@ export const rows = ontologyTypes.flatMap((ontology) =>
     getTracksByAssayAndOntology(
       assay.toLowerCase(),
       ontology.toLowerCase(),
-    ).map((r: any) => {
+    ).map((r: TrackInfo) => {
       const flat = flattenIntoRow(r);
       return {
         ...flat,

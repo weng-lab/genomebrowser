@@ -1,6 +1,6 @@
 import { capitalize } from "@mui/material";
 import Fuse, { FuseResult } from "fuse.js";
-import tracksData from "../modifiedTracks.json";
+import tracksData from "../Data/modifiedHumanTracks.json";
 import { 
   AssayInfo, 
   RowInfo, 
@@ -27,6 +27,7 @@ function formatAssayType(assay: string): string {
   }
 }
 
+// use to get nested data in JSON file
 function getNestedValue(obj: any, path: string): any {
   return path.split(".").reduce((acc, key) => acc && acc[key], obj);
 }
@@ -34,8 +35,8 @@ function getNestedValue(obj: any, path: string): any {
 export function getTracksByAssayAndOntology(
   assay: string,
   ontology: string,
-): any[] {
-  let res: any[] = [];
+): TrackInfo[] {
+  let res: TrackInfo[] = [];
   const data = getNestedValue(tracksData, "tracks");
 
   data.forEach((track: TrackInfo) => {

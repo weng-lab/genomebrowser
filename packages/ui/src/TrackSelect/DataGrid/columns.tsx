@@ -17,7 +17,7 @@ const sortedByAssayOntologyCol: GridColDef<RowInfo> = {
     type: "singleSelect",
     valueOptions: ontologyTypes,
     renderCell: (params) => {
-      if (params.rowNode.type === 'group') {
+      if (params.rowNode.type === "group") {
         if (params.value === undefined) {
           return null;
         }
@@ -34,7 +34,7 @@ const sortedByAssayAssayCol : GridColDef<RowInfo> = {
     headerName: "Assay",
     valueOptions: assayTypes, 
     renderCell: (params) => {
-        if (params.rowNode.type === 'group') {
+        if (params.rowNode.type === "group") {
             if (params.value === undefined) {
                 return null;
             }
@@ -55,7 +55,7 @@ const defaultOntologyCol: GridColDef<RowInfo> = {
     type: "singleSelect",
     valueOptions: ontologyTypes,
     renderCell: (params) => {
-        if (params.rowNode.type === 'group') {
+        if (params.rowNode.type === "group") {
             if (params.value === undefined) {
             return null;
             }
@@ -72,7 +72,7 @@ const defaultAssayCol: GridColDef<RowInfo> = {
     headerName: "Assay",
     valueOptions: assayTypes,
     renderCell: (params) => {
-        if (params.rowNode.type === 'group') {
+        if (params.rowNode.type === "group") {
             if (params.value === undefined) {
                 return null;
             }
@@ -98,8 +98,8 @@ const sampleTypeCol: GridColDef<RowInfo> = {
 const lifeStageCol: GridColDef<RowInfo> = {
     field: "lifeStage",
     headerName: "Life Stage",
-    type: 'singleSelect',
-    valueOptions: ['adult', 'embryonic'],
+    type: "singleSelect",
+    valueOptions: ["adult", "embryonic"],
     valueFormatter: (value) => value && capitalize(value),
 };
 

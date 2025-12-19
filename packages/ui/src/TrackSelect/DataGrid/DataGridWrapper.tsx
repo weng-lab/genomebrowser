@@ -3,13 +3,12 @@ import {
   DataGridPremium,
   GridToolbarProps,
   ToolbarPropsOverrides,
-  GridRowSelectionModel,
   GridAutosizeOptions,
   useGridApiRef,
   GridColDef,
   FilterColumnsArgs
 } from "@mui/x-data-grid-premium";
-import { DataGridProps } from "./types";
+import { DataGridProps } from "../types";
 import { CustomToolbar } from "./CustomToolbar";
 import { useEffect, useMemo } from "react";
 import { sortedByAssayColumns, defaultColumns } from "./columns";
@@ -20,7 +19,7 @@ const autosizeOptions: GridAutosizeOptions = {
   outliersFactor: 1.5,
 };
 
-// TODO figure out where mui stores the number of rows in a row grouping so that can be bolded too
+// TODO: figure out where mui stores the number of rows in a row grouping so that can be bolded too
 export function DataGridWrapper(props: DataGridProps) {
   const {
     label,
@@ -30,8 +29,7 @@ export function DataGridWrapper(props: DataGridProps) {
     toolbarStyle,
     toolbarIconColor,
     sortedAssay,
-    setSelected,
-    setActive,
+    handleSelection,
     rows,
     selectedIds
   } = props;
@@ -73,12 +71,6 @@ export function DataGridWrapper(props: DataGridProps) {
     handleResizeCols();
   }, [rows, defaultColumns, sortedByAssayColumns, handleResizeCols]);
 
-  const handleSelection = (newSelection: GridRowSelectionModel) => {
-    const idsSet = (newSelection && (newSelection as any).ids) ?? new Set<string>();
-    setSelected(idsSet);
-    setActive();
-  };
-
   return (
     <Paper sx={{ width: "100%" }}>
       <Box sx={{
@@ -111,7 +103,6 @@ export function DataGridWrapper(props: DataGridProps) {
               getTogglableColumns,
             },
           }}
-          sx={{ ml: 2, display: "flex" }}
           keepNonExistentRowsSelected
           showToolbar
           disableAggregation

@@ -3,8 +3,14 @@ import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { rowById } from "../consts";
 import { CustomTreeItemProps, ExtendedTreeItemProps, TreeViewWrapperProps } from "../types";
 import { CustomTreeItem } from "./treeViewHelpers";
+import { Avatar } from "@mui/material";
+import { useSelectionStore } from "../TrackSelect";
 
-export function TreeViewWrapper({ items, activeTracks, remove, isSearchResult }: TreeViewWrapperProps) {
+export function TreeViewWrapper({ items, isSearchResult }: TreeViewWrapperProps) {
+  const removeActiveTracks = useSelectionStore((s) => s.removeActiveTracks);
+  const selectedIds = useSelectionStore((s) => s.selectedIds);
+  const removeIds = useSelectionStore((s) => s.removeIds);
+
   const handleRemoveTreeItem = (
     item: TreeViewBaseItem<ExtendedTreeItemProps>,
   ) => {
@@ -27,19 +33,61 @@ export function TreeViewWrapper({ items, activeTracks, remove, isSearchResult }:
           );
         }
       });
-      remove(idsToRemove);
+      removeIds(idsToRemove);
+      removeActiveTracks(idsToRemove);
     }
   };
 
   return (
-    <Paper sx={{ width: "100%" }}>
-      <Box sx={{ width: "100%", height: "500px", overflow: "auto" }}>
-        <Typography>
-          <Box sx={{ fontWeight: "bold", padding: 2 }}>
-            { isSearchResult ? 
-              `${activeTracks.size} Active Tracks (${items[0].allRowInfo!.length} search results)` :
-              `${activeTracks.size} Active Tracks`}</Box>
+    <Paper 
+      sx={{
+        height: 500,
+        width: "100%",
+        border: "10px solid",
+        borderColor: "grey.200",
+        boxSizing: "border-box",
+        borderRadius: 2,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          py: 1,
+          backgroundColor: "grey.200",
+          flexShrink: 0,
+        }}
+      >
+        <Avatar
+          sx={{
+            width: 30,
+            height: 30,
+            fontSize: 14,
+            fontWeight: "bold",
+            bgcolor: "white",
+            color: "text.primary",
+          }}
+        >
+          {selectedIds.size}
+        </Avatar>
+        <Typography fontWeight="bold">
+          Active Tracks
+          {isSearchResult && (
+            <Typography component="span" color="text.secondary" sx={{ ml: 1 }}>
+              ({items[0].allRowInfo!.length} search results)
+            </Typography>
+          )}
         </Typography>
+      </Box>
+      <Box
+        sx={{
+          flex: 1,
+          overflow: "auto",
+        }}
+      >
         <RichTreeView
           items={items}
           defaultExpandedItems={["1"]}
@@ -47,14 +95,12 @@ export function TreeViewWrapper({ items, activeTracks, remove, isSearchResult }:
           slotProps={{
             item: {
               onRemove: handleRemoveTreeItem,
-            } as Partial<CustomTreeItemProps>, // cast to avoid the slotProps typing error
+            } as Partial<CustomTreeItemProps>,
           }}
           sx={{
             ml: 1,
             mr: 1,
-            height: "fit-content",
-            flexGrow: 1,
-            overflowY: "auto",
+            height: "100%",
           }}
           itemChildrenIndentation={0}
         />

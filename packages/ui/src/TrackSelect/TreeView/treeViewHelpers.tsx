@@ -24,6 +24,14 @@ import Fuse, { FuseResult } from "fuse.js";
 import { SearchTracksProps } from "../types";
 import { assayTypes, ontologyTypes } from "../consts";
 
+
+/**
+ * Builds tree in the sorted by assay view
+ * @param selectedIds: list of ids (from useSelectionStore)
+ * @param root: Root TreeViewBaseItem
+ * @param rowById: Mapping between an id (experimentAccession) and its RowInfo object
+ * @returns all of the items for the RichTreeView in TreeViewWrapper
+ */
 export function buildSortedAssayTreeView(
   selectedIds: string[],
   root: TreeViewBaseItem<ExtendedTreeItemProps>,
@@ -110,11 +118,11 @@ export function buildSortedAssayTreeView(
 }
 
 /**
- * Create the file directory RichTreeView structure from the selected rows.
- * @param selectedIds selected ids from the DataGrid
- * @param root first TreeItem node
- * @param sortedAssay boolean indicating whether to sort by assay or ontology first
- * @returns a list of TreeViewBaseItem for RichTreeView
+ * Builds tree in the sorted by assay view
+ * @param selectedIds: list of ids (from useSelectionStore)
+ * @param root: Root TreeViewBaseItem
+ * @param rowById: Mapping between an id (experimentAccession) and its RowInfo object
+ * @returns all of the items for the RichTreeView in TreeViewWrapper
  */
 export function buildTreeView(
   selectedIds: string[],
@@ -192,6 +200,49 @@ export function buildTreeView(
   return [root];
 }
 
+/**
+ * Fuzzy search of active tracks.
+ *
+ * @param treeItems - TreeBaseViewItems from the tree.
+ * @param query - The search query string.
+ * @param keyWeightMap - Array of keys to search within each track object.
+ * Can look like ["name", "author"] or if weighted, [
+    {
+      name: 'title',
+      weight: 0.3
+    },
+    {
+      name: 'author',
+      weight: 0.7
+    }
+  ].
+ * @param threshold - (Optional) Threshold for the fuzzy search (default is 0.5).
+ *                    Smaller = stricter match, larger = fuzzier since 0 is perfect match and 1 is worst match.
+ * @param limit - (Optional) Maximum number of results to return (default is 10).
+ * @returns FuseResult object containing the search results.
+ */
+export function searchTreeItems({
+  treeItems,
+  query,
+  keyWeightMap,
+  threshold,
+  limit = 10
+}: SearchTracksProps): FuseResult<RowInfo>[] {
+  const data = treeItems![0].allRowInfo ?? [];
+  const fuse = new Fuse(data, {
+    includeScore: true,
+    shouldSort: true,
+    threshold: threshold,
+    keys: keyWeightMap,
+  });
+  return fuse.search(query, { limit: limit });
+}
+
+/**
+ * Creates the assay icon for DataGrid and RichTreeView
+ * @param type: assay type
+ * @returns an icon of the assay's respective color
+ */
 export function AssayIcon(type: string) {
   const colorMap: { [key: string]: string } = {
     DNase: "#06da93",
@@ -214,6 +265,7 @@ export function AssayIcon(type: string) {
   );
 }
 
+// Everything below is styling for the custom directory look of the tree view
 const TreeItemRoot = styled("li")(({ theme }) => ({
   listStyle: "none",
   margin: 0,
@@ -363,7 +415,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
                 ) : (
                   icon
                 ),
-              expandable: status.expandable && status.expanded,
+              expandable: (status.expandable && status.expanded).toString(),
               isAssayItem: item.isAssayItem,
               id: item.id
             })}
@@ -374,20 +426,3 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
     </TreeItemProvider>
   );
 });
-
-export function searchTreeItems({
-  treeItems,
-  query,
-  keyWeightMap,
-  threshold,
-  limit = 10
-}: SearchTracksProps): FuseResult<RowInfo>[] {
-  const data = treeItems![0].allRowInfo ?? [];
-  const fuse = new Fuse(data, {
-    includeScore: true,
-    shouldSort: true,
-    threshold: threshold,
-    keys: keyWeightMap,
-  });
-  return fuse.search(query, { limit: limit });
-}
