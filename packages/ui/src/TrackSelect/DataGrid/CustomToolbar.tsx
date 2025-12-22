@@ -19,7 +19,7 @@ import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
-import { DataGridProps } from "./types";
+import { DataGridProps } from "../types";
 import { InfoOutline } from "@mui/icons-material";
 
 type CustomToolbarProps = {
@@ -29,21 +29,35 @@ type CustomToolbarProps = {
   toolbarSlot?: DataGridProps["toolbarSlot"];
   toolbarStyle?: DataGridProps["toolbarStyle"];
   toolbarIconColor?: DataGridProps["toolbarIconColor"];
-} & GridToolbarProps & ToolbarPropsOverrides;
+} & GridToolbarProps &
+  ToolbarPropsOverrides;
 
-export function CustomToolbar({ label, downloadFileName, labelTooltip, toolbarSlot, toolbarStyle, toolbarIconColor, ...restToolbarProps }: CustomToolbarProps) {
+export function CustomToolbar({
+  label,
+  downloadFileName,
+  labelTooltip,
+  toolbarSlot,
+  toolbarStyle,
+  toolbarIconColor,
+  ...restToolbarProps
+}: CustomToolbarProps) {
   const [exportMenuOpen, setExportMenuOpen] = React.useState(false);
   const exportMenuTriggerRef = React.useRef<HTMLButtonElement>(null);
 
-  const iconColor = toolbarIconColor ?? "inherit"
+  const iconColor = toolbarIconColor ?? "inherit";
 
   return (
     <Toolbar style={{ ...toolbarStyle }}>
       {typeof label !== "string" && label}
-      <Typography fontWeight="medium" sx={{ flex: 1, mx: 0.5, display: "flex", alignItems: "center", gap: 1 }}>
+      <Typography
+        fontWeight="medium"
+        sx={{ flex: 1, mx: 0.5, display: "flex", alignItems: "center", gap: 1 }}
+      >
         {typeof label === "string" && label}
         {/* ReactNode can be more than just an element, string, or number but not accounting for that for simplicity */}
-        {labelTooltip && (typeof labelTooltip === "string" || typeof labelTooltip === "number") ? (
+        {labelTooltip &&
+        (typeof labelTooltip === "string" ||
+          typeof labelTooltip === "number") ? (
           <Tooltip title={labelTooltip}>
             <InfoOutline fontSize="inherit" color="primary" />
           </Tooltip>
@@ -54,7 +68,12 @@ export function CustomToolbar({ label, downloadFileName, labelTooltip, toolbarSl
       {toolbarSlot && (
         <>
           {toolbarSlot}
-          <Divider orientation="vertical" variant="middle" flexItem sx={{ mx: 0.5 }} />
+          <Divider
+            orientation="vertical"
+            variant="middle"
+            flexItem
+            sx={{ mx: 0.5 }}
+          />
         </>
       )}
 
@@ -68,14 +87,23 @@ export function CustomToolbar({ label, downloadFileName, labelTooltip, toolbarSl
         <FilterPanelTrigger
           render={(props, state) => (
             <ToolbarButton {...props} color="default">
-              <Badge badgeContent={state.filterCount} color="primary" variant="dot">
+              <Badge
+                badgeContent={state.filterCount}
+                color="primary"
+                variant="dot"
+              >
                 <FilterListIcon fontSize="small" htmlColor={iconColor} />
               </Badge>
             </ToolbarButton>
           )}
         />
       </Tooltip>
-      <Divider orientation="vertical" variant="middle" flexItem sx={{ mx: 0.5 }} />
+      <Divider
+        orientation="vertical"
+        variant="middle"
+        flexItem
+        sx={{ mx: 0.5 }}
+      />
       <Tooltip title="Export">
         <ToolbarButton
           ref={exportMenuTriggerRef}
@@ -110,7 +138,10 @@ export function CustomToolbar({ label, downloadFileName, labelTooltip, toolbarSl
           Print
         </ExportPrint>
         <ExportCsv
-          options={{ fileName: typeof label === "string" ? label : downloadFileName, ...restToolbarProps.csvOptions }}
+          options={{
+            fileName: typeof label === "string" ? label : downloadFileName,
+            ...restToolbarProps.csvOptions,
+          }}
           render={<MenuItem />}
           onClick={() => setExportMenuOpen(false)}
         >
