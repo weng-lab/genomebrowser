@@ -79,3 +79,14 @@ export const rows = ontologyTypes.flatMap((ontology) =>
 export const rowById = new Map<string, RowInfo>(
   rows.map((r) => [r.experimentAccession, r]),
 );
+
+/**
+ * Check if an ID is a real track (exists in rowById) vs an auto-generated group ID
+ */
+export const isTrackId = (id: string): boolean => rowById.has(id);
+
+/**
+ * Filter a set of IDs to return only real track IDs (no auto-generated group IDs)
+ */
+export const getActiveTracks = (selectedIds: Set<string>): Set<string> =>
+  new Set(Array.from(selectedIds).filter(isTrackId));

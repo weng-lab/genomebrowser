@@ -111,6 +111,7 @@ export function DataGridWrapper(props: DataGridProps) {
           checkboxSelection
           autosizeOnMount
           pagination
+          hideFooterSelectedRowCount
         />
       </Box>
     </Paper>

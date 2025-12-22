@@ -89,14 +89,11 @@ export interface CustomTreeItemProps
 export type SelectionState = {
   maxTracks: number;
   selectedIds: Set<string>;
-  activeTracks: Set<string>;
 };
 
 export type SelectionAction = {
   setSelected: (ids: Set<string>) => void;
-  setActive: () => void;
   removeIds: (removedIds: Set<string>) => void;
-  removeActiveTracks: (removedIds: Set<string>) => void;
   clear: () => void;
 };
 

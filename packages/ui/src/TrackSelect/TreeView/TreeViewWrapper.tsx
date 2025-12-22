@@ -1,14 +1,20 @@
 import { Box, Paper, Typography } from "@mui/material";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import { rowById } from "../consts";
-import { CustomTreeItemProps, ExtendedTreeItemProps, TreeViewWrapperProps } from "../types";
+import {
+  CustomTreeItemProps,
+  ExtendedTreeItemProps,
+  TreeViewWrapperProps,
+} from "../types";
 import { CustomTreeItem } from "./treeViewHelpers";
 import { Avatar } from "@mui/material";
 import { useSelectionStore } from "../TrackSelect";
 
-export function TreeViewWrapper({ items, isSearchResult }: TreeViewWrapperProps) {
-  const removeActiveTracks = useSelectionStore((s) => s.removeActiveTracks);
-  const selectedIds = useSelectionStore((s) => s.selectedIds);
+export function TreeViewWrapper({
+  items,
+  activeTracks,
+  isSearchResult,
+}: TreeViewWrapperProps) {
   const removeIds = useSelectionStore((s) => s.removeIds);
 
   const handleRemoveTreeItem = (
@@ -29,17 +35,16 @@ export function TreeViewWrapper({ items, isSearchResult }: TreeViewWrapperProps)
           );
           idsToRemove.add(`auto-generated-row-assay/${row.assay}`);
           idsToRemove.add(
-            `auto-generated-row-assay/${row.assay}-ontology/${row.ontology}`
+            `auto-generated-row-assay/${row.assay}-ontology/${row.ontology}`,
           );
         }
       });
       removeIds(idsToRemove);
-      removeActiveTracks(idsToRemove);
     }
   };
 
   return (
-    <Paper 
+    <Paper
       sx={{
         height: 500,
         width: "100%",
@@ -71,7 +76,7 @@ export function TreeViewWrapper({ items, isSearchResult }: TreeViewWrapperProps)
             color: "text.primary",
           }}
         >
-          {selectedIds.size}
+          {activeTracks.size}
         </Avatar>
         <Typography fontWeight="bold">
           Active Tracks
