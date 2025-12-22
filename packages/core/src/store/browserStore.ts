@@ -3,6 +3,7 @@ import { RefObject, useMemo } from "react";
 import { Domain } from "../utils/types";
 import { TrackDimensions } from "../components/tracks/types";
 import { Highlight } from "../components/highlight/types";
+
 export interface InitialBrowserState {
   domain: Domain;
   marginWidth: number;

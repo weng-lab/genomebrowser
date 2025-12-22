@@ -1,6 +1,6 @@
 {
   "name": "@weng-lab/genomebrowser-ui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "type": "module",
   "main": "dist/index.es.js",

@@ -8,14 +8,14 @@ import {
 } from "../types";
 import { CustomTreeItem } from "./treeViewHelpers";
 import { Avatar } from "@mui/material";
-import { useSelectionStore } from "../TrackSelect";
 
 export function TreeViewWrapper({
+  store,
   items,
   activeTracks,
   isSearchResult,
 }: TreeViewWrapperProps) {
-  const removeIds = useSelectionStore((s) => s.removeIds);
+  const removeIds = store((s) => s.removeIds);
 
   const handleRemoveTreeItem = (
     item: TreeViewBaseItem<ExtendedTreeItemProps>,
