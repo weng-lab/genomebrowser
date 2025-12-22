@@ -160,11 +160,15 @@ export default function TrackSelect() {
   };
 
   const handleSelection = (newSelection: GridRowSelectionModel) => {
-    if (activeTracks.size >= MAX_ACTIVE) {
+    const idsSet = (newSelection && (newSelection as any).ids) ?? new Set<string>();
+    const newActiveTracks = getActiveTracks(idsSet);
+
+    // Block only if the new selection would exceed the limit
+    if (newActiveTracks.size > MAX_ACTIVE) {
       setLimitDialogOpen(true);
       return;
     }
-    const idsSet = (newSelection && (newSelection as any).ids) ?? new Set<string>();
+
     setSelected(idsSet);
   };
 
