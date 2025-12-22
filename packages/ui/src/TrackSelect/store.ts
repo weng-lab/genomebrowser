@@ -1,26 +1,27 @@
 import { create, StoreApi, UseBoundStore } from "zustand";
-import { SelectionState, SelectionAction } from "./types";
+import { SelectionState, SelectionAction, RowInfo } from "./types";
 
 export type SelectionStoreInstance = UseBoundStore<
   StoreApi<SelectionState & SelectionAction>
 >;
 
 export function createSelectionStore() {
-  return create<SelectionState & SelectionAction>((set) => ({
+  return create<SelectionState & SelectionAction>((set, get) => ({
     maxTracks: 30,
-    selectedIds: new Set<string>(),
-    setSelected: (ids: Set<string>) =>
+    selectedTracks: new Map<string, RowInfo>(),
+    selectedIds: () => new Set(get().selectedTracks.keys()),
+    setSelected: (tracks: Map<string, RowInfo>) =>
       set(() => ({
-        selectedIds: new Set(ids),
+        selectedTracks: new Map(tracks),
       })),
     removeIds: (removedIds: Set<string>) =>
       set((state) => {
-        const next = new Set(state.selectedIds);
+        const next = new Map(state.selectedTracks);
         removedIds.forEach((id) => {
           next.delete(id);
         });
-        return { selectedIds: next };
+        return { selectedTracks: next };
       }),
-    clear: () => set(() => ({ selectedIds: new Set<string>() })),
+    clear: () => set(() => ({ selectedTracks: new Map<string, RowInfo>() })),
   }));
 }

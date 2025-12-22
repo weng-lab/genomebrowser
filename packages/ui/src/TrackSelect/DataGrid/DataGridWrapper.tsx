@@ -31,7 +31,7 @@ export function DataGridWrapper(props: DataGridProps) {
     sortedAssay,
     handleSelection,
     rows,
-    selectedIds
+    selectedTracks
   } = props;
 
   const CustomToolbarWrapper = useMemo(() => {
@@ -89,7 +89,7 @@ export function DataGridWrapper(props: DataGridProps) {
           columnVisibilityModel={{ displayname: false }} // so you don't see a second name column
           onRowSelectionModelChange={handleSelection}
           rowSelectionPropagation={{ descendants: true }}
-          rowSelectionModel={{ type: "include", ids: new Set(selectedIds) }}
+          rowSelectionModel={{ type: "include", ids: new Set(selectedTracks.keys()) }}
           slots={{
             toolbar: CustomToolbarWrapper,
           }}

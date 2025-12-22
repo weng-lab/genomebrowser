@@ -1,12 +1,7 @@
 import { capitalize } from "@mui/material";
 import Fuse, { FuseResult } from "fuse.js";
 import tracksData from "../Data/modifiedHumanTracks.json";
-import { 
-  AssayInfo, 
-  RowInfo, 
-  SearchTracksProps, 
-  TrackInfo
-} from "../types";
+import { AssayInfo, RowInfo, SearchTracksProps, TrackInfo } from "../types";
 
 function formatAssayType(assay: string): string {
   switch (assay) {
@@ -62,7 +57,7 @@ export function getTracksByAssayAndOntology(
  */
 export function flattenIntoRow(track: TrackInfo): RowInfo {
   const { ontology, lifeStage, sampleType, displayname } = track;
-  const { assay, experimentAccession, fileAccession } = track.assays[0];
+  const { assay, experimentAccession, fileAccession, url } = track.assays[0];
 
   return {
     ontology: capitalize(ontology),
@@ -72,6 +67,7 @@ export function flattenIntoRow(track: TrackInfo): RowInfo {
     assay: formatAssayType(assay),
     experimentAccession,
     fileAccession,
+    url,
   };
 }
 
