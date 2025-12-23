@@ -5,10 +5,10 @@ export type SelectionStoreInstance = UseBoundStore<
   StoreApi<SelectionState & SelectionAction>
 >;
 
-export function createSelectionStore() {
+export function createSelectionStore(initialTracks?: Map<string, RowInfo>) {
   return create<SelectionState & SelectionAction>((set, get) => ({
     maxTracks: 30,
-    selectedTracks: new Map<string, RowInfo>(),
+    selectedTracks: initialTracks ? new Map(initialTracks) : new Map<string, RowInfo>(),
     selectedIds: () => new Set(get().selectedTracks.keys()),
     setSelected: (tracks: Map<string, RowInfo>) =>
       set(() => ({
