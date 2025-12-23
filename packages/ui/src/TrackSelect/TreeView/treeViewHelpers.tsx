@@ -282,9 +282,9 @@ const TreeItemLabelText = styled(Typography)({
   fontFamily: "inherit",
 });
 
-function CustomLabel({ icon: Icon, children, ...other }: CustomLabelProps) {
-  const variant = other.isAssayItem ? "subtitle2" : "body2";
-  const fontWeight = other.isAssayItem ? "bold" : 500;
+function CustomLabel({ icon: Icon, children, isAssayItem, ...other }: CustomLabelProps) {
+  const variant = isAssayItem ? "subtitle2" : "body2";
+  const fontWeight = isAssayItem ? "bold" : 500;
   return (
     <TreeItemLabel
       {...other}
@@ -306,7 +306,7 @@ function CustomLabel({ icon: Icon, children, ...other }: CustomLabelProps) {
         />
       )}
       <Stack direction="row" spacing={2} alignItems="center">
-        { other.isAssayItem && AssayIcon(other.id) }
+        { isAssayItem && AssayIcon(other.id) }
         <TreeItemLabelText fontWeight={fontWeight} variant={variant}>{children}</TreeItemLabelText>
       </Stack>
     </TreeItemLabel>
