@@ -3,14 +3,14 @@ import {
   DataGridPremium,
   GridToolbarProps,
   ToolbarPropsOverrides,
-  GridAutosizeOptions,
-  useGridApiRef,
   GridColDef,
   FilterColumnsArgs,
+  GridAutosizeOptions,
+  GridColumnVisibilityModel,
 } from "@mui/x-data-grid-premium";
 import { DataGridProps } from "../types";
 import { CustomToolbar } from "./CustomToolbar";
-import { useEffect, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { sortedByAssayColumns, defaultColumns } from "./columns";
 
 const autosizeOptions: GridAutosizeOptions = {
@@ -48,11 +48,16 @@ export function DataGridWrapper(props: DataGridProps) {
     );
   }, [label, labelTooltip, toolbarSlot]);
 
-  const apiRef = useGridApiRef();
   const groupingModel = sortedAssay
     ? ["assay", "ontology"]
     : ["ontology", "displayname"];
   const columnModel = sortedAssay ? sortedByAssayColumns : defaultColumns;
+
+  const [columnVisibilityModel, setColumnVisibilityModel] =
+    useState<GridColumnVisibilityModel>({
+      assay: false,
+      displayname: false,
+    });
 
   // functions to customize the column and filter panel in the toolbar
   const filterColumns = ({ columns }: FilterColumnsArgs) => {
@@ -67,18 +72,6 @@ export function DataGridWrapper(props: DataGridProps) {
       .map((column) => column.field);
   };
 
-  const handleResizeCols = () => {
-    // need to check .autosizeColumns since the current was being set with an empty object
-    if (!apiRef.current?.autosizeColumns) return;
-    apiRef.current.autosizeColumns(autosizeOptions);
-  };
-
-  // trigger resize when rows or columns change so that rows/columns don't need to be memoized outisde of this component
-  // otherwise sometimes would snap back to default widths when rows/columns change
-  useEffect(() => {
-    handleResizeCols();
-  }, [rows, defaultColumns, sortedByAssayColumns, handleResizeCols]);
-
   return (
     <Paper sx={{ width: "100%" }}>
       <Box
@@ -89,14 +82,14 @@ export function DataGridWrapper(props: DataGridProps) {
         }}
       >
         <DataGridPremium
-          apiRef={apiRef}
           rows={rows}
           columns={columnModel}
           getRowId={(row) => row.experimentAccession}
           autosizeOptions={autosizeOptions}
           rowGroupingModel={groupingModel}
           groupingColDef={{ leafField: "assay", display: "flex" }}
-          columnVisibilityModel={{ assay: false, displayname: false }}
+          columnVisibilityModel={columnVisibilityModel}
+          onColumnVisibilityModelChange={setColumnVisibilityModel}
           onRowSelectionModelChange={handleSelection}
           rowSelectionPropagation={{ descendants: true }}
           disableRowGrouping={false}
@@ -104,9 +97,9 @@ export function DataGridWrapper(props: DataGridProps) {
             type: "include",
             ids: new Set(selectedTracks.keys()),
           }}
-          slots={{
-            toolbar: CustomToolbarWrapper,
-          }}
+          // slots={{
+          //   toolbar: CustomToolbarWrapper,
+          // }}
           slotProps={{
             filterPanel: {
               filterFormProps: {
