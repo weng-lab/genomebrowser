@@ -105,6 +105,8 @@ export type SelectionState = {
 export type SelectionAction = {
   // Returns only real track IDs (filters out auto-generated group IDs)
   getTrackIds: () => Set<string>;
+  // Returns a Map of track IDs to RowInfo (no auto-generated IDs)
+  getTrackMap: () => Map<string, RowInfo>;
   setSelected: (ids: Set<string>) => void;
   removeIds: (removedIds: Set<string>) => void;
   clear: () => void;
