@@ -100,6 +100,7 @@ export function buildSortedAssayTreeView(
         isAssayItem: false,
         label: row.experimentAccession,
         icon: row.assay,
+        assayName: row.assay,
         children: [],
       };
       sampleAssayMap.set(row.displayname + row.assay, expNode);
@@ -184,6 +185,7 @@ export function buildTreeView(
         id: row.experimentAccession,
         label: row.experimentAccession,
         icon: row.assay,
+        assayName: row.assay,
         children: [],
       };
       sampleAssayMap.set(row.displayname + row.assay, expNode);
@@ -282,7 +284,7 @@ const TreeItemLabelText = styled(Typography)({
   fontFamily: "inherit",
 });
 
-function CustomLabel({ icon: Icon, children, isAssayItem, ...other }: CustomLabelProps) {
+function CustomLabel({ icon: Icon, children, isAssayItem, assayName, ...other }: CustomLabelProps) {
   const variant = isAssayItem ? "subtitle2" : "body2";
   const fontWeight = isAssayItem ? "bold" : 500;
   return (
@@ -305,8 +307,9 @@ function CustomLabel({ icon: Icon, children, isAssayItem, ...other }: CustomLabe
           sx={{ mr: 1, fontSize: "1.2rem" }}
         />
       )}
-      <Stack direction="row" spacing={2} alignItems="center">
+      <Stack direction="row" spacing={1} alignItems="center">
         { isAssayItem && AssayIcon(other.id) }
+        { assayName && <TreeItemLabelText fontWeight={fontWeight} variant={variant}>{assayName}</TreeItemLabelText> }
         <TreeItemLabelText fontWeight={fontWeight} variant={variant}>{children}</TreeItemLabelText>
       </Stack>
     </TreeItemLabel>
@@ -417,6 +420,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
                 ),
               expandable: (status.expandable && status.expanded).toString(),
               isAssayItem: item.isAssayItem,
+              assayName: item.assayName,
               id: item.id
             })}
           />

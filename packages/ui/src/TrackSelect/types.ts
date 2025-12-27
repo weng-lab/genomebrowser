@@ -60,6 +60,10 @@ export type ExtendedTreeItemProps = {
   icon: string;
   isAssayItem?: boolean;
   /**
+   * The assay name for leaf nodes (experiment accession items)
+   */
+  assayName?: string;
+  /**
    * list of all the experimentAccession values in the children/grandchildren of the item, or the accession of the item itself
    * this is used in updating the rowSelectionModel when removing items from the Tree View panel
    */
@@ -80,6 +84,7 @@ export interface CustomLabelProps {
   id: string;
   children: React.ReactNode;
   isAssayItem?: boolean;
+  assayName?: string;
   icon: React.ElementType | React.ReactElement;
 }
 
