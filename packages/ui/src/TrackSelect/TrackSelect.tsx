@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
 import { flattenIntoRow, searchTracks } from "./DataGrid/dataGridHelpers";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
@@ -83,90 +83,142 @@ export default function TrackSelect({ store }: TrackSelectProps) {
       allRowInfo: [],
     },
   ] as TreeViewBaseItem<ExtendedTreeItemProps>[]);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchResultIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (searchQuery === "") {
       setFilteredTreeItems(treeItems);
       setFilteredRows(rows);
       setIsSearchResult(false);
+      searchResultIdsRef.current = new Set();
+    } else if (searchResultIdsRef.current.size > 0) {
+      // When selection changes during search, rebuild tree from selected items that match search
+      const matchingTrackIds = Array.from(trackIds).filter((id) =>
+        searchResultIdsRef.current.has(id),
+      );
+
+      const newTreeItems = sortedAssay
+        ? buildSortedAssayTreeView(
+            matchingTrackIds,
+            {
+              id: "1",
+              isAssayItem: false,
+              label: "Biosamples",
+              icon: "folder",
+              children: [],
+              allRowInfo: [],
+            },
+            rowById,
+          )
+        : buildTreeView(
+            matchingTrackIds,
+            {
+              id: "1",
+              isAssayItem: false,
+              label: "Biosamples",
+              icon: "folder",
+              children: [],
+              allRowInfo: [],
+            },
+            rowById,
+          );
+
+      setFilteredTreeItems(newTreeItems);
     }
-  }, [treeItems, searchQuery]);
+  }, [treeItems, searchQuery, trackIds, sortedAssay]);
 
   const handleToggle = () => {
     setSortedAssay(!sortedAssay);
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    const query = e.target.value;
+    setSearchQuery(query);
 
-    const dataGridSearchProps: SearchTracksProps = {
-      jsonStructure: "tracks",
-      query: e.target.value,
-      keyWeightMap: [
-        "displayname",
-        "ontology",
-        "lifeStage",
-        "sampleType",
-        "type",
-        "experimentAccession",
-        "fileAccession",
-      ],
-    };
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
 
-    const treeSearchProps: SearchTracksProps = {
-      treeItems: treeItems,
-      query: e.target.value,
-      keyWeightMap: [
-        "displayname",
-        "ontology",
-        "lifeStage",
-        "sampleType",
-        "type",
-        "experimentAccession",
-        "fileAccession",
-      ],
-    };
-    const newDataGridRows = searchTracks(dataGridSearchProps)
-      .map((t) => t.item)
-      .map(flattenIntoRow);
+    // Debounce the search
+    searchTimeoutRef.current = setTimeout(() => {
+      if (query === "") {
+        return; // useEffect handles empty query
+      }
 
-    // we only want the intersection of filtered tracks displayed on the DataGrid and user-selected tracks to be displayed on the tree
-    const newDataGridIds = newDataGridRows.map((r) => r.experimentAccession);
-    const retIds = searchTreeItems(treeSearchProps).map(
-      (r) => r.item.experimentAccession,
-    );
-    const newTreeIds = retIds.filter((i) => newDataGridIds.includes(i));
+      const dataGridSearchProps: SearchTracksProps = {
+        jsonStructure: "tracks",
+        query: query,
+        keyWeightMap: [
+          "displayname",
+          "ontology",
+          "lifeStage",
+          "sampleType",
+          "type",
+          "experimentAccession",
+          "fileAccession",
+        ],
+      };
 
-    // build new tree from the newTreeIds...maybe it would be faster to prune the current tree instead of rebuilding it?
-    const newTreeItems = sortedAssay
-      ? buildSortedAssayTreeView(
-          newTreeIds,
-          {
-            id: "1",
-            isAssayItem: false,
-            label: "Biosamples",
-            icon: "folder",
-            children: [],
-            allRowInfo: [],
-          },
-          rowById,
-        )
-      : buildTreeView(
-          newTreeIds,
-          {
-            id: "1",
-            isAssayItem: false,
-            label: "Biosamples",
-            icon: "folder",
-            children: [],
-            allRowInfo: [],
-          },
-          rowById,
-        );
+      const treeSearchProps: SearchTracksProps = {
+        treeItems: treeItems,
+        query: query,
+        keyWeightMap: [
+          "displayname",
+          "ontology",
+          "lifeStage",
+          "sampleType",
+          "type",
+          "experimentAccession",
+          "fileAccession",
+        ],
+      };
+      const newDataGridRows = searchTracks(dataGridSearchProps)
+        .map((t) => t.item)
+        .map(flattenIntoRow);
 
-    setFilteredRows(newDataGridRows);
-    setIsSearchResult(true);
-    setFilteredTreeItems(newTreeItems);
+      // we only want the intersection of filtered tracks displayed on the DataGrid and user-selected tracks to be displayed on the tree
+      const newDataGridIds = newDataGridRows.map((r) => r.experimentAccession);
+      const retIds = searchTreeItems(treeSearchProps).map(
+        (r) => r.item.experimentAccession,
+      );
+      const newTreeIds = retIds.filter((i) => newDataGridIds.includes(i));
+
+      // build new tree from the newTreeIds
+      const newTreeItems = sortedAssay
+        ? buildSortedAssayTreeView(
+            newTreeIds,
+            {
+              id: "1",
+              isAssayItem: false,
+              label: "Biosamples",
+              icon: "folder",
+              children: [],
+              allRowInfo: [],
+            },
+            rowById,
+          )
+        : buildTreeView(
+            newTreeIds,
+            {
+              id: "1",
+              isAssayItem: false,
+              label: "Biosamples",
+              icon: "folder",
+              children: [],
+              allRowInfo: [],
+            },
+            rowById,
+          );
+
+      // Store search result IDs in ref for use in useEffect
+      searchResultIdsRef.current = new Set(newDataGridIds);
+
+      setFilteredRows(newDataGridRows);
+      setIsSearchResult(true);
+      setFilteredTreeItems(newTreeItems);
+    }, 300);
   };
 
   const handleSelection = (newSelection: GridRowSelectionModel) => {
