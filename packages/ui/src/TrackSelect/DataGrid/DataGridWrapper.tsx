@@ -51,7 +51,7 @@ export function DataGridWrapper(props: DataGridProps) {
   const apiRef = useGridApiRef();
   const groupingModel = sortedAssay
     ? ["assay", "ontology"]
-    : ["ontology", "assay"];
+    : ["ontology", "displayname"];
   const columnModel = sortedAssay ? sortedByAssayColumns : defaultColumns;
 
   // functions to customize the column and filter panel in the toolbar
@@ -95,8 +95,8 @@ export function DataGridWrapper(props: DataGridProps) {
           getRowId={(row) => row.experimentAccession}
           autosizeOptions={autosizeOptions}
           rowGroupingModel={groupingModel}
-          groupingColDef={{ leafField: "displayname", display: "flex" }}
-          columnVisibilityModel={{ displayname: false }} // so you don't see a second name column
+          groupingColDef={{ leafField: "assay", display: "flex" }}
+          columnVisibilityModel={{ assay: false }} // so you don't see a second name column
           onRowSelectionModelChange={handleSelection}
           rowSelectionPropagation={{ descendants: true }}
           disableRowGrouping={false}
