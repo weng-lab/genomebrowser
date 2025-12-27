@@ -96,7 +96,7 @@ export function DataGridWrapper(props: DataGridProps) {
           autosizeOptions={autosizeOptions}
           rowGroupingModel={groupingModel}
           groupingColDef={{ leafField: "assay", display: "flex" }}
-          columnVisibilityModel={{ assay: false }} // so you don't see a second name column
+          columnVisibilityModel={{ assay: false, displayname: false }}
           onRowSelectionModelChange={handleSelection}
           rowSelectionPropagation={{ descendants: true }}
           disableRowGrouping={false}
