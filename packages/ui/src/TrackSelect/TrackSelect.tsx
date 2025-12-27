@@ -244,7 +244,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
   };
 
   return (
-    <Box sx={{ flex: 1 }}>
+    <Box sx={{ flex: 1, pt: 1 }}>
       <Box display="flex" justifyContent="space-between" sx={{ mb: 3 }}>
         <TextField
           id="outlined-suffix-shrink"
