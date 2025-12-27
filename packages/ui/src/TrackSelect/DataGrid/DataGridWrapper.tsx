@@ -6,7 +6,7 @@ import {
   GridAutosizeOptions,
   useGridApiRef,
   GridColDef,
-  FilterColumnsArgs
+  FilterColumnsArgs,
 } from "@mui/x-data-grid-premium";
 import { DataGridProps } from "../types";
 import { CustomToolbar } from "./CustomToolbar";
@@ -31,7 +31,7 @@ export function DataGridWrapper(props: DataGridProps) {
     sortedAssay,
     handleSelection,
     rows,
-    selectedIds
+    selectedTracks,
   } = props;
 
   const CustomToolbarWrapper = useMemo(() => {
@@ -43,20 +43,28 @@ export function DataGridWrapper(props: DataGridProps) {
       toolbarStyle,
       toolbarIconColor,
     };
-    return (props: GridToolbarProps & ToolbarPropsOverrides) => <CustomToolbar {...props} {...customToolbarProps} />;
+    return (props: GridToolbarProps & ToolbarPropsOverrides) => (
+      <CustomToolbar {...props} {...customToolbarProps} />
+    );
   }, [label, labelTooltip, toolbarSlot]);
 
   const apiRef = useGridApiRef();
-  const groupingModel = sortedAssay ? ["assay", "ontology"] : ["ontology", "assay"];
+  const groupingModel = sortedAssay
+    ? ["assay", "ontology"]
+    : ["ontology", "assay"];
   const columnModel = sortedAssay ? sortedByAssayColumns : defaultColumns;
 
-  // functions to customize the column and filter panel in the toolbar 
+  // functions to customize the column and filter panel in the toolbar
   const filterColumns = ({ columns }: FilterColumnsArgs) => {
-    return columns.filter((column) => column.type !== 'custom').map((column) => column.field);
+    return columns
+      .filter((column) => column.type !== "custom")
+      .map((column) => column.field);
   };
 
   const getTogglableColumns = (columns: GridColDef[]) => {
-    return columns.filter((column) => column.type !== 'custom').map((column) => column.field);
+    return columns
+      .filter((column) => column.type !== "custom")
+      .map((column) => column.field);
   };
 
   const handleResizeCols = () => {
@@ -73,11 +81,13 @@ export function DataGridWrapper(props: DataGridProps) {
 
   return (
     <Paper sx={{ width: "100%" }}>
-      <Box sx={{
-        height: 500,
-        width: "100%",
-        overflow: "auto",
-      }}>
+      <Box
+        sx={{
+          height: 500,
+          width: "100%",
+          overflow: "auto",
+        }}
+      >
         <DataGridPremium
           apiRef={apiRef}
           rows={rows}
@@ -89,7 +99,11 @@ export function DataGridWrapper(props: DataGridProps) {
           columnVisibilityModel={{ displayname: false }} // so you don't see a second name column
           onRowSelectionModelChange={handleSelection}
           rowSelectionPropagation={{ descendants: true }}
-          rowSelectionModel={{ type: "include", ids: new Set(selectedIds) }}
+          disableRowGrouping={false}
+          rowSelectionModel={{
+            type: "include",
+            ids: new Set(selectedTracks.keys()),
+          }}
           slots={{
             toolbar: CustomToolbarWrapper,
           }}
