@@ -1,32 +1,30 @@
 import {
   Box,
-  Stack,
-  TextField,
-  FormControlLabel,
-  Switch,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  FormControlLabel,
+  Stack,
+  Switch,
+  TextField,
 } from "@mui/material";
+import { GridRowSelectionModel } from "@mui/x-data-grid";
+import { TreeViewBaseItem } from "@mui/x-tree-view";
+import React, { useEffect, useMemo, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
-import { searchTracks, flattenIntoRow } from "./DataGrid/dataGridHelpers";
+import { flattenIntoRow, searchTracks } from "./DataGrid/dataGridHelpers";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import {
   buildSortedAssayTreeView,
   buildTreeView,
   searchTreeItems,
 } from "./TreeView/treeViewHelpers";
-import { SearchTracksProps, ExtendedTreeItemProps, RowInfo } from "./types";
-import { rows, rowById } from "./consts";
-import React, { useState, useMemo, useEffect } from "react";
-import { TreeViewBaseItem } from "@mui/x-tree-view";
-import { GridRowSelectionModel } from "@mui/x-data-grid";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-} from "@mui/material";
+import { rowById, rows } from "./consts";
 import { SelectionStoreInstance } from "./store";
+import { ExtendedTreeItemProps, SearchTracksProps } from "./types";
 
 export interface TrackSelectProps {
   store: SelectionStoreInstance;
@@ -37,21 +35,19 @@ export default function TrackSelect({ store }: TrackSelectProps) {
   const [sortedAssay, setSortedAssay] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchResult, setIsSearchResult] = useState(false);
-  const selectedTracks = store((s) => s.selectedTracks);
+  const selectedIds = store((s) => s.selectedIds);
+  const getTrackIds = store((s) => s.getTrackIds);
   const setSelected = store((s) => s.setSelected);
   const clear = store((s) => s.clear);
   const MAX_ACTIVE = store((s) => s.maxTracks);
 
-  // Derive active tracks from selectedTracks (all keys are real track IDs)
-  const activeTracks = useMemo(
-    () => new Set(selectedTracks.keys()),
-    [selectedTracks],
-  );
+  // Get only real track IDs (no auto-generated group IDs)
+  const trackIds = useMemo(() => getTrackIds(), [selectedIds, getTrackIds]);
 
   const treeItems = useMemo(() => {
     return sortedAssay
       ? buildSortedAssayTreeView(
-          Array.from(selectedTracks.keys()),
+          Array.from(trackIds),
           {
             id: "1",
             isAssayItem: false,
@@ -63,7 +59,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
           rowById,
         )
       : buildTreeView(
-          Array.from(selectedTracks.keys()),
+          Array.from(trackIds),
           {
             id: "1",
             isAssayItem: false,
@@ -74,7 +70,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
           },
           rowById,
         );
-  }, [selectedTracks, sortedAssay]);
+  }, [trackIds, sortedAssay]);
 
   const [filteredRows, setFilteredRows] = useState(rows);
   const [filteredTreeItems, setFilteredTreeItems] = useState([
@@ -174,25 +170,25 @@ export default function TrackSelect({ store }: TrackSelectProps) {
   };
 
   const handleSelection = (newSelection: GridRowSelectionModel) => {
-    const idsSet =
+    const allIds: Set<string> =
       (newSelection && (newSelection as any).ids) ?? new Set<string>();
 
-    // Build a Map of only real track IDs (filter out auto-generated group IDs)
-    const newTracks = new Map<string, RowInfo>();
-    idsSet.forEach((id: string) => {
-      const row = rowById.get(id);
-      if (row) {
-        newTracks.set(id, row);
+    // Count only real track IDs for the limit check
+    let realTrackCount = 0;
+    allIds.forEach((id: string) => {
+      if (rowById.has(id)) {
+        realTrackCount++;
       }
     });
 
     // Block only if the new selection would exceed the limit
-    if (newTracks.size > MAX_ACTIVE) {
+    if (realTrackCount > MAX_ACTIVE) {
       setLimitDialogOpen(true);
       return;
     }
 
-    setSelected(newTracks);
+    // Store ALL IDs (including auto-generated group IDs)
+    setSelected(allIds);
   };
 
   return (
@@ -222,7 +218,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
                 ? `${filteredRows.length} Search Results`
                 : `${rows.length} Available Tracks`
             }
-            selectedTracks={selectedTracks}
+            selectedIds={selectedIds}
             handleSelection={handleSelection}
             sortedAssay={sortedAssay}
           />
@@ -231,8 +227,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
           <TreeViewWrapper
             store={store}
             items={filteredTreeItems}
-            selectedTracks={selectedTracks}
-            activeTracks={activeTracks}
+            trackIds={trackIds}
             isSearchResult={isSearchResult}
           />
         </Box>

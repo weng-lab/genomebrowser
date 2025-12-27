@@ -1,17 +1,14 @@
 import { Box, Paper } from "@mui/material";
 import {
   DataGridPremium,
-  GridToolbarProps,
-  ToolbarPropsOverrides,
-  GridColDef,
   FilterColumnsArgs,
   GridAutosizeOptions,
+  GridColDef,
   GridColumnVisibilityModel,
 } from "@mui/x-data-grid-premium";
+import { useState } from "react";
 import { DataGridProps } from "../types";
-import { CustomToolbar } from "./CustomToolbar";
-import { useMemo, useState } from "react";
-import { sortedByAssayColumns, defaultColumns } from "./columns";
+import { defaultColumns, sortedByAssayColumns } from "./columns";
 
 const autosizeOptions: GridAutosizeOptions = {
   expand: true,
@@ -21,32 +18,7 @@ const autosizeOptions: GridAutosizeOptions = {
 
 // TODO: figure out where mui stores the number of rows in a row grouping so that can be bolded too
 export function DataGridWrapper(props: DataGridProps) {
-  const {
-    label,
-    labelTooltip,
-    downloadFileName,
-    toolbarSlot,
-    toolbarStyle,
-    toolbarIconColor,
-    sortedAssay,
-    handleSelection,
-    rows,
-    selectedTracks,
-  } = props;
-
-  const CustomToolbarWrapper = useMemo(() => {
-    const customToolbarProps = {
-      label,
-      downloadFileName,
-      labelTooltip,
-      toolbarSlot,
-      toolbarStyle,
-      toolbarIconColor,
-    };
-    return (props: GridToolbarProps & ToolbarPropsOverrides) => (
-      <CustomToolbar {...props} {...customToolbarProps} />
-    );
-  }, [label, labelTooltip, toolbarSlot]);
+  const { sortedAssay, handleSelection, rows, selectedIds } = props;
 
   const groupingModel = sortedAssay
     ? ["assay", "ontology"]
@@ -91,15 +63,12 @@ export function DataGridWrapper(props: DataGridProps) {
           columnVisibilityModel={columnVisibilityModel}
           onColumnVisibilityModelChange={setColumnVisibilityModel}
           onRowSelectionModelChange={handleSelection}
-          rowSelectionPropagation={{ descendants: true }}
+          rowSelectionPropagation={{ descendants: true, parents: true }}
           disableRowGrouping={false}
           rowSelectionModel={{
             type: "include",
-            ids: new Set(selectedTracks.keys()),
+            ids: selectedIds,
           }}
-          // slots={{
-          //   toolbar: CustomToolbarWrapper,
-          // }}
           slotProps={{
             filterPanel: {
               filterFormProps: {
