@@ -12,123 +12,133 @@ const displayNameCol: GridColDef<RowInfo> = {
 };
 
 const sortedByAssayOntologyCol: GridColDef<RowInfo> = {
-    field: "ontology",
-    headerName: "Ontology",
-    type: "singleSelect",
-    valueOptions: ontologyTypes,
-    renderCell: (params) => {
-      if (params.rowNode.type === "group") {
-        if (params.value === undefined) {
-          return null;
-        }
-        const val = params.value;
-        return (
-          <div><b>{val}</b></div>
-        )
+  field: "ontology",
+  headerName: "Ontology",
+  type: "singleSelect",
+  valueOptions: ontologyTypes,
+  renderCell: (params) => {
+    if (params.rowNode.type === "group") {
+      if (params.value === undefined) {
+        return null;
       }
-    },
+      const val = params.value;
+      return (
+        <div>
+          <b>{val}</b>
+        </div>
+      );
+    }
+  },
 };
 
-const sortedByAssayAssayCol : GridColDef<RowInfo> = { 
-    field: "assay", 
-    headerName: "Assay",
-    valueOptions: assayTypes, 
-    renderCell: (params) => {
-        if (params.rowNode.type === "group") {
-            if (params.value === undefined) {
-                return null;
-            }
-            const val = params.value;
-            return (
-            <Stack direction="row" spacing={2} alignItems="center">
-                {AssayIcon(val)}
-                <div><b>{val}</b></div>
-            </Stack>
-            )
-        }
+const sortedByAssayAssayCol: GridColDef<RowInfo> = {
+  field: "assay",
+  headerName: "Assay",
+  valueOptions: assayTypes,
+  renderCell: (params) => {
+    if (params.rowNode.type === "group") {
+      if (params.value === undefined) {
+        return null;
+      }
+      const val = params.value;
+      return (
+        <Stack direction="row" spacing={2} alignItems="center">
+          {AssayIcon(val)}
+          <div>
+            <b>{val}</b>
+          </div>
+        </Stack>
+      );
     }
-}
+  },
+};
 
 const defaultOntologyCol: GridColDef<RowInfo> = {
-    field: "ontology",
-    headerName: "Ontology",
-    type: "singleSelect",
-    valueOptions: ontologyTypes,
-    renderCell: (params) => {
-        if (params.rowNode.type === "group") {
-            if (params.value === undefined) {
-            return null;
-            }
-            const val = params.value;
-            return (
-            <div><b>{val}</b></div>
-            )
-        }
+  field: "ontology",
+  headerName: "Ontology",
+  type: "singleSelect",
+  valueOptions: ontologyTypes,
+  renderCell: (params) => {
+    if (params.rowNode.type === "group") {
+      if (params.value === undefined) {
+        return null;
+      }
+      const val = params.value;
+      return (
+        <div>
+          <b>{val}</b>
+        </div>
+      );
     }
+  },
 };
 
-const defaultAssayCol: GridColDef<RowInfo> = { 
-    field: "assay", 
-    headerName: "Assay",
-    valueOptions: assayTypes,
-    renderCell: (params) => {
-        if (params.rowNode.type === "group") {
-            if (params.value === undefined) {
-                return null;
-            }
-            const val = params.value;
-            return (
-            <Stack direction="row" spacing={2} alignItems="center">
-                {AssayIcon(val)}
-                <div>{val}</div>
-            </Stack>
-            )
-        }
+const defaultAssayCol: GridColDef<RowInfo> = {
+  field: "assay",
+  headerName: "Assay",
+  valueOptions: assayTypes,
+  renderCell: (params) => {
+    if (params.value === undefined) {
+      return null;
     }
-}
+    const val = params.value;
+    return (
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ ml: 6 }}>
+        {AssayIcon(val)}
+        <div>{val}</div>
+      </Stack>
+    );
+  },
+};
 
 const sampleTypeCol: GridColDef<RowInfo> = {
-    field: "sampleType",
-    headerName: "Sample Type",
-    type: "singleSelect",
-    valueOptions: ["tissue", "primary cell", "cell line", "in vitro differentiated cells", "organoid"],
-    valueFormatter: (value) => value && capitalize(value),
+  field: "sampleType",
+  headerName: "Sample Type",
+  type: "singleSelect",
+  valueOptions: [
+    "tissue",
+    "primary cell",
+    "cell line",
+    "in vitro differentiated cells",
+    "organoid",
+  ],
+  valueFormatter: (value) => value && capitalize(value),
 };
 
 const lifeStageCol: GridColDef<RowInfo> = {
-    field: "lifeStage",
-    headerName: "Life Stage",
-    type: "singleSelect",
-    valueOptions: ["adult", "embryonic"],
-    valueFormatter: (value) => value && capitalize(value),
+  field: "lifeStage",
+  headerName: "Life Stage",
+  type: "singleSelect",
+  valueOptions: ["adult", "embryonic"],
+  valueFormatter: (value) => value && capitalize(value),
 };
 
-const experimentCol: GridColDef<RowInfo> = { 
-    field: "experimentAccession", 
-    headerName: "Experiment Accession" 
-}
+const experimentCol: GridColDef<RowInfo> = {
+  field: "experimentAccession",
+  headerName: "Experiment Accession",
+};
 
 const fileCol: GridColDef<RowInfo> = {
-    field: "fileAccession", 
-    headerName: "File Accession"
-}
+  field: "fileAccession",
+  headerName: "File Accession",
+};
 
 export const sortedByAssayColumns: GridColDef<RowInfo>[] = [
-    displayNameCol,
-    sortedByAssayOntologyCol,
-    sampleTypeCol,
-    lifeStageCol,
-    sortedByAssayAssayCol,
-    experimentCol,
-    fileCol
-]
+  displayNameCol,
+  sortedByAssayOntologyCol,
+  sampleTypeCol,
+  lifeStageCol,
+  sortedByAssayAssayCol,
+  experimentCol,
+  fileCol,
+];
 
 export const defaultColumns: GridColDef<RowInfo>[] = [
-    displayNameCol,
-    sampleTypeCol,
-    lifeStageCol,
-    defaultOntologyCol,
-    defaultAssayCol,
-    experimentCol,
-    fileCol
-]
+  defaultAssayCol,
+  sampleTypeCol,
+  lifeStageCol,
+  defaultOntologyCol,
+  displayNameCol,
+  experimentCol,
+  fileCol,
+];

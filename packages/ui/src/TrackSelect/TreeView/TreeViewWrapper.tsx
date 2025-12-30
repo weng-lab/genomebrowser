@@ -12,7 +12,7 @@ import { Avatar } from "@mui/material";
 export function TreeViewWrapper({
   store,
   items,
-  activeTracks,
+  trackIds,
   isSearchResult,
 }: TreeViewWrapperProps) {
   const removeIds = store((s) => s.removeIds);
@@ -28,11 +28,13 @@ export function TreeViewWrapper({
       removedIds.forEach((id) => {
         const row = rowById.get(id);
         if (row) {
-          // Add the auto-generated group IDs for this track's ontology and assay
+          // Add the auto-generated group IDs for this track's grouping hierarchy
+          // Default view: ontology -> displayname
           idsToRemove.add(`auto-generated-row-ontology/${row.ontology}`);
           idsToRemove.add(
-            `auto-generated-row-ontology/${row.ontology}-assay/${row.assay}`,
+            `auto-generated-row-ontology/${row.ontology}-displayname/${row.displayname}`,
           );
+          // Sorted by assay view: assay -> ontology -> displayname
           idsToRemove.add(`auto-generated-row-assay/${row.assay}`);
           idsToRemove.add(
             `auto-generated-row-assay/${row.assay}-ontology/${row.ontology}`,
@@ -76,7 +78,7 @@ export function TreeViewWrapper({
             color: "text.primary",
           }}
         >
-          {activeTracks.size}
+          {trackIds.size}
         </Avatar>
         <Typography fontWeight="bold">
           Active Tracks

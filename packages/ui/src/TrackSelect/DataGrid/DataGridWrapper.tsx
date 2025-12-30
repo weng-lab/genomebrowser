@@ -1,17 +1,15 @@
 import { Box, Paper } from "@mui/material";
 import {
   DataGridPremium,
-  GridToolbarProps,
-  ToolbarPropsOverrides,
-  GridAutosizeOptions,
-  useGridApiRef,
-  GridColDef,
   FilterColumnsArgs,
+  GridAutosizeOptions,
+  GridColDef,
+  GridColumnVisibilityModel,
+  useGridApiRef,
 } from "@mui/x-data-grid-premium";
+import { useEffect, useState } from "react";
 import { DataGridProps } from "../types";
-import { CustomToolbar } from "./CustomToolbar";
-import { useEffect, useMemo } from "react";
-import { sortedByAssayColumns, defaultColumns } from "./columns";
+import { defaultColumns, sortedByAssayColumns } from "./columns";
 
 const autosizeOptions: GridAutosizeOptions = {
   expand: true,
@@ -21,38 +19,35 @@ const autosizeOptions: GridAutosizeOptions = {
 
 // TODO: figure out where mui stores the number of rows in a row grouping so that can be bolded too
 export function DataGridWrapper(props: DataGridProps) {
-  const {
-    label,
-    labelTooltip,
-    downloadFileName,
-    toolbarSlot,
-    toolbarStyle,
-    toolbarIconColor,
-    sortedAssay,
-    handleSelection,
-    rows,
-    selectedTracks,
-  } = props;
-
-  const CustomToolbarWrapper = useMemo(() => {
-    const customToolbarProps = {
-      label,
-      downloadFileName,
-      labelTooltip,
-      toolbarSlot,
-      toolbarStyle,
-      toolbarIconColor,
-    };
-    return (props: GridToolbarProps & ToolbarPropsOverrides) => (
-      <CustomToolbar {...props} {...customToolbarProps} />
-    );
-  }, [label, labelTooltip, toolbarSlot]);
+  const { sortedAssay, handleSelection, rows, selectedIds } = props;
 
   const apiRef = useGridApiRef();
+
+  // Resize columns when toggling between sort modes
+  useEffect(() => {
+    if (apiRef.current && apiRef.current.autosizeColumns) {
+      apiRef.current.autosizeColumns(autosizeOptions);
+    }
+  }, [sortedAssay]);
+
   const groupingModel = sortedAssay
     ? ["assay", "ontology"]
-    : ["ontology", "assay"];
+    : ["ontology", "displayname"];
   const columnModel = sortedAssay ? sortedByAssayColumns : defaultColumns;
+  const leafField = sortedAssay ? "displayname" : "assay";
+
+  // Hide columns that are used in grouping or as leaf field
+  const baseVisibility: GridColumnVisibilityModel = sortedAssay
+    ? { assay: false, ontology: false, displayname: false } // sort by assay: assay & ontology are grouping, displayname is leaf
+    : { ontology: false, displayname: false, assay: false }; // default: ontology & displayname are grouping, assay is leaf
+
+  const [columnVisibilityModel, setColumnVisibilityModel] =
+    useState<GridColumnVisibilityModel>(baseVisibility);
+
+  // Update visibility when sort mode changes
+  useEffect(() => {
+    setColumnVisibilityModel(baseVisibility);
+  }, [sortedAssay]);
 
   // functions to customize the column and filter panel in the toolbar
   const filterColumns = ({ columns }: FilterColumnsArgs) => {
@@ -66,18 +61,6 @@ export function DataGridWrapper(props: DataGridProps) {
       .filter((column) => column.type !== "custom")
       .map((column) => column.field);
   };
-
-  const handleResizeCols = () => {
-    // need to check .autosizeColumns since the current was being set with an empty object
-    if (!apiRef.current?.autosizeColumns) return;
-    apiRef.current.autosizeColumns(autosizeOptions);
-  };
-
-  // trigger resize when rows or columns change so that rows/columns don't need to be memoized outisde of this component
-  // otherwise sometimes would snap back to default widths when rows/columns change
-  useEffect(() => {
-    handleResizeCols();
-  }, [rows, defaultColumns, sortedByAssayColumns, handleResizeCols]);
 
   return (
     <Paper sx={{ width: "100%" }}>
@@ -95,17 +78,15 @@ export function DataGridWrapper(props: DataGridProps) {
           getRowId={(row) => row.experimentAccession}
           autosizeOptions={autosizeOptions}
           rowGroupingModel={groupingModel}
-          groupingColDef={{ leafField: "displayname", display: "flex" }}
-          columnVisibilityModel={{ displayname: false }} // so you don't see a second name column
+          groupingColDef={{ leafField, display: "flex" }}
+          columnVisibilityModel={columnVisibilityModel}
+          onColumnVisibilityModelChange={setColumnVisibilityModel}
           onRowSelectionModelChange={handleSelection}
-          rowSelectionPropagation={{ descendants: true }}
+          rowSelectionPropagation={{ descendants: true, parents: true }}
           disableRowGrouping={false}
           rowSelectionModel={{
             type: "include",
-            ids: new Set(selectedTracks.keys()),
-          }}
-          slots={{
-            toolbar: CustomToolbarWrapper,
+            ids: selectedIds,
           }}
           slotProps={{
             filterPanel: {

@@ -2,7 +2,6 @@ import * as React from "react";
 import {
   Toolbar,
   ToolbarButton,
-  ColumnsPanelTrigger,
   FilterPanelTrigger,
   ExportCsv,
   ExportPrint,
@@ -13,7 +12,6 @@ import {
 import Tooltip from "@mui/material/Tooltip";
 import Menu from "@mui/material/Menu";
 import Badge from "@mui/material/Badge";
-import ViewColumnIcon from "@mui/icons-material/ViewColumn";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import MenuItem from "@mui/material/MenuItem";
@@ -76,12 +74,6 @@ export function CustomToolbar({
           />
         </>
       )}
-
-      <Tooltip title="Columns">
-        <ColumnsPanelTrigger render={<ToolbarButton />}>
-          <ViewColumnIcon fontSize="small" htmlColor={iconColor} />
-        </ColumnsPanelTrigger>
-      </Tooltip>
 
       <Tooltip title="Filters">
         <FilterPanelTrigger

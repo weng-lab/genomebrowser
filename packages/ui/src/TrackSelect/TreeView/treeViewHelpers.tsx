@@ -99,8 +99,10 @@ export function buildSortedAssayTreeView(
         id: row.experimentAccession,
         isAssayItem: false,
         label: row.experimentAccession,
-        icon: row.assay,
+        icon: "removeable",
+        assayName: row.assay,
         children: [],
+        allExpAccessions: [row.experimentAccession],
       };
       sampleAssayMap.set(row.displayname + row.assay, expNode);
       displayNameNode.children!.push(expNode);
@@ -183,8 +185,10 @@ export function buildTreeView(
       expNode = {
         id: row.experimentAccession,
         label: row.experimentAccession,
-        icon: row.assay,
+        icon: "removeable",
+        assayName: row.assay,
         children: [],
+        allExpAccessions: [row.experimentAccession],
       };
       sampleAssayMap.set(row.displayname + row.assay, expNode);
       displayNameNode.children!.push(expNode);
@@ -282,7 +286,7 @@ const TreeItemLabelText = styled(Typography)({
   fontFamily: "inherit",
 });
 
-function CustomLabel({ icon: Icon, children, isAssayItem, ...other }: CustomLabelProps) {
+function CustomLabel({ icon: Icon, children, isAssayItem, assayName, ...other }: CustomLabelProps) {
   const variant = isAssayItem ? "subtitle2" : "body2";
   const fontWeight = isAssayItem ? "bold" : 500;
   return (
@@ -305,8 +309,9 @@ function CustomLabel({ icon: Icon, children, isAssayItem, ...other }: CustomLabe
           sx={{ mr: 1, fontSize: "1.2rem" }}
         />
       )}
-      <Stack direction="row" spacing={2} alignItems="center">
-        { isAssayItem && AssayIcon(other.id) }
+      <Stack direction="row" spacing={1} alignItems="center">
+        {isAssayItem && AssayIcon(other.id)}
+        {assayName && AssayIcon(assayName)}
         <TreeItemLabelText fontWeight={fontWeight} variant={variant}>{children}</TreeItemLabelText>
       </Stack>
     </TreeItemLabel>
@@ -330,14 +335,7 @@ const TreeItemContent = styled("div")(({ theme }) => ({
   marginBottom: theme.spacing(0.5),
   marginTop: theme.spacing(0.5),
   fontWeight: 500,
-  [`&[data-focused], &[data-selected]`]: {
-    backgroundColor: theme.palette.primary.dark,
-    color: theme.palette.primary.contrastText,
-    ...theme.applyStyles("light", {
-      backgroundColor: theme.palette.primary.main,
-    }),
-  },
-  "&:not([data-focused], [data-selected]):hover": {
+  "&:hover": {
     backgroundColor: alpha(theme.palette.primary.main, 0.1),
     color: "white",
     ...theme.applyStyles("light", {
@@ -417,6 +415,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
                 ),
               expandable: (status.expandable && status.expanded).toString(),
               isAssayItem: item.isAssayItem,
+              assayName: item.assayName,
               id: item.id
             })}
           />
