@@ -44,6 +44,7 @@ type OldBiosample struct {
 }
 
 type Assay struct {
+	ID                  string `json:"id"`
 	Assay               string `json:"assay"`
 	URL                 string `json:"url"`
 	ExperimentAccession string `json:"experimentAccession"`
@@ -74,11 +75,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	var oldSamples []OldBiosample
-	if err := json.Unmarshal(data, &oldSamples); err != nil {
+	var inputWrapper struct {
+		Data struct {
+			CCREBiosampleQuery struct {
+				Biosamples []OldBiosample `json:"biosamples"`
+			} `json:"ccREBiosampleQuery"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(data, &inputWrapper); err != nil {
 		fmt.Printf("Error parsing JSON: %v\n", err)
 		os.Exit(1)
 	}
+	oldSamples := inputWrapper.Data.CCREBiosampleQuery.Biosamples
 
 	var newSamples []NewBiosample
 	for _, old := range oldSamples {
@@ -94,6 +102,7 @@ func main() {
 		// Add DNase assay if present
 		if old.DNaseFileAccession != nil && old.DNaseSignalURL != "" {
 			newSample.Assays = append(newSample.Assays, Assay{
+				ID:                  "dnase-" + *old.DNaseFileAccession,
 				Assay:               "dnase",
 				URL:                 old.DNaseSignalURL,
 				ExperimentAccession: ptrToString(old.DNaseExperimentAccession),
@@ -104,6 +113,7 @@ func main() {
 		// Add H3K4me3 assay if present
 		if old.H3K4Me3FileAccession != nil && old.H3K4Me3SignalURL != "" {
 			newSample.Assays = append(newSample.Assays, Assay{
+				ID:                  "h3k4me3-" + *old.H3K4Me3FileAccession,
 				Assay:               "h3k4me3",
 				URL:                 old.H3K4Me3SignalURL,
 				ExperimentAccession: ptrToString(old.H3K4Me3ExperimentAccession),
@@ -114,6 +124,7 @@ func main() {
 		// Add H3K27ac assay if present
 		if old.H3K27AcFileAccession != nil && old.H3K27AcSignalURL != "" {
 			newSample.Assays = append(newSample.Assays, Assay{
+				ID:                  "h3k27ac-" + *old.H3K27AcFileAccession,
 				Assay:               "h3k27ac",
 				URL:                 old.H3K27AcSignalURL,
 				ExperimentAccession: ptrToString(old.H3K27AcExperimentAccession),
@@ -124,6 +135,7 @@ func main() {
 		// Add CTCF assay if present
 		if old.CTCFFileAccession != nil && old.CTCFSignalURL != "" {
 			newSample.Assays = append(newSample.Assays, Assay{
+				ID:                  "ctcf-" + *old.CTCFFileAccession,
 				Assay:               "ctcf",
 				URL:                 old.CTCFSignalURL,
 				ExperimentAccession: ptrToString(old.CTCFExperimentAccession),
@@ -134,6 +146,7 @@ func main() {
 		// Add ATAC assay if present
 		if old.ATACFileAccession != nil && old.ATACSignalURL != "" {
 			newSample.Assays = append(newSample.Assays, Assay{
+				ID:                  "atac-" + *old.ATACFileAccession,
 				Assay:               "atac",
 				URL:                 old.ATACSignalURL,
 				ExperimentAccession: ptrToString(old.ATACExperimentAccession),
@@ -143,16 +156,19 @@ func main() {
 
 		// Add ChromHMM assay if present
 		if old.ChromHMMURL != "" {
+			chromhmmAccession := extractAccessionFromURL(old.ChromHMMURL)
 			newSample.Assays = append(newSample.Assays, Assay{
+				ID:            "chromhmm-" + chromhmmAccession,
 				Assay:         "chromhmm",
 				URL:           old.ChromHMMURL,
-				FileAccession: extractAccessionFromURL(old.ChromHMMURL),
+				FileAccession: chromhmmAccession,
 			})
 		}
 
 		// Add RNA-seq tracks
 		for _, rna := range old.RNASeqTracks {
 			newSample.Assays = append(newSample.Assays, Assay{
+				ID:                  "rnaseq-" + rna.RNASeqFileAccession,
 				Assay:               "rnaseq",
 				URL:                 rna.URL,
 				ExperimentAccession: rna.RNASeqExperimentAccession,
@@ -162,10 +178,12 @@ func main() {
 
 		// Add cCRE bigBed as an assay
 		if old.BigBedURL != "" {
+			ccreAccession := extractAccessionFromURL(old.BigBedURL)
 			newSample.Assays = append(newSample.Assays, Assay{
+				ID:            "ccre-" + ccreAccession,
 				Assay:         "ccre",
 				URL:           old.BigBedURL,
-				FileAccession: extractAccessionFromURL(old.BigBedURL),
+				FileAccession: ccreAccession,
 			})
 		}
 
