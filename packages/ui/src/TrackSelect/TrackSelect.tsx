@@ -15,7 +15,7 @@ import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
-import { flattenIntoRow, searchTracks } from "./DataGrid/dataGridHelpers";
+import { flattenIntoRows, searchTracks } from "./DataGrid/dataGridHelpers";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import {
   buildSortedAssayTreeView,
@@ -176,12 +176,12 @@ export default function TrackSelect({ store }: TrackSelectProps) {
       };
       const newDataGridRows = searchTracks(dataGridSearchProps)
         .map((t) => t.item)
-        .map(flattenIntoRow);
+        .flatMap(flattenIntoRows);
 
       // we only want the intersection of filtered tracks displayed on the DataGrid and user-selected tracks to be displayed on the tree
-      const newDataGridIds = newDataGridRows.map((r) => r.fileAccession);
+      const newDataGridIds = newDataGridRows.map((r) => r.id);
       const retIds = searchTreeItems(treeSearchProps).map(
-        (r) => r.item.fileAccession,
+        (r) => r.item.id,
       );
       const newTreeIds = retIds.filter((i) => newDataGridIds.includes(i));
 

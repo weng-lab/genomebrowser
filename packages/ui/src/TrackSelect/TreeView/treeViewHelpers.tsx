@@ -24,6 +24,44 @@ import Fuse, { FuseResult } from "fuse.js";
 import { SearchTracksProps } from "../types";
 import { assayTypes, ontologyTypes } from "../consts";
 
+/** Format an ID like "h3k27ac-ENCFF922YMQ" to "H3K27ac - ENCFF922YMQ" */
+function formatIdLabel(id: string): string {
+  const hyphenIndex = id.indexOf("-");
+  if (hyphenIndex === -1) return id;
+
+  const assayPart = id.substring(0, hyphenIndex);
+  let accessionPart = id.substring(hyphenIndex + 1);
+
+  // Truncate accession parts to 15 characters
+  if (accessionPart.length > 25)
+    accessionPart = accessionPart.substring(0, 15) + "…";
+
+  const formattedAssay = formatAssayName(assayPart);
+  return `${formattedAssay} - ${accessionPart}`;
+}
+
+function formatAssayName(assay: string): string {
+  switch (assay.toLowerCase()) {
+    case "dnase":
+      return "DNase";
+    case "atac":
+      return "ATAC";
+    case "h3k4me3":
+      return "H3K4me3";
+    case "h3k27ac":
+      return "H3K27ac";
+    case "ctcf":
+      return "CTCF";
+    case "chromhmm":
+      return "ChromHMM";
+    case "ccre":
+      return "cCRE";
+    case "rnaseq":
+      return "RNA-seq";
+    default:
+      return assay;
+  }
+}
 
 /**
  * Builds tree in the sorted by assay view
@@ -93,23 +131,23 @@ export function buildSortedAssayTreeView(
     };
     ontologyNode.children!.push(displayNameNode);
 
-    let expNode = sampleAssayMap.get(row.displayname + row.fileAccession);
+    let expNode = sampleAssayMap.get(row.displayname + row.id);
     if (!expNode) {
       expNode = {
-        id: row.fileAccession,
+        id: row.id,
         isAssayItem: false,
-        label: row.fileAccession,
+        label: formatIdLabel(row.id),
         icon: "removeable",
         assayName: row.assay,
         children: [],
-        allExpAccessions: [row.fileAccession],
+        allExpAccessions: [row.id],
       };
       sampleAssayMap.set(row.displayname + row.assay, expNode);
       displayNameNode.children!.push(expNode);
     }
-    assayNode.allExpAccessions!.push(row.fileAccession);
-    ontologyNode.allExpAccessions!.push(row.fileAccession);
-    displayNameNode.allExpAccessions!.push(row.fileAccession);
+    assayNode.allExpAccessions!.push(row.id);
+    ontologyNode.allExpAccessions!.push(row.id);
+    displayNameNode.allExpAccessions!.push(row.id);
     root.allRowInfo!.push(row);
   });
   // standardize the order of the assay folders everytime one is added
@@ -183,18 +221,18 @@ export function buildTreeView(
     let expNode = sampleAssayMap.get(row.displayname + row.assay);
     if (!expNode) {
       expNode = {
-        id: row.fileAccession,
-        label: row.fileAccession,
+        id: row.id,
+        label: formatIdLabel(row.id),
         icon: "removeable",
         assayName: row.assay,
         children: [],
-        allExpAccessions: [row.fileAccession],
+        allExpAccessions: [row.id],
       };
       sampleAssayMap.set(row.displayname + row.assay, expNode);
       displayNameNode.children!.push(expNode);
     }
-    ontologyNode.allExpAccessions!.push(row.fileAccession);
-    displayNameNode.allExpAccessions!.push(row.fileAccession);
+    ontologyNode.allExpAccessions!.push(row.id);
+    displayNameNode.allExpAccessions!.push(row.id);
     root.allRowInfo!.push(row);
   });
   // standardize the order of the assay folders everytime one is added
@@ -230,7 +268,7 @@ export function searchTreeItems({
   query,
   keyWeightMap,
   threshold,
-  limit = 10
+  limit = 10,
 }: SearchTracksProps): FuseResult<RowInfo>[] {
   const data = treeItems![0].allRowInfo ?? [];
   const fuse = new Fuse(data, {
@@ -288,7 +326,13 @@ const TreeItemLabelText = styled(Typography)({
   fontFamily: "inherit",
 });
 
-function CustomLabel({ icon: Icon, children, isAssayItem, assayName, ...other }: CustomLabelProps) {
+function CustomLabel({
+  icon: Icon,
+  children,
+  isAssayItem,
+  assayName,
+  ...other
+}: CustomLabelProps) {
   const variant = isAssayItem ? "subtitle2" : "body2";
   const fontWeight = isAssayItem ? "bold" : 500;
   return (
@@ -314,7 +358,9 @@ function CustomLabel({ icon: Icon, children, isAssayItem, assayName, ...other }:
       <Stack direction="row" spacing={1} alignItems="center">
         {isAssayItem && AssayIcon(other.id)}
         {assayName && AssayIcon(assayName)}
-        <TreeItemLabelText fontWeight={fontWeight} variant={variant}>{children}</TreeItemLabelText>
+        <TreeItemLabelText fontWeight={fontWeight} variant={variant}>
+          {children}
+        </TreeItemLabelText>
       </Stack>
     </TreeItemLabel>
   );
@@ -418,7 +464,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
               expandable: (status.expandable && status.expanded).toString(),
               isAssayItem: item.isAssayItem,
               assayName: item.assayName,
-              id: item.id
+              id: item.id,
             })}
           />
         </TreeItemContent>

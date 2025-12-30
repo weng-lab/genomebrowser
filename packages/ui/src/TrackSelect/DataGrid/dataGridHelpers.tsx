@@ -26,6 +26,30 @@ function formatAssayType(assay: string): string {
   }
 }
 
+/** Convert display assay name to JSON format */
+function toJsonAssayType(displayName: string): string {
+  switch (displayName.toLowerCase()) {
+    case "dnase":
+      return "dnase";
+    case "atac":
+      return "atac";
+    case "h3k4me3":
+      return "h3k4me3";
+    case "h3k27ac":
+      return "h3k27ac";
+    case "ctcf":
+      return "ctcf";
+    case "chromhmm":
+      return "chromhmm";
+    case "ccre":
+      return "ccre";
+    case "rna-seq":
+      return "rnaseq";
+    default:
+      return displayName.toLowerCase();
+  }
+}
+
 // use to get nested data in JSON file
 function getNestedValue(obj: any, path: string): any {
   return path.split(".").reduce((acc, key) => acc && acc[key], obj);
@@ -37,11 +61,11 @@ export function getTracksByAssayAndOntology(
 ): TrackInfo[] {
   let res: TrackInfo[] = [];
   const data = getNestedValue(tracksData, "tracks");
+  const jsonAssay = toJsonAssayType(assay);
 
   data.forEach((track: TrackInfo) => {
     const filteredAssays =
-      track.assays?.filter((e: AssayInfo) => e.assay === assay.toLowerCase()) ||
-      [];
+      track.assays?.filter((e: AssayInfo) => e.assay === jsonAssay) || [];
     if (
       filteredAssays.length > 0 &&
       track.ontology === ontology.toLowerCase()
@@ -55,24 +79,26 @@ export function getTracksByAssayAndOntology(
   return res;
 }
 
-/** Flatten TrackInfo or FuseResult into RowInfo for DataGrid display.
- * @param track TrackInfo object or FuseResult containing information from JSON file
- * @returns Flattened RowInfo object
+/** Flatten TrackInfo into RowInfo objects for DataGrid display.
+ * @param track TrackInfo object containing information from JSON file
+ * @returns Array of flattened RowInfo objects, one per assay
  */
-export function flattenIntoRow(track: TrackInfo): RowInfo {
+export function flattenIntoRows(track: TrackInfo): RowInfo[] {
   const { ontology, lifeStage, sampleType, displayname } = track;
-  const { assay, experimentAccession, fileAccession, url } = track.assays[0];
 
-  return {
-    ontology: capitalize(ontology),
-    lifeStage: capitalize(lifeStage),
-    sampleType: capitalize(sampleType),
-    displayname: capitalize(displayname),
-    assay: formatAssayType(assay),
-    experimentAccession,
-    fileAccession,
-    url,
-  };
+  return track.assays.map(
+    ({ id, assay, experimentAccession, fileAccession, url }) => ({
+      id,
+      ontology: capitalize(ontology),
+      lifeStage: capitalize(lifeStage),
+      sampleType: capitalize(sampleType),
+      displayname: capitalize(displayname),
+      assay: formatAssayType(assay),
+      experimentAccession,
+      fileAccession,
+      url,
+    }),
+  );
 }
 
 /**

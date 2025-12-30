@@ -22,6 +22,7 @@ export interface SearchTracksProps {
  * Types for the JSON-formatted tracks fomr modifiedHumanTracks.json
  */
 export type AssayInfo = {
+  id: string;
   assay: string;
   url: string;
   experimentAccession: string;
@@ -41,6 +42,7 @@ export type TrackInfo = {
  *  Row format for DataGrid
  */
 export type RowInfo = {
+  id: string;
   ontology: string;
   lifeStage: string;
   sampleType: string;

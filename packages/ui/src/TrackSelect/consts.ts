@@ -1,18 +1,18 @@
 import {
   getTracksByAssayAndOntology,
-  flattenIntoRow,
+  flattenIntoRows,
 } from "./DataGrid/dataGridHelpers";
 import { RowInfo, TrackInfo } from "./types";
 
 export const assayTypes = [
+  "cCRE",
   "DNase",
   "H3K4me3",
   "H3K27ac",
   "ATAC",
   "CTCF",
-  "ChromHMM",
-  "cCRE",
   "RNA-seq",
+  "ChromHMM",
 ];
 
 export const ontologyTypes = [
@@ -66,21 +66,18 @@ export const rows = ontologyTypes.flatMap((ontology) =>
     getTracksByAssayAndOntology(
       assay.toLowerCase(),
       ontology.toLowerCase(),
-    ).map((r: TrackInfo) => {
-      const flat = flattenIntoRow(r);
-      return {
+    ).flatMap((r: TrackInfo) =>
+      flattenIntoRows(r).map((flat) => ({
         ...flat,
         assay,
         ontology,
-      };
-    }),
+      })),
+    ),
   ),
 );
 
-// map of fileAccession -> rowInfo for faster row lookup
-export const rowById = new Map<string, RowInfo>(
-  rows.map((r) => [r.fileAccession, r]),
-);
+// map of id -> rowInfo for faster row lookup
+export const rowById = new Map<string, RowInfo>(rows.map((r) => [r.id, r]));
 
 /**
  * Check if an ID is a real track (exists in rowById) vs an auto-generated group ID

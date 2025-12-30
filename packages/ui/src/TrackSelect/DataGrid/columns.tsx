@@ -123,6 +123,11 @@ const fileCol: GridColDef<RowInfo> = {
   headerName: "File Accession",
 };
 
+const idCol: GridColDef<RowInfo> = {
+  field: "id",
+  headerName: "ID",
+};
+
 export const sortedByAssayColumns: GridColDef<RowInfo>[] = [
   displayNameCol,
   sortedByAssayOntologyCol,
@@ -131,6 +136,7 @@ export const sortedByAssayColumns: GridColDef<RowInfo>[] = [
   sortedByAssayAssayCol,
   experimentCol,
   fileCol,
+  idCol,
 ];
 
 export const defaultColumns: GridColDef<RowInfo>[] = [
@@ -141,4 +147,5 @@ export const defaultColumns: GridColDef<RowInfo>[] = [
   displayNameCol,
   experimentCol,
   fileCol,
+  idCol,
 ];

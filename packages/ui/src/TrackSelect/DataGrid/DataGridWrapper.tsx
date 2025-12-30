@@ -36,10 +36,10 @@ export function DataGridWrapper(props: DataGridProps) {
   const columnModel = sortedAssay ? sortedByAssayColumns : defaultColumns;
   const leafField = sortedAssay ? "displayname" : "assay";
 
-  // Hide columns that are used in grouping or as leaf field
+  // Hide columns that are used in grouping or as leaf field, plus ID column
   const baseVisibility: GridColumnVisibilityModel = sortedAssay
-    ? { assay: false, ontology: false, displayname: false } // sort by assay: assay & ontology are grouping, displayname is leaf
-    : { ontology: false, displayname: false, assay: false }; // default: ontology & displayname are grouping, assay is leaf
+    ? { assay: false, ontology: false, displayname: false, id: false } // sort by assay: assay & ontology are grouping, displayname is leaf
+    : { ontology: false, displayname: false, assay: false, id: false }; // default: ontology & displayname are grouping, assay is leaf
 
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>(baseVisibility);
@@ -75,10 +75,16 @@ export function DataGridWrapper(props: DataGridProps) {
           apiRef={apiRef}
           rows={rows}
           columns={columnModel}
-          getRowId={(row) => row.fileAccession}
+          getRowId={(row) => row.id}
           autosizeOptions={autosizeOptions}
           rowGroupingModel={groupingModel}
-          groupingColDef={{ leafField, display: "flex" }}
+          groupingColDef={{
+            leafField,
+            display: "flex",
+            minWidth: 400,
+            maxWidth: 600,
+            flex: 2,
+          }}
           columnVisibilityModel={columnVisibilityModel}
           onColumnVisibilityModelChange={setColumnVisibilityModel}
           onRowSelectionModelChange={handleSelection}
