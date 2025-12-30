@@ -93,23 +93,23 @@ export function buildSortedAssayTreeView(
     };
     ontologyNode.children!.push(displayNameNode);
 
-    let expNode = sampleAssayMap.get(row.displayname + row.experimentAccession);
+    let expNode = sampleAssayMap.get(row.displayname + row.fileAccession);
     if (!expNode) {
       expNode = {
-        id: row.experimentAccession,
+        id: row.fileAccession,
         isAssayItem: false,
-        label: row.experimentAccession,
+        label: row.fileAccession,
         icon: "removeable",
         assayName: row.assay,
         children: [],
-        allExpAccessions: [row.experimentAccession],
+        allExpAccessions: [row.fileAccession],
       };
       sampleAssayMap.set(row.displayname + row.assay, expNode);
       displayNameNode.children!.push(expNode);
     }
-    assayNode.allExpAccessions!.push(row.experimentAccession);
-    ontologyNode.allExpAccessions!.push(row.experimentAccession);
-    displayNameNode.allExpAccessions!.push(row.experimentAccession);
+    assayNode.allExpAccessions!.push(row.fileAccession);
+    ontologyNode.allExpAccessions!.push(row.fileAccession);
+    displayNameNode.allExpAccessions!.push(row.fileAccession);
     root.allRowInfo!.push(row);
   });
   // standardize the order of the assay folders everytime one is added
@@ -183,18 +183,18 @@ export function buildTreeView(
     let expNode = sampleAssayMap.get(row.displayname + row.assay);
     if (!expNode) {
       expNode = {
-        id: row.experimentAccession,
-        label: row.experimentAccession,
+        id: row.fileAccession,
+        label: row.fileAccession,
         icon: "removeable",
         assayName: row.assay,
         children: [],
-        allExpAccessions: [row.experimentAccession],
+        allExpAccessions: [row.fileAccession],
       };
       sampleAssayMap.set(row.displayname + row.assay, expNode);
       displayNameNode.children!.push(expNode);
     }
-    ontologyNode.allExpAccessions!.push(row.experimentAccession);
-    displayNameNode.allExpAccessions!.push(row.experimentAccession);
+    ontologyNode.allExpAccessions!.push(row.fileAccession);
+    displayNameNode.allExpAccessions!.push(row.fileAccession);
     root.allRowInfo!.push(row);
   });
   // standardize the order of the assay folders everytime one is added

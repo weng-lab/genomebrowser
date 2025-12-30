@@ -179,9 +179,9 @@ export default function TrackSelect({ store }: TrackSelectProps) {
         .map(flattenIntoRow);
 
       // we only want the intersection of filtered tracks displayed on the DataGrid and user-selected tracks to be displayed on the tree
-      const newDataGridIds = newDataGridRows.map((r) => r.experimentAccession);
+      const newDataGridIds = newDataGridRows.map((r) => r.fileAccession);
       const retIds = searchTreeItems(treeSearchProps).map(
-        (r) => r.item.experimentAccession,
+        (r) => r.item.fileAccession,
       );
       const newTreeIds = retIds.filter((i) => newDataGridIds.includes(i));
 

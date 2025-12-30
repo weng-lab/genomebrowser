@@ -75,7 +75,7 @@ export function DataGridWrapper(props: DataGridProps) {
           apiRef={apiRef}
           rows={rows}
           columns={columnModel}
-          getRowId={(row) => row.experimentAccession}
+          getRowId={(row) => row.fileAccession}
           autosizeOptions={autosizeOptions}
           rowGroupingModel={groupingModel}
           groupingColDef={{ leafField, display: "flex" }}

@@ -75,9 +75,9 @@ export const rows = ontologyTypes.flatMap((ontology) =>
   ),
 );
 
-// map of experimentAccession -> rowInfo for faster row lookup
+// map of fileAccession -> rowInfo for faster row lookup
 export const rowById = new Map<string, RowInfo>(
-  rows.map((r) => [r.experimentAccession, r]),
+  rows.map((r) => [r.fileAccession, r]),
 );
 
 /**
