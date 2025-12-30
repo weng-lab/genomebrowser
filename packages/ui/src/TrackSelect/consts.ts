@@ -11,6 +11,8 @@ export const assayTypes = [
   "ATAC",
   "CTCF",
   "ChromHMM",
+  "cCRE",
+  "RNA-seq",
 ];
 
 export const ontologyTypes = [

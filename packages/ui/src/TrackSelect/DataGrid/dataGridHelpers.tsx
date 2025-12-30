@@ -1,6 +1,6 @@
 import { capitalize } from "@mui/material";
 import Fuse, { FuseResult } from "fuse.js";
-import tracksData from "../Data/modifiedHumanTracks.json";
+import tracksData from "../Data/humanBiosamples.json";
 import { AssayInfo, RowInfo, SearchTracksProps, TrackInfo } from "../types";
 
 function formatAssayType(assay: string): string {
@@ -17,6 +17,10 @@ function formatAssayType(assay: string): string {
       return "CTCF";
     case "chromhmm":
       return "ChromHMM";
+    case "ccre":
+      return "cCRE";
+    case "rnaseq":
+      return "RNA-seq";
     default:
       return assay;
   }
