@@ -4,7 +4,16 @@ import { createRoot } from "react-dom/client";
 
 // mui
 import EditIcon from "@mui/icons-material/Edit";
-import { Button, Dialog, DialogContent, DialogTitle } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
+} from "@mui/material";
 
 // weng lab
 import {
@@ -221,8 +230,24 @@ function Main() {
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle>Select Tracks</DialogTitle>
-        <DialogContent>
+        <DialogTitle
+          bgcolor="#0c184a"
+          color="white"
+          display={"flex"}
+          justifyContent={"space-between"}
+          alignItems={"center"}
+          fontWeight={"bold"}
+        >
+          Biosample Tracks
+          <IconButton
+            size="large"
+            onClick={() => setOpen(false)}
+            sx={{ color: "white", padding: 0 }}
+          >
+            <CloseIcon fontSize="large" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ marginTop: "5px" }}>
           <TrackSelect
             store={selectionStore}
             onSubmit={handleSubmit}

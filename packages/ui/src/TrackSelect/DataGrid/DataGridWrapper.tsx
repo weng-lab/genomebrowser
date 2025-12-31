@@ -1,5 +1,4 @@
 import { Box, Paper } from "@mui/material";
-
 import {
   DataGridPremium,
   FilterColumnsArgs,
@@ -19,7 +18,6 @@ const autosizeOptions: GridAutosizeOptions = {
   outliersFactor: 1.5,
 };
 
-// TODO: figure out where mui stores the number of rows in a row grouping so that can be bolded too
 export function DataGridWrapper(props: DataGridProps) {
   const { sortedAssay, handleSelection, rows, selectedIds } = props;
 
