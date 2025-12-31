@@ -73,24 +73,20 @@ function Main() {
     return createSelectionStore(currentAssembly, ids);
   }, [currentAssembly]);
 
-  const selectedIds = selectionStore((s) => s.selectedIds);
-  const getTrackIds = selectionStore((s) => s.getTrackIds);
   const rowById = selectionStore((s) => s.rowById);
 
-  // Get only real track IDs (no auto-generated group IDs)
-  const trackIds = useMemo(() => getTrackIds(), [selectedIds, getTrackIds]);
-
-  useEffect(() => {
+  // Handle submit: sync tracks to browser and save to localStorage
+  const handleSubmit = (newTrackIds: Set<string>) => {
     const currentIds = new Set(tracks.map((t) => t.id));
 
-    // Build tracks to add from trackIds + rowById lookup
-    const tracksToAdd = Array.from(trackIds)
+    // Build tracks to add from newTrackIds + rowById lookup
+    const tracksToAdd = Array.from(newTrackIds)
       .filter((id) => !currentIds.has(id))
       .map((id) => rowById.get(id))
       .filter((track): track is RowInfo => track !== undefined);
 
     const tracksToRemove = tracks.filter((t) => {
-      return !t.id.includes("ignore") && !trackIds.has(t.id);
+      return !t.id.includes("ignore") && !newTrackIds.has(t.id);
     });
 
     for (const t of tracksToRemove) {
@@ -104,8 +100,15 @@ function Main() {
     }
 
     // Save the track IDs (not the auto-generated group IDs)
-    setLocalStorage(trackIds, currentAssembly);
-  }, [trackIds, insertTrack, removeTrack, currentAssembly]);
+    setLocalStorage(newTrackIds, currentAssembly);
+
+    // Close the dialog
+    setOpen(false);
+  };
+
+  const handleCancel = () => {
+    setOpen(false);
+  };
 
   return (
     <>
@@ -125,7 +128,11 @@ function Main() {
       >
         <DialogTitle>Select Tracks</DialogTitle>
         <DialogContent>
-          <TrackSelect store={selectionStore} />
+          <TrackSelect
+            store={selectionStore}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+          />
         </DialogContent>
       </Dialog>
       <GQLWrapper>

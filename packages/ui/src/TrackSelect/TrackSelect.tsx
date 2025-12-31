@@ -31,15 +31,20 @@ import { ExtendedTreeItemProps, SearchTracksProps } from "./types";
 
 export interface TrackSelectProps {
   store: SelectionStoreInstance;
+  onSubmit?: (trackIds: Set<string>) => void;
+  onCancel?: () => void;
 }
 
-export default function TrackSelect({ store }: TrackSelectProps) {
+export default function TrackSelect({
+  store,
+  onSubmit,
+  onCancel,
+}: TrackSelectProps) {
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [sortedAssay, setSortedAssay] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchResult, setIsSearchResult] = useState(false);
   const selectedIds = store((s) => s.selectedIds);
-  const getTrackIds = store((s) => s.getTrackIds);
   const setSelected = store((s) => s.setSelected);
   const clear = store((s) => s.clear);
   const MAX_ACTIVE = store((s) => s.maxTracks);
@@ -47,19 +52,35 @@ export default function TrackSelect({ store }: TrackSelectProps) {
   const rowById = store((s) => s.rowById);
   const assembly = store((s) => s.assembly);
 
+  // Local working state - changes here don't affect the store until Submit
+  const [workingIds, setWorkingIds] = useState<Set<string>>(
+    () => new Set(selectedIds),
+  );
+
   // Get tracks data for search functionality
   const tracksData = useMemo(
     () => getTracksData(assembly as "GRCh38" | "mm10"),
     [assembly],
   );
 
-  // Get only real track IDs (no auto-generated group IDs)
-  const trackIds = useMemo(() => getTrackIds(), [selectedIds, getTrackIds]);
+  // Get only real track IDs from working selection (no auto-generated group IDs)
+  const workingTrackIds = useMemo(() => {
+    return new Set(
+      [...workingIds].filter(
+        (id) => !id.startsWith("auto-generated-row-") && rowById.has(id),
+      ),
+    );
+  }, [workingIds, rowById]);
+
+  // Sync workingIds when store's selectedIds changes externally
+  useEffect(() => {
+    setWorkingIds(new Set(selectedIds));
+  }, [selectedIds]);
 
   const treeItems = useMemo(() => {
     return sortedAssay
       ? buildSortedAssayTreeView(
-          Array.from(trackIds),
+          Array.from(workingTrackIds),
           {
             id: "1",
             isAssayItem: false,
@@ -71,7 +92,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
           rowById,
         )
       : buildTreeView(
-          Array.from(trackIds),
+          Array.from(workingTrackIds),
           {
             id: "1",
             isAssayItem: false,
@@ -82,7 +103,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
           },
           rowById,
         );
-  }, [trackIds, sortedAssay]);
+  }, [workingTrackIds, sortedAssay, rowById]);
 
   const [filteredRows, setFilteredRows] = useState(rows);
   const [filteredTreeItems, setFilteredTreeItems] = useState([
@@ -106,7 +127,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
       searchResultIdsRef.current = new Set();
     } else if (searchResultIdsRef.current.size > 0) {
       // When selection changes during search, rebuild tree from selected items that match search
-      const matchingTrackIds = Array.from(trackIds).filter((id) =>
+      const matchingTrackIds = Array.from(workingTrackIds).filter((id) =>
         searchResultIdsRef.current.has(id),
       );
 
@@ -138,7 +159,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
 
       setFilteredTreeItems(newTreeItems);
     }
-  }, [treeItems, searchQuery, trackIds, sortedAssay]);
+  }, [treeItems, searchQuery, workingTrackIds, sortedAssay, rowById, rows]);
 
   const handleToggle = () => {
     setSortedAssay(!sortedAssay);
@@ -252,8 +273,21 @@ export default function TrackSelect({ store }: TrackSelectProps) {
       return;
     }
 
-    // Store ALL IDs (including auto-generated group IDs)
-    setSelected(allIds);
+    // Update working state (not the store yet)
+    setWorkingIds(allIds);
+  };
+
+  const handleSubmit = () => {
+    // Commit working selection to store
+    setSelected(workingIds);
+    // Call callback with real track IDs
+    onSubmit?.(workingTrackIds);
+  };
+
+  const handleCancel = () => {
+    // Revert working state to store's committed state
+    setWorkingIds(new Set(selectedIds));
+    onCancel?.();
   };
 
   return (
@@ -283,7 +317,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
                 ? `${filteredRows.length} Search Results`
                 : `${rows.length} Available Tracks`
             }
-            selectedIds={selectedIds}
+            selectedIds={workingIds}
             handleSelection={handleSelection}
             sortedAssay={sortedAssay}
           />
@@ -292,20 +326,32 @@ export default function TrackSelect({ store }: TrackSelectProps) {
           <TreeViewWrapper
             store={store}
             items={filteredTreeItems}
-            trackIds={trackIds}
+            trackIds={workingTrackIds}
             isSearchResult={isSearchResult}
           />
         </Box>
       </Stack>
-      <Box sx={{ justifyContent: "flex-end" }}>
+      <Box
+        sx={{ display: "flex", justifyContent: "space-between", mt: 2, gap: 2 }}
+      >
         <Button
-          variant="contained"
-          color="primary"
-          onClick={clear}
-          sx={{ mt: 2, justifyContent: "flex-end" }}
+          variant="outlined"
+          color="secondary"
+          onClick={() => {
+            clear();
+            setWorkingIds(new Set());
+          }}
         >
           Clear Selection
         </Button>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Button variant="outlined" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button variant="contained" color="primary" onClick={handleSubmit}>
+            Submit
+          </Button>
+        </Box>
       </Box>
       <Dialog open={limitDialogOpen} onClose={() => setLimitDialogOpen(false)}>
         <DialogTitle>Track Limit Reached</DialogTitle>
