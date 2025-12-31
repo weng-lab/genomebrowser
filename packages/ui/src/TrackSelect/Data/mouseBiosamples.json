@@ -10,14 +10,14 @@
         {
           "id": "h3k4me3-ENCFF409WOB",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF409WOB.bigWig",
           "experimentAccession": "ENCSR000CFB",
           "fileAccession": "ENCFF409WOB"
         },
         {
           "id": "h3k27ac-ENCFF476CKA",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF476CKA.bigWig",
           "experimentAccession": "ENCSR000CEZ",
           "fileAccession": "ENCFF476CKA"
         },
@@ -40,7 +40,7 @@
         {
           "id": "dnase-ENCFF899BWR",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF899BWR.bigWig",
           "experimentAccession": "ENCSR000CMZ",
           "fileAccession": "ENCFF899BWR"
         },
@@ -63,7 +63,7 @@
         {
           "id": "dnase-ENCFF148JTM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF148JTM.bigWig",
           "experimentAccession": "ENCSR000CNC",
           "fileAccession": "ENCFF148JTM"
         },
@@ -86,7 +86,7 @@
         {
           "id": "dnase-ENCFF431GVW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF431GVW.bigWig",
           "experimentAccession": "ENCSR923UKN",
           "fileAccession": "ENCFF431GVW"
         },
@@ -109,7 +109,7 @@
         {
           "id": "dnase-ENCFF106WKK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF106WKK.bigWig",
           "experimentAccession": "ENCSR837TJD",
           "fileAccession": "ENCFF106WKK"
         },
@@ -132,7 +132,7 @@
         {
           "id": "dnase-ENCFF673OVH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF673OVH.bigWig",
           "experimentAccession": "ENCSR455VIA",
           "fileAccession": "ENCFF673OVH"
         },
@@ -155,7 +155,7 @@
         {
           "id": "dnase-ENCFF601XSB",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF601XSB.bigWig",
           "experimentAccession": "ENCSR365LKY",
           "fileAccession": "ENCFF601XSB"
         },
@@ -178,7 +178,7 @@
         {
           "id": "dnase-ENCFF934ESX",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF934ESX.bigWig",
           "experimentAccession": "ENCSR840HMW",
           "fileAccession": "ENCFF934ESX"
         },
@@ -201,7 +201,7 @@
         {
           "id": "dnase-ENCFF744EEA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF744EEA.bigWig",
           "experimentAccession": "ENCSR655MEK",
           "fileAccession": "ENCFF744EEA"
         },
@@ -224,7 +224,7 @@
         {
           "id": "dnase-ENCFF347OHB",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF347OHB.bigWig",
           "experimentAccession": "ENCSR406JCQ",
           "fileAccession": "ENCFF347OHB"
         },
@@ -261,7 +261,7 @@
         {
           "id": "dnase-ENCFF328XIU",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF328XIU.bigWig",
           "experimentAccession": "ENCSR831ITR",
           "fileAccession": "ENCFF328XIU"
         },
@@ -284,7 +284,7 @@
         {
           "id": "dnase-ENCFF937FWN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF937FWN.bigWig",
           "experimentAccession": "ENCSR205UJK",
           "fileAccession": "ENCFF937FWN"
         },
@@ -307,7 +307,7 @@
         {
           "id": "dnase-ENCFF203JYG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF203JYG.bigWig",
           "experimentAccession": "ENCSR428CWD",
           "fileAccession": "ENCFF203JYG"
         },
@@ -330,7 +330,7 @@
         {
           "id": "dnase-ENCFF721WGA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF721WGA.bigWig",
           "experimentAccession": "ENCSR204WCY",
           "fileAccession": "ENCFF721WGA"
         },
@@ -353,7 +353,7 @@
         {
           "id": "dnase-ENCFF156YWL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF156YWL.bigWig",
           "experimentAccession": "ENCSR385MRA",
           "fileAccession": "ENCFF156YWL"
         },
@@ -376,7 +376,7 @@
         {
           "id": "dnase-ENCFF173KBA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF173KBA.bigWig",
           "experimentAccession": "ENCSR822RKU",
           "fileAccession": "ENCFF173KBA"
         },
@@ -399,7 +399,7 @@
         {
           "id": "dnase-ENCFF753WAM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF753WAM.bigWig",
           "experimentAccession": "ENCSR021YHN",
           "fileAccession": "ENCFF753WAM"
         },
@@ -436,7 +436,7 @@
         {
           "id": "dnase-ENCFF242VSF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF242VSF.bigWig",
           "experimentAccession": "ENCSR000CML",
           "fileAccession": "ENCFF242VSF"
         },
@@ -459,28 +459,28 @@
         {
           "id": "dnase-ENCFF228LWM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF228LWM.bigWig",
           "experimentAccession": "ENCSR000CMQ",
           "fileAccession": "ENCFF228LWM"
         },
         {
           "id": "h3k4me3-ENCFF420ORJ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF420ORJ.bigWig",
           "experimentAccession": "ENCSR000CGK",
           "fileAccession": "ENCFF420ORJ"
         },
         {
           "id": "h3k27ac-ENCFF666CND",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF666CND.bigWig",
           "experimentAccession": "ENCSR000CGJ",
           "fileAccession": "ENCFF666CND"
         },
         {
           "id": "ctcf-ENCFF499GIZ",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF499GIZ.bigWig",
           "experimentAccession": "ENCSR000ERM",
           "fileAccession": "ENCFF499GIZ"
         },
@@ -517,7 +517,7 @@
         {
           "id": "dnase-ENCFF039YNN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF039YNN.bigWig",
           "experimentAccession": "ENCSR000CMM",
           "fileAccession": "ENCFF039YNN"
         },
@@ -540,7 +540,7 @@
         {
           "id": "dnase-ENCFF451FMO",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF451FMO.bigWig",
           "experimentAccession": "ENCSR000COC",
           "fileAccession": "ENCFF451FMO"
         },
@@ -563,7 +563,7 @@
         {
           "id": "dnase-ENCFF442KBM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF442KBM.bigWig",
           "experimentAccession": "ENCSR000COA",
           "fileAccession": "ENCFF442KBM"
         },
@@ -586,7 +586,7 @@
         {
           "id": "atac-ENCFF802VYT",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF802VYT.bigWig",
           "experimentAccession": "ENCSR366VBB",
           "fileAccession": "ENCFF802VYT"
         }
@@ -602,7 +602,7 @@
         {
           "id": "atac-ENCFF496XJS",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF496XJS.bigWig",
           "experimentAccession": "ENCSR453AWR",
           "fileAccession": "ENCFF496XJS"
         }
@@ -618,7 +618,7 @@
         {
           "id": "dnase-ENCFF572CPT",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF572CPT.bigWig",
           "experimentAccession": "ENCSR000COD",
           "fileAccession": "ENCFF572CPT"
         },
@@ -641,7 +641,7 @@
         {
           "id": "atac-ENCFF220DSP",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF220DSP.bigWig",
           "experimentAccession": "ENCSR862JVD",
           "fileAccession": "ENCFF220DSP"
         }
@@ -657,7 +657,7 @@
         {
           "id": "dnase-ENCFF723SHA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF723SHA.bigWig",
           "experimentAccession": "ENCSR000CNZ",
           "fileAccession": "ENCFF723SHA"
         },
@@ -680,7 +680,7 @@
         {
           "id": "atac-ENCFF809RKK",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF809RKK.bigWig",
           "experimentAccession": "ENCSR351YUI",
           "fileAccession": "ENCFF809RKK"
         }
@@ -696,7 +696,7 @@
         {
           "id": "dnase-ENCFF433ETL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF433ETL.bigWig",
           "experimentAccession": "ENCSR000CMN",
           "fileAccession": "ENCFF433ETL"
         },
@@ -719,7 +719,7 @@
         {
           "id": "dnase-ENCFF599DXB",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF599DXB.bigWig",
           "experimentAccession": "ENCSR000CMR",
           "fileAccession": "ENCFF599DXB"
         },
@@ -742,7 +742,7 @@
         {
           "id": "dnase-ENCFF388NWY",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF388NWY.bigWig",
           "experimentAccession": "ENCSR000CMS",
           "fileAccession": "ENCFF388NWY"
         },
@@ -765,7 +765,7 @@
         {
           "id": "dnase-ENCFF842TRK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF842TRK.bigWig",
           "experimentAccession": "ENCSR000CMT",
           "fileAccession": "ENCFF842TRK"
         },
@@ -788,7 +788,7 @@
         {
           "id": "dnase-ENCFF836VBR",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF836VBR.bigWig",
           "experimentAccession": "ENCSR000CMU",
           "fileAccession": "ENCFF836VBR"
         },
@@ -811,7 +811,7 @@
         {
           "id": "dnase-ENCFF415XRN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF415XRN.bigWig",
           "experimentAccession": "ENCSR855ASN",
           "fileAccession": "ENCFF415XRN"
         },
@@ -834,7 +834,7 @@
         {
           "id": "h3k4me3-ENCFF780SUE",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF780SUE.bigWig",
           "experimentAccession": "ENCSR000DHG",
           "fileAccession": "ENCFF780SUE"
         },
@@ -857,7 +857,7 @@
         {
           "id": "h3k4me3-ENCFF617EQR",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF617EQR.bigWig",
           "experimentAccession": "ENCSR000DHT",
           "fileAccession": "ENCFF617EQR"
         },
@@ -880,7 +880,7 @@
         {
           "id": "dnase-ENCFF108FDT",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF108FDT.bigWig",
           "experimentAccession": "ENCSR000CMK",
           "fileAccession": "ENCFF108FDT"
         },
@@ -903,21 +903,21 @@
         {
           "id": "h3k4me3-ENCFF549CDI",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF549CDI.bigWig",
           "experimentAccession": "ENCSR000CFF",
           "fileAccession": "ENCFF549CDI"
         },
         {
           "id": "h3k27ac-ENCFF833TRU",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF833TRU.bigWig",
           "experimentAccession": "ENCSR000CFD",
           "fileAccession": "ENCFF833TRU"
         },
         {
           "id": "ctcf-ENCFF907FBA",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF907FBA.bigWig",
           "experimentAccession": "ENCSR000CFJ",
           "fileAccession": "ENCFF907FBA"
         },
@@ -940,21 +940,21 @@
         {
           "id": "h3k4me3-ENCFF620KTZ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF620KTZ.bigWig",
           "experimentAccession": "ENCSR000CAH",
           "fileAccession": "ENCFF620KTZ"
         },
         {
           "id": "h3k27ac-ENCFF716JUE",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF716JUE.bigWig",
           "experimentAccession": "ENCSR000CCL",
           "fileAccession": "ENCFF716JUE"
         },
         {
           "id": "ctcf-ENCFF309GTL",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF309GTL.bigWig",
           "experimentAccession": "ENCSR000CBL",
           "fileAccession": "ENCFF309GTL"
         },
@@ -977,7 +977,7 @@
         {
           "id": "atac-ENCFF444GUU",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF444GUU.bigWig",
           "experimentAccession": "ENCSR914PYX",
           "fileAccession": "ENCFF444GUU"
         }
@@ -993,7 +993,7 @@
         {
           "id": "atac-ENCFF400FFT",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF400FFT.bigWig",
           "experimentAccession": "ENCSR793RAV",
           "fileAccession": "ENCFF400FFT"
         }
@@ -1009,7 +1009,7 @@
         {
           "id": "atac-ENCFF056XPN",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF056XPN.bigWig",
           "experimentAccession": "ENCSR136XSY",
           "fileAccession": "ENCFF056XPN"
         }
@@ -1025,7 +1025,7 @@
         {
           "id": "atac-ENCFF174RBG",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF174RBG.bigWig",
           "experimentAccession": "ENCSR257PGU",
           "fileAccession": "ENCFF174RBG"
         }
@@ -1041,7 +1041,7 @@
         {
           "id": "atac-ENCFF370LSN",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF370LSN.bigWig",
           "experimentAccession": "ENCSR064IHX",
           "fileAccession": "ENCFF370LSN"
         }
@@ -1057,7 +1057,7 @@
         {
           "id": "atac-ENCFF942DXD",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF942DXD.bigWig",
           "experimentAccession": "ENCSR498DQA",
           "fileAccession": "ENCFF942DXD"
         }
@@ -1073,7 +1073,7 @@
         {
           "id": "atac-ENCFF031KZO",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF031KZO.bigWig",
           "experimentAccession": "ENCSR229QKB",
           "fileAccession": "ENCFF031KZO"
         }
@@ -1089,7 +1089,7 @@
         {
           "id": "dnase-ENCFF939PNR",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF939PNR.bigWig",
           "experimentAccession": "ENCSR000CNQ",
           "fileAccession": "ENCFF939PNR"
         },
@@ -1112,7 +1112,7 @@
         {
           "id": "dnase-ENCFF272GFH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF272GFH.bigWig",
           "experimentAccession": "ENCSR000CNR",
           "fileAccession": "ENCFF272GFH"
         },
@@ -1135,7 +1135,7 @@
         {
           "id": "dnase-ENCFF221PTY",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF221PTY.bigWig",
           "experimentAccession": "ENCSR641YOC",
           "fileAccession": "ENCFF221PTY"
         },
@@ -1158,7 +1158,7 @@
         {
           "id": "dnase-ENCFF734YTY",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF734YTY.bigWig",
           "experimentAccession": "ENCSR197ZAV",
           "fileAccession": "ENCFF734YTY"
         },
@@ -1181,7 +1181,7 @@
         {
           "id": "dnase-ENCFF521KYE",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF521KYE.bigWig",
           "experimentAccession": "ENCSR240XYH",
           "fileAccession": "ENCFF521KYE"
         },
@@ -1204,7 +1204,7 @@
         {
           "id": "dnase-ENCFF205DHD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF205DHD.bigWig",
           "experimentAccession": "ENCSR361FXJ",
           "fileAccession": "ENCFF205DHD"
         },
@@ -1227,7 +1227,7 @@
         {
           "id": "dnase-ENCFF710SIX",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF710SIX.bigWig",
           "experimentAccession": "ENCSR176CFX",
           "fileAccession": "ENCFF710SIX"
         },
@@ -1250,7 +1250,7 @@
         {
           "id": "dnase-ENCFF465BSQ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF465BSQ.bigWig",
           "experimentAccession": "ENCSR097IUF",
           "fileAccession": "ENCFF465BSQ"
         },
@@ -1273,7 +1273,7 @@
         {
           "id": "dnase-ENCFF432JFC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF432JFC.bigWig",
           "experimentAccession": "ENCSR594HUH",
           "fileAccession": "ENCFF432JFC"
         },
@@ -1296,7 +1296,7 @@
         {
           "id": "dnase-ENCFF232ORL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF232ORL.bigWig",
           "experimentAccession": "ENCSR026MFT",
           "fileAccession": "ENCFF232ORL"
         },
@@ -1319,7 +1319,7 @@
         {
           "id": "dnase-ENCFF361WZX",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF361WZX.bigWig",
           "experimentAccession": "ENCSR678NQS",
           "fileAccession": "ENCFF361WZX"
         },
@@ -1342,7 +1342,7 @@
         {
           "id": "dnase-ENCFF771NHC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF771NHC.bigWig",
           "experimentAccession": "ENCSR448KDU",
           "fileAccession": "ENCFF771NHC"
         },
@@ -1365,7 +1365,7 @@
         {
           "id": "dnase-ENCFF708JHB",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF708JHB.bigWig",
           "experimentAccession": "ENCSR913LCG",
           "fileAccession": "ENCFF708JHB"
         },
@@ -1388,7 +1388,7 @@
         {
           "id": "dnase-ENCFF889HRS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF889HRS.bigWig",
           "experimentAccession": "ENCSR414VXP",
           "fileAccession": "ENCFF889HRS"
         },
@@ -1411,7 +1411,7 @@
         {
           "id": "dnase-ENCFF364XCA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF364XCA.bigWig",
           "experimentAccession": "ENCSR687OIL",
           "fileAccession": "ENCFF364XCA"
         },
@@ -1434,7 +1434,7 @@
         {
           "id": "dnase-ENCFF106XAF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF106XAF.bigWig",
           "experimentAccession": "ENCSR611CEJ",
           "fileAccession": "ENCFF106XAF"
         },
@@ -1457,7 +1457,7 @@
         {
           "id": "dnase-ENCFF625VYF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF625VYF.bigWig",
           "experimentAccession": "ENCSR338GYD",
           "fileAccession": "ENCFF625VYF"
         },
@@ -1480,7 +1480,7 @@
         {
           "id": "dnase-ENCFF228XUA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF228XUA.bigWig",
           "experimentAccession": "ENCSR280ZEI",
           "fileAccession": "ENCFF228XUA"
         },
@@ -1503,7 +1503,7 @@
         {
           "id": "dnase-ENCFF885YRD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF885YRD.bigWig",
           "experimentAccession": "ENCSR391LJN",
           "fileAccession": "ENCFF885YRD"
         },
@@ -1526,7 +1526,7 @@
         {
           "id": "dnase-ENCFF269NBM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF269NBM.bigWig",
           "experimentAccession": "ENCSR061TLH",
           "fileAccession": "ENCFF269NBM"
         },
@@ -1549,7 +1549,7 @@
         {
           "id": "dnase-ENCFF429NNY",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF429NNY.bigWig",
           "experimentAccession": "ENCSR356UVK",
           "fileAccession": "ENCFF429NNY"
         },
@@ -1572,7 +1572,7 @@
         {
           "id": "dnase-ENCFF489OEG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF489OEG.bigWig",
           "experimentAccession": "ENCSR671GNH",
           "fileAccession": "ENCFF489OEG"
         },
@@ -1595,7 +1595,7 @@
         {
           "id": "dnase-ENCFF730MUU",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF730MUU.bigWig",
           "experimentAccession": "ENCSR325RZJ",
           "fileAccession": "ENCFF730MUU"
         },
@@ -1618,7 +1618,7 @@
         {
           "id": "dnase-ENCFF212IGR",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF212IGR.bigWig",
           "experimentAccession": "ENCSR193OYD",
           "fileAccession": "ENCFF212IGR"
         },
@@ -1641,7 +1641,7 @@
         {
           "id": "dnase-ENCFF714FKH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF714FKH.bigWig",
           "experimentAccession": "ENCSR424JJO",
           "fileAccession": "ENCFF714FKH"
         },
@@ -1664,7 +1664,7 @@
         {
           "id": "dnase-ENCFF850NQH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF850NQH.bigWig",
           "experimentAccession": "ENCSR247PTA",
           "fileAccession": "ENCFF850NQH"
         },
@@ -1687,7 +1687,7 @@
         {
           "id": "dnase-ENCFF593IJO",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF593IJO.bigWig",
           "experimentAccession": "ENCSR648GZU",
           "fileAccession": "ENCFF593IJO"
         },
@@ -1710,7 +1710,7 @@
         {
           "id": "dnase-ENCFF398ALB",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF398ALB.bigWig",
           "experimentAccession": "ENCSR348NWY",
           "fileAccession": "ENCFF398ALB"
         },
@@ -1733,7 +1733,7 @@
         {
           "id": "dnase-ENCFF489NWA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF489NWA.bigWig",
           "experimentAccession": "ENCSR544UYQ",
           "fileAccession": "ENCFF489NWA"
         },
@@ -1756,7 +1756,7 @@
         {
           "id": "dnase-ENCFF931ZAD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF931ZAD.bigWig",
           "experimentAccession": "ENCSR254KUF",
           "fileAccession": "ENCFF931ZAD"
         },
@@ -1779,7 +1779,7 @@
         {
           "id": "dnase-ENCFF923LCJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF923LCJ.bigWig",
           "experimentAccession": "ENCSR688XLI",
           "fileAccession": "ENCFF923LCJ"
         },
@@ -1802,7 +1802,7 @@
         {
           "id": "dnase-ENCFF725DDG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF725DDG.bigWig",
           "experimentAccession": "ENCSR503JJC",
           "fileAccession": "ENCFF725DDG"
         },
@@ -1825,7 +1825,7 @@
         {
           "id": "dnase-ENCFF293ADN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF293ADN.bigWig",
           "experimentAccession": "ENCSR385DQL",
           "fileAccession": "ENCFF293ADN"
         },
@@ -1848,7 +1848,7 @@
         {
           "id": "dnase-ENCFF027SZX",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF027SZX.bigWig",
           "experimentAccession": "ENCSR235KWU",
           "fileAccession": "ENCFF027SZX"
         },
@@ -1871,7 +1871,7 @@
         {
           "id": "dnase-ENCFF025FEU",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF025FEU.bigWig",
           "experimentAccession": "ENCSR270DJQ",
           "fileAccession": "ENCFF025FEU"
         },
@@ -1894,7 +1894,7 @@
         {
           "id": "dnase-ENCFF738ENC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF738ENC.bigWig",
           "experimentAccession": "ENCSR459CXJ",
           "fileAccession": "ENCFF738ENC"
         },
@@ -1917,7 +1917,7 @@
         {
           "id": "dnase-ENCFF863EKT",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF863EKT.bigWig",
           "experimentAccession": "ENCSR282IXW",
           "fileAccession": "ENCFF863EKT"
         },
@@ -1940,7 +1940,7 @@
         {
           "id": "dnase-ENCFF758TTR",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF758TTR.bigWig",
           "experimentAccession": "ENCSR357REQ",
           "fileAccession": "ENCFF758TTR"
         },
@@ -1963,7 +1963,7 @@
         {
           "id": "dnase-ENCFF280VXS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF280VXS.bigWig",
           "experimentAccession": "ENCSR559CFZ",
           "fileAccession": "ENCFF280VXS"
         },
@@ -1986,7 +1986,7 @@
         {
           "id": "dnase-ENCFF352LDG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF352LDG.bigWig",
           "experimentAccession": "ENCSR883RWB",
           "fileAccession": "ENCFF352LDG"
         },
@@ -2009,7 +2009,7 @@
         {
           "id": "dnase-ENCFF563PXT",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF563PXT.bigWig",
           "experimentAccession": "ENCSR552BOB",
           "fileAccession": "ENCFF563PXT"
         },
@@ -2032,7 +2032,7 @@
         {
           "id": "dnase-ENCFF636BHS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF636BHS.bigWig",
           "experimentAccession": "ENCSR084EBB",
           "fileAccession": "ENCFF636BHS"
         },
@@ -2055,7 +2055,7 @@
         {
           "id": "dnase-ENCFF749GPR",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF749GPR.bigWig",
           "experimentAccession": "ENCSR386OBA",
           "fileAccession": "ENCFF749GPR"
         },
@@ -2092,7 +2092,7 @@
         {
           "id": "dnase-ENCFF656MTD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF656MTD.bigWig",
           "experimentAccession": "ENCSR255QUX",
           "fileAccession": "ENCFF656MTD"
         },
@@ -2115,7 +2115,7 @@
         {
           "id": "dnase-ENCFF663IIJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF663IIJ.bigWig",
           "experimentAccession": "ENCSR074RIB",
           "fileAccession": "ENCFF663IIJ"
         },
@@ -2138,7 +2138,7 @@
         {
           "id": "dnase-ENCFF077JGX",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF077JGX.bigWig",
           "experimentAccession": "ENCSR839DGG",
           "fileAccession": "ENCFF077JGX"
         },
@@ -2161,7 +2161,7 @@
         {
           "id": "dnase-ENCFF860GUJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF860GUJ.bigWig",
           "experimentAccession": "ENCSR106PXP",
           "fileAccession": "ENCFF860GUJ"
         },
@@ -2184,7 +2184,7 @@
         {
           "id": "dnase-ENCFF642MWH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF642MWH.bigWig",
           "experimentAccession": "ENCSR029GTO",
           "fileAccession": "ENCFF642MWH"
         },
@@ -2207,7 +2207,7 @@
         {
           "id": "dnase-ENCFF351YSI",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF351YSI.bigWig",
           "experimentAccession": "ENCSR200TAZ",
           "fileAccession": "ENCFF351YSI"
         },
@@ -2230,7 +2230,7 @@
         {
           "id": "dnase-ENCFF369FZW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF369FZW.bigWig",
           "experimentAccession": "ENCSR370VVJ",
           "fileAccession": "ENCFF369FZW"
         },
@@ -2267,7 +2267,7 @@
         {
           "id": "dnase-ENCFF781RAE",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF781RAE.bigWig",
           "experimentAccession": "ENCSR636QXK",
           "fileAccession": "ENCFF781RAE"
         },
@@ -2290,7 +2290,7 @@
         {
           "id": "dnase-ENCFF262BLN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF262BLN.bigWig",
           "experimentAccession": "ENCSR824YVS",
           "fileAccession": "ENCFF262BLN"
         },
@@ -2313,7 +2313,7 @@
         {
           "id": "dnase-ENCFF205RZJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF205RZJ.bigWig",
           "experimentAccession": "ENCSR017TAB",
           "fileAccession": "ENCFF205RZJ"
         },
@@ -2336,7 +2336,7 @@
         {
           "id": "dnase-ENCFF756JAT",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF756JAT.bigWig",
           "experimentAccession": "ENCSR415MMR",
           "fileAccession": "ENCFF756JAT"
         },
@@ -2359,7 +2359,7 @@
         {
           "id": "dnase-ENCFF648RLL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF648RLL.bigWig",
           "experimentAccession": "ENCSR293BBH",
           "fileAccession": "ENCFF648RLL"
         },
@@ -2382,7 +2382,7 @@
         {
           "id": "dnase-ENCFF323AAK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF323AAK.bigWig",
           "experimentAccession": "ENCSR952RWH",
           "fileAccession": "ENCFF323AAK"
         },
@@ -2405,7 +2405,7 @@
         {
           "id": "dnase-ENCFF192MKM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF192MKM.bigWig",
           "experimentAccession": "ENCSR571UMX",
           "fileAccession": "ENCFF192MKM"
         },
@@ -2428,7 +2428,7 @@
         {
           "id": "dnase-ENCFF007ZZJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF007ZZJ.bigWig",
           "experimentAccession": "ENCSR450ROJ",
           "fileAccession": "ENCFF007ZZJ"
         },
@@ -2451,7 +2451,7 @@
         {
           "id": "dnase-ENCFF171LMU",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF171LMU.bigWig",
           "experimentAccession": "ENCSR740POH",
           "fileAccession": "ENCFF171LMU"
         },
@@ -2474,7 +2474,7 @@
         {
           "id": "dnase-ENCFF369XRD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF369XRD.bigWig",
           "experimentAccession": "ENCSR690IQA",
           "fileAccession": "ENCFF369XRD"
         },
@@ -2497,7 +2497,7 @@
         {
           "id": "dnase-ENCFF254BIC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF254BIC.bigWig",
           "experimentAccession": "ENCSR601CHF",
           "fileAccession": "ENCFF254BIC"
         },
@@ -2520,7 +2520,7 @@
         {
           "id": "dnase-ENCFF514VRF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF514VRF.bigWig",
           "experimentAccession": "ENCSR551ZTT",
           "fileAccession": "ENCFF514VRF"
         },
@@ -2543,7 +2543,7 @@
         {
           "id": "dnase-ENCFF314PDM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF314PDM.bigWig",
           "experimentAccession": "ENCSR751LYJ",
           "fileAccession": "ENCFF314PDM"
         },
@@ -2566,14 +2566,14 @@
         {
           "id": "dnase-ENCFF652BMI",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF652BMI.bigWig",
           "experimentAccession": "ENCSR000COE",
           "fileAccession": "ENCFF652BMI"
         },
         {
           "id": "ctcf-ENCFF498DMS",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF498DMS.bigWig",
           "experimentAccession": "ENCSR000CEH",
           "fileAccession": "ENCFF498DMS"
         },
@@ -2596,7 +2596,7 @@
         {
           "id": "dnase-ENCFF010KFV",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF010KFV.bigWig",
           "experimentAccession": "ENCSR000COF",
           "fileAccession": "ENCFF010KFV"
         },
@@ -2619,7 +2619,7 @@
         {
           "id": "dnase-ENCFF981OGB",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF981OGB.bigWig",
           "experimentAccession": "ENCSR000COG",
           "fileAccession": "ENCFF981OGB"
         },
@@ -2642,7 +2642,7 @@
         {
           "id": "atac-ENCFF696IBU",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF696IBU.bigWig",
           "experimentAccession": "ENCSR554JQP",
           "fileAccession": "ENCFF696IBU"
         }
@@ -2658,7 +2658,7 @@
         {
           "id": "dnase-ENCFF166NWJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF166NWJ.bigWig",
           "experimentAccession": "ENCSR983KOM",
           "fileAccession": "ENCFF166NWJ"
         },
@@ -2681,28 +2681,28 @@
         {
           "id": "dnase-ENCFF265EIS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF265EIS.bigWig",
           "experimentAccession": "ENCSR000CMO",
           "fileAccession": "ENCFF265EIS"
         },
         {
           "id": "h3k4me3-ENCFF288SAJ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF288SAJ.bigWig",
           "experimentAccession": "ENCSR000CAK",
           "fileAccession": "ENCFF288SAJ"
         },
         {
           "id": "h3k27ac-ENCFF645OJK",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF645OJK.bigWig",
           "experimentAccession": "ENCSR000CDC",
           "fileAccession": "ENCFF645OJK"
         },
         {
           "id": "ctcf-ENCFF087SVX",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF087SVX.bigWig",
           "experimentAccession": "ENCSR000CBN",
           "fileAccession": "ENCFF087SVX"
         },
@@ -2725,7 +2725,7 @@
         {
           "id": "dnase-ENCFF231WLA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF231WLA.bigWig",
           "experimentAccession": "ENCSR263XCT",
           "fileAccession": "ENCFF231WLA"
         },
@@ -2748,21 +2748,21 @@
         {
           "id": "h3k4me3-ENCFF915MTC",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF915MTC.bigWig",
           "experimentAccession": "ENCSR000CAJ",
           "fileAccession": "ENCFF915MTC"
         },
         {
           "id": "h3k27ac-ENCFF576FBS",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF576FBS.bigWig",
           "experimentAccession": "ENCSR000CDD",
           "fileAccession": "ENCFF576FBS"
         },
         {
           "id": "ctcf-ENCFF326QHR",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF326QHR.bigWig",
           "experimentAccession": "ENCSR000CBO",
           "fileAccession": "ENCFF326QHR"
         },
@@ -2785,21 +2785,21 @@
         {
           "id": "dnase-ENCFF506ZSC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF506ZSC.bigWig",
           "experimentAccession": "ENCSR756SPS",
           "fileAccession": "ENCFF506ZSC"
         },
         {
           "id": "h3k4me3-ENCFF055QJW",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF055QJW.bigWig",
           "experimentAccession": "ENCSR368RJD",
           "fileAccession": "ENCFF055QJW"
         },
         {
           "id": "h3k27ac-ENCFF408WBW",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF408WBW.bigWig",
           "experimentAccession": "ENCSR825ZJV",
           "fileAccession": "ENCFF408WBW"
         },
@@ -2829,28 +2829,28 @@
         {
           "id": "dnase-ENCFF639LUT",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF639LUT.bigWig",
           "experimentAccession": "ENCSR014SFF",
           "fileAccession": "ENCFF639LUT"
         },
         {
           "id": "h3k4me3-ENCFF917VMY",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF917VMY.bigWig",
           "experimentAccession": "ENCSR739DVM",
           "fileAccession": "ENCFF917VMY"
         },
         {
           "id": "h3k27ac-ENCFF049VYP",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF049VYP.bigWig",
           "experimentAccession": "ENCSR275KPI",
           "fileAccession": "ENCFF049VYP"
         },
         {
           "id": "atac-ENCFF614CGI",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF614CGI.bigWig",
           "experimentAccession": "ENCSR273UFV",
           "fileAccession": "ENCFF614CGI"
         },
@@ -2880,21 +2880,21 @@
         {
           "id": "h3k4me3-ENCFF576VRV",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF576VRV.bigWig",
           "experimentAccession": "ENCSR527EUE",
           "fileAccession": "ENCFF576VRV"
         },
         {
           "id": "h3k27ac-ENCFF116JEC",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF116JEC.bigWig",
           "experimentAccession": "ENCSR966AIB",
           "fileAccession": "ENCFF116JEC"
         },
         {
           "id": "atac-ENCFF369OWR",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF369OWR.bigWig",
           "experimentAccession": "ENCSR559FAJ",
           "fileAccession": "ENCFF369OWR"
         },
@@ -2924,21 +2924,21 @@
         {
           "id": "h3k4me3-ENCFF915VWM",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF915VWM.bigWig",
           "experimentAccession": "ENCSR835BZO",
           "fileAccession": "ENCFF915VWM"
         },
         {
           "id": "h3k27ac-ENCFF070YWI",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF070YWI.bigWig",
           "experimentAccession": "ENCSR311YPF",
           "fileAccession": "ENCFF070YWI"
         },
         {
           "id": "atac-ENCFF059AWY",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF059AWY.bigWig",
           "experimentAccession": "ENCSR903GMO",
           "fileAccession": "ENCFF059AWY"
         },
@@ -2968,28 +2968,28 @@
         {
           "id": "dnase-ENCFF237YNH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF237YNH.bigWig",
           "experimentAccession": "ENCSR337EDG",
           "fileAccession": "ENCFF237YNH"
         },
         {
           "id": "h3k4me3-ENCFF349REI",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF349REI.bigWig",
           "experimentAccession": "ENCSR172XOZ",
           "fileAccession": "ENCFF349REI"
         },
         {
           "id": "h3k27ac-ENCFF279EVI",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF279EVI.bigWig",
           "experimentAccession": "ENCSR320EEW",
           "fileAccession": "ENCFF279EVI"
         },
         {
           "id": "atac-ENCFF097JFT",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF097JFT.bigWig",
           "experimentAccession": "ENCSR810HQR",
           "fileAccession": "ENCFF097JFT"
         },
@@ -3019,21 +3019,21 @@
         {
           "id": "h3k4me3-ENCFF223AGO",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF223AGO.bigWig",
           "experimentAccession": "ENCSR022KDE",
           "fileAccession": "ENCFF223AGO"
         },
         {
           "id": "h3k27ac-ENCFF387RNF",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF387RNF.bigWig",
           "experimentAccession": "ENCSR691NQH",
           "fileAccession": "ENCFF387RNF"
         },
         {
           "id": "atac-ENCFF233ZYJ",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF233ZYJ.bigWig",
           "experimentAccession": "ENCSR976LWP",
           "fileAccession": "ENCFF233ZYJ"
         },
@@ -3063,21 +3063,21 @@
         {
           "id": "h3k4me3-ENCFF408ICW",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF408ICW.bigWig",
           "experimentAccession": "ENCSR129DIK",
           "fileAccession": "ENCFF408ICW"
         },
         {
           "id": "h3k27ac-ENCFF276TDM",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF276TDM.bigWig",
           "experimentAccession": "ENCSR428OEK",
           "fileAccession": "ENCFF276TDM"
         },
         {
           "id": "atac-ENCFF178LJZ",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF178LJZ.bigWig",
           "experimentAccession": "ENCSR836PUC",
           "fileAccession": "ENCFF178LJZ"
         },
@@ -3107,35 +3107,35 @@
         {
           "id": "dnase-ENCFF727CYI",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF727CYI.bigWig",
           "experimentAccession": "ENCSR791AJY",
           "fileAccession": "ENCFF727CYI"
         },
         {
           "id": "h3k4me3-ENCFF050AHA",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF050AHA.bigWig",
           "experimentAccession": "ENCSR258YWW",
           "fileAccession": "ENCFF050AHA"
         },
         {
           "id": "h3k27ac-ENCFF422JMO",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF422JMO.bigWig",
           "experimentAccession": "ENCSR094TTT",
           "fileAccession": "ENCFF422JMO"
         },
         {
           "id": "ctcf-ENCFF247XHY",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF247XHY.bigWig",
           "experimentAccession": "ENCSR677HXC",
           "fileAccession": "ENCFF247XHY"
         },
         {
           "id": "atac-ENCFF196JTB",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF196JTB.bigWig",
           "experimentAccession": "ENCSR310MLB",
           "fileAccession": "ENCFF196JTB"
         },
@@ -3165,7 +3165,7 @@
         {
           "id": "atac-ENCFF739NAL",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF739NAL.bigWig",
           "experimentAccession": "ENCSR889WQX",
           "fileAccession": "ENCFF739NAL"
         }
@@ -3181,21 +3181,21 @@
         {
           "id": "dnase-ENCFF790CVH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF790CVH.bigWig",
           "experimentAccession": "ENCSR289BTM",
           "fileAccession": "ENCFF790CVH"
         },
         {
           "id": "h3k4me3-ENCFF891POZ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF891POZ.bigWig",
           "experimentAccession": "ENCSR731KRE",
           "fileAccession": "ENCFF891POZ"
         },
         {
           "id": "h3k27ac-ENCFF869WEC",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF869WEC.bigWig",
           "experimentAccession": "ENCSR594JGI",
           "fileAccession": "ENCFF869WEC"
         },
@@ -3225,28 +3225,28 @@
         {
           "id": "dnase-ENCFF587MWA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF587MWA.bigWig",
           "experimentAccession": "ENCSR358ESL",
           "fileAccession": "ENCFF587MWA"
         },
         {
           "id": "h3k4me3-ENCFF540LDP",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF540LDP.bigWig",
           "experimentAccession": "ENCSR928CYU",
           "fileAccession": "ENCFF540LDP"
         },
         {
           "id": "h3k27ac-ENCFF923BGD",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF923BGD.bigWig",
           "experimentAccession": "ENCSR129LAP",
           "fileAccession": "ENCFF923BGD"
         },
         {
           "id": "atac-ENCFF455EOK",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF455EOK.bigWig",
           "experimentAccession": "ENCSR012YAB",
           "fileAccession": "ENCFF455EOK"
         },
@@ -3276,21 +3276,21 @@
         {
           "id": "h3k4me3-ENCFF344PSC",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF344PSC.bigWig",
           "experimentAccession": "ENCSR158ONM",
           "fileAccession": "ENCFF344PSC"
         },
         {
           "id": "h3k27ac-ENCFF333XRC",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF333XRC.bigWig",
           "experimentAccession": "ENCSR784TLR",
           "fileAccession": "ENCFF333XRC"
         },
         {
           "id": "atac-ENCFF953TPB",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF953TPB.bigWig",
           "experimentAccession": "ENCSR088UYE",
           "fileAccession": "ENCFF953TPB"
         },
@@ -3320,21 +3320,21 @@
         {
           "id": "h3k4me3-ENCFF946QFJ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF946QFJ.bigWig",
           "experimentAccession": "ENCSR315ZEU",
           "fileAccession": "ENCFF946QFJ"
         },
         {
           "id": "h3k27ac-ENCFF677VEV",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF677VEV.bigWig",
           "experimentAccession": "ENCSR344HHI",
           "fileAccession": "ENCFF677VEV"
         },
         {
           "id": "atac-ENCFF254PQN",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF254PQN.bigWig",
           "experimentAccession": "ENCSR176BYZ",
           "fileAccession": "ENCFF254PQN"
         },
@@ -3364,28 +3364,28 @@
         {
           "id": "dnase-ENCFF274NPS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF274NPS.bigWig",
           "experimentAccession": "ENCSR179PIH",
           "fileAccession": "ENCFF274NPS"
         },
         {
           "id": "h3k4me3-ENCFF475FUT",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF475FUT.bigWig",
           "experimentAccession": "ENCSR185JBL",
           "fileAccession": "ENCFF475FUT"
         },
         {
           "id": "h3k27ac-ENCFF081VBW",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF081VBW.bigWig",
           "experimentAccession": "ENCSR054JHZ",
           "fileAccession": "ENCFF081VBW"
         },
         {
           "id": "atac-ENCFF539DCX",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF539DCX.bigWig",
           "experimentAccession": "ENCSR798FDL",
           "fileAccession": "ENCFF539DCX"
         },
@@ -3415,21 +3415,21 @@
         {
           "id": "h3k4me3-ENCFF730YNX",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF730YNX.bigWig",
           "experimentAccession": "ENCSR335TVR",
           "fileAccession": "ENCFF730YNX"
         },
         {
           "id": "h3k27ac-ENCFF285GQU",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF285GQU.bigWig",
           "experimentAccession": "ENCSR066XFL",
           "fileAccession": "ENCFF285GQU"
         },
         {
           "id": "atac-ENCFF311LZK",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF311LZK.bigWig",
           "experimentAccession": "ENCSR662KNY",
           "fileAccession": "ENCFF311LZK"
         },
@@ -3459,21 +3459,21 @@
         {
           "id": "h3k4me3-ENCFF196OVH",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF196OVH.bigWig",
           "experimentAccession": "ENCSR110TIW",
           "fileAccession": "ENCFF196OVH"
         },
         {
           "id": "h3k27ac-ENCFF744UYH",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF744UYH.bigWig",
           "experimentAccession": "ENCSR797EYS",
           "fileAccession": "ENCFF744UYH"
         },
         {
           "id": "atac-ENCFF905LYI",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF905LYI.bigWig",
           "experimentAccession": "ENCSR623GSD",
           "fileAccession": "ENCFF905LYI"
         },
@@ -3503,35 +3503,35 @@
         {
           "id": "dnase-ENCFF822FDB",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF822FDB.bigWig",
           "experimentAccession": "ENCSR469VGZ",
           "fileAccession": "ENCFF822FDB"
         },
         {
           "id": "h3k4me3-ENCFF615BKA",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF615BKA.bigWig",
           "experimentAccession": "ENCSR472YGQ",
           "fileAccession": "ENCFF615BKA"
         },
         {
           "id": "h3k27ac-ENCFF683GNP",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF683GNP.bigWig",
           "experimentAccession": "ENCSR332JYZ",
           "fileAccession": "ENCFF683GNP"
         },
         {
           "id": "ctcf-ENCFF494FQV",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF494FQV.bigWig",
           "experimentAccession": "ENCSR150RGT",
           "fileAccession": "ENCFF494FQV"
         },
         {
           "id": "atac-ENCFF018PKE",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF018PKE.bigWig",
           "experimentAccession": "ENCSR312LQX",
           "fileAccession": "ENCFF018PKE"
         },
@@ -3561,21 +3561,21 @@
         {
           "id": "dnase-ENCFF293YCS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF293YCS.bigWig",
           "experimentAccession": "ENCSR773SAG",
           "fileAccession": "ENCFF293YCS"
         },
         {
           "id": "h3k4me3-ENCFF316FCC",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF316FCC.bigWig",
           "experimentAccession": "ENCSR581EJK",
           "fileAccession": "ENCFF316FCC"
         },
         {
           "id": "h3k27ac-ENCFF391PWA",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF391PWA.bigWig",
           "experimentAccession": "ENCSR989LUY",
           "fileAccession": "ENCFF391PWA"
         },
@@ -3605,28 +3605,28 @@
         {
           "id": "dnase-ENCFF414SMG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF414SMG.bigWig",
           "experimentAccession": "ENCSR292QBA",
           "fileAccession": "ENCFF414SMG"
         },
         {
           "id": "h3k4me3-ENCFF872FCG",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF872FCG.bigWig",
           "experimentAccession": "ENCSR283RFW",
           "fileAccession": "ENCFF872FCG"
         },
         {
           "id": "h3k27ac-ENCFF251ZNB",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF251ZNB.bigWig",
           "experimentAccession": "ENCSR088UKA",
           "fileAccession": "ENCFF251ZNB"
         },
         {
           "id": "atac-ENCFF721EEB",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF721EEB.bigWig",
           "experimentAccession": "ENCSR382RUC",
           "fileAccession": "ENCFF721EEB"
         },
@@ -3656,21 +3656,21 @@
         {
           "id": "h3k4me3-ENCFF583YJS",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF583YJS.bigWig",
           "experimentAccession": "ENCSR554TSO",
           "fileAccession": "ENCFF583YJS"
         },
         {
           "id": "h3k27ac-ENCFF998IDD",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF998IDD.bigWig",
           "experimentAccession": "ENCSR252ONR",
           "fileAccession": "ENCFF998IDD"
         },
         {
           "id": "atac-ENCFF026NGX",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF026NGX.bigWig",
           "experimentAccession": "ENCSR154BXN",
           "fileAccession": "ENCFF026NGX"
         },
@@ -3700,21 +3700,21 @@
         {
           "id": "h3k4me3-ENCFF375SNP",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF375SNP.bigWig",
           "experimentAccession": "ENCSR167ZGV",
           "fileAccession": "ENCFF375SNP"
         },
         {
           "id": "h3k27ac-ENCFF445IKJ",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF445IKJ.bigWig",
           "experimentAccession": "ENCSR671NSS",
           "fileAccession": "ENCFF445IKJ"
         },
         {
           "id": "atac-ENCFF783ENY",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF783ENY.bigWig",
           "experimentAccession": "ENCSR819QOJ",
           "fileAccession": "ENCFF783ENY"
         },
@@ -3744,28 +3744,28 @@
         {
           "id": "dnase-ENCFF539CBL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF539CBL.bigWig",
           "experimentAccession": "ENCSR367FCW",
           "fileAccession": "ENCFF539CBL"
         },
         {
           "id": "h3k4me3-ENCFF829ZIT",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF829ZIT.bigWig",
           "experimentAccession": "ENCSR203KIB",
           "fileAccession": "ENCFF829ZIT"
         },
         {
           "id": "h3k27ac-ENCFF104QAC",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF104QAC.bigWig",
           "experimentAccession": "ENCSR254AHA",
           "fileAccession": "ENCFF104QAC"
         },
         {
           "id": "atac-ENCFF667GBX",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF667GBX.bigWig",
           "experimentAccession": "ENCSR384JBF",
           "fileAccession": "ENCFF667GBX"
         },
@@ -3795,21 +3795,21 @@
         {
           "id": "h3k4me3-ENCFF133YIG",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF133YIG.bigWig",
           "experimentAccession": "ENCSR486MHP",
           "fileAccession": "ENCFF133YIG"
         },
         {
           "id": "h3k27ac-ENCFF209UET",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF209UET.bigWig",
           "experimentAccession": "ENCSR428GHF",
           "fileAccession": "ENCFF209UET"
         },
         {
           "id": "atac-ENCFF038YWD",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF038YWD.bigWig",
           "experimentAccession": "ENCSR468GUI",
           "fileAccession": "ENCFF038YWD"
         },
@@ -3839,21 +3839,21 @@
         {
           "id": "h3k4me3-ENCFF657KZB",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF657KZB.bigWig",
           "experimentAccession": "ENCSR637CCT",
           "fileAccession": "ENCFF657KZB"
         },
         {
           "id": "h3k27ac-ENCFF556QIL",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF556QIL.bigWig",
           "experimentAccession": "ENCSR553IWV",
           "fileAccession": "ENCFF556QIL"
         },
         {
           "id": "atac-ENCFF775ZBP",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF775ZBP.bigWig",
           "experimentAccession": "ENCSR096JCC",
           "fileAccession": "ENCFF775ZBP"
         },
@@ -3883,35 +3883,35 @@
         {
           "id": "dnase-ENCFF325FZS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF325FZS.bigWig",
           "experimentAccession": "ENCSR767AJS",
           "fileAccession": "ENCFF325FZS"
         },
         {
           "id": "h3k4me3-ENCFF396LHC",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF396LHC.bigWig",
           "experimentAccession": "ENCSR427ZJU",
           "fileAccession": "ENCFF396LHC"
         },
         {
           "id": "h3k27ac-ENCFF010WPI",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF010WPI.bigWig",
           "experimentAccession": "ENCSR672ZXY",
           "fileAccession": "ENCFF010WPI"
         },
         {
           "id": "ctcf-ENCFF196GIY",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF196GIY.bigWig",
           "experimentAccession": "ENCSR985ZTV",
           "fileAccession": "ENCFF196GIY"
         },
         {
           "id": "atac-ENCFF061DGJ",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF061DGJ.bigWig",
           "experimentAccession": "ENCSR211OCS",
           "fileAccession": "ENCFF061DGJ"
         },
@@ -3941,21 +3941,21 @@
         {
           "id": "h3k4me3-ENCFF210QSK",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF210QSK.bigWig",
           "experimentAccession": "ENCSR000CDS",
           "fileAccession": "ENCFF210QSK"
         },
         {
           "id": "h3k27ac-ENCFF232DFR",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF232DFR.bigWig",
           "experimentAccession": "ENCSR000CCE",
           "fileAccession": "ENCFF232DFR"
         },
         {
           "id": "ctcf-ENCFF410DRE",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF410DRE.bigWig",
           "experimentAccession": "ENCSR000CDX",
           "fileAccession": "ENCFF410DRE"
         },
@@ -3978,7 +3978,7 @@
         {
           "id": "dnase-ENCFF125SKT",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF125SKT.bigWig",
           "experimentAccession": "ENCSR000CMP",
           "fileAccession": "ENCFF125SKT"
         },
@@ -4001,7 +4001,7 @@
         {
           "id": "dnase-ENCFF587VZL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF587VZL.bigWig",
           "experimentAccession": "ENCSR000CMJ",
           "fileAccession": "ENCFF587VZL"
         },
@@ -4024,7 +4024,7 @@
         {
           "id": "dnase-ENCFF961CBL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF961CBL.bigWig",
           "experimentAccession": "ENCSR687EAW",
           "fileAccession": "ENCFF961CBL"
         },
@@ -4047,7 +4047,7 @@
         {
           "id": "dnase-ENCFF512NWW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF512NWW.bigWig",
           "experimentAccession": "ENCSR998KYQ",
           "fileAccession": "ENCFF512NWW"
         },
@@ -4070,21 +4070,21 @@
         {
           "id": "h3k4me3-ENCFF531TGE",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF531TGE.bigWig",
           "experimentAccession": "ENCSR000CBA",
           "fileAccession": "ENCFF531TGE"
         },
         {
           "id": "h3k27ac-ENCFF525AAL",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF525AAL.bigWig",
           "experimentAccession": "ENCSR000CDI",
           "fileAccession": "ENCFF525AAL"
         },
         {
           "id": "ctcf-ENCFF382VSH",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF382VSH.bigWig",
           "experimentAccession": "ENCSR000CBW",
           "fileAccession": "ENCFF382VSH"
         },
@@ -4107,7 +4107,7 @@
         {
           "id": "dnase-ENCFF145XZO",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF145XZO.bigWig",
           "experimentAccession": "ENCSR000CNA",
           "fileAccession": "ENCFF145XZO"
         },
@@ -4130,7 +4130,7 @@
         {
           "id": "dnase-ENCFF268ZOH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF268ZOH.bigWig",
           "experimentAccession": "ENCSR000CNS",
           "fileAccession": "ENCFF268ZOH"
         },
@@ -4153,7 +4153,7 @@
         {
           "id": "dnase-ENCFF524NPW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF524NPW.bigWig",
           "experimentAccession": "ENCSR000CNT",
           "fileAccession": "ENCFF524NPW"
         },
@@ -4176,7 +4176,7 @@
         {
           "id": "dnase-ENCFF471MZE",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF471MZE.bigWig",
           "experimentAccession": "ENCSR000CND",
           "fileAccession": "ENCFF471MZE"
         },
@@ -4199,7 +4199,7 @@
         {
           "id": "dnase-ENCFF300RLK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF300RLK.bigWig",
           "experimentAccession": "ENCSR000CNB",
           "fileAccession": "ENCFF300RLK"
         },
@@ -4222,21 +4222,21 @@
         {
           "id": "dnase-ENCFF194EIJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF194EIJ.bigWig",
           "experimentAccession": "ENCSR000CHP",
           "fileAccession": "ENCFF194EIJ"
         },
         {
           "id": "h3k4me3-ENCFF938WRU",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF938WRU.bigWig",
           "experimentAccession": "ENCSR000DIX",
           "fileAccession": "ENCFF938WRU"
         },
         {
           "id": "ctcf-ENCFF177LVD",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF177LVD.bigWig",
           "experimentAccession": "ENCSR000DIS",
           "fileAccession": "ENCFF177LVD"
         },
@@ -4259,21 +4259,21 @@
         {
           "id": "dnase-ENCFF389ASD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF389ASD.bigWig",
           "experimentAccession": "ENCSR000CHQ",
           "fileAccession": "ENCFF389ASD"
         },
         {
           "id": "h3k4me3-ENCFF492ZFK",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF492ZFK.bigWig",
           "experimentAccession": "ENCSR000DIW",
           "fileAccession": "ENCFF492ZFK"
         },
         {
           "id": "ctcf-ENCFF161GRG",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF161GRG.bigWig",
           "experimentAccession": "ENCSR000DIR",
           "fileAccession": "ENCFF161GRG"
         },
@@ -4296,7 +4296,7 @@
         {
           "id": "dnase-ENCFF777JLL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF777JLL.bigWig",
           "experimentAccession": "ENCSR000CNF",
           "fileAccession": "ENCFF777JLL"
         },
@@ -4319,7 +4319,7 @@
         {
           "id": "dnase-ENCFF617QIH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF617QIH.bigWig",
           "experimentAccession": "ENCSR000CNO",
           "fileAccession": "ENCFF617QIH"
         },
@@ -4342,14 +4342,14 @@
         {
           "id": "h3k4me3-ENCFF359BQV",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF359BQV.bigWig",
           "experimentAccession": "ENCSR212KGS",
           "fileAccession": "ENCFF359BQV"
         },
         {
           "id": "ctcf-ENCFF263TYL",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF263TYL.bigWig",
           "experimentAccession": "ENCSR362VNF",
           "fileAccession": "ENCFF263TYL"
         },
@@ -4372,21 +4372,21 @@
         {
           "id": "dnase-ENCFF672DJH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF672DJH.bigWig",
           "experimentAccession": "ENCSR000CMW",
           "fileAccession": "ENCFF672DJH"
         },
         {
           "id": "h3k4me3-ENCFF806NDV",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF806NDV.bigWig",
           "experimentAccession": "ENCSR000CGO",
           "fileAccession": "ENCFF806NDV"
         },
         {
           "id": "h3k27ac-ENCFF163SBS",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF163SBS.bigWig",
           "experimentAccession": "ENCSR000CGQ",
           "fileAccession": "ENCFF163SBS"
         },
@@ -4409,7 +4409,7 @@
         {
           "id": "dnase-ENCFF473LRF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF473LRF.bigWig",
           "experimentAccession": "ENCSR000COH",
           "fileAccession": "ENCFF473LRF"
         },
@@ -4432,7 +4432,7 @@
         {
           "id": "dnase-ENCFF471ULZ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF471ULZ.bigWig",
           "experimentAccession": "ENCSR000COI",
           "fileAccession": "ENCFF471ULZ"
         },
@@ -4455,7 +4455,7 @@
         {
           "id": "dnase-ENCFF493KRV",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF493KRV.bigWig",
           "experimentAccession": "ENCSR000COJ",
           "fileAccession": "ENCFF493KRV"
         },
@@ -4478,7 +4478,7 @@
         {
           "id": "dnase-ENCFF119QSY",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF119QSY.bigWig",
           "experimentAccession": "ENCSR000CMV",
           "fileAccession": "ENCFF119QSY"
         },
@@ -4501,7 +4501,7 @@
         {
           "id": "dnase-ENCFF861QHS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF861QHS.bigWig",
           "experimentAccession": "ENCSR000CMX",
           "fileAccession": "ENCFF861QHS"
         },
@@ -4524,7 +4524,7 @@
         {
           "id": "dnase-ENCFF644NCL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF644NCL.bigWig",
           "experimentAccession": "ENCSR000CMY",
           "fileAccession": "ENCFF644NCL"
         },
@@ -4547,21 +4547,21 @@
         {
           "id": "h3k4me3-ENCFF397UZX",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF397UZX.bigWig",
           "experimentAccession": "ENCSR000CBG",
           "fileAccession": "ENCFF397UZX"
         },
         {
           "id": "h3k27ac-ENCFF610BPO",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF610BPO.bigWig",
           "experimentAccession": "ENCSR000CDE",
           "fileAccession": "ENCFF610BPO"
         },
         {
           "id": "ctcf-ENCFF339GSH",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF339GSH.bigWig",
           "experimentAccession": "ENCSR000CCB",
           "fileAccession": "ENCFF339GSH"
         },
@@ -4584,21 +4584,21 @@
         {
           "id": "dnase-ENCFF249HFH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF249HFH.bigWig",
           "experimentAccession": "ENCSR775YJL",
           "fileAccession": "ENCFF249HFH"
         },
         {
           "id": "h3k4me3-ENCFF471TGR",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF471TGR.bigWig",
           "experimentAccession": "ENCSR765JWZ",
           "fileAccession": "ENCFF471TGR"
         },
         {
           "id": "h3k27ac-ENCFF320ULD",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF320ULD.bigWig",
           "experimentAccession": "ENCSR151APL",
           "fileAccession": "ENCFF320ULD"
         },
@@ -4628,28 +4628,28 @@
         {
           "id": "dnase-ENCFF134SHQ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF134SHQ.bigWig",
           "experimentAccession": "ENCSR196VDE",
           "fileAccession": "ENCFF134SHQ"
         },
         {
           "id": "h3k4me3-ENCFF119AEQ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF119AEQ.bigWig",
           "experimentAccession": "ENCSR320CCJ",
           "fileAccession": "ENCFF119AEQ"
         },
         {
           "id": "h3k27ac-ENCFF465JSZ",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF465JSZ.bigWig",
           "experimentAccession": "ENCSR401GRX",
           "fileAccession": "ENCFF465JSZ"
         },
         {
           "id": "atac-ENCFF842JPB",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF842JPB.bigWig",
           "experimentAccession": "ENCSR150RMQ",
           "fileAccession": "ENCFF842JPB"
         },
@@ -4679,21 +4679,21 @@
         {
           "id": "h3k4me3-ENCFF454API",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF454API.bigWig",
           "experimentAccession": "ENCSR106QSU",
           "fileAccession": "ENCFF454API"
         },
         {
           "id": "h3k27ac-ENCFF701YWS",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF701YWS.bigWig",
           "experimentAccession": "ENCSR813SCQ",
           "fileAccession": "ENCFF701YWS"
         },
         {
           "id": "atac-ENCFF955CHM",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF955CHM.bigWig",
           "experimentAccession": "ENCSR031HDN",
           "fileAccession": "ENCFF955CHM"
         },
@@ -4723,21 +4723,21 @@
         {
           "id": "h3k4me3-ENCFF891SME",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF891SME.bigWig",
           "experimentAccession": "ENCSR057BKH",
           "fileAccession": "ENCFF891SME"
         },
         {
           "id": "h3k27ac-ENCFF082QHX",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF082QHX.bigWig",
           "experimentAccession": "ENCSR420MUV",
           "fileAccession": "ENCFF082QHX"
         },
         {
           "id": "atac-ENCFF193BCE",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF193BCE.bigWig",
           "experimentAccession": "ENCSR358MOW",
           "fileAccession": "ENCFF193BCE"
         },
@@ -4767,28 +4767,28 @@
         {
           "id": "dnase-ENCFF120FLV",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF120FLV.bigWig",
           "experimentAccession": "ENCSR959HKR",
           "fileAccession": "ENCFF120FLV"
         },
         {
           "id": "h3k4me3-ENCFF968OKH",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF968OKH.bigWig",
           "experimentAccession": "ENCSR059LYY",
           "fileAccession": "ENCFF968OKH"
         },
         {
           "id": "h3k27ac-ENCFF977HEX",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF977HEX.bigWig",
           "experimentAccession": "ENCSR481SGM",
           "fileAccession": "ENCFF977HEX"
         },
         {
           "id": "atac-ENCFF842ISQ",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF842ISQ.bigWig",
           "experimentAccession": "ENCSR876SYO",
           "fileAccession": "ENCFF842ISQ"
         },
@@ -4818,21 +4818,21 @@
         {
           "id": "h3k4me3-ENCFF894ZYN",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF894ZYN.bigWig",
           "experimentAccession": "ENCSR990JMN",
           "fileAccession": "ENCFF894ZYN"
         },
         {
           "id": "h3k27ac-ENCFF675NRM",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF675NRM.bigWig",
           "experimentAccession": "ENCSR382DRK",
           "fileAccession": "ENCFF675NRM"
         },
         {
           "id": "atac-ENCFF059HOV",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF059HOV.bigWig",
           "experimentAccession": "ENCSR261ICG",
           "fileAccession": "ENCFF059HOV"
         },
@@ -4862,7 +4862,7 @@
         {
           "id": "dnase-ENCFF772NFM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF772NFM.bigWig",
           "experimentAccession": "ENCSR172RHR",
           "fileAccession": "ENCFF772NFM"
         },
@@ -4885,7 +4885,7 @@
         {
           "id": "dnase-ENCFF689LNL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF689LNL.bigWig",
           "experimentAccession": "ENCSR723IXU",
           "fileAccession": "ENCFF689LNL"
         },
@@ -4908,7 +4908,7 @@
         {
           "id": "dnase-ENCFF357LDL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF357LDL.bigWig",
           "experimentAccession": "ENCSR774TQO",
           "fileAccession": "ENCFF357LDL"
         },
@@ -4931,7 +4931,7 @@
         {
           "id": "dnase-ENCFF782XTC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF782XTC.bigWig",
           "experimentAccession": "ENCSR687JCD",
           "fileAccession": "ENCFF782XTC"
         },
@@ -4954,7 +4954,7 @@
         {
           "id": "atac-ENCFF852SDC",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF852SDC.bigWig",
           "experimentAccession": "ENCSR280ZDP",
           "fileAccession": "ENCFF852SDC"
         }
@@ -4970,7 +4970,7 @@
         {
           "id": "atac-ENCFF718XPN",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF718XPN.bigWig",
           "experimentAccession": "ENCSR428BSK",
           "fileAccession": "ENCFF718XPN"
         }
@@ -4986,7 +4986,7 @@
         {
           "id": "dnase-ENCFF628POS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF628POS.bigWig",
           "experimentAccession": "ENCSR319PWR",
           "fileAccession": "ENCFF628POS"
         },
@@ -5009,7 +5009,7 @@
         {
           "id": "dnase-ENCFF591ULD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF591ULD.bigWig",
           "experimentAccession": "ENCSR434TGY",
           "fileAccession": "ENCFF591ULD"
         },
@@ -5032,7 +5032,7 @@
         {
           "id": "dnase-ENCFF070JPK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF070JPK.bigWig",
           "experimentAccession": "ENCSR661GMU",
           "fileAccession": "ENCFF070JPK"
         },
@@ -5055,28 +5055,28 @@
         {
           "id": "dnase-ENCFF168RKV",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF168RKV.bigWig",
           "experimentAccession": "ENCSR312QVY",
           "fileAccession": "ENCFF168RKV"
         },
         {
           "id": "h3k4me3-ENCFF952ZWD",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF952ZWD.bigWig",
           "experimentAccession": "ENCSR427OZM",
           "fileAccession": "ENCFF952ZWD"
         },
         {
           "id": "h3k27ac-ENCFF033UPR",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF033UPR.bigWig",
           "experimentAccession": "ENCSR531RZS",
           "fileAccession": "ENCFF033UPR"
         },
         {
           "id": "atac-ENCFF936VGM",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF936VGM.bigWig",
           "experimentAccession": "ENCSR282YTE",
           "fileAccession": "ENCFF936VGM"
         },
@@ -5106,21 +5106,21 @@
         {
           "id": "h3k4me3-ENCFF380SYY",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF380SYY.bigWig",
           "experimentAccession": "ENCSR538SRO",
           "fileAccession": "ENCFF380SYY"
         },
         {
           "id": "h3k27ac-ENCFF879XPV",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF879XPV.bigWig",
           "experimentAccession": "ENCSR891SAW",
           "fileAccession": "ENCFF879XPV"
         },
         {
           "id": "atac-ENCFF762WBC",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF762WBC.bigWig",
           "experimentAccession": "ENCSR690VOH",
           "fileAccession": "ENCFF762WBC"
         },
@@ -5150,21 +5150,21 @@
         {
           "id": "h3k4me3-ENCFF036CBQ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF036CBQ.bigWig",
           "experimentAccession": "ENCSR704IWS",
           "fileAccession": "ENCFF036CBQ"
         },
         {
           "id": "h3k27ac-ENCFF453QHO",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF453QHO.bigWig",
           "experimentAccession": "ENCSR289SWJ",
           "fileAccession": "ENCFF453QHO"
         },
         {
           "id": "atac-ENCFF869JSQ",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF869JSQ.bigWig",
           "experimentAccession": "ENCSR217NOA",
           "fileAccession": "ENCFF869JSQ"
         },
@@ -5194,21 +5194,21 @@
         {
           "id": "h3k4me3-ENCFF430CDF",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF430CDF.bigWig",
           "experimentAccession": "ENCSR093BYV",
           "fileAccession": "ENCFF430CDF"
         },
         {
           "id": "h3k27ac-ENCFF110NUX",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF110NUX.bigWig",
           "experimentAccession": "ENCSR265NBM",
           "fileAccession": "ENCFF110NUX"
         },
         {
           "id": "atac-ENCFF745AWN",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF745AWN.bigWig",
           "experimentAccession": "ENCSR700QBR",
           "fileAccession": "ENCFF745AWN"
         },
@@ -5231,21 +5231,21 @@
         {
           "id": "h3k4me3-ENCFF119DJX",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF119DJX.bigWig",
           "experimentAccession": "ENCSR044SNE",
           "fileAccession": "ENCFF119DJX"
         },
         {
           "id": "h3k27ac-ENCFF984KZH",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF984KZH.bigWig",
           "experimentAccession": "ENCSR241BSK",
           "fileAccession": "ENCFF984KZH"
         },
         {
           "id": "atac-ENCFF931NRR",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF931NRR.bigWig",
           "experimentAccession": "ENCSR983JWA",
           "fileAccession": "ENCFF931NRR"
         },
@@ -5275,7 +5275,7 @@
         {
           "id": "dnase-ENCFF273ILK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF273ILK.bigWig",
           "experimentAccession": "ENCSR894HWV",
           "fileAccession": "ENCFF273ILK"
         },
@@ -5298,7 +5298,7 @@
         {
           "id": "dnase-ENCFF084PKJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF084PKJ.bigWig",
           "experimentAccession": "ENCSR666HFH",
           "fileAccession": "ENCFF084PKJ"
         },
@@ -5321,7 +5321,7 @@
         {
           "id": "dnase-ENCFF641XAC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF641XAC.bigWig",
           "experimentAccession": "ENCSR488VEQ",
           "fileAccession": "ENCFF641XAC"
         },
@@ -5344,7 +5344,7 @@
         {
           "id": "dnase-ENCFF890DBN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF890DBN.bigWig",
           "experimentAccession": "ENCSR000CNW",
           "fileAccession": "ENCFF890DBN"
         },
@@ -5367,7 +5367,7 @@
         {
           "id": "dnase-ENCFF269QXX",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF269QXX.bigWig",
           "experimentAccession": "ENCSR000CNV",
           "fileAccession": "ENCFF269QXX"
         },
@@ -5390,7 +5390,7 @@
         {
           "id": "dnase-ENCFF921PMK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF921PMK.bigWig",
           "experimentAccession": "ENCSR000CNU",
           "fileAccession": "ENCFF921PMK"
         },
@@ -5413,7 +5413,7 @@
         {
           "id": "dnase-ENCFF858PCS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF858PCS.bigWig",
           "experimentAccession": "ENCSR409LVQ",
           "fileAccession": "ENCFF858PCS"
         },
@@ -5436,7 +5436,7 @@
         {
           "id": "dnase-ENCFF657VXM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF657VXM.bigWig",
           "experimentAccession": "ENCSR021LAC",
           "fileAccession": "ENCFF657VXM"
         },
@@ -5459,7 +5459,7 @@
         {
           "id": "dnase-ENCFF668MTU",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF668MTU.bigWig",
           "experimentAccession": "ENCSR441MWY",
           "fileAccession": "ENCFF668MTU"
         },
@@ -5482,7 +5482,7 @@
         {
           "id": "dnase-ENCFF175HKB",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF175HKB.bigWig",
           "experimentAccession": "ENCSR804CGV",
           "fileAccession": "ENCFF175HKB"
         },
@@ -5505,7 +5505,7 @@
         {
           "id": "dnase-ENCFF075GWX",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF075GWX.bigWig",
           "experimentAccession": "ENCSR104ZBW",
           "fileAccession": "ENCFF075GWX"
         },
@@ -5528,7 +5528,7 @@
         {
           "id": "dnase-ENCFF462XVL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF462XVL.bigWig",
           "experimentAccession": "ENCSR961EFP",
           "fileAccession": "ENCFF462XVL"
         },
@@ -5551,7 +5551,7 @@
         {
           "id": "dnase-ENCFF791MPV",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF791MPV.bigWig",
           "experimentAccession": "ENCSR541MWB",
           "fileAccession": "ENCFF791MPV"
         },
@@ -5588,7 +5588,7 @@
         {
           "id": "dnase-ENCFF780GBM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF780GBM.bigWig",
           "experimentAccession": "ENCSR121JAB",
           "fileAccession": "ENCFF780GBM"
         },
@@ -5611,7 +5611,7 @@
         {
           "id": "dnase-ENCFF932OBF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF932OBF.bigWig",
           "experimentAccession": "ENCSR657WHR",
           "fileAccession": "ENCFF932OBF"
         },
@@ -5634,7 +5634,7 @@
         {
           "id": "dnase-ENCFF664MQT",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF664MQT.bigWig",
           "experimentAccession": "ENCSR671NPO",
           "fileAccession": "ENCFF664MQT"
         },
@@ -5657,7 +5657,7 @@
         {
           "id": "dnase-ENCFF503IYI",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF503IYI.bigWig",
           "experimentAccession": "ENCSR168HGB",
           "fileAccession": "ENCFF503IYI"
         },
@@ -5680,7 +5680,7 @@
         {
           "id": "dnase-ENCFF980ABY",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF980ABY.bigWig",
           "experimentAccession": "ENCSR145TJB",
           "fileAccession": "ENCFF980ABY"
         },
@@ -5703,7 +5703,7 @@
         {
           "id": "dnase-ENCFF576NPQ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF576NPQ.bigWig",
           "experimentAccession": "ENCSR677CPE",
           "fileAccession": "ENCFF576NPQ"
         },
@@ -5740,7 +5740,7 @@
         {
           "id": "dnase-ENCFF603JIQ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF603JIQ.bigWig",
           "experimentAccession": "ENCSR147AIN",
           "fileAccession": "ENCFF603JIQ"
         },
@@ -5763,21 +5763,21 @@
         {
           "id": "dnase-ENCFF105ICO",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF105ICO.bigWig",
           "experimentAccession": "ENCSR749ILN",
           "fileAccession": "ENCFF105ICO"
         },
         {
           "id": "h3k4me3-ENCFF084DBP",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF084DBP.bigWig",
           "experimentAccession": "ENCSR782DEA",
           "fileAccession": "ENCFF084DBP"
         },
         {
           "id": "h3k27ac-ENCFF476ZEU",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF476ZEU.bigWig",
           "experimentAccession": "ENCSR582SPN",
           "fileAccession": "ENCFF476ZEU"
         },
@@ -5807,21 +5807,21 @@
         {
           "id": "h3k4me3-ENCFF552KXU",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF552KXU.bigWig",
           "experimentAccession": "ENCSR592GQI",
           "fileAccession": "ENCFF552KXU"
         },
         {
           "id": "h3k27ac-ENCFF104DIK",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF104DIK.bigWig",
           "experimentAccession": "ENCSR222IHX",
           "fileAccession": "ENCFF104DIK"
         },
         {
           "id": "atac-ENCFF470YRM",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF470YRM.bigWig",
           "experimentAccession": "ENCSR820ACB",
           "fileAccession": "ENCFF470YRM"
         },
@@ -5851,21 +5851,21 @@
         {
           "id": "h3k4me3-ENCFF088WUJ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF088WUJ.bigWig",
           "experimentAccession": "ENCSR688ZOR",
           "fileAccession": "ENCFF088WUJ"
         },
         {
           "id": "h3k27ac-ENCFF778LZH",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF778LZH.bigWig",
           "experimentAccession": "ENCSR123MLY",
           "fileAccession": "ENCFF778LZH"
         },
         {
           "id": "atac-ENCFF817SNN",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF817SNN.bigWig",
           "experimentAccession": "ENCSR652CNN",
           "fileAccession": "ENCFF817SNN"
         },
@@ -5895,21 +5895,21 @@
         {
           "id": "h3k4me3-ENCFF312FOV",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF312FOV.bigWig",
           "experimentAccession": "ENCSR501GBJ",
           "fileAccession": "ENCFF312FOV"
         },
         {
           "id": "h3k27ac-ENCFF948TNP",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF948TNP.bigWig",
           "experimentAccession": "ENCSR699XHY",
           "fileAccession": "ENCFF948TNP"
         },
         {
           "id": "atac-ENCFF578WSN",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF578WSN.bigWig",
           "experimentAccession": "ENCSR552ABC",
           "fileAccession": "ENCFF578WSN"
         },
@@ -5939,21 +5939,21 @@
         {
           "id": "h3k4me3-ENCFF182PIY",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF182PIY.bigWig",
           "experimentAccession": "ENCSR052CDF",
           "fileAccession": "ENCFF182PIY"
         },
         {
           "id": "h3k27ac-ENCFF847IMJ",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF847IMJ.bigWig",
           "experimentAccession": "ENCSR360ANE",
           "fileAccession": "ENCFF847IMJ"
         },
         {
           "id": "atac-ENCFF930NIN",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF930NIN.bigWig",
           "experimentAccession": "ENCSR068YGC",
           "fileAccession": "ENCFF930NIN"
         },
@@ -5976,14 +5976,14 @@
         {
           "id": "h3k4me3-ENCFF325AMR",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF325AMR.bigWig",
           "experimentAccession": "ENCSR000CDM",
           "fileAccession": "ENCFF325AMR"
         },
         {
           "id": "h3k27ac-ENCFF171CWD",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF171CWD.bigWig",
           "experimentAccession": "ENCSR000CDK",
           "fileAccession": "ENCFF171CWD"
         },
@@ -6013,21 +6013,21 @@
         {
           "id": "h3k4me3-ENCFF124BBT",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF124BBT.bigWig",
           "experimentAccession": "ENCSR647OTD",
           "fileAccession": "ENCFF124BBT"
         },
         {
           "id": "h3k27ac-ENCFF615HNJ",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF615HNJ.bigWig",
           "experimentAccession": "ENCSR574VME",
           "fileAccession": "ENCFF615HNJ"
         },
         {
           "id": "atac-ENCFF373QJF",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF373QJF.bigWig",
           "experimentAccession": "ENCSR603MWL",
           "fileAccession": "ENCFF373QJF"
         },
@@ -6057,21 +6057,21 @@
         {
           "id": "h3k4me3-ENCFF944PZS",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF944PZS.bigWig",
           "experimentAccession": "ENCSR119YTR",
           "fileAccession": "ENCFF944PZS"
         },
         {
           "id": "h3k27ac-ENCFF746XEP",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF746XEP.bigWig",
           "experimentAccession": "ENCSR846PJO",
           "fileAccession": "ENCFF746XEP"
         },
         {
           "id": "atac-ENCFF680QMX",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF680QMX.bigWig",
           "experimentAccession": "ENCSR371KFW",
           "fileAccession": "ENCFF680QMX"
         },
@@ -6101,28 +6101,28 @@
         {
           "id": "dnase-ENCFF862WQC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF862WQC.bigWig",
           "experimentAccession": "ENCSR000CNE",
           "fileAccession": "ENCFF862WQC"
         },
         {
           "id": "h3k4me3-ENCFF660WNU",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF660WNU.bigWig",
           "experimentAccession": "ENCSR000CAM",
           "fileAccession": "ENCFF660WNU"
         },
         {
           "id": "h3k27ac-ENCFF266FCV",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF266FCV.bigWig",
           "experimentAccession": "ENCSR000CDF",
           "fileAccession": "ENCFF266FCV"
         },
         {
           "id": "ctcf-ENCFF809JIR",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF809JIR.bigWig",
           "experimentAccession": "ENCSR000CBI",
           "fileAccession": "ENCFF809JIR"
         },
@@ -6145,35 +6145,35 @@
         {
           "id": "dnase-ENCFF947JCM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF947JCM.bigWig",
           "experimentAccession": "ENCSR005WPU",
           "fileAccession": "ENCFF947JCM"
         },
         {
           "id": "h3k4me3-ENCFF738LHV",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF738LHV.bigWig",
           "experimentAccession": "ENCSR875ZAO",
           "fileAccession": "ENCFF738LHV"
         },
         {
           "id": "h3k27ac-ENCFF306XSO",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF306XSO.bigWig",
           "experimentAccession": "ENCSR675HDX",
           "fileAccession": "ENCFF306XSO"
         },
         {
           "id": "ctcf-ENCFF055IZM",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF055IZM.bigWig",
           "experimentAccession": "ENCSR491NUM",
           "fileAccession": "ENCFF055IZM"
         },
         {
           "id": "atac-ENCFF982LHR",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF982LHR.bigWig",
           "experimentAccession": "ENCSR451NAE",
           "fileAccession": "ENCFF982LHR"
         },
@@ -6203,28 +6203,28 @@
         {
           "id": "dnase-ENCFF622ZMY",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF622ZMY.bigWig",
           "experimentAccession": "ENCSR655WKX",
           "fileAccession": "ENCFF622ZMY"
         },
         {
           "id": "h3k4me3-ENCFF035BRD",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF035BRD.bigWig",
           "experimentAccession": "ENCSR464MQU",
           "fileAccession": "ENCFF035BRD"
         },
         {
           "id": "h3k27ac-ENCFF876IMC",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF876IMC.bigWig",
           "experimentAccession": "ENCSR424END",
           "fileAccession": "ENCFF876IMC"
         },
         {
           "id": "atac-ENCFF903RDQ",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF903RDQ.bigWig",
           "experimentAccession": "ENCSR150EOO",
           "fileAccession": "ENCFF903RDQ"
         },
@@ -6254,21 +6254,21 @@
         {
           "id": "h3k4me3-ENCFF812ONE",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF812ONE.bigWig",
           "experimentAccession": "ENCSR410YIY",
           "fileAccession": "ENCFF812ONE"
         },
         {
           "id": "h3k27ac-ENCFF982DOZ",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF982DOZ.bigWig",
           "experimentAccession": "ENCSR599GVS",
           "fileAccession": "ENCFF982DOZ"
         },
         {
           "id": "atac-ENCFF357JFJ",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF357JFJ.bigWig",
           "experimentAccession": "ENCSR961SMM",
           "fileAccession": "ENCFF357JFJ"
         },
@@ -6298,21 +6298,21 @@
         {
           "id": "h3k4me3-ENCFF752ZXE",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF752ZXE.bigWig",
           "experimentAccession": "ENCSR572KYR",
           "fileAccession": "ENCFF752ZXE"
         },
         {
           "id": "h3k27ac-ENCFF577CVL",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF577CVL.bigWig",
           "experimentAccession": "ENCSR639DND",
           "fileAccession": "ENCFF577CVL"
         },
         {
           "id": "atac-ENCFF123KSI",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF123KSI.bigWig",
           "experimentAccession": "ENCSR966ORC",
           "fileAccession": "ENCFF123KSI"
         },
@@ -6342,28 +6342,28 @@
         {
           "id": "h3k4me3-ENCFF193BIT",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF193BIT.bigWig",
           "experimentAccession": "ENCSR198ACZ",
           "fileAccession": "ENCFF193BIT"
         },
         {
           "id": "h3k27ac-ENCFF946PYP",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF946PYP.bigWig",
           "experimentAccession": "ENCSR642VYW",
           "fileAccession": "ENCFF946PYP"
         },
         {
           "id": "ctcf-ENCFF826BKY",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF826BKY.bigWig",
           "experimentAccession": "ENCSR002ZAG",
           "fileAccession": "ENCFF826BKY"
         },
         {
           "id": "atac-ENCFF018ZHC",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF018ZHC.bigWig",
           "experimentAccession": "ENCSR079GOY",
           "fileAccession": "ENCFF018ZHC"
         },
@@ -6386,7 +6386,7 @@
         {
           "id": "dnase-ENCFF893YIZ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF893YIZ.bigWig",
           "experimentAccession": "ENCSR956RAI",
           "fileAccession": "ENCFF893YIZ"
         },
@@ -6409,7 +6409,7 @@
         {
           "id": "dnase-ENCFF757PID",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF757PID.bigWig",
           "experimentAccession": "ENCSR113CGA",
           "fileAccession": "ENCFF757PID"
         },
@@ -6432,7 +6432,7 @@
         {
           "id": "dnase-ENCFF028YLJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF028YLJ.bigWig",
           "experimentAccession": "ENCSR939NQH",
           "fileAccession": "ENCFF028YLJ"
         },
@@ -6455,7 +6455,7 @@
         {
           "id": "dnase-ENCFF944WFO",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF944WFO.bigWig",
           "experimentAccession": "ENCSR170FAP",
           "fileAccession": "ENCFF944WFO"
         },
@@ -6478,7 +6478,7 @@
         {
           "id": "dnase-ENCFF826RWW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF826RWW.bigWig",
           "experimentAccession": "ENCSR788KLG",
           "fileAccession": "ENCFF826RWW"
         },
@@ -6501,7 +6501,7 @@
         {
           "id": "dnase-ENCFF870SPA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF870SPA.bigWig",
           "experimentAccession": "ENCSR634ZDI",
           "fileAccession": "ENCFF870SPA"
         },
@@ -6524,7 +6524,7 @@
         {
           "id": "dnase-ENCFF270RIF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF270RIF.bigWig",
           "experimentAccession": "ENCSR706HQD",
           "fileAccession": "ENCFF270RIF"
         },
@@ -6547,7 +6547,7 @@
         {
           "id": "dnase-ENCFF189OFG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF189OFG.bigWig",
           "experimentAccession": "ENCSR060ALG",
           "fileAccession": "ENCFF189OFG"
         },
@@ -6570,7 +6570,7 @@
         {
           "id": "dnase-ENCFF235PCL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF235PCL.bigWig",
           "experimentAccession": "ENCSR984XSP",
           "fileAccession": "ENCFF235PCL"
         },
@@ -6593,7 +6593,7 @@
         {
           "id": "dnase-ENCFF781UBW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF781UBW.bigWig",
           "experimentAccession": "ENCSR023EDS",
           "fileAccession": "ENCFF781UBW"
         },
@@ -6616,7 +6616,7 @@
         {
           "id": "dnase-ENCFF731VRA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF731VRA.bigWig",
           "experimentAccession": "ENCSR664IBN",
           "fileAccession": "ENCFF731VRA"
         },
@@ -6639,7 +6639,7 @@
         {
           "id": "dnase-ENCFF241OUN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF241OUN.bigWig",
           "experimentAccession": "ENCSR162TZA",
           "fileAccession": "ENCFF241OUN"
         },
@@ -6662,7 +6662,7 @@
         {
           "id": "dnase-ENCFF540MDS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF540MDS.bigWig",
           "experimentAccession": "ENCSR692ASO",
           "fileAccession": "ENCFF540MDS"
         },
@@ -6685,7 +6685,7 @@
         {
           "id": "dnase-ENCFF459JNX",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF459JNX.bigWig",
           "experimentAccession": "ENCSR697ADE",
           "fileAccession": "ENCFF459JNX"
         },
@@ -6708,7 +6708,7 @@
         {
           "id": "dnase-ENCFF132JYS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF132JYS.bigWig",
           "experimentAccession": "ENCSR373ZJT",
           "fileAccession": "ENCFF132JYS"
         },
@@ -6731,21 +6731,21 @@
         {
           "id": "h3k4me3-ENCFF954QBL",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF954QBL.bigWig",
           "experimentAccession": "ENCSR669AQL",
           "fileAccession": "ENCFF954QBL"
         },
         {
           "id": "h3k27ac-ENCFF031XVR",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF031XVR.bigWig",
           "experimentAccession": "ENCSR057SHA",
           "fileAccession": "ENCFF031XVR"
         },
         {
           "id": "atac-ENCFF029AVH",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF029AVH.bigWig",
           "experimentAccession": "ENCSR758IRM",
           "fileAccession": "ENCFF029AVH"
         },
@@ -6768,21 +6768,21 @@
         {
           "id": "h3k4me3-ENCFF529IYW",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF529IYW.bigWig",
           "experimentAccession": "ENCSR320UJD",
           "fileAccession": "ENCFF529IYW"
         },
         {
           "id": "h3k27ac-ENCFF995CST",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF995CST.bigWig",
           "experimentAccession": "ENCSR711SVB",
           "fileAccession": "ENCFF995CST"
         },
         {
           "id": "atac-ENCFF084TXQ",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF084TXQ.bigWig",
           "experimentAccession": "ENCSR023QZX",
           "fileAccession": "ENCFF084TXQ"
         },
@@ -6812,21 +6812,21 @@
         {
           "id": "h3k4me3-ENCFF009XNW",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF009XNW.bigWig",
           "experimentAccession": "ENCSR953HNY",
           "fileAccession": "ENCFF009XNW"
         },
         {
           "id": "h3k27ac-ENCFF956XBM",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF956XBM.bigWig",
           "experimentAccession": "ENCSR357JII",
           "fileAccession": "ENCFF956XBM"
         },
         {
           "id": "atac-ENCFF168MUO",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF168MUO.bigWig",
           "experimentAccession": "ENCSR732OTZ",
           "fileAccession": "ENCFF168MUO"
         },
@@ -6856,28 +6856,28 @@
         {
           "id": "dnase-ENCFF744DCK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF744DCK.bigWig",
           "experimentAccession": "ENCSR000CNG",
           "fileAccession": "ENCFF744DCK"
         },
         {
           "id": "h3k4me3-ENCFF673XLI",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF673XLI.bigWig",
           "experimentAccession": "ENCSR000CAN",
           "fileAccession": "ENCFF673XLI"
         },
         {
           "id": "h3k27ac-ENCFF859YPP",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF859YPP.bigWig",
           "experimentAccession": "ENCSR000CDG",
           "fileAccession": "ENCFF859YPP"
         },
         {
           "id": "ctcf-ENCFF196NRY",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF196NRY.bigWig",
           "experimentAccession": "ENCSR000CBJ",
           "fileAccession": "ENCFF196NRY"
         },
@@ -6900,35 +6900,35 @@
         {
           "id": "dnase-ENCFF374LSN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF374LSN.bigWig",
           "experimentAccession": "ENCSR066DPD",
           "fileAccession": "ENCFF374LSN"
         },
         {
           "id": "h3k4me3-ENCFF887KNZ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF887KNZ.bigWig",
           "experimentAccession": "ENCSR536ILV",
           "fileAccession": "ENCFF887KNZ"
         },
         {
           "id": "h3k27ac-ENCFF269FYI",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF269FYI.bigWig",
           "experimentAccession": "ENCSR140YPL",
           "fileAccession": "ENCFF269FYI"
         },
         {
           "id": "ctcf-ENCFF644MRR",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF644MRR.bigWig",
           "experimentAccession": "ENCSR143WOK",
           "fileAccession": "ENCFF644MRR"
         },
         {
           "id": "atac-ENCFF365OXE",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF365OXE.bigWig",
           "experimentAccession": "ENCSR389CLN",
           "fileAccession": "ENCFF365OXE"
         },
@@ -6958,7 +6958,7 @@
         {
           "id": "dnase-ENCFF577HED",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF577HED.bigWig",
           "experimentAccession": "ENCSR000CNH",
           "fileAccession": "ENCFF577HED"
         },
@@ -6981,21 +6981,21 @@
         {
           "id": "dnase-ENCFF973VBA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF973VBA.bigWig",
           "experimentAccession": "ENCSR380VCU",
           "fileAccession": "ENCFF973VBA"
         },
         {
           "id": "h3k4me3-ENCFF945LBC",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF945LBC.bigWig",
           "experimentAccession": "ENCSR318QFY",
           "fileAccession": "ENCFF945LBC"
         },
         {
           "id": "h3k27ac-ENCFF895JDY",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF895JDY.bigWig",
           "experimentAccession": "ENCSR863VHE",
           "fileAccession": "ENCFF895JDY"
         },
@@ -7025,28 +7025,28 @@
         {
           "id": "dnase-ENCFF904POM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF904POM.bigWig",
           "experimentAccession": "ENCSR661HDP",
           "fileAccession": "ENCFF904POM"
         },
         {
           "id": "h3k4me3-ENCFF939GPA",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF939GPA.bigWig",
           "experimentAccession": "ENCSR654VMK",
           "fileAccession": "ENCFF939GPA"
         },
         {
           "id": "h3k27ac-ENCFF564BIG",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF564BIG.bigWig",
           "experimentAccession": "ENCSR897WBY",
           "fileAccession": "ENCFF564BIG"
         },
         {
           "id": "atac-ENCFF869FUR",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF869FUR.bigWig",
           "experimentAccession": "ENCSR377YDY",
           "fileAccession": "ENCFF869FUR"
         },
@@ -7076,21 +7076,21 @@
         {
           "id": "h3k4me3-ENCFF230XAT",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF230XAT.bigWig",
           "experimentAccession": "ENCSR938MUD",
           "fileAccession": "ENCFF230XAT"
         },
         {
           "id": "h3k27ac-ENCFF511OAD",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF511OAD.bigWig",
           "experimentAccession": "ENCSR737QWV",
           "fileAccession": "ENCFF511OAD"
         },
         {
           "id": "atac-ENCFF715HOE",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF715HOE.bigWig",
           "experimentAccession": "ENCSR551WBK",
           "fileAccession": "ENCFF715HOE"
         },
@@ -7120,21 +7120,21 @@
         {
           "id": "h3k4me3-ENCFF340BOO",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF340BOO.bigWig",
           "experimentAccession": "ENCSR416OYH",
           "fileAccession": "ENCFF340BOO"
         },
         {
           "id": "h3k27ac-ENCFF369RWK",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF369RWK.bigWig",
           "experimentAccession": "ENCSR905FFU",
           "fileAccession": "ENCFF369RWK"
         },
         {
           "id": "atac-ENCFF926MJG",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF926MJG.bigWig",
           "experimentAccession": "ENCSR896XIN",
           "fileAccession": "ENCFF926MJG"
         },
@@ -7164,28 +7164,28 @@
         {
           "id": "dnase-ENCFF088QDE",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF088QDE.bigWig",
           "experimentAccession": "ENCSR636NXY",
           "fileAccession": "ENCFF088QDE"
         },
         {
           "id": "h3k4me3-ENCFF742VVS",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF742VVS.bigWig",
           "experimentAccession": "ENCSR176BXC",
           "fileAccession": "ENCFF742VVS"
         },
         {
           "id": "h3k27ac-ENCFF219DKU",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF219DKU.bigWig",
           "experimentAccession": "ENCSR021ALF",
           "fileAccession": "ENCFF219DKU"
         },
         {
           "id": "atac-ENCFF691WWH",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF691WWH.bigWig",
           "experimentAccession": "ENCSR460BUL",
           "fileAccession": "ENCFF691WWH"
         },
@@ -7215,21 +7215,21 @@
         {
           "id": "h3k4me3-ENCFF559ARR",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF559ARR.bigWig",
           "experimentAccession": "ENCSR244ASF",
           "fileAccession": "ENCFF559ARR"
         },
         {
           "id": "h3k27ac-ENCFF297WAP",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF297WAP.bigWig",
           "experimentAccession": "ENCSR988BRP",
           "fileAccession": "ENCFF297WAP"
         },
         {
           "id": "atac-ENCFF069VZC",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF069VZC.bigWig",
           "experimentAccession": "ENCSR204ZTY",
           "fileAccession": "ENCFF069VZC"
         },
@@ -7259,7 +7259,7 @@
         {
           "id": "dnase-ENCFF119MTD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF119MTD.bigWig",
           "experimentAccession": "ENCSR000CNL",
           "fileAccession": "ENCFF119MTD"
         },
@@ -7282,7 +7282,7 @@
         {
           "id": "dnase-ENCFF167OJP",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF167OJP.bigWig",
           "experimentAccession": "ENCSR000CNK",
           "fileAccession": "ENCFF167OJP"
         },
@@ -7305,7 +7305,7 @@
         {
           "id": "dnase-ENCFF500VFH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF500VFH.bigWig",
           "experimentAccession": "ENCSR498GAH",
           "fileAccession": "ENCFF500VFH"
         },
@@ -7328,7 +7328,7 @@
         {
           "id": "dnase-ENCFF870JWU",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF870JWU.bigWig",
           "experimentAccession": "ENCSR130IPN",
           "fileAccession": "ENCFF870JWU"
         },
@@ -7351,7 +7351,7 @@
         {
           "id": "dnase-ENCFF909DRG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF909DRG.bigWig",
           "experimentAccession": "ENCSR297YSC",
           "fileAccession": "ENCFF909DRG"
         },
@@ -7374,7 +7374,7 @@
         {
           "id": "dnase-ENCFF547QFY",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF547QFY.bigWig",
           "experimentAccession": "ENCSR765TON",
           "fileAccession": "ENCFF547QFY"
         },
@@ -7397,7 +7397,7 @@
         {
           "id": "dnase-ENCFF286FAN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF286FAN.bigWig",
           "experimentAccession": "ENCSR982PCS",
           "fileAccession": "ENCFF286FAN"
         },
@@ -7420,7 +7420,7 @@
         {
           "id": "dnase-ENCFF705ESF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF705ESF.bigWig",
           "experimentAccession": "ENCSR802MKV",
           "fileAccession": "ENCFF705ESF"
         },
@@ -7443,28 +7443,28 @@
         {
           "id": "dnase-ENCFF275QGZ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF275QGZ.bigWig",
           "experimentAccession": "ENCSR561FZE",
           "fileAccession": "ENCFF275QGZ"
         },
         {
           "id": "h3k4me3-ENCFF777IRD",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF777IRD.bigWig",
           "experimentAccession": "ENCSR447DOF",
           "fileAccession": "ENCFF777IRD"
         },
         {
           "id": "h3k27ac-ENCFF715ZXX",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF715ZXX.bigWig",
           "experimentAccession": "ENCSR058DOA",
           "fileAccession": "ENCFF715ZXX"
         },
         {
           "id": "atac-ENCFF535WOY",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF535WOY.bigWig",
           "experimentAccession": "ENCSR785NEL",
           "fileAccession": "ENCFF535WOY"
         },
@@ -7494,21 +7494,21 @@
         {
           "id": "h3k4me3-ENCFF528RLS",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF528RLS.bigWig",
           "experimentAccession": "ENCSR471SJG",
           "fileAccession": "ENCFF528RLS"
         },
         {
           "id": "h3k27ac-ENCFF337VJK",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF337VJK.bigWig",
           "experimentAccession": "ENCSR136GMT",
           "fileAccession": "ENCFF337VJK"
         },
         {
           "id": "atac-ENCFF199LFB",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF199LFB.bigWig",
           "experimentAccession": "ENCSR302LIV",
           "fileAccession": "ENCFF199LFB"
         },
@@ -7538,21 +7538,21 @@
         {
           "id": "h3k4me3-ENCFF211IFK",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF211IFK.bigWig",
           "experimentAccession": "ENCSR985UTP",
           "fileAccession": "ENCFF211IFK"
         },
         {
           "id": "h3k27ac-ENCFF166OFX",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF166OFX.bigWig",
           "experimentAccession": "ENCSR175KBJ",
           "fileAccession": "ENCFF166OFX"
         },
         {
           "id": "atac-ENCFF388YMS",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF388YMS.bigWig",
           "experimentAccession": "ENCSR343TXK",
           "fileAccession": "ENCFF388YMS"
         },
@@ -7582,35 +7582,35 @@
         {
           "id": "dnase-ENCFF323LVW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF323LVW.bigWig",
           "experimentAccession": "ENCSR000CNJ",
           "fileAccession": "ENCFF323LVW"
         },
         {
           "id": "h3k4me3-ENCFF186DCG",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF186DCG.bigWig",
           "experimentAccession": "ENCSR433ESG",
           "fileAccession": "ENCFF186DCG"
         },
         {
           "id": "h3k27ac-ENCFF595IQM",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF595IQM.bigWig",
           "experimentAccession": "ENCSR075SNV",
           "fileAccession": "ENCFF595IQM"
         },
         {
           "id": "ctcf-ENCFF233QSB",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF233QSB.bigWig",
           "experimentAccession": "ENCSR397RHW",
           "fileAccession": "ENCFF233QSB"
         },
         {
           "id": "atac-ENCFF450YYQ",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF450YYQ.bigWig",
           "experimentAccession": "ENCSR032HKE",
           "fileAccession": "ENCFF450YYQ"
         },
@@ -7633,14 +7633,14 @@
         {
           "id": "h3k4me3-ENCFF040UMH",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF040UMH.bigWig",
           "experimentAccession": "ENCSR000CDV",
           "fileAccession": "ENCFF040UMH"
         },
         {
           "id": "h3k27ac-ENCFF803YBX",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF803YBX.bigWig",
           "experimentAccession": "ENCSR000CDU",
           "fileAccession": "ENCFF803YBX"
         },
@@ -7670,21 +7670,21 @@
         {
           "id": "h3k4me3-ENCFF431BCT",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF431BCT.bigWig",
           "experimentAccession": "ENCSR577SDJ",
           "fileAccession": "ENCFF431BCT"
         },
         {
           "id": "h3k27ac-ENCFF292KXH",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF292KXH.bigWig",
           "experimentAccession": "ENCSR479LFP",
           "fileAccession": "ENCFF292KXH"
         },
         {
           "id": "atac-ENCFF399KKU",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF399KKU.bigWig",
           "experimentAccession": "ENCSR465PYP",
           "fileAccession": "ENCFF399KKU"
         },
@@ -7714,21 +7714,21 @@
         {
           "id": "h3k4me3-ENCFF681WEU",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF681WEU.bigWig",
           "experimentAccession": "ENCSR252GKD",
           "fileAccession": "ENCFF681WEU"
         },
         {
           "id": "h3k27ac-ENCFF441MBZ",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF441MBZ.bigWig",
           "experimentAccession": "ENCSR802RET",
           "fileAccession": "ENCFF441MBZ"
         },
         {
           "id": "atac-ENCFF864CLA",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF864CLA.bigWig",
           "experimentAccession": "ENCSR255XTC",
           "fileAccession": "ENCFF864CLA"
         },
@@ -7758,7 +7758,7 @@
         {
           "id": "dnase-ENCFF947ZHU",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF947ZHU.bigWig",
           "experimentAccession": "ENCSR789AYI",
           "fileAccession": "ENCFF947ZHU"
         },
@@ -7781,28 +7781,28 @@
         {
           "id": "dnase-ENCFF389BAE",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF389BAE.bigWig",
           "experimentAccession": "ENCSR000CNI",
           "fileAccession": "ENCFF389BAE"
         },
         {
           "id": "h3k4me3-ENCFF244PVS",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF244PVS.bigWig",
           "experimentAccession": "ENCSR000CAP",
           "fileAccession": "ENCFF244PVS"
         },
         {
           "id": "h3k27ac-ENCFF622QOD",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF622QOD.bigWig",
           "experimentAccession": "ENCSR000CDH",
           "fileAccession": "ENCFF622QOD"
         },
         {
           "id": "ctcf-ENCFF990MGK",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF990MGK.bigWig",
           "experimentAccession": "ENCSR000CBU",
           "fileAccession": "ENCFF990MGK"
         },
@@ -7825,35 +7825,35 @@
         {
           "id": "dnase-ENCFF907KGU",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF907KGU.bigWig",
           "experimentAccession": "ENCSR216UMD",
           "fileAccession": "ENCFF907KGU"
         },
         {
           "id": "h3k4me3-ENCFF341GEF",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF341GEF.bigWig",
           "experimentAccession": "ENCSR653AVN",
           "fileAccession": "ENCFF341GEF"
         },
         {
           "id": "h3k27ac-ENCFF544RNA",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF544RNA.bigWig",
           "experimentAccession": "ENCSR616TJM",
           "fileAccession": "ENCFF544RNA"
         },
         {
           "id": "ctcf-ENCFF935ZIU",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF935ZIU.bigWig",
           "experimentAccession": "ENCSR041SMK",
           "fileAccession": "ENCFF935ZIU"
         },
         {
           "id": "atac-ENCFF592SOL",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF592SOL.bigWig",
           "experimentAccession": "ENCSR609OHJ",
           "fileAccession": "ENCFF592SOL"
         },
@@ -7883,7 +7883,7 @@
         {
           "id": "dnase-ENCFF580UOQ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF580UOQ.bigWig",
           "experimentAccession": "ENCSR285LPX",
           "fileAccession": "ENCFF580UOQ"
         },
@@ -7906,7 +7906,7 @@
         {
           "id": "dnase-ENCFF487EDN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF487EDN.bigWig",
           "experimentAccession": "ENCSR059VAQ",
           "fileAccession": "ENCFF487EDN"
         },
@@ -7929,7 +7929,7 @@
         {
           "id": "dnase-ENCFF910AER",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF910AER.bigWig",
           "experimentAccession": "ENCSR293SQC",
           "fileAccession": "ENCFF910AER"
         },
@@ -7952,7 +7952,7 @@
         {
           "id": "dnase-ENCFF281BAB",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF281BAB.bigWig",
           "experimentAccession": "ENCSR536FZI",
           "fileAccession": "ENCFF281BAB"
         },
@@ -7975,7 +7975,7 @@
         {
           "id": "dnase-ENCFF254SRC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF254SRC.bigWig",
           "experimentAccession": "ENCSR211TTY",
           "fileAccession": "ENCFF254SRC"
         },
@@ -7998,7 +7998,7 @@
         {
           "id": "dnase-ENCFF548YUA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF548YUA.bigWig",
           "experimentAccession": "ENCSR224ZGJ",
           "fileAccession": "ENCFF548YUA"
         },
@@ -8021,7 +8021,7 @@
         {
           "id": "dnase-ENCFF068XIF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF068XIF.bigWig",
           "experimentAccession": "ENCSR756QHG",
           "fileAccession": "ENCFF068XIF"
         },
@@ -8044,7 +8044,7 @@
         {
           "id": "dnase-ENCFF326DLM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF326DLM.bigWig",
           "experimentAccession": "ENCSR575YLW",
           "fileAccession": "ENCFF326DLM"
         },
@@ -8067,7 +8067,7 @@
         {
           "id": "dnase-ENCFF019ZYB",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF019ZYB.bigWig",
           "experimentAccession": "ENCSR913OPY",
           "fileAccession": "ENCFF019ZYB"
         },
@@ -8090,7 +8090,7 @@
         {
           "id": "dnase-ENCFF046WVP",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF046WVP.bigWig",
           "experimentAccession": "ENCSR702AVR",
           "fileAccession": "ENCFF046WVP"
         },
@@ -8113,7 +8113,7 @@
         {
           "id": "dnase-ENCFF173DSJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF173DSJ.bigWig",
           "experimentAccession": "ENCSR427LHI",
           "fileAccession": "ENCFF173DSJ"
         },
@@ -8136,7 +8136,7 @@
         {
           "id": "dnase-ENCFF783WEG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF783WEG.bigWig",
           "experimentAccession": "ENCSR720KMQ",
           "fileAccession": "ENCFF783WEG"
         },
@@ -8159,7 +8159,7 @@
         {
           "id": "dnase-ENCFF453RCK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF453RCK.bigWig",
           "experimentAccession": "ENCSR408JZW",
           "fileAccession": "ENCFF453RCK"
         },
@@ -8182,35 +8182,35 @@
         {
           "id": "dnase-ENCFF616XIK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF616XIK.bigWig",
           "experimentAccession": "ENCSR742DUR",
           "fileAccession": "ENCFF616XIK"
         },
         {
           "id": "h3k4me3-ENCFF127UZI",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF127UZI.bigWig",
           "experimentAccession": "ENCSR839WFP",
           "fileAccession": "ENCFF127UZI"
         },
         {
           "id": "h3k27ac-ENCFF865CCV",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF865CCV.bigWig",
           "experimentAccession": "ENCSR452WYC",
           "fileAccession": "ENCFF865CCV"
         },
         {
           "id": "ctcf-ENCFF355LDM",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF355LDM.bigWig",
           "experimentAccession": "ENCSR677SIH",
           "fileAccession": "ENCFF355LDM"
         },
         {
           "id": "atac-ENCFF049LZF",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF049LZF.bigWig",
           "experimentAccession": "ENCSR335VJW",
           "fileAccession": "ENCFF049LZF"
         },
@@ -8240,21 +8240,21 @@
         {
           "id": "h3k4me3-ENCFF085ORL",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF085ORL.bigWig",
           "experimentAccession": "ENCSR305GII",
           "fileAccession": "ENCFF085ORL"
         },
         {
           "id": "h3k27ac-ENCFF405LLK",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF405LLK.bigWig",
           "experimentAccession": "ENCSR895BMP",
           "fileAccession": "ENCFF405LLK"
         },
         {
           "id": "atac-ENCFF971CIX",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF971CIX.bigWig",
           "experimentAccession": "ENCSR668EIA",
           "fileAccession": "ENCFF971CIX"
         },
@@ -8284,21 +8284,21 @@
         {
           "id": "h3k4me3-ENCFF693ZEC",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF693ZEC.bigWig",
           "experimentAccession": "ENCSR295PFM",
           "fileAccession": "ENCFF693ZEC"
         },
         {
           "id": "h3k27ac-ENCFF584JYR",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF584JYR.bigWig",
           "experimentAccession": "ENCSR140UEX",
           "fileAccession": "ENCFF584JYR"
         },
         {
           "id": "atac-ENCFF359GBF",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF359GBF.bigWig",
           "experimentAccession": "ENCSR627OCR",
           "fileAccession": "ENCFF359GBF"
         },
@@ -8328,21 +8328,21 @@
         {
           "id": "dnase-ENCFF147SDT",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF147SDT.bigWig",
           "experimentAccession": "ENCSR000CNM",
           "fileAccession": "ENCFF147SDT"
         },
         {
           "id": "h3k4me3-ENCFF944BPE",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF944BPE.bigWig",
           "experimentAccession": "ENCSR000CAR",
           "fileAccession": "ENCFF944BPE"
         },
         {
           "id": "ctcf-ENCFF173MWV",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF173MWV.bigWig",
           "experimentAccession": "ENCSR000CBV",
           "fileAccession": "ENCFF173MWV"
         },
@@ -8365,35 +8365,35 @@
         {
           "id": "dnase-ENCFF784TNW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF784TNW.bigWig",
           "experimentAccession": "ENCSR094XAY",
           "fileAccession": "ENCFF784TNW"
         },
         {
           "id": "h3k4me3-ENCFF990HLQ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF990HLQ.bigWig",
           "experimentAccession": "ENCSR262CSU",
           "fileAccession": "ENCFF990HLQ"
         },
         {
           "id": "h3k27ac-ENCFF258KWF",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF258KWF.bigWig",
           "experimentAccession": "ENCSR884MYD",
           "fileAccession": "ENCFF258KWF"
         },
         {
           "id": "ctcf-ENCFF811CFN",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF811CFN.bigWig",
           "experimentAccession": "ENCSR418SBY",
           "fileAccession": "ENCFF811CFN"
         },
         {
           "id": "atac-ENCFF607BGW",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF607BGW.bigWig",
           "experimentAccession": "ENCSR102NGD",
           "fileAccession": "ENCFF607BGW"
         },
@@ -8423,14 +8423,14 @@
         {
           "id": "h3k4me3-ENCFF265KID",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF265KID.bigWig",
           "experimentAccession": "ENCSR000AHO",
           "fileAccession": "ENCFF265KID"
         },
         {
           "id": "ctcf-ENCFF173HCU",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF173HCU.bigWig",
           "experimentAccession": "ENCSR000AIJ",
           "fileAccession": "ENCFF173HCU"
         },
@@ -8453,7 +8453,7 @@
         {
           "id": "h3k4me3-ENCFF527VTR",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF527VTR.bigWig",
           "experimentAccession": "ENCSR000AHT",
           "fileAccession": "ENCFF527VTR"
         },
@@ -8476,7 +8476,7 @@
         {
           "id": "dnase-ENCFF104GVK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF104GVK.bigWig",
           "experimentAccession": "ENCSR566VOB",
           "fileAccession": "ENCFF104GVK"
         },
@@ -8499,7 +8499,7 @@
         {
           "id": "dnase-ENCFF066QAL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF066QAL.bigWig",
           "experimentAccession": "ENCSR104BED",
           "fileAccession": "ENCFF066QAL"
         },
@@ -8522,7 +8522,7 @@
         {
           "id": "dnase-ENCFF038GEA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF038GEA.bigWig",
           "experimentAccession": "ENCSR641XZF",
           "fileAccession": "ENCFF038GEA"
         },
@@ -8545,7 +8545,7 @@
         {
           "id": "dnase-ENCFF500FVE",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF500FVE.bigWig",
           "experimentAccession": "ENCSR862OIS",
           "fileAccession": "ENCFF500FVE"
         },
@@ -8568,7 +8568,7 @@
         {
           "id": "dnase-ENCFF183OSS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF183OSS.bigWig",
           "experimentAccession": "ENCSR073YXT",
           "fileAccession": "ENCFF183OSS"
         },
@@ -8591,7 +8591,7 @@
         {
           "id": "dnase-ENCFF095ARZ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF095ARZ.bigWig",
           "experimentAccession": "ENCSR119IUE",
           "fileAccession": "ENCFF095ARZ"
         },
@@ -8614,7 +8614,7 @@
         {
           "id": "dnase-ENCFF383KRR",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF383KRR.bigWig",
           "experimentAccession": "ENCSR854SEB",
           "fileAccession": "ENCFF383KRR"
         },
@@ -8637,7 +8637,7 @@
         {
           "id": "dnase-ENCFF723FKE",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF723FKE.bigWig",
           "experimentAccession": "ENCSR701ODD",
           "fileAccession": "ENCFF723FKE"
         },
@@ -8660,7 +8660,7 @@
         {
           "id": "dnase-ENCFF638FRX",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF638FRX.bigWig",
           "experimentAccession": "ENCSR498SCU",
           "fileAccession": "ENCFF638FRX"
         },
@@ -8683,7 +8683,7 @@
         {
           "id": "dnase-ENCFF546ZDJ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF546ZDJ.bigWig",
           "experimentAccession": "ENCSR391YHC",
           "fileAccession": "ENCFF546ZDJ"
         },
@@ -8706,7 +8706,7 @@
         {
           "id": "dnase-ENCFF334ZMW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF334ZMW.bigWig",
           "experimentAccession": "ENCSR976MHB",
           "fileAccession": "ENCFF334ZMW"
         },
@@ -8729,7 +8729,7 @@
         {
           "id": "dnase-ENCFF890ZKK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF890ZKK.bigWig",
           "experimentAccession": "ENCSR115SWG",
           "fileAccession": "ENCFF890ZKK"
         },
@@ -8752,7 +8752,7 @@
         {
           "id": "dnase-ENCFF075OWG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF075OWG.bigWig",
           "experimentAccession": "ENCSR639OQQ",
           "fileAccession": "ENCFF075OWG"
         },
@@ -8775,7 +8775,7 @@
         {
           "id": "dnase-ENCFF003DTG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF003DTG.bigWig",
           "experimentAccession": "ENCSR618EUZ",
           "fileAccession": "ENCFF003DTG"
         },
@@ -8812,7 +8812,7 @@
         {
           "id": "dnase-ENCFF035YSC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF035YSC.bigWig",
           "experimentAccession": "ENCSR092QSI",
           "fileAccession": "ENCFF035YSC"
         },
@@ -8835,7 +8835,7 @@
         {
           "id": "dnase-ENCFF147NYV",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF147NYV.bigWig",
           "experimentAccession": "ENCSR000CNX",
           "fileAccession": "ENCFF147NYV"
         },
@@ -8858,7 +8858,7 @@
         {
           "id": "dnase-ENCFF863RAN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF863RAN.bigWig",
           "experimentAccession": "ENCSR232ELD",
           "fileAccession": "ENCFF863RAN"
         },
@@ -8881,7 +8881,7 @@
         {
           "id": "dnase-ENCFF020VJT",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF020VJT.bigWig",
           "experimentAccession": "ENCSR591ILA",
           "fileAccession": "ENCFF020VJT"
         },
@@ -8904,7 +8904,7 @@
         {
           "id": "dnase-ENCFF608TYE",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF608TYE.bigWig",
           "experimentAccession": "ENCSR087SUF",
           "fileAccession": "ENCFF608TYE"
         },
@@ -8927,7 +8927,7 @@
         {
           "id": "dnase-ENCFF368REA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF368REA.bigWig",
           "experimentAccession": "ENCSR362ZRQ",
           "fileAccession": "ENCFF368REA"
         },
@@ -8950,14 +8950,14 @@
         {
           "id": "h3k4me3-ENCFF403UMI",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF403UMI.bigWig",
           "experimentAccession": "ENCSR000CDQ",
           "fileAccession": "ENCFF403UMI"
         },
         {
           "id": "h3k27ac-ENCFF975GEW",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF975GEW.bigWig",
           "experimentAccession": "ENCSR000CDO",
           "fileAccession": "ENCFF975GEW"
         },
@@ -8980,21 +8980,21 @@
         {
           "id": "h3k4me3-ENCFF660LCU",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF660LCU.bigWig",
           "experimentAccession": "ENCSR000CCS",
           "fileAccession": "ENCFF660LCU"
         },
         {
           "id": "h3k27ac-ENCFF071OSU",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF071OSU.bigWig",
           "experimentAccession": "ENCSR000CCQ",
           "fileAccession": "ENCFF071OSU"
         },
         {
           "id": "ctcf-ENCFF577EXI",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF577EXI.bigWig",
           "experimentAccession": "ENCSR000CED",
           "fileAccession": "ENCFF577EXI"
         },
@@ -9017,7 +9017,7 @@
         {
           "id": "dnase-ENCFF721GXA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF721GXA.bigWig",
           "experimentAccession": "ENCSR732IZK",
           "fileAccession": "ENCFF721GXA"
         },
@@ -9040,7 +9040,7 @@
         {
           "id": "dnase-ENCFF856XZG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF856XZG.bigWig",
           "experimentAccession": "ENCSR898KAX",
           "fileAccession": "ENCFF856XZG"
         },
@@ -9063,7 +9063,7 @@
         {
           "id": "dnase-ENCFF579SZU",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF579SZU.bigWig",
           "experimentAccession": "ENCSR876YAF",
           "fileAccession": "ENCFF579SZU"
         },
@@ -9086,7 +9086,7 @@
         {
           "id": "dnase-ENCFF343LIN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF343LIN.bigWig",
           "experimentAccession": "ENCSR718NBH",
           "fileAccession": "ENCFF343LIN"
         },
@@ -9109,7 +9109,7 @@
         {
           "id": "dnase-ENCFF854SJP",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF854SJP.bigWig",
           "experimentAccession": "ENCSR597QYA",
           "fileAccession": "ENCFF854SJP"
         },
@@ -9132,7 +9132,7 @@
         {
           "id": "dnase-ENCFF161VZZ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF161VZZ.bigWig",
           "experimentAccession": "ENCSR146PAW",
           "fileAccession": "ENCFF161VZZ"
         },
@@ -9155,7 +9155,7 @@
         {
           "id": "dnase-ENCFF905NBG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF905NBG.bigWig",
           "experimentAccession": "ENCSR097TGW",
           "fileAccession": "ENCFF905NBG"
         },
@@ -9178,7 +9178,7 @@
         {
           "id": "dnase-ENCFF691CFQ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF691CFQ.bigWig",
           "experimentAccession": "ENCSR581ZXI",
           "fileAccession": "ENCFF691CFQ"
         },
@@ -9201,7 +9201,7 @@
         {
           "id": "dnase-ENCFF305GWR",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF305GWR.bigWig",
           "experimentAccession": "ENCSR585JUM",
           "fileAccession": "ENCFF305GWR"
         },
@@ -9224,7 +9224,7 @@
         {
           "id": "dnase-ENCFF033RKY",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF033RKY.bigWig",
           "experimentAccession": "ENCSR087PCD",
           "fileAccession": "ENCFF033RKY"
         },
@@ -9247,7 +9247,7 @@
         {
           "id": "dnase-ENCFF925CEF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF925CEF.bigWig",
           "experimentAccession": "ENCSR736DMJ",
           "fileAccession": "ENCFF925CEF"
         },
@@ -9270,7 +9270,7 @@
         {
           "id": "dnase-ENCFF063IDQ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF063IDQ.bigWig",
           "experimentAccession": "ENCSR145GGC",
           "fileAccession": "ENCFF063IDQ"
         },
@@ -9293,7 +9293,7 @@
         {
           "id": "dnase-ENCFF106KDM",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF106KDM.bigWig",
           "experimentAccession": "ENCSR039FQF",
           "fileAccession": "ENCFF106KDM"
         },
@@ -9316,28 +9316,28 @@
         {
           "id": "dnase-ENCFF514QGG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF514QGG.bigWig",
           "experimentAccession": "ENCSR000CNY",
           "fileAccession": "ENCFF514QGG"
         },
         {
           "id": "h3k4me3-ENCFF523GNO",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF523GNO.bigWig",
           "experimentAccession": "ENCSR000CBD",
           "fileAccession": "ENCFF523GNO"
         },
         {
           "id": "h3k27ac-ENCFF920QDX",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF920QDX.bigWig",
           "experimentAccession": "ENCSR000CDJ",
           "fileAccession": "ENCFF920QDX"
         },
         {
           "id": "ctcf-ENCFF803MIB",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF803MIB.bigWig",
           "experimentAccession": "ENCSR000CBY",
           "fileAccession": "ENCFF803MIB"
         },
@@ -9360,28 +9360,28 @@
         {
           "id": "dnase-ENCFF145VWQ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF145VWQ.bigWig",
           "experimentAccession": "ENCSR000CNN",
           "fileAccession": "ENCFF145VWQ"
         },
         {
           "id": "h3k4me3-ENCFF430CHA",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF430CHA.bigWig",
           "experimentAccession": "ENCSR000CEX",
           "fileAccession": "ENCFF430CHA"
         },
         {
           "id": "h3k27ac-ENCFF770LBL",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF770LBL.bigWig",
           "experimentAccession": "ENCSR000CEV",
           "fileAccession": "ENCFF770LBL"
         },
         {
           "id": "ctcf-ENCFF244ZJY",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF244ZJY.bigWig",
           "experimentAccession": "ENCSR000CFH",
           "fileAccession": "ENCFF244ZJY"
         },
@@ -9404,7 +9404,7 @@
         {
           "id": "dnase-ENCFF528VEN",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF528VEN.bigWig",
           "experimentAccession": "ENCSR000CNP",
           "fileAccession": "ENCFF528VEN"
         },
@@ -9427,7 +9427,7 @@
         {
           "id": "dnase-ENCFF108VAK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF108VAK.bigWig",
           "experimentAccession": "ENCSR372SMH",
           "fileAccession": "ENCFF108VAK"
         },
@@ -9450,14 +9450,14 @@
         {
           "id": "h3k4me3-ENCFF055KSI",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF055KSI.bigWig",
           "experimentAccession": "ENCSR000AEA",
           "fileAccession": "ENCFF055KSI"
         },
         {
           "id": "ctcf-ENCFF208OTU",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF208OTU.bigWig",
           "experimentAccession": "ENCSR000ETE",
           "fileAccession": "ENCFF208OTU"
         },
@@ -9480,21 +9480,21 @@
         {
           "id": "h3k4me3-ENCFF395IUA",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF395IUA.bigWig",
           "experimentAccession": "ENCSR023VJO",
           "fileAccession": "ENCFF395IUA"
         },
         {
           "id": "h3k27ac-ENCFF762HBG",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF762HBG.bigWig",
           "experimentAccession": "ENCSR316CNR",
           "fileAccession": "ENCFF762HBG"
         },
         {
           "id": "atac-ENCFF527KZC",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF527KZC.bigWig",
           "experimentAccession": "ENCSR618HDK",
           "fileAccession": "ENCFF527KZC"
         },
@@ -9517,21 +9517,21 @@
         {
           "id": "h3k4me3-ENCFF553QCZ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF553QCZ.bigWig",
           "experimentAccession": "ENCSR522LXN",
           "fileAccession": "ENCFF553QCZ"
         },
         {
           "id": "h3k27ac-ENCFF924LUE",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF924LUE.bigWig",
           "experimentAccession": "ENCSR929SEW",
           "fileAccession": "ENCFF924LUE"
         },
         {
           "id": "atac-ENCFF994CJF",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF994CJF.bigWig",
           "experimentAccession": "ENCSR486XAS",
           "fileAccession": "ENCFF994CJF"
         },
@@ -9561,21 +9561,21 @@
         {
           "id": "h3k4me3-ENCFF318NOG",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF318NOG.bigWig",
           "experimentAccession": "ENCSR684UWM",
           "fileAccession": "ENCFF318NOG"
         },
         {
           "id": "h3k27ac-ENCFF696SVD",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF696SVD.bigWig",
           "experimentAccession": "ENCSR546ANT",
           "fileAccession": "ENCFF696SVD"
         },
         {
           "id": "atac-ENCFF298EDN",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF298EDN.bigWig",
           "experimentAccession": "ENCSR363SKQ",
           "fileAccession": "ENCFF298EDN"
         },
@@ -9605,35 +9605,35 @@
         {
           "id": "dnase-ENCFF738YPD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF738YPD.bigWig",
           "experimentAccession": "ENCSR969OPE",
           "fileAccession": "ENCFF738YPD"
         },
         {
           "id": "h3k4me3-ENCFF083LRQ",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF083LRQ.bigWig",
           "experimentAccession": "ENCSR916CBN",
           "fileAccession": "ENCFF083LRQ"
         },
         {
           "id": "h3k27ac-ENCFF500YJD",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF500YJD.bigWig",
           "experimentAccession": "ENCSR346FJG",
           "fileAccession": "ENCFF500YJD"
         },
         {
           "id": "ctcf-ENCFF394DGY",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF394DGY.bigWig",
           "experimentAccession": "ENCSR104QEN",
           "fileAccession": "ENCFF394DGY"
         },
         {
           "id": "atac-ENCFF657FRT",
           "assay": "atac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF657FRT.bigWig",
           "experimentAccession": "ENCSR597BGP",
           "fileAccession": "ENCFF657FRT"
         },
@@ -9663,7 +9663,7 @@
         {
           "id": "dnase-ENCFF678HHO",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF678HHO.bigWig",
           "experimentAccession": "ENCSR671SQM",
           "fileAccession": "ENCFF678HHO"
         },
@@ -9686,7 +9686,7 @@
         {
           "id": "dnase-ENCFF756IUG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF756IUG.bigWig",
           "experimentAccession": "ENCSR443DSO",
           "fileAccession": "ENCFF756IUG"
         },
@@ -9709,21 +9709,21 @@
         {
           "id": "h3k4me3-ENCFF942FOL",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF942FOL.bigWig",
           "experimentAccession": "ENCSR000CCW",
           "fileAccession": "ENCFF942FOL"
         },
         {
           "id": "h3k27ac-ENCFF881WJZ",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF881WJZ.bigWig",
           "experimentAccession": "ENCSR000CCU",
           "fileAccession": "ENCFF881WJZ"
         },
         {
           "id": "ctcf-ENCFF558QFH",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF558QFH.bigWig",
           "experimentAccession": "ENCSR000CEF",
           "fileAccession": "ENCFF558QFH"
         },
@@ -9746,7 +9746,7 @@
         {
           "id": "dnase-ENCFF182QIV",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF182QIV.bigWig",
           "experimentAccession": "ENCSR398LUY",
           "fileAccession": "ENCFF182QIV"
         },
@@ -9769,7 +9769,7 @@
         {
           "id": "dnase-ENCFF754AXF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF754AXF.bigWig",
           "experimentAccession": "ENCSR671JNA",
           "fileAccession": "ENCFF754AXF"
         },
@@ -9792,7 +9792,7 @@
         {
           "id": "dnase-ENCFF724RNH",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF724RNH.bigWig",
           "experimentAccession": "ENCSR090RLB",
           "fileAccession": "ENCFF724RNH"
         },
@@ -9815,7 +9815,7 @@
         {
           "id": "dnase-ENCFF130TZG",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF130TZG.bigWig",
           "experimentAccession": "ENCSR133BTF",
           "fileAccession": "ENCFF130TZG"
         },
@@ -9838,7 +9838,7 @@
         {
           "id": "dnase-ENCFF458KCS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF458KCS.bigWig",
           "experimentAccession": "ENCSR730MYK",
           "fileAccession": "ENCFF458KCS"
         },
@@ -9861,7 +9861,7 @@
         {
           "id": "dnase-ENCFF466OYS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF466OYS.bigWig",
           "experimentAccession": "ENCSR830IOW",
           "fileAccession": "ENCFF466OYS"
         },
@@ -9884,7 +9884,7 @@
         {
           "id": "dnase-ENCFF271UQK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF271UQK.bigWig",
           "experimentAccession": "ENCSR179HEN",
           "fileAccession": "ENCFF271UQK"
         },
@@ -9907,7 +9907,7 @@
         {
           "id": "dnase-ENCFF661YMU",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF661YMU.bigWig",
           "experimentAccession": "ENCSR315TVO",
           "fileAccession": "ENCFF661YMU"
         },
@@ -9930,7 +9930,7 @@
         {
           "id": "dnase-ENCFF351DEF",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF351DEF.bigWig",
           "experimentAccession": "ENCSR068MCK",
           "fileAccession": "ENCFF351DEF"
         },
@@ -9953,7 +9953,7 @@
         {
           "id": "dnase-ENCFF222UJQ",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF222UJQ.bigWig",
           "experimentAccession": "ENCSR322AIL",
           "fileAccession": "ENCFF222UJQ"
         },
@@ -9976,7 +9976,7 @@
         {
           "id": "dnase-ENCFF384YKE",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF384YKE.bigWig",
           "experimentAccession": "ENCSR049ACM",
           "fileAccession": "ENCFF384YKE"
         },
@@ -9999,7 +9999,7 @@
         {
           "id": "dnase-ENCFF815YGS",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF815YGS.bigWig",
           "experimentAccession": "ENCSR021IRX",
           "fileAccession": "ENCFF815YGS"
         },
@@ -10022,7 +10022,7 @@
         {
           "id": "dnase-ENCFF134GMA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF134GMA.bigWig",
           "experimentAccession": "ENCSR794LIK",
           "fileAccession": "ENCFF134GMA"
         },
@@ -10045,28 +10045,28 @@
         {
           "id": "dnase-ENCFF686CDW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF686CDW.bigWig",
           "experimentAccession": "ENCSR000COB",
           "fileAccession": "ENCFF686CDW"
         },
         {
           "id": "h3k4me3-ENCFF200ISF",
           "assay": "h3k4me3",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF200ISF.bigWig",
           "experimentAccession": "ENCSR000CCJ",
           "fileAccession": "ENCFF200ISF"
         },
         {
           "id": "h3k27ac-ENCFF284KSX",
           "assay": "h3k27ac",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF284KSX.bigWig",
           "experimentAccession": "ENCSR000CCH",
           "fileAccession": "ENCFF284KSX"
         },
         {
           "id": "ctcf-ENCFF239UQO",
           "assay": "ctcf",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF239UQO.bigWig",
           "experimentAccession": "ENCSR000CDZ",
           "fileAccession": "ENCFF239UQO"
         },
@@ -10089,7 +10089,7 @@
         {
           "id": "dnase-ENCFF181DHD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF181DHD.bigWig",
           "experimentAccession": "ENCSR935RRY",
           "fileAccession": "ENCFF181DHD"
         },
@@ -10119,7 +10119,7 @@
         {
           "id": "dnase-ENCFF036EBL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF036EBL.bigWig",
           "experimentAccession": "ENCSR105BDM",
           "fileAccession": "ENCFF036EBL"
         },
@@ -10142,7 +10142,7 @@
         {
           "id": "dnase-ENCFF046ZZD",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF046ZZD.bigWig",
           "experimentAccession": "ENCSR854UWF",
           "fileAccession": "ENCFF046ZZD"
         },
@@ -10165,7 +10165,7 @@
         {
           "id": "dnase-ENCFF983UZW",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF983UZW.bigWig",
           "experimentAccession": "ENCSR193XFZ",
           "fileAccession": "ENCFF983UZW"
         },
@@ -10188,7 +10188,7 @@
         {
           "id": "dnase-ENCFF931PJP",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF931PJP.bigWig",
           "experimentAccession": "ENCSR863SWY",
           "fileAccession": "ENCFF931PJP"
         },
@@ -10211,7 +10211,7 @@
         {
           "id": "dnase-ENCFF240PZA",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF240PZA.bigWig",
           "experimentAccession": "ENCSR759ZVU",
           "fileAccession": "ENCFF240PZA"
         },
@@ -10234,7 +10234,7 @@
         {
           "id": "dnase-ENCFF426VAC",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF426VAC.bigWig",
           "experimentAccession": "ENCSR609SJP",
           "fileAccession": "ENCFF426VAC"
         },
@@ -10257,7 +10257,7 @@
         {
           "id": "dnase-ENCFF070IEL",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF070IEL.bigWig",
           "experimentAccession": "ENCSR529VRP",
           "fileAccession": "ENCFF070IEL"
         },
@@ -10280,7 +10280,7 @@
         {
           "id": "dnase-ENCFF702UXI",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF702UXI.bigWig",
           "experimentAccession": "ENCSR690LVC",
           "fileAccession": "ENCFF702UXI"
         },
@@ -10303,7 +10303,7 @@
         {
           "id": "dnase-ENCFF533PJK",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF533PJK.bigWig",
           "experimentAccession": "ENCSR453OSR",
           "fileAccession": "ENCFF533PJK"
         },
@@ -10326,7 +10326,7 @@
         {
           "id": "dnase-ENCFF027WGP",
           "assay": "dnase",
-          "url": "",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF027WGP.bigWig",
           "experimentAccession": "ENCSR885XDO",
           "fileAccession": "ENCFF027WGP"
         },
