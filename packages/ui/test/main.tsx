@@ -14,6 +14,7 @@ import {
   createBrowserStoreMemo,
   createTrackStoreMemo,
   DisplayMode,
+  Domain,
   GQLWrapper,
   Rect,
   Track,
@@ -25,11 +26,49 @@ import {
 import { createSelectionStore } from "../src/TrackSelect/store";
 import TrackSelect from "../src/TrackSelect/TrackSelect";
 import { RowInfo } from "../src/TrackSelect/types";
-import { createDataStoreMemo } from "@weng-lab/genomebrowser/src/lib";
+import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
+
+interface Transcript {
+  id: string;
+  name: string;
+  coordinates: Domain;
+  strand: string;
+  exons?: Exon[];
+  color?: string;
+}
 
 const enum Assembly {
   human = "GRCh38",
   mouse = "mm10",
+}
+
+// Callback types for track interactions (using any to avoid type conflicts with library types)
+interface TrackCallbacks {
+  onHover: (item: any) => void;
+  onLeave: () => void;
+  onCCREClick: (item: any) => void;
+  onGeneClick: (item: any) => void;
+}
+
+// Helper to inject callbacks based on track type
+function injectCallbacks(track: Track, callbacks: TrackCallbacks): Track {
+  if (track.trackType === TrackType.Transcript) {
+    return {
+      ...track,
+      onHover: callbacks.onHover,
+      onLeave: callbacks.onLeave,
+      onClick: callbacks.onGeneClick,
+    };
+  }
+  if (track.trackType === TrackType.BigBed) {
+    return {
+      ...track,
+      onHover: callbacks.onHover,
+      onLeave: callbacks.onLeave,
+      onClick: callbacks.onCCREClick,
+    };
+  }
+  return track;
 }
 
 function getLocalStorage(assembly: Assembly): Set<string> | null {
@@ -53,13 +92,53 @@ function Main() {
   const currentAssembly = Assembly.human;
 
   const browserStore = createBrowserStoreMemo({
-    domain: { chromosome: "chr19", start: 44905754, end: 44905754 + 20000 },
+    // chr12:53,380,176-53,416,446
+    domain: { chromosome: "chr12", start: 53380176, end: 53416446 },
     marginWidth: 100,
     trackWidth: 1400,
     multiplier: 3,
   });
 
-  const trackStore = useLocalTracks(currentAssembly);
+  const addHighlight = browserStore((s) => s.addHighlight);
+  const removeHighlight = browserStore((s) => s.removeHighlight);
+  const onHover = useCallback(
+    (item: Rect | Transcript) => {
+      const domain =
+        "start" in item
+          ? { start: item.start, end: item.end }
+          : { start: item.coordinates.start, end: item.coordinates.end };
+
+      addHighlight({
+        id: "hover-highlight",
+        domain,
+        color: item.color || "blue",
+      });
+    },
+    [addHighlight],
+  );
+  const onLeave = useCallback(() => {
+    removeHighlight("hover-highlight");
+  }, [removeHighlight]);
+
+  const onCCREClick = useCallback((item: Rect) => {
+    console.log(item);
+  }, []);
+  const onGeneClick = useCallback((item: Transcript) => {
+    console.log(item);
+  }, []);
+
+  // Bundle callbacks for track injection
+  const callbacks = useMemo<TrackCallbacks>(
+    () => ({
+      onHover,
+      onLeave,
+      onCCREClick,
+      onGeneClick,
+    }),
+    [onHover, onLeave, onCCREClick, onGeneClick],
+  );
+
+  const trackStore = useLocalTracks(currentAssembly, callbacks);
 
   const tracks = trackStore((s) => s.tracks);
   const insertTrack = trackStore((s) => s.insertTrack);
@@ -94,7 +173,7 @@ function Main() {
       }
 
       for (const s of tracksToAdd) {
-        const track = generateTrack(s);
+        const track = generateTrack(s, callbacks);
         if (track === null) continue;
         insertTrack(track);
       }
@@ -104,7 +183,7 @@ function Main() {
       // Close the dialog
       setOpen(false);
     },
-    [tracks, removeTrack, insertTrack, setLocalStorage, setOpen],
+    [tracks, removeTrack, insertTrack, callbacks],
   );
 
   const handleCancel = () => {
@@ -167,39 +246,45 @@ const ASSAY_COLORS: Record<string, string> = {
   h3k27ac: "#ffcd00",
   ctcf: "#00b0d0",
   atac: "#02c7b9",
+  rnaseq: "#00aa00",
   chromhmm: "#00ff00",
   ccre: "#0c184a",
-  rnaseq: "#00aa00",
 };
 
-function generateTrack(sel: RowInfo): Track {
+function generateTrack(sel: RowInfo, callbacks?: TrackCallbacks): Track {
   const color = ASSAY_COLORS[sel.assay.toLowerCase()] || "#000000";
+  let track: Track;
+
   switch (sel.assay.toLowerCase()) {
     case "chromhmm":
-      return {
+      track = {
         ...defaultBigBed,
-        id: sel.id, // Use unique RowInfo.id, not fileAccession
+        id: sel.id,
         url: sel.url,
         title: sel.displayname,
         color,
       };
+      break;
     case "ccre":
-      return {
+      track = {
         ...defaultBigBed,
-        id: sel.id, // Use unique RowInfo.id, not fileAccession
+        id: sel.id,
         url: sel.url,
         title: sel.displayname,
         color,
       };
+      break;
     default:
-      return {
+      track = {
         ...defaultBigWig,
-        id: sel.id, // Use unique RowInfo.id, not fileAccession
+        id: sel.id,
         url: sel.url,
         title: sel.displayname,
         color,
       };
   }
+
+  return callbacks ? injectCallbacks(track, callbacks) : track;
 }
 
 export const defaultBigWig: Omit<BigWigConfig, "id" | "title" | "url"> = {
@@ -230,14 +315,21 @@ export const defaultTranscript: Omit<
   titleSize: 12,
 };
 
-export function useLocalTracks(assembly: string) {
+export function useLocalTracks(assembly: string, callbacks?: TrackCallbacks) {
   const localTracks = getLocalTracks(assembly);
 
   const defaultTracks =
     assembly === "GRCh38" ? defaultHumanTracks : defaultMouseTracks;
 
-  // potential infinite loop
-  const trackStore = createTrackStoreMemo(localTracks || defaultTracks, []);
+  // Get base tracks (from storage or defaults)
+  let initialTracks = localTracks || defaultTracks;
+
+  // Inject callbacks if provided (callbacks are lost on JSON serialization)
+  if (callbacks) {
+    initialTracks = initialTracks.map((t) => injectCallbacks(t, callbacks));
+  }
+
+  const trackStore = createTrackStoreMemo(initialTracks, []);
   const tracks = trackStore((state) => state.tracks);
 
   // any time the track list changes, update local storage
@@ -288,17 +380,17 @@ const defaultHumanTracks = [
 const defaultMouseTracks = [
   {
     ...defaultTranscript,
-    color: "#D05F45",
+    color: ASSAY_COLORS.ccre,
     id: "mouse-genes-ignore",
     assembly: "mm10",
     version: 21,
   },
   {
     ...defaultBigBed,
+    color: ASSAY_COLORS.ccre,
     id: "mouse-ccre-ignore",
     title: "All cCREs colored by group",
     url: "https://downloads.wenglab.org/mm10-cCREs.DCC.bigBed",
-    color: "#D05F45",
   },
   {
     ...defaultBigWig,
