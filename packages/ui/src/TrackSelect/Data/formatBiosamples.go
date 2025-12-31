@@ -100,7 +100,7 @@ func main() {
 		}
 
 		// Add DNase assay if present
-		if old.DNaseFileAccession != nil && old.DNaseSignalURL != "" {
+		if old.DNaseFileAccession != nil {
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "dnase-" + *old.DNaseFileAccession,
 				Assay:               "dnase",
@@ -111,7 +111,7 @@ func main() {
 		}
 
 		// Add H3K4me3 assay if present
-		if old.H3K4Me3FileAccession != nil && old.H3K4Me3SignalURL != "" {
+		if old.H3K4Me3FileAccession != nil {
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "h3k4me3-" + *old.H3K4Me3FileAccession,
 				Assay:               "h3k4me3",
@@ -122,7 +122,7 @@ func main() {
 		}
 
 		// Add H3K27ac assay if present
-		if old.H3K27AcFileAccession != nil && old.H3K27AcSignalURL != "" {
+		if old.H3K27AcFileAccession != nil {
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "h3k27ac-" + *old.H3K27AcFileAccession,
 				Assay:               "h3k27ac",
@@ -133,7 +133,7 @@ func main() {
 		}
 
 		// Add CTCF assay if present
-		if old.CTCFFileAccession != nil && old.CTCFSignalURL != "" {
+		if old.CTCFFileAccession != nil {
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "ctcf-" + *old.CTCFFileAccession,
 				Assay:               "ctcf",
@@ -144,7 +144,7 @@ func main() {
 		}
 
 		// Add ATAC assay if present
-		if old.ATACFileAccession != nil && old.ATACSignalURL != "" {
+		if old.ATACFileAccession != nil {
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "atac-" + *old.ATACFileAccession,
 				Assay:               "atac",
