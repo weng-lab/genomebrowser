@@ -1,4 +1,5 @@
 import { Box, Paper } from "@mui/material";
+
 import {
   DataGridPremium,
   FilterColumnsArgs,
@@ -10,6 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import { DataGridProps } from "../types";
 import { defaultColumns, sortedByAssayColumns } from "./columns";
+import GroupingCell from "./GroupingCell";
 
 const autosizeOptions: GridAutosizeOptions = {
   expand: true,
@@ -81,9 +83,10 @@ export function DataGridWrapper(props: DataGridProps) {
           groupingColDef={{
             leafField,
             display: "flex",
-            minWidth: 400,
-            maxWidth: 600,
+            minWidth: 300,
+            maxWidth: 500,
             flex: 2,
+            renderCell: (params) => <GroupingCell {...params} />,
           }}
           columnVisibilityModel={columnVisibilityModel}
           onColumnVisibilityModelChange={setColumnVisibilityModel}

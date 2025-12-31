@@ -5,7 +5,10 @@
       "Bash(npx eslint:*)",
       "Bash(npm run lint)",
       "mcp__Ref__ref_search_documentation",
-      "WebFetch(domain:pnpm.io)"
+      "WebFetch(domain:pnpm.io)",
+      "mcp__Ref__ref_read_url",
+      "mcp__mui-mcp__useMuiDocs",
+      "mcp__mui-mcp__fetchDocs"
     ],
     "deny": []
   }
