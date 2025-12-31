@@ -1,5 +1,5 @@
 // react
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 // mui
@@ -74,38 +74,56 @@ function Main() {
   const rowById = selectionStore((s) => s.rowById);
 
   // Handle submit: sync tracks to browser and save to localStorage
-  const handleSubmit = (newTrackIds: Set<string>) => {
-    const currentIds = new Set(tracks.map((t) => t.id));
+  const handleSubmit = useCallback(
+    (newTrackIds: Set<string>) => {
+      const currentIds = new Set(tracks.map((t) => t.id));
 
-    // Build tracks to add from newTrackIds + rowById lookup
-    const tracksToAdd = Array.from(newTrackIds)
-      .filter((id) => !currentIds.has(id)) // not in current track list
-      .map((id) => rowById.get(id)) // get RowInfo object
-      .filter((track): track is RowInfo => track !== undefined); // filter out undefined
+      // Build tracks to add from newTrackIds + rowById lookup
+      const tracksToAdd = Array.from(newTrackIds)
+        .filter((id) => !currentIds.has(id)) // not in current track list
+        .map((id) => rowById.get(id)) // get RowInfo object
+        .filter((track): track is RowInfo => track !== undefined); // filter out undefined
 
-    const tracksToRemove = tracks.filter((t) => {
-      return !t.id.includes("ignore") && !newTrackIds.has(t.id);
-    });
+      const tracksToRemove = tracks.filter((t) => {
+        return !t.id.includes("ignore") && !newTrackIds.has(t.id);
+      });
 
+      console.log("removing", tracksToRemove);
+      for (const t of tracksToRemove) {
+        removeTrack(t.id);
+      }
+
+      for (const s of tracksToAdd) {
+        const track = generateTrack(s);
+        if (track === null) continue;
+        insertTrack(track);
+      }
+
+      // Save the track IDs (not the auto-generated group IDs)
+      setLocalStorage(newTrackIds, currentAssembly);
+      // Close the dialog
+      setOpen(false);
+    },
+    [tracks, removeTrack, insertTrack, setLocalStorage, setOpen],
+  );
+
+  const handleCancel = () => {
+    setOpen(false);
+  };
+
+  // Handle reset: clear selections and remove non-default tracks
+  const handleReset = () => {
+    // Clear the selection store
+    selectionStore.getState().clear();
+
+    // Remove all non-default tracks from the browser
+    const tracksToRemove = tracks.filter((t) => !t.id.includes("ignore"));
     for (const t of tracksToRemove) {
       removeTrack(t.id);
     }
 
-    for (const s of tracksToAdd) {
-      const track = generateTrack(s);
-      if (track === null) continue;
-      insertTrack(track);
-    }
-
-    // Save the track IDs (not the auto-generated group IDs)
-    setLocalStorage(newTrackIds, currentAssembly);
-
-    // Close the dialog
-    setOpen(false);
-  };
-
-  const handleCancel = () => {
-    setOpen(false);
+    // Clear localStorage for selected tracks
+    setLocalStorage(new Set(), currentAssembly);
   };
 
   return (
@@ -130,6 +148,7 @@ function Main() {
             store={selectionStore}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
+            onReset={handleReset}
           />
         </DialogContent>
       </Dialog>
@@ -150,16 +169,16 @@ const ASSAY_COLORS: Record<string, string> = {
   atac: "#02c7b9",
   chromhmm: "#00ff00",
   ccre: "#0c184a",
+  rnaseq: "#00aa00",
 };
 
-const CCRE_COLOR = "#4444ff"; // temporary
 function generateTrack(sel: RowInfo): Track {
   const color = ASSAY_COLORS[sel.assay.toLowerCase()] || "#000000";
   switch (sel.assay.toLowerCase()) {
     case "chromhmm":
       return {
         ...defaultBigBed,
-        id: sel.fileAccession || sel.experimentAccession,
+        id: sel.id, // Use unique RowInfo.id, not fileAccession
         url: sel.url,
         title: sel.displayname,
         color,
@@ -167,15 +186,15 @@ function generateTrack(sel: RowInfo): Track {
     case "ccre":
       return {
         ...defaultBigBed,
-        id: sel.fileAccession || sel.experimentAccession,
+        id: sel.id, // Use unique RowInfo.id, not fileAccession
         url: sel.url,
         title: sel.displayname,
-        color: CCRE_COLOR,
+        color,
       };
     default:
       return {
         ...defaultBigWig,
-        id: sel.fileAccession,
+        id: sel.id, // Use unique RowInfo.id, not fileAccession
         url: sel.url,
         title: sel.displayname,
         color,
