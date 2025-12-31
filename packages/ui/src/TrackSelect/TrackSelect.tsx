@@ -33,12 +33,14 @@ export interface TrackSelectProps {
   store: SelectionStoreInstance;
   onSubmit?: (trackIds: Set<string>) => void;
   onCancel?: () => void;
+  onReset?: () => void;
 }
 
 export default function TrackSelect({
   store,
   onSubmit,
   onCancel,
+  onReset,
 }: TrackSelectProps) {
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [sortedAssay, setSortedAssay] = useState(false);
@@ -332,11 +334,15 @@ export default function TrackSelect({
           variant="outlined"
           color="secondary"
           onClick={() => {
-            clear();
-            setWorkingIds(new Set());
+            if (onReset) {
+              onReset();
+            } else {
+              clear();
+              setWorkingIds(new Set());
+            }
           }}
         >
-          Clear Selection
+          Reset
         </Button>
         <Box sx={{ display: "flex", gap: 2 }}>
           <Button variant="outlined" onClick={handleCancel}>
