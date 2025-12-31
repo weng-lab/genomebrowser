@@ -25,7 +25,6 @@ import {
 import { createSelectionStore } from "../src/TrackSelect/store";
 import TrackSelect from "../src/TrackSelect/TrackSelect";
 import { RowInfo } from "../src/TrackSelect/types";
-import { rowById } from "../src/TrackSelect/consts";
 import { createDataStoreMemo } from "@weng-lab/genomebrowser/src/lib";
 
 const enum Assembly {
@@ -71,11 +70,12 @@ function Main() {
   const selectionStore = useMemo(() => {
     const localIds = getLocalStorage(currentAssembly);
     const ids = localIds != null ? localIds : new Set<string>();
-    return createSelectionStore(ids);
+    return createSelectionStore(currentAssembly, ids);
   }, [currentAssembly]);
 
   const selectedIds = selectionStore((s) => s.selectedIds);
   const getTrackIds = selectionStore((s) => s.getTrackIds);
+  const rowById = selectionStore((s) => s.rowById);
 
   // Get only real track IDs (no auto-generated group IDs)
   const trackIds = useMemo(() => getTrackIds(), [selectedIds, getTrackIds]);

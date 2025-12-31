@@ -15,14 +15,17 @@ import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
-import { flattenIntoRows, searchTracks } from "./DataGrid/dataGridHelpers";
+import {
+  flattenIntoRows,
+  searchTracks,
+  getTracksData,
+} from "./DataGrid/dataGridHelpers";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import {
   buildSortedAssayTreeView,
   buildTreeView,
   searchTreeItems,
 } from "./TreeView/treeViewHelpers";
-import { rowById, rows } from "./consts";
 import { SelectionStoreInstance } from "./store";
 import { ExtendedTreeItemProps, SearchTracksProps } from "./types";
 
@@ -40,6 +43,15 @@ export default function TrackSelect({ store }: TrackSelectProps) {
   const setSelected = store((s) => s.setSelected);
   const clear = store((s) => s.clear);
   const MAX_ACTIVE = store((s) => s.maxTracks);
+  const rows = store((s) => s.rows);
+  const rowById = store((s) => s.rowById);
+  const assembly = store((s) => s.assembly);
+
+  // Get tracks data for search functionality
+  const tracksData = useMemo(
+    () => getTracksData(assembly as "GRCh38" | "mm10"),
+    [assembly],
+  );
 
   // Get only real track IDs (no auto-generated group IDs)
   const trackIds = useMemo(() => getTrackIds(), [selectedIds, getTrackIds]);
@@ -147,7 +159,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
         return; // useEffect handles empty query
       }
 
-      const dataGridSearchProps: SearchTracksProps = {
+      const dataGridSearchProps = {
         jsonStructure: "tracks",
         query: query,
         keyWeightMap: [
@@ -159,6 +171,7 @@ export default function TrackSelect({ store }: TrackSelectProps) {
           "experimentAccession",
           "fileAccession",
         ],
+        tracksData,
       };
 
       const treeSearchProps: SearchTracksProps = {

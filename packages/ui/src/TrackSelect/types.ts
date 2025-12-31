@@ -100,6 +100,12 @@ export interface CustomTreeItemProps
  */
 export type SelectionState = {
   maxTracks: number;
+  // Assembly determines which JSON data to use
+  assembly: string;
+  // All available rows for the current assembly
+  rows: RowInfo[];
+  // Map of id -> RowInfo for fast lookup
+  rowById: Map<string, RowInfo>;
   // All selected IDs including auto-generated group IDs from DataGrid
   selectedIds: Set<string>;
 };

@@ -1,7 +1,18 @@
 import { capitalize } from "@mui/material";
 import Fuse, { FuseResult } from "fuse.js";
-import tracksData from "../Data/humanBiosamples.json";
+import humanTracksData from "../Data/humanBiosamples.json";
+import mouseTracksData from "../Data/mouseBiosamples.json";
 import { AssayInfo, RowInfo, SearchTracksProps, TrackInfo } from "../types";
+import { Assembly } from "../consts";
+
+const tracksDataByAssembly: Record<Assembly, typeof humanTracksData> = {
+  GRCh38: humanTracksData,
+  mm10: mouseTracksData,
+};
+
+export function getTracksData(assembly: Assembly) {
+  return tracksDataByAssembly[assembly];
+}
 
 function formatAssayType(assay: string): string {
   switch (assay) {
@@ -58,6 +69,7 @@ function getNestedValue(obj: any, path: string): any {
 export function getTracksByAssayAndOntology(
   assay: string,
   ontology: string,
+  tracksData: ReturnType<typeof getTracksData>,
 ): TrackInfo[] {
   let res: TrackInfo[] = [];
   const data = getNestedValue(tracksData, "tracks");
@@ -127,7 +139,10 @@ export function searchTracks({
   query,
   keyWeightMap,
   threshold = 0.75,
-}: SearchTracksProps): FuseResult<TrackInfo>[] {
+  tracksData,
+}: SearchTracksProps & {
+  tracksData: ReturnType<typeof getTracksData>;
+}): FuseResult<TrackInfo>[] {
   const data = getNestedValue(tracksData, jsonStructure ?? "");
 
   const fuse = new Fuse(data, {

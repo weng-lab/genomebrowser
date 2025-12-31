@@ -1,8 +1,11 @@
 import {
   getTracksByAssayAndOntology,
   flattenIntoRows,
+  getTracksData,
 } from "./DataGrid/dataGridHelpers";
 import { RowInfo, TrackInfo } from "./types";
+
+export type Assembly = "GRCh38" | "mm10";
 
 export const assayTypes = [
   "cCRE",
@@ -61,23 +64,37 @@ export const ontologyTypes = [
   "Vagina",
 ];
 
-export const rows = ontologyTypes.flatMap((ontology) =>
-  assayTypes.flatMap((assay) =>
-    getTracksByAssayAndOntology(
-      assay.toLowerCase(),
-      ontology.toLowerCase(),
-    ).flatMap((r: TrackInfo) =>
-      flattenIntoRows(r).map((flat) => ({
-        ...flat,
-        assay,
-        ontology,
-      })),
+/**
+ * Build rows and rowById for a specific assembly
+ */
+export function buildRowsForAssembly(assembly: Assembly): {
+  rows: RowInfo[];
+  rowById: Map<string, RowInfo>;
+} {
+  const tracksData = getTracksData(assembly);
+  const rows = ontologyTypes.flatMap((ontology) =>
+    assayTypes.flatMap((assay) =>
+      getTracksByAssayAndOntology(
+        assay.toLowerCase(),
+        ontology.toLowerCase(),
+        tracksData,
+      ).flatMap((r: TrackInfo) =>
+        flattenIntoRows(r).map((flat) => ({
+          ...flat,
+          assay,
+          ontology,
+        })),
+      ),
     ),
-  ),
-);
+  );
+  const rowById = new Map<string, RowInfo>(rows.map((r) => [r.id, r]));
+  return { rows, rowById };
+}
 
-// map of id -> rowInfo for faster row lookup
-export const rowById = new Map<string, RowInfo>(rows.map((r) => [r.id, r]));
+// Default exports for backwards compatibility (human assembly)
+const humanData = buildRowsForAssembly("GRCh38");
+export const rows = humanData.rows;
+export const rowById = humanData.rowById;
 
 /**
  * Check if an ID is a real track (exists in rowById) vs an auto-generated group ID
