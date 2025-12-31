@@ -59,7 +59,7 @@ export default function Ruler() {
               x={x(i * step) - 5}
               y={RULER_HEIGHT * 0.85}
             >
-              {i * step}
+              {(i * step).toLocaleString()}
             </text>
           )}
         </g>
