@@ -65,11 +65,7 @@ export default function TrackSelect({
 
   // Get only real track IDs from working selection (no auto-generated group IDs)
   const workingTrackIds = useMemo(() => {
-    return new Set(
-      [...workingIds].filter(
-        (id) => !id.startsWith("auto-generated-row-") && rowById.has(id),
-      ),
-    );
+    return new Set([...workingIds].filter((id) => rowById.has(id)));
   }, [workingIds, rowById]);
 
   // Sync workingIds when store's selectedIds changes externally
@@ -214,9 +210,7 @@ export default function TrackSelect({
 
       // we only want the intersection of filtered tracks displayed on the DataGrid and user-selected tracks to be displayed on the tree
       const newDataGridIds = newDataGridRows.map((r) => r.id);
-      const retIds = searchTreeItems(treeSearchProps).map(
-        (r) => r.item.id,
-      );
+      const retIds = searchTreeItems(treeSearchProps).map((r) => r.item.id);
       const newTreeIds = retIds.filter((i) => newDataGridIds.includes(i));
 
       // build new tree from the newTreeIds

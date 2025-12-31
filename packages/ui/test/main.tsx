@@ -61,11 +61,9 @@ function Main() {
 
   const trackStore = useLocalTracks(currentAssembly);
 
-  const dataStore = createDataStoreMemo();
   const tracks = trackStore((s) => s.tracks);
   const insertTrack = trackStore((s) => s.insertTrack);
   const removeTrack = trackStore((s) => s.removeTrack);
-  const reset = dataStore((s) => s.reset);
 
   const selectionStore = useMemo(() => {
     const localIds = getLocalStorage(currentAssembly);
@@ -81,9 +79,9 @@ function Main() {
 
     // Build tracks to add from newTrackIds + rowById lookup
     const tracksToAdd = Array.from(newTrackIds)
-      .filter((id) => !currentIds.has(id))
-      .map((id) => rowById.get(id))
-      .filter((track): track is RowInfo => track !== undefined);
+      .filter((id) => !currentIds.has(id)) // not in current track list
+      .map((id) => rowById.get(id)) // get RowInfo object
+      .filter((track): track is RowInfo => track !== undefined); // filter out undefined
 
     const tracksToRemove = tracks.filter((t) => {
       return !t.id.includes("ignore") && !newTrackIds.has(t.id);
@@ -136,11 +134,7 @@ function Main() {
         </DialogContent>
       </Dialog>
       <GQLWrapper>
-        <Browser
-          browserStore={browserStore}
-          trackStore={trackStore}
-          externalDataStore={dataStore}
-        />
+        <Browser browserStore={browserStore} trackStore={trackStore} />
       </GQLWrapper>
     </>
   );
