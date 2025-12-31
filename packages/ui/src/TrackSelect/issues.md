@@ -2,22 +2,13 @@
 
 ## Critical Issues
 
-### 1. Bug: Hardcoded `rowById` Import Breaks Multi-Assembly Support
+### ~~1. Bug: Hardcoded `rowById` Import Breaks Multi-Assembly Support~~ ✅ FIXED
 
 **File:** `TreeViewWrapper.tsx:3,28-42`
 
-```typescript
-import { rowById } from "../consts";
-```
+~~**Problem:** The `rowById` from `consts.ts` is always built with `"GRCh38"` (human assembly). When the store is created with `mm10` assembly, the TreeViewWrapper will fail to find rows because it's looking in the wrong map.~~
 
-**Problem:** The `rowById` from `consts.ts` is always built with `"GRCh38"` (human assembly). When the store is created with `mm10` assembly, the TreeViewWrapper will fail to find rows because it's looking in the wrong map.
-
-**Fix:**
-```typescript
-// Remove: import { rowById } from "../consts";
-// Add inside component:
-const rowById = store((s) => s.rowById);
-```
+**Resolution:** Removed hardcoded import, now gets `rowById` from the store.
 
 ---
 
@@ -404,10 +395,10 @@ export function AssayIcon(type: string): JSX.Element {
 
 ## Summary
 
-| Severity | Count |
-|----------|-------|
-| Critical | 4 |
-| High | 4 |
-| Medium | 5 |
-| Low | 9 |
-| **Total** | **22** |
+| Severity | Count | Fixed |
+|----------|-------|-------|
+| Critical | 4 | 1 |
+| High | 4 | 0 |
+| Medium | 5 | 0 |
+| Low | 9 | 0 |
+| **Total** | **22** | **1** |

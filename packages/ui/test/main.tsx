@@ -32,9 +32,7 @@ import {
 } from "@weng-lab/genomebrowser";
 
 // local
-import { createSelectionStore } from "../src/TrackSelect/store";
-import TrackSelect from "../src/TrackSelect/TrackSelect";
-import { RowInfo } from "../src/TrackSelect/types";
+import { createSelectionStore, TrackSelect, RowInfo } from "../src/lib";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
 
 interface Transcript {
@@ -98,7 +96,7 @@ function setLocalStorage(trackIds: Set<string>, assembly: Assembly) {
 
 function Main() {
   const [open, setOpen] = useState(false);
-  const currentAssembly = Assembly.human;
+  const currentAssembly = Assembly.mouse;
 
   const browserStore = createBrowserStoreMemo({
     // chr12:53,380,176-53,416,446

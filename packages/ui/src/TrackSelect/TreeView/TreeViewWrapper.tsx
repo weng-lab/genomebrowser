@@ -1,6 +1,5 @@
 import { Box, Paper, Typography } from "@mui/material";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
-import { rowById } from "../consts";
 import {
   CustomTreeItemProps,
   ExtendedTreeItemProps,
@@ -16,6 +15,7 @@ export function TreeViewWrapper({
   isSearchResult,
 }: TreeViewWrapperProps) {
   const removeIds = store((s) => s.removeIds);
+  const rowById = store((s) => s.rowById);
 
   const handleRemoveTreeItem = (
     item: TreeViewBaseItem<ExtendedTreeItemProps>,

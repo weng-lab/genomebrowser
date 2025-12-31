@@ -90,19 +90,3 @@ export function buildRowsForAssembly(assembly: Assembly): {
   const rowById = new Map<string, RowInfo>(rows.map((r) => [r.id, r]));
   return { rows, rowById };
 }
-
-// Default exports for backwards compatibility (human assembly)
-const humanData = buildRowsForAssembly("GRCh38");
-export const rows = humanData.rows;
-export const rowById = humanData.rowById;
-
-/**
- * Check if an ID is a real track (exists in rowById) vs an auto-generated group ID
- */
-export const isTrackId = (id: string): boolean => rowById.has(id);
-
-/**
- * Filter a set of IDs to return only real track IDs (no auto-generated group IDs)
- */
-export const getActiveTracks = (selectedIds: Set<string>): Set<string> =>
-  new Set(Array.from(selectedIds).filter(isTrackId));
