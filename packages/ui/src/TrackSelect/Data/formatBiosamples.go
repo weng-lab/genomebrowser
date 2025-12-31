@@ -101,10 +101,14 @@ func main() {
 
 		// Add DNase assay if present
 		if old.DNaseFileAccession != nil {
+			url := old.DNaseSignalURL
+			if url == "" {
+				url = "https://downloads.wenglab.org/Registry-V4/" + *old.DNaseFileAccession + ".bigWig"
+			}
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "dnase-" + *old.DNaseFileAccession,
 				Assay:               "dnase",
-				URL:                 old.DNaseSignalURL,
+				URL:                 url,
 				ExperimentAccession: ptrToString(old.DNaseExperimentAccession),
 				FileAccession:       *old.DNaseFileAccession,
 			})
@@ -112,10 +116,14 @@ func main() {
 
 		// Add H3K4me3 assay if present
 		if old.H3K4Me3FileAccession != nil {
+			url := old.H3K4Me3SignalURL
+			if url == "" {
+				url = "https://downloads.wenglab.org/Registry-V4/" + *old.H3K4Me3FileAccession + ".bigWig"
+			}
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "h3k4me3-" + *old.H3K4Me3FileAccession,
 				Assay:               "h3k4me3",
-				URL:                 old.H3K4Me3SignalURL,
+				URL:                 url,
 				ExperimentAccession: ptrToString(old.H3K4Me3ExperimentAccession),
 				FileAccession:       *old.H3K4Me3FileAccession,
 			})
@@ -123,10 +131,14 @@ func main() {
 
 		// Add H3K27ac assay if present
 		if old.H3K27AcFileAccession != nil {
+			url := old.H3K27AcSignalURL
+			if url == "" {
+				url = "https://downloads.wenglab.org/Registry-V4/" + *old.H3K27AcFileAccession + ".bigWig"
+			}
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "h3k27ac-" + *old.H3K27AcFileAccession,
 				Assay:               "h3k27ac",
-				URL:                 old.H3K27AcSignalURL,
+				URL:                 url,
 				ExperimentAccession: ptrToString(old.H3K27AcExperimentAccession),
 				FileAccession:       *old.H3K27AcFileAccession,
 			})
@@ -134,10 +146,14 @@ func main() {
 
 		// Add CTCF assay if present
 		if old.CTCFFileAccession != nil {
+			url := old.CTCFSignalURL
+			if url == "" {
+				url = "https://downloads.wenglab.org/Registry-V4/" + *old.CTCFFileAccession + ".bigWig"
+			}
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "ctcf-" + *old.CTCFFileAccession,
 				Assay:               "ctcf",
-				URL:                 old.CTCFSignalURL,
+				URL:                 url,
 				ExperimentAccession: ptrToString(old.CTCFExperimentAccession),
 				FileAccession:       *old.CTCFFileAccession,
 			})
@@ -145,10 +161,14 @@ func main() {
 
 		// Add ATAC assay if present
 		if old.ATACFileAccession != nil {
+			url := old.ATACSignalURL
+			if url == "" {
+				url = "https://downloads.wenglab.org/Registry-V4/" + *old.ATACFileAccession + ".bigWig"
+			}
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "atac-" + *old.ATACFileAccession,
 				Assay:               "atac",
-				URL:                 old.ATACSignalURL,
+				URL:                 url,
 				ExperimentAccession: ptrToString(old.ATACExperimentAccession),
 				FileAccession:       *old.ATACFileAccession,
 			})
@@ -167,10 +187,14 @@ func main() {
 
 		// Add RNA-seq tracks
 		for _, rna := range old.RNASeqTracks {
+			url := rna.URL
+			if url == "" {
+				url = "https://downloads.wenglab.org/Registry-V4/" + rna.RNASeqFileAccession + ".bigWig"
+			}
 			newSample.Assays = append(newSample.Assays, Assay{
 				ID:                  "rnaseq-" + rna.RNASeqFileAccession,
 				Assay:               "rnaseq",
-				URL:                 rna.URL,
+				URL:                 url,
 				ExperimentAccession: rna.RNASeqExperimentAccession,
 				FileAccession:       rna.RNASeqFileAccession,
 			})
