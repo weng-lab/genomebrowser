@@ -59,7 +59,7 @@ export async function getBigDataRace(
   ];
 
   const result = await Promise.race([p1, p2]);
-  console.log(result.url, "\n", result.source, "took", result.elapsed.toFixed(2), "ms");
+  // console.log(result.url, "\n", result.source, "took", result.elapsed.toFixed(2), "ms");
   return result.data;
 }
 
@@ -171,7 +171,7 @@ async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<T
 
   const error = results[0]?.error || results[1]?.error ? results[0]?.error + "\n" + results[1]?.error : null;
 
-  console.log(importance);
+  // console.log(importance);
   return { data: { sequence, importance }, error };
 }
 

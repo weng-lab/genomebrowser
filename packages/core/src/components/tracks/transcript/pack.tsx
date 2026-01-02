@@ -65,7 +65,7 @@ export default function PackTranscript({
         >
           {group.transcripts.map((transcript, j) => {
             const realTranscript = getRealTranscript(transcript.transcript, reverseX);
-            console.log(transcript);
+            // console.log(transcript);
             let fillColor;
             if (canonicalName?.toLowerCase().includes(transcript.transcript.name.toLowerCase())) {
               fillColor = canonicalColor;
