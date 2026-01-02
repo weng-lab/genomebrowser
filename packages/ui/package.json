@@ -25,7 +25,6 @@
     "@emotion/styled": "^11.0.0",
     "@mui/icons-material": "^7.3.6",
     "@mui/material": "^7.0.0",
-    "@mui/x-data-grid": "^8.19.0",
     "@mui/x-data-grid-premium": "^8.19.0",
     "@weng-lab/genomebrowser": "workspace:*",
     "react": "^19.0.0",
