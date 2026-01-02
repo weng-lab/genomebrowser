@@ -11,7 +11,7 @@ import {
   Switch,
   TextField,
 } from "@mui/material";
-import { GridRowSelectionModel } from "@mui/x-data-grid";
+import { GridRowSelectionModel } from "@mui/x-data-grid-premium";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
