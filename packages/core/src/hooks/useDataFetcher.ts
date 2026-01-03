@@ -3,6 +3,7 @@ import { useLazyQuery } from "@apollo/client";
 import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
 import { BIGDATA_QUERY, TRANSCRIPT_GENES_QUERY, MOTIF_QUERY } from "../api/queries";
 import { trackFetchers } from "../api/fetchers";
+import { TrackType } from "../lib";
 
 /**
  * Unified data fetcher hook that orchestrates fetching for all tracks
@@ -32,6 +33,15 @@ export function useDataFetcher() {
 
     const fetchAll = async () => {
       setFetching(true);
+
+      const fetchableTracks = tracks.filter(
+        (track) => track.trackType !== TrackType.LDTrack && track.trackType !== TrackType.Manhattan
+      );
+
+      if (fetchableTracks.length === 0) {
+        setFetching(false);
+        return;
+      }
 
       const expandedDomain = getExpandedDomain();
       const preRenderedWidth = trackWidth * multiplier - 1;
