@@ -41,6 +41,7 @@ export function useDataFetcher() {
         fetchBigData,
         fetchGene,
         fetchMotif,
+        getTrackData,
       };
 
       // Initialize tracks that don't have data yet with null data and error

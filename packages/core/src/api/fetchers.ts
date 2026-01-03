@@ -22,6 +22,7 @@ export interface QueryHooks {
   fetchBigData: LazyQueryExecFunction<any, OperationVariables>;
   fetchGene: LazyQueryExecFunction<any, OperationVariables>;
   fetchMotif: LazyQueryExecFunction<any, OperationVariables>;
+  getTrackData: (id: string) => TrackDataState | undefined;
 }
 
 // Context for the fetch function
@@ -229,8 +230,15 @@ async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDa
  * Fetch LDTrack data
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function fetchLDTrack(_ctx: FetcherContext<LDTrackConfig>): Promise<TrackDataState> {
-  // Returns loading state as useCustomData is required for this track
+async function fetchLDTrack(ctx: FetcherContext<LDTrackConfig>): Promise<TrackDataState> {
+  // Preserve existing custom data if it exists
+  const existingData = ctx.queries.getTrackData?.(ctx.track.id);
+
+  if (existingData?.data) {
+    return existingData;
+  }
+
+  // Returns empty state - useCustomData will populate this
   return {
     data: null,
     error: null,
@@ -241,8 +249,15 @@ async function fetchLDTrack(_ctx: FetcherContext<LDTrackConfig>): Promise<TrackD
  * Fetch Manhattan plot data
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function fetchManhattan(_ctx: FetcherContext<ManhattanTrackConfig>): Promise<TrackDataState> {
-  // Returns loading state as useCustomData is required for this track
+async function fetchManhattan(ctx: FetcherContext<ManhattanTrackConfig>): Promise<TrackDataState> {
+  // Preserve existing custom data if it exists
+  const existingData = ctx.queries.getTrackData?.(ctx.track.id);
+
+  if (existingData?.data) {
+    return existingData;
+  }
+
+  // Returns empty state - useCustomData will populate this
   return {
     data: null,
     error: null,
