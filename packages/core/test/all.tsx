@@ -46,13 +46,13 @@ export default function All() {
 
   const trackStore = createTrackStoreMemo(
     [
-      transcriptExample,
+      // transcriptExample,
       bigWigExample,
-      bigBedExample,
-      motifExample,
-      bulkBedExample,
-      methylCTrack,
-      manhattanTrack,
+      // bigBedExample,
+      // motifExample,
+      // bulkBedExample,
+      // methylCTrack,
+      // manhattanTrack,
       ldTrack,
     ],
     []
