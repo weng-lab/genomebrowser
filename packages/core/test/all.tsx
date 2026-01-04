@@ -33,7 +33,8 @@ import { BIGDATA_QUERY } from "../src/api/queries";
 export default function All() {
   const browserStore = createBrowserStoreMemo(
     {
-      domain: { chromosome: "chr19", start: 44905754, end: 44905754 + 20000 },
+      // chr17:7,660,000-7,900,000
+      domain: { chromosome: "chr17", start: 7660000, end: 7900000 },
       marginWidth: 100,
       trackWidth: 1400,
       multiplier: 3,
@@ -46,14 +47,14 @@ export default function All() {
 
   const trackStore = createTrackStoreMemo(
     [
-      // transcriptExample,
+      transcriptExample,
       bigWigExample,
-      // bigBedExample,
+      bigBedExample,
       // motifExample,
       // bulkBedExample,
       // methylCTrack,
       // manhattanTrack,
-      ldTrack,
+      // ldTrack,
     ],
     []
   );
