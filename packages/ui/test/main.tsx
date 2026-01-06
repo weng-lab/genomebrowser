@@ -271,7 +271,7 @@ const ASSAY_COLORS: Record<string, string> = {
   atac: "#02c7b9",
   rnaseq: "#00aa00",
   chromhmm: "#00ff00",
-  ccre: "#0c184a",
+  ccre: "#000000",
 };
 
 function generateTrack(sel: RowInfo, callbacks?: TrackCallbacks): Track {

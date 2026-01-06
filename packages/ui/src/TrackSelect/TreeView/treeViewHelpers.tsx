@@ -293,8 +293,8 @@ export function AssayIcon(type: string) {
     ChromHMM: "#0097a7",
     H3K27ac: "#fdc401",
     CTCF: "#01a6f1",
-    cCRE: "#8b5cf6",
-    "RNA-seq": "#f97316",
+    cCRE: "#000000",
+    "RNA-seq": "#00aa00",
   };
   const color = colorMap[type];
   return (
