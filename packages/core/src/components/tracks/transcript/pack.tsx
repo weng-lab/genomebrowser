@@ -22,7 +22,6 @@ export default function PackTranscript({
   onLeave,
   tooltip,
 }: PackTranscriptProps) {
-  console.log("PackTranscript rendering - data:", data, "canonicalColor:", canonicalColor);
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
   const fontSize = 10;
@@ -30,14 +29,6 @@ export default function PackTranscript({
   const sorted = useMemo(() => sortedTranscripts(data || []), [data]);
   const grouped = useMemo(() => groupFeatures(sorted, x, fontSize), [sorted, x, fontSize]);
   const rowHeight = useRowHeight(grouped.length, id);
-
-  // Debug: Log first few transcripts to check tag field
-  if (sorted.length > 0) {
-    console.log(
-      "Sample transcripts:",
-      sorted.slice(0, 3).map((t) => ({ name: t.name, tag: t.tag }))
-    );
-  }
 
   const rendered: TranscriptRow[] = useMemo(
     () =>
@@ -76,23 +67,7 @@ export default function PackTranscript({
             // console.log(transcript);
             let fillColor;
             const isMane = isManeSelectTranscript(transcript.transcript.tag);
-            console.log(
-              "Checking transcript:",
-              transcript.transcript.name,
-              "tag:",
-              transcript.transcript.tag,
-              "isMane:",
-              isMane
-            );
             if (isMane) {
-              console.log(
-                "MANE_Select found:",
-                transcript.transcript.name,
-                "tag:",
-                transcript.transcript.tag,
-                "canonicalColor:",
-                canonicalColor
-              );
               fillColor = canonicalColor;
             } else if (geneName !== "" && transcript.transcript.name.toLowerCase().includes(geneName?.toLowerCase())) {
               fillColor = highlightColor;
