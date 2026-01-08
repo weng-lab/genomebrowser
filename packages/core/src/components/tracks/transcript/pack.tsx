@@ -5,7 +5,7 @@ import { useXTransform } from "../../../hooks/useXTransform";
 // import { useTheme } from "../../../store/BrowserContext";
 import { groupFeatures } from "../../../utils/coordinates";
 import ClipPath from "../../svg/clipPath";
-import { getRealTranscript, renderTranscript, sortedTranscripts } from "./helper";
+import { getRealTranscript, isManeSelectTranscript, renderTranscript, sortedTranscripts } from "./helper";
 import { PackTranscriptProps, TranscriptRow } from "./types";
 
 export default function PackTranscript({
@@ -15,7 +15,6 @@ export default function PackTranscript({
   height,
   dimensions,
   color,
-  canonicalName,
   canonicalColor,
   highlightColor,
   onClick,
@@ -23,6 +22,7 @@ export default function PackTranscript({
   onLeave,
   tooltip,
 }: PackTranscriptProps) {
+  console.log("PackTranscript rendering - data:", data, "canonicalColor:", canonicalColor);
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
   const fontSize = 10;
@@ -30,6 +30,14 @@ export default function PackTranscript({
   const sorted = useMemo(() => sortedTranscripts(data || []), [data]);
   const grouped = useMemo(() => groupFeatures(sorted, x, fontSize), [sorted, x, fontSize]);
   const rowHeight = useRowHeight(grouped.length, id);
+
+  // Debug: Log first few transcripts to check tag field
+  if (sorted.length > 0) {
+    console.log(
+      "Sample transcripts:",
+      sorted.slice(0, 3).map((t) => ({ name: t.name, tag: t.tag }))
+    );
+  }
 
   const rendered: TranscriptRow[] = useMemo(
     () =>
@@ -67,7 +75,24 @@ export default function PackTranscript({
             const realTranscript = getRealTranscript(transcript.transcript, reverseX);
             // console.log(transcript);
             let fillColor;
-            if (canonicalName?.toLowerCase().includes(transcript.transcript.name.toLowerCase())) {
+            const isMane = isManeSelectTranscript(transcript.transcript.tag);
+            console.log(
+              "Checking transcript:",
+              transcript.transcript.name,
+              "tag:",
+              transcript.transcript.tag,
+              "isMane:",
+              isMane
+            );
+            if (isMane) {
+              console.log(
+                "MANE_Select found:",
+                transcript.transcript.name,
+                "tag:",
+                transcript.transcript.tag,
+                "canonicalColor:",
+                canonicalColor
+              );
               fillColor = canonicalColor;
             } else if (geneName !== "" && transcript.transcript.name.toLowerCase().includes(geneName?.toLowerCase())) {
               fillColor = highlightColor;

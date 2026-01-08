@@ -5,7 +5,7 @@ import { useXTransform } from "../../../hooks/useXTransform";
 // import { useTheme } from "../../../store/BrowserContext";
 import { groupFeatures } from "../../../utils/coordinates";
 import ClipPath from "../../svg/clipPath";
-import { getRealTranscript, mergeTranscripts, renderTranscript } from "./helper";
+import { getRealTranscript, isManeSelectTranscript, mergeTranscripts, renderTranscript } from "./helper";
 import { SquishTranscriptProps, TranscriptRow } from "./types";
 
 export function bestFontSize(height: number): number {
@@ -20,7 +20,6 @@ export default function SquishTranscript({
   height,
   dimensions,
   color,
-  canonicalName,
   canonicalColor,
   highlightColor,
   onClick,
@@ -71,7 +70,8 @@ export default function SquishTranscript({
           {group.transcripts.map((transcript, j) => {
             const realTranscript = getRealTranscript(transcript.transcript, reverseX);
             let fillColor;
-            if (canonicalName?.toLowerCase().includes(transcript.transcript.name.toLowerCase())) {
+            const isMane = isManeSelectTranscript(transcript.transcript.tag);
+            if (isMane) {
               fillColor = canonicalColor;
             } else if (geneName !== "" && transcript.transcript.name.toLowerCase().includes(geneName?.toLowerCase())) {
               fillColor = highlightColor;

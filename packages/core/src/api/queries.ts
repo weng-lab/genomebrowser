@@ -43,6 +43,7 @@ export const TRANSCRIPT_GENES_QUERY = gql`
             }
           }
         }
+        tag
       }
     }
   }

@@ -3,6 +3,11 @@ import { Exon, RenderedTranscript, Transcript, TranscriptList } from "./types";
 export interface GenomicElement {
   coordinates: { start: number; end: number };
 }
+
+export function isManeSelectTranscript(tag: string | undefined | null): boolean {
+  if (!tag) return false;
+  return tag.includes("MANE_Select");
+}
 function compareElements(a: GenomicElement, b: GenomicElement) {
   return a.coordinates.start === b.coordinates.start
     ? a.coordinates.end - b.coordinates.end
@@ -90,6 +95,7 @@ export function convertTranscriptCoordinates(
     name: transcript.name,
     id: transcript.id,
     color: transcript.color,
+    tag: transcript.tag,
     coordinates: {
       end: x(transcript.coordinates.end),
       start: x(transcript.coordinates.start),

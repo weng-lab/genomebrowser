@@ -8,8 +8,7 @@ export interface TranscriptConfig extends Config<Transcript> {
   version: number;
   refetch?: LazyQueryExecFunction<any, OperationVariables>;
   geneName?: string;
-  canonicalName?: string;
-  canonicalColor?: string; // colors in transcript with name == canonicalName
+  canonicalColor?: string; // colors in transcript with MANE_Select tag
   highlightColor?: string; // colors in transcript with name ~= geneName
 }
 
@@ -19,7 +18,6 @@ interface TranscriptProps {
   dimensions: TrackDimensions;
   height: number;
   color: string;
-  canonicalName?: string;
   canonicalColor?: string;
   highlightColor?: string;
   onClick?: (transcript: Transcript) => void;
@@ -39,6 +37,7 @@ export interface Transcript {
   strand: string;
   exons?: Exon[];
   color?: string;
+  tag?: string;
 }
 
 export interface TranscriptList {

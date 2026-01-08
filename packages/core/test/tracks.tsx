@@ -50,14 +50,13 @@ export const transcriptExample: TranscriptConfig = {
   title: "genes",
   titleSize: 12,
   height: 50,
-  color: Vibrant[8],
+  color: "#0c184a",
   trackType: TrackType.Transcript,
   assembly: "GRCh38",
   version: 47,
   displayMode: DisplayMode.Squish,
-  canonicalColor: "#00ff00",
+  canonicalColor: "#0098db",
   highlightColor: "#ff0000",
-  canonicalName: "APOC1-201",
   geneName: "APOC1",
 };
 
