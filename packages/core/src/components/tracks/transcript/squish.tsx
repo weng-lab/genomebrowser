@@ -70,8 +70,7 @@ export default function SquishTranscript({
           {group.transcripts.map((transcript, j) => {
             const realTranscript = getRealTranscript(transcript.transcript, reverseX);
             let fillColor;
-            const isMane = isManeSelectTranscript(transcript.transcript.tag);
-            if (isMane) {
+            if (isManeSelectTranscript(transcript.transcript.tag)) {
               fillColor = canonicalColor;
             } else if (geneName !== "" && transcript.transcript.name.toLowerCase().includes(geneName?.toLowerCase())) {
               fillColor = highlightColor;

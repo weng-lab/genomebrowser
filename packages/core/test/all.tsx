@@ -39,7 +39,8 @@ export default function All() {
       trackWidth: 1400,
       multiplier: 3,
       highlights: [
-        { id: "test", color: "#ff0000", domain: { chromosome: "chr19", start: 44905754, end: 44905754 + 2000 } },
+        // chr11:5,253,188-5,505,605
+        { id: "test", color: "#ff0000", domain: { chromosome: "chr11", start: 5253188, end: 5505605 } },
       ],
     },
     []
