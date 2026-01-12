@@ -8,6 +8,7 @@ import {
 import { ReactElement, ReactNode } from "react";
 import { SvgIconOwnProps } from "@mui/material";
 import { SelectionStoreInstance } from "./store";
+import { GroupingModeConfig } from "./biosample/config";
 
 export interface SearchTracksProps {
   query: string;
@@ -144,7 +145,7 @@ type DataGridWrapperProps = {
   rows: RowInfo[];
   selectedIds: Set<string>; // all IDs including auto-generated group IDs
   handleSelection: (newSelection: GridRowSelectionModel) => void;
-  sortedAssay: boolean;
+  groupingMode: GroupingModeConfig;
 };
 
 //This enforces that a downloadFileName is specified if a ReactElement is used as the label (no default )

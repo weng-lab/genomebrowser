@@ -9,7 +9,6 @@ import {
 } from "@mui/x-data-grid-premium";
 import { useEffect, useState } from "react";
 import { DataGridProps } from "../types";
-import { defaultColumns, sortedByAssayColumns } from "../biosample";
 import GroupingCell from "./GroupingCell";
 
 const autosizeOptions: GridAutosizeOptions = {
@@ -19,35 +18,37 @@ const autosizeOptions: GridAutosizeOptions = {
 };
 
 export function DataGridWrapper(props: DataGridProps) {
-  const { sortedAssay, handleSelection, rows, selectedIds } = props;
+  const { groupingMode, handleSelection, rows, selectedIds } = props;
 
   const apiRef = useGridApiRef();
 
-  // Resize columns when toggling between sort modes
+  // Resize columns when toggling between grouping modes
   useEffect(() => {
     if (apiRef.current && apiRef.current.autosizeColumns) {
       apiRef.current.autosizeColumns(autosizeOptions);
     }
-  }, [sortedAssay]);
+  }, [groupingMode.id]);
 
-  const groupingModel = sortedAssay
-    ? ["assay", "ontology"]
-    : ["ontology", "displayname"];
-  const columnModel = sortedAssay ? sortedByAssayColumns : defaultColumns;
-  const leafField = sortedAssay ? "displayname" : "assay";
+  const groupingModel = groupingMode.dataGridGrouping;
+  const columnModel = groupingMode.columns;
+  const leafField = groupingMode.leafField;
 
   // Hide columns that are used in grouping or as leaf field, plus ID column
-  const baseVisibility: GridColumnVisibilityModel = sortedAssay
-    ? { assay: false, ontology: false, displayname: false, id: false } // sort by assay: assay & ontology are grouping, displayname is leaf
-    : { ontology: false, displayname: false, assay: false, id: false }; // default: ontology & displayname are grouping, assay is leaf
+  const baseVisibility: GridColumnVisibilityModel = {
+    id: false,
+    ...Object.fromEntries(
+      groupingMode.dataGridGrouping.map((field) => [field, false])
+    ),
+    [leafField]: false,
+  };
 
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>(baseVisibility);
 
-  // Update visibility when sort mode changes
+  // Update visibility when grouping mode changes
   useEffect(() => {
     setColumnVisibilityModel(baseVisibility);
-  }, [sortedAssay]);
+  }, [groupingMode.id]);
 
   // functions to customize the column and filter panel in the toolbar
   const filterColumns = ({ columns }: FilterColumnsArgs) => {

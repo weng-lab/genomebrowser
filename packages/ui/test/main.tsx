@@ -32,7 +32,13 @@ import {
 } from "@weng-lab/genomebrowser";
 
 // local
-import { createSelectionStore, TrackSelect, RowInfo } from "../src/lib";
+import {
+  TrackSelect,
+  RowInfo,
+  Assembly as AssemblyType,
+  createBiosampleConfig,
+} from "../src/lib";
+import { buildRowsForAssembly } from "../src/TrackSelect/biosample";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
 
 interface Transcript {
@@ -151,13 +157,10 @@ function Main() {
   const insertTrack = trackStore((s) => s.insertTrack);
   const removeTrack = trackStore((s) => s.removeTrack);
 
-  const selectionStore = useMemo(() => {
-    const localIds = getLocalStorage(currentAssembly);
-    const ids = localIds != null ? localIds : new Set<string>();
-    return createSelectionStore(currentAssembly, ids);
+  // Get rowById for track generation
+  const rowById = useMemo(() => {
+    return buildRowsForAssembly(currentAssembly as AssemblyType).rowById;
   }, [currentAssembly]);
-
-  const rowById = selectionStore((s) => s.rowById);
 
   // Handle submit: sync tracks to browser and save to localStorage
   const handleSubmit = useCallback(
@@ -190,18 +193,15 @@ function Main() {
       // Close the dialog
       setOpen(false);
     },
-    [tracks, removeTrack, insertTrack, callbacks],
+    [tracks, removeTrack, insertTrack, callbacks, rowById, currentAssembly],
   );
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setOpen(false);
-  };
+  }, []);
 
   // Handle reset: clear selections and remove non-default tracks
-  const handleReset = () => {
-    // Clear the selection store
-    selectionStore.getState().clear();
-
+  const handleReset = useCallback(() => {
     // Remove all non-default tracks from the browser
     const tracksToRemove = tracks.filter((t) => !t.id.includes("ignore"));
     for (const t of tracksToRemove) {
@@ -210,7 +210,18 @@ function Main() {
 
     // Clear localStorage for selected tracks
     setLocalStorage(new Set(), currentAssembly);
-  };
+  }, [tracks, removeTrack, currentAssembly]);
+
+  // Create config for TrackSelect
+  const trackSelectConfig = useMemo(() => {
+    const localIds = getLocalStorage(currentAssembly);
+    return createBiosampleConfig(currentAssembly as AssemblyType, {
+      initialSelection: localIds ?? undefined,
+      onSubmit: handleSubmit,
+      onCancel: handleCancel,
+      onReset: handleReset,
+    });
+  }, [currentAssembly, handleSubmit, handleCancel, handleReset]);
 
   return (
     <>
@@ -246,12 +257,7 @@ function Main() {
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ marginTop: "5px" }}>
-          <TrackSelect
-            store={selectionStore}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            onReset={handleReset}
-          />
+          <TrackSelect config={trackSelectConfig} />
         </DialogContent>
       </Dialog>
       <GQLWrapper>

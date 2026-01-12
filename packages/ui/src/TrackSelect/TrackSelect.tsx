@@ -23,34 +23,40 @@ import {
   buildTreeView,
   searchTreeItems,
   ExtendedTreeItemProps,
+  BiosampleTrackSelectConfig,
 } from "./biosample";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
-import { SelectionStoreInstance } from "./store";
+import { createSelectionStore } from "./store";
 
 export interface TrackSelectProps {
-  store: SelectionStoreInstance;
-  onSubmit?: (trackIds: Set<string>) => void;
-  onCancel?: () => void;
-  onReset?: () => void;
+  config: BiosampleTrackSelectConfig;
 }
 
-export default function TrackSelect({
-  store,
-  onSubmit,
-  onCancel,
-  onReset,
-}: TrackSelectProps) {
+export default function TrackSelect({ config }: TrackSelectProps) {
+  // Create store internally from config
+  const store = useMemo(
+    () => createSelectionStore(config.assembly, config.initialSelection),
+    [config.assembly, config.initialSelection]
+  );
+
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
-  const [sortedAssay, setSortedAssay] = useState(false);
+  const [currentGroupingModeId, setCurrentGroupingModeId] = useState(
+    config.defaultGroupingModeId
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchResult, setIsSearchResult] = useState(false);
   const selectedIds = store((s) => s.selectedIds);
   const setSelected = store((s) => s.setSelected);
   const clear = store((s) => s.clear);
-  const MAX_ACTIVE = store((s) => s.maxTracks);
+  const MAX_ACTIVE = config.maxSelection;
   const rows = store((s) => s.rows);
   const rowById = store((s) => s.rowById);
   const assembly = store((s) => s.assembly);
+
+  const currentMode = useMemo(
+    () => config.groupingModes.find((m) => m.id === currentGroupingModeId)!,
+    [config.groupingModes, currentGroupingModeId]
+  );
 
   // Local working state - changes here don't affect the store until Submit
   const [workingIds, setWorkingIds] = useState<Set<string>>(
@@ -74,13 +80,14 @@ export default function TrackSelect({
   }, [selectedIds]);
 
   const treeItems = useMemo(() => {
-    return sortedAssay
+    const isAssayMode = currentMode.id === "by-assay";
+    return isAssayMode
       ? buildSortedAssayTreeView(
           Array.from(workingTrackIds),
           {
             id: "1",
             isAssayItem: false,
-            label: "Biosamples",
+            label: config.rootLabel,
             icon: "folder",
             children: [],
             allRowInfo: [],
@@ -92,21 +99,21 @@ export default function TrackSelect({
           {
             id: "1",
             isAssayItem: false,
-            label: "Biosamples",
+            label: config.rootLabel,
             icon: "folder",
             children: [],
             allRowInfo: [],
           },
           rowById,
         );
-  }, [workingTrackIds, sortedAssay, rowById]);
+  }, [workingTrackIds, currentMode, rowById, config.rootLabel]);
 
   const [filteredRows, setFilteredRows] = useState(rows);
   const [filteredTreeItems, setFilteredTreeItems] = useState([
     {
       id: "1",
       isAssayItem: false,
-      label: "Biosamples",
+      label: config.rootLabel,
       icon: "folder",
       children: [],
       allRowInfo: [],
@@ -127,13 +134,14 @@ export default function TrackSelect({
         searchResultIdsRef.current.has(id),
       );
 
-      const newTreeItems = sortedAssay
+      const isAssayMode = currentMode.id === "by-assay";
+      const newTreeItems = isAssayMode
         ? buildSortedAssayTreeView(
             matchingTrackIds,
             {
               id: "1",
               isAssayItem: false,
-              label: "Biosamples",
+              label: config.rootLabel,
               icon: "folder",
               children: [],
               allRowInfo: [],
@@ -145,7 +153,7 @@ export default function TrackSelect({
             {
               id: "1",
               isAssayItem: false,
-              label: "Biosamples",
+              label: config.rootLabel,
               icon: "folder",
               children: [],
               allRowInfo: [],
@@ -155,10 +163,14 @@ export default function TrackSelect({
 
       setFilteredTreeItems(newTreeItems);
     }
-  }, [treeItems, searchQuery, workingTrackIds, sortedAssay, rowById, rows]);
+  }, [treeItems, searchQuery, workingTrackIds, currentMode, rowById, rows, config.rootLabel]);
 
   const handleToggle = () => {
-    setSortedAssay(!sortedAssay);
+    const currentIndex = config.groupingModes.findIndex(
+      (m) => m.id === currentGroupingModeId
+    );
+    const nextIndex = (currentIndex + 1) % config.groupingModes.length;
+    setCurrentGroupingModeId(config.groupingModes[nextIndex].id);
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,15 +191,7 @@ export default function TrackSelect({
       const dataGridSearchProps = {
         jsonStructure: "tracks",
         query: query,
-        keyWeightMap: [
-          "displayname",
-          "ontology",
-          "lifeStage",
-          "sampleType",
-          "type",
-          "experimentAccession",
-          "fileAccession",
-        ],
+        keyWeightMap: config.searchFields,
         tracksData,
       };
 
@@ -200,26 +204,19 @@ export default function TrackSelect({
       const retIds = searchTreeItems({
         treeItems: treeItems,
         query: query,
-        keyWeightMap: [
-          "displayname",
-          "ontology",
-          "lifeStage",
-          "sampleType",
-          "type",
-          "experimentAccession",
-          "fileAccession",
-        ],
+        keyWeightMap: config.searchFields,
       }).map((r) => r.item.id);
       const newTreeIds = retIds.filter((i) => newDataGridIds.includes(i));
 
       // build new tree from the newTreeIds
-      const newTreeItems = sortedAssay
+      const isAssayMode = currentMode.id === "by-assay";
+      const newTreeItems = isAssayMode
         ? buildSortedAssayTreeView(
             newTreeIds,
             {
               id: "1",
               isAssayItem: false,
-              label: "Biosamples",
+              label: config.rootLabel,
               icon: "folder",
               children: [],
               allRowInfo: [],
@@ -231,7 +228,7 @@ export default function TrackSelect({
             {
               id: "1",
               isAssayItem: false,
-              label: "Biosamples",
+              label: config.rootLabel,
               icon: "folder",
               children: [],
               allRowInfo: [],
@@ -245,7 +242,7 @@ export default function TrackSelect({
       setFilteredRows(newDataGridRows);
       setIsSearchResult(true);
       setFilteredTreeItems(newTreeItems);
-    }, 300);
+    }, config.searchDebounceMs ?? 300);
   };
 
   const handleSelection = (newSelection: GridRowSelectionModel) => {
@@ -274,13 +271,13 @@ export default function TrackSelect({
     // Commit working selection to store
     setSelected(workingIds);
     // Call callback with real track IDs
-    onSubmit?.(workingTrackIds);
+    config.onSubmit?.(workingTrackIds);
   };
 
   const handleCancel = () => {
     // Revert working state to store's committed state
     setWorkingIds(new Set(selectedIds));
-    onCancel?.();
+    config.onCancel?.();
   };
 
   return (
@@ -295,9 +292,9 @@ export default function TrackSelect({
         />
         <FormControlLabel
           sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}
-          value="Sort by assay"
+          value={currentMode.label}
           control={<Switch color="primary" onChange={handleToggle} />}
-          label="Sort by assay"
+          label={currentMode.label}
           labelPlacement="end"
         />
       </Box>
@@ -312,7 +309,7 @@ export default function TrackSelect({
             }
             selectedIds={workingIds}
             handleSelection={handleSelection}
-            sortedAssay={sortedAssay}
+            groupingMode={currentMode}
           />
         </Box>
         <Box sx={{ flex: 2, minWidth: 0 }}>
@@ -331,8 +328,8 @@ export default function TrackSelect({
           variant="outlined"
           color="secondary"
           onClick={() => {
-            if (onReset) {
-              onReset();
+            if (config.onReset) {
+              config.onReset();
             } else {
               clear();
               setWorkingIds(new Set());
