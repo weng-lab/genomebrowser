@@ -26,7 +26,6 @@ import {
 } from "./biosample";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import { SelectionStoreInstance } from "./store";
-import { SearchTracksProps } from "./types";
 
 export interface TrackSelectProps {
   store: SelectionStoreInstance;
@@ -192,7 +191,13 @@ export default function TrackSelect({
         tracksData,
       };
 
-      const treeSearchProps: SearchTracksProps = {
+      const newDataGridRows = searchTracks(dataGridSearchProps)
+        .map((t) => t.item)
+        .flatMap(flattenIntoRows);
+
+      // we only want the intersection of filtered tracks displayed on the DataGrid and user-selected tracks to be displayed on the tree
+      const newDataGridIds = newDataGridRows.map((r) => r.id);
+      const retIds = searchTreeItems({
         treeItems: treeItems,
         query: query,
         keyWeightMap: [
@@ -204,14 +209,7 @@ export default function TrackSelect({
           "experimentAccession",
           "fileAccession",
         ],
-      };
-      const newDataGridRows = searchTracks(dataGridSearchProps)
-        .map((t) => t.item)
-        .flatMap(flattenIntoRows);
-
-      // we only want the intersection of filtered tracks displayed on the DataGrid and user-selected tracks to be displayed on the tree
-      const newDataGridIds = newDataGridRows.map((r) => r.id);
-      const retIds = searchTreeItems(treeSearchProps).map((r) => r.item.id);
+      }).map((r) => r.item.id);
       const newTreeIds = retIds.filter((i) => newDataGridIds.includes(i));
 
       // build new tree from the newTreeIds

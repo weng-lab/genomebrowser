@@ -8,7 +8,7 @@ export const assayTypes = [
   "CTCF",
   "RNA-seq",
   "ChromHMM",
-] as const;
+];
 
 // Ontology types (tissue types)
 export const ontologyTypes = [
@@ -55,7 +55,7 @@ export const ontologyTypes = [
   "Urinary Bladder",
   "Uterus",
   "Vagina",
-] as const;
+];
 
 // Assay color mapping for icons
 export const ASSAY_COLORS: Record<string, string> = {
@@ -88,7 +88,7 @@ export const SAMPLE_TYPE_OPTIONS = [
   "cell line",
   "in vitro differentiated cells",
   "organoid",
-] as const;
+];
 
 // Life stage options
-export const LIFE_STAGE_OPTIONS = ["adult", "embryonic"] as const;
+export const LIFE_STAGE_OPTIONS = ["adult", "embryonic"];
