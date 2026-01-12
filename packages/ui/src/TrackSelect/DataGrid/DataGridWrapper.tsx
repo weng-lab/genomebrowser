@@ -9,7 +9,7 @@ import {
 } from "@mui/x-data-grid-premium";
 import { useEffect, useState } from "react";
 import { DataGridProps } from "../types";
-import { defaultColumns, sortedByAssayColumns } from "./columns";
+import { defaultColumns, sortedByAssayColumns } from "../biosample";
 import GroupingCell from "./GroupingCell";
 
 const autosizeOptions: GridAutosizeOptions = {

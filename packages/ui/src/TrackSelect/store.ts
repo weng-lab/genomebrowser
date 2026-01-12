@@ -1,6 +1,6 @@
 import { create, StoreApi, UseBoundStore } from "zustand";
-import { buildRowsForAssembly, Assembly } from "./consts";
-import { RowInfo, SelectionAction, SelectionState } from "./types";
+import { buildRowsForAssembly, Assembly, RowInfo } from "./biosample";
+import { SelectionAction, SelectionState } from "./types";
 
 export type SelectionStoreInstance = UseBoundStore<
   StoreApi<SelectionState & SelectionAction>

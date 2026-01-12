@@ -17,12 +17,10 @@ import React from "react";
 import {
   CustomLabelProps,
   CustomTreeItemProps,
-  ExtendedTreeItemProps,
-  RowInfo,
 } from "../types";
+import { ExtendedTreeItemProps, RowInfo, assayTypes, ontologyTypes, AssayIcon } from "../biosample";
 import Fuse, { FuseResult } from "fuse.js";
 import { SearchTracksProps } from "../types";
-import { assayTypes, ontologyTypes } from "../consts";
 
 /** Format an ID like "h3k27ac-ENCFF922YMQ" to "H3K27ac - ENCFF922YMQ" */
 function formatIdLabel(id: string): string {

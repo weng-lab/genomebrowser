@@ -19,15 +19,14 @@ import {
   flattenIntoRows,
   searchTracks,
   getTracksData,
-} from "./DataGrid/dataGridHelpers";
-import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
-import {
   buildSortedAssayTreeView,
   buildTreeView,
   searchTreeItems,
-} from "./TreeView/treeViewHelpers";
+  ExtendedTreeItemProps,
+} from "./biosample";
+import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import { SelectionStoreInstance } from "./store";
-import { ExtendedTreeItemProps, SearchTracksProps } from "./types";
+import { SearchTracksProps } from "./types";
 
 export interface TrackSelectProps {
   store: SelectionStoreInstance;

@@ -2,9 +2,9 @@ import { Box, Paper, Typography } from "@mui/material";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
 import {
   CustomTreeItemProps,
-  ExtendedTreeItemProps,
   TreeViewWrapperProps,
 } from "../types";
+import { ExtendedTreeItemProps } from "../biosample";
 import { CustomTreeItem } from "./treeViewHelpers";
 import { Avatar } from "@mui/material";
 
