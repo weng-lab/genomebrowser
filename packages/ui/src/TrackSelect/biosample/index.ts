@@ -4,3 +4,4 @@ export * from "./columns";
 export * from "./icons";
 export * from "./dataLoader";
 export * from "./treeHelpers";
+export * from "./config";
