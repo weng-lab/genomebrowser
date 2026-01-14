@@ -2,6 +2,8 @@ import { GridColDef } from "@mui/x-data-grid-premium";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { ExtendedTreeItemProps } from "../types";
 
+export type Assembly = "GRCh38" | "mm10";
+
 /**
  * Runtime configuration that can be modified by ToolbarExtras components.
  * This allows folder-specific UI (like AssayToggle) to dynamically update

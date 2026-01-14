@@ -1,9 +1,12 @@
-import { Assembly } from "../consts";
-import { FolderDefinition } from "./types";
+import { Assembly, FolderDefinition } from "./types";
 import { humanBiosamplesFolder } from "./biosamples/human";
 import { mouseBiosamplesFolder } from "./biosamples/mouse";
 
-export { type FolderDefinition, type FolderRuntimeConfig } from "./types";
+export {
+  type Assembly,
+  type FolderDefinition,
+  type FolderRuntimeConfig,
+} from "./types";
 
 /**
  * Registry of folders available for each assembly.

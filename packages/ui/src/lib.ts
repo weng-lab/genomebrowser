@@ -6,3 +6,6 @@ import {
   type SelectionStoreInstance,
 } from "./TrackSelect/store.ts";
 export { createSelectionStore, SelectionStoreInstance };
+
+import { foldersByAssembly } from "./TrackSelect/folders";
+export { foldersByAssembly };

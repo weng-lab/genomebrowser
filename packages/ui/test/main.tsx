@@ -32,7 +32,9 @@ import {
 } from "@weng-lab/genomebrowser";
 
 // local
-import { createSelectionStore, TrackSelect, RowInfo } from "../src/lib";
+import { foldersByAssembly, TrackSelect } from "../src/lib";
+import type { FolderDefinition } from "../src/TrackSelect/folders";
+import type { BiosampleRowInfo } from "../src/TrackSelect/folders/biosamples/shared/types";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
 
 interface Transcript {
@@ -44,10 +46,7 @@ interface Transcript {
   color?: string;
 }
 
-const enum Assembly {
-  human = "GRCh38",
-  mouse = "mm10",
-}
+type Assembly = "GRCh38" | "mm10";
 
 // Callback types for track interactions (using any to avoid type conflicts with library types)
 interface TrackCallbacks {
@@ -78,25 +77,72 @@ function injectCallbacks(track: Track, callbacks: TrackCallbacks): Track {
   return track;
 }
 
-function getLocalStorage(assembly: Assembly): Set<string> | null {
+type StoredSelection = Record<string, string[]>;
+
+function buildEmptySelection(
+  folders: FolderDefinition[],
+): Map<string, Set<string>> {
+  const map = new Map<string, Set<string>>();
+  folders.forEach((folder) => {
+    map.set(folder.id, new Set());
+  });
+  return map;
+}
+
+function serializeSelection(
+  selection: Map<string, Set<string>>,
+): StoredSelection {
+  const serialized: StoredSelection = {};
+  selection.forEach((ids, folderId) => {
+    serialized[folderId] = Array.from(ids);
+  });
+  return serialized;
+}
+
+function getLocalStorage(
+  assembly: Assembly,
+  folders: FolderDefinition[],
+): Map<string, Set<string>> | null {
   if (typeof window === "undefined" || !window.sessionStorage) return null;
 
   const selectedIds = sessionStorage.getItem(assembly + "-selected-tracks");
   if (!selectedIds) return null;
-  const idsArray = JSON.parse(selectedIds) as string[];
-  return new Set(idsArray);
+
+  const parsed = JSON.parse(selectedIds) as StoredSelection | string[];
+  const selection = buildEmptySelection(folders);
+
+  if (Array.isArray(parsed)) {
+    const defaultFolderId = folders[0]?.id;
+    if (defaultFolderId) {
+      selection.set(defaultFolderId, new Set(parsed));
+    }
+    return selection;
+  }
+
+  if (parsed && typeof parsed === "object") {
+    folders.forEach((folder) => {
+      const ids = parsed[folder.id] ?? [];
+      selection.set(folder.id, new Set(ids));
+    });
+    return selection;
+  }
+
+  return null;
 }
 
-function setLocalStorage(trackIds: Set<string>, assembly: Assembly) {
+function setLocalStorage(
+  selection: Map<string, Set<string>>,
+  assembly: Assembly,
+) {
   sessionStorage.setItem(
     assembly + "-selected-tracks",
-    JSON.stringify([...trackIds]),
+    JSON.stringify(serializeSelection(selection)),
   );
 }
 
 function Main() {
   const [open, setOpen] = useState(false);
-  const currentAssembly = Assembly.mouse;
+  const currentAssembly: Assembly = "mm10";
 
   const browserStore = createBrowserStoreMemo({
     // chr12:53,380,176-53,416,446
@@ -151,27 +197,40 @@ function Main() {
   const insertTrack = trackStore((s) => s.insertTrack);
   const removeTrack = trackStore((s) => s.removeTrack);
 
-  const selectionStore = useMemo(() => {
-    const localIds = getLocalStorage(currentAssembly);
-    const ids = localIds != null ? localIds : new Set<string>();
-    return createSelectionStore(currentAssembly, ids);
-  }, [currentAssembly]);
+  const folders = useMemo(
+    () => foldersByAssembly[currentAssembly],
+    [currentAssembly],
+  );
 
-  const rowById = selectionStore((s) => s.rowById);
+  const initialSelection = useMemo(
+    () => getLocalStorage(currentAssembly, folders),
+    [currentAssembly, folders],
+  );
 
   // Handle submit: sync tracks to browser and save to localStorage
   const handleSubmit = useCallback(
-    (newTrackIds: Set<string>) => {
+    (selectedByFolder: Map<string, Set<string>>) => {
       const currentIds = new Set(tracks.map((t) => t.id));
+      const selectedIds = new Set<string>();
+      const tracksToAdd: BiosampleRowInfo[] = [];
 
-      // Build tracks to add from newTrackIds + rowById lookup
-      const tracksToAdd = Array.from(newTrackIds)
-        .filter((id) => !currentIds.has(id)) // not in current track list
-        .map((id) => rowById.get(id)) // get RowInfo object
-        .filter((track): track is RowInfo => track !== undefined); // filter out undefined
+      for (const folder of folders) {
+        const folderSelection =
+          selectedByFolder.get(folder.id) ?? new Set<string>();
+        folderSelection.forEach((id) => {
+          selectedIds.add(id);
+          if (currentIds.has(id)) {
+            return;
+          }
+          const row = folder.rowById.get(id);
+          if (row) {
+            tracksToAdd.push(row as BiosampleRowInfo);
+          }
+        });
+      }
 
       const tracksToRemove = tracks.filter((t) => {
-        return !t.id.includes("ignore") && !newTrackIds.has(t.id);
+        return !t.id.includes("ignore") && !selectedIds.has(t.id);
       });
 
       console.log("removing", tracksToRemove);
@@ -186,11 +245,11 @@ function Main() {
       }
 
       // Save the track IDs (not the auto-generated group IDs)
-      setLocalStorage(newTrackIds, currentAssembly);
+      setLocalStorage(selectedByFolder, currentAssembly);
       // Close the dialog
       setOpen(false);
     },
-    [tracks, removeTrack, insertTrack, callbacks],
+    [tracks, removeTrack, insertTrack, callbacks, folders, currentAssembly],
   );
 
   const handleCancel = () => {
@@ -199,8 +258,7 @@ function Main() {
 
   // Handle reset: clear selections and remove non-default tracks
   const handleReset = () => {
-    // Clear the selection store
-    selectionStore.getState().clear();
+    const clearedSelection = buildEmptySelection(folders);
 
     // Remove all non-default tracks from the browser
     const tracksToRemove = tracks.filter((t) => !t.id.includes("ignore"));
@@ -209,7 +267,7 @@ function Main() {
     }
 
     // Clear localStorage for selected tracks
-    setLocalStorage(new Set(), currentAssembly);
+    setLocalStorage(clearedSelection, currentAssembly);
   };
 
   return (
@@ -247,10 +305,12 @@ function Main() {
         </DialogTitle>
         <DialogContent sx={{ marginTop: "5px" }}>
           <TrackSelect
-            store={selectionStore}
+            folders={folders}
+            initialSelection={initialSelection ?? undefined}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             onReset={handleReset}
+            maxTracks={30}
           />
         </DialogContent>
       </Dialog>
@@ -274,7 +334,10 @@ const ASSAY_COLORS: Record<string, string> = {
   ccre: "#000000",
 };
 
-function generateTrack(sel: RowInfo, callbacks?: TrackCallbacks): Track {
+function generateTrack(
+  sel: BiosampleRowInfo,
+  callbacks?: TrackCallbacks,
+): Track {
   const color = ASSAY_COLORS[sel.assay.toLowerCase()] || "#000000";
   let track: Track;
 

@@ -1,6 +1,7 @@
 import { Box } from "@mui/material";
+import type { Assembly } from "../../types";
 
-export type Assembly = "GRCh38" | "mm10";
+export type { Assembly };
 
 export const assayTypes = [
   "cCRE",
