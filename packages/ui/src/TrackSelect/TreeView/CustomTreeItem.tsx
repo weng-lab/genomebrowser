@@ -1,6 +1,6 @@
 import Folder from "@mui/icons-material/Folder";
 import IndeterminateCheckBoxRoundedIcon from "@mui/icons-material/IndeterminateCheckBoxRounded";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Tooltip, Typography } from "@mui/material";
 import Collapse from "@mui/material/Collapse";
 import { alpha, styled } from "@mui/material/styles";
 import {
@@ -35,6 +35,9 @@ const TreeItemRoot = styled("li")(({ theme }) => ({
 const TreeItemLabelText = styled(Typography)({
   color: "black",
   fontFamily: "inherit",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
 });
 
 function CustomLabel({
@@ -46,16 +49,19 @@ function CustomLabel({
 }: CustomLabelProps) {
   const variant = isAssayItem ? "subtitle2" : "body2";
   const fontWeight = isAssayItem ? "bold" : 500;
+  const labelText = typeof children === "string" ? children : "";
   return (
     <TreeItemLabel
       {...other}
       sx={{
         display: "flex",
         alignItems: "center",
+        minWidth: 0,
+        overflow: "hidden",
       }}
     >
       {Icon && React.isValidElement(Icon) ? (
-        <Box className="labelIcon" sx={{ mr: 1 }}>
+        <Box className="labelIcon" sx={{ mr: 1, flexShrink: 0 }}>
           {Icon}
         </Box>
       ) : (
@@ -63,15 +69,22 @@ function CustomLabel({
           component={Icon as React.ElementType}
           className="labelIcon"
           color="inherit"
-          sx={{ mr: 1, fontSize: "1.2rem" }}
+          sx={{ mr: 1, fontSize: "1.2rem", flexShrink: 0 }}
         />
       )}
-      <Stack direction="row" spacing={1} alignItems="center">
-        {isAssayItem && AssayIcon(other.id)}
-        {assayName && AssayIcon(assayName)}
-        <TreeItemLabelText fontWeight={fontWeight} variant={variant}>
-          {children}
-        </TreeItemLabelText>
+      <Stack
+        direction="row"
+        spacing={1}
+        alignItems="center"
+        sx={{ minWidth: 0, overflow: "hidden" }}
+      >
+        {isAssayItem && <Box sx={{ flexShrink: 0 }}>{AssayIcon(other.id)}</Box>}
+        {assayName && <Box sx={{ flexShrink: 0 }}>{AssayIcon(assayName)}</Box>}
+        <Tooltip title={labelText} enterDelay={500} placement="top">
+          <TreeItemLabelText fontWeight={fontWeight} variant={variant}>
+            {children}
+          </TreeItemLabelText>
+        </Tooltip>
       </Stack>
     </TreeItemLabel>
   );
