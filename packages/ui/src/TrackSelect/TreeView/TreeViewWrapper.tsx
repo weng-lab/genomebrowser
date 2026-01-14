@@ -1,18 +1,36 @@
-import { Box, Paper, Typography } from "@mui/material";
+import { Avatar, Box, Paper, Typography } from "@mui/material";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
+import { useMemo } from "react";
 import {
   CustomTreeItemProps,
   ExtendedTreeItemProps,
   TreeViewWrapperProps,
 } from "../types";
 import { CustomTreeItem } from "./CustomTreeItem";
-import { Avatar } from "@mui/material";
+
+/**
+ * Recursively collects all item IDs that have children (expandable items)
+ */
+function getAllExpandableItemIds(
+  items: TreeViewBaseItem<ExtendedTreeItemProps>[],
+): string[] {
+  const ids: string[] = [];
+  for (const item of items) {
+    if (item.children && item.children.length > 0) {
+      ids.push(item.id);
+      ids.push(...getAllExpandableItemIds(item.children));
+    }
+  }
+  return ids;
+}
 
 export function TreeViewWrapper({
   items,
   selectedCount,
   onRemove,
 }: TreeViewWrapperProps) {
+  const expandedItemIds = useMemo(() => getAllExpandableItemIds(items), [items]);
+
   const handleRemoveTreeItem = (
     item: TreeViewBaseItem<ExtendedTreeItemProps>,
   ) => {
@@ -64,7 +82,7 @@ export function TreeViewWrapper({
       >
         <RichTreeView
           items={items}
-          defaultExpandedItems={["1"]}
+          defaultExpandedItems={expandedItemIds}
           slots={{ item: CustomTreeItem }}
           slotProps={{
             item: {
