@@ -558,4 +558,8 @@ After completing each task in this plan:
    - If tweaks requested, make the changes, then ask for commit again
    - Repeat this loop until you confirm the commit or explicitly say to move on
 
+4. **After commit is made**, mark the task as complete in this plan file:
+   - Change `[ ]` to `[x]` for the completed task
+   - This keeps the plan file as the single source of truth for progress
+
 This ensures incremental, reviewable commits that match each logical unit of work in the refactor.
