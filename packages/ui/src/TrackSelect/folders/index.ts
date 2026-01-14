@@ -1,5 +1,7 @@
 import { Assembly } from "../consts";
 import { FolderDefinition } from "./types";
+import { humanBiosamplesFolder } from "./biosamples/human";
+import { mouseBiosamplesFolder } from "./biosamples/mouse";
 
 export { type FolderDefinition, type FolderRuntimeConfig } from "./types";
 
@@ -25,10 +27,6 @@ export { type FolderDefinition, type FolderRuntimeConfig } from "./types";
  * ```
  */
 export const foldersByAssembly: Record<Assembly, FolderDefinition[]> = {
-  GRCh38: [
-    // TODO: Add humanBiosamplesFolder in task 1.3
-  ],
-  mm10: [
-    // TODO: Add mouseBiosamplesFolder in task 1.3
-  ],
+  GRCh38: [humanBiosamplesFolder],
+  mm10: [mouseBiosamplesFolder],
 };
