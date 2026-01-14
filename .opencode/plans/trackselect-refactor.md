@@ -145,7 +145,7 @@ TrackSelect/
 
 ---
 
-#### [ ] 1.2 Create biosamples shared utilities
+#### [x] 1.2 Create biosamples shared utilities
 
 **Files to create:**
 
@@ -540,3 +540,22 @@ export const foldersByAssembly: Record<Assembly, FolderDefinition[]> = {
 ```
 
 **No changes to TrackSelect or any core components required.**
+
+---
+
+## Workflow: Commits After Task Completion
+
+After completing each task in this plan:
+
+1. **Prompt for commit** - Ask: "Task [X.X] is complete. Would you like me to make a commit?"
+
+2. **If yes**, create a commit with:
+   - **Message style**: Short, lowercase, descriptive (e.g., "add folder types and registry", "extract AssayToggle component", "update TreeViewWrapper to be generic")
+   - **Files**: Only include files changed during that task session - do not stage unrelated changes
+   - **No scope prefixes** - Keep it simple, no `feat:`, `fix:`, etc.
+
+3. **If no**, ask: "Are there any edits or tweaks you'd like me to make?"
+   - If tweaks requested, make the changes, then ask for commit again
+   - Repeat this loop until you confirm the commit or explicitly say to move on
+
+This ensures incremental, reviewable commits that match each logical unit of work in the refactor.
