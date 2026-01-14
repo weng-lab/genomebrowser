@@ -53,11 +53,10 @@ export function buildSortedAssayTreeView(
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
   >();
-  const sampleAssayMap = new Map<
+  const displayNameMap = new Map<
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
   >();
-  let idx = 1;
 
   const selectedRows = selectedIds.reduce<BiosampleRowInfo[]>((acc, id) => {
     const row = rowById.get(id);
@@ -80,10 +79,11 @@ export function buildSortedAssayTreeView(
       root.children!.push(assayNode);
     }
 
-    let ontologyNode = ontologyMap.get(row.ontology + row.assay);
+    const ontologyKey = `${row.assay}-${row.ontology}`;
+    let ontologyNode = ontologyMap.get(ontologyKey);
     if (!ontologyNode) {
       ontologyNode = {
-        id: row.ontology + "_" + idx++,
+        id: ontologyKey,
         isAssayItem: false,
         label: row.ontology,
         icon: "removeable",
@@ -91,33 +91,35 @@ export function buildSortedAssayTreeView(
         allExpAccessions: [],
       };
       assayNode.children!.push(ontologyNode);
-      ontologyMap.set(row.ontology + row.assay, ontologyNode);
+      ontologyMap.set(ontologyKey, ontologyNode);
     }
 
-    const displayNameNode: TreeViewBaseItem<ExtendedTreeItemProps> = {
-      id: row.displayname + "_" + idx++,
-      isAssayItem: false,
-      label: row.displayname,
-      icon: "removeable",
-      children: [],
-      allExpAccessions: [],
-    };
-    ontologyNode.children!.push(displayNameNode);
-
-    let expNode = sampleAssayMap.get(row.displayname + row.id);
-    if (!expNode) {
-      expNode = {
-        id: row.id,
+    const displayNameKey = `${row.assay}-${row.ontology}-${row.displayname}`;
+    let displayNameNode = displayNameMap.get(displayNameKey);
+    if (!displayNameNode) {
+      displayNameNode = {
+        id: displayNameKey,
         isAssayItem: false,
-        label: formatIdLabel(row.id),
+        label: row.displayname,
         icon: "removeable",
-        assayName: row.assay,
         children: [],
-        allExpAccessions: [row.id],
+        allExpAccessions: [],
       };
-      sampleAssayMap.set(row.displayname + row.assay, expNode);
-      displayNameNode.children!.push(expNode);
+      ontologyNode.children!.push(displayNameNode);
+      displayNameMap.set(displayNameKey, displayNameNode);
     }
+
+    const expNode: TreeViewBaseItem<ExtendedTreeItemProps> = {
+      id: row.id,
+      isAssayItem: false,
+      label: formatIdLabel(row.id),
+      icon: "removeable",
+      assayName: row.assay,
+      children: [],
+      allExpAccessions: [row.id],
+    };
+    displayNameNode.children!.push(expNode);
+
     assayNode.allExpAccessions!.push(row.id);
     ontologyNode.allExpAccessions!.push(row.id);
     displayNameNode.allExpAccessions!.push(row.id);
@@ -154,10 +156,6 @@ export function buildTreeView(
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
   >();
-  const sampleAssayMap = new Map<
-    string,
-    TreeViewBaseItem<ExtendedTreeItemProps>
-  >();
 
   const selectedRows = selectedIds.reduce<BiosampleRowInfo[]>((acc, id) => {
     const row = rowById.get(id);
@@ -182,32 +180,30 @@ export function buildTreeView(
       root.children!.push(ontologyNode);
     }
 
-    let displayNameNode = displayNameMap.get(row.displayname);
+    const displayNameKey = `${row.ontology}-${row.displayname}`;
+    let displayNameNode = displayNameMap.get(displayNameKey);
     if (!displayNameNode) {
       displayNameNode = {
-        id: row.displayname,
+        id: displayNameKey,
         label: row.displayname,
         icon: "removeable",
         children: [],
         allExpAccessions: [],
       };
       ontologyNode.children!.push(displayNameNode);
-      displayNameMap.set(row.displayname, displayNameNode);
+      displayNameMap.set(displayNameKey, displayNameNode);
     }
 
-    let expNode = sampleAssayMap.get(row.displayname + row.assay);
-    if (!expNode) {
-      expNode = {
-        id: row.id,
-        label: formatIdLabel(row.id),
-        icon: "removeable",
-        assayName: row.assay,
-        children: [],
-        allExpAccessions: [row.id],
-      };
-      sampleAssayMap.set(row.displayname + row.assay, expNode);
-      displayNameNode.children!.push(expNode);
-    }
+    const expNode: TreeViewBaseItem<ExtendedTreeItemProps> = {
+      id: row.id,
+      label: formatIdLabel(row.id),
+      icon: "removeable",
+      assayName: row.assay,
+      children: [],
+      allExpAccessions: [row.id],
+    };
+    displayNameNode.children!.push(expNode);
+
     ontologyNode.allExpAccessions!.push(row.id);
     displayNameNode.allExpAccessions!.push(row.id);
   });

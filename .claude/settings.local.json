@@ -9,7 +9,8 @@
       "mcp__Ref__ref_read_url",
       "mcp__mui-mcp__useMuiDocs",
       "mcp__mui-mcp__fetchDocs",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }
