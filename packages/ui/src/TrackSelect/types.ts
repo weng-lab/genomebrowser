@@ -1,53 +1,8 @@
-import { FuseOptionKey } from "fuse.js";
 import { UseTreeItemParameters } from "@mui/x-tree-view/useTreeItem";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { DataGridPremiumProps, GridColDef } from "@mui/x-data-grid-premium";
 import { ReactElement, ReactNode } from "react";
 import { SvgIconOwnProps } from "@mui/material";
-
-export interface SearchTracksProps {
-  query: string;
-  keyWeightMap: FuseOptionKey<any>[];
-  jsonStructure?: string;
-  treeItems?: TreeViewBaseItem<ExtendedTreeItemProps>[];
-  threshold?: number;
-  limit?: number;
-}
-
-/**
- * Types for the JSON-formatted tracks fomr modifiedHumanTracks.json
- */
-export type AssayInfo = {
-  id: string;
-  assay: string;
-  url: string;
-  experimentAccession: string;
-  fileAccession: string;
-};
-
-export type TrackInfo = {
-  name: string;
-  ontology: string;
-  lifeStage: string;
-  sampleType: string;
-  displayname: string;
-  assays: AssayInfo[];
-};
-
-/**
- *  Row format for DataGrid
- */
-export type RowInfo = {
-  id: string;
-  ontology: string;
-  lifeStage: string;
-  sampleType: string;
-  displayname: string;
-  assay: string;
-  experimentAccession: string;
-  fileAccession: string;
-  url: string;
-};
 
 /**
  * Custom Tree Props for RichTreeView Panel
@@ -67,8 +22,6 @@ export type ExtendedTreeItemProps = {
    * this is used in updating the rowSelectionModel when removing items from the Tree View panel
    */
   allExpAccessions?: string[];
-  // list to allow search functionality in the treeview
-  allRowInfo?: RowInfo[];
 };
 
 export type TreeViewWrapperProps = {

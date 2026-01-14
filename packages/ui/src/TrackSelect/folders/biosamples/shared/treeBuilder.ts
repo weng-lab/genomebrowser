@@ -30,7 +30,6 @@ function createRootNode(
     icon: "folder",
     children: [],
     allExpAccessions: [],
-    allRowInfo: [],
   };
 }
 
@@ -122,7 +121,6 @@ export function buildSortedAssayTreeView(
     assayNode.allExpAccessions!.push(row.id);
     ontologyNode.allExpAccessions!.push(row.id);
     displayNameNode.allExpAccessions!.push(row.id);
-    root.allRowInfo!.push(row);
   });
 
   // standardize the order of the assay folders
@@ -212,7 +210,6 @@ export function buildTreeView(
     }
     ontologyNode.allExpAccessions!.push(row.id);
     displayNameNode.allExpAccessions!.push(row.id);
-    root.allRowInfo!.push(row);
   });
 
   // standardize the order of the ontology folders
