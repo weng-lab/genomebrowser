@@ -99,25 +99,18 @@ export interface CustomTreeItemProps
  * Types for useSelectionStore to keep track of selected DataGrid rows/tracks
  */
 export type SelectionState = {
-  maxTracks: number;
-  // Assembly determines which JSON data to use
-  assembly: string;
-  // All available rows for the current assembly
-  rows: RowInfo[];
-  // Map of id -> RowInfo for fast lookup
-  rowById: Map<string, RowInfo>;
-  // All selected IDs including auto-generated group IDs from DataGrid
-  selectedIds: Set<string>;
+  selectedByFolder: Map<string, Set<string>>;
+  activeFolderId: string;
 };
 
 export type SelectionAction = {
-  // Returns only real track IDs (filters out auto-generated group IDs)
-  getTrackIds: () => Set<string>;
-  // Returns a Map of track IDs to RowInfo (no auto-generated IDs)
-  getTrackMap: () => Map<string, RowInfo>;
-  setSelected: (ids: Set<string>) => void;
-  removeIds: (removedIds: Set<string>) => void;
-  clear: () => void;
+  select: (folderId: string, ids: Set<string>) => void;
+  deselect: (folderId: string, ids: Set<string>) => void;
+  clear: (folderId?: string) => void;
+  setActiveFolder: (folderId: string) => void;
+  getAllSelectedIds: () => Set<string>;
+  getSelectedForFolder: (folderId: string) => Set<string>;
+  getTotalCount: () => number;
 };
 
 /**
