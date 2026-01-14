@@ -9,40 +9,14 @@ import { CustomTreeItem } from "./CustomTreeItem";
 import { Avatar } from "@mui/material";
 
 export function TreeViewWrapper({
-  store,
   items,
-  trackIds,
-  isSearchResult,
+  selectedCount,
+  onRemove,
 }: TreeViewWrapperProps) {
-  const removeIds = store((s) => s.removeIds);
-  const rowById = store((s) => s.rowById);
-
   const handleRemoveTreeItem = (
     item: TreeViewBaseItem<ExtendedTreeItemProps>,
   ) => {
-    const removedIds = item.allExpAccessions;
-    if (removedIds && removedIds.length) {
-      const idsToRemove = new Set(removedIds);
-
-      // Also remove any auto-generated group IDs that contain these tracks
-      removedIds.forEach((id) => {
-        const row = rowById.get(id);
-        if (row) {
-          // Add the auto-generated group IDs for this track's grouping hierarchy
-          // Default view: ontology -> displayname
-          idsToRemove.add(`auto-generated-row-ontology/${row.ontology}`);
-          idsToRemove.add(
-            `auto-generated-row-ontology/${row.ontology}-displayname/${row.displayname}`,
-          );
-          // Sorted by assay view: assay -> ontology -> displayname
-          idsToRemove.add(`auto-generated-row-assay/${row.assay}`);
-          idsToRemove.add(
-            `auto-generated-row-assay/${row.assay}-ontology/${row.ontology}`,
-          );
-        }
-      });
-      removeIds(idsToRemove);
-    }
+    onRemove(item);
   };
 
   return (
@@ -78,16 +52,9 @@ export function TreeViewWrapper({
             color: "text.primary",
           }}
         >
-          {trackIds.size}
+          {selectedCount}
         </Avatar>
-        <Typography fontWeight="bold">
-          Active Tracks
-          {isSearchResult && (
-            <Typography component="span" color="text.secondary" sx={{ ml: 1 }}>
-              ({items[0].allRowInfo!.length} search results)
-            </Typography>
-          )}
-        </Typography>
+        <Typography fontWeight="bold">Active Tracks</Typography>
       </Box>
       <Box
         sx={{

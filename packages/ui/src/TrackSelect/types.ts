@@ -7,7 +7,6 @@ import {
 } from "@mui/x-data-grid-premium";
 import { ReactElement, ReactNode } from "react";
 import { SvgIconOwnProps } from "@mui/material";
-import { SelectionStoreInstance } from "./store";
 
 export interface SearchTracksProps {
   query: string;
@@ -75,10 +74,9 @@ export type ExtendedTreeItemProps = {
 };
 
 export type TreeViewWrapperProps = {
-  store: SelectionStoreInstance;
   items: TreeViewBaseItem<ExtendedTreeItemProps>[];
-  trackIds: Set<string>; // real track IDs only (no auto-generated)
-  isSearchResult: boolean;
+  selectedCount: number;
+  onRemove: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
 };
 
 export interface CustomLabelProps {

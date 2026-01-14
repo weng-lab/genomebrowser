@@ -273,6 +273,34 @@ export default function TrackSelect({
     setWorkingIds(allIds);
   };
 
+  const handleRemoveTreeItem = (
+    item: TreeViewBaseItem<ExtendedTreeItemProps>,
+  ) => {
+    const removedIds = item.allExpAccessions;
+    if (!removedIds || removedIds.length === 0) {
+      return;
+    }
+
+    const idsToRemove = new Set(removedIds);
+    removedIds.forEach((id) => {
+      const row = rowById.get(id);
+      if (row) {
+        idsToRemove.add(`auto-generated-row-ontology/${row.ontology}`);
+        idsToRemove.add(
+          `auto-generated-row-ontology/${row.ontology}-displayname/${row.displayname}`,
+        );
+        idsToRemove.add(`auto-generated-row-assay/${row.assay}`);
+        idsToRemove.add(
+          `auto-generated-row-assay/${row.assay}-ontology/${row.ontology}`,
+        );
+      }
+    });
+
+    const nextWorkingIds = new Set(workingIds);
+    idsToRemove.forEach((id) => nextWorkingIds.delete(id));
+    setWorkingIds(nextWorkingIds);
+  };
+
   const handleSubmit = () => {
     // Commit working selection to store
     setSelected(workingIds);
@@ -320,10 +348,9 @@ export default function TrackSelect({
         </Box>
         <Box sx={{ flex: 2, minWidth: 0 }}>
           <TreeViewWrapper
-            store={store}
             items={filteredTreeItems}
-            trackIds={workingTrackIds}
-            isSearchResult={isSearchResult}
+            selectedCount={workingTrackIds.size}
+            onRemove={handleRemoveTreeItem}
           />
         </Box>
       </Stack>
