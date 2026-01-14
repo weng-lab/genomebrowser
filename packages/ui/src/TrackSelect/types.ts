@@ -1,10 +1,7 @@
 import { FuseOptionKey } from "fuse.js";
 import { UseTreeItemParameters } from "@mui/x-tree-view/useTreeItem";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
-import {
-  DataGridPremiumProps,
-  GridRowSelectionModel,
-} from "@mui/x-data-grid-premium";
+import { DataGridPremiumProps, GridColDef } from "@mui/x-data-grid-premium";
 import { ReactElement, ReactNode } from "react";
 import { SvgIconOwnProps } from "@mui/material";
 
@@ -131,11 +128,13 @@ interface BaseTableProps extends Omit<DataGridPremiumProps, "columns"> {
   toolbarIconColor?: SvgIconOwnProps["htmlColor"];
 }
 
-type DataGridWrapperProps = {
-  rows: RowInfo[];
-  selectedIds: Set<string>; // all IDs including auto-generated group IDs
-  handleSelection: (newSelection: GridRowSelectionModel) => void;
-  sortedAssay: boolean;
+export type DataGridWrapperProps = {
+  rows: any[];
+  columns: GridColDef[];
+  groupingModel: string[];
+  leafField: string;
+  selectedIds: Set<string>;
+  onSelectionChange: (ids: Set<string>) => void;
 };
 
 //This enforces that a downloadFileName is specified if a ReactElement is used as the label (no default )

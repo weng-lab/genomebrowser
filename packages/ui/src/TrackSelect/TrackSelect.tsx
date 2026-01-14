@@ -11,7 +11,6 @@ import {
   Switch,
   TextField,
 } from "@mui/material";
-import { GridRowSelectionModel } from "@mui/x-data-grid-premium";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
@@ -20,6 +19,14 @@ import {
   searchTracks,
   getTracksData,
 } from "./DataGrid/dataGridHelpers";
+import {
+  defaultColumns,
+  defaultGroupingModel,
+  defaultLeafField,
+  sortedByAssayColumns,
+  sortedByAssayGroupingModel,
+  sortedByAssayLeafField,
+} from "./folders/biosamples/shared/columns";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import {
   buildSortedAssayTreeView,
@@ -69,6 +76,19 @@ export default function TrackSelect({
   const workingTrackIds = useMemo(() => {
     return new Set([...workingIds].filter((id) => rowById.has(id)));
   }, [workingIds, rowById]);
+
+  const columns = useMemo(
+    () => (sortedAssay ? sortedByAssayColumns : defaultColumns),
+    [sortedAssay],
+  );
+  const groupingModel = useMemo(
+    () => (sortedAssay ? sortedByAssayGroupingModel : defaultGroupingModel),
+    [sortedAssay],
+  );
+  const leafField = useMemo(
+    () => (sortedAssay ? sortedByAssayLeafField : defaultLeafField),
+    [sortedAssay],
+  );
 
   // Sync workingIds when store's selectedIds changes externally
   useEffect(() => {
@@ -251,9 +271,8 @@ export default function TrackSelect({
     }, 300);
   };
 
-  const handleSelection = (newSelection: GridRowSelectionModel) => {
-    const allIds: Set<string> =
-      (newSelection && (newSelection as any).ids) ?? new Set<string>();
+  const handleSelection = (newSelection: Set<string>) => {
+    const allIds = newSelection ?? new Set<string>();
 
     // Count only real track IDs for the limit check
     let realTrackCount = 0;
@@ -336,14 +355,16 @@ export default function TrackSelect({
         <Box sx={{ flex: 3, minWidth: 0 }}>
           <DataGridWrapper
             rows={filteredRows}
+            columns={columns}
+            groupingModel={groupingModel}
+            leafField={leafField}
             label={
               isSearchResult
                 ? `${filteredRows.length} Search Results`
                 : `${rows.length} Available Tracks`
             }
             selectedIds={workingIds}
-            handleSelection={handleSelection}
-            sortedAssay={sortedAssay}
+            onSelectionChange={handleSelection}
           />
         </Box>
         <Box sx={{ flex: 2, minWidth: 0 }}>
