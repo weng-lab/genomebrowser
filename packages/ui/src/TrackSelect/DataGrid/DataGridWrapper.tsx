@@ -98,7 +98,7 @@ export function DataGridWrapper(props: DataGridProps) {
             const ids = (selection as any)?.ids ?? new Set<string>();
             onSelectionChange(new Set(ids));
           }}
-          rowSelectionPropagation={{ descendants: true, parents: true }}
+          rowSelectionPropagation={{ descendants: true, parents: false }}
           disableRowGrouping={false}
           rowSelectionModel={{
             type: "include",

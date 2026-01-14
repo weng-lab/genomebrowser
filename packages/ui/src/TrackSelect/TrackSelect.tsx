@@ -175,9 +175,12 @@ export default function TrackSelect({
 
   const handleSelectionChange = (ids: Set<string>) => {
     if (!activeFolder) return;
+
+    // Filter to only include IDs that exist in rowById (exclude auto-generated group IDs)
     const filteredIds = new Set(
       Array.from(ids).filter((id) => activeFolder.rowById.has(id)),
     );
+
     const nextSelection = cloneSelectionMap(workingSelection);
     nextSelection.set(activeFolder.id, filteredIds);
 

@@ -1,6 +1,15 @@
+/// <reference types="vite/client" />
+
 // react
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
+
+// license
+import { LicenseInfo } from "@mui/x-license";
+const muiLicenseKey = import.meta.env.VITE_MUI_X_LICENSE_KEY;
+if (muiLicenseKey) {
+  LicenseInfo.setLicenseKey(muiLicenseKey);
+}
 
 // mui
 import EditIcon from "@mui/icons-material/Edit";
@@ -142,7 +151,7 @@ function setLocalStorage(
 
 function Main() {
   const [open, setOpen] = useState(false);
-  const currentAssembly: Assembly = "mm10";
+  const currentAssembly: Assembly = "GRCh38";
 
   const browserStore = createBrowserStoreMemo({
     // chr12:53,380,176-53,416,446
