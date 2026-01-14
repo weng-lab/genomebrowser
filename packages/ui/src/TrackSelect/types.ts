@@ -53,13 +53,8 @@ export type SelectionState = {
 };
 
 export type SelectionAction = {
-  select: (folderId: string, ids: Set<string>) => void;
-  deselect: (folderId: string, ids: Set<string>) => void;
   clear: (folderId?: string) => void;
   setActiveFolder: (folderId: string) => void;
-  getAllSelectedIds: () => Set<string>;
-  getSelectedForFolder: (folderId: string) => Set<string>;
-  getTotalCount: () => number;
   setSelection: (folderId: string, ids: Set<string>) => void;
 };
 

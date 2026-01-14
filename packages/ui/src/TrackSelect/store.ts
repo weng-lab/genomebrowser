@@ -73,27 +73,9 @@ export function createSelectionStore(
   const selectedByFolder = buildSelectionMap(folderIds, storedSelection);
   const activeFolderId = folderIds[0] ?? "";
 
-  const store = create<SelectionState & SelectionAction>((set, get) => ({
+  const store = create<SelectionState & SelectionAction>((set) => ({
     selectedByFolder,
     activeFolderId,
-    select: (folderId: string, ids: Set<string>) =>
-      set((state) => {
-        const next = new Map(state.selectedByFolder);
-        const current = next.get(folderId) ?? new Set<string>();
-        const nextSet = new Set(current);
-        ids.forEach((id) => nextSet.add(id));
-        next.set(folderId, nextSet);
-        return { selectedByFolder: next };
-      }),
-    deselect: (folderId: string, ids: Set<string>) =>
-      set((state) => {
-        const next = new Map(state.selectedByFolder);
-        const current = next.get(folderId) ?? new Set<string>();
-        const nextSet = new Set(current);
-        ids.forEach((id) => nextSet.delete(id));
-        next.set(folderId, nextSet);
-        return { selectedByFolder: next };
-      }),
     clear: (folderId?: string) =>
       set((state) => {
         if (folderId) {
@@ -110,22 +92,6 @@ export function createSelectionStore(
       }),
     setActiveFolder: (folderId: string) =>
       set(() => ({ activeFolderId: folderId })),
-    getAllSelectedIds: () => {
-      const all = new Set<string>();
-      get().selectedByFolder.forEach((ids) => {
-        ids.forEach((id) => all.add(id));
-      });
-      return all;
-    },
-    getSelectedForFolder: (folderId: string) =>
-      new Set(get().selectedByFolder.get(folderId) ?? []),
-    getTotalCount: () => {
-      let total = 0;
-      get().selectedByFolder.forEach((ids) => {
-        total += ids.size;
-      });
-      return total;
-    },
     setSelection: (folderId: string, ids: Set<string>) =>
       set((state) => {
         const next = new Map(state.selectedByFolder);
