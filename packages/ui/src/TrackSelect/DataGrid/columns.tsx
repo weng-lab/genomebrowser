@@ -1,7 +1,7 @@
 import { GridColDef } from "@mui/x-data-grid-premium";
 import { RowInfo } from "../types";
 import { Stack, capitalize } from "@mui/material";
-import { AssayIcon } from "../TreeView/treeViewHelpers";
+import { AssayIcon } from "../folders/biosamples/shared/constants";
 import { ontologyTypes, assayTypes } from "../consts";
 
 const displayNameCol: GridColDef<RowInfo> = {

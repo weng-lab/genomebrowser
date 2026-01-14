@@ -5,7 +5,7 @@ import {
   ExtendedTreeItemProps,
   TreeViewWrapperProps,
 } from "../types";
-import { CustomTreeItem } from "./treeViewHelpers";
+import { CustomTreeItem } from "./CustomTreeItem";
 import { Avatar } from "@mui/material";
 
 export function TreeViewWrapper({

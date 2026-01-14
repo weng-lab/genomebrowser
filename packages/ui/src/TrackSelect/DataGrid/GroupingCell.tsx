@@ -5,7 +5,7 @@ import {
   GridGroupNode,
 } from "@mui/x-data-grid-premium";
 import { assayTypes } from "../consts";
-import { AssayIcon } from "../TreeView/treeViewHelpers";
+import { AssayIcon } from "../folders/biosamples/shared/constants";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
