@@ -4,12 +4,15 @@ import {
   useGridApiContext,
   GridGroupNode,
 } from "@mui/x-data-grid-premium";
-import { assayTypes, AssayIcon } from "../folders/biosamples/shared/constants";
+import { assayTypes, AssayIcon } from "./constants";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-// Custom grouping cell that preserves expand/collapse while adding truncation + tooltip
-export default function GroupingCell(params: GridRenderCellParams) {
+/**
+ * Biosample-specific grouping cell that renders AssayIcon for assay groups/values.
+ * Handles expand/collapse, truncation, and tooltips.
+ */
+export default function BiosampleGroupingCell(params: GridRenderCellParams) {
   const apiRef = useGridApiContext();
   const isGroup = params.rowNode.type === "group";
   const groupNode = params.rowNode as GridGroupNode;

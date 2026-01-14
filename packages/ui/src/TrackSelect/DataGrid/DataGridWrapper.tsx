@@ -9,7 +9,7 @@ import {
 } from "@mui/x-data-grid-premium";
 import { useEffect, useMemo, useState } from "react";
 import { DataGridProps } from "../types";
-import GroupingCell from "./GroupingCell";
+import { DefaultGroupingCell } from "./DefaultGroupingCell";
 
 const autosizeOptions: GridAutosizeOptions = {
   expand: true,
@@ -25,7 +25,10 @@ export function DataGridWrapper(props: DataGridProps) {
     onSelectionChange,
     rows,
     selectedIds,
+    GroupingCellComponent,
   } = props;
+
+  const GroupingCell = GroupingCellComponent ?? DefaultGroupingCell;
 
   const apiRef = useGridApiRef();
 

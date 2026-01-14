@@ -12,8 +12,7 @@ import { TreeItemIcon } from "@mui/x-tree-view/TreeItemIcon";
 import { TreeItemProvider } from "@mui/x-tree-view/TreeItemProvider";
 import { useTreeItemModel } from "@mui/x-tree-view/hooks";
 import { useTreeItem } from "@mui/x-tree-view/useTreeItem";
-import React from "react";
-import { AssayIcon } from "../folders/biosamples/shared/constants";
+import React, { ReactNode } from "react";
 import {
   CustomLabelProps,
   CustomTreeItemProps,
@@ -45,6 +44,7 @@ function CustomLabel({
   children,
   isAssayItem,
   assayName,
+  renderIcon,
   ...other
 }: CustomLabelProps) {
   const variant = isAssayItem ? "subtitle2" : "body2";
@@ -78,8 +78,12 @@ function CustomLabel({
         alignItems="center"
         sx={{ minWidth: 0, overflow: "hidden" }}
       >
-        {isAssayItem && <Box sx={{ flexShrink: 0 }}>{AssayIcon(other.id)}</Box>}
-        {assayName && <Box sx={{ flexShrink: 0 }}>{AssayIcon(assayName)}</Box>}
+        {isAssayItem && renderIcon && (
+          <Box sx={{ flexShrink: 0 }}>{renderIcon(other.id)}</Box>
+        )}
+        {assayName && renderIcon && (
+          <Box sx={{ flexShrink: 0 }}>{renderIcon(assayName)}</Box>
+        )}
         <Tooltip title={labelText} enterDelay={500} placement="top">
           <TreeItemLabelText fontWeight={fontWeight} variant={variant}>
             {children}
@@ -116,14 +120,17 @@ const TreeItemContent = styled("div")(({ theme }) => ({
   },
 }));
 
-const getIconFromTreeItemType = (itemType: string) => {
+const getIconFromTreeItemType = (
+  itemType: string,
+  renderIcon?: (name: string) => ReactNode,
+) => {
   switch (itemType) {
     case "folder":
       return Folder;
     case "removeable":
       return IndeterminateCheckBoxRoundedIcon;
     default:
-      return AssayIcon(itemType);
+      return renderIcon ? renderIcon(itemType) : Folder;
   }
 };
 
@@ -131,7 +138,8 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
   props: CustomTreeItemProps,
   ref: React.Ref<HTMLLIElement>,
 ) {
-  const { id, itemId, label, disabled, children, onRemove, ...other } = props;
+  const { id, itemId, label, disabled, children, onRemove, renderIcon, ...other } =
+    props;
 
   const {
     getContextProviderProps,
@@ -145,7 +153,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
   } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref });
 
   const item = useTreeItemModel<ExtendedTreeItemProps>(itemId)!;
-  const icon = getIconFromTreeItemType(item.icon);
+  const icon = getIconFromTreeItemType(item.icon, renderIcon);
 
   const handleRemoveIconClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // prevent item expand/select
@@ -189,6 +197,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
               isAssayItem: item.isAssayItem,
               assayName: item.assayName,
               id: item.id,
+              renderIcon,
             })}
           />
         </TreeItemContent>

@@ -1,6 +1,6 @@
-import { GridColDef } from "@mui/x-data-grid-premium";
+import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
-import { ExtendedTreeItemProps } from "../types";
+import { ExtendedTreeItemProps, CustomTreeItemProps } from "../types";
 
 export type Assembly = "GRCh38" | "mm10";
 
@@ -75,4 +75,18 @@ export interface FolderDefinition<TRow = any> {
   ToolbarExtras?: React.FC<{
     updateConfig: (partial: Partial<FolderRuntimeConfig>) => void;
   }>;
+
+  /**
+   * Optional custom component for rendering grouping cells in the DataGrid.
+   * If not provided, a default grouping cell renderer will be used.
+   */
+  GroupingCellComponent?: React.FC<GridRenderCellParams>;
+
+  /**
+   * Optional custom TreeItem component for the TreeView.
+   * If not provided, the default CustomTreeItem will be used.
+   */
+  TreeItemComponent?: React.ForwardRefExoticComponent<
+    CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
+  >;
 }

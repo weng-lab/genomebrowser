@@ -28,6 +28,7 @@ export function TreeViewWrapper({
   items,
   selectedCount,
   onRemove,
+  TreeItemComponent,
 }: TreeViewWrapperProps) {
   const expandedItemIds = useMemo(() => getAllExpandableItemIds(items), [items]);
 
@@ -36,6 +37,8 @@ export function TreeViewWrapper({
   ) => {
     onRemove(item);
   };
+
+  const TreeItem = TreeItemComponent ?? CustomTreeItem;
 
   return (
     <Paper
@@ -83,7 +86,7 @@ export function TreeViewWrapper({
         <RichTreeView
           items={items}
           defaultExpandedItems={expandedItemIds}
-          slots={{ item: CustomTreeItem }}
+          slots={{ item: TreeItem }}
           slotProps={{
             item: {
               onRemove: handleRemoveTreeItem,

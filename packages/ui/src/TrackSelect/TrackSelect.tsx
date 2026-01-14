@@ -265,6 +265,7 @@ export default function TrackSelect({
             label={`${rows.length} Available ${activeFolder.label}`}
             selectedIds={selectedIds}
             onSelectionChange={handleSelectionChange}
+            GroupingCellComponent={activeFolder.GroupingCellComponent}
           />
         </Box>
         <Box sx={{ flex: 2, minWidth: 0 }}>
@@ -272,6 +273,7 @@ export default function TrackSelect({
             items={treeItems}
             selectedCount={selectedCount}
             onRemove={handleRemoveTreeItem}
+            TreeItemComponent={activeFolder.TreeItemComponent}
           />
         </Box>
       </Stack>

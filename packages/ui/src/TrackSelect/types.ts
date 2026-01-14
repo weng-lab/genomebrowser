@@ -1,6 +1,10 @@
 import { UseTreeItemParameters } from "@mui/x-tree-view/useTreeItem";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
-import { DataGridPremiumProps, GridColDef } from "@mui/x-data-grid-premium";
+import {
+  DataGridPremiumProps,
+  GridColDef,
+  GridRenderCellParams,
+} from "@mui/x-data-grid-premium";
 import { ReactElement, ReactNode } from "react";
 import { SvgIconOwnProps } from "@mui/material";
 
@@ -28,6 +32,10 @@ export type TreeViewWrapperProps = {
   items: TreeViewBaseItem<ExtendedTreeItemProps>[];
   selectedCount: number;
   onRemove: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
+  /** Optional custom TreeItem component */
+  TreeItemComponent?: React.ForwardRefExoticComponent<
+    CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
+  >;
 };
 
 export interface CustomLabelProps {
@@ -35,13 +43,17 @@ export interface CustomLabelProps {
   children: React.ReactNode;
   isAssayItem?: boolean;
   assayName?: string;
-  icon: React.ElementType | React.ReactElement;
+  icon?: React.ElementType | React.ReactElement | ReactNode;
+  /** Optional function to render custom icons for assay items */
+  renderIcon?: (name: string) => ReactNode;
 }
 
 export interface CustomTreeItemProps
   extends Omit<UseTreeItemParameters, "rootRef">,
     Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {
   onRemove?: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
+  /** Optional function to render custom icons for assay items */
+  renderIcon?: (name: string) => ReactNode;
 }
 
 /**
@@ -85,6 +97,8 @@ export type DataGridWrapperProps = {
   leafField: string;
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
+  /** Optional custom component for rendering grouping cells */
+  GroupingCellComponent?: React.FC<GridRenderCellParams>;
 };
 
 //This enforces that a downloadFileName is specified if a ReactElement is used as the label (no default )
