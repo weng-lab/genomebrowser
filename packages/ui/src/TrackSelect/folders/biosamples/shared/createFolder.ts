@@ -12,6 +12,7 @@ import {
 } from "./columns";
 import { buildTreeView } from "./treeBuilder";
 import { formatAssayType } from "./constants";
+import { AssayToggle } from "./AssayToggle";
 
 /**
  * Flattens TrackInfo into RowInfo objects for DataGrid display.
@@ -96,6 +97,7 @@ export function createBiosampleFolder(
     buildTree: (selectedIds, rowById) =>
       buildTreeView(selectedIds, rowById, label),
 
-    // ToolbarExtras will be added in task 2.1 (AssayToggle)
+    // Biosample-specific toolbar: toggle between sample-grouped and assay-grouped views
+    ToolbarExtras: AssayToggle,
   };
 }
