@@ -134,7 +134,7 @@ TrackSelect/
 
 ### Phase 1: Set Up Folder Infrastructure
 
-#### 1.1 Create folder types and base structure
+#### [x] 1.1 Create folder types and base structure
 
 **Files to create:**
 
@@ -145,7 +145,7 @@ TrackSelect/
 
 ---
 
-#### 1.2 Create biosamples shared utilities
+#### [ ] 1.2 Create biosamples shared utilities
 
 **Files to create:**
 
@@ -157,7 +157,7 @@ TrackSelect/
 
 ---
 
-#### 1.3 Create biosample folder configs and move data
+#### [ ] 1.3 Create biosample folder configs and move data
 
 **Files to create/move:**
 
@@ -174,7 +174,7 @@ TrackSelect/
 
 ### Phase 2: Create AssayToggle Component
 
-#### 2.1 Extract AssayToggle as a ToolbarExtras component
+#### [ ] 2.1 Extract AssayToggle as a ToolbarExtras component
 
 **Files to create:**
 
@@ -190,7 +190,7 @@ TrackSelect/
 
 ### Phase 3: Refactor Store
 
-#### 3.1 Rewrite store to be folder-aware
+#### [ ] 3.1 Rewrite store to be folder-aware
 
 **Files to rewrite:**
 
@@ -206,7 +206,7 @@ TrackSelect/
 
 ### Phase 4: Refactor UI Components
 
-#### 4.1 Extract CustomTreeItem styling
+#### [ ] 4.1 Extract CustomTreeItem styling
 
 **Files to create:**
 
@@ -221,7 +221,7 @@ TrackSelect/
 
 ---
 
-#### 4.2 Update TreeViewWrapper to be generic
+#### [ ] 4.2 Update TreeViewWrapper to be generic
 
 **Files to update:**
 
@@ -242,7 +242,7 @@ interface TreeViewWrapperProps {
 
 ---
 
-#### 4.3 Update DataGridWrapper to be generic
+#### [ ] 4.3 Update DataGridWrapper to be generic
 
 **Files to update:**
 
@@ -267,7 +267,7 @@ interface DataGridWrapperProps {
 
 ---
 
-#### 4.4 Rewrite TrackSelect as data-agnostic shell
+#### [ ] 4.4 Rewrite TrackSelect as data-agnostic shell
 
 **Files to rewrite:**
 
@@ -292,7 +292,7 @@ interface DataGridWrapperProps {
 
 ### Phase 5: Cleanup
 
-#### 5.1 Delete obsolete files
+#### [ ] 5.1 Delete obsolete files
 
 **Files to delete:**
 
@@ -307,7 +307,7 @@ interface DataGridWrapperProps {
 
 ---
 
-#### 5.2 Clean up types.ts
+#### [ ] 5.2 Clean up types.ts
 
 **Files to update:**
 
@@ -332,7 +332,7 @@ interface DataGridWrapperProps {
 
 ### Phase 6: Update Consumers
 
-#### 6.1 Update test/main.tsx and document changes for production
+#### [ ] 6.1 Update test/main.tsx and document changes for production
 
 **Files to update:**
 
