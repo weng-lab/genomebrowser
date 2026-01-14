@@ -6,371 +6,270 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  FormControlLabel,
   Stack,
-  Switch,
-  TextField,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
-import {
-  flattenIntoRows,
-  searchTracks,
-  getTracksData,
-} from "./DataGrid/dataGridHelpers";
-import {
-  defaultColumns,
-  defaultGroupingModel,
-  defaultLeafField,
-  sortedByAssayColumns,
-  sortedByAssayGroupingModel,
-  sortedByAssayLeafField,
-} from "./folders/biosamples/shared/columns";
+import { FolderDefinition, FolderRuntimeConfig } from "./folders/types";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
-import {
-  buildSortedAssayTreeView,
-  buildTreeView,
-  searchTreeItems,
-} from "./TreeView/treeViewHelpers";
-import { SelectionStoreInstance } from "./store";
-import { ExtendedTreeItemProps, SearchTracksProps } from "./types";
+import { ExtendedTreeItemProps } from "./types";
 
 export interface TrackSelectProps {
-  store: SelectionStoreInstance;
-  onSubmit?: (trackIds: Set<string>) => void;
+  folders: FolderDefinition[];
+  onSubmit: (selectedByFolder: Map<string, Set<string>>) => void;
   onCancel?: () => void;
   onReset?: () => void;
+  maxTracks?: number;
+  initialSelection?: Map<string, Set<string>>;
 }
 
+const DEFAULT_MAX_TRACKS = 30;
+
+const buildSelectionMap = (
+  folders: FolderDefinition[],
+  initialSelection?: Map<string, Set<string>>,
+) => {
+  const map = new Map<string, Set<string>>();
+  folders.forEach((folder) => {
+    const initial = initialSelection?.get(folder.id);
+    map.set(folder.id, initial ? new Set(initial) : new Set<string>());
+  });
+  return map;
+};
+
+const cloneSelectionMap = (selection: Map<string, Set<string>>) => {
+  const map = new Map<string, Set<string>>();
+  selection.forEach((ids, folderId) => {
+    map.set(folderId, new Set(ids));
+  });
+  return map;
+};
+
+const buildRuntimeConfigMap = (folders: FolderDefinition[]) => {
+  const map = new Map<string, FolderRuntimeConfig>();
+  folders.forEach((folder) => {
+    map.set(folder.id, {
+      columns: folder.columns,
+      groupingModel: folder.groupingModel,
+      leafField: folder.leafField,
+    });
+  });
+  return map;
+};
+
+const getTotalSelectedCount = (selection: Map<string, Set<string>>) => {
+  let total = 0;
+  selection.forEach((ids) => {
+    total += ids.size;
+  });
+  return total;
+};
+
+const attachFolderId = (
+  items: TreeViewBaseItem<ExtendedTreeItemProps>[],
+  folderId: string,
+): TreeViewBaseItem<ExtendedTreeItemProps>[] => {
+  return items.map((item) => ({
+    ...item,
+    folderId,
+    children: item.children
+      ? attachFolderId(item.children, folderId)
+      : undefined,
+  }));
+};
+
 export default function TrackSelect({
-  store,
+  folders,
   onSubmit,
   onCancel,
   onReset,
+  maxTracks,
+  initialSelection,
 }: TrackSelectProps) {
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
-  const [sortedAssay, setSortedAssay] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchResult, setIsSearchResult] = useState(false);
-  const selectedIds = store((s) => s.selectedIds);
-  const setSelected = store((s) => s.setSelected);
-  const clear = store((s) => s.clear);
-  const MAX_ACTIVE = store((s) => s.maxTracks);
-  const rows = store((s) => s.rows);
-  const rowById = store((s) => s.rowById);
-  const assembly = store((s) => s.assembly);
-
-  // Local working state - changes here don't affect the store until Submit
-  const [workingIds, setWorkingIds] = useState<Set<string>>(
-    () => new Set(selectedIds),
+  const [activeFolderId, setActiveFolderId] = useState(folders[0]?.id ?? "");
+  const [committedSelection, setCommittedSelection] = useState(() =>
+    buildSelectionMap(folders, initialSelection),
+  );
+  const [workingSelection, setWorkingSelection] = useState(() =>
+    buildSelectionMap(folders, initialSelection),
+  );
+  const [runtimeConfigByFolder, setRuntimeConfigByFolder] = useState(() =>
+    buildRuntimeConfigMap(folders),
   );
 
-  // Get tracks data for search functionality
-  const tracksData = useMemo(
-    () => getTracksData(assembly as "GRCh38" | "mm10"),
-    [assembly],
-  );
-
-  // Get only real track IDs from working selection (no auto-generated group IDs)
-  const workingTrackIds = useMemo(() => {
-    return new Set([...workingIds].filter((id) => rowById.has(id)));
-  }, [workingIds, rowById]);
-
-  const columns = useMemo(
-    () => (sortedAssay ? sortedByAssayColumns : defaultColumns),
-    [sortedAssay],
-  );
-  const groupingModel = useMemo(
-    () => (sortedAssay ? sortedByAssayGroupingModel : defaultGroupingModel),
-    [sortedAssay],
-  );
-  const leafField = useMemo(
-    () => (sortedAssay ? sortedByAssayLeafField : defaultLeafField),
-    [sortedAssay],
-  );
-
-  // Sync workingIds when store's selectedIds changes externally
   useEffect(() => {
-    setWorkingIds(new Set(selectedIds));
-  }, [selectedIds]);
+    const nextSelection = buildSelectionMap(folders, initialSelection);
+    setCommittedSelection(nextSelection);
+    setWorkingSelection(nextSelection);
+    setRuntimeConfigByFolder(buildRuntimeConfigMap(folders));
+    setActiveFolderId((prev) => {
+      if (folders.some((folder) => folder.id === prev)) {
+        return prev;
+      }
+      return folders[0]?.id ?? "";
+    });
+  }, [folders, initialSelection]);
+
+  const activeFolder = useMemo(() => {
+    return folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
+  }, [folders, activeFolderId]);
+
+  const activeConfig = useMemo(() => {
+    if (!activeFolder) return undefined;
+    return (
+      runtimeConfigByFolder.get(activeFolder.id) ?? {
+        columns: activeFolder.columns,
+        groupingModel: activeFolder.groupingModel,
+        leafField: activeFolder.leafField,
+      }
+    );
+  }, [runtimeConfigByFolder, activeFolder]);
+
+  const selectedIds = useMemo(() => {
+    if (!activeFolder) return new Set<string>();
+    return new Set(workingSelection.get(activeFolder.id) ?? []);
+  }, [workingSelection, activeFolder]);
+
+  const selectedCount = useMemo(
+    () => getTotalSelectedCount(workingSelection),
+    [workingSelection],
+  );
+
+  const maxTracksLimit = maxTracks ?? DEFAULT_MAX_TRACKS;
+
+  const rows = useMemo(() => {
+    if (!activeFolder) return [];
+    return Array.from(activeFolder.rowById.values());
+  }, [activeFolder]);
 
   const treeItems = useMemo(() => {
-    return sortedAssay
-      ? buildSortedAssayTreeView(
-          Array.from(workingTrackIds),
-          {
-            id: "1",
-            isAssayItem: false,
-            label: "Biosamples",
-            icon: "folder",
-            children: [],
-            allRowInfo: [],
-          },
-          rowById,
-        )
-      : buildTreeView(
-          Array.from(workingTrackIds),
-          {
-            id: "1",
-            isAssayItem: false,
-            label: "Biosamples",
-            icon: "folder",
-            children: [],
-            allRowInfo: [],
-          },
-          rowById,
-        );
-  }, [workingTrackIds, sortedAssay, rowById]);
+    if (!activeFolder) return [];
+    return folders.flatMap((folder) =>
+      attachFolderId(
+        folder.buildTree(
+          Array.from(workingSelection.get(folder.id) ?? []),
+          folder.rowById,
+        ),
+        folder.id,
+      ),
+    );
+  }, [folders, workingSelection, activeFolder]);
 
-  const [filteredRows, setFilteredRows] = useState(rows);
-  const [filteredTreeItems, setFilteredTreeItems] = useState([
-    {
-      id: "1",
-      isAssayItem: false,
-      label: "Biosamples",
-      icon: "folder",
-      children: [],
-      allRowInfo: [],
+  const updateActiveFolderConfig = useCallback(
+    (partial: Partial<FolderRuntimeConfig>) => {
+      if (!activeFolder) return;
+      setRuntimeConfigByFolder((prev) => {
+        const current = prev.get(activeFolder.id);
+        if (!current) return prev;
+        const next = new Map(prev);
+        next.set(activeFolder.id, { ...current, ...partial });
+        return next;
+      });
     },
-  ] as TreeViewBaseItem<ExtendedTreeItemProps>[]);
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchResultIdsRef = useRef<Set<string>>(new Set());
+    [activeFolder],
+  );
 
-  useEffect(() => {
-    if (searchQuery === "") {
-      setFilteredTreeItems(treeItems);
-      setFilteredRows(rows);
-      setIsSearchResult(false);
-      searchResultIdsRef.current = new Set();
-    } else if (searchResultIdsRef.current.size > 0) {
-      // When selection changes during search, rebuild tree from selected items that match search
-      const matchingTrackIds = Array.from(workingTrackIds).filter((id) =>
-        searchResultIdsRef.current.has(id),
-      );
+  const handleSelectionChange = (ids: Set<string>) => {
+    if (!activeFolder) return;
+    const filteredIds = new Set(
+      Array.from(ids).filter((id) => activeFolder.rowById.has(id)),
+    );
+    const nextSelection = cloneSelectionMap(workingSelection);
+    nextSelection.set(activeFolder.id, filteredIds);
 
-      const newTreeItems = sortedAssay
-        ? buildSortedAssayTreeView(
-            matchingTrackIds,
-            {
-              id: "1",
-              isAssayItem: false,
-              label: "Biosamples",
-              icon: "folder",
-              children: [],
-              allRowInfo: [],
-            },
-            rowById,
-          )
-        : buildTreeView(
-            matchingTrackIds,
-            {
-              id: "1",
-              isAssayItem: false,
-              label: "Biosamples",
-              icon: "folder",
-              children: [],
-              allRowInfo: [],
-            },
-            rowById,
-          );
-
-      setFilteredTreeItems(newTreeItems);
-    }
-  }, [treeItems, searchQuery, workingTrackIds, sortedAssay, rowById, rows]);
-
-  const handleToggle = () => {
-    setSortedAssay(!sortedAssay);
-  };
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    // Debounce the search
-    searchTimeoutRef.current = setTimeout(() => {
-      if (query === "") {
-        return; // useEffect handles empty query
-      }
-
-      const dataGridSearchProps = {
-        jsonStructure: "tracks",
-        query: query,
-        keyWeightMap: [
-          "displayname",
-          "ontology",
-          "lifeStage",
-          "sampleType",
-          "type",
-          "experimentAccession",
-          "fileAccession",
-        ],
-        tracksData,
-      };
-
-      const treeSearchProps: SearchTracksProps = {
-        treeItems: treeItems,
-        query: query,
-        keyWeightMap: [
-          "displayname",
-          "ontology",
-          "lifeStage",
-          "sampleType",
-          "type",
-          "experimentAccession",
-          "fileAccession",
-        ],
-      };
-      const newDataGridRows = searchTracks(dataGridSearchProps)
-        .map((t) => t.item)
-        .flatMap(flattenIntoRows);
-
-      // we only want the intersection of filtered tracks displayed on the DataGrid and user-selected tracks to be displayed on the tree
-      const newDataGridIds = newDataGridRows.map((r) => r.id);
-      const retIds = searchTreeItems(treeSearchProps).map((r) => r.item.id);
-      const newTreeIds = retIds.filter((i) => newDataGridIds.includes(i));
-
-      // build new tree from the newTreeIds
-      const newTreeItems = sortedAssay
-        ? buildSortedAssayTreeView(
-            newTreeIds,
-            {
-              id: "1",
-              isAssayItem: false,
-              label: "Biosamples",
-              icon: "folder",
-              children: [],
-              allRowInfo: [],
-            },
-            rowById,
-          )
-        : buildTreeView(
-            newTreeIds,
-            {
-              id: "1",
-              isAssayItem: false,
-              label: "Biosamples",
-              icon: "folder",
-              children: [],
-              allRowInfo: [],
-            },
-            rowById,
-          );
-
-      // Store search result IDs in ref for use in useEffect
-      searchResultIdsRef.current = new Set(newDataGridIds);
-
-      setFilteredRows(newDataGridRows);
-      setIsSearchResult(true);
-      setFilteredTreeItems(newTreeItems);
-    }, 300);
-  };
-
-  const handleSelection = (newSelection: Set<string>) => {
-    const allIds = newSelection ?? new Set<string>();
-
-    // Count only real track IDs for the limit check
-    let realTrackCount = 0;
-    allIds.forEach((id: string) => {
-      if (rowById.has(id)) {
-        realTrackCount++;
-      }
-    });
-
-    // Block only if the new selection would exceed the limit
-    if (realTrackCount > MAX_ACTIVE) {
+    if (getTotalSelectedCount(nextSelection) > maxTracksLimit) {
       setLimitDialogOpen(true);
       return;
     }
 
-    // Update working state (not the store yet)
-    setWorkingIds(allIds);
+    setWorkingSelection(nextSelection);
   };
 
   const handleRemoveTreeItem = (
     item: TreeViewBaseItem<ExtendedTreeItemProps>,
   ) => {
-    const removedIds = item.allExpAccessions;
-    if (!removedIds || removedIds.length === 0) {
+    const folderId = item.folderId;
+    if (!folderId || !item.allExpAccessions?.length) {
       return;
     }
 
-    const idsToRemove = new Set(removedIds);
-    removedIds.forEach((id) => {
-      const row = rowById.get(id);
-      if (row) {
-        idsToRemove.add(`auto-generated-row-ontology/${row.ontology}`);
-        idsToRemove.add(
-          `auto-generated-row-ontology/${row.ontology}-displayname/${row.displayname}`,
-        );
-        idsToRemove.add(`auto-generated-row-assay/${row.assay}`);
-        idsToRemove.add(
-          `auto-generated-row-assay/${row.assay}-ontology/${row.ontology}`,
-        );
-      }
-    });
-
-    const nextWorkingIds = new Set(workingIds);
-    idsToRemove.forEach((id) => nextWorkingIds.delete(id));
-    setWorkingIds(nextWorkingIds);
+    const nextSelection = cloneSelectionMap(workingSelection);
+    const current = nextSelection.get(folderId) ?? new Set<string>();
+    item.allExpAccessions.forEach((id) => current.delete(id));
+    nextSelection.set(folderId, new Set(current));
+    setWorkingSelection(nextSelection);
   };
 
   const handleSubmit = () => {
-    // Commit working selection to store
-    setSelected(workingIds);
-    // Call callback with real track IDs
-    onSubmit?.(workingTrackIds);
+    const committed = cloneSelectionMap(workingSelection);
+    setCommittedSelection(committed);
+    onSubmit(committed);
   };
 
   const handleCancel = () => {
-    // Revert working state to store's committed state
-    setWorkingIds(new Set(selectedIds));
+    setWorkingSelection(cloneSelectionMap(committedSelection));
     onCancel?.();
   };
 
+  const handleReset = () => {
+    const cleared = buildSelectionMap(folders);
+    setWorkingSelection(cleared);
+    setCommittedSelection(cleared);
+    onReset?.();
+  };
+
+  if (!activeFolder || !activeConfig) {
+    return <Box sx={{ p: 2 }}>No folders available.</Box>;
+  }
+
+  const ToolbarExtras = activeFolder.ToolbarExtras;
+
   return (
     <Box sx={{ flex: 1, pt: 1 }}>
-      <Box display="flex" justifyContent="space-between" sx={{ mb: 3 }}>
-        <TextField
-          id="outlined-suffix-shrink"
-          label="Search tracks"
-          variant="outlined"
-          onChange={handleSearch}
-          sx={{ width: "400px" }}
-        />
-        <FormControlLabel
-          sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}
-          value="Sort by assay"
-          control={<Switch color="primary" onChange={handleToggle} />}
-          label="Sort by assay"
-          labelPlacement="end"
-        />
-      </Box>
+      {(folders.length > 1 || ToolbarExtras) && (
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 3 }}
+        >
+          {folders.length > 1 ? (
+            <Tabs
+              value={activeFolder.id}
+              onChange={(_event, value) => setActiveFolderId(value)}
+            >
+              {folders.map((folder) => (
+                <Tab key={folder.id} label={folder.label} value={folder.id} />
+              ))}
+            </Tabs>
+          ) : (
+            <Box />
+          )}
+          {ToolbarExtras && (
+            <ToolbarExtras updateConfig={updateActiveFolderConfig} />
+          )}
+        </Box>
+      )}
       <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
         <Box sx={{ flex: 3, minWidth: 0 }}>
           <DataGridWrapper
-            rows={filteredRows}
-            columns={columns}
-            groupingModel={groupingModel}
-            leafField={leafField}
-            label={
-              isSearchResult
-                ? `${filteredRows.length} Search Results`
-                : `${rows.length} Available Tracks`
-            }
-            selectedIds={workingIds}
-            onSelectionChange={handleSelection}
+            rows={rows}
+            columns={activeConfig.columns}
+            groupingModel={activeConfig.groupingModel}
+            leafField={activeConfig.leafField}
+            label={`${rows.length} Available ${activeFolder.label}`}
+            selectedIds={selectedIds}
+            onSelectionChange={handleSelectionChange}
           />
         </Box>
         <Box sx={{ flex: 2, minWidth: 0 }}>
           <TreeViewWrapper
-            items={filteredTreeItems}
-            selectedCount={workingTrackIds.size}
+            items={treeItems}
+            selectedCount={selectedCount}
             onRemove={handleRemoveTreeItem}
           />
         </Box>
@@ -378,18 +277,7 @@ export default function TrackSelect({
       <Box
         sx={{ display: "flex", justifyContent: "space-between", mt: 2, gap: 2 }}
       >
-        <Button
-          variant="outlined"
-          color="secondary"
-          onClick={() => {
-            if (onReset) {
-              onReset();
-            } else {
-              clear();
-              setWorkingIds(new Set());
-            }
-          }}
-        >
+        <Button variant="outlined" color="secondary" onClick={handleReset}>
           Reset
         </Button>
         <Box sx={{ display: "flex", gap: 2 }}>
@@ -405,8 +293,8 @@ export default function TrackSelect({
         <DialogTitle>Track Limit Reached</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            You can select up to {MAX_ACTIVE} tracks at a time. Please remove a
-            track before adding another.
+            You can select up to {maxTracksLimit} tracks at a time. Please
+            remove a track before adding another.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

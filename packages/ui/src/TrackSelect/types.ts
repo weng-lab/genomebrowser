@@ -56,6 +56,7 @@ export type ExtendedTreeItemProps = {
   id: string;
   label: string;
   icon: string;
+  folderId?: string;
   isAssayItem?: boolean;
   /**
    * The assay name for leaf nodes (experiment accession items)
