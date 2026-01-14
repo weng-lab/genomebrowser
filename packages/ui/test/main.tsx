@@ -86,72 +86,9 @@ function injectCallbacks(track: Track, callbacks: TrackCallbacks): Track {
   return track;
 }
 
-type StoredSelection = Record<string, string[]>;
-
-function buildEmptySelection(
-  folders: FolderDefinition[],
-): Map<string, Set<string>> {
-  const map = new Map<string, Set<string>>();
-  folders.forEach((folder) => {
-    map.set(folder.id, new Set());
-  });
-  return map;
-}
-
-function serializeSelection(
-  selection: Map<string, Set<string>>,
-): StoredSelection {
-  const serialized: StoredSelection = {};
-  selection.forEach((ids, folderId) => {
-    serialized[folderId] = Array.from(ids);
-  });
-  return serialized;
-}
-
-function getLocalStorage(
-  assembly: Assembly,
-  folders: FolderDefinition[],
-): Map<string, Set<string>> | null {
-  if (typeof window === "undefined" || !window.sessionStorage) return null;
-
-  const selectedIds = sessionStorage.getItem(assembly + "-selected-tracks");
-  if (!selectedIds) return null;
-
-  const parsed = JSON.parse(selectedIds) as StoredSelection | string[];
-  const selection = buildEmptySelection(folders);
-
-  if (Array.isArray(parsed)) {
-    const defaultFolderId = folders[0]?.id;
-    if (defaultFolderId) {
-      selection.set(defaultFolderId, new Set(parsed));
-    }
-    return selection;
-  }
-
-  if (parsed && typeof parsed === "object") {
-    folders.forEach((folder) => {
-      const ids = parsed[folder.id] ?? [];
-      selection.set(folder.id, new Set(ids));
-    });
-    return selection;
-  }
-
-  return null;
-}
-
-function setLocalStorage(
-  selection: Map<string, Set<string>>,
-  assembly: Assembly,
-) {
-  sessionStorage.setItem(
-    assembly + "-selected-tracks",
-    JSON.stringify(serializeSelection(selection)),
-  );
-}
-
 function Main() {
   const [open, setOpen] = useState(false);
-  const currentAssembly: Assembly = "GRCh38";
+  const currentAssembly: Assembly = "mm10";
 
   const browserStore = createBrowserStoreMemo({
     // chr12:53,380,176-53,416,446
@@ -211,12 +148,9 @@ function Main() {
     [currentAssembly],
   );
 
-  const initialSelection = useMemo(
-    () => getLocalStorage(currentAssembly, folders),
-    [currentAssembly, folders],
-  );
+  const storageKey = `${currentAssembly}-selected-tracks`;
 
-  // Handle submit: sync tracks to browser and save to localStorage
+  // sync tracks to browser and save to localStorage
   const handleSubmit = useCallback(
     (selectedByFolder: Map<string, Set<string>>) => {
       const currentIds = new Set(tracks.map((t) => t.id));
@@ -253,30 +187,22 @@ function Main() {
         insertTrack(track);
       }
 
-      // Save the track IDs (not the auto-generated group IDs)
-      setLocalStorage(selectedByFolder, currentAssembly);
-      // Close the dialog
+      // Close the dialog (storage is handled by the store automatically)
       setOpen(false);
     },
-    [tracks, removeTrack, insertTrack, callbacks, folders, currentAssembly],
+    [tracks, removeTrack, insertTrack, callbacks, folders],
   );
 
   const handleCancel = () => {
     setOpen(false);
   };
 
-  // Handle reset: clear selections and remove non-default tracks
+  // clear selections and remove non-default tracks
   const handleReset = () => {
-    const clearedSelection = buildEmptySelection(folders);
-
-    // Remove all non-default tracks from the browser
     const tracksToRemove = tracks.filter((t) => !t.id.includes("ignore"));
     for (const t of tracksToRemove) {
       removeTrack(t.id);
     }
-
-    // Clear localStorage for selected tracks
-    setLocalStorage(clearedSelection, currentAssembly);
   };
 
   return (
@@ -315,7 +241,7 @@ function Main() {
         <DialogContent sx={{ marginTop: "5px" }}>
           <TrackSelect
             folders={folders}
-            initialSelection={initialSelection ?? undefined}
+            storageKey={storageKey}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             onReset={handleReset}

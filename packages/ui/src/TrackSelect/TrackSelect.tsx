@@ -11,9 +11,10 @@ import {
   Tabs,
 } from "@mui/material";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
 import { FolderDefinition, FolderRuntimeConfig } from "./folders/types";
+import { createSelectionStore, SelectionStoreInstance } from "./store";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import { ExtendedTreeItemProps } from "./types";
 
@@ -23,22 +24,10 @@ export interface TrackSelectProps {
   onCancel?: () => void;
   onReset?: () => void;
   maxTracks?: number;
-  initialSelection?: Map<string, Set<string>>;
+  storageKey?: string;
 }
 
 const DEFAULT_MAX_TRACKS = 30;
-
-const buildSelectionMap = (
-  folders: FolderDefinition[],
-  initialSelection?: Map<string, Set<string>>,
-) => {
-  const map = new Map<string, Set<string>>();
-  folders.forEach((folder) => {
-    const initial = initialSelection?.get(folder.id);
-    map.set(folder.id, initial ? new Set(initial) : new Set<string>());
-  });
-  return map;
-};
 
 const cloneSelectionMap = (selection: Map<string, Set<string>>) => {
   const map = new Map<string, Set<string>>();
@@ -60,14 +49,6 @@ const buildRuntimeConfigMap = (folders: FolderDefinition[]) => {
   return map;
 };
 
-const getTotalSelectedCount = (selection: Map<string, Set<string>>) => {
-  let total = 0;
-  selection.forEach((ids) => {
-    total += ids.size;
-  });
-  return total;
-};
-
 const attachFolderId = (
   items: TreeViewBaseItem<ExtendedTreeItemProps>[],
   folderId: string,
@@ -87,32 +68,40 @@ export default function TrackSelect({
   onCancel,
   onReset,
   maxTracks,
-  initialSelection,
+  storageKey,
 }: TrackSelectProps) {
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
-  const [activeFolderId, setActiveFolderId] = useState(folders[0]?.id ?? "");
-  const [committedSelection, setCommittedSelection] = useState(() =>
-    buildSelectionMap(folders, initialSelection),
-  );
-  const [workingSelection, setWorkingSelection] = useState(() =>
-    buildSelectionMap(folders, initialSelection),
-  );
   const [runtimeConfigByFolder, setRuntimeConfigByFolder] = useState(() =>
     buildRuntimeConfigMap(folders),
   );
 
+  // Create and memoize the selection store
+  const folderIds = useMemo(() => folders.map((f) => f.id), [folders]);
+  const storeRef = useRef<SelectionStoreInstance | null>(null);
+  if (!storeRef.current) {
+    storeRef.current = createSelectionStore(folderIds, storageKey);
+  }
+  const store = storeRef.current;
+
+  // Subscribe to store changes
+  const selectedByFolder = store((state) => state.selectedByFolder);
+  const activeFolderId = store((state) => state.activeFolderId);
+  const setActiveFolder = store((state) => state.setActiveFolder);
+  const setSelection = store((state) => state.setSelection);
+  const clear = store((state) => state.clear);
+
+  // Keep a committed snapshot for cancel functionality
+  const [committedSnapshot, setCommittedSnapshot] = useState(() =>
+    cloneSelectionMap(selectedByFolder),
+  );
+
   useEffect(() => {
-    const nextSelection = buildSelectionMap(folders, initialSelection);
-    setCommittedSelection(nextSelection);
-    setWorkingSelection(nextSelection);
     setRuntimeConfigByFolder(buildRuntimeConfigMap(folders));
-    setActiveFolderId((prev) => {
-      if (folders.some((folder) => folder.id === prev)) {
-        return prev;
-      }
-      return folders[0]?.id ?? "";
-    });
-  }, [folders, initialSelection]);
+    // Ensure active folder is valid
+    if (!folders.some((folder) => folder.id === activeFolderId)) {
+      setActiveFolder(folders[0]?.id ?? "");
+    }
+  }, [folders, activeFolderId, setActiveFolder]);
 
   const activeFolder = useMemo(() => {
     return folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
@@ -131,13 +120,16 @@ export default function TrackSelect({
 
   const selectedIds = useMemo(() => {
     if (!activeFolder) return new Set<string>();
-    return new Set(workingSelection.get(activeFolder.id) ?? []);
-  }, [workingSelection, activeFolder]);
+    return new Set(selectedByFolder.get(activeFolder.id) ?? []);
+  }, [selectedByFolder, activeFolder]);
 
-  const selectedCount = useMemo(
-    () => getTotalSelectedCount(workingSelection),
-    [workingSelection],
-  );
+  const selectedCount = useMemo(() => {
+    let total = 0;
+    selectedByFolder.forEach((ids) => {
+      total += ids.size;
+    });
+    return total;
+  }, [selectedByFolder]);
 
   const maxTracksLimit = maxTracks ?? DEFAULT_MAX_TRACKS;
 
@@ -151,13 +143,13 @@ export default function TrackSelect({
     return folders.flatMap((folder) =>
       attachFolderId(
         folder.buildTree(
-          Array.from(workingSelection.get(folder.id) ?? []),
+          Array.from(selectedByFolder.get(folder.id) ?? []),
           folder.rowById,
         ),
         folder.id,
       ),
     );
-  }, [folders, workingSelection, activeFolder]);
+  }, [folders, selectedByFolder, activeFolder]);
 
   const updateActiveFolderConfig = useCallback(
     (partial: Partial<FolderRuntimeConfig>) => {
@@ -181,15 +173,20 @@ export default function TrackSelect({
       Array.from(ids).filter((id) => activeFolder.rowById.has(id)),
     );
 
-    const nextSelection = cloneSelectionMap(workingSelection);
-    nextSelection.set(activeFolder.id, filteredIds);
+    // Calculate what the total would be with this change
+    let nextTotal = filteredIds.size;
+    selectedByFolder.forEach((folderIds, folderId) => {
+      if (folderId !== activeFolder.id) {
+        nextTotal += folderIds.size;
+      }
+    });
 
-    if (getTotalSelectedCount(nextSelection) > maxTracksLimit) {
+    if (nextTotal > maxTracksLimit) {
       setLimitDialogOpen(true);
       return;
     }
 
-    setWorkingSelection(nextSelection);
+    setSelection(activeFolder.id, filteredIds);
   };
 
   const handleRemoveTreeItem = (
@@ -200,28 +197,29 @@ export default function TrackSelect({
       return;
     }
 
-    const nextSelection = cloneSelectionMap(workingSelection);
-    const current = nextSelection.get(folderId) ?? new Set<string>();
-    item.allExpAccessions.forEach((id) => current.delete(id));
-    nextSelection.set(folderId, new Set(current));
-    setWorkingSelection(nextSelection);
+    const current = selectedByFolder.get(folderId) ?? new Set<string>();
+    const nextSet = new Set(current);
+    item.allExpAccessions.forEach((id) => nextSet.delete(id));
+    setSelection(folderId, nextSet);
   };
 
   const handleSubmit = () => {
-    const committed = cloneSelectionMap(workingSelection);
-    setCommittedSelection(committed);
+    const committed = cloneSelectionMap(selectedByFolder);
+    setCommittedSnapshot(committed);
     onSubmit(committed);
   };
 
   const handleCancel = () => {
-    setWorkingSelection(cloneSelectionMap(committedSelection));
+    // Restore from committed snapshot
+    committedSnapshot.forEach((ids, folderId) => {
+      setSelection(folderId, ids);
+    });
     onCancel?.();
   };
 
   const handleReset = () => {
-    const cleared = buildSelectionMap(folders);
-    setWorkingSelection(cleared);
-    setCommittedSelection(cleared);
+    clear();
+    setCommittedSnapshot(new Map());
     onReset?.();
   };
 
@@ -243,7 +241,7 @@ export default function TrackSelect({
           {folders.length > 1 ? (
             <Tabs
               value={activeFolder.id}
-              onChange={(_event, value) => setActiveFolderId(value)}
+              onChange={(_event, value) => setActiveFolder(value)}
             >
               {folders.map((folder) => (
                 <Tab key={folder.id} label={folder.label} value={folder.id} />

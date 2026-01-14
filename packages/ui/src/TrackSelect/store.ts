@@ -5,6 +5,54 @@ export type SelectionStoreInstance = UseBoundStore<
   StoreApi<SelectionState & SelectionAction>
 >;
 
+const DEFAULT_STORAGE_KEY = "trackSelect_selection";
+
+type SerializedSelection = Record<string, string[]>;
+
+const serializeSelection = (
+  selection: Map<string, Set<string>>,
+): SerializedSelection => {
+  const obj: SerializedSelection = {};
+  selection.forEach((ids, folderId) => {
+    obj[folderId] = Array.from(ids);
+  });
+  return obj;
+};
+
+const deserializeSelection = (
+  data: SerializedSelection,
+): Map<string, Set<string>> => {
+  const map = new Map<string, Set<string>>();
+  Object.entries(data).forEach(([folderId, ids]) => {
+    map.set(folderId, new Set(ids));
+  });
+  return map;
+};
+
+const loadFromStorage = (
+  storageKey: string,
+): Map<string, Set<string>> | undefined => {
+  try {
+    const stored = sessionStorage.getItem(storageKey);
+    if (stored) {
+      const parsed = JSON.parse(stored) as SerializedSelection;
+      return deserializeSelection(parsed);
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  return undefined;
+};
+
+const saveToStorage = (selection: Map<string, Set<string>>, storageKey: string) => {
+  try {
+    const serialized = serializeSelection(selection);
+    sessionStorage.setItem(storageKey, JSON.stringify(serialized));
+  } catch {
+    // Ignore storage errors
+  }
+};
+
 const buildSelectionMap = (
   folderIds: string[],
   initialSelection?: Map<string, Set<string>>,
@@ -19,12 +67,13 @@ const buildSelectionMap = (
 
 export function createSelectionStore(
   folderIds: string[],
-  initialSelection?: Map<string, Set<string>>,
+  storageKey: string = DEFAULT_STORAGE_KEY,
 ) {
-  const selectedByFolder = buildSelectionMap(folderIds, initialSelection);
+  const storedSelection = loadFromStorage(storageKey);
+  const selectedByFolder = buildSelectionMap(folderIds, storedSelection);
   const activeFolderId = folderIds[0] ?? "";
 
-  return create<SelectionState & SelectionAction>((set, get) => ({
+  const store = create<SelectionState & SelectionAction>((set, get) => ({
     selectedByFolder,
     activeFolderId,
     select: (folderId: string, ids: Set<string>) =>
@@ -77,5 +126,18 @@ export function createSelectionStore(
       });
       return total;
     },
+    setSelection: (folderId: string, ids: Set<string>) =>
+      set((state) => {
+        const next = new Map(state.selectedByFolder);
+        next.set(folderId, new Set(ids));
+        return { selectedByFolder: next };
+      }),
   }));
+
+  // Subscribe to changes and persist to storage
+  store.subscribe((state) => {
+    saveToStorage(state.selectedByFolder, storageKey);
+  });
+
+  return store;
 }

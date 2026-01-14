@@ -60,6 +60,7 @@ export type SelectionAction = {
   getAllSelectedIds: () => Set<string>;
   getSelectedForFolder: (folderId: string) => Set<string>;
   getTotalCount: () => number;
+  setSelection: (folderId: string, ids: Set<string>) => void;
 };
 
 /**
