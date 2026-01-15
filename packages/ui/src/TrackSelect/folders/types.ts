@@ -31,6 +31,9 @@ export interface FolderDefinition<TRow = any> {
   /** Display label shown in the UI */
   label: string;
 
+  /** Optional description shown in folder cards */
+  description?: string;
+
   /**
    * Single source of truth for all row data.
    * Maps row ID to the full row object.

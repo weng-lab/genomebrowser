@@ -70,6 +70,8 @@ export interface CreateBiosampleFolderOptions {
   id: string;
   /** Display label shown in the UI */
   label: string;
+  /** Optional description shown in folder cards */
+  description?: string;
   /** Raw biosample data from JSON file */
   data: BiosampleDataFile;
 }
@@ -88,12 +90,13 @@ export interface CreateBiosampleFolderOptions {
 export function createBiosampleFolder(
   options: CreateBiosampleFolderOptions,
 ): FolderDefinition<BiosampleRowInfo> {
-  const { id, label, data } = options;
+  const { id, label, description, data } = options;
   const { rowById } = transformData(data, id);
 
   return {
     id,
     label,
+    description,
     rowById,
     getRowId: (row) => row.id,
 

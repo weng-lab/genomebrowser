@@ -11,11 +11,15 @@ import { BiosampleDataFile } from "./shared/types";
 export const humanBiosamplesFolder = createBiosampleFolder({
   id: "human-biosamples",
   label: "Human Biosamples",
+  description:
+    "Epigenomic data from human tissue samples, primary cells, cell lines, and organoids.",
   data: humanData as BiosampleDataFile,
 });
 
 export const humanBiosamplesFolder2 = createBiosampleFolder({
   id: "human-biosamples-2",
   label: "Human Biosamples 2",
+  description:
+    "Epigenomic data from human tissue samples, primary cells, cell lines, and organoids.",
   data: humanData as BiosampleDataFile,
 });

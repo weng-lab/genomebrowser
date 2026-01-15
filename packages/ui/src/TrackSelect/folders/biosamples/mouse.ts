@@ -11,5 +11,7 @@ import { BiosampleDataFile } from "./shared/types";
 export const mouseBiosamplesFolder = createBiosampleFolder({
   id: "mouse-biosamples",
   label: "Mouse Biosamples",
+  description:
+    "Epigenomic data from mouse tissue samples, primary cells, cell lines, and organoids.",
   data: mouseData as BiosampleDataFile,
 });
