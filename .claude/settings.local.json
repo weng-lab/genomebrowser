@@ -11,7 +11,8 @@
       "mcp__mui-mcp__fetchDocs",
       "Bash(grep:*)",
       "Bash(find:*)",
-      "mcp__acp__Edit"
+      "mcp__acp__Edit",
+      "mcp__acp__Write"
     ],
     "deny": []
   }
