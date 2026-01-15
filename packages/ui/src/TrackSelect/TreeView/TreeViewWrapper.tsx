@@ -1,6 +1,6 @@
 import { Avatar, Box, Paper, Typography } from "@mui/material";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CustomTreeItemProps,
   ExtendedTreeItemProps,
@@ -30,7 +30,23 @@ export function TreeViewWrapper({
   onRemove,
   TreeItemComponent,
 }: TreeViewWrapperProps) {
-  const expandedItemIds = useMemo(() => getAllExpandableItemIds(items), [items]);
+  const allExpandableIds = useMemo(
+    () => getAllExpandableItemIds(items),
+    [items],
+  );
+  const [expandedItems, setExpandedItems] =
+    useState<string[]>(allExpandableIds);
+
+  // Auto-expand new items when they're added
+  useEffect(() => {
+    setExpandedItems((prev) => {
+      const newIds = allExpandableIds.filter((id) => !prev.includes(id));
+      if (newIds.length > 0) {
+        return [...prev, ...newIds];
+      }
+      return prev;
+    });
+  }, [allExpandableIds]);
 
   const handleRemoveTreeItem = (
     item: TreeViewBaseItem<ExtendedTreeItemProps>,
@@ -85,7 +101,8 @@ export function TreeViewWrapper({
       >
         <RichTreeView
           items={items}
-          defaultExpandedItems={expandedItemIds}
+          expandedItems={expandedItems}
+          onExpandedItemsChange={(_event, ids) => setExpandedItems(ids)}
           slots={{ item: TreeItem }}
           slotProps={{
             item: {

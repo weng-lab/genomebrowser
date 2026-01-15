@@ -151,15 +151,20 @@ export default function TrackSelect({
 
   const treeItems = useMemo(() => {
     if (!activeFolder) return [];
-    return folders.flatMap((folder) =>
-      attachFolderId(
-        folder.buildTree(
-          Array.from(selectedByFolder.get(folder.id) ?? []),
-          folder.rowById,
+    return folders
+      .filter((folder) => {
+        const selected = selectedByFolder.get(folder.id);
+        return selected && selected.size > 0;
+      })
+      .flatMap((folder) =>
+        attachFolderId(
+          folder.buildTree(
+            Array.from(selectedByFolder.get(folder.id) ?? []),
+            folder.rowById,
+          ),
+          folder.id,
         ),
-        folder.id,
-      ),
-    );
+      );
   }, [folders, selectedByFolder, activeFolder]);
 
   const updateActiveFolderConfig = useCallback(
