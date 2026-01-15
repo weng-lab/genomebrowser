@@ -7,5 +7,5 @@ import {
 } from "./TrackSelect/store.ts";
 export { createSelectionStore, SelectionStoreInstance };
 
-import type { RowInfo } from "./TrackSelect/types.ts";
-export { RowInfo };
+import { foldersByAssembly } from "./TrackSelect/folders";
+export { foldersByAssembly };

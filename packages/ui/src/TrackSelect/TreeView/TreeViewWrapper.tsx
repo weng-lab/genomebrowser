@@ -1,49 +1,60 @@
-import { Box, Paper, Typography } from "@mui/material";
+import { Avatar, Box, Paper, Typography } from "@mui/material";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
+import { useEffect, useMemo, useState } from "react";
 import {
   CustomTreeItemProps,
   ExtendedTreeItemProps,
   TreeViewWrapperProps,
 } from "../types";
-import { CustomTreeItem } from "./treeViewHelpers";
-import { Avatar } from "@mui/material";
+import { CustomTreeItem } from "./CustomTreeItem";
+
+/**
+ * Recursively collects all item IDs that have children (expandable items)
+ */
+function getAllExpandableItemIds(
+  items: TreeViewBaseItem<ExtendedTreeItemProps>[],
+): string[] {
+  const ids: string[] = [];
+  for (const item of items) {
+    if (item.children && item.children.length > 0) {
+      ids.push(item.id);
+      ids.push(...getAllExpandableItemIds(item.children));
+    }
+  }
+  return ids;
+}
 
 export function TreeViewWrapper({
-  store,
   items,
-  trackIds,
-  isSearchResult,
+  selectedCount,
+  onRemove,
+  TreeItemComponent,
 }: TreeViewWrapperProps) {
-  const removeIds = store((s) => s.removeIds);
-  const rowById = store((s) => s.rowById);
+  const allExpandableIds = useMemo(
+    () => getAllExpandableItemIds(items),
+    [items],
+  );
+  const [expandedItems, setExpandedItems] =
+    useState<string[]>(allExpandableIds);
+
+  // Auto-expand new items when they're added
+  useEffect(() => {
+    setExpandedItems((prev) => {
+      const newIds = allExpandableIds.filter((id) => !prev.includes(id));
+      if (newIds.length > 0) {
+        return [...prev, ...newIds];
+      }
+      return prev;
+    });
+  }, [allExpandableIds]);
 
   const handleRemoveTreeItem = (
     item: TreeViewBaseItem<ExtendedTreeItemProps>,
   ) => {
-    const removedIds = item.allExpAccessions;
-    if (removedIds && removedIds.length) {
-      const idsToRemove = new Set(removedIds);
-
-      // Also remove any auto-generated group IDs that contain these tracks
-      removedIds.forEach((id) => {
-        const row = rowById.get(id);
-        if (row) {
-          // Add the auto-generated group IDs for this track's grouping hierarchy
-          // Default view: ontology -> displayname
-          idsToRemove.add(`auto-generated-row-ontology/${row.ontology}`);
-          idsToRemove.add(
-            `auto-generated-row-ontology/${row.ontology}-displayname/${row.displayname}`,
-          );
-          // Sorted by assay view: assay -> ontology -> displayname
-          idsToRemove.add(`auto-generated-row-assay/${row.assay}`);
-          idsToRemove.add(
-            `auto-generated-row-assay/${row.assay}-ontology/${row.ontology}`,
-          );
-        }
-      });
-      removeIds(idsToRemove);
-    }
+    onRemove(item);
   };
+
+  const TreeItem = TreeItemComponent ?? CustomTreeItem;
 
   return (
     <Paper
@@ -78,16 +89,9 @@ export function TreeViewWrapper({
             color: "text.primary",
           }}
         >
-          {trackIds.size}
+          {selectedCount}
         </Avatar>
-        <Typography fontWeight="bold">
-          Active Tracks
-          {isSearchResult && (
-            <Typography component="span" color="text.secondary" sx={{ ml: 1 }}>
-              ({items[0].allRowInfo!.length} search results)
-            </Typography>
-          )}
-        </Typography>
+        <Typography fontWeight="bold">Active Tracks</Typography>
       </Box>
       <Box
         sx={{
@@ -97,8 +101,9 @@ export function TreeViewWrapper({
       >
         <RichTreeView
           items={items}
-          defaultExpandedItems={["1"]}
-          slots={{ item: CustomTreeItem }}
+          expandedItems={expandedItems}
+          onExpandedItemsChange={(_event, ids) => setExpandedItems(ids)}
+          slots={{ item: TreeItem }}
           slotProps={{
             item: {
               onRemove: handleRemoveTreeItem,
