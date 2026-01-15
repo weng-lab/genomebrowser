@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Link, Typography } from "@mui/material";
+import { Breadcrumbs, Link, Typography } from "@mui/material";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { FolderDefinition } from "../folders/types";
 
@@ -7,37 +7,32 @@ export interface BreadcrumbProps {
   onNavigateToRoot: () => void;
 }
 
-export function Breadcrumb({ currentFolder, onNavigateToRoot }: BreadcrumbProps) {
+export function Breadcrumb({
+  currentFolder,
+  onNavigateToRoot,
+}: BreadcrumbProps) {
   return (
-    <Box
-      sx={{
-        py: 1.5,
-        px: 2,
-        bgcolor: "grey.50",
-      }}
-    >
-      <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
-        {currentFolder ? (
-          <Link
-            component="button"
-            variant="body1"
-            onClick={onNavigateToRoot}
-            underline="hover"
-            sx={{ cursor: "pointer" }}
-          >
-            All Folders
-          </Link>
-        ) : (
-          <Typography variant="body1" color="text.primary">
-            All Folders
-          </Typography>
-        )}
-        {currentFolder && (
-          <Typography variant="body1" color="text.primary">
-            {currentFolder.label}
-          </Typography>
-        )}
-      </Breadcrumbs>
-    </Box>
+    <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
+      {currentFolder ? (
+        <Link
+          component="button"
+          variant="body1"
+          onClick={onNavigateToRoot}
+          underline="hover"
+          sx={{ cursor: "pointer" }}
+        >
+          All Folders
+        </Link>
+      ) : (
+        <Typography variant="body1" color="text.primary">
+          All Folders
+        </Typography>
+      )}
+      {currentFolder && (
+        <Typography variant="body1" color="text.primary">
+          {currentFolder.label}
+        </Typography>
+      )}
+    </Breadcrumbs>
   );
 }

@@ -7,12 +7,12 @@ import {
   DialogContentText,
   DialogTitle,
   Stack,
-  Tab,
-  Tabs,
 } from "@mui/material";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Breadcrumb } from "./Breadcrumb";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
+import { FolderList } from "./FolderList";
 import { FolderDefinition, FolderRuntimeConfig } from "./folders/types";
 import { createSelectionStore, SelectionStoreInstance } from "./store";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
@@ -28,6 +28,8 @@ export interface TrackSelectProps {
 }
 
 const DEFAULT_MAX_TRACKS = 30;
+
+type ViewState = "folder-list" | "folder-detail";
 
 const cloneSelectionMap = (selection: Map<string, Set<string>>) => {
   const map = new Map<string, Set<string>>();
@@ -75,6 +77,11 @@ export default function TrackSelect({
     buildRuntimeConfigMap(folders),
   );
 
+  // View state: folder list or folder detail
+  const [currentView, setCurrentView] = useState<ViewState>(() =>
+    folders.length > 1 ? "folder-list" : "folder-detail",
+  );
+
   // Create and memoize the selection store
   const folderIds = useMemo(() => folders.map((f) => f.id), [folders]);
   const storeRef = useRef<SelectionStoreInstance | null>(null);
@@ -100,6 +107,10 @@ export default function TrackSelect({
     // Ensure active folder is valid
     if (!folders.some((folder) => folder.id === activeFolderId)) {
       setActiveFolder(folders[0]?.id ?? "");
+    }
+    // Update view state if folder count changes
+    if (folders.length <= 1) {
+      setCurrentView("folder-detail");
     }
   }, [folders, activeFolderId, setActiveFolder]);
 
@@ -164,6 +175,16 @@ export default function TrackSelect({
     },
     [activeFolder],
   );
+
+  // Navigation handlers
+  const handleFolderSelect = (folderId: string) => {
+    setActiveFolder(folderId);
+    setCurrentView("folder-detail");
+  };
+
+  const handleNavigateToRoot = () => {
+    setCurrentView("folder-list");
+  };
 
   const handleSelectionChange = (ids: Set<string>) => {
     if (!activeFolder) return;
@@ -231,43 +252,50 @@ export default function TrackSelect({
 
   return (
     <Box sx={{ flex: 1, pt: 1 }}>
-      {(folders.length > 1 || ToolbarExtras) && (
+      {/* Toolbar row - breadcrumb on left, extras on right */}
+      {(folders.length > 1 ||
+        (currentView === "folder-detail" && ToolbarExtras)) && (
         <Box
           display="flex"
           justifyContent="space-between"
           alignItems="center"
-          sx={{ mb: 3 }}
+          sx={{ mb: 2 }}
         >
           {folders.length > 1 ? (
-            <Tabs
-              value={activeFolder.id}
-              onChange={(_event, value) => setActiveFolder(value)}
-            >
-              {folders.map((folder) => (
-                <Tab key={folder.id} label={folder.label} value={folder.id} />
-              ))}
-            </Tabs>
+            <Breadcrumb
+              currentFolder={
+                currentView === "folder-detail" ? activeFolder : null
+              }
+              onNavigateToRoot={handleNavigateToRoot}
+            />
           ) : (
             <Box />
           )}
-          {ToolbarExtras && (
+          {currentView === "folder-detail" && ToolbarExtras && (
             <ToolbarExtras updateConfig={updateActiveFolderConfig} />
           )}
         </Box>
       )}
+
       <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
+        {/* Left panel - swaps between FolderList and DataGrid */}
         <Box sx={{ flex: 3, minWidth: 0 }}>
-          <DataGridWrapper
-            rows={rows}
-            columns={activeConfig.columns}
-            groupingModel={activeConfig.groupingModel}
-            leafField={activeConfig.leafField}
-            label={`${rows.length} Available ${activeFolder.label}`}
-            selectedIds={selectedIds}
-            onSelectionChange={handleSelectionChange}
-            GroupingCellComponent={activeFolder.GroupingCellComponent}
-          />
+          {currentView === "folder-list" ? (
+            <FolderList folders={folders} onFolderSelect={handleFolderSelect} />
+          ) : (
+            <DataGridWrapper
+              rows={rows}
+              columns={activeConfig.columns}
+              groupingModel={activeConfig.groupingModel}
+              leafField={activeConfig.leafField}
+              label={`${rows.length} Available ${activeFolder.label}`}
+              selectedIds={selectedIds}
+              onSelectionChange={handleSelectionChange}
+              GroupingCellComponent={activeFolder.GroupingCellComponent}
+            />
+          )}
         </Box>
+        {/* Right panel - always visible */}
         <Box sx={{ flex: 2, minWidth: 0 }}>
           <TreeViewWrapper
             items={treeItems}
@@ -278,7 +306,12 @@ export default function TrackSelect({
         </Box>
       </Stack>
       <Box
-        sx={{ display: "flex", justifyContent: "space-between", mt: 2, gap: 2 }}
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          mt: 2,
+          gap: 2,
+        }}
       >
         <Button variant="outlined" color="secondary" onClick={handleReset}>
           Reset
