@@ -58,6 +58,7 @@ function CustomLabel({
         alignItems: "center",
         minWidth: 0,
         overflow: "hidden",
+        flex: 1,
       }}
     >
       {Icon && React.isValidElement(Icon) ? (
@@ -76,7 +77,7 @@ function CustomLabel({
         direction="row"
         spacing={1}
         alignItems="center"
-        sx={{ minWidth: 0, overflow: "hidden" }}
+        sx={{ minWidth: 0, overflow: "hidden", flex: 1 }}
       >
         {isAssayItem && renderIcon && (
           <Box sx={{ flexShrink: 0 }}>{renderIcon(other.id)}</Box>
@@ -86,7 +87,7 @@ function CustomLabel({
         )}
         <Tooltip title={labelText} enterDelay={500} placement="top">
           <TreeItemLabelText fontWeight={fontWeight} variant={variant}>
-            {children}
+            {labelText}
           </TreeItemLabelText>
         </Tooltip>
       </Stack>
@@ -138,8 +139,16 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
   props: CustomTreeItemProps,
   ref: React.Ref<HTMLLIElement>,
 ) {
-  const { id, itemId, label, disabled, children, onRemove, renderIcon, ...other } =
-    props;
+  const {
+    id,
+    itemId,
+    label,
+    disabled,
+    children,
+    onRemove,
+    renderIcon,
+    ...other
+  } = props;
 
   const {
     getContextProviderProps,

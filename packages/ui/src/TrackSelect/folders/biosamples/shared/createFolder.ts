@@ -43,19 +43,26 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
 
 /**
  * Transforms raw JSON data into flattened rows and a lookup map.
+ * Prefixes each row ID with the folder ID to ensure uniqueness across folders.
  *
  * @param data - Raw biosample data from JSON file
+ * @param folderId - Folder ID to prefix row IDs with
  * @returns Object containing rows array and rowById map
  */
-function transformData(data: BiosampleDataFile): {
-  rows: BiosampleRowInfo[];
+function transformData(
+  data: BiosampleDataFile,
+  folderId: string,
+): {
   rowById: Map<string, BiosampleRowInfo>;
 } {
-  const rows = data.tracks.flatMap(flattenTrackIntoRows);
+  const rows = data.tracks.flatMap(flattenTrackIntoRows).map((row) => ({
+    ...row,
+    id: `${folderId}::${row.id}`,
+  }));
   const rowById = new Map<string, BiosampleRowInfo>(
     rows.map((row) => [row.id, row]),
   );
-  return { rows, rowById };
+  return { rowById };
 }
 
 export interface CreateBiosampleFolderOptions {
@@ -82,7 +89,7 @@ export function createBiosampleFolder(
   options: CreateBiosampleFolderOptions,
 ): FolderDefinition<BiosampleRowInfo> {
   const { id, label, data } = options;
-  const { rowById } = transformData(data);
+  const { rowById } = transformData(data, id);
 
   return {
     id,
@@ -97,7 +104,7 @@ export function createBiosampleFolder(
 
     // Build tree for selected items panel
     buildTree: (selectedIds, rowById) =>
-      buildTreeView(selectedIds, rowById, label),
+      buildTreeView(selectedIds, rowById, label, id),
 
     // Biosample-specific toolbar: toggle between sample-grouped and assay-grouped views
     ToolbarExtras: AssayToggle,

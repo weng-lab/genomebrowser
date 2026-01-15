@@ -3,17 +3,16 @@ import { ExtendedTreeItemProps } from "../../../types";
 import { BiosampleRowInfo } from "./types";
 import { assayTypes, ontologyTypes, formatAssayType } from "./constants";
 
-/** Format an ID like "h3k27ac-ENCFF922YMQ" to "H3K27ac - ENCFF922YMQ" */
+/** Format an ID like "h3k27ac-ENCFF922YMQ" or "folder::h3k27ac-ENCFF922YMQ" to "H3K27ac - ENCFF922YMQ" */
 function formatIdLabel(id: string): string {
-  const hyphenIndex = id.indexOf("-");
-  if (hyphenIndex === -1) return id;
+  // Remove folder prefix if present (e.g., "FolderName::h3k27ac-ENCFF922YMQ" -> "h3k27ac-ENCFF922YMQ")
+  const rawId = id.includes("::") ? id.split("::").pop()! : id;
 
-  const assayPart = id.substring(0, hyphenIndex);
-  let accessionPart = id.substring(hyphenIndex + 1);
+  const hyphenIndex = rawId.indexOf("-");
+  if (hyphenIndex === -1) return rawId;
 
-  // Truncate accession parts to 15 characters
-  if (accessionPart.length > 25)
-    accessionPart = accessionPart.substring(0, 15) + "...";
+  const assayPart = rawId.substring(0, hyphenIndex);
+  const accessionPart = rawId.substring(hyphenIndex + 1);
 
   return `${formatAssayType(assayPart)} - ${accessionPart}`;
 }
@@ -23,9 +22,10 @@ function formatIdLabel(id: string): string {
  */
 function createRootNode(
   label: string,
+  folderId: string,
 ): TreeViewBaseItem<ExtendedTreeItemProps> {
   return {
-    id: "root",
+    id: `${folderId}::root`,
     label,
     icon: "folder",
     children: [],
@@ -40,14 +40,16 @@ function createRootNode(
  * @param selectedIds - list of selected row IDs
  * @param rowById - Mapping between an id and its BiosampleRowInfo object
  * @param rootLabel - Label for the root node
+ * @param folderId - Folder ID to prefix tree item IDs with
  * @returns tree items for the RichTreeView
  */
 export function buildSortedAssayTreeView(
   selectedIds: string[],
   rowById: Map<string, BiosampleRowInfo>,
   rootLabel: string = "Biosamples",
+  folderId: string = "",
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
-  const root = createRootNode(rootLabel);
+  const root = createRootNode(rootLabel, folderId);
   const assayMap = new Map<string, TreeViewBaseItem<ExtendedTreeItemProps>>();
   const ontologyMap = new Map<
     string,
@@ -65,21 +67,22 @@ export function buildSortedAssayTreeView(
   }, []);
 
   selectedRows.forEach((row) => {
-    let assayNode = assayMap.get(row.assay);
+    const assayKey = `${folderId}::${row.assay}`;
+    let assayNode = assayMap.get(assayKey);
     if (!assayNode) {
       assayNode = {
-        id: row.assay,
+        id: assayKey,
         isAssayItem: true,
         label: row.assay,
         icon: "removeable",
         children: [],
         allExpAccessions: [],
       };
-      assayMap.set(row.assay, assayNode);
+      assayMap.set(assayKey, assayNode);
       root.children!.push(assayNode);
     }
 
-    const ontologyKey = `${row.assay}-${row.ontology}`;
+    const ontologyKey = `${folderId}::${row.assay}-${row.ontology}`;
     let ontologyNode = ontologyMap.get(ontologyKey);
     if (!ontologyNode) {
       ontologyNode = {
@@ -94,7 +97,7 @@ export function buildSortedAssayTreeView(
       ontologyMap.set(ontologyKey, ontologyNode);
     }
 
-    const displayNameKey = `${row.assay}-${row.ontology}-${row.displayname}`;
+    const displayNameKey = `${folderId}::${row.assay}-${row.ontology}-${row.displayname}`;
     let displayNameNode = displayNameMap.get(displayNameKey);
     if (!displayNameNode) {
       displayNameNode = {
@@ -127,7 +130,9 @@ export function buildSortedAssayTreeView(
 
   // standardize the order of the assay folders
   root.children!.sort((a, b): number => {
-    return assayTypes.indexOf(a.id) - assayTypes.indexOf(b.id);
+    const aAssay = a.id.split("::")[1] ?? a.id;
+    const bAssay = b.id.split("::")[1] ?? b.id;
+    return assayTypes.indexOf(aAssay) - assayTypes.indexOf(bAssay);
   });
 
   return [root];
@@ -140,14 +145,16 @@ export function buildSortedAssayTreeView(
  * @param selectedIds - list of selected row IDs
  * @param rowById - Mapping between an id and its BiosampleRowInfo object
  * @param rootLabel - Label for the root node
+ * @param folderId - Folder ID to prefix tree item IDs with
  * @returns tree items for the RichTreeView
  */
 export function buildTreeView(
   selectedIds: string[],
   rowById: Map<string, BiosampleRowInfo>,
   rootLabel: string = "Biosamples",
+  folderId: string = "",
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
-  const root = createRootNode(rootLabel);
+  const root = createRootNode(rootLabel, folderId);
   const ontologyMap = new Map<
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
@@ -167,20 +174,21 @@ export function buildTreeView(
     if (!row) {
       return;
     }
-    let ontologyNode = ontologyMap.get(row.ontology);
+    const ontologyKey = `${folderId}::${row.ontology}`;
+    let ontologyNode = ontologyMap.get(ontologyKey);
     if (!ontologyNode) {
       ontologyNode = {
-        id: row.ontology,
+        id: ontologyKey,
         label: row.ontology,
         icon: "removeable",
         children: [],
         allExpAccessions: [],
       };
-      ontologyMap.set(row.ontology, ontologyNode);
+      ontologyMap.set(ontologyKey, ontologyNode);
       root.children!.push(ontologyNode);
     }
 
-    const displayNameKey = `${row.ontology}-${row.displayname}`;
+    const displayNameKey = `${folderId}::${row.ontology}-${row.displayname}`;
     let displayNameNode = displayNameMap.get(displayNameKey);
     if (!displayNameNode) {
       displayNameNode = {
@@ -210,7 +218,9 @@ export function buildTreeView(
 
   // standardize the order of the ontology folders
   root.children!.sort((a, b): number => {
-    return ontologyTypes.indexOf(a.id) - ontologyTypes.indexOf(b.id);
+    const aOntology = a.id.split("::")[1] ?? a.id;
+    const bOntology = b.id.split("::")[1] ?? b.id;
+    return ontologyTypes.indexOf(aOntology) - ontologyTypes.indexOf(bOntology);
   });
 
   return [root];

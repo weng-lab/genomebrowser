@@ -13,3 +13,9 @@ export const humanBiosamplesFolder = createBiosampleFolder({
   label: "Human Biosamples",
   data: humanData as BiosampleDataFile,
 });
+
+export const humanBiosamplesFolder2 = createBiosampleFolder({
+  id: "human-biosamples-2",
+  label: "Human Biosamples 2",
+  data: humanData as BiosampleDataFile,
+});
