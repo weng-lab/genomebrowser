@@ -15,6 +15,7 @@ export const assayTypes = [
 ];
 
 export const ontologyTypes = [
+  "Aggregate",
   "Adipose",
   "Adrenal gland",
   "Blood",

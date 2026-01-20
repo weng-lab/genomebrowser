@@ -4,45 +4,46 @@
       "name": "aggregate-biosample-data",
       "ontology": "aggregate",
       "lifeStage": "N/A",
-      "displayName": "Aggregate ${assay}, all ENCODE Biosamples",
+      "sampleType": "aggregate",
+      "displayName": "Aggregate data, all ENCODE Biosamples",
       "assays": [
         {
-          "id": "aggregate-ccre",
+          "id": "ccre-aggregate",
           "assay": "ccre",
           "url": "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
           "experimentAccession": "",
           "fileAccession": "GRCh38-cCREs.DCC"
         },
         {
-          "id": "aggregate-dnase",
+          "id": "dnase-aggregate",
           "assay": "dnase",
           "url": "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
           "experimentAccession": "",
           "fileAccession": "DNAse_All_ENCODE_MAR20_2024_merged"
         },
         {
-          "id": "aggregate-h3k4me3",
+          "id": "h3k4me3-aggregate",
           "assay": "h3k4me3",
           "url": "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw",
           "experimentAccession": "",
           "fileAccession": "H3K4me3_All_ENCODE_MAR20_2024_merged"
         },
         {
-          "id": "aggregate-h3k27ac",
+          "id": "h3k27ac-aggregate",
           "assay": "h3k27ac",
           "url": "https://downloads.wenglab.org/H3K27ac_All_ENCODE_MAR20_2024_merged.bw",
           "experimentAccession": "",
           "fileAccession": "H3K27ac_All_ENCODE_MAR20_2024_merged"
         },
         {
-          "id": "aggregate-ctcf",
+          "id": "ctcf-aggregate",
           "assay": "ctcf",
           "url": "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw",
           "experimentAccession": "",
           "fileAccession": "CTCF_All_ENCODE_MAR20_2024_merged"
         },
         {
-          "id": "aggregate-atac",
+          "id": "atac-aggregate",
           "assay": "atac",
           "url": "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw",
           "experimentAccession": "",
