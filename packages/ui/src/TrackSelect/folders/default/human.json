@@ -1,0 +1,54 @@
+[
+  {
+    "group": "Signal Tracks",
+    "tracks": [
+      {
+        "displayName": "All ENCODE cCREs colored by group",
+        "type": "bigbed",
+        "url": "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
+        "color": "#0c184a"
+      },
+      {
+        "displayName": "Aggregated DNase signal, all ENCODE biosamples",
+        "type": "bigwig",
+        "url": "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
+        "color": "#06da93"
+      },
+      {
+        "displayName": "Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples",
+        "type": "bigwig",
+        "url": "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw",
+        "color": "#06da93"
+      },
+      {
+        "displayName": "Aggregated H3K27ac ChIP-seq signal, all Registry biosamples",
+        "type": "bigwig",
+        "url": "https://downloads.wenglab.org/H3K27ac_All_ENCODE_MAR20_2024_merged.bw",
+        "color": "#06da93"
+      },
+      {
+        "displayName": "Aggregated CTCF ChIP-seq signal, all Registry biosamples",
+        "type": "bigwig",
+        "url": "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw",
+        "color": "#06da93"
+      },
+      {
+        "displayName": "Aggregated ATAC signal, all Registry biosamples",
+        "type": "bigwig",
+        "url": "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw",
+        "color": "#06da93"
+      }
+    ]
+  },
+  {
+    "group": "Gene Tracks",
+    "tracks": [
+      {
+        "displayName": "GENCODE Genes",
+        "type": "transcript",
+        "url": "",
+        "color": "#0c184a"
+      }
+    ]
+  }
+]
