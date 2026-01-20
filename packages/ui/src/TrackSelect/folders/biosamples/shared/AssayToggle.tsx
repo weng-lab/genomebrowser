@@ -20,7 +20,7 @@ export interface AssayToggleProps {
  *
  * When toggled, it updates the folder's runtime config to switch:
  * - columns: Different column definitions for each view
- * - groupingModel: ["ontology", "displayname"] vs ["assay", "ontology", "displayname"]
+ * - groupingModel: ["ontology", "displayName"] vs ["assay", "ontology", "displayName"]
  * - leafField: "assay" vs "id"
  */
 export function AssayToggle({ updateConfig }: AssayToggleProps) {

@@ -21,7 +21,7 @@ export type BiosampleTrackInfo = {
   ontology: string;
   lifeStage: string;
   sampleType: string;
-  displayname: string;
+  displayName: string;
   assays: BiosampleAssayInfo[];
 };
 
@@ -33,7 +33,7 @@ export type BiosampleRowInfo = {
   ontology: string;
   lifeStage: string;
   sampleType: string;
-  displayname: string;
+  displayName: string;
   assay: string;
   experimentAccession: string;
   fileAccession: string;

@@ -97,13 +97,13 @@ export function buildSortedAssayTreeView(
       ontologyMap.set(ontologyKey, ontologyNode);
     }
 
-    const displayNameKey = `${folderId}::${row.assay}-${row.ontology}-${row.displayname}`;
+    const displayNameKey = `${folderId}::${row.assay}-${row.ontology}-${row.displayName}`;
     let displayNameNode = displayNameMap.get(displayNameKey);
     if (!displayNameNode) {
       displayNameNode = {
         id: displayNameKey,
         isAssayItem: false,
-        label: row.displayname,
+        label: row.displayName,
         icon: "removeable",
         children: [],
         allExpAccessions: [],
@@ -188,12 +188,12 @@ export function buildTreeView(
       root.children!.push(ontologyNode);
     }
 
-    const displayNameKey = `${folderId}::${row.ontology}-${row.displayname}`;
+    const displayNameKey = `${folderId}::${row.ontology}-${row.displayName}`;
     let displayNameNode = displayNameMap.get(displayNameKey);
     if (!displayNameNode) {
       displayNameNode = {
         id: displayNameKey,
-        label: row.displayname,
+        label: row.displayName,
         icon: "removeable",
         children: [],
         allExpAccessions: [],

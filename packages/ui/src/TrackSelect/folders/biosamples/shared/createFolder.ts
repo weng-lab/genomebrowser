@@ -24,7 +24,7 @@ import { BiosampleTreeItem } from "./BiosampleTreeItem";
  * @returns Array of flattened BiosampleRowInfo objects, one per assay
  */
 function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
-  const { ontology, lifeStage, sampleType, displayname } = track;
+  const { ontology, lifeStage, sampleType, displayName } = track;
 
   return track.assays.map(
     ({ id, assay, experimentAccession, fileAccession, url }) => ({
@@ -32,7 +32,7 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
       ontology: capitalize(ontology),
       lifeStage: capitalize(lifeStage),
       sampleType: capitalize(sampleType),
-      displayname: capitalize(displayname),
+      displayName: capitalize(displayName),
       assay: formatAssayType(assay),
       experimentAccession,
       fileAccession,

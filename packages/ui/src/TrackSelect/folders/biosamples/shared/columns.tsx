@@ -4,7 +4,7 @@ import { AssayIcon, ontologyTypes, assayTypes } from "./constants";
 import { BiosampleRowInfo } from "./types";
 
 const displayNameCol: GridColDef<BiosampleRowInfo> = {
-  field: "displayname",
+  field: "displayName",
   headerName: "Name",
   valueFormatter: (value) => value && capitalize(value),
   maxWidth: 300,
@@ -152,10 +152,10 @@ export const defaultColumns: GridColDef<BiosampleRowInfo>[] = [
 ];
 
 /** Grouping model for sorted-by-assay view */
-export const sortedByAssayGroupingModel = ["assay", "ontology", "displayname"];
+export const sortedByAssayGroupingModel = ["assay", "ontology", "displayName"];
 
 /** Default grouping model (ontology-based) */
-export const defaultGroupingModel = ["ontology", "displayname"];
+export const defaultGroupingModel = ["ontology", "displayName"];
 
 /** Leaf field for sorted-by-assay view */
 export const sortedByAssayLeafField = "id";

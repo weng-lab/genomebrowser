@@ -55,7 +55,7 @@ export default function BiosampleGroupingCell(params: GridRenderCellParams) {
       );
     }
 
-    // For other groups (ontology, displayname), show bold text
+    // For other groups (ontology, displayName), show bold text
     if (isGroup) {
       return (
         <Tooltip title={value} placement="top-start" enterDelay={500}>

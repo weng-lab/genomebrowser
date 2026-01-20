@@ -21,7 +21,7 @@ type OldBiosample struct {
 	Ontology                   string        `json:"ontology"`
 	LifeStage                  string        `json:"lifeStage"`
 	SampleType                 string        `json:"sampleType"`
-	DisplayName                string        `json:"displayname"`
+	DisplayName                string        `json:"displayName"`
 	DNaseExperimentAccession   *string       `json:"dnase_experiment_accession"`
 	H3K4Me3ExperimentAccession *string       `json:"h3k4me3_experiment_accession"`
 	H3K27AcExperimentAccession *string       `json:"h3k27ac_experiment_accession"`
@@ -56,7 +56,7 @@ type NewBiosample struct {
 	Ontology    string  `json:"ontology"`
 	LifeStage   string  `json:"lifeStage"`
 	SampleType  string  `json:"sampleType"`
-	DisplayName string  `json:"displayname"`
+	DisplayName string  `json:"displayName"`
 	Assays      []Assay `json:"assays"`
 }
 

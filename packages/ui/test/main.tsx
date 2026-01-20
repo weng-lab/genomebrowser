@@ -282,7 +282,7 @@ function generateTrack(
         ...defaultBigBed,
         id: sel.id,
         url: sel.url,
-        title: sel.displayname,
+        title: sel.displayName,
         color,
       };
       break;
@@ -291,7 +291,7 @@ function generateTrack(
         ...defaultBigBed,
         id: sel.id,
         url: sel.url,
-        title: sel.displayname,
+        title: sel.displayName,
         color,
       };
       break;
@@ -300,7 +300,7 @@ function generateTrack(
         ...defaultBigWig,
         id: sel.id,
         url: sel.url,
-        title: sel.displayname,
+        title: sel.displayName,
         color,
       };
   }
