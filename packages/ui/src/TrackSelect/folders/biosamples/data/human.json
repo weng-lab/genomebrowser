@@ -1,7 +1,7 @@
 {
   "tracks": [
     {
-      "name": "Aggregate Biosample Data",
+      "name": "aggregate-biosample-data",
       "ontology": "aggregate",
       "lifeStage": "N/A",
       "displayName": "Aggregate ${assay}, all ENCODE Biosamples",
