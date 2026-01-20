@@ -6826,29 +6826,6 @@
       ]
     },
     {
-      "name": "GM12866_ENCDO000ABQ",
-      "ontology": "blood",
-      "lifeStage": "adult",
-      "sampleType": "cell line",
-      "displayname": "GM12866",
-      "assays": [
-        {
-          "id": "h3k4me3-NA",
-          "assay": "h3k4me3",
-          "url": "https://downloads.wenglab.org/Registry-V4/NA.bigWig",
-          "experimentAccession": "ENCSR000DRG",
-          "fileAccession": "NA"
-        },
-        {
-          "id": "ccre-NA",
-          "assay": "ccre",
-          "url": "https://downloads.wenglab.org/Registry-V4/NA.bigBed",
-          "experimentAccession": "",
-          "fileAccession": "NA"
-        }
-      ]
-    },
-    {
       "name": "GM12872_ENCDO000ABW",
       "ontology": "blood",
       "lifeStage": "adult",
@@ -31167,13 +31144,6 @@
           "fileAccession": "ENCFF592CNZ"
         },
         {
-          "id": "h3k4me3-NA",
-          "assay": "h3k4me3",
-          "url": "https://downloads.wenglab.org/Registry-V4/NA.bigWig",
-          "experimentAccession": "ENCSR133QMT",
-          "fileAccession": "NA"
-        },
-        {
           "id": "h3k27ac-ENCFF346DEM",
           "assay": "h3k27ac",
           "url": "https://downloads.wenglab.org/Registry-V4/ENCFF346DEM.bigWig",
@@ -31190,14 +31160,14 @@
         {
           "id": "rnaseq-ENCFF961OQN",
           "assay": "rnaseq",
-          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF961OQN.bigWig?proxy=true",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF961OQN.bigWig",
           "experimentAccession": "ENCSR761SHI",
           "fileAccession": "ENCFF961OQN"
         },
         {
           "id": "rnaseq-ENCFF814BZJ",
           "assay": "rnaseq",
-          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF814BZJ.bigWig?proxy=true",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF814BZJ.bigWig",
           "experimentAccession": "ENCSR761SHI",
           "fileAccession": "ENCFF814BZJ"
         },
