@@ -10,6 +10,9 @@ export {
   type FolderRuntimeConfig,
 } from "./types";
 
+export type { BiosampleRowInfo } from "./biosamples/shared/types";
+export type { GeneRowInfo } from "./genes/shared/types";
+
 /**
  * Registry of folders available for each assembly.
  *

@@ -9,3 +9,5 @@ export { createSelectionStore, SelectionStoreInstance };
 
 import { foldersByAssembly } from "./TrackSelect/Folders/index.ts";
 export { foldersByAssembly };
+
+export type { BiosampleRowInfo, GeneRowInfo } from "./TrackSelect/Folders";
