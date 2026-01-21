@@ -41,8 +41,12 @@ export function DataGridWrapper(props: DataGridProps) {
   const baseVisibility = useMemo(() => {
     const visibility: GridColumnVisibilityModel = {
       id: false,
-      [leafField]: false,
     };
+
+    // Only hide leafField if we have grouping (it shows in grouping column)
+    if (groupingModel.length > 0) {
+      visibility[leafField] = false;
+    }
 
     groupingModel.forEach((field) => {
       visibility[field] = false;

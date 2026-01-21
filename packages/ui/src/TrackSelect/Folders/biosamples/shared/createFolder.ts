@@ -49,15 +49,12 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
  * @param folderId - Folder ID to prefix row IDs with
  * @returns Object containing rows array and rowById map
  */
-function transformData(
-  data: BiosampleDataFile,
-  folderId: string,
-): {
+function transformData(data: BiosampleDataFile): {
   rowById: Map<string, BiosampleRowInfo>;
 } {
   const rows = data.tracks.flatMap(flattenTrackIntoRows).map((row) => ({
     ...row,
-    id: `${folderId}::${row.id}`,
+    id: row.id,
   }));
   const rowById = new Map<string, BiosampleRowInfo>(
     rows.map((row) => [row.id, row]),
@@ -91,7 +88,7 @@ export function createBiosampleFolder(
   options: CreateBiosampleFolderOptions,
 ): FolderDefinition<BiosampleRowInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(data, id);
+  const { rowById } = transformData(data);
 
   return {
     id,
