@@ -95,12 +95,12 @@ const sampleTypeCol: GridColDef<BiosampleRowInfo> = {
   headerName: "Sample Type",
   type: "singleSelect",
   valueOptions: [
-    "aggregate",
-    "tissue",
-    "primary cell",
-    "cell line",
-    "in vitro differentiated cells",
-    "organoid",
+    "Aggregate",
+    "Tissue",
+    "Primary cell",
+    "Cell line",
+    "In vitro differentiated cells",
+    "Organoid",
   ],
   valueFormatter: (value) => value && capitalize(value),
 };
@@ -109,7 +109,7 @@ const lifeStageCol: GridColDef<BiosampleRowInfo> = {
   field: "lifeStage",
   headerName: "Life Stage",
   type: "singleSelect",
-  valueOptions: ["adult", "embryonic", "N/A"],
+  valueOptions: ["Adult", "Embryonic", "N/A"],
   valueFormatter: (value) => value && capitalize(value),
 };
 
