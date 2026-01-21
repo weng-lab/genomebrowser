@@ -27,6 +27,8 @@ export interface TrackSelectProps {
   onClear?: () => void;
   maxTracks?: number;
   storageKey?: string;
+  /** Initial selection to use when no stored selection exists */
+  initialSelection?: Map<string, Set<string>>;
   open: boolean;
   onClose: () => void;
   title?: string;
@@ -78,6 +80,7 @@ export default function TrackSelect({
   onClear,
   maxTracks,
   storageKey,
+  initialSelection,
   open,
   onClose,
   title = DEFAULT_TITLE,
@@ -97,7 +100,11 @@ export default function TrackSelect({
   const folderIds = useMemo(() => folders.map((f) => f.id), [folders]);
   const storeRef = useRef<SelectionStoreInstance | null>(null);
   if (!storeRef.current) {
-    storeRef.current = createSelectionStore(folderIds, storageKey);
+    storeRef.current = createSelectionStore(
+      folderIds,
+      storageKey,
+      initialSelection,
+    );
   }
   const store = storeRef.current;
 

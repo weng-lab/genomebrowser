@@ -1,6 +1,7 @@
 import { Assembly, FolderDefinition } from "./types";
 import { humanBiosamplesFolder } from "./biosamples/human";
 import { mouseBiosamplesFolder } from "./biosamples/mouse";
+import { humanGenesFolder } from "./genes/human";
 
 export {
   type Assembly,
@@ -18,18 +19,8 @@ export {
  * To add a new folder:
  * 1. Create a folder config file (e.g., folders/genes/human.ts)
  * 2. Import and add it to the appropriate assembly array below
- *
- * Example:
- * ```typescript
- * import { humanGenesFolder } from "./genes/human";
- *
- * export const foldersByAssembly: Record<Assembly, FolderDefinition[]> = {
- *   GRCh38: [humanBiosamplesFolder, humanGenesFolder],
- *   mm10: [mouseBiosamplesFolder],
- * };
- * ```
  */
 export const foldersByAssembly: Record<Assembly, FolderDefinition[]> = {
-  GRCh38: [humanBiosamplesFolder],
+  GRCh38: [humanGenesFolder, humanBiosamplesFolder],
   mm10: [mouseBiosamplesFolder],
 };

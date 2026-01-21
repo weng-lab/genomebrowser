@@ -44,7 +44,10 @@ const loadFromStorage = (
   return undefined;
 };
 
-const saveToStorage = (selection: Map<string, Set<string>>, storageKey: string) => {
+const saveToStorage = (
+  selection: Map<string, Set<string>>,
+  storageKey: string,
+) => {
   try {
     const serialized = serializeSelection(selection);
     sessionStorage.setItem(storageKey, JSON.stringify(serialized));
@@ -68,9 +71,14 @@ const buildSelectionMap = (
 export function createSelectionStore(
   folderIds: string[],
   storageKey: string = DEFAULT_STORAGE_KEY,
+  initialSelection?: Map<string, Set<string>>,
 ) {
   const storedSelection = loadFromStorage(storageKey);
-  const selectedByFolder = buildSelectionMap(folderIds, storedSelection);
+  // Storage wins: use stored if exists, else fall back to initialSelection
+  const selectedByFolder = buildSelectionMap(
+    folderIds,
+    storedSelection ?? initialSelection,
+  );
   const activeFolderId = folderIds[0] ?? "";
 
   const store = create<SelectionState & SelectionAction>((set) => ({

@@ -13,7 +13,7 @@ if (muiLicenseKey) {
 
 // mui
 import EditIcon from "@mui/icons-material/Edit";
-import { Box, Button } from "@mui/material";
+import { Button } from "@mui/material";
 
 // weng lab
 import {
@@ -33,8 +33,8 @@ import {
 
 // local
 import { foldersByAssembly, TrackSelect } from "../src/lib";
-import type { FolderDefinition } from "../src/TrackSelect/Folders";
 import type { BiosampleRowInfo } from "../src/TrackSelect/Folders/biosamples/shared/types";
+import type { GeneRowInfo } from "../src/TrackSelect/Folders/genes/shared/types";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
 
 interface Transcript {
@@ -141,12 +141,20 @@ function Main() {
 
   const storageKey = `${currentAssembly}-selected-tracks`;
 
+  const initialSelection = useMemo(
+    () =>
+      currentAssembly === "GRCh38"
+        ? defaultHumanSelections
+        : defaultMouseSelections,
+    [currentAssembly],
+  );
+
   // sync tracks to browser and save to localStorage
   const handleSubmit = useCallback(
     (selectedByFolder: Map<string, Set<string>>) => {
       const currentIds = new Set(tracks.map((t) => t.id));
       const selectedIds = new Set<string>();
-      const tracksToAdd: BiosampleRowInfo[] = [];
+      const tracksToAdd: Array<{ row: unknown; folderId: string }> = [];
 
       for (const folder of folders) {
         const folderSelection =
@@ -158,40 +166,45 @@ function Main() {
           }
           const row = folder.rowById.get(id);
           if (row) {
-            tracksToAdd.push(row as BiosampleRowInfo);
+            tracksToAdd.push({ row, folderId: folder.id });
           }
         });
       }
 
-      const tracksToRemove = tracks.filter((t) => {
-        return !t.id.includes("ignore") && !selectedIds.has(t.id);
-      });
-
-      console.log("removing", tracksToRemove);
+      const tracksToRemove = tracks.filter((t) => !selectedIds.has(t.id));
       for (const t of tracksToRemove) {
         removeTrack(t.id);
       }
 
-      for (const s of tracksToAdd) {
-        const track = generateTrack(s, callbacks);
+      for (const { row, folderId } of tracksToAdd) {
+        const track = generateTrack(
+          row as BiosampleRowInfo | GeneRowInfo,
+          folderId,
+          currentAssembly,
+          callbacks,
+        );
         if (track === null) continue;
         insertTrack(track);
       }
     },
-    [tracks, removeTrack, insertTrack, callbacks, folders],
+    [tracks, removeTrack, insertTrack, callbacks, folders, currentAssembly],
   );
 
-  const handleCancel = () => {
-    // TrackSelect handles restoring snapshot internally
-  };
-
-  // clear selections and remove non-default tracks
+  // clear selections and remove all tracks
   const handleClear = () => {
-    const tracksToRemove = tracks.filter((t) => !t.id.includes("ignore"));
-    for (const t of tracksToRemove) {
+    for (const t of tracks) {
       removeTrack(t.id);
     }
   };
+
+  // On first load, if no stored selection exists, apply initial selection
+  useEffect(() => {
+    const stored = sessionStorage.getItem(storageKey);
+    if (!stored) {
+      handleSubmit(initialSelection);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -206,8 +219,8 @@ function Main() {
       <TrackSelect
         folders={folders}
         storageKey={storageKey}
+        initialSelection={initialSelection}
         onSubmit={handleSubmit}
-        onCancel={handleCancel}
         onClear={handleClear}
         maxTracks={30}
         open={open}
@@ -235,22 +248,30 @@ const ASSAY_COLORS: Record<string, string> = {
 };
 
 function generateTrack(
-  sel: BiosampleRowInfo,
+  row: BiosampleRowInfo | GeneRowInfo,
+  folderId: string,
+  assembly: Assembly,
   callbacks?: TrackCallbacks,
-): Track {
+): Track | null {
+  // Handle gene folders
+  if (folderId.includes("genes")) {
+    const geneRow = row as GeneRowInfo;
+    const track: Track = {
+      ...defaultTranscript,
+      id: geneRow.id,
+      assembly,
+      version: geneRow.versions[geneRow.versions.length - 1], // latest version
+    };
+    return callbacks ? injectCallbacks(track, callbacks) : track;
+  }
+
+  // Handle biosample folders
+  const sel = row as BiosampleRowInfo;
   const color = ASSAY_COLORS[sel.assay.toLowerCase()] || "#000000";
   let track: Track;
 
   switch (sel.assay.toLowerCase()) {
     case "chromhmm":
-      track = {
-        ...defaultBigBed,
-        id: sel.id,
-        url: sel.url,
-        title: sel.displayName,
-        color,
-      };
-      break;
     case "ccre":
       track = {
         ...defaultBigBed,
@@ -304,11 +325,8 @@ export const defaultTranscript: Omit<
 export function useLocalTracks(assembly: string, callbacks?: TrackCallbacks) {
   const localTracks = getLocalTracks(assembly);
 
-  const defaultTracks =
-    assembly === "GRCh38" ? defaultHumanTracks : defaultMouseTracks;
-
-  // Get base tracks (from storage or defaults)
-  let initialTracks = localTracks || defaultTracks;
+  // Start empty if no stored tracks - TrackSelect will populate defaults
+  let initialTracks: Track[] = localTracks || [];
 
   // Inject callbacks if provided (callbacks are lost on JSON serialization)
   if (callbacks) {
@@ -329,7 +347,7 @@ export function useLocalTracks(assembly: string, callbacks?: TrackCallbacks) {
 export function getLocalTracks(assembly: string): Track[] | null {
   if (typeof window === "undefined" || !window.sessionStorage) return null;
 
-  const localTracks = sessionStorage.getItem(assembly + "-" + "tracks");
+  const localTracks = sessionStorage.getItem(assembly + "-tracks");
   if (!localTracks) return null;
   const localTracksJson = JSON.parse(localTracks) as Track[];
   return localTracksJson;
@@ -339,50 +357,12 @@ export function setLocalTracks(tracks: Track[], assembly: string) {
   sessionStorage.setItem(assembly + "-tracks", JSON.stringify(tracks));
 }
 
-const defaultHumanTracks = [
-  {
-    ...defaultTranscript,
-    color: ASSAY_COLORS.ccre,
-    id: "human-genes-ignore",
-    assembly: "GRCh38",
-    version: 40,
-  },
-  {
-    ...defaultBigBed,
-    color: ASSAY_COLORS.ccre,
-    id: "human-ccre-ignore",
-    title: "All cCREs colored by group",
-    url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
-  },
-  {
-    ...defaultBigWig,
-    color: ASSAY_COLORS.dnase,
-    id: "human-dnase-aggregate-ignore",
-    title: "Aggregated DNase signal, all ENCODE biosamples",
-    url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
-  },
-];
+// Default selections for TrackSelect UI (uses folder row IDs)
+const defaultHumanSelections = new Map<string, Set<string>>([
+  ["human-biosamples", new Set(["ccre-aggregate", "dnase-aggregate"])],
+  ["human-genes", new Set(["genocode-basic"])],
+]);
 
-const defaultMouseTracks = [
-  {
-    ...defaultTranscript,
-    color: ASSAY_COLORS.ccre,
-    id: "mouse-genes-ignore",
-    assembly: "mm10",
-    version: 21,
-  },
-  {
-    ...defaultBigBed,
-    color: ASSAY_COLORS.ccre,
-    id: "mouse-ccre-ignore",
-    title: "All cCREs colored by group",
-    url: "https://downloads.wenglab.org/mm10-cCREs.DCC.bigBed",
-  },
-  {
-    ...defaultBigWig,
-    color: ASSAY_COLORS.dnase,
-    id: "mouse-dnase-aggregate-ignore",
-    title: "Aggregated DNase signal, all ENCODE biosamples",
-    url: "https://downloads.wenglab.org/DNase_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
-  },
-];
+const defaultMouseSelections = new Map<string, Set<string>>([
+  ["mouse-biosamples", new Set(["ccre-aggregate", "dnase-aggregate"])],
+]);
