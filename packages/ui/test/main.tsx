@@ -359,11 +359,11 @@ export function setLocalTracks(tracks: Track[], assembly: string) {
 
 // Default selections for TrackSelect UI (uses folder row IDs)
 const defaultHumanSelections = new Map<string, Set<string>>([
-  ["human-genes", new Set(["genocode-basic"])],
+  ["human-genes", new Set(["gencode-basic"])],
   ["human-biosamples", new Set(["ccre-aggregate", "dnase-aggregate"])],
 ]);
 
 const defaultMouseSelections = new Map<string, Set<string>>([
-  ["mouse-genes", new Set(["genocode-basic"])],
+  ["mouse-genes", new Set(["gencode-basic"])],
   ["mouse-biosamples", new Set(["ccre-aggregate", "dnase-aggregate"])],
 ]);
