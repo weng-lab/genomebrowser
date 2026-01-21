@@ -82,8 +82,8 @@ function Main() {
   const currentAssembly: Assembly = "mm10";
 
   const browserStore = createBrowserStoreMemo({
-    // chr12:53,380,176-53,416,446
-    domain: { chromosome: "chr12", start: 53380176, end: 53416446 },
+    // chr7:19,695,494-19,699,803
+    domain: { chromosome: "chr7", start: 19695494, end: 19699803 },
     marginWidth: 100,
     trackWidth: 1400,
     multiplier: 3,
