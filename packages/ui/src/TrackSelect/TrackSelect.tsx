@@ -250,20 +250,23 @@ export default function TrackSelect({
 
   const confirmReset = () => {
     setResetDialogOpen(false);
+    let newSnapshot: Map<string, Set<string>>;
+
     if (currentView === "folder-detail") {
       // Reset only the current folder
       clear(activeFolderId);
-      setCommittedSnapshot((prev) => {
-        const next = new Map(prev);
-        next.set(activeFolderId, new Set<string>());
-        return next;
-      });
+      newSnapshot = cloneSelectionMap(selectedByFolder);
+      newSnapshot.set(activeFolderId, new Set<string>());
     } else {
       // Reset all folders
       clear();
-      setCommittedSnapshot(new Map());
+      newSnapshot = new Map<string, Set<string>>();
+      folderIds.forEach((id) => newSnapshot.set(id, new Set<string>()));
       onReset?.();
     }
+
+    setCommittedSnapshot(newSnapshot);
+    onSubmit(newSnapshot);
   };
 
   if (!activeFolder || !activeConfig) {
