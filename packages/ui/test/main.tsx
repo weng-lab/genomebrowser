@@ -186,7 +186,7 @@ function Main() {
   };
 
   // clear selections and remove non-default tracks
-  const handleReset = () => {
+  const handleClear = () => {
     const tracksToRemove = tracks.filter((t) => !t.id.includes("ignore"));
     for (const t of tracksToRemove) {
       removeTrack(t.id);
@@ -208,7 +208,7 @@ function Main() {
         storageKey={storageKey}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        onReset={handleReset}
+        onClear={handleClear}
         maxTracks={30}
         open={open}
         onClose={() => setOpen(false)}

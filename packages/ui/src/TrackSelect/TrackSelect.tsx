@@ -24,7 +24,7 @@ export interface TrackSelectProps {
   folders: FolderDefinition[];
   onSubmit: (selectedByFolder: Map<string, Set<string>>) => void;
   onCancel?: () => void;
-  onReset?: () => void;
+  onClear?: () => void;
   maxTracks?: number;
   storageKey?: string;
   open: boolean;
@@ -75,7 +75,7 @@ export default function TrackSelect({
   folders,
   onSubmit,
   onCancel,
-  onReset,
+  onClear,
   maxTracks,
   storageKey,
   open,
@@ -83,7 +83,7 @@ export default function TrackSelect({
   title = DEFAULT_TITLE,
 }: TrackSelectProps) {
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
-  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [runtimeConfigByFolder, setRuntimeConfigByFolder] = useState(() =>
     buildRuntimeConfigMap(folders),
   );
@@ -256,25 +256,25 @@ export default function TrackSelect({
     onClose();
   };
 
-  const handleReset = () => {
-    setResetDialogOpen(true);
+  const handleClear = () => {
+    setClearDialogOpen(true);
   };
 
-  const confirmReset = () => {
-    setResetDialogOpen(false);
+  const confirmClear = () => {
+    setClearDialogOpen(false);
     let newSnapshot: Map<string, Set<string>>;
 
     if (currentView === "folder-detail") {
-      // Reset only the current folder
+      // Clear only the current folder
       clear(activeFolderId);
       newSnapshot = cloneSelectionMap(selectedByFolder);
       newSnapshot.set(activeFolderId, new Set<string>());
     } else {
-      // Reset all folders
+      // Clear all folders
       clear();
       newSnapshot = new Map<string, Set<string>>();
       folderIds.forEach((id) => newSnapshot.set(id, new Set<string>()));
-      onReset?.();
+      onClear?.();
     }
 
     setCommittedSnapshot(newSnapshot);
@@ -376,9 +376,9 @@ export default function TrackSelect({
               <Button
                 variant="outlined"
                 color="secondary"
-                onClick={handleReset}
+                onClick={handleClear}
               >
-                Reset
+                Clear
               </Button>
               <Box sx={{ display: "flex", gap: 2 }}>
                 <Button variant="outlined" onClick={handleCancel}>
@@ -411,23 +411,47 @@ export default function TrackSelect({
               </DialogActions>
             </Dialog>
             <Dialog
-              open={resetDialogOpen}
-              onClose={() => setResetDialogOpen(false)}
+              open={clearDialogOpen}
+              onClose={() => setClearDialogOpen(false)}
             >
-              <DialogTitle>Confirm Reset</DialogTitle>
-              <DialogContent>
+              <DialogTitle
+                sx={{
+                  bgcolor: "#0c184a",
+                  color: "white",
+                  fontWeight: "bold",
+                }}
+              >
+                {currentView === "folder-detail"
+                  ? `Clear ${activeFolder.label}`
+                  : "Clear All Folders"}
+              </DialogTitle>
+              <DialogContent sx={{ mt: 2 }}>
                 <DialogContentText>
-                  {currentView === "folder-detail"
-                    ? `Are you sure you want to reset the selection for ${activeFolder.label}?`
-                    : "Are you sure you want to reset all selections?"}
+                  {currentView === "folder-detail" ? (
+                    <>
+                      Are you sure you want to clear the selection for{" "}
+                      <strong>{activeFolder.label}</strong>?
+                    </>
+                  ) : (
+                    "Are you sure you want to clear all selections?"
+                  )}
                 </DialogContentText>
               </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setResetDialogOpen(false)}>
+              <DialogActions sx={{ justifyContent: "center", gap: 2, pb: 2 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setClearDialogOpen(false)}
+                  autoFocus
+                >
                   Cancel
                 </Button>
-                <Button onClick={confirmReset} color="secondary" autoFocus>
-                  Reset
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={confirmClear}
+                >
+                  Clear
                 </Button>
               </DialogActions>
             </Dialog>
