@@ -167,23 +167,24 @@ export default function TrackSelect({
     return Array.from(activeFolder.rowById.values());
   }, [activeFolder]);
 
-  const treeItems = useMemo(() => {
-    if (!activeFolder) return [];
+  const folderTrees = useMemo(() => {
     return folders
       .filter((folder) => {
         const selected = selectedByFolder.get(folder.id);
         return selected && selected.size > 0;
       })
-      .flatMap((folder) =>
-        attachFolderId(
+      .map((folder) => ({
+        folderId: folder.id,
+        items: attachFolderId(
           folder.buildTree(
             Array.from(selectedByFolder.get(folder.id) ?? []),
             folder.rowById,
           ),
           folder.id,
         ),
-      );
-  }, [folders, selectedByFolder, activeFolder]);
+        TreeItemComponent: folder.TreeItemComponent,
+      }));
+  }, [folders, selectedByFolder]);
 
   const updateActiveFolderConfig = useCallback(
     (partial: Partial<FolderRuntimeConfig>) => {
@@ -365,10 +366,9 @@ export default function TrackSelect({
               {/* Right panel - always visible */}
               <Box sx={{ flex: 2, minWidth: 0 }}>
                 <TreeViewWrapper
-                  items={treeItems}
+                  folderTrees={folderTrees}
                   selectedCount={selectedCount}
                   onRemove={handleRemoveTreeItem}
-                  TreeItemComponent={activeFolder.TreeItemComponent}
                 />
               </Box>
             </Stack>

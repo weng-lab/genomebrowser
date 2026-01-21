@@ -28,14 +28,24 @@ export type ExtendedTreeItemProps = {
   allExpAccessions?: string[];
 };
 
-export type TreeViewWrapperProps = {
+/**
+ * Configuration for a single folder's tree in the TreeViewWrapper.
+ * Each folder gets its own tree with its own TreeItemComponent.
+ */
+export type FolderTreeConfig = {
+  folderId: string;
   items: TreeViewBaseItem<ExtendedTreeItemProps>[];
-  selectedCount: number;
-  onRemove: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
-  /** Optional custom TreeItem component */
+  /** Optional custom TreeItem component for this folder */
   TreeItemComponent?: React.ForwardRefExoticComponent<
     CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
   >;
+};
+
+export type TreeViewWrapperProps = {
+  /** Array of folder tree configurations, one per folder with selections */
+  folderTrees: FolderTreeConfig[];
+  selectedCount: number;
+  onRemove: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
 };
 
 export interface CustomLabelProps {

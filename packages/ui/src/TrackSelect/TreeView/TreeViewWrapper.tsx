@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CustomTreeItemProps,
   ExtendedTreeItemProps,
+  FolderTreeConfig,
   TreeViewWrapperProps,
 } from "../types";
 import { CustomTreeItem } from "./CustomTreeItem";
@@ -24,12 +25,18 @@ function getAllExpandableItemIds(
   return ids;
 }
 
-export function TreeViewWrapper({
+/**
+ * Internal component that renders a single folder's tree with its own expanded state.
+ */
+function FolderTree({
   items,
-  selectedCount,
-  onRemove,
   TreeItemComponent,
-}: TreeViewWrapperProps) {
+  onRemove,
+}: {
+  items: FolderTreeConfig["items"];
+  TreeItemComponent: FolderTreeConfig["TreeItemComponent"];
+  onRemove: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
+}) {
   const allExpandableIds = useMemo(
     () => getAllExpandableItemIds(items),
     [items],
@@ -56,6 +63,31 @@ export function TreeViewWrapper({
 
   const TreeItem = TreeItemComponent ?? CustomTreeItem;
 
+  return (
+    <RichTreeView
+      items={items}
+      expandedItems={expandedItems}
+      onExpandedItemsChange={(_event, ids) => setExpandedItems(ids)}
+      slots={{ item: TreeItem }}
+      slotProps={{
+        item: {
+          onRemove: handleRemoveTreeItem,
+        } as Partial<CustomTreeItemProps>,
+      }}
+      sx={{
+        ml: 1,
+        mr: 1,
+      }}
+      itemChildrenIndentation={0}
+    />
+  );
+}
+
+export function TreeViewWrapper({
+  folderTrees,
+  selectedCount,
+  onRemove,
+}: TreeViewWrapperProps) {
   return (
     <Paper
       sx={{
@@ -99,23 +131,14 @@ export function TreeViewWrapper({
           overflow: "auto",
         }}
       >
-        <RichTreeView
-          items={items}
-          expandedItems={expandedItems}
-          onExpandedItemsChange={(_event, ids) => setExpandedItems(ids)}
-          slots={{ item: TreeItem }}
-          slotProps={{
-            item: {
-              onRemove: handleRemoveTreeItem,
-            } as Partial<CustomTreeItemProps>,
-          }}
-          sx={{
-            ml: 1,
-            mr: 1,
-            height: "100%",
-          }}
-          itemChildrenIndentation={0}
-        />
+        {folderTrees.map((folderTree) => (
+          <FolderTree
+            key={folderTree.folderId}
+            items={folderTree.items}
+            TreeItemComponent={folderTree.TreeItemComponent}
+            onRemove={onRemove}
+          />
+        ))}
       </Box>
     </Paper>
   );
