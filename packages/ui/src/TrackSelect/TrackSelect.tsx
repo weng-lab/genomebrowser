@@ -73,6 +73,7 @@ export default function TrackSelect({
   storageKey,
 }: TrackSelectProps) {
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [runtimeConfigByFolder, setRuntimeConfigByFolder] = useState(() =>
     buildRuntimeConfigMap(folders),
   );
@@ -244,9 +245,25 @@ export default function TrackSelect({
   };
 
   const handleReset = () => {
-    clear();
-    setCommittedSnapshot(new Map());
-    onReset?.();
+    setResetDialogOpen(true);
+  };
+
+  const confirmReset = () => {
+    setResetDialogOpen(false);
+    if (currentView === "folder-detail") {
+      // Reset only the current folder
+      clear(activeFolderId);
+      setCommittedSnapshot((prev) => {
+        const next = new Map(prev);
+        next.set(activeFolderId, new Set<string>());
+        return next;
+      });
+    } else {
+      // Reset all folders
+      clear();
+      setCommittedSnapshot(new Map());
+      onReset?.();
+    }
   };
 
   if (!activeFolder || !activeConfig) {
@@ -341,6 +358,22 @@ export default function TrackSelect({
         <DialogActions>
           <Button onClick={() => setLimitDialogOpen(false)} autoFocus>
             OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={resetDialogOpen} onClose={() => setResetDialogOpen(false)}>
+        <DialogTitle>Confirm Reset</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {currentView === "folder-detail"
+              ? `Are you sure you want to reset the selection for ${activeFolder.label}?`
+              : "Are you sure you want to reset all selections?"}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setResetDialogOpen(false)}>Cancel</Button>
+          <Button onClick={confirmReset} color="secondary" autoFocus>
+            Reset
           </Button>
         </DialogActions>
       </Dialog>
