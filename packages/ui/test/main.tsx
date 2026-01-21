@@ -79,7 +79,7 @@ function injectCallbacks(track: Track, callbacks: TrackCallbacks): Track {
 
 function Main() {
   const [open, setOpen] = useState(false);
-  const currentAssembly: Assembly = "GRCh38";
+  const currentAssembly: Assembly = "mm10";
 
   const browserStore = createBrowserStoreMemo({
     // chr12:53,380,176-53,416,446
@@ -143,7 +143,7 @@ function Main() {
 
   const initialSelection = useMemo(
     () =>
-      currentAssembly === "GRCh38"
+      (currentAssembly as Assembly) === "GRCh38"
         ? defaultHumanSelections
         : defaultMouseSelections,
     [currentAssembly],
@@ -359,10 +359,11 @@ export function setLocalTracks(tracks: Track[], assembly: string) {
 
 // Default selections for TrackSelect UI (uses folder row IDs)
 const defaultHumanSelections = new Map<string, Set<string>>([
-  ["human-biosamples", new Set(["ccre-aggregate", "dnase-aggregate"])],
   ["human-genes", new Set(["genocode-basic"])],
+  ["human-biosamples", new Set(["ccre-aggregate", "dnase-aggregate"])],
 ]);
 
 const defaultMouseSelections = new Map<string, Set<string>>([
+  ["mouse-genes", new Set(["genocode-basic"])],
   ["mouse-biosamples", new Set(["ccre-aggregate", "dnase-aggregate"])],
 ]);
