@@ -13,16 +13,7 @@ if (muiLicenseKey) {
 
 // mui
 import EditIcon from "@mui/icons-material/Edit";
-import CloseIcon from "@mui/icons-material/Close";
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Typography,
-} from "@mui/material";
+import { Box, Button } from "@mui/material";
 
 // weng lab
 import {
@@ -42,8 +33,8 @@ import {
 
 // local
 import { foldersByAssembly, TrackSelect } from "../src/lib";
-import type { FolderDefinition } from "../src/TrackSelect/folders";
-import type { BiosampleRowInfo } from "../src/TrackSelect/folders/biosamples/shared/types";
+import type { FolderDefinition } from "../src/TrackSelect/Folders";
+import type { BiosampleRowInfo } from "../src/TrackSelect/Folders/biosamples/shared/types";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
 
 interface Transcript {
@@ -186,15 +177,12 @@ function Main() {
         if (track === null) continue;
         insertTrack(track);
       }
-
-      // Close the dialog (storage is handled by the store automatically)
-      setOpen(false);
     },
     [tracks, removeTrack, insertTrack, callbacks, folders],
   );
 
   const handleCancel = () => {
-    setOpen(false);
+    // TrackSelect handles restoring snapshot internally
   };
 
   // clear selections and remove non-default tracks
@@ -215,40 +203,17 @@ function Main() {
       >
         Select Tracks
       </Button>
-      <Dialog
+      <TrackSelect
+        folders={folders}
+        storageKey={storageKey}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        onReset={handleReset}
+        maxTracks={30}
         open={open}
         onClose={() => setOpen(false)}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogTitle
-          bgcolor="#0c184a"
-          color="white"
-          display={"flex"}
-          justifyContent={"space-between"}
-          alignItems={"center"}
-          fontWeight={"bold"}
-        >
-          Biosample Tracks
-          <IconButton
-            size="large"
-            onClick={() => setOpen(false)}
-            sx={{ color: "white", padding: 0 }}
-          >
-            <CloseIcon fontSize="large" />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ marginTop: "5px" }}>
-          <TrackSelect
-            folders={folders}
-            storageKey={storageKey}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            onReset={handleReset}
-            maxTracks={30}
-          />
-        </DialogContent>
-      </Dialog>
+        title="Biosample Tracks"
+      />
       <GQLWrapper>
         <Browser browserStore={browserStore} trackStore={trackStore} />
       </GQLWrapper>
