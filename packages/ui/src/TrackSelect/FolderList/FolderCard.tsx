@@ -1,5 +1,5 @@
 import { Paper, Typography } from "@mui/material";
-import { FolderDefinition } from "../folders/types";
+import { FolderDefinition } from "../Folders/types";
 
 export interface FolderCardProps {
   folder: FolderDefinition;

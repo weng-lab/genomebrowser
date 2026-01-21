@@ -1,6 +1,6 @@
 import { Breadcrumbs, Link, Typography } from "@mui/material";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import { FolderDefinition } from "../folders/types";
+import { FolderDefinition } from "../Folders/types";
 
 export interface BreadcrumbProps {
   currentFolder: FolderDefinition | null;

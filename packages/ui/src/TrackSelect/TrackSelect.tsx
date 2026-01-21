@@ -10,10 +10,10 @@ import {
 } from "@mui/material";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Breadcrumb } from "./Breadcrumb";
+import { Breadcrumb } from "./FolderList/Breadcrumb";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
-import { FolderList } from "./FolderList";
-import { FolderDefinition, FolderRuntimeConfig } from "./folders/types";
+import { FolderList } from "./FolderList/FolderList";
+import { FolderDefinition, FolderRuntimeConfig } from "./Folders/types";
 import { createSelectionStore, SelectionStoreInstance } from "./store";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import { ExtendedTreeItemProps } from "./types";

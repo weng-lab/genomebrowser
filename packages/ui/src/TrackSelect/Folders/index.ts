@@ -1,8 +1,5 @@
 import { Assembly, FolderDefinition } from "./types";
-import {
-  humanBiosamplesFolder,
-  humanBiosamplesFolder2,
-} from "./biosamples/human";
+import { humanBiosamplesFolder } from "./biosamples/human";
 import { mouseBiosamplesFolder } from "./biosamples/mouse";
 
 export {
@@ -33,6 +30,6 @@ export {
  * ```
  */
 export const foldersByAssembly: Record<Assembly, FolderDefinition[]> = {
-  GRCh38: [humanBiosamplesFolder, humanBiosamplesFolder2],
+  GRCh38: [humanBiosamplesFolder],
   mm10: [mouseBiosamplesFolder],
 };
