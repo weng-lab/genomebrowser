@@ -153,13 +153,13 @@ export const defaultColumns: GridColDef<BiosampleRowInfo>[] = [
 ];
 
 /** Grouping model for sorted-by-assay view */
-export const sortedByAssayGroupingModel = ["assay", "ontology", "displayName"];
+export const sortedByAssayGroupingModel = ["assay", "ontology"];
 
 /** Default grouping model (ontology-based) */
 export const defaultGroupingModel = ["ontology", "displayName"];
 
 /** Leaf field for sorted-by-assay view */
-export const sortedByAssayLeafField = "id";
+export const sortedByAssayLeafField = "displayName";
 
 /** Default leaf field */
 export const defaultLeafField = "assay";

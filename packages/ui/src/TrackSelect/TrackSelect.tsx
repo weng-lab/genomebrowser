@@ -173,18 +173,23 @@ export default function TrackSelect({
         const selected = selectedByFolder.get(folder.id);
         return selected && selected.size > 0;
       })
-      .map((folder) => ({
-        folderId: folder.id,
-        items: attachFolderId(
-          folder.buildTree(
-            Array.from(selectedByFolder.get(folder.id) ?? []),
-            folder.rowById,
+      .map((folder) => {
+        const config = runtimeConfigByFolder.get(folder.id);
+        const buildTree = config?.buildTree ?? folder.buildTree;
+
+        return {
+          folderId: folder.id,
+          items: attachFolderId(
+            buildTree(
+              Array.from(selectedByFolder.get(folder.id) ?? []),
+              folder.rowById,
+            ),
+            folder.id,
           ),
-          folder.id,
-        ),
-        TreeItemComponent: folder.TreeItemComponent,
-      }));
-  }, [folders, selectedByFolder]);
+          TreeItemComponent: folder.TreeItemComponent,
+        };
+      });
+  }, [folders, selectedByFolder, runtimeConfigByFolder]);
 
   const updateActiveFolderConfig = useCallback(
     (partial: Partial<FolderRuntimeConfig>) => {
@@ -336,9 +341,16 @@ export default function TrackSelect({
                 ) : (
                   <Box />
                 )}
-                {currentView === "folder-detail" && ToolbarExtras && (
-                  <ToolbarExtras updateConfig={updateActiveFolderConfig} />
-                )}
+                {currentView === "folder-detail" &&
+                  ToolbarExtras &&
+                  activeConfig && (
+                    <ToolbarExtras
+                      updateConfig={updateActiveFolderConfig}
+                      folderId={activeFolder.id}
+                      label={activeFolder.label}
+                      config={activeConfig}
+                    />
+                  )}
               </Box>
             )}
 

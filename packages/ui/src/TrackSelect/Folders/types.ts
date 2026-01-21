@@ -7,12 +7,17 @@ export type Assembly = "GRCh38" | "mm10";
 /**
  * Runtime configuration that can be modified by ToolbarExtras components.
  * This allows folder-specific UI (like AssayToggle) to dynamically update
- * how the DataGrid displays data.
+ * how the DataGrid and TreeView display data.
  */
 export interface FolderRuntimeConfig {
   columns: GridColDef[];
   groupingModel: string[];
   leafField: string;
+  /** Optional override for the tree builder function */
+  buildTree?: (
+    selectedIds: string[],
+    rowById: Map<string, any>,
+  ) => TreeViewBaseItem<ExtendedTreeItemProps>[];
 }
 
 /**
@@ -74,9 +79,15 @@ export interface FolderDefinition<TRow = any> {
    * that switches between sample-grouped and assay-grouped views.
    *
    * @param updateConfig - Callback to update the folder's runtime config
+   * @param folderId - The folder's unique identifier
+   * @param label - The folder's display label
+   * @param config - The current runtime config for this folder
    */
   ToolbarExtras?: React.FC<{
     updateConfig: (partial: Partial<FolderRuntimeConfig>) => void;
+    folderId: string;
+    label: string;
+    config: FolderRuntimeConfig;
   }>;
 
   /**

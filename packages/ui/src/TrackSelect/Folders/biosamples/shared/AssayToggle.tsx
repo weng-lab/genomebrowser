@@ -1,5 +1,4 @@
 import { FormControlLabel, Switch } from "@mui/material";
-import { useState } from "react";
 import { FolderRuntimeConfig } from "../../types";
 import {
   defaultColumns,
@@ -9,9 +8,13 @@ import {
   sortedByAssayGroupingModel,
   sortedByAssayLeafField,
 } from "./columns";
+import { buildTreeView, buildSortedAssayTreeView } from "./treeBuilder";
 
 export interface AssayToggleProps {
   updateConfig: (partial: Partial<FolderRuntimeConfig>) => void;
+  folderId: string;
+  label: string;
+  config: FolderRuntimeConfig;
 }
 
 /**
@@ -20,15 +23,21 @@ export interface AssayToggleProps {
  *
  * When toggled, it updates the folder's runtime config to switch:
  * - columns: Different column definitions for each view
- * - groupingModel: ["ontology", "displayName"] vs ["assay", "ontology", "displayName"]
- * - leafField: "assay" vs "id"
+ * - groupingModel: ["ontology", "displayName"] vs ["assay", "ontology"]
+ * - leafField: "assay" vs "displayName"
+ * - buildTree: Different tree builder function
  */
-export function AssayToggle({ updateConfig }: AssayToggleProps) {
-  const [sortedByAssay, setSortedByAssay] = useState(false);
+export function AssayToggle({
+  updateConfig,
+  folderId,
+  label,
+  config,
+}: AssayToggleProps) {
+  // Derive toggle state from current config's leafField
+  const sortedByAssay = config.leafField === sortedByAssayLeafField;
 
   const handleToggle = () => {
     const newValue = !sortedByAssay;
-    setSortedByAssay(newValue);
 
     if (newValue) {
       // Switch to assay-grouped view
@@ -36,6 +45,8 @@ export function AssayToggle({ updateConfig }: AssayToggleProps) {
         columns: sortedByAssayColumns,
         groupingModel: sortedByAssayGroupingModel,
         leafField: sortedByAssayLeafField,
+        buildTree: (selectedIds, rowById) =>
+          buildSortedAssayTreeView(selectedIds, rowById, label, folderId),
       });
     } else {
       // Switch back to default (sample-grouped) view
@@ -43,6 +54,8 @@ export function AssayToggle({ updateConfig }: AssayToggleProps) {
         columns: defaultColumns,
         groupingModel: defaultGroupingModel,
         leafField: defaultLeafField,
+        buildTree: (selectedIds, rowById) =>
+          buildTreeView(selectedIds, rowById, label, folderId),
       });
     }
   };

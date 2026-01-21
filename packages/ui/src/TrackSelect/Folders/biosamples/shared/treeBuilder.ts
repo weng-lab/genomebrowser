@@ -35,7 +35,10 @@ function createRootNode(
 
 /**
  * Builds tree in the sorted by assay view
- * Hierarchy: Assay -> Ontology -> DisplayName -> Experiment
+ * Hierarchy: Assay -> Ontology -> DisplayName (leaf)
+ *
+ * This is the reverse of the default view - instead of grouping by sample first,
+ * we group by assay first, making displayName the leaf node.
  *
  * @param selectedIds - list of selected row IDs
  * @param rowById - Mapping between an id and its BiosampleRowInfo object
@@ -55,6 +58,8 @@ export function buildSortedAssayTreeView(
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
   >();
+  // Track which displayName nodes exist per assay+ontology combination
+  // and which experiment IDs they contain
   const displayNameMap = new Map<
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
@@ -75,6 +80,7 @@ export function buildSortedAssayTreeView(
         isAssayItem: true,
         label: row.assay,
         icon: "removeable",
+        assayName: row.assay, // Add assayName so the icon renders correctly
         children: [],
         allExpAccessions: [],
       };
@@ -97,6 +103,7 @@ export function buildSortedAssayTreeView(
       ontologyMap.set(ontologyKey, ontologyNode);
     }
 
+    // DisplayName is now the leaf node (no children, no assay icon)
     const displayNameKey = `${folderId}::${row.assay}-${row.ontology}-${row.displayName}`;
     let displayNameNode = displayNameMap.get(displayNameKey);
     if (!displayNameNode) {
@@ -112,17 +119,7 @@ export function buildSortedAssayTreeView(
       displayNameMap.set(displayNameKey, displayNameNode);
     }
 
-    const expNode: TreeViewBaseItem<ExtendedTreeItemProps> = {
-      id: row.id,
-      isAssayItem: false,
-      label: formatIdLabel(row.id),
-      icon: "removeable",
-      assayName: row.assay,
-      children: [],
-      allExpAccessions: [row.id],
-    };
-    displayNameNode.children!.push(expNode);
-
+    // Add this experiment ID to all parent nodes' allExpAccessions
     assayNode.allExpAccessions!.push(row.id);
     ontologyNode.allExpAccessions!.push(row.id);
     displayNameNode.allExpAccessions!.push(row.id);

@@ -47,8 +47,8 @@ function CustomLabel({
   renderIcon,
   ...other
 }: CustomLabelProps) {
-  const variant = isAssayItem ? "subtitle2" : "body2";
-  const fontWeight = isAssayItem ? "bold" : 500;
+  const variant = "body2";
+  const fontWeight = 500;
   const labelText = typeof children === "string" ? children : "";
   return (
     <TreeItemLabel
@@ -79,9 +79,6 @@ function CustomLabel({
         alignItems="center"
         sx={{ minWidth: 0, overflow: "hidden", flex: 1 }}
       >
-        {isAssayItem && renderIcon && (
-          <Box sx={{ flexShrink: 0 }}>{renderIcon(other.id)}</Box>
-        )}
         {assayName && renderIcon && (
           <Box sx={{ flexShrink: 0 }}>{renderIcon(assayName)}</Box>
         )}
