@@ -1,57 +1,12 @@
-import { FuseOptionKey } from "fuse.js";
 import { UseTreeItemParameters } from "@mui/x-tree-view/useTreeItem";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import {
   DataGridPremiumProps,
-  GridRowSelectionModel,
+  GridColDef,
+  GridRenderCellParams,
 } from "@mui/x-data-grid-premium";
 import { ReactElement, ReactNode } from "react";
 import { SvgIconOwnProps } from "@mui/material";
-import { SelectionStoreInstance } from "./store";
-
-export interface SearchTracksProps {
-  query: string;
-  keyWeightMap: FuseOptionKey<any>[];
-  jsonStructure?: string;
-  treeItems?: TreeViewBaseItem<ExtendedTreeItemProps>[];
-  threshold?: number;
-  limit?: number;
-}
-
-/**
- * Types for the JSON-formatted tracks fomr modifiedHumanTracks.json
- */
-export type AssayInfo = {
-  id: string;
-  assay: string;
-  url: string;
-  experimentAccession: string;
-  fileAccession: string;
-};
-
-export type TrackInfo = {
-  name: string;
-  ontology: string;
-  lifeStage: string;
-  sampleType: string;
-  displayname: string;
-  assays: AssayInfo[];
-};
-
-/**
- *  Row format for DataGrid
- */
-export type RowInfo = {
-  id: string;
-  ontology: string;
-  lifeStage: string;
-  sampleType: string;
-  displayname: string;
-  assay: string;
-  experimentAccession: string;
-  fileAccession: string;
-  url: string;
-};
 
 /**
  * Custom Tree Props for RichTreeView Panel
@@ -60,6 +15,7 @@ export type ExtendedTreeItemProps = {
   id: string;
   label: string;
   icon: string;
+  folderId?: string;
   isAssayItem?: boolean;
   /**
    * The assay name for leaf nodes (experiment accession items)
@@ -70,15 +26,26 @@ export type ExtendedTreeItemProps = {
    * this is used in updating the rowSelectionModel when removing items from the Tree View panel
    */
   allExpAccessions?: string[];
-  // list to allow search functionality in the treeview
-  allRowInfo?: RowInfo[];
+};
+
+/**
+ * Configuration for a single folder's tree in the TreeViewWrapper.
+ * Each folder gets its own tree with its own TreeItemComponent.
+ */
+export type FolderTreeConfig = {
+  folderId: string;
+  items: TreeViewBaseItem<ExtendedTreeItemProps>[];
+  /** Optional custom TreeItem component for this folder */
+  TreeItemComponent?: React.ForwardRefExoticComponent<
+    CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
+  >;
 };
 
 export type TreeViewWrapperProps = {
-  store: SelectionStoreInstance;
-  items: TreeViewBaseItem<ExtendedTreeItemProps>[];
-  trackIds: Set<string>; // real track IDs only (no auto-generated)
-  isSearchResult: boolean;
+  /** Array of folder tree configurations, one per folder with selections */
+  folderTrees: FolderTreeConfig[];
+  selectedCount: number;
+  onRemove: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
 };
 
 export interface CustomLabelProps {
@@ -86,38 +53,31 @@ export interface CustomLabelProps {
   children: React.ReactNode;
   isAssayItem?: boolean;
   assayName?: string;
-  icon: React.ElementType | React.ReactElement;
+  icon?: React.ElementType | React.ReactElement | ReactNode;
+  /** Optional function to render custom icons for assay items */
+  renderIcon?: (name: string) => ReactNode;
 }
 
 export interface CustomTreeItemProps
   extends Omit<UseTreeItemParameters, "rootRef">,
     Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {
   onRemove?: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
+  /** Optional function to render custom icons for assay items */
+  renderIcon?: (name: string) => ReactNode;
 }
 
 /**
  * Types for useSelectionStore to keep track of selected DataGrid rows/tracks
  */
 export type SelectionState = {
-  maxTracks: number;
-  // Assembly determines which JSON data to use
-  assembly: string;
-  // All available rows for the current assembly
-  rows: RowInfo[];
-  // Map of id -> RowInfo for fast lookup
-  rowById: Map<string, RowInfo>;
-  // All selected IDs including auto-generated group IDs from DataGrid
-  selectedIds: Set<string>;
+  selectedByFolder: Map<string, Set<string>>;
+  activeFolderId: string;
 };
 
 export type SelectionAction = {
-  // Returns only real track IDs (filters out auto-generated group IDs)
-  getTrackIds: () => Set<string>;
-  // Returns a Map of track IDs to RowInfo (no auto-generated IDs)
-  getTrackMap: () => Map<string, RowInfo>;
-  setSelected: (ids: Set<string>) => void;
-  removeIds: (removedIds: Set<string>) => void;
-  clear: () => void;
+  clear: (folderId?: string) => void;
+  setActiveFolder: (folderId: string) => void;
+  setSelection: (folderId: string, ids: Set<string>) => void;
 };
 
 /**
@@ -140,11 +100,15 @@ interface BaseTableProps extends Omit<DataGridPremiumProps, "columns"> {
   toolbarIconColor?: SvgIconOwnProps["htmlColor"];
 }
 
-type DataGridWrapperProps = {
-  rows: RowInfo[];
-  selectedIds: Set<string>; // all IDs including auto-generated group IDs
-  handleSelection: (newSelection: GridRowSelectionModel) => void;
-  sortedAssay: boolean;
+export type DataGridWrapperProps = {
+  rows: any[];
+  columns: GridColDef[];
+  groupingModel: string[];
+  leafField: string;
+  selectedIds: Set<string>;
+  onSelectionChange: (ids: Set<string>) => void;
+  /** Optional custom component for rendering grouping cells */
+  GroupingCellComponent?: React.FC<GridRenderCellParams>;
 };
 
 //This enforces that a downloadFileName is specified if a ReactElement is used as the label (no default )

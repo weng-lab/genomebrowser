@@ -1,11 +1,62 @@
 {
   "tracks": [
     {
+      "name": "aggregate-biosample-data",
+      "ontology": "aggregate",
+      "lifeStage": "N/A",
+      "sampleType": "aggregate",
+      "displayName": "Aggregate data, all ENCODE Biosamples",
+      "assays": [
+        {
+          "id": "ccre-aggregate",
+          "assay": "ccre",
+          "url": "https://downloads.wenglab.org/mm10-cCREs.DCC.bigBed",
+          "experimentAccession": "",
+          "fileAccession": "mm10-cCREs.DCC"
+        },
+        {
+          "id": "dnase-aggregate",
+          "assay": "dnase",
+          "url": "https://downloads.wenglab.org/DNase_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
+          "experimentAccession": "",
+          "fileAccession": "DNase_MM10_ENCODE_DEC2024_merged_nanrm"
+        },
+        {
+          "id": "h3k4me3-aggregate",
+          "assay": "h3k4me3",
+          "url": "https://downloads.wenglab.org/H3K4me3_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
+          "experimentAccession": "",
+          "fileAccession": "H3K4me3_All_ENCODE_MAR20_2024_merged"
+        },
+        {
+          "id": "h3k27ac-aggregate",
+          "assay": "h3k27ac",
+          "url": "https://downloads.wenglab.org/H3K27ac_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
+          "experimentAccession": "",
+          "fileAccession": "H3K27ac_All_ENCODE_MAR20_2024_merged"
+        },
+        {
+          "id": "ctcf-aggregate",
+          "assay": "ctcf",
+          "url": "https://downloads.wenglab.org/CTCF_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
+          "experimentAccession": "",
+          "fileAccession": "CTCF_All_ENCODE_MAR20_2024_merged"
+        },
+        {
+          "id": "atac-aggregate",
+          "assay": "atac",
+          "url": "https://downloads.wenglab.org/ATAC_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
+          "experimentAccession": "",
+          "fileAccession": "ATAC_All_ENCODE_MAR20_2024_merged"
+        }
+      ]
+    },
+    {
       "name": "strain_C57BL/6_brown_adipose_tissue_tissue_male_adult_24_weeks_ENCDO956IXV",
       "ontology": "adipose",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "brown adipose tissue, male adult (24 weeks) strain B6NCrl C57BL/6",
+      "displayName": "brown adipose tissue, male adult (24 weeks) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF409WOB",
@@ -35,7 +86,7 @@
       "ontology": "adipose",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "fat pad, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "fat pad, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF899BWR",
@@ -58,7 +109,7 @@
       "ontology": "adipose",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gonadal fat pad, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "gonadal fat pad, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF148JTM",
@@ -81,7 +132,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF431GVW",
@@ -104,7 +155,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF106WKK",
@@ -127,7 +178,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF673OVH",
@@ -150,7 +201,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF601XSB",
@@ -173,7 +224,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF934ESX",
@@ -196,7 +247,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, female adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, female adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF744EEA",
@@ -219,7 +270,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF347OHB",
@@ -256,7 +307,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF328XIU",
@@ -279,7 +330,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF937FWN",
@@ -302,7 +353,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF203JYG",
@@ -325,7 +376,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF721WGA",
@@ -348,7 +399,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF156YWL",
@@ -371,7 +422,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF173KBA",
@@ -394,7 +445,7 @@
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "adrenal gland, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "adrenal gland, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF753WAM",
@@ -431,7 +482,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "A20, strain A20 BALB/cAnN",
+      "displayName": "A20, strain A20 BALB/cAnN",
       "assays": [
         {
           "id": "dnase-ENCFF242VSF",
@@ -454,7 +505,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "CH12.LX, strain B10.H-2aH-4bp/Wts B10.H-2aH-4bp/Wts",
+      "displayName": "CH12.LX, strain B10.H-2aH-4bp/Wts B10.H-2aH-4bp/Wts",
       "assays": [
         {
           "id": "dnase-ENCFF228LWM",
@@ -512,7 +563,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "B cell, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "B cell, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF039YNN",
@@ -535,7 +586,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "CD4-positive, CD25-positive, alpha-beta regulatory T cell, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "CD4-positive, CD25-positive, alpha-beta regulatory T cell, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF451FMO",
@@ -558,7 +609,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "CD4-positive helper T cell, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "CD4-positive helper T cell, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF442KBM",
@@ -581,7 +632,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "hematopoietic stem cell, adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "hematopoietic stem cell, adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF802VYT",
@@ -597,7 +648,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "hematopoietic stem cell, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "hematopoietic stem cell, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF496XJS",
@@ -613,7 +664,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "induced T-regulatory cell, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "induced T-regulatory cell, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF572CPT",
@@ -636,7 +687,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "monocyte, adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "monocyte, adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF220DSP",
@@ -652,7 +703,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "naive thymus-derived CD4-positive, alpha-beta T cell, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "naive thymus-derived CD4-positive, alpha-beta T cell, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF723SHA",
@@ -675,7 +726,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "neutrophil, adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "neutrophil, adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF809RKK",
@@ -691,7 +742,7 @@
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "splenic B cell, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "splenic B cell, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF433ETL",
@@ -714,7 +765,7 @@
       "ontology": "blood marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
-      "displayname": "c-Kit-negative CD71-positive TER-119-positive erythroid progenitor cells, male embryo (14.5 days) CD-1",
+      "displayName": "c-Kit-negative CD71-positive TER-119-positive erythroid progenitor cells, male embryo (14.5 days) CD-1",
       "assays": [
         {
           "id": "dnase-ENCFF599DXB",
@@ -737,7 +788,7 @@
       "ontology": "blood marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
-      "displayname": "c-Kit-positive CD71-negative TER-119-negative erythroid progenitor cells, male embryo (14.5 days) CD-1",
+      "displayName": "c-Kit-positive CD71-negative TER-119-negative erythroid progenitor cells, male embryo (14.5 days) CD-1",
       "assays": [
         {
           "id": "dnase-ENCFF388NWY",
@@ -760,7 +811,7 @@
       "ontology": "blood marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
-      "displayname": "c-Kit-positive CD71-positive TER-119-negative erythroid progenitor cells, male embryo (14.5 days) CD-1",
+      "displayName": "c-Kit-positive CD71-positive TER-119-negative erythroid progenitor cells, male embryo (14.5 days) CD-1",
       "assays": [
         {
           "id": "dnase-ENCFF842TRK",
@@ -783,7 +834,7 @@
       "ontology": "blood marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
-      "displayname": "c-Kit-positive CD71-positive TER-119-positive erythroid progenitor cells, male embryo (14.5 days) CD-1",
+      "displayName": "c-Kit-positive CD71-positive TER-119-positive erythroid progenitor cells, male embryo (14.5 days) CD-1",
       "assays": [
         {
           "id": "dnase-ENCFF836VBR",
@@ -806,7 +857,7 @@
       "ontology": "blood marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "leukemia stem cell, strain C57BL/6J C57BL/6 genetically modified (insertion) using transduction inserting H. sapiens MLLT3",
+      "displayName": "leukemia stem cell, strain C57BL/6J C57BL/6 genetically modified (insertion) using transduction inserting H. sapiens MLLT3",
       "assays": [
         {
           "id": "dnase-ENCFF415XRN",
@@ -829,7 +880,7 @@
       "ontology": "bone marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
-      "displayname": "erythroblast, mixed sex embryo (14.5 days) CD-1",
+      "displayName": "erythroblast, mixed sex embryo (14.5 days) CD-1",
       "assays": [
         {
           "id": "h3k4me3-ENCFF780SUE",
@@ -852,7 +903,7 @@
       "ontology": "bone marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
-      "displayname": "megakaryocyte, mixed sex embryo (14.5 days) CD-1",
+      "displayName": "megakaryocyte, mixed sex embryo (14.5 days) CD-1",
       "assays": [
         {
           "id": "h3k4me3-ENCFF617EQR",
@@ -875,7 +926,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "416B, strain 416B B6D2F1/J",
+      "displayName": "416B, strain 416B B6D2F1/J",
       "assays": [
         {
           "id": "dnase-ENCFF108FDT",
@@ -898,7 +949,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "bone marrow macrophage, male adult (2 months) strain Bruce4 C57BL/6",
+      "displayName": "bone marrow macrophage, male adult (2 months) strain Bruce4 C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF549CDI",
@@ -935,7 +986,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "bone marrow, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "bone marrow, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF620KTZ",
@@ -972,7 +1023,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "common myeloid progenitor, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "common myeloid progenitor, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF444GUU",
@@ -988,7 +1039,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "erythroblast, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "erythroblast, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF400FFT",
@@ -1004,7 +1055,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "erythroid progenitor cell, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "erythroid progenitor cell, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF056XPN",
@@ -1020,7 +1071,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "granulocyte monocyte progenitor cell, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "granulocyte monocyte progenitor cell, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF174RBG",
@@ -1036,7 +1087,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "megakaryocyte-erythroid progenitor cell, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "megakaryocyte-erythroid progenitor cell, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF370LSN",
@@ -1052,7 +1103,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "megakaryocyte, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "megakaryocyte, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF942DXD",
@@ -1068,7 +1119,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "megakaryocyte progenitor cell, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "megakaryocyte progenitor cell, male adult (5-6 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF031KZO",
@@ -1084,7 +1135,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
-      "displayname": "erythroblast (in vitro differentiated cells)",
+      "displayName": "erythroblast (in vitro differentiated cells)",
       "assays": [
         {
           "id": "dnase-ENCFF939PNR",
@@ -1107,7 +1158,7 @@
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
-      "displayname": "erythroblast (in vitro differentiated cells)",
+      "displayName": "erythroblast (in vitro differentiated cells)",
       "assays": [
         {
           "id": "dnase-ENCFF272GFH",
@@ -1130,7 +1181,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF221PTY",
@@ -1153,7 +1204,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF734YTY",
@@ -1176,7 +1227,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF521KYE",
@@ -1199,7 +1250,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF205DHD",
@@ -1222,7 +1273,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF710SIX",
@@ -1245,7 +1296,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF465BSQ",
@@ -1268,7 +1319,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF432JFC",
@@ -1291,7 +1342,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF232ORL",
@@ -1314,7 +1365,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF361WZX",
@@ -1337,7 +1388,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF771NHC",
@@ -1360,7 +1411,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF708JHB",
@@ -1383,7 +1434,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "cerebellum, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF889HRS",
@@ -1406,7 +1457,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "frontal cortex, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF364XCA",
@@ -1429,7 +1480,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "frontal cortex, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF106XAF",
@@ -1452,7 +1503,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "frontal cortex, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF625VYF",
@@ -1475,7 +1526,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "frontal cortex, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF228XUA",
@@ -1498,7 +1549,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "frontal cortex, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF885YRD",
@@ -1521,7 +1572,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "frontal cortex, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF269NBM",
@@ -1544,7 +1595,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "frontal cortex, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF429NNY",
@@ -1567,7 +1618,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "frontal cortex, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF489OEG",
@@ -1590,7 +1641,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "frontal cortex, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF730MUU",
@@ -1613,7 +1664,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "frontal cortex, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF212IGR",
@@ -1636,7 +1687,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF714FKH",
@@ -1659,7 +1710,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF850NQH",
@@ -1682,7 +1733,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF593IJO",
@@ -1705,7 +1756,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF398ALB",
@@ -1728,7 +1779,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF489NWA",
@@ -1751,7 +1802,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF931ZAD",
@@ -1774,7 +1825,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF923LCJ",
@@ -1797,7 +1848,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF725DDG",
@@ -1820,7 +1871,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF293ADN",
@@ -1843,7 +1894,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF027SZX",
@@ -1866,7 +1917,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF025FEU",
@@ -1889,7 +1940,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "layer of hippocampus, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "layer of hippocampus, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF738ENC",
@@ -1912,7 +1963,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF863EKT",
@@ -1935,7 +1986,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF758TTR",
@@ -1958,7 +2009,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF280VXS",
@@ -1981,7 +2032,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF352LDG",
@@ -2004,7 +2055,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF563PXT",
@@ -2027,7 +2078,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF636BHS",
@@ -2050,7 +2101,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF749GPR",
@@ -2087,7 +2138,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, female adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, female adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF656MTD",
@@ -2110,7 +2161,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF663IIJ",
@@ -2133,7 +2184,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF077JGX",
@@ -2156,7 +2207,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF860GUJ",
@@ -2179,7 +2230,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF642MWH",
@@ -2202,7 +2253,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF351YSI",
@@ -2225,7 +2276,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF369FZW",
@@ -2262,7 +2313,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "left cerebral cortex, male adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "left cerebral cortex, male adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF781RAE",
@@ -2285,7 +2336,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF262BLN",
@@ -2308,7 +2359,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF205RZJ",
@@ -2331,7 +2382,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF756JAT",
@@ -2354,7 +2405,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF648RLL",
@@ -2377,7 +2428,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF323AAK",
@@ -2400,7 +2451,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF192MKM",
@@ -2423,7 +2474,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF007ZZJ",
@@ -2446,7 +2497,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF171LMU",
@@ -2469,7 +2520,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF369XRD",
@@ -2492,7 +2543,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF254BIC",
@@ -2515,7 +2566,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF514VRF",
@@ -2538,7 +2589,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "right cerebral cortex, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "right cerebral cortex, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF314PDM",
@@ -2561,7 +2612,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "brain, male embryo (14.5 days) strain C57BL/6J C57BL/6",
+      "displayName": "brain, male embryo (14.5 days) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF652BMI",
@@ -2591,7 +2642,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "brain, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "brain, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF010KFV",
@@ -2614,7 +2665,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "brain, male embryo (18.5 days) strain C57BL/6J C57BL/6",
+      "displayName": "brain, male embryo (18.5 days) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF981OGB",
@@ -2637,7 +2688,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, adult strain B6NCrl C57BL/6",
+      "displayName": "cerebellum, adult strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF696IBU",
@@ -2653,7 +2704,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, strain B6NCrl C57BL/6",
+      "displayName": "cerebellum, strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF166NWJ",
@@ -2676,7 +2727,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cerebellum, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "cerebellum, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF265EIS",
@@ -2720,7 +2771,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cortex, strain B6NCrl C57BL/6",
+      "displayName": "cortex, strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF231WLA",
@@ -2743,7 +2794,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "cortical plate, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "cortical plate, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF915MTC",
@@ -2780,7 +2831,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "forebrain, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
+      "displayName": "forebrain, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF506ZSC",
@@ -2824,7 +2875,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "forebrain, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
+      "displayName": "forebrain, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF639LUT",
@@ -2875,7 +2926,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "forebrain, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
+      "displayName": "forebrain, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF576VRV",
@@ -2919,7 +2970,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "forebrain, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
+      "displayName": "forebrain, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF915VWM",
@@ -2963,7 +3014,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "forebrain, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "forebrain, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF237YNH",
@@ -3014,7 +3065,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "forebrain, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "forebrain, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF223AGO",
@@ -3058,7 +3109,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "forebrain, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
+      "displayName": "forebrain, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF408ICW",
@@ -3102,7 +3153,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "forebrain, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "forebrain, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF727CYI",
@@ -3160,7 +3211,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "frontal cortex, adult strain B6NCrl C57BL/6",
+      "displayName": "frontal cortex, adult strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF739NAL",
@@ -3176,7 +3227,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "hindbrain, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
+      "displayName": "hindbrain, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF790CVH",
@@ -3220,7 +3271,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "hindbrain, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
+      "displayName": "hindbrain, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF587MWA",
@@ -3271,7 +3322,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "hindbrain, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
+      "displayName": "hindbrain, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF344PSC",
@@ -3315,7 +3366,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "hindbrain, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
+      "displayName": "hindbrain, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF946QFJ",
@@ -3359,7 +3410,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "hindbrain, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "hindbrain, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF274NPS",
@@ -3410,7 +3461,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "hindbrain, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "hindbrain, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF730YNX",
@@ -3454,7 +3505,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "hindbrain, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
+      "displayName": "hindbrain, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF196OVH",
@@ -3498,7 +3549,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "hindbrain, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "hindbrain, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF822FDB",
@@ -3556,7 +3607,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "midbrain, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
+      "displayName": "midbrain, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF293YCS",
@@ -3600,7 +3651,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "midbrain, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
+      "displayName": "midbrain, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF414SMG",
@@ -3651,7 +3702,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "midbrain, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
+      "displayName": "midbrain, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF583YJS",
@@ -3695,7 +3746,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "midbrain, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
+      "displayName": "midbrain, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF375SNP",
@@ -3739,7 +3790,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "midbrain, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "midbrain, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF539CBL",
@@ -3790,7 +3841,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "midbrain, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "midbrain, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF133YIG",
@@ -3834,7 +3885,7 @@
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "midbrain, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
+      "displayName": "midbrain, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF657KZB",
@@ -3878,7 +3929,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "midbrain, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "midbrain, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF325FZS",
@@ -3936,7 +3987,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "olfactory bulb, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "olfactory bulb, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF210QSK",
@@ -3973,7 +4024,7 @@
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "telencephalon, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "telencephalon, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF125SKT",
@@ -3996,7 +4047,7 @@
       "ontology": "breast",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "3134, strain 3134 RIII",
+      "displayName": "3134, strain 3134 RIII",
       "assays": [
         {
           "id": "dnase-ENCFF587VZL",
@@ -4019,7 +4070,7 @@
       "ontology": "connective tissue",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "3T3-L1, strain C57BL/6J C57BL/6",
+      "displayName": "3T3-L1, strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF961CBL",
@@ -4042,7 +4093,7 @@
       "ontology": "connective tissue",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
-      "displayname": "adipocyte, strain C57BL/6J C57BL/6",
+      "displayName": "adipocyte, strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF512NWW",
@@ -4065,7 +4116,7 @@
       "ontology": "connective tissue",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
-      "displayname": "embryonic fibroblast, male embryo (13.5 weeks) strain C57BL/6J C57BL/6",
+      "displayName": "embryonic fibroblast, male embryo (13.5 weeks) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF531TGE",
@@ -4102,7 +4153,7 @@
       "ontology": "connective tissue",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "fibroblast of lung, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "fibroblast of lung, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF145XZO",
@@ -4125,7 +4176,7 @@
       "ontology": "connective tissue",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "NIH3T3, strain NIH3T3 NIH/Swiss",
+      "displayName": "NIH3T3, strain NIH3T3 NIH/Swiss",
       "assays": [
         {
           "id": "dnase-ENCFF268ZOH",
@@ -4148,7 +4199,7 @@
       "ontology": "connective tissue",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "Patski, strain Patski M.spretus x C57BL/6J",
+      "displayName": "Patski, strain Patski M.spretus x C57BL/6J",
       "assays": [
         {
           "id": "dnase-ENCFF524NPW",
@@ -4171,7 +4222,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryo, male embryo (11.5 days) CD-1 depleted in head",
+      "displayName": "embryo, male embryo (11.5 days) CD-1 depleted in head",
       "assays": [
         {
           "id": "dnase-ENCFF471MZE",
@@ -4194,7 +4245,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "forelimb bud, male embryo (11.5 days) CD-1",
+      "displayName": "forelimb bud, male embryo (11.5 days) CD-1",
       "assays": [
         {
           "id": "dnase-ENCFF300RLK",
@@ -4217,7 +4268,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "G1E, 129",
+      "displayName": "G1E, 129",
       "assays": [
         {
           "id": "dnase-ENCFF194EIJ",
@@ -4254,7 +4305,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "G1E-ER4, treated with 10 nM 17β-estradiol for 24 hours 129",
+      "displayName": "G1E-ER4, treated with 10 nM 17β-estradiol for 24 hours 129",
       "assays": [
         {
           "id": "dnase-ENCFF389ASD",
@@ -4291,7 +4342,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "hindlimb bud, male embryo (11.5 days) CD-1",
+      "displayName": "hindlimb bud, male embryo (11.5 days) CD-1",
       "assays": [
         {
           "id": "dnase-ENCFF777JLL",
@@ -4314,7 +4365,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "mesoderm, male embryo (11.5 days) CD-1",
+      "displayName": "mesoderm, male embryo (11.5 days) CD-1",
       "assays": [
         {
           "id": "dnase-ENCFF617QIH",
@@ -4337,7 +4388,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "E14TG2a.4, strain 129/Ola 129",
+      "displayName": "E14TG2a.4, strain 129/Ola 129",
       "assays": [
         {
           "id": "h3k4me3-ENCFF359BQV",
@@ -4367,7 +4418,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "ES-E14, strain 129/Ola 129",
+      "displayName": "ES-E14, strain 129/Ola 129",
       "assays": [
         {
           "id": "dnase-ENCFF672DJH",
@@ -4404,7 +4455,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "ZHBTc4, strain 129/Ola 129",
+      "displayName": "ZHBTc4, strain 129/Ola 129",
       "assays": [
         {
           "id": "dnase-ENCFF473LRF",
@@ -4427,7 +4478,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "ZHBTc4, treated with 100 ng/mL doxycycline hyclate for 24 hours strain 129/Ola 129",
+      "displayName": "ZHBTc4, treated with 100 ng/mL doxycycline hyclate for 24 hours strain 129/Ola 129",
       "assays": [
         {
           "id": "dnase-ENCFF471ULZ",
@@ -4450,7 +4501,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "ZHBTc4, treated with 100 ng/mL doxycycline hyclate for 6 hours strain 129/Ola 129",
+      "displayName": "ZHBTc4, treated with 100 ng/mL doxycycline hyclate for 6 hours strain 129/Ola 129",
       "assays": [
         {
           "id": "dnase-ENCFF493KRV",
@@ -4473,7 +4524,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "ES-CJ7, strain 129S1/SvImJ 129",
+      "displayName": "ES-CJ7, strain 129S1/SvImJ 129",
       "assays": [
         {
           "id": "dnase-ENCFF119QSY",
@@ -4496,7 +4547,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "WW6, strain ~20% C57/B6J (MGI.D:C57BL), ~75% 129/Sv (MGI.D:129) and ~5% SJL strains (MGI.D:SJL) mixed",
+      "displayName": "WW6, strain ~20% C57/B6J (MGI.D:C57BL), ~75% 129/Sv (MGI.D:129) and ~5% SJL strains (MGI.D:SJL) mixed",
       "assays": [
         {
           "id": "dnase-ENCFF861QHS",
@@ -4519,7 +4570,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "WW6, strain ~20% C57/B6J (MGI.D:C57BL), ~75% 129/Sv (MGI.D:129) and ~5% SJL strains (MGI.D:SJL) mixed genetically modified (knockout) using homologous recombination targeting M. musculus Hist1h1c, genetically modified (knockout) using homologous recombination targeting M. musculus Hist1h1d, genetically modified (knockout) using homologous recombination targeting M. musculus Hist1h1e",
+      "displayName": "WW6, strain ~20% C57/B6J (MGI.D:C57BL), ~75% 129/Sv (MGI.D:129) and ~5% SJL strains (MGI.D:SJL) mixed genetically modified (knockout) using homologous recombination targeting M. musculus Hist1h1c, genetically modified (knockout) using homologous recombination targeting M. musculus Hist1h1d, genetically modified (knockout) using homologous recombination targeting M. musculus Hist1h1e",
       "assays": [
         {
           "id": "dnase-ENCFF644NCL",
@@ -4542,7 +4593,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "ES-Bruce4, strain Bruce4 C57BL/6",
+      "displayName": "ES-Bruce4, strain Bruce4 C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF397UZX",
@@ -4579,7 +4630,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryonic facial prominence, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
+      "displayName": "embryonic facial prominence, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF249HFH",
@@ -4623,7 +4674,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryonic facial prominence, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
+      "displayName": "embryonic facial prominence, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF134SHQ",
@@ -4674,7 +4725,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryonic facial prominence, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
+      "displayName": "embryonic facial prominence, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF454API",
@@ -4718,7 +4769,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryonic facial prominence, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
+      "displayName": "embryonic facial prominence, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF891SME",
@@ -4762,7 +4813,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryonic facial prominence, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "embryonic facial prominence, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF120FLV",
@@ -4813,7 +4864,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryonic facial prominence, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "embryonic facial prominence, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF894ZYN",
@@ -4857,7 +4908,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryo, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
+      "displayName": "embryo, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF772NFM",
@@ -4880,7 +4931,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryo, mixed sex embryo (10 days) strain B6NCrl C57BL/6",
+      "displayName": "embryo, mixed sex embryo (10 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF689LNL",
@@ -4903,7 +4954,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryo, mixed sex embryo (11 days) strain B6NCrl C57BL/6",
+      "displayName": "embryo, mixed sex embryo (11 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF357LDL",
@@ -4926,7 +4977,7 @@
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "embryo, mixed sex embryo (9.5 days) strain B6NCrl C57BL/6",
+      "displayName": "embryo, mixed sex embryo (9.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF782XTC",
@@ -4949,7 +5000,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "G1E, strain C57BL/6J C57BL/6",
+      "displayName": "G1E, strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF852SDC",
@@ -4965,7 +5016,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "G1E-ER4, treated with 10 nM 17β-estradiol for 24 hours strain C57BL/6J C57BL/6",
+      "displayName": "G1E-ER4, treated with 10 nM 17β-estradiol for 24 hours strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "atac-ENCFF718XPN",
@@ -4981,7 +5032,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "R1, strain C57BL/6J C57BL/6",
+      "displayName": "R1, strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF628POS",
@@ -5004,7 +5055,7 @@
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "ZHBTc4, treated with 100 ng/mL doxycycline hyclate for 96 hours strain B6NCrl C57BL/6",
+      "displayName": "ZHBTc4, treated with 100 ng/mL doxycycline hyclate for 96 hours strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF591ULD",
@@ -5027,7 +5078,7 @@
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "neural tube, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
+      "displayName": "neural tube, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF070JPK",
@@ -5050,7 +5101,7 @@
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "neural tube, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
+      "displayName": "neural tube, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF168RKV",
@@ -5101,7 +5152,7 @@
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "neural tube, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
+      "displayName": "neural tube, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF380SYY",
@@ -5145,7 +5196,7 @@
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "neural tube, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
+      "displayName": "neural tube, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF036CBQ",
@@ -5189,7 +5240,7 @@
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "neural tube, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "neural tube, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF430CDF",
@@ -5226,7 +5277,7 @@
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "neural tube, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "neural tube, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF119DJX",
@@ -5270,7 +5321,7 @@
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "yolk sac, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
+      "displayName": "yolk sac, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF273ILK",
@@ -5293,7 +5344,7 @@
       "ontology": "eye",
       "lifeStage": "adult",
       "sampleType": "primary cell",
-      "displayname": "Muller cell, mixed sex postnatal (12 days) strain B6NCrl C57BL/6",
+      "displayName": "Muller cell, mixed sex postnatal (12 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF084PKJ",
@@ -5316,7 +5367,7 @@
       "ontology": "eye",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "retina, mixed sex embryo (14.5 days) strain B6NCrl C57BL/6",
+      "displayName": "retina, mixed sex embryo (14.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF641XAC",
@@ -5339,7 +5390,7 @@
       "ontology": "eye",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "retina, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "retina, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF890DBN",
@@ -5362,7 +5413,7 @@
       "ontology": "eye",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "retina, male postnatal (1 day) strain C57BL/6J C57BL/6",
+      "displayName": "retina, male postnatal (1 day) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF269QXX",
@@ -5385,7 +5436,7 @@
       "ontology": "eye",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "retina, male postnatal (7 days) strain C57BL/6J C57BL/6",
+      "displayName": "retina, male postnatal (7 days) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF921PMK",
@@ -5408,7 +5459,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF858PCS",
@@ -5431,7 +5482,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF657VXM",
@@ -5454,7 +5505,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF668MTU",
@@ -5477,7 +5528,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF175HKB",
@@ -5500,7 +5551,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF075GWX",
@@ -5523,7 +5574,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF462XVL",
@@ -5546,7 +5597,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF791MPV",
@@ -5583,7 +5634,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF780GBM",
@@ -5606,7 +5657,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF932OBF",
@@ -5629,7 +5680,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF664MQT",
@@ -5652,7 +5703,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF503IYI",
@@ -5675,7 +5726,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF980ABY",
@@ -5698,7 +5749,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF576NPQ",
@@ -5735,7 +5786,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, male adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "heart, male adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF603JIQ",
@@ -5758,7 +5809,7 @@
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "heart, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
+      "displayName": "heart, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF105ICO",
@@ -5802,7 +5853,7 @@
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "heart, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
+      "displayName": "heart, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF552KXU",
@@ -5846,7 +5897,7 @@
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "heart, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
+      "displayName": "heart, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF088WUJ",
@@ -5890,7 +5941,7 @@
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "heart, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
+      "displayName": "heart, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF312FOV",
@@ -5934,7 +5985,7 @@
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "heart, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "heart, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF182PIY",
@@ -5971,7 +6022,7 @@
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "heart, mixed sex embryo (14.5 days) strain B6NCrl C57BL/6",
+      "displayName": "heart, mixed sex embryo (14.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF325AMR",
@@ -6008,7 +6059,7 @@
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "heart, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "heart, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF124BBT",
@@ -6052,7 +6103,7 @@
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "heart, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
+      "displayName": "heart, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF944PZS",
@@ -6096,7 +6147,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "heart, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF862WQC",
@@ -6140,7 +6191,7 @@
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "heart, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "heart, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF947JCM",
@@ -6198,7 +6249,7 @@
       "ontology": "intestine",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "intestine, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "intestine, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF622ZMY",
@@ -6249,7 +6300,7 @@
       "ontology": "intestine",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "intestine, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "intestine, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF812ONE",
@@ -6293,7 +6344,7 @@
       "ontology": "intestine",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "intestine, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
+      "displayName": "intestine, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF752ZXE",
@@ -6337,7 +6388,7 @@
       "ontology": "intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "intestine, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "intestine, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF193BIT",
@@ -6381,7 +6432,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF893YIZ",
@@ -6404,7 +6455,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF757PID",
@@ -6427,7 +6478,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF028YLJ",
@@ -6450,7 +6501,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF944WFO",
@@ -6473,7 +6524,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF826RWW",
@@ -6496,7 +6547,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF870SPA",
@@ -6519,7 +6570,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF270RIF",
@@ -6542,7 +6593,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, female adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, female adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF189OFG",
@@ -6565,7 +6616,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF235PCL",
@@ -6588,7 +6639,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF781UBW",
@@ -6611,7 +6662,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF731VRA",
@@ -6634,7 +6685,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF241OUN",
@@ -6657,7 +6708,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF540MDS",
@@ -6680,7 +6731,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF459JNX",
@@ -6703,7 +6754,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, male adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "kidney, male adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF132JYS",
@@ -6726,7 +6777,7 @@
       "ontology": "kidney",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "kidney, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "kidney, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF954QBL",
@@ -6763,7 +6814,7 @@
       "ontology": "kidney",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "kidney, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "kidney, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF529IYW",
@@ -6807,7 +6858,7 @@
       "ontology": "kidney",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "kidney, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
+      "displayName": "kidney, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF009XNW",
@@ -6851,7 +6902,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "kidney, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF744DCK",
@@ -6895,7 +6946,7 @@
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "kidney, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "kidney, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF374LSN",
@@ -6953,7 +7004,7 @@
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "large intestine, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "large intestine, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF577HED",
@@ -6976,7 +7027,7 @@
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "limb, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
+      "displayName": "limb, mixed sex embryo (10.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF973VBA",
@@ -7020,7 +7071,7 @@
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "limb, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
+      "displayName": "limb, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF904POM",
@@ -7071,7 +7122,7 @@
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "limb, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
+      "displayName": "limb, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF230XAT",
@@ -7115,7 +7166,7 @@
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "limb, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
+      "displayName": "limb, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF340BOO",
@@ -7159,7 +7210,7 @@
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "limb, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "limb, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF088QDE",
@@ -7210,7 +7261,7 @@
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "limb, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "limb, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF559ARR",
@@ -7254,7 +7305,7 @@
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "liver, male embryo (14.5 days) 129",
+      "displayName": "liver, male embryo (14.5 days) 129",
       "assays": [
         {
           "id": "dnase-ENCFF119MTD",
@@ -7277,7 +7328,7 @@
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "liver, male embryo (14.5 days) strain 129.DLCR/DLCR 129",
+      "displayName": "liver, male embryo (14.5 days) strain 129.DLCR/DLCR 129",
       "assays": [
         {
           "id": "dnase-ENCFF167OJP",
@@ -7300,7 +7351,7 @@
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "liver, adult (8-10 weeks) treated with darkness for 50 hours strain C57BL/6J C57BL/6",
+      "displayName": "liver, adult (8-10 weeks) treated with darkness for 50 hours strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF500VFH",
@@ -7323,7 +7374,7 @@
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "liver, adult (8-10 weeks) treated with darkness for 54 hours strain C57BL/6J C57BL/6",
+      "displayName": "liver, adult (8-10 weeks) treated with darkness for 54 hours strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF870JWU",
@@ -7346,7 +7397,7 @@
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "liver, adult (8-10 weeks) treated with darkness for 58 hours strain C57BL/6J C57BL/6",
+      "displayName": "liver, adult (8-10 weeks) treated with darkness for 58 hours strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF909DRG",
@@ -7369,7 +7420,7 @@
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "liver, adult (8-10 weeks) treated with darkness for 62 hours strain C57BL/6J C57BL/6",
+      "displayName": "liver, adult (8-10 weeks) treated with darkness for 62 hours strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF547QFY",
@@ -7392,7 +7443,7 @@
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "liver, adult (8-10 weeks) treated with darkness for 66 hours strain C57BL/6J C57BL/6",
+      "displayName": "liver, adult (8-10 weeks) treated with darkness for 66 hours strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF286FAN",
@@ -7415,7 +7466,7 @@
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "liver, adult (8-10 weeks) treated with darkness for 70 hours strain C57BL/6J C57BL/6",
+      "displayName": "liver, adult (8-10 weeks) treated with darkness for 70 hours strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF705ESF",
@@ -7438,7 +7489,7 @@
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "liver, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
+      "displayName": "liver, mixed sex embryo (11.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF275QGZ",
@@ -7489,7 +7540,7 @@
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "liver, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
+      "displayName": "liver, mixed sex embryo (12.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF528RLS",
@@ -7533,7 +7584,7 @@
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "liver, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
+      "displayName": "liver, mixed sex embryo (13.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF211IFK",
@@ -7577,7 +7628,7 @@
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "liver, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "liver, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF323LVW",
@@ -7628,7 +7679,7 @@
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "liver, mixed sex embryo (14.5 days) strain B6NCrl C57BL/6",
+      "displayName": "liver, mixed sex embryo (14.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF040UMH",
@@ -7665,7 +7716,7 @@
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "liver, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "liver, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF431BCT",
@@ -7709,7 +7760,7 @@
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "liver, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
+      "displayName": "liver, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF681WEU",
@@ -7753,7 +7804,7 @@
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "liver, strain B6NCrl C57BL/6",
+      "displayName": "liver, strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF947ZHU",
@@ -7776,7 +7827,7 @@
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "liver, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "liver, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF389BAE",
@@ -7820,7 +7871,7 @@
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "liver, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "liver, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF907KGU",
@@ -7878,7 +7929,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF580UOQ",
@@ -7901,7 +7952,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF487EDN",
@@ -7924,7 +7975,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF910AER",
@@ -7947,7 +7998,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF281BAB",
@@ -7970,7 +8021,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF254SRC",
@@ -7993,7 +8044,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF548YUA",
@@ -8016,7 +8067,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF068XIF",
@@ -8039,7 +8090,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF326DLM",
@@ -8062,7 +8113,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF019ZYB",
@@ -8085,7 +8136,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF046WVP",
@@ -8108,7 +8159,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF173DSJ",
@@ -8131,7 +8182,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF783WEG",
@@ -8154,7 +8205,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "lung, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF453RCK",
@@ -8177,7 +8228,7 @@
       "ontology": "lung",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "lung, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "lung, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF616XIK",
@@ -8235,7 +8286,7 @@
       "ontology": "lung",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "lung, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "lung, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF085ORL",
@@ -8279,7 +8330,7 @@
       "ontology": "lung",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "lung, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
+      "displayName": "lung, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF693ZEC",
@@ -8323,7 +8374,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "lung, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF147SDT",
@@ -8360,7 +8411,7 @@
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "lung, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "lung, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF784TNW",
@@ -8418,7 +8469,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "C2C12, C3H",
+      "displayName": "C2C12, C3H",
       "assays": [
         {
           "id": "h3k4me3-ENCFF265KID",
@@ -8448,7 +8499,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
-      "displayname": "myocyte (in vitro differentiated cells)",
+      "displayName": "myocyte (in vitro differentiated cells)",
       "assays": [
         {
           "id": "h3k4me3-ENCFF527VTR",
@@ -8471,7 +8522,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF104GVK",
@@ -8494,7 +8545,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF066QAL",
@@ -8517,7 +8568,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF038GEA",
@@ -8540,7 +8591,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF500FVE",
@@ -8563,7 +8614,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF183OSS",
@@ -8586,7 +8637,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF095ARZ",
@@ -8609,7 +8660,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, female adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, female adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF383KRR",
@@ -8632,7 +8683,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF723FKE",
@@ -8655,7 +8706,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF638FRX",
@@ -8678,7 +8729,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF546ZDJ",
@@ -8701,7 +8752,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF334ZMW",
@@ -8724,7 +8775,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF890ZKK",
@@ -8747,7 +8798,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF075OWG",
@@ -8770,7 +8821,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF003DTG",
@@ -8807,7 +8858,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "gastrocnemius, male adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "gastrocnemius, male adult (8-10 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF035YSC",
@@ -8830,7 +8881,7 @@
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "skeletal muscle tissue, male adult (2 months) strain C57BL/6J C57BL/6",
+      "displayName": "skeletal muscle tissue, male adult (2 months) strain C57BL/6J C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF147NYV",
@@ -8853,7 +8904,7 @@
       "ontology": "ovary",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "ovary, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "ovary, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF863RAN",
@@ -8876,7 +8927,7 @@
       "ontology": "ovary",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "ovary, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "ovary, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF020VJT",
@@ -8899,7 +8950,7 @@
       "ontology": "ovary",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "ovary, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "ovary, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF608TYE",
@@ -8922,7 +8973,7 @@
       "ontology": "ovary",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "ovary, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "ovary, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF368REA",
@@ -8945,7 +8996,7 @@
       "ontology": "placenta",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "placenta, female adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "placenta, female adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF403UMI",
@@ -8975,7 +9026,7 @@
       "ontology": "small intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "small intestine, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "small intestine, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF660LCU",
@@ -9012,7 +9063,7 @@
       "ontology": "spinal cord",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "MN1, strain B6NCrl C57BL/6",
+      "displayName": "MN1, strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF721GXA",
@@ -9035,7 +9086,7 @@
       "ontology": "spinal cord",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "MN1, treated with 10.0 nM 17β-hydroxy-17-methylestra-4,9,11-trien-3-one  strain B6NCrl C57BL/6",
+      "displayName": "MN1, treated with 10.0 nM 17β-hydroxy-17-methylestra-4,9,11-trien-3-one  strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF856XZG",
@@ -9058,7 +9109,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF579SZU",
@@ -9081,7 +9132,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF343LIN",
@@ -9104,7 +9155,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF854SJP",
@@ -9127,7 +9178,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF161VZZ",
@@ -9150,7 +9201,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF905NBG",
@@ -9173,7 +9224,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF691CFQ",
@@ -9196,7 +9247,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF305GWR",
@@ -9219,7 +9270,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF033RKY",
@@ -9242,7 +9293,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF925CEF",
@@ -9265,7 +9316,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF063IDQ",
@@ -9288,7 +9339,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "spleen, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF106KDM",
@@ -9311,7 +9362,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "spleen, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "spleen, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF514QGG",
@@ -9355,7 +9406,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "MEL, strain MEL DBA/2",
+      "displayName": "MEL, strain MEL DBA/2",
       "assays": [
         {
           "id": "dnase-ENCFF145VWQ",
@@ -9399,7 +9450,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "MEL-GATA-1-ER, strain MEL DBA/2",
+      "displayName": "MEL-GATA-1-ER, strain MEL DBA/2",
       "assays": [
         {
           "id": "dnase-ENCFF528VEN",
@@ -9422,7 +9473,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "MEL, treated with 125.0 μM zinc dichloride for 24.0 hours strain MEL DBA/2",
+      "displayName": "MEL, treated with 125.0 μM zinc dichloride for 24.0 hours strain MEL DBA/2",
       "assays": [
         {
           "id": "dnase-ENCFF108VAK",
@@ -9445,7 +9496,7 @@
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "cell line",
-      "displayname": "MEL, treated with 2 percent dimethyl sulfoxide for 5 days strain MEL DBA/2",
+      "displayName": "MEL, treated with 2 percent dimethyl sulfoxide for 5 days strain MEL DBA/2",
       "assays": [
         {
           "id": "h3k4me3-ENCFF055KSI",
@@ -9475,7 +9526,7 @@
       "ontology": "stomach",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "stomach, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "stomach, mixed sex embryo (14.5 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF395IUA",
@@ -9512,7 +9563,7 @@
       "ontology": "stomach",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "stomach, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
+      "displayName": "stomach, mixed sex embryo (15.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF553QCZ",
@@ -9556,7 +9607,7 @@
       "ontology": "stomach",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
-      "displayname": "stomach, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
+      "displayName": "stomach, mixed sex embryo (16.5 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF318NOG",
@@ -9600,7 +9651,7 @@
       "ontology": "stomach",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "stomach, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
+      "displayName": "stomach, mixed sex postnatal (0 days) strain B6NTac;B6NCrl/Lap C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF738YPD",
@@ -9658,7 +9709,7 @@
       "ontology": "testis",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "testis, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "testis, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF678HHO",
@@ -9681,7 +9732,7 @@
       "ontology": "testis",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "testis, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "testis, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF756IUG",
@@ -9704,7 +9755,7 @@
       "ontology": "testis",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "testis, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "testis, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "h3k4me3-ENCFF942FOL",
@@ -9741,7 +9792,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, female postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF182QIV",
@@ -9764,7 +9815,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, female postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF754AXF",
@@ -9787,7 +9838,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF724RNH",
@@ -9810,7 +9861,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF130TZG",
@@ -9833,7 +9884,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF458KCS",
@@ -9856,7 +9907,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF466OYS",
@@ -9879,7 +9930,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF271UQK",
@@ -9902,7 +9953,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF661YMU",
@@ -9925,7 +9976,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, male postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF351DEF",
@@ -9948,7 +9999,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, male adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF222UJQ",
@@ -9971,7 +10022,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF384YKE",
@@ -9994,7 +10045,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF815YGS",
@@ -10017,7 +10068,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "thymus, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF134GMA",
@@ -10040,7 +10091,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, male adult (2 months) strain B6NCrl C57BL/6",
+      "displayName": "thymus, male adult (2 months) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF686CDW",
@@ -10084,7 +10135,7 @@
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "thymus, mixed sex postnatal (0 days) strain B6NCrl C57BL/6",
+      "displayName": "thymus, mixed sex postnatal (0 days) strain B6NCrl C57BL/6",
       "assays": [
         {
           "id": "dnase-ENCFF181DHD",
@@ -10114,7 +10165,7 @@
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "urinary bladder, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "urinary bladder, female postnatal (25 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF036EBL",
@@ -10137,7 +10188,7 @@
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "urinary bladder, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "urinary bladder, female adult (2 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF046ZZD",
@@ -10160,7 +10211,7 @@
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "urinary bladder, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "urinary bladder, female postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF983UZW",
@@ -10183,7 +10234,7 @@
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "urinary bladder, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "urinary bladder, female postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF931PJP",
@@ -10206,7 +10257,7 @@
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "urinary bladder, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "urinary bladder, female adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF240PZA",
@@ -10229,7 +10280,7 @@
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "urinary bladder, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "urinary bladder, male postnatal (10 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF426VAC",
@@ -10252,7 +10303,7 @@
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "urinary bladder, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "urinary bladder, male postnatal (14 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF070IEL",
@@ -10275,7 +10326,7 @@
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "urinary bladder, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "urinary bladder, male postnatal (36 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF702UXI",
@@ -10298,7 +10349,7 @@
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "urinary bladder, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "urinary bladder, male postnatal (4 days) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF533PJK",
@@ -10321,7 +10372,7 @@
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
-      "displayname": "urinary bladder, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
+      "displayName": "urinary bladder, male adult (18-20 months) strain B6CASTF1/J C57BL/6JxCAST/EiJ",
       "assays": [
         {
           "id": "dnase-ENCFF027WGP",

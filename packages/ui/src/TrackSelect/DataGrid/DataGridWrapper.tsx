@@ -7,10 +7,9 @@ import {
   GridColumnVisibilityModel,
   useGridApiRef,
 } from "@mui/x-data-grid-premium";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DataGridProps } from "../types";
-import { defaultColumns, sortedByAssayColumns } from "./columns";
-import GroupingCell from "./GroupingCell";
+import { DefaultGroupingCell } from "./DefaultGroupingCell";
 
 const autosizeOptions: GridAutosizeOptions = {
   expand: true,
@@ -19,35 +18,49 @@ const autosizeOptions: GridAutosizeOptions = {
 };
 
 export function DataGridWrapper(props: DataGridProps) {
-  const { sortedAssay, handleSelection, rows, selectedIds } = props;
+  const {
+    columns,
+    groupingModel,
+    leafField,
+    onSelectionChange,
+    rows,
+    selectedIds,
+    GroupingCellComponent,
+  } = props;
+
+  const GroupingCell = GroupingCellComponent ?? DefaultGroupingCell;
 
   const apiRef = useGridApiRef();
 
-  // Resize columns when toggling between sort modes
   useEffect(() => {
     if (apiRef.current && apiRef.current.autosizeColumns) {
       apiRef.current.autosizeColumns(autosizeOptions);
     }
-  }, [sortedAssay]);
+  }, [columns, groupingModel, leafField]);
 
-  const groupingModel = sortedAssay
-    ? ["assay", "ontology"]
-    : ["ontology", "displayname"];
-  const columnModel = sortedAssay ? sortedByAssayColumns : defaultColumns;
-  const leafField = sortedAssay ? "displayname" : "assay";
+  const baseVisibility = useMemo(() => {
+    const visibility: GridColumnVisibilityModel = {
+      id: false,
+    };
 
-  // Hide columns that are used in grouping or as leaf field, plus ID column
-  const baseVisibility: GridColumnVisibilityModel = sortedAssay
-    ? { assay: false, ontology: false, displayname: false, id: false } // sort by assay: assay & ontology are grouping, displayname is leaf
-    : { ontology: false, displayname: false, assay: false, id: false }; // default: ontology & displayname are grouping, assay is leaf
+    // Only hide leafField if we have grouping (it shows in grouping column)
+    if (groupingModel.length > 0) {
+      visibility[leafField] = false;
+    }
+
+    groupingModel.forEach((field) => {
+      visibility[field] = false;
+    });
+
+    return visibility;
+  }, [groupingModel, leafField]);
 
   const [columnVisibilityModel, setColumnVisibilityModel] =
     useState<GridColumnVisibilityModel>(baseVisibility);
 
-  // Update visibility when sort mode changes
   useEffect(() => {
     setColumnVisibilityModel(baseVisibility);
-  }, [sortedAssay]);
+  }, [baseVisibility]);
 
   // functions to customize the column and filter panel in the toolbar
   const filterColumns = ({ columns }: FilterColumnsArgs) => {
@@ -74,7 +87,7 @@ export function DataGridWrapper(props: DataGridProps) {
         <DataGridPremium
           apiRef={apiRef}
           rows={rows}
-          columns={columnModel}
+          columns={columns}
           getRowId={(row) => row.id}
           autosizeOptions={autosizeOptions}
           rowGroupingModel={groupingModel}
@@ -88,8 +101,11 @@ export function DataGridWrapper(props: DataGridProps) {
           }}
           columnVisibilityModel={columnVisibilityModel}
           onColumnVisibilityModelChange={setColumnVisibilityModel}
-          onRowSelectionModelChange={handleSelection}
-          rowSelectionPropagation={{ descendants: true, parents: true }}
+          onRowSelectionModelChange={(selection) => {
+            const ids = (selection as any)?.ids ?? new Set<string>();
+            onSelectionChange(new Set(ids));
+          }}
+          rowSelectionPropagation={{ descendants: true, parents: false }}
           disableRowGrouping={false}
           rowSelectionModel={{
             type: "include",

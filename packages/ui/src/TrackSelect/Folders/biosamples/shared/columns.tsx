@@ -1,17 +1,16 @@
 import { GridColDef } from "@mui/x-data-grid-premium";
-import { RowInfo } from "../types";
 import { Stack, capitalize } from "@mui/material";
-import { AssayIcon } from "../TreeView/treeViewHelpers";
-import { ontologyTypes, assayTypes } from "../consts";
+import { AssayIcon, ontologyTypes, assayTypes } from "./constants";
+import { BiosampleRowInfo } from "./types";
 
-const displayNameCol: GridColDef<RowInfo> = {
-  field: "displayname",
+const displayNameCol: GridColDef<BiosampleRowInfo> = {
+  field: "displayName",
   headerName: "Name",
   valueFormatter: (value) => value && capitalize(value),
   maxWidth: 300,
 };
 
-const sortedByAssayOntologyCol: GridColDef<RowInfo> = {
+const sortedByAssayOntologyCol: GridColDef<BiosampleRowInfo> = {
   field: "ontology",
   headerName: "Ontology",
   type: "singleSelect",
@@ -31,7 +30,7 @@ const sortedByAssayOntologyCol: GridColDef<RowInfo> = {
   },
 };
 
-const sortedByAssayAssayCol: GridColDef<RowInfo> = {
+const sortedByAssayAssayCol: GridColDef<BiosampleRowInfo> = {
   field: "assay",
   headerName: "Assay",
   valueOptions: assayTypes,
@@ -53,7 +52,7 @@ const sortedByAssayAssayCol: GridColDef<RowInfo> = {
   },
 };
 
-const defaultOntologyCol: GridColDef<RowInfo> = {
+const defaultOntologyCol: GridColDef<BiosampleRowInfo> = {
   field: "ontology",
   headerName: "Ontology",
   type: "singleSelect",
@@ -73,7 +72,7 @@ const defaultOntologyCol: GridColDef<RowInfo> = {
   },
 };
 
-const defaultAssayCol: GridColDef<RowInfo> = {
+const defaultAssayCol: GridColDef<BiosampleRowInfo> = {
   field: "assay",
   headerName: "Assay",
   valueOptions: assayTypes,
@@ -91,11 +90,12 @@ const defaultAssayCol: GridColDef<RowInfo> = {
   },
 };
 
-const sampleTypeCol: GridColDef<RowInfo> = {
+const sampleTypeCol: GridColDef<BiosampleRowInfo> = {
   field: "sampleType",
   headerName: "Sample Type",
   type: "singleSelect",
   valueOptions: [
+    "aggregate",
     "tissue",
     "primary cell",
     "cell line",
@@ -105,30 +105,31 @@ const sampleTypeCol: GridColDef<RowInfo> = {
   valueFormatter: (value) => value && capitalize(value),
 };
 
-const lifeStageCol: GridColDef<RowInfo> = {
+const lifeStageCol: GridColDef<BiosampleRowInfo> = {
   field: "lifeStage",
   headerName: "Life Stage",
   type: "singleSelect",
-  valueOptions: ["adult", "embryonic"],
+  valueOptions: ["adult", "embryonic", "N/A"],
   valueFormatter: (value) => value && capitalize(value),
 };
 
-const experimentCol: GridColDef<RowInfo> = {
+const experimentCol: GridColDef<BiosampleRowInfo> = {
   field: "experimentAccession",
   headerName: "Experiment Accession",
 };
 
-const fileCol: GridColDef<RowInfo> = {
+const fileCol: GridColDef<BiosampleRowInfo> = {
   field: "fileAccession",
   headerName: "File Accession",
 };
 
-const idCol: GridColDef<RowInfo> = {
+const idCol: GridColDef<BiosampleRowInfo> = {
   field: "id",
   headerName: "ID",
 };
 
-export const sortedByAssayColumns: GridColDef<RowInfo>[] = [
+/** Columns for sorted-by-assay view (assay as top-level grouping) */
+export const sortedByAssayColumns: GridColDef<BiosampleRowInfo>[] = [
   displayNameCol,
   sortedByAssayOntologyCol,
   sampleTypeCol,
@@ -139,7 +140,8 @@ export const sortedByAssayColumns: GridColDef<RowInfo>[] = [
   idCol,
 ];
 
-export const defaultColumns: GridColDef<RowInfo>[] = [
+/** Default columns (ontology as top-level grouping) */
+export const defaultColumns: GridColDef<BiosampleRowInfo>[] = [
   defaultAssayCol,
   sampleTypeCol,
   lifeStageCol,
@@ -149,3 +151,15 @@ export const defaultColumns: GridColDef<RowInfo>[] = [
   fileCol,
   idCol,
 ];
+
+/** Grouping model for sorted-by-assay view */
+export const sortedByAssayGroupingModel = ["assay", "ontology"];
+
+/** Default grouping model (ontology-based) */
+export const defaultGroupingModel = ["ontology", "displayName"];
+
+/** Leaf field for sorted-by-assay view */
+export const sortedByAssayLeafField = "displayName";
+
+/** Default leaf field */
+export const defaultLeafField = "assay";

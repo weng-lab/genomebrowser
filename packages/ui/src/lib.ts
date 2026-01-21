@@ -7,5 +7,7 @@ import {
 } from "./TrackSelect/store.ts";
 export { createSelectionStore, SelectionStoreInstance };
 
-import type { RowInfo } from "./TrackSelect/types.ts";
-export { RowInfo };
+import { foldersByAssembly } from "./TrackSelect/Folders/index.ts";
+export { foldersByAssembly };
+
+export type { BiosampleRowInfo, GeneRowInfo } from "./TrackSelect/Folders";

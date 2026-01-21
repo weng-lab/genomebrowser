@@ -1,3 +1,4 @@
+import CloseIcon from "@mui/icons-material/Close";
 import {
   Box,
   Button,
@@ -6,367 +7,476 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  FormControlLabel,
+  IconButton,
   Stack,
-  Switch,
-  TextField,
 } from "@mui/material";
-import { GridRowSelectionModel } from "@mui/x-data-grid-premium";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Breadcrumb } from "./FolderList/Breadcrumb";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
-import {
-  flattenIntoRows,
-  searchTracks,
-  getTracksData,
-} from "./DataGrid/dataGridHelpers";
+import { FolderList } from "./FolderList/FolderList";
+import { FolderDefinition, FolderRuntimeConfig } from "./Folders/types";
+import { createSelectionStore, SelectionStoreInstance } from "./store";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
-import {
-  buildSortedAssayTreeView,
-  buildTreeView,
-  searchTreeItems,
-} from "./TreeView/treeViewHelpers";
-import { SelectionStoreInstance } from "./store";
-import { ExtendedTreeItemProps, SearchTracksProps } from "./types";
+import { ExtendedTreeItemProps } from "./types";
 
 export interface TrackSelectProps {
-  store: SelectionStoreInstance;
-  onSubmit?: (trackIds: Set<string>) => void;
+  folders: FolderDefinition[];
+  onSubmit: (selectedByFolder: Map<string, Set<string>>) => void;
   onCancel?: () => void;
-  onReset?: () => void;
+  onClear?: () => void;
+  maxTracks?: number;
+  storageKey?: string;
+  /** Initial selection to use when no stored selection exists */
+  initialSelection?: Map<string, Set<string>>;
+  open: boolean;
+  onClose: () => void;
+  title?: string;
 }
 
+const DEFAULT_MAX_TRACKS = 30;
+
+type ViewState = "folder-list" | "folder-detail";
+
+const cloneSelectionMap = (selection: Map<string, Set<string>>) => {
+  const map = new Map<string, Set<string>>();
+  selection.forEach((ids, folderId) => {
+    map.set(folderId, new Set(ids));
+  });
+  return map;
+};
+
+const buildRuntimeConfigMap = (folders: FolderDefinition[]) => {
+  const map = new Map<string, FolderRuntimeConfig>();
+  folders.forEach((folder) => {
+    map.set(folder.id, {
+      columns: folder.columns,
+      groupingModel: folder.groupingModel,
+      leafField: folder.leafField,
+    });
+  });
+  return map;
+};
+
+const attachFolderId = (
+  items: TreeViewBaseItem<ExtendedTreeItemProps>[],
+  folderId: string,
+): TreeViewBaseItem<ExtendedTreeItemProps>[] => {
+  return items.map((item) => ({
+    ...item,
+    folderId,
+    children: item.children
+      ? attachFolderId(item.children, folderId)
+      : undefined,
+  }));
+};
+
+const DEFAULT_TITLE = "Track Select";
+
 export default function TrackSelect({
-  store,
+  folders,
   onSubmit,
   onCancel,
-  onReset,
+  onClear,
+  maxTracks,
+  storageKey,
+  initialSelection,
+  open,
+  onClose,
+  title = DEFAULT_TITLE,
 }: TrackSelectProps) {
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
-  const [sortedAssay, setSortedAssay] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchResult, setIsSearchResult] = useState(false);
-  const selectedIds = store((s) => s.selectedIds);
-  const setSelected = store((s) => s.setSelected);
-  const clear = store((s) => s.clear);
-  const MAX_ACTIVE = store((s) => s.maxTracks);
-  const rows = store((s) => s.rows);
-  const rowById = store((s) => s.rowById);
-  const assembly = store((s) => s.assembly);
-
-  // Local working state - changes here don't affect the store until Submit
-  const [workingIds, setWorkingIds] = useState<Set<string>>(
-    () => new Set(selectedIds),
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const [runtimeConfigByFolder, setRuntimeConfigByFolder] = useState(() =>
+    buildRuntimeConfigMap(folders),
   );
 
-  // Get tracks data for search functionality
-  const tracksData = useMemo(
-    () => getTracksData(assembly as "GRCh38" | "mm10"),
-    [assembly],
+  // View state: folder list or folder detail
+  const [currentView, setCurrentView] = useState<ViewState>(() =>
+    folders.length > 1 ? "folder-list" : "folder-detail",
   );
 
-  // Get only real track IDs from working selection (no auto-generated group IDs)
-  const workingTrackIds = useMemo(() => {
-    return new Set([...workingIds].filter((id) => rowById.has(id)));
-  }, [workingIds, rowById]);
+  // Create and memoize the selection store
+  const folderIds = useMemo(() => folders.map((f) => f.id), [folders]);
+  const storeRef = useRef<SelectionStoreInstance | null>(null);
+  if (!storeRef.current) {
+    storeRef.current = createSelectionStore(
+      folderIds,
+      storageKey,
+      initialSelection,
+    );
+  }
+  const store = storeRef.current;
 
-  // Sync workingIds when store's selectedIds changes externally
-  useEffect(() => {
-    setWorkingIds(new Set(selectedIds));
-  }, [selectedIds]);
+  // Subscribe to store changes
+  const selectedByFolder = store((state) => state.selectedByFolder);
+  const activeFolderId = store((state) => state.activeFolderId);
+  const setActiveFolder = store((state) => state.setActiveFolder);
+  const setSelection = store((state) => state.setSelection);
+  const clear = store((state) => state.clear);
 
-  const treeItems = useMemo(() => {
-    return sortedAssay
-      ? buildSortedAssayTreeView(
-          Array.from(workingTrackIds),
-          {
-            id: "1",
-            isAssayItem: false,
-            label: "Biosamples",
-            icon: "folder",
-            children: [],
-            allRowInfo: [],
-          },
-          rowById,
-        )
-      : buildTreeView(
-          Array.from(workingTrackIds),
-          {
-            id: "1",
-            isAssayItem: false,
-            label: "Biosamples",
-            icon: "folder",
-            children: [],
-            allRowInfo: [],
-          },
-          rowById,
-        );
-  }, [workingTrackIds, sortedAssay, rowById]);
-
-  const [filteredRows, setFilteredRows] = useState(rows);
-  const [filteredTreeItems, setFilteredTreeItems] = useState([
-    {
-      id: "1",
-      isAssayItem: false,
-      label: "Biosamples",
-      icon: "folder",
-      children: [],
-      allRowInfo: [],
-    },
-  ] as TreeViewBaseItem<ExtendedTreeItemProps>[]);
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchResultIdsRef = useRef<Set<string>>(new Set());
+  // Keep a committed snapshot for cancel functionality
+  const [committedSnapshot, setCommittedSnapshot] = useState(() =>
+    cloneSelectionMap(selectedByFolder),
+  );
 
   useEffect(() => {
-    if (searchQuery === "") {
-      setFilteredTreeItems(treeItems);
-      setFilteredRows(rows);
-      setIsSearchResult(false);
-      searchResultIdsRef.current = new Set();
-    } else if (searchResultIdsRef.current.size > 0) {
-      // When selection changes during search, rebuild tree from selected items that match search
-      const matchingTrackIds = Array.from(workingTrackIds).filter((id) =>
-        searchResultIdsRef.current.has(id),
-      );
-
-      const newTreeItems = sortedAssay
-        ? buildSortedAssayTreeView(
-            matchingTrackIds,
-            {
-              id: "1",
-              isAssayItem: false,
-              label: "Biosamples",
-              icon: "folder",
-              children: [],
-              allRowInfo: [],
-            },
-            rowById,
-          )
-        : buildTreeView(
-            matchingTrackIds,
-            {
-              id: "1",
-              isAssayItem: false,
-              label: "Biosamples",
-              icon: "folder",
-              children: [],
-              allRowInfo: [],
-            },
-            rowById,
-          );
-
-      setFilteredTreeItems(newTreeItems);
+    setRuntimeConfigByFolder(buildRuntimeConfigMap(folders));
+    // Ensure active folder is valid
+    if (!folders.some((folder) => folder.id === activeFolderId)) {
+      setActiveFolder(folders[0]?.id ?? "");
     }
-  }, [treeItems, searchQuery, workingTrackIds, sortedAssay, rowById, rows]);
-
-  const handleToggle = () => {
-    setSortedAssay(!sortedAssay);
-  };
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
+    // Update view state if folder count changes
+    if (folders.length <= 1) {
+      setCurrentView("folder-detail");
     }
+  }, [folders, activeFolderId, setActiveFolder]);
 
-    // Debounce the search
-    searchTimeoutRef.current = setTimeout(() => {
-      if (query === "") {
-        return; // useEffect handles empty query
+  const activeFolder = useMemo(() => {
+    return folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
+  }, [folders, activeFolderId]);
+
+  const activeConfig = useMemo(() => {
+    if (!activeFolder) return undefined;
+    return (
+      runtimeConfigByFolder.get(activeFolder.id) ?? {
+        columns: activeFolder.columns,
+        groupingModel: activeFolder.groupingModel,
+        leafField: activeFolder.leafField,
       }
+    );
+  }, [runtimeConfigByFolder, activeFolder]);
 
-      const dataGridSearchProps = {
-        jsonStructure: "tracks",
-        query: query,
-        keyWeightMap: [
-          "displayname",
-          "ontology",
-          "lifeStage",
-          "sampleType",
-          "type",
-          "experimentAccession",
-          "fileAccession",
-        ],
-        tracksData,
-      };
+  const selectedIds = useMemo(() => {
+    if (!activeFolder) return new Set<string>();
+    return new Set(selectedByFolder.get(activeFolder.id) ?? []);
+  }, [selectedByFolder, activeFolder]);
 
-      const treeSearchProps: SearchTracksProps = {
-        treeItems: treeItems,
-        query: query,
-        keyWeightMap: [
-          "displayname",
-          "ontology",
-          "lifeStage",
-          "sampleType",
-          "type",
-          "experimentAccession",
-          "fileAccession",
-        ],
-      };
-      const newDataGridRows = searchTracks(dataGridSearchProps)
-        .map((t) => t.item)
-        .flatMap(flattenIntoRows);
+  const selectedCount = useMemo(() => {
+    let total = 0;
+    selectedByFolder.forEach((ids) => {
+      total += ids.size;
+    });
+    return total;
+  }, [selectedByFolder]);
 
-      // we only want the intersection of filtered tracks displayed on the DataGrid and user-selected tracks to be displayed on the tree
-      const newDataGridIds = newDataGridRows.map((r) => r.id);
-      const retIds = searchTreeItems(treeSearchProps).map((r) => r.item.id);
-      const newTreeIds = retIds.filter((i) => newDataGridIds.includes(i));
+  const maxTracksLimit = maxTracks ?? DEFAULT_MAX_TRACKS;
 
-      // build new tree from the newTreeIds
-      const newTreeItems = sortedAssay
-        ? buildSortedAssayTreeView(
-            newTreeIds,
-            {
-              id: "1",
-              isAssayItem: false,
-              label: "Biosamples",
-              icon: "folder",
-              children: [],
-              allRowInfo: [],
-            },
-            rowById,
-          )
-        : buildTreeView(
-            newTreeIds,
-            {
-              id: "1",
-              isAssayItem: false,
-              label: "Biosamples",
-              icon: "folder",
-              children: [],
-              allRowInfo: [],
-            },
-            rowById,
-          );
+  const rows = useMemo(() => {
+    if (!activeFolder) return [];
+    return Array.from(activeFolder.rowById.values());
+  }, [activeFolder]);
 
-      // Store search result IDs in ref for use in useEffect
-      searchResultIdsRef.current = new Set(newDataGridIds);
+  const folderTrees = useMemo(() => {
+    return folders
+      .filter((folder) => {
+        const selected = selectedByFolder.get(folder.id);
+        return selected && selected.size > 0;
+      })
+      .map((folder) => {
+        const config = runtimeConfigByFolder.get(folder.id);
+        const buildTree = config?.buildTree ?? folder.buildTree;
 
-      setFilteredRows(newDataGridRows);
-      setIsSearchResult(true);
-      setFilteredTreeItems(newTreeItems);
-    }, 300);
+        return {
+          folderId: folder.id,
+          items: attachFolderId(
+            buildTree(
+              Array.from(selectedByFolder.get(folder.id) ?? []),
+              folder.rowById,
+            ),
+            folder.id,
+          ),
+          TreeItemComponent: folder.TreeItemComponent,
+        };
+      });
+  }, [folders, selectedByFolder, runtimeConfigByFolder]);
+
+  const updateActiveFolderConfig = useCallback(
+    (partial: Partial<FolderRuntimeConfig>) => {
+      if (!activeFolder) return;
+      setRuntimeConfigByFolder((prev) => {
+        const current = prev.get(activeFolder.id);
+        if (!current) return prev;
+        const next = new Map(prev);
+        next.set(activeFolder.id, { ...current, ...partial });
+        return next;
+      });
+    },
+    [activeFolder],
+  );
+
+  // Navigation handlers
+  const handleFolderSelect = (folderId: string) => {
+    setActiveFolder(folderId);
+    setCurrentView("folder-detail");
   };
 
-  const handleSelection = (newSelection: GridRowSelectionModel) => {
-    const allIds: Set<string> =
-      (newSelection && (newSelection as any).ids) ?? new Set<string>();
+  const handleNavigateToRoot = () => {
+    setCurrentView("folder-list");
+  };
 
-    // Count only real track IDs for the limit check
-    let realTrackCount = 0;
-    allIds.forEach((id: string) => {
-      if (rowById.has(id)) {
-        realTrackCount++;
+  const handleSelectionChange = (ids: Set<string>) => {
+    if (!activeFolder) return;
+
+    // Filter to only include IDs that exist in rowById (exclude auto-generated group IDs)
+    const filteredIds = new Set(
+      Array.from(ids).filter((id) => activeFolder.rowById.has(id)),
+    );
+
+    // Calculate what the total would be with this change
+    let nextTotal = filteredIds.size;
+    selectedByFolder.forEach((folderIds, folderId) => {
+      if (folderId !== activeFolder.id) {
+        nextTotal += folderIds.size;
       }
     });
 
-    // Block only if the new selection would exceed the limit
-    if (realTrackCount > MAX_ACTIVE) {
+    if (nextTotal > maxTracksLimit) {
       setLimitDialogOpen(true);
       return;
     }
 
-    // Update working state (not the store yet)
-    setWorkingIds(allIds);
+    setSelection(activeFolder.id, filteredIds);
+  };
+
+  const handleRemoveTreeItem = (
+    item: TreeViewBaseItem<ExtendedTreeItemProps>,
+  ) => {
+    const folderId = item.folderId;
+    if (!folderId || !item.allExpAccessions?.length) {
+      return;
+    }
+
+    const current = selectedByFolder.get(folderId) ?? new Set<string>();
+    const nextSet = new Set(current);
+    item.allExpAccessions.forEach((id) => nextSet.delete(id));
+    setSelection(folderId, nextSet);
   };
 
   const handleSubmit = () => {
-    // Commit working selection to store
-    setSelected(workingIds);
-    // Call callback with real track IDs
-    onSubmit?.(workingTrackIds);
+    const committed = cloneSelectionMap(selectedByFolder);
+    setCommittedSnapshot(committed);
+    onSubmit(committed);
+    onClose();
   };
 
   const handleCancel = () => {
-    // Revert working state to store's committed state
-    setWorkingIds(new Set(selectedIds));
+    // Restore from committed snapshot
+    committedSnapshot.forEach((ids, folderId) => {
+      setSelection(folderId, ids);
+    });
     onCancel?.();
+    onClose();
   };
 
+  const handleClear = () => {
+    setClearDialogOpen(true);
+  };
+
+  const confirmClear = () => {
+    setClearDialogOpen(false);
+    let newSnapshot: Map<string, Set<string>>;
+
+    if (currentView === "folder-detail") {
+      // Clear only the current folder
+      clear(activeFolderId);
+      newSnapshot = cloneSelectionMap(selectedByFolder);
+      newSnapshot.set(activeFolderId, new Set<string>());
+    } else {
+      // Clear all folders
+      clear();
+      newSnapshot = new Map<string, Set<string>>();
+      folderIds.forEach((id) => newSnapshot.set(id, new Set<string>()));
+      onClear?.();
+    }
+
+    setCommittedSnapshot(newSnapshot);
+    onSubmit(newSnapshot);
+  };
+
+  const ToolbarExtras = activeFolder?.ToolbarExtras;
+
   return (
-    <Box sx={{ flex: 1, pt: 1 }}>
-      <Box display="flex" justifyContent="space-between" sx={{ mb: 3 }}>
-        <TextField
-          id="outlined-suffix-shrink"
-          label="Search tracks"
-          variant="outlined"
-          onChange={handleSearch}
-          sx={{ width: "400px" }}
-        />
-        <FormControlLabel
-          sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}
-          value="Sort by assay"
-          control={<Switch color="primary" onChange={handleToggle} />}
-          label="Sort by assay"
-          labelPlacement="end"
-        />
-      </Box>
-      <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
-        <Box sx={{ flex: 3, minWidth: 0 }}>
-          <DataGridWrapper
-            rows={filteredRows}
-            label={
-              isSearchResult
-                ? `${filteredRows.length} Search Results`
-                : `${rows.length} Available Tracks`
-            }
-            selectedIds={workingIds}
-            handleSelection={handleSelection}
-            sortedAssay={sortedAssay}
-          />
-        </Box>
-        <Box sx={{ flex: 2, minWidth: 0 }}>
-          <TreeViewWrapper
-            store={store}
-            items={filteredTreeItems}
-            trackIds={workingTrackIds}
-            isSearchResult={isSearchResult}
-          />
-        </Box>
-      </Stack>
-      <Box
-        sx={{ display: "flex", justifyContent: "space-between", mt: 2, gap: 2 }}
+    <Dialog open={open} onClose={handleCancel} maxWidth="lg" fullWidth>
+      <DialogTitle
+        sx={{
+          bgcolor: "#0c184a",
+          color: "white",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          fontWeight: "bold",
+        }}
       >
-        <Button
-          variant="outlined"
-          color="secondary"
-          onClick={() => {
-            if (onReset) {
-              onReset();
-            } else {
-              clear();
-              setWorkingIds(new Set());
-            }
-          }}
+        {title}
+        <IconButton
+          size="large"
+          onClick={handleCancel}
+          sx={{ color: "white", padding: 0 }}
         >
-          Reset
-        </Button>
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Button variant="outlined" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
-            Submit
-          </Button>
-        </Box>
-      </Box>
-      <Dialog open={limitDialogOpen} onClose={() => setLimitDialogOpen(false)}>
-        <DialogTitle>Track Limit Reached</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            You can select up to {MAX_ACTIVE} tracks at a time. Please remove a
-            track before adding another.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setLimitDialogOpen(false)} autoFocus>
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          <CloseIcon fontSize="large" />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent sx={{ marginTop: "5px" }}>
+        {!activeFolder || !activeConfig ? (
+          <Box sx={{ p: 2 }}>No folders available.</Box>
+        ) : (
+          <Box sx={{ flex: 1, pt: 1 }}>
+            {/* Toolbar row - breadcrumb on left, extras on right */}
+            {(folders.length > 1 ||
+              (currentView === "folder-detail" && ToolbarExtras)) && (
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{ mb: 2 }}
+              >
+                {folders.length > 1 ? (
+                  <Breadcrumb
+                    currentFolder={
+                      currentView === "folder-detail" ? activeFolder : null
+                    }
+                    onNavigateToRoot={handleNavigateToRoot}
+                  />
+                ) : (
+                  <Box />
+                )}
+                {currentView === "folder-detail" &&
+                  ToolbarExtras &&
+                  activeConfig && (
+                    <ToolbarExtras
+                      updateConfig={updateActiveFolderConfig}
+                      folderId={activeFolder.id}
+                      label={activeFolder.label}
+                      config={activeConfig}
+                    />
+                  )}
+              </Box>
+            )}
+
+            <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
+              {/* Left panel - swaps between FolderList and DataGrid */}
+              <Box sx={{ flex: 3, minWidth: 0 }}>
+                {currentView === "folder-list" ? (
+                  <FolderList
+                    folders={folders}
+                    onFolderSelect={handleFolderSelect}
+                  />
+                ) : (
+                  <DataGridWrapper
+                    rows={rows}
+                    columns={activeConfig.columns}
+                    groupingModel={activeConfig.groupingModel}
+                    leafField={activeConfig.leafField}
+                    label={`${rows.length} Available ${activeFolder.label}`}
+                    selectedIds={selectedIds}
+                    onSelectionChange={handleSelectionChange}
+                    GroupingCellComponent={activeFolder.GroupingCellComponent}
+                  />
+                )}
+              </Box>
+              {/* Right panel - always visible */}
+              <Box sx={{ flex: 2, minWidth: 0 }}>
+                <TreeViewWrapper
+                  folderTrees={folderTrees}
+                  selectedCount={selectedCount}
+                  onRemove={handleRemoveTreeItem}
+                />
+              </Box>
+            </Stack>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                mt: 2,
+                gap: 2,
+              }}
+            >
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleClear}
+              >
+                Clear
+              </Button>
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <Button variant="outlined" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSubmit}
+                >
+                  Submit
+                </Button>
+              </Box>
+            </Box>
+            <Dialog
+              open={limitDialogOpen}
+              onClose={() => setLimitDialogOpen(false)}
+            >
+              <DialogTitle>Track Limit Reached</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  You can select up to {maxTracksLimit} tracks at a time. Please
+                  remove a track before adding another.
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={() => setLimitDialogOpen(false)} autoFocus>
+                  OK
+                </Button>
+              </DialogActions>
+            </Dialog>
+            <Dialog
+              open={clearDialogOpen}
+              onClose={() => setClearDialogOpen(false)}
+            >
+              <DialogTitle
+                sx={{
+                  bgcolor: "#0c184a",
+                  color: "white",
+                  fontWeight: "bold",
+                }}
+              >
+                {currentView === "folder-detail"
+                  ? `Clear ${activeFolder.label}`
+                  : "Clear All Folders"}
+              </DialogTitle>
+              <DialogContent sx={{ mt: 2 }}>
+                <DialogContentText>
+                  {currentView === "folder-detail" ? (
+                    <>
+                      Are you sure you want to clear the selection for{" "}
+                      <strong>{activeFolder.label}</strong>?
+                    </>
+                  ) : (
+                    "Are you sure you want to clear all selections?"
+                  )}
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions sx={{ justifyContent: "center", gap: 2, pb: 2 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => setClearDialogOpen(false)}
+                  autoFocus
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={confirmClear}
+                >
+                  Clear
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </Box>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
