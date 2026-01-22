@@ -3,17 +3,17 @@ import {
   Box,
   Button,
   Dialog,
-  DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   IconButton,
   Stack,
 } from "@mui/material";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Breadcrumb } from "./FolderList/Breadcrumb";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
+import { ClearDialog } from "./Dialogs/ClearDialog";
+import { LimitDialog } from "./Dialogs/LimitDialog";
+import { Breadcrumb } from "./FolderList/Breadcrumb";
 import { FolderList } from "./FolderList/FolderList";
 import { FolderDefinition, FolderRuntimeConfig } from "./Folders/types";
 import { createSelectionStore, SelectionStoreInstance } from "./store";
@@ -322,7 +322,7 @@ export default function TrackSelect({
           <Box sx={{ p: 2 }}>No folders available.</Box>
         ) : (
           <Box sx={{ flex: 1, pt: 1 }}>
-            {/* Toolbar row - breadcrumb on left, extras on right */}
+            {/* Toolbar row */}
             {(folders.length > 1 ||
               (currentView === "folder-detail" && ToolbarExtras)) && (
               <Box
@@ -354,9 +354,19 @@ export default function TrackSelect({
               </Box>
             )}
 
-            <Stack direction="row" spacing={2} sx={{ width: "100%" }}>
-              {/* Left panel - swaps between FolderList and DataGrid */}
-              <Box sx={{ flex: 3, minWidth: 0 }}>
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              spacing={2}
+              sx={{ width: "100%" }}
+            >
+              {/* Left panel */}
+              <Box
+                sx={{
+                  flex: { xs: "none", md: 3 },
+                  minWidth: 0,
+                  width: { xs: "100%", md: "auto" },
+                }}
+              >
                 {currentView === "folder-list" ? (
                   <FolderList
                     folders={folders}
@@ -375,8 +385,14 @@ export default function TrackSelect({
                   />
                 )}
               </Box>
-              {/* Right panel - always visible */}
-              <Box sx={{ flex: 2, minWidth: 0 }}>
+              {/* Right panel */}
+              <Box
+                sx={{
+                  flex: { xs: "none", md: 2 },
+                  minWidth: 0,
+                  width: { xs: "100%", md: "auto" },
+                }}
+              >
                 <TreeViewWrapper
                   folderTrees={folderTrees}
                   selectedCount={selectedCount}
@@ -412,68 +428,18 @@ export default function TrackSelect({
                 </Button>
               </Box>
             </Box>
-            <Dialog
+            <LimitDialog
               open={limitDialogOpen}
               onClose={() => setLimitDialogOpen(false)}
-            >
-              <DialogTitle>Track Limit Reached</DialogTitle>
-              <DialogContent>
-                <DialogContentText>
-                  You can select up to {maxTracksLimit} tracks at a time. Please
-                  remove a track before adding another.
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setLimitDialogOpen(false)} autoFocus>
-                  OK
-                </Button>
-              </DialogActions>
-            </Dialog>
-            <Dialog
+              maxTracks={maxTracksLimit}
+            />
+            <ClearDialog
               open={clearDialogOpen}
               onClose={() => setClearDialogOpen(false)}
-            >
-              <DialogTitle
-                sx={{
-                  bgcolor: "#0c184a",
-                  color: "white",
-                  fontWeight: "bold",
-                }}
-              >
-                {currentView === "folder-detail"
-                  ? `Clear ${activeFolder.label}`
-                  : "Clear All Folders"}
-              </DialogTitle>
-              <DialogContent sx={{ mt: 2 }}>
-                <DialogContentText>
-                  {currentView === "folder-detail" ? (
-                    <>
-                      Are you sure you want to clear the selection for{" "}
-                      <strong>{activeFolder.label}</strong>?
-                    </>
-                  ) : (
-                    "Are you sure you want to clear all selections?"
-                  )}
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions sx={{ justifyContent: "center", gap: 2, pb: 2 }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => setClearDialogOpen(false)}
-                  autoFocus
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={confirmClear}
-                >
-                  Clear
-                </Button>
-              </DialogActions>
-            </Dialog>
+              onConfirm={confirmClear}
+              folderLabel={activeFolder.label}
+              clearAll={currentView === "folder-list"}
+            />
           </Box>
         )}
       </DialogContent>
