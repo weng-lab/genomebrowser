@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
 import { ClearDialog } from "./Dialogs/ClearDialog";
 import { LimitDialog } from "./Dialogs/LimitDialog";
+import { ResetDialog } from "./Dialogs/ResetDialog";
 import { Breadcrumb } from "./FolderList/Breadcrumb";
 import { FolderList } from "./FolderList/FolderList";
 import { FolderDefinition, FolderRuntimeConfig } from "./Folders/types";
@@ -87,6 +88,7 @@ export default function TrackSelect({
 }: TrackSelectProps) {
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [runtimeConfigByFolder, setRuntimeConfigByFolder] = useState(() =>
     buildRuntimeConfigMap(folders),
   );
@@ -273,6 +275,30 @@ export default function TrackSelect({
     setClearDialogOpen(true);
   };
 
+  const handleReset = () => {
+    setResetDialogOpen(true);
+  };
+
+  const confirmReset = () => {
+    setResetDialogOpen(false);
+    if (!initialSelection) return;
+
+    // Reset to initial selection
+    initialSelection.forEach((ids, folderId) => {
+      setSelection(folderId, new Set(ids));
+    });
+    // Clear any folders not in initialSelection
+    folderIds.forEach((folderId) => {
+      if (!initialSelection.has(folderId)) {
+        setSelection(folderId, new Set<string>());
+      }
+    });
+
+    const newSnapshot = cloneSelectionMap(initialSelection);
+    setCommittedSnapshot(newSnapshot);
+    onSubmit(newSnapshot);
+  };
+
   const confirmClear = () => {
     setClearDialogOpen(false);
     let newSnapshot: Map<string, Set<string>>;
@@ -408,13 +434,24 @@ export default function TrackSelect({
                 gap: 2,
               }}
             >
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handleClear}
-              >
-                Clear
-              </Button>
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleClear}
+                >
+                  Clear
+                </Button>
+                {initialSelection && (
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleReset}
+                  >
+                    Reset to Default
+                  </Button>
+                )}
+              </Box>
               <Box sx={{ display: "flex", gap: 2 }}>
                 <Button variant="outlined" onClick={handleCancel}>
                   Cancel
@@ -439,6 +476,11 @@ export default function TrackSelect({
               onConfirm={confirmClear}
               folderLabel={activeFolder.label}
               clearAll={currentView === "folder-list"}
+            />
+            <ResetDialog
+              open={resetDialogOpen}
+              onClose={() => setResetDialogOpen(false)}
+              onConfirm={confirmReset}
             />
           </Box>
         )}
