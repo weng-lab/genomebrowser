@@ -1,6 +1,6 @@
 import { GridColDef } from "@mui/x-data-grid-premium";
 import { Stack, capitalize } from "@mui/material";
-import { AssayIcon, ontologyTypes, assayTypes } from "./constants";
+import { AssayIcon, ontologyTypes, assayTypes, lifeStages } from "./constants";
 import { BiosampleRowInfo } from "./types";
 
 const displayNameCol: GridColDef<BiosampleRowInfo> = {
@@ -94,14 +94,7 @@ const sampleTypeCol: GridColDef<BiosampleRowInfo> = {
   field: "sampleType",
   headerName: "Sample Type",
   type: "singleSelect",
-  valueOptions: [
-    "Aggregate",
-    "Tissue",
-    "Primary cell",
-    "Cell line",
-    "In vitro differentiated cells",
-    "Organoid",
-  ],
+  valueOptions: ontologyTypes,
   valueFormatter: (value) => value && capitalize(value),
 };
 
@@ -109,7 +102,7 @@ const lifeStageCol: GridColDef<BiosampleRowInfo> = {
   field: "lifeStage",
   headerName: "Life Stage",
   type: "singleSelect",
-  valueOptions: ["Adult", "Embryonic", "N/A"],
+  valueOptions: lifeStages,
   valueFormatter: (value) => value && capitalize(value),
 };
 

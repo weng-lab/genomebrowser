@@ -14,6 +14,8 @@ export const assayTypes = [
   "ChromHMM",
 ];
 
+export const lifeStages = ["Adult", "Embryonic", "N/A"];
+
 export const ontologyTypes = [
   "Aggregate",
   "Adipose",
