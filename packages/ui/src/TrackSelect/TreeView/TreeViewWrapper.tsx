@@ -9,9 +9,6 @@ import {
 } from "../types";
 import { CustomTreeItem } from "./CustomTreeItem";
 
-/**
- * Recursively collects all item IDs that have children (expandable items)
- */
 function getAllExpandableItemIds(
   items: TreeViewBaseItem<ExtendedTreeItemProps>[],
 ): string[] {
@@ -25,9 +22,6 @@ function getAllExpandableItemIds(
   return ids;
 }
 
-/**
- * Internal component that renders a single folder's tree with its own expanded state.
- */
 function FolderTree({
   items,
   TreeItemComponent,
@@ -44,7 +38,6 @@ function FolderTree({
   const [expandedItems, setExpandedItems] =
     useState<string[]>(allExpandableIds);
 
-  // Auto-expand new items when they're added
   useEffect(() => {
     setExpandedItems((prev) => {
       const newIds = allExpandableIds.filter((id) => !prev.includes(id));
@@ -77,6 +70,9 @@ function FolderTree({
       sx={{
         ml: 1,
         mr: 1,
+        "& ul": {
+          paddingInlineStart: "12px",
+        },
       }}
       itemChildrenIndentation={0}
     />

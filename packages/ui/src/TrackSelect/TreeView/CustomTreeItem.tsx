@@ -19,7 +19,6 @@ import {
   ExtendedTreeItemProps,
 } from "../types";
 
-// Everything below is styling for the custom directory look of the tree view
 const TreeItemRoot = styled("li")(({ theme }) => ({
   listStyle: "none",
   margin: 0,
@@ -27,7 +26,7 @@ const TreeItemRoot = styled("li")(({ theme }) => ({
   outline: 4,
   color: theme.palette.grey[400],
   ...theme.applyStyles("light", {
-    color: theme.palette.grey[600], // controls colors of the MUI icons
+    color: theme.palette.grey[600],
   }),
 }));
 
@@ -95,9 +94,9 @@ function CustomLabel({
 const TreeItemContent = styled("div")(({ theme }) => ({
   padding: theme.spacing(0.5),
   paddingRight: theme.spacing(2),
-  paddingLeft: `calc(${theme.spacing(1)} + var(--TreeView-itemChildrenIndentation) * var(--TreeView-itemDepth))`,
+  paddingLeft: `calc(${theme.spacing(1)} + 6px * var(--TreeView-itemDepth))`,
   width: "100%",
-  boxSizing: "border-box", // prevent width + padding to overflow
+  boxSizing: "border-box",
   position: "relative",
   display: "flex",
   alignItems: "center",
@@ -162,7 +161,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
   const icon = getIconFromTreeItemType(item.icon, renderIcon);
 
   const handleRemoveIconClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // prevent item expand/select
+    e.stopPropagation();
     onRemove?.(item);
   };
 
