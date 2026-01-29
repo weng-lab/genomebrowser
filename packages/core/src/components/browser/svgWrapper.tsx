@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
-import { useBrowserStore, useDataStore, useTrackStore } from "../../store/BrowserContext";
+import { useBrowserStore, useDataStore } from "../../store/BrowserContext";
+import { useTotalHeight } from "../../hooks/useTrackLayout";
 import { RULER_HEIGHT } from "../tracks/ruler/ruler";
 
 export default function SvgWrapper({ children }: { children: React.ReactNode }) {
   const setSvgRef = useBrowserStore((state) => state.setSvgRef);
   const svgRef = useRef<SVGSVGElement>(null);
-  const totalHeight = useTrackStore((state) => state.getTotalHeight());
+  const totalHeight = useTotalHeight();
   const browserWidth = useBrowserStore((state) => state.browserWidth);
   const isFetching = useDataStore((state) => state.isFetching);
 

@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import useBrowserScale from "../../../hooks/useBrowserScale";
+import { usePrevHeights, useDistances } from "../../../hooks/useTrackLayout";
 import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import { RULER_HEIGHT } from "../ruler/ruler";
 
@@ -27,9 +28,9 @@ function SwapTrack({
   const marginWidth = useBrowserStore((state) => state.marginWidth);
 
   const shiftTracks = useTrackStore((state) => state.shiftTracks);
-  const getDistances = useTrackStore((state) => state.getDistances);
   const getTrackIndex = useTrackStore((state) => state.getTrackIndex);
-  const prevHeights = useTrackStore((state) => state.getPrevHeights(id));
+  const prevHeights = usePrevHeights(id);
+  const distances = useDistances(id);
 
   const handleDrag = (e: DraggableEvent, d: DraggableData) => {
     e.preventDefault();
@@ -44,7 +45,6 @@ function SwapTrack({
     setDragging(false);
     setSwapping(false);
     if (Math.abs(delta) <= 5) return;
-    const distances = getDistances(id);
     const closestIndex = distances.reduce((prevIndex, currDistance, currIndex) => {
       return Math.abs(currDistance - delta) < Math.abs(distances[prevIndex] - delta) ? currIndex : prevIndex;
     }, 0);

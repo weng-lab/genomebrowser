@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useBrowserStore, useTooltipStore, useTrackStore } from "../../store/BrowserContext";
+import { useBrowserStore, useTooltipStore } from "../../store/BrowserContext";
+import { useTotalHeight } from "../../hooks/useTrackLayout";
 import { svgPoint } from "../../utils/svg";
 import { RULER_HEIGHT } from "../tracks/ruler/ruler";
 
@@ -15,7 +16,7 @@ export default function Tooltip() {
   const ref = useRef<SVGGElement>(null);
   const delta = useBrowserStore((state) => state.delta);
   const trackWidth = useBrowserStore((state) => state.browserWidth);
-  const totalHeight = useTrackStore((state) => state.getTotalHeight());
+  const totalHeight = useTotalHeight();
   const svgHeight = totalHeight + RULER_HEIGHT;
   const offset = 5;
 
@@ -70,7 +71,7 @@ export default function Tooltip() {
       childList: true,
       subtree: true,
       attributes: true,
-      characterData: true
+      characterData: true,
     });
 
     return () => observer.disconnect();

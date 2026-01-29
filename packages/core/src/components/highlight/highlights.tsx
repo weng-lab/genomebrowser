@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useBrowserStore, useTrackStore, useDataStore } from "../../store/BrowserContext";
+import { useBrowserStore, useDataStore } from "../../store/BrowserContext";
+import { useTotalHeight } from "../../hooks/useTrackLayout";
 import { Domain } from "../../utils/types";
 import { RULER_HEIGHT } from "../tracks/ruler/ruler";
 import DragTrack from "../tracks/wrapper/dragTrack";
@@ -23,7 +24,7 @@ export default function Highlights() {
   const highlights = useBrowserStore((state) => state.highlights);
 
   // dimensions
-  const totalHeight = useTrackStore((state) => state.getTotalHeight()) + RULER_HEIGHT;
+  const totalHeight = useTotalHeight() + RULER_HEIGHT;
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const getTrackDimensions = useBrowserStore((state) => state.getTrackDimensions);
   const { totalWidth, sideWidth, viewWidth } = getTrackDimensions();

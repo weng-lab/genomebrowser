@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
+import { useBrowserStore } from "../../../store/BrowserContext";
+import { useTotalHeight } from "../../../hooks/useTrackLayout";
 import { createPortal } from "react-dom";
 import { RULER_HEIGHT } from "./ruler";
 export default function SelectRegion() {
   const browserWidth = useBrowserStore((state) => state.browserWidth);
   const margin = useBrowserStore((state) => state.marginWidth);
   const dragRegionHeight = RULER_HEIGHT;
-  const totalHeight = useTrackStore((state) => state.getTotalHeight()) + RULER_HEIGHT;
+  const totalHeight = useTotalHeight() + RULER_HEIGHT;
   const [region, setRegion] = useState<number[]>([0, 0]);
   const [selecting, setSelecting] = useState(false);
   const browserRef = useBrowserStore((state) => state.svgRef);
