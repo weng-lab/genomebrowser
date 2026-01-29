@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useBrowserStore, useDataStore, useTrackStore } from "../../store/BrowserContext";
+import { usePrevHeights } from "../../hooks/useTrackLayout";
 import { Track } from "../../store/trackStore";
 import DenseBigBed from "./bigbed/dense";
 import DenseBigWig from "./bigwig/dense";
@@ -31,7 +32,7 @@ export default function DisplayTrack({ id }: { id: string }) {
   const data = trackDataState?.data ?? undefined;
 
   // Stack track
-  const prevHeights = useTrackStore((state) => state.getPrevHeights(id));
+  const prevHeights = usePrevHeights(id);
   const transform = useMemo(() => `translate(0, ${prevHeights + RULER_HEIGHT})`, [prevHeights]);
 
   // Track component

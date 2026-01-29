@@ -18,7 +18,6 @@ import React from "react";
 export const bigWigExample: BigWigConfig = {
   id: "1",
   title: "bigWig",
-  titleSize: 12,
   height: 100,
   color: Vibrant[6],
   trackType: TrackType.BigWig,
@@ -29,7 +28,6 @@ export const bigWigExample: BigWigConfig = {
 export const bigBedExample: BigBedConfig = {
   id: "2",
   title: "bigBed",
-  titleSize: 12,
   height: 20,
   color: Vibrant[7],
   trackType: TrackType.BigBed,
@@ -48,7 +46,6 @@ export const bigBedExample: BigBedConfig = {
 export const transcriptExample: TranscriptConfig = {
   id: "3",
   title: "genes",
-  titleSize: 12,
   height: 50,
   color: "#0c184a",
   trackType: TrackType.Transcript,

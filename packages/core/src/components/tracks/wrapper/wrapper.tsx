@@ -3,6 +3,7 @@ import DragTrack from "./dragTrack";
 import Margin from "./margin";
 import SwapTrack from "./swapTrack";
 import { useTrackStore, useBrowserStore, useContextMenuStore, useTheme } from "../../../store/BrowserContext";
+import { useWrapperDimensions } from "../../../hooks/useTrackLayout";
 import LoadingSpinner from "../../../icons/loadingSpinner";
 import ErrorIcon from "../../../icons/errorIcon";
 
@@ -21,12 +22,11 @@ export default function Wrapper({ children, transform, id, loading, error }: Wra
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const browserWidth = useBrowserStore((state) => state.browserWidth);
   const trackWidth = useMemo(() => browserWidth - marginWidth, [browserWidth, marginWidth]);
-  const getDimensions = useTrackStore((state) => state.getDimensions);
   const createShortLabel = useTrackStore((state) => state.createShortLabel);
 
   const color = useTrackStore((state) => state.getTrack(id)?.color) || "";
   const title = useTrackStore((state) => state.getTrack(id)?.title) || "";
-  const { trackMargin, titleSize, totalVerticalMargin, wrapperHeight } = getDimensions(id);
+  const { trackMargin, titleSize, totalVerticalMargin, wrapperHeight } = useWrapperDimensions(id);
   const shortLabel = createShortLabel(id);
 
   const spinnerSize = wrapperHeight / 3;

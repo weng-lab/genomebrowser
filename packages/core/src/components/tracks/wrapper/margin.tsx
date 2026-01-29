@@ -26,7 +26,8 @@ export default function Margin({
   onLeave: () => void;
 }) {
   const marginWidth = useBrowserStore((state) => state.marginWidth);
-  const fontSize = 10;
+  const fontSize = useBrowserStore((state) => state.fontSize);
+  const tickFontSize = fontSize * 0.8;
   const showModal = useModalStore((state) => state.showModal);
   const settingsRef = useRef<SVGGElement>(null);
 
@@ -132,10 +133,10 @@ export default function Margin({
       {/* margin ticks */}
       {viewableRange && (
         <>
-          <MarginTick color={text} position={height} width={marginWidth} fontSize={8}>
+          <MarginTick color={text} position={height} width={marginWidth} fontSize={tickFontSize}>
             {viewableRange.min.toFixed(2)}
           </MarginTick>
-          <MarginTick color={text} position={verticalMargin} width={marginWidth} fontSize={8}>
+          <MarginTick color={text} position={verticalMargin} width={marginWidth} fontSize={tickFontSize}>
             {viewableRange.max.toFixed(2)}
           </MarginTick>
         </>

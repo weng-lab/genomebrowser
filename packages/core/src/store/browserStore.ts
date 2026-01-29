@@ -10,6 +10,8 @@ export interface InitialBrowserState {
   trackWidth: number;
   multiplier: number;
   highlights?: Highlight[];
+  fontSize?: number;
+  titleSize?: number;
 }
 
 export interface BrowserStore {
@@ -36,6 +38,12 @@ export interface BrowserStore {
    */
   addHighlight: (highlight: Highlight) => void;
   removeHighlight: (id: string) => void;
+  setTrackWidth: (trackWidth: number) => void;
+  setMarginWidth: (marginWidth: number) => void;
+  fontSize: number;
+  titleSize: number;
+  setFontSize: (fontSize: number) => void;
+  setTitleSize: (titleSize: number) => void;
 }
 
 export type BrowserStoreInstance = ReturnType<typeof createBrowserStoreInternal>;
@@ -65,6 +73,8 @@ export function createBrowserStoreInternal(initialState: InitialBrowserState) {
     marginWidth: initialState.marginWidth,
     multiplier: initialState.multiplier,
     highlights: initialState.highlights || [],
+    fontSize: initialState.fontSize ?? 10,
+    titleSize: initialState.titleSize ?? 12,
     initialize: (state: InitialBrowserState) => {
       set({
         domain: state.domain,
@@ -73,6 +83,8 @@ export function createBrowserStoreInternal(initialState: InitialBrowserState) {
         marginWidth: state.marginWidth,
         multiplier: state.multiplier,
         highlights: state.highlights || [],
+        fontSize: state.fontSize ?? 10,
+        titleSize: state.titleSize ?? 12,
       });
     },
     setDomain: (domain: Domain) => {
@@ -135,5 +147,21 @@ export function createBrowserStoreInternal(initialState: InitialBrowserState) {
     removeHighlight: (id: string) => {
       set((state) => ({ highlights: state.highlights.filter((h) => h.id !== id) }));
     },
+    setTrackWidth: (trackWidth: number) => {
+      const marginWidth = get().marginWidth;
+      set({
+        trackWidth,
+        browserWidth: trackWidth + marginWidth,
+      });
+    },
+    setMarginWidth: (marginWidth: number) => {
+      const trackWidth = get().trackWidth;
+      set({
+        marginWidth,
+        browserWidth: trackWidth + marginWidth,
+      });
+    },
+    setFontSize: (fontSize: number) => set({ fontSize }),
+    setTitleSize: (titleSize: number) => set({ titleSize }),
   }));
 }

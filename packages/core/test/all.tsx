@@ -64,6 +64,28 @@ export default function All() {
 
   useImportanceTrack(browserStore, trackStore, dataStore);
   useManhattanData(browserStore, dataStore);
+
+  // Test: Change fontSize after 3 seconds, and titleSize after 6 seconds
+  useEffect(() => {
+    const setFontSize = browserStore.getState().setFontSize;
+    const setTitleSize = browserStore.getState().setTitleSize;
+
+    const fontSizeTimer = setTimeout(() => {
+      console.log("Setting fontSize to 20");
+      setFontSize(20);
+    }, 3000);
+
+    const titleSizeTimer = setTimeout(() => {
+      console.log("Setting titleSize to 24");
+      setTitleSize(24);
+    }, 6000);
+
+    return () => {
+      clearTimeout(fontSizeTimer);
+      clearTimeout(titleSizeTimer);
+    };
+  }, [browserStore]);
+
   return <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />;
 }
 
