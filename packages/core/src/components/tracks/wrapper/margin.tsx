@@ -4,6 +4,7 @@ import { useModalStore, useTrackStore, useBrowserStore, useTheme } from "../../.
 import { useRef } from "react";
 import { BigWigConfig } from "../bigwig/types";
 import BottomIcon from "../../../icons/bottomIcon";
+import ClipPath from "../../svg/clipPath";
 
 export default function Margin({
   marginLabel,
@@ -86,10 +87,14 @@ export default function Margin({
       />
       {/* colored bar */}
       <rect x={0} y={0} width={marginWidth / 15} height={height} stroke="#000000" strokeWidth={0.5} fill={color} />
+      {/* clip path to prevent margin label from overflowing */}
+      <ClipPath id={`margin-clip-${id}`} width={marginWidth * 0.85} height={height} />
       {/* margin label */}
-      <text fill={text} fontSize={`${fontSize}px`} y={height / 2} x={marginWidth / 10} alignmentBaseline="middle">
-        {marginLabel}
-      </text>
+      <g clipPath={`url(#margin-clip-${id})`}>
+        <text fill={text} fontSize={`${fontSize}px`} y={height / 2} x={marginWidth / 10} alignmentBaseline="middle">
+          {marginLabel}
+        </text>
+      </g>
       <g id={`margin-buttons-${id}`}>
         {/* modal icon */}
         {id !== "ruler" && (

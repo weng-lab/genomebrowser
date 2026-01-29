@@ -31223,11 +31223,11 @@
           "fileAccession": "ENCFF814BZJ"
         },
         {
-          "id": "ccre-ENCFF592CNZ_NA_ENCFF346DEM_ENCFF192FOK",
+          "id": "ccre-ENCFF592CNZ_ENCFF346DEM_ENCFF192FOK",
           "assay": "ccre",
-          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF592CNZ_NA_ENCFF346DEM_ENCFF192FOK.bigBed",
+          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF592CNZ_ENCFF346DEM_ENCFF192FOK.bigBed",
           "experimentAccession": "",
-          "fileAccession": "ENCFF592CNZ_NA_ENCFF346DEM_ENCFF192FOK"
+          "fileAccession": "ENCFF592CNZ_ENCFF346DEM_ENCFF192FOK"
         }
       ]
     },

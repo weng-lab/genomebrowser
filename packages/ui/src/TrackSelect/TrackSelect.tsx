@@ -385,7 +385,7 @@ export default function TrackSelect({
               spacing={2}
               sx={{ width: "100%" }}
             >
-              {/* Left panel */}
+              {/* Left panel - FolderList or DataGrid */}
               <Box
                 sx={{
                   flex: { xs: "none", md: 3 },
@@ -411,7 +411,7 @@ export default function TrackSelect({
                   />
                 )}
               </Box>
-              {/* Right panel */}
+              {/* Right panel - Active Tracks */}
               <Box
                 sx={{
                   flex: { xs: "none", md: 2 },
@@ -430,14 +430,16 @@ export default function TrackSelect({
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
+                alignItems: "center",
                 mt: 2,
-                gap: 2,
+                gap: 1,
               }}
             >
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <Box sx={{ display: "flex", gap: 1 }}>
                 <Button
                   variant="outlined"
                   color="secondary"
+                  size="small"
                   onClick={handleClear}
                 >
                   Clear
@@ -446,19 +448,21 @@ export default function TrackSelect({
                   <Button
                     variant="outlined"
                     color="secondary"
+                    size="small"
                     onClick={handleReset}
                   >
-                    Reset to Default
+                    Reset
                   </Button>
                 )}
               </Box>
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <Button variant="outlined" onClick={handleCancel}>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Button variant="outlined" size="small" onClick={handleCancel}>
                   Cancel
                 </Button>
                 <Button
                   variant="contained"
                   color="primary"
+                  size="small"
                   onClick={handleSubmit}
                 >
                   Submit
