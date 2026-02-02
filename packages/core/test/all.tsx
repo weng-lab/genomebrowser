@@ -35,8 +35,8 @@ export default function All() {
     {
       // chr11:5,202,705-5,556,088
       domain: { chromosome: "chr11", start: 5202705, end: 5556088 },
-      marginWidth: 100,
-      trackWidth: 1400,
+      marginWidth: 50,
+      trackWidth: 1450,
       multiplier: 3,
       highlights: [
         // chr11:5,253,188-5,505,605
@@ -64,27 +64,6 @@ export default function All() {
 
   useImportanceTrack(browserStore, trackStore, dataStore);
   useManhattanData(browserStore, dataStore);
-
-  // Test: Change fontSize after 3 seconds, and titleSize after 6 seconds
-  useEffect(() => {
-    const setFontSize = browserStore.getState().setFontSize;
-    const setTitleSize = browserStore.getState().setTitleSize;
-
-    const fontSizeTimer = setTimeout(() => {
-      console.log("Setting fontSize to 20");
-      setFontSize(20);
-    }, 3000);
-
-    const titleSizeTimer = setTimeout(() => {
-      console.log("Setting titleSize to 24");
-      setTitleSize(24);
-    }, 6000);
-
-    return () => {
-      clearTimeout(fontSizeTimer);
-      clearTimeout(titleSizeTimer);
-    };
-  }, [browserStore]);
 
   return <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />;
 }
