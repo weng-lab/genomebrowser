@@ -2,6 +2,7 @@
   "tracks": [
     {
       "name": "aggregate-biosample-data",
+      "core": true,
       "ontology": "aggregate",
       "lifeStage": "N/A",
       "sampleType": "aggregate",
@@ -19403,6 +19404,7 @@
     },
     {
       "name": "osteocyte_ENCDO222AAA",
+      "core": true,
       "ontology": "bone",
       "lifeStage": "embryonic",
       "sampleType": "in vitro differentiated cells",
@@ -20607,6 +20609,7 @@
     },
     {
       "name": "astrocyte_ENCDO336AAA",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
@@ -20828,6 +20831,7 @@
     },
     {
       "name": "bipolar_neuron_originated_from_GM23338_treated_with_0.5_μg/mL_doxycycline_hyclate_for_4_days_ENCDO336AAA",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
@@ -21868,6 +21872,7 @@
     },
     {
       "name": "excitatory_neuron_ENCDO336AAA",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
@@ -23246,6 +23251,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_78_years_ENCDO236YSH",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23304,6 +23310,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_79_years_ENCDO609ZOG",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23362,6 +23369,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_82_years_ENCDO290OPS",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23457,6 +23465,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_83_years_ENCDO448ZXP",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23515,6 +23524,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_84_years_ENCDO461DJY",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23573,6 +23583,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_87_years_ENCDO423GGP",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23631,6 +23642,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_87_years_ENCDO640RUC",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23689,6 +23701,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_88_years_ENCDO669IVL",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23747,6 +23760,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_89_years_ENCDO707TUE",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23791,6 +23805,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO006DAA",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23886,6 +23901,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO101GPB",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -23944,6 +23960,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO218FFZ",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -24002,6 +24019,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO250PFZ",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -24097,6 +24115,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_male_adult_71_years_ENCDO570AKP",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -24155,6 +24174,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_male_adult_78_years_ENCDO623FPG",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -24250,6 +24270,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_male_adult_82_years_ENCDO407UTA",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -24308,6 +24329,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_male_adult_83_years_ENCDO592ZWW",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -24366,6 +24388,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_male_adult_83_years_ENCDO736YJH",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -24424,6 +24447,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_male_adult_84_years_ENCDO999WDR",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -24482,6 +24506,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_male_adult_86_years_ENCDO666UNK",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -24540,6 +24565,7 @@
     },
     {
       "name": "middle_frontal_area_46_tissue_male_adult_87_years_ENCDO203ASI",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -24732,6 +24758,7 @@
     },
     {
       "name": "neural_progenitor_cell_originated_from_H9_ENCDO222AAA",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "in vitro differentiated cells",
@@ -26431,6 +26458,7 @@
     },
     {
       "name": "with_Alzheimer's_disease_middle_frontal_area_46_tissue_female_adult_74_years_ENCDO907CMO",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -26475,6 +26503,7 @@
     },
     {
       "name": "with_Alzheimer's_disease_middle_frontal_area_46_tissue_female_adult_81_years_ENCDO097MEH",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -26519,6 +26548,7 @@
     },
     {
       "name": "with_Alzheimer's_disease_middle_frontal_area_46_tissue_female_adult_85_years_ENCDO080EZF",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -26563,6 +26593,7 @@
     },
     {
       "name": "with_Alzheimer's_disease_middle_frontal_area_46_tissue_female_adult_86_years_ENCDO997SGX",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -26607,6 +26638,7 @@
     },
     {
       "name": "with_Alzheimer's_disease_middle_frontal_area_46_tissue_female_adult_88_years_ENCDO070VNS",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -26651,6 +26683,7 @@
     },
     {
       "name": "with_Alzheimer's_disease_middle_frontal_area_46_tissue_female_adult_89_years_ENCDO830KFO",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -26695,6 +26728,7 @@
     },
     {
       "name": "with_Alzheimer's_disease_middle_frontal_area_46_tissue_female_adult_89_years_ENCDO853VGZ",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -26739,6 +26773,7 @@
     },
     {
       "name": "with_Alzheimer's_disease_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO201EUI",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -26783,6 +26818,7 @@
     },
     {
       "name": "with_Alzheimer's_disease_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO637GUS",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -26827,6 +26863,7 @@
     },
     {
       "name": "with_Alzheimer's_disease_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO847KYQ",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -27667,6 +27704,7 @@
     },
     {
       "name": "with_Cognitive_impairment_middle_frontal_area_46_tissue_female_adult_81_years_ENCDO077CCP",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -27711,6 +27749,7 @@
     },
     {
       "name": "with_Cognitive_impairment_middle_frontal_area_46_tissue_female_adult_86_years_ENCDO845GYA",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -27755,6 +27794,7 @@
     },
     {
       "name": "with_Cognitive_impairment_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO359XWR",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -27799,6 +27839,7 @@
     },
     {
       "name": "with_Cognitive_impairment_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO448YMQ",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28441,6 +28482,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_83_years_ENCDO832DBZ",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28485,6 +28527,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_87_years_ENCDO354SJE",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28529,6 +28572,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_88_years_ENCDO151OJB",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28573,6 +28617,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO033BMB",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28617,6 +28662,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO153NUY",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28661,6 +28707,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO471EKG",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28705,6 +28752,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO634UMA",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28749,6 +28797,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO660TGP",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28793,6 +28842,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO672KST",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28837,6 +28887,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO739EFE",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28881,6 +28932,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_female_adult_90_or_above_years_ENCDO915WZE",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28925,6 +28977,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_male_adult_89_years_ENCDO697SWU",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -28969,6 +29022,7 @@
     },
     {
       "name": "with_mild_cognitive_impairment_middle_frontal_area_46_tissue_male_adult_90_or_above_years_ENCDO877NVF",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -30070,6 +30124,7 @@
     },
     {
       "name": "chondrocyte_ENCDO222AAA",
+      "core": true,
       "ontology": "connective tissue",
       "lifeStage": "embryonic",
       "sampleType": "in vitro differentiated cells",
@@ -30534,6 +30589,7 @@
     },
     {
       "name": "endodermal_cell_ENCDO222AAA",
+      "core": true,
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "in vitro differentiated cells",
@@ -31620,6 +31676,7 @@
     },
     {
       "name": "endothelial_cell_ENCDO336AAA",
+      "core": true,
       "ontology": "epithelium",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
@@ -34902,6 +34959,7 @@
     },
     {
       "name": "mesothelial_cell_of_epicardium_ENCDO222AAA",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "in vitro differentiated cells",
@@ -40618,6 +40676,7 @@
     },
     {
       "name": "hepatocyte_originated_from_H9_ENCDO222AAA",
+      "core": true,
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "in vitro differentiated cells",
@@ -44123,6 +44182,7 @@
     },
     {
       "name": "cardiac_muscle_cell_originated_from_RUES2_ENCDO924HBJ",
+      "core": true,
       "ontology": "muscle",
       "lifeStage": "embryonic",
       "sampleType": "in vitro differentiated cells",
@@ -48726,6 +48786,7 @@
     },
     {
       "name": "progenitor_cell_of_endocrine_pancreas_ENCDO222AAA",
+      "core": true,
       "ontology": "pancreas",
       "lifeStage": "embryonic",
       "sampleType": "in vitro differentiated cells",
@@ -48784,6 +48845,7 @@
     },
     {
       "name": "type_B_pancreatic_cell_ENCDO222AAA",
+      "core": true,
       "ontology": "pancreas",
       "lifeStage": "embryonic",
       "sampleType": "in vitro differentiated cells",
@@ -53650,6 +53712,7 @@
     },
     {
       "name": "Peyer's_patch_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "small intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -53708,6 +53771,7 @@
     },
     {
       "name": "Peyer's_patch_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "small intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -53780,6 +53844,7 @@
     },
     {
       "name": "Peyer's_patch_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "small intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -53845,6 +53910,7 @@
     },
     {
       "name": "Peyer's_patch_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "small intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
