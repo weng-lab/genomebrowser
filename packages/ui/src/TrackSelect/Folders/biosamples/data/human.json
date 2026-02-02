@@ -517,6 +517,7 @@
     },
     {
       "name": "adrenal_gland_tissue_female_adult_41_years_ENCDO575WHY",
+      "core": true,
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -633,6 +634,7 @@
     },
     {
       "name": "adrenal_gland_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -698,6 +700,7 @@
     },
     {
       "name": "adrenal_gland_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -938,6 +941,7 @@
     },
     {
       "name": "adrenal_gland_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1003,6 +1007,7 @@
     },
     {
       "name": "adrenal_gland_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -3842,6 +3847,7 @@
     },
     {
       "name": "CD14-positive_monocyte_female_ENCDO265AAA",
+      "core": true,
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -6326,6 +6332,7 @@
     },
     {
       "name": "DND-41_ENCDO183AAA",
+      "core": true,
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -6977,6 +6984,7 @@
     },
     {
       "name": "GM12878_ENCDO000AAK",
+      "core": true,
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -9158,6 +9166,7 @@
     },
     {
       "name": "HL-60_ENCDO000AAM",
+      "core": true,
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -9391,6 +9400,7 @@
     },
     {
       "name": "K562_ENCDO000AAD",
+      "core": true,
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -10712,6 +10722,7 @@
     },
     {
       "name": "MM.1S_ENCDO697GBW",
+      "core": true,
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -12558,6 +12569,7 @@
     },
     {
       "name": "OCI-LY7_ENCDO351AAA",
+      "core": true,
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -18361,6 +18373,7 @@
     },
     {
       "name": "ascending_aorta_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "blood vessel",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -18405,6 +18418,7 @@
     },
     {
       "name": "ascending_aorta_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "blood vessel",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -18463,6 +18477,7 @@
     },
     {
       "name": "brain_microvascular_endothelial_cell_ENCDO227AAA",
+      "core": true,
       "ontology": "blood vessel",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -18551,6 +18566,7 @@
     },
     {
       "name": "coronary_artery_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "blood vessel",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -19047,6 +19063,7 @@
     },
     {
       "name": "thoracic_aorta_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "blood vessel",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -19186,6 +19203,7 @@
     },
     {
       "name": "tibial_artery_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "blood vessel",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -20209,6 +20227,7 @@
     },
     {
       "name": "NCI-H929_ENCDO220OYR",
+      "core": true,
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -20646,6 +20665,7 @@
     },
     {
       "name": "astrocyte_ENCDO916IIE",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -25571,6 +25591,7 @@
     },
     {
       "name": "SK-N-SH_ENCDO000ABD",
+      "core": true,
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -29199,6 +29220,7 @@
     },
     {
       "name": "breast_epithelium_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "breast",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -29722,6 +29744,7 @@
     },
     {
       "name": "MCF-7_ENCDO000AAE",
+      "core": true,
       "ontology": "breast",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -30657,6 +30680,7 @@
     },
     {
       "name": "H1_ENCDO000AAW",
+      "core": true,
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -30794,6 +30818,7 @@
     },
     {
       "name": "H9_ENCDO222AAA",
+      "core": true,
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -31898,6 +31923,7 @@
     },
     {
       "name": "esophagus_squamous_epithelium_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "esophagus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -32286,6 +32312,7 @@
     },
     {
       "name": "WERI-Rb-1_ENCDO000ADT",
+      "core": true,
       "ontology": "eye",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -32563,6 +32590,7 @@
     },
     {
       "name": "heart_left_ventricle_tissue_female_adult_46_years_ENCDO411EVD",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -32702,6 +32730,7 @@
     },
     {
       "name": "heart_left_ventricle_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -32774,6 +32803,7 @@
     },
     {
       "name": "heart_left_ventricle_tissue_female_adult_56_years_ENCDO907YUG",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -32839,6 +32869,7 @@
     },
     {
       "name": "heart_left_ventricle_tissue_female_adult_59_years_ENCDO856ZOJ",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -33054,6 +33085,7 @@
     },
     {
       "name": "heart_left_ventricle_tissue_male_adult_43_years_ENCDO967KID",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -33397,6 +33429,7 @@
     },
     {
       "name": "heart_right_ventricle_tissue_female_adult_46_years_ENCDO411EVD",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -33478,6 +33511,7 @@
     },
     {
       "name": "heart_right_ventricle_tissue_female_adult_56_years_ENCDO907YUG",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -33670,6 +33704,7 @@
     },
     {
       "name": "heart_right_ventricle_tissue_male_adult_40_years_ENCDO392CRK",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -33728,6 +33763,7 @@
     },
     {
       "name": "heart_right_ventricle_tissue_male_adult_43_years_ENCDO967KID",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -33911,6 +33947,7 @@
     },
     {
       "name": "heart_right_ventricle_tissue_male_adult_61_years_ENCDO808ASZ",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -33983,6 +34020,7 @@
     },
     {
       "name": "heart_right_ventricle_tissue_male_adult_66_years_ENCDO926KEV",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -34055,6 +34093,7 @@
     },
     {
       "name": "heart_right_ventricle_tissue_male_adult_69_years_ENCDO477WED",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -34753,6 +34792,7 @@
     },
     {
       "name": "left_ventricle_myocardium_inferior_tissue_male_adult_60_years_ENCDO520EJG",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -34920,6 +34960,7 @@
     },
     {
       "name": "right_atrium_auricular_region_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -34992,6 +35033,7 @@
     },
     {
       "name": "right_atrium_auricular_region_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -37646,6 +37688,7 @@
     },
     {
       "name": "Caco-2_ENCDO000ACR",
+      "core": true,
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -37704,6 +37747,7 @@
     },
     {
       "name": "colonic_mucosa_tissue_female_adult_41_years_ENCDO575WHY",
+      "core": true,
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -37910,6 +37954,7 @@
     },
     {
       "name": "HCT116_ENCDO000ABE",
+      "core": true,
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -39780,6 +39825,7 @@
     },
     {
       "name": "sigmoid_colon_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -39947,6 +39993,7 @@
     },
     {
       "name": "sigmoid_colon_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -40079,6 +40126,7 @@
     },
     {
       "name": "transverse_colon_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -40144,6 +40192,7 @@
     },
     {
       "name": "transverse_colon_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -40209,6 +40258,7 @@
     },
     {
       "name": "transverse_colon_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -40281,6 +40331,7 @@
     },
     {
       "name": "transverse_colon_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -40632,6 +40683,7 @@
     },
     {
       "name": "HepG2_ENCDO000AAC",
+      "core": true,
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -41034,6 +41086,7 @@
     },
     {
       "name": "right_lobe_of_liver_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -41372,6 +41425,7 @@
     },
     {
       "name": "AG04450_ENCDO001AAA",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -41684,6 +41738,7 @@
     },
     {
       "name": "IMR-90_ENCDO000AAX",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -41765,6 +41820,7 @@
     },
     {
       "name": "left_lung_tissue_female_child_16_years_ENCDO575EGL",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -41998,6 +42054,7 @@
     },
     {
       "name": "left_lung_tissue_male_adult_40_years_ENCDO392CRK",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -42201,6 +42258,7 @@
     },
     {
       "name": "lower_lobe_of_left_lung_tissue_female_adult_59_years_ENCDO856ZOJ",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -42303,6 +42361,7 @@
     },
     {
       "name": "lower_lobe_of_left_lung_tissue_male_adult_60_years_ENCDO520EJG",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -42949,6 +43008,7 @@
     },
     {
       "name": "PC-9_ENCDO647UHQ",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -43260,6 +43320,7 @@
     },
     {
       "name": "upper_lobe_of_left_lung_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -43325,6 +43386,7 @@
     },
     {
       "name": "upper_lobe_of_left_lung_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -43420,6 +43482,7 @@
     },
     {
       "name": "upper_lobe_of_left_lung_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -43485,6 +43548,7 @@
     },
     {
       "name": "upper_lobe_of_left_lung_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -43926,6 +43990,7 @@
     },
     {
       "name": "A673_ENCDO027VXA",
+      "core": true,
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -44262,6 +44327,7 @@
     },
     {
       "name": "esophagus_muscularis_mucosa_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -44415,6 +44481,7 @@
     },
     {
       "name": "gastrocnemius_medialis_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -44487,6 +44554,7 @@
     },
     {
       "name": "gastrocnemius_medialis_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -44559,6 +44627,7 @@
     },
     {
       "name": "gastrocnemius_medialis_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -44631,6 +44700,7 @@
     },
     {
       "name": "gastrocnemius_medialis_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -47030,6 +47100,7 @@
     },
     {
       "name": "tibial_nerve_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "nerve",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -47160,6 +47231,7 @@
     },
     {
       "name": "tibial_nerve_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "nerve",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -47225,6 +47297,7 @@
     },
     {
       "name": "tibial_nerve_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "nerve",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -47725,6 +47798,7 @@
     },
     {
       "name": "body_of_pancreas_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "pancreas",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -47848,6 +47922,7 @@
     },
     {
       "name": "body_of_pancreas_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "pancreas",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -47906,6 +47981,7 @@
     },
     {
       "name": "body_of_pancreas_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "pancreas",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -48100,6 +48176,7 @@
     },
     {
       "name": "Panc1_ENCDO000ABB",
+      "core": true,
       "ontology": "pancreas",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -48216,6 +48293,7 @@
     },
     {
       "name": "pancreas_tissue_female_adult_41_years_ENCDO575WHY",
+      "core": true,
       "ontology": "pancreas",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -48332,6 +48410,7 @@
     },
     {
       "name": "pancreas_tissue_female_adult_59_years_ENCDO856ZOJ",
+      "core": true,
       "ontology": "pancreas",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -48404,6 +48483,7 @@
     },
     {
       "name": "pancreas_tissue_female_adult_61_years_ENCDO186XRB",
+      "core": true,
       "ontology": "pancreas",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -48476,6 +48556,7 @@
     },
     {
       "name": "pancreas_tissue_female_child_16_years_ENCDO575EGL",
+      "core": true,
       "ontology": "pancreas",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -49015,6 +49096,7 @@
     },
     {
       "name": "HFFc6_ENCDO737WWC",
+      "core": true,
       "ontology": "penis",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -50556,6 +50638,7 @@
     },
     {
       "name": "PC-3_ENCDO349AAA",
+      "core": true,
       "ontology": "prostate",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -50642,6 +50725,7 @@
     },
     {
       "name": "prostate_gland_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "prostate",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -51831,6 +51915,7 @@
     },
     {
       "name": "GM23338_ENCDO336AAA",
+      "core": true,
       "ontology": "skin",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -51896,6 +51981,7 @@
     },
     {
       "name": "GM23338_originated_from_GM23248_ENCDO336AAA",
+      "core": true,
       "ontology": "skin",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -52277,6 +52363,7 @@
     },
     {
       "name": "keratinocyte_female_ENCDO268AAA",
+      "core": true,
       "ontology": "skin",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -54523,6 +54610,7 @@
     },
     {
       "name": "spleen_tissue_female_adult_41_years_ENCDO575WHY",
+      "core": true,
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -54646,6 +54734,7 @@
     },
     {
       "name": "spleen_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -54711,6 +54800,7 @@
     },
     {
       "name": "spleen_tissue_female_adult_59_years_ENCDO856ZOJ",
+      "core": true,
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -54776,6 +54866,7 @@
     },
     {
       "name": "spleen_tissue_female_adult_61_years_ENCDO186XRB",
+      "core": true,
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -55151,6 +55242,7 @@
     },
     {
       "name": "stomach_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "stomach",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -55216,6 +55308,7 @@
     },
     {
       "name": "stomach_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "stomach",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -55601,6 +55694,7 @@
     },
     {
       "name": "stomach_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "stomach",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -55666,6 +55760,7 @@
     },
     {
       "name": "stomach_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "stomach",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -55883,6 +55978,7 @@
     },
     {
       "name": "testis_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "testis",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -55955,6 +56051,7 @@
     },
     {
       "name": "testis_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "testis",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -56340,6 +56437,7 @@
     },
     {
       "name": "thyroid_gland_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "thyroid",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -56412,6 +56510,7 @@
     },
     {
       "name": "thyroid_gland_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "thyroid",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -56477,6 +56576,7 @@
     },
     {
       "name": "thyroid_gland_tissue_male_adult_37_years_ENCDO845WKR",
+      "core": true,
       "ontology": "thyroid",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -56542,6 +56642,7 @@
     },
     {
       "name": "thyroid_gland_tissue_male_adult_54_years_ENCDO451RUA",
+      "core": true,
       "ontology": "thyroid",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -56683,6 +56784,7 @@
     },
     {
       "name": "HeLa-S3_ENCDO000AAB",
+      "core": true,
       "ontology": "uterus",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -56928,6 +57030,7 @@
     },
     {
       "name": "uterus_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "uterus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -57030,6 +57133,7 @@
     },
     {
       "name": "vagina_tissue_female_adult_51_years_ENCDO271OUW",
+      "core": true,
       "ontology": "vagina",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -57081,6 +57185,7 @@
     },
     {
       "name": "vagina_tissue_female_adult_53_years_ENCDO793LXB",
+      "core": true,
       "ontology": "vagina",
       "lifeStage": "adult",
       "sampleType": "tissue",
