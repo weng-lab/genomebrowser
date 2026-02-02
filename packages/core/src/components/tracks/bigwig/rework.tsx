@@ -163,10 +163,8 @@ function generateSignal(
     if (range && point.max > range.max) {
       clampHigh += `M ${point.x} 0 l 0 2 `;
     }
-    // Draw a small bar for zero-filled points so they're visible
     if (fillWithZero && point.min === 0 && point.max === 0) {
-      const minHeight = 3;
-      zeroBaseline += `M ${point.x} ${zeroPoint} v -${minHeight} h 1 v ${minHeight} `;
+      zeroBaseline += `M ${point.x} ${zeroPoint} v -1 h 1 v 1 `;
     }
   });
 
@@ -177,7 +175,7 @@ function generateSignal(
       <path d={maxPath} fill={color} />
       <path d={clampHigh} stroke={clampColor} strokeWidth="2" fill="none" />
       <path d={clampLow} stroke={clampColor} strokeWidth="2" fill="none" />
-      {fillWithZero && zeroBaseline && <path d={zeroBaseline} fill={lighten(color, 0.3)} />}
+      {fillWithZero && zeroBaseline && <path d={zeroBaseline} fill={color} />}
     </>
   );
 }
