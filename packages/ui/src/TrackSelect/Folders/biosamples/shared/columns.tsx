@@ -1,7 +1,41 @@
-import { GridColDef } from "@mui/x-data-grid-premium";
+import {
+  GridColDef,
+  GridRenderCellParams,
+  GridGroupNode,
+  useGridApiContext,
+} from "@mui/x-data-grid-premium";
 import { Stack, capitalize } from "@mui/material";
+import Check from "@mui/icons-material/Check";
 import { AssayIcon, ontologyTypes, assayTypes, lifeStages } from "./constants";
 import { BiosampleRowInfo } from "./types";
+
+function CoreCollectionCell(params: GridRenderCellParams<BiosampleRowInfo>) {
+  const apiRef = useGridApiContext();
+
+  if (params.rowNode.type !== "group") {
+    return null;
+  }
+
+  const groupNode = params.rowNode as GridGroupNode;
+  if (groupNode.groupingField !== "displayName") {
+    return null;
+  }
+
+  const childIds = groupNode.children;
+  if (!childIds || childIds.length === 0) {
+    return null;
+  }
+
+  const firstChildRow = apiRef.current.getRow(
+    childIds[0],
+  ) as BiosampleRowInfo | null;
+
+  if (firstChildRow?.coreCollection) {
+    return <Check color="primary" />;
+  }
+
+  return null;
+}
 
 const displayNameCol: GridColDef<BiosampleRowInfo> = {
   field: "displayName",
@@ -106,6 +140,14 @@ const lifeStageCol: GridColDef<BiosampleRowInfo> = {
   valueFormatter: (value) => value && capitalize(value),
 };
 
+const coreCollectionCol: GridColDef<BiosampleRowInfo> = {
+  field: "coreCollection",
+  headerName: "Core Collection",
+  type: "boolean",
+  width: 120,
+  renderCell: (params) => <CoreCollectionCell {...params} />,
+};
+
 const experimentCol: GridColDef<BiosampleRowInfo> = {
   field: "experimentAccession",
   headerName: "Experiment Accession",
@@ -125,6 +167,7 @@ const idCol: GridColDef<BiosampleRowInfo> = {
 export const sortedByAssayColumns: GridColDef<BiosampleRowInfo>[] = [
   displayNameCol,
   sortedByAssayOntologyCol,
+  coreCollectionCol,
   sampleTypeCol,
   lifeStageCol,
   sortedByAssayAssayCol,
@@ -136,6 +179,7 @@ export const sortedByAssayColumns: GridColDef<BiosampleRowInfo>[] = [
 /** Default columns (ontology as top-level grouping) */
 export const defaultColumns: GridColDef<BiosampleRowInfo>[] = [
   defaultAssayCol,
+  coreCollectionCol,
   sampleTypeCol,
   lifeStageCol,
   defaultOntologyCol,

@@ -23,6 +23,7 @@ export type BiosampleTrackInfo = {
   sampleType: string;
   displayName: string;
   assays: BiosampleAssayInfo[];
+  core?: boolean;
 };
 
 /**
@@ -38,6 +39,7 @@ export type BiosampleRowInfo = {
   experimentAccession: string;
   fileAccession: string;
   url: string;
+  coreCollection: boolean;
 };
 
 /**

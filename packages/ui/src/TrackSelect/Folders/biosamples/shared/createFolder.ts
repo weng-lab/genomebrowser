@@ -24,9 +24,18 @@ import { BiosampleTreeItem } from "./BiosampleTreeItem";
  * @returns Array of flattened BiosampleRowInfo objects, one per assay
  */
 function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
-  const { ontology, lifeStage, sampleType, displayName } = track;
+  const { ontology, lifeStage, sampleType, displayName, core } = track;
 
-  return track.assays.map(
+  // Sort assays so cCRE comes first, then maintain original order for the rest
+  const sortedAssays = [...track.assays].sort((a, b) => {
+    const aIsCcre = a.assay.toLowerCase() === "ccre";
+    const bIsCcre = b.assay.toLowerCase() === "ccre";
+    if (aIsCcre && !bIsCcre) return -1;
+    if (!aIsCcre && bIsCcre) return 1;
+    return 0;
+  });
+
+  return sortedAssays.map(
     ({ id, assay, experimentAccession, fileAccession, url }) => ({
       id,
       ontology: capitalize(ontology),
@@ -37,6 +46,7 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
       experimentAccession,
       fileAccession,
       url,
+      coreCollection: core ?? false,
     }),
   );
 }

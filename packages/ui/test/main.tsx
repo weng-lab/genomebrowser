@@ -79,7 +79,7 @@ function injectCallbacks(track: Track, callbacks: TrackCallbacks): Track {
 
 function Main() {
   const [open, setOpen] = useState(false);
-  const currentAssembly: Assembly = "mm10";
+  const currentAssembly: Assembly = "GRCh38";
 
   const browserStore = createBrowserStoreMemo({
     // chr7:19,695,494-19,699,803
