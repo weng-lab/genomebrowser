@@ -15,7 +15,7 @@ import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
 import { TrackDataState } from "../store/dataStore";
-import { getBigData, ogBigDataFetcher } from "./getBigWigData";
+import { getBigData, ogBigDataFetcher, applyFillWithZero } from "./getBigWigData";
 
 // An interface for storing avaliable Apollo GQL Queries
 export interface QueryHooks {
@@ -69,7 +69,9 @@ export async function getBigDataRace(
  */
 async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, preRenderedWidth, queries } = ctx;
-  return await getBigDataRace(track.url, expandedDomain, preRenderedWidth, queries);
+  const result = await getBigDataRace(track.url, expandedDomain, preRenderedWidth, queries);
+  if (track.fillWithZero) applyFillWithZero(result.data);
+  return result;
 }
 
 /**

@@ -5,6 +5,8 @@ export interface BigWigConfig extends Config<Data> {
   url: string;
   range?: YRange;
   customRange?: YRange;
+  /** When true, fill gaps in data with 0 instead of null. Defaults to false. */
+  fillWithZero?: boolean;
 }
 
 interface BigWigProps {
@@ -19,6 +21,7 @@ interface BigWigProps {
 export interface FullBigWigProps extends BigWigProps {
   range: YRange;
   customRange?: YRange;
+  fillWithZero?: boolean;
 }
 export type DenseBigWigProps = BigWigProps;
 

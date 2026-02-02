@@ -202,3 +202,14 @@ export const manhattanTrack: ManhattanTrackConfig = {
   color: "#ff0000",
   cutoffLabel: "5e-8",
 };
+
+export const bigWigFillZero: BigWigConfig = {
+  id: "bigWigFillZero",
+  title: "BigWig (fillWithZero)",
+  height: 100,
+  color: Vibrant[4],
+  trackType: TrackType.BigWig,
+  displayMode: DisplayMode.Full,
+  url: "https://downloads.wenglab.org/Registry-V4/ENCFF470BSF.bigWig",
+  fillWithZero: true,
+};

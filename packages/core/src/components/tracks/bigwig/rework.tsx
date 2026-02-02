@@ -9,7 +9,16 @@ import { lighten, isDark } from "../../../utils/color";
 import { getRange } from "./helpers";
 import { linearScale } from "../../../utils/coordinates";
 
-export default function ReworkBigWig({ data, customRange, id, height, color, dimensions, tooltip }: FullBigWigProps) {
+export default function ReworkBigWig({
+  data,
+  customRange,
+  id,
+  height,
+  color,
+  dimensions,
+  tooltip,
+  fillWithZero,
+}: FullBigWigProps) {
   const { sideWidth, totalWidth, viewWidth } = dimensions;
 
   const svgRef = useBrowserStore((state) => state.svgRef);
@@ -33,8 +42,15 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
   }, [id, viewRange, editTrack]);
 
   const signals = useMemo(() => {
-    return generateSignal(data as ValuedPoint[], height, color, customRange || viewRange, backgroundColor);
-  }, [data, height, color, customRange, viewRange]);
+    return generateSignal(
+      data as ValuedPoint[],
+      height,
+      color,
+      customRange || viewRange,
+      backgroundColor,
+      fillWithZero
+    );
+  }, [data, height, color, customRange, viewRange, fillWithZero]);
 
   const { mouseState, updateMouseState, clearMouseState } = useMouseToIndex(svgRef, totalWidth, marginWidth, sideWidth);
 
@@ -71,7 +87,7 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
           const point = data[mouseState.index] as ValuedPoint;
           const max = point.max;
           const min = point.min;
-          if (!max || !min) return;
+          if (max == null || min == null) return;
           if (max === min || !hasNegatives) {
             handleHover(point, String(max.toFixed(2)), e);
             return;
@@ -91,7 +107,14 @@ export default function ReworkBigWig({ data, customRange, id, height, color, dim
  * Draw to the point's position, at the zeroPoint, then draw up to it's value, over 1 pixel, then back down.
  * Drawing to the zeroPoint is necessart to ensure proper rendering of null values.
  */
-function generateSignal(data: ValuedPoint[], height: number, color: string, range?: YRange, backgroundColor?: string) {
+function generateSignal(
+  data: ValuedPoint[],
+  height: number,
+  color: string,
+  range?: YRange,
+  backgroundColor?: string,
+  fillWithZero?: boolean
+) {
   const dataRange = {
     min: data.map((point) => point.min).reduce((a, b) => Math.min(a, b), Infinity),
     max: data.map((point) => point.max).reduce((a, b) => Math.max(a, b), -Infinity),
@@ -106,23 +129,20 @@ function generateSignal(data: ValuedPoint[], height: number, color: string, rang
 
   let clampColor: string;
   if (trackIsDark && bgIsDark) {
-    // Both dark: use bright color (yellow or white)
-    clampColor = "#ffff00"; // Yellow for visibility
+    clampColor = "#ffff00";
   } else if (!trackIsDark && !bgIsDark) {
-    // Both light: use bright contrasting color (red or magenta)
-    clampColor = "#ff0000"; // Red for visibility
+    clampColor = "#ff0000";
   } else if (trackIsDark && !bgIsDark) {
-    // Dark track on light background: use a bright color different from both
-    clampColor = "#ff0000"; // Red contrasts with both
+    clampColor = "#ff0000";
   } else {
-    // Light track on dark background: use a bright color
-    clampColor = "#00ff00"; // Green contrasts with both
+    clampColor = "#00ff00";
   }
 
   let minPath = m(0, zeroPoint);
   let maxPath = m(0, zeroPoint);
   let clampHigh = "";
   let clampLow = "";
+  let zeroBaseline = "";
 
   data.forEach((point) => {
     // Clamp values to the current range before scaling
@@ -143,6 +163,11 @@ function generateSignal(data: ValuedPoint[], height: number, color: string, rang
     if (range && point.max > range.max) {
       clampHigh += `M ${point.x} 0 l 0 2 `;
     }
+    // Draw a small bar for zero-filled points so they're visible
+    if (fillWithZero && point.min === 0 && point.max === 0) {
+      const minHeight = 3;
+      zeroBaseline += `M ${point.x} ${zeroPoint} v -${minHeight} h 1 v ${minHeight} `;
+    }
   });
 
   return (
@@ -152,6 +177,7 @@ function generateSignal(data: ValuedPoint[], height: number, color: string, rang
       <path d={maxPath} fill={color} />
       <path d={clampHigh} stroke={clampColor} strokeWidth="2" fill="none" />
       <path d={clampLow} stroke={clampColor} strokeWidth="2" fill="none" />
+      {fillWithZero && zeroBaseline && <path d={zeroBaseline} fill={lighten(color, 0.3)} />}
     </>
   );
 }

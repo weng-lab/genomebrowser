@@ -162,3 +162,11 @@ export async function ogBigDataFetcher(
     error: result.error?.message ?? null,
   };
 }
+
+export function applyFillWithZero(data: { min: number | null; max: number | null }[] | null) {
+  if (!data) return;
+  for (const point of data) {
+    if (point.min === null) point.min = 0;
+    if (point.max === null) point.max = 0;
+  }
+}

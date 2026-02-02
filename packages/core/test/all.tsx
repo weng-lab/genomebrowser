@@ -14,6 +14,7 @@ import {
 import {
   bigBedExample,
   bigWigExample,
+  bigWigFillZero,
   bulkBedExample,
   importanceExample,
   ldTrack,
@@ -50,6 +51,7 @@ export default function All() {
     [
       transcriptExample,
       bigWigExample,
+      bigWigFillZero,
       bigBedExample,
       // motifExample,
       // bulkBedExample,
