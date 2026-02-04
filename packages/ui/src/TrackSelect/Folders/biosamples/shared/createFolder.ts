@@ -24,7 +24,7 @@ import { BiosampleTreeItem } from "./BiosampleTreeItem";
  * @returns Array of flattened BiosampleRowInfo objects, one per assay
  */
 function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
-  const { ontology, lifeStage, sampleType, displayName, core } = track;
+  const { ontology, lifeStage, sampleType, displayName, collection } = track;
 
   // Sort assays so cCRE comes first, then maintain original order for the rest
   const sortedAssays = [...track.assays].sort((a, b) => {
@@ -46,7 +46,7 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
       experimentAccession,
       fileAccession,
       url,
-      coreCollection: core ?? false,
+      collection,
     }),
   );
 }

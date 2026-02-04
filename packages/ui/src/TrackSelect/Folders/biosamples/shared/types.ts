@@ -2,6 +2,8 @@
  * Types for biosample folder data
  */
 
+export type CollectionType = "Core" | "Ancillary" | "Partial";
+
 /**
  * Assay information from the JSON data
  */
@@ -23,7 +25,7 @@ export type BiosampleTrackInfo = {
   sampleType: string;
   displayName: string;
   assays: BiosampleAssayInfo[];
-  core?: boolean;
+  collection: CollectionType;
 };
 
 /**
@@ -39,7 +41,7 @@ export type BiosampleRowInfo = {
   experimentAccession: string;
   fileAccession: string;
   url: string;
-  coreCollection: boolean;
+  collection: CollectionType;
 };
 
 /**

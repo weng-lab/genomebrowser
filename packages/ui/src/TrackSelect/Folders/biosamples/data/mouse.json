@@ -2,6 +2,7 @@
   "tracks": [
     {
       "name": "aggregate-biosample-data",
+      "collection": "Core",
       "ontology": "aggregate",
       "lifeStage": "N/A",
       "sampleType": "aggregate",
@@ -53,6 +54,7 @@
     },
     {
       "name": "strain_C57BL/6_brown_adipose_tissue_tissue_male_adult_24_weeks_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "adipose",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -83,6 +85,7 @@
     },
     {
       "name": "strain_C57BL/6_fat_pad_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "adipose",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -106,6 +109,7 @@
     },
     {
       "name": "strain_C57BL/6_gonadal_fat_pad_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "adipose",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -129,6 +133,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -152,6 +157,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -175,6 +181,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -198,6 +205,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -221,6 +229,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_female_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -244,6 +253,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_female_8-10_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -267,6 +277,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -304,6 +315,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -327,6 +339,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -350,6 +363,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_male_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -373,6 +387,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -396,6 +411,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -419,6 +435,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_male_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -442,6 +459,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_adrenal_gland_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "adrenal gland",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -479,6 +497,7 @@
     },
     {
       "name": "strain_A20_A20_ENCDO546OGJ",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -502,6 +521,7 @@
     },
     {
       "name": "strain_B10.H-2aH-4bp/Wts_CH12.LX_ENCDO324YEK",
+      "collection": "Core",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -560,6 +580,7 @@
     },
     {
       "name": "strain_C57BL/6_B_cell_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -583,6 +604,7 @@
     },
     {
       "name": "strain_C57BL/6_CD4-positive,_CD25-positive,_alpha-beta_regulatory_T_cell_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -606,6 +628,7 @@
     },
     {
       "name": "strain_C57BL/6_CD4-positive_helper_T_cell_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -629,6 +652,7 @@
     },
     {
       "name": "strain_C57BL/6_hematopoietic_stem_cell_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -645,6 +669,7 @@
     },
     {
       "name": "strain_C57BL/6_hematopoietic_stem_cell_male_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -661,6 +686,7 @@
     },
     {
       "name": "strain_C57BL/6_induced_T-regulatory_cell_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -684,6 +710,7 @@
     },
     {
       "name": "strain_C57BL/6_monocyte_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -700,6 +727,7 @@
     },
     {
       "name": "strain_C57BL/6_naive_thymus-derived_CD4-positive,_alpha-beta_T_cell_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -723,6 +751,7 @@
     },
     {
       "name": "strain_C57BL/6_neutrophil_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -739,6 +768,7 @@
     },
     {
       "name": "strain_C57BL/6_splenic_B_cell_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -762,6 +792,7 @@
     },
     {
       "name": "c-Kit-negative_CD71-positive_TER-119-positive_erythroid_progenitor_cells_male_embryo_14.5_days_ENCDO083AAA",
+      "collection": "Partial",
       "ontology": "blood marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
@@ -785,6 +816,7 @@
     },
     {
       "name": "c-Kit-positive_CD71-negative_TER-119-negative_erythroid_progenitor_cells_male_embryo_14.5_days_ENCDO083AAA",
+      "collection": "Partial",
       "ontology": "blood marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
@@ -808,6 +840,7 @@
     },
     {
       "name": "c-Kit-positive_CD71-positive_TER-119-negative_erythroid_progenitor_cells_male_embryo_14.5_days_ENCDO083AAA",
+      "collection": "Partial",
       "ontology": "blood marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
@@ -831,6 +864,7 @@
     },
     {
       "name": "c-Kit-positive_CD71-positive_TER-119-positive_erythroid_progenitor_cells_male_embryo_14.5_days_ENCDO083AAA",
+      "collection": "Partial",
       "ontology": "blood marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
@@ -854,6 +888,7 @@
     },
     {
       "name": "strain_C57BL/6_leukemia_stem_cell_genetically_modified_insertion_using_transduction_inserting_H._sapiens_MLLT3_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "blood marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -877,6 +912,7 @@
     },
     {
       "name": "erythroblast_embryo_14.5_days_ENCDO083AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
@@ -900,6 +936,7 @@
     },
     {
       "name": "megakaryocyte_embryo_14.5_days_ENCDO083AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
@@ -923,6 +960,7 @@
     },
     {
       "name": "strain_416B_416B_ENCDO681ZXI",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -946,6 +984,7 @@
     },
     {
       "name": "strain_Bruce4_bone_marrow_macrophage_male_adult_8_weeks_ENCDO081AAA",
+      "collection": "Ancillary",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -983,6 +1022,7 @@
     },
     {
       "name": "strain_C57BL/6_bone_marrow_tissue_male_adult_8_weeks_ENCDO956IXV",
+      "collection": "Ancillary",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1020,6 +1060,7 @@
     },
     {
       "name": "strain_C57BL/6_common_myeloid_progenitor_male_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -1036,6 +1077,7 @@
     },
     {
       "name": "strain_C57BL/6_erythroblast_male_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -1052,6 +1094,7 @@
     },
     {
       "name": "strain_C57BL/6_erythroid_progenitor_cell_male_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -1068,6 +1111,7 @@
     },
     {
       "name": "strain_C57BL/6_granulocyte_monocyte_progenitor_cell_male_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -1084,6 +1128,7 @@
     },
     {
       "name": "strain_C57BL/6_megakaryocyte-erythroid_progenitor_cell_male_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -1100,6 +1145,7 @@
     },
     {
       "name": "strain_C57BL/6_megakaryocyte_male_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -1116,6 +1162,7 @@
     },
     {
       "name": "strain_C57BL/6_megakaryocyte_progenitor_cell_male_adult_5-6_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -1132,6 +1179,7 @@
     },
     {
       "name": "strain_MEL_erythroblast_originated_from_MEL-GATA-1-ER_treated_with_1_μM_estradiol_for_24_hours_ENCDO073AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
@@ -1155,6 +1203,7 @@
     },
     {
       "name": "strain_MEL_erythroblast_originated_from_MEL-GATA-1-ER_treated_with_1_μM_estradiol_for_48_hours_ENCDO073AAA",
+      "collection": "Partial",
       "ontology": "bone marrow",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
@@ -1178,6 +1227,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1201,6 +1251,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1224,6 +1275,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_female_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1247,6 +1299,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1270,6 +1323,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1293,6 +1347,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1316,6 +1371,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1339,6 +1395,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1362,6 +1419,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_male_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1385,6 +1443,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1408,6 +1467,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1431,6 +1491,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_cerebellum_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1454,6 +1515,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_frontal_cortex_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1477,6 +1539,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_frontal_cortex_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1500,6 +1563,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_frontal_cortex_tissue_female_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1523,6 +1587,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_frontal_cortex_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1546,6 +1611,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_frontal_cortex_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1569,6 +1635,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_frontal_cortex_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1592,6 +1659,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_frontal_cortex_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1615,6 +1683,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_frontal_cortex_tissue_male_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1638,6 +1707,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_frontal_cortex_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1661,6 +1731,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_frontal_cortex_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1684,6 +1755,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1707,6 +1779,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1730,6 +1803,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_female_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1753,6 +1827,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_female_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1776,6 +1851,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1799,6 +1875,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1822,6 +1899,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1845,6 +1923,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1868,6 +1947,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_male_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1891,6 +1971,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_male_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1914,6 +1995,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1937,6 +2019,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_layer_of_hippocampus_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1960,6 +2043,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -1983,6 +2067,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2006,6 +2091,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_female_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2029,6 +2115,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2052,6 +2139,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2075,6 +2163,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_female_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2098,6 +2187,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2135,6 +2225,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_female_postnatal_8-10_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2158,6 +2249,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2181,6 +2273,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2204,6 +2297,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_male_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2227,6 +2321,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2250,6 +2345,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2273,6 +2369,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2310,6 +2407,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_left_cerebral_cortex_tissue_male_postnatal_8-10_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2333,6 +2431,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2356,6 +2455,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2379,6 +2479,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2402,6 +2503,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2425,6 +2527,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_female_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2448,6 +2551,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2471,6 +2575,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2494,6 +2599,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2517,6 +2623,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_male_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2540,6 +2647,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2563,6 +2671,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2586,6 +2695,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_right_cerebral_cortex_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2609,6 +2719,7 @@
     },
     {
       "name": "strain_C57BL/6_brain_tissue_embryo_14.5_days_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -2639,6 +2750,7 @@
     },
     {
       "name": "strain_C57BL/6_brain_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2662,6 +2774,7 @@
     },
     {
       "name": "strain_C57BL/6_brain_tissue_male_embryo_18.5_days_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -2685,6 +2798,7 @@
     },
     {
       "name": "strain_C57BL/6_cerebellum_tissue_adult_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2701,6 +2815,7 @@
     },
     {
       "name": "strain_C57BL/6_cerebellum_tissue_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2724,6 +2839,7 @@
     },
     {
       "name": "strain_C57BL/6_cerebellum_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Core",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2768,6 +2884,7 @@
     },
     {
       "name": "strain_C57BL/6_cortex_tissue_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2791,6 +2908,7 @@
     },
     {
       "name": "strain_C57BL/6_cortical_plate_tissue_male_adult_8_weeks_ENCDO956IXV",
+      "collection": "Ancillary",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -2828,6 +2946,7 @@
     },
     {
       "name": "strain_C57BL/6_forebrain_tissue_embryo_10.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -2872,6 +2991,7 @@
     },
     {
       "name": "strain_C57BL/6_forebrain_tissue_embryo_11.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -2923,6 +3043,7 @@
     },
     {
       "name": "strain_C57BL/6_forebrain_tissue_embryo_12.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -2967,6 +3088,7 @@
     },
     {
       "name": "strain_C57BL/6_forebrain_tissue_embryo_13.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3011,6 +3133,7 @@
     },
     {
       "name": "strain_C57BL/6_forebrain_tissue_embryo_14.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3062,6 +3185,7 @@
     },
     {
       "name": "strain_C57BL/6_forebrain_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3106,6 +3230,7 @@
     },
     {
       "name": "strain_C57BL/6_forebrain_tissue_embryo_16.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3150,6 +3275,7 @@
     },
     {
       "name": "strain_C57BL/6_forebrain_tissue_postnatal_0_days_ENCDO956IXV",
+      "collection": "Core",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -3208,6 +3334,7 @@
     },
     {
       "name": "strain_C57BL/6_frontal_cortex_tissue_adult_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -3224,6 +3351,7 @@
     },
     {
       "name": "strain_C57BL/6_hindbrain_tissue_embryo_10.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3268,6 +3396,7 @@
     },
     {
       "name": "strain_C57BL/6_hindbrain_tissue_embryo_11.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3319,6 +3448,7 @@
     },
     {
       "name": "strain_C57BL/6_hindbrain_tissue_embryo_12.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3363,6 +3493,7 @@
     },
     {
       "name": "strain_C57BL/6_hindbrain_tissue_embryo_13.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3407,6 +3538,7 @@
     },
     {
       "name": "strain_C57BL/6_hindbrain_tissue_embryo_14.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3458,6 +3590,7 @@
     },
     {
       "name": "strain_C57BL/6_hindbrain_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3502,6 +3635,7 @@
     },
     {
       "name": "strain_C57BL/6_hindbrain_tissue_embryo_16.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3546,6 +3680,7 @@
     },
     {
       "name": "strain_C57BL/6_hindbrain_tissue_postnatal_0_days_ENCDO956IXV",
+      "collection": "Core",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -3604,6 +3739,7 @@
     },
     {
       "name": "strain_C57BL/6_midbrain_tissue_embryo_10.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3648,6 +3784,7 @@
     },
     {
       "name": "strain_C57BL/6_midbrain_tissue_embryo_11.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3699,6 +3836,7 @@
     },
     {
       "name": "strain_C57BL/6_midbrain_tissue_embryo_12.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3743,6 +3881,7 @@
     },
     {
       "name": "strain_C57BL/6_midbrain_tissue_embryo_13.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3787,6 +3926,7 @@
     },
     {
       "name": "strain_C57BL/6_midbrain_tissue_embryo_14.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3838,6 +3978,7 @@
     },
     {
       "name": "strain_C57BL/6_midbrain_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3882,6 +4023,7 @@
     },
     {
       "name": "strain_C57BL/6_midbrain_tissue_embryo_16.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -3926,6 +4068,7 @@
     },
     {
       "name": "strain_C57BL/6_midbrain_tissue_postnatal_0_days_ENCDO956IXV",
+      "collection": "Core",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -3984,6 +4127,7 @@
     },
     {
       "name": "strain_C57BL/6_olfactory_bulb_tissue_male_adult_8_weeks_ENCDO956IXV",
+      "collection": "Ancillary",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -4021,6 +4165,7 @@
     },
     {
       "name": "strain_C57BL/6_telencephalon_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "brain",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -4044,6 +4189,7 @@
     },
     {
       "name": "strain_3134_3134_ENCDO881PNH",
+      "collection": "Partial",
       "ontology": "breast",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4067,6 +4213,7 @@
     },
     {
       "name": "strain_C57BL/6_3T3-L1_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "connective tissue",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4090,6 +4237,7 @@
     },
     {
       "name": "strain_C57BL/6_adipocyte_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "connective tissue",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
@@ -4113,6 +4261,7 @@
     },
     {
       "name": "strain_C57BL/6_embryonic_fibroblast_male_embryo_13.5_weeks_ENCDO072AAA",
+      "collection": "Ancillary",
       "ontology": "connective tissue",
       "lifeStage": "embryonic",
       "sampleType": "primary cell",
@@ -4150,6 +4299,7 @@
     },
     {
       "name": "strain_C57BL/6_fibroblast_of_lung_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "connective tissue",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -4173,6 +4323,7 @@
     },
     {
       "name": "strain_NIH3T3_NIH3T3_ENCDO337EDF",
+      "collection": "Partial",
       "ontology": "connective tissue",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4196,6 +4347,7 @@
     },
     {
       "name": "strain_Patski_Patski_ENCDO350LAJ",
+      "collection": "Partial",
       "ontology": "connective tissue",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4219,6 +4371,7 @@
     },
     {
       "name": "embryo_tissue_male_embryo_11.5_days_depleted_in_head_ENCDO083AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4242,6 +4395,7 @@
     },
     {
       "name": "forelimb_bud_tissue_male_embryo_11.5_days_ENCDO083AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4265,6 +4419,7 @@
     },
     {
       "name": "G1E_ENCDO089AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4302,6 +4457,7 @@
     },
     {
       "name": "G1E-ER4_treated_with_10_nM_17β-estradiol_for_24_hours_ENCDO089AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4339,6 +4495,7 @@
     },
     {
       "name": "hindlimb_bud_tissue_male_embryo_11.5_days_ENCDO083AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4362,6 +4519,7 @@
     },
     {
       "name": "mesoderm_tissue_male_embryo_11.5_days_ENCDO083AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4385,6 +4543,7 @@
     },
     {
       "name": "strain_129/Ola_E14TG2a.4_ENCDO015AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4415,6 +4574,7 @@
     },
     {
       "name": "strain_129/Ola_ES-E14_ENCDO015AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4452,6 +4612,7 @@
     },
     {
       "name": "strain_129/Ola_ZHBTc4_ENCDO015AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4475,6 +4636,7 @@
     },
     {
       "name": "strain_129/Ola_ZHBTc4_treated_with_100_ng/mL_doxycycline_hyclate_for_24_hours_ENCDO015AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4498,6 +4660,7 @@
     },
     {
       "name": "strain_129/Ola_ZHBTc4_treated_with_100_ng/mL_doxycycline_hyclate_for_6_hours_ENCDO015AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4521,6 +4684,7 @@
     },
     {
       "name": "strain_129S1/SvImJ_ES-CJ7_ENCDO013AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4544,6 +4708,7 @@
     },
     {
       "name": "strain_~20%_C57/B6J_MGI.D:C57BL,_~75%_129/Sv_MGI.D:129_and_~5%_SJL_strains_MGI.D:SJL_WW6_ENCDO078AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4567,6 +4732,7 @@
     },
     {
       "name": "strain_~20%_C57/B6J_MGI.D:C57BL,_~75%_129/Sv_MGI.D:129_and_~5%_SJL_strains_MGI.D:SJL_WW6_genetically_modified_knockout_using_homologous_recombination_targeting_M._musculus_Hist1h1c,_knockout_using_homologous_recombination_targeting_M._musculus_Hist1h1d,_knockout_using_homologous_recombination_targeting_M._musculus_Hist1h1e_ENCDO078AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4590,6 +4756,7 @@
     },
     {
       "name": "strain_Bruce4_ES-Bruce4_ENCDO081AAA",
+      "collection": "Ancillary",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -4627,6 +4794,7 @@
     },
     {
       "name": "strain_C57BL/6_embryonic_facial_prominence_tissue_embryo_10.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4671,6 +4839,7 @@
     },
     {
       "name": "strain_C57BL/6_embryonic_facial_prominence_tissue_embryo_11.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4722,6 +4891,7 @@
     },
     {
       "name": "strain_C57BL/6_embryonic_facial_prominence_tissue_embryo_12.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4766,6 +4936,7 @@
     },
     {
       "name": "strain_C57BL/6_embryonic_facial_prominence_tissue_embryo_13.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4810,6 +4981,7 @@
     },
     {
       "name": "strain_C57BL/6_embryonic_facial_prominence_tissue_embryo_14.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4861,6 +5033,7 @@
     },
     {
       "name": "strain_C57BL/6_embryonic_facial_prominence_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4905,6 +5078,7 @@
     },
     {
       "name": "strain_C57BL/6_embryo_tissue_embryo_10.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4928,6 +5102,7 @@
     },
     {
       "name": "strain_C57BL/6_embryo_tissue_embryo_10_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4951,6 +5126,7 @@
     },
     {
       "name": "strain_C57BL/6_embryo_tissue_embryo_11_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4974,6 +5150,7 @@
     },
     {
       "name": "strain_C57BL/6_embryo_tissue_embryo_9.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -4997,6 +5174,7 @@
     },
     {
       "name": "strain_C57BL/6_G1E_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -5013,6 +5191,7 @@
     },
     {
       "name": "strain_C57BL/6_G1E-ER4_treated_with_10_nM_17β-estradiol_for_24_hours_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -5029,6 +5208,7 @@
     },
     {
       "name": "strain_C57BL/6_R1_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -5052,6 +5232,7 @@
     },
     {
       "name": "strain_C57BL/6_ZHBTc4_treated_with_100_ng/mL_doxycycline_hyclate_for_96_hours_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "embryo",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -5075,6 +5256,7 @@
     },
     {
       "name": "strain_C57BL/6_neural_tube_tissue_embryo_10.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5098,6 +5280,7 @@
     },
     {
       "name": "strain_C57BL/6_neural_tube_tissue_embryo_11.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5149,6 +5332,7 @@
     },
     {
       "name": "strain_C57BL/6_neural_tube_tissue_embryo_12.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5193,6 +5377,7 @@
     },
     {
       "name": "strain_C57BL/6_neural_tube_tissue_embryo_13.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5237,6 +5422,7 @@
     },
     {
       "name": "strain_C57BL/6_neural_tube_tissue_embryo_14.5_days_ENCDO469XMJ",
+      "collection": "Partial",
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5274,6 +5460,7 @@
     },
     {
       "name": "strain_C57BL/6_neural_tube_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5318,6 +5505,7 @@
     },
     {
       "name": "strain_C57BL/6_yolk_sac_tissue_embryo_10.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "epithelium",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5341,6 +5529,7 @@
     },
     {
       "name": "strain_C57BL/6_Muller_cell_postnatal_12_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "eye",
       "lifeStage": "adult",
       "sampleType": "primary cell",
@@ -5364,6 +5553,7 @@
     },
     {
       "name": "strain_C57BL/6_retina_tissue_embryo_14.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "eye",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5387,6 +5577,7 @@
     },
     {
       "name": "strain_C57BL/6_retina_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "eye",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5410,6 +5601,7 @@
     },
     {
       "name": "strain_C57BL/6_retina_tissue_male_postnatal_1_day_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "eye",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5433,6 +5625,7 @@
     },
     {
       "name": "strain_C57BL/6_retina_tissue_male_postnatal_7_days_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "eye",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5456,6 +5649,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5479,6 +5673,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5502,6 +5697,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_female_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5525,6 +5721,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5548,6 +5745,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5571,6 +5769,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_female_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5594,6 +5793,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5631,6 +5831,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5654,6 +5855,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5677,6 +5879,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5700,6 +5903,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5723,6 +5927,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_male_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5746,6 +5951,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5783,6 +5989,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_heart_tissue_male_postnatal_8-10_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -5806,6 +6013,7 @@
     },
     {
       "name": "strain_C57BL/6_heart_tissue_embryo_10.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5850,6 +6058,7 @@
     },
     {
       "name": "strain_C57BL/6_heart_tissue_embryo_11.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5894,6 +6103,7 @@
     },
     {
       "name": "strain_C57BL/6_heart_tissue_embryo_12.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5938,6 +6148,7 @@
     },
     {
       "name": "strain_C57BL/6_heart_tissue_embryo_13.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -5982,6 +6193,7 @@
     },
     {
       "name": "strain_C57BL/6_heart_tissue_embryo_14.5_days_ENCDO469XMJ",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -6019,6 +6231,7 @@
     },
     {
       "name": "strain_C57BL/6_heart_tissue_embryo_14.5_days_ENCDO956IXV_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -6056,6 +6269,7 @@
     },
     {
       "name": "strain_C57BL/6_heart_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -6100,6 +6314,7 @@
     },
     {
       "name": "strain_C57BL/6_heart_tissue_embryo_16.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "heart",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -6144,6 +6359,7 @@
     },
     {
       "name": "strain_C57BL/6_heart_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Core",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6188,6 +6404,7 @@
     },
     {
       "name": "strain_C57BL/6_heart_tissue_postnatal_0_days_ENCDO956IXV",
+      "collection": "Core",
       "ontology": "heart",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6246,6 +6463,7 @@
     },
     {
       "name": "strain_C57BL/6_intestine_tissue_embryo_14.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "intestine",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -6297,6 +6515,7 @@
     },
     {
       "name": "strain_C57BL/6_intestine_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "intestine",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -6341,6 +6560,7 @@
     },
     {
       "name": "strain_C57BL/6_intestine_tissue_embryo_16.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "intestine",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -6385,6 +6605,7 @@
     },
     {
       "name": "strain_C57BL/6_intestine_tissue_postnatal_0_days_ENCDO469XMJ",
+      "collection": "Ancillary",
       "ontology": "intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6429,6 +6650,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6452,6 +6674,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6475,6 +6698,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_female_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6498,6 +6722,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6521,6 +6746,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6544,6 +6770,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_female_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6567,6 +6794,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6590,6 +6818,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_female_postnatal_8-10_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6613,6 +6842,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6636,6 +6866,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_male_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6659,6 +6890,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6682,6 +6914,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6705,6 +6938,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_male_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6728,6 +6962,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6751,6 +6986,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_kidney_tissue_male_postnatal_8-10_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6774,6 +7010,7 @@
     },
     {
       "name": "strain_C57BL/6_kidney_tissue_embryo_14.5_days_ENCDO469XMJ",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -6811,6 +7048,7 @@
     },
     {
       "name": "strain_C57BL/6_kidney_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -6855,6 +7093,7 @@
     },
     {
       "name": "strain_C57BL/6_kidney_tissue_embryo_16.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "kidney",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -6899,6 +7138,7 @@
     },
     {
       "name": "strain_C57BL/6_kidney_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Core",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -6943,6 +7183,7 @@
     },
     {
       "name": "strain_C57BL/6_kidney_tissue_postnatal_0_days_ENCDO956IXV",
+      "collection": "Core",
       "ontology": "kidney",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7001,6 +7242,7 @@
     },
     {
       "name": "strain_C57BL/6_large_intestine_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "large intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7024,6 +7266,7 @@
     },
     {
       "name": "strain_C57BL/6_limb_tissue_embryo_10.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7068,6 +7311,7 @@
     },
     {
       "name": "strain_C57BL/6_limb_tissue_embryo_11.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7119,6 +7363,7 @@
     },
     {
       "name": "strain_C57BL/6_limb_tissue_embryo_12.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7163,6 +7408,7 @@
     },
     {
       "name": "strain_C57BL/6_limb_tissue_embryo_13.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7207,6 +7453,7 @@
     },
     {
       "name": "strain_C57BL/6_limb_tissue_embryo_14.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7258,6 +7505,7 @@
     },
     {
       "name": "strain_C57BL/6_limb_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "limb",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7302,6 +7550,7 @@
     },
     {
       "name": "liver_tissue_male_embryo_14.5_days_ENCDO089AAA",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7325,6 +7574,7 @@
     },
     {
       "name": "strain_129.DLCR/DLCR_liver_tissue_male_embryo_14.5_days_ENCDO087AAA",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7348,6 +7598,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_adult_8-10_weeks_treated_with_darkness_for_50_hours_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7371,6 +7622,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_adult_8-10_weeks_treated_with_darkness_for_54_hours_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7394,6 +7646,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_adult_8-10_weeks_treated_with_darkness_for_58_hours_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7417,6 +7670,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_adult_8-10_weeks_treated_with_darkness_for_62_hours_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7440,6 +7694,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_adult_8-10_weeks_treated_with_darkness_for_66_hours_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7463,6 +7718,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_adult_8-10_weeks_treated_with_darkness_for_70_hours_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7486,6 +7742,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_embryo_11.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7537,6 +7794,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_embryo_12.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7581,6 +7839,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_embryo_13.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7625,6 +7884,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_embryo_14.5_days_ENCDO072AAA",
+      "collection": "Core",
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7676,6 +7936,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_embryo_14.5_days_ENCDO956IXV_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7713,6 +7974,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7757,6 +8019,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_embryo_16.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -7801,6 +8064,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7824,6 +8088,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Core",
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7868,6 +8133,7 @@
     },
     {
       "name": "strain_C57BL/6_liver_tissue_postnatal_0_days_ENCDO956IXV",
+      "collection": "Core",
       "ontology": "liver",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7926,6 +8192,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7949,6 +8216,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7972,6 +8240,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_female_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -7995,6 +8264,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8018,6 +8288,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8041,6 +8312,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_female_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8064,6 +8336,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8087,6 +8360,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8110,6 +8384,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8133,6 +8408,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8156,6 +8432,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8179,6 +8456,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_male_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8202,6 +8480,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_lung_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8225,6 +8504,7 @@
     },
     {
       "name": "strain_C57BL/6_lung_tissue_embryo_14.5_days_ENCDO956IXV",
+      "collection": "Core",
       "ontology": "lung",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -8283,6 +8563,7 @@
     },
     {
       "name": "strain_C57BL/6_lung_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -8327,6 +8608,7 @@
     },
     {
       "name": "strain_C57BL/6_lung_tissue_embryo_16.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -8371,6 +8653,7 @@
     },
     {
       "name": "strain_C57BL/6_lung_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8408,6 +8691,7 @@
     },
     {
       "name": "strain_C57BL/6_lung_tissue_postnatal_0_days_ENCDO956IXV",
+      "collection": "Core",
       "ontology": "lung",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8466,6 +8750,7 @@
     },
     {
       "name": "C2C12_ENCDO321TZV",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -8496,6 +8781,7 @@
     },
     {
       "name": "myocyte_originated_from_C2C12_ENCDO321TZV",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "in vitro differentiated cells",
@@ -8519,6 +8805,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8542,6 +8829,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8565,6 +8853,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_female_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8588,6 +8877,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8611,6 +8901,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8634,6 +8925,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_female_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8657,6 +8949,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_female_postnatal_8-10_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8680,6 +8973,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8703,6 +8997,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8726,6 +9021,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_male_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8749,6 +9045,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8772,6 +9069,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8795,6 +9093,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_male_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8818,6 +9117,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8855,6 +9155,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_gastrocnemius_tissue_male_postnatal_8-10_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8878,6 +9179,7 @@
     },
     {
       "name": "strain_C57BL/6_skeletal_muscle_tissue_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Partial",
       "ontology": "muscle",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8901,6 +9203,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_ovary_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "ovary",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8924,6 +9227,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_ovary_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "ovary",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8947,6 +9251,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_ovary_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "ovary",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8970,6 +9275,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_ovary_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "ovary",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -8993,6 +9299,7 @@
     },
     {
       "name": "strain_C57BL/6_placenta_tissue_female_adult_8_weeks_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "placenta",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9023,6 +9330,7 @@
     },
     {
       "name": "strain_C57BL/6_small_intestine_tissue_male_adult_8_weeks_ENCDO956IXV",
+      "collection": "Ancillary",
       "ontology": "small intestine",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9060,6 +9368,7 @@
     },
     {
       "name": "strain_C57BL/6_MN1_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "spinal cord",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -9083,6 +9392,7 @@
     },
     {
       "name": "strain_C57BL/6_MN1_treated_with_10_nM_17β-hydroxy-17-methylestra-4,9,11-trien-3-one_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "spinal cord",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -9106,6 +9416,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9129,6 +9440,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9152,6 +9464,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9175,6 +9488,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_female_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9198,6 +9512,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9221,6 +9536,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9244,6 +9560,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9267,6 +9584,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9290,6 +9608,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9313,6 +9632,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_male_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9336,6 +9656,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_spleen_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9359,6 +9680,7 @@
     },
     {
       "name": "strain_C57BL/6_spleen_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Core",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9403,6 +9725,7 @@
     },
     {
       "name": "strain_MEL_MEL_ENCDO073AAA",
+      "collection": "Core",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -9447,6 +9770,7 @@
     },
     {
       "name": "strain_MEL_MEL-GATA-1-ER_ENCDO073AAA",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -9470,6 +9794,7 @@
     },
     {
       "name": "strain_MEL_MEL_treated_with_125_μM_zinc_dichloride_for_24_hours_ENCDO073AAA",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -9493,6 +9818,7 @@
     },
     {
       "name": "strain_MEL_MEL_treated_with_2%_dimethyl_sulfoxide_for_5_days_ENCDO073AAA",
+      "collection": "Partial",
       "ontology": "spleen",
       "lifeStage": "adult",
       "sampleType": "cell line",
@@ -9523,6 +9849,7 @@
     },
     {
       "name": "strain_C57BL/6_stomach_tissue_embryo_14.5_days_ENCDO469XMJ",
+      "collection": "Partial",
       "ontology": "stomach",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -9560,6 +9887,7 @@
     },
     {
       "name": "strain_C57BL/6_stomach_tissue_embryo_15.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "stomach",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -9604,6 +9932,7 @@
     },
     {
       "name": "strain_C57BL/6_stomach_tissue_embryo_16.5_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "stomach",
       "lifeStage": "embryonic",
       "sampleType": "tissue",
@@ -9648,6 +9977,7 @@
     },
     {
       "name": "strain_C57BL/6_stomach_tissue_postnatal_0_days_ENCDO956IXV",
+      "collection": "Core",
       "ontology": "stomach",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9706,6 +10036,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_testis_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "testis",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9729,6 +10060,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_testis_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "testis",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9752,6 +10084,7 @@
     },
     {
       "name": "strain_C57BL/6_testis_tissue_male_adult_8_weeks_ENCDO956IXV",
+      "collection": "Ancillary",
       "ontology": "testis",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9789,6 +10122,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_female_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9812,6 +10146,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_female_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9835,6 +10170,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_female_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9858,6 +10194,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9881,6 +10218,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_female_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9904,6 +10242,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9927,6 +10266,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9950,6 +10290,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9973,6 +10314,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_male_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -9996,6 +10338,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_male_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10019,6 +10362,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10042,6 +10386,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_male_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10065,6 +10410,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_thymus_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10088,6 +10434,7 @@
     },
     {
       "name": "strain_C57BL/6_thymus_tissue_male_adult_8_weeks_ENCDO072AAA",
+      "collection": "Core",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10132,6 +10479,7 @@
     },
     {
       "name": "strain_C57BL/6_thymus_tissue_postnatal_0_days_ENCDO956IXV",
+      "collection": "Partial",
       "ontology": "thymus",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10162,6 +10510,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_urinary_bladder_tissue_female_25_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10185,6 +10534,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_urinary_bladder_tissue_female_2_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10208,6 +10558,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_urinary_bladder_tissue_female_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10231,6 +10582,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_urinary_bladder_tissue_female_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10254,6 +10606,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_urinary_bladder_tissue_female_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10277,6 +10630,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_urinary_bladder_tissue_male_10_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10300,6 +10654,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_urinary_bladder_tissue_male_14_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10323,6 +10678,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_urinary_bladder_tissue_male_36_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10346,6 +10702,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_urinary_bladder_tissue_male_4_days_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
@@ -10369,6 +10726,7 @@
     },
     {
       "name": "strain_B6CASTF1/J_urinary_bladder_tissue_male_adult_18-20_months_ENCDO509HIY",
+      "collection": "Partial",
       "ontology": "urinary bladder",
       "lifeStage": "adult",
       "sampleType": "tissue",
