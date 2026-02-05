@@ -12,6 +12,7 @@ import {
   useCustomData,
 } from "../src/lib";
 import {
+  bamExample,
   bigBedExample,
   bigWigExample,
   bigWigFillZero,
@@ -34,25 +35,23 @@ import { BIGDATA_QUERY } from "../src/api/queries";
 export default function All() {
   const browserStore = createBrowserStoreMemo(
     {
-      // chr11:5,202,705-5,556,088
-      domain: { chromosome: "chr11", start: 5202705, end: 5556088 },
+      // chr21:33,038,946-33,039,092 (UCSC BAM example region)
+      domain: { chromosome: "chr21", start: 33038946, end: 33039092 },
       marginWidth: 50,
       trackWidth: 1450,
       multiplier: 3,
-      highlights: [
-        // chr11:5,253,188-5,505,605
-        { id: "test", color: "#ff0000", domain: { chromosome: "chr11", start: 5253188, end: 5505605 } },
-      ],
+      highlights: [],
     },
     []
   );
 
   const trackStore = createTrackStoreMemo(
     [
+      bamExample,
       transcriptExample,
       bigWigExample,
-      bigWigFillZero,
-      bigBedExample,
+      // bigWigFillZero,
+      // bigBedExample,
       // motifExample,
       // bulkBedExample,
       // methylCTrack,
@@ -64,8 +63,8 @@ export default function All() {
 
   const dataStore = createDataStoreMemo([]);
 
-  useImportanceTrack(browserStore, trackStore, dataStore);
-  useManhattanData(browserStore, dataStore);
+  // useImportanceTrack(browserStore, trackStore, dataStore);
+  // useManhattanData(browserStore, dataStore);
 
   return <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />;
 }
@@ -88,18 +87,6 @@ function useImportanceTrack(
   const getTrack = trackStore((state) => state.getTrack);
 
   const domain = browserStore((state) => state.domain);
-  useEffect(() => {
-    const len = domain.end - domain.start;
-    if (getTrack(importanceExample.id)) {
-      return;
-    }
-    if (len <= 2000) {
-      insertTrack(importanceExample);
-      reset();
-    } else {
-      removeTrack(importanceExample.id);
-    }
-  }, [domain, insertTrack, removeTrack, reset, getTrack]);
 }
 
 // function useHovered(hovered: ManhattanPoint | null) {

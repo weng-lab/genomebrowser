@@ -1,4 +1,5 @@
 import {
+  BamConfig,
   BigBedConfig,
   BigWigConfig,
   BulkBedConfig,
@@ -212,4 +213,15 @@ export const bigWigFillZero: BigWigConfig = {
   displayMode: DisplayMode.Full,
   url: "https://downloads.wenglab.org/Registry-V4/ENCFF470BSF.bigWig",
   fillWithZero: true,
+};
+
+export const bamExample: BamConfig = {
+  id: "bam",
+  title: "BAM Alignments",
+  height: 100,
+  color: Vibrant[5],
+  trackType: TrackType.Bam,
+  displayMode: DisplayMode.Squish,
+  url: "https://users.wenglab.org/mezaj/bam.bam",
+  indexUrl: "https://users.wenglab.org/mezaj/bam.bam.bai",
 };

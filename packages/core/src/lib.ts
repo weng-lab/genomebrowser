@@ -2,6 +2,9 @@ import Browser from "./components/browser/browser";
 export { Browser };
 
 // Tracks
+import { BamConfig, DenseBamProps, SquishBamProps, BamRect } from "./components/tracks/bam/types";
+export type { BamConfig, DenseBamProps, SquishBamProps, BamRect };
+
 import { BigBedConfig, SquishBigBedProps, DenseBigBedProps, Rect } from "./components/tracks/bigbed/types";
 export type { BigBedConfig, SquishBigBedProps, DenseBigBedProps, Rect };
 
