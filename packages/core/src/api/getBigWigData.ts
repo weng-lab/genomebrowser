@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AxiosDataLoader, BigWigData, BigWigReader, BigZoomData, FileType } from "bigwig-reader";
+import { AxiosDataLoader, BigWigData, BigWigReader, BigZoomData, FileType } from "genomic-reader";
 import { TrackDataState } from "../store/dataStore";
 import { Domain } from "../utils/types";
 
