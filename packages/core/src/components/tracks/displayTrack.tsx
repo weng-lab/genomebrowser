@@ -2,23 +2,25 @@ import { useMemo } from "react";
 import { useBrowserStore, useDataStore, useTrackStore } from "../../store/BrowserContext";
 import { usePrevHeights } from "../../hooks/useTrackLayout";
 import { Track } from "../../store/trackStore";
+import DenseBam from "./bam/dense";
+import SquishBam from "./bam/squish";
 import DenseBigBed from "./bigbed/dense";
-import DenseBigWig from "./bigwig/dense";
-import { DisplayMode, TrackDimensions, TrackType } from "./types";
-import Wrapper from "./wrapper/wrapper";
 import SquishBigBed from "./bigbed/squish";
-import SquishTranscript from "./transcript/squish";
-import PackTranscript from "./transcript/pack";
-import { RULER_HEIGHT } from "./ruler/ruler";
-import Importance from "./importance/importance";
-import DenseMotif from "./motif/dense";
-import SquishMotif from "./motif/squish";
-import BulkBed from "./bulkbed/bulkbed";
-import SplitMethylC from "./methylC/split";
+import DenseBigWig from "./bigwig/dense";
 import ReworkBigWig from "./bigwig/rework";
+import BulkBed from "./bulkbed/bulkbed";
+import Importance from "./importance/importance";
+import GenericLD from "./ldtrack/genericld";
 import LD from "./ldtrack/ldblock";
 import Scatter from "./manhattan/scatter";
-import GenericLD from "./ldtrack/genericld";
+import SplitMethylC from "./methylC/split";
+import DenseMotif from "./motif/dense";
+import SquishMotif from "./motif/squish";
+import { RULER_HEIGHT } from "./ruler/ruler";
+import PackTranscript from "./transcript/pack";
+import SquishTranscript from "./transcript/squish";
+import { DisplayMode, TrackDimensions, TrackType } from "./types";
+import Wrapper from "./wrapper/wrapper";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -55,6 +57,10 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
   [TrackType.BigBed]: {
     [DisplayMode.Dense]: DenseBigBed,
     [DisplayMode.Squish]: SquishBigBed,
+  },
+  [TrackType.Bam]: {
+    [DisplayMode.Dense]: DenseBam,
+    [DisplayMode.Squish]: SquishBam,
   },
   [TrackType.Transcript]: {
     [DisplayMode.Squish]: SquishTranscript,

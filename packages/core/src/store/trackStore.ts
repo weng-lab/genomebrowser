@@ -1,16 +1,17 @@
 import { create } from "zustand";
-import { BigWigConfig } from "../components/tracks/bigwig/types";
+import { useMemo } from "react";
+import { BamConfig } from "../components/tracks/bam/types";
 import { BigBedConfig } from "../components/tracks/bigbed/types";
+import { BigWigConfig } from "../components/tracks/bigwig/types";
 import { BulkBedConfig } from "../components/tracks/bulkbed/types";
-import { TranscriptConfig } from "../components/tracks/transcript/types";
-import { MotifConfig } from "../components/tracks/motif/types";
 import { ImportanceConfig } from "../components/tracks/importance/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
-import { RULER_HEIGHT } from "../components/tracks/ruler/ruler";
-import { MethylCConfig } from "../components/tracks/methylC/types";
-import { TrackType } from "../components/tracks/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
-import { useMemo } from "react";
+import { MethylCConfig } from "../components/tracks/methylC/types";
+import { MotifConfig } from "../components/tracks/motif/types";
+import { RULER_HEIGHT } from "../components/tracks/ruler/ruler";
+import { TranscriptConfig } from "../components/tracks/transcript/types";
+import { TrackType } from "../components/tracks/types";
 
 type WrapperDimensions = {
   trackMargin: number;
@@ -20,15 +21,16 @@ type WrapperDimensions = {
 };
 
 export type Track =
-  | BigWigConfig
+  | BamConfig
   | BigBedConfig
+  | BigWigConfig
   | BulkBedConfig
-  | TranscriptConfig
-  | MotifConfig
   | ImportanceConfig
   | LDTrackConfig
+  | ManhattanTrackConfig
   | MethylCConfig
-  | ManhattanTrackConfig;
+  | MotifConfig
+  | TranscriptConfig;
 
 export interface TrackStore {
   tracks: Track[];
