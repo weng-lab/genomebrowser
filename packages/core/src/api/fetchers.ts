@@ -5,16 +5,18 @@ import { LazyQueryExecFunction, OperationVariables } from "@apollo/client";
 import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
 import { Domain } from "../utils/types";
-import { BulkBedConfig } from "../components/tracks/bulkbed/types";
-import { MethylCConfig } from "../components/tracks/methylC/types";
-import { ImportanceConfig } from "../components/tracks/importance/types";
-import { MotifRect, MotifConfig } from "../components/tracks/motif/types";
-import { BigWigConfig } from "../components/tracks/bigwig/types";
+import { BamConfig } from "../components/tracks/bam/types";
 import { BigBedConfig } from "../components/tracks/bigbed/types";
-import { TranscriptConfig } from "../components/tracks/transcript/types";
+import { BigWigConfig } from "../components/tracks/bigwig/types";
+import { BulkBedConfig } from "../components/tracks/bulkbed/types";
+import { ImportanceConfig } from "../components/tracks/importance/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
+import { MethylCConfig } from "../components/tracks/methylC/types";
+import { MotifRect, MotifConfig } from "../components/tracks/motif/types";
+import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { TrackDataState } from "../store/dataStore";
+import { getBamData, transformBamAlignments } from "./getBamData";
 import { getBigData, ogBigDataFetcher, applyFillWithZero } from "./getBigWigData";
 
 // An interface for storing avaliable Apollo GQL Queries
@@ -266,17 +268,41 @@ async function fetchManhattan(ctx: FetcherContext<ManhattanTrackConfig>): Promis
   };
 }
 
+async function fetchBam(ctx: FetcherContext<BamConfig>): Promise<TrackDataState> {
+  const { track, expandedDomain } = ctx;
+
+  const result = await getBamData(
+    track.url,
+    track.indexUrl,
+    expandedDomain.chromosome,
+    expandedDomain.start,
+    expandedDomain.end
+  );
+
+  if (result.error || !result.data) {
+    return result;
+  }
+
+  const bamRects = transformBamAlignments(result.data);
+
+  return {
+    data: bamRects,
+    error: null,
+  };
+}
+
 /**
  * Registry of fetcher functions by track type
  */
 export const trackFetchers: Record<TrackType, FetchFunction> = {
-  [TrackType.BigWig]: fetchBigWig as FetchFunction,
+  [TrackType.Bam]: fetchBam as FetchFunction,
   [TrackType.BigBed]: fetchBigBed as FetchFunction,
-  [TrackType.Transcript]: fetchTranscript as FetchFunction,
-  [TrackType.Motif]: fetchMotif as FetchFunction,
-  [TrackType.Importance]: fetchImportance as FetchFunction,
+  [TrackType.BigWig]: fetchBigWig as FetchFunction,
   [TrackType.BulkBed]: fetchBulkBed as FetchFunction,
-  [TrackType.MethylC]: fetchMethylC as FetchFunction,
+  [TrackType.Importance]: fetchImportance as FetchFunction,
   [TrackType.LDTrack]: fetchLDTrack as FetchFunction,
   [TrackType.Manhattan]: fetchManhattan as FetchFunction,
+  [TrackType.MethylC]: fetchMethylC as FetchFunction,
+  [TrackType.Motif]: fetchMotif as FetchFunction,
+  [TrackType.Transcript]: fetchTranscript as FetchFunction,
 };
