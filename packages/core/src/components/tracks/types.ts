@@ -1,6 +1,7 @@
 export enum TrackType {
   BigWig = "bigwig",
   BigBed = "bigbed",
+  Bam = "bam",
   Transcript = "transcript",
   Motif = "motif",
   Importance = "importance",
