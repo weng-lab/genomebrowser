@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import useInteraction from "../../../hooks/useInteraction";
 import { useRowHeight } from "../../../hooks/useRowHeight";
 import { useXTransform } from "../../../hooks/useXTransform";
+import { useBrowserStore } from "../../../store/BrowserContext";
 // import { useTheme } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderSquishBigBedData } from "./helpers";
@@ -20,13 +21,14 @@ export default function SquishBigBed({
 }: SquishBigBedProps) {
   const { totalWidth, sideWidth } = dimensions;
   // const background = useTheme((state) => state.background);
+  const domain = useBrowserStore((state) => state.domain);
 
   const { x, reverseX } = useXTransform(totalWidth);
 
   const rendered: SquishRect[][] = useMemo(() => {
-    const d = data ? [...data] : [];
+    const d = (data || []).filter((rect) => rect.end >= domain.start && rect.start <= domain.end);
     return renderSquishBigBedData(d, x);
-  }, [data, x]);
+  }, [data, domain.end, domain.start, x]);
 
   const rowHeight = useRowHeight(rendered.length, id);
 
