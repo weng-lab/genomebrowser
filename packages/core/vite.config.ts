@@ -30,6 +30,9 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    allowedHosts: true,
+  },
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/lib.ts"),
