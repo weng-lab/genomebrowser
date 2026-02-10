@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import useInteraction from "../../../hooks/useInteraction";
 import { useRowHeight } from "../../../hooks/useRowHeight";
 import { useXTransform } from "../../../hooks/useXTransform";
+import { useBrowserStore } from "../../../store/BrowserContext";
 // import { useTheme } from "../../../store/BrowserContext";
 import { groupFeatures } from "../../../utils/coordinates";
 import ClipPath from "../../svg/clipPath";
@@ -29,10 +30,18 @@ export default function SquishTranscript({
 }: SquishTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
+  const domain = useBrowserStore((state) => state.domain);
   const fontSize = 10;
 
-  const merged = useMemo(() => data?.map((gene) => mergeTranscripts(gene)), [data]);
-  const grouped = useMemo(() => groupFeatures(merged, x, fontSize), [merged, x, fontSize]);
+  const merged = useMemo(() => (data || []).map((gene) => mergeTranscripts(gene)), [data]);
+  const visibleMerged = useMemo(
+    () =>
+      merged.filter(
+        (transcript) => transcript.coordinates.end >= domain.start && transcript.coordinates.start <= domain.end
+      ),
+    [merged, domain.start, domain.end]
+  );
+  const grouped = useMemo(() => groupFeatures(visibleMerged, x, fontSize), [visibleMerged, x, fontSize]);
   const rowHeight = useRowHeight(grouped.length, id);
 
   const rendered: TranscriptRow[] = useMemo(

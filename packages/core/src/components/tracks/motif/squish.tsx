@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useRowHeight } from "../../../hooks/useRowHeight";
 import { useXTransform } from "../../../hooks/useXTransform";
+import { useBrowserStore } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { renderSquishMotifData } from "./helpers";
 import { MotifRect, SquishMotifProps } from "./types";
@@ -20,10 +21,23 @@ export default function SquishMotif({
   tooltip,
 }: SquishMotifProps) {
   const { totalWidth, sideWidth } = dimensions;
+  const domain = useBrowserStore((state) => state.domain);
   const { x } = useXTransform(totalWidth);
 
-  const rendered: MotifRect[][] = useMemo(() => renderSquishMotifData(data.occurrenceRect, x), [data, x]);
-  const renderedPeaks: MotifRect[][] = useMemo(() => renderSquishMotifData(data.peaks, x), [data, x]);
+  const visibleOccurrenceRect = useMemo(
+    () => (data.occurrenceRect || []).filter((rect) => rect.end >= domain.start && rect.start <= domain.end),
+    [data, domain.start, domain.end]
+  );
+  const visiblePeaks = useMemo(
+    () => (data.peaks || []).filter((rect) => rect.end >= domain.start && rect.start <= domain.end),
+    [data, domain.start, domain.end]
+  );
+
+  const rendered: MotifRect[][] = useMemo(
+    () => renderSquishMotifData(visibleOccurrenceRect, x),
+    [visibleOccurrenceRect, x]
+  );
+  const renderedPeaks: MotifRect[][] = useMemo(() => renderSquishMotifData(visiblePeaks, x), [visiblePeaks, x]);
 
   const rowHeight = useRowHeight(rendered.length, id);
 

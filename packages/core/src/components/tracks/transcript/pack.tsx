@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import useInteraction from "../../../hooks/useInteraction";
 import { useRowHeight } from "../../../hooks/useRowHeight";
 import { useXTransform } from "../../../hooks/useXTransform";
+import { useBrowserStore } from "../../../store/BrowserContext";
 // import { useTheme } from "../../../store/BrowserContext";
 import { groupFeatures } from "../../../utils/coordinates";
 import ClipPath from "../../svg/clipPath";
@@ -24,10 +25,18 @@ export default function PackTranscript({
 }: PackTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
+  const domain = useBrowserStore((state) => state.domain);
   const fontSize = 10;
 
   const sorted = useMemo(() => sortedTranscripts(data || []), [data]);
-  const grouped = useMemo(() => groupFeatures(sorted, x, fontSize), [sorted, x, fontSize]);
+  const visibleSorted = useMemo(
+    () =>
+      sorted.filter(
+        (transcript) => transcript.coordinates.end >= domain.start && transcript.coordinates.start <= domain.end
+      ),
+    [sorted, domain.start, domain.end]
+  );
+  const grouped = useMemo(() => groupFeatures(visibleSorted, x, fontSize), [visibleSorted, x, fontSize]);
   const rowHeight = useRowHeight(grouped.length, id);
 
   const rendered: TranscriptRow[] = useMemo(

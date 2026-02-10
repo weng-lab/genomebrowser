@@ -37,11 +37,11 @@ export default function All() {
       // chr11:5,202,705-5,556,088
       domain: { chromosome: "chr11", start: 5202705, end: 5556088 },
       marginWidth: 50,
-      trackWidth: 1450,
+      trackWidth: 950,
       multiplier: 3,
       highlights: [
         // chr11:5,253,188-5,505,605
-        { id: "test", color: "#ff0000", domain: { chromosome: "chr11", start: 5253188, end: 5505605 } },
+        // { id: "test", color: "#ff0000", domain: { chromosome: "chr11", start: 5253188, end: 5505605 } },
       ],
     },
     []
@@ -49,25 +49,46 @@ export default function All() {
 
   const trackStore = createTrackStoreMemo(
     [
-      transcriptExample,
-      bigWigExample,
-      bigWigFillZero,
-      bigBedExample,
-      // motifExample,
+      // bigWigExample,
+      // bigWigFillZero,
+      {
+        ...bigBedExample,
+        id: "peaks",
+        title: "peaks",
+        titleSize: 16,
+        url: "https://users.wenglab.org/gaomingshi/no_trim.TF_name.rPeaks.bb",
+      },
+      {
+        ...bigBedExample,
+        id: "decorator",
+        title: "decorator",
+        url: "https://users.wenglab.org/gaomingshi/no_trim.TF_name.decorator.bb",
+      },
+      motifExample,
       // bulkBedExample,
       // methylCTrack,
       // manhattanTrack,
       // ldTrack,
+      transcriptExample,
     ],
     []
   );
 
   const dataStore = createDataStoreMemo([]);
 
-  useImportanceTrack(browserStore, trackStore, dataStore);
-  useManhattanData(browserStore, dataStore);
+  const domain = browserStore((s) => s.domain);
 
-  return <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />;
+  // useImportanceTrack(browserStore, trackStore, dataStore);
+  // useManhattanData(browserStore, dataStore);
+
+  return (
+    <>
+      <div>
+        {domain.chromosome}:{domain.start}-{domain.end}
+      </div>
+      <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />;
+    </>
+  );
 }
 
 createRoot(document.getElementById("root")!).render(
