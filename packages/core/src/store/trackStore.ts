@@ -196,10 +196,10 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       if (!track) {
         throw new Error(`Track not found: ${id}`);
       }
-      const trackMargin = track.height / 6;
       const titleSize = track.titleSize ?? browserTitleSize;
       const titleMargin = track.title ? titleSize + 5 : 0;
-      const totalVerticalMargin = trackMargin + titleMargin;
+      const trackMargin = 0;
+      const totalVerticalMargin = titleMargin;
       const wrapperHeight = track.height + totalVerticalMargin;
       return {
         trackMargin,
