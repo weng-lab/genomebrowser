@@ -17,13 +17,6 @@ function compareElements(a: GenomicElement, b: GenomicElement) {
 export function mergeTranscripts(gene: TranscriptList): Transcript {
   const transcripts = gene.transcripts;
 
-  // If there's a MANE_Select transcript, use it instead of merging
-  const maneSelectTranscript = transcripts.find((t) => isManeSelectTranscript(t.tag));
-  if (maneSelectTranscript) {
-    return maneSelectTranscript;
-  }
-
-  // Otherwise, merge all transcripts as before
   const allExons = transcripts.reduce<Exon[]>((e, t) => [...e, ...(t.exons || [])], []).sort(compareElements);
   const exons =
     allExons.length === 0
