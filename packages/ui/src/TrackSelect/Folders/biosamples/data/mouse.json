@@ -6655,13 +6655,6 @@
           "fileAccession": "ENCFF018ZHC"
         },
         {
-          "id": "chromhmm-ENCFF491PKK",
-          "assay": "chromhmm",
-          "url": "https://downloads.wenglab.org/Registry-V4/ENCFF491PKK.bigBed",
-          "experimentAccession": "",
-          "fileAccession": "ENCFF491PKK"
-        },
-        {
           "id": "ccre-ENCFF193BIT_ENCFF946PYP_ENCFF826BKY",
           "assay": "ccre",
           "url": "https://downloads.wenglab.org/Registry-V4/ENCFF193BIT_ENCFF946PYP_ENCFF826BKY.bigBed",
