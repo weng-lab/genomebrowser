@@ -1,6 +1,58 @@
 {
   "tracks": [
     {
+      "name": "aggregate-biosample-data",
+      "collection": "Core",
+      "ontology": "aggregate",
+      "lifeStage": "N/A",
+      "sampleType": "aggregate",
+      "displayName": "Aggregate data, all ENCODE Biosamples",
+      "assays": [
+        {
+          "id": "ccre-aggregate",
+          "assay": "ccre",
+          "url": "https://downloads.wenglab.org/mm10-cCREs.DCC.bigBed",
+          "experimentAccession": "",
+          "fileAccession": "mm10-cCREs.DCC"
+        },
+        {
+          "id": "dnase-aggregate",
+          "assay": "dnase",
+          "url": "https://downloads.wenglab.org/DNase_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
+          "experimentAccession": "",
+          "fileAccession": "DNase_MM10_ENCODE_DEC2024_merged_nanrm"
+        },
+        {
+          "id": "h3k4me3-aggregate",
+          "assay": "h3k4me3",
+          "url": "https://downloads.wenglab.org/H3K4me3_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
+          "experimentAccession": "",
+          "fileAccession": "H3K4me3_All_ENCODE_MAR20_2024_merged"
+        },
+        {
+          "id": "h3k27ac-aggregate",
+          "assay": "h3k27ac",
+          "url": "https://downloads.wenglab.org/H3K27ac_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
+          "experimentAccession": "",
+          "fileAccession": "H3K27ac_All_ENCODE_MAR20_2024_merged"
+        },
+        {
+          "id": "ctcf-aggregate",
+          "assay": "ctcf",
+          "url": "https://downloads.wenglab.org/CTCF_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
+          "experimentAccession": "",
+          "fileAccession": "CTCF_All_ENCODE_MAR20_2024_merged"
+        },
+        {
+          "id": "atac-aggregate",
+          "assay": "atac",
+          "url": "https://downloads.wenglab.org/ATAC_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
+          "experimentAccession": "",
+          "fileAccession": "ATAC_All_ENCODE_MAR20_2024_merged"
+        }
+      ]
+    },
+    {
       "name": "strain_C57BL/6_brown_adipose_tissue_tissue_male_adult_24_weeks_ENCDO956IXV",
       "ontology": "adipose",
       "lifeStage": "adult",
