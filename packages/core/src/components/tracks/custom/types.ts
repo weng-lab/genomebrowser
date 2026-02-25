@@ -6,11 +6,9 @@ export interface CustomTrackConfig<Item = any> extends Config<Item> {
   trackType: TrackType.Custom;
   renderers: Partial<Record<DisplayMode, React.ComponentType<any>>>;
   fetcher: (ctx: FetcherContext) => Promise<TrackDataState>;
-  [key: string]: any;
 }
 
 export interface CustomTrackProps<Data = any, Item = any> extends Config<Item> {
   data: Data;
   dimensions: TrackDimensions;
-  [key: string]: any;
 }

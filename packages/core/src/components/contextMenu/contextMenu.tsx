@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useContextMenuStore, useTrackStore, useDataStore } from "../../store/BrowserContext";
 import { trackComponents } from "../tracks/displayTrack";
-import { DisplayMode } from "../tracks/types";
+import { DisplayMode, TrackType } from "../tracks/types";
+import { CustomTrackConfig } from "../tracks/custom/types";
 import { downloadSVG } from "../../utils/download";
 
 export default function ContextMenu() {
@@ -36,7 +37,8 @@ export default function ContextMenu() {
   if (!track) return null;
   if (!trackDataState || trackDataState.data === null) return null;
   const currentMode = track.displayMode;
-  const items = trackComponents[track.trackType];
+  const items =
+    track.trackType === TrackType.Custom ? (track as CustomTrackConfig).renderers : trackComponents[track.trackType];
   const options = Object.keys(items) as DisplayMode[];
 
   const handleClick = (mode: string) => {
