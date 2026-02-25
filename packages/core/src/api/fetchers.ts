@@ -14,6 +14,7 @@ import { BigBedConfig } from "../components/tracks/bigbed/types";
 import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
+import { CustomTrackConfig } from "../components/tracks/custom/types";
 import { TrackDataState } from "../store/dataStore";
 import { getBigData, ogBigDataFetcher, applyFillWithZero } from "./getBigWigData";
 
@@ -267,6 +268,13 @@ async function fetchManhattan(ctx: FetcherContext<ManhattanTrackConfig>): Promis
 }
 
 /**
+ * Fetch Custom track data using the user-provided fetcher
+ */
+async function fetchCustom(ctx: FetcherContext<CustomTrackConfig>): Promise<TrackDataState> {
+  return await ctx.track.fetcher(ctx);
+}
+
+/**
  * Registry of fetcher functions by track type
  */
 export const trackFetchers: Record<TrackType, FetchFunction> = {
@@ -279,4 +287,5 @@ export const trackFetchers: Record<TrackType, FetchFunction> = {
   [TrackType.MethylC]: fetchMethylC as FetchFunction,
   [TrackType.LDTrack]: fetchLDTrack as FetchFunction,
   [TrackType.Manhattan]: fetchManhattan as FetchFunction,
+  [TrackType.Custom]: fetchCustom as FetchFunction,
 };

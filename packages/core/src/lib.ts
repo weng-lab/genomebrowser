@@ -42,6 +42,9 @@ export type { LDTrackConfig, LDProps, SNP };
 import { ManhattanTrackConfig, ManhattanPoint } from "./components/tracks/manhattan/types";
 export type { ManhattanTrackConfig, ManhattanPoint };
 
+import { CustomTrackConfig, CustomTrackProps } from "./components/tracks/custom/types";
+export type { CustomTrackConfig, CustomTrackProps };
+
 // Store Factory Functions
 import {
   createBrowserStore,
@@ -64,6 +67,9 @@ export type { Highlight };
 import { DisplayMode, TrackType } from "./components/tracks/types";
 export { DisplayMode, TrackType };
 
+import type { Config, TrackDimensions, InteractionConfig, DisplayConfig } from "./components/tracks/types";
+export type { Config, TrackDimensions, InteractionConfig, DisplayConfig };
+
 import { Vibrant, Pastels } from "./utils/color";
 export { Vibrant, Pastels };
 
@@ -78,3 +84,26 @@ export { Cytobands };
 
 import useCustomData from "./hooks/useCustomData";
 export { useCustomData };
+
+// Fetcher types and utilities (for custom track fetchers)
+import { getBigDataRace } from "./api/fetchers";
+export { getBigDataRace };
+
+import type { FetcherContext, FetchFunction } from "./api/fetchers";
+export type { FetcherContext, FetchFunction };
+
+import type { TrackDataState } from "./store/dataStore";
+export type { TrackDataState };
+
+// Hooks (for custom track renderers)
+import { useXTransform } from "./hooks/useXTransform";
+export { useXTransform };
+
+import useInteraction from "./hooks/useInteraction";
+export { useInteraction };
+
+import { useMouseToIndex } from "./hooks/useMousePosition";
+export { useMouseToIndex };
+
+import useBrowserScale from "./hooks/useBrowserScale";
+export { useBrowserScale };

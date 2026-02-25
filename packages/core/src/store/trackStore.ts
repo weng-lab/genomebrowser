@@ -10,6 +10,7 @@ import { RULER_HEIGHT } from "../components/tracks/ruler/ruler";
 import { MethylCConfig } from "../components/tracks/methylC/types";
 import { TrackType } from "../components/tracks/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
+import { CustomTrackConfig } from "../components/tracks/custom/types";
 import { useMemo } from "react";
 
 type WrapperDimensions = {
@@ -28,7 +29,8 @@ export type Track =
   | ImportanceConfig
   | LDTrackConfig
   | MethylCConfig
-  | ManhattanTrackConfig;
+  | ManhattanTrackConfig
+  | CustomTrackConfig;
 
 export interface TrackStore {
   tracks: Track[];
