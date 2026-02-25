@@ -19,6 +19,7 @@ import ReworkBigWig from "./bigwig/rework";
 import LD from "./ldtrack/ldblock";
 import Scatter from "./manhattan/scatter";
 import GenericLD from "./ldtrack/genericld";
+import { CustomTrackConfig } from "./custom/types";
 
 export default function DisplayTrack({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
@@ -81,9 +82,18 @@ export const trackComponents: Record<TrackType, Partial<Record<DisplayMode, Reac
   [TrackType.Manhattan]: {
     [DisplayMode.Scatter]: Scatter,
   },
+  [TrackType.Custom]: {},
 };
 
 function getTrackComponent(track: Track, data: any, dimensions: TrackDimensions) {
+  // Custom tracks resolve renderers from the config itself
+  if (track.trackType === TrackType.Custom) {
+    const customTrack = track as CustomTrackConfig;
+    const Component = customTrack.renderers[track.displayMode];
+    if (!Component) return null;
+    return <Component {...track} data={data} dimensions={dimensions} />;
+  }
+
   const Component = trackComponents[track.trackType][track.displayMode];
   if (!Component) return null;
 

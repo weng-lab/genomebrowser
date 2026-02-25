@@ -1,7 +1,8 @@
 # genomebrowser monorepo
 
-## Learnings
+For package specific scripts, refer to it's package.json file. (build, dev etc.)
 
+## Learnings
 
 ### Never run `pnpm run dev`
 user will run the dev server manually.

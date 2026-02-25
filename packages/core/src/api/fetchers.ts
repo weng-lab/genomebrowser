@@ -14,6 +14,7 @@ import { BigBedConfig } from "../components/tracks/bigbed/types";
 import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
+import { CustomTrackConfig } from "../components/tracks/custom/types";
 import { TrackDataState } from "../store/dataStore";
 import { getBigData, ogBigDataFetcher, applyFillWithZero } from "./getBigWigData";
 
@@ -62,6 +63,14 @@ export async function getBigDataRace(
   const result = await Promise.race([p1, p2]);
   // console.log(result.url, "\n", result.source, "took", result.elapsed.toFixed(2), "ms");
   return result.data;
+}
+
+/**
+ * Fetch a BigBed/BigWig URL using the fetcher context.
+ * Useful for custom track fetchers that need to load .bb/.bw files.
+ */
+export async function fetchBigBedUrl(url: string, ctx: FetcherContext): Promise<TrackDataState> {
+  return await getBigDataRace(url, ctx.expandedDomain, ctx.preRenderedWidth, ctx.queries);
 }
 
 /**
@@ -267,6 +276,13 @@ async function fetchManhattan(ctx: FetcherContext<ManhattanTrackConfig>): Promis
 }
 
 /**
+ * Fetch Custom track data using the user-provided fetcher
+ */
+async function fetchCustom(ctx: FetcherContext<CustomTrackConfig>): Promise<TrackDataState> {
+  return await ctx.track.fetcher(ctx);
+}
+
+/**
  * Registry of fetcher functions by track type
  */
 export const trackFetchers: Record<TrackType, FetchFunction> = {
@@ -279,4 +295,5 @@ export const trackFetchers: Record<TrackType, FetchFunction> = {
   [TrackType.MethylC]: fetchMethylC as FetchFunction,
   [TrackType.LDTrack]: fetchLDTrack as FetchFunction,
   [TrackType.Manhattan]: fetchManhattan as FetchFunction,
+  [TrackType.Custom]: fetchCustom as FetchFunction,
 };
