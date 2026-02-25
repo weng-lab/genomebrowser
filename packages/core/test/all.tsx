@@ -23,6 +23,7 @@ import {
   motifExample,
   transcriptExample,
 } from "./tracks";
+import { tfPeaksTrack } from "./TfPeaks";
 import { useEffect, useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { BIGDATA_QUERY } from "../src/api/queries";
@@ -64,7 +65,8 @@ export default function All() {
         title: "decorator",
         url: "https://users.wenglab.org/gaomingshi/no_trim.TF_name.decorator.bb",
       },
-      motifExample,
+      tfPeaksTrack,
+      // motifExample,
       // bulkBedExample,
       // methylCTrack,
       // manhattanTrack,

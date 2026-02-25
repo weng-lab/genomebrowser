@@ -86,8 +86,8 @@ import useCustomData from "./hooks/useCustomData";
 export { useCustomData };
 
 // Fetcher types and utilities (for custom track fetchers)
-import { getBigDataRace } from "./api/fetchers";
-export { getBigDataRace };
+import { getBigDataRace, fetchBigBedUrl } from "./api/fetchers";
+export { getBigDataRace, fetchBigBedUrl };
 
 import type { FetcherContext, FetchFunction } from "./api/fetchers";
 export type { FetcherContext, FetchFunction };
@@ -107,3 +107,18 @@ export { useMouseToIndex };
 
 import useBrowserScale from "./hooks/useBrowserScale";
 export { useBrowserScale };
+
+import { useRowHeight } from "./hooks/useRowHeight";
+export { useRowHeight };
+
+// SVG utilities (for custom track renderers)
+import ClipPath from "./components/svg/clipPath";
+export { ClipPath };
+
+// BigBed helpers (for custom track renderers)
+import { renderSquishBigBedData, renderDenseBigBedData } from "./components/tracks/bigbed/helpers";
+export { renderSquishBigBedData, renderDenseBigBedData };
+
+// Store hooks (for custom track renderers that need browser state)
+import { useBrowserStore } from "./store/BrowserContext";
+export { useBrowserStore };

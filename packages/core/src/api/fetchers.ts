@@ -66,6 +66,14 @@ export async function getBigDataRace(
 }
 
 /**
+ * Fetch a BigBed/BigWig URL using the fetcher context.
+ * Useful for custom track fetchers that need to load .bb/.bw files.
+ */
+export async function fetchBigBedUrl(url: string, ctx: FetcherContext): Promise<TrackDataState> {
+  return await getBigDataRace(url, ctx.expandedDomain, ctx.preRenderedWidth, ctx.queries);
+}
+
+/**
  * Fetch BigWig data
  */
 async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackDataState> {
