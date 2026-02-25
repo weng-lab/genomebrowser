@@ -35,6 +35,8 @@ import {
 import { foldersByAssembly, TrackSelect } from "../src/lib";
 import type { BiosampleRowInfo } from "../src/TrackSelect/Folders/biosamples/shared/types";
 import type { GeneRowInfo } from "../src/TrackSelect/Folders/genes/shared/types";
+import type { OtherTrackInfo } from "../src/TrackSelect/Folders/other-tracks/shared/types";
+import { tfPeaksTrack } from "../src/TrackSelect/CustomTracks/TfPeaks";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
 
 interface Transcript {
@@ -79,7 +81,7 @@ function injectCallbacks(track: Track, callbacks: TrackCallbacks): Track {
 
 function Main() {
   const [open, setOpen] = useState(false);
-  const currentAssembly: Assembly = "mm10";
+  const currentAssembly: Assembly = "GRCh38";
 
   const browserStore = createBrowserStoreMemo({
     // chr7:19,695,494-19,699,803
@@ -248,7 +250,7 @@ const ASSAY_COLORS: Record<string, string> = {
 };
 
 function generateTrack(
-  row: BiosampleRowInfo | GeneRowInfo,
+  row: BiosampleRowInfo | GeneRowInfo | OtherTrackInfo,
   folderId: string,
   assembly: Assembly,
   callbacks?: TrackCallbacks,
@@ -263,6 +265,14 @@ function generateTrack(
       version: geneRow.versions[geneRow.versions.length - 1], // latest version
     };
     return callbacks ? injectCallbacks(track, callbacks) : track;
+  }
+
+  // Handle other-tracks folder
+  if (folderId.includes("other-tracks")) {
+    if (row.id === "tf-peaks") {
+      return { ...tfPeaksTrack };
+    }
+    return null;
   }
 
   // Handle biosample folders
