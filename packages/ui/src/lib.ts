@@ -10,4 +10,10 @@ export { createSelectionStore, SelectionStoreInstance };
 import { foldersByAssembly } from "./TrackSelect/Folders/index.ts";
 export { foldersByAssembly };
 
-export type { BiosampleRowInfo, GeneRowInfo } from "./TrackSelect/Folders";
+export type {
+  BiosampleRowInfo,
+  GeneRowInfo,
+  OtherTrackInfo,
+} from "./TrackSelect/Folders";
+
+export { tfPeaksTrack } from "./TrackSelect/CustomTracks/TfPeaks";
