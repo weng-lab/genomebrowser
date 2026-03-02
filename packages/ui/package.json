@@ -1,7 +1,7 @@
 {
   "name": "@weng-lab/genomebrowser-ui",
   "private": false,
-  "version": "0.3.3",
+  "version": "0.3.4",
   "license": "MIT",
   "type": "module",
   "publishConfig": {
@@ -19,6 +19,7 @@
   "dependencies": {
     "@mui/x-license": "^8.25.0",
     "fuse.js": "^7.1.0",
+    "logo-test": "^0.0.5",
     "zustand": "^5.0.8"
   },
   "peerDependencies": {
