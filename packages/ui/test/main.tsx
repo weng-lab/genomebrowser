@@ -86,11 +86,14 @@ function Main() {
 
   const browserStore = createBrowserStoreMemo({
     // chr7:19,695,494-19,699,803
-    domain: { chromosome: "chr7", start: 19695494, end: 19699803 },
+    // chr1:11103779-11262792
+    domain: { chromosome: "chr1", start: 11103779, end: 11262792 },
     marginWidth: 100,
     trackWidth: 1400,
     multiplier: 3,
   });
+
+  const domain = browserStore((s) => s.domain);
 
   const addHighlight = browserStore((s) => s.addHighlight);
   const removeHighlight = browserStore((s) => s.removeHighlight);
@@ -211,6 +214,9 @@ function Main() {
 
   return (
     <>
+      <div>
+        {domain.chromosome}:{domain.start}-{domain.end}
+      </div>
       <Button
         variant="contained"
         startIcon={<EditIcon />}
