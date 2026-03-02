@@ -36,7 +36,8 @@ export default function All() {
   const browserStore = createBrowserStoreMemo(
     {
       // chr11:5,202,705-5,556,088
-      domain: { chromosome: "chr11", start: 5202705, end: 5556088 },
+      // chr6:21,592,778-21,599,592
+      domain: { chromosome: "chr6", start: 21592778, end: 21599592 },
       marginWidth: 50,
       trackWidth: 950,
       multiplier: 3,
@@ -68,7 +69,7 @@ export default function All() {
       tfPeaksTrack,
       // motifExample,
       // bulkBedExample,
-      // methylCTrack,
+      methylCTrack,
       // manhattanTrack,
       // ldTrack,
       transcriptExample,

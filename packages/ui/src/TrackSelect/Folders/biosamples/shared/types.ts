@@ -5,14 +5,19 @@
 export type CollectionType = "Core" | "Ancillary" | "Partial";
 
 /**
- * Assay information from the JSON data
+ * Assay information from the JSON data.
+ * Standard assays have a single `url`, while WGBS assays have `cpgPlus`, `cpgMinus`, `coverage`.
  */
 export type BiosampleAssayInfo = {
   id: string;
   assay: string;
-  url: string;
+  url?: string;
   experimentAccession: string;
-  fileAccession: string;
+  fileAccession?: string;
+  // WGBS-specific fields
+  cpgPlus?: string;
+  cpgMinus?: string;
+  coverage?: string;
 };
 
 /**
@@ -29,7 +34,8 @@ export type BiosampleTrackInfo = {
 };
 
 /**
- * Row format for DataGrid (flattened from TrackInfo)
+ * Row format for DataGrid (flattened from TrackInfo).
+ * Standard assays have a single `url`, while WGBS assays have `cpgPlus`, `cpgMinus`, `coverage`.
  */
 export type BiosampleRowInfo = {
   id: string;
@@ -39,9 +45,13 @@ export type BiosampleRowInfo = {
   displayName: string;
   assay: string;
   experimentAccession: string;
-  fileAccession: string;
-  url: string;
+  fileAccession?: string;
+  url?: string;
   collection: CollectionType;
+  // WGBS-specific fields
+  cpgPlus?: string;
+  cpgMinus?: string;
+  coverage?: string;
 };
 
 /**

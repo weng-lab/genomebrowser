@@ -25,6 +25,7 @@ import {
   DisplayMode,
   Domain,
   GQLWrapper,
+  MethylCConfig,
   Rect,
   Track,
   TrackType,
@@ -35,6 +36,8 @@ import {
 import { foldersByAssembly, TrackSelect } from "../src/lib";
 import type { BiosampleRowInfo } from "../src/TrackSelect/Folders/biosamples/shared/types";
 import type { GeneRowInfo } from "../src/TrackSelect/Folders/genes/shared/types";
+import type { OtherTrackInfo } from "../src/TrackSelect/Folders/other-tracks/shared/types";
+import { tfPeaksTrack } from "../src/TrackSelect/CustomTracks/TfPeaks";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
 
 interface Transcript {
@@ -79,15 +82,18 @@ function injectCallbacks(track: Track, callbacks: TrackCallbacks): Track {
 
 function Main() {
   const [open, setOpen] = useState(false);
-  const currentAssembly: Assembly = "mm10";
+  const currentAssembly: Assembly = "GRCh38";
 
   const browserStore = createBrowserStoreMemo({
     // chr7:19,695,494-19,699,803
-    domain: { chromosome: "chr7", start: 19695494, end: 19699803 },
+    // chr1:11103779-11262792
+    domain: { chromosome: "chr1", start: 11103779, end: 11262792 },
     marginWidth: 100,
     trackWidth: 1400,
     multiplier: 3,
   });
+
+  const domain = browserStore((s) => s.domain);
 
   const addHighlight = browserStore((s) => s.addHighlight);
   const removeHighlight = browserStore((s) => s.removeHighlight);
@@ -208,6 +214,9 @@ function Main() {
 
   return (
     <>
+      <div>
+        {domain.chromosome}:{domain.start}-{domain.end}
+      </div>
       <Button
         variant="contained"
         startIcon={<EditIcon />}
@@ -245,10 +254,11 @@ const ASSAY_COLORS: Record<string, string> = {
   rnaseq: "#00aa00",
   chromhmm: "#00ff00",
   ccre: "#000000",
+  wgbs: "#648bd8",
 };
 
 function generateTrack(
-  row: BiosampleRowInfo | GeneRowInfo,
+  row: BiosampleRowInfo | GeneRowInfo | OtherTrackInfo,
   folderId: string,
   assembly: Assembly,
   callbacks?: TrackCallbacks,
@@ -265,6 +275,14 @@ function generateTrack(
     return callbacks ? injectCallbacks(track, callbacks) : track;
   }
 
+  // Handle other-tracks folder
+  if (folderId.includes("other-tracks")) {
+    if (row.id === "tf-peaks") {
+      return { ...tfPeaksTrack };
+    }
+    return null;
+  }
+
   // Handle biosample folders
   const sel = row as BiosampleRowInfo;
   const color = ASSAY_COLORS[sel.assay.toLowerCase()] || "#000000";
@@ -276,16 +294,37 @@ function generateTrack(
       track = {
         ...defaultBigBed,
         id: sel.id,
-        url: sel.url,
+        url: sel.url ?? "",
         title: sel.displayName,
         color,
+      };
+      break;
+    case "wgbs":
+      track = {
+        ...defaultMethylC,
+        id: sel.id,
+        title: sel.displayName,
+        urls: {
+          plusStrand: {
+            cpg: { url: sel.cpgPlus ?? "" },
+            chg: { url: "" },
+            chh: { url: "" },
+            depth: { url: sel.coverage ?? "" },
+          },
+          minusStrand: {
+            cpg: { url: sel.cpgMinus ?? "" },
+            chg: { url: "" },
+            chh: { url: "" },
+            depth: { url: sel.coverage ?? "" },
+          },
+        },
       };
       break;
     default:
       track = {
         ...defaultBigWig,
         id: sel.id,
-        url: sel.url,
+        url: sel.url ?? "",
         title: sel.displayName,
         color,
       };
@@ -306,6 +345,20 @@ export const defaultBigBed: Omit<BigBedConfig, "id" | "title" | "url"> = {
   height: 20,
   displayMode: DisplayMode.Dense,
   titleSize: 12,
+};
+
+export const defaultMethylC: Omit<MethylCConfig, "id" | "title" | "urls"> = {
+  trackType: TrackType.MethylC,
+  height: 100,
+  displayMode: DisplayMode.Split,
+  titleSize: 12,
+  color: "#648bd8",
+  colors: {
+    cpg: "#648bd8",
+    chg: "#ff944d",
+    chh: "#ff00ff",
+    depth: "#525252",
+  },
 };
 
 export const defaultTranscript: Omit<

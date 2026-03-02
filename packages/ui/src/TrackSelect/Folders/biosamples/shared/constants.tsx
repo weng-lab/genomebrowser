@@ -12,6 +12,7 @@ export const assayTypes = [
   "CTCF",
   "RNA-seq",
   "ChromHMM",
+  "WGBS",
 ];
 
 export const lifeStages = ["Adult", "Embryonic", "N/A"];
@@ -73,6 +74,7 @@ export const assayColorMap: { [key: string]: string } = {
   CTCF: "#01a6f1",
   cCRE: "#000000",
   "RNA-seq": "#00aa00",
+  WGBS: "#648bd8",
 };
 
 /**
@@ -107,6 +109,7 @@ const assayJsonToDisplay: Record<string, string> = {
   chromhmm: "ChromHMM",
   ccre: "cCRE",
   rnaseq: "RNA-seq",
+  wgbs: "WGBS",
 };
 
 /**

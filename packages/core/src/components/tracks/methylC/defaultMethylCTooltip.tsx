@@ -56,7 +56,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CG
         </text>
         <text x={labelWidth + 10} y={rowHeight * 2 + 15} fill={text} fontSize="12">
-          {forwardData.cg === null || forwardData.cg === undefined ? "N/A" : forwardData.cg.toFixed(2)}
+          {forwardData.cg === null || forwardData.cg === undefined ? "N/A" : forwardData.cg.toFixed(2) + "%"}
         </text>
 
         {/* Forward CHG */}
@@ -65,7 +65,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CHG
         </text>
         <text x={labelWidth + 10} y={rowHeight * 3 + 15} fill={text} fontSize="12">
-          {forwardData.chg === null || forwardData.chg === undefined ? "N/A" : forwardData.chg.toFixed(2)}
+          {forwardData.chg === null || forwardData.chg === undefined ? "N/A" : forwardData.chg.toFixed(2) + "%"}
         </text>
 
         {/* Forward CHH */}
@@ -74,7 +74,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CHH
         </text>
         <text x={labelWidth + 10} y={rowHeight * 4 + 15} fill={text} fontSize="12">
-          {forwardData.chh === null || forwardData.chh === undefined ? "N/A" : forwardData.chh.toFixed(2)}
+          {forwardData.chh === null || forwardData.chh === undefined ? "N/A" : forwardData.chh.toFixed(2) + "%"}
         </text>
 
         {/* Reverse section header */}
@@ -97,7 +97,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CG
         </text>
         <text x={labelWidth + 10} y={rowHeight * 7 + 23} fill={text} fontSize="12">
-          {reverseData.cg === null || reverseData.cg === undefined ? "N/A" : reverseData.cg.toFixed(2)}
+          {reverseData.cg === null || reverseData.cg === undefined ? "N/A" : reverseData.cg.toFixed(2) + "%"}
         </text>
 
         {/* Reverse CHG */}
@@ -106,7 +106,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CHG
         </text>
         <text x={labelWidth + 10} y={rowHeight * 8 + 23} fill={text} fontSize="12">
-          {reverseData.chg === null || reverseData.chg === undefined ? "N/A" : reverseData.chg.toFixed(2)}
+          {reverseData.chg === null || reverseData.chg === undefined ? "N/A" : reverseData.chg.toFixed(2) + "%"}
         </text>
 
         {/* Reverse CHH */}
@@ -115,7 +115,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
           CHH
         </text>
         <text x={labelWidth + 10} y={rowHeight * 9 + 23} fill={text} fontSize="12">
-          {reverseData.chh === null || reverseData.chh === undefined ? "N/A" : reverseData.chh.toFixed(2)}
+          {reverseData.chh === null || reverseData.chh === undefined ? "N/A" : reverseData.chh.toFixed(2) + "%"}
         </text>
       </g>
     </g>

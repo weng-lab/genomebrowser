@@ -218,15 +218,18 @@ async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<TrackDa
 async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, preRenderedWidth, queries } = ctx;
 
+  const fetch = (url: string) =>
+    url ? getBigDataRace(url, expandedDomain, preRenderedWidth, queries) : { data: [], error: null };
+
   const result = await Promise.all([
-    getBigDataRace(track.urls.plusStrand.cpg.url, expandedDomain, preRenderedWidth, queries),
-    getBigDataRace(track.urls.plusStrand.chg.url, expandedDomain, preRenderedWidth, queries),
-    getBigDataRace(track.urls.plusStrand.chh.url, expandedDomain, preRenderedWidth, queries),
-    getBigDataRace(track.urls.plusStrand.depth.url, expandedDomain, preRenderedWidth, queries),
-    getBigDataRace(track.urls.minusStrand.cpg.url, expandedDomain, preRenderedWidth, queries),
-    getBigDataRace(track.urls.minusStrand.chg.url, expandedDomain, preRenderedWidth, queries),
-    getBigDataRace(track.urls.minusStrand.chh.url, expandedDomain, preRenderedWidth, queries),
-    getBigDataRace(track.urls.minusStrand.depth.url, expandedDomain, preRenderedWidth, queries),
+    fetch(track.urls.plusStrand.cpg.url),
+    fetch(track.urls.plusStrand.chg.url),
+    fetch(track.urls.plusStrand.chh.url),
+    fetch(track.urls.plusStrand.depth.url),
+    fetch(track.urls.minusStrand.cpg.url),
+    fetch(track.urls.minusStrand.chg.url),
+    fetch(track.urls.minusStrand.chh.url),
+    fetch(track.urls.minusStrand.depth.url),
   ]);
 
   const data = result.map((r) => r.data);

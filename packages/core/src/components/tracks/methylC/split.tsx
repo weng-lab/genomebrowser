@@ -13,19 +13,35 @@ function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: 
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const text = useTheme((state) => state.text);
 
+  const viewRange = useMemo(() => {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const channel of data) {
+      if (!channel || channel.length === 0) continue;
+      const view = channel.slice(sideWidth, sideWidth + viewWidth);
+      for (const point of view) {
+        if (point.min < min) min = point.min;
+        if (point.max > max) max = point.max;
+      }
+    }
+    return min === Infinity ? { min: 0, max: 1 } : { min, max };
+  }, [data, sideWidth, viewWidth]);
+
+  const effectiveRange = range || viewRange;
+
   const signals = useMemo(() => {
     const h = height / 2;
     return {
-      cpgPlus: generateSignal2(data[0], h, colors.cpg, false, range),
-      chgPlus: generateSignal2(data[1], h, colors.chg, false, range),
-      chhPlus: generateSignal2(data[2], h, colors.chh, false, range),
-      depthPlus: generateLineGraph(data[3], h, colors.depth, false),
-      cpgMinus: generateSignal2(data[4], h, colors.cpg, true, range),
-      chgMinus: generateSignal2(data[5], h, colors.chg, true, range),
-      chhMinus: generateSignal2(data[6], h, colors.chh, true, range),
-      depthMinus: generateLineGraph(data[7], h, colors.depth, true),
+      cpgPlus: generateSignal2(data[0], h, colors.cpg, false, effectiveRange),
+      chgPlus: generateSignal2(data[1], h, colors.chg, false, effectiveRange),
+      chhPlus: generateSignal2(data[2], h, colors.chh, false, effectiveRange),
+      depthPlus: generateLineGraph(data[3], h, colors.depth, false, effectiveRange),
+      cpgMinus: generateSignal2(data[4], h, colors.cpg, true, effectiveRange),
+      chgMinus: generateSignal2(data[5], h, colors.chg, true, effectiveRange),
+      chhMinus: generateSignal2(data[6], h, colors.chh, true, effectiveRange),
+      depthMinus: generateLineGraph(data[7], h, colors.depth, true, effectiveRange),
     };
-  }, [data, height, colors, range]);
+  }, [data, height, colors, effectiveRange]);
 
   const { mouseState, updateMouseState, clearMouseState } = useMouseToIndex(svgRef, totalWidth, marginWidth, sideWidth);
 

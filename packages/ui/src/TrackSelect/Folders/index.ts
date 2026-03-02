@@ -3,6 +3,7 @@ import { humanBiosamplesFolder } from "./biosamples/human";
 import { mouseBiosamplesFolder } from "./biosamples/mouse";
 import { humanGenesFolder } from "./genes/human";
 import { mouseGenesFolder } from "./genes/mouse";
+import { humanOtherTracksFolder } from "./other-tracks/human";
 
 export {
   type Assembly,
@@ -12,6 +13,7 @@ export {
 
 export type { BiosampleRowInfo } from "./biosamples/shared/types";
 export type { GeneRowInfo } from "./genes/shared/types";
+export type { OtherTrackInfo } from "./other-tracks/shared/types";
 
 /**
  * Registry of folders available for each assembly.
@@ -25,6 +27,6 @@ export type { GeneRowInfo } from "./genes/shared/types";
  * 2. Import and add it to the appropriate assembly array below
  */
 export const foldersByAssembly: Record<Assembly, FolderDefinition[]> = {
-  GRCh38: [humanGenesFolder, humanBiosamplesFolder],
-  mm10: [mouseGenesFolder, mouseBiosamplesFolder],
+  GRCh38: [humanBiosamplesFolder, humanGenesFolder, humanOtherTracksFolder],
+  mm10: [mouseBiosamplesFolder, mouseGenesFolder],
 };
