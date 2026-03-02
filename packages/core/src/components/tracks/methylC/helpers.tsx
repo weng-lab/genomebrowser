@@ -7,22 +7,18 @@ export function generateSignal2(
   height: number,
   color: string,
   inverted: boolean = false,
-  range?: YRange
+  customRange?: YRange
 ) {
-  if (!data || data.length === 0) return null;
+  const validation = validateAndNormalizeData(data, customRange);
+  if (!validation) return null;
 
+  const { range, rangeSize } = validation;
   const startY = inverted ? 0 : height;
   let pathString = m(0, startY);
   let opaquePathString = m(0, startY);
   data.forEach((point) => {
     if (point.min === null || point.max === null) return;
-    const normalized = normalizePoint(
-      point,
-      range ?? { min: 0, max: 1 },
-      (range?.max ?? 1) - (range?.min ?? 0),
-      height,
-      inverted
-    );
+    const normalized = normalizePoint(point, range, rangeSize, height, inverted);
     opaquePathString +=
       l(point.x, startY) +
       l(normalized.x, inverted ? height : 0) +
