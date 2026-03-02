@@ -10,6 +10,7 @@ import {
   ManhattanPoint,
   TrackStoreInstance,
   useCustomData,
+  tfPeaksTrack,
 } from "../src/lib";
 import {
   bigBedExample,
@@ -23,7 +24,6 @@ import {
   motifExample,
   transcriptExample,
 } from "./tracks";
-import { tfPeaksTrack } from "./TfPeaks";
 import { useEffect, useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { BIGDATA_QUERY } from "../src/api/queries";

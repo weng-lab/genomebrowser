@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { useModalStore, useTrackStore } from "../../store/BrowserContext";
 import { TrackType } from "../tracks/types";
+import { CustomTrackConfig } from "../tracks/custom/types";
 import UniversalForm from "./shared/base";
 import Display from "./shared/display";
 import Height from "./shared/height";
@@ -128,6 +129,10 @@ function ModalContent({ id }: { id: string }) {
             <DatasetList datasets={track.datasets || []} />
           </>
         );
+      case TrackType.Custom: {
+        const Panel = (track as CustomTrackConfig).settingsPanel;
+        return Panel ? <Panel id={id} /> : <></>;
+      }
       default:
         return <></>;
     }

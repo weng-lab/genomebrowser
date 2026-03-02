@@ -79,7 +79,7 @@ export default function Tooltip() {
 
   if (!show || delta) return null;
   return (
-    <g ref={ref} id="tooltip" transform={`translate(${newX}, ${newY})`}>
+    <g ref={ref} id="tooltip" transform={`translate(${newX}, ${newY})`} style={{ pointerEvents: "none" }}>
       {content}
     </g>
   );

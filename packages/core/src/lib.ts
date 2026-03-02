@@ -120,5 +120,8 @@ import { renderSquishBigBedData, renderDenseBigBedData } from "./components/trac
 export { renderSquishBigBedData, renderDenseBigBedData };
 
 // Store hooks (for custom track renderers that need browser state)
-import { useBrowserStore } from "./store/BrowserContext";
-export { useBrowserStore };
+import { useBrowserStore, useTrackStore } from "./store/BrowserContext";
+export { useBrowserStore, useTrackStore };
+
+// Custom tracks
+export { tfPeaksTrack } from "../custom/tfmotif/TfPeaks";

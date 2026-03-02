@@ -12,8 +12,11 @@ import {
   useRowHeight,
   useXTransform,
   Vibrant,
-} from "../src/lib";
-import { useMemo } from "react";
+  useTrackStore,
+} from "../../src/lib";
+import { DNALogo } from "logo-test";
+import { useMemo, useState } from "react";
+import motifData from "./TF-ChIP-Canonical-Motifs-w-Trimmed.json";
 
 // --- Types ---
 
@@ -25,6 +28,7 @@ type OverlayData = {
 type OverlayInteractionRect = Rect & {
   source: "base" | "overlay";
   matchedName?: string;
+  pwm?: number[][];
 };
 
 // The config type — extra fields go directly on the config
@@ -33,6 +37,7 @@ type OverlayBigBedConfig = CustomTrackConfig<OverlayInteractionRect> & {
   overlayUrl: string;
   baseColor?: string;
   overlayColor?: string;
+  filter?: string[];
 };
 
 // --- Helpers ---
@@ -65,6 +70,99 @@ function darkenHexColor(color: string, score?: number) {
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
+// --- Motif data lookup ---
+
+type MotifEntry = { trimmed_ppm: number[][]; ppm: number[][] };
+const motifLookup = motifData as Record<string, MotifEntry>;
+
+function lookupPwm(name?: string): number[][] | undefined {
+  const key = nameKey(name)?.toUpperCase();
+  if (!key) return undefined;
+  const entry = motifLookup[key];
+  return entry?.trimmed_ppm ?? entry?.ppm;
+}
+
+// --- Tooltip ---
+
+function tfDisplayName(name?: string): string {
+  return nameKey(name)?.toUpperCase() || name || "Unknown";
+}
+
+function TfPeaksTooltip(rect: OverlayInteractionRect) {
+  const pwm = rect.pwm;
+  const label = tfDisplayName(rect.name);
+  if (!pwm || pwm.length === 0) {
+    return (
+      <g>
+        <rect
+          width={120}
+          height={24}
+          fill="white"
+          rx={2}
+          style={{ filter: "drop-shadow(0px 0px 4px rgba(0,0,0,0.25))" }}
+        />
+        <text x={6} y={16} fontSize={12} fill="#333">
+          {label}
+        </text>
+      </g>
+    );
+  }
+  const logoWidth = pwm.length * 15;
+  const logoHeight = 130;
+  const totalHeight = logoHeight - 5;
+  return (
+    <g transform={`translate(0, ${-totalHeight})`}>
+      <rect
+        width={logoWidth + 10}
+        height={totalHeight}
+        fill="white"
+        rx={3}
+        style={{ filter: "drop-shadow(0px 0px 5px rgba(0,0,0,0.3))" }}
+      />
+      <text x={5} y={16} fontSize={12} fontWeight="bold" fill="#333">
+        {label}
+      </text>
+      <g transform="translate(5, 5)">
+        <DNALogo ppm={pwm} mode="INFORMATION_CONTENT" width={logoWidth} height={logoHeight} />
+      </g>
+    </g>
+  );
+}
+
+// --- Settings Panel ---
+
+function TfPeaksSettings({ id }: { id: string }) {
+  const track = useTrackStore((state) => state.getTrack(id)) as OverlayBigBedConfig | undefined;
+  const editTrack = useTrackStore((state) => state.editTrack);
+  const [input, setInput] = useState((track?.filter || []).join(", "));
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInput(value);
+    const names = value
+      .split(",")
+      .map((s) => s.trim().toUpperCase())
+      .filter(Boolean);
+    editTrack<OverlayBigBedConfig>(id, { filter: names.length > 0 ? names : undefined });
+  };
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        paddingBlock: "5px",
+        paddingInline: "10px",
+        gap: "3px",
+      }}
+    >
+      <div style={{ fontWeight: "bold" }}>Filter TFs</div>
+      <input value={input} onChange={handleChange} placeholder="e.g. CTCF, TP53, GATA1" style={{ width: "100%" }} />
+    </div>
+  );
+}
+
 // --- Renderer ---
 
 function OverlayBigBedRenderer(props: CustomTrackProps<OverlayData> & OverlayBigBedConfig) {
@@ -76,16 +174,25 @@ function OverlayBigBedRenderer(props: CustomTrackProps<OverlayData> & OverlayBig
     color,
     baseColor: baseColorProp,
     overlayColor: overlayColorProp,
+    filter,
     ...rest
   } = props;
   const domain = useBrowserStore((state) => state.domain);
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
 
+  const filterSet = useMemo(
+    () => (filter && filter.length > 0 ? new Set(filter.map((f) => f.toUpperCase())) : null),
+    [filter]
+  );
+
   const rows = useMemo(() => {
-    const visible = (data?.primary || []).filter((r) => r.end >= domain.start && r.start <= domain.end);
+    let visible = (data?.primary || []).filter((r) => r.end >= domain.start && r.start <= domain.end);
+    if (filterSet) {
+      visible = visible.filter((r) => filterSet.has(nameKey(r.name)?.toUpperCase()));
+    }
     return renderSquishBigBedData(visible, x);
-  }, [data, domain.end, domain.start, x]);
+  }, [data, domain.end, domain.start, x, filterSet]);
 
   const rowHeight = useRowHeight(rows.length, id);
   const height = Math.max(trackHeight, rowHeight * Math.max(rows.length, 1));
@@ -128,6 +235,7 @@ function OverlayBigBedRenderer(props: CustomTrackProps<OverlayData> & OverlayBig
                 name: baseName,
                 color: fill,
                 score: rect.score,
+                pwm: lookupPwm(baseName),
               };
 
               return (
@@ -155,6 +263,7 @@ function OverlayBigBedRenderer(props: CustomTrackProps<OverlayData> & OverlayBig
                       color: a.color || overlayColor,
                       score: a.score,
                       matchedName: baseName,
+                      pwm: lookupPwm(a.name),
                     };
                     return (
                       <rect
@@ -199,6 +308,8 @@ export const tfPeaksTrack: OverlayBigBedConfig = {
   overlayUrl: DECORATOR_BIGBED_URL,
   baseColor: "#d1d5db",
   overlayColor: "#1e3a8a",
+  tooltip: TfPeaksTooltip,
+  settingsPanel: TfPeaksSettings,
   renderers: {
     [DisplayMode.Full]: OverlayBigBedRenderer,
   },
