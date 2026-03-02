@@ -15,5 +15,3 @@ export type {
   GeneRowInfo,
   OtherTrackInfo,
 } from "./TrackSelect/Folders";
-
-export { tfPeaksTrack } from "./TrackSelect/CustomTracks/TfPeaks";

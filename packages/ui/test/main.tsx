@@ -30,6 +30,7 @@ import {
   Track,
   TrackType,
   TranscriptConfig,
+  tfPeaksTrack,
 } from "@weng-lab/genomebrowser";
 
 // local
@@ -37,7 +38,6 @@ import { foldersByAssembly, TrackSelect } from "../src/lib";
 import type { BiosampleRowInfo } from "../src/TrackSelect/Folders/biosamples/shared/types";
 import type { GeneRowInfo } from "../src/TrackSelect/Folders/genes/shared/types";
 import type { OtherTrackInfo } from "../src/TrackSelect/Folders/other-tracks/shared/types";
-import { tfPeaksTrack } from "../src/TrackSelect/CustomTracks/TfPeaks";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
 
 interface Transcript {
