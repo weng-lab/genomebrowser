@@ -36,7 +36,16 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
   });
 
   return sortedAssays.map(
-    ({ id, assay, experimentAccession, fileAccession, url }) => ({
+    ({
+      id,
+      assay,
+      experimentAccession,
+      fileAccession,
+      url,
+      cpgPlus,
+      cpgMinus,
+      coverage,
+    }) => ({
       id,
       ontology: capitalize(ontology),
       lifeStage: capitalize(lifeStage),
@@ -47,6 +56,9 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
       fileAccession,
       url,
       collection,
+      cpgPlus,
+      cpgMinus,
+      coverage,
     }),
   );
 }

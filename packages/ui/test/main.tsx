@@ -25,6 +25,7 @@ import {
   DisplayMode,
   Domain,
   GQLWrapper,
+  MethylCConfig,
   Rect,
   Track,
   TrackType,
@@ -247,6 +248,7 @@ const ASSAY_COLORS: Record<string, string> = {
   rnaseq: "#00aa00",
   chromhmm: "#00ff00",
   ccre: "#000000",
+  wgbs: "#648bd8",
 };
 
 function generateTrack(
@@ -286,16 +288,37 @@ function generateTrack(
       track = {
         ...defaultBigBed,
         id: sel.id,
-        url: sel.url,
+        url: sel.url ?? "",
         title: sel.displayName,
         color,
+      };
+      break;
+    case "wgbs":
+      track = {
+        ...defaultMethylC,
+        id: sel.id,
+        title: sel.displayName,
+        urls: {
+          plusStrand: {
+            cpg: { url: sel.cpgPlus ?? "" },
+            chg: { url: "" },
+            chh: { url: "" },
+            depth: { url: sel.coverage ?? "" },
+          },
+          minusStrand: {
+            cpg: { url: sel.cpgMinus ?? "" },
+            chg: { url: "" },
+            chh: { url: "" },
+            depth: { url: sel.coverage ?? "" },
+          },
+        },
       };
       break;
     default:
       track = {
         ...defaultBigWig,
         id: sel.id,
-        url: sel.url,
+        url: sel.url ?? "",
         title: sel.displayName,
         color,
       };
@@ -316,6 +339,20 @@ export const defaultBigBed: Omit<BigBedConfig, "id" | "title" | "url"> = {
   height: 20,
   displayMode: DisplayMode.Dense,
   titleSize: 12,
+};
+
+export const defaultMethylC: Omit<MethylCConfig, "id" | "title" | "urls"> = {
+  trackType: TrackType.MethylC,
+  height: 100,
+  displayMode: DisplayMode.Split,
+  titleSize: 12,
+  color: "#648bd8",
+  colors: {
+    cpg: "#648bd8",
+    chg: "#ff944d",
+    chh: "#ff00ff",
+    depth: "#525252",
+  },
 };
 
 export const defaultTranscript: Omit<
