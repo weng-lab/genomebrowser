@@ -10,8 +10,8 @@ import {
   ManhattanPoint,
   TrackStoreInstance,
   useCustomData,
-  tfPeaksTrack,
 } from "../src/lib";
+import { tfPeaksTrack } from "./TfPeaks";
 import {
   bigBedExample,
   bigWigExample,
@@ -37,7 +37,7 @@ export default function All() {
     {
       // chr11:5,202,705-5,556,088
       // chr6:21,592,778-21,599,592
-      domain: { chromosome: "chr6", start: 21592778, end: 21599592 },
+      domain: { chromosome: "chr12", start: 53380176, end: 53416446 },
       marginWidth: 50,
       trackWidth: 950,
       multiplier: 3,
@@ -59,12 +59,18 @@ export default function All() {
         title: "peaks",
         titleSize: 16,
         url: "https://users.wenglab.org/gaomingshi/no_trim.TF_name.rPeaks.bb",
+        onClick: (r) => {
+          console.log(r);
+        },
       },
       {
         ...bigBedExample,
         id: "decorator",
         title: "decorator",
         url: "https://users.wenglab.org/gaomingshi/no_trim.TF_name.decorator.bb",
+        onClick: (r) => {
+          console.log(r);
+        },
       },
       tfPeaksTrack,
       // motifExample,

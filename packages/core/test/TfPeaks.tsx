@@ -13,7 +13,7 @@ import {
   useXTransform,
   Vibrant,
   useTrackStore,
-} from "../../src/lib";
+} from "../src/lib";
 import { DNALogo } from "logo-test";
 import { useMemo, useState } from "react";
 import motifData from "./TF-ChIP-Canonical-Motifs-w-Trimmed.json";
@@ -308,6 +308,9 @@ export const tfPeaksTrack: OverlayBigBedConfig = {
   overlayUrl: DECORATOR_BIGBED_URL,
   baseColor: "#d1d5db",
   overlayColor: "#1e3a8a",
+  onClick: (rect) => {
+    console.log("Clicked on rect:", rect);
+  },
   tooltip: TfPeaksTooltip,
   settingsPanel: TfPeaksSettings,
   renderers: {
