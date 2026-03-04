@@ -1,16 +1,21 @@
 import axios from "axios";
-import { AxiosDataLoader, BigWigData, BigWigReader, BigZoomData, FileType } from "bigwig-reader";
+import { AxiosDataLoader, BigWigData, BigWigReader, BigZoomData, FileType } from "genomic-reader";
 import { TrackDataState } from "../store/dataStore";
 import { Domain } from "../utils/types";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type BigBedParser = (chrom: string, startBase: number, endBase: number, rest: string) => any;
 
 export async function getBigData(
   url: string,
   expandedDomain: Domain,
-  preRenderedWidth?: number
+  preRenderedWidth?: number,
+  parser?: BigBedParser
 ): Promise<TrackDataState> {
   try {
     const axiosInstance = axios.create();
-    const dataLoader = new AxiosDataLoader(url, axiosInstance);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dataLoader = new AxiosDataLoader(url, axiosInstance as any);
     const reader = new BigWigReader(dataLoader);
 
     const header = await reader.getHeader();
@@ -44,12 +49,20 @@ export async function getBigData(
         return { data: twoBitData, error: null };
       }
       case FileType.BigBed: {
-        const bigBedData = await reader.readBigBedData(
-          expandedDomain.chromosome,
-          expandedDomain.start,
-          expandedDomain.chromosome,
-          expandedDomain.end
-        );
+        const bigBedData = parser
+          ? await reader.readBigBedData(
+              expandedDomain.chromosome,
+              expandedDomain.start,
+              expandedDomain.chromosome,
+              expandedDomain.end,
+              parser
+            )
+          : await reader.readBigBedData(
+              expandedDomain.chromosome,
+              expandedDomain.start,
+              expandedDomain.chromosome,
+              expandedDomain.end
+            );
         return { data: bigBedData, error: null };
       }
       default:

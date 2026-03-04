@@ -37,7 +37,7 @@ export default function All() {
     {
       // chr11:5,202,705-5,556,088
       // chr6:21,592,778-21,599,592
-      domain: { chromosome: "chr12", start: 53380176, end: 53416446 },
+      domain: { chromosome: "chr12", start: 53379143, end: 53381527 },
       marginWidth: 50,
       trackWidth: 950,
       multiplier: 3,
@@ -53,6 +53,8 @@ export default function All() {
     [
       // bigWigExample,
       // bigWigFillZero,
+      transcriptExample,
+      bigBedExample,
       {
         ...bigBedExample,
         id: "peaks",
@@ -75,10 +77,9 @@ export default function All() {
       tfPeaksTrack,
       // motifExample,
       // bulkBedExample,
-      methylCTrack,
+      // methylCTrack,
       // manhattanTrack,
       // ldTrack,
-      transcriptExample,
     ],
     []
   );
@@ -95,7 +96,7 @@ export default function All() {
       <div>
         {domain.chromosome}:{domain.start}-{domain.end}
       </div>
-      <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />;
+      <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />
     </>
   );
 }

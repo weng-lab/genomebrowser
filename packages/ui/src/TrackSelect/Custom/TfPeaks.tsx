@@ -18,10 +18,63 @@ import { DNALogo } from "logo-test";
 import { useMemo, useState } from "react";
 import motifData from "./TF-ChIP-Canonical-Motifs-w-Trimmed.json";
 
+// --- TF Peak BigBed Parser ---
+
+interface TfPeakBigBedData {
+  chr: string;
+  start: number;
+  end: number;
+  name?: string;
+  score?: number;
+  color?: string;
+  tfName?: string;
+  expRatio?: string;
+  cCREId?: string;
+  experimentId?: string;
+  expSupport?: Record<string, Record<string, string>>;
+}
+
+function parseTfPeakBigBed(
+  chrom: string,
+  startBase: number,
+  endBase: number,
+  rest: string,
+): TfPeakBigBedData {
+  const entry: TfPeakBigBedData = {
+    chr: chrom,
+    start: startBase,
+    end: endBase,
+  };
+  const tokens = rest.split("\t");
+  if (tokens.length > 0) entry.name = tokens[0];
+  if (tokens.length > 1) entry.score = parseFloat(tokens[1]);
+  // tokens[2] = strand, tokens[3] = thickStart, tokens[4] = thickEnd
+  if (tokens.length > 5 && tokens[5] !== "." && tokens[5] !== "0") {
+    entry.color = tokens[5].includes(",")
+      ? tokens[5].startsWith("rgb")
+        ? tokens[5]
+        : "rgb(" + tokens[5] + ")"
+      : tokens[5];
+  }
+  // tokens[6] = blockCount, tokens[7] = blockSizes, tokens[8] = blockStarts
+  if (tokens.length > 9) entry.tfName = tokens[9];
+  if (tokens.length > 10) entry.expRatio = tokens[10];
+  if (tokens.length > 11) entry.cCREId = tokens[11];
+  if (tokens.length > 12) entry.experimentId = tokens[12];
+  if (tokens.length > 13) {
+    try {
+      entry.expSupport = JSON.parse(tokens[13]);
+    } catch {
+      // leave undefined if JSON is malformed
+    }
+  }
+  return entry;
+}
+
 // --- Types ---
 
 type OverlayData = {
-  primary: Rect[];
+  primary: TfPeakBigBedData[];
   overlay: Rect[];
 };
 
@@ -29,6 +82,11 @@ type OverlayInteractionRect = Rect & {
   source: "base" | "overlay";
   matchedName?: string;
   pwm?: number[][];
+  tfName?: string;
+  expRatio?: string;
+  cCREId?: string;
+  experimentId?: string;
+  expSupport?: Record<string, Record<string, string>>;
 };
 
 // The config type — extra fields go directly on the config
@@ -93,48 +151,154 @@ function tfDisplayName(name?: string): string {
   return nameKey(name)?.toUpperCase() || name || "Unknown";
 }
 
+function TooltipRow({
+  label,
+  value,
+  y,
+}: {
+  label: string;
+  value: string;
+  y: number;
+}) {
+  return (
+    <g transform={`translate(0, ${y})`}>
+      <text x={8} y={0} fontSize={10} fill="#888" dominantBaseline="hanging">
+        {label}
+      </text>
+      <text x={100} y={0} fontSize={10} fill="#333" dominantBaseline="hanging">
+        {value}
+      </text>
+    </g>
+  );
+}
+
 function TfPeaksTooltip(rect: OverlayInteractionRect) {
   const pwm = rect.pwm;
   const label = tfDisplayName(rect.name);
-  if (!pwm || pwm.length === 0) {
-    return (
-      <g>
-        <rect
-          width={120}
-          height={24}
-          fill="white"
-          rx={2}
-          style={{ filter: "drop-shadow(0px 0px 4px rgba(0,0,0,0.25))" }}
-        />
-        <text x={6} y={16} fontSize={12} fill="#333">
-          {label}
-        </text>
-      </g>
-    );
+
+  // Build metadata rows
+  const metaRows: { label: string; value: string }[] = [];
+  if (rect.score != null)
+    metaRows.push({ label: "Score", value: `${rect.score}` });
+  metaRows.push({
+    label: "Position",
+    value: `${rect.start.toLocaleString()}-${rect.end.toLocaleString()}`,
+  });
+  if (rect.expRatio) metaRows.push({ label: "Exps", value: rect.expRatio });
+  if (rect.cCREId) metaRows.push({ label: "cCRE", value: rect.cCREId });
+  if (rect.experimentId)
+    metaRows.push({ label: "Experiment", value: rect.experimentId });
+
+  // Parse expSupport JSON into flat rows
+  const supportRows: { cellLine: string; expId: string; fileId: string }[] = [];
+  if (rect.expSupport) {
+    for (const [cellLine, exps] of Object.entries(rect.expSupport)) {
+      for (const [expId, fileId] of Object.entries(exps)) {
+        supportRows.push({ cellLine, expId, fileId });
+      }
+    }
   }
-  const logoWidth = pwm.length * 15;
-  const logoHeight = 130;
-  const totalHeight = logoHeight - 5;
+
+  const pad = 8;
+  const lineH = 14;
+  const titleH = 18;
+
+  // Layout: compute y offsets upfront
+  const hasLogo = pwm && pwm.length > 0;
+  const logoWidth = hasLogo ? pwm!.length * 15 : 0;
+  const logoHeight = hasLogo ? 130 : 0;
+  const logoSectionH = hasLogo ? logoHeight + 5 : 0;
+  const metaSectionH = metaRows.length * lineH;
+  const supportGap = supportRows.length > 0 ? 8 : 0;
+  const supportSectionH = supportRows.length * lineH;
+
+  const titleY = pad;
+  const logoY = titleY + titleH;
+  const metaY = logoY + logoSectionH;
+  const supportY = metaY + metaSectionH + supportGap;
+  const totalHeight = supportY + supportSectionH + pad;
+  const totalWidth = Math.max(hasLogo ? logoWidth + 2 * pad : 0, 300);
+
   return (
-    <g transform={`translate(0, ${-totalHeight})`}>
+    <g>
       <rect
-        width={logoWidth + 10}
+        width={totalWidth}
         height={totalHeight}
         fill="white"
         rx={3}
         style={{ filter: "drop-shadow(0px 0px 5px rgba(0,0,0,0.3))" }}
       />
-      <text x={5} y={16} fontSize={12} fontWeight="bold" fill="#333">
+
+      {/* Title */}
+      <text x={pad} y={titleY + 12} fontSize={12} fontWeight="bold" fill="#333">
         {label}
       </text>
-      <g transform="translate(5, 5)">
-        <DNALogo
-          ppm={pwm}
-          mode="INFORMATION_CONTENT"
-          width={logoWidth}
-          height={logoHeight}
+
+      {/* Logo */}
+      {hasLogo && (
+        <g transform={`translate(${pad}, ${logoY - 10})`}>
+          <DNALogo
+            ppm={pwm!}
+            mode="INFORMATION_CONTENT"
+            width={logoWidth}
+            height={logoHeight}
+          />
+        </g>
+      )}
+
+      {/* Metadata rows */}
+      {metaRows.map((row, i) => (
+        <TooltipRow
+          key={row.label}
+          label={row.label}
+          value={row.value}
+          y={metaY + i * lineH}
         />
-      </g>
+      ))}
+
+      {/* Support table */}
+      {supportRows.length > 0 && (
+        <g>
+          <line
+            x1={pad}
+            x2={totalWidth - pad}
+            y1={supportY - 4}
+            y2={supportY - 4}
+            stroke="#ddd"
+          />
+          {supportRows.map((row, i) => (
+            <g key={i} transform={`translate(0, ${supportY + i * lineH})`}>
+              <text
+                x={8}
+                y={0}
+                fontSize={9}
+                fill="#666"
+                dominantBaseline="hanging"
+              >
+                {row.cellLine}
+              </text>
+              <text
+                x={100}
+                y={0}
+                fontSize={9}
+                fill="#666"
+                dominantBaseline="hanging"
+              >
+                {row.expId}
+              </text>
+              <text
+                x={210}
+                y={0}
+                fontSize={9}
+                fill="#666"
+                dominantBaseline="hanging"
+              >
+                {row.fileId}
+              </text>
+            </g>
+          ))}
+        </g>
+      )}
     </g>
   );
 }
@@ -210,7 +374,7 @@ function OverlayBigBedRenderer(
     [filter],
   );
 
-  const rows = useMemo(() => {
+  const visiblePrimary = useMemo(() => {
     let visible = (data?.primary || []).filter(
       (r) => r.end >= domain.start && r.start <= domain.end,
     );
@@ -219,8 +383,22 @@ function OverlayBigBedRenderer(
         filterSet.has(nameKey(r.name)?.toUpperCase()),
       );
     }
-    return renderSquishBigBedData(visible, x);
-  }, [data, domain.end, domain.start, x, filterSet]);
+    return visible;
+  }, [data, domain.end, domain.start, filterSet]);
+
+  const rows = useMemo(
+    () => renderSquishBigBedData(visiblePrimary, x),
+    [visiblePrimary, x],
+  );
+
+  // Index primary data by "name:start:end" for fast TF metadata lookup
+  const primaryIndex = useMemo(() => {
+    const index = new Map<string, TfPeakBigBedData>();
+    for (const item of visiblePrimary) {
+      index.set(`${item.name}:${item.start}:${item.end}`, item);
+    }
+    return index;
+  }, [visiblePrimary]);
 
   const rowHeight = useRowHeight(rows.length, id);
   const height = Math.max(trackHeight, rowHeight * Math.max(rows.length, 1));
@@ -270,6 +448,9 @@ function OverlayBigBedRenderer(
                 intervalsOverlap(realStart, realEnd, a.start, a.end),
               );
               const fill = darkenHexColor(rect.color || baseColor, rect.score);
+              const meta = primaryIndex.get(
+                `${baseName}:${realStart}:${realEnd}`,
+              );
               const baseRect: OverlayInteractionRect = {
                 source: "base",
                 start: realStart,
@@ -278,6 +459,11 @@ function OverlayBigBedRenderer(
                 color: fill,
                 score: rect.score,
                 pwm: lookupPwm(baseName),
+                tfName: meta?.tfName,
+                expRatio: meta?.expRatio,
+                cCREId: meta?.cCREId,
+                experimentId: meta?.experimentId,
+                expSupport: meta?.expSupport,
               };
 
               return (
@@ -364,7 +550,7 @@ export const tfPeaksTrack: OverlayBigBedConfig = {
   fetcher: async (ctx) => {
     const track = ctx.track as OverlayBigBedConfig;
     const [primary, overlay] = await Promise.all([
-      fetchBigBedUrl(track.primaryUrl, ctx),
+      fetchBigBedUrl(track.primaryUrl, ctx, parseTfPeakBigBed),
       fetchBigBedUrl(track.overlayUrl, ctx),
     ]);
     const error =

@@ -16,7 +16,7 @@ import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
 import { CustomTrackConfig } from "../components/tracks/custom/types";
 import { TrackDataState } from "../store/dataStore";
-import { getBigData, ogBigDataFetcher, applyFillWithZero } from "./getBigWigData";
+import { getBigData, applyFillWithZero, type BigBedParser } from "./getBigWigData";
 
 // An interface for storing avaliable Apollo GQL Queries
 export interface QueryHooks {
@@ -45,22 +45,23 @@ export async function getBigDataRace(
   url: string,
   expandedDomain: Domain,
   preRenderedWidth: number,
-  queries: QueryHooks
+  _queries: QueryHooks,
+  parser?: BigBedParser
 ) {
   const startTime = performance.now();
 
-  const [p1, p2] = [
-    getBigData(url, expandedDomain, preRenderedWidth).then((data) => {
+  const [p1] = [
+    getBigData(url, expandedDomain, preRenderedWidth, parser).then((data) => {
       const elapsed = performance.now() - startTime;
       return { data, source: "New" as const, elapsed, url };
     }),
-    ogBigDataFetcher(url, expandedDomain, preRenderedWidth, queries).then((data) => {
-      const elapsed = performance.now() - startTime;
-      return { data, source: "GQL" as const, elapsed, url };
-    }),
+    // ogBigDataFetcher(url, expandedDomain, preRenderedWidth, queries).then((data) => {
+    //   const elapsed = performance.now() - startTime;
+    //   return { data, source: "GQL" as const, elapsed, url };
+    // }),
   ];
 
-  const result = await Promise.race([p1, p2]);
+  const result = await Promise.race([p1]);
   // console.log(result.url, "\n", result.source, "took", result.elapsed.toFixed(2), "ms");
   return result.data;
 }
@@ -69,8 +70,8 @@ export async function getBigDataRace(
  * Fetch a BigBed/BigWig URL using the fetcher context.
  * Useful for custom track fetchers that need to load .bb/.bw files.
  */
-export async function fetchBigBedUrl(url: string, ctx: FetcherContext): Promise<TrackDataState> {
-  return await getBigDataRace(url, ctx.expandedDomain, ctx.preRenderedWidth, ctx.queries);
+export async function fetchBigBedUrl(url: string, ctx: FetcherContext, parser?: BigBedParser): Promise<TrackDataState> {
+  return await getBigDataRace(url, ctx.expandedDomain, ctx.preRenderedWidth, ctx.queries, parser);
 }
 
 /**

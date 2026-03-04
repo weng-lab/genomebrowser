@@ -92,6 +92,9 @@ export { getBigDataRace, fetchBigBedUrl };
 import type { FetcherContext, FetchFunction } from "./api/fetchers";
 export type { FetcherContext, FetchFunction };
 
+import type { BigBedParser } from "./api/getBigWigData";
+export type { BigBedParser };
+
 import type { TrackDataState } from "./store/dataStore";
 export type { TrackDataState };
 
