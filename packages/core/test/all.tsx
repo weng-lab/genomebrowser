@@ -77,7 +77,7 @@ export default function All() {
       tfPeaksTrack,
       // motifExample,
       // bulkBedExample,
-      // methylCTrack,
+      methylCTrack,
       // manhattanTrack,
       // ldTrack,
     ],
