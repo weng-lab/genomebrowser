@@ -16,7 +16,7 @@ import {
 } from "../src/lib";
 import { DNALogo } from "logo-test";
 import { useMemo, useState } from "react";
-import motifData from "./TF-ChIP-Canonical-Motifs-w-Trimmed.json";
+import motifData from "./green-motifs.json";
 
 // --- TF Peak BigBed Parser ---
 
@@ -118,14 +118,14 @@ function scoreColor(score?: number) {
 
 // --- Motif data lookup ---
 
-type MotifEntry = { trimmed_ppm: number[][]; ppm: number[][] };
+type MotifEntry = { trimmed_ppm: number[][] };
 const motifLookup = motifData as Record<string, MotifEntry>;
 
 function lookupPwm(name?: string): number[][] | undefined {
   const key = nameKey(name)?.toUpperCase();
   if (!key) return undefined;
   const entry = motifLookup[key];
-  return entry?.trimmed_ppm ?? entry?.ppm;
+  return entry?.trimmed_ppm;
 }
 
 // --- Tooltip ---
