@@ -16,7 +16,7 @@ import {
 } from "@weng-lab/genomebrowser";
 import { DNALogo } from "logo-test";
 import { useMemo, useState } from "react";
-import motifData from "./TF-ChIP-Canonical-Motifs-w-Trimmed.json";
+import motifData from "./green-motifs.json";
 
 // --- TF Peak BigBed Parser ---
 
@@ -79,8 +79,7 @@ type OverlayData = {
 };
 
 type OverlayInteractionRect = Rect & {
-  source: "base" | "overlay";
-  matchedName?: string;
+  chr?: string;
   pwm?: number[][];
   tfName?: string;
   expRatio?: string;
@@ -123,26 +122,24 @@ function intervalsOverlap(
   return aStart <= bEnd && bStart <= aEnd;
 }
 
-function darkenHexColor(color: string, score?: number) {
-  if (!color.startsWith("#") || color.length !== 7) return color;
-  const t = 1 - (0.7 * Math.min(Math.max(score ?? 0, 0), 1000)) / 1000;
-  const r = Math.round(parseInt(color.slice(1, 3), 16) * t);
-  const g = Math.round(parseInt(color.slice(3, 5), 16) * t);
-  const b = Math.round(parseInt(color.slice(5, 7), 16) * t);
-  if ([r, g, b].some(isNaN)) return color;
+function scoreColor(score?: number) {
+  const t = Math.min(Math.max(score ?? 0, 0), 1000) / 1000;
+  const r = Math.round(0xe3 + (0x00 - 0xe3) * t);
+  const g = Math.round(0xe3 + (0x00 - 0xe3) * t);
+  const b = Math.round(0xe3 + (0x00 - 0xe3) * t);
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
 // --- Motif data lookup ---
 
-type MotifEntry = { trimmed_ppm: number[][]; ppm: number[][] };
+type MotifEntry = { trimmed_ppm: number[][] };
 const motifLookup = motifData as Record<string, MotifEntry>;
 
 function lookupPwm(name?: string): number[][] | undefined {
   const key = nameKey(name)?.toUpperCase();
   if (!key) return undefined;
   const entry = motifLookup[key];
-  return entry?.trimmed_ppm ?? entry?.ppm;
+  return entry?.trimmed_ppm;
 }
 
 // --- Tooltip ---
@@ -176,18 +173,27 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
   const pwm = rect.pwm;
   const label = tfDisplayName(rect.name);
 
-  // Build metadata rows
+  // Build metadata rows (single-value rows)
   const metaRows: { label: string; value: string }[] = [];
   if (rect.score != null)
     metaRows.push({ label: "Score", value: `${rect.score}` });
   metaRows.push({
     label: "Position",
-    value: `${rect.start.toLocaleString()}-${rect.end.toLocaleString()}`,
+    value: `${rect.chr ? rect.chr + ":" : ""}${rect.start.toLocaleString()}-${rect.end.toLocaleString()}`,
   });
   if (rect.expRatio) metaRows.push({ label: "Exps", value: rect.expRatio });
-  if (rect.cCREId) metaRows.push({ label: "cCRE", value: rect.cCREId });
-  if (rect.experimentId)
-    metaRows.push({ label: "Experiment", value: rect.experimentId });
+
+  // Multi-value rows: split comma-separated cCREs, group 3 per row
+  const cCREItems = rect.cCREId
+    ? rect.cCREId
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+  const cCRERows: string[][] = [];
+  for (let i = 0; i < cCREItems.length; i += 4) {
+    cCRERows.push(cCREItems.slice(i, i + 4));
+  }
 
   // Parse expSupport JSON into flat rows
   const supportRows: { cellLine: string; expId: string; fileId: string }[] = [];
@@ -205,19 +211,31 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
 
   // Layout: compute y offsets upfront
   const hasLogo = pwm && pwm.length > 0;
-  const logoWidth = hasLogo ? pwm!.length * 15 : 0;
-  const logoHeight = hasLogo ? 130 : 0;
-  const logoSectionH = hasLogo ? logoHeight + 5 : 0;
+
+  const logoHeight = hasLogo ? 80 : 0;
+  const logoSectionH = hasLogo ? logoHeight + 4 : 0;
   const metaSectionH = metaRows.length * lineH;
+
+  // cCRE section: label row + one row per group of 3
+  const cCREGap = cCRERows.length > 0 ? 8 : 0;
+  const cCREHeaderH = cCRERows.length > 0 ? lineH : 0;
+  const cCRESectionH = cCRERows.length * lineH;
+
+  // Support section
   const supportGap = supportRows.length > 0 ? 8 : 0;
+  const supportHeaderH = supportRows.length > 0 ? lineH : 0;
   const supportSectionH = supportRows.length * lineH;
 
   const titleY = pad;
   const logoY = titleY + titleH;
   const metaY = logoY + logoSectionH;
-  const supportY = metaY + metaSectionH + supportGap;
-  const totalHeight = supportY + supportSectionH + pad;
-  const totalWidth = Math.max(hasLogo ? logoWidth + 2 * pad : 0, 300);
+  const cCREY = metaY + metaSectionH + cCREGap;
+  const cCREDataY = cCREY + cCREHeaderH;
+  const supportY = cCREDataY + cCRESectionH + supportGap;
+  const supportDataY = supportY + supportHeaderH;
+  const totalHeight = supportDataY + supportSectionH + pad;
+
+  const totalWidth = 340;
 
   return (
     <g>
@@ -236,11 +254,11 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
 
       {/* Logo */}
       {hasLogo && (
-        <g transform={`translate(${pad}, ${logoY - 10})`}>
+        <g transform={`translate(${pad}, ${logoY})`}>
           <DNALogo
             ppm={pwm!}
             mode="INFORMATION_CONTENT"
-            width={logoWidth}
+            width={totalWidth - 2 * pad}
             height={logoHeight}
           />
         </g>
@@ -256,7 +274,42 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
         />
       ))}
 
-      {/* Support table */}
+      {/* Overlapping cCREs */}
+      {cCRERows.length > 0 && (
+        <g>
+          <line
+            x1={pad}
+            x2={totalWidth - pad}
+            y1={cCREY - 4}
+            y2={cCREY - 4}
+            stroke="#ddd"
+          />
+          <text
+            x={pad}
+            y={cCREY + 2}
+            fontSize={9}
+            fontWeight="bold"
+            fill="#666"
+            dominantBaseline="hanging"
+          >
+            Overlapping cCREs
+          </text>
+          {cCRERows.map((group, i) => (
+            <text
+              key={i}
+              x={pad}
+              y={cCREDataY + i * lineH + 2}
+              fontSize={9}
+              fill="#333"
+              dominantBaseline="hanging"
+            >
+              {group.join(", ")}
+            </text>
+          ))}
+        </g>
+      )}
+
+      {/* Experiments supporting this peak */}
       {supportRows.length > 0 && (
         <g>
           <line
@@ -266,8 +319,18 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
             y2={supportY - 4}
             stroke="#ddd"
           />
+          <text
+            x={pad}
+            y={supportY + 2}
+            fontSize={9}
+            fontWeight="bold"
+            fill="#666"
+            dominantBaseline="hanging"
+          >
+            Experiments supporting this peak
+          </text>
           {supportRows.map((row, i) => (
-            <g key={i} transform={`translate(0, ${supportY + i * lineH})`}>
+            <g key={i} transform={`translate(0, ${supportDataY + i * lineH})`}>
               <text
                 x={8}
                 y={0}
@@ -356,8 +419,8 @@ function OverlayBigBedRenderer(
     dimensions,
     id,
     height: trackHeight,
-    color,
-    baseColor: baseColorProp,
+    color: _color,
+    baseColor: _baseColorProp,
     overlayColor: overlayColorProp,
     filter,
     ...rest
@@ -407,7 +470,6 @@ function OverlayBigBedRenderer(
     [data],
   );
 
-  const baseColor = baseColorProp || color || Vibrant[0];
   const overlayColor = overlayColorProp || Vibrant[3];
   const cursor = rest.onClick ? "pointer" : "default";
 
@@ -447,18 +509,18 @@ function OverlayBigBedRenderer(
               ).filter((a) =>
                 intervalsOverlap(realStart, realEnd, a.start, a.end),
               );
-              const fill = darkenHexColor(rect.color || baseColor, rect.score);
+              const fill = scoreColor(rect.score);
               const meta = primaryIndex.get(
                 `${baseName}:${realStart}:${realEnd}`,
               );
               const baseRect: OverlayInteractionRect = {
-                source: "base",
                 start: realStart,
                 end: realEnd,
                 name: baseName,
                 color: fill,
                 score: rect.score,
-                pwm: lookupPwm(baseName),
+                chr: meta?.chr,
+                pwm: attached.length > 0 ? lookupPwm(baseName) : undefined,
                 tfName: meta?.tfName,
                 expRatio: meta?.expRatio,
                 cCREId: meta?.cCREId,
@@ -485,16 +547,6 @@ function OverlayBigBedRenderer(
                   {attached.map((a, ai) => {
                     const left = x(a.start);
                     const right = x(a.end);
-                    const overlayRect: OverlayInteractionRect = {
-                      source: "overlay",
-                      start: a.start,
-                      end: a.end,
-                      name: a.name,
-                      color: a.color || overlayColor,
-                      score: a.score,
-                      matchedName: baseName,
-                      pwm: lookupPwm(a.name),
-                    };
                     return (
                       <rect
                         style={{ cursor }}
@@ -505,11 +557,11 @@ function OverlayBigBedRenderer(
                         height={baseH}
                         fill={a.color || overlayColor}
                         opacity={0.9}
-                        onClick={() => handleClick(overlayRect)}
+                        onClick={() => handleClick(baseRect)}
                         onMouseOver={(e) =>
-                          handleHover(overlayRect, overlayRect.name || "", e)
+                          handleHover(baseRect, baseRect.name || "", e)
                         }
-                        onMouseOut={() => handleLeave(overlayRect)}
+                        onMouseOut={() => handleLeave(baseRect)}
                       />
                     );
                   })}
@@ -541,7 +593,10 @@ export const tfPeaksTrack: OverlayBigBedConfig = {
   primaryUrl: PEAKS_BIGBED_URL,
   overlayUrl: DECORATOR_BIGBED_URL,
   baseColor: "#d1d5db",
-  overlayColor: "#1e3a8a",
+  overlayColor: "#36dd81",
+  onClick: (rect) => {
+    console.log("Clicked on rect:", rect);
+  },
   tooltip: TfPeaksTooltip,
   settingsPanel: TfPeaksSettings,
   renderers: {
