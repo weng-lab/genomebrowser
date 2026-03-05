@@ -37,7 +37,7 @@ export default function All() {
     {
       // chr11:5,202,705-5,556,088
       // chr6:21,592,778-21,599,592
-      domain: { chromosome: "chr12", start: 53379143, end: 53381527 },
+      domain: { chromosome: "chr12", start: 53391187, end: 53392280 },
       marginWidth: 50,
       trackWidth: 950,
       multiplier: 3,
