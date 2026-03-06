@@ -38,7 +38,7 @@ import type { BiosampleRowInfo } from "../src/TrackSelect/Folders/biosamples/sha
 import type { GeneRowInfo } from "../src/TrackSelect/Folders/genes/shared/types";
 import type { OtherTrackInfo } from "../src/TrackSelect/Folders/other-tracks/shared/types";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
-import { tfPeaksTrack } from "@weng-lab/genomebrowser/test/TfPeaks";
+import { tfPeaksTrack } from "../src/TrackSelect/Custom/TfPeaks";
 
 interface Transcript {
   id: string;
@@ -87,7 +87,7 @@ function Main() {
   const browserStore = createBrowserStoreMemo({
     // chr7:19,695,494-19,699,803
     // chr1:11103779-11262792
-    domain: { chromosome: "chr1", start: 11103779, end: 11262792 },
+    domain: { chromosome: "chr12", start: 53380108, end: 53416378 },
     marginWidth: 100,
     trackWidth: 1400,
     multiplier: 3,
