@@ -183,27 +183,34 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
   });
   if (rect.expRatio) metaRows.push({ label: "Exps", value: rect.expRatio });
 
-  // Multi-value rows: split comma-separated cCREs, group 3 per row
-  const cCREItems = rect.cCREId
+  // Multi-value rows: split comma-separated cCREs, group 4 per row, cap at 5
+  const allCCREItems = rect.cCREId
     ? rect.cCREId
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean)
     : [];
+  const maxCCREs = 5;
+  const cCREItems = allCCREItems.slice(0, maxCCREs);
+  const hiddenCCREs = Math.max(0, allCCREItems.length - maxCCREs);
   const cCRERows: string[][] = [];
   for (let i = 0; i < cCREItems.length; i += 4) {
     cCRERows.push(cCREItems.slice(i, i + 4));
   }
 
-  // Parse expSupport JSON into flat rows
-  const supportRows: { cellLine: string; expId: string; fileId: string }[] = [];
+  // Parse expSupport JSON into flat rows, cap at 5
+  const allSupportRows: { cellLine: string; expId: string; fileId: string }[] =
+    [];
   if (rect.expSupport) {
     for (const [cellLine, exps] of Object.entries(rect.expSupport)) {
       for (const [expId, fileId] of Object.entries(exps)) {
-        supportRows.push({ cellLine, expId, fileId });
+        allSupportRows.push({ cellLine, expId, fileId });
       }
     }
   }
+  const maxSupport = 5;
+  const supportRows = allSupportRows.slice(0, maxSupport);
+  const hiddenSupport = Math.max(0, allSupportRows.length - maxSupport);
 
   const pad = 8;
   const lineH = 14;
@@ -216,15 +223,17 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
   const logoSectionH = hasLogo ? logoHeight + 4 : 0;
   const metaSectionH = metaRows.length * lineH;
 
-  // cCRE section: label row + one row per group of 3
+  // cCRE section: label row + one row per group of 4 + optional "+N more" row
   const cCREGap = cCRERows.length > 0 ? 8 : 0;
   const cCREHeaderH = cCRERows.length > 0 ? lineH : 0;
-  const cCRESectionH = cCRERows.length * lineH;
+  const cCREMoreH = hiddenCCREs > 0 ? lineH : 0;
+  const cCRESectionH = cCRERows.length * lineH + cCREMoreH;
 
-  // Support section
+  // Support section + optional "+N more" row
   const supportGap = supportRows.length > 0 ? 8 : 0;
   const supportHeaderH = supportRows.length > 0 ? lineH : 0;
-  const supportSectionH = supportRows.length * lineH;
+  const supportMoreH = hiddenSupport > 0 ? lineH : 0;
+  const supportSectionH = supportRows.length * lineH + supportMoreH;
 
   const titleY = pad;
   const logoY = titleY + titleH;
@@ -306,6 +315,17 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
               {group.join(", ")}
             </text>
           ))}
+          {hiddenCCREs > 0 && (
+            <text
+              x={pad}
+              y={cCREDataY + cCRERows.length * lineH + 2}
+              fontSize={9}
+              fill="#aaa"
+              dominantBaseline="hanging"
+            >
+              +{hiddenCCREs} more...
+            </text>
+          )}
         </g>
       )}
 
@@ -360,6 +380,17 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
               </text>
             </g>
           ))}
+          {hiddenSupport > 0 && (
+            <text
+              x={pad}
+              y={supportDataY + supportRows.length * lineH + 2}
+              fontSize={9}
+              fill="#aaa"
+              dominantBaseline="hanging"
+            >
+              +{hiddenSupport} more...
+            </text>
+          )}
         </g>
       )}
     </g>
