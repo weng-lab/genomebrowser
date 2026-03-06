@@ -172,6 +172,10 @@ function TooltipRow({
 function TfPeaksTooltip(rect: OverlayInteractionRect) {
   const pwm = rect.pwm;
   const label = tfDisplayName(rect.name);
+  const totalWidth = 340;
+  const pad = 8;
+  const lineH = 14;
+  const titleH = 18;
 
   // Build metadata rows (single-value rows)
   const metaRows: { label: string; value: string }[] = [];
@@ -181,7 +185,6 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
     label: "Position",
     value: `${rect.chr ? rect.chr + ":" : ""}${rect.start.toLocaleString()}-${rect.end.toLocaleString()}`,
   });
-  if (rect.expRatio) metaRows.push({ label: "Exps", value: rect.expRatio });
 
   // Multi-value rows: split comma-separated cCREs, group 4 per row, cap at 5
   const allCCREItems = rect.cCREId
@@ -198,23 +201,31 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
     cCRERows.push(cCREItems.slice(i, i + 4));
   }
 
-  // Parse expSupport JSON into flat rows, cap at 5
-  const allSupportRows: { cellLine: string; expId: string; fileId: string }[] =
-    [];
+  // Extract unique sorted biosamples from expSupport
+  const allBiosamples: string[] = [];
   if (rect.expSupport) {
-    for (const [cellLine, exps] of Object.entries(rect.expSupport)) {
-      for (const [expId, fileId] of Object.entries(exps)) {
-        allSupportRows.push({ cellLine, expId, fileId });
+    const seen = new Set<string>();
+    for (const cellLine of Object.keys(rect.expSupport)) {
+      if (!seen.has(cellLine)) {
+        seen.add(cellLine);
+        allBiosamples.push(cellLine);
       }
     }
+    allBiosamples.sort((a, b) => a.localeCompare(b));
   }
-  const maxSupport = 5;
-  const supportRows = allSupportRows.slice(0, maxSupport);
-  const hiddenSupport = Math.max(0, allSupportRows.length - maxSupport);
-
-  const pad = 8;
-  const lineH = 14;
-  const titleH = 18;
+  const maxBiosamples = 12;
+  const biosampleItems = allBiosamples.slice(0, maxBiosamples);
+  const hiddenBiosamples = Math.max(0, allBiosamples.length - maxBiosamples);
+  const biosampleText = biosampleItems.join(", ");
+  const biosampleMoreText =
+    hiddenBiosamples > 0 ? ` ...and ${hiddenBiosamples} more` : "";
+  const biosampleCharsPerLine = Math.floor((totalWidth - 2 * pad) / 5.2);
+  const biosampleContentLines = Math.max(
+    1,
+    Math.ceil(
+      (biosampleText.length + biosampleMoreText.length) / biosampleCharsPerLine,
+    ),
+  );
 
   // Layout: compute y offsets upfront
   const hasLogo = pwm && pwm.length > 0;
@@ -229,22 +240,19 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
   const cCREMoreH = hiddenCCREs > 0 ? lineH : 0;
   const cCRESectionH = cCRERows.length * lineH + cCREMoreH;
 
-  // Support section + optional "+N more" row
-  const supportGap = supportRows.length > 0 ? 8 : 0;
-  const supportHeaderH = supportRows.length > 0 ? lineH : 0;
-  const supportMoreH = hiddenSupport > 0 ? lineH : 0;
-  const supportSectionH = supportRows.length * lineH + supportMoreH;
+  // Biosamples section
+  const biosampleGap = biosampleContentLines > 0 ? 8 : 0;
+  const biosampleHeaderH = biosampleContentLines > 0 ? lineH : 0;
+  const biosampleSectionH = biosampleContentLines * lineH;
 
   const titleY = pad;
   const logoY = titleY + titleH;
   const metaY = logoY + logoSectionH;
   const cCREY = metaY + metaSectionH + cCREGap;
   const cCREDataY = cCREY + cCREHeaderH;
-  const supportY = cCREDataY + cCRESectionH + supportGap;
-  const supportDataY = supportY + supportHeaderH;
-  const totalHeight = supportDataY + supportSectionH + pad;
-
-  const totalWidth = 340;
+  const biosampleY = cCREDataY + cCRESectionH + biosampleGap;
+  const biosampleDataY = biosampleY + biosampleHeaderH;
+  const totalHeight = biosampleDataY + biosampleSectionH + pad;
 
   return (
     <g>
@@ -329,68 +337,50 @@ function TfPeaksTooltip(rect: OverlayInteractionRect) {
         </g>
       )}
 
-      {/* Experiments supporting this peak */}
-      {supportRows.length > 0 && (
+      {/* Biosamples */}
+      {biosampleContentLines > 0 && (
         <g>
           <line
             x1={pad}
             x2={totalWidth - pad}
-            y1={supportY - 4}
-            y2={supportY - 4}
+            y1={biosampleY - 4}
+            y2={biosampleY - 4}
             stroke="#ddd"
           />
           <text
             x={pad}
-            y={supportY + 2}
+            y={biosampleY + 2}
             fontSize={9}
             fontWeight="bold"
             fill="#666"
             dominantBaseline="hanging"
           >
-            Experiments supporting this peak
+            Biosamples
           </text>
-          {supportRows.map((row, i) => (
-            <g key={i} transform={`translate(0, ${supportDataY + i * lineH})`}>
-              <text
-                x={8}
-                y={0}
-                fontSize={9}
-                fill="#666"
-                dominantBaseline="hanging"
-              >
-                {row.cellLine}
-              </text>
-              <text
-                x={100}
-                y={0}
-                fontSize={9}
-                fill="#666"
-                dominantBaseline="hanging"
-              >
-                {row.expId}
-              </text>
-              <text
-                x={210}
-                y={0}
-                fontSize={9}
-                fill="#666"
-                dominantBaseline="hanging"
-              >
-                {row.fileId}
-              </text>
-            </g>
-          ))}
-          {hiddenSupport > 0 && (
-            <text
-              x={pad}
-              y={supportDataY + supportRows.length * lineH + 2}
-              fontSize={9}
-              fill="#aaa"
-              dominantBaseline="hanging"
+          <foreignObject
+            x={pad}
+            y={biosampleDataY}
+            width={totalWidth - 2 * pad}
+            height={biosampleSectionH}
+          >
+            <div
+              style={{
+                color: "#333",
+                fontSize: "9px",
+                lineHeight: `${lineH}px`,
+                margin: 0,
+                padding: 0,
+                overflow: "hidden",
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+              }}
             >
-              +{hiddenSupport} more...
-            </text>
-          )}
+              {biosampleText}
+              {hiddenBiosamples > 0 && (
+                <span style={{ color: "#aaa" }}>{biosampleMoreText}</span>
+              )}
+            </div>
+          </foreignObject>
         </g>
       )}
     </g>
