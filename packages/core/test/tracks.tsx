@@ -141,6 +141,7 @@ export const methylCTrack: MethylCConfig = {
     chh: "#ff00ff", // rgb(25, 14, 25)
     depth: "#525252", // rgb(82, 82, 82)
   },
+  range: { min: 0, max: 1 },
   urls: {
     plusStrand: {
       cpg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_pos.bw" },

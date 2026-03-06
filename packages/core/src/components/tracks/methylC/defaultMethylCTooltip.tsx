@@ -8,7 +8,24 @@ const COLORS = {
   depth: "#525252", // rgb(82, 82, 82)
 };
 
-export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues: ValuedPoint[] }) {
+export type MethylCShowRows = {
+  fwdCpg: boolean;
+  fwdChg: boolean;
+  fwdChh: boolean;
+  fwdDepth: boolean;
+  revCpg: boolean;
+  revChg: boolean;
+  revChh: boolean;
+  revDepth: boolean;
+};
+
+export default function DefaultMethylCTooltip({
+  tooltipValues,
+  showRows,
+}: {
+  tooltipValues: ValuedPoint[];
+  showRows: MethylCShowRows;
+}) {
   const text = useTheme((state) => state.text);
   const background = useTheme((state) => state.background);
 
@@ -28,24 +45,24 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
 
   const rowHeight = 20;
   const labelWidth = 105;
-  const valueWidth = 44;
+  const valueWidth = 50;
   const totalWidth = labelWidth + valueWidth;
 
-  // Compute sequential row indices so hidden rows condense
+  // Compute sequential row indices — visibility driven by showRows (URL existence)
   let fwdRow = 0;
-  const fwdDepthRow = forwardData.depth != null ? ++fwdRow : -1;
-  const fwdCgRow = forwardData.cg != null ? ++fwdRow : -1;
-  const fwdChgRow = forwardData.chg != null ? ++fwdRow : -1;
-  const fwdChhRow = forwardData.chh != null ? ++fwdRow : -1;
+  const fwdDepthRow = showRows.fwdDepth ? ++fwdRow : -1;
+  const fwdCgRow = showRows.fwdCpg ? ++fwdRow : -1;
+  const fwdChgRow = showRows.fwdChg ? ++fwdRow : -1;
+  const fwdChhRow = showRows.fwdChh ? ++fwdRow : -1;
 
   // Reverse header sits after forward header + forward rows + gap
   const reverseHeaderY = rowHeight * (1 + fwdRow) + 20;
 
   let revRow = 0;
-  const revDepthRow = reverseData.depth != null ? ++revRow : -1;
-  const revCgRow = reverseData.cg != null ? ++revRow : -1;
-  const revChgRow = reverseData.chg != null ? ++revRow : -1;
-  const revChhRow = reverseData.chh != null ? ++revRow : -1;
+  const revDepthRow = showRows.revDepth ? ++revRow : -1;
+  const revCgRow = showRows.revCpg ? ++revRow : -1;
+  const revChgRow = showRows.revChg ? ++revRow : -1;
+  const revChhRow = showRows.revChh ? ++revRow : -1;
 
   const revRowY = (row: number) => reverseHeaderY + rowHeight * (row - 1) + 8;
 
@@ -69,7 +86,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
               Coverage for CpG
             </text>
             <text x={labelWidth + 10} y={rowHeight * fwdDepthRow + 15} fill={text} fontSize="12">
-              {Math.round(forwardData.depth!)}
+              {forwardData.depth != null ? Math.round(forwardData.depth) : "N/A"}
             </text>
           </>
         )}
@@ -82,7 +99,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
               CG
             </text>
             <text x={labelWidth + 10} y={rowHeight * fwdCgRow + 15} fill={text} fontSize="12">
-              {forwardData.cg!.toFixed(2) + "%"}
+              {forwardData.cg != null ? forwardData.cg.toFixed(2) + "%" : "N/A"}
             </text>
           </>
         )}
@@ -95,7 +112,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
               CHG
             </text>
             <text x={labelWidth + 10} y={rowHeight * fwdChgRow + 15} fill={text} fontSize="12">
-              {forwardData.chg!.toFixed(2) + "%"}
+              {forwardData.chg != null ? forwardData.chg.toFixed(2) + "%" : "N/A"}
             </text>
           </>
         )}
@@ -108,7 +125,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
               CHH
             </text>
             <text x={labelWidth + 10} y={rowHeight * fwdChhRow + 15} fill={text} fontSize="12">
-              {forwardData.chh!.toFixed(2) + "%"}
+              {forwardData.chh != null ? forwardData.chh.toFixed(2) + "%" : "N/A"}
             </text>
           </>
         )}
@@ -126,7 +143,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
               Coverage for CpG
             </text>
             <text x={labelWidth + 10} y={revRowY(revDepthRow) + 15} fill={text} fontSize="12">
-              {Math.round(reverseData.depth!)}
+              {reverseData.depth != null ? Math.round(reverseData.depth) : "N/A"}
             </text>
           </>
         )}
@@ -139,7 +156,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
               CG
             </text>
             <text x={labelWidth + 10} y={revRowY(revCgRow) + 15} fill={text} fontSize="12">
-              {reverseData.cg!.toFixed(2) + "%"}
+              {reverseData.cg != null ? reverseData.cg.toFixed(2) + "%" : "N/A"}
             </text>
           </>
         )}
@@ -152,7 +169,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
               CHG
             </text>
             <text x={labelWidth + 10} y={revRowY(revChgRow) + 15} fill={text} fontSize="12">
-              {reverseData.chg!.toFixed(2) + "%"}
+              {reverseData.chg != null ? reverseData.chg.toFixed(2) + "%" : "N/A"}
             </text>
           </>
         )}
@@ -165,7 +182,7 @@ export default function DefaultMethylCTooltip({ tooltipValues }: { tooltipValues
               CHH
             </text>
             <text x={labelWidth + 10} y={revRowY(revChhRow) + 15} fill={text} fontSize="12">
-              {reverseData.chh!.toFixed(2) + "%"}
+              {reverseData.chh != null ? reverseData.chh.toFixed(2) + "%" : "N/A"}
             </text>
           </>
         )}
