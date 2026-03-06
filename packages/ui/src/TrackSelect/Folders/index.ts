@@ -27,6 +27,6 @@ export type { OtherTrackInfo } from "./other-tracks/shared/types";
  * 2. Import and add it to the appropriate assembly array below
  */
 export const foldersByAssembly: Record<Assembly, FolderDefinition[]> = {
-  GRCh38: [humanBiosamplesFolder, humanGenesFolder, humanOtherTracksFolder],
-  mm10: [mouseBiosamplesFolder, mouseGenesFolder],
+  GRCh38: [humanGenesFolder, humanBiosamplesFolder, humanOtherTracksFolder],
+  mm10: [mouseGenesFolder, mouseBiosamplesFolder],
 };

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useBrowserStore, useTooltipStore } from "../../store/BrowserContext";
 import { useTotalHeight } from "../../hooks/useTrackLayout";
-import { svgPoint } from "../../utils/svg";
 import { RULER_HEIGHT } from "../tracks/ruler/ruler";
 
 export default function Tooltip() {
@@ -12,7 +11,6 @@ export default function Tooltip() {
   const [newX, setNewX] = useState(0);
   const [newY, setNewY] = useState(0);
   const [tooltipDimensions, setTooltipDimensions] = useState({ width: 0, height: 0 });
-  const browserRef = useBrowserStore((state) => state.svgRef);
   const ref = useRef<SVGGElement>(null);
   const delta = useBrowserStore((state) => state.delta);
   const trackWidth = useBrowserStore((state) => state.browserWidth);
@@ -21,11 +19,10 @@ export default function Tooltip() {
   const offset = 5;
 
   const calculatePosition = useCallback(() => {
-    if (!ref.current || !browserRef || !browserRef.current) return;
+    if (!ref.current) return;
 
-    const pos = svgPoint(browserRef.current, x, y);
-    const mouseX = pos[0];
-    const mouseY = pos[1];
+    const mouseX = x;
+    const mouseY = y;
 
     const bbox = ref.current.getBBox();
     const tooltipWidth = bbox.width;
@@ -56,10 +53,10 @@ export default function Tooltip() {
 
     setNewX(newX);
     setNewY(newY);
-  }, [x, y, browserRef, trackWidth, svgHeight, offset, tooltipDimensions]);
+  }, [x, y, trackWidth, svgHeight, offset, tooltipDimensions]);
 
   useEffect(() => {
-    if (!ref.current || !browserRef || !browserRef.current || !show) return;
+    if (!ref.current || !show) return;
 
     requestAnimationFrame(calculatePosition);
 
@@ -75,7 +72,7 @@ export default function Tooltip() {
     });
 
     return () => observer.disconnect();
-  }, [show, content, x, y, trackWidth, svgHeight, browserRef]);
+  }, [show, content, x, y, trackWidth, svgHeight]);
 
   if (!show || delta) return null;
   return (

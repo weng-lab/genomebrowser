@@ -1,6 +1,7 @@
 import { createElement, useCallback } from "react";
-import { useTooltipStore } from "../store/BrowserContext";
+import { useBrowserStore, useTooltipStore } from "../store/BrowserContext";
 import DefaultTooltip from "../components/tooltip/defaultTooltip";
+import { svgPoint } from "../utils/svg";
 
 /**
  * This hook is used to handle interactions with a component.
@@ -26,6 +27,7 @@ export default function useInteraction<T>({
 }) {
   const showTooltip = useTooltipStore((state) => state.showTooltip);
   const hideTooltip = useTooltipStore((state) => state.hideTooltip);
+  const svgRef = useBrowserStore((state) => state.svgRef);
 
   const handleHover = useCallback(
     (item: T, fallback: string, e: React.MouseEvent) => {
@@ -33,9 +35,14 @@ export default function useInteraction<T>({
         onHover(item);
       }
       const content = tooltip ? createElement(tooltip, item) : <DefaultTooltip value={fallback} />;
-      showTooltip(content, e.clientX, e.clientY);
+      if (svgRef?.current) {
+        const [sx, sy] = svgPoint(svgRef.current, e.clientX, e.clientY);
+        showTooltip(content, sx, sy);
+      } else {
+        showTooltip(content, e.clientX, e.clientY);
+      }
     },
-    [onHover, tooltip, showTooltip]
+    [onHover, tooltip, showTooltip, svgRef]
   );
 
   const handleLeave = useCallback(

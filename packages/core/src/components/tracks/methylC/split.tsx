@@ -4,9 +4,19 @@ import { useMouseToIndex } from "../../../hooks/useMousePosition";
 import { MethylCProps } from "./types";
 import { generateLineGraph, generateSignal2 } from "./helpers";
 import useInteraction from "../../../hooks/useInteraction";
-import DefaultMethylCTooltip from "./defaultMethylCTooltip";
+import DefaultMethylCTooltip, { MethylCShowRows } from "./defaultMethylCTooltip";
+import { MethylCConfig } from "./types";
 
-function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: MethylCProps) {
+function SplitMethylC({
+  id,
+  height,
+  colors,
+  data,
+  dimensions,
+  range,
+  tooltip,
+  urls,
+}: MethylCProps & Pick<MethylCConfig, "urls">) {
   const { sideWidth, totalWidth, viewWidth } = dimensions;
   const svgRef = useBrowserStore((state) => state.svgRef);
   const delta = useBrowserStore((state) => state.delta);
@@ -16,7 +26,7 @@ function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: 
   const viewRange = useMemo(() => {
     let min = Infinity;
     let max = -Infinity;
-    for (const channel of data) {
+    for (const channel of [data[0], data[1], data[2], data[4], data[5], data[6]]) {
       if (!channel || channel.length === 0) continue;
       const view = channel.slice(sideWidth, sideWidth + viewWidth);
       for (const point of view) {
@@ -29,17 +39,31 @@ function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: 
 
   const effectiveRange = range || viewRange;
 
+  const depthRange = useMemo(() => {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const channel of [data[3], data[7]]) {
+      if (!channel || channel.length === 0) continue;
+      const view = channel.slice(sideWidth, sideWidth + viewWidth);
+      for (const point of view) {
+        if (point.min < min) min = point.min;
+        if (point.max > max) max = point.max;
+      }
+    }
+    return min === Infinity ? { min: 0, max: 1 } : { min, max };
+  }, [data, sideWidth, viewWidth]);
+
   const signals = useMemo(() => {
     const h = height / 2;
     return {
       cpgPlus: generateSignal2(data[0], h, colors.cpg, false, effectiveRange),
       chgPlus: generateSignal2(data[1], h, colors.chg, false, effectiveRange),
       chhPlus: generateSignal2(data[2], h, colors.chh, false, effectiveRange),
-      depthPlus: generateLineGraph(data[3], h, colors.depth, false, effectiveRange),
+      depthPlus: generateLineGraph(data[3], h, colors.depth, false, depthRange),
       cpgMinus: generateSignal2(data[4], h, colors.cpg, true, effectiveRange),
       chgMinus: generateSignal2(data[5], h, colors.chg, true, effectiveRange),
       chhMinus: generateSignal2(data[6], h, colors.chh, true, effectiveRange),
-      depthMinus: generateLineGraph(data[7], h, colors.depth, true, effectiveRange),
+      depthMinus: generateLineGraph(data[7], h, colors.depth, true, depthRange),
     };
   }, [data, height, colors, effectiveRange]);
 
@@ -55,6 +79,20 @@ function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: 
     if (index === null) return [];
     return data.map((dataset) => dataset[index]);
   }, [data, mouseState.index]);
+
+  const showRows: MethylCShowRows = useMemo(
+    () => ({
+      fwdCpg: !!urls?.plusStrand.cpg.url,
+      fwdChg: !!urls?.plusStrand.chg.url,
+      fwdChh: !!urls?.plusStrand.chh.url,
+      fwdDepth: !!urls?.plusStrand.depth.url,
+      revCpg: !!urls?.minusStrand.cpg.url,
+      revChg: !!urls?.minusStrand.chg.url,
+      revChh: !!urls?.minusStrand.chh.url,
+      revDepth: !!urls?.minusStrand.depth.url,
+    }),
+    [urls]
+  );
 
   const { handleHover, handleLeave } = useInteraction({
     onClick: undefined,
@@ -101,11 +139,11 @@ function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip }: 
         fill={"transparent"}
         onMouseMove={(e) => {
           updateMouseState(e);
-          handleHover({ tooltipValues }, "", e);
+          handleHover({ tooltipValues, showRows }, "", e);
         }}
         onMouseOut={() => {
           clearMouseState();
-          handleLeave({ tooltipValues });
+          handleLeave({ tooltipValues, showRows });
         }}
       />
     </g>

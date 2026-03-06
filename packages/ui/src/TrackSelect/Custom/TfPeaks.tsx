@@ -16,19 +16,76 @@ import {
 } from "@weng-lab/genomebrowser";
 import { DNALogo } from "logo-test";
 import { useMemo, useState } from "react";
-import motifData from "./TF-ChIP-Canonical-Motifs-w-Trimmed.json";
+import motifData from "./green-motifs.json";
+
+// --- TF Peak BigBed Parser ---
+
+interface TfPeakBigBedData {
+  chr: string;
+  start: number;
+  end: number;
+  name?: string;
+  score?: number;
+  color?: string;
+  tfName?: string;
+  expRatio?: string;
+  cCREId?: string;
+  experimentId?: string;
+  expSupport?: Record<string, Record<string, string>>;
+}
+
+function parseTfPeakBigBed(
+  chrom: string,
+  startBase: number,
+  endBase: number,
+  rest: string,
+): TfPeakBigBedData {
+  const entry: TfPeakBigBedData = {
+    chr: chrom,
+    start: startBase,
+    end: endBase,
+  };
+  const tokens = rest.split("\t");
+  if (tokens.length > 0) entry.name = tokens[0];
+  if (tokens.length > 1) entry.score = parseFloat(tokens[1]);
+  // tokens[2] = strand, tokens[3] = thickStart, tokens[4] = thickEnd
+  if (tokens.length > 5 && tokens[5] !== "." && tokens[5] !== "0") {
+    entry.color = tokens[5].includes(",")
+      ? tokens[5].startsWith("rgb")
+        ? tokens[5]
+        : "rgb(" + tokens[5] + ")"
+      : tokens[5];
+  }
+  // tokens[6] = blockCount, tokens[7] = blockSizes, tokens[8] = blockStarts
+  if (tokens.length > 9) entry.tfName = tokens[9];
+  if (tokens.length > 10) entry.expRatio = tokens[10];
+  if (tokens.length > 11) entry.cCREId = tokens[11];
+  if (tokens.length > 12) entry.experimentId = tokens[12];
+  if (tokens.length > 13) {
+    try {
+      entry.expSupport = JSON.parse(tokens[13]);
+    } catch {
+      // leave undefined if JSON is malformed
+    }
+  }
+  return entry;
+}
 
 // --- Types ---
 
 type OverlayData = {
-  primary: Rect[];
+  primary: TfPeakBigBedData[];
   overlay: Rect[];
 };
 
 type OverlayInteractionRect = Rect & {
-  source: "base" | "overlay";
-  matchedName?: string;
+  chr?: string;
   pwm?: number[][];
+  tfName?: string;
+  expRatio?: string;
+  cCREId?: string;
+  experimentId?: string;
+  expSupport?: Record<string, Record<string, string>>;
 };
 
 // The config type — extra fields go directly on the config
@@ -65,26 +122,24 @@ function intervalsOverlap(
   return aStart <= bEnd && bStart <= aEnd;
 }
 
-function darkenHexColor(color: string, score?: number) {
-  if (!color.startsWith("#") || color.length !== 7) return color;
-  const t = 1 - (0.7 * Math.min(Math.max(score ?? 0, 0), 1000)) / 1000;
-  const r = Math.round(parseInt(color.slice(1, 3), 16) * t);
-  const g = Math.round(parseInt(color.slice(3, 5), 16) * t);
-  const b = Math.round(parseInt(color.slice(5, 7), 16) * t);
-  if ([r, g, b].some(isNaN)) return color;
+function scoreColor(score?: number) {
+  const t = Math.min(Math.max(score ?? 0, 0), 1000) / 1000;
+  const r = Math.round(0xe3 + (0x00 - 0xe3) * t);
+  const g = Math.round(0xe3 + (0x00 - 0xe3) * t);
+  const b = Math.round(0xe3 + (0x00 - 0xe3) * t);
   return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
 }
 
 // --- Motif data lookup ---
 
-type MotifEntry = { trimmed_ppm: number[][]; ppm: number[][] };
+type MotifEntry = { trimmed_ppm: number[][] };
 const motifLookup = motifData as Record<string, MotifEntry>;
 
 function lookupPwm(name?: string): number[][] | undefined {
   const key = nameKey(name)?.toUpperCase();
   if (!key) return undefined;
   const entry = motifLookup[key];
-  return entry?.trimmed_ppm ?? entry?.ppm;
+  return entry?.trimmed_ppm;
 }
 
 // --- Tooltip ---
@@ -93,48 +148,241 @@ function tfDisplayName(name?: string): string {
   return nameKey(name)?.toUpperCase() || name || "Unknown";
 }
 
+function TooltipRow({
+  label,
+  value,
+  y,
+}: {
+  label: string;
+  value: string;
+  y: number;
+}) {
+  return (
+    <g transform={`translate(0, ${y})`}>
+      <text x={8} y={0} fontSize={10} fill="#888" dominantBaseline="hanging">
+        {label}
+      </text>
+      <text x={100} y={0} fontSize={10} fill="#333" dominantBaseline="hanging">
+        {value}
+      </text>
+    </g>
+  );
+}
+
 function TfPeaksTooltip(rect: OverlayInteractionRect) {
   const pwm = rect.pwm;
   const label = tfDisplayName(rect.name);
-  if (!pwm || pwm.length === 0) {
-    return (
-      <g>
-        <rect
-          width={120}
-          height={24}
-          fill="white"
-          rx={2}
-          style={{ filter: "drop-shadow(0px 0px 4px rgba(0,0,0,0.25))" }}
-        />
-        <text x={6} y={16} fontSize={12} fill="#333">
-          {label}
-        </text>
-      </g>
-    );
+  const totalWidth = 340;
+  const pad = 8;
+  const lineH = 14;
+  const titleH = 18;
+
+  // Build metadata rows (single-value rows)
+  const metaRows: { label: string; value: string }[] = [];
+  if (rect.score != null)
+    metaRows.push({ label: "Score", value: `${rect.score}` });
+  metaRows.push({
+    label: "Position",
+    value: `${rect.chr ? rect.chr + ":" : ""}${rect.start.toLocaleString()}-${rect.end.toLocaleString()}`,
+  });
+
+  // Multi-value rows: split comma-separated cCREs, group 4 per row, cap at 5
+  const allCCREItems = rect.cCREId
+    ? rect.cCREId
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+  const maxCCREs = 5;
+  const cCREItems = allCCREItems.slice(0, maxCCREs);
+  const hiddenCCREs = Math.max(0, allCCREItems.length - maxCCREs);
+  const cCRERows: string[][] = [];
+  for (let i = 0; i < cCREItems.length; i += 4) {
+    cCRERows.push(cCREItems.slice(i, i + 4));
   }
-  const logoWidth = pwm.length * 15;
-  const logoHeight = 130;
-  const totalHeight = logoHeight - 5;
+
+  // Extract unique sorted biosamples from expSupport
+  const allBiosamples: string[] = [];
+  if (rect.expSupport) {
+    const seen = new Set<string>();
+    for (const cellLine of Object.keys(rect.expSupport)) {
+      if (!seen.has(cellLine)) {
+        seen.add(cellLine);
+        allBiosamples.push(cellLine);
+      }
+    }
+    allBiosamples.sort((a, b) => a.localeCompare(b));
+  }
+  const maxBiosamples = 12;
+  const biosampleItems = allBiosamples.slice(0, maxBiosamples);
+  const hiddenBiosamples = Math.max(0, allBiosamples.length - maxBiosamples);
+  const biosampleText = biosampleItems.join(", ");
+  const biosampleMoreText =
+    hiddenBiosamples > 0 ? ` ...and ${hiddenBiosamples} more` : "";
+  const biosampleCharsPerLine = Math.floor((totalWidth - 2 * pad) / 5.2);
+  const biosampleContentLines = Math.max(
+    1,
+    Math.ceil(
+      (biosampleText.length + biosampleMoreText.length) / biosampleCharsPerLine,
+    ),
+  );
+
+  // Layout: compute y offsets upfront
+  const hasLogo = pwm && pwm.length > 0;
+
+  const logoHeight = hasLogo ? 80 : 0;
+  const logoSectionH = hasLogo ? logoHeight + 4 : 0;
+  const metaSectionH = metaRows.length * lineH;
+
+  // cCRE section: label row + one row per group of 4 + optional "+N more" row
+  const cCREGap = cCRERows.length > 0 ? 8 : 0;
+  const cCREHeaderH = cCRERows.length > 0 ? lineH : 0;
+  const cCREMoreH = hiddenCCREs > 0 ? lineH : 0;
+  const cCRESectionH = cCRERows.length * lineH + cCREMoreH;
+
+  // Biosamples section
+  const biosampleGap = biosampleContentLines > 0 ? 8 : 0;
+  const biosampleHeaderH = biosampleContentLines > 0 ? lineH : 0;
+  const biosampleSectionH = biosampleContentLines * lineH;
+
+  const titleY = pad;
+  const logoY = titleY + titleH;
+  const metaY = logoY + logoSectionH;
+  const cCREY = metaY + metaSectionH + cCREGap;
+  const cCREDataY = cCREY + cCREHeaderH;
+  const biosampleY = cCREDataY + cCRESectionH + biosampleGap;
+  const biosampleDataY = biosampleY + biosampleHeaderH;
+  const totalHeight = biosampleDataY + biosampleSectionH + pad;
+
   return (
-    <g transform={`translate(0, ${-totalHeight})`}>
+    <g>
       <rect
-        width={logoWidth + 10}
+        width={totalWidth}
         height={totalHeight}
         fill="white"
         rx={3}
         style={{ filter: "drop-shadow(0px 0px 5px rgba(0,0,0,0.3))" }}
       />
-      <text x={5} y={16} fontSize={12} fontWeight="bold" fill="#333">
+
+      {/* Title */}
+      <text x={pad} y={titleY + 12} fontSize={12} fontWeight="bold" fill="#333">
         {label}
       </text>
-      <g transform="translate(5, 5)">
-        <DNALogo
-          ppm={pwm}
-          mode="INFORMATION_CONTENT"
-          width={logoWidth}
-          height={logoHeight}
+
+      {/* Logo */}
+      {hasLogo && (
+        <g transform={`translate(${pad}, ${logoY})`}>
+          <DNALogo
+            ppm={pwm!}
+            mode="INFORMATION_CONTENT"
+            width={totalWidth - 2 * pad}
+            height={logoHeight}
+          />
+        </g>
+      )}
+
+      {/* Metadata rows */}
+      {metaRows.map((row, i) => (
+        <TooltipRow
+          key={row.label}
+          label={row.label}
+          value={row.value}
+          y={metaY + i * lineH}
         />
-      </g>
+      ))}
+
+      {/* Overlapping cCREs */}
+      {cCRERows.length > 0 && (
+        <g>
+          <line
+            x1={pad}
+            x2={totalWidth - pad}
+            y1={cCREY - 4}
+            y2={cCREY - 4}
+            stroke="#ddd"
+          />
+          <text
+            x={pad}
+            y={cCREY + 2}
+            fontSize={9}
+            fontWeight="bold"
+            fill="#666"
+            dominantBaseline="hanging"
+          >
+            Overlapping cCREs
+          </text>
+          {cCRERows.map((group, i) => (
+            <text
+              key={i}
+              x={pad}
+              y={cCREDataY + i * lineH + 2}
+              fontSize={9}
+              fill="#333"
+              dominantBaseline="hanging"
+            >
+              {group.join(", ")}
+            </text>
+          ))}
+          {hiddenCCREs > 0 && (
+            <text
+              x={pad}
+              y={cCREDataY + cCRERows.length * lineH + 2}
+              fontSize={9}
+              fill="#aaa"
+              dominantBaseline="hanging"
+            >
+              +{hiddenCCREs} more...
+            </text>
+          )}
+        </g>
+      )}
+
+      {/* Biosamples */}
+      {biosampleContentLines > 0 && (
+        <g>
+          <line
+            x1={pad}
+            x2={totalWidth - pad}
+            y1={biosampleY - 4}
+            y2={biosampleY - 4}
+            stroke="#ddd"
+          />
+          <text
+            x={pad}
+            y={biosampleY + 2}
+            fontSize={9}
+            fontWeight="bold"
+            fill="#666"
+            dominantBaseline="hanging"
+          >
+            Biosamples
+          </text>
+          <foreignObject
+            x={pad}
+            y={biosampleDataY}
+            width={totalWidth - 2 * pad}
+            height={biosampleSectionH}
+          >
+            <div
+              style={{
+                color: "#333",
+                fontSize: "9px",
+                lineHeight: `${lineH}px`,
+                margin: 0,
+                padding: 0,
+                overflow: "hidden",
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+              }}
+            >
+              {biosampleText}
+              {hiddenBiosamples > 0 && (
+                <span style={{ color: "#aaa" }}>{biosampleMoreText}</span>
+              )}
+            </div>
+          </foreignObject>
+        </g>
+      )}
     </g>
   );
 }
@@ -192,8 +440,8 @@ function OverlayBigBedRenderer(
     dimensions,
     id,
     height: trackHeight,
-    color,
-    baseColor: baseColorProp,
+    color: _color,
+    baseColor: _baseColorProp,
     overlayColor: overlayColorProp,
     filter,
     ...rest
@@ -210,7 +458,7 @@ function OverlayBigBedRenderer(
     [filter],
   );
 
-  const rows = useMemo(() => {
+  const visiblePrimary = useMemo(() => {
     let visible = (data?.primary || []).filter(
       (r) => r.end >= domain.start && r.start <= domain.end,
     );
@@ -219,8 +467,22 @@ function OverlayBigBedRenderer(
         filterSet.has(nameKey(r.name)?.toUpperCase()),
       );
     }
-    return renderSquishBigBedData(visible, x);
-  }, [data, domain.end, domain.start, x, filterSet]);
+    return visible;
+  }, [data, domain.end, domain.start, filterSet]);
+
+  const rows = useMemo(
+    () => renderSquishBigBedData(visiblePrimary, x),
+    [visiblePrimary, x],
+  );
+
+  // Index primary data by "name:start:end" for fast TF metadata lookup
+  const primaryIndex = useMemo(() => {
+    const index = new Map<string, TfPeakBigBedData>();
+    for (const item of visiblePrimary) {
+      index.set(`${item.name}:${item.start}:${item.end}`, item);
+    }
+    return index;
+  }, [visiblePrimary]);
 
   const rowHeight = useRowHeight(rows.length, id);
   const height = Math.max(trackHeight, rowHeight * Math.max(rows.length, 1));
@@ -229,7 +491,6 @@ function OverlayBigBedRenderer(
     [data],
   );
 
-  const baseColor = baseColorProp || color || Vibrant[0];
   const overlayColor = overlayColorProp || Vibrant[3];
   const cursor = rest.onClick ? "pointer" : "default";
 
@@ -269,15 +530,23 @@ function OverlayBigBedRenderer(
               ).filter((a) =>
                 intervalsOverlap(realStart, realEnd, a.start, a.end),
               );
-              const fill = darkenHexColor(rect.color || baseColor, rect.score);
+              const fill = scoreColor(rect.score);
+              const meta = primaryIndex.get(
+                `${baseName}:${realStart}:${realEnd}`,
+              );
               const baseRect: OverlayInteractionRect = {
-                source: "base",
                 start: realStart,
                 end: realEnd,
                 name: baseName,
                 color: fill,
                 score: rect.score,
-                pwm: lookupPwm(baseName),
+                chr: meta?.chr,
+                pwm: attached.length > 0 ? lookupPwm(baseName) : undefined,
+                tfName: meta?.tfName,
+                expRatio: meta?.expRatio,
+                cCREId: meta?.cCREId,
+                experimentId: meta?.experimentId,
+                expSupport: meta?.expSupport,
               };
 
               return (
@@ -299,16 +568,6 @@ function OverlayBigBedRenderer(
                   {attached.map((a, ai) => {
                     const left = x(a.start);
                     const right = x(a.end);
-                    const overlayRect: OverlayInteractionRect = {
-                      source: "overlay",
-                      start: a.start,
-                      end: a.end,
-                      name: a.name,
-                      color: a.color || overlayColor,
-                      score: a.score,
-                      matchedName: baseName,
-                      pwm: lookupPwm(a.name),
-                    };
                     return (
                       <rect
                         style={{ cursor }}
@@ -319,11 +578,11 @@ function OverlayBigBedRenderer(
                         height={baseH}
                         fill={a.color || overlayColor}
                         opacity={0.9}
-                        onClick={() => handleClick(overlayRect)}
+                        onClick={() => handleClick(baseRect)}
                         onMouseOver={(e) =>
-                          handleHover(overlayRect, overlayRect.name || "", e)
+                          handleHover(baseRect, baseRect.name || "", e)
                         }
-                        onMouseOut={() => handleLeave(overlayRect)}
+                        onMouseOut={() => handleLeave(baseRect)}
                       />
                     );
                   })}
@@ -355,7 +614,10 @@ export const tfPeaksTrack: OverlayBigBedConfig = {
   primaryUrl: PEAKS_BIGBED_URL,
   overlayUrl: DECORATOR_BIGBED_URL,
   baseColor: "#d1d5db",
-  overlayColor: "#1e3a8a",
+  overlayColor: "#36dd81",
+  onClick: (rect) => {
+    console.log("Clicked on rect:", rect);
+  },
   tooltip: TfPeaksTooltip,
   settingsPanel: TfPeaksSettings,
   renderers: {
@@ -364,7 +626,7 @@ export const tfPeaksTrack: OverlayBigBedConfig = {
   fetcher: async (ctx) => {
     const track = ctx.track as OverlayBigBedConfig;
     const [primary, overlay] = await Promise.all([
-      fetchBigBedUrl(track.primaryUrl, ctx),
+      fetchBigBedUrl(track.primaryUrl, ctx, parseTfPeakBigBed),
       fetchBigBedUrl(track.overlayUrl, ctx),
     ]);
     const error =

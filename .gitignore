@@ -27,3 +27,7 @@ dist-ssr
 
 *storybook.log
 storybook-static
+
+.lore
+.opencode
+.devserve
