@@ -1,50 +1,39 @@
-export enum TrackType {
-  BigWig = "bigwig",
-  BigBed = "bigbed",
-  Transcript = "transcript",
-  Motif = "motif",
-  Importance = "importance",
-  LDTrack = "ldtrack",
-  BulkBed = "bulkbed",
-  MethylC = "methylc",
-  Manhattan = "manhattan",
-  Custom = "custom",
+import { FetcherContext } from "../../api/fetchers";
+import { TrackDataState } from "../../store/dataStore";
+
+/**
+ * Shared behavior for a track kind — one per track type (e.g. BigWig, BigBed).
+ * Holds renderers, fetcher, and optional settings panel.
+ * Display modes are derived from the keys of `renderers`.
+ */
+export interface TrackDefinition<TDisplayMode extends string = string> {
+  type: string;
+  defaultDisplayMode: TDisplayMode;
+  defaultHeight: number;
+  renderers: Record<TDisplayMode, React.ComponentType<any>>;
+  fetcher: (ctx: FetcherContext) => Promise<TrackDataState>;
+  settingsPanel?: React.ComponentType<{ id: string }>;
 }
 
-export enum DisplayMode {
-  Full = "full",
-  Dense = "dense",
-  Squish = "squish",
-  Pack = "pack",
-  Combined = "combined",
-  Split = "split",
-  Scatter = "scatter",
-  LDBlock = "ldblock",
-  GenericLD = "genericld",
-}
-
-// Interaction configuration for all tracks
-export interface InteractionConfig<Item> {
-  onClick?: (item: Item) => void;
-  onHover?: (item: Item) => void;
-  onLeave?: (item: Item) => void;
-  tooltip?: React.FC<Item>;
-}
-
-// Display configuration for all tracks
-export interface DisplayConfig {
-  titleSize?: number;
-  shortLabel?: string;
-  color?: string;
-}
-
-// All new configs should extend this interface
-export interface Config<Item> extends InteractionConfig<Item>, DisplayConfig {
+/**
+ * Base track instance — shared fields for all tracks.
+ * Per-type fields are added via intersection types (e.g. BigWigTrack = Track & { url: string }).
+ */
+export interface Track {
   id: string;
-  trackType: TrackType;
-  displayMode: DisplayMode;
   title: string;
   height: number;
+  displayMode: string;
+  definition: TrackDefinition;
+  // Display
+  color?: string;
+  titleSize?: number;
+  shortLabel?: string;
+  // Interaction
+  onClick?: (item: any) => void;
+  onHover?: (item: any) => void;
+  onLeave?: (item: any) => void;
+  tooltip?: React.FC<any>;
 }
 
 export interface TrackDimensions {

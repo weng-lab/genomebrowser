@@ -3,7 +3,8 @@ import { useMouseToIndex } from "../../../hooks/useMousePosition";
 import { useBrowserStore, useTheme, useTrackStore } from "../../../store/BrowserContext";
 import { l, m } from "../../../utils/svg";
 import ClipPath from "../../svg/clipPath";
-import { BigWigConfig, FullBigWigProps, ValuedPoint, YRange } from "./types";
+import { FullBigWigProps, ValuedPoint, YRange } from "./types";
+import type { BigWigTrack } from "./definition";
 import useInteraction from "../../../hooks/useInteraction";
 import { lighten, isDark } from "../../../utils/color";
 import { getRange } from "./helpers";
@@ -38,7 +39,7 @@ export default function ReworkBigWig({
 
   // Update the track store with the calculated range after render
   useEffect(() => {
-    editTrack<BigWigConfig>(id, { range: viewRange });
+    editTrack<BigWigTrack>(id, { range: viewRange });
   }, [id, viewRange, editTrack]);
 
   const signals = useMemo(() => {

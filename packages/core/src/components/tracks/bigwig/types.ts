@@ -1,15 +1,18 @@
-import { Config, TrackDimensions, TrackType } from "../types";
+import { TrackDimensions } from "../types";
 
-export interface BigWigConfig extends Config<Data> {
-  trackType: TrackType.BigWig;
-  url: string;
+export interface FullBigWigProps {
+  id: string;
+  height: number;
+  color: string;
+  data: Data;
+  dimensions: TrackDimensions;
+  tooltip?: React.FC<Data>;
   range?: YRange;
   customRange?: YRange;
-  /** When true, fill gaps in data with 0 instead of null. Defaults to false. */
   fillWithZero?: boolean;
 }
 
-interface BigWigProps {
+export interface DenseBigWigProps {
   id: string;
   height: number;
   color: string;
@@ -17,13 +20,6 @@ interface BigWigProps {
   dimensions: TrackDimensions;
   tooltip?: React.FC<Data>;
 }
-
-export interface FullBigWigProps extends BigWigProps {
-  range: YRange;
-  customRange?: YRange;
-  fillWithZero?: boolean;
-}
-export type DenseBigWigProps = BigWigProps;
 
 export type YRange = {
   min: number;
@@ -67,11 +63,6 @@ export type RenderedBigWigData = {
   range: YRange;
 };
 
-/**
- * Checks the type of data passed to the FullBigWig component
- * @param data the data used in the track
- * @returns an enumerated value representing the data type
- */
 export function dataType(data: any): DataType {
   if (data[0].x !== undefined) {
     return DataType.ValuedPoint;

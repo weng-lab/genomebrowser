@@ -2,7 +2,8 @@ import { useEffect, useMemo } from "react";
 import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import { lighten } from "../../../utils/color";
 import { getRange, renderDense, ytransform } from "./helpers";
-import { BigWigConfig, DenseBigWigProps, RenderedBigWigData, ValuedPoint } from "./types";
+import { DenseBigWigProps, RenderedBigWigData, ValuedPoint } from "./types";
+import type { BigWigTrack } from "./definition";
 import { useTheme } from "../../../store/themeStore";
 import useInteraction from "../../../hooks/useInteraction";
 import { useMouseToIndex } from "../../../hooks/useMousePosition";
@@ -26,7 +27,7 @@ export default function DenseBigWig({ id, data, color, height, dimensions, toolt
   }, [data, multiplier, sidePortion]);
 
   useEffect(() => {
-    editTrack<BigWigConfig>(id, { range: range });
+    editTrack<BigWigTrack>(id, { range: range });
   }, [range, id, editTrack]);
 
   const hasNegatives = useMemo(() => {
