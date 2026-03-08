@@ -54,7 +54,7 @@ export function createBigWigTrack(opts: {
   displayMode?: "full" | "dense";
   color?: string;
   titleSize?: number;
-  shortLabel?: string;
+
   range?: YRange;
   customRange?: YRange;
   fillWithZero?: boolean;
@@ -72,7 +72,7 @@ export function createBigWigTrack(opts: {
     url: opts.url,
     color: opts.color,
     titleSize: opts.titleSize,
-    shortLabel: opts.shortLabel,
+
     range: opts.range,
     customRange: opts.customRange,
     fillWithZero: opts.fillWithZero,

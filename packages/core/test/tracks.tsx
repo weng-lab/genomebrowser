@@ -1,4 +1,4 @@
-import { createBigWigTrack, Vibrant } from "../src/lib";
+import { createBigWigTrack, createBigBedTrack, Vibrant } from "../src/lib";
 
 export const bigWigExample = createBigWigTrack({
   id: "1",
@@ -36,4 +36,13 @@ export const bigWigFillZero = createBigWigTrack({
   height: 100,
   color: Vibrant[4],
   fillWithZero: true,
+});
+
+export const bigBedExample = createBigBedTrack({
+  id: "bigbed",
+  title: "bigBed",
+  url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
+  height: 20,
+  color: Vibrant[7],
+  displayMode: "dense",
 });

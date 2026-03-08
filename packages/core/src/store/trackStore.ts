@@ -61,8 +61,7 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       if (!track) {
         throw new Error("Track not found");
       }
-      const { title, shortLabel } = track;
-      if (shortLabel) return shortLabel;
+      const { title } = track;
       if (!title || !title.substring || !title.length) return "";
       return title.length <= 20 ? title : title.substring(0, 20) + "...";
     },

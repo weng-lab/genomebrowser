@@ -28,7 +28,6 @@ export interface Track {
   // Display
   color?: string;
   titleSize?: number;
-  shortLabel?: string;
   // Interaction
   onClick?: (item: any) => void;
   onHover?: (item: any) => void;

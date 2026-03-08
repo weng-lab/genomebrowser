@@ -9,7 +9,7 @@ import {
   Domain,
   GQLWrapper,
 } from "../src/lib";
-import { bigWigExample, bigWigFillZero } from "./tracks";
+import { bigWigExample, bigWigFillZero, bigBedExample } from "./tracks";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 function DomainNav({ browserStore }: { browserStore: BrowserStoreInstance }) {
@@ -118,7 +118,7 @@ export default function All() {
     []
   );
 
-  const trackStore = createTrackStoreMemo([bigWigExample, bigWigFillZero], []);
+  const trackStore = createTrackStoreMemo([bigWigExample, bigWigFillZero, bigBedExample], []);
 
   const dataStore = createDataStoreMemo([]);
 

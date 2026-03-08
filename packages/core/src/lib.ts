@@ -15,6 +15,10 @@ export { registerTrack, getDefinition, getRegisteredTracks };
 import { BigWigDefinition, createBigWigTrack, type BigWigTrack } from "./components/tracks/bigwig/definition";
 export { BigWigDefinition, createBigWigTrack, type BigWigTrack };
 
+// BigBed
+import { BigBedDefinition, createBigBedTrack, type BigBedTrack } from "./components/tracks/bigbed/definition";
+export { BigBedDefinition, createBigBedTrack, type BigBedTrack };
+
 // --- Track Data Types (for renderers / consumers) ---
 
 import type { Rect } from "./components/tracks/bigbed/types";

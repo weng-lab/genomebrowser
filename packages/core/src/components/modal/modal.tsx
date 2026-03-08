@@ -81,9 +81,7 @@ export default function Modal() {
           <div style={{ margin: "10px" }}>
             <div style={{ paddingBottom: "0px", fontSize: "1.2em", fontWeight: "bold" }}>
               Configure{" "}
-              {track.shortLabel || track.title.length > MAX_TITLE_LENGTH
-                ? track.title.slice(0, MAX_TITLE_LENGTH) + "..."
-                : track.title}
+              {track.title.length > MAX_TITLE_LENGTH ? track.title.slice(0, MAX_TITLE_LENGTH) + "..." : track.title}
             </div>
           </div>
         </div>
