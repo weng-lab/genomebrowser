@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { BigBedConfig } from "../components/tracks/bigbed/types";
 import { useTrackStore } from "../store/BrowserContext";
 
 export function useRowHeight(rowCount: number, id: string, rowHeight: number = 12) {
@@ -7,7 +6,7 @@ export function useRowHeight(rowCount: number, id: string, rowHeight: number = 1
 
   useEffect(() => {
     const newHeight = Math.max(rowHeight * rowCount, 30);
-    editTrack<BigBedConfig>(id, { height: newHeight });
+    editTrack(id, { height: newHeight });
   }, [rowHeight, id, editTrack, rowCount]);
 
   return rowHeight;

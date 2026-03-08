@@ -2,7 +2,7 @@ import SettingsIcon from "../../../icons/settingsIcon";
 import TopIcon from "../../../icons/topIcon";
 import { useModalStore, useTrackStore, useBrowserStore, useTheme } from "../../../store/BrowserContext";
 import { useRef } from "react";
-import { BigWigConfig } from "../bigwig/types";
+import type { BigWigTrack } from "../bigwig/definition";
 import BottomIcon from "../../../icons/bottomIcon";
 
 export default function Margin({
@@ -58,8 +58,8 @@ export default function Margin({
     shiftTracks(id, -1);
   };
 
-  const range = useTrackStore((state) => (state.getTrack(id) as BigWigConfig)?.range);
-  const customRange = useTrackStore((state) => (state.getTrack(id) as BigWigConfig)?.customRange);
+  const range = useTrackStore((state) => (state.getTrack(id) as BigWigTrack)?.range);
+  const customRange = useTrackStore((state) => (state.getTrack(id) as BigWigTrack)?.customRange);
   const viewableRange = customRange || range;
 
   const background = useTheme((state) => state.background);
