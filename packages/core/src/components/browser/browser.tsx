@@ -6,17 +6,19 @@ import { createContextMenuStore } from "../../store/contextMenuStore";
 import { createModalStore } from "../../store/modalStore";
 import { createTooltipStore } from "../../store/tooltipStore";
 import { createThemeStore } from "../../store/themeStore";
-import { BrowserProvider, useTrackStore } from "../../store/BrowserContext";
+import { BrowserProvider, useBrowserStore, useTheme, useTrackStore } from "../../store/BrowserContext";
 import { useDataFetcher } from "../../hooks/useDataFetcher";
 import ContextMenu from "../contextMenu/contextMenu";
 import Modal from "../modal/modal";
 import Tooltip from "../tooltip/tooltip";
-import DisplayTrack from "../tracks/displayTrack";
 import Ruler from "../tracks/ruler/ruler";
-import Wrapper from "../tracks/wrapper/wrapper";
+import DragTrack from "../tracks/frame/DragTrack";
+import Margin from "../tracks/frame/Margin";
+import TrackFrame from "../tracks/frame/TrackFrame";
 import SVGWrapper from "./svgWrapper";
 import SelectRegion from "../tracks/ruler/selectRegion";
 import Highlights from "../highlight/highlights";
+import { RULER_HEIGHT } from "../tracks/ruler/ruler";
 
 interface BrowserProps {
   browserStore: BrowserStoreInstance;
@@ -35,18 +37,42 @@ function BrowserContent() {
     <>
       <SVGWrapper>
         <SelectRegion />
-        <Wrapper id="ruler" transform="translate(0, 0)" loading={false} error={undefined}>
-          <Ruler />
-        </Wrapper>
+        <RulerFrame />
         <Highlights />
-        {trackIds.map((id) => {
-          return <DisplayTrack key={id} id={id} />;
-        })}
+        {trackIds.map((id) => (
+          <TrackFrame key={id} id={id} />
+        ))}
         <Tooltip />
       </SVGWrapper>
       <ContextMenu />
       <Modal />
     </>
+  );
+}
+
+function RulerFrame() {
+  const background = useTheme((state) => state.background);
+  const browserWidth = useBrowserStore((state) => state.browserWidth);
+  const marginWidth = useBrowserStore((state) => state.marginWidth);
+
+  return (
+    <g id="ruler-frame">
+      <DragTrack id="ruler">
+        <g transform={`translate(${marginWidth},0)`}>
+          <Ruler />
+        </g>
+      </DragTrack>
+      <Margin
+        id="ruler"
+        height={RULER_HEIGHT}
+        color={background}
+        swapping={false}
+        verticalMargin={0}
+        onHover={() => {}}
+        onLeave={() => {}}
+      />
+      <line stroke="#ccc" x1={0} x2={browserWidth} y1={RULER_HEIGHT} y2={RULER_HEIGHT} />
+    </g>
   );
 }
 

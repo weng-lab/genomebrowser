@@ -2,7 +2,7 @@ import { useMemo, useEffect } from "react";
 import { useMouseToIndex } from "../../../hooks/useMousePosition";
 import { useBrowserStore, useTheme, useTrackStore } from "../../../store/BrowserContext";
 import { l, m } from "../../../utils/svg";
-import ClipPath from "../../svg/clipPath";
+import TrackViewport from "../TrackViewport";
 import { FullBigWigProps, ValuedPoint, YRange } from "./types";
 import type { BigWigTrack } from "./definition";
 import useInteraction from "../../../hooks/useInteraction";
@@ -51,7 +51,7 @@ export default function ReworkBigWig({
       backgroundColor,
       fillWithZero
     );
-  }, [data, height, color, customRange, viewRange, fillWithZero]);
+  }, [data, height, color, customRange, viewRange, fillWithZero, backgroundColor]);
 
   const { mouseState, updateMouseState, clearMouseState } = useMouseToIndex(svgRef, totalWidth, marginWidth, sideWidth);
 
@@ -70,37 +70,31 @@ export default function ReworkBigWig({
   });
 
   return (
-    <g width={totalWidth} height={height} clipPath={`url(#${id})`} transform={`translate(-${sideWidth}, 0)`}>
-      {/*<rect width={totalWidth} height={height} fill={background} />*/}
-      <defs>
-        <ClipPath id={id} width={totalWidth} height={height} />
-      </defs>
+    <TrackViewport
+      id={id}
+      height={height}
+      dimensions={dimensions}
+      onMouseMove={(e) => {
+        updateMouseState(e);
+        if (mouseState.index === null) return;
+        const point = data[mouseState.index] as ValuedPoint;
+        const max = point.max;
+        const min = point.min;
+        if (max == null || min == null) return;
+        if (max === min || !hasNegatives) {
+          handleHover(point, String(max.toFixed(2)), e);
+          return;
+        }
+        handleHover(point, "max: " + String(max.toFixed(2)) + " min: " + String(min.toFixed(2)), e);
+      }}
+      onMouseOut={() => {
+        clearMouseState();
+        handleLeave({});
+      }}
+    >
       {signals}
       {!delta && linePosition && <line stroke={text} x1={linePosition} x2={linePosition} y1={0} y2={height} />}
-      <rect
-        width={viewWidth}
-        height={height}
-        transform={`translate(${sideWidth}, 0)`}
-        fill={"transparent"}
-        onMouseMove={(e) => {
-          updateMouseState(e);
-          if (mouseState.index === null) return;
-          const point = data[mouseState.index] as ValuedPoint;
-          const max = point.max;
-          const min = point.min;
-          if (max == null || min == null) return;
-          if (max === min || !hasNegatives) {
-            handleHover(point, String(max.toFixed(2)), e);
-            return;
-          }
-          handleHover(point, "max: " + String(max.toFixed(2)) + " min: " + String(min.toFixed(2)), e);
-        }}
-        onMouseOut={() => {
-          clearMouseState();
-          handleLeave({});
-        }}
-      />
-    </g>
+    </TrackViewport>
   );
 }
 

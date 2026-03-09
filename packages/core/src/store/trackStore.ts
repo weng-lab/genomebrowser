@@ -1,14 +1,6 @@
 import { create } from "zustand";
 import { Track } from "../components/tracks/types";
-import { RULER_HEIGHT } from "../components/tracks/ruler/ruler";
 import { useMemo } from "react";
-
-type WrapperDimensions = {
-  trackMargin: number;
-  titleSize: number;
-  totalVerticalMargin: number;
-  wrapperHeight: number;
-};
 
 export type { Track };
 
@@ -16,15 +8,11 @@ export interface TrackStore {
   tracks: Track[];
   ids: string[];
   setTracks: (tracks: Track[]) => void;
-  getTotalHeight: (browserTitleSize: number) => number;
-  getPrevHeights: (id: string, browserTitleSize: number) => number;
-  getDistances: (id: string, browserTitleSize: number) => number[];
   getTrack: (id: string) => Track | undefined;
   getTrackIndex: (id: string) => number;
   shiftTracks: (id: string, index: number) => void;
   insertTrack: (track: Track, index?: number) => void;
   removeTrack: (id: string) => void;
-  getDimensions: (id: string, browserTitleSize: number) => WrapperDimensions;
   createShortLabel: (id: string) => string;
   getIndexByType: (id: string) => number;
   editTrack: <T extends Track>(id: string, partial: Partial<T>) => void;
@@ -65,13 +53,6 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       if (!title || !title.substring || !title.length) return "";
       return title.length <= 20 ? title : title.substring(0, 20) + "...";
     },
-    getTotalHeight: (browserTitleSize: number) => {
-      const state = get();
-      return state.tracks.reduce((acc, curr) => {
-        const { wrapperHeight } = get().getDimensions(curr.id, browserTitleSize);
-        return acc + wrapperHeight;
-      }, 0);
-    },
     getTrackIndex: (id: string) => {
       const state = get();
       return state.tracks.map((track) => track.id).indexOf(id);
@@ -79,32 +60,6 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
     getTrack: (id: string) => {
       const state = get();
       return state.tracks.find((track) => track.id === id);
-    },
-    getPrevHeights: (id: string, browserTitleSize: number) => {
-      const state = get();
-      const index = state.getTrackIndex(id);
-      return state.tracks.slice(0, index).reduce((acc, curr) => {
-        const { wrapperHeight } = get().getDimensions(curr.id, browserTitleSize);
-        return acc + wrapperHeight;
-      }, 0);
-    },
-    getDistances: (id: string, browserTitleSize: number) => {
-      const state = get();
-      const heights = state.tracks.map((track) => {
-        const { wrapperHeight } = get().getDimensions(track.id, browserTitleSize);
-        return wrapperHeight;
-      });
-      const index = state.getTrackIndex(id);
-      let distances = new Array(heights.length).fill(0);
-      distances = heights.map((_, i) => {
-        if (i < index) {
-          return -heights.slice(i, index).reduce((sum, h) => sum + h, 0);
-        } else if (i > index) {
-          return heights.slice(index + 1, i + 1).reduce((sum, h) => sum + h, 0);
-        }
-        return 0;
-      });
-      return distances;
     },
     shiftTracks: (id: string, index: number) => {
       const state = get();
@@ -158,32 +113,6 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
         });
         return { tracks: updatedTracks };
       });
-    },
-    getDimensions: (id: string, browserTitleSize: number) => {
-      if (id === "ruler") {
-        return {
-          trackMargin: 0,
-          titleSize: 0,
-          totalVerticalMargin: 0,
-          wrapperHeight: RULER_HEIGHT,
-        };
-      }
-      const state = get();
-      const track = state.getTrack(id);
-      if (!track) {
-        throw new Error(`Track not found: ${id}`);
-      }
-      const titleSize = track.titleSize ?? browserTitleSize;
-      const titleMargin = track.title ? titleSize + 5 : 0;
-      const trackMargin = 0;
-      const totalVerticalMargin = titleMargin;
-      const wrapperHeight = track.height + totalVerticalMargin;
-      return {
-        trackMargin,
-        titleSize,
-        totalVerticalMargin,
-        wrapperHeight,
-      };
     },
     getIndexByType: (id: string) => {
       const state = get();

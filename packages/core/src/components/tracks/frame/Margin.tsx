@@ -1,27 +1,21 @@
+import { useRef } from "react";
+import BottomIcon from "../../../icons/bottomIcon";
 import SettingsIcon from "../../../icons/settingsIcon";
 import TopIcon from "../../../icons/topIcon";
-import { useModalStore, useTrackStore, useBrowserStore, useTheme } from "../../../store/BrowserContext";
-import { useRef } from "react";
+import { useBrowserStore, useModalStore, useTheme, useTrackStore } from "../../../store/BrowserContext";
 import type { BigWigTrack } from "../bigwig/definition";
-import BottomIcon from "../../../icons/bottomIcon";
 
-export default function Margin({
-  id,
-  height,
-  color,
-  swapping,
-  onHover,
-  onLeave,
-  verticalMargin,
-}: {
-  id: string;
-  height: number;
+interface MarginProps {
   color: string;
-  swapping: boolean;
-  verticalMargin: number;
+  height: number;
+  id: string;
   onHover: () => void;
   onLeave: () => void;
-}) {
+  swapping: boolean;
+  verticalMargin: number;
+}
+
+export default function Margin({ color, height, id, onHover, onLeave, swapping, verticalMargin }: MarginProps) {
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const fontSize = useBrowserStore((state) => state.fontSize);
   const tickFontSize = fontSize * 0.8;
@@ -29,34 +23,12 @@ export default function Margin({
   const settingsRef = useRef<SVGGElement>(null);
 
   const getTrackIndex = useTrackStore((state) => state.getTrackIndex);
-  const length = useTrackStore((state) => state.tracks.length);
   const shiftTracks = useTrackStore((state) => state.shiftTracks);
+  const trackCount = useTrackStore((state) => state.tracks.length);
   const index = getTrackIndex(id);
 
   const canBringToTop = index > 0;
-  const canBringToBottom = index < length - 1;
-
-  const handleShowModal = (e: React.MouseEvent<SVGSVGElement>) => {
-    e.stopPropagation();
-    if (settingsRef.current) {
-      const rect = settingsRef.current.getBoundingClientRect();
-      const position = {
-        x: rect.left,
-        y: rect.top - 100,
-      };
-      showModal(id, position);
-    }
-  };
-
-  const handleBringToTop = (e: React.MouseEvent<SVGSVGElement>) => {
-    e.stopPropagation();
-    shiftTracks(id, 0);
-  };
-
-  const handleBringToBottom = (e: React.MouseEvent<SVGSVGElement>) => {
-    e.stopPropagation();
-    shiftTracks(id, -1);
-  };
+  const canBringToBottom = index < trackCount - 1;
 
   const range = useTrackStore((state) => (state.getTrack(id) as BigWigTrack)?.range);
   const customRange = useTrackStore((state) => (state.getTrack(id) as BigWigTrack)?.customRange);
@@ -64,6 +36,15 @@ export default function Margin({
 
   const background = useTheme((state) => state.background);
   const text = useTheme((state) => state.text);
+  const isRuler = id === "ruler";
+
+  const handleShowModal = (e: React.MouseEvent<SVGSVGElement>) => {
+    e.stopPropagation();
+    if (!settingsRef.current) return;
+
+    const rect = settingsRef.current.getBoundingClientRect();
+    showModal(id, { x: rect.left, y: rect.top - 100 });
+  };
 
   return (
     <g
@@ -73,7 +54,6 @@ export default function Margin({
       onMouseMove={onHover}
       onMouseLeave={onLeave}
     >
-      {/* margin background */}
       <rect
         className="swap-handle"
         x={0}
@@ -81,22 +61,29 @@ export default function Margin({
         width={marginWidth}
         height={height}
         fill={background}
-        style={{ cursor: id === "ruler" ? "default" : swapping ? "grabbing" : "grab" }}
+        style={{ cursor: isRuler ? "default" : swapping ? "grabbing" : "grab" }}
       />
-      {/* colored bar */}
       <rect x={0} y={0} width={marginWidth / 15} height={height} stroke="#000000" strokeWidth={0.5} fill={color} />
 
       <g id={`margin-buttons-${id}`}>
-        {/* modal icon */}
-        {id !== "ruler" && (
+        {!isRuler && (
           <g ref={settingsRef} onClick={handleShowModal} style={{ cursor: "pointer" }}>
             <SettingsIcon x={marginWidth / 10} y={height / 2 + 2} height={15} width={15} fill={text} />
             <circle cx={marginWidth / 10 + 7.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
           </g>
         )}
-        {/* bring to top icon */}
-        {id !== "ruler" && (
-          <g onClick={canBringToTop ? handleBringToTop : undefined} style={{ cursor: "pointer" }}>
+        {!isRuler && (
+          <g
+            onClick={
+              canBringToTop
+                ? (e) => {
+                    e.stopPropagation();
+                    shiftTracks(id, 0);
+                  }
+                : undefined
+            }
+            style={{ cursor: "pointer" }}
+          >
             <circle cx={marginWidth / 10 + 22.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
             <TopIcon
               x={marginWidth / 10 + 15}
@@ -107,8 +94,18 @@ export default function Margin({
             />
           </g>
         )}
-        {id !== "ruler" && (
-          <g onClick={canBringToBottom ? handleBringToBottom : undefined} style={{ cursor: "pointer" }}>
+        {!isRuler && (
+          <g
+            onClick={
+              canBringToBottom
+                ? (e) => {
+                    e.stopPropagation();
+                    shiftTracks(id, -1);
+                  }
+                : undefined
+            }
+            style={{ cursor: "pointer" }}
+          >
             <circle cx={marginWidth / 10 + 37.5} cy={height / 2 + 10} r={7.5} strokeWidth={0} fill="transparent" />
             <BottomIcon
               x={marginWidth / 10 + 30}
@@ -120,7 +117,7 @@ export default function Margin({
           </g>
         )}
       </g>
-      {/* margin ticks */}
+
       {viewableRange && (
         <>
           <MarginTick color={text} position={height} width={marginWidth} fontSize={tickFontSize}>
@@ -131,24 +128,24 @@ export default function Margin({
           </MarginTick>
         </>
       )}
-      {/* margin right edge */}
-      <line stroke={"#ccc"} x1={marginWidth} x2={marginWidth} y1={0} y2={height} />
+
+      <line stroke="#ccc" x1={marginWidth} x2={marginWidth} y1={0} y2={height} />
     </g>
   );
 }
 
 function MarginTick({
+  children,
+  color,
+  fontSize,
   position,
   width,
-  children,
-  fontSize,
-  color,
 }: {
-  position: number;
-  width: number;
-  fontSize: number;
   children: React.ReactNode;
   color: string;
+  fontSize: number;
+  position: number;
+  width: number;
 }) {
   return (
     <>

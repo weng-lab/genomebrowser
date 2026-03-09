@@ -3,7 +3,7 @@ import { useBrowserStore, useDataStore } from "../../store/BrowserContext";
 import { useTotalHeight } from "../../hooks/useTrackLayout";
 import { Domain } from "../../utils/types";
 import { RULER_HEIGHT } from "../tracks/ruler/ruler";
-import DragTrack from "../tracks/wrapper/dragTrack";
+import DragTrack from "../tracks/frame/DragTrack";
 import { Highlight } from "./types";
 
 export default function Highlights() {

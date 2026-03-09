@@ -2,23 +2,20 @@ import React, { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import useBrowserScale from "../../../hooks/useBrowserScale";
-import { usePrevHeights, useDistances } from "../../../hooks/useTrackLayout";
 import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import { RULER_HEIGHT } from "../ruler/ruler";
 
-function SwapTrack({
-  id,
-  children,
-  setSwapping,
-  height,
-  width,
-}: {
+interface SwapTrackProps {
   id: string;
   children: React.ReactNode;
-  setSwapping: (swapping: boolean) => void;
+  distances: number[];
   height: number;
+  layoutY: number;
+  setSwapping: (swapping: boolean) => void;
   width: number;
-}) {
+}
+
+export default function SwapTrack({ children, distances, height, id, layoutY, setSwapping, width }: SwapTrackProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [delta, setDelta] = useState(0);
@@ -26,11 +23,8 @@ function SwapTrack({
   const scale = useBrowserScale();
 
   const marginWidth = useBrowserStore((state) => state.marginWidth);
-
-  const shiftTracks = useTrackStore((state) => state.shiftTracks);
   const getTrackIndex = useTrackStore((state) => state.getTrackIndex);
-  const prevHeights = usePrevHeights(id);
-  const distances = useDistances(id);
+  const shiftTracks = useTrackStore((state) => state.shiftTracks);
 
   const handleDrag = (e: DraggableEvent, d: DraggableData) => {
     e.preventDefault();
@@ -45,16 +39,16 @@ function SwapTrack({
     setDragging(false);
     setSwapping(false);
     if (Math.abs(delta) <= 5) return;
+
     const closestIndex = distances.reduce((prevIndex, currDistance, currIndex) => {
       return Math.abs(currDistance - delta) < Math.abs(distances[prevIndex] - delta) ? currIndex : prevIndex;
     }, 0);
-    const index = getTrackIndex(id);
-    if (closestIndex === index) return;
+
+    if (closestIndex === getTrackIndex(id)) return;
+
     shiftTracks(id, closestIndex);
     setDelta(0);
   };
-
-  const handleStart = id === "ruler" ? () => false : () => {};
 
   return (
     <Draggable
@@ -63,13 +57,13 @@ function SwapTrack({
       axis="y"
       handle=".swap-handle"
       nodeRef={nodeRef as unknown as React.RefObject<HTMLElement>}
-      onStart={handleStart}
+      onStart={() => {}}
       onDrag={handleDrag}
       onStop={handleStop}
     >
       <g id={`swap-track-${id}`} ref={nodeRef}>
         {dragging ? (
-          <Clone height={height} width={width} margin={marginWidth} position={prevHeights + position.y + RULER_HEIGHT}>
+          <Clone height={height} margin={marginWidth} position={layoutY + position.y + RULER_HEIGHT} width={width}>
             {children}
           </Clone>
         ) : (
@@ -82,20 +76,21 @@ function SwapTrack({
 
 function Clone({
   children,
-  position,
   height,
-  width,
   margin,
+  position,
+  width,
 }: {
   children: React.ReactNode;
-  position: number;
   height: number;
-  width: number;
   margin: number;
+  position: number;
+  width: number;
 }) {
   const browserRef = useBrowserStore((state) => state.svgRef);
   const scale = useBrowserScale();
   const nodeRef = useRef<SVGGElement>(null);
+
   return createPortal(
     <Draggable
       nodeRef={nodeRef as unknown as React.RefObject<HTMLElement>}
@@ -103,12 +98,10 @@ function Clone({
       position={{ x: 0, y: position }}
     >
       <g ref={nodeRef} style={{ cursor: "grabbing", filter: "drop-shadow(2px 2px 2px gray)" }}>
-        <rect transform={`translate(${margin}, 0)`} width={width} height={height} fill={"white"} />
+        <rect transform={`translate(${margin}, 0)`} width={width} height={height} fill="white" />
         {children}
       </g>
     </Draggable>,
     browserRef!.current!
   );
 }
-
-export default SwapTrack;

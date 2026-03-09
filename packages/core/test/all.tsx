@@ -130,15 +130,15 @@ export default function All() {
 
   const trackStore = createTrackStoreMemo(
     [
-      transcriptExample,
-      bigBedExample,
       bigWigExample,
       bigWigFillZero,
-      methylCExampleENCODE,
-      methylCExampleMOHD,
-      bulkBedExample,
-      motifExample,
-      importanceExample,
+      // transcriptExample,
+      // bigBedExample,
+      // methylCExampleENCODE,
+      // methylCExampleMOHD,
+      // bulkBedExample,
+      // motifExample,
+      // importanceExample,
     ],
     []
   );
