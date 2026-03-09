@@ -3,6 +3,7 @@ import {
   createBigBedTrack,
   createTranscriptTrack,
   createMethylCTrack,
+  createBulkBedTrack,
   Vibrant,
 } from "../src/lib";
 
@@ -126,4 +127,28 @@ export const methylCExampleMOHD = createMethylCTrack({
       depth: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_neg.bw" },
     },
   },
+});
+
+export const bulkBedExample = createBulkBedTrack({
+  id: "bulkbed",
+  title: "Bulk cCREs",
+  height: 80,
+  titleSize: 12,
+  displayMode: "full",
+  color: Vibrant[7],
+  gap: 2,
+  datasets: [
+    {
+      name: "ChIP Dataset 1",
+      url: "https://downloads.wenglab.org/ChIP_ENCSR000AKA-ENCSR000AKC-ENCSR000AKF-ENCSR000AKE-ENCSR000AKD-ENCSR000AOX.bigBed",
+    },
+    {
+      name: "ChIP Dataset 2",
+      url: "https://downloads.wenglab.org/ChIP_ENCSR000EWA-ENCSR000AKP-ENCSR000EWC-ENCSR000DWB-ENCSR000EWB-ENCSR000APE.bigBed",
+    },
+    {
+      name: "ChIP Dataset 3",
+      url: "https://downloads.wenglab.org/ChIP_ENCSR000ARA-ENCSR000AQW-ENCSR000AQY-ENCSR000AQX-ENCSR000ASX-ENCSR000ARZ.bigBed",
+    },
+  ],
 });

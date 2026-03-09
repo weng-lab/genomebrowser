@@ -16,6 +16,7 @@ import {
   transcriptExample,
   methylCExampleMOHD,
   methylCExampleENCODE,
+  bulkBedExample,
 } from "./tracks";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -126,7 +127,15 @@ export default function All() {
   );
 
   const trackStore = createTrackStoreMemo(
-    [transcriptExample, bigBedExample, bigWigExample, bigWigFillZero, methylCExampleENCODE, methylCExampleMOHD],
+    [
+      transcriptExample,
+      bigBedExample,
+      bigWigExample,
+      bigWigFillZero,
+      methylCExampleENCODE,
+      methylCExampleMOHD,
+      bulkBedExample,
+    ],
     []
   );
 

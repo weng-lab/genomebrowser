@@ -31,6 +31,10 @@ export { TranscriptDefinition, createTranscriptTrack, type TranscriptTrack };
 import { MethylCDefinition, createMethylCTrack, type MethylCTrack } from "./components/tracks/methylC/definition";
 export { MethylCDefinition, createMethylCTrack, type MethylCTrack };
 
+// BulkBed
+import { BulkBedDefinition, createBulkBedTrack, type BulkBedTrack } from "./components/tracks/bulkbed/definition";
+export { BulkBedDefinition, createBulkBedTrack, type BulkBedTrack };
+
 // --- Track Data Types (for renderers / consumers) ---
 
 import type { Rect } from "./components/tracks/bigbed/types";
@@ -101,14 +105,43 @@ export { Cytobands };
 import useCustomData from "./hooks/useCustomData";
 export { useCustomData };
 
-import { useBrowserStore, useTrackStore, useDataStore, BrowserProvider } from "./store/BrowserContext";
-export { useBrowserStore, useTrackStore, useDataStore, BrowserProvider };
+// Fetcher types and utilities (for track definition fetchers)
+import { getBigDataRace, fetchBigBedUrl } from "./api/fetchers";
+export { getBigDataRace, fetchBigBedUrl };
 
-import { type RectType, useTooltipStore, TooltipProvider } from "./store/TooltipContext";
-export { type RectType, useTooltipStore, TooltipProvider };
+import type { FetcherContext, FetchFunction } from "./api/fetchers";
+export type { FetcherContext, FetchFunction };
 
-import { useContextMenuStore, type MenuStore, ContextMenuProvider } from "./store/ContextMenuContext";
-export { useContextMenuStore, type MenuStore, ContextMenuProvider };
+import type { BigBedParser } from "./api/getBigWigData";
+export type { BigBedParser };
 
-import { useTheme, ThemeProvider, createThemeStore, createThemeStoreMemo, type ThemeStoreInstance } from "./store/themeStore";
-export { useTheme, ThemeProvider, createThemeStore, createThemeStoreMemo, type ThemeStoreInstance };
+import type { TrackDataState } from "./store/dataStore";
+export type { TrackDataState };
+
+// Hooks (for track renderers)
+import { useXTransform } from "./hooks/useXTransform";
+export { useXTransform };
+
+import useInteraction from "./hooks/useInteraction";
+export { useInteraction };
+
+import { useMouseToIndex } from "./hooks/useMousePosition";
+export { useMouseToIndex };
+
+import useBrowserScale from "./hooks/useBrowserScale";
+export { useBrowserScale };
+
+import { useRowHeight } from "./hooks/useRowHeight";
+export { useRowHeight };
+
+// SVG utilities (for track renderers)
+import ClipPath from "./components/svg/clipPath";
+export { ClipPath };
+
+// BigBed helpers (for track renderers)
+import { renderSquishBigBedData, renderDenseBigBedData } from "./components/tracks/bigbed/helpers";
+export { renderSquishBigBedData, renderDenseBigBedData };
+
+// Store hooks (for track renderers that need browser state)
+import { useBrowserStore, useTrackStore } from "./store/BrowserContext";
+export { useBrowserStore, useTrackStore };

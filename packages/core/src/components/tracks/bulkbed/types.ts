@@ -11,6 +11,20 @@ export interface BulkBedConfig extends Config<BulkBedRect> {
   gap?: number; // Gap between instances
 }
 
+export interface BulkBedRendererProps {
+  id: string;
+  data: BulkBedRect[][];
+  datasets: BulkBedDataset[];
+  color?: string;
+  height: number;
+  dimensions: TrackDimensions;
+  gap?: number;
+  onClick?: (rect: BulkBedRect) => void;
+  onHover?: (rect: BulkBedRect) => void;
+  onLeave?: (rect: BulkBedRect) => void;
+  tooltip?: React.FC<BulkBedRect>;
+}
+
 export interface BulkBedProps {
   id: string;
   data: BulkBedRect[][];

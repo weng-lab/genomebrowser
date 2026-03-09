@@ -1,5 +1,5 @@
 import DenseBigBed from "../bigbed/dense";
-import { BulkBedProps, BulkBedRect } from "./types";
+import { BulkBedRendererProps, BulkBedRect } from "./types";
 
 export default function BulkBed({
   data,
@@ -13,7 +13,7 @@ export default function BulkBed({
   onHover,
   onLeave,
   tooltip,
-}: BulkBedProps) {
+}: BulkBedRendererProps) {
   if (!data || data.length === 0) {
     return null;
   }
@@ -57,7 +57,7 @@ export default function BulkBed({
             <DenseBigBed
               data={dataset}
               id={`${datasetName}`}
-              color={color}
+              color={color || "#000000"}
               height={instanceHeight}
               dimensions={dimensions}
               verticalPadding={0}
