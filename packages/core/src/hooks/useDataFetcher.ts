@@ -1,7 +1,23 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLazyQuery } from "@apollo/client";
 import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
 import { BIGDATA_QUERY, TRANSCRIPT_GENES_QUERY, MOTIF_QUERY } from "../api/queries";
+import type { Track } from "../components/tracks/types";
+import type { TranscriptTrack } from "../components/tracks/transcript/definition";
+
+function getTrackFetchKey(track: Track) {
+  switch (track.definition.type) {
+    case "bigwig":
+    case "bigbed":
+      return `${track.id}:${track.definition.type}:${(track as { url?: string }).url ?? ""}`;
+    case "transcript": {
+      const transcriptTrack = track as TranscriptTrack;
+      return `${track.id}:${track.definition.type}:${transcriptTrack.assembly}:${transcriptTrack.version}`;
+    }
+    default:
+      return `${track.id}:${track.definition.type}`;
+  }
+}
 
 /**
  * Unified data fetcher hook that orchestrates fetching for all tracks.
@@ -23,6 +39,8 @@ export function useDataFetcher() {
   const [fetchBigData] = useLazyQuery(BIGDATA_QUERY);
   const [fetchGene] = useLazyQuery(TRANSCRIPT_GENES_QUERY);
   const [fetchMotif] = useLazyQuery(MOTIF_QUERY);
+
+  const trackFetchKey = useMemo(() => tracks.map(getTrackFetchKey).join("|"), [tracks]);
 
   useEffect(() => {
     if (isFetching || tracks.length === 0) return;
@@ -92,5 +110,5 @@ export function useDataFetcher() {
 
     fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domain.chromosome, domain.start, domain.end, tracks.length]);
+  }, [domain.chromosome, domain.start, domain.end, trackFetchKey]);
 }

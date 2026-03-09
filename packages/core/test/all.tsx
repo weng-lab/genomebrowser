@@ -9,7 +9,12 @@ import {
   Domain,
   GQLWrapper,
 } from "../src/lib";
-import { bigWigExample, bigWigFillZero, bigBedExample } from "./tracks";
+import {
+  bigWigExample,
+  bigWigFillZero,
+  bigBedExample,
+  transcriptExample,
+} from "./tracks";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 function DomainNav({ browserStore }: { browserStore: BrowserStoreInstance }) {
@@ -109,7 +114,7 @@ function DomainNav({ browserStore }: { browserStore: BrowserStoreInstance }) {
 export default function All() {
   const browserStore = createBrowserStoreMemo(
     {
-      domain: { chromosome: "chr12", start: 53391187, end: 53392280 },
+      domain: { chromosome: "chr12", start: 53372922, end: 53423700 },
       marginWidth: 50,
       trackWidth: 950,
       multiplier: 3,
@@ -118,7 +123,7 @@ export default function All() {
     []
   );
 
-  const trackStore = createTrackStoreMemo([bigWigExample, bigWigFillZero, bigBedExample], []);
+  const trackStore = createTrackStoreMemo([transcriptExample, bigBedExample, bigWigExample, bigWigFillZero], []);
 
   const dataStore = createDataStoreMemo([]);
 

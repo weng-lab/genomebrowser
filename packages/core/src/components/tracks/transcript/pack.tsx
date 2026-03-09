@@ -25,16 +25,18 @@ export default function PackTranscript({
 }: PackTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
-  const domain = useBrowserStore((state) => state.domain);
+  const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
+  const expandedDomain = getExpandedDomain();
   const fontSize = 10;
 
   const sorted = useMemo(() => sortedTranscripts(data || []), [data]);
   const visibleSorted = useMemo(
     () =>
       sorted.filter(
-        (transcript) => transcript.coordinates.end >= domain.start && transcript.coordinates.start <= domain.end
+        (transcript) =>
+          transcript.coordinates.end >= expandedDomain.start && transcript.coordinates.start <= expandedDomain.end
       ),
-    [sorted, domain.start, domain.end]
+    [sorted, expandedDomain.start, expandedDomain.end]
   );
   const grouped = useMemo(() => groupFeatures(visibleSorted, x, fontSize), [visibleSorted, x, fontSize]);
   const rowHeight = useRowHeight(grouped.length, id);
@@ -76,7 +78,7 @@ export default function PackTranscript({
             let fillColor;
             if (isManeSelectTranscript(transcript.transcript.tag)) {
               fillColor = canonicalColor;
-            } else if (geneName !== "" && transcript.transcript.name.toLowerCase().includes(geneName?.toLowerCase())) {
+            } else if (geneName && transcript.transcript.name.toLowerCase().includes(geneName.toLowerCase())) {
               fillColor = highlightColor;
             }
             return (

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import Form from "../shared/form";
-import { TranscriptConfig } from "../../tracks/transcript/types";
 import { getButtonColors } from "../helpers";
-import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
+import { useTrackStore } from "../../../store/BrowserContext";
+import type { TranscriptTrack } from "../../tracks/transcript/definition";
 
 export enum TranscriptHumanVersion {
   V29 = 29,
@@ -14,32 +14,20 @@ export enum TranscriptMouseVersion {
   V25 = 25,
 }
 
-export default function TranscriptForm({ track }: { track: TranscriptConfig }) {
+export default function TranscriptForm({ track }: { track: TranscriptTrack }) {
   const editTrack = useTrackStore((state) => state.editTrack);
   const [selectedButton, setSelectedButton] = useState<number | null>(track.version);
-  const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
-  const domain = getExpandedDomain();
 
   const handleButtonClick = (version: TranscriptHumanVersion | TranscriptMouseVersion) => {
     setSelectedButton(version);
     const human = Object.values(TranscriptHumanVersion).includes(version as TranscriptHumanVersion);
-    editTrack(track.id, { version: version, assembly: human ? "GRCH38" : "mm10" });
-    if (!track.refetch) return;
-    track.refetch({
-      variables: {
-        assembly: track.assembly,
-        chromosome: domain.chromosome,
-        start: domain.start,
-        end: domain.end,
-        version: version,
-      },
-    });
+    editTrack<TranscriptTrack>(track.id, { version: version, assembly: human ? "GRCh38" : "mm10" });
   };
 
   const buttonStyle = (selected: boolean) => {
     const trackColor = track.color || "#000000";
     const colors = getButtonColors(trackColor, selected);
-    
+
     return {
       ...colors,
       marginRight: "5px",

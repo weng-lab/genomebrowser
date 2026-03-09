@@ -1,16 +1,4 @@
-import { OperationVariables } from "@apollo/client";
-import { LazyQueryExecFunction } from "@apollo/client/react/types/types";
-import { Config, TrackDimensions, TrackType } from "../types";
-
-export interface TranscriptConfig extends Config<Transcript> {
-  trackType: TrackType.Transcript;
-  assembly: string;
-  version: number;
-  refetch?: LazyQueryExecFunction<any, OperationVariables>;
-  geneName?: string;
-  canonicalColor?: string; // colors in transcript with MANE_Select tag
-  highlightColor?: string; // colors in transcript with name ~= geneName
-}
+import { TrackDimensions } from "../types";
 
 interface TranscriptProps {
   id: string;
@@ -24,7 +12,7 @@ interface TranscriptProps {
   onHover?: (transcript: Transcript) => void;
   onLeave?: (transcript: Transcript) => void;
   tooltip?: React.FC<Transcript>;
-  geneName: string;
+  geneName?: string;
 }
 export type SquishTranscriptProps = TranscriptProps;
 

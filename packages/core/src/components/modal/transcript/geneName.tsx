@@ -1,12 +1,12 @@
 import Form from "../shared/form";
-import { TranscriptConfig } from "../../tracks/transcript/types";
 import { useTrackStore } from "../../../store/BrowserContext";
+import type { TranscriptTrack } from "../../tracks/transcript/definition";
 
 export default function GeneName({ id, name }: { id: string; name: string }) {
   const editTrack = useTrackStore((state) => state.editTrack);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    editTrack<TranscriptConfig>(id, { geneName: e.target.value });
+    editTrack<TranscriptTrack>(id, { geneName: e.target.value });
   };
 
   return (

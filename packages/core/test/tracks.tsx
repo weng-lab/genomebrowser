@@ -1,4 +1,9 @@
-import { createBigWigTrack, createBigBedTrack, Vibrant } from "../src/lib";
+import {
+  createBigWigTrack,
+  createBigBedTrack,
+  createTranscriptTrack,
+  Vibrant,
+} from "../src/lib";
 
 export const bigWigExample = createBigWigTrack({
   id: "1",
@@ -45,4 +50,17 @@ export const bigBedExample = createBigBedTrack({
   height: 20,
   color: Vibrant[7],
   displayMode: "dense",
+});
+
+export const transcriptExample = createTranscriptTrack({
+  id: "transcript",
+  title: "GENCODE Genes",
+  assembly: "GRCh38",
+  version: 40,
+  height: 100,
+  color: "#0c184a",
+  canonicalColor: "#100e98",
+  highlightColor: "#3c69e8",
+  titleSize: 12,
+  displayMode: "squish",
 });
