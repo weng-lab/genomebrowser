@@ -1,4 +1,4 @@
-import { Chromosome } from "../../../lib";
+import { Chromosome } from "../../../utils/types";
 import { Config, TrackDimensions, TrackType } from "../types";
 
 export interface ManhattanTrackConfig extends Config<any> {

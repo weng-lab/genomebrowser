@@ -1,4 +1,5 @@
 import { Data, DataType, BigWigData, BigZoomData, ValuedPoint, YRange, RenderedBigWigData, dataType } from "./types";
+import { xtransform } from "../../../utils/coordinates";
 
 type Domain = {
   start: number;
@@ -28,14 +29,6 @@ export const getRange = (data: Data): YRange => {
       return { min: 0, max: 0 };
   }
 };
-
-export function xtransform(domain: Domain, width: number): (i: number) => number {
-  return (i: number) => ((i - domain.start) * width) / (domain.end - domain.start);
-}
-
-export function reverseXTransform(domain: Domain, width: number): (i: number) => number {
-  return (i: number) => (i * (domain.end - domain.start)) / width + domain.start;
-}
 
 export function ytransform(range: YRange, height: number): (i: number) => number {
   return (i: number) => (range.max === range.min ? 0 : ((range.max - i) * height) / (range.max - range.min));

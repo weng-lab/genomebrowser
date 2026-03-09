@@ -1,4 +1,9 @@
-import { YRange } from "../components/tracks/bigwig/types";
+import { Domain } from "./types";
+
+type RangeLike = {
+  min: number;
+  max: number;
+};
 
 export interface Feature {
   coordinates: { start: number; end: number };
@@ -32,7 +37,7 @@ export function groupFeatures<T extends Feature>(
   }, []);
 }
 
-export function linearScale(value: number, inputRange: YRange, outputRange: YRange): number {
+export function linearScale(value: number, inputRange: RangeLike, outputRange: RangeLike): number {
   const inputSize = inputRange.max - inputRange.min;
   const outputSize = outputRange.max - outputRange.min;
 
@@ -40,4 +45,12 @@ export function linearScale(value: number, inputRange: YRange, outputRange: YRan
 
   const normalizedValue = (value - inputRange.min) / inputSize;
   return outputRange.min + normalizedValue * outputSize;
+}
+
+export function xtransform(domain: Pick<Domain, "start" | "end">, width: number): (value: number) => number {
+  return (value: number) => ((value - domain.start) * width) / (domain.end - domain.start);
+}
+
+export function reverseXTransform(domain: Pick<Domain, "start" | "end">, width: number): (value: number) => number {
+  return (value: number) => (value * (domain.end - domain.start)) / width + domain.start;
 }

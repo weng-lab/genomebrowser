@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { reverseXTransform, xtransform } from "../components/tracks/bigwig/helpers";
+import { reverseXTransform, xtransform } from "../utils/coordinates";
 import { useBrowserStore, useDataStore } from "../store/BrowserContext";
 import { Domain } from "../utils/types";
 
