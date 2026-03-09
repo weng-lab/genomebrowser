@@ -5,46 +5,34 @@ export { Browser };
 import type { Track, TrackDefinition, TrackDimensions } from "./components/tracks/types";
 export type { Track, TrackDefinition, TrackDimensions };
 
-// Registry
-import { registerTrack, getDefinition, getRegisteredTracks } from "./components/tracks/registry";
-export { registerTrack, getDefinition, getRegisteredTracks };
-
 // --- Track Definitions & Factories ---
 
 // BigWig
-import { BigWigDefinition, createBigWigTrack, type BigWigTrack } from "./components/tracks/bigwig/definition";
+import { BigWigDefinition, createBigWigTrack, type BigWigTrack } from "./components/tracks/bigwig";
 export { BigWigDefinition, createBigWigTrack, type BigWigTrack };
 
 // BigBed
-import { BigBedDefinition, createBigBedTrack, type BigBedTrack } from "./components/tracks/bigbed/definition";
+import { BigBedDefinition, createBigBedTrack, type BigBedTrack } from "./components/tracks/bigbed";
 export { BigBedDefinition, createBigBedTrack, type BigBedTrack };
 
 // Transcript
-import {
-  TranscriptDefinition,
-  createTranscriptTrack,
-  type TranscriptTrack,
-} from "./components/tracks/transcript/definition";
+import { TranscriptDefinition, createTranscriptTrack, type TranscriptTrack } from "./components/tracks/transcript";
 export { TranscriptDefinition, createTranscriptTrack, type TranscriptTrack };
 
 // MethylC
-import { MethylCDefinition, createMethylCTrack, type MethylCTrack } from "./components/tracks/methylC/definition";
+import { MethylCDefinition, createMethylCTrack, type MethylCTrack } from "./components/tracks/methylC";
 export { MethylCDefinition, createMethylCTrack, type MethylCTrack };
 
 // BulkBed
-import { BulkBedDefinition, createBulkBedTrack, type BulkBedTrack } from "./components/tracks/bulkbed/definition";
+import { BulkBedDefinition, createBulkBedTrack, type BulkBedTrack } from "./components/tracks/bulkbed";
 export { BulkBedDefinition, createBulkBedTrack, type BulkBedTrack };
 
 // Motif
-import { MotifDefinition, createMotifTrack, type MotifTrack } from "./components/tracks/motif/definition";
+import { MotifDefinition, createMotifTrack, type MotifTrack } from "./components/tracks/motif";
 export { MotifDefinition, createMotifTrack, type MotifTrack };
 
 // Importance
-import {
-  ImportanceDefinition,
-  createImportanceTrack,
-  type ImportanceTrack,
-} from "./components/tracks/importance/definition";
+import { ImportanceDefinition, createImportanceTrack, type ImportanceTrack } from "./components/tracks/importance";
 export { ImportanceDefinition, createImportanceTrack, type ImportanceTrack };
 
 // --- Track Data Types (for renderers / consumers) ---

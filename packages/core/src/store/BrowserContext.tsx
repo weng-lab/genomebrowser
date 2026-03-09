@@ -7,7 +7,6 @@ import { ModalStoreInstance, ModalStore } from "./modalStore";
 import { TooltipStoreInstance, TooltipStore } from "./tooltipStore";
 import { ThemeStoreInstance, ThemeStore } from "./themeStore";
 import { TrackDefinition } from "../components/tracks/types";
-import { TrackRegistry } from "../components/tracks/registry";
 
 interface BrowserContextValue {
   browserStore: BrowserStoreInstance;
@@ -17,7 +16,6 @@ interface BrowserContextValue {
   modalStore: ModalStoreInstance;
   tooltipStore: TooltipStoreInstance;
   themeStore: ThemeStoreInstance;
-  trackRegistry: TrackRegistry;
   getTrackDefinition: (type: string) => TrackDefinition | undefined;
 }
 

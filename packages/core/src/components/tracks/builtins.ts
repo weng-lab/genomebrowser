@@ -1,10 +1,10 @@
-import { BigBedDefinition } from "./bigbed/definition";
-import { BigWigDefinition } from "./bigwig/definition";
-import { BulkBedDefinition } from "./bulkbed/definition";
-import { ImportanceDefinition } from "./importance/definition";
-import { MethylCDefinition } from "./methylC/definition";
-import { MotifDefinition } from "./motif/definition";
-import { TranscriptDefinition } from "./transcript/definition";
+import { BigBedDefinition } from "./bigbed";
+import { BigWigDefinition } from "./bigwig";
+import { BulkBedDefinition } from "./bulkbed";
+import { ImportanceDefinition } from "./importance";
+import { MethylCDefinition } from "./methylC";
+import { MotifDefinition } from "./motif";
+import { TranscriptDefinition } from "./transcript";
 
 export const builtInTrackDefinitions = [
   BigWigDefinition,
