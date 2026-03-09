@@ -1,20 +1,17 @@
 import Refresh from "../../../icons/refresh";
 import { useTrackStore } from "../../../store/BrowserContext";
-import type { BigWigTrack } from "../../tracks/bigwig/definition";
-import { YRange } from "../../tracks/bigwig/types";
-import Form from "../shared/form";
-import Value from "../shared/value";
+import Form from "../../modal/shared/form";
+import Value from "../../modal/shared/value";
+import type { BigWigTrack } from "./definition";
 
-export default function Range({
-  id,
-  defaultRange,
-  customRange,
-}: {
-  id: string;
-  defaultRange: YRange | undefined;
-  customRange: YRange | undefined;
-}) {
+export default function BigWigSettings({ id }: { id: string }) {
+  const track = useTrackStore((state) => state.getTrack(id)) as BigWigTrack | undefined;
   const editTrack = useTrackStore((state) => state.editTrack);
+
+  if (!track) return null;
+
+  const { range: defaultRange, customRange } = track;
+
   const validateMin = (value: string) => {
     const num = Number(value);
     if (Number.isNaN(num)) return "Invalid number";

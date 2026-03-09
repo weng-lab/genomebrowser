@@ -1,49 +1,79 @@
 import Browser from "./components/browser/browser";
 export { Browser };
 
-// Tracks
-import { BigBedConfig, SquishBigBedProps, DenseBigBedProps, Rect } from "./components/tracks/bigbed/types";
-export type { BigBedConfig, SquishBigBedProps, DenseBigBedProps, Rect };
+// Core types
+import type { Track, TrackDefinition, TrackDimensions } from "./components/tracks/types";
+export type { Track, TrackDefinition, TrackDimensions };
 
-import { BulkBedConfig, BulkBedProps, BulkBedDataset, BulkBedRect } from "./components/tracks/bulkbed/types";
-export type { BulkBedConfig, BulkBedProps, BulkBedDataset, BulkBedRect };
+// Registry
+import { registerTrack, getDefinition, getRegisteredTracks } from "./components/tracks/registry";
+export { registerTrack, getDefinition, getRegisteredTracks };
 
+// --- Track Definitions & Factories ---
+
+// BigWig
+import { BigWigDefinition, createBigWigTrack, type BigWigTrack } from "./components/tracks/bigwig/definition";
+export { BigWigDefinition, createBigWigTrack, type BigWigTrack };
+
+// BigBed
+import { BigBedDefinition, createBigBedTrack, type BigBedTrack } from "./components/tracks/bigbed/definition";
+export { BigBedDefinition, createBigBedTrack, type BigBedTrack };
+
+// Transcript
 import {
-  BigWigConfig,
+  TranscriptDefinition,
+  createTranscriptTrack,
+  type TranscriptTrack,
+} from "./components/tracks/transcript/definition";
+export { TranscriptDefinition, createTranscriptTrack, type TranscriptTrack };
+
+// MethylC
+import { MethylCDefinition, createMethylCTrack, type MethylCTrack } from "./components/tracks/methylC/definition";
+export { MethylCDefinition, createMethylCTrack, type MethylCTrack };
+
+// BulkBed
+import { BulkBedDefinition, createBulkBedTrack, type BulkBedTrack } from "./components/tracks/bulkbed/definition";
+export { BulkBedDefinition, createBulkBedTrack, type BulkBedTrack };
+
+// Motif
+import { MotifDefinition, createMotifTrack, type MotifTrack } from "./components/tracks/motif/definition";
+export { MotifDefinition, createMotifTrack, type MotifTrack };
+
+// --- Track Data Types (for renderers / consumers) ---
+
+import type { Rect } from "./components/tracks/bigbed/types";
+export type { Rect };
+
+import type {
   FullBigWigProps,
   DenseBigWigProps,
   ValuedPoint,
   BigWigData,
   BigZoomData,
+  YRange,
 } from "./components/tracks/bigwig/types";
-export type { BigWigConfig, FullBigWigProps, DenseBigWigProps, ValuedPoint, BigWigData, BigZoomData };
+export type { FullBigWigProps, DenseBigWigProps, ValuedPoint, BigWigData, BigZoomData, YRange };
 
-import { ImportanceConfig, ImportanceProps, ImportanceTrackData } from "./components/tracks/importance/types";
-export type { ImportanceConfig, ImportanceProps, ImportanceTrackData };
+import type { TranscriptList, Transcript } from "./components/tracks/transcript/types";
+export type { TranscriptList, Transcript };
 
-import { MotifConfig, SquishMotifProps, DenseMotifProps, MotifRect } from "./components/tracks/motif/types";
-export type { MotifConfig, SquishMotifProps, DenseMotifProps, MotifRect };
+import type { MotifRect } from "./components/tracks/motif/types";
+export type { MotifRect };
 
-import {
-  TranscriptConfig,
-  SquishTranscriptProps,
-  PackTranscriptProps,
-  TranscriptList,
-  Transcript,
-} from "./components/tracks/transcript/types";
-export type { TranscriptConfig, SquishTranscriptProps, PackTranscriptProps, TranscriptList, Transcript };
+import type { ImportanceTrackData } from "./components/tracks/importance/types";
+export type { ImportanceTrackData };
 
-import { MethylCConfig, MethylCProps, MethylData } from "./components/tracks/methylC/types";
-export type { MethylCConfig, MethylCProps, MethylData };
+import type { SNP } from "./components/tracks/ldtrack/types";
+export type { SNP };
 
-import { LDTrackConfig, LDProps, SNP } from "./components/tracks/ldtrack/types";
-export type { LDTrackConfig, LDProps, SNP };
+import type { BulkBedDataset, BulkBedRect } from "./components/tracks/bulkbed/types";
+export type { BulkBedDataset, BulkBedRect };
 
-import { ManhattanTrackConfig, ManhattanPoint } from "./components/tracks/manhattan/types";
-export type { ManhattanTrackConfig, ManhattanPoint };
+import type { MethylCColors, MethylCUrls, MethylData } from "./components/tracks/methylC/types";
+export type { MethylCColors, MethylCUrls, MethylData };
 
-import { CustomTrackConfig, CustomTrackProps } from "./components/tracks/custom/types";
-export type { CustomTrackConfig, CustomTrackProps };
+import type { ManhattanPoint } from "./components/tracks/manhattan/types";
+export type { ManhattanPoint };
 
 // Store Factory Functions
 import {
@@ -54,8 +84,8 @@ import {
 } from "./store/browserStore";
 export { createBrowserStore, createBrowserStoreMemo, type InitialBrowserState, type BrowserStoreInstance };
 
-import { createTrackStore, createTrackStoreMemo, type Track, type TrackStoreInstance } from "./store/trackStore";
-export { createTrackStore, createTrackStoreMemo, type Track, type TrackStoreInstance };
+import { createTrackStore, createTrackStoreMemo, type TrackStoreInstance } from "./store/trackStore";
+export { createTrackStore, createTrackStoreMemo, type TrackStoreInstance };
 
 import { createDataStore, createDataStoreMemo, type DataStoreInstance } from "./store/dataStore";
 export { createDataStore, createDataStoreMemo, type DataStoreInstance };
@@ -63,12 +93,6 @@ export { createDataStore, createDataStoreMemo, type DataStoreInstance };
 // Misc.
 import { Highlight } from "./components/highlight/types";
 export type { Highlight };
-
-import { DisplayMode, TrackType } from "./components/tracks/types";
-export { DisplayMode, TrackType };
-
-import type { Config, TrackDimensions, InteractionConfig, DisplayConfig } from "./components/tracks/types";
-export type { Config, TrackDimensions, InteractionConfig, DisplayConfig };
 
 import { Vibrant, Pastels } from "./utils/color";
 export { Vibrant, Pastels };
@@ -85,7 +109,7 @@ export { Cytobands };
 import useCustomData from "./hooks/useCustomData";
 export { useCustomData };
 
-// Fetcher types and utilities (for custom track fetchers)
+// Fetcher types and utilities (for track definition fetchers)
 import { getBigDataRace, fetchBigBedUrl } from "./api/fetchers";
 export { getBigDataRace, fetchBigBedUrl };
 
@@ -98,7 +122,7 @@ export type { BigBedParser };
 import type { TrackDataState } from "./store/dataStore";
 export type { TrackDataState };
 
-// Hooks (for custom track renderers)
+// Hooks (for track renderers)
 import { useXTransform } from "./hooks/useXTransform";
 export { useXTransform };
 
@@ -114,14 +138,14 @@ export { useBrowserScale };
 import { useRowHeight } from "./hooks/useRowHeight";
 export { useRowHeight };
 
-// SVG utilities (for custom track renderers)
+// SVG utilities (for track renderers)
 import ClipPath from "./components/svg/clipPath";
 export { ClipPath };
 
-// BigBed helpers (for custom track renderers)
+// BigBed helpers (for track renderers)
 import { renderSquishBigBedData, renderDenseBigBedData } from "./components/tracks/bigbed/helpers";
 export { renderSquishBigBedData, renderDenseBigBedData };
 
-// Store hooks (for custom track renderers that need browser state)
+// Store hooks (for track renderers that need browser state)
 import { useBrowserStore, useTrackStore } from "./store/BrowserContext";
 export { useBrowserStore, useTrackStore };

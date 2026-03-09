@@ -1,16 +1,6 @@
 import { create } from "zustand";
-import { BigWigConfig } from "../components/tracks/bigwig/types";
-import { BigBedConfig } from "../components/tracks/bigbed/types";
-import { BulkBedConfig } from "../components/tracks/bulkbed/types";
-import { TranscriptConfig } from "../components/tracks/transcript/types";
-import { MotifConfig } from "../components/tracks/motif/types";
-import { ImportanceConfig } from "../components/tracks/importance/types";
-import { LDTrackConfig } from "../components/tracks/ldtrack/types";
+import { Track } from "../components/tracks/types";
 import { RULER_HEIGHT } from "../components/tracks/ruler/ruler";
-import { MethylCConfig } from "../components/tracks/methylC/types";
-import { TrackType } from "../components/tracks/types";
-import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
-import { CustomTrackConfig } from "../components/tracks/custom/types";
 import { useMemo } from "react";
 
 type WrapperDimensions = {
@@ -20,17 +10,7 @@ type WrapperDimensions = {
   wrapperHeight: number;
 };
 
-export type Track =
-  | BigWigConfig
-  | BigBedConfig
-  | BulkBedConfig
-  | TranscriptConfig
-  | MotifConfig
-  | ImportanceConfig
-  | LDTrackConfig
-  | MethylCConfig
-  | ManhattanTrackConfig
-  | CustomTrackConfig;
+export type { Track };
 
 export interface TrackStore {
   tracks: Track[];
@@ -48,7 +28,7 @@ export interface TrackStore {
   createShortLabel: (id: string) => string;
   getIndexByType: (id: string) => number;
   editTrack: <T extends Track>(id: string, partial: Partial<T>) => void;
-  editAllTracksByType: <T extends Track>(trackType: TrackType, partial: Partial<T>) => void;
+  editAllTracksByType: <T extends Track>(definitionType: string, partial: Partial<T>) => void;
 }
 
 export type TrackStoreInstance = ReturnType<typeof createTrackStoreInternal>;
@@ -81,8 +61,7 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       if (!track) {
         throw new Error("Track not found");
       }
-      const { title, shortLabel } = track;
-      if (shortLabel) return shortLabel;
+      const { title } = track;
       if (!title || !title.substring || !title.length) return "";
       return title.length <= 20 ? title : title.substring(0, 20) + "...";
     },
@@ -134,14 +113,10 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       if (!track) {
         throw new Error("Track not found");
       }
-      tracks.splice(state.getTrackIndex(id), 1); // Remove track from original position
+      tracks.splice(state.getTrackIndex(id), 1);
       const realIndex = index === -1 ? tracks.length : index;
-      tracks.splice(realIndex, 0, track); // Insert track at new index
+      tracks.splice(realIndex, 0, track);
       set({ tracks, ids: tracks.map((track) => track.id) });
-    },
-    getTrackbyIndex: (index: number) => {
-      const state = get();
-      return state.tracks[index];
     },
     insertTrack: (track: Track, index?: number) => {
       const state = get();
@@ -172,10 +147,10 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
         return { tracks: updatedTracks };
       });
     },
-    editAllTracksByType: <T extends Track>(trackType: TrackType, partial: Partial<T>): void => {
+    editAllTracksByType: <T extends Track>(definitionType: string, partial: Partial<T>): void => {
       set((state) => {
         const updatedTracks = state.tracks.map((track) => {
-          if (track.trackType === trackType) {
+          if (track.definition.type === definitionType) {
             const newTrack = { ...track, ...partial };
             return newTrack;
           }
@@ -215,7 +190,7 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       const thisTrack = state.getTrack(id);
       if (!thisTrack) return -1;
       const index = state.tracks
-        .filter((track) => track.trackType === thisTrack.trackType)
+        .filter((track) => track.definition.type === thisTrack.definition.type)
         .findIndex((track) => track.id === id);
       return index;
     },

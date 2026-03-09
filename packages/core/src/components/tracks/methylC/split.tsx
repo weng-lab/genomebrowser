@@ -1,22 +1,12 @@
 import { useMemo } from "react";
 import { useBrowserStore, useTheme } from "../../../store/BrowserContext";
 import { useMouseToIndex } from "../../../hooks/useMousePosition";
-import { MethylCProps } from "./types";
+import { MethylCRendererProps } from "./types";
 import { generateLineGraph, generateSignal2 } from "./helpers";
 import useInteraction from "../../../hooks/useInteraction";
 import DefaultMethylCTooltip, { MethylCShowRows } from "./defaultMethylCTooltip";
-import { MethylCConfig } from "./types";
 
-function SplitMethylC({
-  id,
-  height,
-  colors,
-  data,
-  dimensions,
-  range,
-  tooltip,
-  urls,
-}: MethylCProps & Pick<MethylCConfig, "urls">) {
+function SplitMethylC({ id, height, colors, data, dimensions, range, tooltip, urls }: MethylCRendererProps) {
   const { sideWidth, totalWidth, viewWidth } = dimensions;
   const svgRef = useBrowserStore((state) => state.svgRef);
   const delta = useBrowserStore((state) => state.delta);

@@ -1,19 +1,16 @@
 import { useTrackStore } from "../../../store/BrowserContext";
-import { trackComponents } from "../../tracks/displayTrack";
-import { TrackType } from "../../tracks/types";
-import { DisplayMode as Options } from "../../tracks/types";
-import { CustomTrackConfig } from "../../tracks/custom/types";
 import { getButtonColors } from "../helpers";
 import Form from "./form";
 
-export default function Display({ id, trackType }: { id: string; trackType: TrackType }) {
+export default function Display({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
-  const items =
-    trackType === TrackType.Custom && track ? (track as CustomTrackConfig).renderers : trackComponents[trackType];
-  const options = Object.keys(items) as Options[];
-  const currentMode = track?.displayMode;
-  const color = track?.color;
   const editTrack = useTrackStore((state) => state.editTrack);
+
+  if (!track) return null;
+
+  const options = Object.keys(track.definition.renderers);
+  const currentMode = track.displayMode;
+  const color = track.color;
 
   const buttonStyle = (selected: boolean) => {
     const trackColor = color || "#000000";
@@ -29,11 +26,9 @@ export default function Display({ id, trackType }: { id: string; trackType: Trac
     };
   };
 
-  const handleButtonClick = (option: Options) => {
+  const handleButtonClick = (option: string) => {
     editTrack(id, { displayMode: option });
   };
-
-  if (!track) return null;
 
   return (
     <Form title="Display Mode">

@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useContextMenuStore, useTrackStore, useDataStore } from "../../store/BrowserContext";
-import { trackComponents } from "../tracks/displayTrack";
-import { DisplayMode, TrackType } from "../tracks/types";
-import { CustomTrackConfig } from "../tracks/custom/types";
 import { downloadSVG } from "../../utils/download";
 
 export default function ContextMenu() {
@@ -36,10 +33,9 @@ export default function ContextMenu() {
 
   if (!track) return null;
   if (!trackDataState || trackDataState.data === null) return null;
+
   const currentMode = track.displayMode;
-  const items =
-    track.trackType === TrackType.Custom ? (track as CustomTrackConfig).renderers : trackComponents[track.trackType];
-  const options = Object.keys(items) as DisplayMode[];
+  const options = Object.keys(track.definition.renderers);
 
   const handleClick = (mode: string) => {
     if (!id) return;
@@ -49,7 +45,7 @@ export default function ContextMenu() {
     } else if (mode === "download") {
       downloadSVG(id, track.title, true);
     } else {
-      editTrack(id, { displayMode: mode as DisplayMode });
+      editTrack(id, { displayMode: mode });
     }
   };
 

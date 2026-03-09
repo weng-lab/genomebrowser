@@ -1,5 +1,10 @@
 import { Config, TrackDimensions, TrackType } from "../types";
 
+export interface MotifTrackData {
+  occurrenceRect: MotifRect[];
+  peaks: MotifRect[];
+}
+
 export interface MotifConfig extends Config<any> {
   trackType: TrackType.Motif;
   consensusRegex: string;
@@ -10,7 +15,7 @@ export interface MotifConfig extends Config<any> {
 
 export interface MotifProps {
   id: string;
-  data: { occurrenceRect: MotifRect[]; peaks: MotifRect[] };
+  data: MotifTrackData;
   height: number;
   dimensions: TrackDimensions;
   peakColor: string;

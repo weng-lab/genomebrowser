@@ -1,6 +1,5 @@
 import { useRef, useState, useEffect } from "react";
 import { useTrackStore } from "../../../store/BrowserContext";
-import { TrackType } from "../../tracks/types";
 import { getButtonColors } from "../helpers";
 import Form from "./form";
 
@@ -14,7 +13,7 @@ export default function Height({ id, defaultHeight }: { id: string; defaultHeigh
   const MAX_HEIGHT = 300;
 
   const track = getTrack(id);
-  const trackType = track?.trackType;
+  const definitionType = track?.definition.type;
   const color = track?.color;
 
   const callback = (value: string) => {
@@ -33,38 +32,15 @@ export default function Height({ id, defaultHeight }: { id: string; defaultHeigh
   };
 
   const changeAllSimilarTracks = () => {
-    if (!trackType || !inputRef.current) return;
+    if (!definitionType || !inputRef.current) return;
     const value = inputRef.current.value || String(defaultHeight);
     const height = Number(value) < MIN_HEIGHT ? MIN_HEIGHT : Number(value) > MAX_HEIGHT ? MAX_HEIGHT : Number(value);
-    editAllTracksByType(trackType, { height: height });
+    editAllTracksByType(definitionType, { height: height });
   };
 
   // Count tracks of the same type
-  const sameTypeTracksCount = trackType ? tracks.filter((t) => t.trackType === trackType).length : 0;
+  const sameTypeTracksCount = definitionType ? tracks.filter((t) => t.definition.type === definitionType).length : 0;
   const showBulkButton = sameTypeTracksCount > 1;
-
-  const getTrackTypeLabel = (trackType: TrackType): string => {
-    switch (trackType) {
-      case TrackType.BigWig:
-        return "BigWig";
-      case TrackType.BigBed:
-        return "BigBed";
-      case TrackType.Transcript:
-        return "Transcript";
-      case TrackType.Motif:
-        return "Motif";
-      case TrackType.Importance:
-        return "Importance";
-      case TrackType.LDTrack:
-        return "LDTrack";
-      case TrackType.BulkBed:
-        return "BulkBed";
-      case TrackType.MethylC:
-        return "MethylC";
-      default:
-        return trackType;
-    }
-  };
 
   const buttonStyle = () => {
     const trackColor = color || "#000000";
@@ -84,13 +60,13 @@ export default function Height({ id, defaultHeight }: { id: string; defaultHeigh
     <Form title="Height">
       <div style={{ display: "flex", flexDirection: "row", gap: "5px", alignItems: "flex-start" }}>
         <ValueWithRef inputRef={inputRef} defaultValue={defaultHeight} validate={validate} callback={callback} />
-        {showBulkButton && trackType && (
+        {showBulkButton && definitionType && (
           <button
             style={buttonStyle()}
             onClick={changeAllSimilarTracks}
-            title={`Change height for all ${sameTypeTracksCount} ${getTrackTypeLabel(trackType)} tracks`}
+            title={`Change height for all ${sameTypeTracksCount} ${definitionType} tracks`}
           >
-            Change all {getTrackTypeLabel(trackType)} tracks
+            Change all {definitionType} tracks
           </button>
         )}
       </div>

@@ -1,17 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { useModalStore, useTrackStore } from "../../store/BrowserContext";
-import { TrackType } from "../tracks/types";
-import { CustomTrackConfig } from "../tracks/custom/types";
 import UniversalForm from "./shared/base";
 import Display from "./shared/display";
 import Height from "./shared/height";
-import TranscriptForm from "./transcript/version";
-import Range from "./bigWig/range";
-import GeneName from "./transcript/geneName";
 import { DownloadForm } from "./shared/download";
-import Gap from "./bulkbed/gap";
-import DatasetList from "./bulkbed/datasetList";
 import { getTextColor } from "./helpers";
 
 export default function Modal() {
@@ -88,9 +81,7 @@ export default function Modal() {
           <div style={{ margin: "10px" }}>
             <div style={{ paddingBottom: "0px", fontSize: "1.2em", fontWeight: "bold" }}>
               Configure{" "}
-              {track.shortLabel || track.title.length > MAX_TITLE_LENGTH
-                ? track.title.slice(0, MAX_TITLE_LENGTH) + "..."
-                : track.title}
+              {track.title.length > MAX_TITLE_LENGTH ? track.title.slice(0, MAX_TITLE_LENGTH) + "..." : track.title}
             </div>
           </div>
         </div>
@@ -103,48 +94,17 @@ export default function Modal() {
 function ModalContent({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
   if (!track) return "no configuration available";
-  const forms = (() => {
-    switch (track.trackType) {
-      case TrackType.BigWig:
-        return <Range id={id} defaultRange={track.range} customRange={track.customRange} />;
-      case TrackType.BigBed:
-        return <></>;
-      case TrackType.Transcript:
-        return (
-          <>
-            <TranscriptForm track={track} />
-            <GeneName id={id} name={track.geneName || ""} />
-          </>
-        );
-      case TrackType.Motif:
-        return <></>;
-      case TrackType.Importance:
-        return <></>;
-      case TrackType.LDTrack:
-        return <></>;
-      case TrackType.BulkBed:
-        return (
-          <>
-            <Gap id={id} defaultGap={track.gap || 0} />
-            <DatasetList datasets={track.datasets || []} />
-          </>
-        );
-      case TrackType.Custom: {
-        const Panel = (track as CustomTrackConfig).settingsPanel;
-        return Panel ? <Panel id={id} /> : <></>;
-      }
-      default:
-        return <></>;
-    }
-  })();
+
+  const SettingsPanel = track.definition.settingsPanel;
+
   return (
     <>
       <UniversalForm track={track} />
       <div style={{ display: "flex", flexDirection: "row", gap: "5px" }}>
         <Height id={id} defaultHeight={track.height} />
-        <Display id={track.id} trackType={track.trackType} />
+        <Display id={track.id} />
       </div>
-      {forms}
+      {SettingsPanel && <SettingsPanel id={id} />}
       <DownloadForm track={track} />
     </>
   );

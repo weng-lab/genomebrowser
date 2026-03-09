@@ -30,16 +30,18 @@ export default function SquishTranscript({
 }: SquishTranscriptProps) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
-  const domain = useBrowserStore((state) => state.domain);
+  const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
+  const expandedDomain = getExpandedDomain();
   const fontSize = 10;
 
   const merged = useMemo(() => (data || []).map((gene) => mergeTranscripts(gene)), [data]);
   const visibleMerged = useMemo(
     () =>
       merged.filter(
-        (transcript) => transcript.coordinates.end >= domain.start && transcript.coordinates.start <= domain.end
+        (transcript) =>
+          transcript.coordinates.end >= expandedDomain.start && transcript.coordinates.start <= expandedDomain.end
       ),
-    [merged, domain.start, domain.end]
+    [merged, expandedDomain.start, expandedDomain.end]
   );
   const grouped = useMemo(() => groupFeatures(visibleMerged, x, fontSize), [visibleMerged, x, fontSize]);
   const rowHeight = useRowHeight(grouped.length, id);
@@ -81,7 +83,7 @@ export default function SquishTranscript({
             let fillColor;
             if (isManeSelectTranscript(transcript.transcript.tag)) {
               fillColor = canonicalColor;
-            } else if (geneName !== "" && transcript.transcript.name.toLowerCase().includes(geneName?.toLowerCase())) {
+            } else if (geneName && transcript.transcript.name.toLowerCase().includes(geneName.toLowerCase())) {
               fillColor = highlightColor;
             }
             return (

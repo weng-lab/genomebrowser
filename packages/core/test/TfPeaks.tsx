@@ -461,7 +461,6 @@ export const DECORATOR_BIGBED_URL = "https://users.wenglab.org/gaomingshi/no_tri
 export const tfPeaksTrack: OverlayBigBedConfig = {
   id: "custom-tf-peaks",
   title: "TF Peaks (Overlay)",
-  shortLabel: "TF Peaks",
   trackType: TrackType.Custom,
   displayMode: DisplayMode.Full,
   color: Vibrant[0],

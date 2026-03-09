@@ -6,7 +6,7 @@ import { ValuedPoint, Paths, RenderedBigWigData, FullBigWigProps } from "./types
 
 import { createCopy, getRange, ytransform } from "./helpers";
 import { svgPoint, l } from "../../../utils/svg";
-import { BigWigConfig } from "./types";
+import type { BigWigTrack } from "./definition";
 import { useTheme } from "../../../store/themeStore";
 import useInteraction from "../../../hooks/useInteraction";
 
@@ -44,7 +44,7 @@ export default function FullBigWig({
   }, [data, multiplier, sidePortion]);
 
   useEffect(() => {
-    editTrack<BigWigConfig>(id, { range: realRange });
+    editTrack<BigWigTrack>(id, { range: realRange });
   }, [realRange]);
 
   const dataCopy = useMemo(() => createCopy(data ?? []), [data]);

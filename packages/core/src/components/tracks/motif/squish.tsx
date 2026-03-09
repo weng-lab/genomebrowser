@@ -21,16 +21,20 @@ export default function SquishMotif({
   tooltip,
 }: SquishMotifProps) {
   const { totalWidth, sideWidth } = dimensions;
-  const domain = useBrowserStore((state) => state.domain);
+  const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
+  const expandedDomain = getExpandedDomain();
   const { x } = useXTransform(totalWidth);
 
   const visibleOccurrenceRect = useMemo(
-    () => (data.occurrenceRect || []).filter((rect) => rect.end >= domain.start && rect.start <= domain.end),
-    [data, domain.start, domain.end]
+    () =>
+      (data.occurrenceRect || []).filter(
+        (rect) => rect.end >= expandedDomain.start && rect.start <= expandedDomain.end
+      ),
+    [data, expandedDomain.start, expandedDomain.end]
   );
   const visiblePeaks = useMemo(
-    () => (data.peaks || []).filter((rect) => rect.end >= domain.start && rect.start <= domain.end),
-    [data, domain.start, domain.end]
+    () => (data.peaks || []).filter((rect) => rect.end >= expandedDomain.start && rect.start <= expandedDomain.end),
+    [data, expandedDomain.start, expandedDomain.end]
   );
 
   const rendered: MotifRect[][] = useMemo(

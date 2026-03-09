@@ -1,9 +1,4 @@
-import { TrackType, TrackDimensions, Config } from "../types";
-
-export interface BigBedConfig extends Config<Rect> {
-  trackType: TrackType.BigBed;
-  url: string;
-}
+import { TrackDimensions } from "../types";
 
 interface BigBedProps {
   id: string;

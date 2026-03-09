@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { downloadBedRegion, downloadBedGraph, downloadSVG } from "../../../utils/download";
-import { TrackType } from "../../tracks/types";
 import Form from "./form";
 import { getTextColor, isDark, shadeColor } from "../helpers";
 import { useBrowserStore, useDataStore } from "../../../store/BrowserContext";
-import { Track } from "../../../store/trackStore";
+import { Track } from "../../../components/tracks/types";
 
 export const downloadButtonStyle = {
   cursor: "pointer",
@@ -28,11 +27,13 @@ export function DownloadForm({ track }: { track: Track }) {
   const fontCol = getTextColor(bgCol);
 
   const data = trackDataState?.data ?? undefined;
+  const trackType = track.definition.type;
+  const trackUrl = (track as any).url as string | undefined;
 
   const handleRegionData = () => {
-    if (track.trackType === TrackType.BigWig) {
+    if (trackType === "bigwig") {
       downloadBedGraph(track.id, data, domain);
-    } else if (track.trackType === TrackType.BigBed) {
+    } else if (trackType === "bigbed") {
       downloadBedRegion(track.id, data, domain);
     }
   };
@@ -42,17 +43,20 @@ export function DownloadForm({ track }: { track: Track }) {
   };
 
   const handleDataURL = () => {
-    if (track.trackType === TrackType.BigWig) {
-      navigator.clipboard.writeText(track.url || "");
+    if (trackUrl) {
+      navigator.clipboard.writeText(trackUrl);
       alert("Copied URL to clipboard!");
     }
   };
   const [hover, setHover] = useState(-1);
+
+  const hasUrl = trackType === "bigwig" || trackType === "bigbed";
+
   return (
     <Form title="Download">
       <div>
         <div style={{ display: "flex", flexDirection: "row", gap: "5px" }}>
-          {track.trackType === TrackType.BigWig || track.trackType === TrackType.BigBed ? (
+          {hasUrl ? (
             <button
               style={{
                 ...downloadButtonStyle,
@@ -86,7 +90,7 @@ export function DownloadForm({ track }: { track: Track }) {
           >
             Locus SVG
           </button>
-          {track.trackType === TrackType.BigWig || (track.trackType === TrackType.BigBed && track.url) ? (
+          {trackUrl ? (
             <button
               style={{
                 ...downloadButtonStyle,
