@@ -35,6 +35,10 @@ export { MethylCDefinition, createMethylCTrack, type MethylCTrack };
 import { BulkBedDefinition, createBulkBedTrack, type BulkBedTrack } from "./components/tracks/bulkbed/definition";
 export { BulkBedDefinition, createBulkBedTrack, type BulkBedTrack };
 
+// Motif
+import { MotifDefinition, createMotifTrack, type MotifTrack } from "./components/tracks/motif/definition";
+export { MotifDefinition, createMotifTrack, type MotifTrack };
+
 // --- Track Data Types (for renderers / consumers) ---
 
 import type { Rect } from "./components/tracks/bigbed/types";

@@ -1,6 +1,7 @@
 import {
   createBigWigTrack,
   createBigBedTrack,
+  createMotifTrack,
   createTranscriptTrack,
   createMethylCTrack,
   createBulkBedTrack,
@@ -65,6 +66,25 @@ export const transcriptExample = createTranscriptTrack({
   highlightColor: "#3c69e8",
   titleSize: 12,
   displayMode: "squish",
+});
+
+export const motifExample = createMotifTrack({
+  id: "motif",
+  title: "motif",
+  titleSize: 12,
+  height: 100,
+  color: Vibrant[1],
+  peakColor: Vibrant[3],
+  displayMode: "squish",
+  assembly: "GRCh38",
+  consensusRegex: "gcca[cg][ct]ag[ag]gggcgc",
+  peaksAccession: "ENCFF992CTF",
+  onHover: (rect) => {
+    console.log(rect);
+  },
+  onLeave: (rect) => {
+    console.log(rect);
+  },
 });
 
 export const methylCExampleENCODE = createMethylCTrack({

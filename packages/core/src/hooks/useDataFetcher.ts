@@ -3,6 +3,7 @@ import { useLazyQuery } from "@apollo/client";
 import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
 import { BIGDATA_QUERY, TRANSCRIPT_GENES_QUERY, MOTIF_QUERY } from "../api/queries";
 import type { Track } from "../components/tracks/types";
+import type { MotifTrack } from "../components/tracks/motif/definition";
 import type { TranscriptTrack } from "../components/tracks/transcript/definition";
 
 function getTrackFetchKey(track: Track) {
@@ -13,6 +14,10 @@ function getTrackFetchKey(track: Track) {
     case "transcript": {
       const transcriptTrack = track as TranscriptTrack;
       return `${track.id}:${track.definition.type}:${transcriptTrack.assembly}:${transcriptTrack.version}`;
+    }
+    case "motif": {
+      const motifTrack = track as MotifTrack;
+      return `${track.id}:${track.definition.type}:${motifTrack.assembly}:${motifTrack.peaksAccession}:${motifTrack.consensusRegex}`;
     }
     default:
       return `${track.id}:${track.definition.type}`;
