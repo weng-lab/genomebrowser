@@ -28,7 +28,6 @@ export interface TrackInstance<Item = any> {
   // Display
   color?: string;
   titleSize?: number;
-  shortLabel?: string;
   // Interaction
   onClick?: (item: Item) => void;
   onHover?: (item: Item) => void;

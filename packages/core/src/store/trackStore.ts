@@ -13,7 +13,6 @@ export interface TrackStore {
   shiftTracks: (id: string, index: number) => void;
   insertTrack: (track: TrackInstance, index?: number) => void;
   removeTrack: (id: string) => void;
-  createShortLabel: (id: string) => string;
   getIndexByType: (id: string) => number;
   editTrack: <T extends TrackInstance>(id: string, partial: Partial<T>) => void;
   editAllTracksByType: <T extends TrackInstance>(trackType: string, partial: Partial<T>) => void;
@@ -41,18 +40,6 @@ export function createTrackStoreInternal(tracks: TrackInstance[] = []) {
     tracks,
     ids: tracks.map((track) => track.id),
     setTracks: (tracks: TrackInstance[]) => set({ tracks, ids: tracks.map((track) => track.id) }),
-    createShortLabel: (id: string) => {
-      if (id === "ruler") {
-        return "Ruler";
-      }
-      const track = get().getTrack(id);
-      if (!track) {
-        throw new Error("Track not found");
-      }
-      const { title } = track;
-      if (!title || !title.substring || !title.length) return "";
-      return title.length <= 20 ? title : title.substring(0, 20) + "...";
-    },
     getTrackIndex: (id: string) => {
       const state = get();
       return state.tracks.map((track) => track.id).indexOf(id);
