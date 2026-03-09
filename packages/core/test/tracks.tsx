@@ -1,6 +1,7 @@
 import {
   createBigWigTrack,
   createBigBedTrack,
+  createImportanceTrack,
   createMotifTrack,
   createTranscriptTrack,
   createMethylCTrack,
@@ -85,6 +86,17 @@ export const motifExample = createMotifTrack({
   onLeave: (rect) => {
     console.log(rect);
   },
+});
+
+export const importanceExample = createImportanceTrack({
+  id: "importance",
+  title: "importance",
+  titleSize: 12,
+  height: 75,
+  color: Vibrant[0],
+  url: "https://downloads.wenglab.org/hg38.2bit",
+  displayMode: "full",
+  signalURL: "https://downloads.wenglab.org/hg38.phyloP100way.bigWig",
 });
 
 export const methylCExampleENCODE = createMethylCTrack({

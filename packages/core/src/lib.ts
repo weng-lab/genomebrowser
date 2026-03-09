@@ -39,6 +39,14 @@ export { BulkBedDefinition, createBulkBedTrack, type BulkBedTrack };
 import { MotifDefinition, createMotifTrack, type MotifTrack } from "./components/tracks/motif/definition";
 export { MotifDefinition, createMotifTrack, type MotifTrack };
 
+// Importance
+import {
+  ImportanceDefinition,
+  createImportanceTrack,
+  type ImportanceTrack,
+} from "./components/tracks/importance/definition";
+export { ImportanceDefinition, createImportanceTrack, type ImportanceTrack };
+
 // --- Track Data Types (for renderers / consumers) ---
 
 import type { Rect } from "./components/tracks/bigbed/types";

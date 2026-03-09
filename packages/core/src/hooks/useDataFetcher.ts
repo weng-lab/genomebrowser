@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useLazyQuery } from "@apollo/client";
 import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
 import { BIGDATA_QUERY, TRANSCRIPT_GENES_QUERY, MOTIF_QUERY } from "../api/queries";
+import type { ImportanceTrack } from "../components/tracks/importance/definition";
 import type { Track } from "../components/tracks/types";
 import type { MotifTrack } from "../components/tracks/motif/definition";
 import type { TranscriptTrack } from "../components/tracks/transcript/definition";
@@ -18,6 +19,10 @@ function getTrackFetchKey(track: Track) {
     case "motif": {
       const motifTrack = track as MotifTrack;
       return `${track.id}:${track.definition.type}:${motifTrack.assembly}:${motifTrack.peaksAccession}:${motifTrack.consensusRegex}`;
+    }
+    case "importance": {
+      const importanceTrack = track as ImportanceTrack;
+      return `${track.id}:${track.definition.type}:${importanceTrack.url}:${importanceTrack.signalURL}`;
     }
     default:
       return `${track.id}:${track.definition.type}`;

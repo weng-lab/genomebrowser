@@ -18,6 +18,7 @@ import {
   methylCExampleENCODE,
   bulkBedExample,
   motifExample,
+  importanceExample,
 } from "./tracks";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -137,6 +138,7 @@ export default function All() {
       methylCExampleMOHD,
       bulkBedExample,
       motifExample,
+      importanceExample,
     ],
     []
   );
