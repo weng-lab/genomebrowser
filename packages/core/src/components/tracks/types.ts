@@ -1,6 +1,45 @@
 import { FetcherContext } from "../../api/fetchers";
 import { TrackDataState } from "../../store/dataStore";
 
+export enum TrackType {
+  BigWig = "bigwig",
+  BigBed = "bigbed",
+  Transcript = "transcript",
+  Motif = "motif",
+  Importance = "importance",
+  LDTrack = "ldtrack",
+  BulkBed = "bulkbed",
+  MethylC = "methylC",
+  Manhattan = "manhattan",
+  Custom = "custom",
+}
+
+export enum DisplayMode {
+  Full = "full",
+  Dense = "dense",
+  Squish = "squish",
+  Pack = "pack",
+  Split = "split",
+  Combined = "combined",
+  LDBlock = "ldblock",
+  Scatter = "scatter",
+}
+
+export interface Config<Item = any> {
+  id: string;
+  title: string;
+  height: number;
+  displayMode: DisplayMode | string;
+  color?: string;
+  titleSize?: number;
+  shortLabel?: string;
+  trackType: TrackType;
+  onClick?: (item: Item) => void;
+  onHover?: (item: Item) => void;
+  onLeave?: (item: Item) => void;
+  tooltip?: React.FC<any>;
+}
+
 /**
  * Shared behavior for a track kind — one per track type (e.g. BigWig, BigBed).
  * Holds renderers, fetcher, and optional settings panel.

@@ -1,5 +1,6 @@
 import Refresh from "../../../icons/refresh";
 import { useTrackStore } from "../../../store/BrowserContext";
+import type { BigWigTrack } from "../../tracks/bigwig/definition";
 import { YRange } from "../../tracks/bigwig/types";
 import Form from "../shared/form";
 import Value from "../shared/value";
@@ -38,13 +39,13 @@ export default function Range({
     const num = Number(value);
     if (!defaultRange) return;
     const newRange = { min: num, max: customRange?.max ?? defaultRange.max };
-    editTrack(id, { customRange: newRange });
+    editTrack<BigWigTrack>(id, { customRange: newRange });
   };
   const maxCallback = (value: string) => {
     const num = Number(value);
     if (!defaultRange) return;
     const newRange = { min: customRange?.min ?? defaultRange.min, max: num };
-    editTrack(id, { customRange: newRange });
+    editTrack<BigWigTrack>(id, { customRange: newRange });
   };
 
   return (
@@ -62,7 +63,7 @@ export default function Range({
           validate={validateMax}
           callback={maxCallback}
         />
-        <button title="auto scale range" onClick={() => editTrack(id, { customRange: undefined })}>
+        <button title="auto scale range" onClick={() => editTrack<BigWigTrack>(id, { customRange: undefined })}>
           <Refresh fill="#000000" width={15} height={15} style={{ cursor: "pointer" }} />
         </button>
       </div>

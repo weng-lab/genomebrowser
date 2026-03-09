@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import { useTheme } from "../../../store/themeStore";
+import type { Track } from "../types";
 import { LDProps, SNP } from "./types";
 import useInteraction from "../../../hooks/useInteraction";
 import { darken, isDark, lighten } from "../../../utils/color";
@@ -191,10 +192,12 @@ export default function LD({
                 const currentShow = show || [];
                 const snpId = snp.snpid;
                 if (!currentShow.includes(snpId)) {
-                  editTrack(id, { show: [...currentShow, snpId] });
+                  editTrack<Track & { show?: string[] }>(id, { show: [...currentShow, snpId] });
                 } else {
                   // Remove from show list if already there (toggle behavior)
-                  editTrack(id, { show: currentShow.filter((showId) => showId !== snpId) });
+                  editTrack<Track & { show?: string[] }>(id, {
+                    show: currentShow.filter((showId) => showId !== snpId),
+                  });
                 }
               }}
               onMouseOver={(e) => {
