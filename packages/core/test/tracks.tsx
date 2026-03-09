@@ -2,6 +2,7 @@ import {
   createBigWigTrack,
   createBigBedTrack,
   createTranscriptTrack,
+  createMethylCTrack,
   Vibrant,
 } from "../src/lib";
 
@@ -63,4 +64,66 @@ export const transcriptExample = createTranscriptTrack({
   highlightColor: "#3c69e8",
   titleSize: 12,
   displayMode: "squish",
+});
+
+export const methylCExampleENCODE = createMethylCTrack({
+  id: "methylCEncode",
+  title: "MethylC ENCODE",
+  height: 100,
+  titleSize: 12,
+  displayMode: "split",
+  color: "#648bd8",
+  colors: {
+    cpg: "#648bd8",
+    chg: "#ff944d",
+    chh: "#ff00ff",
+    depth: "#525252",
+  },
+  urls: {
+    plusStrand: {
+      cpg: { url: "https://users.wenglab.org/mezaj/wgbs/ENCFF479QRW.bigWig" },
+      chg: { url: "" },
+      chh: { url: "" },
+      depth: { url: "https://users.wenglab.org/mezaj/wgbs/ENCFF698UYM.bigWig" },
+    },
+    minusStrand: {
+      cpg: { url: "https://users.wenglab.org/mezaj/wgbs/ENCFF829YYQ.bigWig" },
+      chg: { url: "" },
+      chh: { url: "" },
+      depth: { url: "https://users.wenglab.org/mezaj/wgbs/ENCFF698UYM.bigWig" },
+    },
+  },
+});
+
+export const methylCExampleMOHD = createMethylCTrack({
+  id: "methylCMohd",
+  title: "WGBS MethylC MOHD",
+  height: 100,
+  titleSize: 12,
+  displayMode: "split",
+  color: "#648bd8",
+  colors: {
+    cpg: "#648bd8",
+    chg: "#ff944d",
+    chh: "#ff00ff",
+    depth: "#525252",
+  },
+  range: {
+    max: 1,
+    min: 0,
+  },
+  urls: {
+    plusStrand: {
+      cpg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_pos.bw" },
+      chg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_pos.bw" },
+      chh: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_pos.bw" },
+      depth: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_pos.bw" },
+    },
+    minusStrand: {
+      cpg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_neg.bw" },
+      chg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_neg.bw" },
+      chh: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_neg.bw" },
+      depth: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_neg.bw" },
+    },
+  },
 });

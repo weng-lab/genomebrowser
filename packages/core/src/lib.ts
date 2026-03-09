@@ -27,6 +27,10 @@ import {
 } from "./components/tracks/transcript/definition";
 export { TranscriptDefinition, createTranscriptTrack, type TranscriptTrack };
 
+// MethylC
+import { MethylCDefinition, createMethylCTrack, type MethylCTrack } from "./components/tracks/methylC/definition";
+export { MethylCDefinition, createMethylCTrack, type MethylCTrack };
+
 // --- Track Data Types (for renderers / consumers) ---
 
 import type { Rect } from "./components/tracks/bigbed/types";
@@ -57,8 +61,8 @@ export type { SNP };
 import type { BulkBedDataset, BulkBedRect } from "./components/tracks/bulkbed/types";
 export type { BulkBedDataset, BulkBedRect };
 
-import type { MethylData } from "./components/tracks/methylC/types";
-export type { MethylData };
+import type { MethylCColors, MethylCUrls, MethylData } from "./components/tracks/methylC/types";
+export type { MethylCColors, MethylCUrls, MethylData };
 
 import type { ManhattanPoint } from "./components/tracks/manhattan/types";
 export type { ManhattanPoint };
