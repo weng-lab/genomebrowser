@@ -1,6 +1,5 @@
 import { Track, TrackDefinition } from "../types";
 import { FetcherContext, getBigDataRace } from "../../../api/fetchers";
-import { registerTrack } from "../registry";
 import Importance from "./importance";
 import type { ImportanceTrackAnnotation } from "./types";
 import type { SVGProps } from "react";
@@ -41,8 +40,6 @@ export const ImportanceDefinition: TrackDefinition<"full"> = {
   fetcher: fetchImportance,
 };
 
-registerTrack(ImportanceDefinition);
-
 export function createImportanceTrack(opts: {
   id: string;
   title: string;
@@ -56,7 +53,7 @@ export function createImportanceTrack(opts: {
   zeroLineProps?: SVGProps<SVGLineElement>;
 }): ImportanceTrack {
   return {
-    definition: ImportanceDefinition,
+    type: ImportanceDefinition.type,
     displayMode: opts.displayMode ?? ImportanceDefinition.defaultDisplayMode,
     height: opts.height ?? ImportanceDefinition.defaultHeight,
     id: opts.id,

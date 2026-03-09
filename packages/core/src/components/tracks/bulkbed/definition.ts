@@ -1,6 +1,5 @@
 import { Track, TrackDefinition } from "../types";
 import { FetcherContext, fetchBigBedUrl } from "../../../api/fetchers";
-import { registerTrack } from "../registry";
 import BulkBed from "./bulkbed";
 import BulkBedSettings from "./settings";
 import type { BulkBedDataset, BulkBedRect } from "./types";
@@ -49,8 +48,6 @@ export const BulkBedDefinition: TrackDefinition<"full"> = {
   settingsPanel: BulkBedSettings,
 };
 
-registerTrack(BulkBedDefinition);
-
 export function createBulkBedTrack(opts: {
   id: string;
   title: string;
@@ -66,7 +63,7 @@ export function createBulkBedTrack(opts: {
   tooltip?: React.FC<any>;
 }): BulkBedTrack {
   return {
-    definition: BulkBedDefinition,
+    type: BulkBedDefinition.type,
     displayMode: opts.displayMode ?? BulkBedDefinition.defaultDisplayMode,
     height: opts.height ?? BulkBedDefinition.defaultHeight,
     id: opts.id,

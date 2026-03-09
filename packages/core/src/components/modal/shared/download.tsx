@@ -27,7 +27,7 @@ export function DownloadForm({ track }: { track: Track }) {
   const fontCol = getTextColor(bgCol);
 
   const data = trackDataState?.data ?? undefined;
-  const trackType = track.definition.type;
+  const trackType = track.type;
   const trackUrl = (track as any).url as string | undefined;
 
   const handleRegionData = () => {

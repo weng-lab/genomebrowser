@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
-import { useModalStore, useTrackStore } from "../../store/BrowserContext";
+import { useModalStore, useTrackDefinitionLookup, useTrackStore } from "../../store/BrowserContext";
 import UniversalForm from "./shared/base";
 import Display from "./shared/display";
 import Height from "./shared/height";
@@ -93,9 +93,15 @@ export default function Modal() {
 
 function ModalContent({ id }: { id: string }) {
   const track = useTrackStore((state) => state.getTrack(id));
+  const getTrackDefinition = useTrackDefinitionLookup();
   if (!track) return "no configuration available";
 
-  const SettingsPanel = track.definition.settingsPanel;
+  const definition = getTrackDefinition(track.type);
+  if (!definition) {
+    throw new Error(`Unknown track type: ${track.type}`);
+  }
+
+  const SettingsPanel = definition.settingsPanel;
 
   return (
     <>

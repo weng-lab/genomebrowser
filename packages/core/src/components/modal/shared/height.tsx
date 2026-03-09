@@ -13,7 +13,7 @@ export default function Height({ id, defaultHeight }: { id: string; defaultHeigh
   const MAX_HEIGHT = 300;
 
   const track = getTrack(id);
-  const definitionType = track?.definition.type;
+  const definitionType = track?.type;
   const color = track?.color;
 
   const callback = (value: string) => {
@@ -39,7 +39,7 @@ export default function Height({ id, defaultHeight }: { id: string; defaultHeigh
   };
 
   // Count tracks of the same type
-  const sameTypeTracksCount = definitionType ? tracks.filter((t) => t.definition.type === definitionType).length : 0;
+  const sameTypeTracksCount = definitionType ? tracks.filter((t) => t.type === definitionType).length : 0;
   const showBulkButton = sameTypeTracksCount > 1;
 
   const buttonStyle = () => {

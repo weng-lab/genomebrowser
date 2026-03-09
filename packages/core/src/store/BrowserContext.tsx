@@ -109,3 +109,12 @@ export function useTrackDefinition(type: string): TrackDefinition {
 
   return definition;
 }
+
+export function useTrackDefinitionLookup() {
+  const context = useContext(BrowserContext);
+  if (!context) {
+    throw new Error("useTrackDefinitionLookup must be used within a Browser component");
+  }
+
+  return context.getTrackDefinition;
+}

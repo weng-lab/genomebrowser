@@ -1,6 +1,5 @@
 import { Track, TrackDefinition } from "../types";
 import { FetcherContext, fetchBigBedUrl } from "../../../api/fetchers";
-import { registerTrack } from "../registry";
 import DenseBigBed from "./dense";
 import SquishBigBed from "./squish";
 
@@ -32,8 +31,6 @@ export const BigBedDefinition: TrackDefinition<"dense" | "squish"> = {
   settingsPanel: undefined,
 };
 
-registerTrack(BigBedDefinition);
-
 // --- Factory ---
 
 export function createBigBedTrack(opts: {
@@ -51,7 +48,7 @@ export function createBigBedTrack(opts: {
   tooltip?: React.FC<any>;
 }): BigBedTrack {
   return {
-    definition: BigBedDefinition,
+    type: BigBedDefinition.type,
     displayMode: opts.displayMode ?? BigBedDefinition.defaultDisplayMode,
     height: opts.height ?? BigBedDefinition.defaultHeight,
     id: opts.id,

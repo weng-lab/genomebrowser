@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useLazyQuery } from "@apollo/client";
-import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
+import { useBrowserStore, useDataStore, useTrackDefinitionLookup, useTrackStore } from "../store/BrowserContext";
 import { BIGDATA_QUERY, TRANSCRIPT_GENES_QUERY, MOTIF_QUERY } from "../api/queries";
 import type { ImportanceTrack } from "../components/tracks/importance/definition";
 import type { Track } from "../components/tracks/types";
@@ -8,24 +8,24 @@ import type { MotifTrack } from "../components/tracks/motif/definition";
 import type { TranscriptTrack } from "../components/tracks/transcript/definition";
 
 function getTrackFetchKey(track: Track) {
-  switch (track.definition.type) {
+  switch (track.type) {
     case "bigwig":
     case "bigbed":
-      return `${track.id}:${track.definition.type}:${(track as { url?: string }).url ?? ""}`;
+      return `${track.id}:${track.type}:${(track as { url?: string }).url ?? ""}`;
     case "transcript": {
       const transcriptTrack = track as TranscriptTrack;
-      return `${track.id}:${track.definition.type}:${transcriptTrack.assembly}:${transcriptTrack.version}`;
+      return `${track.id}:${track.type}:${transcriptTrack.assembly}:${transcriptTrack.version}`;
     }
     case "motif": {
       const motifTrack = track as MotifTrack;
-      return `${track.id}:${track.definition.type}:${motifTrack.assembly}:${motifTrack.peaksAccession}:${motifTrack.consensusRegex}`;
+      return `${track.id}:${track.type}:${motifTrack.assembly}:${motifTrack.peaksAccession}:${motifTrack.consensusRegex}`;
     }
     case "importance": {
       const importanceTrack = track as ImportanceTrack;
-      return `${track.id}:${track.definition.type}:${importanceTrack.url}:${importanceTrack.signalURL}`;
+      return `${track.id}:${track.type}:${importanceTrack.url}:${importanceTrack.signalURL}`;
     }
     default:
-      return `${track.id}:${track.definition.type}`;
+      return `${track.id}:${track.type}`;
   }
 }
 
@@ -45,6 +45,7 @@ export function useDataFetcher() {
   const setFetching = useDataStore((state) => state.setFetching);
   const setMultipleTrackData = useDataStore((state) => state.setMultipleTrackData);
   const getTrackData = useDataStore((state) => state.getTrackData);
+  const getTrackDefinition = useTrackDefinitionLookup();
 
   const [fetchBigData] = useLazyQuery(BIGDATA_QUERY);
   const [fetchGene] = useLazyQuery(TRANSCRIPT_GENES_QUERY);
@@ -80,7 +81,12 @@ export function useDataFetcher() {
       // Fetch all tracks in parallel using each track's definition fetcher
       const results = await Promise.allSettled(
         tracks.map(async (track) => {
-          const fetcher = track.definition.fetcher;
+          const definition = getTrackDefinition(track.type);
+          if (!definition) {
+            throw new Error(`Unknown track type: ${track.type}`);
+          }
+
+          const fetcher = definition.fetcher;
           const result = await fetcher({
             track,
             domain,
@@ -120,5 +126,5 @@ export function useDataFetcher() {
 
     fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domain.chromosome, domain.start, domain.end, trackFetchKey]);
+  }, [domain.chromosome, domain.start, domain.end, getTrackDefinition, trackFetchKey]);
 }

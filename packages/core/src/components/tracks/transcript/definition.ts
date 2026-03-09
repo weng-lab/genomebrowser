@@ -1,6 +1,5 @@
 import { Track, TrackDefinition } from "../types";
 import { FetcherContext } from "../../../api/fetchers";
-import { registerTrack } from "../registry";
 import PackTranscript from "./pack";
 import SquishTranscript from "./squish";
 import TranscriptSettings from "./settings";
@@ -45,8 +44,6 @@ export const TranscriptDefinition: TrackDefinition<"pack" | "squish"> = {
   settingsPanel: TranscriptSettings,
 };
 
-registerTrack(TranscriptDefinition);
-
 export function createTranscriptTrack(opts: {
   id: string;
   title: string;
@@ -65,7 +62,7 @@ export function createTranscriptTrack(opts: {
   tooltip?: React.FC<any>;
 }): TranscriptTrack {
   return {
-    definition: TranscriptDefinition,
+    type: TranscriptDefinition.type,
     displayMode: opts.displayMode ?? TranscriptDefinition.defaultDisplayMode,
     height: opts.height ?? TranscriptDefinition.defaultHeight,
     id: opts.id,

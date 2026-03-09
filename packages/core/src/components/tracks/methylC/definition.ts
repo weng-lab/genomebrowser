@@ -1,6 +1,5 @@
 import { Track, TrackDefinition } from "../types";
 import { FetcherContext, fetchBigBedUrl } from "../../../api/fetchers";
-import { registerTrack } from "../registry";
 import SplitMethylC from "./split";
 import CombinedMethylC from "./combined";
 import type { YRange } from "../bigwig/types";
@@ -61,8 +60,6 @@ export const MethylCDefinition: TrackDefinition<"split" | "combined"> = {
   fetcher: fetchMethylC,
 };
 
-registerTrack(MethylCDefinition);
-
 export function createMethylCTrack(opts: {
   id: string;
   title: string;
@@ -76,7 +73,7 @@ export function createMethylCTrack(opts: {
   tooltip?: React.FC<any>;
 }): MethylCTrack {
   return {
-    definition: MethylCDefinition,
+    type: MethylCDefinition.type,
     displayMode: opts.displayMode ?? MethylCDefinition.defaultDisplayMode,
     height: opts.height ?? MethylCDefinition.defaultHeight,
     id: opts.id,

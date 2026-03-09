@@ -7,6 +7,7 @@ import {
   useContextMenuStore,
   useDataStore,
   useTheme,
+  useTrackDefinitionLookup,
   useTrackStore,
 } from "../../../store/BrowserContext";
 import { RULER_HEIGHT } from "../ruler/ruler";
@@ -38,6 +39,7 @@ export default function TrackFrame({ id }: { id: string }) {
     }))
   );
   const { layout, reorderDistances } = useTrackFrameLayout(id);
+  const getTrackDefinition = useTrackDefinitionLookup();
 
   const trackWidth = browserWidth - marginWidth;
   const isLoading = !trackDataState || (trackDataState.data === null && trackDataState.error === null);
@@ -47,11 +49,16 @@ export default function TrackFrame({ id }: { id: string }) {
   const content = useMemo(() => {
     if (!track || !data) return null;
 
-    const Renderer = track.definition.renderers[track.displayMode];
+    const definition = getTrackDefinition(track.type);
+    if (!definition) {
+      throw new Error(`Unknown track type: ${track.type}`);
+    }
+
+    const Renderer = definition.renderers[track.displayMode];
     if (!Renderer) return null;
 
     return <Renderer {...track} data={data} dimensions={getTrackDimensions()} />;
-  }, [data, getTrackDimensions, track]);
+  }, [data, getTrackDefinition, getTrackDimensions, track]);
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent<SVGGElement>) => {

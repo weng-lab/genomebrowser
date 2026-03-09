@@ -16,7 +16,7 @@ export interface TrackStore {
   createShortLabel: (id: string) => string;
   getIndexByType: (id: string) => number;
   editTrack: <T extends Track>(id: string, partial: Partial<T>) => void;
-  editAllTracksByType: <T extends Track>(definitionType: string, partial: Partial<T>) => void;
+  editAllTracksByType: <T extends Track>(trackType: string, partial: Partial<T>) => void;
 }
 
 export type TrackStoreInstance = ReturnType<typeof createTrackStoreInternal>;
@@ -102,10 +102,10 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
         return { tracks: updatedTracks };
       });
     },
-    editAllTracksByType: <T extends Track>(definitionType: string, partial: Partial<T>): void => {
+    editAllTracksByType: <T extends Track>(trackType: string, partial: Partial<T>): void => {
       set((state) => {
         const updatedTracks = state.tracks.map((track) => {
-          if (track.definition.type === definitionType) {
+          if (track.type === trackType) {
             const newTrack = { ...track, ...partial };
             return newTrack;
           }
@@ -118,9 +118,7 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       const state = get();
       const thisTrack = state.getTrack(id);
       if (!thisTrack) return -1;
-      const index = state.tracks
-        .filter((track) => track.definition.type === thisTrack.definition.type)
-        .findIndex((track) => track.id === id);
+      const index = state.tracks.filter((track) => track.type === thisTrack.type).findIndex((track) => track.id === id);
       return index;
     },
   }));

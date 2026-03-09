@@ -60,10 +60,10 @@ export interface TrackDefinition<TDisplayMode extends string = string> {
  */
 export interface Track {
   id: string;
+  type: string;
   title: string;
   height: number;
   displayMode: string;
-  definition: TrackDefinition;
   // Display
   color?: string;
   titleSize?: number;

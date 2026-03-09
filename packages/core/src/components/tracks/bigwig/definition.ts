@@ -2,7 +2,6 @@ import { Track, TrackDefinition } from "../types";
 import { FetcherContext } from "../../../api/fetchers";
 import { getBigDataRace } from "../../../api/fetchers";
 import { applyFillWithZero } from "../../../api/getBigWigData";
-import { registerTrack } from "../registry";
 import ReworkBigWig from "./rework";
 import DenseBigWig from "./dense";
 import BigWigSettings from "./settings";
@@ -42,8 +41,6 @@ export const BigWigDefinition: TrackDefinition<"full" | "dense"> = {
   settingsPanel: BigWigSettings,
 };
 
-registerTrack(BigWigDefinition);
-
 // --- Factory ---
 
 export function createBigWigTrack(opts: {
@@ -64,7 +61,7 @@ export function createBigWigTrack(opts: {
   tooltip?: React.FC<any>;
 }): BigWigTrack {
   return {
-    definition: BigWigDefinition,
+    type: BigWigDefinition.type,
     displayMode: opts.displayMode ?? BigWigDefinition.defaultDisplayMode,
     height: opts.height ?? BigWigDefinition.defaultHeight,
     id: opts.id,

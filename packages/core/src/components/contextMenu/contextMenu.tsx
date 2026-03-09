@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useContextMenuStore, useTrackStore, useDataStore } from "../../store/BrowserContext";
+import { useContextMenuStore, useTrackStore, useDataStore, useTrackDefinitionLookup } from "../../store/BrowserContext";
 import { downloadSVG } from "../../utils/download";
 
 export default function ContextMenu() {
@@ -14,6 +14,7 @@ export default function ContextMenu() {
   const editTrack = useTrackStore((state) => state.editTrack);
   const removeTrack = useTrackStore((state) => state.removeTrack);
   const [hovered, setHovered] = useState<string | null>(null);
+  const getTrackDefinition = useTrackDefinitionLookup();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -35,7 +36,11 @@ export default function ContextMenu() {
   if (!trackDataState || trackDataState.data === null) return null;
 
   const currentMode = track.displayMode;
-  const options = Object.keys(track.definition.renderers);
+  const definition = getTrackDefinition(track.type);
+  if (!definition) {
+    throw new Error(`Unknown track type: ${track.type}`);
+  }
+  const options = Object.keys(definition.renderers);
 
   const handleClick = (mode: string) => {
     if (!id) return;

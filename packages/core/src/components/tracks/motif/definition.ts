@@ -1,6 +1,5 @@
 import { Track, TrackDefinition } from "../types";
 import { FetcherContext } from "../../../api/fetchers";
-import { registerTrack } from "../registry";
 import DenseMotif from "./dense";
 import SquishMotif from "./squish";
 import type { MotifRect, MotifTrackData } from "./types";
@@ -73,8 +72,6 @@ export const MotifDefinition: TrackDefinition<"dense" | "squish"> = {
   fetcher: fetchMotif,
 };
 
-registerTrack(MotifDefinition);
-
 export function createMotifTrack(opts: {
   id: string;
   title: string;
@@ -92,7 +89,7 @@ export function createMotifTrack(opts: {
   tooltip?: React.FC<any>;
 }): MotifTrack {
   return {
-    definition: MotifDefinition,
+    type: MotifDefinition.type,
     displayMode: opts.displayMode ?? MotifDefinition.defaultDisplayMode,
     height: opts.height ?? MotifDefinition.defaultHeight,
     id: opts.id,
