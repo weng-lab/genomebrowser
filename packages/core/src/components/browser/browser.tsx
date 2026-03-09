@@ -19,11 +19,15 @@ import SVGWrapper from "./svgWrapper";
 import SelectRegion from "../tracks/ruler/selectRegion";
 import Highlights from "../highlight/highlights";
 import { RULER_HEIGHT } from "../tracks/ruler/ruler";
+import { builtInTrackDefinitions } from "../tracks/builtins";
+import { createTrackRegistry, getDefinition } from "../tracks/registry";
+import { TrackDefinition } from "../tracks/types";
 
 interface BrowserProps {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
   externalDataStore?: DataStoreInstance;
+  customTracks?: TrackDefinition[];
 }
 
 // Internal component that uses context hooks
@@ -76,13 +80,18 @@ function RulerFrame() {
   );
 }
 
-export default function Browser({ browserStore, trackStore, externalDataStore }: BrowserProps) {
+export default function Browser({ browserStore, trackStore, externalDataStore, customTracks = [] }: BrowserProps) {
   // Create internal stores for this browser instance
   const dataStore = externalDataStore ?? createDataStoreMemo([]);
   const contextMenuStore = useMemo(() => createContextMenuStore(), []);
   const modalStore = useMemo(() => createModalStore(), []);
   const tooltipStore = useMemo(() => createTooltipStore(), []);
   const themeStore = useMemo(() => createThemeStore(), []);
+  const trackRegistry = useMemo(
+    () => createTrackRegistry([...builtInTrackDefinitions, ...customTracks]),
+    [customTracks]
+  );
+  const getTrackDefinition = useMemo(() => (type: string) => getDefinition(trackRegistry, type), [trackRegistry]);
 
   // Create context value
   const contextValue = useMemo(
@@ -94,8 +103,20 @@ export default function Browser({ browserStore, trackStore, externalDataStore }:
       modalStore,
       tooltipStore,
       themeStore,
+      trackRegistry,
+      getTrackDefinition,
     }),
-    [browserStore, trackStore, dataStore, contextMenuStore, modalStore, tooltipStore, themeStore]
+    [
+      browserStore,
+      trackStore,
+      dataStore,
+      contextMenuStore,
+      modalStore,
+      tooltipStore,
+      themeStore,
+      trackRegistry,
+      getTrackDefinition,
+    ]
   );
 
   return (

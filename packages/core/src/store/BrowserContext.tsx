@@ -6,6 +6,8 @@ import { ContextMenuStoreInstance, ContextMenuStore } from "./contextMenuStore";
 import { ModalStoreInstance, ModalStore } from "./modalStore";
 import { TooltipStoreInstance, TooltipStore } from "./tooltipStore";
 import { ThemeStoreInstance, ThemeStore } from "./themeStore";
+import { TrackDefinition } from "../components/tracks/types";
+import { TrackRegistry } from "../components/tracks/registry";
 
 interface BrowserContextValue {
   browserStore: BrowserStoreInstance;
@@ -15,6 +17,8 @@ interface BrowserContextValue {
   modalStore: ModalStoreInstance;
   tooltipStore: TooltipStoreInstance;
   themeStore: ThemeStoreInstance;
+  trackRegistry: TrackRegistry;
+  getTrackDefinition: (type: string) => TrackDefinition | undefined;
 }
 
 const BrowserContext = createContext<BrowserContextValue | null>(null);
@@ -90,4 +94,18 @@ export function useTheme<T>(selector: (state: ThemeStore) => T): T {
   }
 
   return context.themeStore(selector) as any;
+}
+
+export function useTrackDefinition(type: string): TrackDefinition {
+  const context = useContext(BrowserContext);
+  if (!context) {
+    throw new Error("useTrackDefinition must be used within a Browser component");
+  }
+
+  const definition = context.getTrackDefinition(type);
+  if (!definition) {
+    throw new Error(`Unknown track type: ${type}`);
+  }
+
+  return definition;
 }
