@@ -1,5 +1,5 @@
 import { ValuedPoint, YRange } from "../bigwig/types";
-import { Config, DisplayMode, TrackDimensions, TrackType } from "../types";
+import { TrackDimensions, TrackInstance } from "../types";
 
 export type MethylCColors = {
   cpg: string;
@@ -23,9 +23,8 @@ export type MethylCUrls = {
   };
 };
 
-export interface MethylCConfig extends Config<MethylData> {
-  trackType: TrackType.MethylC;
-  displayMode: DisplayMode.Split | DisplayMode.Combined;
+export interface MethylCConfig extends TrackInstance<MethylData> {
+  displayMode: "split" | "combined";
   colors: MethylCColors;
   urls: MethylCUrls;
   range?: YRange;

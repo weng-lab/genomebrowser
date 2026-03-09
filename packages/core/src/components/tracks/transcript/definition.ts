@@ -1,10 +1,10 @@
-import { Track, TrackDefinition } from "../types";
+import { TrackDefinition, TrackInstance } from "../types";
 import { FetcherContext } from "../../../api/fetchers";
 import PackTranscript from "./pack";
 import SquishTranscript from "./squish";
 import TranscriptSettings from "./settings";
 
-export type TranscriptTrack = Track & {
+export type TranscriptTrack = TrackInstance & {
   displayMode: "pack" | "squish";
   assembly: string;
   version: number;

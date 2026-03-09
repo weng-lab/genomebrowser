@@ -2,7 +2,7 @@ import { Buffer } from "buffer";
 globalThis.Buffer = Buffer;
 
 import { LazyQueryExecFunction, OperationVariables } from "@apollo/client";
-import { Track } from "../components/tracks/types";
+import { TrackInstance } from "../components/tracks/types";
 import { Domain } from "../utils/types";
 import { TrackDataState } from "../store/dataStore";
 import { getBigData, applyFillWithZero, type BigBedParser } from "./getBigWigData";
@@ -18,7 +18,7 @@ export interface QueryHooks {
 }
 
 // Context for the fetch function
-export type FetcherContext<T extends Track = Track> = {
+export type FetcherContext<T extends TrackInstance = TrackInstance> = {
   track: T;
   domain: Domain;
   expandedDomain: Domain;

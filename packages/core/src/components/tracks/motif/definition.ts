@@ -1,10 +1,10 @@
-import { Track, TrackDefinition } from "../types";
+import { TrackDefinition, TrackInstance } from "../types";
 import { FetcherContext } from "../../../api/fetchers";
 import DenseMotif from "./dense";
 import SquishMotif from "./squish";
 import type { MotifRect, MotifTrackData } from "./types";
 
-export type MotifTrack = Track & {
+export type MotifTrack = TrackInstance & {
   displayMode: "dense" | "squish";
   consensusRegex: string;
   peaksAccession: string;

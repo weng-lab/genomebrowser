@@ -1,12 +1,11 @@
-import { Config, TrackDimensions, TrackType } from "../types";
+import { TrackDimensions, TrackInstance } from "../types";
 
 export interface MotifTrackData {
   occurrenceRect: MotifRect[];
   peaks: MotifRect[];
 }
 
-export interface MotifConfig extends Config<any> {
-  trackType: TrackType.Motif;
+export interface MotifConfig extends TrackInstance<any> {
   consensusRegex: string;
   peaksAccession: string;
   assembly: string;

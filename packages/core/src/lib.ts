@@ -2,8 +2,8 @@ import Browser from "./components/browser/browser";
 export { Browser };
 
 // Core types
-import type { Track, TrackDefinition, TrackDimensions } from "./components/tracks/types";
-export type { Track, TrackDefinition, TrackDimensions };
+import type { TrackDefinition, TrackDimensions, TrackInstance } from "./components/tracks/types";
+export type { TrackDefinition, TrackDimensions, TrackInstance };
 
 // --- Track Definitions & Factories ---
 

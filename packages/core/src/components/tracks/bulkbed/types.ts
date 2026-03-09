@@ -1,12 +1,11 @@
-import { TrackType, TrackDimensions, Config } from "../types";
+import { TrackDimensions, TrackInstance } from "../types";
 
 export interface BulkBedDataset {
   name: string;
   url: string;
 }
 
-export interface BulkBedConfig extends Config<BulkBedRect> {
-  trackType: TrackType.BulkBed;
+export interface BulkBedConfig extends TrackInstance<BulkBedRect> {
   datasets: BulkBedDataset[];
   gap?: number; // Gap between instances
 }

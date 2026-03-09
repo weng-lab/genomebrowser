@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import useDebounce from "../../../hooks/useDebounce";
-import { Track } from "../../../store/trackStore";
+import { TrackInstance } from "../../../store/trackStore";
 import { useTrackStore } from "../../../store/BrowserContext";
 import Form from "./form";
 
-export default function UniversalForm({ track }: { track: Track }) {
+export default function UniversalForm({ track }: { track: TrackInstance }) {
   const [title, setTitle] = useState(track.title);
   const editTrack = useTrackStore((state) => state.editTrack);
 

@@ -1,45 +1,6 @@
 import { FetcherContext } from "../../api/fetchers";
 import { TrackDataState } from "../../store/dataStore";
 
-export enum TrackType {
-  BigWig = "bigwig",
-  BigBed = "bigbed",
-  Transcript = "transcript",
-  Motif = "motif",
-  Importance = "importance",
-  LDTrack = "ldtrack",
-  BulkBed = "bulkbed",
-  MethylC = "methylC",
-  Manhattan = "manhattan",
-  Custom = "custom",
-}
-
-export enum DisplayMode {
-  Full = "full",
-  Dense = "dense",
-  Squish = "squish",
-  Pack = "pack",
-  Split = "split",
-  Combined = "combined",
-  LDBlock = "ldblock",
-  Scatter = "scatter",
-}
-
-export interface Config<Item = any> {
-  id: string;
-  title: string;
-  height: number;
-  displayMode: DisplayMode | string;
-  color?: string;
-  titleSize?: number;
-  shortLabel?: string;
-  trackType: TrackType;
-  onClick?: (item: Item) => void;
-  onHover?: (item: Item) => void;
-  onLeave?: (item: Item) => void;
-  tooltip?: React.FC<any>;
-}
-
 /**
  * Shared behavior for a track kind — one per track type (e.g. BigWig, BigBed).
  * Holds renderers, fetcher, and optional settings panel.
@@ -56,9 +17,9 @@ export interface TrackDefinition<TDisplayMode extends string = string> {
 
 /**
  * Base track instance — shared fields for all tracks.
- * Per-type fields are added via intersection types (e.g. BigWigTrack = Track & { url: string }).
+ * Per-type fields are added via intersection types (e.g. BigWigTrack = TrackInstance & { url: string }).
  */
-export interface Track {
+export interface TrackInstance<Item = any> {
   id: string;
   type: string;
   title: string;
@@ -67,10 +28,11 @@ export interface Track {
   // Display
   color?: string;
   titleSize?: number;
+  shortLabel?: string;
   // Interaction
-  onClick?: (item: any) => void;
-  onHover?: (item: any) => void;
-  onLeave?: (item: any) => void;
+  onClick?: (item: Item) => void;
+  onHover?: (item: Item) => void;
+  onLeave?: (item: Item) => void;
   tooltip?: React.FC<any>;
 }
 

@@ -3,11 +3,11 @@ import { useLazyQuery } from "@apollo/client";
 import { useBrowserStore, useDataStore, useTrackDefinitionLookup, useTrackStore } from "../store/BrowserContext";
 import { BIGDATA_QUERY, TRANSCRIPT_GENES_QUERY, MOTIF_QUERY } from "../api/queries";
 import type { ImportanceTrack } from "../components/tracks/importance";
-import type { Track } from "../components/tracks/types";
+import type { TrackInstance } from "../components/tracks/types";
 import type { MotifTrack } from "../components/tracks/motif";
 import type { TranscriptTrack } from "../components/tracks/transcript";
 
-function getTrackFetchKey(track: Track) {
+function getTrackFetchKey(track: TrackInstance) {
   switch (track.type) {
     case "bigwig":
     case "bigbed":

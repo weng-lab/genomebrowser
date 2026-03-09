@@ -1,8 +1,7 @@
 import { Chromosome } from "../../../utils/types";
-import { Config, TrackDimensions, TrackType } from "../types";
+import { TrackDimensions, TrackInstance } from "../types";
 
-export interface ManhattanTrackConfig extends Config<any> {
-  trackType: TrackType.Manhattan;
+export interface ManhattanTrackConfig extends TrackInstance<any> {
   cutoffValue?: number;
   cutoffLabel?: string;
   lead?: string;

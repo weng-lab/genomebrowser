@@ -1,11 +1,11 @@
-import { Track, TrackDefinition } from "../types";
+import { TrackDefinition, TrackInstance } from "../types";
 import { FetcherContext, fetchBigBedUrl } from "../../../api/fetchers";
 import DenseBigBed from "./dense";
 import SquishBigBed from "./squish";
 
 // --- Concrete track type ---
 
-export type BigBedTrack = Track & {
+export type BigBedTrack = TrackInstance & {
   displayMode: "dense" | "squish";
   url: string;
 };

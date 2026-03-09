@@ -1,10 +1,10 @@
-import { Track, TrackDefinition } from "../types";
+import { TrackDefinition, TrackInstance } from "../types";
 import { FetcherContext, getBigDataRace } from "../../../api/fetchers";
 import Importance from "./importance";
 import type { ImportanceTrackAnnotation } from "./types";
 import type { SVGProps } from "react";
 
-export type ImportanceTrack = Track & {
+export type ImportanceTrack = TrackInstance & {
   displayMode: "full";
   url: string;
   signalURL: string;

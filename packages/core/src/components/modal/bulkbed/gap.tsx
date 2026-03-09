@@ -1,5 +1,5 @@
 import { useTrackStore } from "../../../store/BrowserContext";
-import type { Track } from "../../tracks/types";
+import type { TrackInstance } from "../../tracks/types";
 import Form from "../shared/form";
 import Value from "../shared/value";
 
@@ -10,7 +10,7 @@ export default function Gap({ id, defaultGap }: { id: string; defaultGap: number
 
   const callback = (value: string) => {
     const gap = Number(value) < MIN_GAP ? MIN_GAP : Number(value) > MAX_GAP ? MAX_GAP : Number(value);
-    editTrack<Track & { gap?: number }>(id, { gap: gap });
+    editTrack<TrackInstance & { gap?: number }>(id, { gap: gap });
   };
 
   const validate = (value: string) => {

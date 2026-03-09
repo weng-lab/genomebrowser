@@ -1,4 +1,4 @@
-import { Track, TrackDefinition } from "../types";
+import { TrackDefinition, TrackInstance } from "../types";
 import { FetcherContext } from "../../../api/fetchers";
 import { getBigDataRace } from "../../../api/fetchers";
 import { applyFillWithZero } from "../../../api/getBigWigData";
@@ -9,7 +9,7 @@ import type { YRange } from "./types";
 
 // --- Concrete track type ---
 
-export type BigWigTrack = Track & {
+export type BigWigTrack = TrackInstance & {
   displayMode: "full" | "dense";
   url: string;
   range?: YRange;

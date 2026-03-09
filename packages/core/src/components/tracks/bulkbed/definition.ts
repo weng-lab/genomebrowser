@@ -1,10 +1,10 @@
-import { Track, TrackDefinition } from "../types";
+import { TrackDefinition, TrackInstance } from "../types";
 import { FetcherContext, fetchBigBedUrl } from "../../../api/fetchers";
 import BulkBed from "./bulkbed";
 import BulkBedSettings from "./settings";
 import type { BulkBedDataset, BulkBedRect } from "./types";
 
-export type BulkBedTrack = Track & {
+export type BulkBedTrack = TrackInstance & {
   displayMode: "full";
   datasets: BulkBedDataset[];
   gap?: number;

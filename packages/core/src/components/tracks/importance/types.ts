@@ -1,8 +1,7 @@
 import { SVGProps } from "react";
-import { Config, TrackDimensions, TrackType } from "../types";
+import { TrackDimensions, TrackInstance } from "../types";
 
-export interface ImportanceConfig extends Omit<Config<any>, "onHover" | "onLeave"> {
-  trackType: TrackType.Importance;
+export interface ImportanceConfig extends Omit<TrackInstance<any>, "onHover" | "onLeave"> {
   url: string; // 2bit file
   signalURL: string; // bigWig signal file
 }

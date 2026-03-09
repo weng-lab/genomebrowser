@@ -1,22 +1,22 @@
 import { create } from "zustand";
-import { Track } from "../components/tracks/types";
+import { TrackInstance } from "../components/tracks/types";
 import { useMemo } from "react";
 
-export type { Track };
+export type { TrackInstance };
 
 export interface TrackStore {
-  tracks: Track[];
+  tracks: TrackInstance[];
   ids: string[];
-  setTracks: (tracks: Track[]) => void;
-  getTrack: (id: string) => Track | undefined;
+  setTracks: (tracks: TrackInstance[]) => void;
+  getTrack: (id: string) => TrackInstance | undefined;
   getTrackIndex: (id: string) => number;
   shiftTracks: (id: string, index: number) => void;
-  insertTrack: (track: Track, index?: number) => void;
+  insertTrack: (track: TrackInstance, index?: number) => void;
   removeTrack: (id: string) => void;
   createShortLabel: (id: string) => string;
   getIndexByType: (id: string) => number;
-  editTrack: <T extends Track>(id: string, partial: Partial<T>) => void;
-  editAllTracksByType: <T extends Track>(trackType: string, partial: Partial<T>) => void;
+  editTrack: <T extends TrackInstance>(id: string, partial: Partial<T>) => void;
+  editAllTracksByType: <T extends TrackInstance>(trackType: string, partial: Partial<T>) => void;
 }
 
 export type TrackStoreInstance = ReturnType<typeof createTrackStoreInternal>;
@@ -32,15 +32,15 @@ export const createTrackStore = createTrackStoreInternal;
  * @param deps - The dependencies to track for memoization
  * @returns The created store
  */
-export function createTrackStoreMemo(tracks: Track[], deps?: React.DependencyList) {
+export function createTrackStoreMemo(tracks: TrackInstance[], deps?: React.DependencyList) {
   return useMemo(() => createTrackStoreInternal(tracks), deps ?? []);
 }
 
-export function createTrackStoreInternal(tracks: Track[] = []) {
+export function createTrackStoreInternal(tracks: TrackInstance[] = []) {
   return create<TrackStore>((set, get) => ({
     tracks,
     ids: tracks.map((track) => track.id),
-    setTracks: (tracks: Track[]) => set({ tracks, ids: tracks.map((track) => track.id) }),
+    setTracks: (tracks: TrackInstance[]) => set({ tracks, ids: tracks.map((track) => track.id) }),
     createShortLabel: (id: string) => {
       if (id === "ruler") {
         return "Ruler";
@@ -73,7 +73,7 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       tracks.splice(realIndex, 0, track);
       set({ tracks, ids: tracks.map((track) => track.id) });
     },
-    insertTrack: (track: Track, index?: number) => {
+    insertTrack: (track: TrackInstance, index?: number) => {
       const state = get();
       if (state.getTrack(track.id) !== undefined) return;
       const tracks = [...state.tracks];
@@ -90,7 +90,7 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       tracks.splice(index, 1);
       set({ tracks, ids: tracks.map((track) => track.id) });
     },
-    editTrack: <T extends Track>(id: string, partial: Partial<T>): void => {
+    editTrack: <T extends TrackInstance>(id: string, partial: Partial<T>): void => {
       set((state) => {
         const updatedTracks = state.tracks.map((track) => {
           if (track.id === id) {
@@ -102,7 +102,7 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
         return { tracks: updatedTracks };
       });
     },
-    editAllTracksByType: <T extends Track>(trackType: string, partial: Partial<T>): void => {
+    editAllTracksByType: <T extends TrackInstance>(trackType: string, partial: Partial<T>): void => {
       set((state) => {
         const updatedTracks = state.tracks.map((track) => {
           if (track.type === trackType) {

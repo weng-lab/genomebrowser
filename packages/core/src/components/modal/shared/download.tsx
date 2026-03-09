@@ -3,7 +3,7 @@ import { downloadBedRegion, downloadBedGraph, downloadSVG } from "../../../utils
 import Form from "./form";
 import { getTextColor, isDark, shadeColor } from "../helpers";
 import { useBrowserStore, useDataStore } from "../../../store/BrowserContext";
-import { Track } from "../../../components/tracks/types";
+import { TrackInstance } from "../../../components/tracks/types";
 
 export const downloadButtonStyle = {
   cursor: "pointer",
@@ -17,7 +17,7 @@ export const downloadButtonStyle = {
   padding: "6px 12px",
 };
 
-export function DownloadForm({ track }: { track: Track }) {
+export function DownloadForm({ track }: { track: TrackInstance }) {
   const getDomain = useBrowserStore((state) => state.getExpandedDomain);
   const trackDataState = useDataStore((state) => state.trackData.get(track.id || ""));
   const domain = getDomain();

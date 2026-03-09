@@ -1,4 +1,4 @@
-import type { Track } from "../types";
+import type { TrackInstance } from "../types";
 
 export interface TrackFrameLayout {
   id: string;
@@ -8,16 +8,12 @@ export interface TrackFrameLayout {
   height: number;
 }
 
-export function getTrackTitleSize(track: Track, browserTitleSize: number) {
-  return track.titleSize ?? browserTitleSize;
-}
-
-export function buildTrackFrameLayoutData(tracks: Track[], browserTitleSize: number) {
+export function buildTrackFrameLayoutData(tracks: TrackInstance[], browserTitleSize: number) {
   let y = 0;
   const layouts: TrackFrameLayout[] = [];
 
   for (const track of tracks) {
-    const titleSize = getTrackTitleSize(track, browserTitleSize);
+    const titleSize = track.titleSize || browserTitleSize;
     const titleHeight = track.title ? titleSize + 5 : 0;
     const contentHeight = track.height;
     const height = titleHeight + contentHeight;

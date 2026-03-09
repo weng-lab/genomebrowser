@@ -1,15 +1,14 @@
 import { FetcherContext } from "../../../api/fetchers";
 import { TrackDataState } from "../../../store/dataStore";
-import { Config, DisplayMode, TrackDimensions, TrackType } from "../types";
+import { TrackDimensions, TrackInstance } from "../types";
 
-export interface CustomTrackConfig<Item = any> extends Config<Item> {
-  trackType: TrackType.Custom;
-  renderers: Partial<Record<DisplayMode, React.ComponentType<any>>>;
+export interface CustomTrackConfig<Item = any> extends TrackInstance<Item> {
+  renderers: Partial<Record<string, React.ComponentType<any>>>;
   fetcher: (ctx: FetcherContext) => Promise<TrackDataState>;
   settingsPanel?: React.ComponentType<{ id: string }>;
 }
 
-export interface CustomTrackProps<Data = any, Item = any> extends Config<Item> {
+export interface CustomTrackProps<Data = any, Item = any> extends TrackInstance<Item> {
   data: Data;
   dimensions: TrackDimensions;
 }

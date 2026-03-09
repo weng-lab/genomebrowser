@@ -1,7 +1,6 @@
-import { Config, TrackDimensions, TrackType } from "../types";
+import { TrackDimensions, TrackInstance } from "../types";
 
-export interface LDTrackConfig extends Config<any> {
-  trackType: TrackType.LDTrack;
+export interface LDTrackConfig extends TrackInstance<any> {
   show?: string[];
   lead?: string;
   associatedSnps?: string[];

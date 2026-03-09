@@ -1,11 +1,11 @@
-import { Track, TrackDefinition } from "../types";
+import { TrackDefinition, TrackInstance } from "../types";
 import { FetcherContext, fetchBigBedUrl } from "../../../api/fetchers";
 import SplitMethylC from "./split";
 import CombinedMethylC from "./combined";
 import type { YRange } from "../bigwig/types";
 import type { MethylCColors, MethylCUrls, MethylData } from "./types";
 
-export type MethylCTrack = Track & {
+export type MethylCTrack = TrackInstance & {
   displayMode: "split" | "combined";
   colors: MethylCColors;
   urls: MethylCUrls;

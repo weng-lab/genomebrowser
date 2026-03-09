@@ -14,7 +14,6 @@ import { RULER_HEIGHT } from "../ruler/ruler";
 import DragTrack from "./DragTrack";
 import Margin from "./Margin";
 import SwapTrack from "./SwapTrack";
-import { getTrackTitleSize } from "./frameLayout";
 import { useTrackFrameLayout } from "./useTrackFrameLayout";
 
 export default function TrackFrame({ id }: { id: string }) {
@@ -72,7 +71,7 @@ export default function TrackFrame({ id }: { id: string }) {
     return null;
   }
 
-  const titleSize = getTrackTitleSize(track, browserTitleSize);
+  const titleSize = track.titleSize || browserTitleSize;
   const frameColor = track.color || background;
   const spinnerSize = layout.height / 3;
   const statusX = marginWidth + (trackWidth - spinnerSize) / 2;
