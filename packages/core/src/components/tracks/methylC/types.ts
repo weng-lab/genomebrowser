@@ -4,6 +4,7 @@ import { Config, DisplayMode, TrackDimensions, TrackType } from "../types";
 export interface MethylCConfig extends Config<MethylData> {
   trackType: TrackType.MethylC;
   displayMode: DisplayMode.Split | DisplayMode.Combined;
+  maskCpgByCoverage?: boolean;
   colors: {
     cpg: string;
     chg: string;
@@ -32,6 +33,7 @@ export type MethylData = ValuedPoint[];
 export interface MethylCProps {
   id: string;
   height: number;
+  maskCpgByCoverage?: boolean;
   colors: {
     cpg: string;
     chg: string;

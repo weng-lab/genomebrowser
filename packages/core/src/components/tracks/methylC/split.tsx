@@ -10,6 +10,7 @@ import { MethylCConfig } from "./types";
 function SplitMethylC({
   id,
   height,
+  maskCpgByCoverage,
   colors,
   data,
   dimensions,
@@ -56,16 +57,16 @@ function SplitMethylC({
   const signals = useMemo(() => {
     const h = height / 2;
     return {
-      cpgPlus: generateSignal2(data[0], h, colors.cpg, false, effectiveRange),
+      cpgPlus: generateSignal2(data[0], h, colors.cpg, false, effectiveRange, data[3], maskCpgByCoverage),
       chgPlus: generateSignal2(data[1], h, colors.chg, false, effectiveRange),
       chhPlus: generateSignal2(data[2], h, colors.chh, false, effectiveRange),
       depthPlus: generateLineGraph(data[3], h, colors.depth, false, depthRange),
-      cpgMinus: generateSignal2(data[4], h, colors.cpg, true, effectiveRange),
+      cpgMinus: generateSignal2(data[4], h, colors.cpg, true, effectiveRange, data[7], maskCpgByCoverage),
       chgMinus: generateSignal2(data[5], h, colors.chg, true, effectiveRange),
       chhMinus: generateSignal2(data[6], h, colors.chh, true, effectiveRange),
       depthMinus: generateLineGraph(data[7], h, colors.depth, true, depthRange),
     };
-  }, [data, height, colors, effectiveRange]);
+  }, [data, height, colors, effectiveRange, depthRange, maskCpgByCoverage]);
 
   const { mouseState, updateMouseState, clearMouseState } = useMouseToIndex(svgRef, totalWidth, marginWidth, sideWidth);
 

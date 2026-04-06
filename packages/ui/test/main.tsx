@@ -304,6 +304,7 @@ function generateTrack(
         ...defaultMethylC,
         id: sel.id,
         title: sel.displayName,
+        maskCpgByCoverage: true,
         urls: {
           plusStrand: {
             cpg: { url: sel.cpgPlus ?? "" },

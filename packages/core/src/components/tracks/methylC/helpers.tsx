@@ -7,7 +7,9 @@ export function generateSignal2(
   height: number,
   color: string,
   inverted: boolean = false,
-  customRange?: YRange
+  customRange?: YRange,
+  coverageData?: ValuedPoint[],
+  requireCoverage: boolean = false
 ) {
   const validation = validateAndNormalizeData(data, customRange);
   if (!validation) return null;
@@ -16,8 +18,9 @@ export function generateSignal2(
   const startY = inverted ? 0 : height;
   let pathString = m(0, startY);
   let opaquePathString = m(0, startY);
-  data.forEach((point) => {
+  data.forEach((point, index) => {
     if (point.min === null || point.max === null) return;
+    if (requireCoverage && !hasCoverage(coverageData?.[index])) return;
     const normalized = normalizePoint(point, range, rangeSize, height, inverted);
     opaquePathString +=
       l(point.x, startY) +
@@ -126,6 +129,10 @@ function normalizePoint(point: ValuedPoint, range: YRange, rangeSize: number, he
     x: point.x,
     y: inverted ? scaledHeight : height - scaledHeight,
   };
+}
+
+function hasCoverage(point?: ValuedPoint) {
+  return point != null && point.max != null && point.max > 0;
 }
 
 // Helper function to calculate max value for scaling
