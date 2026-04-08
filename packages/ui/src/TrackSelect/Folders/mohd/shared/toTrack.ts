@@ -14,7 +14,7 @@ const assayColors: Record<string, string> = {
 
 const defaultBigWig: Omit<BigWigConfig, "id" | "title" | "url"> = {
   trackType: TrackType.BigWig,
-  height: 50,
+  height: 30,
   displayMode: DisplayMode.Full,
   titleSize: 12,
   color: "#02c7b9",
@@ -22,7 +22,7 @@ const defaultBigWig: Omit<BigWigConfig, "id" | "title" | "url"> = {
 
 const defaultMethylC: Omit<MethylCConfig, "id" | "title" | "urls"> = {
   trackType: TrackType.MethylC,
-  height: 100,
+  height: 75,
   displayMode: DisplayMode.Split,
   titleSize: 12,
   color: "#648bd8",
