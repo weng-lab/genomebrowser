@@ -4,12 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-// license
-import { LicenseInfo } from "@mui/x-license";
-const muiLicenseKey = import.meta.env.VITE_MUI_X_LICENSE_KEY;
-if (muiLicenseKey) {
-  LicenseInfo.setLicenseKey(muiLicenseKey);
-}
+import "../src/muiLicense";
 
 // mui
 import EditIcon from "@mui/icons-material/Edit";
@@ -33,9 +28,10 @@ import {
 } from "@weng-lab/genomebrowser";
 
 // local
-import { foldersByAssembly, TrackSelect } from "../src/lib";
+import { createMohdTrack, foldersByAssembly, TrackSelect } from "../src/lib";
 import type { BiosampleRowInfo } from "../src/TrackSelect/Folders/biosamples/shared/types";
 import type { GeneRowInfo } from "../src/TrackSelect/Folders/genes/shared/types";
+import type { MohdRowInfo } from "../src/TrackSelect/Folders/mohd/shared/types";
 import type { OtherTrackInfo } from "../src/TrackSelect/Folders/other-tracks/shared/types";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
 import { tfPeaksTrack } from "../src/TrackSelect/Custom/TfPeaks";
@@ -258,7 +254,7 @@ const ASSAY_COLORS: Record<string, string> = {
 };
 
 function generateTrack(
-  row: BiosampleRowInfo | GeneRowInfo | OtherTrackInfo,
+  row: BiosampleRowInfo | GeneRowInfo | MohdRowInfo | OtherTrackInfo,
   folderId: string,
   assembly: Assembly,
   callbacks?: TrackCallbacks,
@@ -281,6 +277,11 @@ function generateTrack(
       return { ...tfPeaksTrack };
     }
     return null;
+  }
+
+  if (folderId.includes("mohd")) {
+    const track = createMohdTrack(row as MohdRowInfo);
+    return track && callbacks ? injectCallbacks(track, callbacks) : track;
   }
 
   // Handle biosample folders
