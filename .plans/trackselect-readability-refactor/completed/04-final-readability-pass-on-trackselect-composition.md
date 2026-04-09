@@ -31,4 +31,12 @@ Do a final pass to make `TrackSelect` read like a composition component instead 
 
 ## Completion
 
-Pending.
+**Built:** Extracted the remaining `TrackSelect` dialog chrome and layout sections into a small `TrackSelectLayout` companion so `TrackSelect.tsx` now reads as state setup plus section wiring, and added a rendered integration test that exercises folder entry, toolbar runtime config updates, tree removal, clear, reset, and submit.
+
+**Decisions:** Kept the final readability pass narrowly focused on composition by moving title bar, toolbar, panel, footer, and dialog markup into one sibling layout file instead of widening the state hook again; used mocked heavy child widgets in the new jsdom test so the component boundary is covered without coupling the test to MUI grid internals.
+
+**Deviations:** Added `jsdom` to the UI package dev dependencies so the new component-level flow test can run under Vitest.
+
+**Files:** `packages/ui/src/TrackSelect/TrackSelect.tsx`, `packages/ui/src/TrackSelect/TrackSelectLayout.tsx`, `packages/ui/test/TrackSelect.test.tsx`, `packages/ui/package.json`, `pnpm-lock.yaml`, `.plans/trackselect-readability-refactor/completed/04-final-readability-pass-on-trackselect-composition.md`
+
+**Notes for next slice:** This plan is complete; future changes should treat `TrackSelect.tsx` as the state/composition entry point and extend rendered tests at the component boundary when dialog wiring changes.

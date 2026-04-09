@@ -1,0 +1,310 @@
+// @vitest-environment jsdom
+
+import { Track, TrackType, createTrackStore } from "@weng-lab/genomebrowser";
+import { act, type ReactElement } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import TrackSelect from "../src/TrackSelect/TrackSelect";
+import {
+  FolderDefinition,
+  FolderRuntimeConfig,
+} from "../src/TrackSelect/Folders/types";
+
+(
+  globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
+
+vi.mock("../src/TrackSelect/FolderList/Breadcrumb", () => ({
+  Breadcrumb: ({
+    currentFolder,
+    onNavigateToRoot,
+  }: {
+    currentFolder: { label: string } | null;
+    onNavigateToRoot: () => void;
+  }) => (
+    <button onClick={onNavigateToRoot}>
+      {currentFolder ? `breadcrumb:${currentFolder.label}` : "breadcrumb:root"}
+    </button>
+  ),
+}));
+
+vi.mock("../src/TrackSelect/FolderList/FolderList", () => ({
+  FolderList: ({
+    folders,
+    onFolderSelect,
+  }: {
+    folders: Array<{ id: string; label: string }>;
+    onFolderSelect: (folderId: string) => void;
+  }) => (
+    <div data-testid="folder-list">
+      {folders.map((folder) => (
+        <button key={folder.id} onClick={() => onFolderSelect(folder.id)}>
+          {folder.label}
+        </button>
+      ))}
+    </div>
+  ),
+}));
+
+vi.mock("../src/TrackSelect/DataGrid/DataGridWrapper", () => ({
+  DataGridWrapper: ({
+    leafField,
+    onSelectionChange,
+    rows,
+    selectedIds,
+  }: {
+    leafField: string;
+    onSelectionChange: (ids: Set<string>) => void;
+    rows: Array<{ id: string }>;
+    selectedIds: Set<string>;
+  }) => (
+    <div data-testid="data-grid">
+      <div data-testid="grid-leaf-field">{leafField}</div>
+      <div data-testid="grid-selected">{Array.from(selectedIds).join(",")}</div>
+      <button
+        onClick={() =>
+          onSelectionChange(new Set(rows.slice(0, 2).map((row) => row.id)))
+        }
+      >
+        select-first-two
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("../src/TrackSelect/TreeView/TreeViewWrapper", () => ({
+  TreeViewWrapper: ({
+    folderTrees,
+    onRemove,
+    selectedCount,
+  }: {
+    folderTrees: Array<{ items: Array<{ id: string; label: string }> }>;
+    onRemove: (item: { id: string; label: string }) => void;
+    selectedCount: number;
+  }) => {
+    const removableItem = folderTrees.flatMap((tree) => tree.items)[1];
+
+    return (
+      <div data-testid="tree-view">
+        <div data-testid="selected-count">{selectedCount}</div>
+        <div data-testid="tree-labels">
+          {folderTrees
+            .flatMap((tree) => tree.items.map((item) => item.label))
+            .join(",")}
+        </div>
+        {removableItem ? (
+          <button onClick={() => onRemove(removableItem)}>remove-second</button>
+        ) : null}
+      </div>
+    );
+  },
+}));
+
+vi.mock("../src/TrackSelect/Dialogs/ClearDialog", () => ({
+  ClearDialog: ({
+    open,
+    onConfirm,
+  }: {
+    open: boolean;
+    onConfirm: () => void;
+  }) => (open ? <button onClick={onConfirm}>confirm-clear</button> : null),
+}));
+
+vi.mock("../src/TrackSelect/Dialogs/ResetDialog", () => ({
+  ResetDialog: ({
+    open,
+    onConfirm,
+  }: {
+    open: boolean;
+    onConfirm: () => void;
+  }) => (open ? <button onClick={onConfirm}>confirm-reset</button> : null),
+}));
+
+vi.mock("../src/TrackSelect/Dialogs/LimitDialog", () => ({
+  LimitDialog: () => null,
+}));
+
+interface TestRow {
+  id: string;
+  label: string;
+}
+
+const createTestTrack = (id: string, title: string): Track =>
+  ({
+    id,
+    title,
+    height: 40,
+    trackType: TrackType.Custom,
+  }) as Track;
+
+const createTestFolder = ({
+  id,
+  label,
+  rowIds,
+  withToolbarExtras = false,
+}: {
+  id: string;
+  label: string;
+  rowIds: [string, string, string];
+  withToolbarExtras?: boolean;
+}): FolderDefinition<TestRow> => {
+  const rows = [
+    { id: rowIds[0], label: `${label} A` },
+    { id: rowIds[1], label: `${label} B` },
+    { id: rowIds[2], label: `${label} C` },
+  ];
+
+  const ToolbarExtras = withToolbarExtras
+    ? ({
+        config,
+        updateConfig,
+      }: {
+        config: FolderRuntimeConfig;
+        updateConfig: (partial: Partial<FolderRuntimeConfig>) => void;
+      }) => (
+        <button
+          data-testid="toolbar-toggle"
+          onClick={() =>
+            updateConfig({ leafField: `${config.leafField}-runtime` })
+          }
+        >
+          toolbar-toggle
+        </button>
+      )
+    : undefined;
+
+  return {
+    id,
+    label,
+    rowById: new Map(rows.map((row) => [row.id, row])),
+    getRowId: (row) => row.id,
+    columns: [],
+    groupingModel: [],
+    leafField: "label",
+    buildTree: (selectedIds, rowById) =>
+      selectedIds.map((selectedId) => ({
+        id: `${id}-${selectedId}`,
+        label: rowById.get(selectedId)?.label ?? selectedId,
+        allExpAccessions: [selectedId],
+      })),
+    createTrack: (row) => createTestTrack(row.id, row.label),
+    ToolbarExtras,
+  };
+};
+
+let container: HTMLDivElement | null = null;
+let root: Root | null = null;
+
+afterEach(async () => {
+  if (root) {
+    await act(async () => {
+      root?.unmount();
+    });
+  }
+
+  root = null;
+  container?.remove();
+  container = null;
+  document.body.innerHTML = "";
+});
+
+const renderTrackSelect = async (ui: ReactElement) => {
+  container = document.createElement("div");
+  document.body.appendChild(container);
+  root = createRoot(container);
+
+  await act(async () => {
+    root?.render(ui);
+  });
+};
+
+const clickButton = async (label: string) => {
+  const button = Array.from(document.querySelectorAll("button")).find(
+    (candidate) => candidate.textContent?.trim() === label,
+  );
+
+  expect(button).toBeTruthy();
+
+  await act(async () => {
+    button?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+};
+
+const getText = (testId: string) => {
+  const element = document.querySelector(`[data-testid="${testId}"]`);
+  expect(element).toBeTruthy();
+  return element?.textContent ?? "";
+};
+
+describe("TrackSelect", () => {
+  it("keeps the modal flow wired through folder entry, local edits, dialogs, toolbar config, and submit", async () => {
+    const folderA = createTestFolder({
+      id: "folder-a",
+      label: "Folder A",
+      rowIds: ["managed-a", "managed-b", "managed-c"],
+      withToolbarExtras: true,
+    });
+    const folderB = createTestFolder({
+      id: "folder-b",
+      label: "Folder B",
+      rowIds: ["other-a", "other-b", "other-c"],
+    });
+    const trackStore = createTrackStore([
+      createTestTrack("external-track", "External Track"),
+      createTestTrack("managed-a", "Managed A"),
+    ]);
+    const onClose = vi.fn();
+
+    trackStore.getState().editTrack("managed-a", { height: 120 });
+    const committedManagedTrack = trackStore.getState().getTrack("managed-a");
+
+    await renderTrackSelect(
+      <TrackSelect
+        assembly="GRCh38"
+        folders={[folderA, folderB]}
+        open
+        onClose={onClose}
+        title="Track Select"
+        trackStore={trackStore}
+      />,
+    );
+
+    expect(getText("selected-count")).toBe("1");
+
+    await clickButton("Folder A");
+    expect(getText("grid-selected")).toBe("managed-a");
+
+    await clickButton("toolbar-toggle");
+    expect(getText("grid-leaf-field")).toBe("label-runtime");
+
+    await clickButton("select-first-two");
+    expect(getText("grid-selected")).toBe("managed-a,managed-b");
+    expect(getText("selected-count")).toBe("2");
+
+    await clickButton("remove-second");
+    expect(getText("grid-selected")).toBe("managed-a");
+    expect(getText("selected-count")).toBe("1");
+
+    await clickButton("Clear");
+    await clickButton("confirm-clear");
+    expect(getText("grid-selected")).toBe("");
+    expect(getText("selected-count")).toBe("0");
+
+    await clickButton("Reset");
+    await clickButton("confirm-reset");
+    expect(getText("grid-selected")).toBe("managed-a");
+    expect(getText("selected-count")).toBe("1");
+
+    await clickButton("Submit");
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
+      "external-track",
+      "managed-a",
+    ]);
+    expect(trackStore.getState().getTrack("managed-a")).toBe(
+      committedManagedTrack,
+    );
+    expect(trackStore.getState().getTrack("managed-a")?.height).toBe(120);
+  });
+});
