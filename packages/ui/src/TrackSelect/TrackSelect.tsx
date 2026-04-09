@@ -23,8 +23,10 @@ import {
   FolderRuntimeConfig,
 } from "./Folders/types";
 import {
+  buildSelectionOrderFromSelectionMap,
   cloneSelectionMap,
   deriveManagedSelectionFromStore,
+  deriveManagedSelectionOrderFromStore,
   ManagedTrackDecorator,
   replaceManagedTracksInStore,
 } from "./managedTracks";
@@ -77,6 +79,32 @@ const attachFolderId = (
 
 const DEFAULT_TITLE = "Track Select";
 
+const deriveDraftSelectionFromDefaults = ({
+  defaultManagedIds,
+  folderIds,
+  folders,
+}: {
+  defaultManagedIds?: Map<string, Set<string>>;
+  folderIds: string[];
+  folders: FolderDefinition[];
+}) => {
+  const selectedByFolder = new Map<string, Set<string>>();
+  folderIds.forEach((folderId) => {
+    selectedByFolder.set(
+      folderId,
+      new Set(defaultManagedIds?.get(folderId) ?? []),
+    );
+  });
+
+  return {
+    selectedByFolder,
+    selectedTrackIdsInOrder: buildSelectionOrderFromSelectionMap(
+      folders,
+      selectedByFolder,
+    ),
+  };
+};
+
 export default function TrackSelect({
   assembly,
   folders,
@@ -110,14 +138,22 @@ export default function TrackSelect({
       return deriveManagedSelectionFromStore({ folders, trackStore });
     }
 
-    const nextSelectedByFolder = new Map<string, Set<string>>();
-    folderIds.forEach((folderId) => {
-      nextSelectedByFolder.set(
-        folderId,
-        new Set(defaultManagedIds?.get(folderId) ?? []),
-      );
-    });
-    return nextSelectedByFolder;
+    return deriveDraftSelectionFromDefaults({
+      defaultManagedIds,
+      folderIds,
+      folders,
+    }).selectedByFolder;
+  });
+  const [selectedTrackIdsInOrder, setSelectedTrackIdsInOrder] = useState(() => {
+    if (trackStore) {
+      return deriveManagedSelectionOrderFromStore({ folders, trackStore });
+    }
+
+    return deriveDraftSelectionFromDefaults({
+      defaultManagedIds,
+      folderIds,
+      folders,
+    }).selectedTrackIdsInOrder;
   });
 
   useEffect(() => {
@@ -144,17 +180,19 @@ export default function TrackSelect({
       setSelectedByFolder(
         deriveManagedSelectionFromStore({ folders, trackStore }),
       );
+      setSelectedTrackIdsInOrder(
+        deriveManagedSelectionOrderFromStore({ folders, trackStore }),
+      );
       return;
     }
 
-    const nextSelectedByFolder = new Map<string, Set<string>>();
-    folderIds.forEach((folderId) => {
-      nextSelectedByFolder.set(
-        folderId,
-        new Set(defaultManagedIds?.get(folderId) ?? []),
-      );
+    const draftSelection = deriveDraftSelectionFromDefaults({
+      defaultManagedIds,
+      folderIds,
+      folders,
     });
-    setSelectedByFolder(nextSelectedByFolder);
+    setSelectedByFolder(draftSelection.selectedByFolder);
+    setSelectedTrackIdsInOrder(draftSelection.selectedTrackIdsInOrder);
   }, [defaultManagedIds, folderIds, folders, open, trackStore]);
 
   const activeFolder = useMemo(() => {
@@ -231,8 +269,15 @@ export default function TrackSelect({
   );
 
   const applyManagedSelection = useCallback(
-    (nextSelectedByFolder: Map<string, Set<string>>) => {
+    ({
+      nextSelectedByFolder,
+      nextSelectedTrackIdsInOrder,
+    }: {
+      nextSelectedByFolder: Map<string, Set<string>>;
+      nextSelectedTrackIdsInOrder: string[];
+    }) => {
       setSelectedByFolder(cloneSelectionMap(nextSelectedByFolder));
+      setSelectedTrackIdsInOrder([...nextSelectedTrackIdsInOrder]);
     },
     [],
   );
@@ -270,7 +315,18 @@ export default function TrackSelect({
 
     const nextSelectedByFolder = cloneSelectionMap(selectedByFolder);
     nextSelectedByFolder.set(activeFolder.id, filteredIds);
-    applyManagedSelection(nextSelectedByFolder);
+    const nextSelectedTrackIdsInOrder = selectedTrackIdsInOrder.filter(
+      (id) => !selectedIds.has(id) || filteredIds.has(id),
+    );
+    Array.from(filteredIds).forEach((id) => {
+      if (!nextSelectedTrackIdsInOrder.includes(id)) {
+        nextSelectedTrackIdsInOrder.push(id);
+      }
+    });
+    applyManagedSelection({
+      nextSelectedByFolder,
+      nextSelectedTrackIdsInOrder,
+    });
   };
 
   const handleRemoveTreeItem = (
@@ -286,7 +342,12 @@ export default function TrackSelect({
     item.allExpAccessions.forEach((id) => nextSet.delete(id));
     const nextSelectedByFolder = cloneSelectionMap(selectedByFolder);
     nextSelectedByFolder.set(folderId, nextSet);
-    applyManagedSelection(nextSelectedByFolder);
+    applyManagedSelection({
+      nextSelectedByFolder,
+      nextSelectedTrackIdsInOrder: selectedTrackIdsInOrder.filter(
+        (id) => !item.allExpAccessions?.includes(id),
+      ),
+    });
   };
 
   const handleSubmit = () => {
@@ -296,6 +357,7 @@ export default function TrackSelect({
         decorateTrack: decorateManagedTrack,
         folders,
         selectedByFolder,
+        selectedTrackIdsInOrder,
         trackStore,
       });
     }
@@ -328,7 +390,13 @@ export default function TrackSelect({
       );
     });
 
-    applyManagedSelection(nextSelectedByFolder);
+    applyManagedSelection({
+      nextSelectedByFolder,
+      nextSelectedTrackIdsInOrder: buildSelectionOrderFromSelectionMap(
+        folders,
+        nextSelectedByFolder,
+      ),
+    });
   };
 
   const confirmClear = () => {
@@ -343,7 +411,13 @@ export default function TrackSelect({
       );
     }
 
-    applyManagedSelection(nextSelectedByFolder);
+    applyManagedSelection({
+      nextSelectedByFolder,
+      nextSelectedTrackIdsInOrder:
+        currentView === "folder-detail"
+          ? selectedTrackIdsInOrder.filter((id) => !selectedIds.has(id))
+          : [],
+    });
   };
 
   const ToolbarExtras = activeFolder?.ToolbarExtras;

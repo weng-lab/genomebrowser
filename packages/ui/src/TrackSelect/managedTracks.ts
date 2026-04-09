@@ -20,6 +20,15 @@ export const cloneSelectionMap = (selection: Map<string, Set<string>>) => {
   return map;
 };
 
+export const buildSelectionOrderFromSelectionMap = (
+  folders: FolderDefinition[],
+  selectedByFolder: Map<string, Set<string>>,
+) => {
+  return folders.flatMap((folder) =>
+    Array.from(selectedByFolder.get(folder.id) ?? []),
+  );
+};
+
 export const buildManagedTracks = (
   folders: FolderDefinition[],
   selectedByFolder: Map<string, Set<string>>,
@@ -45,6 +54,51 @@ export const buildManagedTracks = (
 
       return decoratedTrack ? [decoratedTrack] : [];
     });
+  });
+};
+
+const buildManagedTracksInSelectionOrder = ({
+  assembly,
+  decorateTrack,
+  folders,
+  selectedByFolder,
+  selectedTrackIdsInOrder,
+}: {
+  assembly: Assembly;
+  decorateTrack?: ManagedTrackDecorator;
+  folders: FolderDefinition[];
+  selectedByFolder: Map<string, Set<string>>;
+  selectedTrackIdsInOrder: string[];
+}) => {
+  const folderByTrackId = new Map<string, FolderDefinition>();
+
+  folders.forEach((folder) => {
+    folder.rowById.forEach((_row, id) => {
+      folderByTrackId.set(id, folder);
+    });
+  });
+
+  return selectedTrackIdsInOrder.flatMap((id) => {
+    const folder = folderByTrackId.get(id);
+    if (!folder || !selectedByFolder.get(folder.id)?.has(id)) {
+      return [];
+    }
+
+    const row = folder.rowById.get(id);
+    if (!row) {
+      return [];
+    }
+
+    const track = folder.createTrack(row, { assembly });
+    if (!track) {
+      return [];
+    }
+
+    const decoratedTrack = decorateTrack
+      ? decorateTrack({ assembly, folder, row, track })
+      : track;
+
+    return decoratedTrack ? [decoratedTrack] : [];
   });
 };
 
@@ -77,16 +131,39 @@ export const deriveManagedSelectionFromStore = ({
   return selectedByFolder;
 };
 
+export const deriveManagedSelectionOrderFromStore = ({
+  folders,
+  trackStore,
+}: {
+  folders: FolderDefinition[];
+  trackStore: TrackStoreInstance;
+}) => {
+  const managedIds = new Set<string>();
+
+  folders.forEach((folder) => {
+    folder.rowById.forEach((_row, id) => {
+      managedIds.add(id);
+    });
+  });
+
+  return trackStore
+    .getState()
+    .tracks.filter((track) => managedIds.has(track.id))
+    .map((track) => track.id);
+};
+
 export const replaceManagedTracksInStore = ({
   assembly,
   folders,
   selectedByFolder,
+  selectedTrackIdsInOrder,
   trackStore,
   decorateTrack,
 }: {
   assembly: Assembly;
   folders: FolderDefinition[];
   selectedByFolder: Map<string, Set<string>>;
+  selectedTrackIdsInOrder?: string[];
   trackStore: TrackStoreInstance;
   decorateTrack?: ManagedTrackDecorator;
 }) => {
@@ -101,12 +178,15 @@ export const replaceManagedTracksInStore = ({
   const unmanagedTracks = existingTracks.filter(
     (track) => !managedIds.has(track.id),
   );
-  const managedTracks = buildManagedTracks(
-    folders,
-    selectedByFolder,
-    assembly,
-    decorateTrack,
-  );
+  const managedTracks = selectedTrackIdsInOrder
+    ? buildManagedTracksInSelectionOrder({
+        assembly,
+        decorateTrack,
+        folders,
+        selectedByFolder,
+        selectedTrackIdsInOrder,
+      })
+    : buildManagedTracks(folders, selectedByFolder, assembly, decorateTrack);
 
   trackStore.getState().setTracks([...unmanagedTracks, ...managedTracks]);
 };
