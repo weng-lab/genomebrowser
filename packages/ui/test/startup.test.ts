@@ -189,4 +189,35 @@ describe("TrackSelect startup", () => {
       }),
     ).toEqual(new Map([["test-folder", new Set(["managed-b"])]]));
   });
+
+  it("decorates managed tracks after folder creation and before store insertion", () => {
+    const folder = createTestFolder();
+    const trackStore = createTrackStore([
+      makeTrack("external-track", "External"),
+    ]);
+
+    replaceManagedTracksInStore({
+      assembly: "GRCh38",
+      decorateTrack: ({ folder, row, track }) => ({
+        ...track,
+        title: `${folder.id}:${(row as TestRow).label}`,
+        onClick: () => `${track.id}-clicked`,
+      }),
+      folders: [folder],
+      selectedByFolder: new Map([["test-folder", new Set(["managed-a"])]]),
+      trackStore,
+    });
+
+    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
+      "external-track",
+      "managed-a",
+    ]);
+
+    const managedTrack = trackStore
+      .getState()
+      .tracks.find((track) => track.id === "managed-a");
+
+    expect(managedTrack?.title).toBe("test-folder:Managed A");
+    expect(typeof managedTrack?.onClick).toBe("function");
+  });
 });

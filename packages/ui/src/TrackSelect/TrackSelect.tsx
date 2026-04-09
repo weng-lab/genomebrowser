@@ -24,6 +24,7 @@ import {
 } from "./Folders/types";
 import {
   cloneSelectionMap,
+  ManagedTrackDecorator,
   reconcileManagedSelectionWithStore,
   replaceManagedTracksInStore,
 } from "./managedTracks";
@@ -40,6 +41,7 @@ export interface TrackSelectProps {
   storageKey?: string;
   /** Default managed IDs to use when no stored selection exists */
   defaultManagedIds?: Map<string, Set<string>>;
+  decorateManagedTrack?: ManagedTrackDecorator;
   open: boolean;
   onClose: () => void;
   title?: string;
@@ -84,6 +86,7 @@ export default function TrackSelect({
   maxTracks,
   storageKey,
   defaultManagedIds,
+  decorateManagedTrack,
   open,
   onClose,
   title = DEFAULT_TITLE,
@@ -142,11 +145,12 @@ export default function TrackSelect({
 
     replaceManagedTracksInStore({
       assembly,
+      decorateTrack: decorateManagedTrack,
       folders,
       selectedByFolder: store.getState().selectedByFolder,
       trackStore,
     });
-  }, [assembly, folders, store, trackStore]);
+  }, [assembly, decorateManagedTrack, folders, store, trackStore]);
 
   useEffect(() => {
     if (!trackStore) {
@@ -264,12 +268,13 @@ export default function TrackSelect({
 
       replaceManagedTracksInStore({
         assembly,
+        decorateTrack: decorateManagedTrack,
         folders,
         selectedByFolder: nextSelectedByFolder,
         trackStore,
       });
     },
-    [assembly, folders, replaceSelection, trackStore],
+    [assembly, decorateManagedTrack, folders, replaceSelection, trackStore],
   );
 
   // Navigation handlers

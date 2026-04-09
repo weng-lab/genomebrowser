@@ -16,12 +16,38 @@ import {
   createBrowserStoreMemo,
   createTrackStoreMemo,
   GQLWrapper,
+  Rect,
+  Track,
+  TrackType,
+  Transcript,
 } from "@weng-lab/genomebrowser";
 
 // local
 import { foldersByAssembly, TrackSelect } from "../src/lib";
 
 type Assembly = "GRCh38" | "mm10";
+
+const decorateManagedTrack = ({ track }: { track: Track }) => {
+  if (track.trackType === TrackType.Transcript) {
+    return {
+      ...track,
+      onClick: (transcript: Transcript) => {
+        console.log("Transcript clicked", track.id, transcript.name);
+      },
+    };
+  }
+
+  if (track.trackType === TrackType.BigBed) {
+    return {
+      ...track,
+      onHover: (rect: Rect) => {
+        console.log("BigBed hovered", track.id, rect.name ?? "unknown");
+      },
+    };
+  }
+
+  return track;
+};
 
 function Main() {
   const [open, setOpen] = useState(false);
@@ -66,6 +92,7 @@ function Main() {
         trackStore={trackStore}
         storageKey={storageKey}
         defaultManagedIds={initialSelection}
+        decorateManagedTrack={decorateManagedTrack}
         maxTracks={30}
         open={open}
         onClose={() => setOpen(false)}

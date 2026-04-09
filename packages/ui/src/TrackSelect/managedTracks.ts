@@ -1,5 +1,16 @@
-import { TrackStoreInstance } from "@weng-lab/genomebrowser";
+import { Track, TrackStoreInstance } from "@weng-lab/genomebrowser";
 import { Assembly, FolderDefinition } from "./Folders/types";
+
+export interface ManagedTrackDecorationContext {
+  assembly: Assembly;
+  folder: FolderDefinition;
+  row: unknown;
+  track: Track;
+}
+
+export type ManagedTrackDecorator = (
+  context: ManagedTrackDecorationContext,
+) => Track | null;
 
 export const cloneSelectionMap = (selection: Map<string, Set<string>>) => {
   const map = new Map<string, Set<string>>();
@@ -13,6 +24,7 @@ export const buildManagedTracks = (
   folders: FolderDefinition[],
   selectedByFolder: Map<string, Set<string>>,
   assembly: Assembly,
+  decorateTrack?: ManagedTrackDecorator,
 ) => {
   return folders.flatMap((folder) => {
     const selectedIds = selectedByFolder.get(folder.id) ?? new Set<string>();
@@ -23,7 +35,15 @@ export const buildManagedTracks = (
       }
 
       const track = folder.createTrack(row, { assembly });
-      return track ? [track] : [];
+      if (!track) {
+        return [];
+      }
+
+      const decoratedTrack = decorateTrack
+        ? decorateTrack({ assembly, folder, row, track })
+        : track;
+
+      return decoratedTrack ? [decoratedTrack] : [];
     });
   });
 };
@@ -33,11 +53,13 @@ export const replaceManagedTracksInStore = ({
   folders,
   selectedByFolder,
   trackStore,
+  decorateTrack,
 }: {
   assembly: Assembly;
   folders: FolderDefinition[];
   selectedByFolder: Map<string, Set<string>>;
   trackStore: TrackStoreInstance;
+  decorateTrack?: ManagedTrackDecorator;
 }) => {
   const managedIds = new Set<string>();
   folders.forEach((folder) => {
@@ -50,7 +72,12 @@ export const replaceManagedTracksInStore = ({
   const unmanagedTracks = existingTracks.filter(
     (track) => !managedIds.has(track.id),
   );
-  const managedTracks = buildManagedTracks(folders, selectedByFolder, assembly);
+  const managedTracks = buildManagedTracks(
+    folders,
+    selectedByFolder,
+    assembly,
+    decorateTrack,
+  );
 
   trackStore.getState().setTracks([...unmanagedTracks, ...managedTracks]);
 };
