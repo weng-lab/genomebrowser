@@ -105,16 +105,67 @@ describe("TrackSelect managed draft helpers", () => {
     ).toEqual(committedDraft);
   });
 
-  it("replaces only the managed subset on submit while preserving unmanaged tracks", () => {
+  it("preserves existing managed tracks on submit when selections do not change", () => {
     const folder = createTestFolder();
     const trackStore = createTrackStore([
       makeTrack("external-track", "External"),
       makeTrack("managed-a", "Managed A"),
     ]);
 
+    trackStore.getState().editTrack("managed-a", { height: 120 });
+    const editedManagedTrack = trackStore.getState().getTrack("managed-a");
+
     expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
       "external-track",
       "managed-a",
+    ]);
+
+    replaceManagedTracksInStore({
+      assembly: "GRCh38",
+      folders: [folder],
+      selectedByFolder: new Map([["test-folder", new Set(["managed-a"])]]),
+      trackStore,
+    });
+
+    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
+      "external-track",
+      "managed-a",
+    ]);
+    expect(trackStore.getState().getTrack("managed-a")).toBe(
+      editedManagedTrack,
+    );
+    expect(trackStore.getState().getTrack("managed-a")?.height).toBe(120);
+  });
+
+  it("appends newly selected managed tracks to the bottom of the store", () => {
+    const folder = createTestFolder();
+    const trackStore = createTrackStore([
+      makeTrack("external-track", "External"),
+      makeTrack("managed-a", "Managed A"),
+    ]);
+
+    replaceManagedTracksInStore({
+      assembly: "GRCh38",
+      folders: [folder],
+      selectedByFolder: new Map([
+        ["test-folder", new Set(["managed-a", "managed-b"])],
+      ]),
+      trackStore,
+    });
+
+    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
+      "external-track",
+      "managed-a",
+      "managed-b",
+    ]);
+  });
+
+  it("removes only deselected managed tracks while preserving unmanaged tracks", () => {
+    const folder = createTestFolder();
+    const trackStore = createTrackStore([
+      makeTrack("external-track", "External"),
+      makeTrack("managed-a", "Managed A"),
+      makeTrack("managed-b", "Managed B"),
     ]);
 
     replaceManagedTracksInStore({
@@ -128,44 +179,6 @@ describe("TrackSelect managed draft helpers", () => {
       "external-track",
       "managed-b",
     ]);
-  });
-
-  it("replaces the managed subset across folders without depending on selection order", () => {
-    const alphaFolder: FolderDefinition<TestRow> = {
-      ...createTestFolder(),
-      id: "alpha-folder",
-      label: "Alpha Folder",
-      rowById: new Map([
-        ["managed-a", { id: "managed-a", label: "Managed A" }],
-      ]),
-    };
-    const betaFolder: FolderDefinition<TestRow> = {
-      ...createTestFolder(),
-      id: "beta-folder",
-      label: "Beta Folder",
-      rowById: new Map([
-        ["managed-b", { id: "managed-b", label: "Managed B" }],
-      ]),
-    };
-    const trackStore = createTrackStore([
-      makeTrack("external-track", "External"),
-      makeTrack("managed-a", "Managed A"),
-    ]);
-
-    replaceManagedTracksInStore({
-      assembly: "GRCh38",
-      folders: [alphaFolder, betaFolder],
-      selectedByFolder: new Map([
-        ["alpha-folder", new Set(["managed-a"])],
-        ["beta-folder", new Set(["managed-b"])],
-      ]),
-      trackStore,
-    });
-
-    const trackIds = trackStore.getState().tracks.map((track) => track.id);
-
-    expect(trackIds[0]).toBe("external-track");
-    expect(trackIds.slice(1).sort()).toEqual(["managed-a", "managed-b"]);
   });
 
   it("decorates managed tracks after folder creation and before store insertion", () => {

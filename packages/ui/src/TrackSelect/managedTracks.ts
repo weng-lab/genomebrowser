@@ -129,17 +129,47 @@ export const replaceManagedTracksInStore = ({
   decorateTrack?: ManagedTrackDecorator;
 }) => {
   const managedIds = collectManagedTrackIds(folders);
+  const currentManagedIds = new Set<string>();
+  const nextManagedIds = new Set<string>();
 
-  const existingTracks = trackStore.getState().tracks;
-  const unmanagedTracks = existingTracks.filter(
-    (track) => !managedIds.has(track.id),
-  );
-  const managedTracks = buildManagedTracks(
-    folders,
-    selectedByFolder,
-    assembly,
-    decorateTrack,
-  );
+  trackStore.getState().tracks.forEach((track) => {
+    if (managedIds.has(track.id)) {
+      currentManagedIds.add(track.id);
+    }
+  });
 
-  trackStore.getState().setTracks([...unmanagedTracks, ...managedTracks]);
+  folders.forEach((folder) => {
+    const selectedIds = selectedByFolder.get(folder.id) ?? new Set<string>();
+
+    selectedIds.forEach((id) => {
+      nextManagedIds.add(id);
+    });
+  });
+
+  currentManagedIds.forEach((id) => {
+    if (!nextManagedIds.has(id)) {
+      trackStore.getState().removeTrack(id);
+    }
+  });
+
+  folders.forEach((folder) => {
+    const selectedIds = selectedByFolder.get(folder.id) ?? new Set<string>();
+
+    selectedIds.forEach((id) => {
+      if (currentManagedIds.has(id)) {
+        return;
+      }
+
+      const track = buildManagedTrack({
+        assembly,
+        decorateTrack,
+        folder,
+        id,
+      });
+
+      if (track) {
+        trackStore.getState().insertTrack(track);
+      }
+    });
+  });
 };
