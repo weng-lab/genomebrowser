@@ -6,11 +6,7 @@ import { mouseGenesFolder } from "./genes/mouse";
 import { humanOtherTracksFolder } from "./other-tracks/human";
 import { humanMohdFolder } from "./mohd/human";
 
-export {
-  type Assembly,
-  type FolderDefinition,
-  type FolderRuntimeConfig,
-} from "./types";
+export { type Assembly, type FolderDefinition, type FolderView } from "./types";
 
 export type { BiosampleRowInfo } from "./biosamples/shared/types";
 export type { GeneRowInfo } from "./genes/shared/types";

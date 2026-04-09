@@ -5,10 +5,7 @@ import { act, type ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import TrackSelect from "../src/TrackSelect/TrackSelect";
-import {
-  FolderDefinition,
-  FolderRuntimeConfig,
-} from "../src/TrackSelect/Folders/types";
+import { FolderDefinition } from "../src/TrackSelect/Folders/types";
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -154,18 +151,46 @@ const createTestFolder = ({
     { id: `${id}/${rowIds[2]}`, label: `${label} C` },
   ];
 
-  const ToolbarExtras = withToolbarExtras
+  const buildTree = (selectedRows: TestRow[]) =>
+    selectedRows.map((selectedRow) => ({
+      id: `${id}-${selectedRow.id}`,
+      label: selectedRow.label,
+      allExpAccessions: [selectedRow.id],
+    }));
+
+  const views = withToolbarExtras
+    ? [
+        {
+          id: "default",
+          label: "Default",
+          columns: [],
+          groupingModel: [],
+          leafField: "label",
+          buildTree,
+        },
+        {
+          id: "runtime",
+          label: "Runtime",
+          columns: [],
+          groupingModel: [],
+          leafField: "label-runtime",
+          buildTree,
+        },
+      ]
+    : undefined;
+
+  const ViewSelector = withToolbarExtras
     ? ({
-        config,
-        updateConfig,
+        activeViewId,
+        onChange,
       }: {
-        config: FolderRuntimeConfig;
-        updateConfig: (partial: Partial<FolderRuntimeConfig>) => void;
+        activeViewId: string;
+        onChange: (viewId: string) => void;
       }) => (
         <button
           data-testid="toolbar-toggle"
           onClick={() =>
-            updateConfig({ leafField: `${config.leafField}-runtime` })
+            onChange(activeViewId === "runtime" ? "default" : "runtime")
           }
         >
           toolbar-toggle
@@ -180,14 +205,10 @@ const createTestFolder = ({
     columns: [],
     groupingModel: [],
     leafField: "label",
-    buildTree: (selectedRows) =>
-      selectedRows.map((selectedRow) => ({
-        id: `${id}-${selectedRow.id}`,
-        label: selectedRow.label,
-        allExpAccessions: [selectedRow.id],
-      })),
+    buildTree,
     createTrack: (row) => createTestTrack(row.id, row.label),
-    ToolbarExtras,
+    views,
+    ViewSelector,
   };
 };
 

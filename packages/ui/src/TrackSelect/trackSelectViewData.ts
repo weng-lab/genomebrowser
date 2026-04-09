@@ -1,9 +1,5 @@
 import { TreeViewBaseItem } from "@mui/x-tree-view";
-import { FolderDefinition } from "./Folders/types";
-import {
-  deriveFolderRuntimeConfig,
-  FolderRuntimeConfigOverrides,
-} from "./trackSelectRuntimeConfig";
+import { FolderDefinition, FolderView } from "./Folders/types";
 import { ExtendedTreeItemProps, FolderTreeConfig } from "./types";
 
 const attachFolderId = (
@@ -27,15 +23,35 @@ const countSelectedTracks = (selectedByFolder: Map<string, Set<string>>) => {
   return total;
 };
 
+const resolveFolderView = (
+  folder: FolderDefinition,
+  activeViewIdByFolder: Map<string, string>,
+): FolderView => {
+  const activeViewId = activeViewIdByFolder.get(folder.id);
+  const activeView = folder.views?.find((view) => view.id === activeViewId);
+
+  return (
+    activeView ??
+    folder.views?.[0] ?? {
+      id: "default",
+      label: folder.label,
+      columns: folder.columns,
+      groupingModel: folder.groupingModel,
+      leafField: folder.leafField,
+      buildTree: folder.buildTree,
+    }
+  );
+};
+
 export const deriveTrackSelectViewData = ({
   activeFolderId,
+  activeViewIdByFolder,
   folders,
-  runtimeConfigOverridesByFolder,
   selectedByFolder,
 }: {
   activeFolderId: string;
+  activeViewIdByFolder: Map<string, string>;
   folders: FolderDefinition[];
-  runtimeConfigOverridesByFolder: FolderRuntimeConfigOverrides;
   selectedByFolder: Map<string, Set<string>>;
 }) => {
   const activeFolder =
@@ -46,6 +62,7 @@ export const deriveTrackSelectViewData = ({
     return {
       activeConfig: undefined,
       activeFolder: undefined,
+      activeViewId: "",
       folderTrees: [] as FolderTreeConfig[],
       rows: [] as unknown[],
       selectedCount,
@@ -53,10 +70,7 @@ export const deriveTrackSelectViewData = ({
     };
   }
 
-  const activeConfig = deriveFolderRuntimeConfig({
-    folder: activeFolder,
-    runtimeConfigOverridesByFolder,
-  });
+  const activeConfig = resolveFolderView(activeFolder, activeViewIdByFolder);
   const selectedIds = new Set(selectedByFolder.get(activeFolder.id) ?? []);
   const rows = activeFolder.rows;
   const folderTrees = folders.flatMap((folder) => {
@@ -64,10 +78,7 @@ export const deriveTrackSelectViewData = ({
     if (!folderSelectedIds || folderSelectedIds.size === 0) {
       return [];
     }
-    const config = deriveFolderRuntimeConfig({
-      folder,
-      runtimeConfigOverridesByFolder,
-    });
+    const config = resolveFolderView(folder, activeViewIdByFolder);
 
     return [
       {
@@ -86,6 +97,7 @@ export const deriveTrackSelectViewData = ({
   return {
     activeConfig,
     activeFolder,
+    activeViewId: activeConfig.id,
     folderTrees,
     rows,
     selectedCount,

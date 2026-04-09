@@ -11,11 +11,7 @@ import {
   Stack,
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Assembly,
-  FolderDefinition,
-  FolderRuntimeConfig,
-} from "./Folders/types";
+import { Assembly, FolderDefinition } from "./Folders/types";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
 import { ClearDialog } from "./Dialogs/ClearDialog";
 import { LimitDialog } from "./Dialogs/LimitDialog";
@@ -28,7 +24,6 @@ import {
   diffManagedTracks,
   ManagedTrackDecorator,
 } from "./managedTracks";
-import { updateFolderRuntimeConfigOverrides } from "./trackSelectRuntimeConfig";
 import { deriveTrackSelectViewData } from "./trackSelectViewData";
 import { ExtendedTreeItemProps } from "./types";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
@@ -65,13 +60,19 @@ export default function TrackSelect({
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [runtimeConfigOverridesByFolder, setRuntimeConfigOverridesByFolder] =
-    useState<Map<string, Partial<FolderRuntimeConfig>>>(() => new Map());
   const [currentView, setCurrentView] = useState<ViewState>(() =>
     folders.length > 1 ? "folder-list" : "folder-detail",
   );
   const [activeFolderId, setActiveFolderId] = useState(
     () => folders[0]?.id ?? "",
+  );
+  const [activeViewIdByFolder, setActiveViewIdByFolder] = useState(
+    () =>
+      new Map(
+        folders.flatMap((folder) =>
+          folder.views?.[0] ? [[folder.id, folder.views[0].id] as const] : [],
+        ),
+      ),
   );
   const [selectedByFolder, setSelectedByFolder] = useState(() => {
     if (!trackStore) {
@@ -97,6 +98,26 @@ export default function TrackSelect({
     if (folders.length <= 1) {
       setCurrentView("folder-detail");
     }
+
+    setActiveViewIdByFolder((current) => {
+      return new Map(
+        folders.flatMap((folder) => {
+          if (!folder.views?.length) {
+            return [];
+          }
+
+          const activeViewId = current.get(folder.id);
+          if (
+            activeViewId &&
+            folder.views.some((view) => view.id === activeViewId)
+          ) {
+            return [[folder.id, activeViewId] as const];
+          }
+
+          return [[folder.id, folder.views[0].id] as const];
+        }),
+      );
+    });
   }, [folders]);
 
   useEffect(() => {
@@ -122,6 +143,7 @@ export default function TrackSelect({
   const {
     activeConfig,
     activeFolder,
+    activeViewId,
     folderTrees,
     rows,
     selectedCount,
@@ -130,11 +152,11 @@ export default function TrackSelect({
     () =>
       deriveTrackSelectViewData({
         activeFolderId,
+        activeViewIdByFolder,
         folders,
-        runtimeConfigOverridesByFolder,
         selectedByFolder,
       }),
-    [activeFolderId, folders, runtimeConfigOverridesByFolder, selectedByFolder],
+    [activeFolderId, activeViewIdByFolder, folders, selectedByFolder],
   );
 
   const handleFolderSelect = (folderId: string) => {
@@ -151,7 +173,7 @@ export default function TrackSelect({
     onClose();
   };
 
-  const ToolbarExtras = activeFolder?.ToolbarExtras;
+  const ViewSelector = activeFolder?.ViewSelector;
 
   const confirmReset = () => {
     setResetDialogOpen(false);
@@ -187,18 +209,16 @@ export default function TrackSelect({
     setSelectedByFolder(nextSelectedByFolder);
   };
 
-  const updateActiveFolderConfig = (partial: Partial<FolderRuntimeConfig>) => {
+  const handleActiveViewChange = (viewId: string) => {
     if (!activeFolder) {
       return;
     }
 
-    setRuntimeConfigOverridesByFolder((prev) =>
-      updateFolderRuntimeConfigOverrides({
-        folder: activeFolder,
-        partial,
-        runtimeConfigOverridesByFolder: prev,
-      }),
-    );
+    setActiveViewIdByFolder((prev) => {
+      const next = new Map(prev);
+      next.set(activeFolder.id, viewId);
+      return next;
+    });
   };
 
   const handleSelectionChange = (ids: Set<string>) => {
@@ -306,12 +326,13 @@ export default function TrackSelect({
               ) : (
                 <Box />
               )}
-              {currentView === "folder-detail" && ToolbarExtras ? (
-                <ToolbarExtras
-                  updateConfig={updateActiveFolderConfig}
-                  folderId={activeFolder.id}
-                  label={activeFolder.label}
-                  config={activeConfig}
+              {currentView === "folder-detail" &&
+              ViewSelector &&
+              activeFolder.views ? (
+                <ViewSelector
+                  views={activeFolder.views}
+                  activeViewId={activeViewId}
+                  onChange={handleActiveViewChange}
                 />
               ) : null}
             </Box>

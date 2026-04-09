@@ -9,8 +9,11 @@ import {
   defaultColumns,
   defaultGroupingModel,
   defaultLeafField,
+  sortedByAssayColumns,
+  sortedByAssayGroupingModel,
+  sortedByAssayLeafField,
 } from "./columns";
-import { buildTreeView } from "./treeBuilder";
+import { buildSortedAssayTreeView, buildTreeView } from "./treeBuilder";
 import { formatAssayType } from "./constants";
 import { AssayToggle } from "./AssayToggle";
 import BiosampleGroupingCell from "./BiosampleGroupingCell";
@@ -83,6 +86,26 @@ export function createBiosampleFolder(
 ): FolderDefinition<BiosampleRowInfo> {
   const { id, label, description, data } = options;
   const rows = transformData(id, data);
+  const views = [
+    {
+      id: "default",
+      label: "Default",
+      columns: defaultColumns,
+      groupingModel: defaultGroupingModel,
+      leafField: defaultLeafField,
+      buildTree: (selectedRows: BiosampleRowInfo[]) =>
+        buildTreeView(selectedRows, label, id),
+    },
+    {
+      id: "by-assay",
+      label: "By Assay",
+      columns: sortedByAssayColumns,
+      groupingModel: sortedByAssayGroupingModel,
+      leafField: sortedByAssayLeafField,
+      buildTree: (selectedRows: BiosampleRowInfo[]) =>
+        buildSortedAssayTreeView(selectedRows, label, id),
+    },
+  ];
 
   return {
     id,
@@ -94,7 +117,8 @@ export function createBiosampleFolder(
     leafField: defaultLeafField,
     buildTree: (selectedRows) => buildTreeView(selectedRows, label, id),
     createTrack: createBiosampleTrack,
-    ToolbarExtras: AssayToggle,
+    views,
+    ViewSelector: AssayToggle,
     GroupingCellComponent: BiosampleGroupingCell,
     TreeItemComponent: BiosampleTreeItem,
   };

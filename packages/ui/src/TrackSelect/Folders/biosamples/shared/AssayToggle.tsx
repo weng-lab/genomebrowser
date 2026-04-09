@@ -1,63 +1,33 @@
 import { FormControlLabel, Switch } from "@mui/material";
-import { FolderRuntimeConfig } from "../../types";
-import {
-  defaultColumns,
-  defaultGroupingModel,
-  defaultLeafField,
-  sortedByAssayColumns,
-  sortedByAssayGroupingModel,
-  sortedByAssayLeafField,
-} from "./columns";
-import { buildTreeView, buildSortedAssayTreeView } from "./treeBuilder";
+import { FolderView } from "../../types";
+import { BiosampleRowInfo } from "./types";
 
 export interface AssayToggleProps {
-  updateConfig: (partial: Partial<FolderRuntimeConfig>) => void;
-  folderId: string;
-  label: string;
-  config: FolderRuntimeConfig;
+  views: FolderView<BiosampleRowInfo>[];
+  activeViewId: string;
+  onChange: (viewId: string) => void;
 }
 
 /**
- * Biosample-specific toolbar component that toggles between
- * sample-grouped and assay-grouped views.
- *
- * When toggled, it updates the folder's runtime config to switch:
- * - columns: Different column definitions for each view
- * - groupingModel: ["ontology", "displayName"] vs ["assay", "ontology"]
- * - leafField: "assay" vs "displayName"
- * - buildTree: Different tree builder function
+ * Biosample-specific view selector that toggles between
+ * the default sample-grouped view and the assay-grouped view.
  */
 export function AssayToggle({
-  updateConfig,
-  folderId,
-  label,
-  config,
+  views,
+  activeViewId,
+  onChange,
 }: AssayToggleProps) {
-  // Derive toggle state from current config's leafField
-  const sortedByAssay = config.leafField === sortedByAssayLeafField;
+  const defaultView = views[0];
+  const assayView = views[1];
+
+  if (!defaultView || !assayView) {
+    return null;
+  }
+
+  const sortedByAssay = activeViewId === assayView.id;
 
   const handleToggle = () => {
-    const newValue = !sortedByAssay;
-
-    if (newValue) {
-      // Switch to assay-grouped view
-      updateConfig({
-        columns: sortedByAssayColumns,
-        groupingModel: sortedByAssayGroupingModel,
-        leafField: sortedByAssayLeafField,
-        buildTree: (selectedRows) =>
-          buildSortedAssayTreeView(selectedRows, label, folderId),
-      });
-    } else {
-      // Switch back to default (sample-grouped) view
-      updateConfig({
-        columns: defaultColumns,
-        groupingModel: defaultGroupingModel,
-        leafField: defaultLeafField,
-        buildTree: (selectedRows) =>
-          buildTreeView(selectedRows, label, folderId),
-      });
-    }
+    onChange(sortedByAssay ? defaultView.id : assayView.id);
   };
 
   return (
