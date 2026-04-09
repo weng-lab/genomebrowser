@@ -9,7 +9,7 @@ describe("folder track creation helpers", () => {
   it("creates a transcript track for gene rows", () => {
     const track = createGeneTrack(
       {
-        id: "gencode-basic",
+        id: "human-genes/gencode-basic",
         displayName: "GENCODE Basic",
         versions: [29, 48],
       },
@@ -17,7 +17,7 @@ describe("folder track creation helpers", () => {
     );
 
     expect(track.trackType).toBe(TrackType.Transcript);
-    expect(track.id).toBe("gencode-basic");
+    expect(track.id).toBe("human-genes/gencode-basic");
     expect("assembly" in track ? track.assembly : undefined).toBe("GRCh38");
     expect("version" in track ? track.version : undefined).toBe(48);
   });
@@ -25,7 +25,7 @@ describe("folder track creation helpers", () => {
   it("creates the expected track types for biosample rows", () => {
     const ccreTrack = createBiosampleTrack(
       {
-        id: "ccre-aggregate",
+        id: "human-biosamples/ccre-aggregate",
         assay: "cCRE",
         displayName: "cCRE Aggregate",
         ontology: "Cell line",
@@ -39,7 +39,7 @@ describe("folder track creation helpers", () => {
     );
     const wgbsTrack = createBiosampleTrack(
       {
-        id: "wgbs-sample",
+        id: "human-biosamples/wgbs-sample",
         assay: "WGBS",
         displayName: "WGBS Sample",
         ontology: "Cell line",
@@ -55,7 +55,7 @@ describe("folder track creation helpers", () => {
     );
     const atacTrack = createBiosampleTrack(
       {
-        id: "atac-sample",
+        id: "human-biosamples/atac-sample",
         assay: "ATAC",
         displayName: "ATAC Sample",
         ontology: "Cell line",
@@ -76,7 +76,7 @@ describe("folder track creation helpers", () => {
   it("creates the expected track types for MOHD rows", () => {
     const wgbsTrack = createMohdTrack(
       {
-        id: "sample::wgbs",
+        id: "human-mohd/sample::wgbs",
         sampleId: "sample",
         assay: "WGBS",
         fileName: "sample.wgbs",
@@ -100,7 +100,7 @@ describe("folder track creation helpers", () => {
     );
     const signalTrack = createMohdTrack(
       {
-        id: "sample::signal",
+        id: "human-mohd/sample::signal",
         sampleId: "sample",
         assay: "ATAC",
         fileName: "sample.bigWig",
@@ -117,7 +117,8 @@ describe("folder track creation helpers", () => {
   it("creates supported custom tracks and ignores unsupported rows", () => {
     const supportedTrack = createOtherTrack(
       {
-        id: "tf-peaks",
+        id: "human-other-tracks/tf-peaks",
+        sourceId: "tf-peaks",
         name: "TF Peaks",
         description: "Supported custom track",
       },
@@ -125,14 +126,15 @@ describe("folder track creation helpers", () => {
     );
     const unsupportedTrack = createOtherTrack(
       {
-        id: "unsupported-track",
+        id: "human-other-tracks/unsupported-track",
+        sourceId: "unsupported-track",
         name: "Unsupported",
         description: "Should not create a track",
       },
       { assembly: "GRCh38" },
     );
 
-    expect(supportedTrack?.id).toBe("custom-tf-peaks");
+    expect(supportedTrack?.id).toBe("human-other-tracks/tf-peaks");
     expect(supportedTrack?.trackType).toBe(TrackType.Custom);
     expect(unsupportedTrack).toBeNull();
   });

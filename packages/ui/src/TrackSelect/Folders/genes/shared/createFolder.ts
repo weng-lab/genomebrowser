@@ -9,19 +9,22 @@ import { createGeneTrack } from "./toTrack";
 import { buildTreeView } from "./treeBuilder";
 
 /** Genes map 1:1 from JSON track entries to table rows. */
-function trackToRow(track: GeneTrackInfo): GeneRowInfo {
+function trackToRow(folderId: string, track: GeneTrackInfo): GeneRowInfo {
   return {
-    id: track.id,
+    id: `${folderId}/${track.id}`,
     displayName: track.displayName,
     versions: track.versions,
   };
 }
 
-function transformData(data: GeneDataFile): {
+function transformData(
+  folderId: string,
+  data: GeneDataFile,
+): {
   rows: GeneRowInfo[];
   rowById: Map<string, GeneRowInfo>;
 } {
-  const rows = data.map(trackToRow);
+  const rows = data.map((track) => trackToRow(folderId, track));
   const rowById = new Map<string, GeneRowInfo>(
     rows.map((row) => [row.id, row]),
   );
@@ -40,14 +43,13 @@ export function createGeneFolder(
   options: CreateGeneFolderOptions,
 ): FolderDefinition<GeneRowInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(data);
+  const { rowById } = transformData(id, data);
 
   return {
     id,
     label,
     description,
     rowById,
-    getRowId: (row) => row.id,
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,

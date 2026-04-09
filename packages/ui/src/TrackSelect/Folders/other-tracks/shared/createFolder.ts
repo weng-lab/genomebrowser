@@ -8,14 +8,22 @@ import {
 import { createOtherTrack } from "./toTrack";
 import { buildTreeView } from "./treeBuilder";
 
-function transformData(data: OtherTrackDataFile): {
+function transformData(
+  folderId: string,
+  data: OtherTrackDataFile,
+): {
   rows: OtherTrackInfo[];
   rowById: Map<string, OtherTrackInfo>;
 } {
+  const rows = data.map((row) => ({
+    ...row,
+    sourceId: row.id,
+    id: `${folderId}/${row.id}`,
+  }));
   const rowById = new Map<string, OtherTrackInfo>(
-    data.map((row) => [row.id, row]),
+    rows.map((row) => [row.id, row]),
   );
-  return { rows: data, rowById };
+  return { rows, rowById };
 }
 
 export interface CreateOtherTracksFolderOptions {
@@ -29,14 +37,13 @@ export function createOtherTracksFolder(
   options: CreateOtherTracksFolderOptions,
 ): FolderDefinition<OtherTrackInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(data);
+  const { rowById } = transformData(id, data);
 
   return {
     id,
     label,
     description,
     rowById,
-    getRowId: (row) => row.id,
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,

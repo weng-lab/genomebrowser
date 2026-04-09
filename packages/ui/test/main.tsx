@@ -129,11 +129,23 @@ createRoot(document.getElementById("root")!).render(<Main />);
 
 // Default selections for TrackSelect UI (uses folder row IDs)
 const defaultHumanSelections = new Map<string, Set<string>>([
-  ["human-genes", new Set(["gencode-basic"])],
-  ["human-biosamples", new Set(["ccre-aggregate", "dnase-aggregate"])],
+  ["human-genes", new Set(["human-genes/gencode-basic"])],
+  [
+    "human-biosamples",
+    new Set([
+      "human-biosamples/ccre-aggregate",
+      "human-biosamples/dnase-aggregate",
+    ]),
+  ],
 ]);
 
 const defaultMouseSelections = new Map<string, Set<string>>([
-  ["mouse-genes", new Set(["gencode-basic"])],
-  ["mouse-biosamples", new Set(["ccre-aggregate", "dnase-aggregate"])],
+  ["mouse-genes", new Set(["mouse-genes/gencode-basic"])],
+  [
+    "mouse-biosamples",
+    new Set([
+      "mouse-biosamples/ccre-aggregate",
+      "mouse-biosamples/dnase-aggregate",
+    ]),
+  ],
 ]);

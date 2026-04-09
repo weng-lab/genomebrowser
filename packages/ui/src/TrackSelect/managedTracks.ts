@@ -16,26 +16,6 @@ export interface ManagedDraftSelection {
   selectedByFolder: Map<string, Set<string>>;
 }
 
-export const cloneSelectionMap = (selection: Map<string, Set<string>>) => {
-  const map = new Map<string, Set<string>>();
-  selection.forEach((ids, folderId) => {
-    map.set(folderId, new Set(ids));
-  });
-  return map;
-};
-
-const collectManagedTrackIds = (folders: FolderDefinition[]) => {
-  const managedIds = new Set<string>();
-
-  folders.forEach((folder) => {
-    folder.rowById.forEach((_row, id) => {
-      managedIds.add(id);
-    });
-  });
-
-  return managedIds;
-};
-
 const buildManagedTrack = ({
   assembly,
   decorateTrack,
@@ -95,21 +75,16 @@ export const deriveManagedDraftSelectionFromTracks = ({
   tracks: Track[];
 }): ManagedDraftSelection => {
   const draftSelection = createEmptyManagedDraftSelection(folders);
-  const folderByTrackId = new Map<string, string>();
-
-  folders.forEach((folder) => {
-    folder.rowById.forEach((_row, id) => {
-      folderByTrackId.set(id, folder.id);
-    });
-  });
 
   tracks.forEach((track) => {
-    const folderId = folderByTrackId.get(track.id);
-    if (!folderId) {
-      return;
-    }
+    for (const folder of folders) {
+      if (!track.id.startsWith(`${folder.id}/`)) {
+        continue;
+      }
 
-    draftSelection.selectedByFolder.get(folderId)?.add(track.id);
+      draftSelection.selectedByFolder.get(folder.id)?.add(track.id);
+      break;
+    }
   });
 
   return draftSelection;
@@ -128,14 +103,13 @@ export const diffManagedTracks = ({
   selectedByFolder: Map<string, Set<string>>;
   decorateTrack?: ManagedTrackDecorator;
 }) => {
-  const managedIds = collectManagedTrackIds(folders);
-  const currentManagedIds = new Set<string>();
   const nextManagedIds = new Set<string>();
+  const currentManagedIds = new Set<string>();
   const idsToRemove: string[] = [];
   const tracksToAdd: Track[] = [];
 
   currentTracks.forEach((track) => {
-    if (managedIds.has(track.id)) {
+    if (folders.some((folder) => track.id.startsWith(`${folder.id}/`))) {
       currentManagedIds.add(track.id);
     }
   });

@@ -8,12 +8,15 @@ import {
 } from "./columns";
 import { createMohdTrack } from "./toTrack";
 
-function transformData(data: MohdDataFile): {
+function transformData(
+  folderId: string,
+  data: MohdDataFile,
+): {
   rowById: Map<string, MohdRowInfo>;
 } {
   const rows = data.samples.flatMap((sample) =>
     sample.rows.map((row) => ({
-      id: `${sample.sampleId}::${row.fileName}`,
+      id: `${folderId}/${sample.sampleId}::${row.fileName}`,
       sampleId: sample.sampleId,
       ...row,
     })),
@@ -35,14 +38,13 @@ export function createMohdFolder(
   options: CreateMohdFolderOptions,
 ): FolderDefinition<MohdRowInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(data);
+  const { rowById } = transformData(id, data);
 
   return {
     id,
     label,
     description,
     rowById,
-    getRowId: (row) => row.id,
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,

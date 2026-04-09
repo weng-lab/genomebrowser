@@ -149,9 +149,9 @@ const createTestFolder = ({
   withToolbarExtras?: boolean;
 }): FolderDefinition<TestRow> => {
   const rows = [
-    { id: rowIds[0], label: `${label} A` },
-    { id: rowIds[1], label: `${label} B` },
-    { id: rowIds[2], label: `${label} C` },
+    { id: `${id}/${rowIds[0]}`, label: `${label} A` },
+    { id: `${id}/${rowIds[1]}`, label: `${label} B` },
+    { id: `${id}/${rowIds[2]}`, label: `${label} C` },
   ];
 
   const ToolbarExtras = withToolbarExtras
@@ -177,7 +177,6 @@ const createTestFolder = ({
     id,
     label,
     rowById: new Map(rows.map((row) => [row.id, row])),
-    getRowId: (row) => row.id,
     columns: [],
     groupingModel: [],
     leafField: "label",
@@ -251,12 +250,14 @@ describe("TrackSelect", () => {
     });
     const trackStore = createTrackStore([
       createTestTrack("external-track", "External Track"),
-      createTestTrack("managed-a", "Managed A"),
+      createTestTrack("folder-a/managed-a", "Managed A"),
     ]);
     const onClose = vi.fn();
 
-    trackStore.getState().editTrack("managed-a", { height: 120 });
-    const committedManagedTrack = trackStore.getState().getTrack("managed-a");
+    trackStore.getState().editTrack("folder-a/managed-a", { height: 120 });
+    const committedManagedTrack = trackStore
+      .getState()
+      .getTrack("folder-a/managed-a");
 
     await renderTrackSelect(
       <TrackSelect
@@ -272,17 +273,19 @@ describe("TrackSelect", () => {
     expect(getText("selected-count")).toBe("1");
 
     await clickButton("Folder A");
-    expect(getText("grid-selected")).toBe("managed-a");
+    expect(getText("grid-selected")).toBe("folder-a/managed-a");
 
     await clickButton("toolbar-toggle");
     expect(getText("grid-leaf-field")).toBe("label-runtime");
 
     await clickButton("select-first-two");
-    expect(getText("grid-selected")).toBe("managed-a,managed-b");
+    expect(getText("grid-selected")).toBe(
+      "folder-a/managed-a,folder-a/managed-b",
+    );
     expect(getText("selected-count")).toBe("2");
 
     await clickButton("remove-second");
-    expect(getText("grid-selected")).toBe("managed-a");
+    expect(getText("grid-selected")).toBe("folder-a/managed-a");
     expect(getText("selected-count")).toBe("1");
 
     await clickButton("Clear");
@@ -292,7 +295,7 @@ describe("TrackSelect", () => {
 
     await clickButton("Reset");
     await clickButton("confirm-reset");
-    expect(getText("grid-selected")).toBe("managed-a");
+    expect(getText("grid-selected")).toBe("folder-a/managed-a");
     expect(getText("selected-count")).toBe("1");
 
     await clickButton("Submit");
@@ -300,11 +303,13 @@ describe("TrackSelect", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
       "external-track",
-      "managed-a",
+      "folder-a/managed-a",
     ]);
-    expect(trackStore.getState().getTrack("managed-a")).toBe(
+    expect(trackStore.getState().getTrack("folder-a/managed-a")).toBe(
       committedManagedTrack,
     );
-    expect(trackStore.getState().getTrack("managed-a")?.height).toBe(120);
+    expect(trackStore.getState().getTrack("folder-a/managed-a")?.height).toBe(
+      120,
+    );
   });
 });

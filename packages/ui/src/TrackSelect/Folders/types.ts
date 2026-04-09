@@ -40,7 +40,6 @@ export interface FolderDefinition<TRow = any> {
   label: string;
   description?: string;
   rowById: Map<string, TRow>;
-  getRowId: (row: TRow) => string;
   columns: GridColDef[];
   groupingModel: string[];
   leafField: string;

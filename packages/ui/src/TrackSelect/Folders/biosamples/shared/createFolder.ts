@@ -18,7 +18,10 @@ import { BiosampleTreeItem } from "./BiosampleTreeItem";
 import { createBiosampleTrack } from "./toTrack";
 
 /** Flatten a biosample track into one row per assay. */
-function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
+function flattenTrackIntoRows(
+  folderId: string,
+  track: BiosampleTrackInfo,
+): BiosampleRowInfo[] {
   const { ontology, lifeStage, sampleType, displayName, collection } = track;
 
   // Keep cCRE rows first so aggregate selections stay prominent in the UI.
@@ -41,7 +44,7 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
       cpgMinus,
       coverage,
     }) => ({
-      id,
+      id: `${folderId}/${id}`,
       ontology: capitalize(ontology),
       lifeStage: capitalize(lifeStage),
       sampleType: capitalize(sampleType),
@@ -58,13 +61,15 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
   );
 }
 
-function transformData(data: BiosampleDataFile): {
+function transformData(
+  folderId: string,
+  data: BiosampleDataFile,
+): {
   rowById: Map<string, BiosampleRowInfo>;
 } {
-  const rows = data.tracks.flatMap(flattenTrackIntoRows).map((row) => ({
-    ...row,
-    id: row.id,
-  }));
+  const rows = data.tracks.flatMap((track) =>
+    flattenTrackIntoRows(folderId, track),
+  );
   const rowById = new Map<string, BiosampleRowInfo>(
     rows.map((row) => [row.id, row]),
   );
@@ -85,14 +90,13 @@ export function createBiosampleFolder(
   options: CreateBiosampleFolderOptions,
 ): FolderDefinition<BiosampleRowInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(data);
+  const { rowById } = transformData(id, data);
 
   return {
     id,
     label,
     description,
     rowById,
-    getRowId: (row) => row.id,
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,

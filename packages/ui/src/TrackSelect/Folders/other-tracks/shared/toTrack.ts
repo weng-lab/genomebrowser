@@ -7,8 +7,8 @@ export function createOtherTrack(
   row: OtherTrackInfo,
   _options: CreateTrackOptions,
 ): Track | null {
-  if (row.id === "tf-peaks") {
-    return { ...tfPeaksTrack };
+  if ((row.sourceId ?? row.id) === "tf-peaks") {
+    return { ...tfPeaksTrack, id: row.id };
   }
 
   return null;
