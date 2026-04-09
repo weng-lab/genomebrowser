@@ -35,4 +35,12 @@ _Appended after execution._
 
 ## Completion
 
-What was built. Key decisions made during implementation. Any deviations from the slice plan and why. Files created or modified. Anything the next slice should be aware of.
+**Built:** `TrackSelect` now accepts browser-facing startup props for `assembly`, `trackStore`, `storageKey`, and `defaultManagedIds`, restores managed selection from session storage before defaults, and seeds the browser `trackStore` from the selected managed IDs on startup.
+
+**Decisions:** Startup seeding is implemented as a one-time `TrackSelect` effect that rebuilds only folder-managed tracks and preserves any existing non-managed tracks already present in `trackStore`. The managed-track reconstruction logic was pulled into a small shared helper so startup precedence and track-store seeding could be tested without rendering React UI.
+
+**Deviations:** I did not run the local UI harness manual QA because the repo instructions explicitly say not to run `pnpm run dev`. Automated QA covers the startup precedence and managed-track seeding behavior instead.
+
+**Files:** Modified `packages/ui/src/TrackSelect/TrackSelect.tsx`, `packages/ui/src/TrackSelect/store.ts`, and `packages/ui/test/main.tsx`. Added `packages/ui/src/TrackSelect/managedTracks.ts` and `packages/ui/test/startup.test.ts`.
+
+**Notes for next slice:** `TrackSelect` now owns startup restoration into `trackStore`, but modal submit still flows through the consumer `onSubmit` callback. Slice 3 should replace that remaining submit plumbing so TrackSelect mutates the managed subset of `trackStore` directly on commit. Verified commands: `pnpm --filter @weng-lab/genomebrowser-ui test` and `pnpm --filter @weng-lab/genomebrowser-ui build`.
