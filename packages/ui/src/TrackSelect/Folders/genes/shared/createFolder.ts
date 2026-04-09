@@ -5,12 +5,10 @@ import {
   defaultGroupingModel,
   defaultLeafField,
 } from "./columns";
+import { createGeneTrack } from "./toTrack";
 import { buildTreeView } from "./treeBuilder";
 
-/**
- * Transforms a single track from JSON into a row for DataGrid
- * For genes, this is a 1:1 mapping (no flattening needed)
- */
+/** Genes map 1:1 from JSON track entries to table rows. */
 function trackToRow(track: GeneTrackInfo): GeneRowInfo {
   return {
     id: track.id,
@@ -19,9 +17,6 @@ function trackToRow(track: GeneTrackInfo): GeneRowInfo {
   };
 }
 
-/**
- * Transforms raw JSON data into rows and lookup map
- */
 function transformData(data: GeneDataFile): {
   rows: GeneRowInfo[];
   rowById: Map<string, GeneRowInfo>;
@@ -40,9 +35,7 @@ export interface CreateGeneFolderOptions {
   data: GeneDataFile;
 }
 
-/**
- * Factory function that creates a FolderDefinition for genes
- */
+/** Build a gene folder with its row lookup, tree, and track factory. */
 export function createGeneFolder(
   options: CreateGeneFolderOptions,
 ): FolderDefinition<GeneRowInfo> {
@@ -55,14 +48,11 @@ export function createGeneFolder(
     description,
     rowById,
     getRowId: (row) => row.id,
-
-    // Default view configuration
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
-
-    // Tree builder for selected items panel
     buildTree: (selectedIds, rowById) =>
       buildTreeView(selectedIds, rowById, label),
+    createTrack: createGeneTrack,
   };
 }

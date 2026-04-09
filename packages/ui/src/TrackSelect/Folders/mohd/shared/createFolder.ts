@@ -6,6 +6,7 @@ import {
   defaultGroupingModel,
   defaultLeafField,
 } from "./columns";
+import { createMohdTrack } from "./toTrack";
 
 function transformData(data: MohdDataFile): {
   rowById: Map<string, MohdRowInfo>;
@@ -47,5 +48,6 @@ export function createMohdFolder(
     leafField: defaultLeafField,
     buildTree: (selectedIds, rowById) =>
       buildTreeView(selectedIds, rowById, label, id),
+    createTrack: createMohdTrack,
   };
 }

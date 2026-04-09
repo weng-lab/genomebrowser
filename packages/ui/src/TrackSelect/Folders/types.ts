@@ -1,5 +1,6 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
+import { Track } from "@weng-lab/genomebrowser";
 import { ExtendedTreeItemProps, CustomTreeItemProps } from "../types";
 
 export type Assembly = "GRCh38" | "mm10";
@@ -13,11 +14,16 @@ export interface FolderRuntimeConfig {
   columns: GridColDef[];
   groupingModel: string[];
   leafField: string;
-  /** Optional override for the tree builder function */
   buildTree?: (
     selectedIds: string[],
     rowById: Map<string, any>,
   ) => TreeViewBaseItem<ExtendedTreeItemProps>[];
+}
+
+/** Options passed to folder-owned track factories. */
+export interface CreateTrackOptions {
+  assembly: Assembly;
+  [key: string]: unknown;
 }
 
 /**
@@ -30,34 +36,13 @@ export interface FolderRuntimeConfig {
  * @template TRow - The type of row data stored in this folder
  */
 export interface FolderDefinition<TRow = any> {
-  /** Unique identifier for this folder */
   id: string;
-
-  /** Display label shown in the UI */
   label: string;
-
-  /** Optional description shown in folder cards */
   description?: string;
-
-  /**
-   * Single source of truth for all row data.
-   * Maps row ID to the full row object.
-   */
   rowById: Map<string, TRow>;
-
-  /**
-   * Function to extract the unique ID from a row object.
-   * Used for selection tracking and lookups.
-   */
   getRowId: (row: TRow) => string;
-
-  /** Column definitions for the DataGrid */
   columns: GridColDef[];
-
-  /** Fields to group by in the DataGrid (row grouping) */
   groupingModel: string[];
-
-  /** The field that represents the leaf level in the grouping hierarchy */
   leafField: string;
 
   /**
@@ -72,6 +57,15 @@ export interface FolderDefinition<TRow = any> {
     selectedIds: string[],
     rowById: Map<string, TRow>,
   ) => TreeViewBaseItem<ExtendedTreeItemProps>[];
+
+  /**
+   * Creates a browser track from a folder row.
+   *
+   * This keeps folder-specific track creation logic colocated with the
+   * folder's data and presentation logic instead of requiring consumers to
+   * branch on folder IDs.
+   */
+  createTrack: (row: TRow, options: CreateTrackOptions) => Track | null;
 
   /**
    * Optional component to render folder-specific toolbar controls.
@@ -90,16 +84,7 @@ export interface FolderDefinition<TRow = any> {
     config: FolderRuntimeConfig;
   }>;
 
-  /**
-   * Optional custom component for rendering grouping cells in the DataGrid.
-   * If not provided, a default grouping cell renderer will be used.
-   */
   GroupingCellComponent?: React.FC<GridRenderCellParams>;
-
-  /**
-   * Optional custom TreeItem component for the TreeView.
-   * If not provided, the default CustomTreeItem will be used.
-   */
   TreeItemComponent?: React.ForwardRefExoticComponent<
     CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
   >;

@@ -21,6 +21,3 @@ export type {
 
 import { tfPeaksTrack } from "./TrackSelect/Custom/TfPeaks.tsx";
 export { tfPeaksTrack };
-
-import { createMohdTrack } from "./TrackSelect/Folders/mohd/shared/toTrack";
-export { createMohdTrack };

@@ -12,29 +12,19 @@ import { Button } from "@mui/material";
 
 // weng lab
 import {
-  BigBedConfig,
-  BigWigConfig,
   Browser,
   createBrowserStoreMemo,
   createTrackStoreMemo,
-  DisplayMode,
   Domain,
   GQLWrapper,
-  MethylCConfig,
   Rect,
   Track,
   TrackType,
-  TranscriptConfig,
 } from "@weng-lab/genomebrowser";
 
 // local
-import { createMohdTrack, foldersByAssembly, TrackSelect } from "../src/lib";
-import type { BiosampleRowInfo } from "../src/TrackSelect/Folders/biosamples/shared/types";
-import type { GeneRowInfo } from "../src/TrackSelect/Folders/genes/shared/types";
-import type { MohdRowInfo } from "../src/TrackSelect/Folders/mohd/shared/types";
-import type { OtherTrackInfo } from "../src/TrackSelect/Folders/other-tracks/shared/types";
+import { foldersByAssembly, TrackSelect } from "../src/lib";
 import { Exon } from "@weng-lab/genomebrowser/dist/components/tracks/transcript/types";
-import { tfPeaksTrack } from "../src/TrackSelect/Custom/TfPeaks";
 
 interface Transcript {
   id: string;
@@ -156,7 +146,10 @@ function Main() {
     (selectedByFolder: Map<string, Set<string>>) => {
       const currentIds = new Set(tracks.map((t) => t.id));
       const selectedIds = new Set<string>();
-      const tracksToAdd: Array<{ row: unknown; folderId: string }> = [];
+      const tracksToAdd: Array<{
+        row: unknown;
+        folder: (typeof folders)[number];
+      }> = [];
 
       for (const folder of folders) {
         const folderSelection =
@@ -168,7 +161,7 @@ function Main() {
           }
           const row = folder.rowById.get(id);
           if (row) {
-            tracksToAdd.push({ row, folderId: folder.id });
+            tracksToAdd.push({ row, folder });
           }
         });
       }
@@ -178,15 +171,10 @@ function Main() {
         removeTrack(t.id);
       }
 
-      for (const { row, folderId } of tracksToAdd) {
-        const track = generateTrack(
-          row as BiosampleRowInfo | GeneRowInfo,
-          folderId,
-          currentAssembly,
-          callbacks,
-        );
+      for (const { row, folder } of tracksToAdd) {
+        const track = folder.createTrack(row, { assembly: currentAssembly });
         if (track === null) continue;
-        insertTrack(track);
+        insertTrack(callbacks ? injectCallbacks(track, callbacks) : track);
       }
     },
     [tracks, removeTrack, insertTrack, callbacks, folders, currentAssembly],
@@ -240,142 +228,6 @@ function Main() {
 }
 
 createRoot(document.getElementById("root")!).render(<Main />);
-
-const ASSAY_COLORS: Record<string, string> = {
-  dnase: "#06da93",
-  h3k4me3: "#ff0000",
-  h3k27ac: "#ffcd00",
-  ctcf: "#00b0d0",
-  atac: "#02c7b9",
-  rnaseq: "#00aa00",
-  chromhmm: "#00ff00",
-  ccre: "#000000",
-  wgbs: "#648bd8",
-};
-
-function generateTrack(
-  row: BiosampleRowInfo | GeneRowInfo | MohdRowInfo | OtherTrackInfo,
-  folderId: string,
-  assembly: Assembly,
-  callbacks?: TrackCallbacks,
-): Track | null {
-  // Handle gene folders
-  if (folderId.includes("genes")) {
-    const geneRow = row as GeneRowInfo;
-    const track: Track = {
-      ...defaultTranscript,
-      id: geneRow.id,
-      assembly,
-      version: geneRow.versions[geneRow.versions.length - 1], // latest version
-    };
-    return callbacks ? injectCallbacks(track, callbacks) : track;
-  }
-
-  // Handle other-tracks folder
-  if (folderId.includes("other-tracks")) {
-    if (row.id === "tf-peaks") {
-      return { ...tfPeaksTrack };
-    }
-    return null;
-  }
-
-  if (folderId.includes("mohd")) {
-    const track = createMohdTrack(row as MohdRowInfo);
-    return track && callbacks ? injectCallbacks(track, callbacks) : track;
-  }
-
-  // Handle biosample folders
-  const sel = row as BiosampleRowInfo;
-  const color = ASSAY_COLORS[sel.assay.toLowerCase()] || "#000000";
-  let track: Track;
-
-  switch (sel.assay.toLowerCase()) {
-    case "chromhmm":
-    case "ccre":
-      track = {
-        ...defaultBigBed,
-        id: sel.id,
-        url: sel.url ?? "",
-        title: sel.displayName,
-        color,
-      };
-      break;
-    case "wgbs":
-      track = {
-        ...defaultMethylC,
-        id: sel.id,
-        title: sel.displayName,
-        maskCpgByCoverage: true,
-        urls: {
-          plusStrand: {
-            cpg: { url: sel.cpgPlus ?? "" },
-            chg: { url: "" },
-            chh: { url: "" },
-            depth: { url: sel.coverage ?? "" },
-          },
-          minusStrand: {
-            cpg: { url: sel.cpgMinus ?? "" },
-            chg: { url: "" },
-            chh: { url: "" },
-            depth: { url: sel.coverage ?? "" },
-          },
-        },
-      };
-      break;
-    default:
-      track = {
-        ...defaultBigWig,
-        id: sel.id,
-        url: sel.url ?? "",
-        title: sel.displayName,
-        color,
-      };
-  }
-
-  return callbacks ? injectCallbacks(track, callbacks) : track;
-}
-
-export const defaultBigWig: Omit<BigWigConfig, "id" | "title" | "url"> = {
-  trackType: TrackType.BigWig,
-  height: 50,
-  displayMode: DisplayMode.Full,
-  titleSize: 12,
-};
-
-export const defaultBigBed: Omit<BigBedConfig, "id" | "title" | "url"> = {
-  trackType: TrackType.BigBed,
-  height: 20,
-  displayMode: DisplayMode.Dense,
-  titleSize: 12,
-};
-
-export const defaultMethylC: Omit<MethylCConfig, "id" | "title" | "urls"> = {
-  trackType: TrackType.MethylC,
-  height: 100,
-  displayMode: DisplayMode.Split,
-  titleSize: 12,
-  color: "#648bd8",
-  colors: {
-    cpg: "#648bd8",
-    chg: "#ff944d",
-    chh: "#ff00ff",
-    depth: "#525252",
-  },
-};
-
-export const defaultTranscript: Omit<
-  TranscriptConfig,
-  "id" | "assembly" | "version"
-> = {
-  title: "GENCODE Genes",
-  trackType: TrackType.Transcript,
-  displayMode: DisplayMode.Squish,
-  height: 100,
-  color: "#0c184a", // screen theme default
-  canonicalColor: "#100e98", // screen theme light
-  highlightColor: "#3c69e8", // bright blue
-  titleSize: 12,
-};
 
 export function useLocalTracks(assembly: string, callbacks?: TrackCallbacks) {
   const localTracks = getLocalTracks(assembly);

@@ -5,6 +5,7 @@ import {
   Track,
   TrackType,
 } from "@weng-lab/genomebrowser";
+import { CreateTrackOptions } from "../../types";
 import { MohdRowInfo, MohdWgbsTrackInfo } from "./types";
 
 const assayColors: Record<string, string> = {
@@ -39,7 +40,10 @@ function isWgbsRow(row: MohdRowInfo): row is MohdRowInfo & MohdWgbsTrackInfo {
   return row.assay === "WGBS" && "urls" in row;
 }
 
-export function createMohdTrack(row: MohdRowInfo): Track | null {
+export function createMohdTrack(
+  row: MohdRowInfo,
+  _options: CreateTrackOptions,
+): Track | null {
   if (isWgbsRow(row)) {
     return {
       ...defaultMethylC,
