@@ -122,10 +122,6 @@ function Main() {
 
   const trackStore = useLocalTracks(currentAssembly, callbacks);
 
-  const tracks = trackStore((s) => s.tracks);
-  const insertTrack = trackStore((s) => s.insertTrack);
-  const removeTrack = trackStore((s) => s.removeTrack);
-
   const folders = useMemo(
     () => foldersByAssembly[currentAssembly],
     [currentAssembly],
@@ -141,61 +137,6 @@ function Main() {
     [currentAssembly],
   );
 
-  // sync tracks to browser and save to localStorage
-  const handleSubmit = useCallback(
-    (selectedByFolder: Map<string, Set<string>>) => {
-      const currentIds = new Set(tracks.map((t) => t.id));
-      const selectedIds = new Set<string>();
-      const tracksToAdd: Array<{
-        row: unknown;
-        folder: (typeof folders)[number];
-      }> = [];
-
-      for (const folder of folders) {
-        const folderSelection =
-          selectedByFolder.get(folder.id) ?? new Set<string>();
-        folderSelection.forEach((id) => {
-          selectedIds.add(id);
-          if (currentIds.has(id)) {
-            return;
-          }
-          const row = folder.rowById.get(id);
-          if (row) {
-            tracksToAdd.push({ row, folder });
-          }
-        });
-      }
-
-      const tracksToRemove = tracks.filter((t) => !selectedIds.has(t.id));
-      for (const t of tracksToRemove) {
-        removeTrack(t.id);
-      }
-
-      for (const { row, folder } of tracksToAdd) {
-        const track = folder.createTrack(row, { assembly: currentAssembly });
-        if (track === null) continue;
-        insertTrack(callbacks ? injectCallbacks(track, callbacks) : track);
-      }
-    },
-    [tracks, removeTrack, insertTrack, callbacks, folders, currentAssembly],
-  );
-
-  // clear selections and remove all tracks
-  const handleClear = () => {
-    for (const t of tracks) {
-      removeTrack(t.id);
-    }
-  };
-
-  // On first load, if no stored selection exists, apply initial selection
-  useEffect(() => {
-    const stored = sessionStorage.getItem(storageKey);
-    if (!stored) {
-      handleSubmit(initialSelection);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <>
       <div>
@@ -210,11 +151,11 @@ function Main() {
         Select Tracks
       </Button>
       <TrackSelect
+        assembly={currentAssembly}
         folders={folders}
+        trackStore={trackStore}
         storageKey={storageKey}
-        initialSelection={initialSelection}
-        onSubmit={handleSubmit}
-        onClear={handleClear}
+        defaultManagedIds={initialSelection}
         maxTracks={30}
         open={open}
         onClose={() => setOpen(false)}

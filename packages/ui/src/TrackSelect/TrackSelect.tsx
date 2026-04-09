@@ -1,3 +1,4 @@
+import { TrackStoreInstance } from "@weng-lab/genomebrowser";
 import CloseIcon from "@mui/icons-material/Close";
 import {
   Box,
@@ -16,20 +17,28 @@ import { LimitDialog } from "./Dialogs/LimitDialog";
 import { ResetDialog } from "./Dialogs/ResetDialog";
 import { Breadcrumb } from "./FolderList/Breadcrumb";
 import { FolderList } from "./FolderList/FolderList";
-import { FolderDefinition, FolderRuntimeConfig } from "./Folders/types";
+import {
+  Assembly,
+  FolderDefinition,
+  FolderRuntimeConfig,
+} from "./Folders/types";
+import {
+  cloneSelectionMap,
+  replaceManagedTracksInStore,
+} from "./managedTracks";
 import { createSelectionStore, SelectionStoreInstance } from "./store";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import { ExtendedTreeItemProps } from "./types";
 
 export interface TrackSelectProps {
+  assembly?: Assembly;
   folders: FolderDefinition[];
-  onSubmit: (selectedByFolder: Map<string, Set<string>>) => void;
+  trackStore?: TrackStoreInstance;
   onCancel?: () => void;
-  onClear?: () => void;
   maxTracks?: number;
   storageKey?: string;
-  /** Initial selection to use when no stored selection exists */
-  initialSelection?: Map<string, Set<string>>;
+  /** Default managed IDs to use when no stored selection exists */
+  defaultManagedIds?: Map<string, Set<string>>;
   open: boolean;
   onClose: () => void;
   title?: string;
@@ -38,14 +47,6 @@ export interface TrackSelectProps {
 const DEFAULT_MAX_TRACKS = 30;
 
 type ViewState = "folder-list" | "folder-detail";
-
-const cloneSelectionMap = (selection: Map<string, Set<string>>) => {
-  const map = new Map<string, Set<string>>();
-  selection.forEach((ids, folderId) => {
-    map.set(folderId, new Set(ids));
-  });
-  return map;
-};
 
 const buildRuntimeConfigMap = (folders: FolderDefinition[]) => {
   const map = new Map<string, FolderRuntimeConfig>();
@@ -75,13 +76,13 @@ const attachFolderId = (
 const DEFAULT_TITLE = "Track Select";
 
 export default function TrackSelect({
+  assembly,
   folders,
-  onSubmit,
+  trackStore,
   onCancel,
-  onClear,
   maxTracks,
   storageKey,
-  initialSelection,
+  defaultManagedIds,
   open,
   onClose,
   title = DEFAULT_TITLE,
@@ -105,7 +106,7 @@ export default function TrackSelect({
     storeRef.current = createSelectionStore(
       folderIds,
       storageKey,
-      initialSelection,
+      defaultManagedIds,
     );
   }
   const store = storeRef.current;
@@ -114,8 +115,7 @@ export default function TrackSelect({
   const selectedByFolder = store((state) => state.selectedByFolder);
   const activeFolderId = store((state) => state.activeFolderId);
   const setActiveFolder = store((state) => state.setActiveFolder);
-  const setSelection = store((state) => state.setSelection);
-  const clear = store((state) => state.clear);
+  const replaceSelection = store((state) => state.replaceSelection);
 
   // Keep a committed snapshot for cancel functionality
   const [committedSnapshot, setCommittedSnapshot] = useState(() =>
@@ -133,6 +133,27 @@ export default function TrackSelect({
       setCurrentView("folder-detail");
     }
   }, [folders, activeFolderId, setActiveFolder]);
+
+  useEffect(() => {
+    if (!assembly || !trackStore) {
+      return;
+    }
+
+    replaceManagedTracksInStore({
+      assembly,
+      folders,
+      selectedByFolder: store.getState().selectedByFolder,
+      trackStore,
+    });
+  }, [assembly, folders, store, trackStore]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setCommittedSnapshot(cloneSelectionMap(store.getState().selectedByFolder));
+  }, [open, store]);
 
   const activeFolder = useMemo(() => {
     return folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
@@ -207,6 +228,24 @@ export default function TrackSelect({
     [activeFolder],
   );
 
+  const applyManagedSelection = useCallback(
+    (nextSelectedByFolder: Map<string, Set<string>>) => {
+      replaceSelection(nextSelectedByFolder);
+
+      if (!assembly || !trackStore) {
+        return;
+      }
+
+      replaceManagedTracksInStore({
+        assembly,
+        folders,
+        selectedByFolder: nextSelectedByFolder,
+        trackStore,
+      });
+    },
+    [assembly, folders, replaceSelection, trackStore],
+  );
+
   // Navigation handlers
   const handleFolderSelect = (folderId: string) => {
     setActiveFolder(folderId);
@@ -238,7 +277,11 @@ export default function TrackSelect({
       return;
     }
 
-    setSelection(activeFolder.id, filteredIds);
+    const nextSelectedByFolder = cloneSelectionMap(
+      store.getState().selectedByFolder,
+    );
+    nextSelectedByFolder.set(activeFolder.id, filteredIds);
+    applyManagedSelection(nextSelectedByFolder);
   };
 
   const handleRemoveTreeItem = (
@@ -252,21 +295,21 @@ export default function TrackSelect({
     const current = selectedByFolder.get(folderId) ?? new Set<string>();
     const nextSet = new Set(current);
     item.allExpAccessions.forEach((id) => nextSet.delete(id));
-    setSelection(folderId, nextSet);
+    const nextSelectedByFolder = cloneSelectionMap(
+      store.getState().selectedByFolder,
+    );
+    nextSelectedByFolder.set(folderId, nextSet);
+    applyManagedSelection(nextSelectedByFolder);
   };
 
   const handleSubmit = () => {
     const committed = cloneSelectionMap(selectedByFolder);
     setCommittedSnapshot(committed);
-    onSubmit(committed);
     onClose();
   };
 
   const handleCancel = () => {
-    // Restore from committed snapshot
-    committedSnapshot.forEach((ids, folderId) => {
-      setSelection(folderId, ids);
-    });
+    applyManagedSelection(committedSnapshot);
     onCancel?.();
     onClose();
   };
@@ -281,43 +324,34 @@ export default function TrackSelect({
 
   const confirmReset = () => {
     setResetDialogOpen(false);
-    if (!initialSelection) return;
+    if (!defaultManagedIds) return;
 
-    // Reset to initial selection
-    initialSelection.forEach((ids, folderId) => {
-      setSelection(folderId, new Set(ids));
-    });
-    // Clear any folders not in initialSelection
+    const nextSelectedByFolder = new Map<string, Set<string>>();
     folderIds.forEach((folderId) => {
-      if (!initialSelection.has(folderId)) {
-        setSelection(folderId, new Set<string>());
-      }
+      nextSelectedByFolder.set(
+        folderId,
+        new Set(defaultManagedIds.get(folderId) ?? []),
+      );
     });
 
-    const newSnapshot = cloneSelectionMap(initialSelection);
-    setCommittedSnapshot(newSnapshot);
-    onSubmit(newSnapshot);
+    applyManagedSelection(nextSelectedByFolder);
   };
 
   const confirmClear = () => {
     setClearDialogOpen(false);
-    let newSnapshot: Map<string, Set<string>>;
+    const nextSelectedByFolder = cloneSelectionMap(
+      store.getState().selectedByFolder,
+    );
 
     if (currentView === "folder-detail") {
-      // Clear only the current folder
-      clear(activeFolderId);
-      newSnapshot = cloneSelectionMap(selectedByFolder);
-      newSnapshot.set(activeFolderId, new Set<string>());
+      nextSelectedByFolder.set(activeFolderId, new Set<string>());
     } else {
-      // Clear all folders
-      clear();
-      newSnapshot = new Map<string, Set<string>>();
-      folderIds.forEach((id) => newSnapshot.set(id, new Set<string>()));
-      onClear?.();
+      folderIds.forEach((id) =>
+        nextSelectedByFolder.set(id, new Set<string>()),
+      );
     }
 
-    setCommittedSnapshot(newSnapshot);
-    onSubmit(newSnapshot);
+    applyManagedSelection(nextSelectedByFolder);
   };
 
   const ToolbarExtras = activeFolder?.ToolbarExtras;
@@ -444,7 +478,7 @@ export default function TrackSelect({
                 >
                   Clear
                 </Button>
-                {initialSelection && (
+                {defaultManagedIds && (
                   <Button
                     variant="outlined"
                     color="secondary"

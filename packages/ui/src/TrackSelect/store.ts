@@ -32,6 +32,10 @@ const deserializeSelection = (
 const loadFromStorage = (
   storageKey: string,
 ): Map<string, Set<string>> | undefined => {
+  if (typeof sessionStorage === "undefined") {
+    return undefined;
+  }
+
   try {
     const stored = sessionStorage.getItem(storageKey);
     if (stored) {
@@ -48,6 +52,10 @@ const saveToStorage = (
   selection: Map<string, Set<string>>,
   storageKey: string,
 ) => {
+  if (typeof sessionStorage === "undefined") {
+    return;
+  }
+
   try {
     const serialized = serializeSelection(selection);
     sessionStorage.setItem(storageKey, JSON.stringify(serialized));
@@ -58,11 +66,11 @@ const saveToStorage = (
 
 const buildSelectionMap = (
   folderIds: string[],
-  initialSelection?: Map<string, Set<string>>,
+  defaultManagedIds?: Map<string, Set<string>>,
 ) => {
   const map = new Map<string, Set<string>>();
   folderIds.forEach((folderId) => {
-    const initial = initialSelection?.get(folderId);
+    const initial = defaultManagedIds?.get(folderId);
     map.set(folderId, initial ? new Set(initial) : new Set<string>());
   });
   return map;
@@ -71,13 +79,13 @@ const buildSelectionMap = (
 export function createSelectionStore(
   folderIds: string[],
   storageKey: string = DEFAULT_STORAGE_KEY,
-  initialSelection?: Map<string, Set<string>>,
+  defaultManagedIds?: Map<string, Set<string>>,
 ) {
   const storedSelection = loadFromStorage(storageKey);
-  // Storage wins: use stored if exists, else fall back to initialSelection
+  // Storage wins: use stored if exists, else fall back to default managed IDs.
   const selectedByFolder = buildSelectionMap(
     folderIds,
-    storedSelection ?? initialSelection,
+    storedSelection ?? defaultManagedIds,
   );
   const activeFolderId = folderIds[0] ?? "";
 
@@ -98,6 +106,15 @@ export function createSelectionStore(
         });
         return { selectedByFolder: next };
       }),
+    replaceSelection: (selection: Map<string, Set<string>>) =>
+      set(() => ({
+        selectedByFolder: new Map(
+          Array.from(selection.entries(), ([folderId, ids]) => [
+            folderId,
+            new Set(ids),
+          ]),
+        ),
+      })),
     setActiveFolder: (folderId: string) =>
       set(() => ({ activeFolderId: folderId })),
     setSelection: (folderId: string, ids: Set<string>) =>

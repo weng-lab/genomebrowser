@@ -59,7 +59,8 @@ export interface CustomLabelProps {
 }
 
 export interface CustomTreeItemProps
-  extends Omit<UseTreeItemParameters, "rootRef">,
+  extends
+    Omit<UseTreeItemParameters, "rootRef">,
     Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {
   onRemove?: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
   /** Optional function to render custom icons for assay items */
@@ -76,6 +77,7 @@ export type SelectionState = {
 
 export type SelectionAction = {
   clear: (folderId?: string) => void;
+  replaceSelection: (selection: Map<string, Set<string>>) => void;
   setActiveFolder: (folderId: string) => void;
   setSelection: (folderId: string, ids: Set<string>) => void;
 };
