@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
 import {
   cloneSelectionMap,
-  deriveManagedDraftSelectionFromStore,
-  replaceManagedTracksInStore,
+  deriveManagedDraftSelectionFromTracks,
+  diffManagedTracks,
 } from "../src/TrackSelect/managedTracks";
 
 interface TestRow {
@@ -42,6 +42,15 @@ const createTestFolder = (): FolderDefinition<TestRow> => {
   };
 };
 
+const applyManagedTrackDiff = (
+  trackStore: ReturnType<typeof createTrackStore>,
+  diff: ReturnType<typeof diffManagedTracks>,
+) => {
+  const { insertTrack, removeTrack } = trackStore.getState();
+  diff.idsToRemove.forEach((id) => removeTrack(id));
+  diff.tracksToAdd.forEach((track) => insertTrack(track));
+};
+
 describe("TrackSelect managed draft helpers", () => {
   it("derives managed draft selection from the committed track store", () => {
     const trackStore = createTrackStore([
@@ -51,9 +60,9 @@ describe("TrackSelect managed draft helpers", () => {
     ]);
 
     expect(
-      deriveManagedDraftSelectionFromStore({
+      deriveManagedDraftSelectionFromTracks({
         folders: [createTestFolder()],
-        trackStore,
+        tracks: trackStore.getState().tracks,
       }),
     ).toEqual({
       selectedByFolder: new Map([
@@ -68,9 +77,9 @@ describe("TrackSelect managed draft helpers", () => {
     ]);
 
     expect(
-      deriveManagedDraftSelectionFromStore({
+      deriveManagedDraftSelectionFromTracks({
         folders: [createTestFolder()],
-        trackStore,
+        tracks: trackStore.getState().tracks,
       }),
     ).toEqual({
       selectedByFolder: new Map([["test-folder", new Set<string>()]]),
@@ -84,9 +93,9 @@ describe("TrackSelect managed draft helpers", () => {
       makeTrack("managed-b", "Managed B"),
       makeTrack("managed-a", "Managed A"),
     ]);
-    const committedDraft = deriveManagedDraftSelectionFromStore({
+    const committedDraft = deriveManagedDraftSelectionFromTracks({
       folders: [folder],
-      trackStore,
+      tracks: trackStore.getState().tracks,
     });
     const unsavedDraft = {
       selectedByFolder: cloneSelectionMap(committedDraft.selectedByFolder),
@@ -100,9 +109,9 @@ describe("TrackSelect managed draft helpers", () => {
       "managed-a",
     ]);
     expect(
-      deriveManagedDraftSelectionFromStore({
+      deriveManagedDraftSelectionFromTracks({
         folders: [folder],
-        trackStore,
+        tracks: trackStore.getState().tracks,
       }),
     ).toEqual(committedDraft);
   });
@@ -122,12 +131,15 @@ describe("TrackSelect managed draft helpers", () => {
       "managed-a",
     ]);
 
-    replaceManagedTracksInStore({
-      assembly: "GRCh38",
-      folders: [folder],
-      selectedByFolder: new Map([["test-folder", new Set(["managed-a"])]]),
+    applyManagedTrackDiff(
       trackStore,
-    });
+      diffManagedTracks({
+        assembly: "GRCh38",
+        currentTracks: trackStore.getState().tracks,
+        folders: [folder],
+        selectedByFolder: new Map([["test-folder", new Set(["managed-a"])]]),
+      }),
+    );
 
     expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
       "external-track",
@@ -146,14 +158,17 @@ describe("TrackSelect managed draft helpers", () => {
       makeTrack("managed-a", "Managed A"),
     ]);
 
-    replaceManagedTracksInStore({
-      assembly: "GRCh38",
-      folders: [folder],
-      selectedByFolder: new Map([
-        ["test-folder", new Set(["managed-a", "managed-b"])],
-      ]),
+    applyManagedTrackDiff(
       trackStore,
-    });
+      diffManagedTracks({
+        assembly: "GRCh38",
+        currentTracks: trackStore.getState().tracks,
+        folders: [folder],
+        selectedByFolder: new Map([
+          ["test-folder", new Set(["managed-a", "managed-b"])],
+        ]),
+      }),
+    );
 
     expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
       "external-track",
@@ -170,12 +185,15 @@ describe("TrackSelect managed draft helpers", () => {
       makeTrack("managed-b", "Managed B"),
     ]);
 
-    replaceManagedTracksInStore({
-      assembly: "GRCh38",
-      folders: [folder],
-      selectedByFolder: new Map([["test-folder", new Set(["managed-b"])]]),
+    applyManagedTrackDiff(
       trackStore,
-    });
+      diffManagedTracks({
+        assembly: "GRCh38",
+        currentTracks: trackStore.getState().tracks,
+        folders: [folder],
+        selectedByFolder: new Map([["test-folder", new Set(["managed-b"])]]),
+      }),
+    );
 
     expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
       "external-track",
@@ -191,14 +209,17 @@ describe("TrackSelect managed draft helpers", () => {
       makeTrack("managed-c", "Managed C"),
     ]);
 
-    replaceManagedTracksInStore({
-      assembly: "GRCh38",
-      folders: [folder],
-      selectedByFolder: new Map([
-        ["test-folder", new Set(["managed-b", "managed-d"])],
-      ]),
+    applyManagedTrackDiff(
       trackStore,
-    });
+      diffManagedTracks({
+        assembly: "GRCh38",
+        currentTracks: trackStore.getState().tracks,
+        folders: [folder],
+        selectedByFolder: new Map([
+          ["test-folder", new Set(["managed-b", "managed-d"])],
+        ]),
+      }),
+    );
 
     expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
       "external-track",
@@ -213,17 +234,20 @@ describe("TrackSelect managed draft helpers", () => {
       makeTrack("external-track", "External"),
     ]);
 
-    replaceManagedTracksInStore({
-      assembly: "GRCh38",
-      decorateTrack: ({ folder, row, track }) => ({
-        ...track,
-        title: `${folder.id}:${(row as TestRow).label}`,
-        onClick: () => `${track.id}-clicked`,
-      }),
-      folders: [folder],
-      selectedByFolder: new Map([["test-folder", new Set(["managed-a"])]]),
+    applyManagedTrackDiff(
       trackStore,
-    });
+      diffManagedTracks({
+        assembly: "GRCh38",
+        currentTracks: trackStore.getState().tracks,
+        decorateTrack: ({ folder, row, track }) => ({
+          ...track,
+          title: `${folder.id}:${(row as TestRow).label}`,
+          onClick: () => `${track.id}-clicked`,
+        }),
+        folders: [folder],
+        selectedByFolder: new Map([["test-folder", new Set(["managed-a"])]]),
+      }),
+    );
 
     expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
       "external-track",

@@ -1,4 +1,4 @@
-import { Track, TrackStoreInstance } from "@weng-lab/genomebrowser";
+import { Track } from "@weng-lab/genomebrowser";
 import { Assembly, FolderDefinition } from "./Folders/types";
 
 export interface ManagedTrackDecorationContext {
@@ -87,12 +87,12 @@ export const buildManagedTracks = (
   });
 };
 
-export const deriveManagedDraftSelectionFromStore = ({
+export const deriveManagedDraftSelectionFromTracks = ({
   folders,
-  trackStore,
+  tracks,
 }: {
   folders: FolderDefinition[];
-  trackStore: TrackStoreInstance;
+  tracks: Track[];
 }): ManagedDraftSelection => {
   const draftSelection = createEmptyManagedDraftSelection(folders);
   const folderByTrackId = new Map<string, string>();
@@ -103,7 +103,7 @@ export const deriveManagedDraftSelectionFromStore = ({
     });
   });
 
-  trackStore.getState().tracks.forEach((track) => {
+  tracks.forEach((track) => {
     const folderId = folderByTrackId.get(track.id);
     if (!folderId) {
       return;
@@ -115,17 +115,17 @@ export const deriveManagedDraftSelectionFromStore = ({
   return draftSelection;
 };
 
-export const replaceManagedTracksInStore = ({
+export const diffManagedTracks = ({
   assembly,
+  currentTracks,
   folders,
   selectedByFolder,
-  trackStore,
   decorateTrack,
 }: {
   assembly: Assembly;
+  currentTracks: Track[];
   folders: FolderDefinition[];
   selectedByFolder: Map<string, Set<string>>;
-  trackStore: TrackStoreInstance;
   decorateTrack?: ManagedTrackDecorator;
 }) => {
   const managedIds = collectManagedTrackIds(folders);
@@ -134,7 +134,7 @@ export const replaceManagedTracksInStore = ({
   const idsToRemove: string[] = [];
   const tracksToAdd: Track[] = [];
 
-  trackStore.getState().tracks.forEach((track) => {
+  currentTracks.forEach((track) => {
     if (managedIds.has(track.id)) {
       currentManagedIds.add(track.id);
     }
@@ -175,6 +175,8 @@ export const replaceManagedTracksInStore = ({
     });
   });
 
-  trackStore.getState().removeTracks(idsToRemove);
-  trackStore.getState().insertTracks(tracksToAdd);
+  return {
+    idsToRemove,
+    tracksToAdd,
+  };
 };

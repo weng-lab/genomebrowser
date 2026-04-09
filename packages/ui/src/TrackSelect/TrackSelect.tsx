@@ -1,4 +1,4 @@
-import { TrackStoreInstance } from "@weng-lab/genomebrowser";
+import { Track, TrackStoreInstance } from "@weng-lab/genomebrowser";
 import CloseIcon from "@mui/icons-material/Close";
 import {
   Box,
@@ -25,9 +25,9 @@ import {
 import {
   cloneSelectionMap,
   createEmptyManagedDraftSelection,
-  deriveManagedDraftSelectionFromStore,
+  deriveManagedDraftSelectionFromTracks,
+  diffManagedTracks,
   ManagedTrackDecorator,
-  replaceManagedTracksInStore,
 } from "./managedTracks";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import { ExtendedTreeItemProps } from "./types";
@@ -77,16 +77,16 @@ const DEFAULT_TITLE = "Track Select";
 
 const deriveDraftSelection = ({
   folders,
-  trackStore,
+  tracks,
 }: {
   folders: FolderDefinition[];
-  trackStore?: TrackStoreInstance;
+  tracks?: Track[];
 }) => {
-  if (!trackStore) {
+  if (!tracks) {
     return createEmptyManagedDraftSelection(folders);
   }
 
-  return deriveManagedDraftSelectionFromStore({ folders, trackStore });
+  return deriveManagedDraftSelectionFromTracks({ folders, tracks });
 };
 
 export default function TrackSelect({
@@ -120,7 +120,7 @@ export default function TrackSelect({
     () =>
       deriveDraftSelection({
         folders,
-        trackStore,
+        tracks: trackStore?.getState().tracks,
       }).selectedByFolder,
   );
 
@@ -146,7 +146,7 @@ export default function TrackSelect({
 
     const draftSelection = deriveDraftSelection({
       folders,
-      trackStore,
+      tracks: trackStore?.getState().tracks,
     });
     setSelectedByFolder(draftSelection.selectedByFolder);
   }, [folders, open, trackStore]);
@@ -293,13 +293,17 @@ export default function TrackSelect({
 
   const handleSubmit = () => {
     if (assembly && trackStore) {
-      replaceManagedTracksInStore({
+      const { idsToRemove, tracksToAdd } = diffManagedTracks({
         assembly,
+        currentTracks: trackStore.getState().tracks,
         decorateTrack: decorateManagedTrack,
         folders,
         selectedByFolder,
-        trackStore,
       });
+
+      const { insertTrack, removeTrack } = trackStore.getState();
+      idsToRemove.forEach((id) => removeTrack(id));
+      tracksToAdd.forEach((track) => insertTrack(track));
     }
 
     onClose();
@@ -322,7 +326,7 @@ export default function TrackSelect({
     setResetDialogOpen(false);
     const draftSelection = deriveDraftSelection({
       folders,
-      trackStore,
+      tracks: trackStore?.getState().tracks,
     });
 
     applyManagedSelection({
