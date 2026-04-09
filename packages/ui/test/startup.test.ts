@@ -31,7 +31,7 @@ const createTestFolder = (): FolderDefinition<TestRow> => {
   return {
     id: "test-folder",
     label: "Test Folder",
-    rowById: new Map(rows.map((row) => [row.id, row])),
+    rows,
     columns: [],
     groupingModel: [],
     leafField: "label",

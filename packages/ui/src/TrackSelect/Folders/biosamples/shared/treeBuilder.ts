@@ -40,15 +40,13 @@ function createRootNode(
  * This is the reverse of the default view - instead of grouping by sample first,
  * we group by assay first, making displayName the leaf node.
  *
- * @param selectedIds - list of selected row IDs
- * @param rowById - Mapping between an id and its BiosampleRowInfo object
+ * @param selectedRows - Selected biosample rows
  * @param rootLabel - Label for the root node
  * @param folderId - Folder ID to prefix tree item IDs with
  * @returns tree items for the RichTreeView
  */
 export function buildSortedAssayTreeView(
-  selectedIds: string[],
-  rowById: Map<string, BiosampleRowInfo>,
+  selectedRows: BiosampleRowInfo[],
   rootLabel: string = "Biosamples",
   folderId: string = "",
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
@@ -64,12 +62,6 @@ export function buildSortedAssayTreeView(
     string,
     TreeViewBaseItem<ExtendedTreeItemProps>
   >();
-
-  const selectedRows = selectedIds.reduce<BiosampleRowInfo[]>((acc, id) => {
-    const row = rowById.get(id);
-    if (row) acc.push(row);
-    return acc;
-  }, []);
 
   selectedRows.forEach((row) => {
     const assayKey = `${folderId}::${row.assay}`;
@@ -139,15 +131,13 @@ export function buildSortedAssayTreeView(
  * Builds tree in the default view (sorted by ontology)
  * Hierarchy: Ontology -> DisplayName -> Experiment
  *
- * @param selectedIds - list of selected row IDs
- * @param rowById - Mapping between an id and its BiosampleRowInfo object
+ * @param selectedRows - Selected biosample rows
  * @param rootLabel - Label for the root node
  * @param folderId - Folder ID to prefix tree item IDs with
  * @returns tree items for the RichTreeView
  */
 export function buildTreeView(
-  selectedIds: string[],
-  rowById: Map<string, BiosampleRowInfo>,
+  selectedRows: BiosampleRowInfo[],
   rootLabel: string = "Biosamples",
   folderId: string = "",
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
@@ -161,16 +151,7 @@ export function buildTreeView(
     TreeViewBaseItem<ExtendedTreeItemProps>
   >();
 
-  const selectedRows = selectedIds.reduce<BiosampleRowInfo[]>((acc, id) => {
-    const row = rowById.get(id);
-    if (row) acc.push(row);
-    return acc;
-  }, []);
-
   selectedRows.forEach((row) => {
-    if (!row) {
-      return;
-    }
     const ontologyKey = `${folderId}::${row.ontology}`;
     let ontologyNode = ontologyMap.get(ontologyKey);
     if (!ontologyNode) {

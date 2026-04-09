@@ -17,18 +17,8 @@ function trackToRow(folderId: string, track: GeneTrackInfo): GeneRowInfo {
   };
 }
 
-function transformData(
-  folderId: string,
-  data: GeneDataFile,
-): {
-  rows: GeneRowInfo[];
-  rowById: Map<string, GeneRowInfo>;
-} {
-  const rows = data.map((track) => trackToRow(folderId, track));
-  const rowById = new Map<string, GeneRowInfo>(
-    rows.map((row) => [row.id, row]),
-  );
-  return { rows, rowById };
+function transformData(folderId: string, data: GeneDataFile): GeneRowInfo[] {
+  return data.map((track) => trackToRow(folderId, track));
 }
 
 export interface CreateGeneFolderOptions {
@@ -43,18 +33,17 @@ export function createGeneFolder(
   options: CreateGeneFolderOptions,
 ): FolderDefinition<GeneRowInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(id, data);
+  const rows = transformData(id, data);
 
   return {
     id,
     label,
     description,
-    rowById,
+    rows,
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
-    buildTree: (selectedIds, rowById) =>
-      buildTreeView(selectedIds, rowById, label),
+    buildTree: (selectedRows) => buildTreeView(selectedRows, label),
     createTrack: createGeneTrack,
   };
 }

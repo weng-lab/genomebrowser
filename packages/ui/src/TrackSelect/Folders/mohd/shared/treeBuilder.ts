@@ -3,8 +3,7 @@ import { ExtendedTreeItemProps } from "../../../types";
 import { MohdRowInfo } from "./types";
 
 export function buildTreeView(
-  selectedIds: string[],
-  rowById: Map<string, MohdRowInfo>,
+  selectedRows: MohdRowInfo[],
   rootLabel: string = "MOHD",
   folderId: string = "",
 ): TreeViewBaseItem<ExtendedTreeItemProps>[] {
@@ -18,12 +17,7 @@ export function buildTreeView(
 
   const sampleMap = new Map<string, TreeViewBaseItem<ExtendedTreeItemProps>>();
 
-  selectedIds.forEach((id) => {
-    const row = rowById.get(id);
-    if (!row) {
-      return;
-    }
-
+  selectedRows.forEach((row) => {
     let sampleNode = sampleMap.get(row.sampleId);
     if (!sampleNode) {
       sampleNode = {

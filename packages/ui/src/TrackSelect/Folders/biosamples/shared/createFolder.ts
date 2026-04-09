@@ -64,16 +64,8 @@ function flattenTrackIntoRows(
 function transformData(
   folderId: string,
   data: BiosampleDataFile,
-): {
-  rowById: Map<string, BiosampleRowInfo>;
-} {
-  const rows = data.tracks.flatMap((track) =>
-    flattenTrackIntoRows(folderId, track),
-  );
-  const rowById = new Map<string, BiosampleRowInfo>(
-    rows.map((row) => [row.id, row]),
-  );
-  return { rowById };
+): BiosampleRowInfo[] {
+  return data.tracks.flatMap((track) => flattenTrackIntoRows(folderId, track));
 }
 
 export interface CreateBiosampleFolderOptions {
@@ -90,18 +82,17 @@ export function createBiosampleFolder(
   options: CreateBiosampleFolderOptions,
 ): FolderDefinition<BiosampleRowInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(id, data);
+  const rows = transformData(id, data);
 
   return {
     id,
     label,
     description,
-    rowById,
+    rows,
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
-    buildTree: (selectedIds, rowById) =>
-      buildTreeView(selectedIds, rowById, label, id),
+    buildTree: (selectedRows) => buildTreeView(selectedRows, label, id),
     createTrack: createBiosampleTrack,
     ToolbarExtras: AssayToggle,
     GroupingCellComponent: BiosampleGroupingCell,

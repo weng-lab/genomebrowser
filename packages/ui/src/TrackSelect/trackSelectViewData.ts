@@ -58,7 +58,7 @@ export const deriveTrackSelectViewData = ({
     runtimeConfigOverridesByFolder,
   });
   const selectedIds = new Set(selectedByFolder.get(activeFolder.id) ?? []);
-  const rows = Array.from(activeFolder.rowById.values());
+  const rows = activeFolder.rows;
   const folderTrees = folders.flatMap((folder) => {
     const folderSelectedIds = selectedByFolder.get(folder.id);
     if (!folderSelectedIds || folderSelectedIds.size === 0) {
@@ -73,7 +73,9 @@ export const deriveTrackSelectViewData = ({
       {
         folderId: folder.id,
         items: attachFolderId(
-          config.buildTree(Array.from(folderSelectedIds), folder.rowById),
+          config.buildTree(
+            folder.rows.filter((row) => folderSelectedIds.has(row.id)),
+          ),
           folder.id,
         ),
         TreeItemComponent: folder.TreeItemComponent,

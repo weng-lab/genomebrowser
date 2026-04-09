@@ -176,15 +176,15 @@ const createTestFolder = ({
   return {
     id,
     label,
-    rowById: new Map(rows.map((row) => [row.id, row])),
+    rows,
     columns: [],
     groupingModel: [],
     leafField: "label",
-    buildTree: (selectedIds, rowById) =>
-      selectedIds.map((selectedId) => ({
-        id: `${id}-${selectedId}`,
-        label: rowById.get(selectedId)?.label ?? selectedId,
-        allExpAccessions: [selectedId],
+    buildTree: (selectedRows) =>
+      selectedRows.map((selectedRow) => ({
+        id: `${id}-${selectedRow.id}`,
+        label: selectedRow.label,
+        allExpAccessions: [selectedRow.id],
       })),
     createTrack: (row) => createTestTrack(row.id, row.label),
     ToolbarExtras,

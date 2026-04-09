@@ -207,7 +207,9 @@ export default function TrackSelect({
     }
 
     const filteredIds = new Set(
-      Array.from(ids).filter((id) => activeFolder.rowById.has(id)),
+      Array.from(ids).filter((id) =>
+        activeFolder.rows.some((row) => row.id === id),
+      ),
     );
 
     let nextTotal = filteredIds.size;

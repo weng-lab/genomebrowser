@@ -27,7 +27,7 @@ const buildManagedTrack = ({
   folder: FolderDefinition;
   id: string;
 }) => {
-  const row = folder.rowById.get(id);
+  const row = folder.rows.find((candidate) => candidate.id === id);
   if (!row) {
     return null;
   }

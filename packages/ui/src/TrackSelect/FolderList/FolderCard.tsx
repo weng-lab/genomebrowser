@@ -44,7 +44,7 @@ export function FolderCard({ folder, onClick }: FolderCardProps) {
         </Typography>
       )}
       <Typography variant="caption" color="text.secondary">
-        {folder.rowById.size.toLocaleString()} tracks available
+        {folder.rows.length.toLocaleString()} tracks available
       </Typography>
     </Paper>
   );

@@ -25,7 +25,7 @@ const createTestFolder = (
   return {
     id,
     label: id,
-    rowById: new Map(rows.map((row) => [row.id, row])),
+    rows,
     columns: [],
     groupingModel: [],
     leafField: "label",
@@ -61,7 +61,7 @@ describe("TrackSelect view data helpers", () => {
     });
 
     expect(viewData.activeFolder?.id).toBe(folderB.id);
-    expect(viewData.rows).toEqual(Array.from(folderB.rowById.values()));
+    expect(viewData.rows).toEqual(folderB.rows);
     expect(viewData.selectedIds).toEqual(new Set(["folder-b-a", "folder-b-c"]));
     expect(viewData.selectedCount).toBe(3);
     expect(viewData.activeConfig).toMatchObject({
@@ -74,14 +74,14 @@ describe("TrackSelect view data helpers", () => {
 
   it("builds selected folder trees and tags nested items with their folder IDs", () => {
     const folderA = createTestFolder("folder-a", {
-      buildTree: (selectedIds) => [
+      buildTree: (selectedRows) => [
         {
           id: "folder-a-group",
           label: "Folder A",
-          children: selectedIds.map((id) => ({
-            id,
-            label: id,
-            allExpAccessions: [id],
+          children: selectedRows.map((row) => ({
+            id: row.id,
+            label: row.id,
+            allExpAccessions: [row.id],
           })),
         },
       ],

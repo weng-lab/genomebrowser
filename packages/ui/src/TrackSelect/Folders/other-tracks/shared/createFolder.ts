@@ -11,19 +11,12 @@ import { buildTreeView } from "./treeBuilder";
 function transformData(
   folderId: string,
   data: OtherTrackDataFile,
-): {
-  rows: OtherTrackInfo[];
-  rowById: Map<string, OtherTrackInfo>;
-} {
-  const rows = data.map((row) => ({
+): OtherTrackInfo[] {
+  return data.map((row) => ({
     ...row,
     sourceId: row.id,
     id: `${folderId}/${row.id}`,
   }));
-  const rowById = new Map<string, OtherTrackInfo>(
-    rows.map((row) => [row.id, row]),
-  );
-  return { rows, rowById };
 }
 
 export interface CreateOtherTracksFolderOptions {
@@ -37,18 +30,17 @@ export function createOtherTracksFolder(
   options: CreateOtherTracksFolderOptions,
 ): FolderDefinition<OtherTrackInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(id, data);
+  const rows = transformData(id, data);
 
   return {
     id,
     label,
     description,
-    rowById,
+    rows,
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
-    buildTree: (selectedIds, rowById) =>
-      buildTreeView(selectedIds, rowById, label),
+    buildTree: (selectedRows) => buildTreeView(selectedRows, label),
     createTrack: createOtherTrack,
   };
 }

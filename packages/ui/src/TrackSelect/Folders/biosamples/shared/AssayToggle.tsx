@@ -45,8 +45,8 @@ export function AssayToggle({
         columns: sortedByAssayColumns,
         groupingModel: sortedByAssayGroupingModel,
         leafField: sortedByAssayLeafField,
-        buildTree: (selectedIds, rowById) =>
-          buildSortedAssayTreeView(selectedIds, rowById, label, folderId),
+        buildTree: (selectedRows) =>
+          buildSortedAssayTreeView(selectedRows, label, folderId),
       });
     } else {
       // Switch back to default (sample-grouped) view
@@ -54,8 +54,8 @@ export function AssayToggle({
         columns: defaultColumns,
         groupingModel: defaultGroupingModel,
         leafField: defaultLeafField,
-        buildTree: (selectedIds, rowById) =>
-          buildTreeView(selectedIds, rowById, label, folderId),
+        buildTree: (selectedRows) =>
+          buildTreeView(selectedRows, label, folderId),
       });
     }
   };

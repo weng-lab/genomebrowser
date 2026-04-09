@@ -15,8 +15,7 @@ export interface FolderRuntimeConfig {
   groupingModel: string[];
   leafField: string;
   buildTree?: (
-    selectedIds: string[],
-    rowById: Map<string, any>,
+    selectedRows: any[],
   ) => TreeViewBaseItem<ExtendedTreeItemProps>[];
 }
 
@@ -39,22 +38,20 @@ export interface FolderDefinition<TRow = any> {
   id: string;
   label: string;
   description?: string;
-  rowById: Map<string, TRow>;
+  rows: TRow[];
   columns: GridColDef[];
   groupingModel: string[];
   leafField: string;
 
   /**
-   * Builds a tree structure from selected row IDs.
+   * Builds a tree structure from selected rows.
    * Used to display selected items in the TreeView panel.
    *
-   * @param selectedIds - Array of selected row IDs
-   * @param rowById - Map of row ID to row data (same as this.rowById)
+   * @param selectedRows - Selected folder rows
    * @returns Array of tree items to render in the TreeView
    */
   buildTree: (
-    selectedIds: string[],
-    rowById: Map<string, TRow>,
+    selectedRows: TRow[],
   ) => TreeViewBaseItem<ExtendedTreeItemProps>[];
 
   /**
