@@ -1,11 +1,11 @@
 import { Track, TrackType, createTrackStore } from "@weng-lab/genomebrowser";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
 import {
+  deriveManagedSelectionFromStore,
   reconcileManagedSelectionWithStore,
   replaceManagedTracksInStore,
 } from "../src/TrackSelect/managedTracks";
-import { createSelectionStore } from "../src/TrackSelect/store";
 
 interface TestRow {
   id: string;
@@ -40,83 +40,38 @@ const createTestFolder = (): FolderDefinition<TestRow> => {
   };
 };
 
-const createSessionStorageMock = () => {
-  const storage = new Map<string, string>();
-
-  return {
-    getItem: vi.fn((key: string) => storage.get(key) ?? null),
-    setItem: vi.fn((key: string, value: string) => {
-      storage.set(key, value);
-    }),
-    removeItem: vi.fn((key: string) => {
-      storage.delete(key);
-    }),
-    clear: vi.fn(() => {
-      storage.clear();
-    }),
-  };
-};
-
 describe("TrackSelect startup", () => {
-  beforeEach(() => {
-    vi.stubGlobal("sessionStorage", createSessionStorageMock());
+  it("derives managed draft selection from the committed track store", () => {
+    const trackStore = createTrackStore([
+      makeTrack("external-track", "External"),
+      makeTrack("managed-b", "Managed B"),
+      makeTrack("managed-a", "Managed A"),
+    ]);
+
+    expect(
+      deriveManagedSelectionFromStore({
+        folders: [createTestFolder()],
+        trackStore,
+      }),
+    ).toEqual(new Map([["test-folder", new Set(["managed-b", "managed-a"])]]));
   });
 
-  it("uses default managed ids when there is no stored selection", () => {
-    const defaultManagedIds = new Map([
-      ["test-folder", new Set(["managed-a"])],
-    ]);
-    const selectionStore = createSelectionStore(
-      ["test-folder"],
-      "test-key",
-      defaultManagedIds,
-    );
+  it("derives an empty draft selection when the committed track store has no managed tracks", () => {
     const trackStore = createTrackStore([
       makeTrack("external-track", "External"),
     ]);
 
-    replaceManagedTracksInStore({
-      assembly: "GRCh38",
-      folders: [createTestFolder()],
-      selectedByFolder: selectionStore.getState().selectedByFolder,
-      trackStore,
-    });
-
-    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
-      "external-track",
-      "managed-a",
-    ]);
-  });
-
-  it("uses stored managed ids before defaults when seeding the browser", () => {
-    sessionStorage.setItem(
-      "test-key",
-      JSON.stringify({ "test-folder": ["managed-b"] }),
-    );
-
-    const selectionStore = createSelectionStore(
-      ["test-folder"],
-      "test-key",
-      new Map([["test-folder", new Set(["managed-a"])]]),
-    );
-    const trackStore = createTrackStore([
-      makeTrack("managed-a", "Stale Managed"),
-    ]);
-
-    replaceManagedTracksInStore({
-      assembly: "GRCh38",
-      folders: [createTestFolder()],
-      selectedByFolder: selectionStore.getState().selectedByFolder,
-      trackStore,
-    });
-
-    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
-      "managed-b",
-    ]);
+    expect(
+      deriveManagedSelectionFromStore({
+        folders: [createTestFolder()],
+        trackStore,
+      }),
+    ).toEqual(new Map([["test-folder", new Set<string>()]]));
   });
 
   it("replaces only the managed subset when selection changes", () => {
     const folder = createTestFolder();
+
     const trackStore = createTrackStore([
       makeTrack("external-track", "External"),
       makeTrack("managed-a", "Managed A"),

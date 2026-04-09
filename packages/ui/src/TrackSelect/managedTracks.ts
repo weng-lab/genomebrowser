@@ -48,6 +48,35 @@ export const buildManagedTracks = (
   });
 };
 
+export const deriveManagedSelectionFromStore = ({
+  folders,
+  trackStore,
+}: {
+  folders: FolderDefinition[];
+  trackStore: TrackStoreInstance;
+}) => {
+  const folderByTrackId = new Map<string, string>();
+  const selectedByFolder = new Map<string, Set<string>>();
+
+  folders.forEach((folder) => {
+    selectedByFolder.set(folder.id, new Set<string>());
+    folder.rowById.forEach((_row, id) => {
+      folderByTrackId.set(id, folder.id);
+    });
+  });
+
+  trackStore.getState().tracks.forEach((track) => {
+    const folderId = folderByTrackId.get(track.id);
+    if (!folderId) {
+      return;
+    }
+
+    selectedByFolder.get(folderId)?.add(track.id);
+  });
+
+  return selectedByFolder;
+};
+
 export const replaceManagedTracksInStore = ({
   assembly,
   folders,
