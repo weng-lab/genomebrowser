@@ -1,4 +1,4 @@
-import { Track, TrackStoreInstance } from "@weng-lab/genomebrowser";
+import { TrackStoreInstance } from "@weng-lab/genomebrowser";
 import CloseIcon from "@mui/icons-material/Close";
 import {
   Box,
@@ -22,14 +22,9 @@ import {
   FolderDefinition,
   FolderRuntimeConfig,
 } from "./Folders/types";
-import {
-  cloneSelectionMap,
-  createEmptyManagedDraftSelection,
-  deriveManagedDraftSelectionFromTracks,
-  diffManagedTracks,
-  ManagedTrackDecorator,
-} from "./managedTracks";
+import { ManagedTrackDecorator } from "./managedTracks";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
+import { useTrackSelectState } from "./useTrackSelectState";
 import { ExtendedTreeItemProps } from "./types";
 
 export interface TrackSelectProps {
@@ -45,8 +40,6 @@ export interface TrackSelectProps {
 }
 
 const DEFAULT_MAX_TRACKS = 30;
-
-type ViewState = "folder-list" | "folder-detail";
 
 const buildRuntimeConfigMap = (folders: FolderDefinition[]) => {
   const map = new Map<string, FolderRuntimeConfig>();
@@ -75,20 +68,6 @@ const attachFolderId = (
 
 const DEFAULT_TITLE = "Track Select";
 
-const deriveDraftSelection = ({
-  folders,
-  tracks,
-}: {
-  folders: FolderDefinition[];
-  tracks?: Track[];
-}) => {
-  if (!tracks) {
-    return createEmptyManagedDraftSelection(folders);
-  }
-
-  return deriveManagedDraftSelectionFromTracks({ folders, tracks });
-};
-
 export default function TrackSelect({
   assembly,
   folders,
@@ -106,54 +85,34 @@ export default function TrackSelect({
   const [runtimeConfigByFolder, setRuntimeConfigByFolder] = useState(() =>
     buildRuntimeConfigMap(folders),
   );
-
-  // View state: folder list or folder detail
-  const [currentView, setCurrentView] = useState<ViewState>(() =>
-    folders.length > 1 ? "folder-list" : "folder-detail",
-  );
-
-  const folderIds = useMemo(() => folders.map((f) => f.id), [folders]);
-  const [activeFolderId, setActiveFolderId] = useState(
-    () => folders[0]?.id ?? "",
-  );
-  const [selectedByFolder, setSelectedByFolder] = useState(
-    () =>
-      deriveDraftSelection({
-        folders,
-        tracks: trackStore?.getState().tracks,
-      }).selectedByFolder,
-  );
+  const maxTracksLimit = maxTracks ?? DEFAULT_MAX_TRACKS;
+  const {
+    activeFolder,
+    currentView,
+    handleClear: clearSelection,
+    handleFolderSelect,
+    handleNavigateToRoot,
+    handleRemoveTreeItem,
+    handleReset: resetSelection,
+    handleSelectionChange,
+    handleSubmit,
+    selectedByFolder,
+    selectedCount,
+    selectedIds,
+  } = useTrackSelectState({
+    assembly,
+    decorateManagedTrack,
+    folders,
+    maxTracksLimit,
+    onClose,
+    onLimitExceeded: () => setLimitDialogOpen(true),
+    open,
+    trackStore,
+  });
 
   useEffect(() => {
     setRuntimeConfigByFolder(buildRuntimeConfigMap(folders));
-    setActiveFolderId((currentFolderId) => {
-      if (folders.some((folder) => folder.id === currentFolderId)) {
-        return currentFolderId;
-      }
-
-      return folders[0]?.id ?? "";
-    });
-    // Update view state if folder count changes
-    if (folders.length <= 1) {
-      setCurrentView("folder-detail");
-    }
   }, [folders]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    const draftSelection = deriveDraftSelection({
-      folders,
-      tracks: trackStore?.getState().tracks,
-    });
-    setSelectedByFolder(draftSelection.selectedByFolder);
-  }, [folders, open, trackStore]);
-
-  const activeFolder = useMemo(() => {
-    return folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
-  }, [folders, activeFolderId]);
 
   const activeConfig = useMemo(() => {
     if (!activeFolder) return undefined;
@@ -165,21 +124,6 @@ export default function TrackSelect({
       }
     );
   }, [runtimeConfigByFolder, activeFolder]);
-
-  const selectedIds = useMemo(() => {
-    if (!activeFolder) return new Set<string>();
-    return new Set(selectedByFolder.get(activeFolder.id) ?? []);
-  }, [selectedByFolder, activeFolder]);
-
-  const selectedCount = useMemo(() => {
-    let total = 0;
-    selectedByFolder.forEach((ids) => {
-      total += ids.size;
-    });
-    return total;
-  }, [selectedByFolder]);
-
-  const maxTracksLimit = maxTracks ?? DEFAULT_MAX_TRACKS;
 
   const rows = useMemo(() => {
     if (!activeFolder) return [];
@@ -224,131 +168,27 @@ export default function TrackSelect({
     [activeFolder],
   );
 
-  const applyManagedSelection = useCallback(
-    ({
-      nextSelectedByFolder,
-    }: {
-      nextSelectedByFolder: Map<string, Set<string>>;
-    }) => {
-      setSelectedByFolder(cloneSelectionMap(nextSelectedByFolder));
-    },
-    [],
-  );
-
-  // Navigation handlers
-  const handleFolderSelect = (folderId: string) => {
-    setActiveFolderId(folderId);
-    setCurrentView("folder-detail");
-  };
-
-  const handleNavigateToRoot = () => {
-    setCurrentView("folder-list");
-  };
-
-  const handleSelectionChange = (ids: Set<string>) => {
-    if (!activeFolder) return;
-
-    // Filter to only include IDs that exist in rowById (exclude auto-generated group IDs)
-    const filteredIds = new Set(
-      Array.from(ids).filter((id) => activeFolder.rowById.has(id)),
-    );
-
-    // Calculate what the total would be with this change
-    let nextTotal = filteredIds.size;
-    selectedByFolder.forEach((folderIds, folderId) => {
-      if (folderId !== activeFolder.id) {
-        nextTotal += folderIds.size;
-      }
-    });
-
-    if (nextTotal > maxTracksLimit) {
-      setLimitDialogOpen(true);
-      return;
-    }
-
-    const nextSelectedByFolder = cloneSelectionMap(selectedByFolder);
-    nextSelectedByFolder.set(activeFolder.id, filteredIds);
-    applyManagedSelection({
-      nextSelectedByFolder,
-    });
-  };
-
-  const handleRemoveTreeItem = (
-    item: TreeViewBaseItem<ExtendedTreeItemProps>,
-  ) => {
-    const folderId = item.folderId;
-    if (!folderId || !item.allExpAccessions?.length) {
-      return;
-    }
-
-    const current = selectedByFolder.get(folderId) ?? new Set<string>();
-    const nextSet = new Set(current);
-    item.allExpAccessions.forEach((id) => nextSet.delete(id));
-    const nextSelectedByFolder = cloneSelectionMap(selectedByFolder);
-    nextSelectedByFolder.set(folderId, nextSet);
-    applyManagedSelection({
-      nextSelectedByFolder,
-    });
-  };
-
-  const handleSubmit = () => {
-    if (assembly && trackStore) {
-      const { idsToRemove, tracksToAdd } = diffManagedTracks({
-        assembly,
-        currentTracks: trackStore.getState().tracks,
-        decorateTrack: decorateManagedTrack,
-        folders,
-        selectedByFolder,
-      });
-
-      const { insertTrack, removeTrack } = trackStore.getState();
-      idsToRemove.forEach((id) => removeTrack(id));
-      tracksToAdd.forEach((track) => insertTrack(track));
-    }
-
-    onClose();
-  };
-
   const handleCancel = () => {
     onCancel?.();
     onClose();
   };
 
-  const handleClear = () => {
+  const openClearDialog = () => {
     setClearDialogOpen(true);
   };
 
-  const handleReset = () => {
+  const openResetDialog = () => {
     setResetDialogOpen(true);
   };
 
   const confirmReset = () => {
     setResetDialogOpen(false);
-    const draftSelection = deriveDraftSelection({
-      folders,
-      tracks: trackStore?.getState().tracks,
-    });
-
-    applyManagedSelection({
-      nextSelectedByFolder: draftSelection.selectedByFolder,
-    });
+    resetSelection();
   };
 
   const confirmClear = () => {
     setClearDialogOpen(false);
-    const nextSelectedByFolder = cloneSelectionMap(selectedByFolder);
-
-    if (currentView === "folder-detail") {
-      nextSelectedByFolder.set(activeFolderId, new Set<string>());
-    } else {
-      folderIds.forEach((id) =>
-        nextSelectedByFolder.set(id, new Set<string>()),
-      );
-    }
-
-    applyManagedSelection({
-      nextSelectedByFolder,
-    });
+    clearSelection();
   };
 
   const ToolbarExtras = activeFolder?.ToolbarExtras;
@@ -471,7 +311,7 @@ export default function TrackSelect({
                   variant="outlined"
                   color="secondary"
                   size="small"
-                  onClick={handleClear}
+                  onClick={openClearDialog}
                 >
                   Clear
                 </Button>
@@ -480,7 +320,7 @@ export default function TrackSelect({
                     variant="outlined"
                     color="secondary"
                     size="small"
-                    onClick={handleReset}
+                    onClick={openResetDialog}
                   >
                     Reset
                   </Button>
