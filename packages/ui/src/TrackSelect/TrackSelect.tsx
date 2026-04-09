@@ -123,13 +123,6 @@ export default function TrackSelect({
         trackStore,
       }).selectedByFolder,
   );
-  const [selectedTrackIdsInOrder, setSelectedTrackIdsInOrder] = useState(
-    () =>
-      deriveDraftSelection({
-        folders,
-        trackStore,
-      }).selectedTrackIdsInOrder,
-  );
 
   useEffect(() => {
     setRuntimeConfigByFolder(buildRuntimeConfigMap(folders));
@@ -156,7 +149,6 @@ export default function TrackSelect({
       trackStore,
     });
     setSelectedByFolder(draftSelection.selectedByFolder);
-    setSelectedTrackIdsInOrder(draftSelection.selectedTrackIdsInOrder);
   }, [folders, open, trackStore]);
 
   const activeFolder = useMemo(() => {
@@ -235,13 +227,10 @@ export default function TrackSelect({
   const applyManagedSelection = useCallback(
     ({
       nextSelectedByFolder,
-      nextSelectedTrackIdsInOrder,
     }: {
       nextSelectedByFolder: Map<string, Set<string>>;
-      nextSelectedTrackIdsInOrder: string[];
     }) => {
       setSelectedByFolder(cloneSelectionMap(nextSelectedByFolder));
-      setSelectedTrackIdsInOrder([...nextSelectedTrackIdsInOrder]);
     },
     [],
   );
@@ -279,17 +268,8 @@ export default function TrackSelect({
 
     const nextSelectedByFolder = cloneSelectionMap(selectedByFolder);
     nextSelectedByFolder.set(activeFolder.id, filteredIds);
-    const nextSelectedTrackIdsInOrder = selectedTrackIdsInOrder.filter(
-      (id) => !selectedIds.has(id) || filteredIds.has(id),
-    );
-    Array.from(filteredIds).forEach((id) => {
-      if (!nextSelectedTrackIdsInOrder.includes(id)) {
-        nextSelectedTrackIdsInOrder.push(id);
-      }
-    });
     applyManagedSelection({
       nextSelectedByFolder,
-      nextSelectedTrackIdsInOrder,
     });
   };
 
@@ -308,9 +288,6 @@ export default function TrackSelect({
     nextSelectedByFolder.set(folderId, nextSet);
     applyManagedSelection({
       nextSelectedByFolder,
-      nextSelectedTrackIdsInOrder: selectedTrackIdsInOrder.filter(
-        (id) => !item.allExpAccessions?.includes(id),
-      ),
     });
   };
 
@@ -321,7 +298,6 @@ export default function TrackSelect({
         decorateTrack: decorateManagedTrack,
         folders,
         selectedByFolder,
-        selectedTrackIdsInOrder,
         trackStore,
       });
     }
@@ -351,7 +327,6 @@ export default function TrackSelect({
 
     applyManagedSelection({
       nextSelectedByFolder: draftSelection.selectedByFolder,
-      nextSelectedTrackIdsInOrder: draftSelection.selectedTrackIdsInOrder,
     });
   };
 
@@ -369,10 +344,6 @@ export default function TrackSelect({
 
     applyManagedSelection({
       nextSelectedByFolder,
-      nextSelectedTrackIdsInOrder:
-        currentView === "folder-detail"
-          ? selectedTrackIdsInOrder.filter((id) => !selectedIds.has(id))
-          : [],
     });
   };
 

@@ -41,7 +41,7 @@ const createTestFolder = (): FolderDefinition<TestRow> => {
 };
 
 describe("TrackSelect managed draft helpers", () => {
-  it("derives managed draft selection and order from the committed track store", () => {
+  it("derives managed draft selection from the committed track store", () => {
     const trackStore = createTrackStore([
       makeTrack("external-track", "External"),
       makeTrack("managed-b", "Managed B"),
@@ -57,7 +57,6 @@ describe("TrackSelect managed draft helpers", () => {
       selectedByFolder: new Map([
         ["test-folder", new Set(["managed-b", "managed-a"])],
       ]),
-      selectedTrackIdsInOrder: ["managed-b", "managed-a"],
     });
   });
 
@@ -73,7 +72,6 @@ describe("TrackSelect managed draft helpers", () => {
       }),
     ).toEqual({
       selectedByFolder: new Map([["test-folder", new Set<string>()]]),
-      selectedTrackIdsInOrder: [],
     });
   });
 
@@ -90,7 +88,6 @@ describe("TrackSelect managed draft helpers", () => {
     });
     const unsavedDraft = {
       selectedByFolder: cloneSelectionMap(committedDraft.selectedByFolder),
-      selectedTrackIdsInOrder: ["managed-a"],
     };
 
     unsavedDraft.selectedByFolder.set("test-folder", new Set(["managed-a"]));
@@ -124,7 +121,6 @@ describe("TrackSelect managed draft helpers", () => {
       assembly: "GRCh38",
       folders: [folder],
       selectedByFolder: new Map([["test-folder", new Set(["managed-b"])]]),
-      selectedTrackIdsInOrder: ["managed-b"],
       trackStore,
     });
 
@@ -134,7 +130,7 @@ describe("TrackSelect managed draft helpers", () => {
     ]);
   });
 
-  it("rebuilds managed tracks in first-selection order across folders", () => {
+  it("replaces the managed subset across folders without depending on selection order", () => {
     const alphaFolder: FolderDefinition<TestRow> = {
       ...createTestFolder(),
       id: "alpha-folder",
@@ -163,15 +159,13 @@ describe("TrackSelect managed draft helpers", () => {
         ["alpha-folder", new Set(["managed-a"])],
         ["beta-folder", new Set(["managed-b"])],
       ]),
-      selectedTrackIdsInOrder: ["managed-b", "managed-a"],
       trackStore,
     });
 
-    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
-      "external-track",
-      "managed-b",
-      "managed-a",
-    ]);
+    const trackIds = trackStore.getState().tracks.map((track) => track.id);
+
+    expect(trackIds[0]).toBe("external-track");
+    expect(trackIds.slice(1).sort()).toEqual(["managed-a", "managed-b"]);
   });
 
   it("decorates managed tracks after folder creation and before store insertion", () => {
@@ -189,7 +183,6 @@ describe("TrackSelect managed draft helpers", () => {
       }),
       folders: [folder],
       selectedByFolder: new Map([["test-folder", new Set(["managed-a"])]]),
-      selectedTrackIdsInOrder: ["managed-a"],
       trackStore,
     });
 
