@@ -24,6 +24,7 @@ import {
 } from "./Folders/types";
 import {
   cloneSelectionMap,
+  reconcileManagedSelectionWithStore,
   replaceManagedTracksInStore,
 } from "./managedTracks";
 import { createSelectionStore, SelectionStoreInstance } from "./store";
@@ -146,6 +147,31 @@ export default function TrackSelect({
       trackStore,
     });
   }, [assembly, folders, store, trackStore]);
+
+  useEffect(() => {
+    if (!trackStore) {
+      return;
+    }
+
+    return trackStore.subscribe((state, previousState) => {
+      if (state.tracks === previousState.tracks) {
+        return;
+      }
+
+      const nextSelectedByFolder = reconcileManagedSelectionWithStore({
+        folders,
+        selectedByFolder: store.getState().selectedByFolder,
+        trackStore,
+      });
+
+      if (nextSelectedByFolder === store.getState().selectedByFolder) {
+        return;
+      }
+
+      replaceSelection(nextSelectedByFolder);
+      setCommittedSnapshot(cloneSelectionMap(nextSelectedByFolder));
+    });
+  }, [folders, replaceSelection, store, trackStore]);
 
   useEffect(() => {
     if (!open) {

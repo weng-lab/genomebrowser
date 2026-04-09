@@ -1,7 +1,10 @@
 import { Track, TrackType, createTrackStore } from "@weng-lab/genomebrowser";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
-import { replaceManagedTracksInStore } from "../src/TrackSelect/managedTracks";
+import {
+  reconcileManagedSelectionWithStore,
+  replaceManagedTracksInStore,
+} from "../src/TrackSelect/managedTracks";
 import { createSelectionStore } from "../src/TrackSelect/store";
 
 interface TestRow {
@@ -149,5 +152,41 @@ describe("TrackSelect startup", () => {
     expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
       "ghost-track",
     ]);
+  });
+
+  it("does not infer managed selections from ghost or external tracks", () => {
+    const folder = createTestFolder();
+    const selectedByFolder = new Map([["test-folder", new Set<string>()]]);
+    const trackStore = createTrackStore([
+      makeTrack("ghost-track", "Ghost"),
+      makeTrack("managed-b", "External Managed-Looking Track"),
+    ]);
+
+    expect(
+      reconcileManagedSelectionWithStore({
+        folders: [folder],
+        selectedByFolder,
+        trackStore,
+      }),
+    ).toBe(selectedByFolder);
+  });
+
+  it("drops stale managed selections after external track-store removals", () => {
+    const folder = createTestFolder();
+    const selectedByFolder = new Map([
+      ["test-folder", new Set(["managed-a", "managed-b"])],
+    ]);
+    const trackStore = createTrackStore([
+      makeTrack("ghost-track", "Ghost"),
+      makeTrack("managed-b", "Managed B"),
+    ]);
+
+    expect(
+      reconcileManagedSelectionWithStore({
+        folders: [folder],
+        selectedByFolder,
+        trackStore,
+      }),
+    ).toEqual(new Map([["test-folder", new Set(["managed-b"])]]));
   });
 });

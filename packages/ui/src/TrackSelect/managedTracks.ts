@@ -54,3 +54,35 @@ export const replaceManagedTracksInStore = ({
 
   trackStore.getState().setTracks([...unmanagedTracks, ...managedTracks]);
 };
+
+export const reconcileManagedSelectionWithStore = ({
+  folders,
+  selectedByFolder,
+  trackStore,
+}: {
+  folders: FolderDefinition[];
+  selectedByFolder: Map<string, Set<string>>;
+  trackStore: TrackStoreInstance;
+}) => {
+  const trackIds = new Set(
+    trackStore.getState().tracks.map((track) => track.id),
+  );
+  let changed = false;
+  const nextSelectedByFolder = cloneSelectionMap(selectedByFolder);
+
+  folders.forEach((folder) => {
+    const currentIds = selectedByFolder.get(folder.id) ?? new Set<string>();
+    const nextIds = new Set(
+      Array.from(currentIds).filter(
+        (id) => folder.rowById.has(id) && trackIds.has(id),
+      ),
+    );
+
+    if (nextIds.size !== currentIds.size) {
+      changed = true;
+      nextSelectedByFolder.set(folder.id, nextIds);
+    }
+  });
+
+  return changed ? nextSelectedByFolder : selectedByFolder;
+};
