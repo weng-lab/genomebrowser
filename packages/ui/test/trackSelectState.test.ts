@@ -1,6 +1,7 @@
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { describe, expect, it } from "vitest";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
+import { deriveTrackSelectViewData } from "../src/TrackSelect/trackSelectViewData";
 import {
   clearDraftSelection,
   removeTreeItemFromDraftSelection,
@@ -13,7 +14,10 @@ interface TestRow {
   label: string;
 }
 
-const createTestFolder = (id: string): FolderDefinition<TestRow> => {
+const createTestFolder = (
+  id: string,
+  overrides: Partial<FolderDefinition<TestRow>> = {},
+): FolderDefinition<TestRow> => {
   const rows = [
     { id: `${id}-a`, label: `${id} A` },
     { id: `${id}-b`, label: `${id} B` },
@@ -30,6 +34,7 @@ const createTestFolder = (id: string): FolderDefinition<TestRow> => {
     leafField: "label",
     buildTree: () => [],
     createTrack: () => null,
+    ...overrides,
   };
 };
 
@@ -132,5 +137,99 @@ describe("TrackSelect state helpers", () => {
         ["folder-b", new Set(["b1"])],
       ]),
     );
+  });
+
+  it("derives active-folder rows, selection, and count from draft state", () => {
+    const folderA = createTestFolder("folder-a");
+    const folderB = createTestFolder("folder-b");
+    const runtimeColumns = [{ field: "runtime-label" } as never];
+
+    const viewData = deriveTrackSelectViewData({
+      activeFolderId: folderB.id,
+      folders: [folderA, folderB],
+      runtimeConfigByFolder: new Map([
+        [
+          folderB.id,
+          {
+            columns: runtimeColumns,
+            groupingModel: ["runtime-group"],
+            leafField: "runtime-leaf",
+          },
+        ],
+      ]),
+      selectedByFolder: new Map([
+        [folderA.id, new Set(["folder-a-a"])],
+        [folderB.id, new Set(["folder-b-a", "folder-b-c"])],
+      ]),
+    });
+
+    expect(viewData.activeFolder?.id).toBe(folderB.id);
+    expect(viewData.rows).toEqual(Array.from(folderB.rowById.values()));
+    expect(viewData.selectedIds).toEqual(new Set(["folder-b-a", "folder-b-c"]));
+    expect(viewData.selectedCount).toBe(3);
+    expect(viewData.activeConfig).toEqual({
+      columns: runtimeColumns,
+      groupingModel: ["runtime-group"],
+      leafField: "runtime-leaf",
+    });
+  });
+
+  it("builds selected folder trees and tags nested items with their folder IDs", () => {
+    const folderA = createTestFolder("folder-a", {
+      buildTree: (selectedIds) => [
+        {
+          id: "folder-a-group",
+          label: "Folder A",
+          children: selectedIds.map((id) => ({
+            id,
+            label: id,
+            allExpAccessions: [id],
+          })),
+        },
+      ],
+    });
+    const folderB = createTestFolder("folder-b", {
+      buildTree: () => [
+        {
+          id: "folder-b-default",
+          label: "default",
+          allExpAccessions: ["folder-b-a"],
+        },
+      ],
+    });
+
+    const viewData = deriveTrackSelectViewData({
+      activeFolderId: folderA.id,
+      folders: [folderA, folderB],
+      runtimeConfigByFolder: new Map([
+        [
+          folderB.id,
+          {
+            columns: folderB.columns,
+            groupingModel: folderB.groupingModel,
+            leafField: folderB.leafField,
+            buildTree: () => [
+              {
+                id: "folder-b-runtime",
+                label: "runtime",
+                allExpAccessions: ["folder-b-a"],
+              },
+            ],
+          },
+        ],
+      ]),
+      selectedByFolder: new Map([
+        [folderA.id, new Set(["folder-a-a", "folder-a-b"])],
+        [folderB.id, new Set(["folder-b-a"])],
+      ]),
+    });
+
+    expect(viewData.folderTrees).toHaveLength(2);
+    expect(viewData.folderTrees[0]?.items[0]?.folderId).toBe(folderA.id);
+    expect(viewData.folderTrees[0]?.items[0]?.children?.[0]?.folderId).toBe(
+      folderA.id,
+    );
+    expect(viewData.folderTrees[1]?.items[0]?.label).toBe("runtime");
+    expect(viewData.folderTrees[1]?.items[0]?.folderId).toBe(folderB.id);
   });
 });

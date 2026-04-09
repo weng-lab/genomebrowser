@@ -9,7 +9,6 @@ import {
   IconButton,
   Stack,
 } from "@mui/material";
-import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
 import { ClearDialog } from "./Dialogs/ClearDialog";
@@ -23,9 +22,9 @@ import {
   FolderRuntimeConfig,
 } from "./Folders/types";
 import { ManagedTrackDecorator } from "./managedTracks";
+import { deriveTrackSelectViewData } from "./trackSelectViewData";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import { useTrackSelectState } from "./useTrackSelectState";
-import { ExtendedTreeItemProps } from "./types";
 
 export interface TrackSelectProps {
   assembly?: Assembly;
@@ -53,19 +52,6 @@ const buildRuntimeConfigMap = (folders: FolderDefinition[]) => {
   return map;
 };
 
-const attachFolderId = (
-  items: TreeViewBaseItem<ExtendedTreeItemProps>[],
-  folderId: string,
-): TreeViewBaseItem<ExtendedTreeItemProps>[] => {
-  return items.map((item) => ({
-    ...item,
-    folderId,
-    children: item.children
-      ? attachFolderId(item.children, folderId)
-      : undefined,
-  }));
-};
-
 const DEFAULT_TITLE = "Track Select";
 
 export default function TrackSelect({
@@ -87,7 +73,7 @@ export default function TrackSelect({
   );
   const maxTracksLimit = maxTracks ?? DEFAULT_MAX_TRACKS;
   const {
-    activeFolder,
+    activeFolderId,
     currentView,
     handleClear: clearSelection,
     handleFolderSelect,
@@ -97,8 +83,6 @@ export default function TrackSelect({
     handleSelectionChange,
     handleSubmit,
     selectedByFolder,
-    selectedCount,
-    selectedIds,
   } = useTrackSelectState({
     assembly,
     decorateManagedTrack,
@@ -114,45 +98,23 @@ export default function TrackSelect({
     setRuntimeConfigByFolder(buildRuntimeConfigMap(folders));
   }, [folders]);
 
-  const activeConfig = useMemo(() => {
-    if (!activeFolder) return undefined;
-    return (
-      runtimeConfigByFolder.get(activeFolder.id) ?? {
-        columns: activeFolder.columns,
-        groupingModel: activeFolder.groupingModel,
-        leafField: activeFolder.leafField,
-      }
-    );
-  }, [runtimeConfigByFolder, activeFolder]);
-
-  const rows = useMemo(() => {
-    if (!activeFolder) return [];
-    return Array.from(activeFolder.rowById.values());
-  }, [activeFolder]);
-
-  const folderTrees = useMemo(() => {
-    return folders
-      .filter((folder) => {
-        const selected = selectedByFolder.get(folder.id);
-        return selected && selected.size > 0;
-      })
-      .map((folder) => {
-        const config = runtimeConfigByFolder.get(folder.id);
-        const buildTree = config?.buildTree ?? folder.buildTree;
-
-        return {
-          folderId: folder.id,
-          items: attachFolderId(
-            buildTree(
-              Array.from(selectedByFolder.get(folder.id) ?? []),
-              folder.rowById,
-            ),
-            folder.id,
-          ),
-          TreeItemComponent: folder.TreeItemComponent,
-        };
-      });
-  }, [folders, selectedByFolder, runtimeConfigByFolder]);
+  const {
+    activeConfig,
+    activeFolder,
+    folderTrees,
+    rows,
+    selectedCount,
+    selectedIds,
+  } = useMemo(
+    () =>
+      deriveTrackSelectViewData({
+        activeFolderId,
+        folders,
+        runtimeConfigByFolder,
+        selectedByFolder,
+      }),
+    [activeFolderId, folders, runtimeConfigByFolder, selectedByFolder],
+  );
 
   const updateActiveFolderConfig = useCallback(
     (partial: Partial<FolderRuntimeConfig>) => {

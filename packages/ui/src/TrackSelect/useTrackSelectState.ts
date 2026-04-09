@@ -108,14 +108,6 @@ export const clearDraftSelection = ({
   return nextSelectedByFolder;
 };
 
-const countSelectedTracks = (selectedByFolder: Map<string, Set<string>>) => {
-  let total = 0;
-  selectedByFolder.forEach((ids) => {
-    total += ids.size;
-  });
-  return total;
-};
-
 export const useTrackSelectState = ({
   assembly,
   decorateManagedTrack,
@@ -183,19 +175,6 @@ export const useTrackSelectState = ({
   const activeFolder = useMemo(() => {
     return folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
   }, [activeFolderId, folders]);
-
-  const selectedIds = useMemo(() => {
-    if (!activeFolder) {
-      return new Set<string>();
-    }
-
-    return new Set(selectedByFolder.get(activeFolder.id) ?? []);
-  }, [activeFolder, selectedByFolder]);
-
-  const selectedCount = useMemo(
-    () => countSelectedTracks(selectedByFolder),
-    [selectedByFolder],
-  );
 
   const handleFolderSelect = (folderId: string) => {
     setActiveFolderId(folderId);
@@ -276,7 +255,7 @@ export const useTrackSelectState = ({
   };
 
   return {
-    activeFolder,
+    activeFolderId,
     currentView,
     handleClear,
     handleFolderSelect,
@@ -286,7 +265,5 @@ export const useTrackSelectState = ({
     handleSelectionChange,
     handleSubmit,
     selectedByFolder,
-    selectedCount,
-    selectedIds,
   };
 };
