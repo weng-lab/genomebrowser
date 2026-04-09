@@ -23,11 +23,12 @@ export function ResetDialog({ open, onClose, onConfirm }: ResetDialogProps) {
           fontWeight: "bold",
         }}
       >
-        Reset to Default
+        Reset to Browser State
       </DialogTitle>
       <DialogContent sx={{ mt: 2 }}>
         <DialogContentText>
-          Are you sure you want to reset all selections to the default?
+          Are you sure you want to reset all selections to the current browser
+          state?
         </DialogContentText>
       </DialogContent>
       <DialogActions sx={{ justifyContent: "center", gap: 2, pb: 2 }}>

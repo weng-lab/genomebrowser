@@ -23,7 +23,6 @@ import {
   FolderRuntimeConfig,
 } from "./Folders/types";
 import {
-  buildSelectionOrderFromSelectionMap,
   cloneSelectionMap,
   deriveManagedSelectionFromStore,
   deriveManagedSelectionOrderFromStore,
@@ -39,9 +38,6 @@ export interface TrackSelectProps {
   trackStore?: TrackStoreInstance;
   onCancel?: () => void;
   maxTracks?: number;
-  storageKey?: string;
-  /** Default managed IDs used by Reset. */
-  defaultManagedIds?: Map<string, Set<string>>;
   decorateManagedTrack?: ManagedTrackDecorator;
   open: boolean;
   onClose: () => void;
@@ -79,29 +75,30 @@ const attachFolderId = (
 
 const DEFAULT_TITLE = "Track Select";
 
-const deriveDraftSelectionFromDefaults = ({
-  defaultManagedIds,
+const deriveDraftSelection = ({
   folderIds,
   folders,
+  trackStore,
 }: {
-  defaultManagedIds?: Map<string, Set<string>>;
   folderIds: string[];
   folders: FolderDefinition[];
+  trackStore?: TrackStoreInstance;
 }) => {
-  const selectedByFolder = new Map<string, Set<string>>();
-  folderIds.forEach((folderId) => {
-    selectedByFolder.set(
-      folderId,
-      new Set(defaultManagedIds?.get(folderId) ?? []),
-    );
-  });
+  if (!trackStore) {
+    return {
+      selectedByFolder: new Map(
+        folderIds.map((folderId) => [folderId, new Set<string>()]),
+      ),
+      selectedTrackIdsInOrder: [] as string[],
+    };
+  }
 
   return {
-    selectedByFolder,
-    selectedTrackIdsInOrder: buildSelectionOrderFromSelectionMap(
+    selectedByFolder: deriveManagedSelectionFromStore({ folders, trackStore }),
+    selectedTrackIdsInOrder: deriveManagedSelectionOrderFromStore({
       folders,
-      selectedByFolder,
-    ),
+      trackStore,
+    }),
   };
 };
 
@@ -111,7 +108,6 @@ export default function TrackSelect({
   trackStore,
   onCancel,
   maxTracks,
-  defaultManagedIds,
   decorateManagedTrack,
   open,
   onClose,
@@ -133,28 +129,22 @@ export default function TrackSelect({
   const [activeFolderId, setActiveFolderId] = useState(
     () => folders[0]?.id ?? "",
   );
-  const [selectedByFolder, setSelectedByFolder] = useState(() => {
-    if (trackStore) {
-      return deriveManagedSelectionFromStore({ folders, trackStore });
-    }
-
-    return deriveDraftSelectionFromDefaults({
-      defaultManagedIds,
-      folderIds,
-      folders,
-    }).selectedByFolder;
-  });
-  const [selectedTrackIdsInOrder, setSelectedTrackIdsInOrder] = useState(() => {
-    if (trackStore) {
-      return deriveManagedSelectionOrderFromStore({ folders, trackStore });
-    }
-
-    return deriveDraftSelectionFromDefaults({
-      defaultManagedIds,
-      folderIds,
-      folders,
-    }).selectedTrackIdsInOrder;
-  });
+  const [selectedByFolder, setSelectedByFolder] = useState(
+    () =>
+      deriveDraftSelection({
+        folderIds,
+        folders,
+        trackStore,
+      }).selectedByFolder,
+  );
+  const [selectedTrackIdsInOrder, setSelectedTrackIdsInOrder] = useState(
+    () =>
+      deriveDraftSelection({
+        folderIds,
+        folders,
+        trackStore,
+      }).selectedTrackIdsInOrder,
+  );
 
   useEffect(() => {
     setRuntimeConfigByFolder(buildRuntimeConfigMap(folders));
@@ -176,24 +166,14 @@ export default function TrackSelect({
       return;
     }
 
-    if (trackStore) {
-      setSelectedByFolder(
-        deriveManagedSelectionFromStore({ folders, trackStore }),
-      );
-      setSelectedTrackIdsInOrder(
-        deriveManagedSelectionOrderFromStore({ folders, trackStore }),
-      );
-      return;
-    }
-
-    const draftSelection = deriveDraftSelectionFromDefaults({
-      defaultManagedIds,
+    const draftSelection = deriveDraftSelection({
       folderIds,
       folders,
+      trackStore,
     });
     setSelectedByFolder(draftSelection.selectedByFolder);
     setSelectedTrackIdsInOrder(draftSelection.selectedTrackIdsInOrder);
-  }, [defaultManagedIds, folderIds, folders, open, trackStore]);
+  }, [folderIds, folders, open, trackStore]);
 
   const activeFolder = useMemo(() => {
     return folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
@@ -380,22 +360,15 @@ export default function TrackSelect({
 
   const confirmReset = () => {
     setResetDialogOpen(false);
-    if (!defaultManagedIds) return;
-
-    const nextSelectedByFolder = new Map<string, Set<string>>();
-    folderIds.forEach((folderId) => {
-      nextSelectedByFolder.set(
-        folderId,
-        new Set(defaultManagedIds.get(folderId) ?? []),
-      );
+    const draftSelection = deriveDraftSelection({
+      folderIds,
+      folders,
+      trackStore,
     });
 
     applyManagedSelection({
-      nextSelectedByFolder,
-      nextSelectedTrackIdsInOrder: buildSelectionOrderFromSelectionMap(
-        folders,
-        nextSelectedByFolder,
-      ),
+      nextSelectedByFolder: draftSelection.selectedByFolder,
+      nextSelectedTrackIdsInOrder: draftSelection.selectedTrackIdsInOrder,
     });
   };
 
@@ -544,7 +517,7 @@ export default function TrackSelect({
                 >
                   Clear
                 </Button>
-                {defaultManagedIds && (
+                {trackStore && (
                   <Button
                     variant="outlined"
                     color="secondary"

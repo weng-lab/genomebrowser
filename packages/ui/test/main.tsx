@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 // react
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 import "../src/muiLicense";
@@ -24,6 +24,7 @@ import {
 
 // local
 import { foldersByAssembly, TrackSelect } from "../src/lib";
+import { buildManagedTracks } from "../src/TrackSelect/managedTracks";
 
 type Assembly = "GRCh38" | "mm10";
 
@@ -63,15 +64,36 @@ function Main() {
   });
 
   const domain = browserStore((s) => s.domain);
-  const trackStore = createTrackStoreMemo([], []);
 
   const folders = foldersByAssembly[currentAssembly];
 
-  const storageKey = `${currentAssembly}-selected-tracks`;
   const initialSelection =
     currentAssembly === "GRCh38"
       ? defaultHumanSelections
       : defaultMouseSelections;
+  const initialTracks = useMemo(() => {
+    const managedTracks = buildManagedTracks(
+      folders,
+      initialSelection,
+      currentAssembly,
+      decorateManagedTrack,
+    );
+    const templateTrack = managedTracks[0];
+
+    if (!templateTrack) {
+      return managedTracks;
+    }
+
+    return [
+      {
+        ...templateTrack,
+        id: `external-${templateTrack.id}`,
+        title: `External ${templateTrack.title}`,
+      },
+      ...managedTracks,
+    ];
+  }, [currentAssembly, folders, initialSelection]);
+  const trackStore = createTrackStoreMemo(initialTracks, [initialTracks]);
 
   return (
     <>
@@ -90,8 +112,6 @@ function Main() {
         assembly={currentAssembly}
         folders={folders}
         trackStore={trackStore}
-        storageKey={storageKey}
-        defaultManagedIds={initialSelection}
         decorateManagedTrack={decorateManagedTrack}
         maxTracks={30}
         open={open}
