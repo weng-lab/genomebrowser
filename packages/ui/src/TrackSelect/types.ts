@@ -68,21 +68,6 @@ export interface CustomTreeItemProps
 }
 
 /**
- * Types for useSelectionStore to keep track of selected DataGrid rows/tracks
- */
-export type SelectionState = {
-  selectedByFolder: Map<string, Set<string>>;
-  activeFolderId: string;
-};
-
-export type SelectionAction = {
-  clear: (folderId?: string) => void;
-  replaceSelection: (selection: Map<string, Set<string>>) => void;
-  setActiveFolder: (folderId: string) => void;
-  setSelection: (folderId: string, ids: Set<string>) => void;
-};
-
-/**
  * DataGrid Props
  */
 interface BaseTableProps extends Omit<DataGridPremiumProps, "columns"> {

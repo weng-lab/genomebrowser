@@ -2,10 +2,8 @@ import { Track, TrackType, createTrackStore } from "@weng-lab/genomebrowser";
 import { describe, expect, it } from "vitest";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
 import {
-  buildSelectionOrderFromSelectionMap,
-  deriveManagedSelectionFromStore,
-  deriveManagedSelectionOrderFromStore,
-  reconcileManagedSelectionWithStore,
+  cloneSelectionMap,
+  deriveManagedDraftSelectionFromStore,
   replaceManagedTracksInStore,
 } from "../src/TrackSelect/managedTracks";
 
@@ -42,8 +40,8 @@ const createTestFolder = (): FolderDefinition<TestRow> => {
   };
 };
 
-describe("TrackSelect startup", () => {
-  it("derives managed draft selection from the committed track store", () => {
+describe("TrackSelect managed draft helpers", () => {
+  it("derives managed draft selection and order from the committed track store", () => {
     const trackStore = createTrackStore([
       makeTrack("external-track", "External"),
       makeTrack("managed-b", "Managed B"),
@@ -51,53 +49,82 @@ describe("TrackSelect startup", () => {
     ]);
 
     expect(
-      deriveManagedSelectionFromStore({
+      deriveManagedDraftSelectionFromStore({
         folders: [createTestFolder()],
         trackStore,
       }),
-    ).toEqual(new Map([["test-folder", new Set(["managed-b", "managed-a"])]]));
+    ).toEqual({
+      selectedByFolder: new Map([
+        ["test-folder", new Set(["managed-b", "managed-a"])],
+      ]),
+      selectedTrackIdsInOrder: ["managed-b", "managed-a"],
+    });
   });
 
-  it("derives managed draft selection order from the committed track store", () => {
-    const trackStore = createTrackStore([
-      makeTrack("external-track", "External"),
-      makeTrack("managed-b", "Managed B"),
-      makeTrack("managed-a", "Managed A"),
-    ]);
-
-    expect(
-      deriveManagedSelectionOrderFromStore({
-        folders: [createTestFolder()],
-        trackStore,
-      }),
-    ).toEqual(["managed-b", "managed-a"]);
-  });
-
-  it("derives an empty draft selection when the committed track store has no managed tracks", () => {
+  it("derives an empty managed draft when the committed track store has no managed tracks", () => {
     const trackStore = createTrackStore([
       makeTrack("external-track", "External"),
     ]);
 
     expect(
-      deriveManagedSelectionFromStore({
+      deriveManagedDraftSelectionFromStore({
         folders: [createTestFolder()],
         trackStore,
       }),
-    ).toEqual(new Map([["test-folder", new Set<string>()]]));
+    ).toEqual({
+      selectedByFolder: new Map([["test-folder", new Set<string>()]]),
+      selectedTrackIdsInOrder: [],
+    });
   });
 
-  it("replaces only the managed subset when selection changes", () => {
+  it("keeps unsaved draft edits local until the user submits", () => {
     const folder = createTestFolder();
+    const trackStore = createTrackStore([
+      makeTrack("external-track", "External"),
+      makeTrack("managed-b", "Managed B"),
+      makeTrack("managed-a", "Managed A"),
+    ]);
+    const committedDraft = deriveManagedDraftSelectionFromStore({
+      folders: [folder],
+      trackStore,
+    });
+    const unsavedDraft = {
+      selectedByFolder: cloneSelectionMap(committedDraft.selectedByFolder),
+      selectedTrackIdsInOrder: ["managed-a"],
+    };
 
+    unsavedDraft.selectedByFolder.set("test-folder", new Set(["managed-a"]));
+
+    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
+      "external-track",
+      "managed-b",
+      "managed-a",
+    ]);
+    expect(
+      deriveManagedDraftSelectionFromStore({
+        folders: [folder],
+        trackStore,
+      }),
+    ).toEqual(committedDraft);
+  });
+
+  it("replaces only the managed subset on submit while preserving unmanaged tracks", () => {
+    const folder = createTestFolder();
     const trackStore = createTrackStore([
       makeTrack("external-track", "External"),
       makeTrack("managed-a", "Managed A"),
+    ]);
+
+    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
+      "external-track",
+      "managed-a",
     ]);
 
     replaceManagedTracksInStore({
       assembly: "GRCh38",
       folders: [folder],
       selectedByFolder: new Map([["test-folder", new Set(["managed-b"])]]),
+      selectedTrackIdsInOrder: ["managed-b"],
       trackStore,
     });
 
@@ -147,61 +174,6 @@ describe("TrackSelect startup", () => {
     ]);
   });
 
-  it("removes deselected managed tracks while leaving ghost tracks alone", () => {
-    const folder = createTestFolder();
-    const trackStore = createTrackStore([
-      makeTrack("ghost-track", "Ghost"),
-      makeTrack("managed-a", "Managed A"),
-    ]);
-
-    replaceManagedTracksInStore({
-      assembly: "GRCh38",
-      folders: [folder],
-      selectedByFolder: new Map([["test-folder", new Set<string>()]]),
-      trackStore,
-    });
-
-    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
-      "ghost-track",
-    ]);
-  });
-
-  it("does not infer managed selections from ghost or external tracks", () => {
-    const folder = createTestFolder();
-    const selectedByFolder = new Map([["test-folder", new Set<string>()]]);
-    const trackStore = createTrackStore([
-      makeTrack("ghost-track", "Ghost"),
-      makeTrack("managed-b", "External Managed-Looking Track"),
-    ]);
-
-    expect(
-      reconcileManagedSelectionWithStore({
-        folders: [folder],
-        selectedByFolder,
-        trackStore,
-      }),
-    ).toBe(selectedByFolder);
-  });
-
-  it("drops stale managed selections after external track-store removals", () => {
-    const folder = createTestFolder();
-    const selectedByFolder = new Map([
-      ["test-folder", new Set(["managed-a", "managed-b"])],
-    ]);
-    const trackStore = createTrackStore([
-      makeTrack("ghost-track", "Ghost"),
-      makeTrack("managed-b", "Managed B"),
-    ]);
-
-    expect(
-      reconcileManagedSelectionWithStore({
-        folders: [folder],
-        selectedByFolder,
-        trackStore,
-      }),
-    ).toEqual(new Map([["test-folder", new Set(["managed-b"])]]));
-  });
-
   it("decorates managed tracks after folder creation and before store insertion", () => {
     const folder = createTestFolder();
     const trackStore = createTrackStore([
@@ -217,6 +189,7 @@ describe("TrackSelect startup", () => {
       }),
       folders: [folder],
       selectedByFolder: new Map([["test-folder", new Set(["managed-a"])]]),
+      selectedTrackIdsInOrder: ["managed-a"],
       trackStore,
     });
 
@@ -231,16 +204,5 @@ describe("TrackSelect startup", () => {
 
     expect(managedTrack?.title).toBe("test-folder:Managed A");
     expect(typeof managedTrack?.onClick).toBe("function");
-  });
-
-  it("builds fallback selection order from folder and set order", () => {
-    const folder = createTestFolder();
-
-    expect(
-      buildSelectionOrderFromSelectionMap(
-        [folder],
-        new Map([["test-folder", new Set(["managed-b", "managed-a"])]]),
-      ),
-    ).toEqual(["managed-b", "managed-a"]);
   });
 });

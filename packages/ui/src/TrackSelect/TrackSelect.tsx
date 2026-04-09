@@ -24,8 +24,8 @@ import {
 } from "./Folders/types";
 import {
   cloneSelectionMap,
-  deriveManagedSelectionFromStore,
-  deriveManagedSelectionOrderFromStore,
+  createEmptyManagedDraftSelection,
+  deriveManagedDraftSelectionFromStore,
   ManagedTrackDecorator,
   replaceManagedTracksInStore,
 } from "./managedTracks";
@@ -76,30 +76,17 @@ const attachFolderId = (
 const DEFAULT_TITLE = "Track Select";
 
 const deriveDraftSelection = ({
-  folderIds,
   folders,
   trackStore,
 }: {
-  folderIds: string[];
   folders: FolderDefinition[];
   trackStore?: TrackStoreInstance;
 }) => {
   if (!trackStore) {
-    return {
-      selectedByFolder: new Map(
-        folderIds.map((folderId) => [folderId, new Set<string>()]),
-      ),
-      selectedTrackIdsInOrder: [] as string[],
-    };
+    return createEmptyManagedDraftSelection(folders);
   }
 
-  return {
-    selectedByFolder: deriveManagedSelectionFromStore({ folders, trackStore }),
-    selectedTrackIdsInOrder: deriveManagedSelectionOrderFromStore({
-      folders,
-      trackStore,
-    }),
-  };
+  return deriveManagedDraftSelectionFromStore({ folders, trackStore });
 };
 
 export default function TrackSelect({
@@ -132,7 +119,6 @@ export default function TrackSelect({
   const [selectedByFolder, setSelectedByFolder] = useState(
     () =>
       deriveDraftSelection({
-        folderIds,
         folders,
         trackStore,
       }).selectedByFolder,
@@ -140,7 +126,6 @@ export default function TrackSelect({
   const [selectedTrackIdsInOrder, setSelectedTrackIdsInOrder] = useState(
     () =>
       deriveDraftSelection({
-        folderIds,
         folders,
         trackStore,
       }).selectedTrackIdsInOrder,
@@ -167,13 +152,12 @@ export default function TrackSelect({
     }
 
     const draftSelection = deriveDraftSelection({
-      folderIds,
       folders,
       trackStore,
     });
     setSelectedByFolder(draftSelection.selectedByFolder);
     setSelectedTrackIdsInOrder(draftSelection.selectedTrackIdsInOrder);
-  }, [folderIds, folders, open, trackStore]);
+  }, [folders, open, trackStore]);
 
   const activeFolder = useMemo(() => {
     return folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
@@ -361,7 +345,6 @@ export default function TrackSelect({
   const confirmReset = () => {
     setResetDialogOpen(false);
     const draftSelection = deriveDraftSelection({
-      folderIds,
       folders,
       trackStore,
     });

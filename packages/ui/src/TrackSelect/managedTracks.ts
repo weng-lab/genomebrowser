@@ -12,6 +12,11 @@ export type ManagedTrackDecorator = (
   context: ManagedTrackDecorationContext,
 ) => Track | null;
 
+export interface ManagedDraftSelection {
+  selectedByFolder: Map<string, Set<string>>;
+  selectedTrackIdsInOrder: string[];
+}
+
 export const cloneSelectionMap = (selection: Map<string, Set<string>>) => {
   const map = new Map<string, Set<string>>();
   selection.forEach((ids, folderId) => {
@@ -20,13 +25,65 @@ export const cloneSelectionMap = (selection: Map<string, Set<string>>) => {
   return map;
 };
 
-export const buildSelectionOrderFromSelectionMap = (
+const buildFolderByTrackId = (folders: FolderDefinition[]) => {
+  const folderByTrackId = new Map<string, FolderDefinition>();
+
+  folders.forEach((folder) => {
+    folder.rowById.forEach((_row, id) => {
+      folderByTrackId.set(id, folder);
+    });
+  });
+
+  return folderByTrackId;
+};
+
+const collectManagedTrackIds = (folders: FolderDefinition[]) => {
+  const managedIds = new Set<string>();
+
+  folders.forEach((folder) => {
+    folder.rowById.forEach((_row, id) => {
+      managedIds.add(id);
+    });
+  });
+
+  return managedIds;
+};
+
+const buildManagedTrack = ({
+  assembly,
+  decorateTrack,
+  folder,
+  id,
+}: {
+  assembly: Assembly;
+  decorateTrack?: ManagedTrackDecorator;
+  folder: FolderDefinition;
+  id: string;
+}) => {
+  const row = folder.rowById.get(id);
+  if (!row) {
+    return null;
+  }
+
+  const track = folder.createTrack(row, { assembly });
+  if (!track) {
+    return null;
+  }
+
+  return decorateTrack
+    ? decorateTrack({ assembly, folder, row, track })
+    : track;
+};
+
+export const createEmptyManagedDraftSelection = (
   folders: FolderDefinition[],
-  selectedByFolder: Map<string, Set<string>>,
-) => {
-  return folders.flatMap((folder) =>
-    Array.from(selectedByFolder.get(folder.id) ?? []),
-  );
+): ManagedDraftSelection => {
+  return {
+    selectedByFolder: new Map(
+      folders.map((folder) => [folder.id, new Set<string>()]),
+    ),
+    selectedTrackIdsInOrder: [],
+  };
 };
 
 export const buildManagedTracks = (
@@ -38,26 +95,13 @@ export const buildManagedTracks = (
   return folders.flatMap((folder) => {
     const selectedIds = selectedByFolder.get(folder.id) ?? new Set<string>();
     return Array.from(selectedIds).flatMap((id) => {
-      const row = folder.rowById.get(id);
-      if (!row) {
-        return [];
-      }
-
-      const track = folder.createTrack(row, { assembly });
-      if (!track) {
-        return [];
-      }
-
-      const decoratedTrack = decorateTrack
-        ? decorateTrack({ assembly, folder, row, track })
-        : track;
-
-      return decoratedTrack ? [decoratedTrack] : [];
+      const track = buildManagedTrack({ assembly, decorateTrack, folder, id });
+      return track ? [track] : [];
     });
   });
 };
 
-const buildManagedTracksInSelectionOrder = ({
+const buildManagedTracksFromDraftSelection = ({
   assembly,
   decorateTrack,
   folders,
@@ -70,13 +114,7 @@ const buildManagedTracksInSelectionOrder = ({
   selectedByFolder: Map<string, Set<string>>;
   selectedTrackIdsInOrder: string[];
 }) => {
-  const folderByTrackId = new Map<string, FolderDefinition>();
-
-  folders.forEach((folder) => {
-    folder.rowById.forEach((_row, id) => {
-      folderByTrackId.set(id, folder);
-    });
-  });
+  const folderByTrackId = buildFolderByTrackId(folders);
 
   return selectedTrackIdsInOrder.flatMap((id) => {
     const folder = folderByTrackId.get(id);
@@ -84,36 +122,22 @@ const buildManagedTracksInSelectionOrder = ({
       return [];
     }
 
-    const row = folder.rowById.get(id);
-    if (!row) {
-      return [];
-    }
-
-    const track = folder.createTrack(row, { assembly });
-    if (!track) {
-      return [];
-    }
-
-    const decoratedTrack = decorateTrack
-      ? decorateTrack({ assembly, folder, row, track })
-      : track;
-
-    return decoratedTrack ? [decoratedTrack] : [];
+    const track = buildManagedTrack({ assembly, decorateTrack, folder, id });
+    return track ? [track] : [];
   });
 };
 
-export const deriveManagedSelectionFromStore = ({
+export const deriveManagedDraftSelectionFromStore = ({
   folders,
   trackStore,
 }: {
   folders: FolderDefinition[];
   trackStore: TrackStoreInstance;
-}) => {
+}): ManagedDraftSelection => {
+  const draftSelection = createEmptyManagedDraftSelection(folders);
   const folderByTrackId = new Map<string, string>();
-  const selectedByFolder = new Map<string, Set<string>>();
 
   folders.forEach((folder) => {
-    selectedByFolder.set(folder.id, new Set<string>());
     folder.rowById.forEach((_row, id) => {
       folderByTrackId.set(id, folder.id);
     });
@@ -125,31 +149,11 @@ export const deriveManagedSelectionFromStore = ({
       return;
     }
 
-    selectedByFolder.get(folderId)?.add(track.id);
+    draftSelection.selectedByFolder.get(folderId)?.add(track.id);
+    draftSelection.selectedTrackIdsInOrder.push(track.id);
   });
 
-  return selectedByFolder;
-};
-
-export const deriveManagedSelectionOrderFromStore = ({
-  folders,
-  trackStore,
-}: {
-  folders: FolderDefinition[];
-  trackStore: TrackStoreInstance;
-}) => {
-  const managedIds = new Set<string>();
-
-  folders.forEach((folder) => {
-    folder.rowById.forEach((_row, id) => {
-      managedIds.add(id);
-    });
-  });
-
-  return trackStore
-    .getState()
-    .tracks.filter((track) => managedIds.has(track.id))
-    .map((track) => track.id);
+  return draftSelection;
 };
 
 export const replaceManagedTracksInStore = ({
@@ -163,62 +167,23 @@ export const replaceManagedTracksInStore = ({
   assembly: Assembly;
   folders: FolderDefinition[];
   selectedByFolder: Map<string, Set<string>>;
-  selectedTrackIdsInOrder?: string[];
+  selectedTrackIdsInOrder: string[];
   trackStore: TrackStoreInstance;
   decorateTrack?: ManagedTrackDecorator;
 }) => {
-  const managedIds = new Set<string>();
-  folders.forEach((folder) => {
-    folder.rowById.forEach((_row, id) => {
-      managedIds.add(id);
-    });
-  });
+  const managedIds = collectManagedTrackIds(folders);
 
   const existingTracks = trackStore.getState().tracks;
   const unmanagedTracks = existingTracks.filter(
     (track) => !managedIds.has(track.id),
   );
-  const managedTracks = selectedTrackIdsInOrder
-    ? buildManagedTracksInSelectionOrder({
-        assembly,
-        decorateTrack,
-        folders,
-        selectedByFolder,
-        selectedTrackIdsInOrder,
-      })
-    : buildManagedTracks(folders, selectedByFolder, assembly, decorateTrack);
-
-  trackStore.getState().setTracks([...unmanagedTracks, ...managedTracks]);
-};
-
-export const reconcileManagedSelectionWithStore = ({
-  folders,
-  selectedByFolder,
-  trackStore,
-}: {
-  folders: FolderDefinition[];
-  selectedByFolder: Map<string, Set<string>>;
-  trackStore: TrackStoreInstance;
-}) => {
-  const trackIds = new Set(
-    trackStore.getState().tracks.map((track) => track.id),
-  );
-  let changed = false;
-  const nextSelectedByFolder = cloneSelectionMap(selectedByFolder);
-
-  folders.forEach((folder) => {
-    const currentIds = selectedByFolder.get(folder.id) ?? new Set<string>();
-    const nextIds = new Set(
-      Array.from(currentIds).filter(
-        (id) => folder.rowById.has(id) && trackIds.has(id),
-      ),
-    );
-
-    if (nextIds.size !== currentIds.size) {
-      changed = true;
-      nextSelectedByFolder.set(folder.id, nextIds);
-    }
+  const managedTracks = buildManagedTracksFromDraftSelection({
+    assembly,
+    decorateTrack,
+    folders,
+    selectedByFolder,
+    selectedTrackIdsInOrder,
   });
 
-  return changed ? nextSelectedByFolder : selectedByFolder;
+  trackStore.getState().setTracks([...unmanagedTracks, ...managedTracks]);
 };
