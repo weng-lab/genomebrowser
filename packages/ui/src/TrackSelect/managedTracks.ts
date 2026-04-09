@@ -131,6 +131,8 @@ export const replaceManagedTracksInStore = ({
   const managedIds = collectManagedTrackIds(folders);
   const currentManagedIds = new Set<string>();
   const nextManagedIds = new Set<string>();
+  const idsToRemove: string[] = [];
+  const tracksToAdd: Track[] = [];
 
   trackStore.getState().tracks.forEach((track) => {
     if (managedIds.has(track.id)) {
@@ -148,7 +150,7 @@ export const replaceManagedTracksInStore = ({
 
   currentManagedIds.forEach((id) => {
     if (!nextManagedIds.has(id)) {
-      trackStore.getState().removeTrack(id);
+      idsToRemove.push(id);
     }
   });
 
@@ -168,8 +170,11 @@ export const replaceManagedTracksInStore = ({
       });
 
       if (track) {
-        trackStore.getState().insertTrack(track);
+        tracksToAdd.push(track);
       }
     });
   });
+
+  trackStore.getState().removeTracks(idsToRemove);
+  trackStore.getState().insertTracks(tracksToAdd);
 };

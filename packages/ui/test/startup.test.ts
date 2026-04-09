@@ -25,6 +25,8 @@ const createTestFolder = (): FolderDefinition<TestRow> => {
   const rows = [
     { id: "managed-a", label: "Managed A" },
     { id: "managed-b", label: "Managed B" },
+    { id: "managed-c", label: "Managed C" },
+    { id: "managed-d", label: "Managed D" },
   ];
 
   return {
@@ -178,6 +180,30 @@ describe("TrackSelect managed draft helpers", () => {
     expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
       "external-track",
       "managed-b",
+    ]);
+  });
+
+  it("applies multiple managed additions and removals in one submit flow", () => {
+    const folder = createTestFolder();
+    const trackStore = createTrackStore([
+      makeTrack("external-track", "External"),
+      makeTrack("managed-a", "Managed A"),
+      makeTrack("managed-c", "Managed C"),
+    ]);
+
+    replaceManagedTracksInStore({
+      assembly: "GRCh38",
+      folders: [folder],
+      selectedByFolder: new Map([
+        ["test-folder", new Set(["managed-b", "managed-d"])],
+      ]),
+      trackStore,
+    });
+
+    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
+      "external-track",
+      "managed-b",
+      "managed-d",
     ]);
   });
 

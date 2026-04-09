@@ -43,7 +43,9 @@ export interface TrackStore {
   getTrackIndex: (id: string) => number;
   shiftTracks: (id: string, index: number) => void;
   insertTrack: (track: Track, index?: number) => void;
+  insertTracks: (tracks: Track[], index?: number) => void;
   removeTrack: (id: string) => void;
+  removeTracks: (ids: string[]) => void;
   getDimensions: (id: string, browserTitleSize: number) => WrapperDimensions;
   createShortLabel: (id: string) => string;
   getIndexByType: (id: string) => number;
@@ -144,20 +146,43 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       return state.tracks[index];
     },
     insertTrack: (track: Track, index?: number) => {
+      get().insertTracks([track], index);
+    },
+    insertTracks: (newTracks: Track[], index?: number) => {
       const state = get();
-      if (state.getTrack(track.id) !== undefined) return;
       const tracks = [...state.tracks];
-      tracks.splice(index || tracks.length, 0, track);
+      const existingIds = new Set(tracks.map((track) => track.id));
+      const uniqueTracks = newTracks.filter((track) => {
+        if (existingIds.has(track.id)) {
+          return false;
+        }
+        existingIds.add(track.id);
+        return true;
+      });
+
+      if (uniqueTracks.length === 0) {
+        return;
+      }
+
+      tracks.splice(index ?? tracks.length, 0, ...uniqueTracks);
       set({ tracks, ids: tracks.map((track) => track.id) });
     },
     removeTrack: (id: string) => {
-      const state = get();
-      const tracks = [...state.tracks];
-      const index = state.getTrackIndex(id);
-      if (index === -1) {
+      get().removeTracks([id]);
+    },
+    removeTracks: (ids: string[]) => {
+      const idsToRemove = new Set(ids);
+      if (idsToRemove.size === 0) {
         return;
       }
-      tracks.splice(index, 1);
+
+      const state = get();
+      const tracks = state.tracks.filter((track) => !idsToRemove.has(track.id));
+
+      if (tracks.length === state.tracks.length) {
+        return;
+      }
+
       set({ tracks, ids: tracks.map((track) => track.id) });
     },
     editTrack: <T extends Track>(id: string, partial: Partial<T>): void => {
