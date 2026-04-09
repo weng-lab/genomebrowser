@@ -9,7 +9,7 @@ import {
   IconButton,
   Stack,
 } from "@mui/material";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
 import { ClearDialog } from "./Dialogs/ClearDialog";
 import { LimitDialog } from "./Dialogs/LimitDialog";
@@ -22,6 +22,7 @@ import {
   FolderRuntimeConfig,
 } from "./Folders/types";
 import { ManagedTrackDecorator } from "./managedTracks";
+import { updateFolderRuntimeConfigOverrides } from "./trackSelectRuntimeConfig";
 import { deriveTrackSelectViewData } from "./trackSelectViewData";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 import { useTrackSelectState } from "./useTrackSelectState";
@@ -40,18 +41,6 @@ export interface TrackSelectProps {
 
 const DEFAULT_MAX_TRACKS = 30;
 
-const buildRuntimeConfigMap = (folders: FolderDefinition[]) => {
-  const map = new Map<string, FolderRuntimeConfig>();
-  folders.forEach((folder) => {
-    map.set(folder.id, {
-      columns: folder.columns,
-      groupingModel: folder.groupingModel,
-      leafField: folder.leafField,
-    });
-  });
-  return map;
-};
-
 const DEFAULT_TITLE = "Track Select";
 
 export default function TrackSelect({
@@ -68,9 +57,8 @@ export default function TrackSelect({
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [runtimeConfigByFolder, setRuntimeConfigByFolder] = useState(() =>
-    buildRuntimeConfigMap(folders),
-  );
+  const [runtimeConfigOverridesByFolder, setRuntimeConfigOverridesByFolder] =
+    useState<Map<string, Partial<FolderRuntimeConfig>>>(() => new Map());
   const maxTracksLimit = maxTracks ?? DEFAULT_MAX_TRACKS;
   const {
     activeFolderId,
@@ -94,10 +82,6 @@ export default function TrackSelect({
     trackStore,
   });
 
-  useEffect(() => {
-    setRuntimeConfigByFolder(buildRuntimeConfigMap(folders));
-  }, [folders]);
-
   const {
     activeConfig,
     activeFolder,
@@ -110,22 +94,22 @@ export default function TrackSelect({
       deriveTrackSelectViewData({
         activeFolderId,
         folders,
-        runtimeConfigByFolder,
+        runtimeConfigOverridesByFolder,
         selectedByFolder,
       }),
-    [activeFolderId, folders, runtimeConfigByFolder, selectedByFolder],
+    [activeFolderId, folders, runtimeConfigOverridesByFolder, selectedByFolder],
   );
 
   const updateActiveFolderConfig = useCallback(
     (partial: Partial<FolderRuntimeConfig>) => {
       if (!activeFolder) return;
-      setRuntimeConfigByFolder((prev) => {
-        const current = prev.get(activeFolder.id);
-        if (!current) return prev;
-        const next = new Map(prev);
-        next.set(activeFolder.id, { ...current, ...partial });
-        return next;
-      });
+      setRuntimeConfigOverridesByFolder((prev) =>
+        updateFolderRuntimeConfigOverrides({
+          folder: activeFolder,
+          partial,
+          runtimeConfigOverridesByFolder: prev,
+        }),
+      );
     },
     [activeFolder],
   );

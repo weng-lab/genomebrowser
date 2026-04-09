@@ -1,6 +1,11 @@
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { describe, expect, it } from "vitest";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
+import {
+  createDefaultFolderRuntimeConfig,
+  deriveFolderRuntimeConfig,
+  updateFolderRuntimeConfigOverrides,
+} from "../src/TrackSelect/trackSelectRuntimeConfig";
 import { deriveTrackSelectViewData } from "../src/TrackSelect/trackSelectViewData";
 import {
   clearDraftSelection,
@@ -147,7 +152,7 @@ describe("TrackSelect state helpers", () => {
     const viewData = deriveTrackSelectViewData({
       activeFolderId: folderB.id,
       folders: [folderA, folderB],
-      runtimeConfigByFolder: new Map([
+      runtimeConfigOverridesByFolder: new Map([
         [
           folderB.id,
           {
@@ -167,11 +172,12 @@ describe("TrackSelect state helpers", () => {
     expect(viewData.rows).toEqual(Array.from(folderB.rowById.values()));
     expect(viewData.selectedIds).toEqual(new Set(["folder-b-a", "folder-b-c"]));
     expect(viewData.selectedCount).toBe(3);
-    expect(viewData.activeConfig).toEqual({
+    expect(viewData.activeConfig).toMatchObject({
       columns: runtimeColumns,
       groupingModel: ["runtime-group"],
       leafField: "runtime-leaf",
     });
+    expect(viewData.activeConfig?.buildTree).toBe(folderB.buildTree);
   });
 
   it("builds selected folder trees and tags nested items with their folder IDs", () => {
@@ -201,7 +207,7 @@ describe("TrackSelect state helpers", () => {
     const viewData = deriveTrackSelectViewData({
       activeFolderId: folderA.id,
       folders: [folderA, folderB],
-      runtimeConfigByFolder: new Map([
+      runtimeConfigOverridesByFolder: new Map([
         [
           folderB.id,
           {
@@ -231,5 +237,62 @@ describe("TrackSelect state helpers", () => {
     );
     expect(viewData.folderTrees[1]?.items[0]?.label).toBe("runtime");
     expect(viewData.folderTrees[1]?.items[0]?.folderId).toBe(folderB.id);
+  });
+
+  it("derives folder runtime config from folder defaults before overrides", () => {
+    const folder = createTestFolder("folder-a", {
+      buildTree: () => [
+        {
+          id: "default-tree",
+          label: "default tree",
+          allExpAccessions: ["folder-a-a"],
+        },
+      ],
+    });
+
+    expect(
+      deriveFolderRuntimeConfig({
+        folder,
+        runtimeConfigOverridesByFolder: new Map(),
+      }),
+    ).toEqual(createDefaultFolderRuntimeConfig(folder));
+  });
+
+  it("merges runtime config overrides for the active folder", () => {
+    const folderA = createTestFolder("folder-a");
+    const folderB = createTestFolder("folder-b");
+    const runtimeColumns = [{ field: "runtime-label" } as never];
+
+    const overrides = updateFolderRuntimeConfigOverrides({
+      folder: folderA,
+      partial: {
+        columns: runtimeColumns,
+        groupingModel: ["runtime-group"],
+      },
+      runtimeConfigOverridesByFolder: new Map([
+        [folderB.id, { leafField: "folder-b-leaf" }],
+      ]),
+    });
+
+    expect(overrides.get(folderA.id)).toEqual({
+      columns: runtimeColumns,
+      groupingModel: ["runtime-group"],
+    });
+    expect(overrides.get(folderB.id)).toEqual({ leafField: "folder-b-leaf" });
+    expect(
+      deriveFolderRuntimeConfig({
+        folder: folderA,
+        runtimeConfigOverridesByFolder: overrides,
+      }),
+    ).toMatchObject({
+      columns: runtimeColumns,
+      groupingModel: ["runtime-group"],
+    });
+    expect(
+      deriveFolderRuntimeConfig({
+        folder: folderA,
+        runtimeConfigOverridesByFolder: overrides,
+      }).buildTree,
+    ).toBe(folderA.buildTree);
   });
 });

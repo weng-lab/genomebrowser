@@ -1,5 +1,9 @@
 import { TreeViewBaseItem } from "@mui/x-tree-view";
-import { FolderDefinition, FolderRuntimeConfig } from "./Folders/types";
+import { FolderDefinition } from "./Folders/types";
+import {
+  deriveFolderRuntimeConfig,
+  FolderRuntimeConfigOverrides,
+} from "./trackSelectRuntimeConfig";
 import { ExtendedTreeItemProps, FolderTreeConfig } from "./types";
 
 const attachFolderId = (
@@ -23,28 +27,15 @@ const countSelectedTracks = (selectedByFolder: Map<string, Set<string>>) => {
   return total;
 };
 
-const getFolderRuntimeConfig = (
-  folder: FolderDefinition,
-  runtimeConfigByFolder: Map<string, FolderRuntimeConfig>,
-): FolderRuntimeConfig => {
-  return (
-    runtimeConfigByFolder.get(folder.id) ?? {
-      columns: folder.columns,
-      groupingModel: folder.groupingModel,
-      leafField: folder.leafField,
-    }
-  );
-};
-
 export const deriveTrackSelectViewData = ({
   activeFolderId,
   folders,
-  runtimeConfigByFolder,
+  runtimeConfigOverridesByFolder,
   selectedByFolder,
 }: {
   activeFolderId: string;
   folders: FolderDefinition[];
-  runtimeConfigByFolder: Map<string, FolderRuntimeConfig>;
+  runtimeConfigOverridesByFolder: FolderRuntimeConfigOverrides;
   selectedByFolder: Map<string, Set<string>>;
 }) => {
   const activeFolder =
@@ -62,10 +53,10 @@ export const deriveTrackSelectViewData = ({
     };
   }
 
-  const activeConfig = getFolderRuntimeConfig(
-    activeFolder,
-    runtimeConfigByFolder,
-  );
+  const activeConfig = deriveFolderRuntimeConfig({
+    folder: activeFolder,
+    runtimeConfigOverridesByFolder,
+  });
   const selectedIds = new Set(selectedByFolder.get(activeFolder.id) ?? []);
   const rows = Array.from(activeFolder.rowById.values());
   const folderTrees = folders.flatMap((folder) => {
@@ -73,15 +64,16 @@ export const deriveTrackSelectViewData = ({
     if (!folderSelectedIds || folderSelectedIds.size === 0) {
       return [];
     }
-
-    const config = runtimeConfigByFolder.get(folder.id);
-    const buildTree = config?.buildTree ?? folder.buildTree;
+    const config = deriveFolderRuntimeConfig({
+      folder,
+      runtimeConfigOverridesByFolder,
+    });
 
     return [
       {
         folderId: folder.id,
         items: attachFolderId(
-          buildTree(Array.from(folderSelectedIds), folder.rowById),
+          config.buildTree(Array.from(folderSelectedIds), folder.rowById),
           folder.id,
         ),
         TreeItemComponent: folder.TreeItemComponent,
