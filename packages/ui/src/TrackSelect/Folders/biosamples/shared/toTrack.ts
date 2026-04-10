@@ -3,11 +3,30 @@ import {
   BigWigConfig,
   DisplayMode,
   MethylCConfig,
+  Rect,
   Track,
   TrackType,
+  ValuedPoint,
 } from "@weng-lab/genomebrowser";
+import type { FC } from "react";
 import { CreateTrackOptions } from "../../types";
 import { BiosampleRowInfo } from "./types";
+
+export type BiosampleTrackContext = {
+  onBiosampleFeatureClick?: (args: {
+    trackId: string;
+    row: BiosampleRowInfo;
+    rect: Rect;
+  }) => void;
+  onBiosampleFeatureHover?: (args: {
+    trackId: string;
+    row: BiosampleRowInfo;
+    rect: Rect;
+  }) => void;
+  biosampleFeatureTooltip?: FC<Rect>;
+  biosampleSignalTooltip?: FC<ValuedPoint[]>;
+  biosampleMethylTooltip?: FC<ValuedPoint[]>;
+};
 
 const assayColors: Record<string, string> = {
   dnase: "#06da93",
@@ -51,10 +70,11 @@ const defaultMethylC: Omit<MethylCConfig, "id" | "title" | "urls"> = {
 
 export function createBiosampleTrack(
   row: BiosampleRowInfo,
-  _options: CreateTrackOptions,
+  options: CreateTrackOptions,
 ): Track {
   const assay = row.assay.toLowerCase();
   const color = assayColors[assay] ?? "#000000";
+  const trackContext = options.trackContext;
 
   switch (assay) {
     case "chromhmm":
@@ -65,6 +85,23 @@ export function createBiosampleTrack(
         url: row.url ?? "",
         title: row.displayName,
         color,
+        onClick: trackContext?.onBiosampleFeatureClick
+          ? (rect) =>
+              trackContext.onBiosampleFeatureClick?.({
+                trackId: row.id,
+                row,
+                rect,
+              })
+          : undefined,
+        onHover: trackContext?.onBiosampleFeatureHover
+          ? (rect) =>
+              trackContext.onBiosampleFeatureHover?.({
+                trackId: row.id,
+                row,
+                rect,
+              })
+          : undefined,
+        tooltip: trackContext?.biosampleFeatureTooltip,
       };
     case "wgbs":
       return {
@@ -72,6 +109,7 @@ export function createBiosampleTrack(
         id: row.id,
         title: row.displayName,
         maskCpgByCoverage: true,
+        tooltip: trackContext?.biosampleMethylTooltip,
         urls: {
           plusStrand: {
             cpg: { url: row.cpgPlus ?? "" },
@@ -94,6 +132,7 @@ export function createBiosampleTrack(
         url: row.url ?? "",
         title: row.displayName,
         color,
+        tooltip: trackContext?.biosampleSignalTooltip,
       };
   }
 }

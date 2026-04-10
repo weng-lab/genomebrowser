@@ -19,7 +19,11 @@ import {
 } from "@weng-lab/genomebrowser";
 
 // local
-import { foldersByAssembly, TrackSelect } from "../src/lib";
+import {
+  foldersByAssembly,
+  TrackSelect,
+  type TrackSelectTrackContext,
+} from "../src/lib";
 
 type Assembly = "GRCh38" | "mm10";
 
@@ -43,6 +47,14 @@ function Main() {
       ? defaultHumanSelections
       : defaultMouseSelections;
   const trackStore = createTrackStoreMemo([], [currentAssembly]);
+  const trackContext: TrackSelectTrackContext = {
+    onGeneClick: ({ trackId, transcript }) => {
+      console.log("Gene clicked", trackId, transcript.name);
+    },
+    onBiosampleFeatureHover: ({ trackId, rect }) => {
+      console.log("Biosample feature hovered", trackId, rect.name ?? "unknown");
+    },
+  };
 
   return (
     <>
@@ -62,6 +74,7 @@ function Main() {
         folders={folders}
         initialSelectedIds={initialSelection}
         sessionStorageKey={`track-select:${currentAssembly}`}
+        trackContext={trackContext}
         trackStore={trackStore}
         maxTracks={30}
         open={open}

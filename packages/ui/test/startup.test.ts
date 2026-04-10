@@ -250,8 +250,14 @@ describe("TrackSelect managed draft helpers", () => {
     ]);
   });
 
-  it("decorates managed tracks after folder creation and before store insertion", () => {
-    const folder = createTestFolder();
+  it("uses folder-owned track creation when adding managed tracks", () => {
+    const folder: FolderDefinition<TestRow> = {
+      ...createTestFolder(),
+      createTrack: (row) => ({
+        ...makeTrack(row.id, `test-folder:${row.label}`),
+        onClick: () => `${row.id}-clicked`,
+      }),
+    };
     const trackStore = createTrackStore([
       makeTrack("external-track", "External"),
     ]);
@@ -261,11 +267,6 @@ describe("TrackSelect managed draft helpers", () => {
       diffManagedTracks({
         assembly: "GRCh38",
         currentTracks: trackStore.getState().tracks,
-        decorateTrack: ({ folder, row, track }) => ({
-          ...track,
-          title: `${folder.id}:${(row as TestRow).label}`,
-          onClick: () => `${track.id}-clicked`,
-        }),
         folders: [folder],
         selectedByFolder: new Map([
           ["test-folder", new Set(["test-folder/managed-a"])],

@@ -4,9 +4,16 @@ import {
   MethylCConfig,
   Track,
   TrackType,
+  ValuedPoint,
 } from "@weng-lab/genomebrowser";
+import type { FC } from "react";
 import { CreateTrackOptions } from "../../types";
 import { MohdRowInfo, MohdWgbsTrackInfo } from "./types";
+
+export type MohdTrackContext = {
+  mohdSignalTooltip?: FC<ValuedPoint[]>;
+  mohdMethylTooltip?: FC<ValuedPoint[]>;
+};
 
 const assayColors: Record<string, string> = {
   ATAC: "#02c7b9",
@@ -42,13 +49,16 @@ function isWgbsRow(row: MohdRowInfo): row is MohdRowInfo & MohdWgbsTrackInfo {
 
 export function createMohdTrack(
   row: MohdRowInfo,
-  _options: CreateTrackOptions,
+  options: CreateTrackOptions,
 ): Track | null {
+  const trackContext = options.trackContext;
+
   if (isWgbsRow(row)) {
     return {
       ...defaultMethylC,
       id: row.id,
       title: row.fileName,
+      tooltip: trackContext?.mohdMethylTooltip,
       urls: {
         plusStrand: {
           cpg: { url: row.urls.plusStrand.cpg },
@@ -76,5 +86,6 @@ export function createMohdTrack(
     title: row.fileName,
     url: row.url,
     color: assayColors[row.assay] ?? defaultBigWig.color,
+    tooltip: trackContext?.mohdSignalTooltip,
   };
 }

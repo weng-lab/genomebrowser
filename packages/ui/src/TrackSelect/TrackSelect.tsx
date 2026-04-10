@@ -21,9 +21,9 @@ import { FolderList } from "./FolderList/FolderList";
 import {
   createEmptyManagedDraftSelection,
   diffManagedTracks,
-  ManagedTrackDecorator,
 } from "./managedTracks";
 import { resolveFolderView } from "./resolveFolderView";
+import type { TrackSelectTrackContext } from "./trackContext";
 import { ExtendedTreeItemProps } from "./types";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 
@@ -35,7 +35,7 @@ export interface TrackSelectProps {
   trackStore?: TrackStoreInstance;
   onCancel?: () => void;
   maxTracks?: number;
-  decorateManagedTrack?: ManagedTrackDecorator;
+  trackContext?: TrackSelectTrackContext;
   open: boolean;
   onClose: () => void;
   title?: string;
@@ -148,7 +148,7 @@ export default function TrackSelect({
   trackStore,
   onCancel,
   maxTracks,
-  decorateManagedTrack,
+  trackContext,
   open,
   onClose,
   title = DEFAULT_TITLE,
@@ -243,21 +243,15 @@ export default function TrackSelect({
     const { idsToRemove, tracksToAdd } = diffManagedTracks({
       assembly,
       currentTracks: trackStore.getState().tracks,
-      decorateTrack: decorateManagedTrack,
       folders,
       selectedByFolder: committedSelectedByFolder,
+      trackContext,
     });
 
     const { insertTrack, removeTrack } = trackStore.getState();
     idsToRemove.forEach((id) => removeTrack(id));
     tracksToAdd.forEach((track) => insertTrack(track));
-  }, [
-    assembly,
-    committedSelectedByFolder,
-    decorateManagedTrack,
-    folders,
-    trackStore,
-  ]);
+  }, [assembly, committedSelectedByFolder, folders, trackContext, trackStore]);
 
   const activeFolder =
     folders.find((folder) => folder.id === activeFolderId) ?? folders[0];

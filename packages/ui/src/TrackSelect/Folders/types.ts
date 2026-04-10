@@ -1,5 +1,6 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
 import { Track } from "@weng-lab/genomebrowser";
+import type { TrackSelectTrackContext } from "../trackContext";
 import { ExtendedTreeItemProps, CustomTreeItemProps } from "../types";
 
 export type Assembly = "GRCh38" | "mm10";
@@ -15,7 +16,7 @@ export interface FolderView<TRow = any> {
 /** Options passed to folder-owned track factories. */
 export interface CreateTrackOptions {
   assembly: Assembly;
-  [key: string]: unknown;
+  trackContext?: TrackSelectTrackContext;
 }
 
 /**

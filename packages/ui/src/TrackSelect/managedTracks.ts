@@ -1,16 +1,6 @@
 import { Track } from "@weng-lab/genomebrowser";
 import { Assembly, FolderDefinition } from "./Folders/types";
-
-export interface ManagedTrackDecorationContext {
-  assembly: Assembly;
-  folder: FolderDefinition;
-  row: unknown;
-  track: Track;
-}
-
-export type ManagedTrackDecorator = (
-  context: ManagedTrackDecorationContext,
-) => Track | null;
+import type { TrackSelectTrackContext } from "./trackContext";
 
 export interface ManagedDraftSelection {
   selectedByFolder: Map<string, Set<string>>;
@@ -18,28 +8,26 @@ export interface ManagedDraftSelection {
 
 const buildManagedTrack = ({
   assembly,
-  decorateTrack,
   folder,
   id,
+  trackContext,
 }: {
   assembly: Assembly;
-  decorateTrack?: ManagedTrackDecorator;
   folder: FolderDefinition;
   id: string;
+  trackContext?: TrackSelectTrackContext;
 }) => {
   const row = folder.rows.find((candidate) => candidate.id === id);
   if (!row) {
     return null;
   }
 
-  const track = folder.createTrack(row, { assembly });
+  const track = folder.createTrack(row, { assembly, trackContext });
   if (!track) {
     return null;
   }
 
-  return decorateTrack
-    ? decorateTrack({ assembly, folder, row, track })
-    : track;
+  return track;
 };
 
 export const createEmptyManagedDraftSelection = (
@@ -56,12 +44,12 @@ export const buildManagedTracks = (
   folders: FolderDefinition[],
   selectedByFolder: Map<string, Set<string>>,
   assembly: Assembly,
-  decorateTrack?: ManagedTrackDecorator,
+  trackContext?: TrackSelectTrackContext,
 ) => {
   return folders.flatMap((folder) => {
     const selectedIds = selectedByFolder.get(folder.id) ?? new Set<string>();
     return Array.from(selectedIds).flatMap((id) => {
-      const track = buildManagedTrack({ assembly, decorateTrack, folder, id });
+      const track = buildManagedTrack({ assembly, folder, id, trackContext });
       return track ? [track] : [];
     });
   });
@@ -95,13 +83,13 @@ export const diffManagedTracks = ({
   currentTracks,
   folders,
   selectedByFolder,
-  decorateTrack,
+  trackContext,
 }: {
   assembly: Assembly;
   currentTracks: Track[];
   folders: FolderDefinition[];
   selectedByFolder: Map<string, Set<string>>;
-  decorateTrack?: ManagedTrackDecorator;
+  trackContext?: TrackSelectTrackContext;
 }) => {
   const nextManagedIds = new Set<string>();
   const currentManagedIds = new Set<string>();
@@ -138,9 +126,9 @@ export const diffManagedTracks = ({
 
       const track = buildManagedTrack({
         assembly,
-        decorateTrack,
         folder,
         id,
+        trackContext,
       });
 
       if (track) {

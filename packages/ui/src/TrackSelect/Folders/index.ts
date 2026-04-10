@@ -9,9 +9,13 @@ import { humanMohdFolder } from "./mohd/human";
 export { type Assembly, type FolderDefinition, type FolderView } from "./types";
 
 export type { BiosampleRowInfo } from "./biosamples/shared/types";
+export type { BiosampleTrackContext } from "./biosamples/shared/toTrack";
 export type { GeneRowInfo } from "./genes/shared/types";
+export type { GeneTrackContext } from "./genes/shared/toTrack";
 export type { MohdRowInfo } from "./mohd/shared/types";
+export type { MohdTrackContext } from "./mohd/shared/toTrack";
 export type { OtherTrackInfo } from "./other-tracks/shared/types";
+export type { OtherTracksTrackContext } from "./other-tracks/shared/toTrack";
 
 // Registry of folders by assembly
 export const foldersByAssembly: Record<Assembly, FolderDefinition[]> = {
