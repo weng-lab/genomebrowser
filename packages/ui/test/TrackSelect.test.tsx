@@ -4,8 +4,10 @@ import { Track, TrackType, createTrackStore } from "@weng-lab/genomebrowser";
 import { act, type ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { buildSelectedTree } from "../src/TrackSelect/buildSelectedTree";
 import TrackSelect from "../src/TrackSelect/TrackSelect";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
+import { resolveFolderView } from "../src/TrackSelect/resolveFolderView";
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -71,23 +73,82 @@ vi.mock("../src/TrackSelect/DataGrid/DataGridWrapper", () => ({
 
 vi.mock("../src/TrackSelect/TreeView/TreeViewWrapper", () => ({
   TreeViewWrapper: ({
-    folderTrees,
+    activeViewIdByFolder,
+    folders,
     onRemove,
+    selectedByFolder,
     selectedCount,
   }: {
-    folderTrees: Array<{ items: Array<{ id: string; label: string }> }>;
+    activeViewIdByFolder: Map<string, string>;
+    folders: Array<FolderDefinition<any>>;
     onRemove: (item: { id: string; label: string }) => void;
+    selectedByFolder: Map<string, Set<string>>;
     selectedCount: number;
   }) => {
-    const removableItem = folderTrees.flatMap((tree) => tree.items)[1];
+    const flattenTreeLabels = (
+      items: Array<{ label: string; children?: Array<any> }>,
+    ): string[] => {
+      return items.flatMap((item) => [
+        item.label,
+        ...flattenTreeLabels(item.children ?? []),
+      ]);
+    };
+
+    const flattenLeafItems = (
+      items: Array<{
+        label: string;
+        children?: Array<any>;
+        allExpAccessions?: string[];
+      }>,
+    ): Array<{ id?: string; label: string }> => {
+      return items.flatMap((item) => {
+        const children = item.children ?? [];
+        const nestedLeaves = flattenLeafItems(children);
+        const isLeaf =
+          children.length === 0 && item.allExpAccessions?.length === 1;
+        return isLeaf ? [item, ...nestedLeaves] : nestedLeaves;
+      });
+    };
+
+    const folderTrees = folders.flatMap((folder) => {
+      const selectedIds = selectedByFolder.get(folder.id);
+      if (!selectedIds || selectedIds.size === 0) {
+        return [];
+      }
+
+      const activeView = resolveFolderView(folder, activeViewIdByFolder);
+      const selectedRows = folder.rows.filter((row) => selectedIds.has(row.id));
+
+      const attachFolderId = (items: Array<any>): Array<any> => {
+        return items.map((item) => ({
+          ...item,
+          folderId: folder.id,
+          children: item.children ? attachFolderId(item.children) : undefined,
+        }));
+      };
+
+      return [
+        attachFolderId(
+          buildSelectedTree({
+            folderId: folder.id,
+            rootLabel: folder.label,
+            selectedRows,
+            groupingModel: activeView.groupingModel,
+            leafField: activeView.leafField,
+          }),
+        ),
+      ];
+    });
+
+    const removableItem = folderTrees.flatMap((tree) =>
+      flattenLeafItems(tree),
+    )[1];
 
     return (
       <div data-testid="tree-view">
         <div data-testid="selected-count">{selectedCount}</div>
         <div data-testid="tree-labels">
-          {folderTrees
-            .flatMap((tree) => tree.items.map((item) => item.label))
-            .join(",")}
+          {folderTrees.flatMap((tree) => flattenTreeLabels(tree)).join(",")}
         </div>
         {removableItem ? (
           <button onClick={() => onRemove(removableItem)}>remove-second</button>
@@ -151,13 +212,6 @@ const createTestFolder = ({
     { id: `${id}/${rowIds[2]}`, label: `${label} C` },
   ];
 
-  const buildTree = (selectedRows: TestRow[]) =>
-    selectedRows.map((selectedRow) => ({
-      id: `${id}-${selectedRow.id}`,
-      label: selectedRow.label,
-      allExpAccessions: [selectedRow.id],
-    }));
-
   const views = withToolbarExtras
     ? [
         {
@@ -166,15 +220,13 @@ const createTestFolder = ({
           columns: [],
           groupingModel: [],
           leafField: "label",
-          buildTree,
         },
         {
           id: "runtime",
           label: "Runtime",
           columns: [],
           groupingModel: [],
-          leafField: "label-runtime",
-          buildTree,
+          leafField: "id",
         },
       ]
     : undefined;
@@ -205,7 +257,6 @@ const createTestFolder = ({
     columns: [],
     groupingModel: [],
     leafField: "label",
-    buildTree,
     createTrack: (row) => createTestTrack(row.id, row.label),
     views,
     ViewSelector,
@@ -297,7 +348,7 @@ describe("TrackSelect", () => {
     expect(getText("grid-selected")).toBe("folder-a/managed-a");
 
     await clickButton("toolbar-toggle");
-    expect(getText("grid-leaf-field")).toBe("label-runtime");
+    expect(getText("grid-leaf-field")).toBe("id");
 
     await clickButton("select-first-two");
     expect(getText("grid-selected")).toBe(

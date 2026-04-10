@@ -35,7 +35,6 @@ const createTestFolder = (): FolderDefinition<TestRow> => {
     columns: [],
     groupingModel: [],
     leafField: "label",
-    buildTree: () => [],
     createTrack: (row) => makeTrack(row.id, row.label),
   };
 };

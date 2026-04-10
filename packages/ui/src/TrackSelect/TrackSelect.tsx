@@ -24,7 +24,7 @@ import {
   diffManagedTracks,
   ManagedTrackDecorator,
 } from "./managedTracks";
-import { deriveTrackSelectViewData } from "./trackSelectViewData";
+import { resolveFolderView } from "./resolveFolderView";
 import { ExtendedTreeItemProps } from "./types";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 
@@ -140,24 +140,20 @@ export default function TrackSelect({
     );
   }, [folders, open, trackStore]);
 
-  const {
-    activeConfig,
-    activeFolder,
-    activeViewId,
-    folderTrees,
-    rows,
-    selectedCount,
-    selectedIds,
-  } = useMemo(
-    () =>
-      deriveTrackSelectViewData({
-        activeFolderId,
-        activeViewIdByFolder,
-        folders,
-        selectedByFolder,
-      }),
-    [activeFolderId, activeViewIdByFolder, folders, selectedByFolder],
+  const activeFolder =
+    folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
+  const activeConfig = activeFolder
+    ? resolveFolderView(activeFolder, activeViewIdByFolder)
+    : undefined;
+  const activeViewId = activeConfig?.id ?? "";
+  const rows = activeFolder?.rows ?? [];
+  const selectedIds = new Set(
+    selectedByFolder.get(activeFolder?.id ?? "") ?? [],
   );
+  let selectedCount = 0;
+  selectedByFolder.forEach((ids) => {
+    selectedCount += ids.size;
+  });
 
   const handleFolderSelect = (folderId: string) => {
     setActiveFolderId(folderId);
@@ -374,7 +370,9 @@ export default function TrackSelect({
                 }}
               >
                 <TreeViewWrapper
-                  folderTrees={folderTrees}
+                  folders={folders}
+                  selectedByFolder={selectedByFolder}
+                  activeViewIdByFolder={activeViewIdByFolder}
                   selectedCount={selectedCount}
                   onRemove={handleRemoveTreeItem}
                 />

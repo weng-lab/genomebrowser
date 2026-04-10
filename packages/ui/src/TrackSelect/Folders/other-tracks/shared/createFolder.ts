@@ -6,7 +6,6 @@ import {
   defaultLeafField,
 } from "./columns";
 import { createOtherTrack } from "./toTrack";
-import { buildTreeView } from "./treeBuilder";
 
 function transformData(
   folderId: string,
@@ -40,7 +39,6 @@ export function createOtherTracksFolder(
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
-    buildTree: (selectedRows) => buildTreeView(selectedRows, label),
     createTrack: createOtherTrack,
   };
 }

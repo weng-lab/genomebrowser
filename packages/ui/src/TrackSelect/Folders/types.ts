@@ -1,5 +1,4 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
-import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { Track } from "@weng-lab/genomebrowser";
 import { ExtendedTreeItemProps, CustomTreeItemProps } from "../types";
 
@@ -11,9 +10,6 @@ export interface FolderView<TRow = any> {
   columns: GridColDef[];
   groupingModel: string[];
   leafField: string;
-  buildTree: (
-    selectedRows: TRow[],
-  ) => TreeViewBaseItem<ExtendedTreeItemProps>[];
 }
 
 /** Options passed to folder-owned track factories. */
@@ -41,17 +37,6 @@ export interface FolderDefinition<TRow = any> {
   leafField: string;
 
   /**
-   * Builds a tree structure from selected rows.
-   * Used to display selected items in the TreeView panel.
-   *
-   * @param selectedRows - Selected folder rows
-   * @returns Array of tree items to render in the TreeView
-   */
-  buildTree: (
-    selectedRows: TRow[],
-  ) => TreeViewBaseItem<ExtendedTreeItemProps>[];
-
-  /**
    * Creates a browser track from a folder row.
    *
    * This keeps folder-specific track creation logic colocated with the
@@ -69,6 +54,9 @@ export interface FolderDefinition<TRow = any> {
 
   GroupingCellComponent?: React.FC<GridRenderCellParams>;
   TreeItemComponent?: React.ForwardRefExoticComponent<
+    CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
+  >;
+  LeafTreeItemComponent?: React.ForwardRefExoticComponent<
     CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
   >;
 }

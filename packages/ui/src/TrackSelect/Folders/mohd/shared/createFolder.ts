@@ -1,5 +1,4 @@
 import { FolderDefinition } from "../../types";
-import { buildTreeView } from "./treeBuilder";
 import { MohdDataFile, MohdRowInfo } from "./types";
 import {
   defaultColumns,
@@ -39,7 +38,6 @@ export function createMohdFolder(
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
-    buildTree: (selectedRows) => buildTreeView(selectedRows, label, id),
     createTrack: createMohdTrack,
   };
 }

@@ -7,6 +7,7 @@ import {
 } from "@mui/x-data-grid-premium";
 import { ReactElement, ReactNode } from "react";
 import { SvgIconOwnProps } from "@mui/material";
+import { FolderDefinition } from "./Folders/types";
 
 /**
  * Custom Tree Props for RichTreeView Panel
@@ -15,6 +16,10 @@ export type ExtendedTreeItemProps = {
   id: string;
   label: string;
   icon: string;
+  kind?: "root" | "group" | "leaf";
+  field?: string;
+  value?: string;
+  rowId?: string;
   folderId?: string;
   isAssayItem?: boolean;
   /**
@@ -28,22 +33,10 @@ export type ExtendedTreeItemProps = {
   allExpAccessions?: string[];
 };
 
-/**
- * Configuration for a single folder's tree in the TreeViewWrapper.
- * Each folder gets its own tree with its own TreeItemComponent.
- */
-export type FolderTreeConfig = {
-  folderId: string;
-  items: TreeViewBaseItem<ExtendedTreeItemProps>[];
-  /** Optional custom TreeItem component for this folder */
-  TreeItemComponent?: React.ForwardRefExoticComponent<
-    CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
-  >;
-};
-
 export type TreeViewWrapperProps = {
-  /** Array of folder tree configurations, one per folder with selections */
-  folderTrees: FolderTreeConfig[];
+  folders: FolderDefinition[];
+  selectedByFolder: Map<string, Set<string>>;
+  activeViewIdByFolder: Map<string, string>;
   selectedCount: number;
   onRemove: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
 };

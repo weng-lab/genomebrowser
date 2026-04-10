@@ -6,7 +6,6 @@ import {
   defaultLeafField,
 } from "./columns";
 import { createGeneTrack } from "./toTrack";
-import { buildTreeView } from "./treeBuilder";
 
 /** Genes map 1:1 from JSON track entries to table rows. */
 function trackToRow(folderId: string, track: GeneTrackInfo): GeneRowInfo {
@@ -43,7 +42,6 @@ export function createGeneFolder(
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
-    buildTree: (selectedRows) => buildTreeView(selectedRows, label),
     createTrack: createGeneTrack,
   };
 }
