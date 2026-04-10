@@ -20,7 +20,6 @@ import { Breadcrumb } from "./FolderList/Breadcrumb";
 import { FolderList } from "./FolderList/FolderList";
 import {
   createEmptyManagedDraftSelection,
-  deriveManagedDraftSelectionFromTracks,
   diffManagedTracks,
   ManagedTrackDecorator,
 } from "./managedTracks";
@@ -31,6 +30,8 @@ import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 export interface TrackSelectProps {
   assembly?: Assembly;
   folders: FolderDefinition[];
+  initialSelectedIds?: Map<string, Set<string>>;
+  sessionStorageKey?: string;
   trackStore?: TrackStoreInstance;
   onCancel?: () => void;
   maxTracks?: number;
@@ -46,9 +47,104 @@ const DEFAULT_TITLE = "Track Select";
 
 type ViewState = "folder-list" | "folder-detail";
 
+const cloneSelectedByFolder = (selectedByFolder: Map<string, Set<string>>) => {
+  return new Map(
+    Array.from(selectedByFolder, ([folderId, ids]) => [folderId, new Set(ids)]),
+  );
+};
+
+const normalizeSelectedByFolder = ({
+  folders,
+  selectedByFolder,
+}: {
+  folders: FolderDefinition[];
+  selectedByFolder?: Map<string, Set<string>>;
+}) => {
+  const normalized = createEmptyManagedDraftSelection(folders).selectedByFolder;
+
+  if (!selectedByFolder) {
+    return normalized;
+  }
+
+  folders.forEach((folder) => {
+    const ids = selectedByFolder.get(folder.id);
+    if (!ids) {
+      return;
+    }
+
+    normalized.set(
+      folder.id,
+      new Set(Array.from(ids).filter((id) => id.startsWith(`${folder.id}/`))),
+    );
+  });
+
+  return normalized;
+};
+
+const loadSelectedByFolder = ({
+  folders,
+  initialSelectedIds,
+  sessionStorageKey,
+}: {
+  folders: FolderDefinition[];
+  initialSelectedIds?: Map<string, Set<string>>;
+  sessionStorageKey?: string;
+}) => {
+  const fallback = normalizeSelectedByFolder({
+    folders,
+    selectedByFolder: initialSelectedIds,
+  });
+
+  if (!sessionStorageKey || typeof window === "undefined") {
+    return fallback;
+  }
+
+  const storedValue = window.sessionStorage.getItem(sessionStorageKey);
+  if (!storedValue) {
+    return fallback;
+  }
+
+  try {
+    const parsed = JSON.parse(storedValue) as Record<string, string[]>;
+    return normalizeSelectedByFolder({
+      folders,
+      selectedByFolder: new Map(
+        Object.entries(parsed).map(([folderId, ids]) => [
+          folderId,
+          new Set(ids),
+        ]),
+      ),
+    });
+  } catch {
+    return fallback;
+  }
+};
+
+const saveSelectedByFolder = ({
+  selectedByFolder,
+  sessionStorageKey,
+}: {
+  selectedByFolder: Map<string, Set<string>>;
+  sessionStorageKey?: string;
+}) => {
+  if (!sessionStorageKey || typeof window === "undefined") {
+    return;
+  }
+
+  const serialized = Object.fromEntries(
+    Array.from(selectedByFolder, ([folderId, ids]) => [
+      folderId,
+      Array.from(ids),
+    ]),
+  );
+  window.sessionStorage.setItem(sessionStorageKey, JSON.stringify(serialized));
+};
+
 export default function TrackSelect({
   assembly,
   folders,
+  initialSelectedIds,
+  sessionStorageKey,
   trackStore,
   onCancel,
   maxTracks,
@@ -74,16 +170,17 @@ export default function TrackSelect({
         ),
       ),
   );
-  const [selectedByFolder, setSelectedByFolder] = useState(() => {
-    if (!trackStore) {
-      return createEmptyManagedDraftSelection(folders).selectedByFolder;
-    }
-
-    return deriveManagedDraftSelectionFromTracks({
-      folders,
-      tracks: trackStore.getState().tracks,
-    }).selectedByFolder;
-  });
+  const [committedSelectedByFolder, setCommittedSelectedByFolder] = useState(
+    () =>
+      loadSelectedByFolder({
+        folders,
+        initialSelectedIds,
+        sessionStorageKey,
+      }),
+  );
+  const [selectedByFolder, setSelectedByFolder] = useState(() =>
+    cloneSelectedByFolder(committedSelectedByFolder),
+  );
   const maxTracksLimit = maxTracks ?? DEFAULT_MAX_TRACKS;
 
   useEffect(() => {
@@ -121,24 +218,46 @@ export default function TrackSelect({
   }, [folders]);
 
   useEffect(() => {
+    const nextCommittedSelection = loadSelectedByFolder({
+      folders,
+      initialSelectedIds,
+      sessionStorageKey,
+    });
+    setCommittedSelectedByFolder(nextCommittedSelection);
+    setSelectedByFolder(cloneSelectedByFolder(nextCommittedSelection));
+  }, [folders, initialSelectedIds, sessionStorageKey]);
+
+  useEffect(() => {
     if (!open) {
       return;
     }
 
-    if (!trackStore) {
-      setSelectedByFolder(
-        createEmptyManagedDraftSelection(folders).selectedByFolder,
-      );
+    setSelectedByFolder(cloneSelectedByFolder(committedSelectedByFolder));
+  }, [committedSelectedByFolder, open]);
+
+  useEffect(() => {
+    if (!assembly || !trackStore) {
       return;
     }
 
-    setSelectedByFolder(
-      deriveManagedDraftSelectionFromTracks({
-        folders,
-        tracks: trackStore.getState().tracks,
-      }).selectedByFolder,
-    );
-  }, [folders, open, trackStore]);
+    const { idsToRemove, tracksToAdd } = diffManagedTracks({
+      assembly,
+      currentTracks: trackStore.getState().tracks,
+      decorateTrack: decorateManagedTrack,
+      folders,
+      selectedByFolder: committedSelectedByFolder,
+    });
+
+    const { insertTrack, removeTrack } = trackStore.getState();
+    idsToRemove.forEach((id) => removeTrack(id));
+    tracksToAdd.forEach((track) => insertTrack(track));
+  }, [
+    assembly,
+    committedSelectedByFolder,
+    decorateManagedTrack,
+    folders,
+    trackStore,
+  ]);
 
   const activeFolder =
     folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
@@ -173,20 +292,7 @@ export default function TrackSelect({
 
   const confirmReset = () => {
     setResetDialogOpen(false);
-
-    if (!trackStore) {
-      setSelectedByFolder(
-        createEmptyManagedDraftSelection(folders).selectedByFolder,
-      );
-      return;
-    }
-
-    setSelectedByFolder(
-      deriveManagedDraftSelectionFromTracks({
-        folders,
-        tracks: trackStore.getState().tracks,
-      }).selectedByFolder,
-    );
+    setSelectedByFolder(cloneSelectedByFolder(committedSelectedByFolder));
   };
 
   const confirmClear = () => {
@@ -263,20 +369,8 @@ export default function TrackSelect({
   };
 
   const handleSubmit = () => {
-    if (assembly && trackStore) {
-      const { idsToRemove, tracksToAdd } = diffManagedTracks({
-        assembly,
-        currentTracks: trackStore.getState().tracks,
-        decorateTrack: decorateManagedTrack,
-        folders,
-        selectedByFolder,
-      });
-
-      const { insertTrack, removeTrack } = trackStore.getState();
-      idsToRemove.forEach((id) => removeTrack(id));
-      tracksToAdd.forEach((track) => insertTrack(track));
-    }
-
+    saveSelectedByFolder({ selectedByFolder, sessionStorageKey });
+    setCommittedSelectedByFolder(cloneSelectedByFolder(selectedByFolder));
     onClose();
   };
 
