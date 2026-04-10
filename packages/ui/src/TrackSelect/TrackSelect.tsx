@@ -18,19 +18,20 @@ import { LimitDialog } from "./Dialogs/LimitDialog";
 import { ResetDialog } from "./Dialogs/ResetDialog";
 import { Breadcrumb } from "./FolderList/Breadcrumb";
 import { FolderList } from "./FolderList/FolderList";
-import {
-  createEmptyManagedDraftSelection,
-  diffManagedTracks,
-} from "./managedTracks";
+import { diffManagedTracks } from "./managedTracks";
 import { resolveFolderView } from "./resolveFolderView";
 import type { TrackSelectTrackContext } from "./trackContext";
 import { ExtendedTreeItemProps } from "./types";
 import { TreeViewWrapper } from "./TreeView/TreeViewWrapper";
 
+export type InitialSelectedIdsByAssembly = Partial<
+  Record<Assembly, Record<string, string[]>>
+>;
+
 export interface TrackSelectProps {
-  assembly?: Assembly;
+  assembly: Assembly;
   folders: FolderDefinition[];
-  initialSelectedIds?: Map<string, Set<string>>;
+  initialSelectedIds?: InitialSelectedIdsByAssembly;
   sessionStorageKey?: string;
   trackStore?: TrackStoreInstance;
   onCancel?: () => void;
@@ -47,6 +48,10 @@ const DEFAULT_TITLE = "Track Select";
 
 type ViewState = "folder-list" | "folder-detail";
 
+const createEmptySelectedByFolder = (folders: FolderDefinition[]) => {
+  return new Map(folders.map((folder) => [folder.id, new Set<string>()]));
+};
+
 const cloneSelectedByFolder = (selectedByFolder: Map<string, Set<string>>) => {
   return new Map(
     Array.from(selectedByFolder, ([folderId, ids]) => [folderId, new Set(ids)]),
@@ -55,26 +60,26 @@ const cloneSelectedByFolder = (selectedByFolder: Map<string, Set<string>>) => {
 
 const normalizeSelectedByFolder = ({
   folders,
-  selectedByFolder,
+  selectedIdsByFolder,
 }: {
   folders: FolderDefinition[];
-  selectedByFolder?: Map<string, Set<string>>;
+  selectedIdsByFolder?: Record<string, string[]>;
 }) => {
-  const normalized = createEmptyManagedDraftSelection(folders).selectedByFolder;
+  const normalized = createEmptySelectedByFolder(folders);
 
-  if (!selectedByFolder) {
+  if (!selectedIdsByFolder) {
     return normalized;
   }
 
   folders.forEach((folder) => {
-    const ids = selectedByFolder.get(folder.id);
+    const ids = selectedIdsByFolder[folder.id];
     if (!ids) {
       return;
     }
 
     normalized.set(
       folder.id,
-      new Set(Array.from(ids).filter((id) => id.startsWith(`${folder.id}/`))),
+      new Set(ids.filter((id) => id.startsWith(`${folder.id}/`))),
     );
   });
 
@@ -82,17 +87,19 @@ const normalizeSelectedByFolder = ({
 };
 
 const loadSelectedByFolder = ({
+  assembly,
   folders,
   initialSelectedIds,
   sessionStorageKey,
 }: {
+  assembly: Assembly;
   folders: FolderDefinition[];
-  initialSelectedIds?: Map<string, Set<string>>;
+  initialSelectedIds?: InitialSelectedIdsByAssembly;
   sessionStorageKey?: string;
 }) => {
   const fallback = normalizeSelectedByFolder({
     folders,
-    selectedByFolder: initialSelectedIds,
+    selectedIdsByFolder: initialSelectedIds?.[assembly],
   });
 
   if (!sessionStorageKey || typeof window === "undefined") {
@@ -108,12 +115,7 @@ const loadSelectedByFolder = ({
     const parsed = JSON.parse(storedValue) as Record<string, string[]>;
     return normalizeSelectedByFolder({
       folders,
-      selectedByFolder: new Map(
-        Object.entries(parsed).map(([folderId, ids]) => [
-          folderId,
-          new Set(ids),
-        ]),
-      ),
+      selectedIdsByFolder: parsed,
     });
   } catch {
     return fallback;
@@ -173,6 +175,7 @@ export default function TrackSelect({
   const [committedSelectedByFolder, setCommittedSelectedByFolder] = useState(
     () =>
       loadSelectedByFolder({
+        assembly,
         folders,
         initialSelectedIds,
         sessionStorageKey,
@@ -219,13 +222,14 @@ export default function TrackSelect({
 
   useEffect(() => {
     const nextCommittedSelection = loadSelectedByFolder({
+      assembly,
       folders,
       initialSelectedIds,
       sessionStorageKey,
     });
     setCommittedSelectedByFolder(nextCommittedSelection);
     setSelectedByFolder(cloneSelectedByFolder(nextCommittedSelection));
-  }, [folders, initialSelectedIds, sessionStorageKey]);
+  }, [assembly, folders, initialSelectedIds, sessionStorageKey]);
 
   useEffect(() => {
     if (!open) {

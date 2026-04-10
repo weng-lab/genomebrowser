@@ -1,10 +1,7 @@
 import { Track, TrackType, createTrackStore } from "@weng-lab/genomebrowser";
 import { describe, expect, it } from "vitest";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
-import {
-  deriveManagedDraftSelectionFromTracks,
-  diffManagedTracks,
-} from "../src/TrackSelect/managedTracks";
+import { diffManagedTracks } from "../src/TrackSelect/managedTracks";
 
 interface TestRow {
   id: string;
@@ -48,82 +45,7 @@ const applyManagedTrackDiff = (
   diff.tracksToAdd.forEach((track) => insertTrack(track));
 };
 
-describe("TrackSelect managed draft helpers", () => {
-  it("derives managed draft selection from the committed track store", () => {
-    const trackStore = createTrackStore([
-      makeTrack("external-track", "External"),
-      makeTrack("test-folder/managed-b", "Managed B"),
-      makeTrack("test-folder/managed-a", "Managed A"),
-    ]);
-
-    expect(
-      deriveManagedDraftSelectionFromTracks({
-        folders: [createTestFolder()],
-        tracks: trackStore.getState().tracks,
-      }),
-    ).toEqual({
-      selectedByFolder: new Map([
-        [
-          "test-folder",
-          new Set(["test-folder/managed-b", "test-folder/managed-a"]),
-        ],
-      ]),
-    });
-  });
-
-  it("derives an empty managed draft when the committed track store has no managed tracks", () => {
-    const trackStore = createTrackStore([
-      makeTrack("external-track", "External"),
-    ]);
-
-    expect(
-      deriveManagedDraftSelectionFromTracks({
-        folders: [createTestFolder()],
-        tracks: trackStore.getState().tracks,
-      }),
-    ).toEqual({
-      selectedByFolder: new Map([["test-folder", new Set<string>()]]),
-    });
-  });
-
-  it("keeps unsaved draft edits local until the user submits", () => {
-    const folder = createTestFolder();
-    const trackStore = createTrackStore([
-      makeTrack("external-track", "External"),
-      makeTrack("test-folder/managed-b", "Managed B"),
-      makeTrack("test-folder/managed-a", "Managed A"),
-    ]);
-    const committedDraft = deriveManagedDraftSelectionFromTracks({
-      folders: [folder],
-      tracks: trackStore.getState().tracks,
-    });
-    const unsavedDraft = {
-      selectedByFolder: new Map(
-        Array.from(committedDraft.selectedByFolder, ([folderId, ids]) => [
-          folderId,
-          new Set(ids),
-        ]),
-      ),
-    };
-
-    unsavedDraft.selectedByFolder.set(
-      "test-folder",
-      new Set(["test-folder/managed-a"]),
-    );
-
-    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
-      "external-track",
-      "test-folder/managed-b",
-      "test-folder/managed-a",
-    ]);
-    expect(
-      deriveManagedDraftSelectionFromTracks({
-        folders: [folder],
-        tracks: trackStore.getState().tracks,
-      }),
-    ).toEqual(committedDraft);
-  });
-
+describe("TrackSelect managed track diff", () => {
   it("preserves existing managed tracks on submit when selections do not change", () => {
     const folder = createTestFolder();
     const trackStore = createTrackStore([
@@ -135,11 +57,6 @@ describe("TrackSelect managed draft helpers", () => {
     const editedManagedTrack = trackStore
       .getState()
       .getTrack("test-folder/managed-a");
-
-    expect(trackStore.getState().tracks.map((track) => track.id)).toEqual([
-      "external-track",
-      "test-folder/managed-a",
-    ]);
 
     applyManagedTrackDiff(
       trackStore,

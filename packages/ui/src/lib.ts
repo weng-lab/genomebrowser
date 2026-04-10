@@ -1,8 +1,12 @@
 import "./muiLicense";
 
-import TrackSelect, { type TrackSelectProps } from "./TrackSelect/TrackSelect";
+import TrackSelect, {
+  type InitialSelectedIdsByAssembly,
+  type TrackSelectProps,
+} from "./TrackSelect/TrackSelect";
 export { TrackSelect, TrackSelectProps };
 export type { TrackSelectTrackContext } from "./TrackSelect/trackContext";
+export type { InitialSelectedIdsByAssembly };
 
 import { foldersByAssembly } from "./TrackSelect/Folders/index.ts";
 export { foldersByAssembly };

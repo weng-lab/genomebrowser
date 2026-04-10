@@ -335,9 +335,9 @@ describe("TrackSelect", () => {
       <TrackSelect
         assembly="GRCh38"
         folders={[folderA, folderB]}
-        initialSelectedIds={
-          new Map([[folderA.id, new Set(["folder-a/managed-a"])]])
-        }
+        initialSelectedIds={{
+          GRCh38: { [folderA.id]: ["folder-a/managed-a"] },
+        }}
         open
         onClose={onClose}
         title="Track Select"

@@ -21,6 +21,7 @@ import {
 // local
 import {
   foldersByAssembly,
+  type InitialSelectedIdsByAssembly,
   TrackSelect,
   type TrackSelectTrackContext,
 } from "../src/lib";
@@ -42,10 +43,6 @@ function Main() {
 
   const folders = foldersByAssembly[currentAssembly];
 
-  const initialSelection =
-    currentAssembly === "GRCh38"
-      ? defaultHumanSelections
-      : defaultMouseSelections;
   const trackStore = createTrackStoreMemo([], [currentAssembly]);
   const trackContext: TrackSelectTrackContext = {
     onGeneClick: ({ trackId, transcript }) => {
@@ -72,7 +69,7 @@ function Main() {
       <TrackSelect
         assembly={currentAssembly}
         folders={folders}
-        initialSelectedIds={initialSelection}
+        initialSelectedIds={defaultSelections}
         sessionStorageKey={`track-select:${currentAssembly}`}
         trackContext={trackContext}
         trackStore={trackStore}
@@ -91,24 +88,19 @@ function Main() {
 createRoot(document.getElementById("root")!).render(<Main />);
 
 // Default selections for TrackSelect UI (uses folder row IDs)
-const defaultHumanSelections = new Map<string, Set<string>>([
-  ["human-genes", new Set(["human-genes/gencode-basic"])],
-  [
-    "human-biosamples",
-    new Set([
+const defaultSelections: InitialSelectedIdsByAssembly = {
+  GRCh38: {
+    "human-genes": ["human-genes/gencode-basic"],
+    "human-biosamples": [
       "human-biosamples/ccre-aggregate",
       "human-biosamples/dnase-aggregate",
-    ]),
-  ],
-]);
-
-const defaultMouseSelections = new Map<string, Set<string>>([
-  ["mouse-genes", new Set(["mouse-genes/gencode-basic"])],
-  [
-    "mouse-biosamples",
-    new Set([
+    ],
+  },
+  mm10: {
+    "mouse-genes": ["mouse-genes/gencode-basic"],
+    "mouse-biosamples": [
       "mouse-biosamples/ccre-aggregate",
       "mouse-biosamples/dnase-aggregate",
-    ]),
-  ],
-]);
+    ],
+  },
+};
