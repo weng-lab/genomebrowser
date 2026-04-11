@@ -403,7 +403,7 @@ describe("TrackSelect", () => {
         initialSelectedIds={{
           GRCh38: {
             [humanMohdFolder.id]: [
-              "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bed.gz",
+              "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bigBed",
             ],
           },
         }}
@@ -414,21 +414,21 @@ describe("TrackSelect", () => {
     );
 
     expect(getText("grid-selected")).toBe(
-      "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bed.gz",
+      "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bigBed",
     );
     expect(getText("tree-labels")).toContain("MOHD,ATAC,CCH,MOHD_EA100001");
 
     await clickButton("Site");
 
     expect(getText("grid-selected")).toBe(
-      "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bed.gz",
+      "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bigBed",
     );
     expect(getText("tree-labels")).toContain("MOHD,CCH,ATAC,MOHD_EA100001");
 
     await clickButton("Ome");
 
     expect(getText("grid-selected")).toBe(
-      "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bed.gz",
+      "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bigBed",
     );
     expect(getText("tree-labels")).toContain("MOHD,ATAC,CCH,MOHD_EA100001");
   });

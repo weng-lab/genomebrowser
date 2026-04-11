@@ -150,7 +150,7 @@ export function createMohdTrack(
     };
   }
 
-  if (row.filename.endsWith(".bed.gz")) {
+  if (row.filename.endsWith(".bigBed")) {
     return {
       ...defaultBigBed,
       id: row.id,

@@ -6,14 +6,14 @@ None
 
 ## Description
 
-Rework the MOHD folder so it consumes the new flat `human.json` structure and turns it into logical Track Select rows. Non-WGBS records remain one file per leaf. WGBS records are regrouped per sample so each sample produces one collapsed `DNA Methylation` leaf backed by the 8 MethylC bigWigs, plus one separate cytosines `.bed.gz` leaf that remains independently selectable. MOHD track creation is updated to generate URLs from the normalized row metadata and create the correct track type for each logical leaf.
+Rework the MOHD folder so it consumes the new flat `human.json` structure and turns it into logical Track Select rows. Non-WGBS records remain one file per leaf. WGBS records are regrouped per sample so each sample produces one collapsed `DNA Methylation` leaf backed by the 8 MethylC bigWigs, plus one separate cytosines `.bigBed` leaf that remains independently selectable. MOHD track creation is updated to generate URLs from the normalized row metadata and create the correct track type for each logical leaf.
 
 ## Expected Behaviors Addressed
 
 - Each leaf represents a selectable browser track.
 - For non-WGBS data, each source file remains one selectable leaf.
 - For each WGBS sample, the 8 methylation bigWigs are collapsed into one `DNA Methylation` leaf.
-- For each WGBS sample, the cytosine-level `.bed.gz` file remains a separate selectable leaf.
+- For each WGBS sample, the cytosine-level `.bigBed` file remains a separate selectable leaf.
 - The visible leaf label is `description`, not the raw filename.
 - `filename` is kept internal and used for identity and URL construction where needed.
 - Selecting a MOHD leaf creates the correct browser track for that logical entry.

@@ -136,7 +136,7 @@ describe("folder track creation helpers", () => {
         sex: "female",
         status: "case",
         description: "Cytosine-level DNA methylation measurements",
-        filename: "sample_DNAme-cytosines.bed.gz",
+        filename: "sample_DNAme-cytosines.bigBed",
       },
       { assembly: "GRCh38" },
     );
@@ -155,7 +155,7 @@ describe("folder track creation helpers", () => {
     );
     expect(bedTrack?.trackType).toBe(TrackType.BigBed);
     expect("url" in (bedTrack ?? {}) ? bedTrack?.url : "").toBe(
-      "https://downloads.mohdconsortium.org/1_WGBS/sample/sample_DNAme-cytosines.bed.gz",
+      "https://downloads.mohdconsortium.org/1_WGBS/sample/sample_DNAme-cytosines.bigBed",
     );
   });
 

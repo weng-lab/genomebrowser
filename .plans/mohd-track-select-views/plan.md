@@ -8,7 +8,7 @@ I want the MOHD folder in Track Select to reflect the new metadata model and pre
 
 Rebuild the MOHD folder around the new flat row model from `human.json`, treating each JSON entry as a source file record and transforming those records into the UI row model used by Track Select.
 
-Most rows will remain one file per selectable leaf. WGBS will be handled specially: for each WGBS sample, the 8 bigWig files that map directly to the browser's MethylC config will be collapsed into one logical `DNA Methylation` leaf, while the separate cytosine-level `.bed.gz` file remains its own selectable leaf.
+Most rows will remain one file per selectable leaf. WGBS will be handled specially: for each WGBS sample, the 8 bigWig files that map directly to the browser's MethylC config will be collapsed into one logical `DNA Methylation` leaf, while the separate cytosine-level `.bigBed` file remains its own selectable leaf.
 
 Add two folder views that organize the same logical leaves in different ways: one view centered on ome and one centered on site. Normalize ome values into user-facing labels and a shared config object that also carries placeholder colors and URL path mappings. Use that same config to render colored ome squares in both the data grid grouping labels and the selected tree view, following the biosample UI pattern.
 
@@ -22,7 +22,7 @@ Track creation will continue to be folder-owned, but it will be updated to deriv
 - Each leaf represents a selectable browser track.
 - For non-WGBS data, each source file remains one selectable leaf.
 - For each WGBS sample, the 8 methylation bigWigs are collapsed into one `DNA Methylation` leaf.
-- For each WGBS sample, the cytosine-level `.bed.gz` file remains a separate selectable leaf.
+- For each WGBS sample, the cytosine-level `.bigBed` file remains a separate selectable leaf.
 - The visible leaf label is `description`, not the raw filename.
 - `filename` is kept internal and used for identity and URL construction where needed.
 - Grouped fields stay hidden in the grid, so the table shows the leaf label plus the remaining metadata columns.
@@ -38,7 +38,7 @@ Track creation will continue to be folder-owned, but it will be updated to deriv
 - `description` is the user-facing leaf field for all MOHD views.
 - For non-WGBS rows, `description` should be copied directly from `file_type`.
 - For collapsed WGBS MethylC rows, `description` should be the static label `DNA Methylation`.
-- For the separate WGBS cytosines `.bed.gz` row, `description` should remain the original `file_type`.
+- For the separate WGBS cytosines `.bigBed` row, `description` should remain the original `file_type`.
 - The folder should define two explicit views instead of relying on a single default grouping:
   - `Ome`: `ome -> site -> sample`
   - `Site`: `site -> ome -> sample`
@@ -63,7 +63,7 @@ Track creation will continue to be folder-owned, but it will be updated to deriv
   - `minusStrand.chh`
   - `minusStrand.depth`
 - WGBS regrouping should be driven by `sample_id`, with filename pattern matching used to map the 8 bigWig files into the MethylC structure.
-- The WGBS cytosines `.bed.gz` file must not be collapsed and should remain its own BigBed-style leaf.
+- The WGBS cytosines `.bigBed` file must not be collapsed and should remain its own BigBed-style leaf.
 - MOHD track creation should derive URLs from normalized row fields using:
   - base host
   - ome path mapping
@@ -77,7 +77,7 @@ Track creation will continue to be folder-owned, but it will be updated to deriv
 - Add tests for MOHD folder construction from the new flat data shape.
 - Add tests for WGBS regrouping so each WGBS sample produces:
   - one collapsed `DNA Methylation` logical row
-  - one separate cytosines `.bed.gz` row
+  - one separate cytosines `.bigBed` row
 - Add tests that verify the 8 WGBS bigWig filenames are mapped into the correct `MethylCConfig.urls` structure.
 - Add tests for view definitions so the folder exposes both `Ome` and `Site` with the expected grouping order.
 - Add tests for selection tree building to verify the selected tree follows the active MOHD view hierarchy.

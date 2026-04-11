@@ -4,7 +4,7 @@
     "site": "CCH",
     "sample_id": "MOHD_EA100001",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100001_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100001_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -22,7 +22,7 @@
     "site": "CCH",
     "sample_id": "MOHD_EA100001",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100001_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100001_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -40,7 +40,7 @@
     "site": "CCH",
     "sample_id": "MOHD_EA100002",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100002_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100002_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -58,7 +58,7 @@
     "site": "CCH",
     "sample_id": "MOHD_EA100002",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100002_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100002_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -76,7 +76,7 @@
     "site": "CCH",
     "sample_id": "MOHD_EA100003",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100003_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100003_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -94,7 +94,7 @@
     "site": "CCH",
     "sample_id": "MOHD_EA100003",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100003_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100003_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -112,7 +112,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100004",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100004_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100004_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -130,7 +130,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100004",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100004_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100004_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -148,7 +148,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100005",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100005_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100005_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -166,7 +166,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100005",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100005_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100005_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -184,7 +184,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100006",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100006_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100006_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -202,7 +202,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100006",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100006_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100006_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -220,7 +220,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100007",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100007_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100007_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -238,7 +238,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100007",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100007_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100007_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -256,7 +256,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100008",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100008_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100008_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -274,7 +274,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100008",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100008_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100008_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -292,7 +292,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100009",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100009_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100009_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -310,7 +310,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100009",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100009_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100009_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -328,7 +328,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100010",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100010_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100010_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -346,7 +346,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100010",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100010_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100010_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -364,7 +364,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100011",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100011_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100011_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -382,7 +382,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100011",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100011_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100011_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -400,7 +400,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100012",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100012_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100012_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -418,7 +418,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EA100012",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100012_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100012_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -436,7 +436,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100013",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100013_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100013_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -454,7 +454,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100013",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100013_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100013_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -472,7 +472,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100014",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100014_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100014_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -490,7 +490,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100014",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100014_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100014_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -508,7 +508,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100016",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100016_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100016_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -526,7 +526,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100016",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100016_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100016_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -544,7 +544,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100017",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100017_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100017_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -562,7 +562,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100017",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100017_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100017_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -580,7 +580,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100018",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100018_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100018_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -598,7 +598,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100018",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100018_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100018_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -616,7 +616,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100019",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100019_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100019_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -634,7 +634,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EA100019",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100019_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100019_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -652,7 +652,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100020",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100020_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100020_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -670,7 +670,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100020",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100020_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100020_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -688,7 +688,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100021",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100021_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100021_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -706,7 +706,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100021",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100021_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100021_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -724,7 +724,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100022",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100022_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100022_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -742,7 +742,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100022",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100022_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100022_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -760,7 +760,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100023",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100023_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100023_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -778,7 +778,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100023",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100023_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100023_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -796,7 +796,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100024",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100024_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100024_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -814,7 +814,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100024",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100024_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100024_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -832,7 +832,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100025",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100025_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100025_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -850,7 +850,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100025",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100025_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100025_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -868,7 +868,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100026",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100026_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100026_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -886,7 +886,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100026",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100026_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100026_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -904,7 +904,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100027",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100027_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100027_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -922,7 +922,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100027",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100027_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100027_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -940,7 +940,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100028",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100028_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100028_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -958,7 +958,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EA100028",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100028_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100028_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -976,7 +976,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100029",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100029_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100029_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -994,7 +994,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100029",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100029_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100029_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -1012,7 +1012,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100030",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100030_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100030_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -1030,7 +1030,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100030",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100030_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100030_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -1048,7 +1048,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100031",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100031_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100031_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -1066,7 +1066,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100031",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100031_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100031_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -1084,7 +1084,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100032",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100032_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100032_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -1102,7 +1102,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100032",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100032_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100032_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -1120,7 +1120,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100033",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100033_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100033_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -1138,7 +1138,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100033",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100033_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100033_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -1156,7 +1156,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100034",
     "file_type": "FDR 0.05 peaks",
-    "filename": "MOHD_EA100034_peaks-FDR5_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100034_peaks-FDR5_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -1174,7 +1174,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EA100034",
     "file_type": "Pseudorep peaks",
-    "filename": "MOHD_EA100034_peaks-pseudorep_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EA100034_peaks-pseudorep_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -2002,7 +2002,7 @@
     "site": "CCH",
     "sample_id": "MOHD_EB100001",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100001_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100001_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -2083,7 +2083,7 @@
     "site": "CCH",
     "sample_id": "MOHD_EB100002",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100002_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100002_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -2164,7 +2164,7 @@
     "site": "CCH",
     "sample_id": "MOHD_EB100003",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100003_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100003_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -2245,7 +2245,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EB100004",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100004_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100004_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -2326,7 +2326,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EB100005",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100005_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100005_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
@@ -2407,7 +2407,7 @@
     "site": "CKD",
     "sample_id": "MOHD_EB100006",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100006_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100006_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -2488,7 +2488,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EB100007",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100007_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100007_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -2569,7 +2569,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EB100008",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100008_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100008_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "control"
   },
@@ -2650,7 +2650,7 @@
     "site": "EXP",
     "sample_id": "MOHD_EB100009",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100009_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100009_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -2731,7 +2731,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EB100010",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100010_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100010_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -2812,7 +2812,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EB100011",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100011_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100011_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -2893,7 +2893,7 @@
     "site": "MOM",
     "sample_id": "MOHD_EB100012",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100012_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100012_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "unknown"
   },
@@ -2974,7 +2974,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EB100013",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100013_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100013_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -3055,7 +3055,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EB100014",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100014_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100014_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "female",
     "status": "case"
   },
@@ -3136,7 +3136,7 @@
     "site": "UIC",
     "sample_id": "MOHD_EB100015",
     "file_type": "Cytosine-level DNA methylation measurements",
-    "filename": "MOHD_EB100015_DNAme-cytosines_GRCh38_v0.bed.gz",
+    "filename": "MOHD_EB100015_DNAme-cytosines_GRCh38_v0.bigBed",
     "sex": "male",
     "status": "case"
   },
