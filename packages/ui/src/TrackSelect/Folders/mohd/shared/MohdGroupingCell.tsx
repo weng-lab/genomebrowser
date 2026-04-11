@@ -48,7 +48,7 @@ export function MohdGroupingCell(params: GridRenderCellParams) {
         alignItems="center"
         sx={{ flex: 1, overflow: "hidden" }}
       >
-        {showOmeIcon && MohdOmeIcon(value)}
+        {showOmeIcon && <MohdOmeIcon type={value} />}
         <Tooltip title={value} placement="top-start" enterDelay={500}>
           <Box
             sx={{

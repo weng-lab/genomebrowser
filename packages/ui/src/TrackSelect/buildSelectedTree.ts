@@ -53,8 +53,8 @@ const createLeafNode = (
     rowId: row.id,
     label,
     icon: "removeable",
-    assayName: isHighlightedField(leafField) ? label : undefined,
-    isAssayItem: isHighlightedField(leafField),
+    highlightName: isHighlightedField(leafField) ? label : undefined,
+    isHighlightedItem: isHighlightedField(leafField),
     children: [],
     allExpAccessions: [row.id],
   };
@@ -101,8 +101,8 @@ const appendGroupedRows = (
       value,
       label: value,
       icon: "removeable",
-      assayName: isHighlightedField(field) ? value : undefined,
-      isAssayItem: isHighlightedField(field),
+      highlightName: isHighlightedField(field) ? value : undefined,
+      isHighlightedItem: isHighlightedField(field),
       children: [],
       allExpAccessions: [],
     };

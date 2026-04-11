@@ -15,7 +15,7 @@ import { MohdOmeIcon } from "../src/TrackSelect/Folders/mohd/shared/config";
 
 describe("MOHD display helpers", () => {
   it("renders an ome color icon", () => {
-    const html = renderToStaticMarkup(MohdOmeIcon("ATAC"));
+    const html = renderToStaticMarkup(<MohdOmeIcon type="ATAC" />);
 
     expect(html).toContain("mohd-ome-icon-atac");
   });
@@ -39,7 +39,7 @@ describe("MOHD display helpers", () => {
     });
 
     expect(tree[0]?.children?.[0]?.label).toBe("ATAC");
-    expect(tree[0]?.children?.[0]?.assayName).toBe("ATAC");
-    expect(tree[0]?.children?.[0]?.isAssayItem).toBe(true);
+    expect(tree[0]?.children?.[0]?.highlightName).toBe("ATAC");
+    expect(tree[0]?.children?.[0]?.isHighlightedItem).toBe(true);
   });
 });

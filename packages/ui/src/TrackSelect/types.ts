@@ -21,11 +21,8 @@ export type ExtendedTreeItemProps = {
   value?: string;
   rowId?: string;
   folderId?: string;
-  isAssayItem?: boolean;
-  /**
-   * The assay name for leaf nodes (experiment accession items)
-   */
-  assayName?: string;
+  isHighlightedItem?: boolean;
+  highlightName?: string;
   /**
    * list of all the experimentAccession values in the children/grandchildren of the item, or the accession of the item itself
    * this is used in updating the rowSelectionModel when removing items from the Tree View panel
@@ -44,10 +41,9 @@ export type TreeViewWrapperProps = {
 export interface CustomLabelProps {
   id: string;
   children: React.ReactNode;
-  isAssayItem?: boolean;
-  assayName?: string;
+  isHighlightedItem?: boolean;
+  highlightName?: string;
   icon?: React.ElementType | React.ReactElement | ReactNode;
-  /** Optional function to render custom icons for assay items */
   renderIcon?: (name: string) => ReactNode;
 }
 
@@ -56,7 +52,6 @@ export interface CustomTreeItemProps
     Omit<UseTreeItemParameters, "rootRef">,
     Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {
   onRemove?: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
-  /** Optional function to render custom icons for assay items */
   renderIcon?: (name: string) => ReactNode;
 }
 

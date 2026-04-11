@@ -1,11 +1,11 @@
 import React from "react";
 import { CustomTreeItem } from "../../../TreeView/CustomTreeItem";
 import { CustomTreeItemProps } from "../../../types";
-import { MohdOmeIcon } from "./config";
+import { renderMohdOmeIcon } from "./config";
 
 export const MohdTreeItem = React.forwardRef<
   HTMLLIElement,
   CustomTreeItemProps
 >(function MohdTreeItem(props, ref) {
-  return <CustomTreeItem {...props} ref={ref} renderIcon={MohdOmeIcon} />;
+  return <CustomTreeItem {...props} ref={ref} renderIcon={renderMohdOmeIcon} />;
 });
