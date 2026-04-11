@@ -10,7 +10,7 @@ import {
 import type { FC } from "react";
 import { CreateTrackOptions } from "../../types";
 import { createMohdFileUrl, getMohdOmeConfig } from "./config";
-import { MohdFileRowInfo, MohdRowInfo, MohdWgbsMethylRowInfo } from "./types";
+import { MohdRowInfo } from "./types";
 
 export type MohdTrackContext = {
   mohdSignalTooltip?: FC<ValuedPoint[]>;
@@ -47,14 +47,6 @@ const defaultMethylC: Omit<MethylCConfig, "id" | "title" | "urls"> = {
   },
 };
 
-function isWgbsRow(row: MohdRowInfo): row is MohdWgbsMethylRowInfo {
-  return row.kind === "wgbs-methyl";
-}
-
-function isFileRow(row: MohdRowInfo): row is MohdFileRowInfo {
-  return row.kind === "file";
-}
-
 function createTrackTitle(row: MohdRowInfo) {
   return `${row.sampleId} ${row.description}`;
 }
@@ -65,7 +57,7 @@ export function createMohdTrack(
 ): Track | null {
   const trackContext = options.trackContext;
 
-  if (isWgbsRow(row)) {
+  if (row.kind === "wgbs-methyl") {
     return {
       ...defaultMethylC,
       id: row.id,
@@ -136,7 +128,7 @@ export function createMohdTrack(
     };
   }
 
-  if (!isFileRow(row)) {
+  if (row.kind !== "file") {
     return null;
   }
 
