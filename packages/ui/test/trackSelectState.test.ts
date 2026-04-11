@@ -6,6 +6,9 @@ vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdGroupingCell", () => ({
 vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdTreeItem", () => ({
   MohdTreeItem: () => null,
 }));
+vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdViewSelector", () => ({
+  MohdViewSelector: () => null,
+}));
 import { humanMohdFolder } from "../src/TrackSelect/Folders/mohd/human";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
 import { resolveFolderView } from "../src/TrackSelect/resolveFolderView";
@@ -140,5 +143,34 @@ describe("TrackSelect direct view helpers", () => {
       "Pseudorep peaks",
       "p-value signal",
     ]);
+  });
+
+  it("builds the selected MOHD tree from the site-first view when active", () => {
+    const activeView = resolveFolderView(
+      humanMohdFolder,
+      new Map([[humanMohdFolder.id, "site"]]),
+    );
+    const selectedRows = humanMohdFolder.rows.filter(
+      (row) => row.sampleId === "MOHD_EA100001",
+    );
+
+    const tree = buildSelectedTree({
+      folderId: humanMohdFolder.id,
+      rootLabel: humanMohdFolder.label,
+      selectedRows,
+      groupingModel: activeView.groupingModel,
+      leafField: activeView.leafField,
+    });
+
+    expect(activeView.id).toBe("site");
+    expect(tree[0]?.children?.map((item) => item.label)).toEqual(["CCH"]);
+    expect(tree[0]?.children?.[0]?.children?.map((item) => item.label)).toEqual(
+      ["ATAC"],
+    );
+    expect(
+      tree[0]?.children?.[0]?.children?.[0]?.children?.map(
+        (item) => item.label,
+      ),
+    ).toEqual(["MOHD_EA100001"]);
   });
 });

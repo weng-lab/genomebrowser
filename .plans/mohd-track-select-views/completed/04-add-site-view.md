@@ -28,3 +28,15 @@ Add the `Site` view so the same logical MOHD leaves can be browsed as `site -> o
 3. Confirm the grouping order changes to site, then ome, then sample.
 4. Select files in the `Site` view and confirm they appear in the selected tree under the same hierarchy.
 5. Switch back to `Ome` and confirm selections remain intact and the tree updates to the ome-first structure.
+
+## Completion
+
+**Built:** Added the MOHD `Site` view and a MOHD-specific view selector so the folder can switch between `Ome` and `Site`. The selected tree now follows whichever MOHD view is active, and view switching preserves the current selection.
+
+**Decisions:** Used a small folder-owned toggle button group rather than adding generic TrackSelect view-switch UI. Reused the same columns and leaf field for both views and changed only the grouping model, keeping the slice focused on hierarchy switching.
+
+**Deviations:** QA was completed with focused Vitest coverage rather than a manual browser walkthrough. The tests verify both direct selected-tree construction and end-to-end TrackSelect view switching with mocked grid/tree wrappers.
+
+**Files:** Modified `packages/ui/src/TrackSelect/Folders/mohd/shared/createFolder.ts`, `packages/ui/test/folders.test.ts`, `packages/ui/test/trackSelectState.test.ts`, `packages/ui/test/mohdDisplay.test.tsx`, and `packages/ui/test/TrackSelect.test.tsx`. Added `packages/ui/src/TrackSelect/Folders/mohd/shared/MohdViewSelector.tsx`.
+
+**Notes for next slice:** The MOHD plan is fully executed. `Ome` and `Site` now share the same leaf/metadata presentation and the same ome icon behavior, differing only in grouping order.

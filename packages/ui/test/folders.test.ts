@@ -9,6 +9,9 @@ vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdGroupingCell", () => ({
 vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdTreeItem", () => ({
   MohdTreeItem: () => null,
 }));
+vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdViewSelector", () => ({
+  MohdViewSelector: () => null,
+}));
 import { humanMohdFolder } from "../src/TrackSelect/Folders/mohd/human";
 import { createMohdTrack } from "../src/TrackSelect/Folders/mohd/shared/toTrack";
 import { createOtherTrack } from "../src/TrackSelect/Folders/other-tracks/shared/toTrack";
@@ -188,7 +191,14 @@ describe("folder track creation helpers", () => {
         groupingModel: ["ome", "site", "sampleId"],
         leafField: "description",
       }),
+      expect.objectContaining({
+        id: "site",
+        label: "Site",
+        groupingModel: ["site", "ome", "sampleId"],
+        leafField: "description",
+      }),
     ]);
+    expect(humanMohdFolder.ViewSelector).toBeTruthy();
   });
 
   it("creates supported custom tracks and ignores unsupported rows", () => {

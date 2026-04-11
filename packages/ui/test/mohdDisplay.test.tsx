@@ -7,6 +7,9 @@ vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdGroupingCell", () => ({
 vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdTreeItem", () => ({
   MohdTreeItem: () => null,
 }));
+vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdViewSelector", () => ({
+  MohdViewSelector: () => null,
+}));
 import { humanMohdFolder } from "../src/TrackSelect/Folders/mohd/human";
 import { MohdOmeIcon } from "../src/TrackSelect/Folders/mohd/shared/config";
 

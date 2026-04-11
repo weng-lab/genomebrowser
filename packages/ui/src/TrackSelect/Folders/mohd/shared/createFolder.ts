@@ -9,8 +9,10 @@ import {
 import { MohdGroupingCell } from "./MohdGroupingCell";
 import { MohdTreeItem } from "./MohdTreeItem";
 import { createMohdTrack } from "./toTrack";
+import { MohdViewSelector } from "./MohdViewSelector";
 
 const WG_BS_DESCRIPTION = "DNA Methylation";
+const siteGroupingModel = ["site", "ome", "sampleId"];
 
 function createBaseRow(folderId: string, row: MohdDataFile[number]) {
   return {
@@ -138,6 +140,13 @@ export function createMohdFolder(
       groupingModel: defaultGroupingModel,
       leafField: defaultLeafField,
     },
+    {
+      id: "site",
+      label: "Site",
+      columns: defaultColumns,
+      groupingModel: siteGroupingModel,
+      leafField: defaultLeafField,
+    },
   ];
 
   return {
@@ -150,6 +159,7 @@ export function createMohdFolder(
     leafField: defaultLeafField,
     createTrack: createMohdTrack,
     views,
+    ViewSelector: MohdViewSelector,
     GroupingCellComponent: MohdGroupingCell,
     TreeItemComponent: MohdTreeItem,
   };

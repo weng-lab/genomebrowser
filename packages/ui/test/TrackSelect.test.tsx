@@ -5,8 +5,15 @@ import { act, type ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildSelectedTree } from "../src/TrackSelect/buildSelectedTree";
+vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdGroupingCell", () => ({
+  MohdGroupingCell: () => null,
+}));
+vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdTreeItem", () => ({
+  MohdTreeItem: () => null,
+}));
 import TrackSelect from "../src/TrackSelect/TrackSelect";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
+import { humanMohdFolder } from "../src/TrackSelect/Folders/mohd/human";
 import { resolveFolderView } from "../src/TrackSelect/resolveFolderView";
 
 (
@@ -386,5 +393,43 @@ describe("TrackSelect", () => {
     expect(trackStore.getState().getTrack("folder-a/managed-a")?.height).toBe(
       120,
     );
+  });
+
+  it("switches MOHD between ome and site views without losing selection", async () => {
+    await renderTrackSelect(
+      <TrackSelect
+        assembly="GRCh38"
+        folders={[humanMohdFolder]}
+        initialSelectedIds={{
+          GRCh38: {
+            [humanMohdFolder.id]: [
+              "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bed.gz",
+            ],
+          },
+        }}
+        open
+        onClose={vi.fn()}
+        title="Track Select"
+      />,
+    );
+
+    expect(getText("grid-selected")).toBe(
+      "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bed.gz",
+    );
+    expect(getText("tree-labels")).toContain("MOHD,ATAC,CCH,MOHD_EA100001");
+
+    await clickButton("Site");
+
+    expect(getText("grid-selected")).toBe(
+      "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bed.gz",
+    );
+    expect(getText("tree-labels")).toContain("MOHD,CCH,ATAC,MOHD_EA100001");
+
+    await clickButton("Ome");
+
+    expect(getText("grid-selected")).toBe(
+      "human-mohd/MOHD_EA100001::MOHD_EA100001_peaks-FDR5_GRCh38_v0.bed.gz",
+    );
+    expect(getText("tree-labels")).toContain("MOHD,ATAC,CCH,MOHD_EA100001");
   });
 });
