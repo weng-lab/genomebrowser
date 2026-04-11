@@ -146,16 +146,16 @@ describe("folder track creation helpers", () => {
     expect(
       "urls" in (wgbsTrack ?? {}) ? wgbsTrack?.urls.plusStrand.cpg.url : "",
     ).toBe(
-      "https://downloads.mohd.org/1_WGBS/sample/sample_DNAme-CpG-plus.bigWig",
+      "https://downloads.mohdconsortium.org/1_WGBS/sample/sample_DNAme-CpG-plus.bigWig",
     );
     expect(signalTrack?.trackType).toBe(TrackType.BigWig);
     expect(signalTrack?.title).toBe("sample Fold change signal");
     expect("url" in (signalTrack ?? {}) ? signalTrack?.url : "").toBe(
-      "https://downloads.mohd.org/2_ATAC/sample/sample.bigWig",
+      "https://downloads.mohdconsortium.org/2_ATAC/sample/sample.bigWig",
     );
     expect(bedTrack?.trackType).toBe(TrackType.BigBed);
     expect("url" in (bedTrack ?? {}) ? bedTrack?.url : "").toBe(
-      "https://downloads.mohd.org/1_WGBS/sample/sample_DNAme-cytosines.bed.gz",
+      "https://downloads.mohdconsortium.org/1_WGBS/sample/sample_DNAme-cytosines.bed.gz",
     );
   });
 

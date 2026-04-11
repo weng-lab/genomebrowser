@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import { createElement } from "react";
 
-export const MOHD_BASE_URL = "https://downloads.mohd.org";
+export const MOHD_BASE_URL = "https://downloads.mohdconsortium.org";
 
 export const MOHD_OME_CONFIG = {
   atac: {
