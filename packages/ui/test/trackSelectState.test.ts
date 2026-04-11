@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildSelectedTree } from "../src/TrackSelect/buildSelectedTree";
+import { humanMohdFolder } from "../src/TrackSelect/Folders/mohd/human";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
 import { resolveFolderView } from "../src/TrackSelect/resolveFolderView";
 
@@ -97,5 +98,41 @@ describe("TrackSelect direct view helpers", () => {
     expect(tree[0]?.children?.[0]?.children?.map((item) => item.label)).toEqual(
       ["folder-a A", "folder-a B"],
     );
+  });
+
+  it("uses the default MOHD view to group by ome, then site, then sample", () => {
+    const activeView = resolveFolderView(humanMohdFolder, new Map());
+    const selectedRows = humanMohdFolder.rows.filter(
+      (row) => row.sampleId === "MOHD_EA100001",
+    );
+
+    const tree = buildSelectedTree({
+      folderId: humanMohdFolder.id,
+      rootLabel: humanMohdFolder.label,
+      selectedRows,
+      groupingModel: activeView.groupingModel,
+      leafField: activeView.leafField,
+    });
+
+    expect(activeView.id).toBe("ome");
+    expect(tree[0]?.children?.map((item) => item.label)).toEqual(["ATAC"]);
+    expect(tree[0]?.children?.[0]?.children?.map((item) => item.label)).toEqual(
+      ["CCH"],
+    );
+    expect(
+      tree[0]?.children?.[0]?.children?.[0]?.children?.map(
+        (item) => item.label,
+      ),
+    ).toEqual(["MOHD_EA100001"]);
+    expect(
+      tree[0]?.children?.[0]?.children?.[0]?.children?.[0]?.children?.map(
+        (item) => item.label,
+      ),
+    ).toEqual([
+      "FDR 0.05 peaks",
+      "Fold change signal",
+      "Pseudorep peaks",
+      "p-value signal",
+    ]);
   });
 });

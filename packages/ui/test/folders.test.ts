@@ -173,6 +173,17 @@ describe("folder track creation helpers", () => {
     expect(atacRows.every((row) => row.kind === "file")).toBe(true);
   });
 
+  it("exposes an ome-first default MOHD view", () => {
+    expect(humanMohdFolder.views).toEqual([
+      expect.objectContaining({
+        id: "ome",
+        label: "Ome",
+        groupingModel: ["ome", "site", "sampleId"],
+        leafField: "description",
+      }),
+    ]);
+  });
+
   it("creates supported custom tracks and ignores unsupported rows", () => {
     const supportedTrack = createOtherTrack(
       {

@@ -128,6 +128,15 @@ export function createMohdFolder(
 ): FolderDefinition<MohdRowInfo> {
   const { id, label, description, data } = options;
   const rows = transformData(id, data);
+  const views = [
+    {
+      id: "ome",
+      label: "Ome",
+      columns: defaultColumns,
+      groupingModel: defaultGroupingModel,
+      leafField: defaultLeafField,
+    },
+  ];
 
   return {
     id,
@@ -138,5 +147,6 @@ export function createMohdFolder(
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
     createTrack: createMohdTrack,
+    views,
   };
 }

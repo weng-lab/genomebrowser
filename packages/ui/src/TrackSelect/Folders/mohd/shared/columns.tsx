@@ -52,6 +52,6 @@ export const defaultColumns: GridColDef<MohdRowInfo>[] = [
   statusCol,
 ];
 
-export const defaultGroupingModel = ["sampleId"];
+export const defaultGroupingModel = ["ome", "site", "sampleId"];
 
 export const defaultLeafField = "description";

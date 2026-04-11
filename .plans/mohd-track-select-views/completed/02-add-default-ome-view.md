@@ -28,3 +28,15 @@ Add MOHD folder views and make `Ome` the default browsing path. This view organi
 3. Expand the grouped table and confirm the order is ome, then site, then sample, then leaf.
 4. Confirm the leaf label shown to the user is `description`.
 5. Confirm grouped columns are not duplicated in the visible table columns.
+
+## Completion
+
+**Built:** Added a named default MOHD `Ome` view and made the folder's default grouping ome-first. MOHD now resolves to an `ome -> site -> sample` hierarchy with `description` as the leaf field.
+
+**Decisions:** Kept the slice narrow by exposing a single explicit `Ome` view now and leaving the `Site` view for the next slice. Reused the folder-level `views` contract already used elsewhere in TrackSelect instead of adding MOHD-specific runtime logic.
+
+**Deviations:** QA was completed with focused Vitest coverage rather than a manual browser walkthrough, since the repo guidance explicitly avoids starting the dev server here.
+
+**Files:** Modified `packages/ui/src/TrackSelect/Folders/mohd/shared/columns.tsx`, `packages/ui/src/TrackSelect/Folders/mohd/shared/createFolder.ts`, `packages/ui/test/folders.test.ts`, and `packages/ui/test/trackSelectState.test.ts`.
+
+**Notes for next slice:** The shared ome config and the new `Ome` view are now in place. The next slice can attach ome color rendering to the grouping cell and selected tree without changing the grouping shape.
