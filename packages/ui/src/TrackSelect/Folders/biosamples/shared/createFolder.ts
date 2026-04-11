@@ -88,14 +88,14 @@ export function createBiosampleFolder(
   const views = [
     {
       id: "default",
-      label: "Default",
+      label: "Tissue",
       columns: defaultColumns,
       groupingModel: defaultGroupingModel,
       leafField: defaultLeafField,
     },
     {
       id: "by-assay",
-      label: "By Assay",
+      label: "Assay",
       columns: sortedByAssayColumns,
       groupingModel: sortedByAssayGroupingModel,
       leafField: sortedByAssayLeafField,
