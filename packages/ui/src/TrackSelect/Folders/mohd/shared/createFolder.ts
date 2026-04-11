@@ -1,18 +1,13 @@
 import { FolderDefinition } from "../../types";
 import { MohdDataFile, MohdRowInfo } from "./types";
 import { getMohdOmeConfig } from "./config";
-import {
-  defaultColumns,
-  defaultGroupingModel,
-  defaultLeafField,
-} from "./columns";
+import { mohdViews } from "./columns";
 import { MohdGroupingCell } from "./MohdGroupingCell";
 import { MohdTreeItem } from "./MohdTreeItem";
 import { createMohdTrack } from "./toTrack";
 import { MohdViewSelector } from "./MohdViewSelector";
 
 const WGBS_DESCRIPTION = "DNA Methylation";
-const siteGroupingModel = ["site", "ome", "sampleId"];
 
 function createBaseRow(folderId: string, row: MohdDataFile[number]) {
   return {
@@ -130,33 +125,18 @@ export function createMohdFolder(
 ): FolderDefinition<MohdRowInfo> {
   const { id, label, description, data } = options;
   const rows = transformData(id, data);
-  const views = [
-    {
-      id: "ome",
-      label: "Ome",
-      columns: defaultColumns,
-      groupingModel: defaultGroupingModel,
-      leafField: defaultLeafField,
-    },
-    {
-      id: "site",
-      label: "Site",
-      columns: defaultColumns,
-      groupingModel: siteGroupingModel,
-      leafField: defaultLeafField,
-    },
-  ];
+  const defaultView = mohdViews[0]!;
 
   return {
     id,
     label,
     description,
     rows,
-    columns: defaultColumns,
-    groupingModel: defaultGroupingModel,
-    leafField: defaultLeafField,
+    columns: defaultView.columns,
+    groupingModel: defaultView.groupingModel,
+    leafField: defaultView.leafField,
     createTrack: createMohdTrack,
-    views,
+    views: mohdViews,
     ViewSelector: MohdViewSelector,
     GroupingCellComponent: MohdGroupingCell,
     TreeItemComponent: MohdTreeItem,

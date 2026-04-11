@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { createElement, ReactNode } from "react";
+import { createElement } from "react";
 
 export const MOHD_BASE_URL = "https://downloads.mohdconsortium.org";
 
@@ -67,8 +67,4 @@ export function MohdOmeIcon({ type }: { type: string }) {
       bgcolor: color,
     },
   });
-}
-
-export function renderMohdOmeIcon(type: string): ReactNode {
-  return createElement(MohdOmeIcon, { type });
 }

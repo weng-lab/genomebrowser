@@ -1,4 +1,5 @@
 import { GridColDef } from "@mui/x-data-grid-premium";
+import { FolderView } from "../../types";
 import { MohdRowInfo } from "./types";
 
 const descriptionCol: GridColDef<MohdRowInfo> = {
@@ -50,7 +51,7 @@ const statusCol: GridColDef<MohdRowInfo> = {
   flex: 1,
 };
 
-export const defaultColumns: GridColDef<MohdRowInfo>[] = [
+export const mohdColumns: GridColDef<MohdRowInfo>[] = [
   descriptionCol,
   trackCategoryCol,
   sampleIdCol,
@@ -60,6 +61,19 @@ export const defaultColumns: GridColDef<MohdRowInfo>[] = [
   statusCol,
 ];
 
-export const defaultGroupingModel = ["ome", "site", "sampleId"];
-
-export const defaultLeafField = "description";
+export const mohdViews: FolderView<MohdRowInfo>[] = [
+  {
+    id: "ome",
+    label: "Ome",
+    columns: mohdColumns,
+    groupingModel: ["ome", "site", "sampleId"],
+    leafField: "description",
+  },
+  {
+    id: "site",
+    label: "Site",
+    columns: mohdColumns,
+    groupingModel: ["site", "ome", "sampleId"],
+    leafField: "description",
+  },
+];
