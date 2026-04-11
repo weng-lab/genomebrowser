@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  genomic-reader@1.4.10:
+    hash: 4457a92267ca7e7532e4c68860b600d600a171cbce1bd5ed79b72433f2298c4e
+    path: patches/genomic-reader@1.4.10.patch
+
 importers:
 
   .:
@@ -29,7 +34,7 @@ importers:
         version: 0.18.1
       genomic-reader:
         specifier: ^1.4.10
-        version: 1.4.10
+        version: 1.4.10(patch_hash=4457a92267ca7e7532e4c68860b600d600a171cbce1bd5ed79b72433f2298c4e)
       graphql:
         specifier: ^16.11.0
         version: 16.12.0
@@ -5024,7 +5029,7 @@ snapshots:
 
   fuse.js@7.1.0: {}
 
-  genomic-reader@1.4.10:
+  genomic-reader@1.4.10(patch_hash=4457a92267ca7e7532e4c68860b600d600a171cbce1bd5ed79b72433f2298c4e):
     dependencies:
       axios: 0.21.4
       pako: 1.0.11

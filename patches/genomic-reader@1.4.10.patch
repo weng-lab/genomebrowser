@@ -1,0 +1,79 @@
+diff --git a/dist/bigwig/BigWigHeaderReader.js b/dist/bigwig/BigWigHeaderReader.js
+index cabd808eb950db555e64c302b483317eb1373cc8..a2d2881a3e13491a4c761b51683106a779e32c92 100644
+--- a/dist/bigwig/BigWigHeaderReader.js
++++ b/dist/bigwig/BigWigHeaderReader.js
+@@ -104,23 +104,18 @@ function loadHeaderData(dataLoader) {
+         }
+         let chromTree = undefined;
+         if (commonHeader.chromTreeOffset > 0) {
+-            binaryParser.position = commonHeader.chromTreeOffset - BBFILE_HEADER_SIZE;
+-            const magic = binaryParser.getUInt();
+-            if (CHROM_TREE_MAGIC !== magic) {
+-                throw new Error("Chomosome ID B+ Tree not found.");
++            if (commonHeader.chromTreeOffset <= commonHeader.fullDataOffset) {
++                binaryParser.position = commonHeader.chromTreeOffset - BBFILE_HEADER_SIZE;
++                chromTree = parseChromTree(binaryParser, BBFILE_HEADER_SIZE);
++            }
++            else {
++                const chromTreeLength = commonHeader.fullIndexOffset > commonHeader.chromTreeOffset
++                    ? commonHeader.fullIndexOffset - commonHeader.chromTreeOffset
++                    : 1024 * 1024;
++                const chromTreeData = yield dataLoader.load(commonHeader.chromTreeOffset, chromTreeLength);
++                const chromTreeParser = new BinaryParser_1.BinaryParser(chromTreeData, littleEndian);
++                chromTree = parseChromTree(chromTreeParser, commonHeader.chromTreeOffset);
+             }
+-            chromTree = {
+-                magic: magic,
+-                blockSize: binaryParser.getInt(),
+-                keySize: binaryParser.getInt(),
+-                valSize: binaryParser.getInt(),
+-                itemCount: binaryParser.getLong(),
+-                reserved: binaryParser.getLong(),
+-                chromToId: {},
+-                chromSize: {},
+-                idToChrom: []
+-            };
+-            buildChromTree(chromTree, binaryParser);
+         }
+         return {
+             fileType: fileType,
+@@ -134,7 +129,26 @@ function loadHeaderData(dataLoader) {
+     });
+ }
+ exports.loadHeaderData = loadHeaderData;
+-function buildChromTree(chromTree, binaryParser, offset) {
++function parseChromTree(binaryParser, baseOffset) {
++    const magic = binaryParser.getUInt();
++    if (CHROM_TREE_MAGIC !== magic) {
++        throw new Error("Chomosome ID B+ Tree not found.");
++    }
++    const chromTree = {
++        magic: magic,
++        blockSize: binaryParser.getInt(),
++        keySize: binaryParser.getInt(),
++        valSize: binaryParser.getInt(),
++        itemCount: binaryParser.getLong(),
++        reserved: binaryParser.getLong(),
++        chromToId: {},
++        chromSize: {},
++        idToChrom: []
++    };
++    buildChromTree(chromTree, binaryParser, baseOffset);
++    return chromTree;
++}
++function buildChromTree(chromTree, binaryParser, baseOffset, offset) {
+     if (undefined !== offset) {
+         binaryParser.position = offset;
+     }
+@@ -155,9 +169,9 @@ function buildChromTree(chromTree, binaryParser, offset) {
+         for (let i = 0; i < count; i++) {
+             const key = binaryParser.getFixedLengthTrimmedString(chromTree.keySize);
+             const childOffset = binaryParser.getLong();
+-            const bufferOffset = childOffset - BBFILE_HEADER_SIZE;
++            const bufferOffset = childOffset - baseOffset;
+             const currOffset = binaryParser.position;
+-            buildChromTree(chromTree, binaryParser, bufferOffset);
++            buildChromTree(chromTree, binaryParser, baseOffset, bufferOffset);
+             binaryParser.position = currOffset;
+         }
+     }
