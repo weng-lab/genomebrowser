@@ -1209,24 +1209,6 @@
     "ome": "rna",
     "site": "CCH",
     "sample_id": "MOHD_ER100001",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100001_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "CCH",
-    "sample_id": "MOHD_ER100001",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100001_quant-isoform_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "CCH",
-    "sample_id": "MOHD_ER100001",
     "file_type": "Unique Signal Minus",
     "filename": "MOHD_ER100001_signal-minus-unique_GRCh38_v0.bigWig",
     "sex": "female",
@@ -1256,24 +1238,6 @@
     "sample_id": "MOHD_ER100002",
     "file_type": "All Signal Plus",
     "filename": "MOHD_ER100002_signal-plus-all_GRCh38_v0.bigWig",
-    "sex": "female",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "CCH",
-    "sample_id": "MOHD_ER100002",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100002_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "CCH",
-    "sample_id": "MOHD_ER100002",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100002_quant-isoform_GENCODE49_v0.tsv.gz",
     "sex": "female",
     "status": "case"
   },
@@ -1317,24 +1281,6 @@
     "ome": "rna",
     "site": "CCH",
     "sample_id": "MOHD_ER100003",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100003_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "control"
-  },
-  {
-    "ome": "rna",
-    "site": "CCH",
-    "sample_id": "MOHD_ER100003",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100003_quant-isoform_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "control"
-  },
-  {
-    "ome": "rna",
-    "site": "CCH",
-    "sample_id": "MOHD_ER100003",
     "file_type": "Unique Signal Minus",
     "filename": "MOHD_ER100003_signal-minus-unique_GRCh38_v0.bigWig",
     "sex": "female",
@@ -1364,24 +1310,6 @@
     "sample_id": "MOHD_ER100004",
     "file_type": "All Signal Plus",
     "filename": "MOHD_ER100004_signal-plus-all_GRCh38_v0.bigWig",
-    "sex": "female",
-    "status": "control"
-  },
-  {
-    "ome": "rna",
-    "site": "CKD",
-    "sample_id": "MOHD_ER100004",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100004_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "control"
-  },
-  {
-    "ome": "rna",
-    "site": "CKD",
-    "sample_id": "MOHD_ER100004",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100004_quant-isoform_GENCODE49_v0.tsv.gz",
     "sex": "female",
     "status": "control"
   },
@@ -1425,24 +1353,6 @@
     "ome": "rna",
     "site": "CKD",
     "sample_id": "MOHD_ER100005",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100005_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "male",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "CKD",
-    "sample_id": "MOHD_ER100005",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100005_quant-isoform_GENCODE49_v0.tsv.gz",
-    "sex": "male",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "CKD",
-    "sample_id": "MOHD_ER100005",
     "file_type": "Unique Signal Minus",
     "filename": "MOHD_ER100005_signal-minus-unique_GRCh38_v0.bigWig",
     "sex": "male",
@@ -1472,24 +1382,6 @@
     "sample_id": "MOHD_ER100006",
     "file_type": "All Signal Plus",
     "filename": "MOHD_ER100006_signal-plus-all_GRCh38_v0.bigWig",
-    "sex": "female",
-    "status": "control"
-  },
-  {
-    "ome": "rna",
-    "site": "CKD",
-    "sample_id": "MOHD_ER100006",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100006_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "control"
-  },
-  {
-    "ome": "rna",
-    "site": "CKD",
-    "sample_id": "MOHD_ER100006",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100006_quant-isoform_GENCODE49_v0.tsv.gz",
     "sex": "female",
     "status": "control"
   },
@@ -1533,24 +1425,6 @@
     "ome": "rna",
     "site": "EXP",
     "sample_id": "MOHD_ER100007",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100007_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "control"
-  },
-  {
-    "ome": "rna",
-    "site": "EXP",
-    "sample_id": "MOHD_ER100007",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100007_quant-isoform_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "control"
-  },
-  {
-    "ome": "rna",
-    "site": "EXP",
-    "sample_id": "MOHD_ER100007",
     "file_type": "Unique Signal Minus",
     "filename": "MOHD_ER100007_signal-minus-unique_GRCh38_v0.bigWig",
     "sex": "female",
@@ -1580,24 +1454,6 @@
     "sample_id": "MOHD_ER100008",
     "file_type": "All Signal Plus",
     "filename": "MOHD_ER100008_signal-plus-all_GRCh38_v0.bigWig",
-    "sex": "female",
-    "status": "control"
-  },
-  {
-    "ome": "rna",
-    "site": "EXP",
-    "sample_id": "MOHD_ER100008",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100008_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "control"
-  },
-  {
-    "ome": "rna",
-    "site": "EXP",
-    "sample_id": "MOHD_ER100008",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100008_quant-isoform_GENCODE49_v0.tsv.gz",
     "sex": "female",
     "status": "control"
   },
@@ -1641,24 +1497,6 @@
     "ome": "rna",
     "site": "EXP",
     "sample_id": "MOHD_ER100009",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100009_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "EXP",
-    "sample_id": "MOHD_ER100009",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100009_quant-isoform_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "EXP",
-    "sample_id": "MOHD_ER100009",
     "file_type": "Unique Signal Minus",
     "filename": "MOHD_ER100009_signal-minus-unique_GRCh38_v0.bigWig",
     "sex": "female",
@@ -1688,24 +1526,6 @@
     "sample_id": "MOHD_ER100010",
     "file_type": "All Signal Plus",
     "filename": "MOHD_ER100010_signal-plus-all_GRCh38_v0.bigWig",
-    "sex": "female",
-    "status": "unknown"
-  },
-  {
-    "ome": "rna",
-    "site": "MOM",
-    "sample_id": "MOHD_ER100010",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100010_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "unknown"
-  },
-  {
-    "ome": "rna",
-    "site": "MOM",
-    "sample_id": "MOHD_ER100010",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100010_quant-isoform_GENCODE49_v0.tsv.gz",
     "sex": "female",
     "status": "unknown"
   },
@@ -1749,24 +1569,6 @@
     "ome": "rna",
     "site": "MOM",
     "sample_id": "MOHD_ER100011",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100011_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "unknown"
-  },
-  {
-    "ome": "rna",
-    "site": "MOM",
-    "sample_id": "MOHD_ER100011",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100011_quant-isoform_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "unknown"
-  },
-  {
-    "ome": "rna",
-    "site": "MOM",
-    "sample_id": "MOHD_ER100011",
     "file_type": "Unique Signal Minus",
     "filename": "MOHD_ER100011_signal-minus-unique_GRCh38_v0.bigWig",
     "sex": "female",
@@ -1796,24 +1598,6 @@
     "sample_id": "MOHD_ER100012",
     "file_type": "All Signal Plus",
     "filename": "MOHD_ER100012_signal-plus-all_GRCh38_v0.bigWig",
-    "sex": "female",
-    "status": "unknown"
-  },
-  {
-    "ome": "rna",
-    "site": "MOM",
-    "sample_id": "MOHD_ER100012",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100012_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "unknown"
-  },
-  {
-    "ome": "rna",
-    "site": "MOM",
-    "sample_id": "MOHD_ER100012",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100012_quant-isoform_GENCODE49_v0.tsv.gz",
     "sex": "female",
     "status": "unknown"
   },
@@ -1857,24 +1641,6 @@
     "ome": "rna",
     "site": "UIC",
     "sample_id": "MOHD_ER100013",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100013_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "UIC",
-    "sample_id": "MOHD_ER100013",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100013_quant-isoform_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "UIC",
-    "sample_id": "MOHD_ER100013",
     "file_type": "Unique Signal Minus",
     "filename": "MOHD_ER100013_signal-minus-unique_GRCh38_v0.bigWig",
     "sex": "female",
@@ -1911,24 +1677,6 @@
     "ome": "rna",
     "site": "UIC",
     "sample_id": "MOHD_ER100014",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100014_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "UIC",
-    "sample_id": "MOHD_ER100014",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100014_quant-isoform_GENCODE49_v0.tsv.gz",
-    "sex": "female",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "UIC",
-    "sample_id": "MOHD_ER100014",
     "file_type": "Unique Signal Minus",
     "filename": "MOHD_ER100014_signal-minus-unique_GRCh38_v0.bigWig",
     "sex": "female",
@@ -1958,24 +1706,6 @@
     "sample_id": "MOHD_ER100015",
     "file_type": "All Signal Plus",
     "filename": "MOHD_ER100015_signal-plus-all_GRCh38_v0.bigWig",
-    "sex": "male",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "UIC",
-    "sample_id": "MOHD_ER100015",
-    "file_type": "Gene quantifications",
-    "filename": "MOHD_ER100015_quant-gene_GENCODE49_v0.tsv.gz",
-    "sex": "male",
-    "status": "case"
-  },
-  {
-    "ome": "rna",
-    "site": "UIC",
-    "sample_id": "MOHD_ER100015",
-    "file_type": "Isoform quantifications",
-    "filename": "MOHD_ER100015_quant-isoform_GENCODE49_v0.tsv.gz",
     "sex": "male",
     "status": "case"
   },
