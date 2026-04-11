@@ -15,6 +15,13 @@ const sampleIdCol: GridColDef<MohdRowInfo> = {
   flex: 1,
 };
 
+const trackCategoryCol: GridColDef<MohdRowInfo> = {
+  field: "trackCategory",
+  headerName: "Track Type",
+  minWidth: 140,
+  width: 140,
+};
+
 const omeCol: GridColDef<MohdRowInfo> = {
   field: "ome",
   headerName: "Ome",
@@ -45,6 +52,7 @@ const statusCol: GridColDef<MohdRowInfo> = {
 
 export const defaultColumns: GridColDef<MohdRowInfo>[] = [
   descriptionCol,
+  trackCategoryCol,
   sampleIdCol,
   omeCol,
   siteCol,

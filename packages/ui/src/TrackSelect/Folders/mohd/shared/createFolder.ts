@@ -29,10 +29,15 @@ function createFileRow(
   folderId: string,
   row: MohdDataFile[number],
 ): MohdRowInfo {
+  const trackCategory = row.filename.endsWith(".bigBed")
+    ? "Annotation"
+    : "Signal";
+
   return {
     ...createBaseRow(folderId, row),
     kind: "file",
     description: row.file_type,
+    trackCategory,
     filename: row.filename,
   };
 }
@@ -72,6 +77,7 @@ function createWgbsMethylRow(
     id: `${folderId}/${sampleId}`,
     kind: "wgbs-methyl",
     description: WG_BS_DESCRIPTION,
+    trackCategory: "Methylation",
     filenames: {
       plusStrand: {
         cpg: getRequiredWgbsFilename(sampleRows, sampleId, "DNAme-CpG-plus"),

@@ -95,6 +95,7 @@ describe("folder track creation helpers", () => {
         sex: "female",
         status: "case",
         description: "DNA Methylation",
+        trackCategory: "Methylation",
         filenames: {
           plusStrand: {
             cpg: "sample_DNAme-CpG-plus.bigWig",
@@ -122,6 +123,7 @@ describe("folder track creation helpers", () => {
         sex: "female",
         status: "case",
         description: "Fold change signal",
+        trackCategory: "Signal",
         filename: "sample.bigWig",
       },
       { assembly: "GRCh38" },
@@ -136,6 +138,7 @@ describe("folder track creation helpers", () => {
         sex: "female",
         status: "case",
         description: "Cytosine-level DNA methylation measurements",
+        trackCategory: "Annotation",
         filename: "sample_DNAme-cytosines.bigBed",
       },
       { assembly: "GRCh38" },
@@ -172,6 +175,10 @@ describe("folder track creation helpers", () => {
     expect(
       wgbsRows.find((row) => row.description === "DNA Methylation")?.id,
     ).toBe("human-mohd/MOHD_EB100001");
+    expect(
+      wgbsRows.find((row) => row.description === "DNA Methylation")
+        ?.trackCategory,
+    ).toBe("Methylation");
   });
 
   it("keeps non-WGBS rows as one row per source file", () => {
@@ -181,6 +188,19 @@ describe("folder track creation helpers", () => {
 
     expect(atacRows).toHaveLength(4);
     expect(atacRows.every((row) => row.kind === "file")).toBe(true);
+    expect(new Set(atacRows.map((row) => row.trackCategory))).toEqual(
+      new Set(["Signal", "Annotation"]),
+    );
+  });
+
+  it("derives track categories for MOHD rows", () => {
+    const wgbsAnnotationRow = humanMohdFolder.rows.find(
+      (row) =>
+        row.sampleId === "MOHD_EB100001" &&
+        row.description === "Cytosine-level DNA methylation measurements",
+    );
+
+    expect(wgbsAnnotationRow?.trackCategory).toBe("Annotation");
   });
 
   it("exposes an ome-first default MOHD view", () => {

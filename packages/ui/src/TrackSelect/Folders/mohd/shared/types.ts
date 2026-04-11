@@ -25,6 +25,7 @@ type MohdBaseRowInfo = {
   sex: string;
   status: string;
   description: string;
+  trackCategory: "Signal" | "Annotation" | "Methylation";
 };
 
 export type MohdFileRowInfo = MohdBaseRowInfo & {
