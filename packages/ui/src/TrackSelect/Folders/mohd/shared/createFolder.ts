@@ -117,10 +117,6 @@ function transformData(folderId: string, data: MohdDataFile): MohdRowInfo[] {
     );
 
     rows.push(createWgbsMethylRow(folderId, sampleRows));
-
-    sampleRows
-      .filter((sampleRow) => sampleRow.filename.endsWith(".bigBed"))
-      .forEach((sampleRow) => rows.push(createFileRow(folderId, sampleRow)));
   });
 
   return rows;
