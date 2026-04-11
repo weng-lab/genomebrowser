@@ -2,6 +2,7 @@ import { TrackType } from "@weng-lab/genomebrowser";
 import { describe, expect, it } from "vitest";
 import { createBiosampleTrack } from "../src/TrackSelect/Folders/biosamples/shared/toTrack";
 import { createGeneTrack } from "../src/TrackSelect/Folders/genes/shared/toTrack";
+import { humanMohdFolder } from "../src/TrackSelect/Folders/mohd/human";
 import { createMohdTrack } from "../src/TrackSelect/Folders/mohd/shared/toTrack";
 import { createOtherTrack } from "../src/TrackSelect/Folders/other-tracks/shared/toTrack";
 
@@ -76,23 +77,26 @@ describe("folder track creation helpers", () => {
   it("creates the expected track types for MOHD rows", () => {
     const wgbsTrack = createMohdTrack(
       {
-        id: "human-mohd/sample::wgbs",
+        id: "human-mohd/sample",
+        kind: "wgbs-methyl",
         sampleId: "sample",
-        assay: "WGBS",
-        fileName: "sample.wgbs",
-        fileType: "methylC",
-        urls: {
+        ome: "WGBS",
+        site: "CCH",
+        sex: "female",
+        status: "case",
+        description: "DNA Methylation",
+        filenames: {
           plusStrand: {
-            cpg: "https://example.test/plus.cpg.bw",
-            chg: "https://example.test/plus.chg.bw",
-            chh: "https://example.test/plus.chh.bw",
-            depth: "https://example.test/plus.depth.bw",
+            cpg: "sample_DNAme-CpG-plus.bigWig",
+            chg: "sample_DNAme-CHG-plus.bigWig",
+            chh: "sample_DNAme-CHH-plus.bigWig",
+            depth: "sample_coverage-plus.bigWig",
           },
           minusStrand: {
-            cpg: "https://example.test/minus.cpg.bw",
-            chg: "https://example.test/minus.chg.bw",
-            chh: "https://example.test/minus.chh.bw",
-            depth: "https://example.test/minus.depth.bw",
+            cpg: "sample_DNAme-CpG-minus.bigWig",
+            chg: "sample_DNAme-CHG-minus.bigWig",
+            chh: "sample_DNAme-CHH-minus.bigWig",
+            depth: "sample_coverage-minus.bigWig",
           },
         },
       },
@@ -101,17 +105,72 @@ describe("folder track creation helpers", () => {
     const signalTrack = createMohdTrack(
       {
         id: "human-mohd/sample::signal",
+        kind: "file",
         sampleId: "sample",
-        assay: "ATAC",
-        fileName: "sample.bigWig",
-        fileType: "bigWig",
-        url: "https://example.test/sample.bigWig",
+        ome: "ATAC",
+        site: "CCH",
+        sex: "female",
+        status: "case",
+        description: "Fold change signal",
+        filename: "sample.bigWig",
+      },
+      { assembly: "GRCh38" },
+    );
+    const bedTrack = createMohdTrack(
+      {
+        id: "human-mohd/sample::cytosines",
+        kind: "file",
+        sampleId: "sample",
+        ome: "WGBS",
+        site: "CCH",
+        sex: "female",
+        status: "case",
+        description: "Cytosine-level DNA methylation measurements",
+        filename: "sample_DNAme-cytosines.bed.gz",
       },
       { assembly: "GRCh38" },
     );
 
     expect(wgbsTrack?.trackType).toBe(TrackType.MethylC);
+    expect(wgbsTrack?.title).toBe("sample DNA Methylation");
+    expect(
+      "urls" in (wgbsTrack ?? {}) ? wgbsTrack?.urls.plusStrand.cpg.url : "",
+    ).toBe(
+      "https://downloads.mohd.org/1_WGBS/sample/sample_DNAme-CpG-plus.bigWig",
+    );
     expect(signalTrack?.trackType).toBe(TrackType.BigWig);
+    expect(signalTrack?.title).toBe("sample Fold change signal");
+    expect("url" in (signalTrack ?? {}) ? signalTrack?.url : "").toBe(
+      "https://downloads.mohd.org/2_ATAC/sample/sample.bigWig",
+    );
+    expect(bedTrack?.trackType).toBe(TrackType.BigBed);
+    expect("url" in (bedTrack ?? {}) ? bedTrack?.url : "").toBe(
+      "https://downloads.mohd.org/1_WGBS/sample/sample_DNAme-cytosines.bed.gz",
+    );
+  });
+
+  it("regroups WGBS rows into one methylation row plus one cytosines row", () => {
+    const wgbsRows = humanMohdFolder.rows.filter(
+      (row) => row.sampleId === "MOHD_EB100001",
+    );
+
+    expect(wgbsRows).toHaveLength(2);
+    expect(wgbsRows.map((row) => row.description).sort()).toEqual([
+      "Cytosine-level DNA methylation measurements",
+      "DNA Methylation",
+    ]);
+    expect(
+      wgbsRows.find((row) => row.description === "DNA Methylation")?.id,
+    ).toBe("human-mohd/MOHD_EB100001");
+  });
+
+  it("keeps non-WGBS rows as one row per source file", () => {
+    const atacRows = humanMohdFolder.rows.filter(
+      (row) => row.sampleId === "MOHD_EA100001",
+    );
+
+    expect(atacRows).toHaveLength(4);
+    expect(atacRows.every((row) => row.kind === "file")).toBe(true);
   });
 
   it("creates supported custom tracks and ignores unsupported rows", () => {

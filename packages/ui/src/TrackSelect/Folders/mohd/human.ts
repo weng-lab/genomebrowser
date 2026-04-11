@@ -5,6 +5,6 @@ import { MohdDataFile } from "./shared/types";
 export const humanMohdFolder = createMohdFolder({
   id: "human-mohd",
   label: "MOHD",
-  description: "Public MOHD signal and bundled WGBS tracks grouped by sample.",
+  description: "Public MOHD signal, methylation, and annotation tracks.",
   data: humanData as MohdDataFile,
 });

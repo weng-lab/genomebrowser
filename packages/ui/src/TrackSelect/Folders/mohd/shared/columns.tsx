@@ -1,6 +1,13 @@
 import { GridColDef } from "@mui/x-data-grid-premium";
 import { MohdRowInfo } from "./types";
 
+const descriptionCol: GridColDef<MohdRowInfo> = {
+  field: "description",
+  headerName: "Description",
+  minWidth: 220,
+  flex: 1.5,
+};
+
 const sampleIdCol: GridColDef<MohdRowInfo> = {
   field: "sampleId",
   headerName: "Sample ID",
@@ -8,34 +15,43 @@ const sampleIdCol: GridColDef<MohdRowInfo> = {
   flex: 1,
 };
 
-const assayCol: GridColDef<MohdRowInfo> = {
-  field: "assay",
-  headerName: "Assay",
+const omeCol: GridColDef<MohdRowInfo> = {
+  field: "ome",
+  headerName: "Ome",
   minWidth: 120,
   width: 120,
 };
 
-const fileTypeCol: GridColDef<MohdRowInfo> = {
-  field: "fileType",
-  headerName: "File Type",
-  minWidth: 200,
+const siteCol: GridColDef<MohdRowInfo> = {
+  field: "site",
+  headerName: "Site",
+  minWidth: 100,
+  width: 100,
+};
+
+const sexCol: GridColDef<MohdRowInfo> = {
+  field: "sex",
+  headerName: "Sex",
+  minWidth: 120,
+  width: 120,
+};
+
+const statusCol: GridColDef<MohdRowInfo> = {
+  field: "status",
+  headerName: "Status",
+  minWidth: 120,
   flex: 1,
 };
 
-const fileNameCol: GridColDef<MohdRowInfo> = {
-  field: "fileName",
-  headerName: "File Name",
-  minWidth: 320,
-  flex: 2,
-};
-
 export const defaultColumns: GridColDef<MohdRowInfo>[] = [
+  descriptionCol,
   sampleIdCol,
-  assayCol,
-  fileTypeCol,
-  fileNameCol,
+  omeCol,
+  siteCol,
+  sexCol,
+  statusCol,
 ];
 
 export const defaultGroupingModel = ["sampleId"];
 
-export const defaultLeafField = "fileName";
+export const defaultLeafField = "description";

@@ -1,4 +1,5 @@
 import {
+  BigBedConfig,
   BigWigConfig,
   DisplayMode,
   MethylCConfig,
@@ -8,16 +9,12 @@ import {
 } from "@weng-lab/genomebrowser";
 import type { FC } from "react";
 import { CreateTrackOptions } from "../../types";
-import { MohdRowInfo, MohdWgbsTrackInfo } from "./types";
+import { createMohdFileUrl, getMohdOmeConfig } from "./config";
+import { MohdFileRowInfo, MohdRowInfo, MohdWgbsMethylRowInfo } from "./types";
 
 export type MohdTrackContext = {
   mohdSignalTooltip?: FC<ValuedPoint[]>;
   mohdMethylTooltip?: FC<ValuedPoint[]>;
-};
-
-const assayColors: Record<string, string> = {
-  ATAC: "#02c7b9",
-  RNA: "#00aa00",
 };
 
 const defaultBigWig: Omit<BigWigConfig, "id" | "title" | "url"> = {
@@ -26,6 +23,13 @@ const defaultBigWig: Omit<BigWigConfig, "id" | "title" | "url"> = {
   displayMode: DisplayMode.Full,
   titleSize: 12,
   color: "#02c7b9",
+};
+
+const defaultBigBed: Omit<BigBedConfig, "id" | "title" | "url"> = {
+  trackType: TrackType.BigBed,
+  height: 20,
+  displayMode: DisplayMode.Dense,
+  titleSize: 12,
 };
 
 const defaultMethylC: Omit<MethylCConfig, "id" | "title" | "urls"> = {
@@ -43,8 +47,16 @@ const defaultMethylC: Omit<MethylCConfig, "id" | "title" | "urls"> = {
   },
 };
 
-function isWgbsRow(row: MohdRowInfo): row is MohdRowInfo & MohdWgbsTrackInfo {
-  return row.assay === "WGBS" && "urls" in row;
+function isWgbsRow(row: MohdRowInfo): row is MohdWgbsMethylRowInfo {
+  return row.kind === "wgbs-methyl";
+}
+
+function isFileRow(row: MohdRowInfo): row is MohdFileRowInfo {
+  return row.kind === "file";
+}
+
+function createTrackTitle(row: MohdRowInfo) {
+  return `${row.sampleId} ${row.description}`;
 }
 
 export function createMohdTrack(
@@ -57,35 +69,104 @@ export function createMohdTrack(
     return {
       ...defaultMethylC,
       id: row.id,
-      title: row.fileName,
+      title: createTrackTitle(row),
       tooltip: trackContext?.mohdMethylTooltip,
       urls: {
         plusStrand: {
-          cpg: { url: row.urls.plusStrand.cpg },
-          chg: { url: row.urls.plusStrand.chg },
-          chh: { url: row.urls.plusStrand.chh },
-          depth: { url: row.urls.plusStrand.depth },
+          cpg: {
+            url: createMohdFileUrl({
+              ome: row.ome,
+              sampleId: row.sampleId,
+              filename: row.filenames.plusStrand.cpg,
+            }),
+          },
+          chg: {
+            url: createMohdFileUrl({
+              ome: row.ome,
+              sampleId: row.sampleId,
+              filename: row.filenames.plusStrand.chg,
+            }),
+          },
+          chh: {
+            url: createMohdFileUrl({
+              ome: row.ome,
+              sampleId: row.sampleId,
+              filename: row.filenames.plusStrand.chh,
+            }),
+          },
+          depth: {
+            url: createMohdFileUrl({
+              ome: row.ome,
+              sampleId: row.sampleId,
+              filename: row.filenames.plusStrand.depth,
+            }),
+          },
         },
         minusStrand: {
-          cpg: { url: row.urls.minusStrand.cpg },
-          chg: { url: row.urls.minusStrand.chg },
-          chh: { url: row.urls.minusStrand.chh },
-          depth: { url: row.urls.minusStrand.depth },
+          cpg: {
+            url: createMohdFileUrl({
+              ome: row.ome,
+              sampleId: row.sampleId,
+              filename: row.filenames.minusStrand.cpg,
+            }),
+          },
+          chg: {
+            url: createMohdFileUrl({
+              ome: row.ome,
+              sampleId: row.sampleId,
+              filename: row.filenames.minusStrand.chg,
+            }),
+          },
+          chh: {
+            url: createMohdFileUrl({
+              ome: row.ome,
+              sampleId: row.sampleId,
+              filename: row.filenames.minusStrand.chh,
+            }),
+          },
+          depth: {
+            url: createMohdFileUrl({
+              ome: row.ome,
+              sampleId: row.sampleId,
+              filename: row.filenames.minusStrand.depth,
+            }),
+          },
         },
       },
     };
   }
 
-  if (!row.fileName.endsWith(".bigWig")) {
+  if (!isFileRow(row)) {
     return null;
   }
 
-  return {
-    ...defaultBigWig,
-    id: row.id,
-    title: row.fileName,
-    url: row.url,
-    color: assayColors[row.assay] ?? defaultBigWig.color,
-    tooltip: trackContext?.mohdSignalTooltip,
-  };
+  const { color } = getMohdOmeConfig(row.ome);
+  const url = createMohdFileUrl({
+    ome: row.ome,
+    sampleId: row.sampleId,
+    filename: row.filename,
+  });
+
+  if (row.filename.endsWith(".bigWig")) {
+    return {
+      ...defaultBigWig,
+      id: row.id,
+      title: createTrackTitle(row),
+      url,
+      color,
+      tooltip: trackContext?.mohdSignalTooltip,
+    };
+  }
+
+  if (row.filename.endsWith(".bed.gz")) {
+    return {
+      ...defaultBigBed,
+      id: row.id,
+      title: createTrackTitle(row),
+      url,
+      color,
+    };
+  }
+
+  return null;
 }

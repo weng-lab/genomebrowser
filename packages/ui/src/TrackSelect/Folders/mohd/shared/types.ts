@@ -1,9 +1,4 @@
-export type MohdSignalTrackInfo = {
-  assay: string;
-  fileName: string;
-  fileType: string;
-  url: string;
-};
+import type { MohdOme } from "./config";
 
 export type MohdMethylStrandUrls = {
   cpg: string;
@@ -12,28 +7,39 @@ export type MohdMethylStrandUrls = {
   depth: string;
 };
 
-export type MohdWgbsTrackInfo = {
-  assay: "WGBS";
-  fileName: string;
-  fileType: string;
-  urls: {
+export type MohdDataRow = {
+  ome: string;
+  site: string;
+  sample_id: string;
+  file_type: string;
+  filename: string;
+  sex: string;
+  status: string;
+};
+
+type MohdBaseRowInfo = {
+  id: string;
+  ome: MohdOme;
+  site: string;
+  sampleId: string;
+  sex: string;
+  status: string;
+  description: string;
+};
+
+export type MohdFileRowInfo = MohdBaseRowInfo & {
+  kind: "file";
+  filename: string;
+};
+
+export type MohdWgbsMethylRowInfo = MohdBaseRowInfo & {
+  kind: "wgbs-methyl";
+  filenames: {
     plusStrand: MohdMethylStrandUrls;
     minusStrand: MohdMethylStrandUrls;
   };
 };
 
-export type MohdTrackInfo = MohdSignalTrackInfo | MohdWgbsTrackInfo;
+export type MohdRowInfo = MohdFileRowInfo | MohdWgbsMethylRowInfo;
 
-export type MohdSampleInfo = {
-  sampleId: string;
-  rows: MohdTrackInfo[];
-};
-
-export type MohdRowInfo = MohdTrackInfo & {
-  id: string;
-  sampleId: string;
-};
-
-export type MohdDataFile = {
-  samples: MohdSampleInfo[];
-};
+export type MohdDataFile = MohdDataRow[];

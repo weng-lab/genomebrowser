@@ -1,0 +1,45 @@
+export const MOHD_BASE_URL = "https://downloads.mohd.org";
+
+export const MOHD_OME_CONFIG = {
+  atac: {
+    label: "ATAC",
+    color: "#02c7b9",
+    downloadPath: "2_ATAC",
+  },
+  rna: {
+    label: "RNA",
+    color: "#00aa00",
+    downloadPath: "3_RNA",
+  },
+  wgbs: {
+    label: "WGBS",
+    color: "#648bd8",
+    downloadPath: "1_WGBS",
+  },
+} as const;
+
+export type MohdRawOme = keyof typeof MOHD_OME_CONFIG;
+export type MohdOme = (typeof MOHD_OME_CONFIG)[MohdRawOme]["label"];
+
+export function getMohdOmeConfig(rawOme: string) {
+  const config = MOHD_OME_CONFIG[rawOme.toLowerCase() as MohdRawOme];
+
+  if (!config) {
+    throw new Error(`Unknown MOHD ome: ${rawOme}`);
+  }
+
+  return config;
+}
+
+export function createMohdFileUrl({
+  ome,
+  sampleId,
+  filename,
+}: {
+  ome: string;
+  sampleId: string;
+  filename: string;
+}) {
+  const { downloadPath } = getMohdOmeConfig(ome);
+  return `${MOHD_BASE_URL}/${downloadPath}/${sampleId}/${filename}`;
+}
