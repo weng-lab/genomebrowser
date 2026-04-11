@@ -6,6 +6,8 @@ import {
   defaultGroupingModel,
   defaultLeafField,
 } from "./columns";
+import { MohdGroupingCell } from "./MohdGroupingCell";
+import { MohdTreeItem } from "./MohdTreeItem";
 import { createMohdTrack } from "./toTrack";
 
 const WG_BS_DESCRIPTION = "DNA Methylation";
@@ -148,5 +150,7 @@ export function createMohdFolder(
     leafField: defaultLeafField,
     createTrack: createMohdTrack,
     views,
+    GroupingCellComponent: MohdGroupingCell,
+    TreeItemComponent: MohdTreeItem,
   };
 }

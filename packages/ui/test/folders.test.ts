@@ -1,7 +1,14 @@
 import { TrackType } from "@weng-lab/genomebrowser";
 import { describe, expect, it } from "vitest";
+import { vi } from "vitest";
 import { createBiosampleTrack } from "../src/TrackSelect/Folders/biosamples/shared/toTrack";
 import { createGeneTrack } from "../src/TrackSelect/Folders/genes/shared/toTrack";
+vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdGroupingCell", () => ({
+  MohdGroupingCell: () => null,
+}));
+vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdTreeItem", () => ({
+  MohdTreeItem: () => null,
+}));
 import { humanMohdFolder } from "../src/TrackSelect/Folders/mohd/human";
 import { createMohdTrack } from "../src/TrackSelect/Folders/mohd/shared/toTrack";
 import { createOtherTrack } from "../src/TrackSelect/Folders/other-tracks/shared/toTrack";

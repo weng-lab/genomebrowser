@@ -1,3 +1,6 @@
+import { Box } from "@mui/material";
+import { createElement } from "react";
+
 export const MOHD_BASE_URL = "https://downloads.mohd.org";
 
 export const MOHD_OME_CONFIG = {
@@ -21,6 +24,10 @@ export const MOHD_OME_CONFIG = {
 export type MohdRawOme = keyof typeof MOHD_OME_CONFIG;
 export type MohdOme = (typeof MOHD_OME_CONFIG)[MohdRawOme]["label"];
 
+const MOHD_OME_LABELS = Object.values(MOHD_OME_CONFIG).map(
+  (config) => config.label,
+);
+
 export function getMohdOmeConfig(rawOme: string) {
   const config = MOHD_OME_CONFIG[rawOme.toLowerCase() as MohdRawOme];
 
@@ -42,4 +49,22 @@ export function createMohdFileUrl({
 }) {
   const { downloadPath } = getMohdOmeConfig(ome);
   return `${MOHD_BASE_URL}/${downloadPath}/${sampleId}/${filename}`;
+}
+
+export function isMohdOmeLabel(value: string) {
+  return MOHD_OME_LABELS.includes(value as MohdOme);
+}
+
+export function MohdOmeIcon(type: string) {
+  const { color } = getMohdOmeConfig(type);
+
+  return createElement(Box, {
+    "data-testid": `mohd-ome-icon-${type.toLowerCase()}`,
+    sx: {
+      width: 12,
+      height: 12,
+      borderRadius: "20%",
+      bgcolor: color,
+    },
+  });
 }

@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { buildSelectedTree } from "../src/TrackSelect/buildSelectedTree";
+vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdGroupingCell", () => ({
+  MohdGroupingCell: () => null,
+}));
+vi.mock("../src/TrackSelect/Folders/mohd/shared/MohdTreeItem", () => ({
+  MohdTreeItem: () => null,
+}));
 import { humanMohdFolder } from "../src/TrackSelect/Folders/mohd/human";
 import { FolderDefinition } from "../src/TrackSelect/Folders/types";
 import { resolveFolderView } from "../src/TrackSelect/resolveFolderView";

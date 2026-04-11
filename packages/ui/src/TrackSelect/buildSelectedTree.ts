@@ -22,6 +22,10 @@ const toLabel = (value: unknown, fallback: string) => {
   return String(value);
 };
 
+const isHighlightedField = (field: string) => {
+  return field === "assay" || field === "ome";
+};
+
 const createRootNode = (
   folderId: string,
   rootLabel: string,
@@ -49,8 +53,8 @@ const createLeafNode = (
     rowId: row.id,
     label,
     icon: "removeable",
-    assayName: leafField === "assay" ? label : undefined,
-    isAssayItem: leafField === "assay",
+    assayName: isHighlightedField(leafField) ? label : undefined,
+    isAssayItem: isHighlightedField(leafField),
     children: [],
     allExpAccessions: [row.id],
   };
@@ -97,8 +101,8 @@ const appendGroupedRows = (
       value,
       label: value,
       icon: "removeable",
-      assayName: field === "assay" ? value : undefined,
-      isAssayItem: field === "assay",
+      assayName: isHighlightedField(field) ? value : undefined,
+      isAssayItem: isHighlightedField(field),
       children: [],
       allExpAccessions: [],
     };
