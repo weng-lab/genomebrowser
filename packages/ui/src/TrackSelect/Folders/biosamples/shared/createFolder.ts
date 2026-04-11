@@ -14,7 +14,7 @@ import {
   sortedByAssayLeafField,
 } from "./columns";
 import { formatAssayType } from "./constants";
-import { AssayToggle } from "./AssayToggle";
+import { BiosampleViewSelector } from "./BiosampleViewSelector";
 import BiosampleGroupingCell from "./BiosampleGroupingCell";
 import { BiosampleTreeItem } from "./BiosampleTreeItem";
 import { createBiosampleTrack } from "./toTrack";
@@ -112,7 +112,7 @@ export function createBiosampleFolder(
     leafField: defaultLeafField,
     createTrack: createBiosampleTrack,
     views,
-    ViewSelector: AssayToggle,
+    ViewSelector: BiosampleViewSelector,
     GroupingCellComponent: BiosampleGroupingCell,
     TreeItemComponent: BiosampleTreeItem,
   };

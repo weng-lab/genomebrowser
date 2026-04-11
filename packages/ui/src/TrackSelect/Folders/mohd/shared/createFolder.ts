@@ -11,7 +11,7 @@ import { MohdTreeItem } from "./MohdTreeItem";
 import { createMohdTrack } from "./toTrack";
 import { MohdViewSelector } from "./MohdViewSelector";
 
-const WG_BS_DESCRIPTION = "DNA Methylation";
+const WGBS_DESCRIPTION = "DNA Methylation";
 const siteGroupingModel = ["site", "ome", "sampleId"];
 
 function createBaseRow(folderId: string, row: MohdDataFile[number]) {
@@ -43,18 +43,13 @@ function createFileRow(
 }
 
 function getRequiredWgbsFilename(
-  rows: MohdDataFile,
-  sampleId: string,
+  sampleRows: MohdDataFile,
   includesText: string,
 ) {
-  const match = rows.find(
-    (row) => row.sample_id === sampleId && row.filename.includes(includesText),
-  );
+  const match = sampleRows.find((row) => row.filename.includes(includesText));
 
   if (!match) {
-    throw new Error(
-      `Missing WGBS file for ${sampleId} matching ${includesText}`,
-    );
+    throw new Error(`Missing WGBS file matching ${includesText}`);
   }
 
   return match.filename;
@@ -76,50 +71,51 @@ function createWgbsMethylRow(
     ...base,
     id: `${folderId}/${sampleId}`,
     kind: "wgbs-methyl",
-    description: WG_BS_DESCRIPTION,
+    description: WGBS_DESCRIPTION,
     trackCategory: "Methylation",
     filenames: {
       plusStrand: {
-        cpg: getRequiredWgbsFilename(sampleRows, sampleId, "DNAme-CpG-plus"),
-        chg: getRequiredWgbsFilename(sampleRows, sampleId, "DNAme-CHG-plus"),
-        chh: getRequiredWgbsFilename(sampleRows, sampleId, "DNAme-CHH-plus"),
-        depth: getRequiredWgbsFilename(sampleRows, sampleId, "coverage-plus"),
+        cpg: getRequiredWgbsFilename(sampleRows, "DNAme-CpG-plus"),
+        chg: getRequiredWgbsFilename(sampleRows, "DNAme-CHG-plus"),
+        chh: getRequiredWgbsFilename(sampleRows, "DNAme-CHH-plus"),
+        depth: getRequiredWgbsFilename(sampleRows, "coverage-plus"),
       },
       minusStrand: {
-        cpg: getRequiredWgbsFilename(sampleRows, sampleId, "DNAme-CpG-minus"),
-        chg: getRequiredWgbsFilename(sampleRows, sampleId, "DNAme-CHG-minus"),
-        chh: getRequiredWgbsFilename(sampleRows, sampleId, "DNAme-CHH-minus"),
-        depth: getRequiredWgbsFilename(sampleRows, sampleId, "coverage-minus"),
+        cpg: getRequiredWgbsFilename(sampleRows, "DNAme-CpG-minus"),
+        chg: getRequiredWgbsFilename(sampleRows, "DNAme-CHG-minus"),
+        chh: getRequiredWgbsFilename(sampleRows, "DNAme-CHH-minus"),
+        depth: getRequiredWgbsFilename(sampleRows, "coverage-minus"),
       },
     },
   };
 }
 
 function transformData(folderId: string, data: MohdDataFile): MohdRowInfo[] {
-  const rows: MohdRowInfo[] = [];
-  const handledWgbsSamples = new Set<string>();
+  const signalRows = data
+    .filter((row) => row.ome !== "wgbs")
+    .map((row) => createFileRow(folderId, row));
+  const wgbsRowsBySampleId = new Map<string, MohdDataFile>();
 
   data.forEach((row) => {
     if (row.ome !== "wgbs") {
-      rows.push(createFileRow(folderId, row));
       return;
     }
 
-    if (handledWgbsSamples.has(row.sample_id)) {
+    const sampleRows = wgbsRowsBySampleId.get(row.sample_id);
+
+    if (sampleRows) {
+      sampleRows.push(row);
       return;
     }
 
-    handledWgbsSamples.add(row.sample_id);
-
-    const sampleRows = data.filter(
-      (candidate) =>
-        candidate.ome === "wgbs" && candidate.sample_id === row.sample_id,
-    );
-
-    rows.push(createWgbsMethylRow(folderId, sampleRows));
+    wgbsRowsBySampleId.set(row.sample_id, [row]);
   });
 
-  return rows;
+  const methylationRows = Array.from(wgbsRowsBySampleId.values()).map(
+    (sampleRows) => createWgbsMethylRow(folderId, sampleRows),
+  );
+
+  return [...signalRows, ...methylationRows];
 }
 
 export interface CreateMohdFolderOptions {
