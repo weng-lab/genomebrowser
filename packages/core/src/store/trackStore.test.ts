@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { TrackType } from "../components/tracks/types";
+import { DisplayMode, TrackType } from "../components/tracks/types";
 import { Track, createTrackStore } from "./trackStore";
 
 const makeTrack = (id: string): Track => ({
   id,
   title: id,
   height: 40,
-  trackType: TrackType.Custom,
+  displayMode: DisplayMode.Full,
+  trackType: TrackType.Manhattan,
 });
 
 describe("trackStore bulk operations", () => {
