@@ -86,7 +86,7 @@ export function createBiosampleTrack(
         title: row.displayName,
         color,
         onClick: trackContext?.onBiosampleFeatureClick
-          ? (rect) =>
+          ? (rect: Rect) =>
               trackContext.onBiosampleFeatureClick?.({
                 trackId: row.id,
                 row,
@@ -94,7 +94,7 @@ export function createBiosampleTrack(
               })
           : undefined,
         onHover: trackContext?.onBiosampleFeatureHover
-          ? (rect) =>
+          ? (rect: Rect) =>
               trackContext.onBiosampleFeatureHover?.({
                 trackId: row.id,
                 row,

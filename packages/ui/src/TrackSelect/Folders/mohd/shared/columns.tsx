@@ -61,7 +61,7 @@ export const mohdColumns: GridColDef<MohdRowInfo>[] = [
   statusCol,
 ];
 
-export const mohdViews: FolderView<MohdRowInfo>[] = [
+export const mohdViews: FolderView[] = [
   {
     id: "ome",
     label: "Ome",

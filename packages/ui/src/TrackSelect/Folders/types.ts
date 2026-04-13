@@ -1,11 +1,11 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
 import { Track } from "@weng-lab/genomebrowser";
 import type { TrackSelectTrackContext } from "../trackContext";
-import { ExtendedTreeItemProps, CustomTreeItemProps } from "../types";
+import { CustomTreeItemProps } from "../types";
 
 export type Assembly = "GRCh38" | "mm10";
 
-export interface FolderView<TRow = any> {
+export interface FolderView {
   id: string;
   label: string;
   columns: GridColDef[];
@@ -46,9 +46,9 @@ export interface FolderDefinition<TRow = any> {
    */
   createTrack: (row: TRow, options: CreateTrackOptions) => Track | null;
 
-  views?: FolderView<TRow>[];
+  views?: FolderView[];
   ViewSelector?: React.FC<{
-    views: FolderView<TRow>[];
+    views: FolderView[];
     activeViewId: string;
     onChange: (viewId: string) => void;
   }>;

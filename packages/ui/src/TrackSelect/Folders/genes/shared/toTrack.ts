@@ -47,11 +47,11 @@ export function createGeneTrack(
     assembly: options.assembly,
     version: row.versions[row.versions.length - 1],
     onClick: trackContext?.onGeneClick
-      ? (transcript) =>
+      ? (transcript: Transcript) =>
           trackContext.onGeneClick?.({ trackId: row.id, row, transcript })
       : undefined,
     onHover: trackContext?.onGeneHover
-      ? (transcript) =>
+      ? (transcript: Transcript) =>
           trackContext.onGeneHover?.({ trackId: row.id, row, transcript })
       : undefined,
     tooltip: trackContext?.geneTooltip,

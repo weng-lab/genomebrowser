@@ -1,9 +1,8 @@
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { FolderView } from "../../types";
-import { MohdRowInfo } from "./types";
 
 export interface MohdViewSelectorProps {
-  views: FolderView<MohdRowInfo>[];
+  views: FolderView[];
   activeViewId: string;
   onChange: (viewId: string) => void;
 }

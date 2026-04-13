@@ -1,9 +1,8 @@
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { FolderView } from "../../types";
-import { BiosampleRowInfo } from "./types";
 
 export interface BiosampleViewSelectorProps {
-  views: FolderView<BiosampleRowInfo>[];
+  views: FolderView[];
   activeViewId: string;
   onChange: (viewId: string) => void;
 }

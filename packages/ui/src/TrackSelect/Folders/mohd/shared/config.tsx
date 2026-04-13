@@ -1,5 +1,4 @@
 import { Box } from "@mui/material";
-import { createElement } from "react";
 
 export const MOHD_BASE_URL = "https://downloads.mohdconsortium.org";
 
@@ -58,13 +57,15 @@ export function isMohdOmeLabel(value: string) {
 export function MohdOmeIcon({ type }: { type: string }) {
   const { color } = getMohdOmeConfig(type);
 
-  return createElement(Box, {
-    "data-testid": `mohd-ome-icon-${type.toLowerCase()}`,
-    sx: {
-      width: 12,
-      height: 12,
-      borderRadius: "20%",
-      bgcolor: color,
-    },
-  });
+  return (
+    <Box
+      data-testid={`mohd-ome-icon-${type.toLowerCase()}`}
+      sx={{
+        width: 12,
+        height: 12,
+        borderRadius: "20%",
+        bgcolor: color,
+      }}
+    />
+  );
 }

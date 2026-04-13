@@ -10,7 +10,7 @@ import {
   IconButton,
   Stack,
 } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Assembly, FolderDefinition } from "./Folders/types";
 import { DataGridWrapper } from "./DataGrid/DataGridWrapper";
 import { ClearDialog } from "./Dialogs/ClearDialog";
