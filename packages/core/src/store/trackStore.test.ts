@@ -32,4 +32,34 @@ describe("trackStore bulk operations", () => {
 
     expect(trackStore.getState().tracks.map((track) => track.id)).toEqual(["external", "managed-b"]);
   });
+
+  it("reorders tracks using the provided ids", () => {
+    const trackA = makeTrack("a");
+    const trackB = makeTrack("b");
+    const trackC = makeTrack("c");
+    const trackStore = createTrackStore([trackA, trackB, trackC]);
+
+    trackStore.getState().reorderTracks(["c", "a", "b"]);
+
+    expect(trackStore.getState().ids).toEqual(["c", "a", "b"]);
+    expect(trackStore.getState().tracks).toEqual([trackC, trackA, trackB]);
+  });
+
+  it("throws when reordering omits an existing id", () => {
+    const trackStore = createTrackStore([makeTrack("a"), makeTrack("b"), makeTrack("c")]);
+
+    expect(() => trackStore.getState().reorderTracks(["c", "a"])).toThrowError("Invalid track order");
+  });
+
+  it("throws when reordering includes an unknown id", () => {
+    const trackStore = createTrackStore([makeTrack("a"), makeTrack("b"), makeTrack("c")]);
+
+    expect(() => trackStore.getState().reorderTracks(["c", "a", "missing"])).toThrowError("Invalid track order");
+  });
+
+  it("throws when reordering includes a duplicate id", () => {
+    const trackStore = createTrackStore([makeTrack("a"), makeTrack("b"), makeTrack("c")]);
+
+    expect(() => trackStore.getState().reorderTracks(["c", "a", "a"])).toThrowError("Invalid track order");
+  });
 });

@@ -36,6 +36,7 @@ export interface TrackStore {
   tracks: Track[];
   ids: string[];
   setTracks: (tracks: Track[]) => void;
+  reorderTracks: (idsInOrder: string[]) => void;
   getTotalHeight: (browserTitleSize: number) => number;
   getPrevHeights: (id: string, browserTitleSize: number) => number;
   getDistances: (id: string, browserTitleSize: number) => number[];
@@ -75,6 +76,35 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
     tracks,
     ids: tracks.map((track) => track.id),
     setTracks: (tracks: Track[]) => set({ tracks, ids: tracks.map((track) => track.id) }),
+    reorderTracks: (idsInOrder: string[]) => {
+      const state = get();
+
+      if (idsInOrder.length !== state.tracks.length) {
+        throw new Error("Invalid track order");
+      }
+
+      const tracksById = new Map(state.tracks.map((track) => [track.id, track]));
+      const seenIds = new Set<string>();
+      const reorderedTracks = idsInOrder.map((id) => {
+        if (seenIds.has(id)) {
+          throw new Error("Invalid track order");
+        }
+
+        const track = tracksById.get(id);
+        if (!track) {
+          throw new Error("Invalid track order");
+        }
+
+        seenIds.add(id);
+        return track;
+      });
+
+      if (seenIds.size !== state.tracks.length) {
+        throw new Error("Invalid track order");
+      }
+
+      set({ tracks: reorderedTracks, ids: idsInOrder });
+    },
     createShortLabel: (id: string) => {
       if (id === "ruler") {
         return "Ruler";
