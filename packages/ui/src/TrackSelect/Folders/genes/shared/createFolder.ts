@@ -11,6 +11,7 @@ import { createGeneTrack } from "./toTrack";
 function trackToRow(folderId: string, track: GeneTrackInfo): GeneRowInfo {
   return {
     id: `${folderId}/${track.id}`,
+    trackId: track.id,
     displayName: track.displayName,
     versions: track.versions,
   };

@@ -19,6 +19,8 @@ export type GeneTrackInfo = {
  */
 export type GeneRowInfo = {
   id: string;
+  /** The raw track ID without the folder prefix, used as the tree view leaf label */
+  trackId: string;
   displayName: string;
   versions: number[];
 };

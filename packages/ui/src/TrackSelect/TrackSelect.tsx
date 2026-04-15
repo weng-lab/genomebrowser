@@ -376,8 +376,8 @@ export default function TrackSelect({
     <Dialog open={open} onClose={handleCancel} maxWidth="lg" fullWidth>
       <DialogTitle
         sx={{
-          bgcolor: "#0c184a",
-          color: "white",
+          bgcolor: "primary.main",
+          color: "primary.contrastText",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -388,7 +388,7 @@ export default function TrackSelect({
         <IconButton
           size="large"
           onClick={handleCancel}
-          sx={{ color: "white", p: 0 }}
+          sx={{ color: "primary.contrastText", p: 0 }}
         >
           <CloseIcon fontSize="large" />
         </IconButton>

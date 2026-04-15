@@ -37,6 +37,6 @@ export const defaultColumns: GridColDef<GeneRowInfo>[] = [
 export const defaultGroupingModel: string[] = [];
 
 /**
- * Leaf field - the unique identifier
+ * Leaf field - the raw track ID (without folder prefix) used as the tree view leaf label
  */
-export const defaultLeafField = "id";
+export const defaultLeafField = "trackId";

@@ -18,8 +18,8 @@ export function ResetDialog({ open, onClose, onConfirm }: ResetDialogProps) {
     <Dialog open={open} onClose={onClose}>
       <DialogTitle
         sx={{
-          bgcolor: "#0c184a",
-          color: "white",
+          bgcolor: "primary.main",
+          color: "primary.contrastText",
           fontWeight: "bold",
         }}
       >

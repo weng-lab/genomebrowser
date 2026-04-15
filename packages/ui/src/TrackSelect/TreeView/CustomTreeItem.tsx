@@ -30,13 +30,13 @@ const TreeItemRoot = styled("li")(({ theme }) => ({
   }),
 }));
 
-const TreeItemLabelText = styled(Typography)({
-  color: "black",
+const TreeItemLabelText = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.primary,
   fontFamily: "inherit",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
-});
+}));
 
 function CustomLabel({
   icon: Icon,
