@@ -39,7 +39,7 @@ export interface RenderableBigBedRow {
 
 type BivariantCallback<Item> = { bivarianceHack(item: Item): void }["bivarianceHack"];
 
-type BivariantTooltip<Item> = { bivarianceHack(props: Item): React.ReactElement | null }["bivarianceHack"];
+type BivariantTooltip<Item> = { bivarianceHack(props: Item): ReturnType<React.FC<any>> }["bivarianceHack"];
 
 interface BigBedInteractionConfig<Item> extends Omit<
   InteractionConfig<Item>,
@@ -82,7 +82,7 @@ export interface Rect {
   end: number;
   color?: string;
   name?: string;
-  score?: number | string;
+  score?: number;
 }
 
 export interface SquishRect {
@@ -91,13 +91,24 @@ export interface SquishRect {
   color?: string;
   name?: string;
   rectname?: string;
-  score?: number | string;
+  score?: number;
 }
 
-export interface RenderedRect<Row extends RenderableBigBedRow = Rect> extends Rect {
+export interface RenderedRect<Row extends RenderableBigBedRow = Rect> {
+  start: number;
+  end: number;
+  color?: Row["color"];
+  name?: Row["name"];
+  score?: Row["score"];
   row: Row;
 }
 
-export interface RenderedSquishRect<Row extends RenderableBigBedRow = Rect> extends SquishRect {
+export interface RenderedSquishRect<Row extends RenderableBigBedRow = Rect> {
+  start: number;
+  end: number;
+  color?: Row["color"];
+  name?: Row["name"];
+  score?: Row["score"];
+  rectname?: string;
   row: Row;
 }

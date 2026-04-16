@@ -4,9 +4,9 @@ import { useXTransform } from "../../../hooks/useXTransform";
 // import { useTheme } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderDenseBigBedData } from "./helpers";
-import { DenseBigBedProps, RenderableBigBedRow, RenderedRect } from "./types";
+import { DenseBigBedProps, Rect, RenderableBigBedRow, RenderedRect } from "./types";
 
-function DenseBigBed<Row extends RenderableBigBedRow = RenderableBigBedRow>({
+function DenseBigBed<Row extends RenderableBigBedRow = Rect>({
   id,
   data,
   height,

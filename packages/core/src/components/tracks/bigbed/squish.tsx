@@ -6,9 +6,9 @@ import { useBrowserStore } from "../../../store/BrowserContext";
 // import { useTheme } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderSquishBigBedData } from "./helpers";
-import { RenderableBigBedRow, RenderedSquishRect, SquishBigBedProps } from "./types";
+import { Rect, RenderableBigBedRow, RenderedSquishRect, SquishBigBedProps } from "./types";
 
-export default function SquishBigBed<Row extends RenderableBigBedRow = RenderableBigBedRow>({
+export default function SquishBigBed<Row extends RenderableBigBedRow = Rect>({
   id,
   data,
   height,

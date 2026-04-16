@@ -23,7 +23,7 @@ export default function useInteraction<T>({
   onClick: ((item: T) => void) | undefined;
   onHover: ((item: T) => void) | undefined;
   onLeave: ((item: T) => void) | undefined;
-  tooltip: React.FC<any> | undefined;
+  tooltip: ((props: any) => ReturnType<React.FC<any>>) | undefined;
 }) {
   const showTooltip = useTooltipStore((state) => state.showTooltip);
   const hideTooltip = useTooltipStore((state) => state.hideTooltip);
