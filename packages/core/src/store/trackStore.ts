@@ -22,7 +22,7 @@ type WrapperDimensions = {
 
 export type Track =
   | BigWigConfig
-  | BigBedConfig
+  | BigBedConfig<any>
   | BulkBedConfig
   | TranscriptConfig
   | MotifConfig

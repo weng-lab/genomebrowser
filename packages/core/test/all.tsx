@@ -1,10 +1,13 @@
 import { createRoot } from "react-dom/client";
 import {
+  BigBedConfig,
+  InferBigBedRow,
   Browser,
   BrowserStoreInstance,
   Chromosome,
   createBrowserStoreMemo,
   createDataStoreMemo,
+  defineBigBedSchema,
   createTrackStoreMemo,
   DataStoreInstance,
   Domain,
@@ -29,6 +32,89 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { BIGDATA_QUERY } from "../src/api/queries";
+
+const mohdSchema = defineBigBedSchema({
+  // name: "string",
+  // score: "number",
+  // strand: "string",
+  // signalValue: "number",
+  // pValue: "number",
+  // qValue: "number",
+  // peak: "number",
+});
+
+type MohdBigBedRow = InferBigBedRow<typeof mohdSchema>;
+
+/**
+ * A test page using all track types
+ */
+export default function All() {
+  const mohdTrack: BigBedConfig<typeof mohdSchema> = {
+    ...bigBedExample,
+    id: "mohd",
+    title: "MOHD",
+    url: "https://downloads.mohdconsortium.org/2_ATAC/MOHD_EA100001/MOHD_EA100001_peaks-FDR5_GRCh38_v0.bigBed",
+    schema: mohdSchema,
+    onClick: (row: MohdBigBedRow) => {
+      console.log(row);
+    },
+  };
+
+  const browserStore = createBrowserStoreMemo(
+    {
+      // chr12:53,372,922-53,423,700
+      domain: { chromosome: "chr12", start: 53372922, end: 53423700 },
+      marginWidth: 50,
+      trackWidth: 950,
+      multiplier: 3,
+      highlights: [
+        // chr11:5,253,188-5,505,605
+        // { id: "test", color: "#ff0000", domain: { chromosome: "chr11", start: 5253188, end: 5505605 } },
+      ],
+    },
+    []
+  );
+
+  const trackStore = createTrackStoreMemo(
+    [
+      // bigWigExample,
+      // bigWigFillZero,
+      transcriptExample,
+      {
+        ...bigBedExample,
+        onClick: (r) => {
+          console.log(r);
+        },
+      },
+      mohdTrack,
+      // tfPeaksTrack,
+      // motifExample,
+      // bulkBedExample,
+      // methylCTrack,
+      // manhattanTrack,
+      // ldTrack,
+    ],
+    []
+  );
+
+  const dataStore = createDataStoreMemo([]);
+
+  // useImportanceTrack(browserStore, trackStore, dataStore);
+  // useManhattanData(browserStore, dataStore);
+
+  return (
+    <>
+      <DomainNav browserStore={browserStore} />
+      <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />
+    </>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(
+  <GQLWrapper>
+    <All />
+  </GQLWrapper>
+);
 
 function DomainNav({ browserStore }: { browserStore: BrowserStoreInstance }) {
   const domain = browserStore((s) => s.domain);
@@ -122,80 +208,6 @@ function DomainNav({ browserStore }: { browserStore: BrowserStoreInstance }) {
     </div>
   );
 }
-
-/**
- * A test page using all track types
- */
-export default function All() {
-  const browserStore = createBrowserStoreMemo(
-    {
-      // chr11:5,202,705-5,556,088
-      // chr6:21,592,778-21,599,592
-      domain: { chromosome: "chr12", start: 53391187, end: 53392280 },
-      marginWidth: 50,
-      trackWidth: 950,
-      multiplier: 3,
-      highlights: [
-        // chr11:5,253,188-5,505,605
-        // { id: "test", color: "#ff0000", domain: { chromosome: "chr11", start: 5253188, end: 5505605 } },
-      ],
-    },
-    []
-  );
-
-  const trackStore = createTrackStoreMemo(
-    [
-      // bigWigExample,
-      // bigWigFillZero,
-      transcriptExample,
-      bigBedExample,
-      {
-        ...bigBedExample,
-        id: "peaks",
-        title: "peaks",
-        titleSize: 16,
-        url: "https://users.wenglab.org/gaomingshi/no_trim.TF_name.rPeaks.bb",
-        onClick: (r) => {
-          console.log(r);
-        },
-      },
-      {
-        ...bigBedExample,
-        id: "decorator",
-        title: "decorator",
-        url: "https://users.wenglab.org/gaomingshi/no_trim.TF_name.decorator.bb",
-        onClick: (r) => {
-          console.log(r);
-        },
-      },
-      tfPeaksTrack,
-      // motifExample,
-      // bulkBedExample,
-      methylCTrack,
-      // manhattanTrack,
-      // ldTrack,
-    ],
-    []
-  );
-
-  const dataStore = createDataStoreMemo([]);
-
-  // useImportanceTrack(browserStore, trackStore, dataStore);
-  // useManhattanData(browserStore, dataStore);
-
-  return (
-    <>
-      <DomainNav browserStore={browserStore} />
-      <Browser browserStore={browserStore} trackStore={trackStore} externalDataStore={dataStore} />
-    </>
-  );
-}
-
-createRoot(document.getElementById("root")!).render(
-  <GQLWrapper>
-    <All />
-  </GQLWrapper>
-);
 
 function useImportanceTrack(
   browserStore: BrowserStoreInstance,

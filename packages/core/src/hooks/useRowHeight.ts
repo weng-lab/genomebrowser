@@ -7,7 +7,7 @@ export function useRowHeight(rowCount: number, id: string, rowHeight: number = 1
 
   useEffect(() => {
     const newHeight = Math.max(rowHeight * rowCount, 30);
-    editTrack<BigBedConfig>(id, { height: newHeight });
+    editTrack<BigBedConfig<any>>(id, { height: newHeight });
   }, [rowHeight, id, editTrack, rowCount]);
 
   return rowHeight;

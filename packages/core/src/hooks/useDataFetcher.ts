@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLazyQuery } from "@apollo/client";
 import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
-import { BIGDATA_QUERY, TRANSCRIPT_GENES_QUERY, MOTIF_QUERY } from "../api/queries";
+import { TRANSCRIPT_GENES_QUERY, MOTIF_QUERY } from "../api/queries";
 import { trackFetchers } from "../api/fetchers";
 import { TrackType } from "../lib";
 
@@ -23,7 +23,6 @@ export function useDataFetcher() {
   const getTrackData = useDataStore((state) => state.getTrackData);
 
   // Initialize all query hooks
-  const [fetchBigData] = useLazyQuery(BIGDATA_QUERY);
   const [fetchGene] = useLazyQuery(TRANSCRIPT_GENES_QUERY);
   const [fetchMotif] = useLazyQuery(MOTIF_QUERY);
 
@@ -48,7 +47,6 @@ export function useDataFetcher() {
 
       // Prepare query hooks for fetchers
       const queries = {
-        fetchBigData,
         fetchGene,
         fetchMotif,
         getTrackData,

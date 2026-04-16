@@ -10,17 +10,17 @@ import { MethylCConfig } from "../components/tracks/methylC/types";
 import { ImportanceConfig } from "../components/tracks/importance/types";
 import { MotifRect, MotifConfig } from "../components/tracks/motif/types";
 import { BigWigConfig } from "../components/tracks/bigwig/types";
-import { BigBedConfig } from "../components/tracks/bigbed/types";
+import { BigBedConfig, BigBedParser, BigBedSchema } from "../components/tracks/bigbed/types";
+import { createBigBedSchemaParser } from "../components/tracks/bigbed/schema";
 import { TranscriptConfig } from "../components/tracks/transcript/types";
 import { LDTrackConfig } from "../components/tracks/ldtrack/types";
 import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
 import { CustomTrackConfig } from "../components/tracks/custom/types";
 import { TrackDataState } from "../store/dataStore";
-import { getBigData, applyFillWithZero, type BigBedParser } from "./getBigWigData";
+import { getBigData, applyFillWithZero } from "./getBigWigData";
 
 // An interface for storing avaliable Apollo GQL Queries
 export interface QueryHooks {
-  fetchBigData: LazyQueryExecFunction<any, OperationVariables>;
   fetchGene: LazyQueryExecFunction<any, OperationVariables>;
   fetchMotif: LazyQueryExecFunction<any, OperationVariables>;
   getTrackData: (id: string) => TrackDataState | undefined;
@@ -38,48 +38,20 @@ export type FetcherContext<T extends Track = Track> = {
 // Fetch Function signature
 export type FetchFunction = (ctx: FetcherContext) => Promise<TrackDataState>;
 
-// Facade function that calls both fetching methods, and uses the fastest by default
-// If the new function takes a while, the GQL one will be used as a backup
-// Able to log speed as well
-export async function getBigDataRace(
-  url: string,
-  expandedDomain: Domain,
-  preRenderedWidth: number,
-  _queries: QueryHooks,
-  parser?: BigBedParser
-) {
-  const startTime = performance.now();
-
-  const [p1] = [
-    getBigData(url, expandedDomain, preRenderedWidth, parser).then((data) => {
-      const elapsed = performance.now() - startTime;
-      return { data, source: "New" as const, elapsed, url };
-    }),
-    // ogBigDataFetcher(url, expandedDomain, preRenderedWidth, queries).then((data) => {
-    //   const elapsed = performance.now() - startTime;
-    //   return { data, source: "GQL" as const, elapsed, url };
-    // }),
-  ];
-
-  const result = await Promise.race([p1]);
-  // console.log(result.url, "\n", result.source, "took", result.elapsed.toFixed(2), "ms");
-  return result.data;
-}
-
 /**
  * Fetch a BigBed/BigWig URL using the fetcher context.
  * Useful for custom track fetchers that need to load .bb/.bw files.
  */
 export async function fetchBigBedUrl(url: string, ctx: FetcherContext, parser?: BigBedParser): Promise<TrackDataState> {
-  return await getBigDataRace(url, ctx.expandedDomain, ctx.preRenderedWidth, ctx.queries, parser);
+  return await getBigData(url, ctx.expandedDomain, ctx.preRenderedWidth, parser);
 }
 
 /**
  * Fetch BigWig data
  */
 async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
-  const result = await getBigDataRace(track.url, expandedDomain, preRenderedWidth, queries);
+  const { track, expandedDomain, preRenderedWidth } = ctx;
+  const result = await getBigData(track.url, expandedDomain, preRenderedWidth);
   if (track.fillWithZero) applyFillWithZero(result.data);
   return result;
 }
@@ -87,12 +59,10 @@ async function fetchBigWig(ctx: FetcherContext<BigWigConfig>): Promise<TrackData
 /**
  * Fetch BigBed data
  */
-async function fetchBigBed(ctx: FetcherContext<BigBedConfig>): Promise<TrackDataState> {
-  // const { track, expandedDomain, preRenderedWidth, queries } = ctx;
-
-  // return await ogBigDataFetcher(track.url, expandedDomain, preRenderedWidth, queries);
-  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
-  return await getBigDataRace(track.url, expandedDomain, preRenderedWidth, queries);
+async function fetchBigBed(ctx: FetcherContext<BigBedConfig<any>>): Promise<TrackDataState> {
+  const { track, expandedDomain, preRenderedWidth } = ctx;
+  const parser = track.schema ? createBigBedSchemaParser(track.schema as BigBedSchema) : undefined;
+  return await getBigData(track.url, expandedDomain, preRenderedWidth, parser);
 }
 
 /**
@@ -172,12 +142,9 @@ async function fetchMotif(ctx: FetcherContext<MotifConfig>): Promise<TrackDataSt
  * Fetch Importance data
  */
 async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<TrackDataState> {
-  const { track, domain, queries } = ctx;
+  const { track, domain } = ctx;
 
-  const results = await Promise.all([
-    getBigDataRace(track.url, domain, -1, queries),
-    getBigDataRace(track.signalURL, domain, -1, queries),
-  ]);
+  const results = await Promise.all([getBigData(track.url, domain, -1), getBigData(track.signalURL, domain, -1)]);
 
   const sequence = results[0].data[0];
   const importance = results[1]?.data?.map((d: { value: number }) => d.value) ?? [];
@@ -192,12 +159,12 @@ async function fetchImportance(ctx: FetcherContext<ImportanceConfig>): Promise<T
  * Fetch BulkBed data
  */
 async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
+  const { track, expandedDomain, preRenderedWidth } = ctx;
 
   const datasets = track.datasets || [];
 
   const results = await Promise.all(
-    datasets.map((dataset) => getBigDataRace(dataset.url, expandedDomain, preRenderedWidth, queries))
+    datasets.map((dataset) => getBigData(dataset.url, expandedDomain, preRenderedWidth))
   );
 
   return {
@@ -217,10 +184,9 @@ async function fetchBulkBed(ctx: FetcherContext<BulkBedConfig>): Promise<TrackDa
  * Fetch MethylC data
  */
 async function fetchMethylC(ctx: FetcherContext<MethylCConfig>): Promise<TrackDataState> {
-  const { track, expandedDomain, preRenderedWidth, queries } = ctx;
+  const { track, expandedDomain, preRenderedWidth } = ctx;
 
-  const fetch = (url: string) =>
-    url ? getBigDataRace(url, expandedDomain, preRenderedWidth, queries) : { data: [], error: null };
+  const fetch = (url: string) => (url ? getBigData(url, expandedDomain, preRenderedWidth) : { data: [], error: null });
 
   const result = await Promise.all([
     fetch(track.urls.plusStrand.cpg.url),
