@@ -2,7 +2,12 @@ import { TrackType, TrackDimensions, Config, InteractionConfig } from "../types"
 
 export type BigBedFieldKind = "string" | "number";
 
+export type ReservedBigBedSchemaKey = "chr" | "start" | "end" | "rest";
+
 export type BigBedSchema = Record<string, BigBedFieldKind>;
+
+type ValidBigBedSchema<TSchema extends BigBedSchema> =
+  Extract<keyof TSchema, ReservedBigBedSchemaKey> extends never ? TSchema : never;
 
 export interface BigBedRow {
   chr: string;
@@ -24,6 +29,14 @@ export type InferBigBedRow<TSchema extends BigBedSchema | undefined = undefined>
   ? BigBedRow & InferBigBedSchemaFields<TSchema> & { rest: string[] }
   : Rect;
 
+export interface RenderableBigBedRow {
+  start: number;
+  end: number;
+  color?: string;
+  name?: string;
+  score?: number | string;
+}
+
 type BivariantCallback<Item> = { bivarianceHack(item: Item): void }["bivarianceHack"];
 
 type BivariantTooltip<Item> = { bivarianceHack(props: Item): React.ReactElement | null }["bivarianceHack"];
@@ -44,25 +57,25 @@ export interface BigBedConfig<TSchema extends BigBedSchema | undefined = undefin
     BigBedInteractionConfig<InferBigBedRow<TSchema>> {
   trackType: TrackType.BigBed;
   url: string;
-  schema?: TSchema;
+  schema?: TSchema extends BigBedSchema ? ValidBigBedSchema<TSchema> : TSchema;
 }
 
-interface BigBedProps {
+interface BigBedProps<Row extends RenderableBigBedRow = Rect> {
   id: string;
-  data: Rect[];
+  data: Row[];
   color: string;
   height: number;
   dimensions: TrackDimensions;
   verticalPadding?: number; // Vertical padding as fraction of height (default 0.2 = 20%)
-  onClick?: (rect: Rect) => void;
-  onHover?: (rect: Rect) => void;
-  onLeave?: (rect: Rect) => void;
-  tooltip?: React.FC<Rect>;
+  onClick?: (rect: Row) => void;
+  onHover?: (rect: Row) => void;
+  onLeave?: (rect: Row) => void;
+  tooltip?: React.FC<Row>;
 }
 
-export type SquishBigBedProps = BigBedProps;
+export type SquishBigBedProps<Row extends RenderableBigBedRow = Rect> = BigBedProps<Row>;
 
-export type DenseBigBedProps = BigBedProps;
+export type DenseBigBedProps<Row extends RenderableBigBedRow = Rect> = BigBedProps<Row>;
 
 export interface Rect {
   start: number;
@@ -81,10 +94,10 @@ export interface SquishRect {
   score?: number | string;
 }
 
-export interface RenderedRect extends Rect {
-  row: Rect;
+export interface RenderedRect<Row extends RenderableBigBedRow = Rect> extends Rect {
+  row: Row;
 }
 
-export interface RenderedSquishRect extends SquishRect {
-  row: Rect;
+export interface RenderedSquishRect<Row extends RenderableBigBedRow = Rect> extends SquishRect {
+  row: Row;
 }

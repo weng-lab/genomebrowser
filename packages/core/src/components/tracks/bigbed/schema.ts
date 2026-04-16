@@ -1,12 +1,16 @@
-import type { BigBedFieldKind, BigBedParser, BigBedSchema, InferBigBedRow } from "./types";
+import type { BigBedFieldKind, BigBedParser, BigBedSchema, InferBigBedRow, ReservedBigBedSchemaKey } from "./types";
+
+const RESERVED_BIGBED_SCHEMA_KEYS = new Set<ReservedBigBedSchemaKey>(["chr", "start", "end", "rest"]);
 
 export function defineBigBedSchema<const TSchema extends BigBedSchema>(schema: TSchema): TSchema {
+  assertValidBigBedSchema(schema);
   return schema;
 }
 
 export function createBigBedSchemaParser<TSchema extends BigBedSchema>(
   schema: TSchema
 ): BigBedParser<InferBigBedRow<TSchema>> {
+  assertValidBigBedSchema(schema);
   const entries = Object.entries(schema) as [keyof TSchema, BigBedFieldKind][];
 
   return (chrom, startBase, endBase, rest) => {
@@ -34,4 +38,12 @@ function coerceBigBedValue(value: string, kind: BigBedFieldKind): string | numbe
   }
 
   return value;
+}
+
+function assertValidBigBedSchema(schema: BigBedSchema) {
+  for (const key of Object.keys(schema)) {
+    if (RESERVED_BIGBED_SCHEMA_KEYS.has(key as ReservedBigBedSchemaKey)) {
+      throw new Error(`BigBed schema key '${key}' is reserved`);
+    }
+  }
 }

@@ -4,9 +4,9 @@ import { useXTransform } from "../../../hooks/useXTransform";
 // import { useTheme } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderDenseBigBedData } from "./helpers";
-import { DenseBigBedProps, RenderedRect } from "./types";
+import { DenseBigBedProps, RenderableBigBedRow, RenderedRect } from "./types";
 
-function DenseBigBed({
+function DenseBigBed<Row extends RenderableBigBedRow = RenderableBigBedRow>({
   id,
   data,
   height,
@@ -17,11 +17,11 @@ function DenseBigBed({
   onHover,
   onLeave,
   tooltip,
-}: DenseBigBedProps) {
+}: DenseBigBedProps<Row>) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
 
-  const rendered: RenderedRect[] = useMemo(() => {
+  const rendered: RenderedRect<Row>[] = useMemo(() => {
     return renderDenseBigBedData(data || [], x);
   }, [data, x]);
 

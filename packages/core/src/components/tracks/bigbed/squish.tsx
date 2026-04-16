@@ -6,9 +6,9 @@ import { useBrowserStore } from "../../../store/BrowserContext";
 // import { useTheme } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderSquishBigBedData } from "./helpers";
-import { RenderedSquishRect, SquishBigBedProps } from "./types";
+import { RenderableBigBedRow, RenderedSquishRect, SquishBigBedProps } from "./types";
 
-export default function SquishBigBed({
+export default function SquishBigBed<Row extends RenderableBigBedRow = RenderableBigBedRow>({
   id,
   data,
   height,
@@ -18,14 +18,14 @@ export default function SquishBigBed({
   onHover,
   onLeave,
   tooltip,
-}: SquishBigBedProps) {
+}: SquishBigBedProps<Row>) {
   const { totalWidth, sideWidth } = dimensions;
   // const background = useTheme((state) => state.background);
   const domain = useBrowserStore((state) => state.domain);
 
   const { x, reverseX } = useXTransform(totalWidth);
 
-  const rendered: RenderedSquishRect[][] = useMemo(() => {
+  const rendered: RenderedSquishRect<Row>[][] = useMemo(() => {
     const d = (data || []).filter((rect) => rect.end >= domain.start && rect.start <= domain.end);
     return renderSquishBigBedData(d, x);
   }, [data, domain.end, domain.start, x]);
