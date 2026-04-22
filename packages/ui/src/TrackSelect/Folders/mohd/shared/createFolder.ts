@@ -15,6 +15,7 @@ function createBaseRow(folderId: string, row: MohdDataFile[number]) {
     ome: getMohdOmeConfig(row.ome).label,
     site: row.site,
     sampleId: row.sample_id,
+    kitId: row.kit_id,
     sex: row.sex,
     status: row.status,
   };

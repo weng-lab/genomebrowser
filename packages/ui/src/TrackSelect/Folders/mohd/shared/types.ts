@@ -11,6 +11,7 @@ export type MohdDataRow = {
   ome: string;
   site: string;
   sample_id: string;
+  kit_id?: string;
   file_type: string;
   filename: string;
   sex: string;
@@ -22,6 +23,7 @@ type MohdBaseRowInfo = {
   ome: MohdOme;
   site: string;
   sampleId: string;
+  kitId?: string;
   sex: string;
   status: string;
   description: string;

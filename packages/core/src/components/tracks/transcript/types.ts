@@ -1,5 +1,4 @@
-import { OperationVariables } from "@apollo/client";
-import { LazyQueryExecFunction } from "@apollo/client/react/types/types";
+import { LazyQueryExecFunction, OperationVariables } from "@apollo/client";
 import { Config, TrackDimensions, TrackType } from "../types";
 
 export interface TranscriptConfig extends Config<Transcript> {

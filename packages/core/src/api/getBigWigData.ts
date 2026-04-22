@@ -4,6 +4,15 @@ import type { BigBedParser } from "../components/tracks/bigbed/types";
 import { TrackDataState } from "../store/dataStore";
 import { Domain } from "../utils/types";
 
+async function ensureBrowserBuffer() {
+  if (typeof window === "undefined" || typeof globalThis.Buffer !== "undefined") {
+    return;
+  }
+
+  const { Buffer } = await import("buffer");
+  globalThis.Buffer = Buffer;
+}
+
 export async function getBigData(
   url: string,
   expandedDomain: Domain,
@@ -11,6 +20,8 @@ export async function getBigData(
   parser?: BigBedParser
 ): Promise<TrackDataState> {
   try {
+    await ensureBrowserBuffer();
+
     const axiosInstance = axios.create();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dataLoader = new AxiosDataLoader(url, axiosInstance as any);

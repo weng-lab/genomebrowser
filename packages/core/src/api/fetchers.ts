@@ -1,7 +1,4 @@
-import { Buffer } from "buffer";
-globalThis.Buffer = Buffer;
-
-import { LazyQueryExecFunction, OperationVariables } from "@apollo/client";
+import { ApolloClient } from "@apollo/client";
 import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
 import { Domain } from "../utils/types";
@@ -18,11 +15,11 @@ import { ManhattanTrackConfig } from "../components/tracks/manhattan/types";
 import { CustomTrackConfig } from "../components/tracks/custom/types";
 import { TrackDataState } from "../store/dataStore";
 import { getBigData, applyFillWithZero } from "./getBigWigData";
+import { MOTIF_QUERY, TRANSCRIPT_GENES_QUERY } from "./queries";
 
 // An interface for storing avaliable Apollo GQL Queries
 export interface QueryHooks {
-  fetchGene: LazyQueryExecFunction<any, OperationVariables>;
-  fetchMotif: LazyQueryExecFunction<any, OperationVariables>;
+  client: ApolloClient<object>;
   getTrackData: (id: string) => TrackDataState | undefined;
 }
 
@@ -71,7 +68,9 @@ async function fetchBigBed(ctx: FetcherContext<BigBedConfig<any>>): Promise<Trac
 async function fetchTranscript(ctx: FetcherContext<TranscriptConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, queries } = ctx;
 
-  const result = await queries.fetchGene({
+  const result = await queries.client.query({
+    query: TRANSCRIPT_GENES_QUERY,
+    fetchPolicy: "network-only",
     variables: {
       chromosome: expandedDomain.chromosome,
       assembly: track.assembly,
@@ -93,7 +92,9 @@ async function fetchTranscript(ctx: FetcherContext<TranscriptConfig>): Promise<T
 async function fetchMotif(ctx: FetcherContext<MotifConfig>): Promise<TrackDataState> {
   const { track, expandedDomain, queries } = ctx;
 
-  const result = await queries.fetchMotif({
+  const result = await queries.client.query({
+    query: MOTIF_QUERY,
+    fetchPolicy: "network-only",
     variables: {
       range: {
         chromosome: expandedDomain.chromosome,

@@ -2,6 +2,7 @@ import {
   BigBedConfig,
   BigWigConfig,
   DisplayMode,
+  InferBigBedRow,
   MethylCConfig,
   Track,
   TrackType,
@@ -9,7 +10,13 @@ import {
 } from "@weng-lab/genomebrowser";
 import type { FC } from "react";
 import { CreateTrackOptions } from "../../types";
+import {
+  getMohdBigBedSchema,
+  mohdAtacFdrPeaksSchema,
+  mohdAtacPseudorepPeaksSchema,
+} from "./bigBedSchemas";
 import { createMohdFileUrl, getMohdOmeConfig } from "./config";
+import { MohdBigBedTooltip } from "./MohdBigBedTooltip";
 import { MohdRowInfo } from "./types";
 
 export type MohdTrackContext = {
@@ -46,6 +53,10 @@ const defaultMethylC: Omit<MethylCConfig, "id" | "title" | "urls"> = {
     depth: "#525252",
   },
 };
+
+type MohdBigBedRow =
+  | InferBigBedRow<typeof mohdAtacFdrPeaksSchema>
+  | InferBigBedRow<typeof mohdAtacPseudorepPeaksSchema>;
 
 function createTrackTitle(row: MohdRowInfo) {
   return `${row.sampleId} ${row.description}`;
@@ -157,6 +168,11 @@ export function createMohdTrack(
       title: createTrackTitle(row),
       url,
       color,
+      schema: getMohdBigBedSchema(row),
+      tooltip: MohdBigBedTooltip,
+      onClick: (rect: MohdBigBedRow) => {
+        console.log(rect);
+      },
     };
   }
 

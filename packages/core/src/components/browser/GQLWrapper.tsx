@@ -10,6 +10,10 @@ const client = new ApolloClient({
   },
 });
 
+/**
+ * @deprecated Prefer the consuming app's ApolloProvider so the browser shares
+ * the same Apollo runtime and client instance as the rest of the app.
+ */
 export default function GQLWrapper({ children }: { children: React.ReactNode }) {
   return <ApolloProvider client={client}>{children}</ApolloProvider>;
 }
