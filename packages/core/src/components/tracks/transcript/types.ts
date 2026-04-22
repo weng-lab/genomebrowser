@@ -1,11 +1,20 @@
-import { LazyQueryExecFunction, OperationVariables } from "@apollo/client";
 import { Config, TrackDimensions, TrackType } from "../types";
+
+export type TranscriptRefetch = (options: {
+  variables: {
+    assembly: string;
+    chromosome?: string;
+    start?: number;
+    end?: number;
+    version: number;
+  };
+}) => Promise<unknown>;
 
 export interface TranscriptConfig extends Config<Transcript> {
   trackType: TrackType.Transcript;
   assembly: string;
   version: number;
-  refetch?: LazyQueryExecFunction<any, OperationVariables>;
+  refetch?: TranscriptRefetch;
   geneName?: string;
   canonicalColor?: string; // colors in transcript with MANE_Select tag
   highlightColor?: string; // colors in transcript with name ~= geneName

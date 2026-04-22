@@ -1,4 +1,7 @@
-import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache } from "@apollo/client";
+import { InMemoryCache } from "@apollo/client/cache";
+import { ApolloClient } from "@apollo/client/core";
+import { HttpLink } from "@apollo/client/link/http";
+import { ApolloProvider } from "@apollo/client/react";
 
 const uri = "https://screen.api.wenglab.org/graphql";
 const client = new ApolloClient({

@@ -16,6 +16,8 @@ import {
   TrackStoreInstance,
   useCustomData,
 } from "../src/lib";
+import { gql } from "@apollo/client/core";
+import { useQuery } from "@apollo/client/react";
 import { tfPeaksTrack } from "./TfPeaks";
 import {
   bigBedExample,
@@ -30,7 +32,6 @@ import {
   transcriptExample,
 } from "./tracks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@apollo/client";
 import { BIGDATA_QUERY } from "../src/api/queries";
 
 const mohdSchema = defineBigBedSchema({

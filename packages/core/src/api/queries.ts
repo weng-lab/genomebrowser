@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from "@apollo/client/core";
 
 /**
  * All GraphQL queries for the genome browser

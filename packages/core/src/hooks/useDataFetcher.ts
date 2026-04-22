@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
 import { trackFetchers } from "../api/fetchers";
 import { TrackType } from "../lib";

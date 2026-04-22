@@ -1,4 +1,4 @@
-import { ApolloClient } from "@apollo/client";
+import { ApolloClient } from "@apollo/client/core";
 import { Track } from "../store/trackStore";
 import { TrackType } from "../components/tracks/types";
 import { Domain } from "../utils/types";
@@ -19,7 +19,7 @@ import { MOTIF_QUERY, TRANSCRIPT_GENES_QUERY } from "./queries";
 
 // An interface for storing avaliable Apollo GQL Queries
 export interface QueryHooks {
-  client: ApolloClient<object>;
+  client: ApolloClient;
   getTrackData: (id: string) => TrackDataState | undefined;
 }
 
@@ -79,9 +79,10 @@ async function fetchTranscript(ctx: FetcherContext<TranscriptConfig>): Promise<T
       version: track.version,
     },
   });
+  const transcriptData = result.data as { gene?: unknown };
 
   return {
-    data: result.data?.gene ?? null,
+    data: transcriptData.gene ?? null,
     error: result.error?.message ?? null,
   };
 }
@@ -112,7 +113,10 @@ async function fetchMotif(ctx: FetcherContext<MotifConfig>): Promise<TrackDataSt
     },
   });
 
-  const motifData = result.data;
+  const motifData = result.data as {
+    meme_occurrences?: any[];
+    peaks?: { peaks?: any[] };
+  };
   return {
     data: motifData
       ? {
