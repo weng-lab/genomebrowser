@@ -1,7 +1,7 @@
 {
   "name": "@weng-lab/genomebrowser-ui",
   "private": false,
-  "version": "0.4.0-beta.2",
+  "version": "0.4.0",
   "license": "MIT",
   "type": "module",
   "publishConfig": {
@@ -11,7 +11,7 @@
   "types": "dist/lib.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsgo -b && vite build",
     "lint": "eslint .",
     "test": "vitest run",
     "preview": "vite preview",
@@ -38,6 +38,7 @@
     "@types/node": "^24.3.1",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
+    "@typescript/native-preview": "7.0.0-dev.20260421.2",
     "@vitejs/plugin-react": "^4.7.0",
     "eslint": "^9.34.0",
     "eslint-plugin-react-hooks": "^5.2.0",
