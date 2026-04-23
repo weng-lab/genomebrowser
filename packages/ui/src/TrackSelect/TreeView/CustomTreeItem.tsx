@@ -30,19 +30,19 @@ const TreeItemRoot = styled("li")(({ theme }) => ({
   }),
 }));
 
-const TreeItemLabelText = styled(Typography)({
-  color: "black",
+const TreeItemLabelText = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.primary,
   fontFamily: "inherit",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
-});
+}));
 
 function CustomLabel({
   icon: Icon,
   children,
-  isAssayItem,
-  assayName,
+  isHighlightedItem,
+  highlightName,
   renderIcon,
   ...other
 }: CustomLabelProps) {
@@ -78,8 +78,8 @@ function CustomLabel({
         alignItems="center"
         sx={{ minWidth: 0, overflow: "hidden", flex: 1 }}
       >
-        {assayName && renderIcon && (
-          <Box sx={{ flexShrink: 0 }}>{renderIcon(assayName)}</Box>
+        {isHighlightedItem && highlightName && renderIcon && (
+          <Box sx={{ flexShrink: 0 }}>{renderIcon(highlightName)}</Box>
         )}
         <Tooltip title={labelText} enterDelay={500} placement="top">
           <TreeItemLabelText fontWeight={fontWeight} variant={variant}>
@@ -199,8 +199,8 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
                   icon
                 ),
               expandable: (status.expandable && status.expanded).toString(),
-              isAssayItem: item.isAssayItem,
-              assayName: item.assayName,
+              isHighlightedItem: item.isHighlightedItem,
+              highlightName: item.highlightName,
               id: item.id,
               renderIcon,
             })}

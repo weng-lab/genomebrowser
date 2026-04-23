@@ -1,16 +1,20 @@
 import { groupFeatures } from "../../../utils/coordinates";
-import { Rect, SquishRect } from "./types";
+import { RenderableBigBedRow, RenderedRect, RenderedSquishRect } from "./types";
 
 /**
  * Renders dense BigBed data to SVG rectangles; overlapping regions are merged into single rectangles.
  * @param data input data vector.
  * @param x a transform function for mapping data coordinates to SVG coordinates.
  */
-export function renderDenseBigBedData(data: Rect[], x: (value: number) => number): Rect[] {
-  const results: Rect[] = [];
+export function renderDenseBigBedData<Row extends RenderableBigBedRow>(
+  data: Row[],
+  x: (value: number) => number
+): RenderedRect<Row>[] {
+  const results: RenderedRect<Row>[] = [];
   data.forEach((current, i) => {
     if (i === 0 || current.start > data[i - 1].end || current.color != data[i - 1].color)
       results.push({
+        row: current,
         start: x(current.start) < 0 ? 0 : x(current.start),
         end: x(current.end) < 0 ? 0 : x(current.end),
         color: current.color,
@@ -23,21 +27,26 @@ export function renderDenseBigBedData(data: Rect[], x: (value: number) => number
   return results;
 }
 
-export function renderSquishBigBedData(data: Rect[], x: (value: number) => number): SquishRect[][] {
+export function renderSquishBigBedData<Row extends RenderableBigBedRow>(
+  data: Row[],
+  x: (value: number) => number
+): RenderedSquishRect<Row>[][] {
   return groupFeatures(
     data
       .sort((a, b) => a.start - b.start)
-      .map((x) => ({
-        coordinates: { start: x.start, end: x.end },
-        color: x.color,
+      .map((row) => ({
+        row,
+        coordinates: { start: row.start, end: row.end },
+        color: row.color,
         name: "",
-        score: x.score,
-        rectname: x.name,
+        score: row.score,
+        rectname: row.name,
       })),
     x,
     0
   ).map((group) =>
     group.map((feature) => ({
+      row: feature.row,
       start: x(feature.coordinates.start) < 0 ? 0 : x(feature.coordinates.start),
       end: x(feature.coordinates.end),
       color: feature.color,
@@ -48,7 +57,7 @@ export function renderSquishBigBedData(data: Rect[], x: (value: number) => numbe
   );
 }
 
-export const getRealRect = (rect: Rect, reverseX: (value: number) => number) => {
+export const getRealRect = <Row extends RenderableBigBedRow>(rect: Row, reverseX: (value: number) => number): Row => {
   const realStart = reverseX(rect.start);
   const realEnd = reverseX(rect.end);
   const realRect = {
@@ -56,5 +65,5 @@ export const getRealRect = (rect: Rect, reverseX: (value: number) => number) => 
     start: Math.round(realStart),
     end: Math.round(realEnd),
   };
-  return realRect;
+  return realRect as Row;
 };

@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import { DataStoreInstance } from "../store/dataStore";
-import { ApolloError } from "@apollo/client";
+
+type CustomDataError = {
+  message: string;
+};
 
 /**
  * Hook to inject custom data into the data store
@@ -10,7 +13,7 @@ export default function useCustomData(
   trackId: string,
   response: {
     data: any;
-    error: ApolloError | undefined;
+    error: CustomDataError | undefined;
     loading: boolean;
   },
   dataStore: DataStoreInstance

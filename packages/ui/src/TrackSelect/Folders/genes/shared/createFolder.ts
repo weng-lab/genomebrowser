@@ -5,32 +5,20 @@ import {
   defaultGroupingModel,
   defaultLeafField,
 } from "./columns";
-import { buildTreeView } from "./treeBuilder";
+import { createGeneTrack } from "./toTrack";
 
-/**
- * Transforms a single track from JSON into a row for DataGrid
- * For genes, this is a 1:1 mapping (no flattening needed)
- */
-function trackToRow(track: GeneTrackInfo): GeneRowInfo {
+/** Genes map 1:1 from JSON track entries to table rows. */
+function trackToRow(folderId: string, track: GeneTrackInfo): GeneRowInfo {
   return {
-    id: track.id,
+    id: `${folderId}/${track.id}`,
+    trackId: track.id,
     displayName: track.displayName,
     versions: track.versions,
   };
 }
 
-/**
- * Transforms raw JSON data into rows and lookup map
- */
-function transformData(data: GeneDataFile): {
-  rows: GeneRowInfo[];
-  rowById: Map<string, GeneRowInfo>;
-} {
-  const rows = data.map(trackToRow);
-  const rowById = new Map<string, GeneRowInfo>(
-    rows.map((row) => [row.id, row]),
-  );
-  return { rows, rowById };
+function transformData(folderId: string, data: GeneDataFile): GeneRowInfo[] {
+  return data.map((track) => trackToRow(folderId, track));
 }
 
 export interface CreateGeneFolderOptions {
@@ -40,29 +28,21 @@ export interface CreateGeneFolderOptions {
   data: GeneDataFile;
 }
 
-/**
- * Factory function that creates a FolderDefinition for genes
- */
+/** Build a gene folder with its row lookup, tree, and track factory. */
 export function createGeneFolder(
   options: CreateGeneFolderOptions,
 ): FolderDefinition<GeneRowInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(data);
+  const rows = transformData(id, data);
 
   return {
     id,
     label,
     description,
-    rowById,
-    getRowId: (row) => row.id,
-
-    // Default view configuration
+    rows,
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
-
-    // Tree builder for selected items panel
-    buildTree: (selectedIds, rowById) =>
-      buildTreeView(selectedIds, rowById, label),
+    createTrack: createGeneTrack,
   };
 }

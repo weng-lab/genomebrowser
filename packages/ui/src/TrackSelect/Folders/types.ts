@@ -1,23 +1,22 @@
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
-import { TreeViewBaseItem } from "@mui/x-tree-view";
-import { ExtendedTreeItemProps, CustomTreeItemProps } from "../types";
+import { Track } from "@weng-lab/genomebrowser";
+import type { TrackSelectTrackContext } from "../trackContext";
+import { CustomTreeItemProps } from "../types";
 
 export type Assembly = "GRCh38" | "mm10";
 
-/**
- * Runtime configuration that can be modified by ToolbarExtras components.
- * This allows folder-specific UI (like AssayToggle) to dynamically update
- * how the DataGrid and TreeView display data.
- */
-export interface FolderRuntimeConfig {
+export interface FolderView {
+  id: string;
+  label: string;
   columns: GridColDef[];
   groupingModel: string[];
   leafField: string;
-  /** Optional override for the tree builder function */
-  buildTree?: (
-    selectedIds: string[],
-    rowById: Map<string, any>,
-  ) => TreeViewBaseItem<ExtendedTreeItemProps>[];
+}
+
+/** Options passed to folder-owned track factories. */
+export interface CreateTrackOptions {
+  assembly: Assembly;
+  trackContext?: TrackSelectTrackContext;
 }
 
 /**
@@ -30,77 +29,35 @@ export interface FolderRuntimeConfig {
  * @template TRow - The type of row data stored in this folder
  */
 export interface FolderDefinition<TRow = any> {
-  /** Unique identifier for this folder */
   id: string;
-
-  /** Display label shown in the UI */
   label: string;
-
-  /** Optional description shown in folder cards */
   description?: string;
-
-  /**
-   * Single source of truth for all row data.
-   * Maps row ID to the full row object.
-   */
-  rowById: Map<string, TRow>;
-
-  /**
-   * Function to extract the unique ID from a row object.
-   * Used for selection tracking and lookups.
-   */
-  getRowId: (row: TRow) => string;
-
-  /** Column definitions for the DataGrid */
+  rows: TRow[];
   columns: GridColDef[];
-
-  /** Fields to group by in the DataGrid (row grouping) */
   groupingModel: string[];
-
-  /** The field that represents the leaf level in the grouping hierarchy */
   leafField: string;
 
   /**
-   * Builds a tree structure from selected row IDs.
-   * Used to display selected items in the TreeView panel.
+   * Creates a browser track from a folder row.
    *
-   * @param selectedIds - Array of selected row IDs
-   * @param rowById - Map of row ID to row data (same as this.rowById)
-   * @returns Array of tree items to render in the TreeView
+   * This keeps folder-specific track creation logic colocated with the
+   * folder's data and presentation logic instead of requiring consumers to
+   * branch on folder IDs.
    */
-  buildTree: (
-    selectedIds: string[],
-    rowById: Map<string, TRow>,
-  ) => TreeViewBaseItem<ExtendedTreeItemProps>[];
+  createTrack: (row: TRow, options: CreateTrackOptions) => Track | null;
 
-  /**
-   * Optional component to render folder-specific toolbar controls.
-   * For example, biosamples folder uses this to render an assay toggle
-   * that switches between sample-grouped and assay-grouped views.
-   *
-   * @param updateConfig - Callback to update the folder's runtime config
-   * @param folderId - The folder's unique identifier
-   * @param label - The folder's display label
-   * @param config - The current runtime config for this folder
-   */
-  ToolbarExtras?: React.FC<{
-    updateConfig: (partial: Partial<FolderRuntimeConfig>) => void;
-    folderId: string;
-    label: string;
-    config: FolderRuntimeConfig;
+  views?: FolderView[];
+  ViewSelector?: React.FC<{
+    views: FolderView[];
+    activeViewId: string;
+    onChange: (viewId: string) => void;
   }>;
 
-  /**
-   * Optional custom component for rendering grouping cells in the DataGrid.
-   * If not provided, a default grouping cell renderer will be used.
-   */
   GroupingCellComponent?: React.FC<GridRenderCellParams>;
-
-  /**
-   * Optional custom TreeItem component for the TreeView.
-   * If not provided, the default CustomTreeItem will be used.
-   */
   TreeItemComponent?: React.ForwardRefExoticComponent<
+    CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
+  >;
+  LeafTreeItemComponent?: React.ForwardRefExoticComponent<
     CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
   >;
 }

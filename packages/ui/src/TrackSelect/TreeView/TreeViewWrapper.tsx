@@ -1,13 +1,28 @@
 import { Avatar, Box, Paper, Typography } from "@mui/material";
 import { RichTreeView, TreeViewBaseItem } from "@mui/x-tree-view";
-import { useEffect, useMemo, useState } from "react";
+import { useTreeItemModel } from "@mui/x-tree-view/hooks";
+import React, { useEffect, useMemo, useState } from "react";
+import { buildSelectedTree } from "../buildSelectedTree";
 import {
   CustomTreeItemProps,
   ExtendedTreeItemProps,
-  FolderTreeConfig,
   TreeViewWrapperProps,
 } from "../types";
+import { resolveFolderView } from "../resolveFolderView";
 import { CustomTreeItem } from "./CustomTreeItem";
+
+const attachFolderId = (
+  items: TreeViewBaseItem<ExtendedTreeItemProps>[],
+  folderId: string,
+): TreeViewBaseItem<ExtendedTreeItemProps>[] => {
+  return items.map((item) => ({
+    ...item,
+    folderId,
+    children: item.children
+      ? attachFolderId(item.children, folderId)
+      : undefined,
+  }));
+};
 
 function getAllExpandableItemIds(
   items: TreeViewBaseItem<ExtendedTreeItemProps>[],
@@ -24,11 +39,17 @@ function getAllExpandableItemIds(
 
 function FolderTree({
   items,
+  LeafTreeItemComponent,
   TreeItemComponent,
   onRemove,
 }: {
-  items: FolderTreeConfig["items"];
-  TreeItemComponent: FolderTreeConfig["TreeItemComponent"];
+  items: TreeViewBaseItem<ExtendedTreeItemProps>[];
+  LeafTreeItemComponent?: React.ForwardRefExoticComponent<
+    CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
+  >;
+  TreeItemComponent?: React.ForwardRefExoticComponent<
+    CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
+  >;
   onRemove: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
 }) {
   const allExpandableIds = useMemo(
@@ -54,7 +75,27 @@ function FolderTree({
     onRemove(item);
   };
 
-  const TreeItem = TreeItemComponent ?? CustomTreeItem;
+  const TreeItem = useMemo(
+    () =>
+      TreeItemComponent || LeafTreeItemComponent
+        ? React.forwardRef<HTMLLIElement, CustomTreeItemProps>(
+            function TreeItem(props, ref) {
+              const item = useTreeItemModel<ExtendedTreeItemProps>(
+                props.itemId,
+              );
+              const Component =
+                item?.kind === "leaf"
+                  ? (LeafTreeItemComponent ??
+                    TreeItemComponent ??
+                    CustomTreeItem)
+                  : (TreeItemComponent ?? CustomTreeItem);
+
+              return <Component {...props} ref={ref} />;
+            },
+          )
+        : CustomTreeItem,
+    [LeafTreeItemComponent, TreeItemComponent],
+  );
 
   return (
     <RichTreeView
@@ -80,10 +121,46 @@ function FolderTree({
 }
 
 export function TreeViewWrapper({
-  folderTrees,
+  folders,
+  selectedByFolder,
+  activeViewIdByFolder,
   selectedCount,
   onRemove,
 }: TreeViewWrapperProps) {
+  const folderTrees = useMemo(
+    () =>
+      folders.flatMap((folder) => {
+        const folderSelectedIds = selectedByFolder.get(folder.id);
+        if (!folderSelectedIds || folderSelectedIds.size === 0) {
+          return [];
+        }
+
+        const activeView = resolveFolderView(folder, activeViewIdByFolder);
+        const selectedRows = folder.rows.filter((row) =>
+          folderSelectedIds.has(row.id),
+        );
+
+        return [
+          {
+            folderId: folder.id,
+            items: attachFolderId(
+              buildSelectedTree({
+                folderId: folder.id,
+                rootLabel: folder.label,
+                selectedRows,
+                groupingModel: activeView.groupingModel,
+                leafField: activeView.leafField,
+              }),
+              folder.id,
+            ),
+            TreeItemComponent: folder.TreeItemComponent,
+            LeafTreeItemComponent: folder.LeafTreeItemComponent,
+          },
+        ];
+      }),
+    [activeViewIdByFolder, folders, selectedByFolder],
+  );
+
   return (
     <Paper
       sx={{
@@ -131,6 +208,7 @@ export function TreeViewWrapper({
           <FolderTree
             key={folderTree.folderId}
             items={folderTree.items}
+            LeafTreeItemComponent={folderTree.LeafTreeItemComponent}
             TreeItemComponent={folderTree.TreeItemComponent}
             onRemove={onRemove}
           />

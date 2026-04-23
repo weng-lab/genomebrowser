@@ -4,3 +4,5 @@ packages:
 onlyBuiltDependencies:
   - '@mui/x-telemetry'
   - esbuild
+patchedDependencies:
+  genomic-reader@1.4.10: patches/genomic-reader@1.4.10.patch

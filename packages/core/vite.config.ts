@@ -41,9 +41,16 @@ export default defineConfig({
       formats: ["es"],
     },
     rollupOptions: {
-      external: ["react", "react-dom"],
+      external: (id) =>
+        id === "react" ||
+        id === "react-dom" ||
+        id === "graphql" ||
+        id === "@apollo/client" ||
+        id.startsWith("@apollo/client/"),
       output: {
         globals: {
+          "@apollo/client": "ApolloClient",
+          graphql: "graphql",
           react: "React",
           "react-dom": "ReactDOM",
         },

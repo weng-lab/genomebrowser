@@ -5,16 +5,17 @@ import {
   defaultGroupingModel,
   defaultLeafField,
 } from "./columns";
-import { buildTreeView } from "./treeBuilder";
+import { createOtherTrack } from "./toTrack";
 
-function transformData(data: OtherTrackDataFile): {
-  rows: OtherTrackInfo[];
-  rowById: Map<string, OtherTrackInfo>;
-} {
-  const rowById = new Map<string, OtherTrackInfo>(
-    data.map((row) => [row.id, row]),
-  );
-  return { rows: data, rowById };
+function transformData(
+  folderId: string,
+  data: OtherTrackDataFile,
+): OtherTrackInfo[] {
+  return data.map((row) => ({
+    ...row,
+    sourceId: row.id,
+    id: `${folderId}/${row.id}`,
+  }));
 }
 
 export interface CreateOtherTracksFolderOptions {
@@ -28,18 +29,16 @@ export function createOtherTracksFolder(
   options: CreateOtherTracksFolderOptions,
 ): FolderDefinition<OtherTrackInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(data);
+  const rows = transformData(id, data);
 
   return {
     id,
     label,
     description,
-    rowById,
-    getRowId: (row) => row.id,
+    rows,
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
-    buildTree: (selectedIds, rowById) =>
-      buildTreeView(selectedIds, rowById, label),
+    createTrack: createOtherTrack,
   };
 }

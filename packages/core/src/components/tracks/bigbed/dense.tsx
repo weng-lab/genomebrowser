@@ -4,9 +4,9 @@ import { useXTransform } from "../../../hooks/useXTransform";
 // import { useTheme } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderDenseBigBedData } from "./helpers";
-import { DenseBigBedProps, Rect } from "./types";
+import { DenseBigBedProps, Rect, RenderableBigBedRow, RenderedRect } from "./types";
 
-function DenseBigBed({
+function DenseBigBed<Row extends RenderableBigBedRow = Rect>({
   id,
   data,
   height,
@@ -17,11 +17,11 @@ function DenseBigBed({
   onHover,
   onLeave,
   tooltip,
-}: DenseBigBedProps) {
+}: DenseBigBedProps<Row>) {
   const { totalWidth, sideWidth } = dimensions;
   const { x, reverseX } = useXTransform(totalWidth);
 
-  const rendered: Rect[] = useMemo(() => {
+  const rendered: RenderedRect<Row>[] = useMemo(() => {
     return renderDenseBigBedData(data || [], x);
   }, [data, x]);
 
@@ -41,7 +41,7 @@ function DenseBigBed({
         <ClipPath id={id} width={totalWidth} height={height} />
       </defs>
       {rendered.map((rect, i) => {
-        const realRect = getRealRect(rect, reverseX);
+        const realRect = getRealRect({ ...rect.row, start: rect.start, end: rect.end }, reverseX);
         const rectHeight = height * (1 - 2 * verticalPadding);
         const yOffset = height * verticalPadding;
         return (

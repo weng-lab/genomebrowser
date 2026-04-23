@@ -6,9 +6,9 @@ import { useBrowserStore } from "../../../store/BrowserContext";
 // import { useTheme } from "../../../store/BrowserContext";
 import ClipPath from "../../svg/clipPath";
 import { getRealRect, renderSquishBigBedData } from "./helpers";
-import { SquishBigBedProps, SquishRect } from "./types";
+import { Rect, RenderableBigBedRow, RenderedSquishRect, SquishBigBedProps } from "./types";
 
-export default function SquishBigBed({
+export default function SquishBigBed<Row extends RenderableBigBedRow = Rect>({
   id,
   data,
   height,
@@ -18,14 +18,14 @@ export default function SquishBigBed({
   onHover,
   onLeave,
   tooltip,
-}: SquishBigBedProps) {
+}: SquishBigBedProps<Row>) {
   const { totalWidth, sideWidth } = dimensions;
   // const background = useTheme((state) => state.background);
   const domain = useBrowserStore((state) => state.domain);
 
   const { x, reverseX } = useXTransform(totalWidth);
 
-  const rendered: SquishRect[][] = useMemo(() => {
+  const rendered: RenderedSquishRect<Row>[][] = useMemo(() => {
     const d = (data || []).filter((rect) => rect.end >= domain.start && rect.start <= domain.end);
     return renderSquishBigBedData(d, x);
   }, [data, domain.end, domain.start, x]);
@@ -48,7 +48,7 @@ export default function SquishBigBed({
       {rendered.map((group, i) => (
         <g transform={`translate(0, ${i * rowHeight})`} key={`group_${i}`}>
           {group.map((rect, j) => {
-            const realRect = getRealRect(rect, reverseX);
+            const realRect = getRealRect({ ...rect.row, start: rect.start, end: rect.end }, reverseX);
             return (
               <rect
                 style={{ cursor: onClick ? "pointer" : "default" }}
@@ -59,7 +59,7 @@ export default function SquishBigBed({
                 y={rowHeight * 0.2}
                 fill={rect.color || color}
                 onClick={() => handleClick(realRect)}
-                onMouseOver={(e) => handleHover(realRect, realRect.name || "", e)}
+                onMouseOver={(e) => handleHover(realRect, rect.rectname || "", e)}
                 onMouseOut={() => handleLeave(realRect)}
               />
             );

@@ -9,24 +9,24 @@ import {
   defaultColumns,
   defaultGroupingModel,
   defaultLeafField,
+  sortedByAssayColumns,
+  sortedByAssayGroupingModel,
+  sortedByAssayLeafField,
 } from "./columns";
-import { buildTreeView } from "./treeBuilder";
 import { formatAssayType } from "./constants";
-import { AssayToggle } from "./AssayToggle";
+import { BiosampleViewSelector } from "./BiosampleViewSelector";
 import BiosampleGroupingCell from "./BiosampleGroupingCell";
 import { BiosampleTreeItem } from "./BiosampleTreeItem";
+import { createBiosampleTrack } from "./toTrack";
 
-/**
- * Flattens TrackInfo into RowInfo objects for DataGrid display.
- * Each track can have multiple assays, so this creates one row per assay.
- *
- * @param track - TrackInfo object from JSON data
- * @returns Array of flattened BiosampleRowInfo objects, one per assay
- */
-function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
+/** Flatten a biosample track into one row per assay. */
+function flattenTrackIntoRows(
+  folderId: string,
+  track: BiosampleTrackInfo,
+): BiosampleRowInfo[] {
   const { ontology, lifeStage, sampleType, displayName, collection } = track;
 
-  // Sort assays so cCRE comes first, then maintain original order for the rest
+  // Keep cCRE rows first so aggregate selections stay prominent in the UI.
   const sortedAssays = [...track.assays].sort((a, b) => {
     const aIsCcre = a.assay.toLowerCase() === "ccre";
     const bIsCcre = b.assay.toLowerCase() === "ccre";
@@ -46,7 +46,7 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
       cpgMinus,
       coverage,
     }) => ({
-      id,
+      id: `${folderId}/${id}`,
       ontology: capitalize(ontology),
       lifeStage: capitalize(lifeStage),
       sampleType: capitalize(sampleType),
@@ -63,75 +63,56 @@ function flattenTrackIntoRows(track: BiosampleTrackInfo): BiosampleRowInfo[] {
   );
 }
 
-/**
- * Transforms raw JSON data into flattened rows and a lookup map.
- * Prefixes each row ID with the folder ID to ensure uniqueness across folders.
- *
- * @param data - Raw biosample data from JSON file
- * @param folderId - Folder ID to prefix row IDs with
- * @returns Object containing rows array and rowById map
- */
-function transformData(data: BiosampleDataFile): {
-  rowById: Map<string, BiosampleRowInfo>;
-} {
-  const rows = data.tracks.flatMap(flattenTrackIntoRows).map((row) => ({
-    ...row,
-    id: row.id,
-  }));
-  const rowById = new Map<string, BiosampleRowInfo>(
-    rows.map((row) => [row.id, row]),
-  );
-  return { rowById };
+function transformData(
+  folderId: string,
+  data: BiosampleDataFile,
+): BiosampleRowInfo[] {
+  return data.tracks.flatMap((track) => flattenTrackIntoRows(folderId, track));
 }
 
 export interface CreateBiosampleFolderOptions {
-  /** Unique identifier for this folder */
   id: string;
-  /** Display label shown in the UI */
   label: string;
-  /** Optional description shown in folder cards */
   description?: string;
-  /** Raw biosample data from JSON file */
   data: BiosampleDataFile;
 }
 
 /**
- * Factory function that creates a FolderDefinition for biosample data.
- *
- * This handles all the common setup for biosample folders:
- * - Transforms JSON data into flattened rows
- * - Creates the rowById lookup map
- * - Configures columns, grouping, and tree building
- *
- * @param options - Configuration options for the folder
- * @returns A complete FolderDefinition for the biosample data
+ * Build a biosample folder with its data, tree builder, and track factory.
  */
 export function createBiosampleFolder(
   options: CreateBiosampleFolderOptions,
 ): FolderDefinition<BiosampleRowInfo> {
   const { id, label, description, data } = options;
-  const { rowById } = transformData(data);
+  const rows = transformData(id, data);
+  const views = [
+    {
+      id: "default",
+      label: "Tissue",
+      columns: defaultColumns,
+      groupingModel: defaultGroupingModel,
+      leafField: defaultLeafField,
+    },
+    {
+      id: "by-assay",
+      label: "Assay",
+      columns: sortedByAssayColumns,
+      groupingModel: sortedByAssayGroupingModel,
+      leafField: sortedByAssayLeafField,
+    },
+  ];
 
   return {
     id,
     label,
     description,
-    rowById,
-    getRowId: (row) => row.id,
-
-    // Default view: ontology-based grouping
+    rows,
     columns: defaultColumns,
     groupingModel: defaultGroupingModel,
     leafField: defaultLeafField,
-
-    // Build tree for selected items panel
-    buildTree: (selectedIds, rowById) =>
-      buildTreeView(selectedIds, rowById, label, id),
-
-    // Biosample-specific toolbar: toggle between sample-grouped and assay-grouped views
-    ToolbarExtras: AssayToggle,
-
-    // Biosample-specific custom components
+    createTrack: createBiosampleTrack,
+    views,
+    ViewSelector: BiosampleViewSelector,
     GroupingCellComponent: BiosampleGroupingCell,
     TreeItemComponent: BiosampleTreeItem,
   };

@@ -1,7 +1,6 @@
 import { useEffect } from "react";
-import { useLazyQuery } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { useBrowserStore, useDataStore, useTrackStore } from "../store/BrowserContext";
-import { BIGDATA_QUERY, TRANSCRIPT_GENES_QUERY, MOTIF_QUERY } from "../api/queries";
 import { trackFetchers } from "../api/fetchers";
 import { TrackType } from "../lib";
 
@@ -10,6 +9,7 @@ import { TrackType } from "../lib";
  * This replaces the DataFetcher component with a cleaner hook-based approach
  */
 export function useDataFetcher() {
+  const client = useApolloClient();
   const tracks = useTrackStore((state) => state.tracks);
   const domain = useBrowserStore((state) => state.domain);
   const getExpandedDomain = useBrowserStore((state) => state.getExpandedDomain);
@@ -21,11 +21,6 @@ export function useDataFetcher() {
   const setFetching = useDataStore((state) => state.setFetching);
   const setMultipleTrackData = useDataStore((state) => state.setMultipleTrackData);
   const getTrackData = useDataStore((state) => state.getTrackData);
-
-  // Initialize all query hooks
-  const [fetchBigData] = useLazyQuery(BIGDATA_QUERY);
-  const [fetchGene] = useLazyQuery(TRANSCRIPT_GENES_QUERY);
-  const [fetchMotif] = useLazyQuery(MOTIF_QUERY);
 
   useEffect(() => {
     // Guard: Don't fetch if already fetching or no tracks
@@ -48,9 +43,7 @@ export function useDataFetcher() {
 
       // Prepare query hooks for fetchers
       const queries = {
-        fetchBigData,
-        fetchGene,
-        fetchMotif,
+        client,
         getTrackData,
       };
 
@@ -118,5 +111,5 @@ export function useDataFetcher() {
 
     fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domain.chromosome, domain.start, domain.end, tracks.length]);
+  }, [client, domain.chromosome, domain.start, domain.end, tracks.length]);
 }

@@ -22,7 +22,7 @@ type WrapperDimensions = {
 
 export type Track =
   | BigWigConfig
-  | BigBedConfig
+  | BigBedConfig<any>
   | BulkBedConfig
   | TranscriptConfig
   | MotifConfig
@@ -36,6 +36,7 @@ export interface TrackStore {
   tracks: Track[];
   ids: string[];
   setTracks: (tracks: Track[]) => void;
+  reorderTracks: (idsInOrder: string[]) => void;
   getTotalHeight: (browserTitleSize: number) => number;
   getPrevHeights: (id: string, browserTitleSize: number) => number;
   getDistances: (id: string, browserTitleSize: number) => number[];
@@ -43,7 +44,9 @@ export interface TrackStore {
   getTrackIndex: (id: string) => number;
   shiftTracks: (id: string, index: number) => void;
   insertTrack: (track: Track, index?: number) => void;
+  insertTracks: (tracks: Track[], index?: number) => void;
   removeTrack: (id: string) => void;
+  removeTracks: (ids: string[]) => void;
   getDimensions: (id: string, browserTitleSize: number) => WrapperDimensions;
   createShortLabel: (id: string) => string;
   getIndexByType: (id: string) => number;
@@ -73,6 +76,35 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
     tracks,
     ids: tracks.map((track) => track.id),
     setTracks: (tracks: Track[]) => set({ tracks, ids: tracks.map((track) => track.id) }),
+    reorderTracks: (idsInOrder: string[]) => {
+      const state = get();
+
+      if (idsInOrder.length !== state.tracks.length) {
+        throw new Error("Invalid track order");
+      }
+
+      const tracksById = new Map(state.tracks.map((track) => [track.id, track]));
+      const seenIds = new Set<string>();
+      const reorderedTracks = idsInOrder.map((id) => {
+        if (seenIds.has(id)) {
+          throw new Error("Invalid track order");
+        }
+
+        const track = tracksById.get(id);
+        if (!track) {
+          throw new Error("Invalid track order");
+        }
+
+        seenIds.add(id);
+        return track;
+      });
+
+      if (seenIds.size !== state.tracks.length) {
+        throw new Error("Invalid track order");
+      }
+
+      set({ tracks: reorderedTracks, ids: idsInOrder });
+    },
     createShortLabel: (id: string) => {
       if (id === "ruler") {
         return "Ruler";
@@ -144,20 +176,43 @@ export function createTrackStoreInternal(tracks: Track[] = []) {
       return state.tracks[index];
     },
     insertTrack: (track: Track, index?: number) => {
+      get().insertTracks([track], index);
+    },
+    insertTracks: (newTracks: Track[], index?: number) => {
       const state = get();
-      if (state.getTrack(track.id) !== undefined) return;
       const tracks = [...state.tracks];
-      tracks.splice(index || tracks.length, 0, track);
+      const existingIds = new Set(tracks.map((track) => track.id));
+      const uniqueTracks = newTracks.filter((track) => {
+        if (existingIds.has(track.id)) {
+          return false;
+        }
+        existingIds.add(track.id);
+        return true;
+      });
+
+      if (uniqueTracks.length === 0) {
+        return;
+      }
+
+      tracks.splice(index ?? tracks.length, 0, ...uniqueTracks);
       set({ tracks, ids: tracks.map((track) => track.id) });
     },
     removeTrack: (id: string) => {
-      const state = get();
-      const tracks = [...state.tracks];
-      const index = state.getTrackIndex(id);
-      if (index === -1) {
+      get().removeTracks([id]);
+    },
+    removeTracks: (ids: string[]) => {
+      const idsToRemove = new Set(ids);
+      if (idsToRemove.size === 0) {
         return;
       }
-      tracks.splice(index, 1);
+
+      const state = get();
+      const tracks = state.tracks.filter((track) => !idsToRemove.has(track.id));
+
+      if (tracks.length === state.tracks.length) {
+        return;
+      }
+
       set({ tracks, ids: tracks.map((track) => track.id) });
     },
     editTrack: <T extends Track>(id: string, partial: Partial<T>): void => {

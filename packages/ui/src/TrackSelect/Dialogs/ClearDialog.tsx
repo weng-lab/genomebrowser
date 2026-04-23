@@ -26,8 +26,8 @@ export function ClearDialog({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle
         sx={{
-          bgcolor: "#0c184a",
-          color: "white",
+          bgcolor: "primary.main",
+          color: "primary.contrastText",
           fontWeight: "bold",
         }}
       >
@@ -46,12 +46,7 @@ export function ClearDialog({
         </DialogContentText>
       </DialogContent>
       <DialogActions sx={{ justifyContent: "center", gap: 2, pb: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={onClose}
-          autoFocus
-        >
+        <Button variant="contained" color="primary" onClick={onClose} autoFocus>
           Cancel
         </Button>
         <Button variant="outlined" color="secondary" onClick={onConfirm}>

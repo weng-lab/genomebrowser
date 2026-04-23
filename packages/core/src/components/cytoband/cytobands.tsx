@@ -1,4 +1,5 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client/core";
+import { useQuery } from "@apollo/client/react";
 import { Domain } from "../../utils/types";
 import Centromere from "./centromere";
 import Cytoband from "./cytoband";
@@ -62,7 +63,8 @@ export default function Cytobands({
       </g>
     );
 
-  const domain = { start: 0, end: Math.max(...data.cytoband.map((x: any) => x.coordinates.end)) };
+  const cytobandData = data as { cytoband: any[] };
+  const domain = { start: 0, end: Math.max(...cytobandData.cytoband.map((x: any) => x.coordinates.end)) };
   const x = xtransform(
     {
       start: domain.start,
@@ -74,7 +76,7 @@ export default function Cytobands({
   let centromereCount = 0;
   return (
     <g id="cytobands" width={width} height={height} transform={transform}>
-      {data.cytoband.map((cytoband: { coordinates: { start: any; end: any }; stain: string }, i: any) => {
+      {cytobandData.cytoband.map((cytoband: { coordinates: { start: any; end: any }; stain: string }, i: any) => {
         const xc = x(cytoband.coordinates.start);
         const width = x(cytoband.coordinates.end) - xc;
         return cytoband.stain === "acen" ? (

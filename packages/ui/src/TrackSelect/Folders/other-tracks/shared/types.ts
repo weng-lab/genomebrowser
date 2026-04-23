@@ -1,5 +1,6 @@
 export type OtherTrackInfo = {
   id: string;
+  sourceId?: string;
   name: string;
   description: string;
 };

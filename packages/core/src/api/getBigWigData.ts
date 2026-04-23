@@ -1,10 +1,17 @@
 import axios from "axios";
 import { AxiosDataLoader, BigWigData, BigWigReader, BigZoomData, FileType } from "genomic-reader";
+import type { BigBedParser } from "../components/tracks/bigbed/types";
 import { TrackDataState } from "../store/dataStore";
 import { Domain } from "../utils/types";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type BigBedParser = (chrom: string, startBase: number, endBase: number, rest: string) => any;
+async function ensureBrowserBuffer() {
+  if (typeof window === "undefined" || typeof globalThis.Buffer !== "undefined") {
+    return;
+  }
+
+  const { Buffer } = await import("buffer");
+  globalThis.Buffer = Buffer;
+}
 
 export async function getBigData(
   url: string,
@@ -13,6 +20,8 @@ export async function getBigData(
   parser?: BigBedParser
 ): Promise<TrackDataState> {
   try {
+    await ensureBrowserBuffer();
+
     const axiosInstance = axios.create();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dataLoader = new AxiosDataLoader(url, axiosInstance as any);
@@ -145,35 +154,6 @@ export async function condensedZoomData(
     }
   });
   return retval;
-}
-
-export async function ogBigDataFetcher(
-  url: string,
-  expandedDomain: Domain,
-  preRenderedWidth: number,
-  queries: any
-): Promise<TrackDataState> {
-  if (url === "") {
-    return { data: null, error: "No URL provided" };
-  }
-  const result = await queries.fetchBigData({
-    variables: {
-      bigRequests: [
-        {
-          url: url,
-          chr1: expandedDomain.chromosome,
-          start: expandedDomain.start,
-          end: expandedDomain.end,
-          zoomLevel: Math.floor((expandedDomain.end - expandedDomain.start) / preRenderedWidth),
-          preRenderedWidth: preRenderedWidth != -1 ? preRenderedWidth : undefined,
-        },
-      ],
-    },
-  });
-  return {
-    data: result.data?.bigRequests?.[0]?.data ?? null,
-    error: result.error?.message ?? null,
-  };
 }
 
 export function applyFillWithZero(data: { min: number | null; max: number | null }[] | null) {

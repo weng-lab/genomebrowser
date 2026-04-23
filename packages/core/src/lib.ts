@@ -2,8 +2,31 @@ import Browser from "./components/browser/browser";
 export { Browser };
 
 // Tracks
-import { BigBedConfig, SquishBigBedProps, DenseBigBedProps, Rect } from "./components/tracks/bigbed/types";
-export type { BigBedConfig, SquishBigBedProps, DenseBigBedProps, Rect };
+import {
+  BigBedConfig,
+  BigBedFieldKind,
+  BigBedParser,
+  BigBedRow,
+  BigBedSchema,
+  InferBigBedRow,
+  SquishBigBedProps,
+  DenseBigBedProps,
+  Rect,
+} from "./components/tracks/bigbed/types";
+export type {
+  BigBedConfig,
+  BigBedFieldKind,
+  BigBedParser,
+  BigBedRow,
+  BigBedSchema,
+  InferBigBedRow,
+  SquishBigBedProps,
+  DenseBigBedProps,
+  Rect,
+};
+
+import { defineBigBedSchema } from "./components/tracks/bigbed/schema";
+export { defineBigBedSchema };
 
 import { BulkBedConfig, BulkBedProps, BulkBedDataset, BulkBedRect } from "./components/tracks/bulkbed/types";
 export type { BulkBedConfig, BulkBedProps, BulkBedDataset, BulkBedRect };
@@ -86,14 +109,11 @@ import useCustomData from "./hooks/useCustomData";
 export { useCustomData };
 
 // Fetcher types and utilities (for custom track fetchers)
-import { getBigDataRace, fetchBigBedUrl } from "./api/fetchers";
-export { getBigDataRace, fetchBigBedUrl };
+import { fetchBigBedUrl } from "./api/fetchers";
+export { fetchBigBedUrl };
 
 import type { FetcherContext, FetchFunction } from "./api/fetchers";
 export type { FetcherContext, FetchFunction };
-
-import type { BigBedParser } from "./api/getBigWigData";
-export type { BigBedParser };
 
 import type { TrackDataState } from "./store/dataStore";
 export type { TrackDataState };

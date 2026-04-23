@@ -7,6 +7,7 @@ import {
 } from "@mui/x-data-grid-premium";
 import { ReactElement, ReactNode } from "react";
 import { SvgIconOwnProps } from "@mui/material";
+import { FolderDefinition } from "./Folders/types";
 
 /**
  * Custom Tree Props for RichTreeView Panel
@@ -15,12 +16,13 @@ export type ExtendedTreeItemProps = {
   id: string;
   label: string;
   icon: string;
+  kind?: "root" | "group" | "leaf";
+  field?: string;
+  value?: string;
+  rowId?: string;
   folderId?: string;
-  isAssayItem?: boolean;
-  /**
-   * The assay name for leaf nodes (experiment accession items)
-   */
-  assayName?: string;
+  isHighlightedItem?: boolean;
+  highlightName?: string;
   /**
    * list of all the experimentAccession values in the children/grandchildren of the item, or the accession of the item itself
    * this is used in updating the rowSelectionModel when removing items from the Tree View panel
@@ -28,22 +30,10 @@ export type ExtendedTreeItemProps = {
   allExpAccessions?: string[];
 };
 
-/**
- * Configuration for a single folder's tree in the TreeViewWrapper.
- * Each folder gets its own tree with its own TreeItemComponent.
- */
-export type FolderTreeConfig = {
-  folderId: string;
-  items: TreeViewBaseItem<ExtendedTreeItemProps>[];
-  /** Optional custom TreeItem component for this folder */
-  TreeItemComponent?: React.ForwardRefExoticComponent<
-    CustomTreeItemProps & React.RefAttributes<HTMLLIElement>
-  >;
-};
-
 export type TreeViewWrapperProps = {
-  /** Array of folder tree configurations, one per folder with selections */
-  folderTrees: FolderTreeConfig[];
+  folders: FolderDefinition[];
+  selectedByFolder: Map<string, Set<string>>;
+  activeViewIdByFolder: Map<string, string>;
   selectedCount: number;
   onRemove: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
 };
@@ -51,34 +41,19 @@ export type TreeViewWrapperProps = {
 export interface CustomLabelProps {
   id: string;
   children: React.ReactNode;
-  isAssayItem?: boolean;
-  assayName?: string;
+  isHighlightedItem?: boolean;
+  highlightName?: string;
   icon?: React.ElementType | React.ReactElement | ReactNode;
-  /** Optional function to render custom icons for assay items */
   renderIcon?: (name: string) => ReactNode;
 }
 
 export interface CustomTreeItemProps
-  extends Omit<UseTreeItemParameters, "rootRef">,
+  extends
+    Omit<UseTreeItemParameters, "rootRef">,
     Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {
   onRemove?: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
-  /** Optional function to render custom icons for assay items */
   renderIcon?: (name: string) => ReactNode;
 }
-
-/**
- * Types for useSelectionStore to keep track of selected DataGrid rows/tracks
- */
-export type SelectionState = {
-  selectedByFolder: Map<string, Set<string>>;
-  activeFolderId: string;
-};
-
-export type SelectionAction = {
-  clear: (folderId?: string) => void;
-  setActiveFolder: (folderId: string) => void;
-  setSelection: (folderId: string, ids: Set<string>) => void;
-};
 
 /**
  * DataGrid Props

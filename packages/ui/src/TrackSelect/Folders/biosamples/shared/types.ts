@@ -1,12 +1,7 @@
-/**
- * Types for biosample folder data
- */
-
 export type CollectionType = "Core" | "Ancillary" | "Partial";
 
 /**
- * Assay information from the JSON data.
- * Standard assays have a single `url`, while WGBS assays have `cpgPlus`, `cpgMinus`, `coverage`.
+ * One assay entry from the source data. WGBS rows carry strand-specific URLs.
  */
 export type BiosampleAssayInfo = {
   id: string;
@@ -14,15 +9,12 @@ export type BiosampleAssayInfo = {
   url?: string;
   experimentAccession: string;
   fileAccession?: string;
-  // WGBS-specific fields
   cpgPlus?: string;
   cpgMinus?: string;
   coverage?: string;
 };
 
-/**
- * Track information from the JSON data
- */
+/** One biosample entry from the source data. */
 export type BiosampleTrackInfo = {
   name: string;
   ontology: string;
@@ -34,8 +26,7 @@ export type BiosampleTrackInfo = {
 };
 
 /**
- * Row format for DataGrid (flattened from TrackInfo).
- * Standard assays have a single `url`, while WGBS assays have `cpgPlus`, `cpgMinus`, `coverage`.
+ * Flattened table row used by TrackSelect and track creation.
  */
 export type BiosampleRowInfo = {
   id: string;
@@ -48,15 +39,12 @@ export type BiosampleRowInfo = {
   fileAccession?: string;
   url?: string;
   collection: CollectionType;
-  // WGBS-specific fields
   cpgPlus?: string;
   cpgMinus?: string;
   coverage?: string;
 };
 
-/**
- * Structure of the biosample JSON data files
- */
+/** Root shape for biosample JSON files. */
 export type BiosampleDataFile = {
   tracks: BiosampleTrackInfo[];
 };

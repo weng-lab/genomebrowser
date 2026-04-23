@@ -1,4 +1,6 @@
 import { Buffer } from "buffer";
+import { gql } from "@apollo/client/core";
+import { useQuery } from "@apollo/client/react";
 import { createRoot } from "react-dom/client";
 import {
   BigBedConfig,
@@ -13,8 +15,11 @@ import {
   useCustomData,
 } from "../src/lib";
 import { useEffect, useMemo, useState } from "react";
-import { ApolloError, gql, useQuery } from "@apollo/client";
 globalThis.Buffer = Buffer;
+
+type QueryError = {
+  message: string;
+};
 
 export default function LD() {
   const {
@@ -160,7 +165,7 @@ export type GetSnPsIdentifiedbyGivenStudyQuery = {
 export type UseGWASSnpsReturn = {
   data: GetSnPsIdentifiedbyGivenStudyQuery | undefined;
   loading: boolean;
-  error: ApolloError;
+  error: QueryError;
 };
 
 const GWAS_SNP_QUERY = gql(`

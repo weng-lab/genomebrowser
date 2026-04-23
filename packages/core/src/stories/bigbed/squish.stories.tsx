@@ -1,6 +1,5 @@
 import { Meta, StoryObj } from "@storybook/react-vite";
 import SquishBigBed from "../../components/tracks/bigbed/squish";
-import { Rect } from "../../components/tracks/bigbed/types";
 
 const meta: Meta<typeof SquishBigBed> = {
   title: "BigBed/Squish",
@@ -40,7 +39,7 @@ export const Squish: Story = {
     onClick: () => {},
     onHover: () => {},
     onLeave: () => {},
-    tooltip: (rect: Rect) => {
+    tooltip: (rect) => {
       return <div>{rect.name || "No name"}</div>;
     },
   },
