@@ -1,13 +1,31 @@
+import {
+  GenomeBrowser,
+  bigWig,
+  bigWigModule,
+  createBrowserStore,
+  createTrackStore,
+} from "./index";
+
+const browserStore = createBrowserStore({
+  region: "chr19:44,905,754-44,907,754",
+});
+
+const trackStore = createTrackStore([
+  bigWig({
+    id: "dnase",
+    title: "DNase aggregate",
+    url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
+  }),
+]);
+
+const modules = [bigWigModule];
+
 export default function App() {
   return (
-    <main className="app-shell">
-      <section className="hero-card">
-        <p className="eyebrow">Genome Browser V2</p>
-        <h1>Vite app scaffold</h1>
-        <p className="lede">
-          Start building the next genome browser experience from this React and TypeScript Vite app.
-        </p>
-      </section>
-    </main>
+    <GenomeBrowser
+      browserStore={browserStore}
+      trackStore={trackStore}
+      modules={modules}
+    />
   );
 }
