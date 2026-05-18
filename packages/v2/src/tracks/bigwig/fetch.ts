@@ -4,15 +4,12 @@ import type { TrackFetchContext } from "../../modules/types";
 import { applyFillWithZero, condenseBigWigData, getBigWigRange } from "./helpers";
 import type { BigWigConfig, BigWigData, BigWigDatum } from "./types";
 
-export async function fetchBigWig({ track, region, width, signal }: TrackFetchContext<BigWigConfig>): Promise<BigWigData> {
-  throwIfAborted(signal);
+export async function fetchBigWig({ track, region, width }: TrackFetchContext<BigWigConfig>): Promise<BigWigData> {
   await ensureBrowserBuffer();
-  throwIfAborted(signal);
 
   const dataLoader = new AxiosDataLoader(track.url, axios.create() as never);
   const reader = new BigWigReader(dataLoader);
   const header = await reader.getHeader();
-  throwIfAborted(signal);
 
   if (header.fileType !== FileType.BigWig) {
     throw new Error("BigWig module only supports BigWig files");
@@ -24,7 +21,6 @@ export async function fetchBigWig({ track, region, width, signal }: TrackFetchCo
     region.chromosome,
     region.end,
   )) as BigWigDatum[];
-  throwIfAborted(signal);
 
   const points = condenseBigWigData(rawData, region, width);
   if (track.fillWithZero) applyFillWithZero(points);
@@ -39,10 +35,4 @@ async function ensureBrowserBuffer() {
   if (typeof window === "undefined" || typeof globalThis.Buffer !== "undefined") return;
   const { Buffer } = await import("buffer");
   globalThis.Buffer = Buffer;
-}
-
-function throwIfAborted(signal: AbortSignal) {
-  if (signal.aborted) {
-    throw new DOMException("Aborted", "AbortError");
-  }
 }

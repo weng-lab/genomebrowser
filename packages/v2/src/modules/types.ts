@@ -14,7 +14,6 @@ export type TrackFetchContext<Config extends TrackConfigBase> = {
   track: Config;
   region: BrowserRegion;
   width: number;
-  signal: AbortSignal;
 };
 
 export type TrackRendererProps<Config extends TrackConfigBase, Data> = {

@@ -10,38 +10,31 @@ export function useTrackData(tracks: TrackConfigBase[], region: BrowserRegion, w
   const signature = useMemo(() => JSON.stringify({ region, tracks, width }), [region, tracks, width]);
 
   useEffect(() => {
-    const controllers = new Map<string, AbortController>();
     let active = true;
     const currentIds = new Set(tracks.map((track) => track.id));
 
     dispatch({ type: "sync", ids: currentIds });
 
     for (const track of tracks) {
-      const controller = new AbortController();
-      controllers.set(track.id, controller);
-
       dispatch({ type: "loading", id: track.id });
 
       Promise.resolve()
         .then(() => {
           const module = registry.get(track.type);
-          return module.fetch({ track: module.validate(track), region, width, signal: controller.signal });
+          return module.fetch({ track: module.validate(track), region, width });
         })
         .then((data) => {
-          if (!active || controller.signal.aborted) return;
+          if (!active) return;
           dispatch({ type: "success", id: track.id, data });
         })
         .catch((error: unknown) => {
-          if (!active || controller.signal.aborted) return;
+          if (!active) return;
           dispatch({ type: "error", id: track.id, error: error instanceof Error ? error.message : "Unknown error" });
         });
     }
 
     return () => {
       active = false;
-      for (const controller of controllers.values()) {
-        controller.abort();
-      }
     };
   }, [signature, registry, region, tracks, width]);
 
