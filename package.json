@@ -8,6 +8,7 @@
     "dev": "pnpm -r dev",
     "dev:core": "pnpm --filter @weng-lab/genomebrowser dev",
     "dev:ui": "pnpm --filter @weng-lab/genomebrowser-ui dev",
+    "dev:v2": "pnpm --filter @weng-lab/genomebrowser-v2 dev",
     "publish:core": "pnpm --filter @weng-lab/genomebrowser publish",
     "publish:ui": "pnpm --filter @weng-lab/genomebrowser-ui publish",
     "version:core": "cd packages/core && pnpm version",
