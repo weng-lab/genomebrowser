@@ -19,6 +19,7 @@ const trackStore = createTrackStore([
   bigWig({
     id: "atac",
     title: "atac aggregate",
+    color: "#fa34bc",
     url: "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw",
   }),
 ]);
