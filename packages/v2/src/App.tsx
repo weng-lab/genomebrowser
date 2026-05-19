@@ -16,6 +16,11 @@ const trackStore = createTrackStore([
     title: "DNase aggregate",
     url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
   }),
+  bigWig({
+    id: "atac",
+    title: "atac aggregate",
+    url: "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw",
+  }),
 ]);
 
 const modules = [bigWigModule];
