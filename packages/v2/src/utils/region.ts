@@ -10,8 +10,8 @@ export type BrowserRegion = {
 export const browserRegionSchema = z
   .object({
     chromosome: z.string().min(1),
-    start: z.number().finite().int().nonnegative(),
-    end: z.number().finite().int().positive(),
+    start: z.number().finite().int(),
+    end: z.number().finite().int(),
   })
   .refine((region) => region.start < region.end, {
     message: "start must be less than end",

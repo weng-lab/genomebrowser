@@ -4,9 +4,28 @@ import { svgPoint } from "../utils/svg";
 import type { BrowserRegion } from "../utils/region";
 
 type Selection = { start: number; end: number } | null;
-type SelectionAction = { type: "start"; x: number } | { type: "move"; x: number } | { type: "clear" };
+type SelectionAction =
+  | { type: "start"; x: number }
+  | { type: "move"; x: number }
+  | { type: "clear" };
 
-export function SelectRegion({ svg, marginWidth, trackWidth, totalHeight, region, setRegion }: { svg: SVGSVGElement | null; marginWidth: number; trackWidth: number; totalHeight: number; region: BrowserRegion; setRegion: (region: BrowserRegion) => void }) {
+export function SelectRegion({
+  svg,
+  marginWidth,
+  trackWidth,
+  totalHeight,
+  region,
+  setRegion,
+  disabled = false,
+}: {
+  svg: SVGSVGElement | null;
+  marginWidth: number;
+  trackWidth: number;
+  totalHeight: number;
+  region: BrowserRegion;
+  setRegion: (region: BrowserRegion) => void;
+  disabled?: boolean;
+}) {
   const [selection, dispatchSelection] = useReducer(selectionReducer, null);
   const selectingRef = useRef(false);
   const selectionRef = useRef<Selection>(selection);
@@ -50,6 +69,7 @@ export function SelectRegion({ svg, marginWidth, trackWidth, totalHeight, region
   }, [marginWidth, region, setRegion, svg, trackWidth]);
 
   const handleMouseDown = (event: React.MouseEvent<SVGRectElement>) => {
+    if (disabled) return;
     if (!svg) return;
     const point = svgPoint(svg, event.clientX, event.clientY);
     if (!point) return;
@@ -60,7 +80,14 @@ export function SelectRegion({ svg, marginWidth, trackWidth, totalHeight, region
 
   return (
     <>
-      <rect fill="#ffffff" width={trackWidth} height={80} x={marginWidth} y={0} onMouseDown={handleMouseDown} />
+      <rect
+        fill="#ffffff"
+        width={trackWidth}
+        height={80}
+        x={marginWidth}
+        y={0}
+        onMouseDown={handleMouseDown}
+      />
       {selection && (
         <rect
           id="selectRegion"

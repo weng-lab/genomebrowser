@@ -20,6 +20,9 @@ export function TrackStack({
   region,
   marginWidth,
   trackWidth,
+  contentX,
+  contentWidth,
+  registerContentGroup,
   titleSize,
   trackStore,
   startY,
@@ -30,6 +33,9 @@ export function TrackStack({
   region: BrowserRegion;
   marginWidth: number;
   trackWidth: number;
+  contentX?: number;
+  contentWidth?: number;
+  registerContentGroup?: (node: SVGGElement) => () => void;
   titleSize: number;
   trackStore: TrackStoreInstance;
   startY: number;
@@ -43,8 +49,26 @@ export function TrackStack({
     y += wrapperHeight;
 
     return (
-      <TrackFrame key={track.id} track={track} y={trackY} marginWidth={marginWidth} trackWidth={trackWidth} titleSize={titleSize} trackStore={trackStore}>
-        <TrackContent track={track} dataState={dataStates[track.id] ?? { status: "idle" }} registry={registry} region={region} width={trackWidth} height={track.height} titleMargin={titleMargin} />
+      <TrackFrame
+        key={track.id}
+        track={track}
+        y={trackY}
+        marginWidth={marginWidth}
+        trackWidth={trackWidth}
+        contentX={contentX}
+        registerContentGroup={registerContentGroup}
+        titleSize={titleSize}
+        trackStore={trackStore}
+      >
+        <TrackContent
+          track={track}
+          dataState={dataStates[track.id] ?? { status: "idle" }}
+          registry={registry}
+          region={region}
+          width={contentWidth ?? trackWidth}
+          height={track.height}
+          titleMargin={titleMargin}
+        />
       </TrackFrame>
     );
   });
@@ -71,18 +95,52 @@ function TrackContent({
     return <LoadingState x={0} y={0} width={width} height={height} />;
   }
   if (dataState.status === "error") {
-    return <ErrorState x={0} y={0} width={width} height={height + titleMargin} message={dataState.error} />;
+    return (
+      <ErrorState
+        x={0}
+        y={0}
+        width={width}
+        height={height + titleMargin}
+        message={dataState.error}
+      />
+    );
   }
 
   try {
     const module = registry.get(track.type);
     const validatedTrack = module.validate(track);
-    const Renderer = module.render[track.display] as ComponentType<TrackRendererProps<TrackConfigBase, unknown>> | undefined;
+    const Renderer = module.render[track.display] as
+      | ComponentType<TrackRendererProps<TrackConfigBase, unknown>>
+      | undefined;
     if (!Renderer) {
-      return <ErrorState x={0} y={0} width={width} height={height} message={`Display "${track.display}" is not supported by "${track.type}"`} />;
+      return (
+        <ErrorState
+          x={0}
+          y={0}
+          width={width}
+          height={height}
+          message={`Display "${track.display}" is not supported by "${track.type}"`}
+        />
+      );
     }
-    return <Renderer track={validatedTrack} data={dataState.data} region={region} width={width} height={height} />;
+    return (
+      <Renderer
+        track={validatedTrack}
+        data={dataState.data}
+        region={region}
+        width={width}
+        height={height}
+      />
+    );
   } catch (error) {
-    return <ErrorState x={0} y={0} width={width} height={height} message={error instanceof Error ? error.message : "Unknown error"} />;
+    return (
+      <ErrorState
+        x={0}
+        y={0}
+        width={width}
+        height={height}
+        message={error instanceof Error ? error.message : "Unknown error"}
+      />
+    );
   }
 }

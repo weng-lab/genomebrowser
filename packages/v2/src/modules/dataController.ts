@@ -4,63 +4,90 @@ import type { TrackConfigBase, TrackDataState } from "./types";
 import type { createModuleRegistry } from "./registry";
 
 type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
+type TrackDataOptions = {
+  keepPreviousSuccess?: boolean;
+  onSettled?: () => void;
+};
 
-export function useTrackData(tracks: TrackConfigBase[], region: BrowserRegion, width: number, registry: ModuleRegistry) {
+export function useTrackData(
+  tracks: TrackConfigBase[],
+  region: BrowserRegion,
+  width: number,
+  registry: ModuleRegistry,
+  options: TrackDataOptions = {},
+) {
   const [states, dispatch] = useReducer(dataStateReducer, {});
-  const signature = useMemo(() => JSON.stringify({ region, tracks, width }), [region, tracks, width]);
+  const signature = useMemo(
+    () => JSON.stringify({ region, tracks, width }),
+    [region, tracks, width],
+  );
+  const { keepPreviousSuccess = false, onSettled } = options;
 
   useEffect(() => {
     let active = true;
     const currentIds = new Set(tracks.map((track) => track.id));
 
-    dispatch({ type: "sync", ids: currentIds });
+    dispatch({ type: "sync", ids: currentIds, keepPreviousSuccess });
 
-    for (const track of tracks) {
-      dispatch({ type: "loading", id: track.id });
-
-      Promise.resolve()
-        .then(() => {
-          const module = registry.get(track.type);
-          return module.fetch({ track: module.validate(track), region, width });
-        })
-        .then((data) => {
-          if (!active) return;
-          dispatch({ type: "success", id: track.id, data });
-        })
-        .catch((error: unknown) => {
-          if (!active) return;
-          dispatch({ type: "error", id: track.id, error: error instanceof Error ? error.message : "Unknown error" });
-        });
-    }
+    Promise.all(
+      tracks.map((track) =>
+        Promise.resolve()
+          .then(() => {
+            const module = registry.get(track.type);
+            return module.fetch({ track: module.validate(track), region, width });
+          })
+          .then((data): TrackFetchResult => ({ id: track.id, state: { status: "success", data } }))
+          .catch(
+            (error: unknown): TrackFetchResult => ({
+              id: track.id,
+              state: {
+                status: "error",
+                error: error instanceof Error ? error.message : "Unknown error",
+              },
+            }),
+          ),
+      ),
+    ).then((results) => {
+      if (!active) return;
+      dispatch({ type: "settled", results });
+      onSettled?.();
+    });
 
     return () => {
       active = false;
     };
-  }, [signature, registry, region, tracks, width]);
+  }, [keepPreviousSuccess, onSettled, registry, region, signature, tracks, width]);
 
   return states;
 }
 
-type DataStateAction =
-  | { type: "sync"; ids: Set<string> }
-  | { type: "loading"; id: string }
-  | { type: "success"; id: string; data: unknown }
-  | { type: "error"; id: string; error: string };
+type TrackFetchResult = { id: string; state: TrackDataState };
 
-function dataStateReducer(state: Record<string, TrackDataState>, action: DataStateAction): Record<string, TrackDataState> {
+type DataStateAction =
+  | { type: "sync"; ids: Set<string>; keepPreviousSuccess: boolean }
+  | { type: "settled"; results: TrackFetchResult[] };
+
+function dataStateReducer(
+  state: Record<string, TrackDataState>,
+  action: DataStateAction,
+): Record<string, TrackDataState> {
   switch (action.type) {
     case "sync": {
       const next: Record<string, TrackDataState> = {};
       for (const id of action.ids) {
-        next[id] = state[id]?.status === "success" ? state[id] : { status: "loading" };
+        next[id] =
+          action.keepPreviousSuccess && state[id]?.status === "success"
+            ? state[id]
+            : { status: "loading" };
       }
       return next;
     }
-    case "loading":
-      return { ...state, [action.id]: { status: "loading" } };
-    case "success":
-      return { ...state, [action.id]: { status: "success", data: action.data } };
-    case "error":
-      return { ...state, [action.id]: { status: "error", error: action.error } };
+    case "settled": {
+      const next = { ...state };
+      for (const result of action.results) {
+        next[result.id] = result.state;
+      }
+      return next;
+    }
   }
 }

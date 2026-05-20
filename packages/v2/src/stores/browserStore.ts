@@ -19,7 +19,6 @@ export type BrowserStore = {
   titleSize: number;
   setRegion: (region: BrowserRegion | string) => void;
   setTrackWidth: (trackWidth: number) => void;
-  pan: (deltaBases: number) => void;
   zoom: (factor: number, centerBase?: number) => void;
 };
 
@@ -30,8 +29,8 @@ const browserStoreInputSchema = z.object({
     z.string().min(1),
     z.object({
       chromosome: z.string().min(1),
-      start: z.number().finite().int().nonnegative(),
-      end: z.number().finite().int().positive(),
+      start: z.number().finite().int(),
+      end: z.number().finite().int(),
     }),
   ]),
   marginWidth: z.number().positive().optional(),
@@ -50,16 +49,6 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
     titleSize: parsedInput.titleSize ?? 12,
     setRegion: (region) => set({ region: parseRegion(region) }),
     setTrackWidth: (trackWidth) => set({ trackWidth }),
-    pan: (deltaBases) => {
-      const region = get().region;
-      set({
-        region: {
-          chromosome: region.chromosome,
-          start: Math.max(0, region.start + deltaBases),
-          end: Math.max(1, region.end + deltaBases),
-        },
-      });
-    },
     zoom: (factor, centerBase) => {
       if (factor <= 0) throw new Error("Zoom factor must be greater than 0");
       const region = get().region;
