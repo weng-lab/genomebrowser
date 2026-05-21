@@ -17,16 +17,16 @@ export function useTrackData(
   options: TrackDataOptions = {},
 ) {
   const [states, dispatch] = useReducer(dataStateReducer, {});
+  const trackIdsSignature = useMemo(() => createTrackIdsSignature(tracks), [tracks]);
   const signature = useMemo(
-    () => JSON.stringify({ region, tracks, width }),
-    [region, tracks, width],
+    () => JSON.stringify({ region, trackIds: trackIdsSignature, width }),
+    [region, trackIdsSignature, width],
   );
   const { keepPreviousSuccess = false, onSettled } = options;
 
   useEffect(() => {
     let active = true;
     const currentIds = new Set(tracks.map((track) => track.id));
-
     dispatch({ type: "sync", ids: currentIds, keepPreviousSuccess });
 
     Promise.all(
@@ -56,9 +56,13 @@ export function useTrackData(
     return () => {
       active = false;
     };
-  }, [keepPreviousSuccess, onSettled, registry, region, signature, tracks, width]);
+  }, [keepPreviousSuccess, onSettled, registry, region, signature, trackIdsSignature, width]);
 
   return states;
+}
+
+export function createTrackIdsSignature(tracks: TrackConfigBase[]) {
+  return JSON.stringify(tracks.map((track) => track.id).sort());
 }
 
 type TrackFetchResult = { id: string; state: TrackDataState };
