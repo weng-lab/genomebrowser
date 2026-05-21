@@ -6,7 +6,7 @@ import type { createModuleRegistry } from "./registry";
 type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 type TrackDataOptions = {
   keepPreviousSuccess?: boolean;
-  onSettled?: () => void;
+  onSettled?: (signature: string) => void;
 };
 
 export function useTrackData(
@@ -50,7 +50,7 @@ export function useTrackData(
     ).then((results) => {
       if (!active) return;
       dispatch({ type: "settled", results });
-      onSettled?.();
+      onSettled?.(signature);
     });
 
     return () => {

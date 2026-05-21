@@ -1,2 +1,0 @@
-export const PAN_COMMIT_THRESHOLD_PX = 10;
-export const PAN_OVERSCAN_MULTIPLIER = 3;

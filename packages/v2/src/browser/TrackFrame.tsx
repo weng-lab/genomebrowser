@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { TrackConfigBase } from "../modules/types";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { BottomIcon, TopIcon } from "./icons";
+import type { PanDragHandlers } from "./usePanDrag";
 
 export function getTrackWrapperHeight(track: TrackConfigBase, titleSize: number) {
   return track.height + (track.title ? titleSize + 5 : 0);
@@ -18,6 +19,8 @@ export function TrackFrame({
   trackWidth,
   contentX = marginWidth,
   registerContentGroup,
+  panDrag,
+  isPanLocked = false,
   titleSize,
   trackStore,
   children,
@@ -28,6 +31,8 @@ export function TrackFrame({
   trackWidth: number;
   contentX?: number;
   registerContentGroup?: (node: SVGGElement) => () => void;
+  panDrag?: PanDragHandlers;
+  isPanLocked?: boolean;
   titleSize: number;
   trackStore: TrackStoreInstance;
   children: React.ReactNode;
@@ -71,6 +76,21 @@ export function TrackFrame({
           <g transform={`translate(0,${titleMargin})`}>{children}</g>
         </g>
       </g>
+      {panDrag && (
+        <rect
+          x={marginWidth}
+          y={titleMargin}
+          width={trackWidth}
+          height={track.height}
+          fill="transparent"
+          pointerEvents="all"
+          style={{ cursor: isPanLocked ? "default" : panDrag.isDragging ? "grabbing" : "grab" }}
+          onPointerDown={panDrag.onPointerDown}
+          onPointerMove={panDrag.onPointerMove}
+          onPointerUp={panDrag.onPointerUp}
+          onPointerCancel={panDrag.onPointerCancel}
+        />
+      )}
       <text
         fill="#000000"
         x={marginWidth + trackWidth / 2}

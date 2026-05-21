@@ -5,13 +5,14 @@ import type { AnyTrackModule } from "../modules/types";
 import type { BrowserStoreInstance } from "../stores/browserStore";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import type { BrowserRegion } from "../utils/region";
-import { svgPoint } from "../utils/svg";
-import { PAN_COMMIT_THRESHOLD_PX, PAN_OVERSCAN_MULTIPLIER } from "./panConstants";
 import { expandRegion, getPanCommitRegion } from "./panMath";
 import { RULER_HEIGHT, Ruler } from "./Ruler";
 import { SelectRegion } from "./SelectRegion";
 import { SvgShell } from "./SvgShell";
 import { getTracksHeight, TrackStack } from "./TrackStack";
+import { usePanDrag } from "./usePanDrag";
+
+const PAN_OVERSCAN_MULTIPLIER = 3;
 
 export type GenomeBrowserProps = {
   browserStore: BrowserStoreInstance;
@@ -36,17 +37,19 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
   const sideWidth = trackWidth;
   const browserWidth = marginWidth + trackWidth;
   const totalHeight = RULER_HEIGHT + getTracksHeight(tracks, titleSize);
-  const dragStartClientX = useRef(0);
-  const dragStartDeltaPx = useRef(0);
   const deltaPxRef = useRef(0);
   const regionRef = useRef(region);
   const trackWidthRef = useRef(trackWidth);
-  const isInteractionLockedRef = useRef(isInteractionLocked);
+  const dataSignatureRef = useRef("");
   const contentGroupsRef = useRef(new Set<SVGGElement>());
+  const dataSignature = useMemo(
+    () => JSON.stringify({ region: targetRenderRegion, tracks, width: renderWidth }),
+    [targetRenderRegion, tracks, renderWidth],
+  );
 
   regionRef.current = region;
   trackWidthRef.current = trackWidth;
-  isInteractionLockedRef.current = isInteractionLocked;
+  dataSignatureRef.current = dataSignature;
 
   const baseContentX = marginWidth - sideWidth;
 
@@ -75,7 +78,9 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
     setContentOffset(deltaPxRef.current);
   }, [setContentOffset]);
 
-  const handleDataSettled = useCallback(() => {
+  const handleDataSettled = useCallback((signature: string) => {
+    if (signature !== dataSignatureRef.current) return;
+
     setDisplayedRenderRegion(targetRenderRegion);
     setContentOffset(0);
     setIsInteractionLocked(false);
@@ -86,46 +91,16 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
     onSettled: handleDataSettled,
   });
 
-  const handlePanMouseDown = (event: React.MouseEvent<SVGGElement>) => {
-    if (isInteractionLockedRef.current) return;
-    if (!svg) return;
-    const point = svgPoint(svg, event.clientX, event.clientY);
-    if (!point) return;
-    if (
-      point.x < marginWidth ||
-      point.x > marginWidth + trackWidth ||
-      point.y < RULER_HEIGHT ||
-      point.y > totalHeight
-    )
-      return;
-
-    event.preventDefault();
-    dragStartClientX.current = event.clientX;
-    dragStartDeltaPx.current = deltaPxRef.current;
-
-    const handleMove = (event: MouseEvent) => {
-      event.preventDefault();
-      setContentOffset(dragStartDeltaPx.current + event.clientX - dragStartClientX.current);
-    };
-
-    const handleUp = (event: MouseEvent) => {
-      event.preventDefault();
-      document.removeEventListener("mousemove", handleMove);
-      document.removeEventListener("mouseup", handleUp);
-
-      const committedDeltaPx = deltaPxRef.current;
-      if (Math.abs(committedDeltaPx) < PAN_COMMIT_THRESHOLD_PX) {
-        setContentOffset(0);
-        return;
-      }
-
+  const panDrag = usePanDrag({
+    disabled: isInteractionLocked,
+    getCurrentDelta: () => deltaPxRef.current,
+    setDelta: setContentOffset,
+    onCancel: () => setContentOffset(0),
+    onCommit: (committedDeltaPx) => {
       setIsInteractionLocked(true);
       setRegion(getPanCommitRegion(regionRef.current, trackWidthRef.current, committedDeltaPx));
-    };
-
-    document.addEventListener("mousemove", handleMove);
-    document.addEventListener("mouseup", handleUp);
-  };
+    },
+  });
 
   return (
     <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
@@ -141,10 +116,7 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
       <g transform={`translate(${marginWidth},0)`}>
         <Ruler region={region} width={trackWidth} />
       </g>
-      <g
-        onMouseDownCapture={handlePanMouseDown}
-        style={{ cursor: isInteractionLocked ? "default" : "grab" }}
-      >
+      <g>
         <TrackStack
           tracks={tracks}
           dataStates={dataStates}
@@ -155,6 +127,8 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
           contentX={baseContentX}
           contentWidth={renderWidth}
           registerContentGroup={registerContentGroup}
+          panDrag={panDrag}
+          isPanLocked={isInteractionLocked}
           titleSize={titleSize}
           trackStore={trackStore}
           startY={RULER_HEIGHT}

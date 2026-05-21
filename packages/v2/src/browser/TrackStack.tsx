@@ -6,6 +6,7 @@ import type { TrackStoreInstance } from "../stores/trackStore";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { getTrackTitleMargin, getTrackWrapperHeight, TrackFrame } from "./TrackFrame";
+import type { PanDragHandlers } from "./usePanDrag";
 
 type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 
@@ -23,6 +24,8 @@ export function TrackStack({
   contentX,
   contentWidth,
   registerContentGroup,
+  panDrag,
+  isPanLocked,
   titleSize,
   trackStore,
   startY,
@@ -36,6 +39,8 @@ export function TrackStack({
   contentX?: number;
   contentWidth?: number;
   registerContentGroup?: (node: SVGGElement) => () => void;
+  panDrag?: PanDragHandlers;
+  isPanLocked?: boolean;
   titleSize: number;
   trackStore: TrackStoreInstance;
   startY: number;
@@ -57,6 +62,8 @@ export function TrackStack({
         trackWidth={trackWidth}
         contentX={contentX}
         registerContentGroup={registerContentGroup}
+        panDrag={panDrag}
+        isPanLocked={isPanLocked}
         titleSize={titleSize}
         trackStore={trackStore}
       >
