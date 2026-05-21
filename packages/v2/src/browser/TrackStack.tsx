@@ -5,6 +5,7 @@ import type { TrackConfigBase, TrackDataState, TrackRendererProps } from "../mod
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
+import { SwapTrack } from "./SwapTrack";
 import { getTrackTitleMargin, getTrackWrapperHeight, TrackFrame } from "./TrackFrame";
 import type { PanDragHandlers } from "./usePanDrag";
 
@@ -29,6 +30,7 @@ export function TrackStack({
   titleSize,
   trackStore,
   startY,
+  svg,
 }: {
   tracks: TrackConfigBase[];
   dataStates: Record<string, TrackDataState>;
@@ -44,6 +46,7 @@ export function TrackStack({
   titleSize: number;
   trackStore: TrackStoreInstance;
   startY: number;
+  svg: SVGSVGElement | null;
 }) {
   let y = startY;
 
@@ -54,29 +57,38 @@ export function TrackStack({
     y += wrapperHeight;
 
     return (
-      <TrackFrame
+      <SwapTrack
         key={track.id}
         track={track}
-        y={trackY}
-        marginWidth={marginWidth}
-        trackWidth={trackWidth}
-        contentX={contentX}
-        registerContentGroup={registerContentGroup}
-        panDrag={panDrag}
-        isPanLocked={isPanLocked}
-        titleSize={titleSize}
+        tracks={tracks}
         trackStore={trackStore}
+        titleSize={titleSize}
+        svg={svg}
+        disabled={isPanLocked}
       >
-        <TrackContent
+        <TrackFrame
           track={track}
-          dataState={dataStates[track.id] ?? { status: "idle" }}
-          registry={registry}
-          region={region}
-          width={contentWidth ?? trackWidth}
-          height={track.height}
-          titleMargin={titleMargin}
-        />
-      </TrackFrame>
+          y={trackY}
+          marginWidth={marginWidth}
+          trackWidth={trackWidth}
+          contentX={contentX}
+          registerContentGroup={registerContentGroup}
+          panDrag={panDrag}
+          isPanLocked={isPanLocked}
+          titleSize={titleSize}
+          trackStore={trackStore}
+        >
+          <TrackContent
+            track={track}
+            dataState={dataStates[track.id] ?? { status: "idle" }}
+            registry={registry}
+            region={region}
+            width={contentWidth ?? trackWidth}
+            height={track.height}
+            titleMargin={titleMargin}
+          />
+        </TrackFrame>
+      </SwapTrack>
     );
   });
 }

@@ -21,6 +21,9 @@ export function TrackFrame({
   registerContentGroup,
   panDrag,
   isPanLocked = false,
+  onSwapMouseDown,
+  swapping = false,
+  isDragClone = false,
   titleSize,
   trackStore,
   children,
@@ -33,6 +36,9 @@ export function TrackFrame({
   registerContentGroup?: (node: SVGGElement) => () => void;
   panDrag?: PanDragHandlers;
   isPanLocked?: boolean;
+  onSwapMouseDown?: (event: React.MouseEvent<SVGRectElement>) => void;
+  swapping?: boolean;
+  isDragClone?: boolean;
   titleSize: number;
   trackStore: TrackStoreInstance;
   children: React.ReactNode;
@@ -56,9 +62,9 @@ export function TrackFrame({
   };
 
   useEffect(() => {
-    if (!registerContentGroup || !contentGroupRef.current) return;
+    if (isDragClone || !registerContentGroup || !contentGroupRef.current) return;
     return registerContentGroup(contentGroupRef.current);
-  }, [registerContentGroup]);
+  }, [isDragClone, registerContentGroup]);
 
   return (
     <g
@@ -71,6 +77,7 @@ export function TrackFrame({
           <rect x={marginWidth} y={titleMargin} width={trackWidth} height={track.height} />
         </clipPath>
       </defs>
+      <rect x={marginWidth} y={0} width={trackWidth} height={wrapperHeight} fill="#ffffff" />
       <g clipPath={`url(#${contentClipId})`}>
         <g ref={contentGroupRef} transform={`translate(${contentX},0)`}>
           <g transform={`translate(0,${titleMargin})`}>{children}</g>
@@ -107,7 +114,8 @@ export function TrackFrame({
         width={marginWidth}
         height={wrapperHeight}
         fill="#ffffff"
-        style={{ cursor: "default" }}
+        onMouseDown={onSwapMouseDown}
+        style={{ cursor: onSwapMouseDown ? (swapping ? "grabbing" : "grab") : "default" }}
       />
       <rect
         x={0}
@@ -121,6 +129,7 @@ export function TrackFrame({
       <g>
         <g
           onClick={canMoveTop ? () => moveTrack("top") : undefined}
+          onMouseDown={(event) => event.stopPropagation()}
           style={{ cursor: canMoveTop ? "pointer" : "default" }}
         >
           <circle
@@ -140,6 +149,7 @@ export function TrackFrame({
         </g>
         <g
           onClick={canMoveBottom ? () => moveTrack("bottom") : undefined}
+          onMouseDown={(event) => event.stopPropagation()}
           style={{ cursor: canMoveBottom ? "pointer" : "default" }}
         >
           <circle

@@ -78,13 +78,16 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
     setContentOffset(deltaPxRef.current);
   }, [setContentOffset]);
 
-  const handleDataSettled = useCallback((signature: string) => {
-    if (signature !== dataSignatureRef.current) return;
+  const handleDataSettled = useCallback(
+    (signature: string) => {
+      if (signature !== dataSignatureRef.current) return;
 
-    setDisplayedRenderRegion(targetRenderRegion);
-    setContentOffset(0);
-    setIsInteractionLocked(false);
-  }, [setContentOffset, targetRenderRegion]);
+      setDisplayedRenderRegion(targetRenderRegion);
+      setContentOffset(0);
+      setIsInteractionLocked(false);
+    },
+    [setContentOffset, targetRenderRegion],
+  );
 
   const dataStates = useTrackData(tracks, targetRenderRegion, renderWidth, registry, {
     keepPreviousSuccess: true,
@@ -132,6 +135,7 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
           titleSize={titleSize}
           trackStore={trackStore}
           startY={RULER_HEIGHT}
+          svg={svg}
         />
       </g>
     </SvgShell>
