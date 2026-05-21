@@ -29,8 +29,8 @@ const browserStoreInputSchema = z.object({
     z.string().min(1),
     z.object({
       chromosome: z.string().min(1),
-      start: z.number().finite().int(),
-      end: z.number().finite().int(),
+      start: z.number().int(),
+      end: z.number().int(),
     }),
   ]),
   marginWidth: z.number().positive().optional(),
@@ -47,6 +47,7 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
     trackWidth: parsedInput.trackWidth ?? 1000,
     fontSize: parsedInput.fontSize ?? 10,
     titleSize: parsedInput.titleSize ?? 12,
+
     setRegion: (region) => set({ region: parseRegion(region) }),
     setTrackWidth: (trackWidth) => set({ trackWidth }),
     zoom: (factor, centerBase) => {

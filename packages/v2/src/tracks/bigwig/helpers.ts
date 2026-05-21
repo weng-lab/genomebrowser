@@ -1,14 +1,25 @@
 import type { BrowserRegion } from "../../utils/region";
 import type { BigWigDatum, ValuedPoint, YRange } from "./types";
 
-export function condenseBigWigData(data: BigWigDatum[], region: BrowserRegion, width: number): ValuedPoint[] {
+export function condenseBigWigData(
+  data: BigWigDatum[],
+  region: BrowserRegion,
+  width: number,
+): ValuedPoint[] {
   const pixelWidth = Math.max(1, Math.floor(width));
   const points = initialPoints(pixelWidth);
-  const scale = (value: number) => ((value - region.start) * pixelWidth) / (region.end - region.start);
+  const scale = (value: number) =>
+    ((value - region.start) * pixelWidth) / (region.end - region.start);
 
   for (const datum of data) {
-    const start = Math.max(0, Math.min(pixelWidth - 1, Math.floor(scale(Math.max(datum.start, region.start)))));
-    const end = Math.max(start, Math.min(pixelWidth - 1, Math.floor(scale(Math.min(datum.end, region.end)))));
+    const start = Math.max(
+      0,
+      Math.min(pixelWidth - 1, Math.floor(scale(Math.max(datum.start, region.start)))),
+    );
+    const end = Math.max(
+      start,
+      Math.min(pixelWidth - 1, Math.floor(scale(Math.min(datum.end, region.end)))),
+    );
 
     for (let x = start; x <= end; x += 1) {
       const point = points[x];
@@ -63,7 +74,11 @@ function initialPoints(width: number): ValuedPoint[] {
 
 function normalizeHex(color: string) {
   let hex = color.replace(/[^0-9a-f]/gi, "");
-  if (hex.length === 3) hex = hex.split("").map((value) => value + value).join("");
+  if (hex.length === 3)
+    hex = hex
+      .split("")
+      .map((value) => value + value)
+      .join("");
   if (hex.length >= 6) return hex.slice(0, 6);
   return "000000";
 }

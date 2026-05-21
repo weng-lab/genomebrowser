@@ -184,7 +184,7 @@ function TrackContent({
     }
     return (
       <Renderer
-        track={validatedTrack}
+        config={validatedTrack}
         data={dataState.data}
         region={region}
         width={width}

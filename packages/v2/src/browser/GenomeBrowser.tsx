@@ -20,11 +20,7 @@ export type GenomeBrowserProps = {
   modules: AnyTrackModule[];
 };
 
-export function GenomeBrowser({
-  browserStore,
-  trackStore,
-  modules,
-}: GenomeBrowserProps) {
+export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrowserProps) {
   const region = browserStore((state) => state.region);
   const marginWidth = browserStore((state) => state.marginWidth);
   const trackWidth = browserStore((state) => state.trackWidth);
@@ -39,13 +35,12 @@ export function GenomeBrowser({
   const baseContentX = marginWidth - sideWidth;
   const { getContentOffset, registerContentGroup, setContentOffset } =
     useContentTransform(baseContentX);
-  const { displayedRenderRegion, renderWidth, settleData, targetRenderRegion } =
-    useRenderWindow({
-      region,
-      tracks,
-      trackWidth,
-      overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
-    });
+  const { displayedRenderRegion, renderWidth, settleData, targetRenderRegion } = useRenderWindow({
+    region,
+    tracks,
+    trackWidth,
+    overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
+  });
   const { isPanLocked, panDrag, unlockPan } = usePanController({
     region,
     trackWidth,
@@ -63,16 +58,10 @@ export function GenomeBrowser({
     [settleData, setContentOffset, unlockPan],
   );
 
-  const dataStates = useTrackData(
-    tracks,
-    targetRenderRegion,
-    renderWidth,
-    registry,
-    {
-      keepPreviousSuccess: true,
-      onSettled: handleDataSettled,
-    },
-  );
+  const dataStates = useTrackData(tracks, targetRenderRegion, renderWidth, registry, {
+    keepPreviousSuccess: true,
+    onSettled: handleDataSettled,
+  });
 
   return (
     <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>

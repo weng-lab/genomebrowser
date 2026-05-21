@@ -1,56 +1,34 @@
 import { z } from "zod";
-import { parsePublicInput } from "../../modules/schemas";
-import type { TrackModule } from "../../modules/types";
+import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchBigWig } from "./fetch";
 import { DenseBigWig, FullBigWig } from "./render";
-import type { BigWigConfig, BigWigData, BigWigInput } from "./types";
 
 const yRangeSchema = z
   .object({
-    min: z.number().finite(),
-    max: z.number().finite(),
+    min: z.number(),
+    max: z.number(),
   })
   .refine((range) => range.min < range.max, {
     error: "min must be less than max",
     path: ["min"],
   });
 
-const bigWigInputSchema = z
-  .object({
-    id: z.string().min(1),
-    title: z.string().min(1),
-    url: z.string().min(1),
-    display: z.enum(["full", "dense"]).default("full"),
-    height: z.number().positive().default(80),
-    color: z.string().default("#2266aa"),
-    fillWithZero: z.boolean().default(false),
-    yRange: yRangeSchema.optional(),
-  })
-  .strict();
-
-const bigWigConfigSchema = bigWigInputSchema.extend({
-  type: z.literal("bigwig"),
+const bigWigConfigSchema = z.object({
+  url: z.string().min(1),
+  fillWithZero: z.boolean().default(false),
+  yRange: yRangeSchema.optional(),
 });
 
-export function bigWig(input: BigWigInput): BigWigConfig {
-  const parsed = parsePublicInput(bigWigInputSchema, input, "BigWig config");
-  return {
-    ...parsed,
-    type: "bigwig",
-  };
-}
-
-function validateBigWigConfig(config: unknown): BigWigConfig {
-  return parsePublicInput(bigWigConfigSchema, config, "BigWig config");
-}
-
-export const bigWigModule: TrackModule<BigWigConfig, BigWigData> = {
+export const bigWigModule = defineTrackModule({
   type: "bigwig",
-  create: (input) => bigWig(input as BigWigInput),
-  validate: validateBigWigConfig,
+  defaults: {
+    height: 80,
+    color: "#2266aa",
+  },
+  schema: bigWigConfigSchema,
   fetch: fetchBigWig,
   render: {
     full: FullBigWig,
     dense: DenseBigWig,
   },
-};
+});

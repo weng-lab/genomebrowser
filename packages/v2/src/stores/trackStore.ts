@@ -1,38 +1,49 @@
 import { create, type StoreApi, type UseBoundStore } from "zustand";
-import { validateTrackConfigBase, validateTrackConfigBaseList } from "../modules/schemas";
-import type { TrackConfigBase } from "../modules/types";
+import { createModuleRegistry } from "../modules/registry";
+import type { AnyTrackModule, TrackConfigBase } from "../modules/types";
+
+export type TrackStoreOptions<Config extends TrackConfigBase = TrackConfigBase> = {
+  modules: AnyTrackModule[];
+  tracks?: Config[];
+};
+
+export type TrackUpdate<Config extends TrackConfigBase = TrackConfigBase> = Partial<Config>;
 
 export type TrackStore = {
   tracks: TrackConfigBase[];
   order: string[];
-  setTracks: (tracks: TrackConfigBase[]) => void;
-  addTrack: (track: TrackConfigBase, index?: number) => void;
+  setTracks: <Config extends TrackConfigBase>(tracks: Config[]) => void;
+  addTrack: <Config extends TrackConfigBase>(track: Config, index?: number) => void;
   removeTrack: (id: string) => void;
   reorderTracks: (ids: string[]) => void;
-  updateTrack: (id: string, partial: Partial<TrackConfigBase>) => void;
+  updateTrack: <Config extends TrackConfigBase>(id: string, partial: TrackUpdate<Config>) => void;
   getTrack: (id: string) => TrackConfigBase | undefined;
 };
 
 export type TrackStoreInstance = UseBoundStore<StoreApi<TrackStore>>;
 
-export function createTrackStore(initialTracks: TrackConfigBase[] = []): TrackStoreInstance {
-  validateTrackConfigBaseList(initialTracks, "Track store input");
+export function createTrackStore<Config extends TrackConfigBase = TrackConfigBase>(
+  options: TrackStoreOptions<Config>,
+): TrackStoreInstance {
+  const registry = createModuleRegistry(options.modules);
+  const initialTracks = validateTracks(options.tracks ?? [], registry);
   assertUniqueTrackIds(initialTracks);
+
   return create<TrackStore>((set, get) => ({
     tracks: initialTracks,
     order: initialTracks.map((track) => track.id),
     setTracks: (tracks) => {
-      validateTrackConfigBaseList(tracks, "Track list");
-      assertUniqueTrackIds(tracks);
-      set({ tracks, order: tracks.map((track) => track.id) });
+      const validatedTracks = validateTracks(tracks, registry);
+      assertUniqueTrackIds(validatedTracks);
+      set({ tracks: validatedTracks, order: validatedTracks.map((track) => track.id) });
     },
     addTrack: (track, index) => {
-      validateTrackConfigBase(track, "Track");
+      const validatedTrack = validateTrack(track, registry);
       const tracks = [...get().tracks];
-      if (tracks.some((existing) => existing.id === track.id)) {
-        throw new Error(`Duplicate track id: ${track.id}`);
+      if (tracks.some((existing) => existing.id === validatedTrack.id)) {
+        throw new Error(`Duplicate track id: ${validatedTrack.id}`);
       }
-      tracks.splice(index ?? tracks.length, 0, track);
+      tracks.splice(index ?? tracks.length, 0, validatedTrack);
       set({ tracks, order: tracks.map((item) => item.id) });
     },
     removeTrack: (id) => {
@@ -49,14 +60,28 @@ export function createTrackStore(initialTracks: TrackConfigBase[] = []): TrackSt
     },
     updateTrack: (id, partial) => {
       set((state) => ({
-        tracks: state.tracks.map((track) =>
-          track.id === id ? validateTrackConfigBase({ ...track, ...partial, id: track.id }, "Track") : track,
-        ),
+        tracks: state.tracks.map((track) => {
+          if (track.id !== id) return track;
+          if (partial.type !== undefined && partial.type !== track.type) {
+            throw new Error("Track type cannot be changed");
+          }
+          return validateTrack({ ...track, ...partial, id: track.id, type: track.type }, registry);
+        }),
         order: state.order,
       }));
     },
     getTrack: (id) => get().tracks.find((track) => track.id === id),
   }));
+}
+
+type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
+
+function validateTrack(track: TrackConfigBase, registry: ModuleRegistry): TrackConfigBase {
+  return registry.get(track.type).validate(track);
+}
+
+function validateTracks(tracks: TrackConfigBase[], registry: ModuleRegistry): TrackConfigBase[] {
+  return tracks.map((track) => validateTrack(track, registry));
 }
 
 function assertUniqueTrackIds(tracks: TrackConfigBase[]) {

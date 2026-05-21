@@ -34,7 +34,7 @@ export function useTrackData(
         Promise.resolve()
           .then(() => {
             const module = registry.get(track.type);
-            return module.fetch({ track: module.validate(track), region, width });
+            return module.fetch({ config: module.validate(track), region, width });
           })
           .then((data): TrackFetchResult => ({ id: track.id, state: { status: "success", data } }))
           .catch(

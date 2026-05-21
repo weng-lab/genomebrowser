@@ -2,8 +2,13 @@ import type { TrackRendererProps } from "../../modules/types";
 import { createYScale, getBigWigRange, lighten } from "./helpers";
 import type { BigWigConfig, BigWigData, ValuedPoint, YRange } from "./types";
 
-export function FullBigWig({ track, data, width, height }: TrackRendererProps<BigWigConfig, BigWigData>) {
-  const range = getRenderRange(track, data);
+export function FullBigWig({
+  config,
+  data,
+  width,
+  height,
+}: TrackRendererProps<BigWigConfig, BigWigData>) {
+  const range = getRenderRange(config, data);
   const y = createYScale(range, height);
   const zeroY = y(clamp(0, range));
   const paths = createSignalPaths(data.points, range, height);
@@ -12,16 +17,21 @@ export function FullBigWig({ track, data, width, height }: TrackRendererProps<Bi
     <g>
       <rect width={width} height={height} fill="#ffffff" />
       <line x1={0} x2={width} y1={zeroY} y2={zeroY} stroke="#dddddd" strokeWidth={1} />
-      {range.min < 0 && <path d={paths.minPath} fill={lighten(track.color ?? "#2266aa", 0.2)} />}
-      <path d={paths.maxPath} fill={track.color ?? "#2266aa"} />
+      {range.min < 0 && <path d={paths.minPath} fill={lighten(config.color ?? "#2266aa", 0.2)} />}
+      <path d={paths.maxPath} fill={config.color ?? "#2266aa"} />
       <path d={paths.clampHighPath} stroke="#ff0000" strokeWidth={2} fill="none" />
       <path d={paths.clampLowPath} stroke="#ff0000" strokeWidth={2} fill="none" />
     </g>
   );
 }
 
-export function DenseBigWig({ track, data, width, height }: TrackRendererProps<BigWigConfig, BigWigData>) {
-  const range = getRenderRange(track, data);
+export function DenseBigWig({
+  config,
+  data,
+  width,
+  height,
+}: TrackRendererProps<BigWigConfig, BigWigData>) {
+  const range = getRenderRange(config, data);
   const bandY = height / 3;
   const bandHeight = height / 3;
 
@@ -30,7 +40,8 @@ export function DenseBigWig({ track, data, width, height }: TrackRendererProps<B
       <rect width={width} height={height} fill="#ffffff" />
       {data.points.map((point) => {
         const value = point.max ?? point.min;
-        const intensity = value === null ? 0 : (clamp(value, range) - range.min) / (range.max - range.min || 1);
+        const intensity =
+          value === null ? 0 : (clamp(value, range) - range.min) / (range.max - range.min || 1);
         return (
           <rect
             key={point.x}
@@ -38,7 +49,7 @@ export function DenseBigWig({ track, data, width, height }: TrackRendererProps<B
             y={bandY}
             width={1}
             height={bandHeight}
-            fill={lighten(track.color ?? "#2266aa", 0.65 - intensity * 0.65)}
+            fill={lighten(config.color ?? "#2266aa", 0.65 - intensity * 0.65)}
           />
         );
       })}

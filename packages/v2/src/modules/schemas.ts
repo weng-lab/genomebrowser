@@ -24,7 +24,9 @@ export function validateTrackConfigBaseList<T>(tracks: T[], label = "Track list"
 }
 
 export function formatZodError(error: z.ZodError) {
-  return error.issues.map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`).join("; ");
+  return error.issues
+    .map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`)
+    .join("; ");
 }
 
 export function parsePublicInput<T>(schema: z.ZodType<T>, input: unknown, label: string): T {

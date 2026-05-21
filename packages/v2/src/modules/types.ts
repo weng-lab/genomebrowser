@@ -11,13 +11,13 @@ export type TrackConfigBase = {
 };
 
 export type TrackFetchContext<Config extends TrackConfigBase> = {
-  track: Config;
+  config: Config;
   region: BrowserRegion;
   width: number;
 };
 
 export type TrackRendererProps<Config extends TrackConfigBase, Data> = {
-  track: Config;
+  config: Config;
   data: Data;
   region: BrowserRegion;
   width: number;
@@ -25,20 +25,20 @@ export type TrackRendererProps<Config extends TrackConfigBase, Data> = {
 };
 
 export type TrackSettingsProps<Config extends TrackConfigBase> = {
-  track: Config;
+  config: Config;
   updateTrack: (partial: Partial<Config>) => void;
 };
 
-export type TrackModule<Config extends TrackConfigBase, Data> = {
+export type TrackModule<Config extends TrackConfigBase, Data, Input = unknown> = {
   type: Config["type"];
-  create(input: unknown): Config;
+  create(input: Input): Config;
   validate(config: unknown): Config;
   fetch(ctx: TrackFetchContext<Config>): Promise<Data>;
   render: Record<string, ComponentType<TrackRendererProps<Config, Data>>>;
   settings?: ComponentType<TrackSettingsProps<Config>>;
 };
 
-export type AnyTrackModule = TrackModule<any, any>;
+export type AnyTrackModule = TrackModule<any, any, any>;
 
 export type TrackDataState<Data = unknown> =
   | { status: "idle" }

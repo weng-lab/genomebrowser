@@ -22,7 +22,7 @@ The browser composes these pieces instead of making each behavior part of one la
 
 ## Track modules
 
-Track modules are the main extension point for track types. A module defines how a track config is created and validated, how its data is fetched, and how each display mode renders.
+Track modules are the main extension point for track types. A module defines its track-specific config schema, data fetching, and display renderers. `defineTrackModule` adds the shared config fields and derives config creation and validation.
 
 See [Tracks and track modules](tracks.md) for the current module shape and runtime flow.
 

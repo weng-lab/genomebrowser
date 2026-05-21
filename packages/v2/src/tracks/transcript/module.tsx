@@ -1,40 +1,36 @@
 import { z } from "zod";
-import { parsePublicInput } from "../../modules/schemas";
-import type { TrackModule } from "../../modules/types";
-import type { TranscriptConfig, TranscriptInput } from "./types";
+import { defineTrackModule } from "../../modules/defineTrackModule";
+import type { TrackRendererProps } from "../../modules/types";
+import type { TranscriptConfig } from "./types";
 
 const transcriptInputSchema = z.object({
-  id: z.string().min(1),
-  title: z.string().min(1),
   assembly: z.string().min(1),
   version: z.number().finite().int().positive(),
-  display: z.enum(["squish", "pack"]).default("squish"),
-  height: z.number().positive().default(90),
-  color: z.string().default("#7a4fb3"),
-}).strict();
-
-const transcriptConfigSchema = transcriptInputSchema.extend({
-  type: z.literal("transcript"),
 });
 
-export function transcript(input: TranscriptInput): TranscriptConfig {
-  const parsed = parsePublicInput(transcriptInputSchema, input, "Transcript config");
-  return {
-    ...parsed,
-    type: "transcript",
-  };
-}
-
-function validateTranscriptConfig(config: unknown): TranscriptConfig {
-  return parsePublicInput(transcriptConfigSchema, config, "Transcript config");
-}
-
-export const transcriptModule: TrackModule<TranscriptConfig, unknown> = {
+export const transcriptModule = defineTrackModule({
   type: "transcript",
-  create: (input) => transcript(input as TranscriptInput),
-  validate: validateTranscriptConfig,
+  defaults: {
+    height: 90,
+    color: "#7a4fb3",
+  },
+  schema: transcriptInputSchema,
   fetch: async () => {
     throw new Error("Transcript fetching is not implemented yet");
   },
-  render: {},
-};
+  render: {
+    squish: TranscriptPlaceholder,
+    pack: TranscriptPlaceholder,
+  },
+});
+
+function TranscriptPlaceholder({ width, height }: TrackRendererProps<TranscriptConfig, unknown>) {
+  return (
+    <g>
+      <rect width={width} height={height} fill="#ffffff" />
+      <text x={8} y={Math.min(18, height / 2)} fill="#555555" fontSize="12px">
+        Transcript rendering is not implemented yet
+      </text>
+    </g>
+  );
+}

@@ -1,0 +1,3 @@
+# Track module config validation is owned by defineTrackModule
+
+Track modules are the extension boundary for v2 browser tracks, so config creation and validation are centralized in `defineTrackModule` instead of being rewritten by each track. `defineTrackModule` owns shared config fields (`id`, `type`, `title`, `display`, `height`, and `color`), derives display modes from renderer keys, rejects reserved fields in custom schemas, and lets custom track schemas define only track-specific fields. This keeps custom tracks simple while preserving runtime validation, defaults, and type-safe normalized configs.

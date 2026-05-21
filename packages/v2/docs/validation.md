@@ -2,16 +2,55 @@
 
 v2 uses Zod for runtime validation at package boundaries and before runtime behavior depends on config shape.
 
-The goal is to fail early with useful errors while keeping browser internals typed after input is parsed.
+The goal is to fail early with useful errors while keeping custom track definitions small.
 
-## Shared helpers
+## Custom track schemas
 
-Shared validation helpers live in `src/modules/schemas.ts`:
+Custom track authors define one Zod schema for track-specific input fields and pass it to `defineTrackModule`:
 
-- `parsePublicInput` wraps `schema.safeParse` and throws a readable `Error`
-- `formatZodError` turns Zod issues into compact messages
-- `trackConfigBaseSchema` validates the shared track config fields
-- `validateTrackConfigBase` and `validateTrackConfigBaseList` validate track store input
+```ts
+import { z } from "zod";
+import { defineTrackModule } from "../src";
+
+export const exampleTrackModule = defineTrackModule({
+  type: "example",
+  defaults: {
+    height: 80,
+    color: "#2266aa",
+  },
+  schema: z.object({
+    url: z.string().min(1),
+  }),
+  fetch: fetchExample,
+  render: {
+    full: FullExample,
+    dense: DenseExample,
+  },
+});
+```
+
+The schema should only include custom fields. `defineTrackModule` owns the base fields (`id`, `type`, `title`, `display`, `height`, and `color`), enforces strict object validation, and derives the full runtime config validator from them. Field-level validation, defaults, and object-level refinements on the custom schema are preserved.
+
+Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used. The custom schema cannot define reserved base fields.
+
+## What the helper creates
+
+`defineTrackModule` returns a `TrackModule` with generated `create` and `validate` functions:
+
+- `create(input)` parses public input, applies base and custom defaults, and appends the fixed `type`
+- `validate(config)` checks a full runtime config and requires the fixed `type`
+
+The optional `defaults` object can provide `display`, `height`, and `color`. If `height` is omitted, it defaults to `80`; if `color` is omitted, color remains optional.
+
+Track configs should be created through the module:
+
+```ts
+const track = exampleTrackModule.create({
+  id: "signal",
+  title: "Signal",
+  url: "YOUR_URL_HERE",
+});
+```
 
 ## Where validation happens
 
@@ -20,34 +59,7 @@ Validation is used in a few places:
 - browser store input is parsed when the browser store is created
 - region input is parsed by the region utilities
 - track store input and updates are checked against the base track config shape
-- each track module validates its own full config before fetching or rendering
-
-## Track module schemas
-
-Track modules should define schemas for their own config shape. The common pattern is:
-
-1. define an input schema for public config
-2. apply defaults in that schema
-3. extend it with the module's fixed `type`
-4. use `create` for public input
-5. use `validate` for runtime configs
-
-Example shape:
-
-```ts
-const trackInputSchema = z.object({
-  id: z.string().min(1),
-  title: z.string().min(1),
-  display: z.enum(["full", "dense"]).default("full"),
-  height: z.number().positive().default(80),
-});
-
-const trackConfigSchema = trackInputSchema.extend({
-  type: z.literal("example"),
-});
-```
-
-This keeps module-specific validation near the module-specific behavior.
+- each track module validates its own full config before fetching or rendering through its generated `validate`
 
 ## Design direction
 

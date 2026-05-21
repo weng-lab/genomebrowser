@@ -24,9 +24,9 @@ The `type` field connects a track config to a registered track module. The `disp
 A track module defines one track type:
 
 ```ts
-type TrackModule<Config, Data> = {
+type TrackModule<Config, Data, Input = unknown> = {
   type: Config["type"];
-  create(input: unknown): Config;
+  create(input: Input): Config;
   validate(config: unknown): Config;
   fetch(ctx: TrackFetchContext<Config>): Promise<Data>;
   render: Record<string, ComponentType<TrackRendererProps<Config, Data>>>;
@@ -42,7 +42,34 @@ The main responsibilities are:
 - `render` maps display modes to React renderers
 - `settings` can provide optional track settings UI
 
-Track modules should keep their own Zod schemas near the module. Use `create` to parse public input and apply defaults, then use `validate` to check runtime configs before fetching or rendering. See [Schema validation](validation.md) for the shared validation helpers and conventions.
+Track modules should be defined with `defineTrackModule`. Custom track authors provide one Zod schema for track-specific fields, and the helper creates the module's base config schema, `create`, and `validate` functions. See [Schema validation](validation.md) for the schema convention.
+
+Example module shape:
+
+```ts
+import { z } from "zod";
+import { defineTrackModule } from "../src";
+
+export const exampleTrackModule = defineTrackModule({
+  type: "example",
+  defaults: {
+    height: 80,
+    color: "#2266aa",
+  },
+  schema: z.object({
+    url: z.string().min(1),
+  }),
+  fetch: fetchExample,
+  render: {
+    full: FullExample,
+    dense: DenseExample,
+  },
+});
+```
+
+The custom schema must not define reserved base fields: `id`, `type`, `title`, `display`, `height`, or `color`. Display modes come from the `render` keys. If `defaults.display` is omitted, the first renderer key is used.
+
+`render` must contain at least one renderer. `defaults` is optional; if `height` is omitted it defaults to `80`, and `color` remains optional unless a default color is provided.
 
 ## Modules outside the browser
 
@@ -53,22 +80,26 @@ This lets modules be used outside the browser orchestration layer. For example, 
 Small BigWig example:
 
 ```ts
-import { bigWig, bigWigModule } from "../src";
+import { bigWigModule } from "../src";
 
-const track = bigWig({
+const track = bigWigModule.create({
   id: "signal",
   title: "Signal",
   url: "YOUR_URL_HERE",
 });
+const region = { chromosome: "chr1", start: 1_000_000, end: 1_010_000 };
 
-const validatedTrack = bigWigModule.validate(track);
 const data = await bigWigModule.fetch({
-  track: validatedTrack,
-  region: { chromosome: "chr1", start: 1_000_000, end: 1_010_000 },
+  config: track,
+  region,
   width: 800,
 });
 
-const Renderer = bigWigModule.render[validatedTrack.display];
+const BigWig = bigWigModule.render[track.display];
+
+return (
+  <BigWig config={track} data={data} region={region} width={1000} height={50} />
+);
 ```
 
 Keep browser behavior in browser hooks and components. Keep module behavior limited to the track type it owns.

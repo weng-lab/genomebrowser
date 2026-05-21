@@ -18,8 +18,22 @@ export function Ruler({ region, width }: { region: BrowserRegion; width: number 
       const value = i * step;
       ticks.push(
         <g key={value}>
-          <line x1={x(value)} x2={x(value)} y1={RULER_HEIGHT * 0.6} y2={RULER_HEIGHT * 0.9} stroke="#000000" strokeWidth={0.5} />
-          <text fill="#000000" textAnchor="end" fontSize={`${RULER_HEIGHT / 6}px`} x={x(value) - 5} y={RULER_HEIGHT * 0.85} style={{ userSelect: "none", pointerEvents: "none" }}>
+          <line
+            x1={x(value)}
+            x2={x(value)}
+            y1={RULER_HEIGHT * 0.6}
+            y2={RULER_HEIGHT * 0.9}
+            stroke="#000000"
+            strokeWidth={0.5}
+          />
+          <text
+            fill="#000000"
+            textAnchor="end"
+            fontSize={`${RULER_HEIGHT / 6}px`}
+            x={x(value) - 5}
+            y={RULER_HEIGHT * 0.85}
+            style={{ userSelect: "none", pointerEvents: "none" }}
+          >
             {value.toLocaleString()}
           </text>
         </g>,
@@ -31,10 +45,38 @@ export function Ruler({ region, width }: { region: BrowserRegion; width: number 
 
   return (
     <g width={width} height={RULER_HEIGHT}>
-      <line x1={content.x(content.scaleDomain.start)} x2={content.x(content.scaleDomain.start)} y1={RULER_HEIGHT * 0.1} y2={RULER_HEIGHT * 0.4} stroke="#000000" strokeWidth={0.5} />
-      <line x1={content.x(content.scaleDomain.end)} x2={content.x(content.scaleDomain.end)} y1={RULER_HEIGHT * 0.1} y2={RULER_HEIGHT * 0.4} stroke="#000000" strokeWidth={0.5} />
-      <line x1={content.x(content.scaleDomain.start)} x2={content.x(content.scaleDomain.end)} y1={RULER_HEIGHT * 0.25} y2={RULER_HEIGHT * 0.25} stroke="#000000" strokeWidth={0.5} />
-      <text x={content.x(content.scaleDomain.start) - 5} y={RULER_HEIGHT * 0.35} fontSize={`${RULER_HEIGHT / 6}px`} textAnchor="end" fill="#000000" style={{ userSelect: "none", pointerEvents: "none" }}>
+      <line
+        x1={content.x(content.scaleDomain.start)}
+        x2={content.x(content.scaleDomain.start)}
+        y1={RULER_HEIGHT * 0.1}
+        y2={RULER_HEIGHT * 0.4}
+        stroke="#000000"
+        strokeWidth={0.5}
+      />
+      <line
+        x1={content.x(content.scaleDomain.end)}
+        x2={content.x(content.scaleDomain.end)}
+        y1={RULER_HEIGHT * 0.1}
+        y2={RULER_HEIGHT * 0.4}
+        stroke="#000000"
+        strokeWidth={0.5}
+      />
+      <line
+        x1={content.x(content.scaleDomain.start)}
+        x2={content.x(content.scaleDomain.end)}
+        y1={RULER_HEIGHT * 0.25}
+        y2={RULER_HEIGHT * 0.25}
+        stroke="#000000"
+        strokeWidth={0.5}
+      />
+      <text
+        x={content.x(content.scaleDomain.start) - 5}
+        y={RULER_HEIGHT * 0.35}
+        fontSize={`${RULER_HEIGHT / 6}px`}
+        textAnchor="end"
+        fill="#000000"
+        style={{ userSelect: "none", pointerEvents: "none" }}
+      >
         {formatLength(content.scaleDomain.end - content.scaleDomain.start)}
       </text>
       {content.ticks}

@@ -4,10 +4,14 @@ import type { TrackFetchContext } from "../../modules/types";
 import { applyFillWithZero, condenseBigWigData, getBigWigRange } from "./helpers";
 import type { BigWigConfig, BigWigData, BigWigDatum } from "./types";
 
-export async function fetchBigWig({ track, region, width }: TrackFetchContext<BigWigConfig>): Promise<BigWigData> {
+export async function fetchBigWig({
+  config,
+  region,
+  width,
+}: TrackFetchContext<BigWigConfig>): Promise<BigWigData> {
   await ensureBrowserBuffer();
 
-  const dataLoader = new AxiosDataLoader(track.url, axios.create() as never);
+  const dataLoader = new AxiosDataLoader(config.url, axios.create() as never);
   const reader = new BigWigReader(dataLoader);
   const header = await reader.getHeader();
 
@@ -23,7 +27,7 @@ export async function fetchBigWig({ track, region, width }: TrackFetchContext<Bi
   )) as BigWigDatum[];
 
   const points = condenseBigWigData(rawData, region, width);
-  if (track.fillWithZero) applyFillWithZero(points);
+  if (config.fillWithZero) applyFillWithZero(points);
 
   return {
     points,

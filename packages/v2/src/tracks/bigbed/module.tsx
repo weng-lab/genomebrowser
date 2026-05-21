@@ -1,39 +1,35 @@
 import { z } from "zod";
-import { parsePublicInput } from "../../modules/schemas";
-import type { TrackModule } from "../../modules/types";
-import type { BigBedConfig, BigBedInput } from "./types";
+import { defineTrackModule } from "../../modules/defineTrackModule";
+import type { TrackRendererProps } from "../../modules/types";
+import type { BigBedConfig } from "./types";
 
 const bigBedInputSchema = z.object({
-  id: z.string().min(1),
-  title: z.string().min(1),
   url: z.string().min(1),
-  display: z.enum(["dense", "squish"]).default("dense"),
-  height: z.number().positive().default(60),
-  color: z.string().default("#4b9560"),
-}).strict();
-
-const bigBedConfigSchema = bigBedInputSchema.extend({
-  type: z.literal("bigbed"),
 });
 
-export function bigBed(input: BigBedInput): BigBedConfig {
-  const parsed = parsePublicInput(bigBedInputSchema, input, "BigBed config");
-  return {
-    ...parsed,
-    type: "bigbed",
-  };
-}
-
-function validateBigBedConfig(config: unknown): BigBedConfig {
-  return parsePublicInput(bigBedConfigSchema, config, "BigBed config");
-}
-
-export const bigBedModule: TrackModule<BigBedConfig, unknown> = {
+export const bigBedModule = defineTrackModule({
   type: "bigbed",
-  create: (input) => bigBed(input as BigBedInput),
-  validate: validateBigBedConfig,
+  defaults: {
+    height: 60,
+    color: "#4b9560",
+  },
+  schema: bigBedInputSchema,
   fetch: async () => {
     throw new Error("BigBed fetching is not implemented yet");
   },
-  render: {},
-};
+  render: {
+    dense: BigBedPlaceholder,
+    squish: BigBedPlaceholder,
+  },
+});
+
+function BigBedPlaceholder({ width, height }: TrackRendererProps<BigBedConfig, unknown>) {
+  return (
+    <g>
+      <rect width={width} height={height} fill="#ffffff" />
+      <text x={8} y={Math.min(18, height / 2)} fill="#555555" fontSize="12px">
+        BigBed rendering is not implemented yet
+      </text>
+    </g>
+  );
+}
