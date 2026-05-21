@@ -11,20 +11,22 @@ const yRangeSchema = z
     max: z.number().finite(),
   })
   .refine((range) => range.min < range.max, {
-    message: "min must be less than max",
+    error: "min must be less than max",
     path: ["min"],
   });
 
-const bigWigInputSchema = z.object({
-  id: z.string().min(1),
-  title: z.string().min(1),
-  url: z.string().min(1),
-  display: z.enum(["full", "dense"]).default("full"),
-  height: z.number().positive().default(80),
-  color: z.string().default("#2266aa"),
-  fillWithZero: z.boolean().default(false),
-  yRange: yRangeSchema.optional(),
-}).strict();
+const bigWigInputSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().min(1),
+    url: z.string().min(1),
+    display: z.enum(["full", "dense"]).default("full"),
+    height: z.number().positive().default(80),
+    color: z.string().default("#2266aa"),
+    fillWithZero: z.boolean().default(false),
+    yRange: yRangeSchema.optional(),
+  })
+  .strict();
 
 const bigWigConfigSchema = bigWigInputSchema.extend({
   type: z.literal("bigwig"),

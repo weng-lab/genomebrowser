@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTrackIdsSignature } from "./dataController";
+import { createTrackIdsSignature } from "../../src/modules/dataController";
 
 describe("track data dependencies", () => {
   const signalTrack = {
