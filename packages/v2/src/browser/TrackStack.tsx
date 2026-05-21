@@ -1,11 +1,11 @@
-import type { ComponentType } from "react";
+import { useCallback, useState, type ComponentType } from "react";
 import type { BrowserRegion } from "../utils/region";
 import type { createModuleRegistry } from "../modules/registry";
 import type { TrackConfigBase, TrackDataState, TrackRendererProps } from "../modules/types";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
-import { SwapTrack } from "./SwapTrack";
+import { SwapTrack, type SwapPreview } from "./SwapTrack";
 import { getTrackTitleMargin, getTrackWrapperHeight, TrackFrame } from "./TrackFrame";
 import type { PanDragHandlers } from "./usePanDrag";
 
@@ -48,33 +48,44 @@ export function TrackStack({
   startY: number;
   svg: SVGSVGElement | null;
 }) {
+  const [swapPreview, setSwapPreview] = useState<SwapPreview | null>(null);
+  const handlePreviewChange = useCallback((preview: SwapPreview) => {
+    setSwapPreview((current) => (isSamePreview(current, preview) ? current : preview));
+  }, []);
+  const handlePreviewEnd = useCallback(() => {
+    setSwapPreview(null);
+  }, []);
   let y = startY;
 
-  return tracks.map((track) => {
+  return tracks.map((track, index) => {
     const trackY = y;
     const wrapperHeight = getTrackWrapperHeight(track, titleSize);
     const titleMargin = getTrackTitleMargin(track, titleSize);
+    const previewOffsetY = getPreviewOffsetY(index, track.id, tracks, titleSize, swapPreview);
     y += wrapperHeight;
 
     return (
       <SwapTrack
         key={track.id}
         track={track}
-        tracks={tracks}
         trackStore={trackStore}
         titleSize={titleSize}
         svg={svg}
         disabled={isPanLocked}
+        onPreviewChange={handlePreviewChange}
+        onPreviewEnd={handlePreviewEnd}
       >
         <TrackFrame
           track={track}
           y={trackY}
+          previewOffsetY={previewOffsetY}
           marginWidth={marginWidth}
           trackWidth={trackWidth}
           contentX={contentX}
           registerContentGroup={registerContentGroup}
           panDrag={panDrag}
           isPanLocked={isPanLocked}
+          disableHover={!!swapPreview}
           titleSize={titleSize}
           trackStore={trackStore}
         >
@@ -91,6 +102,35 @@ export function TrackStack({
       </SwapTrack>
     );
   });
+}
+
+function isSamePreview(a: SwapPreview | null, b: SwapPreview) {
+  return (
+    a?.draggedId === b.draggedId &&
+    a.currentIndex === b.currentIndex &&
+    a.targetIndex === b.targetIndex
+  );
+}
+
+function getPreviewOffsetY(
+  index: number,
+  trackId: string,
+  tracks: TrackConfigBase[],
+  titleSize: number,
+  preview: SwapPreview | null,
+) {
+  if (!preview || trackId === preview.draggedId) return 0;
+  const draggedTrack = tracks[preview.currentIndex];
+  if (!draggedTrack) return 0;
+  const draggedHeight = getTrackWrapperHeight(draggedTrack, titleSize);
+
+  if (preview.targetIndex > preview.currentIndex) {
+    return index > preview.currentIndex && index <= preview.targetIndex ? -draggedHeight : 0;
+  }
+  if (preview.targetIndex < preview.currentIndex) {
+    return index >= preview.targetIndex && index < preview.currentIndex ? draggedHeight : 0;
+  }
+  return 0;
 }
 
 function TrackContent({

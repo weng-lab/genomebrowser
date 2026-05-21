@@ -15,6 +15,7 @@ export function getTrackTitleMargin(track: TrackConfigBase, titleSize: number) {
 export function TrackFrame({
   track,
   y,
+  previewOffsetY = 0,
   marginWidth,
   trackWidth,
   contentX = marginWidth,
@@ -24,12 +25,14 @@ export function TrackFrame({
   onSwapMouseDown,
   swapping = false,
   isDragClone = false,
+  disableHover = false,
   titleSize,
   trackStore,
   children,
 }: {
   track: TrackConfigBase;
   y: number;
+  previewOffsetY?: number;
   marginWidth: number;
   trackWidth: number;
   contentX?: number;
@@ -39,6 +42,7 @@ export function TrackFrame({
   onSwapMouseDown?: (event: React.MouseEvent<SVGRectElement>) => void;
   swapping?: boolean;
   isDragClone?: boolean;
+  disableHover?: boolean;
   titleSize: number;
   trackStore: TrackStoreInstance;
   children: React.ReactNode;
@@ -66,10 +70,16 @@ export function TrackFrame({
     return registerContentGroup(contentGroupRef.current);
   }, [isDragClone, registerContentGroup]);
 
+  useEffect(() => {
+    if (disableHover) setHover(false);
+  }, [disableHover]);
+
   return (
     <g
-      transform={`translate(0,${y})`}
-      onMouseMove={() => setHover(true)}
+      transform={`translate(0,${y + previewOffsetY})`}
+      onMouseMove={() => {
+        if (!disableHover) setHover(true);
+      }}
       onMouseLeave={() => setHover(false)}
     >
       <defs>
@@ -169,7 +179,7 @@ export function TrackFrame({
         </g>
       </g>
       <line stroke="#cccccc" x1={marginWidth} x2={marginWidth} y1={0} y2={wrapperHeight} />
-      {hover && (
+      {hover && !disableHover && (
         <rect
           width={marginWidth + trackWidth}
           height={wrapperHeight}

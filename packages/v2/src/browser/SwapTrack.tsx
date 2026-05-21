@@ -12,33 +12,50 @@ type TrackFrameProps = {
   isDragClone?: boolean;
 };
 
+export type SwapPreview = {
+  draggedId: string;
+  currentIndex: number;
+  targetIndex: number;
+};
+
 export function SwapTrack({
   svg,
   track,
-  tracks,
   trackStore,
   titleSize,
   disabled = false,
+  onPreviewChange,
+  onPreviewEnd,
   children,
 }: {
   svg: SVGSVGElement | null;
   track: TrackConfigBase;
-  tracks: TrackConfigBase[];
   trackStore: TrackStoreInstance;
   titleSize: number;
   disabled?: boolean;
+  onPreviewChange: (preview: SwapPreview) => void;
+  onPreviewEnd: () => void;
   children: ReactNode;
 }) {
-  const [deltaY, setDeltaY] = useState<number | null>(null);
+  const [swapping, setSwapping] = useState(false);
+  const cloneRef = useRef<SVGGElement>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
+  const isDraggingRef = useRef(false);
+  const previewRef = useRef<SwapPreview | null>(null);
+  const onPreviewEndRef = useRef(onPreviewEnd);
+
+  onPreviewEndRef.current = onPreviewEnd;
 
   useEffect(() => {
-    return () => cleanupRef.current?.();
+    return () => {
+      cleanupRef.current?.();
+      if (isDraggingRef.current) onPreviewEndRef.current();
+    };
   }, []);
 
   const handleSwapMouseDown = (event: MouseEvent<SVGRectElement>) => {
     if (disabled || event.button !== 0) return;
-    if (!svg || tracks.length < 2) return;
+    if (!svg || trackStore.getState().tracks.length < 2) return;
     const startPoint = svgPoint(svg, event.clientX, event.clientY);
     if (!startPoint) return;
 
@@ -48,47 +65,72 @@ export function SwapTrack({
     const startY = startPoint.y;
     let latestDeltaY = 0;
 
+    const updatePreview = (deltaY: number) => {
+      const preview = getSwapPreview(track.id, trackStore.getState().tracks, titleSize, deltaY);
+      if (!preview || isSamePreview(previewRef.current, preview)) return;
+      previewRef.current = preview;
+      onPreviewChange(preview);
+    };
+
+    const moveClone = (deltaY: number) => {
+      cloneRef.current?.setAttribute("transform", `translate(0,${deltaY})`);
+    };
+
     const handleMove = (event: globalThis.MouseEvent) => {
       event.preventDefault();
       const point = svgPoint(svg, event.clientX, event.clientY);
       if (!point) return;
       latestDeltaY = point.y - startY;
-      setDeltaY(latestDeltaY);
+      moveClone(latestDeltaY);
+      updatePreview(latestDeltaY);
     };
 
     const handleUp = (event: globalThis.MouseEvent) => {
       event.preventDefault();
+      if (Math.abs(latestDeltaY) > 5) {
+        reorderToClosestTrack(
+          track.id,
+          trackStore.getState().tracks,
+          titleSize,
+          latestDeltaY,
+          trackStore,
+        );
+      }
+
       cleanupRef.current?.();
       cleanupRef.current = null;
-      setDeltaY(null);
-
-      if (Math.abs(latestDeltaY) <= 5) return;
-      reorderToClosestTrack(track.id, tracks, titleSize, latestDeltaY, trackStore);
+      isDraggingRef.current = false;
+      setSwapping(false);
+      previewRef.current = null;
+      onPreviewEnd();
     };
 
     cleanupRef.current?.();
+    isDraggingRef.current = true;
+    previewRef.current = null;
     cleanupRef.current = () => {
       document.removeEventListener("mousemove", handleMove);
       document.removeEventListener("mouseup", handleUp);
     };
     document.addEventListener("mousemove", handleMove);
     document.addEventListener("mouseup", handleUp);
-    setDeltaY(0);
+    setSwapping(true);
+    updatePreview(0);
   };
 
-  const swapping = deltaY !== null;
   const onSwapMouseDown = disabled ? undefined : handleSwapMouseDown;
 
   return (
     <>
-      <g opacity={swapping ? 0.35 : 1}>
+      <g opacity={swapping ? 0 : 1} pointerEvents={swapping ? "none" : undefined}>
         {withSwapProps(children, onSwapMouseDown, swapping, false)}
       </g>
       {swapping &&
         svg &&
         createPortal(
           <g
-            transform={`translate(0,${deltaY})`}
+            ref={cloneRef}
+            transform="translate(0,0)"
             style={{
               cursor: "grabbing",
               filter: "drop-shadow(2px 2px 2px gray)",
@@ -117,6 +159,14 @@ function withSwapProps(
   });
 }
 
+function isSamePreview(a: SwapPreview | null, b: SwapPreview) {
+  return (
+    a?.draggedId === b.draggedId &&
+    a.currentIndex === b.currentIndex &&
+    a.targetIndex === b.targetIndex
+  );
+}
+
 function reorderToClosestTrack(
   id: string,
   tracks: TrackConfigBase[],
@@ -124,8 +174,26 @@ function reorderToClosestTrack(
   deltaY: number,
   trackStore: TrackStoreInstance,
 ) {
+  const preview = getSwapPreview(id, tracks, titleSize, deltaY);
+  if (!preview) return;
+
+  const { currentIndex, targetIndex } = preview;
+
+  if (targetIndex === currentIndex) return;
+  const nextOrder = tracks.map((track) => track.id);
+  const [movedId] = nextOrder.splice(currentIndex, 1);
+  nextOrder.splice(targetIndex, 0, movedId);
+  trackStore.getState().reorderTracks(nextOrder);
+}
+
+function getSwapPreview(
+  id: string,
+  tracks: TrackConfigBase[],
+  titleSize: number,
+  deltaY: number,
+): SwapPreview | null {
   const currentIndex = tracks.findIndex((track) => track.id === id);
-  if (currentIndex < 0) return;
+  if (currentIndex < 0) return null;
 
   const heights = tracks.map((track) => getTrackWrapperHeight(track, titleSize));
   const distances = heights.map((_, index) => {
@@ -143,9 +211,5 @@ function reorderToClosestTrack(
       : bestIndex;
   }, 0);
 
-  if (targetIndex === currentIndex) return;
-  const nextOrder = tracks.map((track) => track.id);
-  const [movedId] = nextOrder.splice(currentIndex, 1);
-  nextOrder.splice(targetIndex, 0, movedId);
-  trackStore.getState().reorderTracks(nextOrder);
+  return { draggedId: id, currentIndex, targetIndex };
 }
