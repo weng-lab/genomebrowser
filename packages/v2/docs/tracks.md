@@ -48,7 +48,7 @@ Example module shape:
 
 ```ts
 import { z } from "zod";
-import { defineTrackModule } from "../src";
+import { defineTrackModule } from "@weng-lab/genomebrowser-v2";
 
 export const exampleTrackModule = defineTrackModule({
   type: "example",
@@ -80,7 +80,7 @@ This lets modules be used outside the browser orchestration layer. For example, 
 Small BigWig example:
 
 ```ts
-import { bigWigModule } from "../src";
+import { bigWigModule } from "@weng-lab/genomebrowser-v2";
 
 const track = bigWigModule.create({
   id: "signal",

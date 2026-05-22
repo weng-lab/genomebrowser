@@ -10,7 +10,7 @@ Custom track authors define one Zod schema for track-specific input fields and p
 
 ```ts
 import { z } from "zod";
-import { defineTrackModule } from "../src";
+import { defineTrackModule } from "@weng-lab/genomebrowser-v2";
 
 export const exampleTrackModule = defineTrackModule({
   type: "example",

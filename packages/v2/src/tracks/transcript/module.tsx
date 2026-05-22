@@ -5,7 +5,7 @@ import type { TranscriptConfig } from "./types";
 
 const transcriptInputSchema = z.object({
   assembly: z.string().min(1),
-  version: z.number().finite().int().positive(),
+  version: z.number().int().positive(),
 });
 
 export const transcriptModule = defineTrackModule({
@@ -24,7 +24,10 @@ export const transcriptModule = defineTrackModule({
   },
 });
 
-function TranscriptPlaceholder({ width, height }: TrackRendererProps<TranscriptConfig, unknown>) {
+function TranscriptPlaceholder({
+  width,
+  height,
+}: TrackRendererProps<TranscriptConfig, unknown>) {
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" />

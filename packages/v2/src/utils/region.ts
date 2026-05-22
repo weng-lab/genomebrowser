@@ -10,8 +10,8 @@ export type BrowserRegion = {
 export const browserRegionSchema = z
   .object({
     chromosome: z.string().min(1),
-    start: z.number().finite().int(),
-    end: z.number().finite().int(),
+    start: z.number().int(),
+    end: z.number().int(),
   })
   .refine((region) => region.start < region.end, {
     message: "start must be less than end",
@@ -24,7 +24,9 @@ export function parseRegion(region: BrowserRegion | string): BrowserRegion {
   }
 
   const normalized = region.replace(/,/g, "");
-  const match = /^(?<chromosome>[^:]+):(?<start>\d+)-(?<end>\d+)$/.exec(normalized);
+  const match = /^(?<chromosome>[^:]+):(?<start>\d+)-(?<end>\d+)$/.exec(
+    normalized,
+  );
   if (!match?.groups) {
     throw new Error(`Invalid region: ${region}`);
   }

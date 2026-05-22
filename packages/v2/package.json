@@ -3,6 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "module": "dist/genomebrowser-v2.es.js",
+  "types": "dist/src/lib.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/lib.d.ts",
+      "import": "./dist/genomebrowser-v2.es.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsgo -b && vite build",
@@ -17,10 +28,12 @@
     "axios": "0.18.1",
     "buffer": "^6.0.3",
     "genomic-reader": "^1.4.10",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
     "zod": "^4.4.3",
     "zustand": "^5.0.13"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
@@ -29,8 +42,11 @@
     "@vitejs/plugin-react": "^6.0.2",
     "oxfmt": "^0.50.0",
     "oxlint": "^1.65.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "typescript": "npm:@typescript/typescript6@^6.0.1",
     "vite": "^8.0.13",
+    "vite-plugin-dts": "^4.5.4",
     "vitest": "4.1.7"
   }
 }

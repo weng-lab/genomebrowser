@@ -1,4 +1,7 @@
-import { GenomeBrowser, bigWigModule, createBrowserStore, createTrackStore } from "./index";
+import { GenomeBrowser } from "./browser/GenomeBrowser";
+import { createBrowserStore } from "./stores/browserStore";
+import { createTrackStore } from "./stores/trackStore";
+import { bigWigModule } from "./tracks/bigwig/module";
 
 const browserStore = createBrowserStore({
   region: "chr19:44,905,754-44,907,754",

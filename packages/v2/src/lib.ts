@@ -1,16 +1,17 @@
 export { GenomeBrowser } from "./browser/GenomeBrowser";
+export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
+
 export { defineTrackModule } from "./modules/defineTrackModule";
+
 export { createBrowserStore } from "./stores/browserStore";
 export { createTrackStore } from "./stores/trackStore";
-
-export { bigWigModule } from "./tracks/bigwig";
-export { bigBedModule } from "./tracks/bigbed";
-export { transcriptModule } from "./tracks/transcript";
-
-export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
 export type { BrowserStore, BrowserStoreInput, BrowserStoreInstance } from "./stores/browserStore";
 export type { TrackStore, TrackStoreInstance, TrackStoreOptions, TrackUpdate } from "./stores/trackStore";
-export type { BrowserRegion } from "./utils/region";
+
+export { bigBedModule } from "./tracks/bigbed/module";
+export type { BigBedConfig, BigBedDisplay, BigBedInput } from "./tracks/bigbed/types";
+
+export { bigWigModule } from "./tracks/bigwig/module";
 export type {
   BigWigConfig,
   BigWigData,
@@ -19,6 +20,9 @@ export type {
   BigWigInput,
   ValuedPoint,
   YRange,
-} from "./tracks/bigwig";
-export type { BigBedConfig, BigBedDisplay, BigBedInput } from "./tracks/bigbed";
-export type { TranscriptConfig, TranscriptDisplay, TranscriptInput } from "./tracks/transcript";
+} from "./tracks/bigwig/types";
+
+export { transcriptModule } from "./tracks/transcript/module";
+export type { TranscriptConfig, TranscriptDisplay, TranscriptInput } from "./tracks/transcript/types";
+
+export type { BrowserRegion } from "./utils/region";

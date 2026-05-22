@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
-import { bigBedModule, bigWigModule, transcriptModule } from "../../src";
+import { bigBedModule } from "../../src/tracks/bigbed/module";
+import { bigWigModule } from "../../src/tracks/bigwig/module";
+import { transcriptModule } from "../../src/tracks/transcript/module";
 
 describe("defineTrackModule", () => {
   function FullRenderer() {
