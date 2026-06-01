@@ -35,4 +35,4 @@ Keep the core browser generic. When adding behavior, prefer putting it in the na
 - reusable calculations go in utility modules
 - shared runtime contracts go in `src/modules`
 
-See [Schema validation](validation.md) for how runtime input is checked at package and module boundaries.
+See [Schema validation](validation.md) for how runtime input is checked at package and module boundaries. See [Useful helpers for track modules](helpers.md) for public hooks that custom module authors can use.

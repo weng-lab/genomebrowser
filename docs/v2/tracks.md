@@ -46,7 +46,7 @@ The main responsibilities are:
 - `render` maps display modes to React renderers
 - `settings` can provide optional track settings UI
 
-Track modules should be defined with `defineTrackModule`. Custom track authors provide one Zod schema for the track's config, and the helper creates the module's base config schema, `create`, and `validate` functions. See [Schema validation](validation.md) for the schema convention.
+Track modules should be defined with `defineTrackModule`. Custom track authors provide one Zod schema for the track's config, and the helper creates the module's base config schema, `create`, and `validate` functions. See [Schema validation](validation.md) for the schema convention and [Useful helpers for track modules](helpers.md) for exported hooks that can support custom renderers.
 
 Example module shape:
 
