@@ -5,6 +5,7 @@ import { DenseBigBed, SquishBigBed } from "./render";
 
 const bigBedInputSchema = z.object({
   url: z.string().min(1),
+  schema: z.instanceof(z.ZodObject).optional(),
 });
 
 export const bigBedModule = defineTrackModule({

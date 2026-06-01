@@ -108,6 +108,41 @@ return (
 
 Keep browser behavior in browser hooks and components. Keep module behavior limited to the track type it owns.
 
+## BigBed row schemas
+
+The built-in BigBed module accepts an optional Zod object schema on the track config. The schema describes the BigBed file columns in file order, including coordinate fields. Fetched rows are parsed with that schema before being stored as track data, so user interactions can receive named, typed fields instead of raw tab-delimited values.
+
+```ts
+import { z } from "zod";
+import { bigBedModule, type InferBigBedRow } from "@weng-lab/genomebrowser-v2";
+
+const peaksSchema = z.object({
+  chrom: z.string(),
+  start: z.coerce.number(),
+  end: z.coerce.number(),
+  name: z.string(),
+  score: z.coerce.number(),
+  strand: z.string(),
+  signalValue: z.coerce.number(),
+  pValue: z.coerce.number(),
+  qValue: z.coerce.number(),
+  peak: z.coerce.number(),
+});
+
+type PeakRow = InferBigBedRow<typeof peaksSchema>;
+
+const track = bigBedModule.create({
+  id: "peaks",
+  title: "Peaks",
+  url: "YOUR_URL_HERE",
+  schema: peaksSchema,
+});
+```
+
+Schema key order is the column mapping order. For example, the fourth key maps to the first field after `chrom`, `start`, and `end`. Use `z.coerce.number()` for numeric fields because BigBed extra fields may be read as strings. If a file uses `chromStart` and `chromEnd` field names, the BigBed module normalizes those aliases to `start` and `end` for rendering.
+
+Because the schema is a Zod object, BigBed configs that include `schema` contain a runtime object and are not fully JSON-serializable.
+
 ## Runtime flow
 
 At runtime, the browser uses modules through the registry:

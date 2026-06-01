@@ -1,6 +1,7 @@
 import axios from "axios/dist/axios.js";
 import { AxiosDataLoader, BigWigReader, FileType } from "genomic-reader";
 import type { TrackFetchContext } from "../../modules/types";
+import { createBigBedSchemaParser } from "./schema";
 import type { BigBedConfig, BigBedData, BigBedRow } from "./types";
 
 type RawBigBedRow = Partial<BigBedRow> & {
@@ -25,12 +26,20 @@ export async function fetchBigBed({
     throw new Error("BigBed module only supports BigBed files");
   }
 
-  const rows = (await reader.readBigBedData(
-    region.chromosome,
-    region.start,
-    region.chromosome,
-    region.end,
-  )) as RawBigBedRow[];
+  const rows = config.schema
+    ? ((await reader.readBigBedData(
+        region.chromosome,
+        region.start,
+        region.chromosome,
+        region.end,
+        createBigBedSchemaParser(config.schema),
+      )) as RawBigBedRow[])
+    : ((await reader.readBigBedData(
+        region.chromosome,
+        region.start,
+        region.chromosome,
+        region.end,
+      )) as RawBigBedRow[]);
 
   return rows.map(normalizeBigBedRow).filter((row) => row.end >= region.start && row.start <= region.end);
 }

@@ -155,6 +155,13 @@ describe("defineTrackModule", () => {
   });
 
   it("supports built-in module config creation", () => {
+    const bigBedSchema = z.object({
+      chrom: z.string(),
+      start: z.number(),
+      end: z.number(),
+      name: z.string().optional(),
+    });
+
     expect(
       bigWigModule.create({
         id: "signal",
@@ -176,8 +183,9 @@ describe("defineTrackModule", () => {
         id: "annotation",
         title: "Annotation",
         url: "YOUR_URL_HERE",
+        schema: bigBedSchema,
       }),
-    ).toMatchObject({ type: "bigbed", display: "dense", height: 60 });
+    ).toMatchObject({ type: "bigbed", display: "dense", height: 60, schema: bigBedSchema });
 
     expect(
       transcriptModule.create({
@@ -187,5 +195,16 @@ describe("defineTrackModule", () => {
         version: 1,
       }),
     ).toMatchObject({ type: "transcript", display: "squish", height: 90 });
+  });
+
+  it("rejects invalid BigBed schemas", () => {
+    expect(() =>
+      bigBedModule.create({
+        id: "annotation",
+        title: "Annotation",
+        url: "YOUR_URL_HERE",
+        schema: { chrom: "string" } as never,
+      }),
+    ).toThrow(/bigbed config is invalid/);
   });
 });

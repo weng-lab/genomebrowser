@@ -13,7 +13,15 @@ export type { BrowserStore, BrowserStoreInput, BrowserStoreInstance } from "./st
 export type { TrackStore, TrackStoreInstance, TrackStoreOptions, TrackUpdate } from "./stores/trackStore";
 
 export { bigBedModule } from "./tracks/bigbed/module";
-export type { BigBedConfig, BigBedData, BigBedDisplay, BigBedInput, BigBedRow } from "./tracks/bigbed/types";
+export type {
+  BigBedConfig,
+  BigBedData,
+  BigBedDisplay,
+  BigBedInput,
+  BigBedRow,
+  BigBedSchema,
+  InferBigBedRow,
+} from "./tracks/bigbed/types";
 
 export { bigWigModule } from "./tracks/bigwig/module";
 export type {
