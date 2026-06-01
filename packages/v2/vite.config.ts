@@ -4,6 +4,7 @@ import dts from "vite-plugin-dts";
 
 // https://vite.dev/config/
 export default defineConfig({
+  envPrefix: ["VITE_", "SCREEN_"],
   plugins: [
     react(),
     dts({

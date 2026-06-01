@@ -8,6 +8,28 @@ export type BigBedConfig = TrackConfigBase & {
   url: string;
 };
 
+export type BigBedData = BigBedRow[];
+
+export type BigBedRow = {
+  chr?: string;
+  chrom?: string;
+  start: number;
+  end: number;
+  name?: string;
+  score?: number | string;
+  color?: string;
+  rest?: string[] | string;
+};
+
+export type RenderedBigBedRect = {
+  row: BigBedRow;
+  start: number;
+  end: number;
+  color?: string;
+  name?: string;
+  score?: number | string;
+};
+
 export type BigBedInput = {
   id: string;
   title: string;

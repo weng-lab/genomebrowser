@@ -1,6 +1,8 @@
 # Tracks and Track Modules
 
-Track modules define the behavior for a track type. They are a key part of v2 because the browser is mostly orchestration: it coordinates state, viewport behavior, data loading, and rendering, while each track module owns the track-specific details.
+`Tracks` are the components that display data across the genome. Some common ones include BigWig which displays a signal, BigBed which displays rectangles at regions of interest, and Transcripts which displays genes and transcripts.
+
+`Track Modules` define the behavior for a track type. They are a key part of v2 because the browser is mostly orchestration: it coordinates state, viewport behavior, data loading, and rendering, while each track module owns the track-specific details.
 
 ## Track configs
 
@@ -16,6 +18,8 @@ type TrackConfigBase = {
   color?: string;
 };
 ```
+
+Track Configs define runtime behavior such as color, title, and any other custom fields that a module has defined for its config. They tell the browser _how_ to render the track at runtime.
 
 The `type` field connects a track config to a registered track module. The `display` field selects one of that module's renderers.
 
@@ -42,7 +46,7 @@ The main responsibilities are:
 - `render` maps display modes to React renderers
 - `settings` can provide optional track settings UI
 
-Track modules should be defined with `defineTrackModule`. Custom track authors provide one Zod schema for track-specific fields, and the helper creates the module's base config schema, `create`, and `validate` functions. See [Schema validation](validation.md) for the schema convention.
+Track modules should be defined with `defineTrackModule`. Custom track authors provide one Zod schema for the track's config, and the helper creates the module's base config schema, `create`, and `validate` functions. See [Schema validation](validation.md) for the schema convention.
 
 Example module shape:
 

@@ -1,13 +1,15 @@
 import { GenomeBrowser } from "./browser/GenomeBrowser";
 import { createBrowserStore } from "./stores/browserStore";
+import { bigBedModule } from "./tracks/bigbed/module";
 import { createTrackStore } from "./stores/trackStore";
 import { bigWigModule } from "./tracks/bigwig/module";
+import { transcriptModule } from "./tracks/transcript/module";
 
 const browserStore = createBrowserStore({
-  region: "chr19:44,905,754-44,907,754",
+  region: "chr6:21,592,778-21,599,592",
 });
 
-const modules = [bigWigModule];
+const modules = [bigWigModule, bigBedModule, transcriptModule];
 
 const trackStore = createTrackStore({
   modules,
@@ -16,29 +18,38 @@ const trackStore = createTrackStore({
       id: "dnase",
       title: "DNase aggregate",
       color: "#1B2021",
+      height: 50,
       url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
     }),
-    bigWigModule.create({
-      id: "atac",
-      title: "atac aggregate",
-      color: "#51513D",
-      url: "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw",
+    bigBedModule.create({
+      id: "astro-peaks",
+      title: "Astro peaks",
+      color: "#4b9560",
+      display: "squish",
+      height: 35,
+      url: "https://downloads.wenglab.org/Astro.PeakCalls.bb",
     }),
-    bigWigModule.create({
-      id: "awsd",
-      title: "atac aggregate",
-      color: "#A6A867",
-      url: "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw",
-    }),
-    bigWigModule.create({
-      id: "atadwadwc",
-      title: "atac aggregate",
-      color: "#E3DC95",
-      url: "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw",
+    transcriptModule.create({
+      id: "genes",
+      title: "Genes",
+      assembly: "GRCh38",
+      version: 40,
+      geneName: "SOX4",
+      display: "pack",
+      color: "#7a4fb3",
+      canonicalColor: "#d45c2f",
+      highlightColor: "#1f77b4",
+      height: 35,
     }),
   ],
 });
 
 export default function App() {
-  return <GenomeBrowser browserStore={browserStore} trackStore={trackStore} modules={modules} />;
+  return (
+    <GenomeBrowser
+      browserStore={browserStore}
+      trackStore={trackStore}
+      modules={modules}
+    />
+  );
 }

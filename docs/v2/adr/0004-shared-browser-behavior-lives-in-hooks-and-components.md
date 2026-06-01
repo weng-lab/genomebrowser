@@ -1,0 +1,3 @@
+# Shared browser behavior lives in hooks and components
+
+Shared/browser behavior should live in exported hooks/components, not as more fields on `TrackModule`. v2 track modules remain the high-level self-contained units used to create, validate, fetch, and render tracks, while cross-cutting runtime behavior such as store access and row-based height autosizing is exposed through hooks like `useTrackStore` and `useAutoTrackHeight`; this avoids turning `TrackModule` into an ever-growing bag of optional lifecycle fields while still letting built-in and custom renderers opt into browser-owned behavior.

@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { createModuleRegistry } from "../modules/registry";
 import { useTrackData } from "../modules/dataController";
 import type { AnyTrackModule } from "../modules/types";
+import { BrowserProvider } from "../stores/BrowserContext";
 import type { BrowserStoreInstance } from "../stores/browserStore";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { RULER_HEIGHT, Ruler } from "./Ruler";
@@ -64,38 +65,40 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
   });
 
   return (
-    <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
-      <SelectRegion
-        svg={svg}
-        marginWidth={marginWidth}
-        trackWidth={trackWidth}
-        totalHeight={totalHeight}
-        region={region}
-        setRegion={setRegion}
-        disabled={isPanLocked}
-      />
-      <g transform={`translate(${marginWidth},0)`}>
-        <Ruler region={region} width={trackWidth} />
-      </g>
-      <g>
-        <TrackStack
-          tracks={tracks}
-          dataStates={dataStates}
-          registry={registry}
-          region={displayedRenderRegion}
+    <BrowserProvider value={{ trackStore }}>
+      <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
+        <SelectRegion
+          svg={svg}
           marginWidth={marginWidth}
           trackWidth={trackWidth}
-          contentX={baseContentX}
-          contentWidth={renderWidth}
-          registerContentGroup={registerContentGroup}
-          panDrag={panDrag}
-          isPanLocked={isPanLocked}
-          titleSize={titleSize}
-          trackStore={trackStore}
-          startY={RULER_HEIGHT}
-          svg={svg}
+          totalHeight={totalHeight}
+          region={region}
+          setRegion={setRegion}
+          disabled={isPanLocked}
         />
-      </g>
-    </SvgShell>
+        <g transform={`translate(${marginWidth},0)`}>
+          <Ruler region={region} width={trackWidth} />
+        </g>
+        <g>
+          <TrackStack
+            tracks={tracks}
+            dataStates={dataStates}
+            registry={registry}
+            region={displayedRenderRegion}
+            marginWidth={marginWidth}
+            trackWidth={trackWidth}
+            contentX={baseContentX}
+            contentWidth={renderWidth}
+            registerContentGroup={registerContentGroup}
+            panDrag={panDrag}
+            isPanLocked={isPanLocked}
+            titleSize={titleSize}
+            trackStore={trackStore}
+            startY={RULER_HEIGHT}
+            svg={svg}
+          />
+        </g>
+      </SvgShell>
+    </BrowserProvider>
   );
 }
