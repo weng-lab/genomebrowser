@@ -1,5 +1,31 @@
-import type { ComponentType } from "react";
+import type { ComponentType, MouseEvent, PointerEvent } from "react";
 import type { BrowserRegion } from "../utils/region";
+
+export type TrackInteractionContext<Item, Config extends TrackConfigBase> = {
+  item: Item;
+  config: Config;
+  event: MouseEvent;
+};
+
+export type TrackInteractionCallback<Item, Config extends TrackConfigBase> = (
+  context: TrackInteractionContext<Item, Config>,
+) => void;
+
+export type TrackTooltipProps<Item, Config extends TrackConfigBase> = {
+  item: Item;
+  config: Config;
+};
+
+export type TrackTooltipComponent<Item, Config extends TrackConfigBase> = ComponentType<
+  TrackTooltipProps<Item, Config>
+>;
+
+export type TrackInteractionConfig<Item, Config extends TrackConfigBase> = {
+  onClick?: TrackInteractionCallback<Item, Config>;
+  onHover?: TrackInteractionCallback<Item, Config>;
+  onLeave?: TrackInteractionCallback<Item, Config>;
+  tooltip?: TrackTooltipComponent<Item, Config>;
+};
 
 export type TrackConfigBase = {
   id: string;
@@ -8,6 +34,10 @@ export type TrackConfigBase = {
   display: string;
   height: number;
   color?: string;
+  onClick?: TrackInteractionCallback<any, any>;
+  onHover?: TrackInteractionCallback<any, any>;
+  onLeave?: TrackInteractionCallback<any, any>;
+  tooltip?: TrackTooltipComponent<any, any>;
 };
 
 export type TrackFetchContext<Config extends TrackConfigBase> = {
@@ -22,6 +52,13 @@ export type TrackRendererProps<Config extends TrackConfigBase, Data> = {
   region: BrowserRegion;
   width: number;
   height: number;
+  panDrag?: {
+    isDragging: boolean;
+    onPointerDown: (event: PointerEvent<SVGRectElement>) => void;
+    onPointerMove: (event: PointerEvent<SVGRectElement>) => void;
+    onPointerUp: (event: PointerEvent<SVGRectElement>) => void;
+    onPointerCancel: (event: PointerEvent<SVGRectElement>) => void;
+  };
 };
 
 export type TrackSettingsProps<Config extends TrackConfigBase> = {

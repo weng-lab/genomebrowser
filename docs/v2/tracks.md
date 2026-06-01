@@ -108,6 +108,41 @@ return (
 
 Keep browser behavior in browser hooks and components. Keep module behavior limited to the track type it owns.
 
+## Track interactions
+
+Track configs can include runtime interaction fields:
+
+```ts
+type TrackInteractionConfig<Item, Config> = {
+  onClick?: (context: { item: Item; config: Config; event: React.MouseEvent }) => void;
+  onHover?: (context: { item: Item; config: Config; event: React.MouseEvent }) => void;
+  onLeave?: (context: { item: Item; config: Config; event: React.MouseEvent }) => void;
+  tooltip?: React.ComponentType<{ item: Item; config: Config }>;
+};
+```
+
+These fields are intentionally part of config state because v2 treats generated configs as the runtime unit inserted into the track store. This keeps programmatic track creation simple: build the config, attach callbacks or a tooltip, and add it to the store.
+
+```tsx
+const track = bigBedModule.create({
+  id: "peaks",
+  title: "Peaks",
+  url: "YOUR_URL_HERE",
+  onClick: ({ item, config, event }) => {
+    console.log(config.id, item.start, item.end, event.clientX);
+  },
+  tooltip: ({ item, config }) => (
+    <g>
+      <text>{`${config.title}: ${item.name ?? `${item.start}-${item.end}`}`}</text>
+    </g>
+  ),
+});
+```
+
+Module defaults can also include interaction fields. This is useful for semantic wrapper modules that reuse generic behavior but want a default tooltip or callback policy. A config created from that module can still override the default interaction fields.
+
+Because callbacks and React components are functions, configs that include interactions are runtime configs and are not fully JSON-serializable.
+
 ## BigBed row schemas
 
 The built-in BigBed module accepts an optional Zod object schema on the track config. The schema describes the BigBed file columns in file order, including coordinate fields. Fetched rows are parsed with that schema before being stored as track data, so user interactions can receive named, typed fields instead of raw tab-delimited values.

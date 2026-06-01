@@ -1,4 +1,5 @@
 import { useAutoTrackHeight } from "../../hooks/useAutoTrackHeight";
+import { useInteraction } from "../../hooks/useInteraction";
 import type { TrackRendererProps } from "../../modules/types";
 import { createXScale } from "../../utils/scale";
 import {
@@ -36,10 +37,14 @@ function TranscriptRows({
     y: index * rowHeight,
     transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, width)),
   }));
+  const { handleClick, handleHover, handleLeave } = useInteraction<Transcript, TranscriptConfig>({
+    config,
+    fallback: (transcript) => transcript.name || transcript.id,
+  });
 
   return (
     <g>
-      <rect width={width} height={height} fill="#ffffff" />
+      <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
       {rows.map((row, rowIndex) => (
         <g key={rowIndex} transform={`translate(0,${row.y})`}>
           {row.transcripts.map((transcript, transcriptIndex) => {
@@ -51,6 +56,10 @@ function TranscriptRows({
                   fill={fill}
                   strokeWidth={Math.max(0.5, rowHeight / 16)}
                   d={transcript.paths.introns + transcript.paths.exons}
+                  style={{ cursor: config.onClick ? "pointer" : "default" }}
+                  onClick={(event) => handleClick(transcript.transcript, event)}
+                  onMouseOver={(event) => handleHover(transcript.transcript, event)}
+                  onMouseOut={(event) => handleLeave(transcript.transcript, event)}
                 />
                 <text
                   fill={fill}

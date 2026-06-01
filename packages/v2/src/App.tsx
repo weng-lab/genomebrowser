@@ -28,6 +28,9 @@ const trackStore = createTrackStore({
       display: "squish",
       height: 35,
       url: "https://downloads.wenglab.org/Astro.PeakCalls.bb",
+      onClick: ({ item }) => {
+        console.log(item);
+      },
     }),
     transcriptModule.create({
       id: "genes",
@@ -40,6 +43,9 @@ const trackStore = createTrackStore({
       canonicalColor: "#d45c2f",
       highlightColor: "#1f77b4",
       height: 35,
+      onClick: ({ item }) => {
+        console.log(item.name);
+      },
     }),
   ],
 });

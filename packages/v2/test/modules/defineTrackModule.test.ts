@@ -125,6 +125,73 @@ describe("defineTrackModule", () => {
         },
       }),
     ).toThrow(/cannot define reserved field "display"/);
+
+    expect(() =>
+      defineTrackModule({
+        type: "reserved-interaction",
+        schema: z.object({
+          onClick: z.custom<Function>((value) => typeof value === "function"),
+        }),
+        fetch: async () => null,
+        render: {
+          full: FullRenderer,
+        },
+      }),
+    ).toThrow(/cannot define reserved field "onClick"/);
+  });
+
+  it("supports interaction defaults and config overrides", () => {
+    function DefaultTooltip() {
+      return null;
+    }
+    function OverrideTooltip() {
+      return null;
+    }
+    const onClick = () => undefined;
+    const onHover = () => undefined;
+    const onLeave = () => undefined;
+    const overrideClick = () => undefined;
+    const interactionModule = defineTrackModule({
+      type: "interactive",
+      defaults: {
+        onClick,
+        onHover,
+        onLeave,
+        tooltip: DefaultTooltip,
+      },
+      schema: z.object({}),
+      fetch: async () => null,
+      render: {
+        full: FullRenderer,
+      },
+    });
+
+    expect(
+      interactionModule.create({
+        id: "defaulted",
+        title: "Defaulted",
+      }),
+    ).toMatchObject({ onClick, onHover, onLeave, tooltip: DefaultTooltip });
+
+    expect(
+      interactionModule.create({
+        id: "override",
+        title: "Override",
+        onClick: overrideClick,
+        tooltip: OverrideTooltip,
+      }),
+    ).toMatchObject({ onClick: overrideClick, onHover, onLeave, tooltip: OverrideTooltip });
+  });
+
+  it("rejects invalid interaction field values", () => {
+    expect(() =>
+      module.create({
+        id: "signal",
+        title: "Signal",
+        url: "YOUR_URL_HERE",
+        onClick: "not a function" as never,
+      }),
+    ).toThrow(/example config is invalid/);
   });
 
   it("rejects empty render maps", () => {

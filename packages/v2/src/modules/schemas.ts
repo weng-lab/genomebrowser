@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+export const functionSchema = z.custom<Function>((value) => typeof value === "function", {
+  error: "Input must be a function",
+});
+
 export const trackConfigBaseSchema = z.object({
   id: z.string().min(1),
   type: z.string().min(1),
@@ -7,6 +11,10 @@ export const trackConfigBaseSchema = z.object({
   display: z.string().min(1),
   height: z.number().positive(),
   color: z.string().optional(),
+  onClick: functionSchema.optional(),
+  onHover: functionSchema.optional(),
+  onLeave: functionSchema.optional(),
+  tooltip: functionSchema.optional(),
 });
 
 export const trackConfigListSchema = z.array(trackConfigBaseSchema);

@@ -100,6 +100,49 @@ describe("createTrackStore", () => {
     ).toThrow(/bigwig config is invalid/);
   });
 
+  it("preserves interaction fields on initial tracks, added tracks, and updates", () => {
+    function Tooltip() {
+      return null;
+    }
+    const onClick = () => undefined;
+    const onHover = () => undefined;
+    const onLeave = () => undefined;
+    const nextClick = () => undefined;
+    const initial = bigWigModule.create({
+      id: "signal",
+      title: "Signal",
+      url: "YOUR_URL_HERE",
+      onClick,
+      onHover,
+      onLeave,
+      tooltip: Tooltip,
+    });
+    const store = createTrackStore({ modules: [bigWigModule], tracks: [initial] });
+
+    expect(store.getState().getTrack("signal")).toMatchObject({ onClick, onHover, onLeave, tooltip: Tooltip });
+
+    const added = bigWigModule.create({
+      id: "added",
+      title: "Added",
+      url: "YOUR_URL_HERE",
+      onClick: nextClick,
+    });
+    store.getState().addTrack(added);
+    expect(store.getState().getTrack("added")).toMatchObject({ onClick: nextClick });
+
+    store.getState().updateTrack("signal", { onClick: nextClick, onHover: undefined });
+    expect(store.getState().getTrack("signal")).toMatchObject({ onClick: nextClick, onLeave, tooltip: Tooltip });
+    expect(store.getState().getTrack("signal")?.onHover).toBeUndefined();
+  });
+
+  it("rejects invalid interaction updates", () => {
+    const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
+
+    expect(() =>
+      store.getState().updateTrack("signal", { onClick: "not a function" as never }),
+    ).toThrow(/bigwig config is invalid/);
+  });
+
   it("validates merged updates and preserves id", () => {
     const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
 

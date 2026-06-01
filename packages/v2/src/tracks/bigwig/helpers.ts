@@ -52,6 +52,19 @@ export function applyFillWithZero(points: ValuedPoint[]) {
   }
 }
 
+export function getPointAtMouseX(points: ValuedPoint[], mouseX: number, width: number) {
+  if (points.length === 0 || width <= 0) return undefined;
+  const scale = points.length / width;
+  const index = Math.max(0, Math.min(points.length - 1, Math.round(mouseX * scale)));
+  const point = points[index];
+  if (!point || (point.min === null && point.max === null)) return undefined;
+  return point;
+}
+
+export function formatBigWigTooltip(point: ValuedPoint) {
+  return point.max === null ? undefined : point.max.toFixed(2);
+}
+
 export function createYScale(range: YRange, height: number) {
   const span = range.max - range.min;
   return (value: number) => (span === 0 ? height : height - ((value - range.min) * height) / span);

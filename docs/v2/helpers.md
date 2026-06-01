@@ -64,6 +64,32 @@ function ExampleSettings({ config }: { config: ExampleConfig }) {
 
 Prefer using the `updateTrack` prop passed to settings components when that is enough. Reach for `useTrackStore` when a component needs a selector or store behavior that is not already passed through props.
 
+## `useInteraction`
+
+`useInteraction` lets custom renderers opt into the browser-managed interaction contract. It reads interaction fields from the track config, calls callbacks with `{ item, config, event }`, and manages tooltips through the active `GenomeBrowser`.
+
+```tsx
+import { useInteraction } from "@weng-lab/genomebrowser-v2";
+
+function DenseExample({ config, data }: ExampleRendererProps) {
+  const { handleClick, handleHover, handleLeave } = useInteraction({
+    config,
+    fallback: (item) => item.name,
+  });
+
+  return data.map((item) => (
+    <rect
+      key={item.id}
+      onClick={(event) => handleClick(item, event)}
+      onMouseOver={(event) => handleHover(item, event)}
+      onMouseOut={(event) => handleLeave(item, event)}
+    />
+  ));
+}
+```
+
+If `config.tooltip` is present, the hook renders it with `{ item, config }`. If no custom tooltip is present and `fallback` returns text, the browser renders a default tooltip.
+
 ## Notes
 
 - `defineTrackModule` is still the main extension point for custom track types. See [Tracks and track modules](tracks.md).

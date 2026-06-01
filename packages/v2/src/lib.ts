@@ -5,12 +5,14 @@ export { defineTrackModule } from "./modules/defineTrackModule";
 
 export { useAutoTrackHeight } from "./hooks/useAutoTrackHeight";
 export type { AutoTrackHeightOptions } from "./hooks/useAutoTrackHeight";
+export { useInteraction } from "./hooks/useInteraction";
 
 export { createBrowserStore } from "./stores/browserStore";
-export { useTrackStore } from "./stores/BrowserContext";
+export { useTooltipStore, useTrackStore } from "./stores/BrowserContext";
 export { createTrackStore } from "./stores/trackStore";
 export type { BrowserStore, BrowserStoreInput, BrowserStoreInstance } from "./stores/browserStore";
 export type { TrackStore, TrackStoreInstance, TrackStoreOptions, TrackUpdate } from "./stores/trackStore";
+export type { TooltipStore, TooltipStoreInstance } from "./stores/tooltipStore";
 
 export { bigBedModule } from "./tracks/bigbed/module";
 export type {

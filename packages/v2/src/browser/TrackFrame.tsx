@@ -88,11 +88,6 @@ export function TrackFrame({
         </clipPath>
       </defs>
       <rect x={marginWidth} y={0} width={trackWidth} height={wrapperHeight} fill="#ffffff" />
-      <g clipPath={`url(#${contentClipId})`}>
-        <g ref={contentGroupRef} transform={`translate(${contentX},0)`}>
-          <g transform={`translate(0,${titleMargin})`}>{children}</g>
-        </g>
-      </g>
       {panDrag && (
         <rect
           x={marginWidth}
@@ -108,6 +103,11 @@ export function TrackFrame({
           onPointerCancel={panDrag.onPointerCancel}
         />
       )}
+      <g clipPath={`url(#${contentClipId})`}>
+        <g ref={contentGroupRef} transform={`translate(${contentX},0)`}>
+          <g transform={`translate(0,${titleMargin})`}>{children}</g>
+        </g>
+      </g>
       <text
         fill="#000000"
         x={marginWidth + trackWidth / 2}

@@ -5,9 +5,11 @@ import type { AnyTrackModule } from "../modules/types";
 import { BrowserProvider } from "../stores/BrowserContext";
 import type { BrowserStoreInstance } from "../stores/browserStore";
 import type { TrackStoreInstance } from "../stores/trackStore";
+import { createTooltipStore } from "../stores/tooltipStore";
 import { RULER_HEIGHT, Ruler } from "./Ruler";
 import { SelectRegion } from "./SelectRegion";
 import { SvgShell } from "./SvgShell";
+import { Tooltip } from "./Tooltip";
 import { getTracksHeight, TrackStack } from "./TrackStack";
 import { useContentTransform } from "./useContentTransform";
 import { usePanController } from "./usePanController";
@@ -30,6 +32,7 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
   const tracks = trackStore((state) => state.tracks);
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   const registry = useMemo(() => createModuleRegistry(modules), [modules]);
+  const tooltipStore = useMemo(() => createTooltipStore(), []);
   const sideWidth = trackWidth;
   const browserWidth = marginWidth + trackWidth;
   const totalHeight = RULER_HEIGHT + getTracksHeight(tracks, titleSize);
@@ -65,7 +68,7 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
   });
 
   return (
-    <BrowserProvider value={{ trackStore }}>
+    <BrowserProvider value={{ trackStore, tooltipStore, svg }}>
       <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
         <SelectRegion
           svg={svg}
@@ -98,6 +101,7 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
             svg={svg}
           />
         </g>
+        <Tooltip width={browserWidth} height={totalHeight} />
       </SvgShell>
     </BrowserProvider>
   );

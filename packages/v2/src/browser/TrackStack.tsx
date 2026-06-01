@@ -97,6 +97,7 @@ export function TrackStack({
             width={contentWidth ?? trackWidth}
             height={track.height}
             titleMargin={titleMargin}
+            panDrag={panDrag}
           />
         </TrackFrame>
       </SwapTrack>
@@ -141,6 +142,7 @@ function TrackContent({
   width,
   height,
   titleMargin,
+  panDrag,
 }: {
   track: TrackConfigBase;
   dataState: TrackDataState;
@@ -149,6 +151,7 @@ function TrackContent({
   width: number;
   height: number;
   titleMargin: number;
+  panDrag?: PanDragHandlers;
 }) {
   if (dataState.status === "idle" || dataState.status === "loading") {
     return <LoadingState x={0} y={0} width={width} height={height} />;
@@ -189,6 +192,7 @@ function TrackContent({
         region={region}
         width={width}
         height={height}
+        panDrag={panDrag}
       />
     );
   } catch (error) {

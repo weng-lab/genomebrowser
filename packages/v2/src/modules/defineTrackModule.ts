@@ -1,15 +1,25 @@
 import type { ComponentType } from "react";
 import { z } from "zod";
-import { parsePublicInput } from "./schemas";
-import type { TrackModule, TrackRendererProps } from "./types";
+import { functionSchema, parsePublicInput } from "./schemas";
+import type { TrackInteractionConfig, TrackModule, TrackRendererProps } from "./types";
 
 type TrackInputSchema = z.ZodObject;
-type ReservedTrackField = "id" | "type" | "title" | "display" | "height" | "color";
+type ReservedTrackField =
+  | "id"
+  | "type"
+  | "title"
+  | "display"
+  | "height"
+  | "color"
+  | "onClick"
+  | "onHover"
+  | "onLeave"
+  | "tooltip";
 type TrackModuleDefaults<Display extends string> = {
   display?: Display;
   height?: number;
   color?: string;
-};
+} & Partial<TrackInteractionConfig<any, any>>;
 
 type DefinedTrackInput<
   Schema extends TrackInputSchema,
@@ -20,7 +30,7 @@ type DefinedTrackInput<
   display?: Display;
   height?: number;
   color?: string;
-};
+} & Partial<TrackInteractionConfig<any, any>>;
 
 type DefinedTrackConfig<
   Type extends string,
@@ -33,7 +43,7 @@ type DefinedTrackConfig<
   display: Display;
   height: number;
   color?: string;
-};
+} & Partial<TrackInteractionConfig<any, any>>;
 
 type TrackModuleDefinition<
   Type extends string,
@@ -96,6 +106,10 @@ export function defineTrackModule<
       definition.defaults?.color === undefined
         ? z.string().optional()
         : z.string().default(definition.defaults.color),
+    onClick: functionSchema.optional(),
+    onHover: functionSchema.optional(),
+    onLeave: functionSchema.optional(),
+    tooltip: functionSchema.optional(),
   });
   const inputSchema = definition.schema.safeExtend(baseSchema.shape).strict();
   const configSchema = inputSchema.safeExtend({
@@ -107,20 +121,38 @@ export function defineTrackModule<
     create(input) {
       const parsed = parsePublicInput(inputSchema, input, `${definition.type} config`);
       return {
-        ...parsed,
+        ...applyInteractionDefaults(parsed, definition.defaults),
         type: definition.type,
       } as DefinedTrackConfig<Type, Schema, Display>;
     },
     validate(config) {
-      return parsePublicInput(
+      const parsed = parsePublicInput(
         configSchema,
         config,
         `${definition.type} config`,
+      );
+      return applyInteractionDefaults(
+        parsed,
+        definition.defaults,
       ) as DefinedTrackConfig<Type, Schema, Display>;
     },
     fetch: definition.fetch,
     render: definition.render,
     settings: definition.settings,
+  };
+}
+
+function applyInteractionDefaults<T extends Partial<TrackInteractionConfig<any, any>>>(
+  config: T,
+  defaults: Partial<TrackInteractionConfig<any, any>> | undefined,
+) {
+  if (!defaults) return config;
+  return {
+    ...config,
+    onClick: config.onClick ?? defaults.onClick,
+    onHover: config.onHover ?? defaults.onHover,
+    onLeave: config.onLeave ?? defaults.onLeave,
+    tooltip: config.tooltip ?? defaults.tooltip,
   };
 }
 
@@ -132,6 +164,10 @@ function assertNoReservedFields(type: string, schema: TrackInputSchema) {
     "display",
     "height",
     "color",
+    "onClick",
+    "onHover",
+    "onLeave",
+    "tooltip",
   ]);
 
   for (const field of Object.keys(schema.shape)) {

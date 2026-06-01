@@ -1,8 +1,10 @@
-import type { TrackConfigBase } from "../../modules/types";
+import type { TrackConfigBase, TrackInteractionConfig } from "../../modules/types";
 
 export type TranscriptDisplay = "squish" | "pack";
 
-export type TranscriptConfig = TrackConfigBase & {
+export interface TranscriptConfig
+  extends Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
+    TrackInteractionConfig<Transcript, TranscriptConfig> {
   type: "transcript";
   display: TranscriptDisplay;
   assembly: string;
@@ -10,7 +12,7 @@ export type TranscriptConfig = TrackConfigBase & {
   geneName?: string;
   canonicalColor?: string;
   highlightColor?: string;
-};
+}
 
 export type TranscriptData = TranscriptList[];
 
@@ -64,4 +66,4 @@ export type TranscriptInput = {
   display?: TranscriptDisplay;
   height?: number;
   color?: string;
-};
+} & Partial<TrackInteractionConfig<Transcript, TranscriptConfig>>;

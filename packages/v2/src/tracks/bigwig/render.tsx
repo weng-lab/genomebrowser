@@ -1,5 +1,13 @@
+import { useState, type MouseEvent } from "react";
+import { useInteraction } from "../../hooks/useInteraction";
 import type { TrackRendererProps } from "../../modules/types";
-import { createYScale, getBigWigRange, lighten } from "./helpers";
+import {
+  createYScale,
+  formatBigWigTooltip,
+  getBigWigRange,
+  getPointAtMouseX,
+  lighten,
+} from "./helpers";
 import type { BigWigConfig, BigWigData, ValuedPoint, YRange } from "./types";
 
 export function FullBigWig({
@@ -7,6 +15,7 @@ export function FullBigWig({
   data,
   width,
   height,
+  panDrag,
 }: TrackRendererProps<BigWigConfig, BigWigData>) {
   const range = getRenderRange(config, data);
   const y = createYScale(range, height);
@@ -15,12 +24,13 @@ export function FullBigWig({
 
   return (
     <g>
-      <rect width={width} height={height} fill="#ffffff" />
+      <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
       <line x1={0} x2={width} y1={zeroY} y2={zeroY} stroke="#dddddd" strokeWidth={1} />
       {range.min < 0 && <path d={paths.minPath} fill={lighten(config.color ?? "#2266aa", 0.2)} />}
       <path d={paths.maxPath} fill={config.color ?? "#2266aa"} />
       <path d={paths.clampHighPath} stroke="#ff0000" strokeWidth={2} fill="none" />
       <path d={paths.clampLowPath} stroke="#ff0000" strokeWidth={2} fill="none" />
+      <BigWigHoverOverlay config={config} data={data} width={width} height={height} panDrag={panDrag} />
     </g>
   );
 }
@@ -30,6 +40,7 @@ export function DenseBigWig({
   data,
   width,
   height,
+  panDrag,
 }: TrackRendererProps<BigWigConfig, BigWigData>) {
   const range = getRenderRange(config, data);
   const bandY = height / 3;
@@ -37,7 +48,7 @@ export function DenseBigWig({
 
   return (
     <g>
-      <rect width={width} height={height} fill="#ffffff" />
+      <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
       {data.points.map((point) => {
         const value = point.max ?? point.min;
         const intensity =
@@ -53,8 +64,74 @@ export function DenseBigWig({
           />
         );
       })}
+      <BigWigHoverOverlay config={config} data={data} width={width} height={height} panDrag={panDrag} />
     </g>
   );
+}
+
+function BigWigHoverOverlay({
+  config,
+  data,
+  width,
+  height,
+  panDrag,
+}: Pick<TrackRendererProps<BigWigConfig, BigWigData>, "config" | "data" | "width" | "height" | "panDrag">) {
+  const [hoveredPoint, setHoveredPoint] = useState<ValuedPoint | undefined>();
+  const { handleHover, handleLeave } = useInteraction<ValuedPoint, BigWigConfig>({
+    config,
+    fallback: formatBigWigTooltip,
+  });
+
+  const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
+    const point = getPointAtMouseX(data.points, getLocalMouseX(event, width), width);
+    if (!point) {
+      if (hoveredPoint) handleLeave(hoveredPoint, event);
+      setHoveredPoint(undefined);
+      return;
+    }
+    setHoveredPoint(point);
+    handleHover(point, event);
+  };
+
+  const handleMouseOut = (event: MouseEvent<SVGRectElement>) => {
+    if (hoveredPoint) handleLeave(hoveredPoint, event);
+    setHoveredPoint(undefined);
+  };
+
+  return (
+    <>
+      {hoveredPoint && (
+        <line
+          x1={hoveredPoint.x}
+          x2={hoveredPoint.x}
+          y1={0}
+          y2={height}
+          stroke="#000000"
+          strokeWidth={1}
+          pointerEvents="none"
+        />
+      )}
+      <rect
+        width={width}
+        height={height}
+        fill="transparent"
+        pointerEvents="all"
+        style={{ cursor: panDrag?.isDragging ? "grabbing" : "default" }}
+        onMouseMove={handleMouseMove}
+        onMouseOut={handleMouseOut}
+        onPointerDown={panDrag?.onPointerDown}
+        onPointerMove={panDrag?.onPointerMove}
+        onPointerUp={panDrag?.onPointerUp}
+        onPointerCancel={panDrag?.onPointerCancel}
+      />
+    </>
+  );
+}
+
+function getLocalMouseX(event: MouseEvent<SVGRectElement>, width: number) {
+  const box = event.currentTarget.getBoundingClientRect();
+  if (box.width <= 0) return 0;
+  return ((event.clientX - box.left) / box.width) * width;
 }
 
 function getRenderRange(track: BigWigConfig, data: BigWigData): YRange {
