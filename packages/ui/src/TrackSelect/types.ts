@@ -50,7 +50,7 @@ export interface CustomLabelProps {
 export interface CustomTreeItemProps
   extends
     Omit<UseTreeItemParameters, "rootRef">,
-    Omit<React.HTMLAttributes<HTMLLIElement>, "onFocus"> {
+    Omit<React.HTMLAttributes<HTMLLIElement>, "children" | "onFocus"> {
   onRemove?: (item: TreeViewBaseItem<ExtendedTreeItemProps>) => void;
   renderIcon?: (name: string) => ReactNode;
 }

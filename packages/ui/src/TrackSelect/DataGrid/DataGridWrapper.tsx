@@ -5,6 +5,8 @@ import {
   GridAutosizeOptions,
   GridColDef,
   GridColumnVisibilityModel,
+  GridRenderCellParams,
+  GridRowSelectionModel,
   useGridApiRef,
 } from "@mui/x-data-grid-premium";
 import { useEffect, useMemo, useState } from "react";
@@ -88,7 +90,7 @@ export function DataGridWrapper(props: DataGridProps) {
           apiRef={apiRef}
           rows={rows}
           columns={columns}
-          getRowId={(row) => row.id}
+          getRowId={(row: { id: string }) => row.id}
           autosizeOptions={autosizeOptions}
           rowGroupingModel={groupingModel}
           groupingColDef={{
@@ -97,13 +99,15 @@ export function DataGridWrapper(props: DataGridProps) {
             minWidth: 300,
             maxWidth: 500,
             flex: 2,
-            renderCell: (params) => <GroupingCell {...params} />,
+            renderCell: (params: GridRenderCellParams) => (
+              <GroupingCell {...params} />
+            ),
           }}
           columnVisibilityModel={columnVisibilityModel}
           onColumnVisibilityModelChange={setColumnVisibilityModel}
-          onRowSelectionModelChange={(selection) => {
-            const ids = (selection as any)?.ids ?? new Set<string>();
-            onSelectionChange(new Set(ids));
+          onRowSelectionModelChange={(selection: GridRowSelectionModel) => {
+            const ids = selection.ids ?? new Set<string>();
+            onSelectionChange(new Set([...ids].map(String)));
           }}
           rowSelectionPropagation={{ descendants: true, parents: false }}
           disableRowGrouping={false}

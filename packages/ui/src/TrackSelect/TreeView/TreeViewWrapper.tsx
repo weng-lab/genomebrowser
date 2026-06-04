@@ -101,7 +101,10 @@ function FolderTree({
     <RichTreeView
       items={items}
       expandedItems={expandedItems}
-      onExpandedItemsChange={(_event, ids) => setExpandedItems(ids)}
+      onExpandedItemsChange={(
+        _event: React.SyntheticEvent | null,
+        ids: string[],
+      ) => setExpandedItems(ids)}
       slots={{ item: TreeItem }}
       slotProps={{
         item: {
