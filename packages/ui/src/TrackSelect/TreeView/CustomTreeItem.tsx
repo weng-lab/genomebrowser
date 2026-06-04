@@ -155,10 +155,18 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
     getLabelProps,
     getGroupTransitionProps,
     status,
-  } = useTreeItem({ id, itemId, children, label, disabled, rootRef: ref });
+  } = useTreeItem({
+    id,
+    itemId,
+    children,
+    label,
+    disabled,
+    rootRef: ref as never,
+  });
 
   const item = useTreeItemModel<ExtendedTreeItemProps>(itemId)!;
   const icon = getIconFromTreeItemType(item.icon, renderIcon);
+  const rootProps = getRootProps(other) as React.ComponentPropsWithoutRef<"li">;
 
   const handleRemoveIconClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -167,7 +175,7 @@ export const CustomTreeItem = React.forwardRef(function CustomTreeItem(
 
   return (
     <TreeItemProvider {...getContextProviderProps()}>
-      <TreeItemRoot {...getRootProps(other)}>
+      <TreeItemRoot {...rootProps}>
         <TreeItemContent {...getContentProps()}>
           <TreeItemIconContainer {...getIconContainerProps()}>
             <TreeItemIcon status={status} />

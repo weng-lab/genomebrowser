@@ -1,5 +1,5 @@
 import { createBiosampleFolder } from "./shared/createFolder";
-import humanData from "./data/human_with_wgbs.json";
+import humanData from "./data/humans_fixed.json";
 import { BiosampleDataFile } from "./shared/types";
 
 /**

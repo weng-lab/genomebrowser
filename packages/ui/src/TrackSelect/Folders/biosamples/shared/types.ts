@@ -1,4 +1,4 @@
-export type CollectionType = "Core" | "Ancillary" | "Partial";
+export type CollectionType = "Core" | "Ancillary" | "Partial" | "NA";
 
 /**
  * One assay entry from the source data. WGBS rows carry strand-specific URLs.

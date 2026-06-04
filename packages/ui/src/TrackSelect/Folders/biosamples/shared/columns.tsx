@@ -8,13 +8,13 @@ import { Stack, capitalize } from "@mui/material";
 import { AssayIcon, ontologyTypes, assayTypes, lifeStages } from "./constants";
 import { BiosampleRowInfo, CollectionType } from "./types";
 
-const collectionTypes: CollectionType[] = ["Core", "Ancillary", "Partial"];
+const collectionTypes: CollectionType[] = ["Core", "Ancillary", "Partial", "NA"];
 
 function CollectionCell(params: GridRenderCellParams<BiosampleRowInfo>) {
   const apiRef = useGridApiContext();
 
   if (params.rowNode.type !== "group") {
-    return null;
+    return params.value ?? null;
   }
 
   const groupNode = params.rowNode as GridGroupNode;
