@@ -39,7 +39,10 @@ export function useInteraction<Item, Config extends TrackConfigBase>({
   return { handleClick, handleHover, handleLeave };
 }
 
-function getFallbackTooltip<Item>(item: Item, fallback: ((item: Item) => string | undefined) | undefined) {
+function getFallbackTooltip<Item>(
+  item: Item,
+  fallback: ((item: Item) => string | undefined) | undefined,
+) {
   const value = fallback?.(item);
   return value ? <DefaultTooltip value={value} /> : undefined;
 }

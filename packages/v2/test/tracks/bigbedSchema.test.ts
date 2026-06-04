@@ -56,7 +56,13 @@ describe("BigBed ordered Zod schema parsing", () => {
       peak: z.coerce.number(),
     });
 
-    const row = parseBigBedRowWithSchema(schema, "chr2", 100, 200, "peakB\t5\t-\t8.5\t1e-4\t0.01\t50");
+    const row = parseBigBedRowWithSchema(
+      schema,
+      "chr2",
+      100,
+      200,
+      "peakB\t5\t-\t8.5\t1e-4\t0.01\t50",
+    );
 
     expect(row).toMatchObject({
       signalValue: 8.5,

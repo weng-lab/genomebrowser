@@ -6,7 +6,8 @@ export type BigBedDisplay = "dense" | "squish";
 export type BigBedSchema = z.ZodObject;
 
 export interface BigBedConfig<TSchema extends BigBedSchema | undefined = BigBedSchema | undefined>
-  extends Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
+  extends
+    Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
     TrackInteractionConfig<InferBigBedRow<TSchema>, BigBedConfig<TSchema>> {
   type: "bigbed";
   display: BigBedDisplay;
@@ -31,9 +32,8 @@ export type BigBedRow = {
   [key: string]: unknown;
 };
 
-export type InferBigBedRow<TSchema extends BigBedSchema | undefined = undefined> = TSchema extends BigBedSchema
-  ? z.output<TSchema> & BigBedRow
-  : BigBedRow;
+export type InferBigBedRow<TSchema extends BigBedSchema | undefined = undefined> =
+  TSchema extends BigBedSchema ? z.output<TSchema> & BigBedRow : BigBedRow;
 
 export type RenderedBigBedRect = {
   row: BigBedRow;

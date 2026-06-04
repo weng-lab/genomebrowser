@@ -29,7 +29,7 @@ export const exampleTrackModule = defineTrackModule({
 });
 ```
 
-The schema should only include custom fields. `defineTrackModule` owns the base fields (`id`, `type`, `title`, `display`, `height`, and `color`), enforces strict object validation, and derives the full runtime config validator from them. Field-level validation, defaults, and object-level refinements on the custom schema are preserved.
+The schema should only include custom fields. `defineTrackModule` owns the base fields (`id`, `type`, `title`, `display`, `height`, and `color`), enforces strict object validation, and derives the full track config validator from them. Field-level validation, defaults, and object-level refinements on the custom schema are preserved.
 
 Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used. The custom schema cannot define reserved base fields.
 
@@ -38,7 +38,7 @@ Display modes come from the `render` keys, and each module must provide at least
 `defineTrackModule` returns a `TrackModule` with generated `create` and `validate` functions:
 
 - `create(input)` parses public input, applies base and custom defaults, and appends the fixed `type`
-- `validate(config)` checks a full runtime config and requires the fixed `type`
+- `validate(config)` checks a full track config and requires the fixed `type`
 
 The optional `defaults` object can provide `display`, `height`, and `color`. If `height` is omitted, it defaults to `80`; if `color` is omitted, color remains optional.
 

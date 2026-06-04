@@ -3,7 +3,8 @@ import type { TrackConfigBase, TrackInteractionConfig } from "../../modules/type
 export type TranscriptDisplay = "squish" | "pack";
 
 export interface TranscriptConfig
-  extends Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
+  extends
+    Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
     TrackInteractionConfig<Transcript, TranscriptConfig> {
   type: "transcript";
   display: TranscriptDisplay;

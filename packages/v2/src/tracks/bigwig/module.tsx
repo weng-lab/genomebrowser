@@ -2,6 +2,7 @@ import { z } from "zod";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchBigWig } from "./fetch";
 import { DenseBigWig, FullBigWig } from "./render";
+import { BigWigSettings } from "./settings";
 
 const yRangeSchema = z
   .object({
@@ -31,4 +32,5 @@ export const bigWigModule = defineTrackModule({
     full: FullBigWig,
     dense: DenseBigWig,
   },
+  settingsComponent: BigWigSettings,
 });

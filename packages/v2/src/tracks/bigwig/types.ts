@@ -3,7 +3,8 @@ import type { TrackConfigBase, TrackInteractionConfig } from "../../modules/type
 export type BigWigDisplay = "full" | "dense";
 
 export interface BigWigConfig
-  extends Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
+  extends
+    Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
     TrackInteractionConfig<ValuedPoint, BigWigConfig> {
   type: "bigwig";
   display: BigWigDisplay;

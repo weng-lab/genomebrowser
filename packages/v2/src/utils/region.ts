@@ -24,9 +24,7 @@ export function parseRegion(region: BrowserRegion | string): BrowserRegion {
   }
 
   const normalized = region.replace(/,/g, "");
-  const match = /^(?<chromosome>[^:]+):(?<start>\d+)-(?<end>\d+)$/.exec(
-    normalized,
-  );
+  const match = /^(?<chromosome>[^:]+):(?<start>\d+)-(?<end>\d+)$/.exec(normalized);
   if (!match?.groups) {
     throw new Error(`Invalid region: ${region}`);
   }

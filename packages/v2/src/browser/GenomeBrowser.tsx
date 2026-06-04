@@ -4,10 +4,12 @@ import { useTrackData } from "../modules/dataController";
 import type { AnyTrackModule } from "../modules/types";
 import { BrowserProvider } from "../stores/BrowserContext";
 import type { BrowserStoreInstance } from "../stores/browserStore";
+import { createSettingsStore, type SettingsStoreInstance } from "../stores/settingsStore";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { createTooltipStore } from "../stores/tooltipStore";
 import { RULER_HEIGHT, Ruler } from "./Ruler";
 import { SelectRegion } from "./SelectRegion";
+import { SettingsModalController } from "./SettingsModalController";
 import { SvgShell } from "./SvgShell";
 import { Tooltip } from "./Tooltip";
 import { getTracksHeight, TrackStack } from "./TrackStack";
@@ -21,9 +23,15 @@ export type GenomeBrowserProps = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
   modules: AnyTrackModule[];
+  settingsStore?: SettingsStoreInstance;
 };
 
-export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrowserProps) {
+export function GenomeBrowser({
+  browserStore,
+  trackStore,
+  modules,
+  settingsStore,
+}: GenomeBrowserProps) {
   const region = browserStore((state) => state.region);
   const marginWidth = browserStore((state) => state.marginWidth);
   const trackWidth = browserStore((state) => state.trackWidth);
@@ -33,6 +41,8 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   const registry = useMemo(() => createModuleRegistry(modules), [modules]);
   const tooltipStore = useMemo(() => createTooltipStore(), []);
+  const internalSettingsStore = useMemo(() => createSettingsStore(), []);
+  const activeSettingsStore = settingsStore ?? internalSettingsStore;
   const sideWidth = trackWidth;
   const browserWidth = marginWidth + trackWidth;
   const totalHeight = RULER_HEIGHT + getTracksHeight(tracks, titleSize);
@@ -68,7 +78,7 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
   });
 
   return (
-    <BrowserProvider value={{ trackStore, tooltipStore, svg }}>
+    <BrowserProvider value={{ trackStore, settingsStore: activeSettingsStore, tooltipStore, svg }}>
       <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
         <SelectRegion
           svg={svg}
@@ -103,6 +113,7 @@ export function GenomeBrowser({ browserStore, trackStore, modules }: GenomeBrows
         </g>
         <Tooltip width={browserWidth} height={totalHeight} />
       </SvgShell>
+      <SettingsModalController registry={registry} trackStore={trackStore} />
     </BrowserProvider>
   );
 }

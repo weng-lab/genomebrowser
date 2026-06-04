@@ -2,10 +2,10 @@
   "name": "@weng-lab/genomebrowser-v2",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "files": [
     "dist"
   ],
+  "type": "module",
   "module": "dist/genomebrowser-v2.es.js",
   "types": "dist/src/lib.d.ts",
   "exports": {
@@ -31,10 +31,6 @@
     "zod": "^4.4.3",
     "zustand": "^5.0.13"
   },
-  "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
   "devDependencies": {
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -48,5 +44,9 @@
     "vite": "^8.0.13",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "4.1.7"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }

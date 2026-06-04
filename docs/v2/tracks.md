@@ -1,6 +1,6 @@
 # Tracks and Track Modules
 
-`Tracks` are the components that display data across the genome. Some common ones include BigWig which displays a signal, BigBed which displays rectangles at regions of interest, and Transcripts which displays genes and transcripts.
+`Tracks` are rendered rows of genomic data in the browser. Some common ones include BigWig which displays a signal, BigBed which displays rectangles at regions of interest, and Transcripts which displays genes and transcripts.
 
 `Track Modules` define the behavior for a track type. They are a key part of v2 because the browser is mostly orchestration: it coordinates state, viewport behavior, data loading, and rendering, while each track module owns the track-specific details.
 
@@ -19,7 +19,7 @@ type TrackConfigBase = {
 };
 ```
 
-Track Configs define runtime behavior such as color, title, and any other custom fields that a module has defined for its config. They tell the browser _how_ to render the track at runtime.
+Track configs are the **runtime** configuration objects that define behavior such as color, title, and any other custom fields that a module has defined for its config. They tell the browser _how_ to render the track.
 
 The `type` field connects a track config to a registered track module. The `display` field selects one of that module's renderers.
 
@@ -34,19 +34,21 @@ type TrackModule<Config, Data, Input = unknown> = {
   validate(config: unknown): Config;
   fetch(ctx: TrackFetchContext<Config>): Promise<Data>;
   render: Record<string, ComponentType<TrackRendererProps<Config, Data>>>;
-  settings?: ComponentType<TrackSettingsProps<Config>>;
+  settingsComponent?: ComponentType<TrackSettingsProps<Config>>;
 };
 ```
 
 The main responsibilities are:
 
-- `create` builds a runtime track config from public input
-- `validate` checks an existing runtime config before use
+- `create` builds a track config from public input
+- `validate` checks an existing track config before use
 - `fetch` loads data for the current render region and width
 - `render` maps display modes to React renderers
-- `settings` can provide optional track settings UI
+- `settingsComponent` can provide optional module-specific track settings UI
 
 Track modules should be defined with `defineTrackModule`. Custom track authors provide one Zod schema for the track's config, and the helper creates the module's base config schema, `create`, and `validate` functions. See [Schema validation](validation.md) for the schema convention and [Useful helpers for track modules](helpers.md) for exported hooks that can support custom renderers.
+
+`settingsComponent` is only the module-specific settings child. The browser owns the main settings modal and base settings fields such as title, color, height, and display. Consumers can replace the main modal shell or base settings UI through the browser settings store without changing track modules.
 
 Example module shape:
 
@@ -68,6 +70,7 @@ export const exampleTrackModule = defineTrackModule({
     full: FullExample,
     dense: DenseExample,
   },
+  settingsComponent: ExampleSettings,
 });
 ```
 
@@ -110,7 +113,7 @@ Keep browser behavior in browser hooks and components. Keep module behavior limi
 
 ## Track interactions
 
-Track configs can include runtime interaction fields:
+Track configs can include interaction fields:
 
 ```ts
 type TrackInteractionConfig<Item, Config> = {
@@ -121,7 +124,7 @@ type TrackInteractionConfig<Item, Config> = {
 };
 ```
 
-These fields are intentionally part of config state because v2 treats generated configs as the runtime unit inserted into the track store. This keeps programmatic track creation simple: build the config, attach callbacks or a tooltip, and add it to the store.
+These fields are intentionally part of config state because v2 treats generated track configs as the **runtime** unit inserted into the track store. This keeps programmatic track creation simple: build the config, attach callbacks or a tooltip, and add it to the store.
 
 ```tsx
 const track = bigBedModule.create({
@@ -141,7 +144,7 @@ const track = bigBedModule.create({
 
 Module defaults can also include interaction fields. This is useful for semantic wrapper modules that reuse generic behavior but want a default tooltip or callback policy. A config created from that module can still override the default interaction fields.
 
-Because callbacks and React components are functions, configs that include interactions are runtime configs and are not fully JSON-serializable.
+Because callbacks and React components are functions, track configs that include interactions are not fully JSON-serializable.
 
 ## BigBed row schemas
 

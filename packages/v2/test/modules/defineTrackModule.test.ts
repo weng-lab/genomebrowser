@@ -14,6 +14,10 @@ describe("defineTrackModule", () => {
     return null;
   }
 
+  function SettingsComponent() {
+    return null;
+  }
+
   const module = defineTrackModule({
     type: "example",
     defaults: {
@@ -29,6 +33,7 @@ describe("defineTrackModule", () => {
       full: FullRenderer,
       dense: DenseRenderer,
     },
+    settingsComponent: SettingsComponent,
   });
 
   it("creates typed configs from public input", () => {
@@ -61,6 +66,10 @@ describe("defineTrackModule", () => {
     expect(() => module.validate({ ...config, type: "other" })).toThrow(
       /example config is invalid/,
     );
+  });
+
+  it("preserves optional settings components", () => {
+    expect(module.settingsComponent).toBe(SettingsComponent);
   });
 
   it("rejects invalid display modes", () => {

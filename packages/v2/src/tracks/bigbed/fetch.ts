@@ -41,7 +41,9 @@ export async function fetchBigBed({
         region.end,
       )) as RawBigBedRow[]);
 
-  return rows.map(normalizeBigBedRow).filter((row) => row.end >= region.start && row.start <= region.end);
+  return rows
+    .map(normalizeBigBedRow)
+    .filter((row) => row.end >= region.start && row.start <= region.end);
 }
 
 function normalizeBigBedRow(row: RawBigBedRow): BigBedRow {

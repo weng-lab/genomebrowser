@@ -6,7 +6,7 @@ These notes describe the current maintainer-facing direction for v2.
 
 `GenomeBrowser` should mostly orchestrate other pieces. It receives browser state, track state, and registered track modules, then coordinates viewport behavior, data loading, rendering, and other interactions.
 
-The browser should avoid owning track-specific behavior directly. Track-specific data fetching, rendering, validation, and runtime config belong in track modules.
+The browser should avoid owning track-specific behavior directly. Track-specific data fetching, rendering, validation, and track config belong in track modules.
 
 ## State and hooks
 
@@ -22,7 +22,7 @@ The browser composes these pieces instead of making each behavior part of one la
 
 ## Track modules
 
-Track modules are the main extension point for track types. A module defines its track-specific config schema, data fetching, and display renderers. `defineTrackModule` adds the shared config fields and derives config creation and validation.
+Track modules are the main extension point for track types. A module is a self-contained unit that defines one track type's config shape, creation, validation, fetch logic, renderers, display modes, and optional settings component.
 
 See [Tracks and track modules](tracks.md) for the current module shape and runtime flow.
 

@@ -16,7 +16,10 @@ export function DenseBigBed({
   const rects = renderDenseBigBedData(data, x);
   const rectHeight = height * 0.6;
   const y = height * 0.2;
-  const { handleClick, handleHover, handleLeave } = useInteraction<BigBedData[number], BigBedConfig>({
+  const { handleClick, handleHover, handleLeave } = useInteraction<
+    BigBedData[number],
+    BigBedConfig
+  >({
     config,
     fallback: getBigBedFallbackLabel,
   });
@@ -52,7 +55,10 @@ export function SquishBigBed({
   const x = createXScale(region, width);
   const rows = renderSquishBigBedData(data, x);
   const rowHeight = useAutoTrackHeight(config.id, rows.length);
-  const { handleClick, handleHover, handleLeave } = useInteraction<BigBedData[number], BigBedConfig>({
+  const { handleClick, handleHover, handleLeave } = useInteraction<
+    BigBedData[number],
+    BigBedConfig
+  >({
     config,
     fallback: getBigBedFallbackLabel,
   });

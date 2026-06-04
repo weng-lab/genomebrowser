@@ -119,7 +119,12 @@ describe("createTrackStore", () => {
     });
     const store = createTrackStore({ modules: [bigWigModule], tracks: [initial] });
 
-    expect(store.getState().getTrack("signal")).toMatchObject({ onClick, onHover, onLeave, tooltip: Tooltip });
+    expect(store.getState().getTrack("signal")).toMatchObject({
+      onClick,
+      onHover,
+      onLeave,
+      tooltip: Tooltip,
+    });
 
     const added = bigWigModule.create({
       id: "added",
@@ -131,7 +136,11 @@ describe("createTrackStore", () => {
     expect(store.getState().getTrack("added")).toMatchObject({ onClick: nextClick });
 
     store.getState().updateTrack("signal", { onClick: nextClick, onHover: undefined });
-    expect(store.getState().getTrack("signal")).toMatchObject({ onClick: nextClick, onLeave, tooltip: Tooltip });
+    expect(store.getState().getTrack("signal")).toMatchObject({
+      onClick: nextClick,
+      onLeave,
+      tooltip: Tooltip,
+    });
     expect(store.getState().getTrack("signal")?.onHover).toBeUndefined();
   });
 
@@ -183,9 +192,9 @@ describe("createTrackStore", () => {
       yRange: { min: 5, max: 20 },
     });
 
-    expect(() =>
-      store.getState().updateTrack("signal", { yRange: { min: 20, max: 5 } }),
-    ).toThrow(/bigwig config is invalid/);
+    expect(() => store.getState().updateTrack("signal", { yRange: { min: 20, max: 5 } })).toThrow(
+      /bigwig config is invalid/,
+    );
     expect(store.getState().getTrack("signal")).toMatchObject({
       yRange: { min: 5, max: 20 },
     });

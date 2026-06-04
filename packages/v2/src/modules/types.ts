@@ -61,9 +61,13 @@ export type TrackRendererProps<Config extends TrackConfigBase, Data> = {
   };
 };
 
+export type TrackSettingsUpdate<Config extends TrackConfigBase> = Partial<
+  Omit<Config, "id" | "type">
+>;
+
 export type TrackSettingsProps<Config extends TrackConfigBase> = {
   config: Config;
-  updateTrack: (partial: Partial<Config>) => void;
+  updateTrack: (partial: TrackSettingsUpdate<Config>) => void;
 };
 
 export type TrackModule<Config extends TrackConfigBase, Data, Input = unknown> = {
@@ -72,7 +76,7 @@ export type TrackModule<Config extends TrackConfigBase, Data, Input = unknown> =
   validate(config: unknown): Config;
   fetch(ctx: TrackFetchContext<Config>): Promise<Data>;
   render: Record<string, ComponentType<TrackRendererProps<Config, Data>>>;
-  settings?: ComponentType<TrackSettingsProps<Config>>;
+  settingsComponent?: ComponentType<TrackSettingsProps<Config>>;
 };
 
 export type AnyTrackModule = TrackModule<any, any, any>;

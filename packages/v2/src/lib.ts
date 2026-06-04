@@ -2,16 +2,41 @@ export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
 
 export { defineTrackModule } from "./modules/defineTrackModule";
+export type {
+  AnyTrackModule,
+  TrackConfigBase,
+  TrackFetchContext,
+  TrackModule,
+  TrackRendererProps,
+  TrackSettingsProps,
+  TrackSettingsUpdate,
+} from "./modules/types";
 
 export { useAutoTrackHeight } from "./hooks/useAutoTrackHeight";
 export type { AutoTrackHeightOptions } from "./hooks/useAutoTrackHeight";
+export { useDraggableSettingsModal } from "./hooks/useDraggableSettingsModal";
+export type { DraggableSettingsModalResult } from "./hooks/useDraggableSettingsModal";
 export { useInteraction } from "./hooks/useInteraction";
 
 export { createBrowserStore } from "./stores/browserStore";
-export { useTooltipStore, useTrackStore } from "./stores/BrowserContext";
+export { useSettingsStore, useTooltipStore, useTrackStore } from "./stores/BrowserContext";
+export { createSettingsStore } from "./stores/settingsStore";
 export { createTrackStore } from "./stores/trackStore";
 export type { BrowserStore, BrowserStoreInput, BrowserStoreInstance } from "./stores/browserStore";
-export type { TrackStore, TrackStoreInstance, TrackStoreOptions, TrackUpdate } from "./stores/trackStore";
+export type {
+  BaseSettingsProps,
+  SettingsModalProps,
+  SettingsPosition,
+  SettingsStore,
+  SettingsStoreInput,
+  SettingsStoreInstance,
+} from "./stores/settingsStore";
+export type {
+  TrackStore,
+  TrackStoreInstance,
+  TrackStoreOptions,
+  TrackUpdate,
+} from "./stores/trackStore";
 export type { TooltipStore, TooltipStoreInstance } from "./stores/tooltipStore";
 
 export { bigBedModule } from "./tracks/bigbed/module";

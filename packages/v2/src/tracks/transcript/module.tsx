@@ -2,6 +2,7 @@ import { z } from "zod";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchTranscript } from "./fetch";
 import { PackTranscript, SquishTranscript } from "./render";
+import { TranscriptSettings } from "./settings";
 
 const transcriptInputSchema = z.object({
   assembly: z.string().min(1),
@@ -23,4 +24,5 @@ export const transcriptModule = defineTrackModule({
     squish: SquishTranscript,
     pack: PackTranscript,
   },
+  settingsComponent: TranscriptSettings,
 });

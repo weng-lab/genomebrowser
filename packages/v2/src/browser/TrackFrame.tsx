@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { TrackConfigBase } from "../modules/types";
+import { useSettingsStore } from "../stores/BrowserContext";
 import type { TrackStoreInstance } from "../stores/trackStore";
-import { BottomIcon, TopIcon } from "./icons";
+import { BottomIcon, SettingsIcon, TopIcon } from "./icons";
 import type { PanDragHandlers } from "./usePanDrag";
 
 export function getTrackWrapperHeight(track: TrackConfigBase, titleSize: number) {
@@ -49,6 +50,8 @@ export function TrackFrame({
 }) {
   const [hover, setHover] = useState(false);
   const contentGroupRef = useRef<SVGGElement>(null);
+  const settingsButtonRef = useRef<SVGGElement>(null);
+  const openSettings = useSettingsStore((state) => state.openSettings);
   const order = trackStore((state) => state.order);
   const reorderTracks = trackStore((state) => state.reorderTracks);
   const wrapperHeight = getTrackWrapperHeight(track, titleSize);
@@ -63,6 +66,12 @@ export function TrackFrame({
     if (target === "top") nextOrder.unshift(track.id);
     if (target === "bottom") nextOrder.push(track.id);
     reorderTracks(nextOrder);
+  };
+
+  const handleOpenSettings = (event: React.MouseEvent<SVGGElement>) => {
+    event.stopPropagation();
+    const rect = settingsButtonRef.current?.getBoundingClientRect();
+    openSettings(track.id, rect ? { x: rect.left, y: rect.top } : { x: 0, y: 0 });
   };
 
   useEffect(() => {
@@ -138,9 +147,10 @@ export function TrackFrame({
       />
       <g>
         <g
-          onClick={canMoveTop ? () => moveTrack("top") : undefined}
+          ref={settingsButtonRef}
+          onClick={handleOpenSettings}
           onMouseDown={(event) => event.stopPropagation()}
-          style={{ cursor: canMoveTop ? "pointer" : "default" }}
+          style={{ cursor: "pointer" }}
         >
           <circle
             cx={marginWidth / 10 + 7.5}
@@ -149,8 +159,28 @@ export function TrackFrame({
             strokeWidth={0}
             fill="transparent"
           />
-          <TopIcon
+          <SettingsIcon
             x={marginWidth / 10}
+            y={wrapperHeight / 2 + 3}
+            height={15}
+            width={15}
+            fill="#000000"
+          />
+        </g>
+        <g
+          onClick={canMoveTop ? () => moveTrack("top") : undefined}
+          onMouseDown={(event) => event.stopPropagation()}
+          style={{ cursor: canMoveTop ? "pointer" : "default" }}
+        >
+          <circle
+            cx={marginWidth / 10 + 22.5}
+            cy={wrapperHeight / 2 + 10}
+            r={7.5}
+            strokeWidth={0}
+            fill="transparent"
+          />
+          <TopIcon
+            x={marginWidth / 10 + 15}
             y={wrapperHeight / 2 + 3}
             height={15}
             width={15}
@@ -163,14 +193,14 @@ export function TrackFrame({
           style={{ cursor: canMoveBottom ? "pointer" : "default" }}
         >
           <circle
-            cx={marginWidth / 10 + 22.5}
+            cx={marginWidth / 10 + 37.5}
             cy={wrapperHeight / 2 + 10}
             r={7.5}
             strokeWidth={0}
             fill="transparent"
           />
           <BottomIcon
-            x={marginWidth / 10 + 15}
+            x={marginWidth / 10 + 30}
             y={wrapperHeight / 2 + 2}
             height={15}
             width={15}

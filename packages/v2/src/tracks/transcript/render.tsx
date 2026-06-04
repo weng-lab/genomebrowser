@@ -14,12 +14,16 @@ import type { Transcript, TranscriptConfig, TranscriptData, TranscriptRow } from
 const FONT_SIZE = 10;
 
 export function SquishTranscript(props: TrackRendererProps<TranscriptConfig, TranscriptData>) {
-  const merged = props.data.map((gene) => mergeTranscripts(gene)).filter((transcript) => isVisible(transcript, props.region));
+  const merged = props.data
+    .map((gene) => mergeTranscripts(gene))
+    .filter((transcript) => isVisible(transcript, props.region));
   return <TranscriptRows {...props} transcripts={merged} />;
 }
 
 export function PackTranscript(props: TrackRendererProps<TranscriptConfig, TranscriptData>) {
-  const transcripts = sortedTranscripts(props.data).filter((transcript) => isVisible(transcript, props.region));
+  const transcripts = sortedTranscripts(props.data).filter((transcript) =>
+    isVisible(transcript, props.region),
+  );
   return <TranscriptRows {...props} transcripts={transcripts} />;
 }
 
@@ -82,7 +86,8 @@ function TranscriptRows({
 }
 
 function getTranscriptColor(config: TranscriptConfig, transcript: Transcript) {
-  if (isManeSelectTranscript(transcript.tag)) return config.canonicalColor ?? config.color ?? "#7a4fb3";
+  if (isManeSelectTranscript(transcript.tag))
+    return config.canonicalColor ?? config.color ?? "#7a4fb3";
   if (config.geneName && transcript.name.toLowerCase().includes(config.geneName.toLowerCase())) {
     return config.highlightColor ?? config.color ?? "#7a4fb3";
   }

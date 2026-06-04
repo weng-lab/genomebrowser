@@ -49,20 +49,40 @@ Only call this hook from React renderers that run inside `GenomeBrowser`, becaus
 `useTrackStore` reads from the active browser's track store. It is mainly useful for settings components or advanced renderers that need access to other track state.
 
 ```tsx
-import { useTrackStore } from "@weng-lab/genomebrowser-v2";
+import type { TrackSettingsProps } from "@weng-lab/genomebrowser-v2";
 
-function ExampleSettings({ config }: { config: ExampleConfig }) {
-  const updateTrack = useTrackStore((state) => state.updateTrack);
+function ExampleSettings({ config, updateTrack }: TrackSettingsProps<ExampleConfig>) {
+  const addTenPixels = () => updateTrack({ height: config.height + 10 });
 
   return (
-    <button onClick={() => updateTrack(config.id, { height: config.height + 10 })}>
-      Taller
-    </button>
+    <button onClick={addTenPixels}>Taller</button>
   );
 }
 ```
 
 Prefer using the `updateTrack` prop passed to settings components when that is enough. Reach for `useTrackStore` when a component needs a selector or store behavior that is not already passed through props.
+
+## `useSettingsStore`
+
+`useSettingsStore` reads from the active browser's settings store. The browser creates a default settings store internally, but `GenomeBrowser` can receive a custom `settingsStore` when an app needs to replace the main modal shell or base settings UI.
+
+```tsx
+import { createSettingsStore } from "@weng-lab/genomebrowser-v2";
+
+const settingsStore = createSettingsStore({
+  modalComponent: MuiSettingsModal,
+  baseSettingsComponent: MuiBaseSettings,
+});
+
+<GenomeBrowser
+  browserStore={browserStore}
+  trackStore={trackStore}
+  modules={modules}
+  settingsStore={settingsStore}
+/>;
+```
+
+Module-specific settings should still be attached to the module with `settingsComponent`. Store-level overrides are for browser-owned UI, not track-specific config fields.
 
 ## `useInteraction`
 

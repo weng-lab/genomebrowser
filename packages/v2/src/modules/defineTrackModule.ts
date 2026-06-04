@@ -63,11 +63,11 @@ type TrackModuleDefinition<
     Display,
     ComponentType<TrackRendererProps<DefinedTrackConfig<Type, Schema, Display>, Data>>
   >;
-  settings?: TrackModule<
+  settingsComponent?: TrackModule<
     DefinedTrackConfig<Type, Schema, Display>,
     Data,
     DefinedTrackInput<Schema, Display>
-  >["settings"];
+  >["settingsComponent"];
 };
 
 export function defineTrackModule<
@@ -126,19 +126,16 @@ export function defineTrackModule<
       } as DefinedTrackConfig<Type, Schema, Display>;
     },
     validate(config) {
-      const parsed = parsePublicInput(
-        configSchema,
-        config,
-        `${definition.type} config`,
-      );
-      return applyInteractionDefaults(
-        parsed,
-        definition.defaults,
-      ) as DefinedTrackConfig<Type, Schema, Display>;
+      const parsed = parsePublicInput(configSchema, config, `${definition.type} config`);
+      return applyInteractionDefaults(parsed, definition.defaults) as DefinedTrackConfig<
+        Type,
+        Schema,
+        Display
+      >;
     },
     fetch: definition.fetch,
     render: definition.render,
-    settings: definition.settings,
+    settingsComponent: definition.settingsComponent,
   };
 }
 

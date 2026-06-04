@@ -3,7 +3,11 @@ export { defineTrackModule } from "./modules/defineTrackModule";
 export { browserRegionSchema, formatLength, parseRegion, regionLength } from "./utils/region";
 export { createReverseXScale, createXScale } from "./utils/scale";
 export { svgPoint } from "./utils/svg";
+export { useDraggableSettingsModal } from "./hooks/useDraggableSettingsModal";
 export { useInteraction } from "./hooks/useInteraction";
+export { createSettingsStore } from "./stores/settingsStore";
+export { useSettingsStore } from "./stores/BrowserContext";
+export type { DraggableSettingsModalResult } from "./hooks/useDraggableSettingsModal";
 
 export type {
   AnyTrackModule,
@@ -16,7 +20,16 @@ export type {
   TrackModule,
   TrackRendererProps,
   TrackSettingsProps,
+  TrackSettingsUpdate,
   TrackTooltipComponent,
   TrackTooltipProps,
 } from "./modules/types";
+export type {
+  BaseSettingsProps,
+  SettingsModalProps,
+  SettingsPosition,
+  SettingsStore,
+  SettingsStoreInput,
+  SettingsStoreInstance,
+} from "./stores/settingsStore";
 export type { BrowserRegion } from "./utils/region";

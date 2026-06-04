@@ -1,20 +1,22 @@
-import { GenomeBrowser } from "./browser/GenomeBrowser";
-import { createBrowserStore } from "./stores/browserStore";
-import { bigBedModule } from "./tracks/bigbed/module";
-import { createTrackStore } from "./stores/trackStore";
-import { bigWigModule } from "./tracks/bigwig/module";
-import { transcriptModule } from "./tracks/transcript/module";
+import {
+  GenomeBrowser,
+  createBrowserStore,
+  bigBedModule,
+  createTrackStore,
+  transcriptModule,
+} from "../../src/lib";
+import { demoBigWigModule, demoSettingsStore } from "./customSettings";
 
 const browserStore = createBrowserStore({
   region: "chr6:21,592,778-21,599,592",
 });
 
-const modules = [bigWigModule, bigBedModule, transcriptModule];
+const modules = [demoBigWigModule, bigBedModule, transcriptModule];
 
 const trackStore = createTrackStore({
   modules,
   tracks: [
-    bigWigModule.create({
+    demoBigWigModule.create({
       id: "dnase",
       title: "DNase aggregate",
       color: "#1B2021",
@@ -56,6 +58,7 @@ export default function App() {
       browserStore={browserStore}
       trackStore={trackStore}
       modules={modules}
+      settingsStore={demoSettingsStore}
     />
   );
 }

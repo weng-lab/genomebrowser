@@ -30,7 +30,13 @@ export function FullBigWig({
       <path d={paths.maxPath} fill={config.color ?? "#2266aa"} />
       <path d={paths.clampHighPath} stroke="#ff0000" strokeWidth={2} fill="none" />
       <path d={paths.clampLowPath} stroke="#ff0000" strokeWidth={2} fill="none" />
-      <BigWigHoverOverlay config={config} data={data} width={width} height={height} panDrag={panDrag} />
+      <BigWigHoverOverlay
+        config={config}
+        data={data}
+        width={width}
+        height={height}
+        panDrag={panDrag}
+      />
     </g>
   );
 }
@@ -64,7 +70,13 @@ export function DenseBigWig({
           />
         );
       })}
-      <BigWigHoverOverlay config={config} data={data} width={width} height={height} panDrag={panDrag} />
+      <BigWigHoverOverlay
+        config={config}
+        data={data}
+        width={width}
+        height={height}
+        panDrag={panDrag}
+      />
     </g>
   );
 }
@@ -75,7 +87,10 @@ function BigWigHoverOverlay({
   width,
   height,
   panDrag,
-}: Pick<TrackRendererProps<BigWigConfig, BigWigData>, "config" | "data" | "width" | "height" | "panDrag">) {
+}: Pick<
+  TrackRendererProps<BigWigConfig, BigWigData>,
+  "config" | "data" | "width" | "height" | "panDrag"
+>) {
   const [hoveredPoint, setHoveredPoint] = useState<ValuedPoint | undefined>();
   const { handleHover, handleLeave } = useInteraction<ValuedPoint, BigWigConfig>({
     config,

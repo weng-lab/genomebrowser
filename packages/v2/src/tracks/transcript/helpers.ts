@@ -7,7 +7,9 @@ export function isManeSelectTranscript(tag: string | undefined | null): boolean 
 }
 
 export function mergeTranscripts(gene: TranscriptList): Transcript {
-  const allExons = gene.transcripts.flatMap((transcript) => transcript.exons ?? []).sort(compareElements);
+  const allExons = gene.transcripts
+    .flatMap((transcript) => transcript.exons ?? [])
+    .sort(compareElements);
   const exons = mergeExons(allExons);
   const starts = allExons.map((exon) => exon.coordinates.start);
   const ends = allExons.map((exon) => exon.coordinates.end);
@@ -27,7 +29,9 @@ export function mergeTranscripts(gene: TranscriptList): Transcript {
 
 export function sortedTranscripts(genes: TranscriptList[]): Transcript[] {
   return genes
-    .flatMap((gene) => gene.transcripts.map((transcript) => ({ ...transcript, strand: gene.strand })))
+    .flatMap((gene) =>
+      gene.transcripts.map((transcript) => ({ ...transcript, strand: gene.strand })),
+    )
     .sort((a, b) => a.coordinates.start - b.coordinates.start);
 }
 
@@ -41,7 +45,11 @@ export function renderTranscript(
   return {
     transcript: rendered,
     paths: {
-      exons: rendered.exons?.reduce((path, exon) => path + exonPath(exon, rowHeight / 2, rowHeight, width), "") ?? "",
+      exons:
+        rendered.exons?.reduce(
+          (path, exon) => path + exonPath(exon, rowHeight / 2, rowHeight, width),
+          "",
+        ) ?? "",
       introns: intronPath(
         rendered.coordinates.start,
         rendered.coordinates.end,
@@ -78,7 +86,9 @@ export function groupFeatures<T extends Feature<unknown>>(
 
 function mergeExons(exons: Exon[]): Exon[] {
   if (exons.length === 0) return [];
-  const merged: Exon[] = [{ coordinates: { ...exons[0].coordinates }, UTRs: exons[0].UTRs && [...exons[0].UTRs] }];
+  const merged: Exon[] = [
+    { coordinates: { ...exons[0].coordinates }, UTRs: exons[0].UTRs && [...exons[0].UTRs] },
+  ];
 
   for (const exon of exons.slice(1)) {
     const previous = merged[merged.length - 1];
@@ -111,7 +121,10 @@ function mergeUTRs(utrs: GenomicElement[]): GenomicElement[] {
   return merged;
 }
 
-function convertTranscriptCoordinates(transcript: Transcript, x: (value: number) => number): Transcript {
+function convertTranscriptCoordinates(
+  transcript: Transcript,
+  x: (value: number) => number,
+): Transcript {
   return {
     ...transcript,
     coordinates: {
@@ -135,18 +148,27 @@ function convertTranscriptCoordinates(transcript: Transcript, x: (value: number)
   };
 }
 
-function intronPath(start: number, end: number, strand: string, y: number, h: number, width: number): string {
+function intronPath(
+  start: number,
+  end: number,
+  strand: string,
+  y: number,
+  h: number,
+  width: number,
+): string {
   let path = "";
   const clampedStart = Math.max(0, start);
   const clampedEnd = Math.min(width, end);
 
   if (strand === "+") {
     for (let i = clampedStart + 10; i < clampedEnd - 10; i += 20) {
-      path += move(i - h, y - h) + line(i, y) + line(i - h, y + h) + line(i, y) + line(i - h, y - h);
+      path +=
+        move(i - h, y - h) + line(i, y) + line(i - h, y + h) + line(i, y) + line(i - h, y - h);
     }
   } else if (strand === "-") {
     for (let i = clampedStart + 10; i < clampedEnd - 10; i += 20) {
-      path += move(i + h, y - h) + line(i, y) + line(i + h, y + h) + line(i, y) + line(i + h, y - h);
+      path +=
+        move(i + h, y - h) + line(i, y) + line(i + h, y + h) + line(i, y) + line(i + h, y - h);
     }
   }
 
@@ -156,7 +178,8 @@ function intronPath(start: number, end: number, strand: string, y: number, h: nu
 function exonPath(exon: Exon, y: number, h: number, width: number): string {
   if (exon.coordinates.start > width || exon.coordinates.end < 0) return "";
 
-  const startUtr = exon.UTRs?.filter((utr) => utr.coordinates.start === exon.coordinates.start) ?? [];
+  const startUtr =
+    exon.UTRs?.filter((utr) => utr.coordinates.start === exon.coordinates.start) ?? [];
   const endUtr = exon.UTRs?.filter((utr) => utr.coordinates.end === exon.coordinates.end) ?? [];
   const utrTop = y - h * 0.2;
   const utrBottom = y + h * 0.2;
