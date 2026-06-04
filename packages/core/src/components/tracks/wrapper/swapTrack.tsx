@@ -1,10 +1,11 @@
 import React, { useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
+import { DraggableData, DraggableEvent } from "react-draggable";
 import useBrowserScale from "../../../hooks/useBrowserScale";
 import { usePrevHeights, useDistances } from "../../../hooks/useTrackLayout";
 import { useBrowserStore, useTrackStore } from "../../../store/BrowserContext";
 import { RULER_HEIGHT } from "../ruler/ruler";
+import Draggable from "../../shared/typedDraggable";
 
 function SwapTrack({
   id,

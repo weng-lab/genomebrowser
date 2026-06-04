@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
+import { DraggableData, DraggableEvent } from "react-draggable";
 import { useModalStore, useTrackStore } from "../../store/BrowserContext";
 import { TrackType } from "../tracks/types";
 import { CustomTrackConfig } from "../tracks/custom/types";
+import Draggable from "../shared/typedDraggable";
 import UniversalForm from "./shared/base";
 import Display from "./shared/display";
 import Height from "./shared/height";

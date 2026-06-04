@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from "@storybook/react-vite";
 import DenseBigBed from "../../components/tracks/bigbed/dense";
+import type { Rect } from "../../components/tracks/bigbed/types";
 
 const meta: Meta<typeof DenseBigBed> = {
   title: "BigBed/Dense",
@@ -39,7 +40,7 @@ export const Dense: Story = {
     onClick: () => {},
     onHover: () => {},
     onLeave: () => {},
-    tooltip: (rect) => {
+    tooltip: (rect: Rect) => {
       return <div>{rect.name || "No name"}</div>;
     },
   },
