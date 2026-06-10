@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { fetchOnChange } from "../../data/fetchOnChange";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchBigWig } from "./fetch";
 import { DenseBigWig, FullBigWig } from "./render";
@@ -15,7 +16,7 @@ const yRangeSchema = z
   });
 
 const bigWigConfigSchema = z.object({
-  url: z.string().min(1),
+  url: fetchOnChange(z.string().min(1)),
   fillWithZero: z.boolean().default(false),
   yRange: yRangeSchema.optional(),
 });

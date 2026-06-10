@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
+import { createDataStore } from "../data/dataStore";
+import { useTrackData } from "../data/useTrackData";
 import { createModuleRegistry } from "../modules/registry";
-import { useTrackData } from "../modules/dataController";
 import type { AnyTrackModule } from "../modules/types";
 import { BrowserProvider } from "../stores/BrowserContext";
 import type { BrowserStoreInstance } from "../stores/browserStore";
@@ -40,6 +41,7 @@ export function GenomeBrowser({
   const tracks = trackStore((state) => state.tracks);
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   const registry = useMemo(() => createModuleRegistry(modules), [modules]);
+  const useDataStore = useMemo(() => createDataStore(), []);
   const tooltipStore = useMemo(() => createTooltipStore(), []);
   const internalSettingsStore = useMemo(() => createSettingsStore(), []);
   const activeSettingsStore = settingsStore ?? internalSettingsStore;
@@ -49,12 +51,13 @@ export function GenomeBrowser({
   const baseContentX = marginWidth - sideWidth;
   const { getContentOffset, registerContentGroup, setContentOffset } =
     useContentTransform(baseContentX);
-  const { displayedRenderRegion, renderWidth, settleData, targetRenderRegion } = useRenderWindow({
-    region,
-    tracks,
-    trackWidth,
-    overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
-  });
+  const { dataSignature, displayedRenderRegion, renderWidth, settleData, targetRenderRegion } =
+    useRenderWindow({
+      region,
+      tracks,
+      trackWidth,
+      overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
+    });
   const { isPanLocked, panDrag, unlockPan } = usePanController({
     region,
     trackWidth,
@@ -72,9 +75,12 @@ export function GenomeBrowser({
     [settleData, setContentOffset, unlockPan],
   );
 
-  const dataStates = useTrackData(tracks, targetRenderRegion, registry, {
-    keepPreviousSuccess: true,
-    onSettled: handleDataSettled,
+  const { dataStates, isFetching } = useTrackData({
+    useDataStore,
+    registry,
+    tracks,
+    region: targetRenderRegion,
+    onSettled: () => handleDataSettled(dataSignature),
   });
 
   return (
@@ -87,7 +93,7 @@ export function GenomeBrowser({
           totalHeight={totalHeight}
           region={region}
           setRegion={setRegion}
-          disabled={isPanLocked}
+          disabled={isPanLocked || isFetching}
         />
         <g transform={`translate(${marginWidth},0)`}>
           <Ruler region={region} width={trackWidth} />
@@ -104,7 +110,7 @@ export function GenomeBrowser({
             contentWidth={renderWidth}
             registerContentGroup={registerContentGroup}
             panDrag={panDrag}
-            isPanLocked={isPanLocked}
+            isPanLocked={isPanLocked || isFetching}
             titleSize={titleSize}
             trackStore={trackStore}
             startY={RULER_HEIGHT}

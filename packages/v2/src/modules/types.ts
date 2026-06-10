@@ -79,9 +79,3 @@ export type TrackModule<Config extends TrackConfigBase, Data, Input = unknown> =
 };
 
 export type AnyTrackModule = TrackModule<any, any, any>;
-
-export type TrackDataState<Data = unknown> =
-  | { status: "idle" }
-  | { status: "loading" }
-  | { status: "success"; data: Data }
-  | { status: "error"; error: string };

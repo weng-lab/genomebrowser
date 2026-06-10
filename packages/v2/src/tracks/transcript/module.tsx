@@ -1,12 +1,13 @@
 import { z } from "zod";
+import { fetchOnChange } from "../../data/fetchOnChange";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchTranscript } from "./fetch";
 import { PackTranscript, SquishTranscript } from "./render";
 import { TranscriptSettings } from "./settings";
 
 const transcriptInputSchema = z.object({
-  assembly: z.string().min(1),
-  version: z.number().int().positive(),
+  assembly: fetchOnChange(z.string().min(1)),
+  version: fetchOnChange(z.number().int().positive()),
   geneName: z.string().optional(),
   canonicalColor: z.string().optional(),
   highlightColor: z.string().optional(),

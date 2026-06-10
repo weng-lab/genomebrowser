@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { z } from "zod";
+import { registerFetchSchema } from "../data/fetchOnChange";
 import { functionSchema, parsePublicInput } from "./schemas";
 import type { TrackInteractionConfig, TrackModule, TrackRendererProps } from "./types";
 
@@ -116,7 +117,11 @@ export function defineTrackModule<
     type: z.literal(definition.type),
   });
 
-  return {
+  const module: TrackModule<
+    DefinedTrackConfig<Type, Schema, Display>,
+    Data,
+    DefinedTrackInput<Schema, Display>
+  > = {
     type: definition.type as DefinedTrackConfig<Type, Schema, Display>["type"],
     create(input) {
       const parsed = parsePublicInput(inputSchema, input, `${definition.type} config`);
@@ -137,6 +142,10 @@ export function defineTrackModule<
     render: definition.render,
     settingsComponent: definition.settingsComponent,
   };
+
+  registerFetchSchema(module, definition.schema);
+
+  return module;
 }
 
 function applyInteractionDefaults<T extends Partial<TrackInteractionConfig<any, any>>>(

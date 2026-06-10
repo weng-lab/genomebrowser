@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { fetchOnChange } from "../../data/fetchOnChange";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchBigBed } from "./fetch";
 import { DenseBigBed, SquishBigBed } from "./render";
 
 const bigBedInputSchema = z.object({
-  url: z.string().min(1),
+  url: fetchOnChange(z.string().min(1)),
   schema: z.instanceof(z.ZodObject).optional(),
 });
 

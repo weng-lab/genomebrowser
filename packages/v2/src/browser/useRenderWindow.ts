@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { createTrackIdsSignature } from "../modules/dataController";
 import type { TrackConfigBase } from "../modules/types";
 import type { BrowserRegion } from "../utils/region";
 import { expandRegion } from "./usePanController";
@@ -17,6 +16,10 @@ export function getRenderWindow(
 
 export function createRenderWindowSignature(region: BrowserRegion, tracks: TrackConfigBase[]) {
   return JSON.stringify({ region, trackIds: createTrackIdsSignature(tracks) });
+}
+
+function createTrackIdsSignature(tracks: TrackConfigBase[]) {
+  return JSON.stringify(tracks.map((track) => track.id).sort());
 }
 
 export function useRenderWindow({

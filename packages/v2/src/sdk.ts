@@ -12,7 +12,6 @@ export type { DraggableSettingsModalResult } from "./hooks/useDraggableSettingsM
 export type {
   AnyTrackModule,
   TrackConfigBase,
-  TrackDataState,
   TrackFetchContext,
   TrackInteractionCallback,
   TrackInteractionConfig,

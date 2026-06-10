@@ -1,7 +1,8 @@
 import { useCallback, useState, type ComponentType } from "react";
+import type { DataState } from "../data/types";
 import type { BrowserRegion } from "../utils/region";
 import type { createModuleRegistry } from "../modules/registry";
-import type { TrackConfigBase, TrackDataState, TrackRendererProps } from "../modules/types";
+import type { TrackConfigBase, TrackRendererProps } from "../modules/types";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
@@ -33,7 +34,7 @@ export function TrackStack({
   svg,
 }: {
   tracks: TrackConfigBase[];
-  dataStates: Record<string, TrackDataState>;
+  dataStates: Record<string, DataState>;
   registry: ModuleRegistry;
   region: BrowserRegion;
   marginWidth: number;
@@ -91,7 +92,7 @@ export function TrackStack({
         >
           <TrackContent
             track={track}
-            dataState={dataStates[track.id] ?? { status: "idle" }}
+            dataState={dataStates[track.id]}
             registry={registry}
             region={region}
             width={contentWidth ?? trackWidth}
@@ -145,7 +146,7 @@ function TrackContent({
   panDrag,
 }: {
   track: TrackConfigBase;
-  dataState: TrackDataState;
+  dataState: DataState;
   registry: ModuleRegistry;
   region: BrowserRegion;
   width: number;
@@ -153,7 +154,7 @@ function TrackContent({
   titleMargin: number;
   panDrag?: PanDragHandlers;
 }) {
-  if (dataState.status === "idle" || dataState.status === "loading") {
+  if (dataState.status === "loading") {
     return <LoadingState x={0} y={0} width={width} height={height} />;
   }
   if (dataState.status === "error") {

@@ -1,0 +1,3 @@
+# Dangerous browser interactions are gated by settled state
+
+v2 modules should expose focused active-state booleans like `isFetching`, and browser-level orchestration should compose them into a settled/interactions-disabled state for operations that can invalidate or conflict with in-flight work. Dangerous interactions such as region changes, panning commits, track reordering, and fetch-relevant settings updates should be gated at their natural browser/module seams instead of making lower-level modules defensively handle every impossible transitional state. This keeps modules simpler while making interaction safety an explicit browser orchestration concern.
