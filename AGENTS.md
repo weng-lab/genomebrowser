@@ -27,3 +27,7 @@ use `"YOUR_URL_HERE"` or existing URLs when making track configs.
 ## KISS (keep it simple stupid)
 
 Don't overengineer anything and don't add extra features or logic to a feature unless explicitly told to. If I ask for a feature about fetching data, don't worry about edge cases and canceling preflight fetches etc. Just do the minimum and cleanly to get the feature working, then we work on those edge cases later.
+
+## Zustand stores ARE React hooks
+
+The name of a zustand store MUST include "use" at the beginning, as they are React hooks, and must be treated as such by the compilers.
