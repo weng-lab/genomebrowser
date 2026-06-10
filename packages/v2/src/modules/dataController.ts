@@ -12,15 +12,14 @@ type TrackDataOptions = {
 export function useTrackData(
   tracks: TrackConfigBase[],
   region: BrowserRegion,
-  width: number,
   registry: ModuleRegistry,
   options: TrackDataOptions = {},
 ) {
   const [states, dispatch] = useReducer(dataStateReducer, {});
   const trackIdsSignature = useMemo(() => createTrackIdsSignature(tracks), [tracks]);
   const signature = useMemo(
-    () => JSON.stringify({ region, trackIds: trackIdsSignature, width }),
-    [region, trackIdsSignature, width],
+    () => JSON.stringify({ region, trackIds: trackIdsSignature }),
+    [region, trackIdsSignature],
   );
   const { keepPreviousSuccess = false, onSettled } = options;
 
@@ -34,7 +33,7 @@ export function useTrackData(
         Promise.resolve()
           .then(() => {
             const module = registry.get(track.type);
-            return module.fetch({ config: module.validate(track), region, width });
+            return module.fetch({ config: module.validate(track), region });
           })
           .then((data): TrackFetchResult => ({ id: track.id, state: { status: "success", data } }))
           .catch(
@@ -56,7 +55,7 @@ export function useTrackData(
     return () => {
       active = false;
     };
-  }, [keepPreviousSuccess, onSettled, registry, region, signature, trackIdsSignature, width]);
+  }, [keepPreviousSuccess, onSettled, registry, region, signature, trackIdsSignature]);
 
   return states;
 }

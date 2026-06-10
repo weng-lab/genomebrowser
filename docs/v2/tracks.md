@@ -42,7 +42,7 @@ The main responsibilities are:
 
 - `create` builds a track config from public input
 - `validate` checks an existing track config before use
-- `fetch` loads data for the current render region and width
+- `fetch` loads raw data for the requested genomic region using the track config
 - `render` maps display modes to React renderers
 - `settingsComponent` can provide optional module-specific track settings UI
 
@@ -99,7 +99,6 @@ const region = { chromosome: "chr1", start: 1_000_000, end: 1_010_000 };
 const data = await bigWigModule.fetch({
   config: track,
   region,
-  width: 800,
 });
 
 const BigWig = bigWigModule.render[track.display];

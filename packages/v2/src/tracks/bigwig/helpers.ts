@@ -1,11 +1,11 @@
 import type { BrowserRegion } from "../../utils/region";
-import type { BigWigDatum, ValuedPoint, YRange } from "./types";
+import type { BigWigData, RenderedBigWigPoint, YRange } from "./types";
 
 export function condenseBigWigData(
-  data: BigWigDatum[],
+  data: BigWigData[],
   region: BrowserRegion,
   width: number,
-): ValuedPoint[] {
+): RenderedBigWigPoint[] {
   const pixelWidth = Math.max(1, Math.floor(width));
   const points = initialPoints(pixelWidth);
   const scale = (value: number) =>
@@ -31,7 +31,7 @@ export function condenseBigWigData(
   return points;
 }
 
-export function getBigWigRange(points: ValuedPoint[]): YRange {
+export function getBigWigRange(points: RenderedBigWigPoint[]): YRange {
   let min = Infinity;
   let max = -Infinity;
 
@@ -45,14 +45,14 @@ export function getBigWigRange(points: ValuedPoint[]): YRange {
   return { min, max };
 }
 
-export function applyFillWithZero(points: ValuedPoint[]) {
+export function applyFillWithZero(points: RenderedBigWigPoint[]) {
   for (const point of points) {
     if (point.min === null) point.min = 0;
     if (point.max === null) point.max = 0;
   }
 }
 
-export function getPointAtMouseX(points: ValuedPoint[], mouseX: number, width: number) {
+export function getPointAtMouseX(points: RenderedBigWigPoint[], mouseX: number, width: number) {
   if (points.length === 0 || width <= 0) return undefined;
   const scale = points.length / width;
   const index = Math.max(0, Math.min(points.length - 1, Math.round(mouseX * scale)));
@@ -61,7 +61,7 @@ export function getPointAtMouseX(points: ValuedPoint[], mouseX: number, width: n
   return point;
 }
 
-export function formatBigWigTooltip(point: ValuedPoint) {
+export function formatBigWigTooltip(point: RenderedBigWigPoint) {
   return point.max === null ? undefined : point.max.toFixed(2);
 }
 
@@ -81,7 +81,7 @@ export function lighten(color: string, amount: number) {
   return next;
 }
 
-function initialPoints(width: number): ValuedPoint[] {
+function initialPoints(width: number): RenderedBigWigPoint[] {
   return Array.from({ length: width }, (_, x) => ({ x, min: null, max: null }));
 }
 

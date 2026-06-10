@@ -1,14 +1,12 @@
 import axios from "axios/dist/axios.js";
 import { AxiosDataLoader, BigWigReader, FileType } from "genomic-reader";
 import type { TrackFetchContext } from "../../modules/types";
-import { applyFillWithZero, condenseBigWigData, getBigWigRange } from "./helpers";
-import type { BigWigConfig, BigWigData, BigWigDatum } from "./types";
+import type { BigWigConfig, BigWigData } from "./types";
 
 export async function fetchBigWig({
   config,
   region,
-  width,
-}: TrackFetchContext<BigWigConfig>): Promise<BigWigData> {
+}: TrackFetchContext<BigWigConfig>): Promise<BigWigData[]> {
   await ensureBrowserBuffer();
 
   const dataLoader = new AxiosDataLoader(config.url, axios.create() as never);
@@ -19,20 +17,12 @@ export async function fetchBigWig({
     throw new Error("BigWig module only supports BigWig files");
   }
 
-  const rawData = (await reader.readBigWigData(
+  return (await reader.readBigWigData(
     region.chromosome,
     region.start,
     region.chromosome,
     region.end,
-  )) as BigWigDatum[];
-
-  const points = condenseBigWigData(rawData, region, width);
-  if (config.fillWithZero) applyFillWithZero(points);
-
-  return {
-    points,
-    range: getBigWigRange(points),
-  };
+  )) as BigWigData[];
 }
 
 async function ensureBrowserBuffer() {

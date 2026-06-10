@@ -72,7 +72,7 @@ export function GenomeBrowser({
     [settleData, setContentOffset, unlockPan],
   );
 
-  const dataStates = useTrackData(tracks, targetRenderRegion, renderWidth, registry, {
+  const dataStates = useTrackData(tracks, targetRenderRegion, registry, {
     keepPreviousSuccess: true,
     onSettled: handleDataSettled,
   });

@@ -13,7 +13,7 @@ describe("render window", () => {
     });
   });
 
-  it("matches the order-insensitive data signature", () => {
+  it("matches the width-independent data signature", () => {
     const region = { chromosome: "chr1", start: 0, end: 300 };
     const tracks = [
       {
@@ -25,8 +25,8 @@ describe("render window", () => {
       },
     ];
 
-    expect(createRenderWindowSignature(region, tracks, 750)).toBe(
-      JSON.stringify({ region, trackIds: JSON.stringify(["signal"]), width: 750 }),
+    expect(createRenderWindowSignature(region, tracks)).toBe(
+      JSON.stringify({ region, trackIds: JSON.stringify(["signal"]) }),
     );
   });
 });

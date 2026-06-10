@@ -15,12 +15,8 @@ export function getRenderWindow(
   };
 }
 
-export function createRenderWindowSignature(
-  region: BrowserRegion,
-  tracks: TrackConfigBase[],
-  width: number,
-) {
-  return JSON.stringify({ region, trackIds: createTrackIdsSignature(tracks), width });
+export function createRenderWindowSignature(region: BrowserRegion, tracks: TrackConfigBase[]) {
+  return JSON.stringify({ region, trackIds: createTrackIdsSignature(tracks) });
 }
 
 export function useRenderWindow({
@@ -41,8 +37,8 @@ export function useRenderWindow({
   const [displayedRenderRegion, setDisplayedRenderRegion] =
     useState<BrowserRegion>(targetRenderRegion);
   const dataSignature = useMemo(
-    () => createRenderWindowSignature(targetRenderRegion, tracks, renderWidth),
-    [targetRenderRegion, tracks, renderWidth],
+    () => createRenderWindowSignature(targetRenderRegion, tracks),
+    [targetRenderRegion, tracks],
   );
   const dataSignatureRef = useRef(dataSignature);
   dataSignatureRef.current = dataSignature;

@@ -5,7 +5,7 @@ export type BigWigDisplay = "full" | "dense";
 export interface BigWigConfig
   extends
     Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
-    TrackInteractionConfig<ValuedPoint, BigWigConfig> {
+    TrackInteractionConfig<RenderedBigWigPoint, BigWigConfig> {
   type: "bigwig";
   display: BigWigDisplay;
   url: string;
@@ -22,27 +22,22 @@ export type BigWigInput = {
   color?: string;
   fillWithZero?: boolean;
   yRange?: YRange;
-} & Partial<TrackInteractionConfig<ValuedPoint, BigWigConfig>>;
+} & Partial<TrackInteractionConfig<RenderedBigWigPoint, BigWigConfig>>;
 
 export type YRange = {
   min: number;
   max: number;
 };
 
-export type ValuedPoint = {
+export type RenderedBigWigPoint = {
   x: number;
   min: number | null;
   max: number | null;
 };
 
-export type BigWigDatum = {
+export type BigWigData = {
   chr: string;
   start: number;
   end: number;
   value: number;
-};
-
-export type BigWigData = {
-  points: ValuedPoint[];
-  range: YRange;
 };

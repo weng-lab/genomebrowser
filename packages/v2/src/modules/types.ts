@@ -43,7 +43,6 @@ export type TrackConfigBase = {
 export type TrackFetchContext<Config extends TrackConfigBase> = {
   config: Config;
   region: BrowserRegion;
-  width: number;
 };
 
 export type TrackRendererProps<Config extends TrackConfigBase, Data> = {

@@ -54,10 +54,9 @@ export { bigWigModule } from "./tracks/bigwig/module";
 export type {
   BigWigConfig,
   BigWigData,
-  BigWigDatum,
   BigWigDisplay,
   BigWigInput,
-  ValuedPoint,
+  RenderedBigWigPoint,
   YRange,
 } from "./tracks/bigwig/types";
 
