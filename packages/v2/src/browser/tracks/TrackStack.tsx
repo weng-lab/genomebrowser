@@ -3,8 +3,10 @@ import type { DataState } from "../../data/types";
 import type { createModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase } from "../../modules/types";
 import type { BrowserRegion } from "../../utils/region";
+import { SwapTrack } from "../swap/SwapTrack";
+import { getSwapPreviewOffsetY, isSameSwapPreview } from "../swap/trackSwapMath";
+import type { SwapPreview } from "../swap/types";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
-import { SwapTrack, type SwapPreview } from "./SwapTrack";
 import { TrackContent } from "./TrackContent";
 import { TrackFrame } from "./TrackFrame";
 import { getTrackTitleMargin, getTrackWrapperHeight } from "./trackLayout";
@@ -42,7 +44,7 @@ export function TrackStack({
 }) {
   const [swapPreview, setSwapPreview] = useState<SwapPreview | null>(null);
   const handlePreviewChange = useCallback((preview: SwapPreview) => {
-    setSwapPreview((current) => (isSamePreview(current, preview) ? current : preview));
+    setSwapPreview((current) => (isSameSwapPreview(current, preview) ? current : preview));
   }, []);
   const handlePreviewEnd = useCallback(() => {
     setSwapPreview(null);
@@ -53,7 +55,7 @@ export function TrackStack({
     const trackY = y;
     const wrapperHeight = getTrackWrapperHeight(track, titleSize);
     const titleMargin = getTrackTitleMargin(track, titleSize);
-    const previewOffsetY = getPreviewOffsetY(index, track.id, tracks, titleSize, swapPreview);
+    const previewOffsetY = getSwapPreviewOffsetY(index, track.id, tracks, titleSize, swapPreview);
     y += wrapperHeight;
 
     return (
@@ -65,60 +67,34 @@ export function TrackStack({
         onPreviewChange={handlePreviewChange}
         onPreviewEnd={handlePreviewEnd}
       >
-        <TrackFrame
-          track={track}
-          y={trackY}
-          previewOffsetY={previewOffsetY}
-          marginWidth={marginWidth}
-          trackWidth={trackWidth}
-          contentX={contentX}
-          registerContentGroup={registerContentGroup}
-          panDrag={panDrag}
-          isPanLocked={isPanLocked}
-          disableHover={!!swapPreview}
-          titleSize={titleSize}
-        >
-          <TrackContent
+        {(swapProps) => (
+          <TrackFrame
+            {...swapProps}
             track={track}
-            dataState={dataStates[track.id]}
-            registry={registry}
-            region={region}
-            width={contentWidth ?? trackWidth}
-            height={track.height}
-            titleMargin={titleMargin}
+            y={trackY}
+            previewOffsetY={previewOffsetY}
+            marginWidth={marginWidth}
+            trackWidth={trackWidth}
+            contentX={contentX}
+            registerContentGroup={registerContentGroup}
             panDrag={panDrag}
-          />
-        </TrackFrame>
+            isPanLocked={isPanLocked}
+            disableHover={!!swapPreview}
+            titleSize={titleSize}
+          >
+            <TrackContent
+              track={track}
+              dataState={dataStates[track.id]}
+              registry={registry}
+              region={region}
+              width={contentWidth ?? trackWidth}
+              height={track.height}
+              titleMargin={titleMargin}
+              panDrag={panDrag}
+            />
+          </TrackFrame>
+        )}
       </SwapTrack>
     );
   });
-}
-
-function isSamePreview(a: SwapPreview | null, b: SwapPreview) {
-  return (
-    a?.draggedId === b.draggedId &&
-    a.currentIndex === b.currentIndex &&
-    a.targetIndex === b.targetIndex
-  );
-}
-
-function getPreviewOffsetY(
-  index: number,
-  trackId: string,
-  tracks: TrackConfigBase[],
-  titleSize: number,
-  preview: SwapPreview | null,
-) {
-  if (!preview || trackId === preview.draggedId) return 0;
-  const draggedTrack = tracks[preview.currentIndex];
-  if (!draggedTrack) return 0;
-  const draggedHeight = getTrackWrapperHeight(draggedTrack, titleSize);
-
-  if (preview.targetIndex > preview.currentIndex) {
-    return index > preview.currentIndex && index <= preview.targetIndex ? -draggedHeight : 0;
-  }
-  if (preview.targetIndex < preview.currentIndex) {
-    return index >= preview.targetIndex && index < preview.currentIndex ? draggedHeight : 0;
-  }
-  return 0;
 }
