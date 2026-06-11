@@ -1,5 +1,5 @@
 import { createElement, type MouseEvent } from "react";
-import { DefaultTooltip } from "../browser/DefaultTooltip";
+import { DefaultTooltip } from "../browser/overlays/DefaultTooltip";
 import type { TrackConfigBase, TrackInteractionConfig } from "../modules/types";
 import { useBrowserSvg, useTooltipStore } from "../stores/BrowserContext";
 import { svgPoint } from "../utils/svg";

@@ -2,14 +2,17 @@ import { useCallback, useEffect, useRef } from "react";
 
 export function useContentTransform(baseContentX: number) {
   const deltaPxRef = useRef(0);
-  const contentGroupsRef = useRef(new Set<SVGGElement>());
+  const contentGroupsRef = useRef<Set<SVGGElement> | null>(null);
+  if (!contentGroupsRef.current) {
+    contentGroupsRef.current = new Set();
+  }
 
   const getContentOffset = useCallback(() => deltaPxRef.current, []);
 
   const setContentOffset = useCallback(
     (nextDeltaPx: number) => {
       deltaPxRef.current = nextDeltaPx;
-      for (const contentGroup of contentGroupsRef.current) {
+      for (const contentGroup of contentGroupsRef.current!) {
         contentGroup.setAttribute("transform", `translate(${baseContentX + nextDeltaPx},0)`);
       }
     },
@@ -18,10 +21,10 @@ export function useContentTransform(baseContentX: number) {
 
   const registerContentGroup = useCallback(
     (node: SVGGElement) => {
-      contentGroupsRef.current.add(node);
+      contentGroupsRef.current!.add(node);
       node.setAttribute("transform", `translate(${baseContentX + deltaPxRef.current},0)`);
       return () => {
-        contentGroupsRef.current.delete(node);
+        contentGroupsRef.current!.delete(node);
       };
     },
     [baseContentX],

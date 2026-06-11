@@ -1,17 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
-import type { TrackConfigBase } from "../modules/types";
-import { useSettingsStore } from "../stores/BrowserContext";
-import type { TrackStoreInstance } from "../stores/trackStore";
-import { BottomIcon, SettingsIcon, TopIcon } from "./icons";
-import type { PanDragHandlers } from "./usePanDrag";
-
-export function getTrackWrapperHeight(track: TrackConfigBase, titleSize: number) {
-  return track.height + (track.title ? titleSize + 5 : 0);
-}
-
-export function getTrackTitleMargin(track: TrackConfigBase, titleSize: number) {
-  return track.title ? titleSize + 5 : 0;
-}
+import type { TrackConfigBase } from "../../modules/types";
+import type { PanDragHandlers } from "../viewport/usePanDrag";
+import { TrackControls } from "./TrackControls";
+import { getTrackTitleMargin, getTrackWrapperHeight } from "./trackLayout";
 
 export function TrackFrame({
   track,
@@ -28,7 +19,6 @@ export function TrackFrame({
   isDragClone = false,
   disableHover = false,
   titleSize,
-  trackStore,
   children,
 }: {
   track: TrackConfigBase;
@@ -45,43 +35,22 @@ export function TrackFrame({
   isDragClone?: boolean;
   disableHover?: boolean;
   titleSize: number;
-  trackStore: TrackStoreInstance;
   children: React.ReactNode;
 }) {
   const [hover, setHover] = useState(false);
   const contentGroupRef = useRef<SVGGElement>(null);
-  const settingsButtonRef = useRef<SVGGElement>(null);
-  const openSettings = useSettingsStore((state) => state.openSettings);
-  const order = trackStore((state) => state.order);
-  const reorderTracks = trackStore((state) => state.reorderTracks);
   const wrapperHeight = getTrackWrapperHeight(track, titleSize);
   const titleMargin = getTrackTitleMargin(track, titleSize);
   const contentClipId = useId();
-  const index = order.indexOf(track.id);
-  const canMoveTop = index > 0;
-  const canMoveBottom = index >= 0 && index < order.length - 1;
 
-  const moveTrack = (target: "top" | "bottom") => {
-    const nextOrder = order.filter((id) => id !== track.id);
-    if (target === "top") nextOrder.unshift(track.id);
-    if (target === "bottom") nextOrder.push(track.id);
-    reorderTracks(nextOrder);
-  };
-
-  const handleOpenSettings = (event: React.MouseEvent<SVGGElement>) => {
-    event.stopPropagation();
-    const rect = settingsButtonRef.current?.getBoundingClientRect();
-    openSettings(track.id, rect ? { x: rect.left, y: rect.top } : { x: 0, y: 0 });
-  };
+  if (disableHover && hover) {
+    setHover(false);
+  }
 
   useEffect(() => {
     if (isDragClone || !registerContentGroup || !contentGroupRef.current) return;
     return registerContentGroup(contentGroupRef.current);
   }, [isDragClone, registerContentGroup]);
-
-  useEffect(() => {
-    if (disableHover) setHover(false);
-  }, [disableHover]);
 
   return (
     <g
@@ -145,69 +114,7 @@ export function TrackFrame({
         strokeWidth={0.5}
         fill={track.color || "#ffffff"}
       />
-      <g>
-        <g
-          ref={settingsButtonRef}
-          onClick={handleOpenSettings}
-          onMouseDown={(event) => event.stopPropagation()}
-          style={{ cursor: "pointer" }}
-        >
-          <circle
-            cx={marginWidth / 10 + 7.5}
-            cy={wrapperHeight / 2 + 10}
-            r={7.5}
-            strokeWidth={0}
-            fill="transparent"
-          />
-          <SettingsIcon
-            x={marginWidth / 10}
-            y={wrapperHeight / 2 + 3}
-            height={15}
-            width={15}
-            fill="#000000"
-          />
-        </g>
-        <g
-          onClick={canMoveTop ? () => moveTrack("top") : undefined}
-          onMouseDown={(event) => event.stopPropagation()}
-          style={{ cursor: canMoveTop ? "pointer" : "default" }}
-        >
-          <circle
-            cx={marginWidth / 10 + 22.5}
-            cy={wrapperHeight / 2 + 10}
-            r={7.5}
-            strokeWidth={0}
-            fill="transparent"
-          />
-          <TopIcon
-            x={marginWidth / 10 + 15}
-            y={wrapperHeight / 2 + 3}
-            height={15}
-            width={15}
-            fill={canMoveTop ? "#000000" : "#cccccc"}
-          />
-        </g>
-        <g
-          onClick={canMoveBottom ? () => moveTrack("bottom") : undefined}
-          onMouseDown={(event) => event.stopPropagation()}
-          style={{ cursor: canMoveBottom ? "pointer" : "default" }}
-        >
-          <circle
-            cx={marginWidth / 10 + 37.5}
-            cy={wrapperHeight / 2 + 10}
-            r={7.5}
-            strokeWidth={0}
-            fill="transparent"
-          />
-          <BottomIcon
-            x={marginWidth / 10 + 30}
-            y={wrapperHeight / 2 + 2}
-            height={15}
-            width={15}
-            fill={canMoveBottom ? "#000000" : "#cccccc"}
-          />
-        </g>
-      </g>
+      <TrackControls track={track} marginWidth={marginWidth} wrapperHeight={wrapperHeight} />
       <line stroke="#cccccc" x1={marginWidth} x2={marginWidth} y1={0} y2={wrapperHeight} />
       {hover && !disableHover && (
         <rect

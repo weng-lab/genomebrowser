@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { createXScale } from "../utils/scale";
-import { formatLength, type BrowserRegion } from "../utils/region";
+import { createXScale } from "../../utils/scale";
+import { formatLength, type BrowserRegion } from "../../utils/region";
 
 export const RULER_HEIGHT = 80;
 

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createRenderWindowSignature, getRenderWindow } from "../../src/browser/useRenderWindow";
+import {
+  createRenderWindowSignature,
+  getRenderWindow,
+} from "../../src/browser/viewport/useRenderWindow";
 
 describe("render window", () => {
   it("computes the overscanned target region and render width", () => {

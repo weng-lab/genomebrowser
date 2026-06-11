@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { expandRegion, getPanCommitRegion } from "../../src/browser/usePanController";
+import { expandRegion, getPanCommitRegion } from "../../src/browser/viewport/usePanController";
 
 describe("pan region math", () => {
   it("expands a region evenly around the visible span", () => {

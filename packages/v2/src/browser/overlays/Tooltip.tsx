@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { useTooltipStore } from "../stores/BrowserContext";
+import { useTooltipStore } from "../../stores/BrowserContext";
 
 const TOOLTIP_OFFSET = 6;
 

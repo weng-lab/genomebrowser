@@ -1,26 +1,19 @@
 import type { ComponentType } from "react";
-import type { createModuleRegistry } from "../modules/registry";
-import type { TrackConfigBase, TrackSettingsProps, TrackSettingsUpdate } from "../modules/types";
-import { useSettingsStore } from "../stores/BrowserContext";
-import type { TrackStoreInstance } from "../stores/trackStore";
+import type { createModuleRegistry } from "../../modules/registry";
+import type { TrackConfigBase, TrackSettingsProps, TrackSettingsUpdate } from "../../modules/types";
+import { useSettingsStore, useTrackStore } from "../../stores/BrowserContext";
 
 type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 
-export function SettingsModalController({
-  registry,
-  trackStore,
-}: {
-  registry: ModuleRegistry;
-  trackStore: TrackStoreInstance;
-}) {
+export function SettingsModalController({ registry }: { registry: ModuleRegistry }) {
   const open = useSettingsStore((state) => state.open);
   const trackId = useSettingsStore((state) => state.trackId);
   const position = useSettingsStore((state) => state.position);
   const ModalComponent = useSettingsStore((state) => state.modalComponent);
   const BaseSettingsComponent = useSettingsStore((state) => state.baseSettingsComponent);
   const closeSettings = useSettingsStore((state) => state.closeSettings);
-  const track = trackStore((state) => (trackId ? state.getTrack(trackId) : undefined));
-  const updateTrack = trackStore((state) => state.updateTrack);
+  const track = useTrackStore((state) => (trackId ? state.getTrack(trackId) : undefined));
+  const updateTrack = useTrackStore((state) => state.updateTrack);
 
   if (!open || !track) return null;
 

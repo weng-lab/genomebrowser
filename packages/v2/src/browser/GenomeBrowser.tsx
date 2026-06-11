@@ -5,18 +5,22 @@ import { createModuleRegistry } from "../modules/registry";
 import type { AnyTrackModule } from "../modules/types";
 import { BrowserProvider } from "../stores/BrowserContext";
 import type { BrowserStoreInstance } from "../stores/browserStore";
-import { createSettingsStore, type SettingsStoreInstance } from "../stores/settingsStore";
+import {
+  createSettingsStore,
+  type SettingsStoreInstance,
+} from "../stores/settingsStore";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { createTooltipStore } from "../stores/tooltipStore";
-import { RULER_HEIGHT, Ruler } from "./Ruler";
-import { SelectRegion } from "./SelectRegion";
-import { SettingsModalController } from "./SettingsModalController";
+import { SettingsModalController } from "./overlays/SettingsModalController";
 import { SvgShell } from "./SvgShell";
-import { Tooltip } from "./Tooltip";
-import { getTracksHeight, TrackStack } from "./TrackStack";
-import { useContentTransform } from "./useContentTransform";
-import { usePanController } from "./usePanController";
-import { useRenderWindow } from "./useRenderWindow";
+import { Tooltip } from "./overlays/Tooltip";
+import { getTracksHeight } from "./tracks/trackLayout";
+import { TrackStack } from "./tracks/TrackStack";
+import { RULER_HEIGHT, Ruler } from "./viewport/Ruler";
+import { SelectRegion } from "./viewport/SelectRegion";
+import { useContentTransform } from "./viewport/useContentTransform";
+import { usePanController } from "./viewport/usePanController";
+import { useRenderWindow } from "./viewport/useRenderWindow";
 
 const PAN_OVERSCAN_MULTIPLIER = 3;
 
@@ -51,13 +55,18 @@ export function GenomeBrowser({
   const baseContentX = marginWidth - sideWidth;
   const { getContentOffset, registerContentGroup, setContentOffset } =
     useContentTransform(baseContentX);
-  const { dataSignature, displayedRenderRegion, renderWidth, settleData, targetRenderRegion } =
-    useRenderWindow({
-      region,
-      tracks,
-      trackWidth,
-      overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
-    });
+  const {
+    dataSignature,
+    displayedRenderRegion,
+    renderWidth,
+    settleData,
+    targetRenderRegion,
+  } = useRenderWindow({
+    region,
+    tracks,
+    trackWidth,
+    overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
+  });
   const { isPanLocked, panDrag, unlockPan } = usePanController({
     region,
     trackWidth,
@@ -84,7 +93,14 @@ export function GenomeBrowser({
   });
 
   return (
-    <BrowserProvider value={{ trackStore, settingsStore: activeSettingsStore, tooltipStore, svg }}>
+    <BrowserProvider
+      value={{
+        trackStore,
+        settingsStore: activeSettingsStore,
+        tooltipStore,
+        svg,
+      }}
+    >
       <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
         <SelectRegion
           svg={svg}
@@ -112,14 +128,12 @@ export function GenomeBrowser({
             panDrag={panDrag}
             isPanLocked={isPanLocked || isFetching}
             titleSize={titleSize}
-            trackStore={trackStore}
             startY={RULER_HEIGHT}
-            svg={svg}
           />
         </g>
         <Tooltip width={browserWidth} height={totalHeight} />
       </SvgShell>
-      <SettingsModalController registry={registry} trackStore={trackStore} />
+      <SettingsModalController registry={registry} />
     </BrowserProvider>
   );
 }

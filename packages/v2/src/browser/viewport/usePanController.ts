@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import type { BrowserRegion } from "../utils/region";
+import type { BrowserRegion } from "../../utils/region";
 import { usePanDrag } from "./usePanDrag";
 
 export function expandRegion(region: BrowserRegion, multiplier: number): BrowserRegion {

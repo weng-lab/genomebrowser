@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { TrackConfigBase } from "../modules/types";
-import type { BrowserRegion } from "../utils/region";
+import type { TrackConfigBase } from "../../modules/types";
+import type { BrowserRegion } from "../../utils/region";
 import { expandRegion } from "./usePanController";
 
 export function getRenderWindow(
