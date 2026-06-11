@@ -3,12 +3,9 @@ import { createDataStore } from "../data/dataStore";
 import { useTrackData } from "../data/useTrackData";
 import { createModuleRegistry } from "../modules/registry";
 import type { AnyTrackModule } from "../modules/types";
+import { createSettingsStore, type SettingsStoreInstance } from "../settings/settingsStore";
 import { BrowserProvider } from "../stores/BrowserContext";
 import type { BrowserStoreInstance } from "../stores/browserStore";
-import {
-  createSettingsStore,
-  type SettingsStoreInstance,
-} from "../stores/settingsStore";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { createTooltipStore } from "../stores/tooltipStore";
 import { SettingsModalController } from "./overlays/SettingsModalController";
@@ -55,18 +52,13 @@ export function GenomeBrowser({
   const baseContentX = marginWidth - sideWidth;
   const { getContentOffset, registerContentGroup, setContentOffset } =
     useContentTransform(baseContentX);
-  const {
-    dataSignature,
-    displayedRenderRegion,
-    renderWidth,
-    settleData,
-    targetRenderRegion,
-  } = useRenderWindow({
-    region,
-    tracks,
-    trackWidth,
-    overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
-  });
+  const { dataSignature, displayedRenderRegion, renderWidth, settleData, targetRenderRegion } =
+    useRenderWindow({
+      region,
+      tracks,
+      trackWidth,
+      overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
+    });
   const { isPanLocked, panDrag, unlockPan } = usePanController({
     region,
     trackWidth,

@@ -20,7 +20,7 @@ export { useInteraction } from "./hooks/useInteraction";
 
 export { createBrowserStore } from "./stores/browserStore";
 export { useSettingsStore, useTooltipStore, useTrackStore } from "./stores/BrowserContext";
-export { createSettingsStore } from "./stores/settingsStore";
+export { createSettingsStore } from "./settings/settingsStore";
 export { createTrackStore } from "./stores/trackStore";
 export type { BrowserStore, BrowserStoreInput, BrowserStoreInstance } from "./stores/browserStore";
 export type {
@@ -30,7 +30,7 @@ export type {
   SettingsStore,
   SettingsStoreInput,
   SettingsStoreInstance,
-} from "./stores/settingsStore";
+} from "./settings/settingsStore";
 export type {
   TrackStore,
   TrackStoreInstance,

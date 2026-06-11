@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import type { TrackSettingsProps } from "../../modules/types";
-import { SettingsSection } from "../../stores/settingsStore";
+import { SettingsSection } from "../../settings/SettingsSection";
 import type { BigWigConfig } from "./types";
 
 export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWigConfig>) {
   const [min, setMin] = useState(config.yRange?.min?.toString() ?? "");
   const [max, setMax] = useState(config.yRange?.max?.toString() ?? "");
+  const previousYRange = useRef(config.yRange);
   const minNumber = Number(min);
   const maxNumber = Number(max);
   const invalidRange =
@@ -13,10 +14,11 @@ export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWi
     max !== "" &&
     (!Number.isFinite(minNumber) || !Number.isFinite(maxNumber) || minNumber >= maxNumber);
 
-  useEffect(() => {
+  if (config.yRange !== previousYRange.current) {
+    previousYRange.current = config.yRange;
     setMin(config.yRange?.min?.toString() ?? "");
     setMax(config.yRange?.max?.toString() ?? "");
-  }, [config.yRange?.max, config.yRange?.min]);
+  }
 
   return (
     <SettingsSection title="BigWig">
@@ -34,6 +36,7 @@ export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWi
           <input
             type="number"
             step="any"
+            aria-label="Minimum Y range"
             placeholder="min"
             value={min}
             onChange={(event) => setMin(event.target.value)}
@@ -41,6 +44,7 @@ export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWi
           <input
             type="number"
             step="any"
+            aria-label="Maximum Y range"
             placeholder="max"
             value={max}
             onChange={(event) => setMax(event.target.value)}

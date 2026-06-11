@@ -1,5 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react";
-import type { SettingsStore, SettingsStoreInstance } from "./settingsStore";
+import type { SettingsStore, SettingsStoreInstance } from "../settings/settingsStore";
 import type { TrackStore, TrackStoreInstance } from "./trackStore";
 import type { TooltipStore, TooltipStoreInstance } from "./tooltipStore";
 

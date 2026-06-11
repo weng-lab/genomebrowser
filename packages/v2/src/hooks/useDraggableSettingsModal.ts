@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
-import type { SettingsPosition } from "../stores/settingsStore";
+import { useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import type { SettingsPosition } from "../settings/types";
 
 export type DraggableSettingsModalResult = {
   position: SettingsPosition;
@@ -16,11 +16,16 @@ export function useDraggableSettingsModal(
   initialPosition: SettingsPosition,
 ): DraggableSettingsModalResult {
   const [position, setPosition] = useState(initialPosition);
+  const [previousInitialPosition, setPreviousInitialPosition] = useState(initialPosition);
   const dragOffset = useRef<SettingsPosition | null>(null);
 
-  useEffect(() => {
+  if (
+    initialPosition.x !== previousInitialPosition.x ||
+    initialPosition.y !== previousInitialPosition.y
+  ) {
+    setPreviousInitialPosition(initialPosition);
     setPosition(initialPosition);
-  }, [initialPosition.x, initialPosition.y]);
+  }
 
   const handleDragStart = (event: PointerEvent<HTMLElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId);

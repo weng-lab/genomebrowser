@@ -5,7 +5,7 @@ export { createReverseXScale, createXScale } from "./utils/scale";
 export { svgPoint } from "./utils/svg";
 export { useDraggableSettingsModal } from "./hooks/useDraggableSettingsModal";
 export { useInteraction } from "./hooks/useInteraction";
-export { createSettingsStore } from "./stores/settingsStore";
+export { createSettingsStore } from "./settings/settingsStore";
 export { useSettingsStore } from "./stores/BrowserContext";
 export type { DraggableSettingsModalResult } from "./hooks/useDraggableSettingsModal";
 
@@ -30,5 +30,5 @@ export type {
   SettingsStore,
   SettingsStoreInput,
   SettingsStoreInstance,
-} from "./stores/settingsStore";
+} from "./settings/settingsStore";
 export type { BrowserRegion } from "./utils/region";
