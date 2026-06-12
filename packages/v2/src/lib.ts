@@ -19,10 +19,20 @@ export type { DraggableSettingsModalResult } from "./hooks/useDraggableSettingsM
 export { useInteraction } from "./hooks/useInteraction";
 
 export { createBrowserStore } from "./stores/browserStore";
-export { useSettingsStore, useTooltipStore, useTrackStore } from "./stores/BrowserContext";
+export {
+  useBrowserStore,
+  useSettingsStore,
+  useTooltipStore,
+  useTrackStore,
+} from "./stores/BrowserContext";
 export { createSettingsStore } from "./settings/settingsStore";
 export { createTrackStore } from "./stores/trackStore";
-export type { BrowserStore, BrowserStoreInput, BrowserStoreInstance } from "./stores/browserStore";
+export type {
+  BrowserStore,
+  BrowserStoreInput,
+  BrowserStoreInstance,
+  Highlight,
+} from "./stores/browserStore";
 export type {
   BaseSettingsProps,
   SettingsModalProps,

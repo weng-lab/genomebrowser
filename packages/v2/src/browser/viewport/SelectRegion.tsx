@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, type ReactNode } from "react";
 import { createReverseXScale } from "../../utils/scale";
 import { svgPoint } from "../../utils/svg";
 import type { BrowserRegion } from "../../utils/region";
@@ -17,6 +17,7 @@ export function SelectRegion({
   region,
   setRegion,
   disabled = false,
+  children,
 }: {
   svg: SVGSVGElement | null;
   marginWidth: number;
@@ -25,6 +26,7 @@ export function SelectRegion({
   region: BrowserRegion;
   setRegion: (region: BrowserRegion) => void;
   disabled?: boolean;
+  children?: ReactNode;
 }) {
   const [selection, dispatchSelection] = useReducer(selectionReducer, null);
   const selectingRef = useRef(false);
@@ -88,6 +90,7 @@ export function SelectRegion({
         y={0}
         onMouseDown={handleMouseDown}
       />
+      {children}
       {selection && (
         <rect
           id="selectRegion"

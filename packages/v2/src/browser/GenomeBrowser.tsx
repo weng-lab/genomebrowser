@@ -8,6 +8,7 @@ import { BrowserProvider } from "../stores/BrowserContext";
 import type { BrowserStoreInstance } from "../stores/browserStore";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { createTooltipStore } from "../stores/tooltipStore";
+import { Highlights } from "./overlays/Highlights";
 import { SettingsModalController } from "./overlays/SettingsModalController";
 import { SvgShell } from "./SvgShell";
 import { Tooltip } from "./overlays/Tooltip";
@@ -87,6 +88,7 @@ export function GenomeBrowser({
   return (
     <BrowserProvider
       value={{
+        browserStore,
         trackStore,
         settingsStore: activeSettingsStore,
         tooltipStore,
@@ -102,27 +104,37 @@ export function GenomeBrowser({
           region={region}
           setRegion={setRegion}
           disabled={isPanLocked || isFetching}
-        />
-        <g transform={`translate(${marginWidth},0)`}>
-          <Ruler region={region} width={trackWidth} />
-        </g>
-        <g>
-          <TrackStack
-            tracks={tracks}
-            dataStates={dataStates}
-            registry={registry}
+        >
+          <g transform={`translate(${marginWidth},0)`}>
+            <Ruler region={region} width={trackWidth} />
+          </g>
+          <g>
+            <TrackStack
+              tracks={tracks}
+              dataStates={dataStates}
+              registry={registry}
+              region={displayedRenderRegion}
+              marginWidth={marginWidth}
+              trackWidth={trackWidth}
+              contentX={baseContentX}
+              contentWidth={renderWidth}
+              registerContentGroup={registerContentGroup}
+              panDrag={panDrag}
+              isPanLocked={isPanLocked || isFetching}
+              titleSize={titleSize}
+              startY={RULER_HEIGHT}
+            />
+          </g>
+          <Highlights
             region={displayedRenderRegion}
             marginWidth={marginWidth}
-            trackWidth={trackWidth}
+            renderWidth={renderWidth}
             contentX={baseContentX}
-            contentWidth={renderWidth}
+            browserWidth={browserWidth}
+            totalHeight={totalHeight}
             registerContentGroup={registerContentGroup}
-            panDrag={panDrag}
-            isPanLocked={isPanLocked || isFetching}
-            titleSize={titleSize}
-            startY={RULER_HEIGHT}
           />
-        </g>
+        </SelectRegion>
         <Tooltip width={browserWidth} height={totalHeight} />
       </SvgShell>
       <SettingsModalController registry={registry} />

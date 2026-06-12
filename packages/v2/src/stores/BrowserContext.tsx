@@ -1,9 +1,11 @@
 import { createContext, useContext, type ReactNode } from "react";
 import type { SettingsStore, SettingsStoreInstance } from "../settings/settingsStore";
+import type { BrowserStore, BrowserStoreInstance } from "./browserStore";
 import type { TrackStore, TrackStoreInstance } from "./trackStore";
 import type { TooltipStore, TooltipStoreInstance } from "./tooltipStore";
 
 type BrowserContextValue = {
+  browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
   settingsStore: SettingsStoreInstance;
   tooltipStore: TooltipStoreInstance;
@@ -26,6 +28,12 @@ export function useTrackStore<T>(selector: (state: TrackStore) => T): T {
   const context = useContext(BrowserContext);
   if (!context) throw new Error("useTrackStore must be used within a GenomeBrowser");
   return context.trackStore(selector);
+}
+
+export function useBrowserStore<T>(selector: (state: BrowserStore) => T): T {
+  const context = useContext(BrowserContext);
+  if (!context) throw new Error("useBrowserStore must be used within a GenomeBrowser");
+  return context.browserStore(selector);
 }
 
 export function useTooltipStore<T>(selector: (state: TooltipStore) => T): T {

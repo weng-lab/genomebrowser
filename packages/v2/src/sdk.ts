@@ -6,7 +6,7 @@ export { svgPoint } from "./utils/svg";
 export { useDraggableSettingsModal } from "./hooks/useDraggableSettingsModal";
 export { useInteraction } from "./hooks/useInteraction";
 export { createSettingsStore } from "./settings/settingsStore";
-export { useSettingsStore } from "./stores/BrowserContext";
+export { useBrowserStore, useSettingsStore } from "./stores/BrowserContext";
 export type { DraggableSettingsModalResult } from "./hooks/useDraggableSettingsModal";
 
 export type {
@@ -23,6 +23,12 @@ export type {
   TrackTooltipComponent,
   TrackTooltipProps,
 } from "./modules/types";
+export type {
+  BrowserStore,
+  BrowserStoreInput,
+  BrowserStoreInstance,
+  Highlight,
+} from "./stores/browserStore";
 export type {
   BaseSettingsProps,
   SettingsModalProps,

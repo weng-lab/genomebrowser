@@ -9,6 +9,14 @@ import { demoBigWigModule, demoSettingsStore } from "./customSettings";
 
 const browserStore = createBrowserStore({
   region: "chr6:21,592,778-21,599,592",
+  highlights: [
+    {
+      id: "test-highlight",
+      region: { chromosome: "chr6", start: 21594500, end: 21596200 },
+      color: "#f59e0b",
+      opacity: 0.25,
+    },
+  ],
 });
 
 const modules = [demoBigWigModule, bigBedModule, transcriptModule];
