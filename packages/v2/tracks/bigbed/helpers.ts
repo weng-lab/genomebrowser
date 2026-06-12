@@ -6,7 +6,7 @@ export function renderDenseBigBedData(
   rows: BigBedRow[],
   x: (value: number) => number,
 ): RenderedBigBedRect[] {
-  const sorted = [...rows].sort((a, b) => a.start - b.start);
+  const sorted = rows.toSorted((a, b) => a.start - b.start);
   const rendered: RenderedBigBedRect[] = [];
 
   for (const row of sorted) {
@@ -33,8 +33,8 @@ export function renderSquishBigBedData(
   rows: BigBedRow[],
   x: (value: number) => number,
 ): RenderedBigBedRect[][] {
-  const features = [...rows]
-    .sort((a, b) => a.start - b.start)
+  const features = rows
+    .toSorted((a, b) => a.start - b.start)
     .map((row) => ({
       row,
       coordinates: { start: row.start, end: row.end },
@@ -53,7 +53,7 @@ export function renderSquishBigBedData(
   );
 }
 
-export function groupFeatures<T extends Feature<unknown>>(
+function groupFeatures<T extends Feature<unknown>>(
   features: T[],
   x: (value: number) => number,
   fontSize: number,

@@ -32,20 +32,21 @@ function DemoSettingsModal({
   });
 
   return (
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-label={title}
       style={{
         position: "fixed",
         left: dragPosition.x,
         top: dragPosition.y,
         zIndex: 20,
+        margin: 0,
+        padding: 0,
         width: "380px",
         overflow: "hidden",
         border: "4px solid #111827",
         borderRadius: "22px",
-        background:
-          "linear-gradient(145deg, #fff7ed 0%, #fef3c7 45%, #ecfeff 100%)",
+        background: "linear-gradient(145deg, #fff7ed 0%, #fef3c7 45%, #ecfeff 100%)",
         boxShadow: "14px 14px 0 #111827",
         color: "#111827",
         fontFamily: "Georgia, serif",
@@ -80,6 +81,7 @@ function DemoSettingsModal({
           type="button"
           onClick={closeSettings}
           onPointerDown={(event) => event.stopPropagation()}
+          aria-label="Close custom settings"
           style={{
             width: "34px",
             height: "34px",
@@ -94,17 +96,12 @@ function DemoSettingsModal({
           X
         </button>
       </div>
-      <div style={{ display: "grid", gap: "14px", padding: "16px" }}>
-        {children}
-      </div>
-    </div>
+      <div style={{ display: "grid", gap: "14px", padding: "16px" }}>{children}</div>
+    </dialog>
   );
 }
 
-function DemoBigWigSettings({
-  config,
-  updateTrack,
-}: TrackSettingsProps<BigWigConfig>) {
+function DemoBigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWigConfig>) {
   const yRange = config.yRange;
   return (
     <section
@@ -118,16 +115,12 @@ function DemoBigWigSettings({
         color: "#3b0764",
       }}
     >
-      <div style={{ fontSize: "18px", fontWeight: 900 }}>
-        Purple BigWig Override
-      </div>
+      <div style={{ fontSize: "18px", fontWeight: 900 }}>Purple BigWig Override</div>
       <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <input
           type="checkbox"
           checked={config.fillWithZero ?? false}
-          onChange={(event) =>
-            updateTrack({ fillWithZero: event.target.checked })
-          }
+          onChange={(event) => updateTrack({ fillWithZero: event.target.checked })}
         />
         Fill gaps with zero
       </label>
@@ -161,11 +154,7 @@ function DemoBigWigSettings({
   );
 }
 
-function DemoBaseSettings({
-  config,
-  displayOptions,
-  updateTrack,
-}: BaseSettingsProps) {
+function DemoBaseSettings({ config, displayOptions, updateTrack }: BaseSettingsProps) {
   return (
     <section
       style={{
@@ -174,8 +163,7 @@ function DemoBaseSettings({
         padding: "16px",
         border: "4px dotted #ef4444",
         borderRadius: "18px",
-        background:
-          "repeating-linear-gradient(135deg, #fef08a 0 18px, #fecaca 18px 36px)",
+        background: "repeating-linear-gradient(135deg, #fef08a 0 18px, #fecaca 18px 36px)",
         color: "#111827",
       }}
     >
@@ -209,17 +197,17 @@ function DemoBaseSettings({
         >
           <input
             type="color"
+            aria-label="Choose an aggressively loud color"
             value={isHexColor(config.color) ? config.color : "#ff00aa"}
             onChange={(event) => updateTrack({ color: event.target.value })}
             style={{ width: "64px", height: "48px", cursor: "pointer" }}
           />
           <input
             type="text"
+            aria-label="Custom track color"
             value={config.color ?? ""}
             placeholder="#ff00aa"
-            onChange={(event) =>
-              updateTrack({ color: event.target.value || undefined })
-            }
+            onChange={(event) => updateTrack({ color: event.target.value || undefined })}
             style={goofyInputStyle}
           />
           <div
@@ -228,9 +216,7 @@ function DemoBaseSettings({
               border: "3px solid #111827",
               borderRadius: "999px",
               background: config.color || "#ffffff",
-              color: isHexColor(config.color)
-                ? readableTextColor(config.color!)
-                : "#111827",
+              color: isHexColor(config.color) ? readableTextColor(config.color!) : "#111827",
               fontWeight: 900,
             }}
           >
@@ -246,8 +232,7 @@ function DemoBaseSettings({
           value={config.height}
           onChange={(event) => {
             const height = Number(event.target.value);
-            if (!Number.isNaN(height))
-              updateTrack({ height: Math.max(20, height) });
+            if (!Number.isNaN(height)) updateTrack({ height: Math.max(20, height) });
           }}
           style={goofyInputStyle}
         />
@@ -271,9 +256,7 @@ function DemoBaseSettings({
                     cursor: "pointer",
                     fontWeight: 900,
                     padding: "10px 16px",
-                    transform: selected
-                      ? "rotate(-2deg) scale(1.06)"
-                      : "rotate(2deg)",
+                    transform: selected ? "rotate(-2deg) scale(1.06)" : "rotate(2deg)",
                   }}
                 >
                   {selected ? `>> ${display} <<` : display}
@@ -315,7 +298,5 @@ function readableTextColor(background: string) {
   const red = Number.parseInt(background.slice(1, 3), 16);
   const green = Number.parseInt(background.slice(3, 5), 16);
   const blue = Number.parseInt(background.slice(5, 7), 16);
-  return red * 0.299 + green * 0.587 + blue * 0.114 > 186
-    ? "#111827"
-    : "#ffffff";
+  return red * 0.299 + green * 0.587 + blue * 0.114 > 186 ? "#111827" : "#ffffff";
 }

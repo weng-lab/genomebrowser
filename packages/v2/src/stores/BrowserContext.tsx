@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, use, type ReactNode } from "react";
 import type { SettingsStore, SettingsStoreInstance } from "../settings/settingsStore";
 import type { BrowserStore, BrowserStoreInstance } from "./browserStore";
 import type { TrackStore, TrackStoreInstance } from "./trackStore";
@@ -25,31 +25,31 @@ export function BrowserProvider({
 }
 
 export function useTrackStore<T>(selector: (state: TrackStore) => T): T {
-  const context = useContext(BrowserContext);
+  const context = use(BrowserContext);
   if (!context) throw new Error("useTrackStore must be used within a GenomeBrowser");
   return context.trackStore(selector);
 }
 
 export function useBrowserStore<T>(selector: (state: BrowserStore) => T): T {
-  const context = useContext(BrowserContext);
+  const context = use(BrowserContext);
   if (!context) throw new Error("useBrowserStore must be used within a GenomeBrowser");
   return context.browserStore(selector);
 }
 
 export function useTooltipStore<T>(selector: (state: TooltipStore) => T): T {
-  const context = useContext(BrowserContext);
+  const context = use(BrowserContext);
   if (!context) throw new Error("useTooltipStore must be used within a GenomeBrowser");
   return context.tooltipStore(selector);
 }
 
 export function useSettingsStore<T>(selector: (state: SettingsStore) => T): T {
-  const context = useContext(BrowserContext);
+  const context = use(BrowserContext);
   if (!context) throw new Error("useSettingsStore must be used within a GenomeBrowser");
   return context.settingsStore(selector);
 }
 
 export function useBrowserSvg() {
-  const context = useContext(BrowserContext);
+  const context = use(BrowserContext);
   if (!context) throw new Error("useBrowserSvg must be used within a GenomeBrowser");
   return context.svg;
 }

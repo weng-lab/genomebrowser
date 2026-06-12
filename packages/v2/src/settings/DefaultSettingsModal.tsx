@@ -21,9 +21,8 @@ export function DefaultSettingsModal({
   }, [closeSettings]);
 
   return (
-    <div
-      role="dialog"
-      aria-modal="false"
+    <dialog
+      open
       aria-label={title}
       style={{ ...modalStyle, left: dragPosition.x, top: dragPosition.y }}
     >
@@ -55,7 +54,7 @@ export function DefaultSettingsModal({
         </button>
       </div>
       <div style={{ display: "grid", gap: "12px", padding: "12px" }}>{children}</div>
-    </div>
+    </dialog>
   );
 }
 
@@ -64,6 +63,8 @@ const modalStyle = {
   zIndex: 10,
   minWidth: "280px",
   maxWidth: "420px",
+  margin: 0,
+  padding: 0,
   background: "#ffffff",
   border: "1px solid #cccccc",
   boxShadow: "0 8px 24px rgba(0, 0, 0, 0.18)",

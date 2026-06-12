@@ -14,9 +14,11 @@ import type { Transcript, TranscriptConfig, TranscriptData, TranscriptRow } from
 const FONT_SIZE = 10;
 
 export function SquishTranscript(props: TrackRendererProps<TranscriptConfig, TranscriptData>) {
-  const merged = props.data
-    .map((gene) => mergeTranscripts(gene))
-    .filter((transcript) => isVisible(transcript, props.region));
+  const merged: Transcript[] = [];
+  for (const gene of props.data) {
+    const transcript = mergeTranscripts(gene);
+    if (isVisible(transcript, props.region)) merged.push(transcript);
+  }
   return <TranscriptRows {...props} transcripts={merged} />;
 }
 

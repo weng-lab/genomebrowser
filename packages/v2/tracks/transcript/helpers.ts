@@ -9,7 +9,7 @@ export function isManeSelectTranscript(tag: string | undefined | null): boolean 
 export function mergeTranscripts(gene: TranscriptList): Transcript {
   const allExons = gene.transcripts
     .flatMap((transcript) => transcript.exons ?? [])
-    .sort(compareElements);
+    .toSorted(compareElements);
   const exons = mergeExons(allExons);
   const starts = allExons.map((exon) => exon.coordinates.start);
   const ends = allExons.map((exon) => exon.coordinates.end);
@@ -71,8 +71,9 @@ export function groupFeatures<T extends Feature<unknown>>(
   return features.reduce<T[][]>((groups, feature) => {
     for (const group of groups) {
       const previous = group[group.length - 1];
+      const previousEnd = previous.coordinates.end;
       if (
-        x(previous.coordinates.end) + margin + fontSize * previous.name.length <=
+        x(previousEnd) + margin + fontSize * previous.name.length <=
         x(feature.coordinates.start)
       ) {
         group.push(feature);
@@ -92,9 +93,10 @@ function mergeExons(exons: Exon[]): Exon[] {
 
   for (const exon of exons.slice(1)) {
     const previous = merged[merged.length - 1];
-    if (exon.coordinates.start < previous.coordinates.end) {
+    const previousEnd = previous.coordinates.end;
+    if (exon.coordinates.start < previousEnd) {
       previous.UTRs = [...(previous.UTRs ?? []), ...(exon.UTRs ?? [])];
-      previous.coordinates.end = Math.max(previous.coordinates.end, exon.coordinates.end);
+      previous.coordinates.end = Math.max(previousEnd, exon.coordinates.end);
     } else {
       merged.push({ coordinates: { ...exon.coordinates }, UTRs: exon.UTRs && [...exon.UTRs] });
     }
@@ -106,13 +108,14 @@ function mergeExons(exons: Exon[]): Exon[] {
 
 function mergeUTRs(utrs: GenomicElement[]): GenomicElement[] {
   if (utrs.length === 0) return [];
-  const sorted = [...utrs].sort(compareElements);
+  const sorted = utrs.toSorted(compareElements);
   const merged: GenomicElement[] = [{ coordinates: { ...sorted[0].coordinates } }];
 
   for (const utr of sorted.slice(1)) {
     const previous = merged[merged.length - 1];
-    if (utr.coordinates.start < previous.coordinates.end) {
-      previous.coordinates.end = Math.max(previous.coordinates.end, utr.coordinates.end);
+    const previousEnd = previous.coordinates.end;
+    if (utr.coordinates.start < previousEnd) {
+      previous.coordinates.end = Math.max(previousEnd, utr.coordinates.end);
     } else {
       merged.push({ coordinates: { ...utr.coordinates } });
     }

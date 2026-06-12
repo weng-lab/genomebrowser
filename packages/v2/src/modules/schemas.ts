@@ -4,34 +4,7 @@ export const functionSchema = z.custom<Function>((value) => typeof value === "fu
   error: "Input must be a function",
 });
 
-export const trackConfigBaseSchema = z.object({
-  id: z.string().min(1),
-  type: z.string().min(1),
-  title: z.string().min(1),
-  display: z.string().min(1),
-  height: z.number().positive(),
-  color: z.string().optional(),
-  onClick: functionSchema.optional(),
-  onHover: functionSchema.optional(),
-  onLeave: functionSchema.optional(),
-  tooltip: functionSchema.optional(),
-});
-
-export const trackConfigListSchema = z.array(trackConfigBaseSchema);
-
-export function validateTrackConfigBase<T>(track: T, label = "Track"): T {
-  parsePublicInput(trackConfigBaseSchema, track, label);
-  return track;
-}
-
-export function validateTrackConfigBaseList<T>(tracks: T[], label = "Track list"): T[] {
-  for (const track of tracks) {
-    validateTrackConfigBase(track, label);
-  }
-  return tracks;
-}
-
-export function formatZodError(error: z.ZodError) {
+function formatZodError(error: z.ZodError) {
   return error.issues
     .map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`)
     .join("; ");

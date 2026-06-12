@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getHighlightRects } from "../../src/browser/overlays/Highlights";
+import { getHighlightRects } from "../../src/browser/overlays/highlightRects";
 
 describe("highlight overlay", () => {
   const region = { chromosome: "chr1", start: 100, end: 200 };
