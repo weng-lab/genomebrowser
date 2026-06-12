@@ -1,5 +1,5 @@
-import type { TrackSettingsProps } from "../../modules/types";
-import { SettingsSection } from "../../settings/SettingsSection";
+import type { TrackSettingsProps } from "../../src/modules/types";
+import { SettingsSection } from "../../src/settings/SettingsSection";
 import type { TranscriptConfig } from "./types";
 
 export function TranscriptSettings({ config, updateTrack }: TrackSettingsProps<TranscriptConfig>) {

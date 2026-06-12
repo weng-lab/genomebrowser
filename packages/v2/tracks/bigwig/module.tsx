@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { fetchOnChange } from "../../data/fetchOnChange";
-import { defineTrackModule } from "../../modules/defineTrackModule";
+import { fetchOnChange } from "../../src/data/fetchOnChange";
+import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { fetchBigWig } from "./fetch";
 import { DenseBigWig, FullBigWig } from "./render";
 import { BigWigSettings } from "./settings";

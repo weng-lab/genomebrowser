@@ -1,6 +1,6 @@
 import { useState, type MouseEvent } from "react";
-import { useInteraction } from "../../hooks/useInteraction";
-import type { TrackRendererProps } from "../../modules/types";
+import { useInteraction } from "../../src/hooks/useInteraction";
+import type { TrackRendererProps } from "../../src/modules/types";
 import {
   applyFillWithZero,
   condenseBigWigData,

@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { TrackConfigBase, TrackInteractionConfig } from "../../modules/types";
+import type { TrackConfigBase, TrackInteractionConfig } from "../../src/modules/types";
 
 export type BigBedDisplay = "dense" | "squish";
 

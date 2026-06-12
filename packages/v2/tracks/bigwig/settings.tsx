@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import type { TrackSettingsProps } from "../../modules/types";
-import { SettingsSection } from "../../settings/SettingsSection";
+import type { TrackSettingsProps } from "../../src/modules/types";
+import { SettingsSection } from "../../src/settings/SettingsSection";
 import type { BigWigConfig } from "./types";
 
 export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWigConfig>) {

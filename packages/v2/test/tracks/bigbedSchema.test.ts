@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { parseBigBedRowWithSchema } from "../../src/tracks/bigbed/schema";
-import type { InferBigBedRow } from "../../src/tracks/bigbed/types";
+import { parseBigBedRowWithSchema } from "../../tracks/bigbed/schema";
+import type { InferBigBedRow } from "../../tracks/bigbed/types";
 
 describe("BigBed ordered Zod schema parsing", () => {
   it("parses full BED fields in schema key order", () => {

@@ -49,7 +49,7 @@ export type {
 } from "./stores/trackStore";
 export type { TooltipStore, TooltipStoreInstance } from "./stores/tooltipStore";
 
-export { bigBedModule } from "./tracks/bigbed/module";
+export { bigBedModule } from "../tracks/bigbed/module";
 export type {
   BigBedConfig,
   BigBedData,
@@ -58,9 +58,9 @@ export type {
   BigBedRow,
   BigBedSchema,
   InferBigBedRow,
-} from "./tracks/bigbed/types";
+} from "../tracks/bigbed/types";
 
-export { bigWigModule } from "./tracks/bigwig/module";
+export { bigWigModule } from "../tracks/bigwig/module";
 export type {
   BigWigConfig,
   BigWigData,
@@ -68,9 +68,9 @@ export type {
   BigWigInput,
   RenderedBigWigPoint,
   YRange,
-} from "./tracks/bigwig/types";
+} from "../tracks/bigwig/types";
 
-export { transcriptModule } from "./tracks/transcript/module";
+export { transcriptModule } from "../tracks/transcript/module";
 export type {
   Exon,
   GenomicElement,
@@ -80,6 +80,6 @@ export type {
   TranscriptDisplay,
   TranscriptInput,
   TranscriptList,
-} from "./tracks/transcript/types";
+} from "../tracks/transcript/types";
 
 export type { BrowserRegion } from "./utils/region";

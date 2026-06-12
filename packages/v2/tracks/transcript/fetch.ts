@@ -1,4 +1,4 @@
-import type { TrackFetchContext } from "../../modules/types";
+import type { TrackFetchContext } from "../../src/modules/types";
 import type { TranscriptConfig, TranscriptData } from "./types";
 
 const TRANSCRIPT_GRAPHQL_ENDPOINT = "https://screen.api.wenglab.org/graphql";

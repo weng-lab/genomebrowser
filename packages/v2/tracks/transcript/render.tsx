@@ -1,7 +1,7 @@
-import { useAutoTrackHeight } from "../../hooks/useAutoTrackHeight";
-import { useInteraction } from "../../hooks/useInteraction";
-import type { TrackRendererProps } from "../../modules/types";
-import { createXScale } from "../../utils/scale";
+import { useAutoTrackHeight } from "../../src/hooks/useAutoTrackHeight";
+import { useInteraction } from "../../src/hooks/useInteraction";
+import type { TrackRendererProps } from "../../src/modules/types";
+import { createXScale } from "../../src/utils/scale";
 import {
   groupFeatures,
   isManeSelectTranscript,

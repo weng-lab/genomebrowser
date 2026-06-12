@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createTrackStore } from "../../src/stores/trackStore";
-import { bigBedModule } from "../../src/tracks/bigbed/module";
-import { bigWigModule } from "../../src/tracks/bigwig/module";
+import { bigBedModule } from "../../tracks/bigbed/module";
+import { bigWigModule } from "../../tracks/bigwig/module";
 import type { TrackConfigBase } from "../../src/sdk";
 
 describe("createTrackStore", () => {

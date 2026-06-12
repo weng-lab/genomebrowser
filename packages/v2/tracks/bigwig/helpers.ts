@@ -1,4 +1,4 @@
-import type { BrowserRegion } from "../../utils/region";
+import type { BrowserRegion } from "../../src/utils/region";
 import type { BigWigData, RenderedBigWigPoint, YRange } from "./types";
 
 export function condenseBigWigData(
