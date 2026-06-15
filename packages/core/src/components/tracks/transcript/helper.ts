@@ -42,6 +42,8 @@ export function mergeTranscripts(gene: TranscriptList): Transcript {
     name: gene.name || "",
     strand: gene.strand,
     id: gene.id || "",
+    parentName: gene.name,
+    parentId: gene.id,
     coordinates: {
       start: Math.min(...allExons.map((e) => e.coordinates.start)),
       end: Math.max(...allExons.map((e) => e.coordinates.end)),
@@ -96,6 +98,8 @@ export function convertTranscriptCoordinates(
     strand: transcript.strand,
     name: transcript.name,
     id: transcript.id,
+    parentName: transcript.parentName,
+    parentId: transcript.parentId,
     color: transcript.color,
     tag: transcript.tag,
     coordinates: {
@@ -124,7 +128,14 @@ export function convertTranscriptCoordinates(
 export function sortedTranscripts(genes: TranscriptList[]): Transcript[] {
   return genes
     .reduce<Transcript[]>((cpacked, gene) => {
-      gene.transcripts.forEach((transcript) => cpacked.push({ ...transcript, strand: gene.strand }));
+      gene.transcripts.forEach((transcript) =>
+        cpacked.push({
+          ...transcript,
+          strand: gene.strand,
+          parentName: gene.name,
+          parentId: gene.id,
+        })
+      );
       return cpacked;
     }, [])
     .sort((a, b) => a.coordinates.start - b.coordinates.start);

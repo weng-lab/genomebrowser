@@ -41,6 +41,8 @@ export type PackTranscriptProps = TranscriptProps;
 export interface Transcript {
   id: string;
   name: string;
+  parentName?: string;
+  parentId?: string;
   coordinates: { start: number; end: number };
   strand: string;
   exons?: Exon[];

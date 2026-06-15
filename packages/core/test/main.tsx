@@ -1,6 +1,12 @@
+/// <reference types="vite/client" />
+
 import { Buffer } from "buffer";
 globalThis.Buffer = Buffer;
 
+import { InMemoryCache } from "@apollo/client/cache";
+import { ApolloClient } from "@apollo/client/core";
+import { HttpLink } from "@apollo/client/link/http";
+import { ApolloProvider } from "@apollo/client/react";
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -8,7 +14,6 @@ import {
   createTrackStoreMemo,
   createBrowserStoreMemo,
   BrowserStoreInstance,
-  GQLWrapper,
   TrackStoreInstance,
   DataStoreInstance,
   createDataStoreMemo,
@@ -17,7 +22,7 @@ import {
 import {
   bigBedExample,
   bigWigExample,
-  // transcriptExample,
+  transcriptExample,
   // motifExample,
   // bulkBedExample,
   // methylCTrack,
@@ -40,7 +45,12 @@ function Main() {
 
   const trackStore = createTrackStoreMemo(
     [
-      // transcriptExample,
+      {
+        ...transcriptExample,
+        onClick: (transcript) => {
+          console.log("Transcript clicked", transcript.name, transcript.parentName ?? "no parentName");
+        },
+      },
       // bigWigExample,
       bigBedExample,
       // motifExample,
@@ -181,8 +191,23 @@ function Action({ dataStore }: { browserStore: BrowserStoreInstance; dataStore: 
 //   );
 // }
 
+const graphqlToken = import.meta.env.VITE_GRAPHQL_BEARER_TOKEN;
+const graphqlUri = import.meta.env.VITE_GRAPHQL_ENDPOINT ?? "https://screen.api.wenglab.org/graphql";
+
+const client = new ApolloClient({
+  link: new HttpLink({
+    uri: graphqlUri,
+    headers: graphqlToken ? { Authorization: `Bearer ${graphqlToken}` } : undefined,
+  }),
+  cache: new InMemoryCache(),
+  devtools: {
+    enabled: true,
+    name: "Genome Browser Test",
+  },
+});
+
 createRoot(document.getElementById("root")!).render(
-  <GQLWrapper>
+  <ApolloProvider client={client}>
     <Main />
-  </GQLWrapper>
+  </ApolloProvider>
 );
