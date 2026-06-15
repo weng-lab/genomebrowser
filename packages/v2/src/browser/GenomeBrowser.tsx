@@ -67,6 +67,7 @@ export function GenomeBrowser({
     getContentOffset,
     setContentOffset,
     setRegion,
+    onPanStart: tooltipStore.getState().hideTooltip,
   });
 
   const handleDataSettled = useCallback(
@@ -94,6 +95,7 @@ export function GenomeBrowser({
         settingsStore: activeSettingsStore,
         tooltipStore,
         svg,
+        isPanning: panDrag.isDragging,
       }}
     >
       <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>

@@ -40,7 +40,12 @@ const trackStore = createTrackStore({
       height: 35,
       url: "https://downloads.wenglab.org/Astro.PeakCalls.bb",
       onClick: ({ item }) => {
-        console.log(item);
+        console.log("[v2 test app] BigBed click", {
+          name: item.name,
+          start: item.start,
+          end: item.end,
+          item,
+        });
       },
     }),
     bulkBedModule.create({

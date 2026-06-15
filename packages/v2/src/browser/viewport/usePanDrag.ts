@@ -16,6 +16,7 @@ type UsePanDragOptions = {
   svg: SVGSVGElement | null;
   getCurrentDelta: () => number;
   setDelta: (deltaPx: number) => void;
+  onStart: () => void;
   onCommit: (deltaPx: number) => void;
   onCancel: () => void;
 };
@@ -25,6 +26,7 @@ export function usePanDrag({
   svg,
   getCurrentDelta,
   setDelta,
+  onStart,
   onCommit,
   onCancel,
 }: UsePanDragOptions): PanDragHandlers {
@@ -64,8 +66,9 @@ export function usePanDrag({
       startDeltaPx.current = getCurrentDelta();
       event.currentTarget.setPointerCapture(event.pointerId);
       setIsDragging(true);
+      onStart();
     },
-    [disabled, getCurrentDelta, getEventX],
+    [disabled, getCurrentDelta, getEventX, onStart],
   );
 
   const onPointerMove = useCallback(

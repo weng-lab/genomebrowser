@@ -35,6 +35,7 @@ export function usePanController({
   getContentOffset,
   setContentOffset,
   setRegion,
+  onPanStart,
 }: {
   svg: SVGSVGElement | null;
   region: BrowserRegion;
@@ -42,6 +43,7 @@ export function usePanController({
   getContentOffset: () => number;
   setContentOffset: (deltaPx: number) => void;
   setRegion: (region: BrowserRegion) => void;
+  onPanStart: () => void;
 }) {
   const [isPanLocked, setIsPanLocked] = useState(false);
   const regionRef = useRef(region);
@@ -60,6 +62,7 @@ export function usePanController({
     getCurrentDelta: getContentOffset,
     setDelta: setContentOffset,
     onCancel: () => setContentOffset(0),
+    onStart: onPanStart,
     onCommit: (committedDeltaPx) => {
       setIsPanLocked(true);
       setRegion(getPanCommitRegion(regionRef.current, trackWidthRef.current, committedDeltaPx));

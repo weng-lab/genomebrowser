@@ -10,6 +10,7 @@ type BrowserContextValue = {
   settingsStore: SettingsStoreInstance;
   tooltipStore: TooltipStoreInstance;
   svg: SVGSVGElement | null;
+  isPanning: boolean;
 };
 
 const BrowserContext = createContext<BrowserContextValue | null>(null);
@@ -52,4 +53,10 @@ export function useBrowserSvg() {
   const context = use(BrowserContext);
   if (!context) throw new Error("useBrowserSvg must be used within a GenomeBrowser");
   return context.svg;
+}
+
+export function useIsPanning() {
+  const context = use(BrowserContext);
+  if (!context) throw new Error("useIsPanning must be used within a GenomeBrowser");
+  return context.isPanning;
 }

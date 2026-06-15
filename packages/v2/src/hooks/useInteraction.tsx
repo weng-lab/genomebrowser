@@ -1,7 +1,7 @@
 import { createElement, type MouseEvent } from "react";
 import { DefaultTooltip } from "../browser/overlays/DefaultTooltip";
 import type { TrackConfigBase, TrackInteractionConfig } from "../modules/types";
-import { useBrowserSvg, useTooltipStore } from "../stores/BrowserContext";
+import { useBrowserSvg, useIsPanning, useTooltipStore } from "../stores/BrowserContext";
 import { svgPoint } from "../utils/svg";
 
 export function useInteraction<Item, Config extends TrackConfigBase>({
@@ -12,6 +12,7 @@ export function useInteraction<Item, Config extends TrackConfigBase>({
   fallback?: (item: Item) => string | undefined;
 }) {
   const svg = useBrowserSvg();
+  const isPanning = useIsPanning();
   const showTooltip = useTooltipStore((state) => state.showTooltip);
   const hideTooltip = useTooltipStore((state) => state.hideTooltip);
 
@@ -21,6 +22,7 @@ export function useInteraction<Item, Config extends TrackConfigBase>({
 
   const handleHover = (item: Item, event: MouseEvent) => {
     config.onHover?.({ item, config, event });
+    if (isPanning) return;
 
     const content = config.tooltip
       ? createElement(config.tooltip, { item, config })
