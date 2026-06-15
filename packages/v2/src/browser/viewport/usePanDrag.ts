@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, type PointerEvent } from "react";
+import { svgPoint } from "../../utils/svg";
 
 const PAN_COMMIT_THRESHOLD_PX = 10;
 
@@ -12,6 +13,7 @@ export type PanDragHandlers = {
 
 type UsePanDragOptions = {
   disabled: boolean;
+  svg: SVGSVGElement | null;
   getCurrentDelta: () => number;
   setDelta: (deltaPx: number) => void;
   onCommit: (deltaPx: number) => void;
@@ -20,6 +22,7 @@ type UsePanDragOptions = {
 
 export function usePanDrag({
   disabled,
+  svg,
   getCurrentDelta,
   setDelta,
   onCommit,
@@ -27,8 +30,16 @@ export function usePanDrag({
 }: UsePanDragOptions): PanDragHandlers {
   const [isDragging, setIsDragging] = useState(false);
   const activePointerId = useRef<number | null>(null);
-  const startClientX = useRef(0);
+  const startSvgX = useRef(0);
   const startDeltaPx = useRef(0);
+
+  const getEventX = useCallback(
+    (event: PointerEvent<SVGRectElement>) => {
+      if (!svg) return null;
+      return svgPoint(svg, event.clientX, event.clientY)?.x ?? null;
+    },
+    [svg],
+  );
 
   const releasePointer = useCallback((event: PointerEvent<SVGRectElement>) => {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -44,25 +55,29 @@ export function usePanDrag({
   const onPointerDown = useCallback(
     (event: PointerEvent<SVGRectElement>) => {
       if (disabled || !event.isPrimary || event.button !== 0) return;
+      const x = getEventX(event);
+      if (x === null) return;
 
       event.preventDefault();
       activePointerId.current = event.pointerId;
-      startClientX.current = event.clientX;
+      startSvgX.current = x;
       startDeltaPx.current = getCurrentDelta();
       event.currentTarget.setPointerCapture(event.pointerId);
       setIsDragging(true);
     },
-    [disabled, getCurrentDelta],
+    [disabled, getCurrentDelta, getEventX],
   );
 
   const onPointerMove = useCallback(
     (event: PointerEvent<SVGRectElement>) => {
       if (activePointerId.current !== event.pointerId) return;
+      const x = getEventX(event);
+      if (x === null) return;
 
       event.preventDefault();
-      setDelta(startDeltaPx.current + event.clientX - startClientX.current);
+      setDelta(startDeltaPx.current + x - startSvgX.current);
     },
-    [setDelta],
+    [getEventX, setDelta],
   );
 
   const onPointerUp = useCallback(

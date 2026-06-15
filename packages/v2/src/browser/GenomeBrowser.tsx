@@ -61,6 +61,7 @@ export function GenomeBrowser({
       overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
     });
   const { isPanLocked, panDrag, unlockPan } = usePanController({
+    svg,
     region,
     trackWidth,
     getContentOffset,

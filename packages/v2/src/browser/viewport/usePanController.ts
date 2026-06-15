@@ -29,12 +29,14 @@ export function getPanCommitRegion(
 }
 
 export function usePanController({
+  svg,
   region,
   trackWidth,
   getContentOffset,
   setContentOffset,
   setRegion,
 }: {
+  svg: SVGSVGElement | null;
   region: BrowserRegion;
   trackWidth: number;
   getContentOffset: () => number;
@@ -54,6 +56,7 @@ export function usePanController({
 
   const panDrag = usePanDrag({
     disabled: isPanLocked,
+    svg,
     getCurrentDelta: getContentOffset,
     setDelta: setContentOffset,
     onCancel: () => setContentOffset(0),
