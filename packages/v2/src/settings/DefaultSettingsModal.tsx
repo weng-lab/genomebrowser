@@ -41,16 +41,22 @@ export function DefaultSettingsModal({
           onClick={closeSettings}
           onPointerDown={(event) => event.stopPropagation()}
           aria-label="Close settings"
-          style={{
-            border: "none",
-            background: "transparent",
-            color: "inherit",
-            cursor: "pointer",
-            fontSize: "18px",
-            lineHeight: 1,
-          }}
+          style={closeButtonStyle}
         >
-          x
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
         </button>
       </div>
       <div style={modalContentStyle}>{children}</div>
@@ -79,6 +85,22 @@ const modalHeaderStyle = {
   gap: "12px",
   padding: "10px 12px",
   fontWeight: 700,
+} as const;
+
+const closeButtonStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  flex: "0 0 auto",
+  width: "28px",
+  height: "28px",
+  margin: "-4px -4px -4px 0",
+  padding: 0,
+  border: "none",
+  borderRadius: "4px",
+  background: "transparent",
+  color: "inherit",
+  cursor: "pointer",
 } as const;
 
 const modalContentStyle = {
