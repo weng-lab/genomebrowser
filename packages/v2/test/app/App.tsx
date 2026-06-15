@@ -2,6 +2,7 @@ import {
   GenomeBrowser,
   createBrowserStore,
   bigBedModule,
+  bulkBedModule,
   bigWigModule,
   createTrackStore,
   transcriptModule,
@@ -19,7 +20,7 @@ const browserStore = createBrowserStore({
   ],
 });
 
-const modules = [bigWigModule, bigBedModule, transcriptModule];
+const modules = [bigWigModule, bigBedModule, transcriptModule, bulkBedModule];
 
 const trackStore = createTrackStore({
   modules,
@@ -41,6 +42,33 @@ const trackStore = createTrackStore({
       onClick: ({ item }) => {
         console.log(item);
       },
+    }),
+    bulkBedModule.create({
+      id: "chip-bulk-peaks",
+      title: "bulk BigBed",
+      color: "#db6d28",
+      height: 30,
+      gap: 2,
+      datasets: [
+        {
+          name: "ChIP Dataset 1",
+          url: "https://downloads.wenglab.org/ChIP_ENCSR000AKA-ENCSR000AKC-ENCSR000AKF-ENCSR000AKE-ENCSR000AKD-ENCSR000AOX.bigBed",
+        },
+        {
+          name: "ChIP Dataset 2",
+          url: "https://downloads.wenglab.org/ChIP_ENCSR000EWA-ENCSR000AKP-ENCSR000EWC-ENCSR000DWB-ENCSR000EWB-ENCSR000APE.bigBed",
+        },
+        {
+          name: "ChIP Dataset 3",
+          url: "https://downloads.wenglab.org/ChIP_ENCSR000ARA-ENCSR000AQW-ENCSR000AQY-ENCSR000AQX-ENCSR000ASX-ENCSR000ARZ.bigBed",
+        },
+      ],
+      tooltip: ({ item }) => (
+        <g>
+          <text>{item.name}</text>
+          <text y={14}>{item.datasetName}</text>
+        </g>
+      ),
     }),
     transcriptModule.create({
       id: "genes",

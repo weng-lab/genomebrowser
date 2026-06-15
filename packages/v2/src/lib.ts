@@ -82,4 +82,14 @@ export type {
   TranscriptList,
 } from "../tracks/transcript/types";
 
+export { bulkBedModule } from "../tracks/bulkbed/module";
+export type {
+  BulkBedConfig,
+  BulkBedData,
+  BulkBedDataset,
+  BulkBedDisplay,
+  BulkBedInput,
+  BulkBedRect,
+} from "../tracks/bulkbed/types";
+
 export type { BrowserRegion } from "./utils/region";
