@@ -42,9 +42,9 @@ export function FullBulkBed({
                 <rect
                   key={`${row.start}-${row.end}-${rectIndex}`}
                   x={rect.start}
-                  y={rowHeight * 0.2}
+                  y={0}
                   width={Math.max(1, rect.end - rect.start)}
-                  height={rowHeight * 0.6}
+                  height={rowHeight}
                   fill={rect.color ?? config.color ?? "#4b9560"}
                   style={{ cursor: config.onClick ? "pointer" : "default" }}
                   onClick={(event) => handleClick(row, event)}

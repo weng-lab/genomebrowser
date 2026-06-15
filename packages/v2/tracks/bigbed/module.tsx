@@ -3,6 +3,7 @@ import { fetchOnChange } from "../../src/data/fetchOnChange";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { fetchBigBed } from "./fetch";
 import { DenseBigBed, SquishBigBed } from "./render";
+import { BigBedSettings } from "./settings";
 
 const bigBedInputSchema = z.object({
   url: fetchOnChange(z.string().min(1)),
@@ -21,4 +22,5 @@ export const bigBedModule = defineTrackModule({
     dense: DenseBigBed,
     squish: SquishBigBed,
   },
+  settingsComponent: BigBedSettings,
 });

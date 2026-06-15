@@ -3,6 +3,7 @@ import { z } from "zod";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { bigBedModule } from "../../tracks/bigbed/module";
 import { bigWigModule } from "../../tracks/bigwig/module";
+import { bulkBedModule } from "../../tracks/bulkbed/module";
 import { transcriptModule } from "../../tracks/transcript/module";
 
 describe("defineTrackModule", () => {
@@ -271,6 +272,11 @@ describe("defineTrackModule", () => {
         version: 1,
       }),
     ).toMatchObject({ type: "transcript", display: "squish", height: 90 });
+
+    expect(bigWigModule.settingsComponent).toBeDefined();
+    expect(bigBedModule.settingsComponent).toBeDefined();
+    expect(transcriptModule.settingsComponent).toBeDefined();
+    expect(bulkBedModule.settingsComponent).toBeDefined();
   });
 
   it("rejects invalid BigBed schemas", () => {

@@ -53,7 +53,7 @@ export function DefaultSettingsModal({
           x
         </button>
       </div>
-      <div style={{ display: "grid", gap: "12px", padding: "12px" }}>{children}</div>
+      <div style={modalContentStyle}>{children}</div>
     </dialog>
   );
 }
@@ -79,4 +79,12 @@ const modalHeaderStyle = {
   gap: "12px",
   padding: "10px 12px",
   fontWeight: 700,
+} as const;
+
+const modalContentStyle = {
+  display: "grid",
+  gap: "12px",
+  padding: "12px",
+  maxHeight: "min(70vh, 720px)",
+  overflowY: "auto",
 } as const;

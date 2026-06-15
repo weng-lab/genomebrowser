@@ -3,6 +3,7 @@ import { fetchOnChange } from "../../src/data/fetchOnChange";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { fetchBulkBed } from "./fetch";
 import { FullBulkBed } from "./render";
+import { BulkBedSettings } from "./settings";
 
 const bulkBedDatasetSchema = z.object({
   name: z.string().min(1),
@@ -25,4 +26,5 @@ export const bulkBedModule = defineTrackModule({
   render: {
     full: FullBulkBed,
   },
+  settingsComponent: BulkBedSettings,
 });
