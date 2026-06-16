@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, type PointerEvent } from "react";
-import { svgPoint } from "../../utils/svg";
+import { svgPoint } from "../../modules/utils/svg";
 
 const PAN_COMMIT_THRESHOLD_PX = 10;
 

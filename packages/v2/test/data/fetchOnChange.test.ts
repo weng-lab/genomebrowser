@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createFetchSignature, fetchOnChange } from "../../src/data/fetchOnChange";
+import { createFetchSignature, fetchOnChange } from "../../src/modules/fetchOnChange";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 
 describe("fetchOnChange", () => {

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
-import { bigBedModule } from "../../tracks/bigbed/module";
-import { bigWigModule } from "../../tracks/bigwig/module";
-import { bulkBedModule } from "../../tracks/bulkbed/module";
-import { transcriptModule } from "../../tracks/transcript/module";
+import { bigBedModule } from "../../src/tracks/bigbed/module";
+import { bigWigModule } from "../../src/tracks/bigwig/module";
+import { bulkBedModule } from "../../src/tracks/bulkbed/module";
+import { transcriptModule } from "../../src/tracks/transcript/module";
 
 describe("defineTrackModule", () => {
   function FullRenderer() {

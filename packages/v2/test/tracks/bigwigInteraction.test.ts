@@ -5,8 +5,8 @@ import {
   formatBigWigTooltip,
   getBigWigRange,
   getPointAtMouseX,
-} from "../../tracks/bigwig/helpers";
-import type { RenderedBigWigPoint } from "../../tracks/bigwig/types";
+} from "../../src/tracks/bigwig/helpers";
+import type { RenderedBigWigPoint } from "../../src/tracks/bigwig/types";
 
 describe("BigWig interaction helpers", () => {
   const points: RenderedBigWigPoint[] = [

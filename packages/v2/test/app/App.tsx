@@ -94,11 +94,5 @@ const trackStore = createTrackStore({
 });
 
 export default function App() {
-  return (
-    <GenomeBrowser
-      browserStore={browserStore}
-      trackStore={trackStore}
-      modules={modules}
-    />
-  );
+  return <GenomeBrowser browserStore={browserStore} trackStore={trackStore} modules={modules} />;
 }

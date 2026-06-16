@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createContextMenuStore } from "../../src/stores/contextMenuStore";
+import { createContextMenuStore } from "../../src/browser/stores/contextMenuStore";
 
 describe("createContextMenuStore", () => {
   it("starts closed", () => {

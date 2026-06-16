@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { createModuleRegistry } from "../../modules/registry";
-import {
-  useContextMenuStore,
-  useTrackMutationGate,
-  useTrackStore,
-} from "../../stores/BrowserContext";
+import { useContextMenuStore, useTrackMutationGate, useTrackStore } from "../stores/BrowserContext";
 
 type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 

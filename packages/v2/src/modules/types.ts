@@ -1,5 +1,5 @@
 import type { ComponentType, MouseEvent, PointerEvent } from "react";
-import type { BrowserRegion } from "../utils/region";
+import type { BrowserRegion } from "./utils/region";
 
 export type TrackInteractionContext<Item, Config extends TrackConfigBase> = {
   item: Item;

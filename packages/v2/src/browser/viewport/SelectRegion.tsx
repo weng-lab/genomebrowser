@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useRef, type ReactNode } from "react";
-import { createReverseXScale } from "../../utils/scale";
-import { svgPoint } from "../../utils/svg";
-import type { BrowserRegion } from "../../utils/region";
+import type { BrowserRegion } from "../../modules/utils/region";
+import { createReverseXScale } from "../../modules/utils/scale";
+import { svgPoint } from "../../modules/utils/svg";
 
 type Selection = { start: number; end: number } | null;
 type SelectionAction =

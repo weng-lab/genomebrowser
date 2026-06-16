@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bulkBedModule } from "../../tracks/bulkbed/module";
+import { bulkBedModule } from "../../src/tracks/bulkbed/module";
 
 describe("BulkBed module", () => {
   it("creates a full-display bulkbed config", () => {

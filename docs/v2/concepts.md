@@ -8,6 +8,14 @@ These notes describe the current maintainer-facing direction for v2.
 
 The browser should avoid owning track-specific behavior directly. Track-specific data fetching, rendering, validation, and track config belong in track modules.
 
+Implementation code follows three main seams:
+
+- `src/modules` owns the module system, module contracts, validation helpers, module-author utilities, and browser-backed module runtime helpers
+- `src/browser` owns the `GenomeBrowser` implementation, browser stores, viewport behavior, data orchestration, overlays, and settings shell
+- `src/tracks` owns first-party track module implementations that consume `src/modules` the same way custom tracks should
+
+`src/browser` and `src/tracks` both depend on `src/modules`. `src/tracks` should not import `src/browser`, and `src/modules` should not import `src/browser`.
+
 ## State and hooks
 
 State and hooks provide focused browser behavior:
@@ -34,5 +42,6 @@ Keep the core browser generic. When adding behavior, prefer putting it in the na
 - track-specific behavior goes in track modules
 - reusable calculations go in utility modules
 - shared runtime contracts go in `src/modules`
+- browser-backed helpers used by modules go behind `src/modules/runtime`
 
 See [Schema validation](validation.md) for how runtime input is checked at package and module boundaries. See [Useful helpers for track modules](helpers.md) for public hooks that custom module authors can use.

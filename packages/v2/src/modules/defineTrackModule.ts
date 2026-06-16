@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import { z } from "zod";
-import { registerFetchSchema } from "../data/fetchOnChange";
+import { registerFetchSchema } from "./fetchOnChange";
 import { functionSchema, parsePublicInput } from "./schemas";
 import type { TrackInteractionConfig, TrackModule, TrackRendererProps } from "./types";
 

@@ -1,8 +1,8 @@
 import type { ComponentType } from "react";
-import type { DataState } from "../../data/types";
+import type { DataState } from "../data/types";
 import type { createModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase, TrackRendererProps } from "../../modules/types";
-import type { BrowserRegion } from "../../utils/region";
+import type { BrowserRegion } from "../../modules/utils/region";
 import { ErrorState } from "../ErrorState";
 import { LoadingState } from "../LoadingState";
 import type { PanDragHandlers } from "../viewport/usePanDrag";

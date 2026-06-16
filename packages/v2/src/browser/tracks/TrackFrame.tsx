@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { TrackConfigBase } from "../../modules/types";
-import { useContextMenuStore } from "../../stores/BrowserContext";
+import { useContextMenuStore } from "../stores/BrowserContext";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { TrackControls } from "./TrackControls";
 import { getTrackTitleMargin, getTrackWrapperHeight } from "./trackLayout";

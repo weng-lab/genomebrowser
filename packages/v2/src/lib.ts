@@ -12,29 +12,31 @@ export type {
   TrackSettingsUpdate,
 } from "./modules/types";
 
-export { useAutoTrackHeight } from "./hooks/useAutoTrackHeight";
-export type { AutoTrackHeightOptions } from "./hooks/useAutoTrackHeight";
-export { useDraggableSettingsModal } from "./hooks/useDraggableSettingsModal";
-export type { DraggableSettingsModalResult } from "./hooks/useDraggableSettingsModal";
-export { useInteraction } from "./hooks/useInteraction";
+export { fetchOnChange } from "./modules/fetchOnChange";
+export { useAutoTrackHeight } from "./modules/runtime/useAutoTrackHeight";
+export type { AutoTrackHeightOptions } from "./modules/runtime/useAutoTrackHeight";
+export { useInteraction } from "./modules/runtime/useInteraction";
+export { SettingsSection } from "./modules/runtime/SettingsSection";
+export { useDraggableSettingsModal } from "./browser/settings/useDraggableSettingsModal";
+export type { DraggableSettingsModalResult } from "./browser/settings/useDraggableSettingsModal";
 
-export { createBrowserStore } from "./stores/browserStore";
-export { createContextMenuStore } from "./stores/contextMenuStore";
+export { createBrowserStore } from "./browser/stores/browserStore";
+export { createContextMenuStore } from "./browser/stores/contextMenuStore";
 export {
   useContextMenuStore,
   useBrowserStore,
   useSettingsStore,
   useTooltipStore,
   useTrackStore,
-} from "./stores/BrowserContext";
-export { createSettingsStore } from "./settings/settingsStore";
-export { createTrackStore } from "./stores/trackStore";
+} from "./browser/stores/BrowserContext";
+export { createSettingsStore } from "./browser/settings/settingsStore";
+export { createTrackStore } from "./browser/stores/trackStore";
 export type {
   BrowserStore,
   BrowserStoreInput,
   BrowserStoreInstance,
   Highlight,
-} from "./stores/browserStore";
+} from "./browser/stores/browserStore";
 export type {
   BaseSettingsProps,
   SettingsModalProps,
@@ -42,21 +44,21 @@ export type {
   SettingsStore,
   SettingsStoreInput,
   SettingsStoreInstance,
-} from "./settings/settingsStore";
+} from "./browser/settings/settingsStore";
 export type {
   ContextMenuPosition,
   ContextMenuStore,
   ContextMenuStoreInstance,
-} from "./stores/contextMenuStore";
+} from "./browser/stores/contextMenuStore";
 export type {
   TrackStore,
   TrackStoreInstance,
   TrackStoreOptions,
   TrackUpdate,
-} from "./stores/trackStore";
-export type { TooltipStore, TooltipStoreInstance } from "./stores/tooltipStore";
+} from "./browser/stores/trackStore";
+export type { TooltipStore, TooltipStoreInstance } from "./browser/stores/tooltipStore";
 
-export { bigBedModule } from "../tracks/bigbed/module";
+export { bigBedModule } from "./tracks/bigbed/module";
 export type {
   BigBedConfig,
   BigBedData,
@@ -65,9 +67,9 @@ export type {
   BigBedRow,
   BigBedSchema,
   InferBigBedRow,
-} from "../tracks/bigbed/types";
+} from "./tracks/bigbed/types";
 
-export { bigWigModule } from "../tracks/bigwig/module";
+export { bigWigModule } from "./tracks/bigwig/module";
 export type {
   BigWigConfig,
   BigWigData,
@@ -75,9 +77,9 @@ export type {
   BigWigInput,
   RenderedBigWigPoint,
   YRange,
-} from "../tracks/bigwig/types";
+} from "./tracks/bigwig/types";
 
-export { transcriptModule } from "../tracks/transcript/module";
+export { transcriptModule } from "./tracks/transcript/module";
 export type {
   Exon,
   GenomicElement,
@@ -87,9 +89,9 @@ export type {
   TranscriptDisplay,
   TranscriptInput,
   TranscriptList,
-} from "../tracks/transcript/types";
+} from "./tracks/transcript/types";
 
-export { bulkBedModule } from "../tracks/bulkbed/module";
+export { bulkBedModule } from "./tracks/bulkbed/module";
 export type {
   BulkBedConfig,
   BulkBedData,
@@ -97,6 +99,6 @@ export type {
   BulkBedDisplay,
   BulkBedInput,
   BulkBedRect,
-} from "../tracks/bulkbed/types";
+} from "./tracks/bulkbed/types";
 
-export type { BrowserRegion } from "./utils/region";
+export type { BrowserRegion } from "./modules/utils/region";

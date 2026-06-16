@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
-import type { DataState } from "../../data/types";
+import type { DataState } from "../data/types";
 import type { createModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase } from "../../modules/types";
-import type { BrowserRegion } from "../../utils/region";
+import type { BrowserRegion } from "../../modules/utils/region";
 import { SwapTrack } from "../swap/SwapTrack";
 import { getSwapPreviewOffsetY, isSameSwapPreview } from "../swap/trackSwapMath";
 import type { SwapPreview } from "../swap/types";

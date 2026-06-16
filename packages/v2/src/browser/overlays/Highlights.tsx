@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from "react";
-import { useBrowserStore } from "../../stores/BrowserContext";
-import type { BrowserRegion } from "../../utils/region";
+import type { BrowserRegion } from "../../modules/utils/region";
+import { useBrowserStore } from "../stores/BrowserContext";
 import { getHighlightRects } from "./highlightRects";
 
 export function Highlights({

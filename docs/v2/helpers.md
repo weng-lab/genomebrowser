@@ -2,6 +2,8 @@
 
 These public exports can help when building custom track modules for v2. Track modules should still own their own fetching and rendering behavior; these helpers cover common browser integration points.
 
+Helpers for custom tracks are exposed from the module authoring surface. Pure utilities live under the module system, while browser-backed helpers such as interactions and auto-height are exposed through the module runtime seam so tracks do not import browser implementation details directly.
+
 ## `useAutoTrackHeight`
 
 `useAutoTrackHeight` updates a track's stored `height` from the number of rows a renderer needs. This is useful for display modes such as `squish` or `pack`, where the number of rendered rows can change with the current region or data density.
