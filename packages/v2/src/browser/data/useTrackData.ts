@@ -24,39 +24,38 @@ export function useTrackData({
   const completedData = useDataStore((state) => state.data);
   const setData = useDataStore((state) => state.setData);
   const [fetchingTrackIds, setFetchingTrackIds] = useState<Set<string>>(() => new Set());
-  const previousRegionSignature = useRef<string | null>(null);
-  const previousFetchSignatures = useRef<Record<string, string>>({});
+  const previousRegionKey = useRef<string | null>(null);
+  const previousFetchKeys = useRef<Record<string, string>>({});
   const onSettledRef = useRef(onSettled);
-  const regionSignature = createRegionSignature(region);
+  const regionKey = createRegionKey(region);
 
   onSettledRef.current = onSettled;
 
   useEffect(() => {
     let active = true;
     const currentTrackIds = new Set(tracks.map((track) => track.id));
-    const currentFetchSignatures = createTrackFetchSignatures(registry, tracks);
+    const currentFetchKeys = createTrackFetchKeys(registry, tracks);
     const prunedData = pruneData(useDataStore.getState().data, currentTrackIds);
     const removedTracks =
       Object.keys(useDataStore.getState().data).length !== Object.keys(prunedData).length;
 
     if (removedTracks) setData(prunedData);
 
-    const isInitialFetch = previousRegionSignature.current === null;
+    const isInitialFetch = previousRegionKey.current === null;
     const isRegionChanged =
-      previousRegionSignature.current !== null &&
-      previousRegionSignature.current !== regionSignature;
+      previousRegionKey.current !== null && previousRegionKey.current !== regionKey;
     const tracksToFetch =
       isInitialFetch || isRegionChanged
         ? tracks
         : tracks.filter((track) => {
-            const previousSignature = previousFetchSignatures.current[track.id];
-            const currentSignature = currentFetchSignatures[track.id];
-            return previousSignature === undefined || previousSignature !== currentSignature;
+            const previousKey = previousFetchKeys.current[track.id];
+            const currentKey = currentFetchKeys[track.id];
+            return previousKey === undefined || previousKey !== currentKey;
           });
 
     if (tracksToFetch.length === 0) {
-      previousRegionSignature.current = regionSignature;
-      previousFetchSignatures.current = currentFetchSignatures;
+      previousRegionKey.current = regionKey;
+      previousFetchKeys.current = currentFetchKeys;
       if (isInitialFetch || isRegionChanged) onSettledRef.current?.();
       return;
     }
@@ -76,8 +75,8 @@ export function useTrackData({
       for (const [trackId, result] of results) {
         nextData[trackId] = result;
       }
-      previousRegionSignature.current = regionSignature;
-      previousFetchSignatures.current = currentFetchSignatures;
+      previousRegionKey.current = regionKey;
+      previousFetchKeys.current = currentFetchKeys;
       setData(nextData);
       setFetchingTrackIds(new Set());
       onSettledRef.current?.();
@@ -86,7 +85,7 @@ export function useTrackData({
     return () => {
       active = false;
     };
-  }, [region, regionSignature, registry, setData, tracks, useDataStore]);
+  }, [region, regionKey, registry, setData, tracks, useDataStore]);
 
   const dataStates = useMemo(
     () => createDataStates(tracks, completedData, fetchingTrackIds),
@@ -99,20 +98,20 @@ export function useTrackData({
   };
 }
 
-function createRegionSignature(region: BrowserRegion) {
+function createRegionKey(region: BrowserRegion) {
   return `${region.chromosome}:${region.start}-${region.end}`;
 }
 
-function createTrackFetchSignatures(registry: ModuleRegistry, tracks: TrackConfigBase[]) {
-  const signatures: Record<string, string> = {};
+function createTrackFetchKeys(registry: ModuleRegistry, tracks: TrackConfigBase[]) {
+  const keys: Record<string, string> = {};
   for (const track of tracks) {
     try {
-      signatures[track.id] = createFetchSignature(registry.get(track.type), track);
+      keys[track.id] = createFetchSignature(registry.get(track.type), track);
     } catch {
-      signatures[track.id] = "{}";
+      keys[track.id] = "{}";
     }
   }
-  return signatures;
+  return keys;
 }
 
 function pruneData(data: Record<string, DataResult>, trackIds: Set<string>) {

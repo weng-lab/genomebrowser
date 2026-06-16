@@ -7,7 +7,7 @@ export type BrowserRegion = {
   end: number;
 };
 
-export const browserRegionSchema = z
+const browserRegionSchema = z
   .object({
     chromosome: z.string().min(1),
     start: z.number().int(),
@@ -35,10 +35,6 @@ export function parseRegion(region: BrowserRegion | string): BrowserRegion {
     end: Number(match.groups.end),
   };
   return parsePublicInput(browserRegionSchema, parsed, "Region");
-}
-
-export function regionLength(region: BrowserRegion) {
-  return region.end - region.start;
 }
 
 export function formatLength(length: number): string {

@@ -64,18 +64,6 @@ export function useBrowserSvg() {
   return context.svg;
 }
 
-export function useIsPanning() {
-  const context = use(BrowserContext);
-  if (!context) throw new Error("useIsPanning must be used within a GenomeBrowser");
-  return context.isPanning;
-}
-
-export function useIsInteractionBlocked() {
-  const context = use(BrowserContext);
-  if (!context) throw new Error("useIsInteractionBlocked must be used within a GenomeBrowser");
-  return context.isInteractionBlocked;
-}
-
 export function useTrackMutationGate() {
   const context = use(BrowserContext);
   if (!context) throw new Error("useTrackMutationGate must be used within a GenomeBrowser");

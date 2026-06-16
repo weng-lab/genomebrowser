@@ -58,7 +58,7 @@ export function GenomeBrowser({
   const baseContentX = marginWidth - sideWidth;
   const { getContentOffset, registerContentGroup, setContentOffset } =
     useContentTransform(baseContentX);
-  const { dataSignature, displayedRenderRegion, renderWidth, settleData, targetRenderRegion } =
+  const { dataKey, displayedRenderRegion, renderWidth, settleData, targetRenderRegion } =
     useRenderWindow({
       region,
       tracks,
@@ -87,8 +87,8 @@ export function GenomeBrowser({
   );
 
   const handleDataSettled = useCallback(
-    (signature: string) => {
-      if (!settleData(signature)) return;
+    (key: string) => {
+      if (!settleData(key)) return;
       setContentOffset(0);
       unlockPan();
     },
@@ -100,7 +100,7 @@ export function GenomeBrowser({
     registry,
     tracks,
     region: targetRenderRegion,
-    onSettled: () => handleDataSettled(dataSignature),
+    onSettled: () => handleDataSettled(dataKey),
   });
   const isInteractionBlocked = isPanLocked || isFetching;
 

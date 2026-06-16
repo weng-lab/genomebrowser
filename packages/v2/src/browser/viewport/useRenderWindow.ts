@@ -39,16 +39,16 @@ export function useRenderWindow({
   );
   const [displayedRenderRegion, setDisplayedRenderRegion] =
     useState<BrowserRegion>(targetRenderRegion);
-  const dataSignature = useMemo(
+  const dataKey = useMemo(
     () => createRenderWindowSignature(targetRenderRegion, tracks),
     [targetRenderRegion, tracks],
   );
-  const dataSignatureRef = useRef(dataSignature);
-  dataSignatureRef.current = dataSignature;
+  const dataKeyRef = useRef(dataKey);
+  dataKeyRef.current = dataKey;
 
   const settleData = useCallback(
-    (signature: string) => {
-      if (signature !== dataSignatureRef.current) return false;
+    (key: string) => {
+      if (key !== dataKeyRef.current) return false;
       setDisplayedRenderRegion(targetRenderRegion);
       return true;
     },
@@ -59,7 +59,7 @@ export function useRenderWindow({
     targetRenderRegion,
     displayedRenderRegion,
     renderWidth,
-    dataSignature,
+    dataKey,
     settleData,
   };
 }

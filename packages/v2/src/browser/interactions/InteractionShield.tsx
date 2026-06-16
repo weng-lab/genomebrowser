@@ -1,3 +1,10 @@
+import type { SyntheticEvent } from "react";
+
+function handleBlockedEvent(event: SyntheticEvent<SVGGElement>) {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
 export function InteractionShield({
   active,
   width,
@@ -8,11 +15,6 @@ export function InteractionShield({
   height: number;
 }) {
   if (!active) return null;
-
-  const handleBlockedEvent = (event: React.SyntheticEvent<SVGGElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
 
   return (
     <g
