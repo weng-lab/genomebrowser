@@ -1,47 +1,31 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackSettingsProps } from "../../modules/types";
 import type { BigWigConfig } from "./types";
 
 export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWigConfig>) {
-  const [url, setUrl] = useState(config.url);
-  const [min, setMin] = useState(config.yRange?.min?.toString() ?? "");
-  const [max, setMax] = useState(config.yRange?.max?.toString() ?? "");
-  const previousUrl = useRef(config.url);
-  const previousYRange = useRef(config.yRange);
-  const trimmedUrl = url.trim();
-  const hasUrlChange = trimmedUrl !== config.url;
-  const minNumber = Number(min);
-  const maxNumber = Number(max);
-  const invalidRange =
-    min !== "" &&
-    max !== "" &&
-    (!Number.isFinite(minNumber) || !Number.isFinite(maxNumber) || minNumber >= maxNumber);
+  const minRef = useRef<HTMLInputElement>(null);
+  const maxRef = useRef<HTMLInputElement>(null);
+  const updateYRange = () => {
+    const minValue = minRef.current?.value ?? "";
+    const maxValue = maxRef.current?.value ?? "";
+    if (minValue === "" || maxValue === "") return;
 
-  if (config.url !== previousUrl.current) {
-    previousUrl.current = config.url;
-    setUrl(config.url);
-  }
-
-  if (config.yRange !== previousYRange.current) {
-    previousYRange.current = config.yRange;
-    setMin(config.yRange?.min?.toString() ?? "");
-    setMax(config.yRange?.max?.toString() ?? "");
-  }
+    const min = Number(minValue);
+    const max = Number(maxValue);
+    if (Number.isFinite(min) && Number.isFinite(max) && min < max) updateTrack({ yRange: { min, max } });
+  };
 
   return (
     <SettingsSection title="BigWig">
       <label style={{ display: "grid", gap: "4px" }}>
         URL
-        <input type="text" value={url} onChange={(event) => setUrl(event.target.value)} />
+        <input
+          type="text"
+          value={config.url}
+          onChange={(event) => updateTrack({ url: event.target.value })}
+        />
       </label>
-      <button
-        type="button"
-        disabled={trimmedUrl === "" || !hasUrlChange}
-        onClick={() => updateTrack({ url: trimmedUrl })}
-      >
-        Apply URL
-      </button>
       <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         <input
           type="checkbox"
@@ -58,28 +42,29 @@ export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWi
             step="any"
             aria-label="Minimum Y range"
             placeholder="min"
-            value={min}
-            onChange={(event) => setMin(event.target.value)}
+            defaultValue={config.yRange?.min ?? ""}
+            ref={minRef}
+            onChange={updateYRange}
           />
           <input
             type="number"
             step="any"
             aria-label="Maximum Y range"
             placeholder="max"
-            value={max}
-            onChange={(event) => setMax(event.target.value)}
+            defaultValue={config.yRange?.max ?? ""}
+            ref={maxRef}
+            onChange={updateYRange}
           />
         </div>
-        {invalidRange && <div style={{ color: "#b00020" }}>Min must be less than max.</div>}
         <div style={{ display: "flex", gap: "6px" }}>
           <button
             type="button"
-            disabled={invalidRange || min === "" || max === ""}
-            onClick={() => updateTrack({ yRange: { min: minNumber, max: maxNumber } })}
+            onClick={() => {
+              if (minRef.current) minRef.current.value = "";
+              if (maxRef.current) maxRef.current.value = "";
+              updateTrack({ yRange: undefined });
+            }}
           >
-            Apply range
-          </button>
-          <button type="button" onClick={() => updateTrack({ yRange: undefined })}>
             Auto scale
           </button>
         </div>

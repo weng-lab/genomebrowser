@@ -1,25 +1,19 @@
 import type { CSSProperties } from "react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackSettingsProps } from "../../modules/types";
 import type { BulkBedConfig, BulkBedDataset } from "./types";
 
 export function BulkBedSettings({ config, updateTrack }: TrackSettingsProps<BulkBedConfig>) {
-  const [datasets, setDatasets] = useState(config.datasets);
-  const previousDatasets = useRef(config.datasets);
-
-  if (config.datasets !== previousDatasets.current) {
-    previousDatasets.current = config.datasets;
-    setDatasets(config.datasets);
+  const datasetKeys = useRef<string[]>([]);
+  while (datasetKeys.current.length < config.datasets.length) datasetKeys.current.push(crypto.randomUUID());
+  if (datasetKeys.current.length > config.datasets.length) {
+    datasetKeys.current = datasetKeys.current.slice(0, config.datasets.length);
   }
 
-  const sanitizedDatasets = datasets.map((dataset) => ({
-    name: dataset.name.trim(),
-    url: dataset.url.trim(),
-  }));
   const invalidDatasets =
-    sanitizedDatasets.length === 0 ||
-    sanitizedDatasets.some((dataset) => dataset.name === "" || dataset.url === "");
+    config.datasets.length === 0 ||
+    config.datasets.some((dataset) => dataset.name.trim() === "" || dataset.url.trim() === "");
 
   return (
     <SettingsSection title="BulkBed">
@@ -38,15 +32,17 @@ export function BulkBedSettings({ config, updateTrack }: TrackSettingsProps<Bulk
       </label>
       <div style={{ display: "grid", gap: "8px" }}>
         <div style={{ fontWeight: 600 }}>Datasets</div>
-        {datasets.map((dataset, index) => (
-          <div key={index} style={datasetStyle}>
+        {config.datasets.map((dataset, index) => (
+          <div key={datasetKeys.current[index]} style={datasetStyle}>
             <label style={fieldStyle}>
               Name
               <input
                 type="text"
                 value={dataset.name}
                 onChange={(event) =>
-                  updateDataset(datasets, setDatasets, index, "name", event.target.value)
+                  updateTrack({
+                    datasets: updateDataset(config.datasets, index, "name", event.target.value),
+                  })
                 }
               />
             </label>
@@ -56,16 +52,23 @@ export function BulkBedSettings({ config, updateTrack }: TrackSettingsProps<Bulk
                 type="text"
                 value={dataset.url}
                 onChange={(event) =>
-                  updateDataset(datasets, setDatasets, index, "url", event.target.value)
+                  updateTrack({
+                    datasets: updateDataset(config.datasets, index, "url", event.target.value),
+                  })
                 }
               />
             </label>
             <button
               type="button"
-              disabled={datasets.length === 1}
-              onClick={() =>
-                setDatasets(datasets.filter((_, datasetIndex) => datasetIndex !== index))
-              }
+              disabled={config.datasets.length === 1}
+              onClick={() => {
+                datasetKeys.current = datasetKeys.current.filter(
+                  (_, datasetIndex) => datasetIndex !== index,
+                );
+                updateTrack({
+                  datasets: config.datasets.filter((_, datasetIndex) => datasetIndex !== index),
+                });
+              }}
             >
               Remove
             </button>
@@ -74,21 +77,17 @@ export function BulkBedSettings({ config, updateTrack }: TrackSettingsProps<Bulk
         <div style={{ display: "flex", gap: "6px" }}>
           <button
             type="button"
-            onClick={() =>
-              setDatasets([
-                ...datasets,
-                { name: `Dataset ${datasets.length + 1}`, url: "YOUR_URL_HERE" },
-              ])
-            }
+            onClick={() => {
+              datasetKeys.current.push(crypto.randomUUID());
+              updateTrack({
+                datasets: [
+                  ...config.datasets,
+                  { name: `Dataset ${config.datasets.length + 1}`, url: "YOUR_URL_HERE" },
+                ],
+              });
+            }}
           >
             Add dataset
-          </button>
-          <button
-            type="button"
-            disabled={invalidDatasets}
-            onClick={() => updateTrack({ datasets: sanitizedDatasets })}
-          >
-            Apply datasets
           </button>
         </div>
         {invalidDatasets && (
@@ -101,15 +100,12 @@ export function BulkBedSettings({ config, updateTrack }: TrackSettingsProps<Bulk
 
 function updateDataset(
   datasets: BulkBedDataset[],
-  setDatasets: (datasets: BulkBedDataset[]) => void,
   index: number,
   key: keyof BulkBedDataset,
   value: string,
 ) {
-  setDatasets(
-    datasets.map((dataset, datasetIndex) =>
-      datasetIndex === index ? { ...dataset, [key]: value } : dataset,
-    ),
+  return datasets.map((dataset, datasetIndex) =>
+    datasetIndex === index ? { ...dataset, [key]: value } : dataset,
   );
 }
 
