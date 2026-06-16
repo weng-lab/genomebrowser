@@ -1,4 +1,4 @@
-import axios from "axios/dist/axios.js";
+import axios from "axios";
 import { AxiosDataLoader, BigWigReader, FileType } from "genomic-reader";
 import type { TrackFetchContext } from "../../modules/types";
 import { createBigBedSchemaParser } from "./schema";
