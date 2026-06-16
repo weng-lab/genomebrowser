@@ -10,7 +10,7 @@ import type { BrowserStoreInstance } from "./stores/browserStore";
 import { createContextMenuStore } from "./stores/contextMenuStore";
 import type { TrackStoreInstance } from "./stores/trackStore";
 import { createTooltipStore } from "./stores/tooltipStore";
-import { InteractionShield } from "./interactions/InteractionShield";
+import { InteractionShield } from "./overlays/InteractionShield";
 import { Highlights } from "./overlays/Highlights";
 import { ContextMenuController } from "./overlays/ContextMenuController";
 import { SettingsModalController } from "./overlays/SettingsModalController";
