@@ -45,11 +45,11 @@ export function ContextMenuController({ registry }: { registry: ModuleRegistry }
   }
 
   const handleDisplayClick = (display: string) => {
-    if (runTrackMutation(() => updateTrack(trackId, { display }))) closeContextMenu();
+    if (runTrackMutation(() => updateTrack(trackId, { display })).ok) closeContextMenu();
   };
 
   const handleRemoveClick = () => {
-    if (runTrackMutation(() => removeTrack(trackId))) closeContextMenu();
+    if (runTrackMutation(() => removeTrack(trackId)).ok) closeContextMenu();
   };
 
   return (

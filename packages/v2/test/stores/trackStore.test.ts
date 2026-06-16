@@ -64,10 +64,10 @@ describe("createTrackStore", () => {
     const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
     const nextTrack = bigWigTrack("next");
 
-    store.getState().setTracks([nextTrack]);
+    expect(store.getState().setTracks([nextTrack])).toEqual({ ok: true });
     expect(store.getState().tracks).toEqual([nextTrack]);
 
-    expect(() =>
+    expect(
       store.getState().setTracks([
         {
           id: "bad",
@@ -77,7 +77,7 @@ describe("createTrackStore", () => {
           height: 80,
         },
       ]),
-    ).toThrow(/bigwig config is invalid/);
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig config is invalid/) });
     expect(store.getState().tracks).toEqual([nextTrack]);
   });
 
@@ -85,11 +85,14 @@ describe("createTrackStore", () => {
     const store = createTrackStore({ modules: [bigWigModule], tracks: [] });
     const track = bigWigTrack();
 
-    store.getState().addTrack(track);
+    expect(store.getState().addTrack(track)).toEqual({ ok: true });
     expect(store.getState().tracks).toEqual([track]);
 
-    expect(() => store.getState().addTrack(track)).toThrow(/Duplicate track id/);
-    expect(() =>
+    expect(store.getState().addTrack(track)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/Duplicate track id/),
+    });
+    expect(
       store.getState().addTrack({
         id: "bad",
         type: "bigwig",
@@ -97,7 +100,7 @@ describe("createTrackStore", () => {
         display: "full",
         height: 80,
       }),
-    ).toThrow(/bigwig config is invalid/);
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig config is invalid/) });
   });
 
   it("preserves interaction fields on initial tracks, added tracks, and updates", () => {
@@ -135,7 +138,9 @@ describe("createTrackStore", () => {
     store.getState().addTrack(added);
     expect(store.getState().getTrack("added")).toMatchObject({ onClick: nextClick });
 
-    store.getState().updateTrack("signal", { onClick: nextClick, onHover: undefined });
+    expect(
+      store.getState().updateTrack("signal", { onClick: nextClick, onHover: undefined }),
+    ).toEqual({ ok: true });
     expect(store.getState().getTrack("signal")).toMatchObject({
       onClick: nextClick,
       onLeave,
@@ -147,27 +152,33 @@ describe("createTrackStore", () => {
   it("rejects invalid interaction updates", () => {
     const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
 
-    expect(() =>
+    expect(
       store.getState().updateTrack("signal", { onClick: "not a function" as never }),
-    ).toThrow(/bigwig config is invalid/);
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig config is invalid/) });
   });
 
   it("validates merged updates and preserves id", () => {
     const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
 
-    store.getState().updateTrack("signal", { id: "ignored", height: 120 });
+    expect(store.getState().updateTrack("signal", { id: "ignored", height: 120 })).toEqual({
+      ok: true,
+    });
     expect(store.getState().getTrack("signal")).toMatchObject({ id: "signal", height: 120 });
     expect(store.getState().getTrack("ignored")).toBeUndefined();
 
-    store.getState().updateTrack("signal", { url: "YOUR_OTHER_URL_HERE" });
+    expect(store.getState().updateTrack("signal", { url: "YOUR_OTHER_URL_HERE" })).toEqual({
+      ok: true,
+    });
     expect(store.getState().getTrack("signal")).toMatchObject({ url: "YOUR_OTHER_URL_HERE" });
 
-    expect(() => store.getState().updateTrack("signal", { height: -1 })).toThrow(
-      /bigwig config is invalid/,
-    );
-    expect(() => store.getState().updateTrack("signal", { url: "" })).toThrow(
-      /bigwig config is invalid/,
-    );
+    expect(store.getState().updateTrack("signal", { height: -1 })).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/bigwig config is invalid/),
+    });
+    expect(store.getState().updateTrack("signal", { url: "" })).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/bigwig config is invalid/),
+    });
   });
 
   it("persists BigWig yRange from initial config and external updates", () => {
@@ -187,14 +198,17 @@ describe("createTrackStore", () => {
       yRange: { min: 0, max: 10 },
     });
 
-    store.getState().updateTrack("signal", { yRange: { min: 5, max: 20 } });
+    expect(store.getState().updateTrack("signal", { yRange: { min: 5, max: 20 } })).toEqual({
+      ok: true,
+    });
     expect(store.getState().getTrack("signal")).toMatchObject({
       yRange: { min: 5, max: 20 },
     });
 
-    expect(() => store.getState().updateTrack("signal", { yRange: { min: 20, max: 5 } })).toThrow(
-      /bigwig config is invalid/,
-    );
+    expect(store.getState().updateTrack("signal", { yRange: { min: 20, max: 5 } })).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/bigwig config is invalid/),
+    });
     expect(store.getState().getTrack("signal")).toMatchObject({
       yRange: { min: 5, max: 20 },
     });
@@ -206,8 +220,8 @@ describe("createTrackStore", () => {
       tracks: [bigWigTrack()],
     });
 
-    expect(() =>
+    expect(
       store.getState().updateTrack("signal", { type: "bigbed" } as Partial<TrackConfigBase>),
-    ).toThrow(/Track type cannot be changed/);
+    ).toEqual({ ok: false, error: "Track type cannot be changed" });
   });
 });

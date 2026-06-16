@@ -20,18 +20,17 @@ export function SettingsModalController({ registry }: { registry: ModuleRegistry
 
   try {
     const module = registry.get(track.type);
-    const validatedTrack = module.validate(track);
     const ModuleSettingsComponent = module.settingsComponent as
       | ComponentType<TrackSettingsProps<TrackConfigBase>>
       | undefined;
     const updateActiveTrack = (partial: TrackSettingsUpdate<TrackConfigBase>) => {
-      runTrackMutation(() => updateTrack(validatedTrack.id, partial));
+      return runTrackMutation(() => updateTrack(track.id, partial));
     };
 
     return (
       <ModalComponent
-        track={validatedTrack}
-        title={`Configure ${validatedTrack.title}`}
+        track={track}
+        title={`Configure ${track.title}`}
         position={position}
         closeSettings={closeSettings}
       >
@@ -40,12 +39,12 @@ export function SettingsModalController({ registry }: { registry: ModuleRegistry
           style={{ pointerEvents: isInteractionBlocked ? "none" : undefined }}
         >
           <BaseSettingsComponent
-            config={validatedTrack}
+            config={track}
             displayOptions={Object.keys(module.render)}
             updateTrack={updateActiveTrack}
           />
           {ModuleSettingsComponent && (
-            <ModuleSettingsComponent config={validatedTrack} updateTrack={updateActiveTrack} />
+            <ModuleSettingsComponent config={track} updateTrack={updateActiveTrack} />
           )}
         </div>
       </ModalComponent>

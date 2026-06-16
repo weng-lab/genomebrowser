@@ -1,17 +1,26 @@
 import type { CSSProperties } from "react";
+import { useState } from "react";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
+import type { TrackSettingsUpdate } from "../../modules/types";
 import { isHexColor } from "./settingsColor";
 import type { BaseSettingsProps } from "./types";
 
 export function DefaultBaseSettings({ config, displayOptions, updateTrack }: BaseSettingsProps) {
+  const [error, setError] = useState<string | null>(null);
+  const applyUpdate = (partial: TrackSettingsUpdate<typeof config>) => {
+    const result = updateTrack(partial);
+    setError(result.ok ? null : result.error);
+  };
+
   return (
     <SettingsSection title="Track">
+      {error && <div style={errorStyle}>{error}</div>}
       <label style={fieldStyle}>
         Title
         <input
           type="text"
           value={config.title}
-          onChange={(event) => updateTrack({ title: event.target.value })}
+          onChange={(event) => applyUpdate({ title: event.target.value })}
         />
       </label>
       <label style={fieldStyle}>
@@ -20,13 +29,13 @@ export function DefaultBaseSettings({ config, displayOptions, updateTrack }: Bas
           <input
             type="color"
             value={isHexColor(config.color) ? config.color : "#000000"}
-            onChange={(event) => updateTrack({ color: event.target.value })}
+            onChange={(event) => applyUpdate({ color: event.target.value })}
           />
           <input
             type="text"
             value={config.color ?? ""}
             placeholder="#000000"
-            onChange={(event) => updateTrack({ color: event.target.value || undefined })}
+            onChange={(event) => applyUpdate({ color: event.target.value || undefined })}
           />
         </div>
       </label>
@@ -38,7 +47,7 @@ export function DefaultBaseSettings({ config, displayOptions, updateTrack }: Bas
           value={config.height}
           onChange={(event) => {
             const height = Number(event.target.value);
-            if (!Number.isNaN(height)) updateTrack({ height: Math.max(20, height) });
+            if (!Number.isNaN(height)) applyUpdate({ height: Math.max(20, height) });
           }}
         />
       </label>
@@ -47,7 +56,7 @@ export function DefaultBaseSettings({ config, displayOptions, updateTrack }: Bas
           Display
           <select
             value={config.display}
-            onChange={(event) => updateTrack({ display: event.target.value })}
+            onChange={(event) => applyUpdate({ display: event.target.value })}
           >
             {displayOptions.map((display) => (
               <option key={display} value={display}>
@@ -64,4 +73,9 @@ export function DefaultBaseSettings({ config, displayOptions, updateTrack }: Bas
 const fieldStyle = {
   display: "grid",
   gap: "4px",
+} satisfies CSSProperties;
+
+const errorStyle = {
+  color: "#b00020",
+  fontSize: "12px",
 } satisfies CSSProperties;

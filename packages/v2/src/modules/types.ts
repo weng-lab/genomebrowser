@@ -64,9 +64,11 @@ export type TrackSettingsUpdate<Config extends TrackConfigBase> = Partial<
   Omit<Config, "id" | "type">
 >;
 
+export type TrackMutationResult = { ok: true } | { ok: false; error: string };
+
 export type TrackSettingsProps<Config extends TrackConfigBase> = {
   config: Config;
-  updateTrack: (partial: TrackSettingsUpdate<Config>) => void;
+  updateTrack: (partial: TrackSettingsUpdate<Config>) => TrackMutationResult;
 };
 
 export type TrackModule<Config extends TrackConfigBase, Data, Input = unknown> = {

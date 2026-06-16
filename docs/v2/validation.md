@@ -58,8 +58,9 @@ Validation is used in a few places:
 
 - browser store input is parsed when the browser store is created
 - region input is parsed by the region utilities
-- track store input and updates are checked against the base track config shape
-- each track module validates its own full config before fetching or rendering through its generated `validate`
+- track configs are validated through registered modules before entering or changing track state
+- browser runtime code trusts track configs from the track store when fetching, rendering, and opening settings
+- track mutators return a result object so callers can display validation errors without duplicating validation
 
 ## Design direction
 

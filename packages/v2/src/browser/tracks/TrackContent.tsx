@@ -45,7 +45,6 @@ export function TrackContent({
 
   try {
     const module = registry.get(track.type);
-    const validatedTrack = module.validate(track);
     const Renderer = module.render[track.display] as
       | ComponentType<TrackRendererProps<TrackConfigBase, unknown>>
       | undefined;
@@ -62,7 +61,7 @@ export function TrackContent({
     }
     return (
       <Renderer
-        config={validatedTrack}
+        config={track}
         data={dataState.data}
         region={region}
         width={width}

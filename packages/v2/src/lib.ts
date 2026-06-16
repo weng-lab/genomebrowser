@@ -6,6 +6,7 @@ export type {
   AnyTrackModule,
   TrackConfigBase,
   TrackFetchContext,
+  TrackMutationResult,
   TrackModule,
   TrackRendererProps,
   TrackSettingsProps,

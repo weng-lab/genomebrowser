@@ -1,5 +1,9 @@
 import type { ComponentType, ReactNode } from "react";
-import type { TrackConfigBase, TrackSettingsUpdate } from "../../modules/types";
+import type {
+  TrackConfigBase,
+  TrackMutationResult,
+  TrackSettingsUpdate,
+} from "../../modules/types";
 
 export type SettingsPosition = {
   x: number;
@@ -17,7 +21,7 @@ export type SettingsModalProps = {
 export type BaseSettingsProps<Config extends TrackConfigBase = TrackConfigBase> = {
   config: Config;
   displayOptions: string[];
-  updateTrack: (partial: TrackSettingsUpdate<Config>) => void;
+  updateTrack: (partial: TrackSettingsUpdate<Config>) => TrackMutationResult;
 };
 
 export type SettingsStoreInput = {

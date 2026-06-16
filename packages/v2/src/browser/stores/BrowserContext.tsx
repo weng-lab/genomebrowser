@@ -1,4 +1,5 @@
 import { createContext, use, type ReactNode } from "react";
+import type { TrackMutationResult } from "../../modules/types";
 import type { SettingsStore, SettingsStoreInstance } from "../settings/settingsStore";
 import type { BrowserStore, BrowserStoreInstance } from "./browserStore";
 import type { ContextMenuStore, ContextMenuStoreInstance } from "./contextMenuStore";
@@ -70,10 +71,11 @@ export function useTrackMutationGate() {
 
   return {
     isInteractionBlocked: context.isInteractionBlocked,
-    runTrackMutation: (mutation: () => void) => {
-      if (context.isInteractionBlocked) return false;
-      mutation();
-      return true;
+    runTrackMutation: (mutation: () => TrackMutationResult) => {
+      if (context.isInteractionBlocked) {
+        return { ok: false, error: "Track interactions are currently blocked" };
+      }
+      return mutation();
     },
   };
 }

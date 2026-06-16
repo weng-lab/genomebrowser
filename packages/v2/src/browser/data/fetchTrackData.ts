@@ -16,8 +16,7 @@ export async function fetchTrackData({
 }): Promise<DataResult> {
   try {
     const module = registry.get(track.type);
-    const config = module.validate(track);
-    const data = await module.fetch({ config, region });
+    const data = await module.fetch({ config: track, region });
     return { status: "success", data };
   } catch (error) {
     return { status: "error", error: error instanceof Error ? error.message : "Unknown error" };

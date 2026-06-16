@@ -33,7 +33,7 @@ describe("fetchTrackData", () => {
     ).resolves.toEqual({ status: "success", data: [{ url: "YOUR_URL_HERE" }] });
   });
 
-  it("returns errors for missing modules, invalid configs, and fetch failures", async () => {
+  it("returns errors for missing modules and fetch failures", async () => {
     const module = defineTrackModule({
       type: "example",
       schema: z.object({ url: z.string().min(1) }),
@@ -60,20 +60,6 @@ describe("fetchTrackData", () => {
       status: "error",
       error: "No track module registered for type: missing",
     });
-
-    await expect(
-      fetchTrackData({
-        registry,
-        track: {
-          id: "bad",
-          type: "example",
-          title: "Bad",
-          display: "full",
-          height: 80,
-        },
-        region,
-      }),
-    ).resolves.toMatchObject({ status: "error" });
 
     await expect(
       fetchTrackData({
