@@ -9,6 +9,7 @@ import type { BrowserStoreInstance } from "../stores/browserStore";
 import { createContextMenuStore } from "../stores/contextMenuStore";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { createTooltipStore } from "../stores/tooltipStore";
+import { InteractionShield } from "./interactions/InteractionShield";
 import { Highlights } from "./overlays/Highlights";
 import { ContextMenuController } from "./overlays/ContextMenuController";
 import { SettingsModalController } from "./overlays/SettingsModalController";
@@ -89,6 +90,7 @@ export function GenomeBrowser({
     region: targetRenderRegion,
     onSettled: () => handleDataSettled(dataSignature),
   });
+  const isInteractionBlocked = isPanLocked || isFetching;
 
   return (
     <BrowserProvider
@@ -100,6 +102,7 @@ export function GenomeBrowser({
         tooltipStore,
         svg,
         isPanning: panDrag.isDragging,
+        isInteractionBlocked,
       }}
     >
       <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
@@ -110,7 +113,7 @@ export function GenomeBrowser({
           totalHeight={totalHeight}
           region={region}
           setRegion={setRegion}
-          disabled={isPanLocked || isFetching}
+          disabled={isInteractionBlocked}
         >
           <g transform={`translate(${marginWidth},0)`}>
             <Ruler region={region} width={trackWidth} />
@@ -127,7 +130,7 @@ export function GenomeBrowser({
               contentWidth={renderWidth}
               registerContentGroup={registerContentGroup}
               panDrag={panDrag}
-              isPanLocked={isPanLocked || isFetching}
+              isPanLocked={isInteractionBlocked}
               titleSize={titleSize}
               startY={RULER_HEIGHT}
             />
@@ -143,6 +146,11 @@ export function GenomeBrowser({
           />
         </SelectRegion>
         <Tooltip width={browserWidth} height={totalHeight} />
+        <InteractionShield
+          active={isInteractionBlocked}
+          width={browserWidth}
+          height={totalHeight}
+        />
       </SvgShell>
       <ContextMenuController registry={registry} />
       <SettingsModalController registry={registry} />

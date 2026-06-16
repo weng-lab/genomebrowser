@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { MouseEvent, RefObject } from "react";
 import type { TrackConfigBase } from "../../modules/types";
-import { useBrowserSvg, useTrackStore } from "../../stores/BrowserContext";
+import { useBrowserSvg, useTrackMutationGate, useTrackStore } from "../../stores/BrowserContext";
 import { svgPoint } from "../../utils/svg";
 import { getSwapOrder, getSwapPreview, isSameSwapPreview } from "./trackSwapMath";
 import type { SwapPreview, TrackFrameSwapProps } from "./types";
@@ -30,6 +30,7 @@ export function useTrackSwap({
   const svg = useBrowserSvg();
   const tracks = useTrackStore((state) => state.tracks);
   const reorderTracks = useTrackStore((state) => state.reorderTracks);
+  const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const [dragSession, setDragSession] = useState<DragSession | null>(null);
   const isSwapping = dragSession !== null;
   const previewRef = useRef<SwapPreview | null>(null);
@@ -46,7 +47,7 @@ export function useTrackSwap({
   }, [dragSession, onPreviewEnd]);
 
   const handleSwapMouseDown = (event: MouseEvent<SVGRectElement>) => {
-    if (disabled || event.button !== 0) return;
+    if (disabled || isInteractionBlocked || event.button !== 0) return;
     if (!svg || tracks.length < 2) return;
     const startPoint = svgPoint(svg, event.clientX, event.clientY);
     if (!startPoint) return;
@@ -82,7 +83,7 @@ export function useTrackSwap({
       event.preventDefault();
       if (Math.abs(latestDeltaY) > 5) {
         const nextOrder = getSwapOrder(track.id, tracks, titleSize, latestDeltaY);
-        if (nextOrder) reorderTracks(nextOrder);
+        if (nextOrder) runTrackMutation(() => reorderTracks(nextOrder));
       }
 
       isEnded = true;
@@ -100,7 +101,7 @@ export function useTrackSwap({
     updatePreview(0);
   };
 
-  const onSwapMouseDown = disabled ? undefined : handleSwapMouseDown;
+  const onSwapMouseDown = disabled || isInteractionBlocked ? undefined : handleSwapMouseDown;
   const swapProps: TrackFrameSwapProps = {
     onSwapMouseDown,
     swapping: isSwapping,

@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import type { createModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase, TrackSettingsProps, TrackSettingsUpdate } from "../../modules/types";
-import { useSettingsStore, useTrackStore } from "../../stores/BrowserContext";
+import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../../stores/BrowserContext";
 
 type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 
@@ -14,6 +14,7 @@ export function SettingsModalController({ registry }: { registry: ModuleRegistry
   const closeSettings = useSettingsStore((state) => state.closeSettings);
   const track = useTrackStore((state) => (trackId ? state.getTrack(trackId) : undefined));
   const updateTrack = useTrackStore((state) => state.updateTrack);
+  const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
 
   if (!open || !track) return null;
 
@@ -24,7 +25,7 @@ export function SettingsModalController({ registry }: { registry: ModuleRegistry
       | ComponentType<TrackSettingsProps<TrackConfigBase>>
       | undefined;
     const updateActiveTrack = (partial: TrackSettingsUpdate<TrackConfigBase>) => {
-      updateTrack(validatedTrack.id, partial);
+      runTrackMutation(() => updateTrack(validatedTrack.id, partial));
     };
 
     return (
@@ -34,14 +35,19 @@ export function SettingsModalController({ registry }: { registry: ModuleRegistry
         position={position}
         closeSettings={closeSettings}
       >
-        <BaseSettingsComponent
-          config={validatedTrack}
-          displayOptions={Object.keys(module.render)}
-          updateTrack={updateActiveTrack}
-        />
-        {ModuleSettingsComponent && (
-          <ModuleSettingsComponent config={validatedTrack} updateTrack={updateActiveTrack} />
-        )}
+        <div
+          aria-disabled={isInteractionBlocked}
+          style={{ pointerEvents: isInteractionBlocked ? "none" : undefined }}
+        >
+          <BaseSettingsComponent
+            config={validatedTrack}
+            displayOptions={Object.keys(module.render)}
+            updateTrack={updateActiveTrack}
+          />
+          {ModuleSettingsComponent && (
+            <ModuleSettingsComponent config={validatedTrack} updateTrack={updateActiveTrack} />
+          )}
+        </div>
       </ModalComponent>
     );
   } catch (error) {

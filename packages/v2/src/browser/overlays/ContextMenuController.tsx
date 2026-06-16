@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { createModuleRegistry } from "../../modules/registry";
-import { useContextMenuStore, useTrackStore } from "../../stores/BrowserContext";
+import {
+  useContextMenuStore,
+  useTrackMutationGate,
+  useTrackStore,
+} from "../../stores/BrowserContext";
 
 type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 
@@ -12,6 +16,7 @@ export function ContextMenuController({ registry }: { registry: ModuleRegistry }
   const track = useTrackStore((state) => (trackId ? state.getTrack(trackId) : undefined));
   const updateTrack = useTrackStore((state) => state.updateTrack);
   const removeTrack = useTrackStore((state) => state.removeTrack);
+  const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const menuRef = useRef<HTMLDivElement>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
@@ -44,13 +49,11 @@ export function ContextMenuController({ registry }: { registry: ModuleRegistry }
   }
 
   const handleDisplayClick = (display: string) => {
-    updateTrack(trackId, { display });
-    closeContextMenu();
+    if (runTrackMutation(() => updateTrack(trackId, { display }))) closeContextMenu();
   };
 
   const handleRemoveClick = () => {
-    removeTrack(trackId);
-    closeContextMenu();
+    if (runTrackMutation(() => removeTrack(trackId))) closeContextMenu();
   };
 
   return (
@@ -65,6 +68,7 @@ export function ContextMenuController({ registry }: { registry: ModuleRegistry }
           label={display}
           selected={track.display === display}
           hovered={hoveredItem === display}
+          disabled={isInteractionBlocked}
           onHover={() => setHoveredItem(display)}
           onLeave={() => setHoveredItem(null)}
           onClick={() => handleDisplayClick(display)}
@@ -74,6 +78,7 @@ export function ContextMenuController({ registry }: { registry: ModuleRegistry }
       <MenuButton
         label="remove"
         hovered={hoveredItem === "remove"}
+        disabled={isInteractionBlocked}
         onHover={() => setHoveredItem("remove")}
         onLeave={() => setHoveredItem(null)}
         onClick={handleRemoveClick}
@@ -86,6 +91,7 @@ function MenuButton({
   label,
   selected = false,
   hovered = false,
+  disabled = false,
   onHover,
   onLeave,
   onClick,
@@ -93,6 +99,7 @@ function MenuButton({
   label: string;
   selected?: boolean;
   hovered?: boolean;
+  disabled?: boolean;
   onHover: () => void;
   onLeave: () => void;
   onClick: () => void;
@@ -102,8 +109,11 @@ function MenuButton({
       type="button"
       style={{
         ...buttonStyle,
-        background: selected ? "#d0d0d0" : hovered ? "#f0f0f0" : "#ffffff",
+        background: selected ? "#d0d0d0" : hovered && !disabled ? "#f0f0f0" : "#ffffff",
+        color: disabled ? "#888888" : "#000000",
+        cursor: disabled ? "not-allowed" : "pointer",
       }}
+      disabled={disabled}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
       onClick={onClick}
