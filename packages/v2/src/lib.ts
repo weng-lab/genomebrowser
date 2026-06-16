@@ -19,7 +19,9 @@ export type { DraggableSettingsModalResult } from "./hooks/useDraggableSettingsM
 export { useInteraction } from "./hooks/useInteraction";
 
 export { createBrowserStore } from "./stores/browserStore";
+export { createContextMenuStore } from "./stores/contextMenuStore";
 export {
+  useContextMenuStore,
   useBrowserStore,
   useSettingsStore,
   useTooltipStore,
@@ -41,6 +43,11 @@ export type {
   SettingsStoreInput,
   SettingsStoreInstance,
 } from "./settings/settingsStore";
+export type {
+  ContextMenuPosition,
+  ContextMenuStore,
+  ContextMenuStoreInstance,
+} from "./stores/contextMenuStore";
 export type {
   TrackStore,
   TrackStoreInstance,

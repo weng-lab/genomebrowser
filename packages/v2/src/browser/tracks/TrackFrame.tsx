@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { TrackConfigBase } from "../../modules/types";
+import { useContextMenuStore } from "../../stores/BrowserContext";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { TrackControls } from "./TrackControls";
 import { getTrackTitleMargin, getTrackWrapperHeight } from "./trackLayout";
@@ -42,6 +43,7 @@ export function TrackFrame({
   const wrapperHeight = getTrackWrapperHeight(track, titleSize);
   const titleMargin = getTrackTitleMargin(track, titleSize);
   const contentClipId = useId();
+  const openContextMenu = useContextMenuStore((state) => state.openContextMenu);
 
   if (disableHover && hover) {
     setHover(false);
@@ -51,6 +53,11 @@ export function TrackFrame({
     if (isDragClone || !registerContentGroup || !contentGroupRef.current) return;
     return registerContentGroup(contentGroupRef.current);
   }, [isDragClone, registerContentGroup]);
+
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+    openContextMenu(track.id, { x: event.pageX, y: event.pageY });
+  };
 
   return (
     <g
@@ -65,7 +72,14 @@ export function TrackFrame({
           <rect x={marginWidth} y={titleMargin} width={trackWidth} height={track.height} />
         </clipPath>
       </defs>
-      <rect x={marginWidth} y={0} width={trackWidth} height={wrapperHeight} fill="#ffffff" />
+      <rect
+        x={marginWidth}
+        y={0}
+        width={trackWidth}
+        height={wrapperHeight}
+        fill="#ffffff"
+        onContextMenu={handleContextMenu}
+      />
       {panDrag && (
         <rect
           x={marginWidth}
@@ -79,9 +93,10 @@ export function TrackFrame({
           onPointerMove={panDrag.onPointerMove}
           onPointerUp={panDrag.onPointerUp}
           onPointerCancel={panDrag.onPointerCancel}
+          onContextMenu={handleContextMenu}
         />
       )}
-      <g clipPath={`url(#${contentClipId})`}>
+      <g clipPath={`url(#${contentClipId})`} onContextMenu={handleContextMenu}>
         <g ref={contentGroupRef} transform={`translate(${contentX},0)`}>
           <g transform={`translate(0,${titleMargin})`}>{children}</g>
         </g>

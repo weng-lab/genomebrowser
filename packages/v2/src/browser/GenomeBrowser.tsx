@@ -6,9 +6,11 @@ import type { AnyTrackModule } from "../modules/types";
 import { createSettingsStore, type SettingsStoreInstance } from "../settings/settingsStore";
 import { BrowserProvider } from "../stores/BrowserContext";
 import type { BrowserStoreInstance } from "../stores/browserStore";
+import { createContextMenuStore } from "../stores/contextMenuStore";
 import type { TrackStoreInstance } from "../stores/trackStore";
 import { createTooltipStore } from "../stores/tooltipStore";
 import { Highlights } from "./overlays/Highlights";
+import { ContextMenuController } from "./overlays/ContextMenuController";
 import { SettingsModalController } from "./overlays/SettingsModalController";
 import { SvgShell } from "./SvgShell";
 import { Tooltip } from "./overlays/Tooltip";
@@ -44,6 +46,7 @@ export function GenomeBrowser({
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
   const registry = useMemo(() => createModuleRegistry(modules), [modules]);
   const useDataStore = useMemo(() => createDataStore(), []);
+  const contextMenuStore = useMemo(() => createContextMenuStore(), []);
   const tooltipStore = useMemo(() => createTooltipStore(), []);
   const internalSettingsStore = useMemo(() => createSettingsStore(), []);
   const activeSettingsStore = settingsStore ?? internalSettingsStore;
@@ -92,6 +95,7 @@ export function GenomeBrowser({
       value={{
         browserStore,
         trackStore,
+        contextMenuStore,
         settingsStore: activeSettingsStore,
         tooltipStore,
         svg,
@@ -140,6 +144,7 @@ export function GenomeBrowser({
         </SelectRegion>
         <Tooltip width={browserWidth} height={totalHeight} />
       </SvgShell>
+      <ContextMenuController registry={registry} />
       <SettingsModalController registry={registry} />
     </BrowserProvider>
   );
