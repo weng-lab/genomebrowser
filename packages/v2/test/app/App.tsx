@@ -5,11 +5,12 @@ import {
   bulkBedModule,
   bigWigModule,
   createTrackStore,
+  methylCModule,
   transcriptModule,
 } from "../../src/lib";
 
 const browserStore = createBrowserStore({
-  region: "chr6:21,592,778-21,599,592",
+  region: "chr12:53,372,922-53,423,700",
   highlights: [
     {
       id: "test-highlight",
@@ -20,7 +21,13 @@ const browserStore = createBrowserStore({
   ],
 });
 
-const modules = [bigWigModule, bigBedModule, transcriptModule, bulkBedModule];
+const modules = [
+  bigWigModule,
+  bigBedModule,
+  transcriptModule,
+  bulkBedModule,
+  methylCModule,
+];
 
 const trackStore = createTrackStore({
   modules,
@@ -90,9 +97,57 @@ const trackStore = createTrackStore({
         console.log(item.name);
       },
     }),
+    methylCModule.create({
+      id: "methylc",
+      title: "MethylC Track",
+      height: 100,
+      colors: {
+        cpg: "#648bd8",
+        chg: "#ff944d",
+        chh: "#ff00ff",
+        depth: "#525252",
+      },
+      range: { min: 0, max: 1 },
+      urls: {
+        plusStrand: {
+          cpg: {
+            url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_pos.bw",
+          },
+          chg: {
+            url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_pos.bw",
+          },
+          chh: {
+            url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_pos.bw",
+          },
+          depth: {
+            url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_pos.bw",
+          },
+        },
+        minusStrand: {
+          cpg: {
+            url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_neg.bw",
+          },
+          chg: {
+            url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_neg.bw",
+          },
+          chh: {
+            url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_neg.bw",
+          },
+          depth: {
+            url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_neg.bw",
+          },
+        },
+      },
+    }),
   ],
 });
 
 export default function App() {
-  return <GenomeBrowser browserStore={browserStore} trackStore={trackStore} modules={modules} />;
+  return (
+    <GenomeBrowser
+      browserStore={browserStore}
+      trackStore={trackStore}
+      modules={modules}
+    />
+  );
 }

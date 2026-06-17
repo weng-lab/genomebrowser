@@ -102,4 +102,18 @@ export type {
   BulkBedRect,
 } from "./tracks/bulkbed/types";
 
+export { methylCModule } from "./tracks/methylc/module";
+export type {
+  MethylCColors,
+  MethylCConfig,
+  MethylCData,
+  MethylCDisplay,
+  MethylCInput,
+  MethylCRenderedPoint,
+  MethylCShowRows,
+  MethylCStrandUrls,
+  MethylCTooltipItem,
+  MethylCUrls,
+} from "./tracks/methylc/types";
+
 export type { BrowserRegion } from "./modules/utils/region";
