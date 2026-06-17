@@ -1,6 +1,5 @@
 import type { TrackFetchContext } from "../../modules/types";
-import { fetchBigBed } from "../bigbed/fetch";
-import type { BigBedConfig } from "../bigbed/types";
+import { fetchBigBedRows } from "../bigbed/fetch";
 import type { BulkBedConfig, BulkBedData } from "./types";
 
 export async function fetchBulkBed({
@@ -9,8 +8,8 @@ export async function fetchBulkBed({
 }: TrackFetchContext<BulkBedConfig>): Promise<BulkBedData> {
   return Promise.all(
     config.datasets.map(async (dataset, index) => {
-      const rows = await fetchBigBed({
-        config: createBigBedConfig(config, dataset.url, dataset.name, index),
+      const rows = await fetchBigBedRows({
+        url: dataset.url,
         region,
       });
 
@@ -20,21 +19,4 @@ export async function fetchBulkBed({
       }));
     }),
   );
-}
-
-function createBigBedConfig(
-  config: BulkBedConfig,
-  url: string,
-  title: string,
-  index: number,
-): BigBedConfig {
-  return {
-    id: `${config.id}-${index}`,
-    type: "bigbed",
-    title,
-    display: "dense",
-    height: config.height,
-    color: config.color,
-    url,
-  };
 }

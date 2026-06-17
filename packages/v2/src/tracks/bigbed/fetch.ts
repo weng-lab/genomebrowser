@@ -1,8 +1,9 @@
 import axios from "axios";
 import { AxiosDataLoader, BigWigReader, FileType } from "genomic-reader";
 import type { TrackFetchContext } from "../../modules/types";
+import type { BrowserRegion } from "../../modules/utils/region";
 import { createBigBedSchemaParser } from "./schema";
-import type { BigBedConfig, BigBedData, BigBedRow } from "./types";
+import type { BigBedConfig, BigBedData, BigBedRow, BigBedSchema } from "./types";
 
 type RawBigBedRow = Partial<BigBedRow> & {
   chrom?: string;
@@ -16,9 +17,25 @@ export async function fetchBigBed({
   config,
   region,
 }: TrackFetchContext<BigBedConfig>): Promise<BigBedData> {
+  return fetchBigBedRows({
+    url: config.url,
+    schema: config.schema,
+    region,
+  });
+}
+
+export async function fetchBigBedRows({
+  url,
+  schema,
+  region,
+}: {
+  url: string;
+  schema?: BigBedSchema;
+  region: BrowserRegion;
+}): Promise<BigBedRow[]> {
   await ensureBrowserBuffer();
 
-  const dataLoader = new AxiosDataLoader(config.url, axios.create() as never);
+  const dataLoader = new AxiosDataLoader(url, axios.create() as never);
   const reader = new BigWigReader(dataLoader);
   const header = await reader.getHeader();
 
@@ -26,13 +43,13 @@ export async function fetchBigBed({
     throw new Error("BigBed module only supports BigBed files");
   }
 
-  const rows = config.schema
+  const rows = schema
     ? ((await reader.readBigBedData(
         region.chromosome,
         region.start,
         region.chromosome,
         region.end,
-        createBigBedSchemaParser(config.schema),
+        createBigBedSchemaParser(schema),
       )) as RawBigBedRow[])
     : ((await reader.readBigBedData(
         region.chromosome,
