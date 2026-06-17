@@ -88,6 +88,8 @@ Track modules should stay dumb and browser-independent. A module should describe
 
 This lets modules be used outside the browser orchestration layer. For example, maintainers can use a module directly to create a config, validate a saved config, fetch data for a region, or render a track in a different shell.
 
+Browser-level interactions such as panning are owned by the browser track wrapper, not by module renderers. Renderers should not add pan-drag pass-through layers; they can keep track-specific hover or click hit areas, and browser panning will work through the wrapper around the rendered SVG content.
+
 Some module-author helpers, such as interaction and auto-height hooks, are browser-runtime helpers exposed through `src/modules/runtime`. Those helpers are intended for modules rendered by `GenomeBrowser`; a custom shell would need to provide an equivalent module runtime if it wants those browser-backed behaviors.
 
 Small BigWig example:

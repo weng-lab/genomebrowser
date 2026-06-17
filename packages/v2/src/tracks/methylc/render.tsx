@@ -15,7 +15,6 @@ export function SplitMethylC({
   region,
   width,
   height,
-  panDrag,
 }: TrackRendererProps<MethylCConfig, MethylCData>) {
   const renderedData = useMemo(
     () => condenseMethylCChannels(data, region, width),
@@ -101,7 +100,6 @@ export function SplitMethylC({
         showRows={showRows}
         width={width}
         height={height}
-        panDrag={panDrag}
       />
     </g>
   );
@@ -113,8 +111,7 @@ function MethylCHoverOverlay({
   showRows,
   width,
   height,
-  panDrag,
-}: Pick<TrackRendererProps<MethylCConfig, MethylCData>, "config" | "width" | "height" | "panDrag"> & {
+}: Pick<TrackRendererProps<MethylCConfig, MethylCData>, "config" | "width" | "height"> & {
   data: MethylCRenderedPoint[][];
   showRows: MethylCShowRows;
 }) {
@@ -138,7 +135,7 @@ function MethylCHoverOverlay({
 
   return (
     <>
-      {hoveredIndex !== undefined && !panDrag?.isDragging && (
+      {hoveredIndex !== undefined && (
         <line
           stroke="#000000"
           x1={hoveredIndex}
@@ -153,13 +150,8 @@ function MethylCHoverOverlay({
         height={height}
         fill="transparent"
         pointerEvents="all"
-        style={{ cursor: panDrag?.isDragging ? "grabbing" : "default" }}
         onMouseMove={handleMouseMove}
         onMouseOut={handleMouseOut}
-        onPointerDown={panDrag?.onPointerDown}
-        onPointerMove={panDrag?.onPointerMove}
-        onPointerUp={panDrag?.onPointerUp}
-        onPointerCancel={panDrag?.onPointerCancel}
       />
     </>
   );

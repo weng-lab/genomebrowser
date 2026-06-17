@@ -44,4 +44,6 @@ Keep the core browser generic. When adding behavior, prefer putting it in the na
 - shared runtime contracts go in `src/modules`
 - browser-backed helpers used by modules go behind `src/modules/runtime`
 
+Panning is browser-level behavior. The browser wraps rendered track content so SVG elements can still receive normal click and hover events while drag gestures bubble to the browser pan controller.
+
 See [Schema validation](validation.md) for how runtime input is checked at package and module boundaries. See [Useful helpers for track modules](helpers.md) for public hooks that custom module authors can use.

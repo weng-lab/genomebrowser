@@ -81,6 +81,15 @@ const trackStore = createTrackStore({
           <text y={14}>{item.datasetName}</text>
         </g>
       ),
+      onClick: ({ item }) => {
+        console.log("[v2 test app] BulkBed click", {
+          name: item.name,
+          datasetName: item.datasetName,
+          start: item.start,
+          end: item.end,
+          item,
+        });
+      },
     }),
     transcriptModule.create({
       id: "genes",

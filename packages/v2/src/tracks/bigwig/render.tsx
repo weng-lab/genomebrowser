@@ -18,7 +18,6 @@ export function FullBigWig({
   width,
   height,
   region,
-  panDrag,
 }: TrackRendererProps<BigWigConfig, BigWigData[]>) {
   const points = getRenderedPoints(config, data, region, width);
   const range = getRenderRange(config, points);
@@ -34,13 +33,7 @@ export function FullBigWig({
       <path d={paths.maxPath} fill={config.color ?? "#2266aa"} />
       <path d={paths.clampHighPath} stroke="#ff0000" strokeWidth={2} fill="none" />
       <path d={paths.clampLowPath} stroke="#ff0000" strokeWidth={2} fill="none" />
-      <BigWigHoverOverlay
-        config={config}
-        points={points}
-        width={width}
-        height={height}
-        panDrag={panDrag}
-      />
+      <BigWigHoverOverlay config={config} points={points} width={width} height={height} />
     </g>
   );
 }
@@ -51,7 +44,6 @@ export function DenseBigWig({
   width,
   height,
   region,
-  panDrag,
 }: TrackRendererProps<BigWigConfig, BigWigData[]>) {
   const points = getRenderedPoints(config, data, region, width);
   const range = getRenderRange(config, points);
@@ -76,13 +68,7 @@ export function DenseBigWig({
           />
         );
       })}
-      <BigWigHoverOverlay
-        config={config}
-        points={points}
-        width={width}
-        height={height}
-        panDrag={panDrag}
-      />
+      <BigWigHoverOverlay config={config} points={points} width={width} height={height} />
     </g>
   );
 }
@@ -92,11 +78,7 @@ function BigWigHoverOverlay({
   points,
   width,
   height,
-  panDrag,
-}: Pick<
-  TrackRendererProps<BigWigConfig, BigWigData[]>,
-  "config" | "width" | "height" | "panDrag"
-> & {
+}: Pick<TrackRendererProps<BigWigConfig, BigWigData[]>, "config" | "width" | "height"> & {
   points: RenderedBigWigPoint[];
 }) {
   const [hoveredPoint, setHoveredPoint] = useState<RenderedBigWigPoint | undefined>();
@@ -139,13 +121,8 @@ function BigWigHoverOverlay({
         height={height}
         fill="transparent"
         pointerEvents="all"
-        style={{ cursor: panDrag?.isDragging ? "grabbing" : "default" }}
         onMouseMove={handleMouseMove}
         onMouseOut={handleMouseOut}
-        onPointerDown={panDrag?.onPointerDown}
-        onPointerMove={panDrag?.onPointerMove}
-        onPointerUp={panDrag?.onPointerUp}
-        onPointerCancel={panDrag?.onPointerCancel}
       />
     </>
   );

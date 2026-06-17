@@ -1,4 +1,4 @@
-import type { ComponentType, MouseEvent, PointerEvent } from "react";
+import type { ComponentType, MouseEvent } from "react";
 import type { BrowserRegion } from "./utils/region";
 
 export type TrackInteractionContext<Item, Config extends TrackConfigBase> = {
@@ -51,13 +51,6 @@ export type TrackRendererProps<Config extends TrackConfigBase, Data> = {
   region: BrowserRegion;
   width: number;
   height: number;
-  panDrag?: {
-    isDragging: boolean;
-    onPointerDown: (event: PointerEvent<SVGRectElement>) => void;
-    onPointerMove: (event: PointerEvent<SVGRectElement>) => void;
-    onPointerUp: (event: PointerEvent<SVGRectElement>) => void;
-    onPointerCancel: (event: PointerEvent<SVGRectElement>) => void;
-  };
 };
 
 export type TrackSettingsUpdate<Config extends TrackConfigBase> = Partial<

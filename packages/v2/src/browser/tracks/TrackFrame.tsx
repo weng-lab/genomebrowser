@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { TrackConfigBase } from "../../modules/types";
 import { useContextMenuStore } from "../stores/BrowserContext";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
+import { PanTrack } from "./PanTrack";
 import { TrackControls } from "./TrackControls";
 import { getTrackTitleMargin, getTrackWrapperHeight } from "./trackLayout";
 
@@ -12,6 +13,7 @@ export function TrackFrame({
   marginWidth,
   trackWidth,
   contentX = marginWidth,
+  contentWidth = trackWidth,
   registerContentGroup,
   panDrag,
   isPanLocked = false,
@@ -28,6 +30,7 @@ export function TrackFrame({
   marginWidth: number;
   trackWidth: number;
   contentX?: number;
+  contentWidth?: number;
   registerContentGroup?: (node: SVGGElement) => () => void;
   panDrag?: PanDragHandlers;
   isPanLocked?: boolean;
@@ -80,25 +83,18 @@ export function TrackFrame({
         fill="#ffffff"
         onContextMenu={handleContextMenu}
       />
-      {panDrag && (
-        <rect
-          x={marginWidth}
-          y={titleMargin}
-          width={trackWidth}
-          height={track.height}
-          fill="transparent"
-          pointerEvents="all"
-          style={{ cursor: isPanLocked ? "default" : panDrag.isDragging ? "grabbing" : "grab" }}
-          onPointerDown={panDrag.onPointerDown}
-          onPointerMove={panDrag.onPointerMove}
-          onPointerUp={panDrag.onPointerUp}
-          onPointerCancel={panDrag.onPointerCancel}
-          onContextMenu={handleContextMenu}
-        />
-      )}
       <g clipPath={`url(#${contentClipId})`} onContextMenu={handleContextMenu}>
         <g ref={contentGroupRef} transform={`translate(${contentX},0)`}>
-          <g transform={`translate(0,${titleMargin})`}>{children}</g>
+          <g transform={`translate(0,${titleMargin})`}>
+            <PanTrack
+              panDrag={panDrag}
+              disabled={isPanLocked}
+              width={contentWidth}
+              height={track.height}
+            >
+              {children}
+            </PanTrack>
+          </g>
         </g>
       </g>
       <text

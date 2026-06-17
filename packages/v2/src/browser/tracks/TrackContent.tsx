@@ -5,7 +5,6 @@ import type { TrackConfigBase, TrackRendererProps } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { ErrorState } from "../ErrorState";
 import { LoadingState } from "../LoadingState";
-import type { PanDragHandlers } from "../viewport/usePanDrag";
 
 type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 
@@ -17,7 +16,6 @@ export function TrackContent({
   width,
   height,
   titleMargin,
-  panDrag,
 }: {
   track: TrackConfigBase;
   dataState: DataState;
@@ -26,7 +24,6 @@ export function TrackContent({
   width: number;
   height: number;
   titleMargin: number;
-  panDrag?: PanDragHandlers;
 }) {
   if (dataState.status === "loading") {
     return <LoadingState x={0} y={0} width={width} height={height} />;
@@ -66,7 +63,6 @@ export function TrackContent({
         region={region}
         width={width}
         height={height}
-        panDrag={panDrag}
       />
     );
   } catch (error) {

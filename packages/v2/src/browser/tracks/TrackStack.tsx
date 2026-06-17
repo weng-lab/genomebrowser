@@ -76,6 +76,7 @@ export function TrackStack({
             marginWidth={marginWidth}
             trackWidth={trackWidth}
             contentX={contentX}
+            contentWidth={contentWidth}
             registerContentGroup={registerContentGroup}
             panDrag={panDrag}
             isPanLocked={isPanLocked}
@@ -90,7 +91,6 @@ export function TrackStack({
               width={contentWidth ?? trackWidth}
               height={track.height}
               titleMargin={titleMargin}
-              panDrag={panDrag}
             />
           </TrackFrame>
         )}

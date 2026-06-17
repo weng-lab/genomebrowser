@@ -1,14 +1,15 @@
-import { useCallback, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { svgPoint } from "../../modules/utils/svg";
 
 const PAN_COMMIT_THRESHOLD_PX = 10;
 
 export type PanDragHandlers = {
   isDragging: boolean;
-  onPointerDown: (event: PointerEvent<SVGRectElement>) => void;
-  onPointerMove: (event: PointerEvent<SVGRectElement>) => void;
-  onPointerUp: (event: PointerEvent<SVGRectElement>) => void;
-  onPointerCancel: (event: PointerEvent<SVGRectElement>) => void;
+  onPointerDown: (event: PointerEvent<SVGElement>) => void;
+  onPointerMove: (event: PointerEvent<SVGElement>) => void;
+  onPointerUp: (event: PointerEvent<SVGElement>) => void;
+  onPointerCancel: (event: PointerEvent<SVGElement>) => void;
+  onClickCapture: (event: MouseEvent<SVGElement>) => void;
 };
 
 type UsePanDragOptions = {
@@ -32,39 +33,47 @@ export function usePanDrag({
 }: UsePanDragOptions): PanDragHandlers {
   const [isDragging, setIsDragging] = useState(false);
   const activePointerId = useRef<number | null>(null);
+  const capturedPointerId = useRef<number | null>(null);
   const startSvgX = useRef(0);
   const startDeltaPx = useRef(0);
+  const suppressNextClick = useRef(false);
 
   const getEventX = useCallback(
-    (event: PointerEvent<SVGRectElement>) => {
+    (event: PointerEvent<SVGElement>) => {
       if (!svg) return null;
       return svgPoint(svg, event.clientX, event.clientY)?.x ?? null;
     },
     [svg],
   );
 
-  const releasePointer = useCallback((event: PointerEvent<SVGRectElement>) => {
+  const releasePointer = useCallback((event: PointerEvent<SVGElement>) => {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+    if (capturedPointerId.current === event.pointerId) capturedPointerId.current = null;
   }, []);
 
   const resetPointer = useCallback(() => {
     activePointerId.current = null;
+    capturedPointerId.current = null;
     setIsDragging(false);
   }, []);
 
+  const capturePointer = useCallback((event: PointerEvent<SVGElement>) => {
+    if (capturedPointerId.current === event.pointerId) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    capturedPointerId.current = event.pointerId;
+  }, []);
+
   const onPointerDown = useCallback(
-    (event: PointerEvent<SVGRectElement>) => {
+    (event: PointerEvent<SVGElement>) => {
       if (disabled || !event.isPrimary || event.button !== 0) return;
       const x = getEventX(event);
       if (x === null) return;
 
-      event.preventDefault();
       activePointerId.current = event.pointerId;
       startSvgX.current = x;
       startDeltaPx.current = getCurrentDelta();
-      event.currentTarget.setPointerCapture(event.pointerId);
       setIsDragging(true);
       onStart();
     },
@@ -72,38 +81,44 @@ export function usePanDrag({
   );
 
   const onPointerMove = useCallback(
-    (event: PointerEvent<SVGRectElement>) => {
+    (event: PointerEvent<SVGElement>) => {
       if (activePointerId.current !== event.pointerId) return;
       const x = getEventX(event);
       if (x === null) return;
 
-      event.preventDefault();
-      setDelta(startDeltaPx.current + x - startSvgX.current);
+      const deltaPx = startDeltaPx.current + x - startSvgX.current;
+      if (Math.abs(deltaPx) >= PAN_COMMIT_THRESHOLD_PX) {
+        event.preventDefault();
+        capturePointer(event);
+      }
+      setDelta(deltaPx);
     },
-    [getEventX, setDelta],
+    [capturePointer, getEventX, setDelta],
   );
 
   const onPointerUp = useCallback(
-    (event: PointerEvent<SVGRectElement>) => {
+    (event: PointerEvent<SVGElement>) => {
       if (activePointerId.current !== event.pointerId) return;
 
-      event.preventDefault();
       releasePointer(event);
       resetPointer();
 
       const deltaPx = getCurrentDelta();
       if (Math.abs(deltaPx) < PAN_COMMIT_THRESHOLD_PX) {
+        suppressNextClick.current = false;
         onCancel();
         return;
       }
 
+      event.preventDefault();
+      suppressNextClick.current = true;
       onCommit(deltaPx);
     },
     [getCurrentDelta, onCancel, onCommit, releasePointer, resetPointer],
   );
 
   const onPointerCancel = useCallback(
-    (event: PointerEvent<SVGRectElement>) => {
+    (event: PointerEvent<SVGElement>) => {
       if (activePointerId.current !== event.pointerId) return;
 
       releasePointer(event);
@@ -113,11 +128,19 @@ export function usePanDrag({
     [onCancel, releasePointer, resetPointer],
   );
 
+  const onClickCapture = useCallback((event: MouseEvent<SVGElement>) => {
+    if (!suppressNextClick.current) return;
+    suppressNextClick.current = false;
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
+
   return {
     isDragging,
     onPointerDown,
     onPointerMove,
     onPointerUp,
     onPointerCancel,
+    onClickCapture,
   };
 }
