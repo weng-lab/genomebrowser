@@ -29,9 +29,11 @@ export const exampleTrackModule = defineTrackModule({
 });
 ```
 
-The schema should only include custom fields. `defineTrackModule` owns the base fields (`id`, `type`, `title`, `display`, `height`, and `color`), enforces strict object validation, and derives the full track config validator from them. Field-level validation, defaults, and object-level refinements on the custom schema are preserved.
+The schema should only include custom fields. `defineTrackModule` owns the base fields (`id`, `type`, `title`, `display`, `height`, and `color`) and interaction fields (`onClick`, `onHover`, `onLeave`, and `tooltip`), enforces strict object validation, and derives the full track config validator from them. Field-level validation, defaults, and object-level refinements on the custom schema are preserved.
 
-Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used. The custom schema cannot define reserved base fields.
+Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used. The custom schema cannot define reserved fields.
+
+Reserved fields are: `id`, `type`, `title`, `display`, `height`, `color`, `onClick`, `onHover`, `onLeave`, and `tooltip`.
 
 ## What the helper creates
 

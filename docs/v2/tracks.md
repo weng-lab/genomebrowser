@@ -19,6 +19,8 @@ type TrackConfigBase = {
 };
 ```
 
+Track configs can also include optional interaction fields: `onClick`, `onHover`, `onLeave`, and `tooltip`. See [Track interactions](#track-interactions).
+
 Track configs are the **runtime** configuration objects that define behavior such as color, title, and any other custom fields that a module has defined for its config. They tell the browser _how_ to render the track.
 
 The `type` field connects a track config to a registered track module. The `display` field selects one of that module's renderers.
@@ -76,7 +78,7 @@ export const exampleTrackModule = defineTrackModule({
 });
 ```
 
-The custom schema must not define reserved base fields: `id`, `type`, `title`, `display`, `height`, or `color`. Display modes come from the `render` keys. If `defaults.display` is omitted, the first renderer key is used.
+The custom schema must not define reserved fields: `id`, `type`, `title`, `display`, `height`, `color`, `onClick`, `onHover`, `onLeave`, or `tooltip`. Display modes come from the `render` keys. If `defaults.display` is omitted, the first renderer key is used.
 
 `render` must contain at least one renderer. `defaults` is optional; if `height` is omitted it defaults to `80`, and `color` remains optional unless a default color is provided.
 
@@ -148,6 +150,18 @@ const track = bigBedModule.create({
 Module defaults can also include interaction fields. This is useful for semantic wrapper modules that reuse generic behavior but want a default tooltip or callback policy. A config created from that module can still override the default interaction fields.
 
 Because callbacks and React components are functions, track configs that include interactions are not fully JSON-serializable.
+
+## Built-in tracks
+
+v2 exports these first-party track modules:
+
+- [BigWig](tracks/bigwig.md)
+- [BigBed](tracks/bigbed.md)
+- [BulkBed](tracks/bulkbed.md)
+- [Transcript](tracks/transcript.md)
+- [MethylC](tracks/methylc.md)
+
+Use the per-track docs for config fields, display modes, defaults, and fetch behavior.
 
 ## BigBed row schemas
 

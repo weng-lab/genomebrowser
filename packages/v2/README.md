@@ -6,9 +6,9 @@ This package is still being shaped. Keep the README focused on the package itsel
 
 ## Docs
 
-- [Concepts](docs/concepts.md)
-- [Tracks and track modules](docs/tracks.md)
-- [Schema validation](docs/validation.md)
+- [Concepts](../../docs/v2/concepts.md)
+- [Tracks and track modules](../../docs/v2/tracks.md)
+- [Schema validation](../../docs/v2/validation.md)
 
 ## Scripts
 

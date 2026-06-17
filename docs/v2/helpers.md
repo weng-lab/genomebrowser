@@ -2,6 +2,8 @@
 
 These public exports can help when building custom track modules for v2. Track modules should still own their own fetching and rendering behavior; these helpers cover common browser integration points.
 
+The stable public surface for custom track authors is the package entry point, especially `defineTrackModule`, the module types, `fetchOnChange`, runtime hooks, store factories, store hooks, and first-party modules/types. Prefer these documented exports over importing from internal package paths.
+
 Helpers for custom tracks are exposed from the module authoring surface. Pure utilities live under the module system, while browser-backed helpers such as interactions and auto-height are exposed through the module runtime seam so tracks do not import browser implementation details directly.
 
 ## `useAutoTrackHeight`
@@ -46,6 +48,52 @@ Options:
 
 Only call this hook from React renderers that run inside `GenomeBrowser`, because it uses the browser's track store context.
 
+## `fetchOnChange`
+
+`fetchOnChange` marks config schema fields that should trigger a data refetch when their values change. The browser always refetches when the active render region changes; for config-only changes, it builds a fetch signature from only the marked fields.
+
+```ts
+import { z } from "zod";
+import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser-v2";
+
+const exampleSchema = z.object({
+  url: fetchOnChange(z.string().min(1)),
+  colorScale: z.string().default("linear"),
+});
+
+export const exampleTrackModule = defineTrackModule({
+  type: "example",
+  schema: exampleSchema,
+  fetch: fetchExample,
+  render: { full: FullExample },
+});
+```
+
+Changing `url` causes the browser to refetch track data. Changing `colorScale` does not refetch; it only re-renders with existing data.
+
+Use `fetchOnChange` for fields that affect fetched data, such as URLs, dataset lists, assemblies, versions, or query parameters. Do not use it for purely visual settings such as colors, labels, height, display mode, or fixed y-axis ranges.
+
+`fetchOnChange` can wrap nested schemas. For example, built-in multi-file tracks mark each dataset URL or channel URL instead of marking the entire visual config.
+
+## `SettingsSection`
+
+`SettingsSection` is a small layout component for module-specific settings panels. It keeps first-party and custom settings sections visually consistent without requiring modules to import browser settings internals.
+
+```tsx
+import { SettingsSection, type TrackSettingsProps } from "@weng-lab/genomebrowser-v2";
+
+function ExampleSettings({ config, updateTrack }: TrackSettingsProps<ExampleConfig>) {
+  return (
+    <SettingsSection title="Example">
+      <label>
+        URL
+        <input value={config.url} onChange={(event) => updateTrack({ url: event.target.value })} />
+      </label>
+    </SettingsSection>
+  );
+}
+```
+
 ## `useTrackStore`
 
 `useTrackStore` reads from the active browser's track store. It is mainly useful for settings components or advanced renderers that need access to other track state.
@@ -85,6 +133,36 @@ const settingsStore = createSettingsStore({
 ```
 
 Module-specific settings should still be attached to the module with `settingsComponent`. Store-level overrides are for browser-owned UI, not track-specific config fields.
+
+## `useDraggableSettingsModal`
+
+`useDraggableSettingsModal` supports custom settings modal shells. It manages modal position and drag handlers for components supplied through `createSettingsStore`.
+
+Most track modules do not need this hook. Use it when replacing the browser-owned settings modal rather than when adding module-specific settings.
+
+## Browser Stores
+
+The package entry point exports store factories and context hooks for applications that need to customize browser state ownership:
+
+- `createBrowserStore`: creates region, highlight, and browser interaction state
+- `createTrackStore`: creates validated track state and track mutation actions
+- `createSettingsStore`: creates settings modal state and optional settings UI overrides
+- `createContextMenuStore`: creates context menu state
+- `useBrowserStore`, `useTrackStore`, `useSettingsStore`, `useTooltipStore`, and `useContextMenuStore`: read stores from the active `GenomeBrowser` context
+
+Applications normally create browser and track stores before rendering `GenomeBrowser`. Track modules should prefer props and module runtime hooks over reaching into stores directly.
+
+## First-party Modules and Types
+
+The package entry point exports the built-in modules and their public types:
+
+- `bigWigModule` and BigWig types
+- `bigBedModule` and BigBed types
+- `bulkBedModule` and BulkBed types
+- `transcriptModule` and Transcript types
+- `methylCModule` and MethylC types
+
+See [Built-in tracks](tracks/README.md) for module-specific config fields and fetch behavior.
 
 ## `useInteraction`
 
