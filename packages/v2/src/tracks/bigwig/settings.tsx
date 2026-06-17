@@ -13,7 +13,8 @@ export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWi
 
     const min = Number(minValue);
     const max = Number(maxValue);
-    if (Number.isFinite(min) && Number.isFinite(max) && min < max) updateTrack({ yRange: { min, max } });
+    if (Number.isFinite(min) && Number.isFinite(max) && min < max)
+      updateTrack({ yRange: { min, max } });
   };
 
   return (

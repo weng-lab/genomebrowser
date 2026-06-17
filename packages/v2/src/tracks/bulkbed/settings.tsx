@@ -6,7 +6,8 @@ import type { BulkBedConfig, BulkBedDataset } from "./types";
 
 export function BulkBedSettings({ config, updateTrack }: TrackSettingsProps<BulkBedConfig>) {
   const datasetKeys = useRef<string[]>([]);
-  while (datasetKeys.current.length < config.datasets.length) datasetKeys.current.push(crypto.randomUUID());
+  while (datasetKeys.current.length < config.datasets.length)
+    datasetKeys.current.push(crypto.randomUUID());
   if (datasetKeys.current.length > config.datasets.length) {
     datasetKeys.current = datasetKeys.current.slice(0, config.datasets.length);
   }

@@ -17,14 +17,32 @@ export function createFetchSignature(module: AnyTrackModule, config: TrackConfig
   const schema = moduleSchemaRegistry.get(module);
   if (!schema) return "{}";
 
-  const values: Record<string, unknown> = {};
-  const configValues = config as Record<string, unknown>;
+  return JSON.stringify(createSchemaSignature(schema, config) ?? {});
+}
 
-  for (const [field, fieldSchema] of Object.entries(schema.shape)) {
-    if (fetchOnChangeRegistry.has(fieldSchema)) {
-      values[field] = configValues[field];
+function createSchemaSignature(schema: z.ZodType, value: unknown): unknown {
+  if (fetchOnChangeRegistry.has(schema)) return value;
+
+  if (schema instanceof z.ZodObject) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+
+    const signature: Record<string, unknown> = {};
+    const values = value as Record<string, unknown>;
+    for (const [field, fieldSchema] of Object.entries(schema.shape)) {
+      const fieldSignature = createSchemaSignature(fieldSchema, values[field]);
+      if (fieldSignature !== undefined) signature[field] = fieldSignature;
     }
+
+    return Object.keys(signature).length === 0 ? undefined : signature;
   }
 
-  return JSON.stringify(values);
+  if (schema instanceof z.ZodArray) {
+    if (!Array.isArray(value)) return undefined;
+
+    const elementSchema = schema.element as z.ZodType;
+    const signatures = value.map((item) => createSchemaSignature(elementSchema, item));
+    return signatures.some((signature) => signature !== undefined) ? signatures : undefined;
+  }
+
+  return undefined;
 }
