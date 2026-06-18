@@ -75,19 +75,9 @@ const trackStore = createTrackStore({
           url: "https://downloads.wenglab.org/ChIP_ENCSR000ARA-ENCSR000AQW-ENCSR000AQY-ENCSR000AQX-ENCSR000ASX-ENCSR000ARZ.bigBed",
         },
       ],
-      tooltip: ({ item }) => (
-        <g>
-          <text>{item.name}</text>
-          <text y={14}>{item.datasetName}</text>
-        </g>
-      ),
       onClick: ({ item }) => {
         console.log("[v2 test app] BulkBed click", {
           name: item.name,
-          datasetName: item.datasetName,
-          start: item.start,
-          end: item.end,
-          item,
         });
       },
     }),
