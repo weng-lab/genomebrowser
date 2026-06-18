@@ -1,6 +1,5 @@
 import { useMemo, useState, type MouseEvent } from "react";
-import { useModuleRuntime } from "../../modules/runtime/ModuleRuntimeContext";
-import { useTooltip } from "../../modules/tooltip/useTooltip";
+import { useTooltip } from "../../browser/tooltip/useTooltip";
 import type { TrackRendererProps } from "../../modules/types";
 import {
   condenseMethylCChannels,
@@ -161,7 +160,6 @@ function MethylCHoverOverlay({
   showRows: MethylCShowRows;
 }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | undefined>();
-  const { isPanning } = useModuleRuntime();
   const tooltip = useTooltip({ config });
   const tooltipValues = useMemo(
     () => (hoveredIndex === undefined ? [] : data.map((channel) => channel[hoveredIndex])),
@@ -184,7 +182,7 @@ function MethylCHoverOverlay({
 
   return (
     <>
-      {hoveredIndex !== undefined && !isPanning && (
+      {hoveredIndex !== undefined && (
         <line
           stroke="#000000"
           x1={hoveredIndex}

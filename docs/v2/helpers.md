@@ -2,9 +2,9 @@
 
 These public exports can help when building custom track modules for v2. Track modules should still own their own fetching and rendering behavior; these helpers cover common browser integration points.
 
-The stable public surface for custom track authors is the package entry point, especially `defineTrackModule`, the module types, `fetchOnChange`, runtime hooks, store factories, store hooks, and first-party modules/types. Prefer these documented exports over importing from internal package paths.
+The stable public surface for custom track authors is the package entry point, especially `defineTrackModule`, the module types, `fetchOnChange`, browser feature hooks, store factories, store hooks, and first-party modules/types. Prefer these documented exports over importing from internal package paths.
 
-Helpers for custom tracks are exposed from the module authoring surface. Pure utilities live under the module system, while browser-backed helpers such as tooltips and auto-height are exposed through public hooks so tracks do not import browser implementation details directly.
+Helpers for custom tracks are exposed from the package entry point. Pure utilities live under the module system, while browser-backed helpers such as tooltips and auto-height are owned by their browser features and exposed through public hooks so tracks do not import browser implementation details directly.
 
 ## `useAutoTrackHeight`
 
@@ -150,7 +150,7 @@ The package entry point exports store factories and context hooks for applicatio
 - `createContextMenuStore`: creates context menu state
 - `useBrowserStore`, `useTrackStore`, `useSettingsStore`, and `useContextMenuStore`: read stores from the active `GenomeBrowser` context
 
-Applications normally create browser and track stores before rendering `GenomeBrowser`. Track modules should prefer props and module runtime hooks over reaching into stores directly.
+Applications normally create browser and track stores before rendering `GenomeBrowser`. Track modules should prefer props and documented browser feature hooks over reaching into stores directly.
 
 ## First-party Modules and Types
 

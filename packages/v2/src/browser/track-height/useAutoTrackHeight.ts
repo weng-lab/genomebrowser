@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import type { TrackConfigBase } from "../types";
-import { useModuleRuntime } from "./ModuleRuntimeContext";
+import type { TrackConfigBase } from "../../modules/types";
+import { useTrackHeightController } from "./useTrackHeightController";
 
 export type AutoTrackHeightOptions = {
   rowHeight?: number;
@@ -12,7 +12,7 @@ export function useAutoTrackHeight(
   rowCount: number,
   { rowHeight = 12, minHeight = 30 }: AutoTrackHeightOptions = {},
 ) {
-  const { getTrackHeight, updateTrack } = useModuleRuntime();
+  const { getTrackHeight, updateTrack } = useTrackHeightController();
   const currentHeight = getTrackHeight(trackId);
 
   useEffect(() => {

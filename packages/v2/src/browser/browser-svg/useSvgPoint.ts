@@ -1,0 +1,7 @@
+import { svgPoint } from "../../modules/utils/svg";
+import { useBrowserSvg } from "./useBrowserSvg";
+
+export function useSvgPoint() {
+  const svg = useBrowserSvg();
+  return (clientX: number, clientY: number) => (svg ? svgPoint(svg, clientX, clientY) : null);
+}

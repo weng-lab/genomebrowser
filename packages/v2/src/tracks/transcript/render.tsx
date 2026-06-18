@@ -1,5 +1,5 @@
-import { useAutoTrackHeight } from "../../modules/runtime/useAutoTrackHeight";
-import { useTooltip } from "../../modules/tooltip/useTooltip";
+import { useAutoTrackHeight } from "../../browser/track-height/useAutoTrackHeight";
+import { useTooltip } from "../../browser/tooltip/useTooltip";
 import type { TrackRendererProps } from "../../modules/types";
 import { createXScale } from "../../modules/utils/scale";
 import {

@@ -52,7 +52,7 @@ Track modules should be defined with `defineTrackModule`. Custom track authors p
 
 `settingsComponent` is only the module-specific settings child. The browser owns the main settings modal and base settings fields such as title, color, height, and display. Consumers can replace the main modal shell or base settings UI through the browser settings store without changing track modules.
 
-In the implementation, `src/modules` is the shared module system and authoring surface, `src/tracks` contains first-party modules built against that surface, and `src/browser` consumes registered modules through their common contract. First-party and custom tracks should import module types, helpers, and runtime hooks from `src/modules`, not from browser implementation files.
+In the implementation, `src/modules` is the shared module system and authoring surface, `src/tracks` contains first-party modules built against that surface, and `src/browser` consumes registered modules through their common contract. First-party and custom tracks should import module contracts from `src/modules` and only use browser-backed behavior through narrow browser feature APIs such as tooltip and auto-height hooks.
 
 Example module shape:
 
@@ -90,7 +90,7 @@ This lets modules be used outside the browser orchestration layer. For example, 
 
 Browser-level interactions such as panning are owned by the browser track wrapper, not by module renderers. Renderers should not add pan-drag pass-through layers; they can keep track-specific hover or click hit areas, and browser panning will work through the wrapper around the rendered SVG content.
 
-Some module-author helpers, such as interaction and auto-height hooks, are browser-runtime helpers exposed through `src/modules/runtime`. Those helpers are intended for modules rendered by `GenomeBrowser`; a custom shell would need to provide an equivalent module runtime if it wants those browser-backed behaviors.
+Some module-author helpers, such as tooltip and auto-height hooks, are browser-backed feature APIs. Those helpers are intended for modules rendered by `GenomeBrowser`; a custom shell would need to provide equivalent feature providers if it wants those browser-backed behaviors.
 
 Small BigWig example:
 

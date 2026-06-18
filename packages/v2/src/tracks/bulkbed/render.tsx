@@ -1,4 +1,4 @@
-import { useTooltip } from "../../modules/tooltip/useTooltip";
+import { useTooltip } from "../../browser/tooltip/useTooltip";
 import type { TrackRendererProps } from "../../modules/types";
 import { createXScale } from "../../modules/utils/scale";
 import { renderDenseBigBedData } from "../bigbed/helpers";

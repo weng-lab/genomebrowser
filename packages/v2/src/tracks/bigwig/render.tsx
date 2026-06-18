@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from "react";
-import { useTooltip } from "../../modules/tooltip/useTooltip";
+import { useTooltip } from "../../browser/tooltip/useTooltip";
 import type { TrackRendererProps } from "../../modules/types";
 import {
   applyFillWithZero,

@@ -1,8 +1,7 @@
 import { createElement, useRef } from "react";
-import type { TrackConfigBase, TrackTooltipComponent } from "../types";
-import { svgPoint } from "../utils/svg";
-import { useModuleRuntime } from "../runtime/ModuleRuntimeContext";
-import { useInternalTooltipStore } from "./TooltipContext";
+import type { TrackConfigBase, TrackTooltipComponent } from "../../modules/types";
+import { useSvgPoint } from "../browser-svg/useSvgPoint";
+import { useInternalTooltipStore, useTooltipDisabled } from "./TooltipContext";
 import type { MousePosition } from "./types";
 
 export function useTooltip<Item, Config extends TrackConfigBase>({
@@ -12,7 +11,8 @@ export function useTooltip<Item, Config extends TrackConfigBase>({
 }) {
   const showTooltip = useInternalTooltipStore((state) => state.show);
   const hideTooltip = useInternalTooltipStore((state) => state.hide);
-  const { isPanning, svg } = useModuleRuntime();
+  const disabled = useTooltipDisabled();
+  const getSvgPoint = useSvgPoint();
   const frameRef = useRef<number | undefined>(undefined);
 
   const hide = () => {
@@ -24,11 +24,11 @@ export function useTooltip<Item, Config extends TrackConfigBase>({
   };
 
   const show = (item: Item, position: MousePosition) => {
-    if (isPanning || !config.tooltip) return;
+    if (disabled || !config.tooltip) return;
 
     const Tooltip = config.tooltip;
     const content = createElement(Tooltip, { item, config });
-    const point = svg ? svgPoint(svg, position.clientX, position.clientY) : null;
+    const point = getSvgPoint(position.clientX, position.clientY);
     const anchor = point ?? { x: position.clientX, y: position.clientY };
 
     if (frameRef.current !== undefined) cancelAnimationFrame(frameRef.current);

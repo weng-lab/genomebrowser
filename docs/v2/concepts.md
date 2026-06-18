@@ -10,11 +10,11 @@ The browser should avoid owning track-specific behavior directly. Track-specific
 
 Implementation code follows three main seams:
 
-- `src/modules` owns the module system, module contracts, validation helpers, module-author utilities, and browser-backed module runtime helpers
+- `src/modules` owns the module system, module contracts, validation helpers, and module-author utilities
 - `src/browser` owns the `GenomeBrowser` implementation, browser stores, viewport behavior, data orchestration, overlays, and settings shell
 - `src/tracks` owns first-party track module implementations that consume `src/modules` the same way custom tracks should
 
-`src/browser` and `src/tracks` both depend on `src/modules`. `src/tracks` should not import `src/browser`, and `src/modules` should not import `src/browser`.
+`src/browser` and `src/tracks` both depend on `src/modules`. `src/tracks` may import narrow browser feature APIs intended for track modules, but should not import browser orchestration, stores, viewport implementation, or feature-private files; `src/modules` should not import `src/browser`.
 
 ## State and hooks
 
@@ -42,7 +42,7 @@ Keep the core browser generic. When adding behavior, prefer putting it in the na
 - track-specific behavior goes in track modules
 - reusable calculations go in utility modules
 - shared runtime contracts go in `src/modules`
-- browser-backed helpers used by modules go behind `src/modules/runtime`
+- browser-backed helpers used by modules are owned by their browser feature and exposed through narrow feature APIs
 
 Panning is browser-level behavior. The browser wraps rendered track content so SVG elements can still receive normal click and hover events while drag gestures bubble to the browser pan controller.
 
