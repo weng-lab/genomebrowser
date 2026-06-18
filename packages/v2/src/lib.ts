@@ -16,7 +16,7 @@ export type {
 export { fetchOnChange } from "./modules/fetchOnChange";
 export { useAutoTrackHeight } from "./modules/runtime/useAutoTrackHeight";
 export type { AutoTrackHeightOptions } from "./modules/runtime/useAutoTrackHeight";
-export { useInteraction } from "./modules/runtime/useInteraction";
+export { useTooltip } from "./modules/tooltip/useTooltip";
 export { SettingsSection } from "./modules/runtime/SettingsSection";
 export { useDraggableSettingsModal } from "./browser/settings/useDraggableSettingsModal";
 export type { DraggableSettingsModalResult } from "./browser/settings/useDraggableSettingsModal";
@@ -27,7 +27,6 @@ export {
   useContextMenuStore,
   useBrowserStore,
   useSettingsStore,
-  useTooltipStore,
   useTrackStore,
 } from "./browser/stores/BrowserContext";
 export { createSettingsStore } from "./browser/settings/settingsStore";
@@ -57,7 +56,6 @@ export type {
   TrackStoreOptions,
   TrackUpdate,
 } from "./browser/stores/trackStore";
-export type { TooltipStore, TooltipStoreInstance } from "./browser/stores/tooltipStore";
 
 export { bigBedModule } from "./tracks/bigbed/module";
 export type {

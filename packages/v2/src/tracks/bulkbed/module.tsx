@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchOnChange } from "../../modules/fetchOnChange";
+import { TrackTooltip } from "../shared/TrackTooltip";
 import { fetchBulkBed } from "./fetch";
 import { FullBulkBed } from "./render";
 import { BulkBedSettings } from "./settings";
@@ -20,6 +21,13 @@ export const bulkBedModule = defineTrackModule({
   defaults: {
     height: 80,
     color: "#4b9560",
+    tooltip: ({ item }) => (
+      <TrackTooltip>
+        <text fill="#000000" fontSize={12} dominantBaseline="middle">
+          {item.name || item.datasetName || `${item.start}-${item.end}`}
+        </text>
+      </TrackTooltip>
+    ),
   },
   schema: bulkBedInputSchema,
   fetch: fetchBulkBed,

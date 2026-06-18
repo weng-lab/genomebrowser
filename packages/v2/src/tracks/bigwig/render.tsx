@@ -1,11 +1,10 @@
 import { useState, type MouseEvent } from "react";
-import { useInteraction } from "../../modules/runtime/useInteraction";
+import { useTooltip } from "../../modules/tooltip/useTooltip";
 import type { TrackRendererProps } from "../../modules/types";
 import {
   applyFillWithZero,
   condenseBigWigData,
   createYScale,
-  formatBigWigTooltip,
   getBigWigRange,
   getPointAtMouseX,
   lighten,
@@ -82,25 +81,25 @@ function BigWigHoverOverlay({
   points: RenderedBigWigPoint[];
 }) {
   const [hoveredPoint, setHoveredPoint] = useState<RenderedBigWigPoint | undefined>();
-  const { handleHover, handleLeave } = useInteraction<RenderedBigWigPoint, BigWigConfig>({
-    config,
-    fallback: formatBigWigTooltip,
-  });
+  const tooltip = useTooltip<RenderedBigWigPoint, BigWigConfig>({ config });
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const point = getPointAtMouseX(points, getLocalMouseX(event, width), width);
     if (!point) {
-      if (hoveredPoint) handleLeave(hoveredPoint, event);
+      if (hoveredPoint) config.onLeave?.({ item: hoveredPoint, config, event });
       setHoveredPoint(undefined);
+      tooltip.hide();
       return;
     }
     setHoveredPoint(point);
-    handleHover(point, event);
+    config.onHover?.({ item: point, config, event });
+    tooltip.show(point, event);
   };
 
   const handleMouseOut = (event: MouseEvent<SVGRectElement>) => {
-    if (hoveredPoint) handleLeave(hoveredPoint, event);
+    if (hoveredPoint) config.onLeave?.({ item: hoveredPoint, config, event });
     setHoveredPoint(undefined);
+    tooltip.hide();
   };
 
   return (

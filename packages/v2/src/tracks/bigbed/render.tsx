@@ -1,5 +1,5 @@
 import { useAutoTrackHeight } from "../../modules/runtime/useAutoTrackHeight";
-import { useInteraction } from "../../modules/runtime/useInteraction";
+import { useTooltip } from "../../modules/tooltip/useTooltip";
 import type { TrackRendererProps } from "../../modules/types";
 import { createXScale } from "../../modules/utils/scale";
 import { renderDenseBigBedData, renderSquishBigBedData } from "./helpers";
@@ -16,13 +16,7 @@ export function DenseBigBed({
   const rects = renderDenseBigBedData(data, x);
   const rectHeight = height * 0.6;
   const y = height * 0.2;
-  const { handleClick, handleHover, handleLeave } = useInteraction<
-    BigBedData[number],
-    BigBedConfig
-  >({
-    config,
-    fallback: getBigBedFallbackLabel,
-  });
+  const tooltip = useTooltip<BigBedData[number], BigBedConfig>({ config });
 
   return (
     <g>
@@ -36,9 +30,15 @@ export function DenseBigBed({
           height={rectHeight}
           fill={rect.color ?? config.color ?? "#4b9560"}
           style={{ cursor: config.onClick ? "pointer" : "default" }}
-          onClick={(event) => handleClick(rect.row, event)}
-          onMouseOver={(event) => handleHover(rect.row, event)}
-          onMouseOut={(event) => handleLeave(rect.row, event)}
+          onClick={(event) => config.onClick?.({ item: rect.row, config, event })}
+          onMouseEnter={(event) => {
+            config.onHover?.({ item: rect.row, config, event });
+            tooltip.show(rect.row, event);
+          }}
+          onMouseLeave={(event) => {
+            config.onLeave?.({ item: rect.row, config, event });
+            tooltip.hide();
+          }}
         />
       ))}
     </g>
@@ -55,13 +55,7 @@ export function SquishBigBed({
   const x = createXScale(region, width);
   const rows = renderSquishBigBedData(data, x);
   const rowHeight = useAutoTrackHeight(config.id, rows.length);
-  const { handleClick, handleHover, handleLeave } = useInteraction<
-    BigBedData[number],
-    BigBedConfig
-  >({
-    config,
-    fallback: getBigBedFallbackLabel,
-  });
+  const tooltip = useTooltip<BigBedData[number], BigBedConfig>({ config });
 
   return (
     <g>
@@ -77,17 +71,19 @@ export function SquishBigBed({
               height={rowHeight * 0.6}
               fill={rect.color ?? config.color ?? "#4b9560"}
               style={{ cursor: config.onClick ? "pointer" : "default" }}
-              onClick={(event) => handleClick(rect.row, event)}
-              onMouseOver={(event) => handleHover(rect.row, event)}
-              onMouseOut={(event) => handleLeave(rect.row, event)}
+              onClick={(event) => config.onClick?.({ item: rect.row, config, event })}
+              onMouseEnter={(event) => {
+                config.onHover?.({ item: rect.row, config, event });
+                tooltip.show(rect.row, event);
+              }}
+              onMouseLeave={(event) => {
+                config.onLeave?.({ item: rect.row, config, event });
+                tooltip.hide();
+              }}
             />
           ))}
         </g>
       ))}
     </g>
   );
-}
-
-function getBigBedFallbackLabel(row: BigBedData[number]) {
-  return row.name || `${row.start}-${row.end}`;
 }

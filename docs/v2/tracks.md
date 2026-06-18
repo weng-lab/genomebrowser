@@ -133,6 +133,8 @@ type TrackInteractionConfig<Item, Config> = {
 
 These fields are intentionally part of config state because v2 treats generated track configs as the **runtime** unit inserted into the track store. This keeps programmatic track creation simple: build the config, attach callbacks or a tooltip, and add it to the store.
 
+Renderers own the timing of these interactions. They call `onClick`, `onHover`, and `onLeave` directly with the semantic item under the pointer, and use browser-backed hooks such as `useTooltip` when they need browser-managed UI like tooltip positioning.
+
 ```tsx
 const track = bigBedModule.create({
   id: "peaks",

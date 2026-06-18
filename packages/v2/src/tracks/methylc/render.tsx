@@ -1,5 +1,6 @@
 import { useMemo, useState, type MouseEvent } from "react";
-import { useInteraction } from "../../modules/runtime/useInteraction";
+import { useModuleRuntime } from "../../modules/runtime/ModuleRuntimeContext";
+import { useTooltip } from "../../modules/tooltip/useTooltip";
 import type { TrackRendererProps } from "../../modules/types";
 import {
   condenseMethylCChannels,
@@ -22,7 +23,15 @@ export function SplitMethylC({
   );
   const halfHeight = height / 2;
   const methylRange = useMemo(
-    () => getMethylCRange([renderedData[0], renderedData[1], renderedData[2], renderedData[4], renderedData[5], renderedData[6]]),
+    () =>
+      getMethylCRange([
+        renderedData[0],
+        renderedData[1],
+        renderedData[2],
+        renderedData[4],
+        renderedData[5],
+        renderedData[6],
+      ]),
     [renderedData],
   );
   const effectiveRange = config.range || methylRange;
@@ -41,9 +50,27 @@ export function SplitMethylC({
         renderedData[3],
         config.maskCpgByCoverage,
       ),
-      chgPlus: generateSignal2(renderedData[1], halfHeight, config.colors.chg, false, effectiveRange),
-      chhPlus: generateSignal2(renderedData[2], halfHeight, config.colors.chh, false, effectiveRange),
-      depthPlus: generateLineGraph(renderedData[3], halfHeight, config.colors.depth, false, depthRange),
+      chgPlus: generateSignal2(
+        renderedData[1],
+        halfHeight,
+        config.colors.chg,
+        false,
+        effectiveRange,
+      ),
+      chhPlus: generateSignal2(
+        renderedData[2],
+        halfHeight,
+        config.colors.chh,
+        false,
+        effectiveRange,
+      ),
+      depthPlus: generateLineGraph(
+        renderedData[3],
+        halfHeight,
+        config.colors.depth,
+        false,
+        depthRange,
+      ),
       cpgMinus: generateSignal2(
         renderedData[4],
         halfHeight,
@@ -53,9 +80,27 @@ export function SplitMethylC({
         renderedData[7],
         config.maskCpgByCoverage,
       ),
-      chgMinus: generateSignal2(renderedData[5], halfHeight, config.colors.chg, true, effectiveRange),
-      chhMinus: generateSignal2(renderedData[6], halfHeight, config.colors.chh, true, effectiveRange),
-      depthMinus: generateLineGraph(renderedData[7], halfHeight, config.colors.depth, true, depthRange),
+      chgMinus: generateSignal2(
+        renderedData[5],
+        halfHeight,
+        config.colors.chg,
+        true,
+        effectiveRange,
+      ),
+      chhMinus: generateSignal2(
+        renderedData[6],
+        halfHeight,
+        config.colors.chh,
+        true,
+        effectiveRange,
+      ),
+      depthMinus: generateLineGraph(
+        renderedData[7],
+        halfHeight,
+        config.colors.depth,
+        true,
+        depthRange,
+      ),
     }),
     [config.colors, config.maskCpgByCoverage, depthRange, effectiveRange, halfHeight, renderedData],
   );
@@ -116,7 +161,8 @@ function MethylCHoverOverlay({
   showRows: MethylCShowRows;
 }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | undefined>();
-  const { handleHover, handleLeave } = useInteraction({ config });
+  const { isPanning } = useModuleRuntime();
+  const tooltip = useTooltip({ config });
   const tooltipValues = useMemo(
     () => (hoveredIndex === undefined ? [] : data.map((channel) => channel[hoveredIndex])),
     [data, hoveredIndex],
@@ -124,18 +170,21 @@ function MethylCHoverOverlay({
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const index = getMouseIndex(event, width);
+    const item = { tooltipValues: data.map((channel) => channel[index]), showRows };
     setHoveredIndex(index);
-    handleHover({ tooltipValues: data.map((channel) => channel[index]), showRows }, event);
+    config.onHover?.({ item, config, event });
+    tooltip.show(item, event);
   };
 
   const handleMouseOut = (event: MouseEvent<SVGRectElement>) => {
-    handleLeave({ tooltipValues, showRows }, event);
+    config.onLeave?.({ item: { tooltipValues, showRows }, config, event });
     setHoveredIndex(undefined);
+    tooltip.hide();
   };
 
   return (
     <>
-      {hoveredIndex !== undefined && (
+      {hoveredIndex !== undefined && !isPanning && (
         <line
           stroke="#000000"
           x1={hoveredIndex}

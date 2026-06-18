@@ -4,14 +4,12 @@ import type { SettingsStore, SettingsStoreInstance } from "../settings/settingsS
 import type { BrowserStore, BrowserStoreInstance } from "./browserStore";
 import type { ContextMenuStore, ContextMenuStoreInstance } from "./contextMenuStore";
 import type { TrackStore, TrackStoreInstance } from "./trackStore";
-import type { TooltipStore, TooltipStoreInstance } from "./tooltipStore";
 
 type BrowserContextValue = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
   contextMenuStore: ContextMenuStoreInstance;
   settingsStore: SettingsStoreInstance;
-  tooltipStore: TooltipStoreInstance;
   svg: SVGSVGElement | null;
   isPanning: boolean;
   isInteractionBlocked: boolean;
@@ -39,12 +37,6 @@ export function useBrowserStore<T>(selector: (state: BrowserStore) => T): T {
   const context = use(BrowserContext);
   if (!context) throw new Error("useBrowserStore must be used within a GenomeBrowser");
   return context.browserStore(selector);
-}
-
-export function useTooltipStore<T>(selector: (state: TooltipStore) => T): T {
-  const context = use(BrowserContext);
-  if (!context) throw new Error("useTooltipStore must be used within a GenomeBrowser");
-  return context.tooltipStore(selector);
 }
 
 export function useContextMenuStore<T>(selector: (state: ContextMenuStore) => T): T {

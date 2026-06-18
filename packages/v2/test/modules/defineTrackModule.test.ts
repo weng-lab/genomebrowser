@@ -151,7 +151,7 @@ describe("defineTrackModule", () => {
   });
 
   it("supports interaction defaults and config overrides", () => {
-    function DefaultTooltip() {
+    function DefaultInteractionTooltip() {
       return null;
     }
     function OverrideTooltip() {
@@ -167,7 +167,7 @@ describe("defineTrackModule", () => {
         onClick,
         onHover,
         onLeave,
-        tooltip: DefaultTooltip,
+        tooltip: DefaultInteractionTooltip,
       },
       schema: z.object({}),
       fetch: async () => null,
@@ -181,7 +181,7 @@ describe("defineTrackModule", () => {
         id: "defaulted",
         title: "Defaulted",
       }),
-    ).toMatchObject({ onClick, onHover, onLeave, tooltip: DefaultTooltip });
+    ).toMatchObject({ onClick, onHover, onLeave, tooltip: DefaultInteractionTooltip });
 
     expect(
       interactionModule.create({

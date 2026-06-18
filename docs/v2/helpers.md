@@ -4,7 +4,7 @@ These public exports can help when building custom track modules for v2. Track m
 
 The stable public surface for custom track authors is the package entry point, especially `defineTrackModule`, the module types, `fetchOnChange`, runtime hooks, store factories, store hooks, and first-party modules/types. Prefer these documented exports over importing from internal package paths.
 
-Helpers for custom tracks are exposed from the module authoring surface. Pure utilities live under the module system, while browser-backed helpers such as interactions and auto-height are exposed through the module runtime seam so tracks do not import browser implementation details directly.
+Helpers for custom tracks are exposed from the module authoring surface. Pure utilities live under the module system, while browser-backed helpers such as tooltips and auto-height are exposed through public hooks so tracks do not import browser implementation details directly.
 
 ## `useAutoTrackHeight`
 
@@ -148,7 +148,7 @@ The package entry point exports store factories and context hooks for applicatio
 - `createTrackStore`: creates validated track state and track mutation actions
 - `createSettingsStore`: creates settings modal state and optional settings UI overrides
 - `createContextMenuStore`: creates context menu state
-- `useBrowserStore`, `useTrackStore`, `useSettingsStore`, `useTooltipStore`, and `useContextMenuStore`: read stores from the active `GenomeBrowser` context
+- `useBrowserStore`, `useTrackStore`, `useSettingsStore`, and `useContextMenuStore`: read stores from the active `GenomeBrowser` context
 
 Applications normally create browser and track stores before rendering `GenomeBrowser`. Track modules should prefer props and module runtime hooks over reaching into stores directly.
 
@@ -164,31 +164,34 @@ The package entry point exports the built-in modules and their public types:
 
 See [Built-in tracks](tracks/README.md) for module-specific config fields and fetch behavior.
 
-## `useInteraction`
+## `useTooltip`
 
-`useInteraction` lets custom renderers opt into the browser-managed interaction contract. It reads interaction fields from the track config, calls callbacks with `{ item, config, event }`, and manages tooltips through the active `GenomeBrowser`.
+`useTooltip` lets custom renderers use the browser-managed tooltip overlay without importing browser internals. Renderers still own hit testing and semantic callbacks; call `config.onClick`, `config.onHover`, and `config.onLeave` directly when the renderer decides those interactions happened.
 
 ```tsx
-import { useInteraction } from "@weng-lab/genomebrowser-v2";
+import { useTooltip } from "@weng-lab/genomebrowser-v2";
 
 function DenseExample({ config, data }: ExampleRendererProps) {
-  const { handleClick, handleHover, handleLeave } = useInteraction({
-    config,
-    fallback: (item) => item.name,
-  });
+  const tooltip = useTooltip({ config });
 
   return data.map((item) => (
     <rect
       key={item.id}
-      onClick={(event) => handleClick(item, event)}
-      onMouseOver={(event) => handleHover(item, event)}
-      onMouseOut={(event) => handleLeave(item, event)}
+      onClick={(event) => config.onClick?.({ item, config, event })}
+      onMouseEnter={(event) => {
+        config.onHover?.({ item, config, event });
+        tooltip.show(item, event);
+      }}
+      onMouseLeave={(event) => {
+        config.onLeave?.({ item, config, event });
+        tooltip.hide();
+      }}
     />
   ));
 }
 ```
 
-If `config.tooltip` is present, the hook renders it with `{ item, config }`. If no custom tooltip is present and `fallback` returns text, the browser renders a default tooltip.
+If `config.tooltip` is present, `tooltip.show(item, event)` renders it with `{ item, config }` and positions it in the active browser. If no tooltip is present, `show` is a silent no-op. `show` is safe to call from continuous `onMouseMove` handlers; tooltip state is scoped to the active `GenomeBrowser` and suppressed while panning.
 
 ## Notes
 

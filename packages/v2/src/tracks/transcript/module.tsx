@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchOnChange } from "../../modules/fetchOnChange";
+import { TrackTooltip } from "../shared/TrackTooltip";
 import { fetchTranscript } from "./fetch";
 import { PackTranscript, SquishTranscript } from "./render";
 import { TranscriptSettings } from "./settings";
@@ -18,6 +19,13 @@ export const transcriptModule = defineTrackModule({
   defaults: {
     height: 90,
     color: "#7a4fb3",
+    tooltip: ({ item }) => (
+      <TrackTooltip>
+        <text fill="#000000" fontSize={12} dominantBaseline="middle">
+          {item.name || item.id}
+        </text>
+      </TrackTooltip>
+    ),
   },
   schema: transcriptInputSchema,
   fetch: fetchTranscript,

@@ -1,4 +1,4 @@
-import { useInteraction } from "../../modules/runtime/useInteraction";
+import { useTooltip } from "../../modules/tooltip/useTooltip";
 import type { TrackRendererProps } from "../../modules/types";
 import { createXScale } from "../../modules/utils/scale";
 import { renderDenseBigBedData } from "../bigbed/helpers";
@@ -15,10 +15,7 @@ export function FullBulkBed({
   const gap = config.gap ?? 2;
   const totalGaps = gap * Math.max(0, data.length - 1);
   const rowHeight = data.length > 0 ? Math.max(1, (height - totalGaps) / data.length) : height;
-  const { handleClick, handleHover, handleLeave } = useInteraction<BulkBedRect, BulkBedConfig>({
-    config,
-    fallback: getBulkBedFallbackLabel,
-  });
+  const tooltip = useTooltip<BulkBedRect, BulkBedConfig>({ config });
 
   return (
     <g>
@@ -47,9 +44,15 @@ export function FullBulkBed({
                   height={rowHeight}
                   fill={rect.color ?? config.color ?? "#4b9560"}
                   style={{ cursor: config.onClick ? "pointer" : "default" }}
-                  onClick={(event) => handleClick(row, event)}
-                  onMouseOver={(event) => handleHover(row, event)}
-                  onMouseOut={(event) => handleLeave(row, event)}
+                  onClick={(event) => config.onClick?.({ item: row, config, event })}
+                  onMouseEnter={(event) => {
+                    config.onHover?.({ item: row, config, event });
+                    tooltip.show(row, event);
+                  }}
+                  onMouseLeave={(event) => {
+                    config.onLeave?.({ item: row, config, event });
+                    tooltip.hide();
+                  }}
                 />
               );
             })}
@@ -58,8 +61,4 @@ export function FullBulkBed({
       })}
     </g>
   );
-}
-
-function getBulkBedFallbackLabel(row: BulkBedRect) {
-  return row.name || row.datasetName || `${row.start}-${row.end}`;
 }

@@ -2,6 +2,8 @@ import { useCallback, useMemo, useState } from "react";
 import { createDataStore } from "./data/dataStore";
 import { useTrackData } from "./data/useTrackData";
 import { ModuleRuntimeProvider } from "../modules/runtime/ModuleRuntimeContext";
+import { TooltipOverlay } from "../modules/tooltip/TooltipOverlay";
+import { TooltipProvider } from "../modules/tooltip/TooltipProvider";
 import { createModuleRegistry } from "../modules/registry";
 import type { AnyTrackModule } from "../modules/types";
 import { createSettingsStore, type SettingsStoreInstance } from "./settings/settingsStore";
@@ -9,13 +11,11 @@ import { BrowserProvider } from "./stores/BrowserContext";
 import type { BrowserStoreInstance } from "./stores/browserStore";
 import { createContextMenuStore } from "./stores/contextMenuStore";
 import type { TrackStoreInstance } from "./stores/trackStore";
-import { createTooltipStore } from "./stores/tooltipStore";
 import { InteractionShield } from "./overlays/InteractionShield";
 import { Highlights } from "./overlays/Highlights";
 import { ContextMenuController } from "./overlays/ContextMenuController";
 import { SettingsModalController } from "./overlays/SettingsModalController";
 import { SvgShell } from "./SvgShell";
-import { Tooltip } from "./overlays/Tooltip";
 import { getTracksHeight } from "./tracks/trackLayout";
 import { TrackStack } from "./tracks/TrackStack";
 import { RULER_HEIGHT, Ruler } from "./viewport/Ruler";
@@ -49,7 +49,6 @@ export function GenomeBrowser({
   const registry = useMemo(() => createModuleRegistry(modules), [modules]);
   const useDataStore = useMemo(() => createDataStore(), []);
   const contextMenuStore = useMemo(() => createContextMenuStore(), []);
-  const tooltipStore = useMemo(() => createTooltipStore(), []);
   const internalSettingsStore = useMemo(() => createSettingsStore(), []);
   const activeSettingsStore = settingsStore ?? internalSettingsStore;
   const sideWidth = trackWidth;
@@ -72,18 +71,16 @@ export function GenomeBrowser({
     getContentOffset,
     setContentOffset,
     setRegion,
-    onPanStart: tooltipStore.getState().hideTooltip,
+    onPanStart: () => undefined,
   });
   const moduleRuntime = useMemo(
     () => ({
       svg,
       isPanning: panDrag.isDragging,
-      showTooltip: tooltipStore.getState().showTooltip,
-      hideTooltip: tooltipStore.getState().hideTooltip,
       getTrackHeight: (trackId: string) => trackStore.getState().getTrack(trackId)?.height,
       updateTrack: trackStore.getState().updateTrack,
     }),
-    [panDrag.isDragging, svg, tooltipStore, trackStore],
+    [panDrag.isDragging, svg, trackStore],
   );
 
   const handleDataSettled = useCallback(
@@ -111,62 +108,63 @@ export function GenomeBrowser({
         trackStore,
         contextMenuStore,
         settingsStore: activeSettingsStore,
-        tooltipStore,
         svg,
         isPanning: panDrag.isDragging,
         isInteractionBlocked,
       }}
     >
       <ModuleRuntimeProvider value={moduleRuntime}>
-        <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
-          <SelectRegion
-            svg={svg}
-            marginWidth={marginWidth}
-            trackWidth={trackWidth}
-            totalHeight={totalHeight}
-            region={region}
-            setRegion={setRegion}
-            disabled={isInteractionBlocked}
-          >
-            <g transform={`translate(${marginWidth},0)`}>
-              <Ruler region={region} width={trackWidth} />
-            </g>
-            <g>
-              <TrackStack
-                tracks={tracks}
-                dataStates={dataStates}
-                registry={registry}
+        <TooltipProvider>
+          <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
+            <SelectRegion
+              svg={svg}
+              marginWidth={marginWidth}
+              trackWidth={trackWidth}
+              totalHeight={totalHeight}
+              region={region}
+              setRegion={setRegion}
+              disabled={isInteractionBlocked}
+            >
+              <g transform={`translate(${marginWidth},0)`}>
+                <Ruler region={region} width={trackWidth} />
+              </g>
+              <g>
+                <TrackStack
+                  tracks={tracks}
+                  dataStates={dataStates}
+                  registry={registry}
+                  region={displayedRenderRegion}
+                  marginWidth={marginWidth}
+                  trackWidth={trackWidth}
+                  contentX={baseContentX}
+                  contentWidth={renderWidth}
+                  registerContentGroup={registerContentGroup}
+                  panDrag={panDrag}
+                  isPanLocked={isInteractionBlocked}
+                  titleSize={titleSize}
+                  startY={RULER_HEIGHT}
+                />
+              </g>
+              <Highlights
                 region={displayedRenderRegion}
                 marginWidth={marginWidth}
-                trackWidth={trackWidth}
+                renderWidth={renderWidth}
                 contentX={baseContentX}
-                contentWidth={renderWidth}
+                browserWidth={browserWidth}
+                totalHeight={totalHeight}
                 registerContentGroup={registerContentGroup}
-                panDrag={panDrag}
-                isPanLocked={isInteractionBlocked}
-                titleSize={titleSize}
-                startY={RULER_HEIGHT}
               />
-            </g>
-            <Highlights
-              region={displayedRenderRegion}
-              marginWidth={marginWidth}
-              renderWidth={renderWidth}
-              contentX={baseContentX}
-              browserWidth={browserWidth}
-              totalHeight={totalHeight}
-              registerContentGroup={registerContentGroup}
+            </SelectRegion>
+            <TooltipOverlay width={browserWidth} height={totalHeight} />
+            <InteractionShield
+              active={isInteractionBlocked}
+              width={browserWidth}
+              height={totalHeight}
             />
-          </SelectRegion>
-          <Tooltip width={browserWidth} height={totalHeight} />
-          <InteractionShield
-            active={isInteractionBlocked}
-            width={browserWidth}
-            height={totalHeight}
-          />
-        </SvgShell>
-        <ContextMenuController registry={registry} />
-        <SettingsModalController registry={registry} />
+          </SvgShell>
+          <ContextMenuController registry={registry} />
+          <SettingsModalController registry={registry} />
+        </TooltipProvider>
       </ModuleRuntimeProvider>
     </BrowserProvider>
   );

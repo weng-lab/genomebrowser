@@ -1,11 +1,9 @@
-import { createContext, use, type ReactElement, type ReactNode } from "react";
+import { createContext, use, type ReactNode } from "react";
 import type { TrackConfigBase, TrackSettingsUpdate } from "../types";
 
 export type ModuleRuntime = {
   svg: SVGSVGElement | null;
   isPanning: boolean;
-  showTooltip: (content: ReactElement, x: number, y: number) => void;
-  hideTooltip: () => void;
   getTrackHeight: (trackId: string) => number | undefined;
   updateTrack: <Config extends TrackConfigBase>(
     trackId: string,

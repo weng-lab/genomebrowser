@@ -1,5 +1,5 @@
 import { useAutoTrackHeight } from "../../modules/runtime/useAutoTrackHeight";
-import { useInteraction } from "../../modules/runtime/useInteraction";
+import { useTooltip } from "../../modules/tooltip/useTooltip";
 import type { TrackRendererProps } from "../../modules/types";
 import { createXScale } from "../../modules/utils/scale";
 import {
@@ -43,10 +43,7 @@ function TranscriptRows({
     y: index * rowHeight,
     transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, width)),
   }));
-  const { handleClick, handleHover, handleLeave } = useInteraction<Transcript, TranscriptConfig>({
-    config,
-    fallback: (transcript) => transcript.name || transcript.id,
-  });
+  const tooltip = useTooltip<Transcript, TranscriptConfig>({ config });
 
   return (
     <g>
@@ -63,9 +60,17 @@ function TranscriptRows({
                   strokeWidth={Math.max(0.5, rowHeight / 16)}
                   d={transcript.paths.introns + transcript.paths.exons}
                   style={{ cursor: config.onClick ? "pointer" : "default" }}
-                  onClick={(event) => handleClick(transcript.transcript, event)}
-                  onMouseOver={(event) => handleHover(transcript.transcript, event)}
-                  onMouseOut={(event) => handleLeave(transcript.transcript, event)}
+                  onClick={(event) =>
+                    config.onClick?.({ item: transcript.transcript, config, event })
+                  }
+                  onMouseEnter={(event) => {
+                    config.onHover?.({ item: transcript.transcript, config, event });
+                    tooltip.show(transcript.transcript, event);
+                  }}
+                  onMouseLeave={(event) => {
+                    config.onLeave?.({ item: transcript.transcript, config, event });
+                    tooltip.hide();
+                  }}
                 />
                 <text
                   fill={fill}

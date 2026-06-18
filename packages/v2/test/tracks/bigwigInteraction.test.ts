@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { bigWigModule } from "../../src/tracks/bigwig/module";
 import {
   applyFillWithZero,
   condenseBigWigData,
@@ -14,6 +15,16 @@ describe("BigWig interaction helpers", () => {
     { x: 1, min: null, max: null },
     { x: 2, min: 2, max: 5 },
   ];
+
+  it("creates configs with a default tooltip", () => {
+    const config = bigWigModule.create({
+      id: "signal",
+      title: "Signal",
+      url: "YOUR_URL_HERE",
+    });
+
+    expect(config.tooltip).toBeTypeOf("function");
+  });
 
   it("maps local mouse x to a point", () => {
     expect(getPointAtMouseX(points, 0, 3)).toEqual(points[0]);

@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
+import { bigBedModule } from "../../src/tracks/bigbed/module";
 import { parseBigBedRowWithSchema } from "../../src/tracks/bigbed/schema";
 import type { InferBigBedRow } from "../../src/tracks/bigbed/types";
 
 describe("BigBed ordered Zod schema parsing", () => {
+  it("creates configs with a default tooltip", () => {
+    const config = bigBedModule.create({
+      id: "peaks",
+      title: "Peaks",
+      url: "YOUR_URL_HERE",
+    });
+
+    expect(config.tooltip).toBeTypeOf("function");
+  });
+
   it("parses full BED fields in schema key order", () => {
     const schema = z.object({
       chrom: z.string(),

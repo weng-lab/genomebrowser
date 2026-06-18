@@ -26,6 +26,7 @@ describe("MethylC module", () => {
       maskCpgByCoverage: false,
       urls: createUrls("YOUR_URL_HERE"),
     });
+    expect(config.tooltip).toBeTypeOf("function");
   });
 
   it("rejects combined as a display mode", () => {
