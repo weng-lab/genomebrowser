@@ -5,6 +5,7 @@ import { TrackTooltip } from "../shared/TrackTooltip";
 import { fetchBigWig } from "./fetch";
 import { DenseBigWig, FullBigWig } from "./render";
 import { BigWigSettings } from "./settings";
+import type { RenderedBigWigPoint } from "./types";
 
 const yRangeSchema = z
   .object({
@@ -22,7 +23,7 @@ const bigWigConfigSchema = z.object({
   yRange: yRangeSchema.optional(),
 });
 
-export const bigWigModule = defineTrackModule({
+export const bigWigModule = defineTrackModule<RenderedBigWigPoint>()({
   type: "bigwig",
   defaults: {
     height: 80,

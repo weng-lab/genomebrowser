@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { bigBedModule } from "../../src/tracks/bigbed/module";
+import type { InferBigBedRow } from "../../src/tracks/bigbed/types";
 import { bigWigModule } from "../../src/tracks/bigwig/module";
 import { bulkBedModule } from "../../src/tracks/bulkbed/module";
 import { transcriptModule } from "../../src/tracks/transcript/module";
@@ -244,13 +245,6 @@ describe("defineTrackModule", () => {
   });
 
   it("supports built-in module config creation", () => {
-    const bigBedSchema = z.object({
-      chrom: z.string(),
-      start: z.number(),
-      end: z.number(),
-      name: z.string().optional(),
-    });
-
     expect(
       bigWigModule.create({
         id: "signal",
@@ -272,9 +266,8 @@ describe("defineTrackModule", () => {
         id: "annotation",
         title: "Annotation",
         url: "YOUR_URL_HERE",
-        schema: bigBedSchema,
       }),
-    ).toMatchObject({ type: "bigbed", display: "dense", height: 60, schema: bigBedSchema });
+    ).toMatchObject({ type: "bigbed", display: "dense", height: 60 });
 
     expect(
       transcriptModule.create({
@@ -291,7 +284,7 @@ describe("defineTrackModule", () => {
     expect(bulkBedModule.settingsComponent).toBeDefined();
   });
 
-  it("rejects invalid BigBed schemas", () => {
+  it("rejects schema on built-in BigBed configs", () => {
     expect(() =>
       bigBedModule.create({
         id: "annotation",
@@ -300,5 +293,39 @@ describe("defineTrackModule", () => {
         schema: { chrom: "string" } as never,
       }),
     ).toThrow(/bigbed config is invalid/);
+  });
+
+  it("types interaction items with an explicit module generic", () => {
+    const peakSchema = z.object({
+      chrom: z.string(),
+      start: z.number(),
+      end: z.number(),
+      signalValue: z.number(),
+    });
+    type PeakRow = InferBigBedRow<typeof peakSchema>;
+
+    const peaksModule = defineTrackModule<PeakRow>()({
+      type: "peaks",
+      schema: z.object({
+        url: z.string().min(1),
+      }),
+      fetch: async () => [],
+      render: {
+        dense: DenseRenderer,
+      },
+      tooltipComponent: ({ item }) => {
+        item.signalValue.toFixed(2);
+        return null;
+      },
+    });
+
+    peaksModule.create({
+      id: "peaks",
+      title: "Peaks",
+      url: "YOUR_URL_HERE",
+      onClick: ({ item }) => {
+        item.signalValue.toFixed(2);
+      },
+    });
   });
 });

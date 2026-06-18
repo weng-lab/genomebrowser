@@ -4,6 +4,7 @@ import { fetchOnChange } from "../../modules/fetchOnChange";
 import { fetchMethylC } from "./fetch";
 import { SplitMethylC } from "./render";
 import { MethylCTooltip } from "./tooltip";
+import type { MethylCTooltipItem } from "./types";
 
 const defaultMethylCColors = {
   cpg: "#648bd8",
@@ -50,7 +51,7 @@ const methylCConfigSchema = z.object({
   range: yRangeSchema.optional(),
 });
 
-export const methylCModule = defineTrackModule({
+export const methylCModule = defineTrackModule<MethylCTooltipItem>()({
   type: "methylc",
   defaults: {
     height: 100,

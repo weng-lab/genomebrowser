@@ -29,7 +29,26 @@ export const exampleTrackModule = defineTrackModule({
 });
 ```
 
+If the module exposes typed interaction items, pass that semantic item type to `defineTrackModule`:
+
+```ts
+type ExampleItem = { id: string; label: string };
+
+export const exampleTrackModule = defineTrackModule<ExampleItem>()({
+  type: "example",
+  schema: z.object({
+    url: z.string().min(1),
+  }),
+  fetch: fetchExample,
+  render: {
+    full: FullExample,
+  },
+});
+```
+
 The schema should only include custom fields. `defineTrackModule` owns the base fields (`id`, `type`, `title`, `display`, `height`, and `color`) and interaction callback fields (`onClick`, `onHover`, and `onLeave`), enforces strict object validation, and derives the full track config validator from them. Field-level validation, defaults, and object-level refinements on the custom schema are preserved.
+
+The interaction item type is separate from the config schema. It describes the object shape the renderer passes to `onClick`, `onHover`, `onLeave`, and tooltips. If a renderer can expose several shapes, use a discriminated union such as `type ExampleItem = PeakItem | MotifItem | AnnotationItem`.
 
 Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used. The custom schema cannot define reserved fields.
 

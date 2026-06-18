@@ -62,7 +62,9 @@ Example module shape:
 import { z } from "zod";
 import { defineTrackModule } from "@weng-lab/genomebrowser-v2";
 
-export const exampleTrackModule = defineTrackModule({
+type ExampleItem = { id: string; label: string };
+
+export const exampleTrackModule = defineTrackModule<ExampleItem>()({
   type: "example",
   defaults: {
     height: 80,
@@ -137,6 +139,39 @@ These callbacks are intentionally part of config state because v2 treats generat
 
 Renderers own the timing of these interactions. They call `onClick`, `onHover`, and `onLeave` directly with the semantic item under the pointer, and use browser-backed hooks such as `useTooltip` when they need browser-managed UI like tooltip positioning. Tooltip components are module-owned through `tooltipComponent`, not stored on configs.
 
+Pass an interaction item type to `defineTrackModule` when authoring a module with typed interactions:
+
+```tsx
+type ExampleItem = { id: string; label: string; score: number };
+
+export const exampleTrackModule = defineTrackModule<ExampleItem>()({
+  type: "example",
+  schema: exampleConfigSchema,
+  fetch: fetchExample,
+  render: {
+    full: FullExample,
+  },
+  tooltipComponent: ({ item }) => <text>{item.label}</text>,
+});
+```
+
+The generic is the semantic object shape the renderer exposes to users. It types `onClick`, `onHover`, `onLeave`, and `tooltipComponent` props. The renderer should pass objects with this shape when it calls interaction callbacks or `tooltip.show(item, event)`. This type does not have to be the raw fetched data type; it should describe the processed item users interact with.
+
+If a renderer can expose multiple item shapes, use a discriminated union:
+
+```ts
+type ExampleItem =
+  | { kind: "peak"; name: string; signalValue: number }
+  | { kind: "motif"; motifId: string; score: number }
+  | { kind: "annotation"; label: string; start: number; end: number };
+
+export const exampleTrackModule = defineTrackModule<ExampleItem>()({
+  // ...
+});
+```
+
+Callbacks and tooltips can then narrow on `item.kind`.
+
 ```tsx
 const track = bigBedModule.create({
   id: "peaks",
@@ -164,13 +199,20 @@ v2 exports these first-party track modules:
 
 Use the per-track docs for config fields, display modes, defaults, and fetch behavior.
 
-## BigBed row schemas
+## BigBed-derived modules
 
-The built-in BigBed module accepts an optional Zod object schema on the track config. The schema describes the BigBed file columns in file order, including coordinate fields. Fetched rows are parsed with that schema before being stored as track data, so user interactions can receive named, typed fields instead of raw tab-delimited values.
+The built-in BigBed module is a generic interval track. When a BigBed file has schema-specific columns that should appear in typed interactions or tooltips, define a distinct module type and reuse the BigBed fetch helper/renderers instead of making the base `bigbed` config carry that behavior.
 
-```ts
+```tsx
 import { z } from "zod";
-import { bigBedModule, type InferBigBedRow } from "@weng-lab/genomebrowser-v2";
+import {
+  DenseBigBed,
+  defineTrackModule,
+  fetchBigBedRows,
+  fetchOnChange,
+  SquishBigBed,
+  type InferBigBedRow,
+} from "@weng-lab/genomebrowser-v2";
 
 const peaksSchema = z.object({
   chrom: z.string(),
@@ -187,17 +229,43 @@ const peaksSchema = z.object({
 
 type PeakRow = InferBigBedRow<typeof peaksSchema>;
 
-const track = bigBedModule.create({
-  id: "peaks",
-  title: "Peaks",
-  url: "YOUR_URL_HERE",
-  schema: peaksSchema,
+function PeakTooltip({ item }: { item: PeakRow }) {
+  return (
+    <g>
+      <rect width={180} height={28} fill="#ffffff" stroke="#cccccc" />
+      <text x={8} y={18} fill="#000000" fontSize={12}>
+        {item.name}: {item.signalValue}
+      </text>
+    </g>
+  );
+}
+
+export const peaksModule = defineTrackModule<PeakRow>()({
+  type: "peaks",
+  defaults: {
+    height: 60,
+    color: "#4b9560",
+  },
+  schema: z.object({
+    url: fetchOnChange(z.string().min(1)),
+  }),
+  fetch: ({ config, region }) =>
+    fetchBigBedRows({
+      url: config.url,
+      region,
+      schema: peaksSchema,
+    }),
+  render: {
+    dense: DenseBigBed,
+    squish: SquishBigBed,
+  },
+  tooltipComponent: PeakTooltip,
 });
 ```
 
-Schema key order is the column mapping order. For example, the fourth key maps to the first field after `chrom`, `start`, and `end`. Use `z.coerce.number()` for numeric fields because BigBed extra fields may be read as strings. If a file uses `chromStart` and `chromEnd` field names, the BigBed module normalizes those aliases to `start` and `end` for rendering.
+Schema key order is the column mapping order. For example, the fourth key maps to the first field after `chrom`, `start`, and `end`. Use `z.coerce.number()` for numeric fields because BigBed extra fields may be read as strings. If a file uses `chromStart` and `chromEnd` field names, the BigBed parser normalizes those aliases to `start` and `end` for rendering.
 
-Because the schema is a Zod object, BigBed configs that include `schema` contain a runtime object and are not fully JSON-serializable.
+Use a unique module `type` for each schema-specific BigBed module. Once the schema determines the interaction item shape, it is part of the module's behavior alongside its tooltip component and fetch function. If the renderer exposes parsed BigBed rows directly, `InferBigBedRow<typeof schema>` is a good interaction item type. If the renderer wraps or transforms rows, use the transformed object type instead.
 
 ## Runtime flow
 

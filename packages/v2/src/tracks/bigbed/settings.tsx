@@ -14,15 +14,6 @@ export function BigBedSettings({ config, updateTrack }: TrackSettingsProps<BigBe
           onChange={(event) => updateTrack({ url: event.target.value })}
         />
       </label>
-      <div style={fieldStyle}>
-        <div>Schema</div>
-        <div>{config.schema ? "Custom schema attached" : "No custom schema"}</div>
-        {config.schema && (
-          <button type="button" onClick={() => updateTrack({ schema: undefined })}>
-            Clear schema
-          </button>
-        )}
-      </div>
     </SettingsSection>
   );
 }

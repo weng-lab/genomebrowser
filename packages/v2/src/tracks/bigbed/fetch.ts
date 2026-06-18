@@ -3,7 +3,7 @@ import { AxiosDataLoader, BigWigReader, FileType } from "genomic-reader";
 import type { TrackFetchContext } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { createBigBedSchemaParser } from "./schema";
-import type { BigBedConfig, BigBedData, BigBedRow, BigBedSchema } from "./types";
+import type { BigBedConfig, BigBedData, BigBedRow, BigBedSchema, InferBigBedRow } from "./types";
 
 type RawBigBedRow = Partial<BigBedRow> & {
   chrom?: string;
@@ -19,20 +19,19 @@ export async function fetchBigBed({
 }: TrackFetchContext<BigBedConfig>): Promise<BigBedData> {
   return fetchBigBedRows({
     url: config.url,
-    schema: config.schema,
     region,
   });
 }
 
-export async function fetchBigBedRows({
+export async function fetchBigBedRows<TSchema extends BigBedSchema | undefined = undefined>({
   url,
   schema,
   region,
 }: {
   url: string;
-  schema?: BigBedSchema;
+  schema?: TSchema;
   region: BrowserRegion;
-}): Promise<BigBedRow[]> {
+}): Promise<InferBigBedRow<TSchema>[]> {
   await ensureBrowserBuffer();
 
   const dataLoader = new AxiosDataLoader(url, axios.create() as never);
@@ -58,9 +57,9 @@ export async function fetchBigBedRows({
         region.end,
       )) as RawBigBedRow[]);
 
-  const visibleRows: BigBedRow[] = [];
+  const visibleRows: InferBigBedRow<TSchema>[] = [];
   for (const row of rows) {
-    const normalized = normalizeBigBedRow(row);
+    const normalized = normalizeBigBedRow(row) as InferBigBedRow<TSchema>;
     if (normalized.end >= region.start && normalized.start <= region.end) {
       visibleRows.push(normalized);
     }

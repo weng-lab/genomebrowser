@@ -5,6 +5,7 @@ import { TrackTooltip } from "../shared/TrackTooltip";
 import { fetchTranscript } from "./fetch";
 import { PackTranscript, SquishTranscript } from "./render";
 import { TranscriptSettings } from "./settings";
+import type { Transcript } from "./types";
 
 const transcriptInputSchema = z.object({
   assembly: fetchOnChange(z.string().min(1)),
@@ -14,7 +15,7 @@ const transcriptInputSchema = z.object({
   highlightColor: z.string().optional(),
 });
 
-export const transcriptModule = defineTrackModule({
+export const transcriptModule = defineTrackModule<Transcript>()({
   type: "transcript",
   defaults: {
     height: 90,

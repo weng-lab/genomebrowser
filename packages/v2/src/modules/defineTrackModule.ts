@@ -21,27 +21,29 @@ type ReservedTrackField =
   | "onHover"
   | "onLeave"
   | "tooltip";
-type TrackModuleDefaults<Display extends string> = {
+type TrackModuleDefaults<Display extends string, Item> = {
   display?: Display;
   height?: number;
   color?: string;
-} & Partial<TrackInteractionConfig<any, any>>;
+} & Partial<TrackInteractionConfig<Item, any>>;
 
 type DefinedTrackInput<
   Schema extends TrackInputSchema,
   Display extends string,
+  Item,
 > = z.input<Schema> & {
   id: string;
   title: string;
   display?: Display;
   height?: number;
   color?: string;
-} & Partial<TrackInteractionConfig<any, any>>;
+} & Partial<TrackInteractionConfig<Item, any>>;
 
 type DefinedTrackConfig<
   Type extends string,
   Schema extends TrackInputSchema,
   Display extends string,
+  Item,
 > = Omit<z.output<Schema>, ReservedTrackField> & {
   id: string;
   type: Type;
@@ -49,45 +51,76 @@ type DefinedTrackConfig<
   display: Display;
   height: number;
   color?: string;
-} & Partial<TrackInteractionConfig<any, any>>;
+} & Partial<TrackInteractionConfig<Item, any>>;
 
 type TrackModuleDefinition<
   Type extends string,
   Schema extends TrackInputSchema,
   Display extends string,
   Data,
+  Item,
 > = {
   type: Type;
-  defaults?: TrackModuleDefaults<Display>;
+  defaults?: TrackModuleDefaults<Display, Item>;
   schema: Schema;
   fetch: TrackModule<
-    DefinedTrackConfig<Type, Schema, Display>,
+    DefinedTrackConfig<Type, Schema, Display, Item>,
     Data,
-    DefinedTrackInput<Schema, Display>
+    DefinedTrackInput<Schema, Display, Item>
   >["fetch"];
   render: Record<
     Display,
-    ComponentType<TrackRendererProps<DefinedTrackConfig<Type, Schema, Display>, Data>>
+    ComponentType<TrackRendererProps<DefinedTrackConfig<Type, Schema, Display, Item>, Data>>
   >;
   settingsComponent?: TrackModule<
-    DefinedTrackConfig<Type, Schema, Display>,
+    DefinedTrackConfig<Type, Schema, Display, Item>,
     Data,
-    DefinedTrackInput<Schema, Display>
+    DefinedTrackInput<Schema, Display, Item>
   >["settingsComponent"];
-  tooltipComponent?: TrackTooltipComponent<any, DefinedTrackConfig<Type, Schema, Display>>;
+  tooltipComponent?: TrackTooltipComponent<Item, DefinedTrackConfig<Type, Schema, Display, Item>>;
 };
 
+export function defineTrackModule<Item = any>(): <
+  Type extends string,
+  Schema extends TrackInputSchema,
+  Display extends string,
+  Data,
+>(
+  definition: TrackModuleDefinition<Type, Schema, Display, Data, Item>,
+) => TrackModule<
+  DefinedTrackConfig<Type, Schema, Display, Item>,
+  Data,
+  DefinedTrackInput<Schema, Display, Item>
+>;
 export function defineTrackModule<
   Type extends string,
   Schema extends TrackInputSchema,
   Display extends string,
   Data,
 >(
-  definition: TrackModuleDefinition<Type, Schema, Display, Data>,
+  definition: TrackModuleDefinition<Type, Schema, Display, Data, any>,
 ): TrackModule<
-  DefinedTrackConfig<Type, Schema, Display>,
+  DefinedTrackConfig<Type, Schema, Display, any>,
   Data,
-  DefinedTrackInput<Schema, Display>
+  DefinedTrackInput<Schema, Display, any>
+>;
+export function defineTrackModule(definition?: unknown) {
+  if (definition === undefined) return createTrackModule;
+  return createTrackModule(definition as never);
+}
+
+function createTrackModule<
+  Type extends string,
+  Schema extends TrackInputSchema,
+  Display extends string,
+  Data,
+  Item,
+>(
+  definition: TrackModuleDefinition<Type, Schema, Display, Data, Item>,
+): TrackModule<
+  DefinedTrackConfig<Type, Schema, Display, Item>,
+  Data,
+  DefinedTrackInput<Schema, Display, Item>
 > {
   assertNoReservedFields(definition.type, definition.schema);
 
@@ -123,24 +156,25 @@ export function defineTrackModule<
   });
 
   const module: TrackModule<
-    DefinedTrackConfig<Type, Schema, Display>,
+    DefinedTrackConfig<Type, Schema, Display, Item>,
     Data,
-    DefinedTrackInput<Schema, Display>
+    DefinedTrackInput<Schema, Display, Item>
   > = {
-    type: definition.type as DefinedTrackConfig<Type, Schema, Display>["type"],
+    type: definition.type as DefinedTrackConfig<Type, Schema, Display, Item>["type"],
     create(input) {
       const parsed = parsePublicInput(inputSchema, input, `${definition.type} config`);
       return {
         ...applyInteractionDefaults(parsed, definition.defaults),
         type: definition.type,
-      } as DefinedTrackConfig<Type, Schema, Display>;
+      } as DefinedTrackConfig<Type, Schema, Display, Item>;
     },
     validate(config) {
       const parsed = parsePublicInput(configSchema, config, `${definition.type} config`);
       return applyInteractionDefaults(parsed, definition.defaults) as DefinedTrackConfig<
         Type,
         Schema,
-        Display
+        Display,
+        Item
       >;
     },
     fetch: definition.fetch,

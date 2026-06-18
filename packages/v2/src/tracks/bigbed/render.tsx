@@ -1,22 +1,19 @@
 import { useAutoTrackHeight } from "../../browser/track-height/useAutoTrackHeight";
 import { useTooltip } from "../../browser/tooltip/useTooltip";
-import type { TrackRendererProps } from "../../modules/types";
+import type { TrackConfigBase, TrackRendererProps } from "../../modules/types";
 import { createXScale } from "../../modules/utils/scale";
 import { renderDenseBigBedData, renderSquishBigBedData } from "./helpers";
-import type { BigBedConfig, BigBedData } from "./types";
+import type { BigBedConfig, BigBedRow } from "./types";
 
-export function DenseBigBed({
-  config,
-  data,
-  region,
-  width,
-  height,
-}: TrackRendererProps<BigBedConfig, BigBedData>) {
+export function DenseBigBed<
+  Row extends BigBedRow = BigBedRow,
+  Config extends TrackConfigBase = BigBedConfig,
+>({ config, data, region, width, height }: TrackRendererProps<Config, Row[]>) {
   const x = createXScale(region, width);
   const rects = renderDenseBigBedData(data, x);
   const rectHeight = height * 0.6;
   const y = height * 0.2;
-  const tooltip = useTooltip<BigBedData[number], BigBedConfig>({ config });
+  const tooltip = useTooltip<Row, Config>({ config });
 
   return (
     <g>
@@ -45,17 +42,14 @@ export function DenseBigBed({
   );
 }
 
-export function SquishBigBed({
-  config,
-  data,
-  region,
-  width,
-  height,
-}: TrackRendererProps<BigBedConfig, BigBedData>) {
+export function SquishBigBed<
+  Row extends BigBedRow = BigBedRow,
+  Config extends TrackConfigBase = BigBedConfig,
+>({ config, data, region, width, height }: TrackRendererProps<Config, Row[]>) {
   const x = createXScale(region, width);
   const rows = renderSquishBigBedData(data, x);
   const rowHeight = useAutoTrackHeight(config.id, rows.length);
-  const tooltip = useTooltip<BigBedData[number], BigBedConfig>({ config });
+  const tooltip = useTooltip<Row, Config>({ config });
 
   return (
     <g>

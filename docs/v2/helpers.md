@@ -157,12 +157,14 @@ Applications normally create browser and track stores before rendering `GenomeBr
 The package entry point exports the built-in modules and their public types:
 
 - `bigWigModule` and BigWig types
-- `bigBedModule` and BigBed types
+- `bigBedModule`, `fetchBigBedRows`, `DenseBigBed`, `SquishBigBed`, and BigBed types
 - `bulkBedModule` and BulkBed types
 - `transcriptModule` and Transcript types
 - `methylCModule` and MethylC types
 
 See [Built-in tracks](tracks/README.md) for module-specific config fields and fetch behavior.
+
+`fetchBigBedRows`, `DenseBigBed`, and `SquishBigBed` are public BigBed reuse points for custom BigBed-derived modules. Use them when a custom module needs to reuse BigBed loading, parsing, and rendering while owning a schema-specific `type`, tooltip component, and interaction item type. Import them from the package entry point rather than from internal source paths.
 
 ## `useTooltip`
 

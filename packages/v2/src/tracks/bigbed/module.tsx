@@ -5,13 +5,13 @@ import { TrackTooltip } from "../shared/TrackTooltip";
 import { fetchBigBed } from "./fetch";
 import { DenseBigBed, SquishBigBed } from "./render";
 import { BigBedSettings } from "./settings";
+import type { BigBedRow } from "./types";
 
 const bigBedInputSchema = z.object({
   url: fetchOnChange(z.string().min(1)),
-  schema: z.instanceof(z.ZodObject).optional(),
 });
 
-export const bigBedModule = defineTrackModule({
+export const bigBedModule = defineTrackModule<BigBedRow>()({
   type: "bigbed",
   defaults: {
     height: 60,

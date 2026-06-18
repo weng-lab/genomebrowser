@@ -58,6 +58,8 @@ export type {
 } from "./browser/track-state/trackStore";
 
 export { bigBedModule } from "./tracks/bigbed/module";
+export { fetchBigBedRows } from "./tracks/bigbed/fetch";
+export { DenseBigBed, SquishBigBed } from "./tracks/bigbed/render";
 export type {
   BigBedConfig,
   BigBedData,

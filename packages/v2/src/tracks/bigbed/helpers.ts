@@ -2,12 +2,12 @@ import type { BigBedRow, RenderedBigBedRect } from "./types";
 
 type Feature<T> = T & { coordinates: { start: number; end: number }; name: string };
 
-export function renderDenseBigBedData(
-  rows: BigBedRow[],
+export function renderDenseBigBedData<Row extends BigBedRow>(
+  rows: Row[],
   x: (value: number) => number,
-): RenderedBigBedRect[] {
+): RenderedBigBedRect<Row>[] {
   const sorted = rows.toSorted((a, b) => a.start - b.start);
-  const rendered: RenderedBigBedRect[] = [];
+  const rendered: RenderedBigBedRect<Row>[] = [];
 
   for (const row of sorted) {
     const previous = rendered[rendered.length - 1];
@@ -22,17 +22,17 @@ export function renderDenseBigBedData(
       });
     } else {
       previous.end = x(row.end);
-      previous.row = { ...previous.row, end: row.end };
+      previous.row = { ...previous.row, end: row.end } as Row;
     }
   }
 
   return rendered;
 }
 
-export function renderSquishBigBedData(
-  rows: BigBedRow[],
+export function renderSquishBigBedData<Row extends BigBedRow>(
+  rows: Row[],
   x: (value: number) => number,
-): RenderedBigBedRect[][] {
+): RenderedBigBedRect<Row>[][] {
   const features = rows
     .toSorted((a, b) => a.start - b.start)
     .map((row) => ({
