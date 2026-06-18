@@ -1,5 +1,0 @@
-# Browser-backed track features are exposed through hooks
-
-Status: deprecated by ADR-0014
-
-Track renderers own semantic decisions such as hit testing and when to call `onClick`, `onHover`, or `onLeave`, but browser-only behavior such as tooltip placement, SVG coordinate conversion, panning suppression, and runtime state access is exposed through public hooks. Feature hooks may be backed by providers and scoped internal stores so each `GenomeBrowser` instance owns its runtime state without forcing broad React context re-renders; this keeps browser-backed capabilities available to custom track modules without coupling renderers to browser internals.
