@@ -2,8 +2,8 @@ import { createContext, use, type ReactNode } from "react";
 import type { TrackMutationResult } from "../../modules/types";
 import type { SettingsStore, SettingsStoreInstance } from "../settings/settingsStore";
 import type { BrowserStore, BrowserStoreInstance } from "./browserStore";
-import type { ContextMenuStore, ContextMenuStoreInstance } from "./contextMenuStore";
-import type { TrackStore, TrackStoreInstance } from "./trackStore";
+import type { ContextMenuStore, ContextMenuStoreInstance } from "../context-menu/contextMenuStore";
+import type { TrackStore, TrackStoreInstance } from "../track-state/trackStore";
 
 type BrowserContextValue = {
   browserStore: BrowserStoreInstance;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createBrowserStore } from "../../src/browser/stores/browserStore";
+import { createBrowserStore } from "../../src/browser/browser-state/browserStore";
 
 describe("createBrowserStore", () => {
   it("stores initial highlights", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTrackStore } from "../../src/browser/stores/trackStore";
+import { createTrackStore } from "../../src/browser/track-state/trackStore";
 import { bigBedModule } from "../../src/tracks/bigbed/module";
 import { bigWigModule } from "../../src/tracks/bigwig/module";
 import type { TrackConfigBase } from "../../src/modules/types";

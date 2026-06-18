@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import type { createModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase, TrackSettingsProps, TrackSettingsUpdate } from "../../modules/types";
-import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../stores/BrowserContext";
+import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../browser-state/BrowserContext";
 
 type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 

@@ -1,5 +1,5 @@
 import type { TrackConfigBase } from "../../modules/types";
-import { getTrackWrapperHeight } from "../tracks/trackLayout";
+import { getTrackWrapperHeight } from "../track-rendering/trackLayout";
 import type { SwapPreview } from "./types";
 
 export function isSameSwapPreview(a: SwapPreview | null, b: SwapPreview) {

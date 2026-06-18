@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { MouseEvent, RefObject } from "react";
 import type { TrackConfigBase } from "../../modules/types";
 import { svgPoint } from "../../modules/utils/svg";
-import { useBrowserSvg, useTrackMutationGate, useTrackStore } from "../stores/BrowserContext";
+import { useBrowserSvg, useTrackMutationGate, useTrackStore } from "../browser-state/BrowserContext";
 import { getSwapOrder, getSwapPreview, isSameSwapPreview } from "./trackSwapMath";
 import type { SwapPreview, TrackFrameSwapProps } from "./types";
 

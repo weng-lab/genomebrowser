@@ -1,10 +1,10 @@
 import type { ComponentType } from "react";
-import type { DataState } from "../data/types";
+import type { DataState } from "../track-data/types";
 import type { createModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase, TrackRendererProps } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
-import { ErrorState } from "../ErrorState";
-import { LoadingState } from "../LoadingState";
+import { ErrorState } from "./ErrorState";
+import { LoadingState } from "./LoadingState";
 
 type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 

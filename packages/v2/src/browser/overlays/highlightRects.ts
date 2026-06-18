@@ -1,6 +1,6 @@
 import type { BrowserRegion } from "../../modules/utils/region";
 import { createXScale } from "../../modules/utils/scale";
-import type { Highlight } from "../stores/browserStore";
+import type { Highlight } from "../browser-state/browserStore";
 
 export type HighlightRect = {
   id: string;

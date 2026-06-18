@@ -21,22 +21,22 @@ export { SettingsSection } from "./modules/runtime/SettingsSection";
 export { useDraggableSettingsModal } from "./browser/settings/useDraggableSettingsModal";
 export type { DraggableSettingsModalResult } from "./browser/settings/useDraggableSettingsModal";
 
-export { createBrowserStore } from "./browser/stores/browserStore";
-export { createContextMenuStore } from "./browser/stores/contextMenuStore";
+export { createBrowserStore } from "./browser/browser-state/browserStore";
+export { createContextMenuStore } from "./browser/context-menu/contextMenuStore";
 export {
   useContextMenuStore,
   useBrowserStore,
   useSettingsStore,
   useTrackStore,
-} from "./browser/stores/BrowserContext";
+} from "./browser/browser-state/BrowserContext";
 export { createSettingsStore } from "./browser/settings/settingsStore";
-export { createTrackStore } from "./browser/stores/trackStore";
+export { createTrackStore } from "./browser/track-state/trackStore";
 export type {
   BrowserStore,
   BrowserStoreInput,
   BrowserStoreInstance,
   Highlight,
-} from "./browser/stores/browserStore";
+} from "./browser/browser-state/browserStore";
 export type {
   BaseSettingsProps,
   SettingsModalProps,
@@ -49,13 +49,13 @@ export type {
   ContextMenuPosition,
   ContextMenuStore,
   ContextMenuStoreInstance,
-} from "./browser/stores/contextMenuStore";
+} from "./browser/context-menu/contextMenuStore";
 export type {
   TrackStore,
   TrackStoreInstance,
   TrackStoreOptions,
   TrackUpdate,
-} from "./browser/stores/trackStore";
+} from "./browser/track-state/trackStore";
 
 export { bigBedModule } from "./tracks/bigbed/module";
 export type {

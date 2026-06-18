@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { TrackConfigBase } from "../../modules/types";
-import { useContextMenuStore } from "../stores/BrowserContext";
+import { useContextMenuStore } from "../browser-state/BrowserContext";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { PanTrack } from "./PanTrack";
 import { TrackControls } from "./TrackControls";
