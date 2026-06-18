@@ -24,7 +24,8 @@ describe("BulkBed module", () => {
         { name: "Dataset B", url: "YOUR_URL_HERE" },
       ],
     });
-    expect(config.tooltip).toBeTypeOf("function");
+    expect(bulkBedModule.tooltipComponent).toBeTypeOf("function");
+    expect(config).not.toHaveProperty("tooltip");
   });
 
   it("requires at least one dataset", () => {

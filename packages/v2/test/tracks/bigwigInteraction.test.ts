@@ -16,14 +16,15 @@ describe("BigWig interaction helpers", () => {
     { x: 2, min: 2, max: 5 },
   ];
 
-  it("creates configs with a default tooltip", () => {
+  it("defines tooltip UI on the module", () => {
     const config = bigWigModule.create({
       id: "signal",
       title: "Signal",
       url: "YOUR_URL_HERE",
     });
 
-    expect(config.tooltip).toBeTypeOf("function");
+    expect(bigWigModule.tooltipComponent).toBeTypeOf("function");
+    expect(config).not.toHaveProperty("tooltip");
   });
 
   it("maps local mouse x to a point", () => {

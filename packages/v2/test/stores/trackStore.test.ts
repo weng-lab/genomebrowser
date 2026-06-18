@@ -103,10 +103,7 @@ describe("createTrackStore", () => {
     ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig config is invalid/) });
   });
 
-  it("preserves interaction fields on initial tracks, added tracks, and updates", () => {
-    function Tooltip() {
-      return null;
-    }
+  it("preserves interaction callbacks on initial tracks, added tracks, and updates", () => {
     const onClick = () => undefined;
     const onHover = () => undefined;
     const onLeave = () => undefined;
@@ -118,7 +115,6 @@ describe("createTrackStore", () => {
       onClick,
       onHover,
       onLeave,
-      tooltip: Tooltip,
     });
     const store = createTrackStore({ modules: [bigWigModule], tracks: [initial] });
 
@@ -126,7 +122,6 @@ describe("createTrackStore", () => {
       onClick,
       onHover,
       onLeave,
-      tooltip: Tooltip,
     });
 
     const added = bigWigModule.create({
@@ -144,9 +139,33 @@ describe("createTrackStore", () => {
     expect(store.getState().getTrack("signal")).toMatchObject({
       onClick: nextClick,
       onLeave,
-      tooltip: Tooltip,
     });
     expect(store.getState().getTrack("signal")?.onHover).toBeUndefined();
+  });
+
+  it("rejects tooltip fields on tracks", () => {
+    function Tooltip() {
+      return null;
+    }
+    const store = createTrackStore({ modules: [bigWigModule], tracks: [] });
+
+    expect(
+      store.getState().addTrack({
+        id: "signal",
+        type: "bigwig",
+        title: "Signal",
+        display: "full",
+        height: 80,
+        url: "YOUR_URL_HERE",
+        tooltip: Tooltip,
+      } as never),
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig config is invalid/) });
+
+    store.getState().addTrack(bigWigTrack());
+    expect(store.getState().updateTrack("signal", { tooltip: Tooltip } as never)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/bigwig config is invalid/),
+    });
   });
 
   it("rejects invalid interaction updates", () => {

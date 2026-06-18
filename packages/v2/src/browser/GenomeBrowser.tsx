@@ -103,6 +103,7 @@ export function GenomeBrowser({
       }}
     >
       <BrowserFeatureProviders
+        registry={registry}
         svg={svg}
         isPanning={panDrag.isDragging}
         getTrackHeight={(trackId) => trackStore.getState().getTrack(trackId)?.height}

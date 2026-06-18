@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { transcriptModule } from "../../src/tracks/transcript/module";
 
 describe("Transcript module", () => {
-  it("creates configs with a default tooltip", () => {
+  it("defines tooltip UI on the module", () => {
     const config = transcriptModule.create({
       id: "genes",
       title: "Genes",
@@ -10,6 +10,7 @@ describe("Transcript module", () => {
       version: 40,
     });
 
-    expect(config.tooltip).toBeTypeOf("function");
+    expect(transcriptModule.tooltipComponent).toBeTypeOf("function");
+    expect(config).not.toHaveProperty("tooltip");
   });
 });

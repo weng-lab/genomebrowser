@@ -19,6 +19,10 @@ describe("defineTrackModule", () => {
     return null;
   }
 
+  function TooltipComponent() {
+    return null;
+  }
+
   const module = defineTrackModule({
     type: "example",
     defaults: {
@@ -35,6 +39,7 @@ describe("defineTrackModule", () => {
       dense: DenseRenderer,
     },
     settingsComponent: SettingsComponent,
+    tooltipComponent: TooltipComponent,
   });
 
   it("creates typed configs from public input", () => {
@@ -71,6 +76,10 @@ describe("defineTrackModule", () => {
 
   it("preserves optional settings components", () => {
     expect(module.settingsComponent).toBe(SettingsComponent);
+  });
+
+  it("preserves optional tooltip components on modules", () => {
+    expect(module.tooltipComponent).toBe(TooltipComponent);
   });
 
   it("rejects invalid display modes", () => {
@@ -150,13 +159,7 @@ describe("defineTrackModule", () => {
     ).toThrow(/cannot define reserved field "onClick"/);
   });
 
-  it("supports interaction defaults and config overrides", () => {
-    function DefaultInteractionTooltip() {
-      return null;
-    }
-    function OverrideTooltip() {
-      return null;
-    }
+  it("supports interaction callback defaults and config overrides", () => {
     const onClick = () => undefined;
     const onHover = () => undefined;
     const onLeave = () => undefined;
@@ -167,7 +170,6 @@ describe("defineTrackModule", () => {
         onClick,
         onHover,
         onLeave,
-        tooltip: DefaultInteractionTooltip,
       },
       schema: z.object({}),
       fetch: async () => null,
@@ -181,16 +183,15 @@ describe("defineTrackModule", () => {
         id: "defaulted",
         title: "Defaulted",
       }),
-    ).toMatchObject({ onClick, onHover, onLeave, tooltip: DefaultInteractionTooltip });
+    ).toMatchObject({ onClick, onHover, onLeave });
 
     expect(
       interactionModule.create({
         id: "override",
         title: "Override",
         onClick: overrideClick,
-        tooltip: OverrideTooltip,
       }),
-    ).toMatchObject({ onClick: overrideClick, onHover, onLeave, tooltip: OverrideTooltip });
+    ).toMatchObject({ onClick: overrideClick, onHover, onLeave });
   });
 
   it("rejects invalid interaction field values", () => {
@@ -201,6 +202,17 @@ describe("defineTrackModule", () => {
         url: "YOUR_URL_HERE",
         onClick: "not a function" as never,
       }),
+    ).toThrow(/example config is invalid/);
+  });
+
+  it("rejects tooltip on configs", () => {
+    expect(() =>
+      module.create({
+        id: "signal",
+        title: "Signal",
+        url: "YOUR_URL_HERE",
+        tooltip: TooltipComponent,
+      } as never),
     ).toThrow(/example config is invalid/);
   });
 

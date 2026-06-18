@@ -21,14 +21,14 @@ export const bulkBedModule = defineTrackModule({
   defaults: {
     height: 80,
     color: "#4b9560",
-    tooltip: ({ item }) => (
-      <TrackTooltip>
-        <text fill="#000000" fontSize={12} dominantBaseline="middle">
-          {item.name || item.datasetName || `${item.start}-${item.end}`}
-        </text>
-      </TrackTooltip>
-    ),
   },
+  tooltipComponent: ({ item }) => (
+    <TrackTooltip>
+      <text fill="#000000" fontSize={12} dominantBaseline="middle">
+        {item.name || item.datasetName || `${item.start}-${item.end}`}
+      </text>
+    </TrackTooltip>
+  ),
   schema: bulkBedInputSchema,
   fetch: fetchBulkBed,
   render: {

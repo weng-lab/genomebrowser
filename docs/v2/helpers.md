@@ -191,7 +191,7 @@ function DenseExample({ config, data }: ExampleRendererProps) {
 }
 ```
 
-If `config.tooltip` is present, `tooltip.show(item, event)` renders it with `{ item, config }` and positions it in the active browser. If no tooltip is present, `show` is a silent no-op. `show` is safe to call from continuous `onMouseMove` handlers; tooltip state is scoped to the active `GenomeBrowser` and suppressed while panning.
+If the registered module for `config.type` has a `tooltipComponent`, `tooltip.show(item, event)` renders it with `{ item, config }` and positions it in the active browser. If no tooltip component is present, `show` is a silent no-op. `show` is safe to call from continuous `onMouseMove` handlers; tooltip state is scoped to the active `GenomeBrowser` and suppressed while panning.
 
 ## Notes
 

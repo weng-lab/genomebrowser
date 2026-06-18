@@ -26,7 +26,8 @@ describe("MethylC module", () => {
       maskCpgByCoverage: false,
       urls: createUrls("YOUR_URL_HERE"),
     });
-    expect(config.tooltip).toBeTypeOf("function");
+    expect(methylCModule.tooltipComponent).toBeTypeOf("function");
+    expect(config).not.toHaveProperty("tooltip");
   });
 
   it("rejects combined as a display mode", () => {

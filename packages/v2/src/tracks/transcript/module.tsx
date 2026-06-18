@@ -19,14 +19,14 @@ export const transcriptModule = defineTrackModule({
   defaults: {
     height: 90,
     color: "#7a4fb3",
-    tooltip: ({ item }) => (
-      <TrackTooltip>
-        <text fill="#000000" fontSize={12} dominantBaseline="middle">
-          {item.name || item.id}
-        </text>
-      </TrackTooltip>
-    ),
   },
+  tooltipComponent: ({ item }) => (
+    <TrackTooltip>
+      <text fill="#000000" fontSize={12} dominantBaseline="middle">
+        {item.name || item.id}
+      </text>
+    </TrackTooltip>
+  ),
   schema: transcriptInputSchema,
   fetch: fetchTranscript,
   render: {

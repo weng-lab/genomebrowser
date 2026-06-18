@@ -19,7 +19,7 @@ type TrackConfigBase = {
 };
 ```
 
-Track configs can also include optional interaction fields: `onClick`, `onHover`, `onLeave`, and `tooltip`. See [Track interactions](#track-interactions).
+Track configs can also include optional interaction callback fields: `onClick`, `onHover`, and `onLeave`. See [Track interactions](#track-interactions).
 
 Track configs are the **runtime** configuration objects that define behavior such as color, title, and any other custom fields that a module has defined for its config. They tell the browser _how_ to render the track.
 
@@ -37,6 +37,7 @@ type TrackModule<Config, Data, Input = unknown> = {
   fetch(ctx: TrackFetchContext<Config>): Promise<Data>;
   render: Record<string, ComponentType<TrackRendererProps<Config, Data>>>;
   settingsComponent?: ComponentType<TrackSettingsProps<Config>>;
+  tooltipComponent?: ComponentType<{ item: unknown; config: Config }>;
 };
 ```
 
@@ -47,6 +48,7 @@ The main responsibilities are:
 - `fetch` loads raw data for the requested genomic region using the track config
 - `render` maps display modes to React renderers
 - `settingsComponent` can provide optional module-specific track settings UI
+- `tooltipComponent` can provide optional module-specific tooltip UI
 
 Track modules should be defined with `defineTrackModule`. Custom track authors provide one Zod schema for the track's config, and the helper creates the module's base config schema, `create`, and `validate` functions. See [Schema validation](validation.md) for the schema convention and [Useful helpers for track modules](helpers.md) for exported hooks that can support custom renderers.
 
@@ -74,6 +76,7 @@ export const exampleTrackModule = defineTrackModule({
     full: FullExample,
     dense: DenseExample,
   },
+  tooltipComponent: ExampleTooltip,
   settingsComponent: ExampleSettings,
 });
 ```
@@ -120,20 +123,19 @@ Keep browser behavior in browser hooks and components. Keep module behavior limi
 
 ## Track interactions
 
-Track configs can include interaction fields:
+Track configs can include interaction callback fields:
 
 ```ts
 type TrackInteractionConfig<Item, Config> = {
   onClick?: (context: { item: Item; config: Config; event: React.MouseEvent }) => void;
   onHover?: (context: { item: Item; config: Config; event: React.MouseEvent }) => void;
   onLeave?: (context: { item: Item; config: Config; event: React.MouseEvent }) => void;
-  tooltip?: React.ComponentType<{ item: Item; config: Config }>;
 };
 ```
 
-These fields are intentionally part of config state because v2 treats generated track configs as the **runtime** unit inserted into the track store. This keeps programmatic track creation simple: build the config, attach callbacks or a tooltip, and add it to the store.
+These callbacks are intentionally part of config state because v2 treats generated track configs as the **runtime** unit inserted into the track store, and app callbacks may close over app state.
 
-Renderers own the timing of these interactions. They call `onClick`, `onHover`, and `onLeave` directly with the semantic item under the pointer, and use browser-backed hooks such as `useTooltip` when they need browser-managed UI like tooltip positioning.
+Renderers own the timing of these interactions. They call `onClick`, `onHover`, and `onLeave` directly with the semantic item under the pointer, and use browser-backed hooks such as `useTooltip` when they need browser-managed UI like tooltip positioning. Tooltip components are module-owned through `tooltipComponent`, not stored on configs.
 
 ```tsx
 const track = bigBedModule.create({
@@ -143,17 +145,12 @@ const track = bigBedModule.create({
   onClick: ({ item, config, event }) => {
     console.log(config.id, item.start, item.end, event.clientX);
   },
-  tooltip: ({ item, config }) => (
-    <g>
-      <text>{`${config.title}: ${item.name ?? `${item.start}-${item.end}`}`}</text>
-    </g>
-  ),
 });
 ```
 
-Module defaults can also include interaction fields. This is useful for semantic wrapper modules that reuse generic behavior but want a default tooltip or callback policy. A config created from that module can still override the default interaction fields.
+Module defaults can include interaction callbacks. Tooltip components are defined by modules with `tooltipComponent`.
 
-Because callbacks and React components are functions, track configs that include interactions are not fully JSON-serializable.
+Because callbacks are functions, track configs that include interactions are not fully JSON-serializable.
 
 ## Built-in tracks
 

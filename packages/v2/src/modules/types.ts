@@ -24,7 +24,6 @@ export type TrackInteractionConfig<Item, Config extends TrackConfigBase> = {
   onClick?: TrackInteractionCallback<Item, Config>;
   onHover?: TrackInteractionCallback<Item, Config>;
   onLeave?: TrackInteractionCallback<Item, Config>;
-  tooltip?: TrackTooltipComponent<Item, Config>;
 };
 
 export type TrackConfigBase = {
@@ -37,7 +36,6 @@ export type TrackConfigBase = {
   onClick?: TrackInteractionCallback<any, any>;
   onHover?: TrackInteractionCallback<any, any>;
   onLeave?: TrackInteractionCallback<any, any>;
-  tooltip?: TrackTooltipComponent<any, any>;
 };
 
 export type TrackFetchContext<Config extends TrackConfigBase> = {
@@ -71,6 +69,7 @@ export type TrackModule<Config extends TrackConfigBase, Data, Input = unknown> =
   fetch(ctx: TrackFetchContext<Config>): Promise<Data>;
   render: Record<string, ComponentType<TrackRendererProps<Config, Data>>>;
   settingsComponent?: ComponentType<TrackSettingsProps<Config>>;
+  tooltipComponent?: TrackTooltipComponent<any, any>;
 };
 
 export type AnyTrackModule = TrackModule<any, any, any>;

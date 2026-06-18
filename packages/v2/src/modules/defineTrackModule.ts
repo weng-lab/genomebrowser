@@ -2,7 +2,12 @@ import type { ComponentType } from "react";
 import { z } from "zod";
 import { registerFetchSchema } from "./fetchOnChange";
 import { functionSchema, parsePublicInput } from "./schemas";
-import type { TrackInteractionConfig, TrackModule, TrackRendererProps } from "./types";
+import type {
+  TrackInteractionConfig,
+  TrackModule,
+  TrackRendererProps,
+  TrackTooltipComponent,
+} from "./types";
 
 type TrackInputSchema = z.ZodObject;
 type ReservedTrackField =
@@ -69,6 +74,7 @@ type TrackModuleDefinition<
     Data,
     DefinedTrackInput<Schema, Display>
   >["settingsComponent"];
+  tooltipComponent?: TrackTooltipComponent<any, DefinedTrackConfig<Type, Schema, Display>>;
 };
 
 export function defineTrackModule<
@@ -110,7 +116,6 @@ export function defineTrackModule<
     onClick: functionSchema.optional(),
     onHover: functionSchema.optional(),
     onLeave: functionSchema.optional(),
-    tooltip: functionSchema.optional(),
   });
   const inputSchema = definition.schema.safeExtend(baseSchema.shape).strict();
   const configSchema = inputSchema.safeExtend({
@@ -141,6 +146,7 @@ export function defineTrackModule<
     fetch: definition.fetch,
     render: definition.render,
     settingsComponent: definition.settingsComponent,
+    tooltipComponent: definition.tooltipComponent,
   };
 
   registerFetchSchema(module, definition.schema);
@@ -158,7 +164,6 @@ function applyInteractionDefaults<T extends Partial<TrackInteractionConfig<any, 
     onClick: config.onClick ?? defaults.onClick,
     onHover: config.onHover ?? defaults.onHover,
     onLeave: config.onLeave ?? defaults.onLeave,
-    tooltip: config.tooltip ?? defaults.tooltip,
   };
 }
 
