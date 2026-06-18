@@ -6,8 +6,9 @@ import type { BulkBedConfig, BulkBedDataset } from "./types";
 
 export function BulkBedSettings({ config, updateTrack }: TrackSettingsProps<BulkBedConfig>) {
   const datasetKeys = useRef<string[]>([]);
+  const nextDatasetKey = useRef(0);
   while (datasetKeys.current.length < config.datasets.length)
-    datasetKeys.current.push(crypto.randomUUID());
+    datasetKeys.current.push(`bulkbed-dataset-${nextDatasetKey.current++}`);
   if (datasetKeys.current.length > config.datasets.length) {
     datasetKeys.current = datasetKeys.current.slice(0, config.datasets.length);
   }
@@ -79,7 +80,7 @@ export function BulkBedSettings({ config, updateTrack }: TrackSettingsProps<Bulk
           <button
             type="button"
             onClick={() => {
-              datasetKeys.current.push(crypto.randomUUID());
+              datasetKeys.current.push(`bulkbed-dataset-${nextDatasetKey.current++}`);
               updateTrack({
                 datasets: [
                   ...config.datasets,
