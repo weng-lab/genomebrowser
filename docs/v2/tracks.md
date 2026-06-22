@@ -50,7 +50,7 @@ The main responsibilities are:
 - `settingsComponent` can provide optional module-specific track settings UI
 - `tooltipComponent` can provide optional module-specific tooltip UI
 
-Track modules should be defined with `defineTrackModule`. Custom track authors provide one Zod schema for the track's config, and the helper creates the module's base config schema, `create`, and `validate` functions. See [Schema validation](validation.md) for the schema convention and [Useful helpers for track modules](helpers.md) for exported hooks that can support custom renderers.
+Track modules should be defined with `defineTrackModule`. Custom track authors provide `configSchema`, a Zod object for the module-specific config fields. The helper combines it with the browser-owned base fields and creates `create` and `validate` functions. See [Schema validation](validation.md) for the config schema convention and [Useful helpers for track modules](helpers.md) for exported hooks that can support custom renderers.
 
 `settingsComponent` is only the module-specific settings child. The browser owns the main settings modal and base settings fields such as title, color, height, and display. Consumers can replace the main modal shell or base settings UI through the browser settings store without changing track modules.
 
@@ -70,7 +70,7 @@ export const exampleTrackModule = defineTrackModule<ExampleItem>()({
     height: 80,
     color: "#2266aa",
   },
-  schema: z.object({
+  configSchema: z.object({
     url: z.string().min(1),
   }),
   fetch: fetchExample,
@@ -83,7 +83,7 @@ export const exampleTrackModule = defineTrackModule<ExampleItem>()({
 });
 ```
 
-The custom schema must not define reserved fields: `id`, `type`, `title`, `display`, `height`, `color`, `onClick`, `onHover`, `onLeave`, or `tooltip`. Display modes come from the `render` keys. If `defaults.display` is omitted, the first renderer key is used.
+The custom config schema must not define reserved fields: `id`, `type`, `title`, `display`, `height`, `color`, `onClick`, `onHover`, `onLeave`, or `tooltip`. Display modes come from the `render` keys. If `defaults.display` is omitted, the first renderer key is used.
 
 `render` must contain at least one renderer. `defaults` is optional; if `height` is omitted it defaults to `80`, and `color` remains optional unless a default color is provided.
 
@@ -146,7 +146,7 @@ type ExampleItem = { id: string; label: string; score: number };
 
 export const exampleTrackModule = defineTrackModule<ExampleItem>()({
   type: "example",
-  schema: exampleConfigSchema,
+  configSchema: exampleConfigSchema,
   fetch: fetchExample,
   render: {
     full: FullExample,
@@ -246,7 +246,7 @@ export const peaksModule = defineTrackModule<PeakRow>()({
     height: 60,
     color: "#4b9560",
   },
-  schema: z.object({
+  configSchema: z.object({
     url: fetchOnChange(z.string().min(1)),
   }),
   fetch: ({ config, region }) =>

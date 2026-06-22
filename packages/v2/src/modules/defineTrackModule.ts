@@ -62,7 +62,7 @@ type TrackModuleDefinition<
 > = {
   type: Type;
   defaults?: TrackModuleDefaults<Display, Item>;
-  schema: Schema;
+  configSchema: Schema;
   fetch: TrackModule<
     DefinedTrackConfig<Type, Schema, Display, Item>,
     Data,
@@ -122,7 +122,7 @@ function createTrackModule<
   Data,
   DefinedTrackInput<Schema, Display, Item>
 > {
-  assertNoReservedFields(definition.type, definition.schema);
+  assertNoReservedFields(definition.type, definition.configSchema);
 
   const displayModes = Object.keys(definition.render) as Display[];
   if (displayModes.length === 0) {
@@ -150,8 +150,8 @@ function createTrackModule<
     onHover: functionSchema.optional(),
     onLeave: functionSchema.optional(),
   });
-  const inputSchema = definition.schema.safeExtend(baseSchema.shape).strict();
-  const configSchema = inputSchema.safeExtend({
+  const publicInputSchema = definition.configSchema.safeExtend(baseSchema.shape).strict();
+  const fullConfigSchema = publicInputSchema.safeExtend({
     type: z.literal(definition.type),
   });
 
@@ -162,14 +162,14 @@ function createTrackModule<
   > = {
     type: definition.type as DefinedTrackConfig<Type, Schema, Display, Item>["type"],
     create(input) {
-      const parsed = parsePublicInput(inputSchema, input, `${definition.type} config`);
+      const parsed = parsePublicInput(publicInputSchema, input, `${definition.type} config`);
       return {
         ...applyInteractionDefaults(parsed, definition.defaults),
         type: definition.type,
       } as DefinedTrackConfig<Type, Schema, Display, Item>;
     },
     validate(config) {
-      const parsed = parsePublicInput(configSchema, config, `${definition.type} config`);
+      const parsed = parsePublicInput(fullConfigSchema, config, `${definition.type} config`);
       return applyInteractionDefaults(parsed, definition.defaults) as DefinedTrackConfig<
         Type,
         Schema,
@@ -183,7 +183,7 @@ function createTrackModule<
     tooltipComponent: definition.tooltipComponent,
   };
 
-  registerFetchSchema(module, definition.schema);
+  registerFetchSchema(module, definition.configSchema);
 
   return module;
 }
@@ -217,7 +217,7 @@ function assertNoReservedFields(type: string, schema: TrackInputSchema) {
 
   for (const field of Object.keys(schema.shape)) {
     if (reservedFields.has(field as ReservedTrackField)) {
-      throw new Error(`Track schema for "${type}" cannot define reserved field "${field}"`);
+      throw new Error(`Track config schema for "${type}" cannot define reserved field "${field}"`);
     }
   }
 }

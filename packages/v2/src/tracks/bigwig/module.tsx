@@ -36,7 +36,7 @@ export const bigWigModule = defineTrackModule<RenderedBigWigPoint>()({
       </text>
     </TrackTooltip>
   ),
-  schema: bigWigConfigSchema,
+  configSchema: bigWigConfigSchema,
   fetch: fetchBigWig,
   render: {
     full: FullBigWig,

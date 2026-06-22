@@ -12,7 +12,7 @@ describe("fetchOnChange", () => {
   it("includes only marked fields in fetch signatures", () => {
     const module = defineTrackModule({
       type: "example",
-      schema: z.object({
+      configSchema: z.object({
         url: fetchOnChange(z.string().min(1)),
         colorBy: z.string().optional(),
       }),
@@ -38,7 +38,7 @@ describe("fetchOnChange", () => {
   it("returns a stable empty signature when no fields are marked", () => {
     const module = defineTrackModule({
       type: "unmarked",
-      schema: z.object({ url: z.string().min(1) }),
+      configSchema: z.object({ url: z.string().min(1) }),
       fetch: async () => null,
       render: { full: Renderer },
     });
@@ -51,7 +51,7 @@ describe("fetchOnChange", () => {
   it("preserves nested object shape for marked fields", () => {
     const module = defineTrackModule({
       type: "nested",
-      schema: z.object({
+      configSchema: z.object({
         source: z.object({
           url: fetchOnChange(z.string().min(1)),
           label: z.string().min(1),
@@ -80,7 +80,7 @@ describe("fetchOnChange", () => {
   it("preserves nested array shape for marked fields", () => {
     const module = defineTrackModule({
       type: "bulk-example",
-      schema: z.object({
+      configSchema: z.object({
         datasets: z.array(
           z.object({
             name: z.string().min(1),

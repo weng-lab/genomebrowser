@@ -4,9 +4,9 @@ v2 uses Zod for runtime validation at package boundaries and before runtime beha
 
 The goal is to fail early with useful errors while keeping custom track definitions small.
 
-## Custom track schemas
+## Custom Track Config Schemas
 
-Custom track authors define one Zod schema for track-specific input fields and pass it to `defineTrackModule`:
+Custom track authors define `configSchema`, a Zod object for track-specific config/input fields, and pass it to `defineTrackModule`:
 
 ```ts
 import { z } from "zod";
@@ -18,7 +18,7 @@ export const exampleTrackModule = defineTrackModule({
     height: 80,
     color: "#2266aa",
   },
-  schema: z.object({
+  configSchema: z.object({
     url: z.string().min(1),
   }),
   fetch: fetchExample,
@@ -36,7 +36,7 @@ type ExampleItem = { id: string; label: string };
 
 export const exampleTrackModule = defineTrackModule<ExampleItem>()({
   type: "example",
-  schema: z.object({
+  configSchema: z.object({
     url: z.string().min(1),
   }),
   fetch: fetchExample,
@@ -46,11 +46,11 @@ export const exampleTrackModule = defineTrackModule<ExampleItem>()({
 });
 ```
 
-The schema should only include custom fields. `defineTrackModule` owns the base fields (`id`, `type`, `title`, `display`, `height`, and `color`) and interaction callback fields (`onClick`, `onHover`, and `onLeave`), enforces strict object validation, and derives the full track config validator from them. Field-level validation, defaults, and object-level refinements on the custom schema are preserved.
+The config schema should only include custom fields. `defineTrackModule` owns the base fields (`id`, `type`, `title`, `display`, `height`, and `color`) and interaction callback fields (`onClick`, `onHover`, and `onLeave`), enforces strict object validation, and derives the full track config validator from them. Field-level validation, defaults, and object-level refinements on the custom config schema are preserved.
 
 The interaction item type is separate from the config schema. It describes the object shape the renderer passes to `onClick`, `onHover`, `onLeave`, and tooltips. If a renderer can expose several shapes, use a discriminated union such as `type ExampleItem = PeakItem | MotifItem | AnnotationItem`.
 
-Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used. The custom schema cannot define reserved fields.
+Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used. The custom config schema cannot define reserved fields.
 
 Reserved fields are: `id`, `type`, `title`, `display`, `height`, `color`, `onClick`, `onHover`, `onLeave`, and `tooltip`.
 

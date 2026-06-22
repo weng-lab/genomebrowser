@@ -14,7 +14,7 @@ describe("fetchTrackData", () => {
   it("returns success data", async () => {
     const module = defineTrackModule({
       type: "example",
-      schema: z.object({ url: z.string().min(1) }),
+      configSchema: z.object({ url: z.string().min(1) }),
       fetch: async ({ config }) => [{ url: config.url }],
       render: { full: Renderer },
     });
@@ -36,7 +36,7 @@ describe("fetchTrackData", () => {
   it("returns errors for missing modules and fetch failures", async () => {
     const module = defineTrackModule({
       type: "example",
-      schema: z.object({ url: z.string().min(1) }),
+      configSchema: z.object({ url: z.string().min(1) }),
       fetch: async () => {
         throw new Error("Fetch failed");
       },

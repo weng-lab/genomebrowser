@@ -30,7 +30,7 @@ export const bulkBedModule = defineTrackModule<BulkBedRect>()({
       </text>
     </TrackTooltip>
   ),
-  schema: bulkBedInputSchema,
+  configSchema: bulkBedInputSchema,
   fetch: fetchBulkBed,
   render: {
     full: FullBulkBed,

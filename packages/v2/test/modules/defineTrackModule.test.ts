@@ -30,7 +30,7 @@ describe("defineTrackModule", () => {
       height: 80,
       color: "#2266aa",
     },
-    schema: z.object({
+    configSchema: z.object({
       url: z.string().min(1),
       enabled: z.boolean().default(true),
     }),
@@ -105,10 +105,10 @@ describe("defineTrackModule", () => {
     ).toThrow(/example config is invalid/);
   });
 
-  it("preserves top-level custom schema refinements", () => {
+  it("preserves top-level custom config schema refinements", () => {
     const rangeModule = defineTrackModule({
       type: "range",
-      schema: z
+      configSchema: z
         .object({
           min: z.number(),
           max: z.number(),
@@ -132,11 +132,11 @@ describe("defineTrackModule", () => {
     ).toThrow(/min must be less than max/);
   });
 
-  it("rejects reserved custom schema fields", () => {
+  it("rejects reserved custom config schema fields", () => {
     expect(() =>
       defineTrackModule({
         type: "reserved",
-        schema: z.object({
+        configSchema: z.object({
           display: z.string(),
         }),
         fetch: async () => null,
@@ -149,7 +149,7 @@ describe("defineTrackModule", () => {
     expect(() =>
       defineTrackModule({
         type: "reserved-interaction",
-        schema: z.object({
+        configSchema: z.object({
           onClick: z.custom<Function>((value) => typeof value === "function"),
         }),
         fetch: async () => null,
@@ -172,7 +172,7 @@ describe("defineTrackModule", () => {
         onHover,
         onLeave,
       },
-      schema: z.object({}),
+      configSchema: z.object({}),
       fetch: async () => null,
       render: {
         full: FullRenderer,
@@ -221,7 +221,7 @@ describe("defineTrackModule", () => {
     expect(() =>
       defineTrackModule({
         type: "empty",
-        schema: z.object({}),
+        configSchema: z.object({}),
         fetch: async () => null,
         render: {},
       }),
@@ -235,7 +235,7 @@ describe("defineTrackModule", () => {
         defaults: {
           display: "dense" as never,
         },
-        schema: z.object({}),
+        configSchema: z.object({}),
         fetch: async () => null,
         render: {
           full: FullRenderer,
@@ -306,7 +306,7 @@ describe("defineTrackModule", () => {
 
     const peaksModule = defineTrackModule<PeakRow>()({
       type: "peaks",
-      schema: z.object({
+      configSchema: z.object({
         url: z.string().min(1),
       }),
       fetch: async () => [],

@@ -56,14 +56,14 @@ Only call this hook from React renderers that run inside `GenomeBrowser`, becaus
 import { z } from "zod";
 import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser-v2";
 
-const exampleSchema = z.object({
+const exampleConfigSchema = z.object({
   url: fetchOnChange(z.string().min(1)),
   colorScale: z.string().default("linear"),
 });
 
 export const exampleTrackModule = defineTrackModule({
   type: "example",
-  schema: exampleSchema,
+  configSchema: exampleConfigSchema,
   fetch: fetchExample,
   render: { full: FullExample },
 });

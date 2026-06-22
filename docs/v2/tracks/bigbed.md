@@ -73,7 +73,7 @@ export const peakModule = defineTrackModule<PeakRow>()({
     height: 60,
     color: "#4b9560",
   },
-  schema: z.object({
+  configSchema: z.object({
     url: fetchOnChange(z.string().min(1)),
   }),
   fetch: ({ config, region }) =>

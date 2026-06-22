@@ -24,7 +24,7 @@ export const bigBedModule = defineTrackModule<BigBedRow>()({
       </text>
     </TrackTooltip>
   ),
-  schema: bigBedInputSchema,
+  configSchema: bigBedInputSchema,
   fetch: fetchBigBed,
   render: {
     dense: DenseBigBed,

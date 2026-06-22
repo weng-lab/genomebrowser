@@ -28,7 +28,7 @@ export const transcriptModule = defineTrackModule<Transcript>()({
       </text>
     </TrackTooltip>
   ),
-  schema: transcriptInputSchema,
+  configSchema: transcriptInputSchema,
   fetch: fetchTranscript,
   render: {
     squish: SquishTranscript,

@@ -26,7 +26,7 @@ use `"YOUR_URL_HERE"` or existing URLs when making track configs.
 
 ## KISS (keep it simple stupid)
 
-Write as little code as possible that still acomplishes the task 100%. More LoC = more techincal debt.
+Write as little code as possible that still accomplishes the task 100%. More LoC = more technical debt.
 
 ## Zustand stores ARE React hooks
 

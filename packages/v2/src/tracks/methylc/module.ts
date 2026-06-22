@@ -57,7 +57,7 @@ export const methylCModule = defineTrackModule<MethylCTooltipItem>()({
     height: 100,
   },
   tooltipComponent: MethylCTooltip,
-  schema: methylCConfigSchema,
+  configSchema: methylCConfigSchema,
   fetch: fetchMethylC,
   render: {
     split: SplitMethylC,
