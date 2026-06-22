@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import type { TrackConfigBase } from "../../modules/types";
-import { useTrackHeightController } from "./useTrackHeightController";
+import { TrackHeightContext } from "./TrackHeightProvider";
 
 export type AutoTrackHeightOptions = {
   rowHeight?: number;
@@ -12,7 +12,12 @@ export function useAutoTrackHeight(
   rowCount: number,
   { rowHeight = 12, minHeight = 30 }: AutoTrackHeightOptions = {},
 ) {
-  const { getTrackHeight, updateTrack } = useTrackHeightController();
+  const controller = use(TrackHeightContext);
+  if (!controller)
+    throw new Error("useAutoTrackHeight must be used within a GenomeBrowser");
+
+  const { getTrackHeight, updateTrack } = controller;
+
   const currentHeight = getTrackHeight(trackId);
 
   useEffect(() => {

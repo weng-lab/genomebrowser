@@ -5,7 +5,10 @@ import { BrowserFeatureProviders } from "./browser-features/BrowserFeatureProvid
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { createModuleRegistry } from "../modules/registry";
 import type { AnyTrackModule } from "../modules/types";
-import { createSettingsStore, type SettingsStoreInstance } from "./settings/settingsStore";
+import {
+  createSettingsStore,
+  type SettingsStoreInstance,
+} from "./settings/settingsStore";
 import { BrowserProvider } from "./browser-state/BrowserContext";
 import type { BrowserStoreInstance } from "./browser-state/browserStore";
 import { createContextMenuStore } from "./context-menu/contextMenuStore";
@@ -38,31 +41,43 @@ export function GenomeBrowser({
   modules,
   settingsStore,
 }: GenomeBrowserProps) {
+  const [svg, setSvg] = useState<SVGSVGElement | null>(null);
+
   const region = browserStore((state) => state.region);
   const marginWidth = browserStore((state) => state.marginWidth);
   const trackWidth = browserStore((state) => state.trackWidth);
   const titleSize = browserStore((state) => state.titleSize);
   const setRegion = browserStore((state) => state.setRegion);
+
   const tracks = trackStore((state) => state.tracks);
-  const [svg, setSvg] = useState<SVGSVGElement | null>(null);
+
   const registry = useMemo(() => createModuleRegistry(modules), [modules]);
   const useDataStore = useMemo(() => createDataStore(), []);
   const contextMenuStore = useMemo(() => createContextMenuStore(), []);
   const internalSettingsStore = useMemo(() => createSettingsStore(), []);
+
   const activeSettingsStore = settingsStore ?? internalSettingsStore;
   const sideWidth = trackWidth;
   const browserWidth = marginWidth + trackWidth;
   const totalHeight = RULER_HEIGHT + getTracksHeight(tracks, titleSize);
   const baseContentX = marginWidth - sideWidth;
+
   const { getContentOffset, registerContentGroup, setContentOffset } =
     useContentTransform(baseContentX);
-  const { dataKey, displayedRenderRegion, renderWidth, settleData, targetRenderRegion } =
-    useRenderWindow({
-      region,
-      tracks,
-      trackWidth,
-      overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
-    });
+
+  const {
+    dataKey,
+    displayedRenderRegion,
+    renderWidth,
+    settleData,
+    targetRenderRegion,
+  } = useRenderWindow({
+    region,
+    tracks,
+    trackWidth,
+    overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
+  });
+
   const { isPanLocked, panDrag, unlockPan } = usePanController({
     svg,
     region,
@@ -72,6 +87,7 @@ export function GenomeBrowser({
     setRegion,
     onPanStart: () => undefined,
   });
+
   const handleDataSettled = useCallback(
     (key: string) => {
       if (!settleData(key)) return;
@@ -88,6 +104,7 @@ export function GenomeBrowser({
     region: targetRenderRegion,
     onSettled: () => handleDataSettled(dataKey),
   });
+
   const isInteractionBlocked = isPanLocked || isFetching;
 
   return (
@@ -106,7 +123,9 @@ export function GenomeBrowser({
         registry={registry}
         svg={svg}
         isPanning={panDrag.isDragging}
-        getTrackHeight={(trackId) => trackStore.getState().getTrack(trackId)?.height}
+        getTrackHeight={(trackId) =>
+          trackStore.getState().getTrack(trackId)?.height
+        }
         updateTrack={trackStore.getState().updateTrack}
       >
         <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
