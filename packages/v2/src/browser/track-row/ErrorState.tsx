@@ -1,4 +1,4 @@
-import { ErrorIcon } from "../icons/ErrorIcon";
+import { ErrorIcon } from "./icons";
 
 export function ErrorState({
   x,

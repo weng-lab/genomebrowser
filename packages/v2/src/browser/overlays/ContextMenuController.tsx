@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { useContextMenuStore, useTrackMutationGate, useTrackStore } from "../browser-state/BrowserContext";
-import { useRegistry } from "../registry/useRegistry";
+import { useContextMenuStore, useTrackMutationGate, useTrackStore } from "../state/BrowserContext";
+import { useRegistry } from "../state/useRegistry";
 
 export function ContextMenuController() {
   const registry = useRegistry();

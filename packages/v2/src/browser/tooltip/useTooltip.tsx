@@ -1,6 +1,6 @@
 import { createElement, useRef } from "react";
 import type { TrackConfigBase } from "../../modules/types";
-import { useSvgPoint } from "../browser-svg/useSvgPoint";
+import { useSvgPoint } from "../svg/useSvgPoint";
 import {
   useInternalTooltipStore,
   useTooltipComponent,

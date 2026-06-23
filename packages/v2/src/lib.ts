@@ -14,30 +14,30 @@ export type {
 } from "./modules/types";
 
 export { fetchOnChange } from "./modules/fetchOnChange";
-export { useAutoTrackHeight } from "./browser/track-height/useAutoTrackHeight";
-export type { AutoTrackHeightOptions } from "./browser/track-height/useAutoTrackHeight";
+export { useAutoTrackHeight } from "./browser/track-row/useAutoTrackHeight";
+export type { AutoTrackHeightOptions } from "./browser/track-row/useAutoTrackHeight";
 export { useTooltip } from "./browser/tooltip/useTooltip";
-export { useRegistry } from "./browser/registry/useRegistry";
+export { useRegistry } from "./browser/state/useRegistry";
 export { SettingsSection } from "./modules/runtime/SettingsSection";
 export { useDraggableSettingsModal } from "./browser/settings/useDraggableSettingsModal";
 export type { DraggableSettingsModalResult } from "./browser/settings/useDraggableSettingsModal";
 
-export { createBrowserStore } from "./browser/browser-state/browserStore";
-export { createContextMenuStore } from "./browser/context-menu/contextMenuStore";
+export { createBrowserStore } from "./browser/state/browserStore";
+export { createContextMenuStore } from "./browser/state/contextMenuStore";
 export {
   useContextMenuStore,
   useBrowserStore,
   useSettingsStore,
   useTrackStore,
-} from "./browser/browser-state/BrowserContext";
-export { createSettingsStore } from "./browser/settings/settingsStore";
-export { createTrackStore } from "./browser/track-state/trackStore";
+} from "./browser/state/BrowserContext";
+export { createSettingsStore } from "./browser/state/settingsStore";
+export { createTrackStore } from "./browser/state/trackStore";
 export type {
   BrowserStore,
   BrowserStoreInput,
   BrowserStoreInstance,
   Highlight,
-} from "./browser/browser-state/browserStore";
+} from "./browser/state/browserStore";
 export type {
   BaseSettingsProps,
   SettingsModalProps,
@@ -45,18 +45,18 @@ export type {
   SettingsStore,
   SettingsStoreInput,
   SettingsStoreInstance,
-} from "./browser/settings/settingsStore";
+} from "./browser/state/settingsStore";
 export type {
   ContextMenuPosition,
   ContextMenuStore,
   ContextMenuStoreInstance,
-} from "./browser/context-menu/contextMenuStore";
+} from "./browser/state/contextMenuStore";
 export type {
   TrackStore,
   TrackStoreInstance,
   TrackStoreOptions,
   TrackUpdate,
-} from "./browser/track-state/trackStore";
+} from "./browser/state/trackStore";
 
 export { bigBedModule } from "./tracks/bigbed/module";
 export { fetchBigBedRows } from "./tracks/bigbed/fetch";

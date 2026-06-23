@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { fetchTrackData } from "../../src/browser/track-data/fetchTrackData";
+import { fetchTrackData } from "../../src/browser/data/fetchTrackData";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { createModuleRegistry } from "../../src/modules/registry";
 

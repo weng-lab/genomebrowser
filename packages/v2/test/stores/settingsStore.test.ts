@@ -3,7 +3,7 @@ import {
   type BaseSettingsProps,
   createSettingsStore,
   type SettingsModalProps,
-} from "../../src/browser/settings/settingsStore";
+} from "../../src/browser/state/settingsStore";
 
 describe("createSettingsStore", () => {
   function ModalComponent(_props: SettingsModalProps) {

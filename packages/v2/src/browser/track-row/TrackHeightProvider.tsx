@@ -1,6 +1,6 @@
 import { createContext, useMemo, type ReactNode } from "react";
 import type { TrackConfigBase, TrackSettingsUpdate } from "../../modules/types";
-import { useTrackStore } from "../browser-state/BrowserContext";
+import { useTrackStore } from "../state/BrowserContext";
 
 export type TrackHeightContextValue = {
   getTrackHeight: (trackId: string) => number | undefined;

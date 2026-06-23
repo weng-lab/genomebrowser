@@ -1,4 +1,4 @@
-import { useAutoTrackHeight } from "../../browser/track-height/useAutoTrackHeight";
+import { useAutoTrackHeight } from "../../browser/track-row/useAutoTrackHeight";
 import { useTooltip } from "../../browser/tooltip/useTooltip";
 import type { TrackConfigBase, TrackRendererProps } from "../../modules/types";
 import { createXScale } from "../../modules/utils/scale";

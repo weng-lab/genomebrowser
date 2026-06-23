@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createDataStore } from "../../src/browser/track-data/dataStore";
+import { createDataStore } from "../../src/browser/data/dataStore";
 
 describe("createDataStore", () => {
   it("starts empty", () => {

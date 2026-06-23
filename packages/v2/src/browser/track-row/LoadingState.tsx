@@ -1,4 +1,4 @@
-import { LoadingSpinner } from "../icons/LoadingSpinner";
+import { LoadingSpinner } from "./icons";
 
 export function LoadingState({
   x,

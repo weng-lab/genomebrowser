@@ -1,13 +1,13 @@
 import type { ComponentType } from "react";
 import { create, type StoreApi, type UseBoundStore } from "zustand";
-import { DefaultBaseSettings } from "./DefaultBaseSettings";
-import { DefaultSettingsModal } from "./DefaultSettingsModal";
+import { DefaultBaseSettings } from "../settings/DefaultBaseSettings";
+import { DefaultSettingsModal } from "../settings/DefaultSettingsModal";
 import type {
   BaseSettingsProps,
   SettingsModalProps,
   SettingsPosition,
   SettingsStoreInput,
-} from "./types";
+} from "../settings/types";
 
 export type SettingsStore = {
   open: boolean;
@@ -42,4 +42,4 @@ export type {
   SettingsModalProps,
   SettingsPosition,
   SettingsStoreInput,
-} from "./types";
+} from "../settings/types";

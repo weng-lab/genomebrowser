@@ -1,9 +1,7 @@
 import { useRef } from "react";
 import type { TrackConfigBase } from "../../modules/types";
-import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../browser-state/BrowserContext";
-import { BottomIcon } from "../icons/BottomIcon";
-import { SettingsIcon } from "../icons/SettingsIcon";
-import { TopIcon } from "../icons/TopIcon";
+import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../state/BrowserContext";
+import { BottomIcon, SettingsIcon, TopIcon } from "./icons";
 
 export function TrackControls({
   track,

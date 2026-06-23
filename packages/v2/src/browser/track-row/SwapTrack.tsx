@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { createPortal } from "react-dom";
 import type { TrackConfigBase } from "../../modules/types";
 import { useTrackSwap } from "./useTrackSwap";
-import type { SwapPreview, SwapTrackRender } from "./types";
+import type { SwapPreview, SwapTrackRender } from "./swapTypes";
 
 export function SwapTrack({
   track,

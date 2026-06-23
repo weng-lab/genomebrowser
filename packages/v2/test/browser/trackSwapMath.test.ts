@@ -3,7 +3,7 @@ import {
   getSwapOrder,
   getSwapPreview,
   getSwapPreviewOffsetY,
-} from "../../src/browser/track-swap/trackSwapMath";
+} from "../../src/browser/track-row/trackSwapMath";
 import type { TrackConfigBase } from "../../src/modules/types";
 
 const tracks = [makeTrack("a", 10), makeTrack("b", 10), makeTrack("c", 10)];

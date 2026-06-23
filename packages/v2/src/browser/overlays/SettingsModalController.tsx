@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import type { TrackConfigBase, TrackSettingsProps, TrackSettingsUpdate } from "../../modules/types";
-import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../browser-state/BrowserContext";
-import { useRegistry } from "../registry/useRegistry";
+import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../state/BrowserContext";
+import { useRegistry } from "../state/useRegistry";
 
 export function SettingsModalController() {
   const registry = useRegistry();

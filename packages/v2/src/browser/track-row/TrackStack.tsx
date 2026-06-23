@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
-import type { DataState } from "../track-data/types";
+import type { DataState } from "../data/types";
 import type { TrackConfigBase } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
-import { SwapTrack } from "../track-swap/SwapTrack";
-import { getSwapPreviewOffsetY, isSameSwapPreview } from "../track-swap/trackSwapMath";
-import type { SwapPreview } from "../track-swap/types";
+import { SwapTrack } from "./SwapTrack";
+import { getSwapPreviewOffsetY, isSameSwapPreview } from "./trackSwapMath";
+import type { SwapPreview } from "./swapTypes";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { TrackContent } from "./TrackContent";
 import { TrackFrame } from "./TrackFrame";
