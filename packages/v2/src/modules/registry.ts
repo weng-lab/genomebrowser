@@ -1,6 +1,10 @@
 import type { AnyTrackModule } from "./types";
 
-export function createModuleRegistry(modules: AnyTrackModule[]) {
+export type ModuleRegistry = {
+  get(type: string): AnyTrackModule;
+};
+
+export function createModuleRegistry(modules: AnyTrackModule[]): ModuleRegistry {
   const byType = new Map<string, AnyTrackModule>();
 
   for (const module of modules) {

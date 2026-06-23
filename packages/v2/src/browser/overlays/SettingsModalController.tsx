@@ -1,11 +1,10 @@
 import type { ComponentType } from "react";
-import type { createModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase, TrackSettingsProps, TrackSettingsUpdate } from "../../modules/types";
 import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../browser-state/BrowserContext";
+import { useRegistry } from "../registry/useRegistry";
 
-type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
-
-export function SettingsModalController({ registry }: { registry: ModuleRegistry }) {
+export function SettingsModalController() {
+  const registry = useRegistry();
   const open = useSettingsStore((state) => state.open);
   const trackId = useSettingsStore((state) => state.trackId);
   const position = useSettingsStore((state) => state.position);

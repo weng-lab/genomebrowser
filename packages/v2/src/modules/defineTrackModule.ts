@@ -27,18 +27,6 @@ type TrackModuleDefaults<Display extends string, Item> = {
   color?: string;
 } & Partial<TrackInteractionConfig<Item, any>>;
 
-type DefinedTrackInput<
-  Schema extends TrackInputSchema,
-  Display extends string,
-  Item,
-> = z.input<Schema> & {
-  id: string;
-  title: string;
-  display?: Display;
-  height?: number;
-  color?: string;
-} & Partial<TrackInteractionConfig<Item, any>>;
-
 type DefinedTrackConfig<
   Type extends string,
   Schema extends TrackInputSchema,
@@ -66,7 +54,7 @@ type TrackModuleDefinition<
   fetch: TrackModule<
     DefinedTrackConfig<Type, Schema, Display, Item>,
     Data,
-    DefinedTrackInput<Schema, Display, Item>
+    Item
   >["fetch"];
   render: Record<
     Display,
@@ -75,12 +63,12 @@ type TrackModuleDefinition<
   settingsComponent?: TrackModule<
     DefinedTrackConfig<Type, Schema, Display, Item>,
     Data,
-    DefinedTrackInput<Schema, Display, Item>
+    Item
   >["settingsComponent"];
   tooltipComponent?: TrackTooltipComponent<Item, DefinedTrackConfig<Type, Schema, Display, Item>>;
 };
 
-export function defineTrackModule<Item = any>(): <
+export function defineTrackModule<Item = unknown>(): <
   Type extends string,
   Schema extends TrackInputSchema,
   Display extends string,
@@ -90,7 +78,7 @@ export function defineTrackModule<Item = any>(): <
 ) => TrackModule<
   DefinedTrackConfig<Type, Schema, Display, Item>,
   Data,
-  DefinedTrackInput<Schema, Display, Item>
+  Item
 >;
 export function defineTrackModule<
   Type extends string,
@@ -102,7 +90,7 @@ export function defineTrackModule<
 ): TrackModule<
   DefinedTrackConfig<Type, Schema, Display, any>,
   Data,
-  DefinedTrackInput<Schema, Display, any>
+  any
 >;
 export function defineTrackModule(definition?: unknown) {
   if (definition === undefined) return createTrackModule;
@@ -120,7 +108,7 @@ function createTrackModule<
 ): TrackModule<
   DefinedTrackConfig<Type, Schema, Display, Item>,
   Data,
-  DefinedTrackInput<Schema, Display, Item>
+  Item
 > {
   assertNoReservedFields(definition.type, definition.configSchema);
 
@@ -158,7 +146,7 @@ function createTrackModule<
   const module: TrackModule<
     DefinedTrackConfig<Type, Schema, Display, Item>,
     Data,
-    DefinedTrackInput<Schema, Display, Item>
+    Item
   > = {
     type: definition.type as DefinedTrackConfig<Type, Schema, Display, Item>["type"],
     create(input) {

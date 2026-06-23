@@ -31,3 +31,7 @@ Write as little code as possible that still accomplishes the task 100%. More LoC
 ## Zustand stores ARE React hooks
 
 The name of a zustand store MUST include "use" at the beginning, as they are React hooks, and must be treated as such by the compilers.
+
+## Read .devserve for server logs
+
+Inside .devserve there are out.log and err.log files. Read them when attempting to diagnose issues where the console would be necessary to read.

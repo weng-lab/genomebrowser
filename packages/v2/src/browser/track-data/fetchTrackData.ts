@@ -1,9 +1,7 @@
-import type { createModuleRegistry } from "../../modules/registry";
+import type { ModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import type { DataResult } from "./types";
-
-type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 
 export async function fetchTrackData({
   registry,

@@ -17,6 +17,7 @@ export { fetchOnChange } from "./modules/fetchOnChange";
 export { useAutoTrackHeight } from "./browser/track-height/useAutoTrackHeight";
 export type { AutoTrackHeightOptions } from "./browser/track-height/useAutoTrackHeight";
 export { useTooltip } from "./browser/tooltip/useTooltip";
+export { useRegistry } from "./browser/registry/useRegistry";
 export { SettingsSection } from "./modules/runtime/SettingsSection";
 export { useDraggableSettingsModal } from "./browser/settings/useDraggableSettingsModal";
 export type { DraggableSettingsModalResult } from "./browser/settings/useDraggableSettingsModal";

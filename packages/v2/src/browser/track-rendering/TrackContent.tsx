@@ -1,17 +1,14 @@
 import type { ComponentType } from "react";
 import type { DataState } from "../track-data/types";
-import type { createModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase, TrackRendererProps } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
+import { useRegistry } from "../registry/useRegistry";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
-
-type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 
 export function TrackContent({
   track,
   dataState,
-  registry,
   region,
   width,
   height,
@@ -19,12 +16,13 @@ export function TrackContent({
 }: {
   track: TrackConfigBase;
   dataState: DataState;
-  registry: ModuleRegistry;
   region: BrowserRegion;
   width: number;
   height: number;
   titleMargin: number;
 }) {
+  const registry = useRegistry();
+
   if (dataState.status === "loading") {
     return <LoadingState x={0} y={0} width={width} height={height} />;
   }

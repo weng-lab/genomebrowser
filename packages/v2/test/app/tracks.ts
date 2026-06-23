@@ -22,12 +22,7 @@ export const bigBedExample = bigBedModule.create({
   height: 35,
   url: "https://downloads.wenglab.org/Astro.PeakCalls.bb",
   onClick: ({ item }) => {
-    console.log("[v2 test app] BigBed click", {
-      name: item.name,
-      start: item.start,
-      end: item.end,
-      item,
-    });
+    console.log(item.name);
   },
 });
 
@@ -52,9 +47,7 @@ export const bulkBedExample = bulkBedModule.create({
     },
   ],
   onClick: ({ item }) => {
-    console.log("[v2 test app] BulkBed click", {
-      name: item.name,
-    });
+    console.log(item.name);
   },
 });
 
@@ -64,7 +57,7 @@ export const transcriptExample = transcriptModule.create({
   assembly: "GRCh38",
   version: 40,
   geneName: "SOX4",
-  display: "pack",
+  display: "squish",
   color: "#7a4fb3",
   canonicalColor: "#d45c2f",
   highlightColor: "#1f77b4",

@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
 import type { DataState } from "../track-data/types";
-import type { createModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { SwapTrack } from "../track-swap/SwapTrack";
@@ -11,12 +10,9 @@ import { TrackContent } from "./TrackContent";
 import { TrackFrame } from "./TrackFrame";
 import { getTrackTitleMargin, getTrackWrapperHeight } from "./trackLayout";
 
-type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
-
 export function TrackStack({
   tracks,
   dataStates,
-  registry,
   region,
   marginWidth,
   trackWidth,
@@ -30,7 +26,6 @@ export function TrackStack({
 }: {
   tracks: TrackConfigBase[];
   dataStates: Record<string, DataState>;
-  registry: ModuleRegistry;
   region: BrowserRegion;
   marginWidth: number;
   trackWidth: number;
@@ -86,7 +81,6 @@ export function TrackStack({
             <TrackContent
               track={track}
               dataState={dataStates[track.id]}
-              registry={registry}
               region={region}
               width={contentWidth ?? trackWidth}
               height={track.height}

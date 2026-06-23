@@ -1,5 +1,6 @@
 import { createContext, useMemo, type ReactNode } from "react";
 import type { TrackConfigBase, TrackSettingsUpdate } from "../../modules/types";
+import { useTrackStore } from "../browser-state/BrowserContext";
 
 export type TrackHeightContextValue = {
   getTrackHeight: (trackId: string) => number | undefined;
@@ -11,12 +12,16 @@ export type TrackHeightContextValue = {
 
 export const TrackHeightContext = createContext<TrackHeightContextValue | null>(null);
 
-export function TrackHeightProvider({
-  children,
-  getTrackHeight,
-  updateTrack,
-}: TrackHeightContextValue & { children: ReactNode }) {
-  const value = useMemo(() => ({ getTrackHeight, updateTrack }), [getTrackHeight, updateTrack]);
+export function TrackHeightProvider({ children }: { children: ReactNode }) {
+  const getTrack = useTrackStore((state) => state.getTrack);
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const value = useMemo<TrackHeightContextValue>(
+    () => ({
+      getTrackHeight: (trackId: string) => getTrack(trackId)?.height,
+      updateTrack,
+    }),
+    [getTrack, updateTrack],
+  );
 
   return <TrackHeightContext.Provider value={value}>{children}</TrackHeightContext.Provider>;
 }

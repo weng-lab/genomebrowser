@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import type { createModuleRegistry } from "../../modules/registry";
 import { useContextMenuStore, useTrackMutationGate, useTrackStore } from "../browser-state/BrowserContext";
+import { useRegistry } from "../registry/useRegistry";
 
-type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
-
-export function ContextMenuController({ registry }: { registry: ModuleRegistry }) {
+export function ContextMenuController() {
+  const registry = useRegistry();
   const open = useContextMenuStore((state) => state.open);
   const trackId = useContextMenuStore((state) => state.trackId);
   const position = useContextMenuStore((state) => state.position);

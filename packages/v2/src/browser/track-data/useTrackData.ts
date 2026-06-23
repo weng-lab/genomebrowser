@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFetchSignature } from "../../modules/fetchOnChange";
-import type { createModuleRegistry } from "../../modules/registry";
+import type { ModuleRegistry } from "../../modules/registry";
 import type { TrackConfigBase } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { fetchTrackData } from "./fetchTrackData";
 import type { DataResult, DataState, DataStoreInstance } from "./types";
-
-type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 
 export function useTrackData({
   useDataStore,

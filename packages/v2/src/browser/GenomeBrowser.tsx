@@ -17,6 +17,7 @@ import { InteractionShield } from "./overlays/InteractionShield";
 import { Highlights } from "./overlays/Highlights";
 import { ContextMenuController } from "./context-menu/ContextMenuController";
 import { SettingsModalController } from "./overlays/SettingsModalController";
+import { RegistryProvider } from "./registry/RegistryContext";
 import { SvgShell } from "./svg/SvgShell";
 import { getTracksHeight } from "./track-rendering/trackLayout";
 import { TrackStack } from "./track-rendering/TrackStack";
@@ -114,70 +115,65 @@ export function GenomeBrowser({
         trackStore,
         contextMenuStore,
         settingsStore: activeSettingsStore,
-        svg,
         isPanning: panDrag.isDragging,
         isInteractionBlocked,
       }}
     >
-      <BrowserFeatureProviders
-        registry={registry}
-        svg={svg}
-        isPanning={panDrag.isDragging}
-        getTrackHeight={(trackId) =>
-          trackStore.getState().getTrack(trackId)?.height
-        }
-        updateTrack={trackStore.getState().updateTrack}
-      >
-        <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
-          <SelectRegion
-            svg={svg}
-            marginWidth={marginWidth}
-            trackWidth={trackWidth}
-            totalHeight={totalHeight}
-            region={region}
-            setRegion={setRegion}
-            disabled={isInteractionBlocked}
-          >
-            <g transform={`translate(${marginWidth},0)`}>
-              <Ruler region={region} width={trackWidth} />
-            </g>
-            <g>
-              <TrackStack
-                tracks={tracks}
-                dataStates={dataStates}
-                registry={registry}
+      <RegistryProvider registry={registry}>
+        <BrowserFeatureProviders
+          svg={svg}
+          isPanning={panDrag.isDragging}
+        >
+          <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
+            <SelectRegion
+              svg={svg}
+              marginWidth={marginWidth}
+              trackWidth={trackWidth}
+              totalHeight={totalHeight}
+              region={region}
+              setRegion={setRegion}
+              disabled={isInteractionBlocked}
+            >
+              <g transform={`translate(${marginWidth},0)`}>
+                <Ruler region={region} width={trackWidth} />
+              </g>
+              <g>
+                <TrackStack
+                  tracks={tracks}
+                  dataStates={dataStates}
+                  region={displayedRenderRegion}
+                  marginWidth={marginWidth}
+                  trackWidth={trackWidth}
+                  contentX={baseContentX}
+                  contentWidth={renderWidth}
+                  registerContentGroup={registerContentGroup}
+                  panDrag={panDrag}
+                  isPanLocked={isInteractionBlocked}
+                  titleSize={titleSize}
+                  startY={RULER_HEIGHT}
+                />
+              </g>
+              <Highlights
                 region={displayedRenderRegion}
                 marginWidth={marginWidth}
-                trackWidth={trackWidth}
+                renderWidth={renderWidth}
                 contentX={baseContentX}
-                contentWidth={renderWidth}
+                browserWidth={browserWidth}
+                totalHeight={totalHeight}
                 registerContentGroup={registerContentGroup}
-                panDrag={panDrag}
-                isPanLocked={isInteractionBlocked}
-                titleSize={titleSize}
-                startY={RULER_HEIGHT}
               />
-            </g>
-            <Highlights
-              region={displayedRenderRegion}
-              marginWidth={marginWidth}
-              renderWidth={renderWidth}
-              contentX={baseContentX}
-              browserWidth={browserWidth}
-              totalHeight={totalHeight}
-              registerContentGroup={registerContentGroup}
+            </SelectRegion>
+            <TooltipOverlay width={browserWidth} height={totalHeight} />
+            <InteractionShield
+              active={isInteractionBlocked}
+              width={browserWidth}
+              height={totalHeight}
             />
-          </SelectRegion>
-          <TooltipOverlay width={browserWidth} height={totalHeight} />
-          <InteractionShield
-            active={isInteractionBlocked}
-            width={browserWidth}
-            height={totalHeight}
-          />
-        </SvgShell>
-        <ContextMenuController registry={registry} />
-        <SettingsModalController registry={registry} />
-      </BrowserFeatureProviders>
+          </SvgShell>
+          <ContextMenuController />
+          <SettingsModalController />
+        </BrowserFeatureProviders>
+      </RegistryProvider>
     </BrowserProvider>
   );
 }

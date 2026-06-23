@@ -1,5 +1,5 @@
 import { create, type StoreApi, type UseBoundStore } from "zustand";
-import { createModuleRegistry } from "../../modules/registry";
+import { createModuleRegistry, type ModuleRegistry } from "../../modules/registry";
 import type { AnyTrackModule, TrackConfigBase, TrackMutationResult } from "../../modules/types";
 
 export type TrackStoreOptions<Config extends TrackConfigBase = TrackConfigBase> = {
@@ -96,7 +96,6 @@ export function createTrackStore<Config extends TrackConfigBase = TrackConfigBas
   }));
 }
 
-type ModuleRegistry = ReturnType<typeof createModuleRegistry>;
 type ValidatedTrackResult = { ok: true; track: TrackConfigBase } | { ok: false; error: string };
 type ValidatedTracksResult = { ok: true; tracks: TrackConfigBase[] } | { ok: false; error: string };
 

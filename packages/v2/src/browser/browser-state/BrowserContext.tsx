@@ -10,7 +10,6 @@ type BrowserContextValue = {
   trackStore: TrackStoreInstance;
   contextMenuStore: ContextMenuStoreInstance;
   settingsStore: SettingsStoreInstance;
-  svg: SVGSVGElement | null;
   isPanning: boolean;
   isInteractionBlocked: boolean;
 };
@@ -49,12 +48,6 @@ export function useSettingsStore<T>(selector: (state: SettingsStore) => T): T {
   const context = use(BrowserContext);
   if (!context) throw new Error("useSettingsStore must be used within a GenomeBrowser");
   return context.settingsStore(selector);
-}
-
-export function useBrowserSvg() {
-  const context = use(BrowserContext);
-  if (!context) throw new Error("useBrowserSvg must be used within a GenomeBrowser");
-  return context.svg;
 }
 
 export function useTrackMutationGate() {

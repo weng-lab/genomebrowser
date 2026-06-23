@@ -6,8 +6,8 @@ import {
   createTrackStore,
   methylCModule,
   transcriptModule,
+  GenomeBrowser,
 } from "../../src/lib";
-import { GenomeBrowser } from "../../src_new/lib";
 import {
   bigBedExample,
   bigWigExample,
@@ -43,6 +43,7 @@ const trackStore = createTrackStore({
     transcriptExample,
     MukamelMethylC("CGE_ADARB2_ADAM33"),
     MukamelMethylC("MGE_SST_RAB31.young"),
+    MukamelMethylC("CGE_VIP_FGD5.old"),
   ],
 });
 
