@@ -2,6 +2,7 @@ import {
   createBrowserStore,
   bigBedModule,
   bulkBedModule,
+  caveModule,
   bigWigModule,
   createTrackStore,
   methylCModule,
@@ -11,6 +12,7 @@ import {
 import {
   bigBedExample,
   bigWigExample,
+  BrainomeCave,
   MukamelMethylC,
   transcriptExample,
 } from "./tracks";
@@ -33,6 +35,7 @@ const modules = [
   transcriptModule,
   bulkBedModule,
   methylCModule,
+  caveModule,
 ];
 
 const trackStore = createTrackStore({
@@ -44,15 +47,18 @@ const trackStore = createTrackStore({
     MukamelMethylC("CGE_ADARB2_ADAM33"),
     MukamelMethylC("MGE_SST_RAB31.young"),
     MukamelMethylC("CGE_VIP_FGD5.old"),
+    // BrainomeBigwig("GLU", "BS", "Adulthood"),
+    // BrainomeBigwig("GLU", "OXBS", "Adulthood"),
+    // BrainomeBigwig("GLU", "hmC", "Adulthood"),
+    BrainomeCave("GLU", "Infancy"),
+    BrainomeCave("GLU", "Early_Childhood"),
+    BrainomeCave("GLU", "Late_Childhood"),
+    BrainomeCave("GLU", "Adolescence"),
+    BrainomeCave("GLU", "Early_Adulthood"),
+    BrainomeCave("GLU", "Adulthood"),
   ],
 });
 
 export default function App() {
-  return (
-    <GenomeBrowser
-      browserStore={browserStore}
-      trackStore={trackStore}
-      modules={modules}
-    />
-  );
+  return <GenomeBrowser browserStore={browserStore} trackStore={trackStore} />;
 }

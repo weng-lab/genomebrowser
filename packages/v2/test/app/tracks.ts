@@ -2,6 +2,7 @@ import {
   bigBedModule,
   bigWigModule,
   bulkBedModule,
+  caveModule,
   methylCModule,
   transcriptModule,
 } from "../../src/lib";
@@ -110,6 +111,9 @@ export const MOHDMethylC = methylCModule.create({
   },
 });
 
+/**
+ * Mukamel 2024 DNA Methylation Tracks
+ */
 const phanh = "https://users.wenglab.org/phanh/PsychENCODE/hg38/";
 export const MukamelMethylC = (name: MukamelMethylationName) =>
   methylCModule.create({
@@ -155,7 +159,6 @@ export const MukamelMethylC = (name: MukamelMethylationName) =>
       },
     },
   });
-
 export const mukamelMethylationNames = [
   "CGE_ADARB2_ADAM33",
   "CGE_ADARB2_ADAM33.female",
@@ -419,5 +422,47 @@ export const mukamelMethylationNames = [
   "MGE_SST_RAB31.old",
   "MGE_SST_RAB31.young",
 ] as const;
-
 export type MukamelMethylationName = (typeof mukamelMethylationNames)[number];
+
+export const BrainomeBigwig = (
+  nt: Neurotransmitter,
+  assay: Assay,
+  age: BrainomeAge,
+) =>
+  bigWigModule.create({
+    id: nt + " " + assay + " " + age,
+    url:
+      phanh +
+      "data/brainome/Methylation_BS_OXBS_bw/" +
+      nt +
+      "_" +
+      assay +
+      "_" +
+      age +
+      ".CGN-both.frac.cov5.bw",
+    title: nt + " " + assay + " " + age,
+    color: "#3333ff",
+    height: 25,
+  });
+
+export const BrainomeCave = (nt: Neurotransmitter, age: BrainomeAge) =>
+  caveModule.create({
+    id: nt + " cave " + age,
+    title: nt + " cave " + age,
+    neurotransmitter: nt,
+    age,
+  });
+
+export const brainomeAges = [
+  "Infancy",
+  "Early_Childhood",
+  "Late_Childhood",
+  "Adolescence",
+  "Early_Adulthood",
+  "Adulthood",
+] as const;
+export type BrainomeAge = (typeof brainomeAges)[number];
+export const neurotransmitter = ["GABA", "GLU"] as const;
+export type Neurotransmitter = (typeof neurotransmitter)[number];
+export const assays = ["BS", "hmC", "OXBS"] as const;
+export type Assay = (typeof assays)[number];

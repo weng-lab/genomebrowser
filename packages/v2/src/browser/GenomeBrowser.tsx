@@ -5,8 +5,6 @@ import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { TooltipProvider } from "./tooltip/TooltipProvider";
 import { BrowserSvgProvider } from "./svg/BrowserSvgContext";
 import { TrackHeightProvider } from "./track-row/TrackHeightProvider";
-import { createModuleRegistry } from "../modules/registry";
-import type { AnyTrackModule } from "../modules/types";
 import {
   createSettingsStore,
   type SettingsStoreInstance,
@@ -34,14 +32,12 @@ const PAN_OVERSCAN_MULTIPLIER = 3;
 export type GenomeBrowserProps = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
-  modules: AnyTrackModule[];
   settingsStore?: SettingsStoreInstance;
 };
 
 export function GenomeBrowser({
   browserStore,
   trackStore,
-  modules,
   settingsStore,
 }: GenomeBrowserProps) {
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
@@ -53,8 +49,8 @@ export function GenomeBrowser({
   const setRegion = browserStore((state) => state.setRegion);
 
   const tracks = trackStore((state) => state.tracks);
+  const registry = trackStore((state) => state.registry);
 
-  const registry = useMemo(() => createModuleRegistry(modules), [modules]);
   const useDataStore = useMemo(() => createDataStore(), []);
   const contextMenuStore = useMemo(() => createContextMenuStore(), []);
   const internalSettingsStore = useMemo(() => createSettingsStore(), []);

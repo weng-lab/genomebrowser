@@ -12,6 +12,7 @@ export type TrackUpdate<Config extends TrackConfigBase = TrackConfigBase> = Part
 export type TrackStore = {
   tracks: TrackConfigBase[];
   order: string[];
+  registry: ModuleRegistry;
   setTracks: <Config extends TrackConfigBase>(tracks: Config[]) => TrackMutationResult;
   addTrack: <Config extends TrackConfigBase>(track: Config, index?: number) => TrackMutationResult;
   removeTrack: (id: string) => TrackMutationResult;
@@ -35,6 +36,7 @@ export function createTrackStore<Config extends TrackConfigBase = TrackConfigBas
   return create<TrackStore>((set, get) => ({
     tracks: initialTracks,
     order: initialTracks.map((track) => track.id),
+    registry,
     setTracks: (tracks) => {
       const result = getValidatedTracks(tracks, registry);
       if (!result.ok) return result;

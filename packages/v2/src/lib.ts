@@ -117,4 +117,15 @@ export type {
   MethylCUrls,
 } from "./tracks/methylc/types";
 
+export { caveModule } from "./tracks/cave/module";
+export type {
+  CaveAge,
+  CaveConfig,
+  CaveData,
+  CaveDisplay,
+  CaveInput,
+  CaveNeurotransmitter,
+  CaveTooltipItem,
+} from "./tracks/cave/types";
+
 export type { BrowserRegion } from "./modules/utils/region";
