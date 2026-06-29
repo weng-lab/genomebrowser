@@ -131,30 +131,49 @@ export const MukamelMethylC = (name: MukamelMethylationName) =>
       plusStrand: {
         cpg: {
           url:
-            phanh + "data/Mukamel_2024/level3/" + name + ".CGN-Watson.frac.bw",
+            phanh +
+            "data/Mukamel_2024/binsize1/level3/" +
+            name +
+            ".CGN-Watson.frac.bw",
         },
         chg: {
           url:
-            phanh + "data/Mukamel_2024/level3/" + name + ".CHN-Watson.frac.bw",
+            phanh +
+            "data/Mukamel_2024/binsize1/level3/" +
+            name +
+            ".CHN-Watson.frac.bw",
         },
         chh: { url: "" },
         depth: {
           url:
-            phanh + "data/Mukamel_2024/level3/" + name + ".CGN-Watson.cov.bw",
+            phanh +
+            "data/Mukamel_2024/binsize1/level3/" +
+            name +
+            ".CGN-Watson.cov.bw",
         },
       },
       minusStrand: {
         cpg: {
           url:
-            phanh + "data/Mukamel_2024/level3/" + name + ".CGN-Crick.frac.bw",
+            phanh +
+            "data/Mukamel_2024/binsize1/level3/" +
+            name +
+            ".CGN-Crick.frac.bw",
         },
         chg: {
           url:
-            phanh + "data/Mukamel_2024/level3/" + name + ".CHN-Crick.frac.bw",
+            phanh +
+            "data/Mukamel_2024/binsize1/level3/" +
+            name +
+            ".CHN-Crick.frac.bw",
         },
         chh: { url: "" },
         depth: {
-          url: phanh + "data/Mukamel_2024/level3/" + name + ".CGN-Crick.cov.bw",
+          url:
+            phanh +
+            "data/Mukamel_2024/binsize1/level3/" +
+            name +
+            ".CGN-Crick.cov.bw",
         },
       },
     },
@@ -445,12 +464,17 @@ export const BrainomeBigwig = (
     height: 25,
   });
 
-export const BrainomeCave = (nt: Neurotransmitter, age: BrainomeAge) =>
+export const BrainomeCave = (
+  nt: Neurotransmitter,
+  age: BrainomeAge,
+  color: string,
+) =>
   caveModule.create({
     id: nt + " cave " + age,
     title: nt + " cave " + age,
     neurotransmitter: nt,
     age,
+    color,
   });
 
 export const brainomeAges = [

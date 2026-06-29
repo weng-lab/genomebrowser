@@ -35,3 +35,7 @@ The name of a zustand store MUST include "use" at the beginning, as they are Rea
 ## Read .devserve for server logs
 
 Inside .devserve there are out.log and err.log files. Read them when attempting to diagnose issues where the console would be necessary to read.
+
+## Reference style sheet
+
+reference docs/style.md for code style guidelines and ALWAYS adhere to them.
