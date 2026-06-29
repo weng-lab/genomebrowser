@@ -3,7 +3,7 @@ import { bulkBedModule } from "../../src/tracks/bulkbed/module";
 
 describe("BulkBed module", () => {
   it("creates a full-display bulkbed config", () => {
-    const config = bulkBedModule.create({
+    const track = bulkBedModule.create({
       id: "bulk-peaks",
       title: "Bulk peaks",
       datasets: [
@@ -12,20 +12,24 @@ describe("BulkBed module", () => {
       ],
     });
 
-    expect(config).toMatchObject({
-      id: "bulk-peaks",
+    expect(track).toMatchObject({
       type: "bulkbed",
-      title: "Bulk peaks",
-      display: "full",
-      height: 80,
-      color: "#4b9560",
-      datasets: [
-        { name: "Dataset A", url: "YOUR_URL_HERE" },
-        { name: "Dataset B", url: "YOUR_URL_HERE" },
-      ],
+      base: {
+        id: "bulk-peaks",
+        title: "Bulk peaks",
+        display: "full",
+        height: 80,
+        color: "#4b9560",
+      },
+      config: {
+        datasets: [
+          { name: "Dataset A", url: "YOUR_URL_HERE" },
+          { name: "Dataset B", url: "YOUR_URL_HERE" },
+        ],
+      },
     });
     expect(bulkBedModule.tooltipComponent).toBeTypeOf("function");
-    expect(config).not.toHaveProperty("tooltip");
+    expect(track).not.toHaveProperty("tooltip");
   });
 
   it("requires at least one dataset", () => {

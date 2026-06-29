@@ -1,74 +1,72 @@
-import type { ComponentType, MouseEvent } from "react";
+import type { ComponentType } from "react";
 import type { BrowserRegion } from "./utils/region";
 
-export type TrackInteractionContext<Item, Config extends TrackConfigBase> = {
-  item: Item;
-  config: Config;
-  event: MouseEvent;
-};
-
-export type TrackInteractionCallback<Item, Config extends TrackConfigBase> = (
-  context: TrackInteractionContext<Item, Config>,
-) => void;
-
-export type TrackTooltipProps<Item, Config extends TrackConfigBase> = {
-  item: Item;
-  config: Config;
-};
-
-export type TrackTooltipComponent<Item, Config extends TrackConfigBase> = ComponentType<
-  TrackTooltipProps<Item, Config>
->;
-
-export type TrackInteractionConfig<Item, Config extends TrackConfigBase> = {
-  onClick?: TrackInteractionCallback<Item, Config>;
-  onHover?: TrackInteractionCallback<Item, Config>;
-  onLeave?: TrackInteractionCallback<Item, Config>;
-};
-
-export type TrackConfigBase = {
+export type TrackBase = {
   id: string;
-  type: string;
   title: string;
   display: string;
   height: number;
   color?: string;
-  onClick?: TrackInteractionCallback<any, any>;
-  onHover?: TrackInteractionCallback<any, any>;
-  onLeave?: TrackInteractionCallback<any, any>;
 };
 
-export type TrackFetchContext<Config extends TrackConfigBase> = {
+export type TrackInteractionCallback<InteractionItem> = (item: InteractionItem) => void;
+
+export type TrackInteraction<InteractionItem = unknown> = {
+  onClick?: TrackInteractionCallback<InteractionItem>;
+  onHover?: TrackInteractionCallback<InteractionItem>;
+  onLeave?: TrackInteractionCallback<InteractionItem>;
+};
+
+export type TrackInstance<Config, InteractionItem = unknown> = {
+  type: string;
+  base: TrackBase;
+  config: Config;
+  interaction?: TrackInteraction<InteractionItem>;
+};
+
+export type TrackFetchContext<Config> = {
   config: Config;
   region: BrowserRegion;
 };
 
-export type TrackRendererProps<Config extends TrackConfigBase, Data> = {
+export type TrackFetch<Config, Data> = (context: TrackFetchContext<Config>) => Promise<Data>;
+
+export type TrackRendererProps<Config, Data> = {
+  id: string;
   config: Config;
+  color?: string;
   data: Data;
   region: BrowserRegion;
   width: number;
   height: number;
 };
 
-export type TrackSettingsUpdate<Config extends TrackConfigBase> = Partial<
-  Omit<Config, "id" | "type">
->;
+export type TrackRenderer<Config, Data> = ComponentType<TrackRendererProps<Config, Data>>;
 
 export type TrackMutationResult = { ok: true } | { ok: false; error: string };
 
-export type TrackSettingsProps<Config extends TrackConfigBase> = {
+export type TrackSettingsProps<Config> = {
+  id: string;
   config: Config;
-  updateTrack: (partial: TrackSettingsUpdate<Config>) => TrackMutationResult;
+  updateConfig: (partial: Partial<Config>) => TrackMutationResult;
 };
 
-export type TrackModule<Config extends TrackConfigBase, Data, Item = unknown> = {
-  type: Config["type"];
-  create(input: Partial<Omit<Config, "type">> & { id: string; title: string }): Config;
-  validate(config: unknown): Config;
-  fetch(ctx: TrackFetchContext<Config>): Promise<Data>;
-  render: Record<string, ComponentType<TrackRendererProps<Config, Data>>>;
-  settingsComponent?: ComponentType<TrackSettingsProps<Config>>;
+export type TrackSettingsComponent<Config> = ComponentType<TrackSettingsProps<Config>>;
+
+export type TrackTooltipComponent<Item, Config> = ComponentType<{
+  item: Item;
+  config: Config;
+}>;
+
+export type TrackModule<Config, Data, Item = unknown> = {
+  type: string;
+  displays: string[];
+  configSchema: unknown;
+  create(input: unknown): TrackInstance<Config, Item>;
+  validate(instance: unknown): TrackInstance<Config, Item>;
+  fetch: TrackFetch<Config, Data>;
+  render: Record<string, TrackRenderer<Config, Data>>;
+  settingsComponent?: TrackSettingsComponent<Config>;
   tooltipComponent?: TrackTooltipComponent<Item, Config>;
 };
 

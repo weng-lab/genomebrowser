@@ -1,23 +1,18 @@
 import { z } from "zod";
-import type { AnyTrackModule, TrackConfigBase } from "./types";
+import type { TrackInstance } from "./types";
 
 const fetchOnChangeRegistry = z.registry<{ fetchOnChange: true }, z.ZodType>();
-const moduleSchemaRegistry = new WeakMap<AnyTrackModule, z.ZodObject>();
 
-export function fetchOnChange<T extends z.ZodType>(schema: T): T {
+export function fetchOnChange<Schema extends z.ZodType>(schema: Schema): Schema {
   fetchOnChangeRegistry.add(schema, { fetchOnChange: true });
   return schema;
 }
 
-export function registerFetchSchema(module: AnyTrackModule, schema: z.ZodObject) {
-  moduleSchemaRegistry.set(module, schema);
-}
-
-export function createFetchSignature(module: AnyTrackModule, config: TrackConfigBase) {
-  const schema = moduleSchemaRegistry.get(module);
-  if (!schema) return "{}";
-
-  return JSON.stringify(createSchemaSignature(schema, config) ?? {});
+export function createFetchSignature<Config>(
+  module: { configSchema: z.ZodType<Config> },
+  track: TrackInstance<Config>,
+) {
+  return JSON.stringify(createSchemaSignature(module.configSchema, track.config) ?? {});
 }
 
 function createSchemaSignature(schema: z.ZodType, value: unknown): unknown {

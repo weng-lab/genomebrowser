@@ -5,29 +5,33 @@ import type { MethylCUrls } from "../../src/tracks/methylc/types";
 
 describe("MethylC module", () => {
   it("creates a split-display methylc config with defaults", () => {
-    const config = methylCModule.create({
+    const track = methylCModule.create({
       id: "methylc",
       title: "MethylC",
       urls: createUrls("YOUR_URL_HERE"),
     });
 
-    expect(config).toMatchObject({
-      id: "methylc",
+    expect(track).toMatchObject({
       type: "methylc",
-      title: "MethylC",
-      display: "split",
-      height: 100,
-      colors: {
-        cpg: "#648bd8",
-        chg: "#ff944d",
-        chh: "#ff00ff",
-        depth: "#525252",
+      base: {
+        id: "methylc",
+        title: "MethylC",
+        display: "split",
+        height: 100,
       },
-      maskCpgByCoverage: false,
-      urls: createUrls("YOUR_URL_HERE"),
+      config: {
+        colors: {
+          cpg: "#648bd8",
+          chg: "#ff944d",
+          chh: "#ff00ff",
+          depth: "#525252",
+        },
+        maskCpgByCoverage: false,
+        urls: createUrls("YOUR_URL_HERE"),
+      },
     });
     expect(methylCModule.tooltipComponent).toBeTypeOf("function");
-    expect(config).not.toHaveProperty("tooltip");
+    expect(track).not.toHaveProperty("tooltip");
   });
 
   it("rejects combined as a display mode", () => {
@@ -38,7 +42,7 @@ describe("MethylC module", () => {
         display: "combined" as never,
         urls: createUrls("YOUR_URL_HERE"),
       }),
-    ).toThrow(/methylc config/);
+    ).toThrow(/methylc base/);
   });
 
   it("allows empty channel URLs", () => {
@@ -63,29 +67,35 @@ describe("MethylC module", () => {
   });
 
   it("includes nested URLs in fetch signatures", () => {
-    const config = methylCModule.create({
+    const track = methylCModule.create({
       id: "methylc",
       title: "MethylC",
       urls: createUrls("URL_A"),
     });
 
-    const changedColor = { ...config, colors: { ...config.colors, cpg: "#000000" } };
+    const changedColor = {
+      ...track,
+      config: { ...track.config, colors: { ...track.config.colors, cpg: "#000000" } },
+    };
     const changedUrl = {
-      ...config,
-      urls: {
-        ...config.urls,
-        plusStrand: {
-          ...config.urls.plusStrand,
-          cpg: { url: "URL_B" },
+      ...track,
+      config: {
+        ...track.config,
+        urls: {
+          ...track.config.urls,
+          plusStrand: {
+            ...track.config.urls.plusStrand,
+            cpg: { url: "URL_B" },
+          },
         },
       },
     };
 
     expect(createFetchSignature(methylCModule, changedColor)).toBe(
-      createFetchSignature(methylCModule, config),
+      createFetchSignature(methylCModule, track),
     );
     expect(createFetchSignature(methylCModule, changedUrl)).not.toBe(
-      createFetchSignature(methylCModule, config),
+      createFetchSignature(methylCModule, track),
     );
   });
 });

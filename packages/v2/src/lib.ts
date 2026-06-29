@@ -2,15 +2,22 @@ export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
 
 export { defineTrackModule } from "./modules/defineTrackModule";
+export { TrackInteractionProvider, useInteraction } from "./modules/interaction";
 export type {
   AnyTrackModule,
-  TrackConfigBase,
+  TrackBase,
+  TrackFetch,
   TrackFetchContext,
+  TrackInstance,
+  TrackInteraction,
+  TrackInteractionCallback,
   TrackMutationResult,
   TrackModule,
+  TrackRenderer,
   TrackRendererProps,
+  TrackSettingsComponent,
   TrackSettingsProps,
-  TrackSettingsUpdate,
+  TrackTooltipComponent,
 } from "./modules/types";
 
 export { fetchOnChange } from "./modules/fetchOnChange";

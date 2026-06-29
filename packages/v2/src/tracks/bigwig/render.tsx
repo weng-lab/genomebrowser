@@ -1,5 +1,6 @@
 import { useState, type MouseEvent } from "react";
 import { useTooltip } from "../../browser/tooltip/useTooltip";
+import { useInteraction } from "../../modules/interaction";
 import type { TrackRendererProps } from "../../modules/types";
 import {
   applyFillWithZero,
@@ -13,6 +14,7 @@ import type { BigWigConfig, BigWigData, RenderedBigWigPoint, YRange } from "./ty
 
 export function FullBigWig({
   config,
+  color = "#2266aa",
   data,
   width,
   height,
@@ -28,8 +30,8 @@ export function FullBigWig({
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
       <line x1={0} x2={width} y1={zeroY} y2={zeroY} stroke="#dddddd" strokeWidth={1} />
-      {range.min < 0 && <path d={paths.minPath} fill={lighten(config.color ?? "#2266aa", 0.2)} />}
-      <path d={paths.maxPath} fill={config.color ?? "#2266aa"} />
+      {range.min < 0 && <path d={paths.minPath} fill={lighten(color, 0.2)} />}
+      <path d={paths.maxPath} fill={color} />
       <path d={paths.clampHighPath} stroke="#ff0000" strokeWidth={2} fill="none" />
       <path d={paths.clampLowPath} stroke="#ff0000" strokeWidth={2} fill="none" />
       <BigWigHoverOverlay config={config} points={points} width={width} height={height} />
@@ -39,6 +41,7 @@ export function FullBigWig({
 
 export function DenseBigWig({
   config,
+  color = "#2266aa",
   data,
   width,
   height,
@@ -63,7 +66,7 @@ export function DenseBigWig({
             y={bandY}
             width={1}
             height={bandHeight}
-            fill={lighten(config.color ?? "#2266aa", 0.65 - intensity * 0.65)}
+            fill={lighten(color, 0.65 - intensity * 0.65)}
           />
         );
       })}
@@ -81,23 +84,24 @@ function BigWigHoverOverlay({
   points: RenderedBigWigPoint[];
 }) {
   const [hoveredPoint, setHoveredPoint] = useState<RenderedBigWigPoint | undefined>();
-  const tooltip = useTooltip<RenderedBigWigPoint, BigWigConfig>({ config });
+  const interaction = useInteraction<RenderedBigWigPoint>();
+  const tooltip = useTooltip<RenderedBigWigPoint, BigWigConfig>({ type: "bigwig", config });
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const point = getPointAtMouseX(points, getLocalMouseX(event, width), width);
     if (!point) {
-      if (hoveredPoint) config.onLeave?.({ item: hoveredPoint, config, event });
+      if (hoveredPoint) interaction?.onLeave?.(hoveredPoint);
       setHoveredPoint(undefined);
       tooltip.hide();
       return;
     }
     setHoveredPoint(point);
-    config.onHover?.({ item: point, config, event });
+    interaction?.onHover?.(point);
     tooltip.show(point, event);
   };
 
-  const handleMouseOut = (event: MouseEvent<SVGRectElement>) => {
-    if (hoveredPoint) config.onLeave?.({ item: hoveredPoint, config, event });
+  const handleMouseOut = () => {
+    if (hoveredPoint) interaction?.onLeave?.(hoveredPoint);
     setHoveredPoint(undefined);
     tooltip.hide();
   };

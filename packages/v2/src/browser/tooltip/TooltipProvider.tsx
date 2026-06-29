@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, type ReactNode } from "react";
-import type { TrackConfigBase, TrackTooltipComponent } from "../../modules/types";
+import type { TrackTooltipComponent } from "../../modules/types";
 import { TooltipContextProvider } from "./TooltipContext";
 import { createTooltipStore } from "./tooltipStore";
 
@@ -12,7 +12,7 @@ export function TooltipProvider({
   children: ReactNode;
   disabled: boolean;
   isDisabled?: () => boolean;
-  getTooltipComponent: (type: string) => TrackTooltipComponent<any, TrackConfigBase> | undefined;
+  getTooltipComponent: (type: string) => TrackTooltipComponent<any, any> | undefined;
 }) {
   const store = useMemo(() => createTooltipStore(), []);
   const getIsDisabled = useCallback(

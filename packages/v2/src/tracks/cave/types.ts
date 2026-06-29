@@ -1,4 +1,4 @@
-import type { TrackConfigBase, TrackInteractionConfig } from "../../modules/types";
+import type { TrackInteraction } from "../../modules/types";
 import type { BigWigData, RenderedBigWigPoint } from "../bigwig/types";
 
 export type CaveDisplay = "full";
@@ -11,15 +11,10 @@ export type CaveAge =
   | "Early_Adulthood"
   | "Adulthood";
 
-export interface CaveConfig
-  extends
-    Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
-    TrackInteractionConfig<CaveTooltipItem, CaveConfig> {
-  type: "cave";
-  display: CaveDisplay;
+export type CaveConfig = {
   neurotransmitter: CaveNeurotransmitter;
   age: CaveAge;
-}
+};
 
 export type CaveInput = {
   id: string;
@@ -29,7 +24,7 @@ export type CaveInput = {
   display?: CaveDisplay;
   height?: number;
   color?: string;
-} & Partial<TrackInteractionConfig<CaveTooltipItem, CaveConfig>>;
+} & Partial<TrackInteraction<CaveTooltipItem>>;
 
 export type CaveData = {
   top: BigWigData[];

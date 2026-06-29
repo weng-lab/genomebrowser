@@ -1,17 +1,12 @@
-import type { TrackConfigBase, TrackInteractionConfig } from "../../modules/types";
+import type { TrackInteraction } from "../../modules/types";
 
 export type BigWigDisplay = "full" | "dense";
 
-export interface BigWigConfig
-  extends
-    Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
-    TrackInteractionConfig<RenderedBigWigPoint, BigWigConfig> {
-  type: "bigwig";
-  display: BigWigDisplay;
+export type BigWigConfig = {
   url: string;
   fillWithZero?: boolean;
   yRange?: YRange;
-}
+};
 
 export type BigWigInput = {
   id: string;
@@ -22,7 +17,7 @@ export type BigWigInput = {
   color?: string;
   fillWithZero?: boolean;
   yRange?: YRange;
-} & Partial<TrackInteractionConfig<RenderedBigWigPoint, BigWigConfig>>;
+} & Partial<TrackInteraction<RenderedBigWigPoint>>;
 
 export type YRange = {
   min: number;

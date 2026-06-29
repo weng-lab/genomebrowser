@@ -4,14 +4,20 @@
 
 `Track Modules` define the behavior for a track type. They are a key part of v2 because the browser is mostly orchestration: it coordinates state, viewport behavior, data loading, and rendering, while each track module owns the track-specific details.
 
-## Track configs
+## Track instances
 
-Track configs live in the track store. Every track config shares a small base shape:
+Track instances live in the track store. Runtime state is split by ownership:
 
 ```ts
-type TrackConfigBase = {
-  id: string;
+type TrackInstance<Config, InteractionItem = unknown> = {
   type: string;
+  base: TrackBase;
+  config: Config;
+  interaction?: TrackInteraction<InteractionItem>;
+};
+
+type TrackBase = {
+  id: string;
   title: string;
   display: string;
   height: number;
@@ -19,11 +25,11 @@ type TrackConfigBase = {
 };
 ```
 
-Track configs can also include optional interaction callback fields: `onClick`, `onHover`, and `onLeave`. See [Track interactions](#track-interactions).
+`base` is browser-owned state shared by every track. `config` contains only fields defined by the module's `configSchema`. `interaction` contains optional per-instance callbacks. See [Track interactions](#track-interactions).
 
-Track configs are the **runtime** configuration objects that define behavior such as color, title, and any other custom fields that a module has defined for its config. They tell the browser _how_ to render the track.
+The `type` field connects a track instance to a registered track module. `base.display` selects one of that module's renderers.
 
-The `type` field connects a track config to a registered track module. The `display` field selects one of that module's renderers.
+Module `create` accepts flat public input for ergonomics and returns the nested runtime shape.
 
 ## Track modules
 
@@ -31,9 +37,9 @@ A track module defines one track type:
 
 ```ts
 type TrackModule<Config, Data, Input = unknown> = {
-  type: Config["type"];
-  create(input: Input): Config;
-  validate(config: unknown): Config;
+  type: string;
+  create(input: Input): TrackInstance<Config>;
+  validate(instance: unknown): TrackInstance<Config>;
   fetch(ctx: TrackFetchContext<Config>): Promise<Data>;
   render: Record<string, ComponentType<TrackRendererProps<Config, Data>>>;
   settingsComponent?: ComponentType<TrackSettingsProps<Config>>;
@@ -43,14 +49,14 @@ type TrackModule<Config, Data, Input = unknown> = {
 
 The main responsibilities are:
 
-- `create` builds a track config from public input
-- `validate` checks an existing track config before use
-- `fetch` loads raw data for the requested genomic region using the track config
+- `create` builds a nested track instance from flat public input
+- `validate` checks an existing nested track instance before use
+- `fetch` loads raw data for the requested genomic region using module config
 - `render` maps display modes to React renderers
 - `settingsComponent` can provide optional module-specific track settings UI
 - `tooltipComponent` can provide optional module-specific tooltip UI
 
-Track modules should be defined with `defineTrackModule`. Custom track authors provide `configSchema`, a Zod object for the module-specific config fields. The helper combines it with the browser-owned base fields and creates `create` and `validate` functions. See [Schema validation](validation.md) for the config schema convention and [Useful helpers for track modules](helpers.md) for exported hooks that can support custom renderers.
+Track modules should be defined with `defineTrackModule`. Custom track authors provide `configSchema`, a Zod object for the module-specific config fields. The helper partitions flat create input into browser-owned `base`, module-owned `config`, and instance-owned `interaction`, then creates `create` and `validate` functions. See [Schema validation](validation.md) for the config schema convention and [Useful helpers for track modules](helpers.md) for exported hooks that can support custom renderers.
 
 `settingsComponent` is only the module-specific settings child. The browser owns the main settings modal and base settings fields such as title, color, height, and display. Consumers can replace the main modal shell or base settings UI through the browser settings store without changing track modules.
 
@@ -83,7 +89,7 @@ export const exampleTrackModule = defineTrackModule<ExampleItem>()({
 });
 ```
 
-The custom config schema must not define reserved fields: `id`, `type`, `title`, `display`, `height`, `color`, `onClick`, `onHover`, `onLeave`, or `tooltip`. Display modes come from the `render` keys. If `defaults.display` is omitted, the first renderer key is used.
+The custom config schema must not define reserved fields: `id`, `type`, `title`, `display`, `height`, `color`, `base`, `config`, `interaction`, `onClick`, `onHover`, `onLeave`, or `tooltip`. Display modes come from the `render` keys. If `defaults.display` is omitted, the first renderer key is used.
 
 `render` must contain at least one renderer. `defaults` is optional; if `height` is omitted it defaults to `80`, and `color` remains optional unless a default color is provided.
 
@@ -110,14 +116,22 @@ const track = bigWigModule.create({
 const region = { chromosome: "chr1", start: 1_000_000, end: 1_010_000 };
 
 const data = await bigWigModule.fetch({
-  config: track,
+  config: track.config,
   region,
 });
 
-const BigWig = bigWigModule.render[track.display];
+const BigWig = bigWigModule.render[track.base.display];
 
 return (
-  <BigWig config={track} data={data} region={region} width={1000} height={50} />
+  <BigWig
+    id={track.base.id}
+    config={track.config}
+    color={track.base.color}
+    data={data}
+    region={region}
+    width={1000}
+    height={50}
+  />
 );
 ```
 
@@ -125,19 +139,19 @@ Keep browser behavior in browser hooks and components. Keep module behavior limi
 
 ## Track interactions
 
-Track configs can include interaction callback fields:
+Track instances can include interaction callback fields:
 
 ```ts
-type TrackInteractionConfig<Item, Config> = {
-  onClick?: (context: { item: Item; config: Config; event: React.MouseEvent }) => void;
-  onHover?: (context: { item: Item; config: Config; event: React.MouseEvent }) => void;
-  onLeave?: (context: { item: Item; config: Config; event: React.MouseEvent }) => void;
+type TrackInteraction<Item> = {
+  onClick?: (item: Item) => void;
+  onHover?: (item: Item) => void;
+  onLeave?: (item: Item) => void;
 };
 ```
 
-These callbacks are intentionally part of config state because v2 treats generated track configs as the **runtime** unit inserted into the track store, and app callbacks may close over app state.
+These callbacks are intentionally part of instance state because app callbacks may close over app state for that specific track instance.
 
-Renderers own the timing of these interactions. They call `onClick`, `onHover`, and `onLeave` directly with the semantic item under the pointer, and use browser-backed hooks such as `useTooltip` when they need browser-managed UI like tooltip positioning. Tooltip components are module-owned through `tooltipComponent`, not stored on configs.
+Renderers own the timing of these interactions. They call `onClick`, `onHover`, and `onLeave` with the semantic item under the pointer through `useInteraction`, and use browser-backed hooks such as `useTooltip` when they need browser-managed UI like tooltip positioning. Tooltip components are module-owned through `tooltipComponent`, not stored on instances.
 
 Pass an interaction item type to `defineTrackModule` when authoring a module with typed interactions:
 
@@ -177,15 +191,15 @@ const track = bigBedModule.create({
   id: "peaks",
   title: "Peaks",
   url: "YOUR_URL_HERE",
-  onClick: ({ item, config, event }) => {
-    console.log(config.id, item.start, item.end, event.clientX);
+  onClick: (item) => {
+    console.log(item.start, item.end);
   },
 });
 ```
 
-Module defaults can include interaction callbacks. Tooltip components are defined by modules with `tooltipComponent`.
+Tooltip components are defined by modules with `tooltipComponent`.
 
-Because callbacks are functions, track configs that include interactions are not fully JSON-serializable.
+Because callbacks are functions, track instances that include interactions are not fully JSON-serializable.
 
 ## Built-in tracks
 
@@ -273,9 +287,9 @@ At runtime, the browser uses modules through the registry:
 
 1. `GenomeBrowser` receives a `modules` array.
 2. The module registry indexes modules by `type`.
-3. Track configs come from the track store.
+3. Track instances come from the track store.
 4. Data loading finds the module for each track's `type`.
-5. The module validates the track config and fetches data for the current render region.
-6. Rendering finds the module again and chooses `module.render[track.display]`.
+5. The module validates the track instance and fetches data with `track.config` for the current render region.
+6. Rendering finds the module again and chooses `module.render[track.base.display]`.
 
 This keeps the browser generic. Adding or changing a track type should mostly mean changing that track's module, not the browser orchestration layer.

@@ -1,4 +1,4 @@
-import type { TrackConfigBase, TrackInteractionConfig } from "../../modules/types";
+import type { TrackInteraction } from "../../modules/types";
 import type { BigWigData, RenderedBigWigPoint, YRange } from "../bigwig/types";
 
 export type MethylCDisplay = "split";
@@ -42,17 +42,12 @@ export type MethylCTooltipItem = {
   showRows: MethylCShowRows;
 };
 
-export interface MethylCConfig
-  extends
-    Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
-    TrackInteractionConfig<MethylCTooltipItem, MethylCConfig> {
-  type: "methylc";
-  display: MethylCDisplay;
+export type MethylCConfig = {
   colors: MethylCColors;
   urls: MethylCUrls;
   maskCpgByCoverage?: boolean;
   range?: YRange;
-}
+};
 
 export type MethylCInput = {
   id: string;
@@ -64,4 +59,4 @@ export type MethylCInput = {
   urls: MethylCUrls;
   maskCpgByCoverage?: boolean;
   range?: YRange;
-} & Partial<TrackInteractionConfig<MethylCTooltipItem, MethylCConfig>>;
+} & Partial<TrackInteraction<MethylCTooltipItem>>;

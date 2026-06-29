@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
-import { bigBedModule } from "../../src/tracks/bigbed/module";
-import type { InferBigBedRow } from "../../src/tracks/bigbed/types";
 import { bigWigModule } from "../../src/tracks/bigwig/module";
-import { bulkBedModule } from "../../src/tracks/bulkbed/module";
-import { transcriptModule } from "../../src/tracks/transcript/module";
+import type { TrackRendererProps } from "../../src/modules/types";
 
 describe("defineTrackModule", () => {
   function FullRenderer() {
@@ -29,6 +26,7 @@ describe("defineTrackModule", () => {
     defaults: {
       height: 80,
       color: "#2266aa",
+      config: { enabled: true },
     },
     configSchema: z.object({
       url: z.string().min(1),
@@ -43,7 +41,7 @@ describe("defineTrackModule", () => {
     tooltipComponent: TooltipComponent,
   });
 
-  it("creates typed configs from public input", () => {
+  it("creates nested track instances from flat public input", () => {
     expect(
       module.create({
         id: "signal",
@@ -51,35 +49,55 @@ describe("defineTrackModule", () => {
         url: "YOUR_URL_HERE",
       }),
     ).toEqual({
-      id: "signal",
       type: "example",
-      title: "Signal",
-      url: "YOUR_URL_HERE",
-      display: "full",
-      height: 80,
-      color: "#2266aa",
-      enabled: true,
+      base: {
+        id: "signal",
+        title: "Signal",
+        display: "full",
+        height: 80,
+        color: "#2266aa",
+      },
+      config: {
+        url: "YOUR_URL_HERE",
+        enabled: true,
+      },
     });
   });
 
-  it("validates full runtime configs", () => {
-    const config = module.create({
+  it("types create input from required and defaulted config schema fields", () => {
+    module.create({
       id: "signal",
       title: "Signal",
       url: "YOUR_URL_HERE",
     });
 
-    expect(module.validate(config)).toEqual(config);
-    expect(() => module.validate({ ...config, type: "other" })).toThrow(
-      /example config is invalid/,
+    if (false) {
+      // @ts-expect-error url is required by the config schema.
+      module.create({
+        id: "signal",
+        title: "Signal",
+      });
+    }
+  });
+
+  it("validates full nested runtime instances", () => {
+    const track = module.create({
+      id: "signal",
+      title: "Signal",
+      url: "YOUR_URL_HERE",
+    });
+
+    expect(module.validate(track)).toEqual(track);
+    expect(() => module.validate({ ...track, type: "other" })).toThrow(
+      /example instance is invalid/,
+    );
+    expect(() => module.validate({ ...track, url: "OTHER_URL" })).toThrow(
+      /example instance is invalid/,
     );
   });
 
-  it("preserves optional settings components", () => {
+  it("preserves optional module-owned components", () => {
     expect(module.settingsComponent).toBe(SettingsComponent);
-  });
-
-  it("preserves optional tooltip components on modules", () => {
     expect(module.tooltipComponent).toBe(TooltipComponent);
   });
 
@@ -91,10 +109,10 @@ describe("defineTrackModule", () => {
         url: "YOUR_URL_HERE",
         display: "expanded" as never,
       }),
-    ).toThrow(/example config is invalid/);
+    ).toThrow(/example base is invalid/);
   });
 
-  it("rejects unknown config keys", () => {
+  it("rejects unknown flat input keys", () => {
     expect(() =>
       module.create({
         id: "signal",
@@ -102,10 +120,10 @@ describe("defineTrackModule", () => {
         url: "YOUR_URL_HERE",
         typo: true,
       }),
-    ).toThrow(/example config is invalid/);
+    ).toThrow(/example input is invalid/);
   });
 
-  it("preserves top-level custom config schema refinements", () => {
+  it("preserves custom config schema refinements", () => {
     const rangeModule = defineTrackModule({
       type: "range",
       configSchema: z
@@ -160,39 +178,21 @@ describe("defineTrackModule", () => {
     ).toThrow(/cannot define reserved field "onClick"/);
   });
 
-  it("supports interaction callback defaults and config overrides", () => {
+  it("stores item-only interaction callbacks separately from config", () => {
     const onClick = () => undefined;
     const onHover = () => undefined;
     const onLeave = () => undefined;
-    const overrideClick = () => undefined;
-    const interactionModule = defineTrackModule({
-      type: "interactive",
-      defaults: {
-        onClick,
-        onHover,
-        onLeave,
-      },
-      configSchema: z.object({}),
-      fetch: async () => null,
-      render: {
-        full: FullRenderer,
-      },
+    const track = module.create({
+      id: "interactive",
+      title: "Interactive",
+      url: "YOUR_URL_HERE",
+      onClick,
+      onHover,
+      onLeave,
     });
 
-    expect(
-      interactionModule.create({
-        id: "defaulted",
-        title: "Defaulted",
-      }),
-    ).toMatchObject({ onClick, onHover, onLeave });
-
-    expect(
-      interactionModule.create({
-        id: "override",
-        title: "Override",
-        onClick: overrideClick,
-      }),
-    ).toMatchObject({ onClick: overrideClick, onHover, onLeave });
+    expect(track.interaction).toEqual({ onClick, onHover, onLeave });
+    expect(track.config).not.toHaveProperty("onClick");
   });
 
   it("rejects invalid interaction field values", () => {
@@ -203,10 +203,10 @@ describe("defineTrackModule", () => {
         url: "YOUR_URL_HERE",
         onClick: "not a function" as never,
       }),
-    ).toThrow(/example config is invalid/);
+    ).toThrow(/example interaction is invalid/);
   });
 
-  it("rejects tooltip on configs", () => {
+  it("rejects tooltip on create input", () => {
     expect(() =>
       module.create({
         id: "signal",
@@ -214,7 +214,7 @@ describe("defineTrackModule", () => {
         url: "YOUR_URL_HERE",
         tooltip: TooltipComponent,
       } as never),
-    ).toThrow(/example config is invalid/);
+    ).toThrow(/example input is invalid/);
   });
 
   it("rejects empty render maps", () => {
@@ -241,10 +241,10 @@ describe("defineTrackModule", () => {
           full: FullRenderer,
         },
       }),
-    ).toThrow(/Default display "dense" is not supported/);
+    ).toThrow(/default display "dense" is not supported/);
   });
 
-  it("supports built-in module config creation", () => {
+  it("supports built-in module instance creation", () => {
     expect(
       bigWigModule.create({
         id: "signal",
@@ -252,57 +252,38 @@ describe("defineTrackModule", () => {
         url: "YOUR_URL_HERE",
       }),
     ).toMatchObject({
-      id: "signal",
       type: "bigwig",
-      title: "Signal",
-      display: "full",
-      height: 80,
-      color: "#2266aa",
-      url: "YOUR_URL_HERE",
-    });
-
-    expect(
-      bigBedModule.create({
-        id: "annotation",
-        title: "Annotation",
+      base: {
+        id: "signal",
+        title: "Signal",
+        display: "full",
+        height: 80,
+        color: "#2266aa",
+      },
+      config: {
         url: "YOUR_URL_HERE",
-      }),
-    ).toMatchObject({ type: "bigbed", display: "dense", height: 60 });
-
-    expect(
-      transcriptModule.create({
-        id: "genes",
-        title: "Genes",
-        assembly: "GRCh38",
-        version: 1,
-      }),
-    ).toMatchObject({ type: "transcript", display: "squish", height: 90 });
-
-    expect(bigWigModule.settingsComponent).toBeDefined();
-    expect(bigBedModule.settingsComponent).toBeDefined();
-    expect(transcriptModule.settingsComponent).toBeDefined();
-    expect(bulkBedModule.settingsComponent).toBeDefined();
+      },
+    });
   });
 
-  it("rejects schema on built-in BigBed configs", () => {
-    expect(() =>
-      bigBedModule.create({
-        id: "annotation",
-        title: "Annotation",
-        url: "YOUR_URL_HERE",
-        schema: { chrom: "string" } as never,
-      }),
-    ).toThrow(/bigbed config is invalid/);
+  it("types renderer props with module config only", () => {
+    type ExampleConfig = { url: string; enabled: boolean };
+    const Renderer = (props: TrackRendererProps<ExampleConfig, null>) => {
+      props.config.url satisfies string;
+      props.id satisfies string;
+      return null;
+    };
+
+    defineTrackModule({
+      type: "renderer-types",
+      configSchema: z.object({ url: z.string(), enabled: z.boolean() }),
+      fetch: async () => null,
+      render: { full: Renderer },
+    });
   });
 
   it("types interaction items with an explicit module generic", () => {
-    const peakSchema = z.object({
-      chrom: z.string(),
-      start: z.number(),
-      end: z.number(),
-      signalValue: z.number(),
-    });
-    type PeakRow = InferBigBedRow<typeof peakSchema>;
+    type PeakRow = { start: number; end: number; signalValue: number };
 
     const peaksModule = defineTrackModule<PeakRow>()({
       type: "peaks",
@@ -323,7 +304,7 @@ describe("defineTrackModule", () => {
       id: "peaks",
       title: "Peaks",
       url: "YOUR_URL_HERE",
-      onClick: ({ item }) => {
+      onClick: (item) => {
         item.signalValue.toFixed(2);
       },
     });

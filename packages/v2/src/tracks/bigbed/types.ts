@@ -1,18 +1,13 @@
 import type { z } from "zod";
-import type { TrackConfigBase, TrackInteractionConfig } from "../../modules/types";
+import type { TrackInteraction } from "../../modules/types";
 
 export type BigBedDisplay = "dense" | "squish";
 
 export type BigBedSchema = z.ZodObject;
 
-export interface BigBedConfig
-  extends
-    Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
-    TrackInteractionConfig<BigBedRow, BigBedConfig> {
-  type: "bigbed";
-  display: BigBedDisplay;
+export type BigBedConfig = {
   url: string;
-}
+};
 
 export type BigBedData = BigBedRow[];
 
@@ -50,4 +45,4 @@ export type BigBedInput = {
   display?: BigBedDisplay;
   height?: number;
   color?: string;
-} & Partial<TrackInteractionConfig<BigBedRow, BigBedConfig>>;
+} & Partial<TrackInteraction<BigBedRow>>;

@@ -3,7 +3,7 @@ import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackSettingsProps } from "../../modules/types";
 import type { BigBedConfig } from "./types";
 
-export function BigBedSettings({ config, updateTrack }: TrackSettingsProps<BigBedConfig>) {
+export function BigBedSettings({ config, updateConfig }: TrackSettingsProps<BigBedConfig>) {
   return (
     <SettingsSection title="BigBed">
       <label style={fieldStyle}>
@@ -11,7 +11,7 @@ export function BigBedSettings({ config, updateTrack }: TrackSettingsProps<BigBe
         <input
           type="text"
           value={config.url}
-          onChange={(event) => updateTrack({ url: event.target.value })}
+          onChange={(event) => updateConfig({ url: event.target.value })}
         />
       </label>
     </SettingsSection>

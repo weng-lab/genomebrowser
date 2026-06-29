@@ -9,7 +9,7 @@ describe("fetchOnChange", () => {
     return null;
   }
 
-  it("includes only marked fields in fetch signatures", () => {
+  it("includes only marked config fields in fetch signatures", () => {
     const module = defineTrackModule({
       type: "example",
       configSchema: z.object({
@@ -19,20 +19,44 @@ describe("fetchOnChange", () => {
       fetch: async () => null,
       render: { full: Renderer },
     });
-    const config = module.create({
+    const track = module.create({
       id: "signal",
       title: "Signal",
       url: "YOUR_URL_HERE",
       colorBy: "score",
     });
 
-    expect(createFetchSignature(module, config)).toBe(JSON.stringify({ url: "YOUR_URL_HERE" }));
-    expect(createFetchSignature(module, { ...config, colorBy: "name" })).toBe(
-      createFetchSignature(module, config),
-    );
-    expect(createFetchSignature(module, { ...config, url: "OTHER_URL" })).not.toBe(
-      createFetchSignature(module, config),
-    );
+    expect(createFetchSignature(module, track)).toBe(JSON.stringify({ url: "YOUR_URL_HERE" }));
+    expect(
+      createFetchSignature(module, {
+        ...track,
+        config: { ...track.config, colorBy: "name" },
+      }),
+    ).toBe(createFetchSignature(module, track));
+    expect(
+      createFetchSignature(module, {
+        ...track,
+        config: { ...track.config, url: "OTHER_URL" },
+      }),
+    ).not.toBe(createFetchSignature(module, track));
+  });
+
+  it("ignores base and interaction changes", () => {
+    const module = defineTrackModule({
+      type: "visual",
+      configSchema: z.object({ url: fetchOnChange(z.string().min(1)) }),
+      fetch: async () => null,
+      render: { full: Renderer },
+    });
+    const track = module.create({ id: "signal", title: "Signal", url: "YOUR_URL_HERE" });
+
+    expect(
+      createFetchSignature(module, {
+        ...track,
+        base: { ...track.base, color: "#000000", height: 100 },
+        interaction: { onClick: () => undefined },
+      }),
+    ).toBe(createFetchSignature(module, track));
   });
 
   it("returns a stable empty signature when no fields are marked", () => {
@@ -42,10 +66,12 @@ describe("fetchOnChange", () => {
       fetch: async () => null,
       render: { full: Renderer },
     });
-    const config = module.create({ id: "signal", title: "Signal", url: "YOUR_URL_HERE" });
+    const track = module.create({ id: "signal", title: "Signal", url: "YOUR_URL_HERE" });
 
-    expect(createFetchSignature(module, config)).toBe("{}");
-    expect(createFetchSignature(module, { ...config, url: "OTHER_URL" })).toBe("{}");
+    expect(createFetchSignature(module, track)).toBe("{}");
+    expect(
+      createFetchSignature(module, { ...track, config: { ...track.config, url: "OTHER_URL" } }),
+    ).toBe("{}");
   });
 
   it("preserves nested object shape for marked fields", () => {
@@ -60,21 +86,27 @@ describe("fetchOnChange", () => {
       fetch: async () => null,
       render: { full: Renderer },
     });
-    const config = module.create({
+    const track = module.create({
       id: "signal",
       title: "Signal",
       source: { url: "YOUR_URL_HERE", label: "Signal A" },
     });
 
-    expect(createFetchSignature(module, config)).toBe(
+    expect(createFetchSignature(module, track)).toBe(
       JSON.stringify({ source: { url: "YOUR_URL_HERE" } }),
     );
     expect(
-      createFetchSignature(module, { ...config, source: { ...config.source, label: "Signal B" } }),
-    ).toBe(createFetchSignature(module, config));
+      createFetchSignature(module, {
+        ...track,
+        config: { source: { ...track.config.source, label: "Signal B" } },
+      }),
+    ).toBe(createFetchSignature(module, track));
     expect(
-      createFetchSignature(module, { ...config, source: { ...config.source, url: "OTHER_URL" } }),
-    ).not.toBe(createFetchSignature(module, config));
+      createFetchSignature(module, {
+        ...track,
+        config: { source: { ...track.config.source, url: "OTHER_URL" } },
+      }),
+    ).not.toBe(createFetchSignature(module, track));
   });
 
   it("preserves nested array shape for marked fields", () => {
@@ -91,7 +123,7 @@ describe("fetchOnChange", () => {
       fetch: async () => null,
       render: { full: Renderer },
     });
-    const config = module.create({
+    const track = module.create({
       id: "bulk-signal",
       title: "Bulk signal",
       datasets: [
@@ -100,31 +132,35 @@ describe("fetchOnChange", () => {
       ],
     });
 
-    expect(createFetchSignature(module, config)).toBe(
+    expect(createFetchSignature(module, track)).toBe(
       JSON.stringify({ datasets: [{ url: "URL_A" }, { url: "URL_B" }] }),
     );
     expect(
       createFetchSignature(module, {
-        ...config,
-        datasets: [{ name: "Dataset C", url: "URL_A" }, config.datasets[1]],
+        ...track,
+        config: {
+          datasets: [{ name: "Dataset C", url: "URL_A" }, track.config.datasets[1]],
+        },
       }),
-    ).toBe(createFetchSignature(module, config));
+    ).toBe(createFetchSignature(module, track));
     expect(
       createFetchSignature(module, {
-        ...config,
-        datasets: [{ name: "Dataset A", url: "URL_C" }, config.datasets[1]],
+        ...track,
+        config: {
+          datasets: [{ name: "Dataset A", url: "URL_C" }, track.config.datasets[1]],
+        },
       }),
-    ).not.toBe(createFetchSignature(module, config));
+    ).not.toBe(createFetchSignature(module, track));
     expect(
       createFetchSignature(module, {
-        ...config,
-        datasets: [config.datasets[1], config.datasets[0]],
+        ...track,
+        config: { datasets: [track.config.datasets[1], track.config.datasets[0]] },
       }),
-    ).not.toBe(createFetchSignature(module, config));
+    ).not.toBe(createFetchSignature(module, track));
   });
 
   it("includes bulkbed dataset urls in fetch signatures", () => {
-    const config = bulkBedModule.create({
+    const track = bulkBedModule.create({
       id: "bulk-peaks",
       title: "Bulk peaks",
       datasets: [
@@ -133,20 +169,26 @@ describe("fetchOnChange", () => {
       ],
     });
 
-    expect(createFetchSignature(bulkBedModule, config)).toBe(
+    expect(createFetchSignature(bulkBedModule, track)).toBe(
       JSON.stringify({ datasets: [{ url: "URL_A" }, { url: "URL_B" }] }),
     );
     expect(
       createFetchSignature(bulkBedModule, {
-        ...config,
-        datasets: [{ name: "Dataset C", url: "URL_A" }, config.datasets[1]],
+        ...track,
+        config: {
+          ...track.config,
+          datasets: [{ name: "Dataset C", url: "URL_A" }, track.config.datasets[1]],
+        },
       }),
-    ).toBe(createFetchSignature(bulkBedModule, config));
+    ).toBe(createFetchSignature(bulkBedModule, track));
     expect(
       createFetchSignature(bulkBedModule, {
-        ...config,
-        datasets: [{ name: "Dataset A", url: "URL_C" }, config.datasets[1]],
+        ...track,
+        config: {
+          ...track.config,
+          datasets: [{ name: "Dataset A", url: "URL_C" }, track.config.datasets[1]],
+        },
       }),
-    ).not.toBe(createFetchSignature(bulkBedModule, config));
+    ).not.toBe(createFetchSignature(bulkBedModule, track));
   });
 });

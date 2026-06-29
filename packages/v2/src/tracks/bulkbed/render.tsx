@@ -1,4 +1,5 @@
 import { useTooltip } from "../../browser/tooltip/useTooltip";
+import { useInteraction } from "../../modules/interaction";
 import type { TrackRendererProps } from "../../modules/types";
 import { createXScale } from "../../modules/utils/scale";
 import { renderDenseBigBedData } from "../bigbed/helpers";
@@ -6,6 +7,7 @@ import type { BulkBedConfig, BulkBedData, BulkBedRect } from "./types";
 
 export function FullBulkBed({
   config,
+  color = "#4b9560",
   data,
   region,
   width,
@@ -15,7 +17,8 @@ export function FullBulkBed({
   const gap = config.gap ?? 2;
   const totalGaps = gap * Math.max(0, data.length - 1);
   const rowHeight = data.length > 0 ? Math.max(1, (height - totalGaps) / data.length) : height;
-  const tooltip = useTooltip<BulkBedRect, BulkBedConfig>({ config });
+  const interaction = useInteraction<BulkBedRect>();
+  const tooltip = useTooltip<BulkBedRect, BulkBedConfig>({ type: "bulkbed", config });
 
   return (
     <g>
@@ -42,15 +45,15 @@ export function FullBulkBed({
                   y={0}
                   width={Math.max(1, rect.end - rect.start)}
                   height={rowHeight}
-                  fill={rect.color ?? config.color ?? "#4b9560"}
-                  style={{ cursor: config.onClick ? "pointer" : "default" }}
-                  onClick={(event) => config.onClick?.({ item: row, config, event })}
+                  fill={rect.color ?? color}
+                  style={{ cursor: interaction?.onClick ? "pointer" : "default" }}
+                  onClick={() => interaction?.onClick?.(row)}
                   onMouseEnter={(event) => {
-                    config.onHover?.({ item: row, config, event });
+                    interaction?.onHover?.(row);
                     tooltip.show(row, event);
                   }}
-                  onMouseLeave={(event) => {
-                    config.onLeave?.({ item: row, config, event });
+                  onMouseLeave={() => {
+                    interaction?.onLeave?.(row);
                     tooltip.hide();
                   }}
                 />

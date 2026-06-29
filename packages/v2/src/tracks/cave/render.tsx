@@ -1,5 +1,6 @@
 import { useRef, useState, type MouseEvent } from "react";
 import { useTooltip } from "../../browser/tooltip/useTooltip";
+import { useInteraction } from "../../modules/interaction";
 import type { TrackRendererProps } from "../../modules/types";
 import { condenseBigWigData, getPointAtMouseX, lighten } from "../bigwig/helpers";
 import type { RenderedBigWigPoint, YRange } from "../bigwig/types";
@@ -7,6 +8,7 @@ import type { CaveConfig, CaveData, CaveTooltipItem } from "./types";
 
 export function FullCave({
   config,
+  color = "#3333ff",
   data,
   width,
   height,
@@ -17,8 +19,6 @@ export function FullCave({
   const bottomPoints = condenseBigWigData(data.bottom, region, width);
   const topPath = createCavePath(topPoints, range, height, "top");
   const bottomPath = createCavePath(bottomPoints, range, height, "bottom");
-  const color = config.color ?? "#3333ff";
-
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
@@ -74,7 +74,8 @@ function CaveHoverOverlay({
 }) {
   const [hoveredX, setHoveredX] = useState<number | undefined>();
   const hoveredItemRef = useRef<CaveTooltipItem | undefined>(undefined);
-  const tooltip = useTooltip<CaveTooltipItem, CaveConfig>({ config });
+  const interaction = useInteraction<CaveTooltipItem>();
+  const tooltip = useTooltip<CaveTooltipItem, CaveConfig>({ type: "cave", config });
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const mouseX = getLocalMouseX(event, width);
@@ -82,7 +83,7 @@ function CaveHoverOverlay({
     const bottom = getPointAtMouseX(bottomPoints, mouseX, width);
 
     if (!top && !bottom) {
-      if (hoveredItemRef.current) config.onLeave?.({ item: hoveredItemRef.current, config, event });
+      if (hoveredItemRef.current) interaction?.onLeave?.(hoveredItemRef.current);
       hoveredItemRef.current = undefined;
       if (hoveredX !== undefined) setHoveredX(undefined);
       tooltip.hide();
@@ -93,12 +94,12 @@ function CaveHoverOverlay({
     const item = { x, top, bottom };
     hoveredItemRef.current = item;
     if (hoveredX !== x) setHoveredX(x);
-    config.onHover?.({ item, config, event });
+    interaction?.onHover?.(item);
     tooltip.show(item, event);
   };
 
-  const handleMouseOut = (event: MouseEvent<SVGRectElement>) => {
-    if (hoveredItemRef.current) config.onLeave?.({ item: hoveredItemRef.current, config, event });
+  const handleMouseOut = () => {
+    if (hoveredItemRef.current) interaction?.onLeave?.(hoveredItemRef.current);
     hoveredItemRef.current = undefined;
     setHoveredX(undefined);
     tooltip.hide();

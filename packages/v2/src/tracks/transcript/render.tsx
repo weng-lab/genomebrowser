@@ -1,5 +1,6 @@
 import { useAutoTrackHeight } from "../../browser/track-row/useAutoTrackHeight";
 import { useTooltip } from "../../browser/tooltip/useTooltip";
+import { useInteraction } from "../../modules/interaction";
 import type { TrackRendererProps } from "../../modules/types";
 import { createXScale } from "../../modules/utils/scale";
 import {
@@ -30,7 +31,9 @@ export function PackTranscript(props: TrackRendererProps<TranscriptConfig, Trans
 }
 
 function TranscriptRows({
+  id,
   config,
+  color = "#7a4fb3",
   region,
   width,
   height,
@@ -38,12 +41,13 @@ function TranscriptRows({
 }: TrackRendererProps<TranscriptConfig, TranscriptData> & { transcripts: Transcript[] }) {
   const x = createXScale(region, width);
   const grouped = groupFeatures(transcripts, x, FONT_SIZE);
-  const rowHeight = useAutoTrackHeight(config.id, grouped.length);
+  const rowHeight = useAutoTrackHeight(id, grouped.length);
   const rows: TranscriptRow[] = grouped.map((group, index) => ({
     y: index * rowHeight,
     transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, width)),
   }));
-  const tooltip = useTooltip<Transcript, TranscriptConfig>({ config });
+  const interaction = useInteraction<Transcript>();
+  const tooltip = useTooltip<Transcript, TranscriptConfig>({ type: "transcript", config });
 
   return (
     <g>
@@ -51,7 +55,7 @@ function TranscriptRows({
       {rows.map((row, rowIndex) => (
         <g key={rowIndex} transform={`translate(0,${row.y})`}>
           {row.transcripts.map((transcript, transcriptIndex) => {
-            const fill = getTranscriptColor(config, transcript.transcript);
+            const fill = getTranscriptColor(config, transcript.transcript, color);
             return (
               <g key={`${transcript.transcript.id}-${transcriptIndex}`}>
                 <path
@@ -59,16 +63,14 @@ function TranscriptRows({
                   fill={fill}
                   strokeWidth={Math.max(0.5, rowHeight / 16)}
                   d={transcript.paths.introns + transcript.paths.exons}
-                  style={{ cursor: config.onClick ? "pointer" : "default" }}
-                  onClick={(event) =>
-                    config.onClick?.({ item: transcript.transcript, config, event })
-                  }
+                  style={{ cursor: interaction?.onClick ? "pointer" : "default" }}
+                  onClick={() => interaction?.onClick?.(transcript.transcript)}
                   onMouseEnter={(event) => {
-                    config.onHover?.({ item: transcript.transcript, config, event });
+                    interaction?.onHover?.(transcript.transcript);
                     tooltip.show(transcript.transcript, event);
                   }}
-                  onMouseLeave={(event) => {
-                    config.onLeave?.({ item: transcript.transcript, config, event });
+                  onMouseLeave={() => {
+                    interaction?.onLeave?.(transcript.transcript);
                     tooltip.hide();
                   }}
                 />
@@ -92,13 +94,13 @@ function TranscriptRows({
   );
 }
 
-function getTranscriptColor(config: TranscriptConfig, transcript: Transcript) {
+function getTranscriptColor(config: TranscriptConfig, transcript: Transcript, color: string) {
   if (isManeSelectTranscript(transcript.tag))
-    return config.canonicalColor ?? config.color ?? "#7a4fb3";
+    return config.canonicalColor ?? color;
   if (config.geneName && transcript.name.toLowerCase().includes(config.geneName.toLowerCase())) {
-    return config.highlightColor ?? config.color ?? "#7a4fb3";
+    return config.highlightColor ?? color;
   }
-  return transcript.color || config.color || "#7a4fb3";
+  return transcript.color || color;
 }
 
 function isVisible(transcript: Transcript, region: { start: number; end: number }) {

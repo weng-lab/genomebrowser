@@ -2,7 +2,7 @@ import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackSettingsProps } from "../../modules/types";
 import type { TranscriptConfig } from "./types";
 
-export function TranscriptSettings({ config, updateTrack }: TrackSettingsProps<TranscriptConfig>) {
+export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<TranscriptConfig>) {
   return (
     <SettingsSection title="Transcript">
       <label style={{ display: "grid", gap: "4px" }}>
@@ -10,7 +10,7 @@ export function TranscriptSettings({ config, updateTrack }: TrackSettingsProps<T
         <input
           type="text"
           value={config.geneName ?? ""}
-          onChange={(event) => updateTrack({ geneName: event.target.value || undefined })}
+          onChange={(event) => updateConfig({ geneName: event.target.value || undefined })}
         />
       </label>
       <label style={{ display: "grid", gap: "4px" }}>
@@ -18,7 +18,7 @@ export function TranscriptSettings({ config, updateTrack }: TrackSettingsProps<T
         <input
           type="text"
           value={config.assembly}
-          onChange={(event) => updateTrack({ assembly: event.target.value })}
+          onChange={(event) => updateConfig({ assembly: event.target.value })}
         />
       </label>
       <label style={{ display: "grid", gap: "4px" }}>
@@ -30,7 +30,7 @@ export function TranscriptSettings({ config, updateTrack }: TrackSettingsProps<T
           value={config.version}
           onChange={(event) => {
             const version = Number(event.target.value);
-            if (Number.isInteger(version) && version > 0) updateTrack({ version });
+            if (Number.isInteger(version) && version > 0) updateConfig({ version });
           }}
         />
       </label>
@@ -40,7 +40,7 @@ export function TranscriptSettings({ config, updateTrack }: TrackSettingsProps<T
           type="text"
           value={config.canonicalColor ?? ""}
           placeholder="#000000"
-          onChange={(event) => updateTrack({ canonicalColor: event.target.value || undefined })}
+          onChange={(event) => updateConfig({ canonicalColor: event.target.value || undefined })}
         />
       </label>
       <label style={{ display: "grid", gap: "4px" }}>
@@ -49,7 +49,7 @@ export function TranscriptSettings({ config, updateTrack }: TrackSettingsProps<T
           type="text"
           value={config.highlightColor ?? ""}
           placeholder="#000000"
-          onChange={(event) => updateTrack({ highlightColor: event.target.value || undefined })}
+          onChange={(event) => updateConfig({ highlightColor: event.target.value || undefined })}
         />
       </label>
     </SettingsSection>

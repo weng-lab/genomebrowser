@@ -1,190 +1,277 @@
-import type { ComponentType } from "react";
 import { z } from "zod";
-import { registerFetchSchema } from "./fetchOnChange";
-import { functionSchema, parsePublicInput } from "./schemas";
+import { parsePublicInput } from "./schemas";
 import type {
-  TrackInteractionConfig,
+  TrackFetch,
+  TrackInstance,
+  TrackInteraction,
+  TrackInteractionCallback,
   TrackModule,
-  TrackRendererProps,
+  TrackRenderer,
+  TrackSettingsComponent,
   TrackTooltipComponent,
 } from "./types";
 
-type TrackInputSchema = z.ZodObject;
-type ReservedTrackField =
-  | "id"
-  | "type"
-  | "title"
-  | "display"
-  | "height"
-  | "color"
-  | "onClick"
-  | "onHover"
-  | "onLeave"
-  | "tooltip";
-type TrackModuleDefaults<Display extends string, Item> = {
+type TrackConfigSchema = z.ZodObject;
+type FetchData<Fetch> = Fetch extends TrackFetch<any, infer Data> ? Data : never;
+type DisplayKey<Renderers> = Extract<keyof Renderers, string>;
+type DefinedTrackInstance<Type extends string, Config, Item> = TrackInstance<Config, Item> & {
+  type: Type;
+};
+
+type ModuleDefaults<ConfigSchema extends TrackConfigSchema, Display extends string> = {
   display?: Display;
   height?: number;
   color?: string;
-} & Partial<TrackInteractionConfig<Item, any>>;
+  config?: Partial<z.input<ConfigSchema>>;
+};
 
-type DefinedTrackConfig<
-  Type extends string,
-  Schema extends TrackInputSchema,
-  Display extends string,
-  Item,
-> = Omit<z.output<Schema>, ReservedTrackField> & {
-  id: string;
-  type: Type;
-  title: string;
-  display: Display;
-  height: number;
-  color?: string;
-} & Partial<TrackInteractionConfig<Item, any>>;
+type RendererMap<Config, Data, Renderers> = {
+  [Display in keyof Renderers]: TrackRenderer<Config, Data>;
+};
+
+type ValidateRenderers<Config, Data, Renderers> = Renderers extends RendererMap<
+  Config,
+  Data,
+  Renderers
+>
+  ? unknown
+  : { render: RendererMap<Config, Data, Renderers> };
 
 type TrackModuleDefinition<
   Type extends string,
-  Schema extends TrackInputSchema,
-  Display extends string,
-  Data,
+  ConfigSchema extends TrackConfigSchema,
+  Fetch extends TrackFetch<z.output<ConfigSchema>, any>,
+  Renderers extends object,
   Item,
 > = {
   type: Type;
-  defaults?: TrackModuleDefaults<Display, Item>;
-  configSchema: Schema;
-  fetch: TrackModule<DefinedTrackConfig<Type, Schema, Display, Item>, Data, Item>["fetch"];
-  render: Record<
-    Display,
-    ComponentType<TrackRendererProps<DefinedTrackConfig<Type, Schema, Display, Item>, Data>>
-  >;
-  settingsComponent?: TrackModule<
-    DefinedTrackConfig<Type, Schema, Display, Item>,
-    Data,
-    Item
-  >["settingsComponent"];
-  tooltipComponent?: TrackTooltipComponent<Item, DefinedTrackConfig<Type, Schema, Display, Item>>;
-};
+  defaults?: ModuleDefaults<ConfigSchema, DisplayKey<Renderers>>;
+  configSchema: ConfigSchema;
+  fetch: Fetch;
+  render: Renderers;
+  settingsComponent?: TrackSettingsComponent<z.output<ConfigSchema>>;
+  tooltipComponent?: TrackTooltipComponent<Item, z.output<ConfigSchema>>;
+} & ValidateRenderers<z.output<ConfigSchema>, FetchData<Fetch>, Renderers>;
+
+const baseSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().min(1),
+    display: z.string().min(1),
+    height: z.number().positive(),
+    color: z.string().optional(),
+  })
+  .strict();
+
+const interactionCallbackSchema = z.custom<TrackInteractionCallback<unknown>>(
+  (value) => typeof value === "function",
+  {
+    error: "Input must be a function",
+  },
+);
+
+const interactionSchema = z
+  .object({
+    onClick: interactionCallbackSchema.optional(),
+    onHover: interactionCallbackSchema.optional(),
+    onLeave: interactionCallbackSchema.optional(),
+  })
+  .strict();
 
 export function defineTrackModule<Item = unknown>(): <
-  Type extends string,
-  Schema extends TrackInputSchema,
-  Display extends string,
-  Data,
+  const Type extends string,
+  ConfigSchema extends TrackConfigSchema,
+  Fetch extends TrackFetch<z.output<ConfigSchema>, any>,
+  const Renderers extends object,
 >(
-  definition: TrackModuleDefinition<Type, Schema, Display, Data, Item>,
-) => TrackModule<DefinedTrackConfig<Type, Schema, Display, Item>, Data, Item>;
+  definition: TrackModuleDefinition<Type, ConfigSchema, Fetch, Renderers, Item>,
+) => TrackModule<z.output<ConfigSchema>, FetchData<Fetch>, Item> & {
+  type: Type;
+  displays: Array<DisplayKey<Renderers>>;
+  render: Renderers;
+  create(input: FlatCreateInput<ConfigSchema, DisplayKey<Renderers>, Item>): DefinedTrackInstance<
+    Type,
+    z.output<ConfigSchema>,
+    Item
+  >;
+  validate(instance: unknown): DefinedTrackInstance<Type, z.output<ConfigSchema>, Item>;
+};
 export function defineTrackModule<
-  Type extends string,
-  Schema extends TrackInputSchema,
-  Display extends string,
-  Data,
+  const Type extends string,
+  ConfigSchema extends TrackConfigSchema,
+  Fetch extends TrackFetch<z.output<ConfigSchema>, any>,
+  const Renderers extends object,
 >(
-  definition: TrackModuleDefinition<Type, Schema, Display, Data, any>,
-): TrackModule<DefinedTrackConfig<Type, Schema, Display, any>, Data, any>;
-export function defineTrackModule(definition?: unknown) {
+  definition: TrackModuleDefinition<Type, ConfigSchema, Fetch, Renderers, unknown>,
+): TrackModule<z.output<ConfigSchema>, FetchData<Fetch>, unknown> & {
+  type: Type;
+  displays: Array<DisplayKey<Renderers>>;
+  render: Renderers;
+  create(input: FlatCreateInput<ConfigSchema, DisplayKey<Renderers>, unknown>): DefinedTrackInstance<
+    Type,
+    z.output<ConfigSchema>,
+    unknown
+  >;
+  validate(instance: unknown): DefinedTrackInstance<Type, z.output<ConfigSchema>, unknown>;
+};
+export function defineTrackModule(definition?: any): any {
   if (definition === undefined) return createTrackModule;
   return createTrackModule(definition as never);
 }
 
-function createTrackModule<
-  Type extends string,
-  Schema extends TrackInputSchema,
+type FlatCreateInput<
+  ConfigSchema extends TrackConfigSchema,
   Display extends string,
-  Data,
   Item,
->(
-  definition: TrackModuleDefinition<Type, Schema, Display, Data, Item>,
-): TrackModule<DefinedTrackConfig<Type, Schema, Display, Item>, Data, Item> {
-  assertNoReservedFields(definition.type, definition.configSchema);
+> = z.input<ConfigSchema> & {
+  id: string;
+  title: string;
+  display?: Display;
+  height?: number;
+  color?: string;
+} & Partial<TrackInteraction<Item>>;
 
-  const displayModes = Object.keys(definition.render) as Display[];
-  if (displayModes.length === 0) {
-    throw new Error(`Track module "${definition.type}" must define at least one renderer`);
+function createTrackModule<
+  const Type extends string,
+  ConfigSchema extends TrackConfigSchema,
+  Fetch extends TrackFetch<z.output<ConfigSchema>, any>,
+  const Renderers extends object,
+  Item,
+>(definition: TrackModuleDefinition<Type, ConfigSchema, Fetch, Renderers, Item>) {
+  assertNoReservedConfigFields(definition.type, definition.configSchema);
+
+  const displays = Object.keys(definition.render as object) as Array<DisplayKey<Renderers>>;
+  assertDisplayModes(definition.type, displays);
+
+  const defaultDisplay = definition.defaults?.display ?? displays[0];
+  if (!displays.includes(defaultDisplay)) {
+    throw new Error(
+      `Track module "${definition.type}" default display "${defaultDisplay}" is not supported`,
+    );
   }
 
-  const defaultDisplay = definition.defaults?.display ?? displayModes[0];
-  if (!displayModes.includes(defaultDisplay)) {
-    throw new Error(`Default display "${defaultDisplay}" is not supported by "${definition.type}"`);
-  }
+  const displaySchema = z.enum(displays as unknown as [string, ...string[]]);
+  const fullBaseSchema = baseSchema.extend({ display: displaySchema }).strict();
+  const createBaseSchema = baseSchema
+    .extend({
+      display: displaySchema.default(defaultDisplay),
+      height: z
+        .number()
+        .positive()
+        .default(definition.defaults?.height ?? 80),
+      color:
+        definition.defaults?.color === undefined
+          ? z.string().optional()
+          : z.string().default(definition.defaults.color),
+    })
+    .strict();
 
-  const baseSchema = z.object({
-    id: z.string().min(1),
-    title: z.string().min(1),
-    display: z.enum(displayModes as [Display, ...Display[]]).default(defaultDisplay),
-    height: z
-      .number()
-      .positive()
-      .default(definition.defaults?.height ?? 80),
-    color:
-      definition.defaults?.color === undefined
-        ? z.string().optional()
-        : z.string().default(definition.defaults.color),
-    onClick: functionSchema.optional(),
-    onHover: functionSchema.optional(),
-    onLeave: functionSchema.optional(),
-  });
-  const publicInputSchema = definition.configSchema.safeExtend(baseSchema.shape).strict();
-  const fullConfigSchema = publicInputSchema.safeExtend({
-    type: z.literal(definition.type),
-  });
+  const instanceSchema = z
+    .object({
+      type: z.literal(definition.type),
+      base: fullBaseSchema,
+      config: definition.configSchema,
+      interaction: interactionSchema.optional(),
+    })
+    .strict();
 
-  const module: TrackModule<DefinedTrackConfig<Type, Schema, Display, Item>, Data, Item> = {
-    type: definition.type as DefinedTrackConfig<Type, Schema, Display, Item>["type"],
-    create(input) {
-      const parsed = parsePublicInput(publicInputSchema, input, `${definition.type} config`);
-      return {
-        ...applyInteractionDefaults(parsed, definition.defaults),
+  return {
+    type: definition.type,
+    displays,
+    configSchema: definition.configSchema,
+    create(input: FlatCreateInput<ConfigSchema, DisplayKey<Renderers>, Item>) {
+      const partitioned = partitionCreateInput(definition.type, definition.configSchema, input);
+      const base = parsePublicInput(createBaseSchema, partitioned.base, `${definition.type} base`);
+      const config = parsePublicInput(
+        definition.configSchema,
+        { ...definition.defaults?.config, ...partitioned.config },
+        `${definition.type} config`,
+      );
+      const interaction = partitioned.interaction
+        ? parsePublicInput(interactionSchema, partitioned.interaction, `${definition.type} interaction`)
+        : undefined;
+      const instance = {
         type: definition.type,
-      } as DefinedTrackConfig<Type, Schema, Display, Item>;
+        base,
+        config,
+        ...(interaction ? { interaction } : {}),
+      };
+
+      return parsePublicInput(instanceSchema, instance, `${definition.type} instance`) as never;
     },
-    validate(config) {
-      const parsed = parsePublicInput(fullConfigSchema, config, `${definition.type} config`);
-      return applyInteractionDefaults(parsed, definition.defaults) as DefinedTrackConfig<
-        Type,
-        Schema,
-        Display,
-        Item
-      >;
+    validate(instance: unknown) {
+      return parsePublicInput(instanceSchema, instance, `${definition.type} instance`) as never;
     },
     fetch: definition.fetch,
     render: definition.render,
     settingsComponent: definition.settingsComponent,
     tooltipComponent: definition.tooltipComponent,
   };
-
-  registerFetchSchema(module, definition.configSchema);
-
-  return module;
 }
 
-function applyInteractionDefaults<T extends Partial<TrackInteractionConfig<any, any>>>(
-  config: T,
-  defaults: Partial<TrackInteractionConfig<any, any>> | undefined,
-) {
-  if (!defaults) return config;
+function partitionCreateInput(type: string, configSchema: TrackConfigSchema, input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error(`${type} input is invalid: input: Input must be an object`);
+  }
+
+  const values = input as Record<string, unknown>;
+  const configFields = new Set(Object.keys(configSchema.shape));
+  const baseFields = new Set(["id", "title", "display", "height", "color"]);
+  const interactionFields = new Set(["onClick", "onHover", "onLeave"]);
+  const base: Record<string, unknown> = {};
+  const config: Record<string, unknown> = {};
+  const interaction: Record<string, unknown> = {};
+
+  for (const [field, value] of Object.entries(values)) {
+    if (baseFields.has(field)) {
+      base[field] = value;
+    } else if (interactionFields.has(field)) {
+      interaction[field] = value;
+    } else if (configFields.has(field)) {
+      config[field] = value;
+    } else {
+      throw new Error(`${type} input is invalid: ${field}: Unrecognized key`);
+    }
+  }
+
   return {
-    ...config,
-    onClick: config.onClick ?? defaults.onClick,
-    onHover: config.onHover ?? defaults.onHover,
-    onLeave: config.onLeave ?? defaults.onLeave,
+    base,
+    config,
+    interaction: Object.keys(interaction).length === 0 ? undefined : interaction,
   };
 }
 
-function assertNoReservedFields(type: string, schema: TrackInputSchema) {
-  const reservedFields = new Set<ReservedTrackField>([
+function assertDisplayModes(type: string, displays: string[]) {
+  if (displays.length === 0) {
+    throw new Error(`Track module "${type}" must define at least one renderer`);
+  }
+
+  for (const display of displays) {
+    if (display.trim() === "") {
+      throw new Error(`Track module "${type}" cannot define an empty display mode`);
+    }
+  }
+}
+
+function assertNoReservedConfigFields(type: string, configSchema: TrackConfigSchema) {
+  const reservedFields = new Set([
     "id",
     "type",
     "title",
     "display",
     "height",
     "color",
+    "base",
+    "config",
+    "interaction",
     "onClick",
     "onHover",
     "onLeave",
     "tooltip",
   ]);
 
-  for (const field of Object.keys(schema.shape)) {
-    if (reservedFields.has(field as ReservedTrackField)) {
+  for (const field of Object.keys(configSchema.shape)) {
+    if (reservedFields.has(field)) {
       throw new Error(`Track config schema for "${type}" cannot define reserved field "${field}"`);
     }
   }

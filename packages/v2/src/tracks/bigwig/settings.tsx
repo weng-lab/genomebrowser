@@ -3,7 +3,7 @@ import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackSettingsProps } from "../../modules/types";
 import type { BigWigConfig } from "./types";
 
-export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWigConfig>) {
+export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigWigConfig>) {
   const minRef = useRef<HTMLInputElement>(null);
   const maxRef = useRef<HTMLInputElement>(null);
   const updateYRange = () => {
@@ -14,7 +14,7 @@ export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWi
     const min = Number(minValue);
     const max = Number(maxValue);
     if (Number.isFinite(min) && Number.isFinite(max) && min < max)
-      updateTrack({ yRange: { min, max } });
+      updateConfig({ yRange: { min, max } });
   };
 
   return (
@@ -24,14 +24,14 @@ export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWi
         <input
           type="text"
           value={config.url}
-          onChange={(event) => updateTrack({ url: event.target.value })}
+          onChange={(event) => updateConfig({ url: event.target.value })}
         />
       </label>
       <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         <input
           type="checkbox"
           checked={config.fillWithZero ?? false}
-          onChange={(event) => updateTrack({ fillWithZero: event.target.checked })}
+          onChange={(event) => updateConfig({ fillWithZero: event.target.checked })}
         />
         Fill missing values with zero
       </label>
@@ -63,7 +63,7 @@ export function BigWigSettings({ config, updateTrack }: TrackSettingsProps<BigWi
             onClick={() => {
               if (minRef.current) minRef.current.value = "";
               if (maxRef.current) maxRef.current.value = "";
-              updateTrack({ yRange: undefined });
+              updateConfig({ yRange: undefined });
             }}
           >
             Auto scale

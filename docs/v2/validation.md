@@ -46,20 +46,20 @@ export const exampleTrackModule = defineTrackModule<ExampleItem>()({
 });
 ```
 
-The config schema should only include custom fields. `defineTrackModule` owns the base fields (`id`, `type`, `title`, `display`, `height`, and `color`) and interaction callback fields (`onClick`, `onHover`, and `onLeave`), enforces strict object validation, and derives the full track config validator from them. Field-level validation, defaults, and object-level refinements on the custom config schema are preserved.
+The config schema should only include custom fields. `defineTrackModule` owns the browser base fields (`id`, `title`, `display`, `height`, and `color`) and interaction callback fields (`onClick`, `onHover`, and `onLeave`), enforces strict object validation, and derives the full nested track instance validator from them. Field-level validation, defaults, and object-level refinements on the custom config schema are preserved.
 
 The interaction item type is separate from the config schema. It describes the object shape the renderer passes to `onClick`, `onHover`, `onLeave`, and tooltips. If a renderer can expose several shapes, use a discriminated union such as `type ExampleItem = PeakItem | MotifItem | AnnotationItem`.
 
 Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used. The custom config schema cannot define reserved fields.
 
-Reserved fields are: `id`, `type`, `title`, `display`, `height`, `color`, `onClick`, `onHover`, `onLeave`, and `tooltip`.
+Reserved fields are: `id`, `type`, `title`, `display`, `height`, `color`, `base`, `config`, `interaction`, `onClick`, `onHover`, `onLeave`, and `tooltip`.
 
 ## What the helper creates
 
 `defineTrackModule` returns a `TrackModule` with generated `create` and `validate` functions:
 
-- `create(input)` parses public input, applies base and custom defaults, and appends the fixed `type`
-- `validate(config)` checks a full track config and requires the fixed `type`
+- `create(input)` parses flat public input, partitions it into `base`, `config`, and `interaction`, applies defaults, and returns the nested runtime instance
+- `validate(instance)` checks a full nested track instance and requires the fixed `type`
 
 The optional `defaults` object can provide `display`, `height`, and `color`. If `height` is omitted, it defaults to `80`; if `color` is omitted, color remains optional.
 
@@ -73,14 +73,24 @@ const track = exampleTrackModule.create({
 });
 ```
 
+The returned runtime shape is nested:
+
+```ts
+{
+  type: "example",
+  base: { id: "signal", title: "Signal", display: "full", height: 80 },
+  config: { url: "YOUR_URL_HERE" },
+}
+```
+
 ## Where validation happens
 
 Validation is used in a few places:
 
 - browser store input is parsed when the browser store is created
 - region input is parsed by the region utilities
-- track configs are validated through registered modules before entering or changing track state
-- browser runtime code trusts track configs from the track store when fetching, rendering, and opening settings
+- track instances are validated through registered modules before entering or changing track state
+- browser runtime code trusts track instances from the track store when fetching, rendering, and opening settings
 - track mutators return a result object so callers can display validation errors without duplicating validation
 
 ## Design direction

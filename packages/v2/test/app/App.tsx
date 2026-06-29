@@ -48,12 +48,12 @@ const trackStore = createTrackStore({
     // MukamelMethylC("L2-4IT_CUX2_LINC01331.male.young"),
     // MukamelMethylC("Glia_Astro.female.young"),
     // MukamelMethylC("MGE_PVALB_COL15A1.male.old"),
-    // BrainomeCave("GLU", "Infancy", "#ff0000"),
+    BrainomeCave("GLU", "Infancy", "#ff0000"),
     // BrainomeCave("GLU", "Early_Childhood", "#ff6f00"),
     // BrainomeCave("GLU", "Late_Childhood", "#008000"),
     // BrainomeCave("GLU", "Adolescence", "#0000ff"),
     // BrainomeCave("GLU", "Early_Adulthood", "#880088"),
-    BrainomeCave("GLU", "Adulthood", "#000000"),
+    // BrainomeCave("GLU", "Adulthood", "#000000"),
   ],
 });
 

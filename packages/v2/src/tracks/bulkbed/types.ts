@@ -1,4 +1,4 @@
-import type { TrackConfigBase, TrackInteractionConfig } from "../../modules/types";
+import type { TrackInteraction } from "../../modules/types";
 import type { BigBedRow } from "../bigbed/types";
 
 export type BulkBedDisplay = "full";
@@ -12,15 +12,10 @@ export type BulkBedRect = BigBedRow & {
   datasetName?: string;
 };
 
-export interface BulkBedConfig
-  extends
-    Omit<TrackConfigBase, keyof TrackInteractionConfig<any, any>>,
-    TrackInteractionConfig<BulkBedRect, BulkBedConfig> {
-  type: "bulkbed";
-  display: BulkBedDisplay;
+export type BulkBedConfig = {
   datasets: BulkBedDataset[];
   gap?: number;
-}
+};
 
 export type BulkBedData = BulkBedRect[][];
 
@@ -32,4 +27,4 @@ export type BulkBedInput = {
   display?: BulkBedDisplay;
   height?: number;
   color?: string;
-} & Partial<TrackInteractionConfig<BulkBedRect, BulkBedConfig>>;
+} & Partial<TrackInteraction<BulkBedRect>>;

@@ -50,7 +50,7 @@ Only call this hook from React renderers that run inside `GenomeBrowser`, becaus
 
 ## `fetchOnChange`
 
-`fetchOnChange` marks config schema fields that should trigger a data refetch when their values change. The browser always refetches when the active render region changes; for config-only changes, it builds a fetch signature from only the marked fields.
+`fetchOnChange` marks module config schema fields that should trigger a data refetch when their values change. The browser always refetches when the active render region changes; for config-only changes, it builds a fetch signature from only the marked fields in `track.config`.
 
 ```ts
 import { z } from "zod";
@@ -168,24 +168,25 @@ See [Built-in tracks](tracks/README.md) for module-specific config fields and fe
 
 ## `useTooltip`
 
-`useTooltip` lets custom renderers use the browser-managed tooltip overlay without importing browser internals. Renderers still own hit testing and semantic callbacks; call `config.onClick`, `config.onHover`, and `config.onLeave` directly when the renderer decides those interactions happened.
+`useTooltip` lets custom renderers use the browser-managed tooltip overlay without importing browser internals. Renderers still own hit testing and semantic callbacks; use `useInteraction<Item>()` when the renderer decides those interactions happened.
 
 ```tsx
-import { useTooltip } from "@weng-lab/genomebrowser-v2";
+import { useInteraction, useTooltip } from "@weng-lab/genomebrowser-v2";
 
 function DenseExample({ config, data }: ExampleRendererProps) {
-  const tooltip = useTooltip({ config });
+  const interaction = useInteraction<ExampleItem>();
+  const tooltip = useTooltip({ type: "example", config });
 
   return data.map((item) => (
     <rect
       key={item.id}
-      onClick={(event) => config.onClick?.({ item, config, event })}
+      onClick={() => interaction?.onClick?.(item)}
       onMouseEnter={(event) => {
-        config.onHover?.({ item, config, event });
+        interaction?.onHover?.(item);
         tooltip.show(item, event);
       }}
-      onMouseLeave={(event) => {
-        config.onLeave?.({ item, config, event });
+      onMouseLeave={() => {
+        interaction?.onLeave?.(item);
         tooltip.hide();
       }}
     />
@@ -193,7 +194,7 @@ function DenseExample({ config, data }: ExampleRendererProps) {
 }
 ```
 
-If the registered module for `config.type` has a `tooltipComponent`, `tooltip.show(item, event)` renders it with `{ item, config }` and positions it in the active browser. If no tooltip component is present, `show` is a silent no-op. `show` is safe to call from continuous `onMouseMove` handlers; tooltip state is scoped to the active `GenomeBrowser` and suppressed while panning.
+If the registered module has a `tooltipComponent`, `tooltip.show(item, event)` renders it with `{ item, config }` and positions it in the active browser. If no tooltip component is present, `show` is a silent no-op. `show` is safe to call from continuous `onMouseMove` handlers; tooltip state is scoped to the active `GenomeBrowser` and suppressed while panning.
 
 ## Notes
 

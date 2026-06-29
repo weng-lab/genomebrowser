@@ -14,6 +14,6 @@ export function TrackInteractionProvider({
   return createElement(interactionContext.Provider, { value: interaction ?? null }, children);
 }
 
-export function useInteraction<InteractionItem>() {
-  return useContext(interactionContext) as TrackInteraction<InteractionItem> | null;
+export function useInteraction<Item>() {
+  return useContext(interactionContext) as TrackInteraction<Item> | null;
 }

@@ -1,5 +1,6 @@
 import { useMemo, useState, type MouseEvent } from "react";
 import { useTooltip } from "../../browser/tooltip/useTooltip";
+import { useInteraction } from "../../modules/interaction";
 import type { TrackRendererProps } from "../../modules/types";
 import {
   condenseMethylCChannels,
@@ -7,9 +8,16 @@ import {
   generateSignal2,
   getMethylCRange,
 } from "./helpers";
-import type { MethylCConfig, MethylCData, MethylCRenderedPoint, MethylCShowRows } from "./types";
+import type {
+  MethylCConfig,
+  MethylCData,
+  MethylCRenderedPoint,
+  MethylCShowRows,
+  MethylCTooltipItem,
+} from "./types";
 
 export function SplitMethylC({
+  id,
   config,
   data,
   region,
@@ -120,7 +128,7 @@ export function SplitMethylC({
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
-      <g id={`${config.id}-plusStrand`}>
+      <g id={`${id}-plusStrand`}>
         {signals.cpgPlus?.indicator}
         {signals.chgPlus?.indicator}
         {signals.chhPlus?.indicator}
@@ -129,7 +137,7 @@ export function SplitMethylC({
         {signals.chhPlus?.values}
         {signals.depthPlus}
       </g>
-      <g id={`${config.id}-minusStrand`} transform={`translate(0, ${halfHeight})`}>
+      <g id={`${id}-minusStrand`} transform={`translate(0, ${halfHeight})`}>
         {signals.cpgMinus?.indicator}
         {signals.chgMinus?.indicator}
         {signals.chhMinus?.indicator}
@@ -160,7 +168,8 @@ function MethylCHoverOverlay({
   showRows: MethylCShowRows;
 }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | undefined>();
-  const tooltip = useTooltip({ config });
+  const interaction = useInteraction<MethylCTooltipItem>();
+  const tooltip = useTooltip<MethylCTooltipItem, MethylCConfig>({ type: "methylc", config });
   const tooltipValues = useMemo(
     () => (hoveredIndex === undefined ? [] : data.map((channel) => channel[hoveredIndex])),
     [data, hoveredIndex],
@@ -170,12 +179,12 @@ function MethylCHoverOverlay({
     const index = getMouseIndex(event, width);
     const item = { tooltipValues: data.map((channel) => channel[index]), showRows };
     setHoveredIndex(index);
-    config.onHover?.({ item, config, event });
+    interaction?.onHover?.(item);
     tooltip.show(item, event);
   };
 
-  const handleMouseOut = (event: MouseEvent<SVGRectElement>) => {
-    config.onLeave?.({ item: { tooltipValues, showRows }, config, event });
+  const handleMouseOut = () => {
+    interaction?.onLeave?.({ tooltipValues, showRows });
     setHoveredIndex(undefined);
     tooltip.hide();
   };
