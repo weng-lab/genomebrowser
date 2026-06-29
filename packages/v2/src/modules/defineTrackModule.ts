@@ -51,11 +51,7 @@ type TrackModuleDefinition<
   type: Type;
   defaults?: TrackModuleDefaults<Display, Item>;
   configSchema: Schema;
-  fetch: TrackModule<
-    DefinedTrackConfig<Type, Schema, Display, Item>,
-    Data,
-    Item
-  >["fetch"];
+  fetch: TrackModule<DefinedTrackConfig<Type, Schema, Display, Item>, Data, Item>["fetch"];
   render: Record<
     Display,
     ComponentType<TrackRendererProps<DefinedTrackConfig<Type, Schema, Display, Item>, Data>>
@@ -75,11 +71,7 @@ export function defineTrackModule<Item = unknown>(): <
   Data,
 >(
   definition: TrackModuleDefinition<Type, Schema, Display, Data, Item>,
-) => TrackModule<
-  DefinedTrackConfig<Type, Schema, Display, Item>,
-  Data,
-  Item
->;
+) => TrackModule<DefinedTrackConfig<Type, Schema, Display, Item>, Data, Item>;
 export function defineTrackModule<
   Type extends string,
   Schema extends TrackInputSchema,
@@ -87,11 +79,7 @@ export function defineTrackModule<
   Data,
 >(
   definition: TrackModuleDefinition<Type, Schema, Display, Data, any>,
-): TrackModule<
-  DefinedTrackConfig<Type, Schema, Display, any>,
-  Data,
-  any
->;
+): TrackModule<DefinedTrackConfig<Type, Schema, Display, any>, Data, any>;
 export function defineTrackModule(definition?: unknown) {
   if (definition === undefined) return createTrackModule;
   return createTrackModule(definition as never);
@@ -105,11 +93,7 @@ function createTrackModule<
   Item,
 >(
   definition: TrackModuleDefinition<Type, Schema, Display, Data, Item>,
-): TrackModule<
-  DefinedTrackConfig<Type, Schema, Display, Item>,
-  Data,
-  Item
-> {
+): TrackModule<DefinedTrackConfig<Type, Schema, Display, Item>, Data, Item> {
   assertNoReservedFields(definition.type, definition.configSchema);
 
   const displayModes = Object.keys(definition.render) as Display[];
@@ -143,11 +127,7 @@ function createTrackModule<
     type: z.literal(definition.type),
   });
 
-  const module: TrackModule<
-    DefinedTrackConfig<Type, Schema, Display, Item>,
-    Data,
-    Item
-  > = {
+  const module: TrackModule<DefinedTrackConfig<Type, Schema, Display, Item>, Data, Item> = {
     type: definition.type as DefinedTrackConfig<Type, Schema, Display, Item>["type"],
     create(input) {
       const parsed = parsePublicInput(publicInputSchema, input, `${definition.type} config`);

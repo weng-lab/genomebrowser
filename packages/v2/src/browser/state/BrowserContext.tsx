@@ -10,11 +10,14 @@ type BrowserContextValue = {
   trackStore: TrackStoreInstance;
   contextMenuStore: ContextMenuStoreInstance;
   settingsStore: SettingsStoreInstance;
-  isPanning: boolean;
+};
+
+type InteractionGateContextValue = {
   isInteractionBlocked: boolean;
 };
 
 const BrowserContext = createContext<BrowserContextValue | null>(null);
+const InteractionGateContext = createContext<InteractionGateContextValue | null>(null);
 
 export function BrowserProvider({
   children,
@@ -24,6 +27,18 @@ export function BrowserProvider({
   value: BrowserContextValue;
 }) {
   return <BrowserContext.Provider value={value}>{children}</BrowserContext.Provider>;
+}
+
+export function InteractionGateProvider({
+  children,
+  value,
+}: {
+  children: ReactNode;
+  value: InteractionGateContextValue;
+}) {
+  return (
+    <InteractionGateContext.Provider value={value}>{children}</InteractionGateContext.Provider>
+  );
 }
 
 export function useTrackStore<T>(selector: (state: TrackStore) => T): T {
@@ -51,7 +66,7 @@ export function useSettingsStore<T>(selector: (state: SettingsStore) => T): T {
 }
 
 export function useTrackMutationGate() {
-  const context = use(BrowserContext);
+  const context = use(InteractionGateContext);
   if (!context) throw new Error("useTrackMutationGate must be used within a GenomeBrowser");
 
   return {

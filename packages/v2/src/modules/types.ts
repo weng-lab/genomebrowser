@@ -16,10 +16,9 @@ export type TrackTooltipProps<Item, Config extends TrackConfigBase> = {
   config: Config;
 };
 
-export type TrackTooltipComponent<
-  Item,
-  Config extends TrackConfigBase,
-> = ComponentType<TrackTooltipProps<Item, Config>>;
+export type TrackTooltipComponent<Item, Config extends TrackConfigBase> = ComponentType<
+  TrackTooltipProps<Item, Config>
+>;
 
 export type TrackInteractionConfig<Item, Config extends TrackConfigBase> = {
   onClick?: TrackInteractionCallback<Item, Config>;
@@ -63,15 +62,9 @@ export type TrackSettingsProps<Config extends TrackConfigBase> = {
   updateTrack: (partial: TrackSettingsUpdate<Config>) => TrackMutationResult;
 };
 
-export type TrackModule<
-  Config extends TrackConfigBase,
-  Data,
-  Item = unknown,
-> = {
+export type TrackModule<Config extends TrackConfigBase, Data, Item = unknown> = {
   type: Config["type"];
-  create(
-    input: Partial<Omit<Config, "type">> & { id: string; title: string },
-  ): Config;
+  create(input: Partial<Omit<Config, "type">> & { id: string; title: string }): Config;
   validate(config: unknown): Config;
   fetch(ctx: TrackFetchContext<Config>): Promise<Data>;
   render: Record<string, ComponentType<TrackRendererProps<Config, Data>>>;

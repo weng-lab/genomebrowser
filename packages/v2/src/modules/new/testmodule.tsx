@@ -41,9 +41,7 @@ function DenseRenderer(props: TrackRendererProps<myConfig, MyData[]>) {
 }
 
 function MySettings({ config, updateConfig }: TrackSettingsProps<myConfig>) {
-  return (
-    <button onClick={() => updateConfig({ field: config.field })}>Save</button>
-  );
+  return <button onClick={() => updateConfig({ field: config.field })}>Save</button>;
 }
 
 export const myModule = defineTrackModule({

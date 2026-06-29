@@ -1,21 +1,13 @@
 import { createElement, useRef } from "react";
 import type { TrackConfigBase } from "../../modules/types";
 import { useSvgPoint } from "../svg/useSvgPoint";
-import {
-  useInternalTooltipStore,
-  useTooltipComponent,
-  useTooltipDisabled,
-} from "./TooltipContext";
+import { useInternalTooltipStore, useTooltipComponent, useTooltipDisabled } from "./TooltipContext";
 import type { MousePosition } from "./types";
 
-export function useTooltip<Item, Config extends TrackConfigBase>({
-  config,
-}: {
-  config: Config;
-}) {
+export function useTooltip<Item, Config extends TrackConfigBase>({ config }: { config: Config }) {
   const showTooltip = useInternalTooltipStore((state) => state.show);
   const hideTooltip = useInternalTooltipStore((state) => state.hide);
-  const disabled = useTooltipDisabled();
+  const isDisabled = useTooltipDisabled();
   const Tooltip = useTooltipComponent<Item, Config>(config.type);
   const getSvgPoint = useSvgPoint();
   const frameRef = useRef<number | undefined>(undefined);
@@ -29,7 +21,11 @@ export function useTooltip<Item, Config extends TrackConfigBase>({
   };
 
   const show = (item: Item, position: MousePosition) => {
-    if (disabled || !Tooltip) return;
+    if (isDisabled()) {
+      hide();
+      return;
+    }
+    if (!Tooltip) return;
 
     const content = createElement(Tooltip, { item, config });
     const point = getSvgPoint(position.clientX, position.clientY);

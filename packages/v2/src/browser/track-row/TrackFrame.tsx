@@ -47,15 +47,16 @@ export function TrackFrame({
   const titleMargin = getTrackTitleMargin(track, titleSize);
   const contentClipId = useId();
   const openContextMenu = useContextMenuStore((state) => state.openContextMenu);
-
-  if (disableHover && hover) {
-    setHover(false);
-  }
+  const showHover = hover && !disableHover;
 
   useEffect(() => {
     if (isDragClone || !registerContentGroup || !contentGroupRef.current) return;
     return registerContentGroup(contentGroupRef.current);
   }, [isDragClone, registerContentGroup]);
+
+  useEffect(() => {
+    if (disableHover) setHover(false);
+  }, [disableHover]);
 
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -127,7 +128,7 @@ export function TrackFrame({
       />
       <TrackControls track={track} marginWidth={marginWidth} wrapperHeight={wrapperHeight} />
       <line stroke="#cccccc" x1={marginWidth} x2={marginWidth} y1={0} y2={wrapperHeight} />
-      {hover && !disableHover && (
+      {showHover && (
         <rect
           width={marginWidth + trackWidth}
           height={wrapperHeight}

@@ -11,15 +11,9 @@ export function TrackInteractionProvider({
   interaction?: TrackInteraction;
   children: ReactNode;
 }) {
-  return createElement(
-    interactionContext.Provider,
-    { value: interaction ?? null },
-    children,
-  );
+  return createElement(interactionContext.Provider, { value: interaction ?? null }, children);
 }
 
 export function useInteraction<InteractionItem>() {
-  return useContext(
-    interactionContext,
-  ) as TrackInteraction<InteractionItem> | null;
+  return useContext(interactionContext) as TrackInteraction<InteractionItem> | null;
 }

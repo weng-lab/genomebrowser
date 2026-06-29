@@ -16,7 +16,7 @@ user will run the dev server manually.
 
 ## Don't hallucinate track URLs
 
-use `"YOUR_URL_HERE"` or existing URLs when making track configs.
+use `"YOUR_URL_HERE"` or existing URLs when making exmple track configs.
 
 ## Architecture guidelines
 
@@ -39,3 +39,7 @@ Inside .devserve there are out.log and err.log files. Read them when attempting 
 ## Reference style sheet
 
 reference docs/style.md for code style guidelines and ALWAYS adhere to them.
+
+## Use vercel skills
+
+Always use the vercel react skills when writing react code to ensure clean readable and performant code.

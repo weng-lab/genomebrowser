@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import { memo, type ComponentType } from "react";
 import type { DataState } from "../data/types";
 import type { TrackConfigBase, TrackRendererProps } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
@@ -6,7 +6,7 @@ import { useRegistry } from "../state/useRegistry";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 
-export function TrackContent({
+export const TrackContent = memo(function TrackContent({
   track,
   dataState,
   region,
@@ -74,4 +74,4 @@ export function TrackContent({
       />
     );
   }
-}
+});

@@ -44,7 +44,5 @@ export const caveModule = defineTrackModule<CaveTooltipItem>()({
 });
 
 function formatValue(point: CaveTooltipItem["top"]) {
-  return point?.max === null || point?.max === undefined
-    ? "n/a"
-    : point.max.toFixed(2);
+  return point?.max === null || point?.max === undefined ? "n/a" : point.max.toFixed(2);
 }

@@ -1,11 +1,11 @@
-import { useCallback, useRef, useState, type MouseEvent, type PointerEvent } from "react";
+import { useCallback, useRef, type MouseEvent, type PointerEvent } from "react";
 import { svgPoint } from "../../modules/utils/svg";
 
 const PAN_COMMIT_THRESHOLD_PX = 10;
 
 export type PanDragHandlers = {
-  isDragging: boolean;
-  onPointerDown: (event: PointerEvent<SVGElement>) => void;
+  isDragging: () => boolean;
+  onPointerDown: (event: PointerEvent<SVGElement>) => boolean;
   onPointerMove: (event: PointerEvent<SVGElement>) => void;
   onPointerUp: (event: PointerEvent<SVGElement>) => void;
   onPointerCancel: (event: PointerEvent<SVGElement>) => void;
@@ -31,7 +31,7 @@ export function usePanDrag({
   onCommit,
   onCancel,
 }: UsePanDragOptions): PanDragHandlers {
-  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
   const activePointerId = useRef<number | null>(null);
   const capturedPointerId = useRef<number | null>(null);
   const startSvgX = useRef(0);
@@ -56,7 +56,7 @@ export function usePanDrag({
   const resetPointer = useCallback(() => {
     activePointerId.current = null;
     capturedPointerId.current = null;
-    setIsDragging(false);
+    isDraggingRef.current = false;
   }, []);
 
   const capturePointer = useCallback((event: PointerEvent<SVGElement>) => {
@@ -67,18 +67,21 @@ export function usePanDrag({
 
   const onPointerDown = useCallback(
     (event: PointerEvent<SVGElement>) => {
-      if (disabled || !event.isPrimary || event.button !== 0) return;
+      if (disabled || !event.isPrimary || event.button !== 0) return false;
       const x = getEventX(event);
-      if (x === null) return;
+      if (x === null) return false;
 
       activePointerId.current = event.pointerId;
       startSvgX.current = x;
       startDeltaPx.current = getCurrentDelta();
-      setIsDragging(true);
+      isDraggingRef.current = true;
       onStart();
+      return true;
     },
     [disabled, getCurrentDelta, getEventX, onStart],
   );
+
+  const isDragging = useCallback(() => isDraggingRef.current, []);
 
   const onPointerMove = useCallback(
     (event: PointerEvent<SVGElement>) => {

@@ -89,9 +89,7 @@ export function defineTrackModule<
 ) {
   assertNoReservedConfigFields(definition.type, definition.configSchema);
 
-  const displays = Object.keys(definition.render as object) as Array<
-    displayKey<Renderers>
-  >;
+  const displays = Object.keys(definition.render as object) as Array<displayKey<Renderers>>;
   assertDisplayModes(definition.type, displays);
 
   const defaults = definition.defaults;
@@ -108,7 +106,10 @@ export function defineTrackModule<
   });
   const createBaseSchema = baseSchema.extend({
     display: displaySchema.default(defaultDisplay),
-    height: z.number().positive().default(defaults?.base?.height ?? 80),
+    height: z
+      .number()
+      .positive()
+      .default(defaults?.base?.height ?? 80),
     color:
       defaults?.base?.color === undefined
         ? z.string().optional()
@@ -164,9 +165,7 @@ function assertDisplayModes(type: string, displays: string[]) {
 
   for (const display of displays) {
     if (display.trim() === "") {
-      throw new Error(
-        `Track module "${type}" cannot define an empty display mode`,
-      );
+      throw new Error(`Track module "${type}" cannot define an empty display mode`);
     }
   }
 }
@@ -190,9 +189,7 @@ function assertNoReservedConfigFields(type: string, configSchema: z.ZodObject) {
 
   for (const field of Object.keys(configSchema.shape)) {
     if (reservedFields.has(field)) {
-      throw new Error(
-        `Track config schema for "${type}" cannot define reserved field "${field}"`,
-      );
+      throw new Error(`Track config schema for "${type}" cannot define reserved field "${field}"`);
     }
   }
 }

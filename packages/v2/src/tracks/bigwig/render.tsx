@@ -9,12 +9,7 @@ import {
   getPointAtMouseX,
   lighten,
 } from "./helpers";
-import type {
-  BigWigConfig,
-  BigWigData,
-  RenderedBigWigPoint,
-  YRange,
-} from "./types";
+import type { BigWigConfig, BigWigData, RenderedBigWigPoint, YRange } from "./types";
 
 export function FullBigWig({
   config,
@@ -32,39 +27,12 @@ export function FullBigWig({
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
-      <line
-        x1={0}
-        x2={width}
-        y1={zeroY}
-        y2={zeroY}
-        stroke="#dddddd"
-        strokeWidth={1}
-      />
-      {range.min < 0 && (
-        <path
-          d={paths.minPath}
-          fill={lighten(config.color ?? "#2266aa", 0.2)}
-        />
-      )}
+      <line x1={0} x2={width} y1={zeroY} y2={zeroY} stroke="#dddddd" strokeWidth={1} />
+      {range.min < 0 && <path d={paths.minPath} fill={lighten(config.color ?? "#2266aa", 0.2)} />}
       <path d={paths.maxPath} fill={config.color ?? "#2266aa"} />
-      <path
-        d={paths.clampHighPath}
-        stroke="#ff0000"
-        strokeWidth={2}
-        fill="none"
-      />
-      <path
-        d={paths.clampLowPath}
-        stroke="#ff0000"
-        strokeWidth={2}
-        fill="none"
-      />
-      <BigWigHoverOverlay
-        config={config}
-        points={points}
-        width={width}
-        height={height}
-      />
+      <path d={paths.clampHighPath} stroke="#ff0000" strokeWidth={2} fill="none" />
+      <path d={paths.clampLowPath} stroke="#ff0000" strokeWidth={2} fill="none" />
+      <BigWigHoverOverlay config={config} points={points} width={width} height={height} />
     </g>
   );
 }
@@ -87,9 +55,7 @@ export function DenseBigWig({
       {points.map((point) => {
         const value = point.max ?? point.min;
         const intensity =
-          value === null
-            ? 0
-            : (clamp(value, range) - range.min) / (range.max - range.min || 1);
+          value === null ? 0 : (clamp(value, range) - range.min) / (range.max - range.min || 1);
         return (
           <rect
             key={point.x}
@@ -101,12 +67,7 @@ export function DenseBigWig({
           />
         );
       })}
-      <BigWigHoverOverlay
-        config={config}
-        points={points}
-        width={width}
-        height={height}
-      />
+      <BigWigHoverOverlay config={config} points={points} width={width} height={height} />
     </g>
   );
 }
@@ -116,15 +77,10 @@ function BigWigHoverOverlay({
   points,
   width,
   height,
-}: Pick<
-  TrackRendererProps<BigWigConfig, BigWigData[]>,
-  "config" | "width" | "height"
-> & {
+}: Pick<TrackRendererProps<BigWigConfig, BigWigData[]>, "config" | "width" | "height"> & {
   points: RenderedBigWigPoint[];
 }) {
-  const [hoveredPoint, setHoveredPoint] = useState<
-    RenderedBigWigPoint | undefined
-  >();
+  const [hoveredPoint, setHoveredPoint] = useState<RenderedBigWigPoint | undefined>();
   const tooltip = useTooltip<RenderedBigWigPoint, BigWigConfig>({ config });
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
@@ -188,18 +144,11 @@ export function getRenderedPoints(
   return points;
 }
 
-function getRenderRange(
-  track: BigWigConfig,
-  points: RenderedBigWigPoint[],
-): YRange {
+function getRenderRange(track: BigWigConfig, points: RenderedBigWigPoint[]): YRange {
   return track.yRange ?? getBigWigRange(points);
 }
 
-export function createSignalPaths(
-  points: RenderedBigWigPoint[],
-  range: YRange,
-  height: number,
-) {
+export function createSignalPaths(points: RenderedBigWigPoint[], range: YRange, height: number) {
   const y = createYScale(range, height);
   const zeroY = y(clamp(0, range));
   let minPath = `M 0 ${zeroY}`;

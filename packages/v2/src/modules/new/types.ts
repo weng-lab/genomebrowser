@@ -50,9 +50,7 @@ export type TrackFetchContext<Config> = {
 };
 
 // Fetch function signature for loading data for one track and region.
-export type TrackFetch<Config, Data> = (
-  context: TrackFetchContext<Config>,
-) => Promise<Data>;
+export type TrackFetch<Config, Data> = (context: TrackFetchContext<Config>) => Promise<Data>;
 
 /**
  * Props passed to a track renderer for one display mode.
@@ -70,9 +68,7 @@ export type TrackRendererProps<Config, Data> = {
 /**
  * React component type for a track renderer.
  */
-export type TrackRenderer<Config, Data> = ComponentType<
-  TrackRendererProps<Config, Data>
->;
+export type TrackRenderer<Config, Data> = ComponentType<TrackRendererProps<Config, Data>>;
 
 // Props passed to a module-owned settings component.
 export type TrackSettingsProps<Config> = {
@@ -81,6 +77,4 @@ export type TrackSettingsProps<Config> = {
 };
 
 // React component type for module-owned settings UI.
-export type TrackSettingsComponent<Config> = ComponentType<
-  TrackSettingsProps<Config>
->;
+export type TrackSettingsComponent<Config> = ComponentType<TrackSettingsProps<Config>>;

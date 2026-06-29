@@ -1,8 +1,8 @@
 import axios from "axios";
 import { AxiosDataLoader, BigWigReader, FileType } from "genomic-reader";
 import type { TrackFetchContext } from "../../modules/types";
+import type { BrowserRegion } from "../../modules/utils/region";
 import type { BigWigConfig, BigWigData } from "./types";
-import { BrowserRegion } from "../../lib";
 
 export async function fetchBigWig({
   config,
@@ -11,13 +11,7 @@ export async function fetchBigWig({
   return fetchBigWigRaw({ url: config.url, region });
 }
 
-export async function fetchBigWigRaw({
-  url,
-  region,
-}: {
-  url: string;
-  region: BrowserRegion;
-}) {
+export async function fetchBigWigRaw({ url, region }: { url: string; region: BrowserRegion }) {
   await ensureBrowserBuffer();
 
   const dataLoader = new AxiosDataLoader(url, axios.create() as never);
@@ -37,8 +31,7 @@ export async function fetchBigWigRaw({
 }
 
 async function ensureBrowserBuffer() {
-  if (typeof window === "undefined" || typeof globalThis.Buffer !== "undefined")
-    return;
+  if (typeof window === "undefined" || typeof globalThis.Buffer !== "undefined") return;
   const { Buffer } = await import("buffer");
   globalThis.Buffer = Buffer;
 }

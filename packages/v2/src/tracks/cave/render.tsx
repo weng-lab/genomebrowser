@@ -1,11 +1,7 @@
-import { useState, type MouseEvent } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import { useTooltip } from "../../browser/tooltip/useTooltip";
 import type { TrackRendererProps } from "../../modules/types";
-import {
-  condenseBigWigData,
-  getPointAtMouseX,
-  lighten,
-} from "../bigwig/helpers";
+import { condenseBigWigData, getPointAtMouseX, lighten } from "../bigwig/helpers";
 import type { RenderedBigWigPoint, YRange } from "../bigwig/types";
 import type { CaveConfig, CaveData, CaveTooltipItem } from "./types";
 
@@ -26,14 +22,7 @@ export function FullCave({
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
-      <line
-        x1={0}
-        x2={width}
-        y1={height / 2}
-        y2={height / 2}
-        stroke="#dddddd"
-        strokeWidth={1}
-      />
+      <line x1={0} x2={width} y1={height / 2} y2={height / 2} stroke="#dddddd" strokeWidth={1} />
       <path d={topPath} fill={lighten(color, 0.4)} />
       <path d={bottomPath} fill={color} />
       <CaveHoverOverlay
@@ -67,12 +56,7 @@ function createCavePath(
   return path;
 }
 
-function getCaveY(
-  value: number,
-  range: YRange,
-  height: number,
-  side: "top" | "bottom",
-) {
+function getCaveY(value: number, range: YRange, height: number, side: "top" | "bottom") {
   const span = range.max - range.min || 1;
   const normalized = (clamp(value, range) - range.min) / span;
   return side === "top" ? normalized * height : height - normalized * height;
@@ -84,14 +68,12 @@ function CaveHoverOverlay({
   bottomPoints,
   width,
   height,
-}: Pick<
-  TrackRendererProps<CaveConfig, CaveData>,
-  "config" | "width" | "height"
-> & {
+}: Pick<TrackRendererProps<CaveConfig, CaveData>, "config" | "width" | "height"> & {
   topPoints: RenderedBigWigPoint[];
   bottomPoints: RenderedBigWigPoint[];
 }) {
-  const [hoveredItem, setHoveredItem] = useState<CaveTooltipItem | undefined>();
+  const [hoveredX, setHoveredX] = useState<number | undefined>();
+  const hoveredItemRef = useRef<CaveTooltipItem | undefined>(undefined);
   const tooltip = useTooltip<CaveTooltipItem, CaveConfig>({ config });
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
@@ -100,30 +82,34 @@ function CaveHoverOverlay({
     const bottom = getPointAtMouseX(bottomPoints, mouseX, width);
 
     if (!top && !bottom) {
-      if (hoveredItem) config.onLeave?.({ item: hoveredItem, config, event });
-      setHoveredItem(undefined);
+      if (hoveredItemRef.current) config.onLeave?.({ item: hoveredItemRef.current, config, event });
+      hoveredItemRef.current = undefined;
+      if (hoveredX !== undefined) setHoveredX(undefined);
       tooltip.hide();
       return;
     }
 
-    const item = { x: Math.round(mouseX), top, bottom };
-    setHoveredItem(item);
+    const x = Math.round(mouseX);
+    const item = { x, top, bottom };
+    hoveredItemRef.current = item;
+    if (hoveredX !== x) setHoveredX(x);
     config.onHover?.({ item, config, event });
     tooltip.show(item, event);
   };
 
   const handleMouseOut = (event: MouseEvent<SVGRectElement>) => {
-    if (hoveredItem) config.onLeave?.({ item: hoveredItem, config, event });
-    setHoveredItem(undefined);
+    if (hoveredItemRef.current) config.onLeave?.({ item: hoveredItemRef.current, config, event });
+    hoveredItemRef.current = undefined;
+    setHoveredX(undefined);
     tooltip.hide();
   };
 
   return (
     <>
-      {hoveredItem && (
+      {hoveredX !== undefined && (
         <line
-          x1={hoveredItem.x}
-          x2={hoveredItem.x}
+          x1={hoveredX}
+          x2={hoveredX}
           y1={0}
           y2={height}
           stroke="#000000"

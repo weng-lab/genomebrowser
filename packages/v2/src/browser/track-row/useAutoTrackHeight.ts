@@ -13,8 +13,7 @@ export function useAutoTrackHeight(
   { rowHeight = 12, minHeight = 30 }: AutoTrackHeightOptions = {},
 ) {
   const controller = use(TrackHeightContext);
-  if (!controller)
-    throw new Error("useAutoTrackHeight must be used within a GenomeBrowser");
+  if (!controller) throw new Error("useAutoTrackHeight must be used within a GenomeBrowser");
 
   const { getTrackHeight, updateTrack } = controller;
 

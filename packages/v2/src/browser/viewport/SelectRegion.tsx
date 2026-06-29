@@ -31,10 +31,16 @@ export function SelectRegion({
   const [selection, dispatchSelection] = useReducer(selectionReducer, null);
   const selectingRef = useRef(false);
   const selectionRef = useRef<Selection>(selection);
+  const cleanupListenersRef = useRef<(() => void) | null>(null);
   selectionRef.current = selection;
 
   useEffect(() => {
+    return () => cleanupListenersRef.current?.();
+  }, []);
+
+  const startListening = () => {
     if (!svg) return;
+    cleanupListenersRef.current?.();
 
     const handleMove = (event: MouseEvent) => {
       if (!selectingRef.current) return;
@@ -46,6 +52,7 @@ export function SelectRegion({
 
     const handleUp = () => {
       if (!selectingRef.current) return;
+      cleanupListenersRef.current?.();
       selectingRef.current = false;
       dispatchSelection({ type: "clear" });
       const current = selectionRef.current;
@@ -64,11 +71,12 @@ export function SelectRegion({
 
     document.addEventListener("mousemove", handleMove);
     document.addEventListener("mouseup", handleUp);
-    return () => {
+    cleanupListenersRef.current = () => {
       document.removeEventListener("mousemove", handleMove);
       document.removeEventListener("mouseup", handleUp);
+      cleanupListenersRef.current = null;
     };
-  }, [marginWidth, region, setRegion, svg, trackWidth]);
+  };
 
   const handleMouseDown = (event: React.MouseEvent<SVGRectElement>) => {
     if (disabled) return;
@@ -78,6 +86,7 @@ export function SelectRegion({
     const start = Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x));
     dispatchSelection({ type: "start", x: start });
     selectingRef.current = true;
+    startListening();
   };
 
   return (
