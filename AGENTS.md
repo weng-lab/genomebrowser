@@ -28,6 +28,10 @@ use `"YOUR_URL_HERE"` or existing URLs when making exmple track configs.
 
 Write as little code as possible that still accomplishes the task 100%. More LoC = more technical debt.
 
+## Fix State Placement Before Memoizing
+
+Before adding `useMemo`/`useCallback`/`React.memo`, check: is state placed too high (in a parent/root re-rendering siblings that don't need it)? Fix colocation first. Only memoize for a measured expensive computation or to stabilize a prop for a `React.memo` child — not as a default reflex.
+
 ## Zustand stores ARE React hooks
 
 The name of a zustand store MUST include "use" at the beginning, as they are React hooks, and must be treated as such by the compilers.
