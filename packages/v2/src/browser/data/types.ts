@@ -4,12 +4,12 @@ export type DataResult = { status: "success"; data: unknown } | { status: "error
 
 export type DataState = { status: "loading" } | DataResult;
 
-export type DataStore = {
+export interface DataStore {
   data: Record<string, DataResult>;
   setData: (data: Record<string, DataResult>) => void;
   setTrackData: (trackId: string, state: DataResult) => void;
   clearTrack: (trackId: string) => void;
   clearAll: () => void;
-};
+}
 
 export type DataStoreInstance = UseBoundStore<StoreApi<DataStore>>;
