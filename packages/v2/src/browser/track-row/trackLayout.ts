@@ -1,13 +1,13 @@
-import type { TrackConfigBase } from "../../modules/types";
+import type { TrackInstance } from "../../modules/types";
 
-export function getTrackWrapperHeight(track: TrackConfigBase, titleSize: number) {
-  return track.height + (track.title ? titleSize + 5 : 0);
+export function getTrackWrapperHeight(track: TrackInstance<any, any>, titleSize: number) {
+  return track.base.height + (track.base.title ? titleSize + 5 : 0);
 }
 
-export function getTrackTitleMargin(track: TrackConfigBase, titleSize: number) {
-  return track.title ? titleSize + 5 : 0;
+export function getTrackTitleMargin(track: TrackInstance<any, any>, titleSize: number) {
+  return track.base.title ? titleSize + 5 : 0;
 }
 
-export function getTracksHeight(tracks: TrackConfigBase[], titleSize: number) {
+export function getTracksHeight(tracks: TrackInstance<any, any>[], titleSize: number) {
   return tracks.reduce((total, track) => total + getTrackWrapperHeight(track, titleSize), 0);
 }

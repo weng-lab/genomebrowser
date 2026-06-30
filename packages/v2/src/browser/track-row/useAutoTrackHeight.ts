@@ -1,5 +1,4 @@
 import { use, useEffect } from "react";
-import type { TrackConfigBase } from "../../modules/types";
 import { TrackHeightContext } from "./TrackHeightProvider";
 
 export type AutoTrackHeightOptions = {
@@ -15,7 +14,7 @@ export function useAutoTrackHeight(
   const controller = use(TrackHeightContext);
   if (!controller) throw new Error("useAutoTrackHeight must be used within a GenomeBrowser");
 
-  const { getTrackHeight, updateTrack } = controller;
+  const { getTrackHeight, updateHeight } = controller;
 
   const currentHeight = getTrackHeight(trackId);
 
@@ -24,9 +23,9 @@ export function useAutoTrackHeight(
 
     const nextHeight = Math.max(minHeight, Math.max(1, rowCount) * rowHeight);
     if (currentHeight !== nextHeight) {
-      updateTrack<TrackConfigBase>(trackId, { height: nextHeight });
+      updateHeight(trackId, nextHeight);
     }
-  }, [currentHeight, minHeight, rowCount, rowHeight, trackId, updateTrack]);
+  }, [currentHeight, minHeight, rowCount, rowHeight, trackId, updateHeight]);
 
   return rowHeight;
 }

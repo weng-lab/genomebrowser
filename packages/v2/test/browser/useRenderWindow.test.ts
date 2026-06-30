@@ -20,11 +20,14 @@ describe("render window", () => {
     const region = { chromosome: "chr1", start: 0, end: 300 };
     const tracks = [
       {
-        id: "signal",
         type: "bigwig",
-        title: "Signal",
-        display: "full",
-        height: 80,
+        base: {
+          id: "signal",
+          title: "Signal",
+          display: "full",
+          height: 80,
+        },
+        config: {},
       },
     ];
 

@@ -30,8 +30,8 @@ export function DefaultSettingsModal({
         {...handleProps}
         style={{
           ...modalHeaderStyle,
-          background: track.color || "#f5f5f5",
-          color: getReadableTextColor(track.color || "#f5f5f5"),
+          background: track.base.color || "#f5f5f5",
+          color: getReadableTextColor(track.base.color || "#f5f5f5"),
           ...handleProps.style,
         }}
       >

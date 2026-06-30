@@ -1,9 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import type {
-  TrackConfigBase,
-  TrackMutationResult,
-  TrackSettingsUpdate,
-} from "../../modules/types";
+import type { TrackBase, TrackInstance, TrackMutationResult } from "../../modules/types";
 
 export type SettingsPosition = {
   x: number;
@@ -11,17 +7,17 @@ export type SettingsPosition = {
 };
 
 export type SettingsModalProps = {
-  track: TrackConfigBase;
+  track: TrackInstance<any, any>;
   title: string;
   position: SettingsPosition;
   closeSettings: () => void;
   children: ReactNode;
 };
 
-export type BaseSettingsProps<Config extends TrackConfigBase = TrackConfigBase> = {
-  config: Config;
+export type BaseSettingsProps = {
+  base: TrackBase;
   displayOptions: string[];
-  updateTrack: (partial: TrackSettingsUpdate<Config>) => TrackMutationResult;
+  updateBase: (partial: Partial<TrackBase>) => TrackMutationResult;
 };
 
 export type SettingsStoreInput = {

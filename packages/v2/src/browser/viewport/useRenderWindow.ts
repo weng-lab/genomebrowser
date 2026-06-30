@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { TrackConfigBase } from "../../modules/types";
+import type { TrackInstance } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { expandRegion } from "./usePanController";
+
+type AnyTrackInstance = TrackInstance<any, any>;
 
 export function getRenderWindow(
   region: BrowserRegion,
@@ -14,12 +16,12 @@ export function getRenderWindow(
   };
 }
 
-export function createRenderWindowSignature(region: BrowserRegion, tracks: TrackConfigBase[]) {
+export function createRenderWindowSignature(region: BrowserRegion, tracks: AnyTrackInstance[]) {
   return JSON.stringify({ region, trackIds: createTrackIdsSignature(tracks) });
 }
 
-function createTrackIdsSignature(tracks: TrackConfigBase[]) {
-  return JSON.stringify(tracks.map((track) => track.id).sort());
+function createTrackIdsSignature(tracks: AnyTrackInstance[]) {
+  return JSON.stringify(tracks.map((track) => track.base.id).sort());
 }
 
 export function useRenderWindow({
@@ -29,7 +31,7 @@ export function useRenderWindow({
   overscanMultiplier,
 }: {
   region: BrowserRegion;
-  tracks: TrackConfigBase[];
+  tracks: AnyTrackInstance[];
   trackWidth: number;
   overscanMultiplier: number;
 }) {

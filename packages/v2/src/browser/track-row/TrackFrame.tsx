@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import type { TrackConfigBase } from "../../modules/types";
+import type { TrackInstance } from "../../modules/types";
 import { useContextMenuStore } from "../state/BrowserContext";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { PanTrack } from "./PanTrack";
@@ -24,7 +24,7 @@ export function TrackFrame({
   titleSize,
   children,
 }: {
-  track: TrackConfigBase;
+  track: TrackInstance<any, any>;
   y: number;
   previewOffsetY?: number;
   marginWidth: number;
@@ -60,7 +60,7 @@ export function TrackFrame({
 
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
-    openContextMenu(track.id, { x: event.pageX, y: event.pageY });
+    openContextMenu(track.base.id, { x: event.pageX, y: event.pageY });
   };
 
   return (
@@ -73,7 +73,7 @@ export function TrackFrame({
     >
       <defs>
         <clipPath id={contentClipId}>
-          <rect x={marginWidth} y={titleMargin} width={trackWidth} height={track.height} />
+          <rect x={marginWidth} y={titleMargin} width={trackWidth} height={track.base.height} />
         </clipPath>
       </defs>
       <rect
@@ -91,7 +91,7 @@ export function TrackFrame({
               panDrag={panDrag}
               disabled={isPanLocked}
               width={contentWidth}
-              height={track.height}
+              height={track.base.height}
             >
               {children}
             </PanTrack>
@@ -106,7 +106,7 @@ export function TrackFrame({
         textAnchor="middle"
         alignmentBaseline="baseline"
       >
-        {track.title}
+        {track.base.title}
       </text>
       <rect
         x={0}
@@ -124,7 +124,7 @@ export function TrackFrame({
         height={wrapperHeight}
         stroke="#000000"
         strokeWidth={0.5}
-        fill={track.color || "#ffffff"}
+        fill={track.base.color || "#ffffff"}
       />
       <TrackControls track={track} marginWidth={marginWidth} wrapperHeight={wrapperHeight} />
       <line stroke="#cccccc" x1={marginWidth} x2={marginWidth} y1={0} y2={wrapperHeight} />
@@ -132,7 +132,7 @@ export function TrackFrame({
         <rect
           width={marginWidth + trackWidth}
           height={wrapperHeight}
-          fill={track.color || "transparent"}
+          fill={track.base.color || "transparent"}
           fillOpacity={0.25}
           style={{ pointerEvents: "none" }}
         />

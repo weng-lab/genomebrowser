@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { DataState } from "../data/types";
-import type { TrackConfigBase } from "../../modules/types";
+import type { TrackInstance } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { SwapTrack } from "./SwapTrack";
 import { getSwapPreviewOffsetY, isSameSwapPreview } from "./trackSwapMath";
@@ -24,7 +24,7 @@ export function TrackStack({
   titleSize,
   startY,
 }: {
-  tracks: TrackConfigBase[];
+  tracks: TrackInstance<any, any>[];
   dataStates: Record<string, DataState>;
   region: BrowserRegion;
   marginWidth: number;
@@ -50,12 +50,18 @@ export function TrackStack({
     const trackY = y;
     const wrapperHeight = getTrackWrapperHeight(track, titleSize);
     const titleMargin = getTrackTitleMargin(track, titleSize);
-    const previewOffsetY = getSwapPreviewOffsetY(index, track.id, tracks, titleSize, swapPreview);
+    const previewOffsetY = getSwapPreviewOffsetY(
+      index,
+      track.base.id,
+      tracks,
+      titleSize,
+      swapPreview,
+    );
     y += wrapperHeight;
 
     return (
       <SwapTrack
-        key={track.id}
+        key={track.base.id}
         track={track}
         titleSize={titleSize}
         disabled={isPanLocked}
@@ -80,10 +86,10 @@ export function TrackStack({
           >
             <TrackContent
               track={track}
-              dataState={dataStates[track.id]}
+              dataState={dataStates[track.base.id]}
               region={region}
               width={contentWidth ?? trackWidth}
-              height={track.height}
+              height={track.base.height}
               titleMargin={titleMargin}
             />
           </TrackFrame>

@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { TrackConfigBase } from "../../modules/types";
+import type { TrackInstance } from "../../modules/types";
 import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../state/BrowserContext";
 import { BottomIcon, SettingsIcon, TopIcon } from "./icons";
 
@@ -8,7 +8,7 @@ export function TrackControls({
   marginWidth,
   wrapperHeight,
 }: {
-  track: TrackConfigBase;
+  track: TrackInstance<any, any>;
   marginWidth: number;
   wrapperHeight: number;
 }) {
@@ -17,21 +17,22 @@ export function TrackControls({
   const order = useTrackStore((state) => state.order);
   const reorderTracks = useTrackStore((state) => state.reorderTracks);
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
-  const index = order.indexOf(track.id);
+  const trackId = track.base.id;
+  const index = order.indexOf(trackId);
   const canMoveTop = !isInteractionBlocked && index > 0;
   const canMoveBottom = !isInteractionBlocked && index >= 0 && index < order.length - 1;
 
   const moveTrack = (target: "top" | "bottom") => {
-    const nextOrder = order.filter((id) => id !== track.id);
-    if (target === "top") nextOrder.unshift(track.id);
-    if (target === "bottom") nextOrder.push(track.id);
+    const nextOrder = order.filter((id) => id !== trackId);
+    if (target === "top") nextOrder.unshift(trackId);
+    if (target === "bottom") nextOrder.push(trackId);
     runTrackMutation(() => reorderTracks(nextOrder));
   };
 
   const handleOpenSettings = (event: React.MouseEvent<SVGGElement>) => {
     event.stopPropagation();
     const rect = settingsButtonRef.current?.getBoundingClientRect();
-    openSettings(track.id, rect ? { x: rect.left, y: rect.top } : { x: 0, y: 0 });
+    openSettings(trackId, rect ? { x: rect.left, y: rect.top } : { x: 0, y: 0 });
   };
 
   return (

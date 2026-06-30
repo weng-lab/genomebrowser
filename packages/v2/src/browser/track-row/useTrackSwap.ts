@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { MouseEvent, RefObject } from "react";
-import type { TrackConfigBase } from "../../modules/types";
+import type { TrackInstance } from "../../modules/types";
 import { svgPoint } from "../../modules/utils/svg";
 import { useTrackMutationGate, useTrackStore } from "../state/BrowserContext";
 import { useBrowserSvg } from "../svg/BrowserSvgContext";
@@ -21,7 +21,7 @@ export function useTrackSwap({
   onPreviewEnd,
   cloneRef,
 }: {
-  track: TrackConfigBase;
+  track: TrackInstance<any, any>;
   titleSize: number;
   disabled?: boolean;
   onPreviewChange: (preview: SwapPreview) => void;
@@ -61,7 +61,7 @@ export function useTrackSwap({
     let isEnded = false;
 
     const updatePreview = (deltaY: number) => {
-      const preview = getSwapPreview(track.id, tracks, titleSize, deltaY);
+      const preview = getSwapPreview(track.base.id, tracks, titleSize, deltaY);
       if (!preview || isSameSwapPreview(previewRef.current, preview)) return;
       previewRef.current = preview;
       onPreviewChange(preview);
@@ -83,7 +83,7 @@ export function useTrackSwap({
     const handleUp = (event: globalThis.MouseEvent) => {
       event.preventDefault();
       if (Math.abs(latestDeltaY) > 5) {
-        const nextOrder = getSwapOrder(track.id, tracks, titleSize, latestDeltaY);
+        const nextOrder = getSwapOrder(track.base.id, tracks, titleSize, latestDeltaY);
         if (nextOrder) runTrackMutation(() => reorderTracks(nextOrder));
       }
 

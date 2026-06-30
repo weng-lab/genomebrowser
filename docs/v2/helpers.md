@@ -14,14 +14,15 @@ Helpers for custom tracks are exposed from the package entry point. Pure utiliti
 import { useAutoTrackHeight } from "@weng-lab/genomebrowser-v2";
 
 type SquishExampleProps = {
+  id: string;
   config: ExampleConfig;
   data: ExampleData;
   height: number;
 };
 
-function SquishExample({ config, data, height }: SquishExampleProps) {
+function SquishExample({ id, data, height }: SquishExampleProps) {
   const rows = groupRows(data);
-  const rowHeight = useAutoTrackHeight(config.id, rows.length, {
+  const rowHeight = useAutoTrackHeight(id, rows.length, {
     rowHeight: 12,
     minHeight: 30,
   });
@@ -82,12 +83,12 @@ Use `fetchOnChange` for fields that affect fetched data, such as URLs, dataset l
 ```tsx
 import { SettingsSection, type TrackSettingsProps } from "@weng-lab/genomebrowser-v2";
 
-function ExampleSettings({ config, updateTrack }: TrackSettingsProps<ExampleConfig>) {
+function ExampleSettings({ config, updateConfig }: TrackSettingsProps<ExampleConfig>) {
   return (
     <SettingsSection title="Example">
       <label>
         URL
-        <input value={config.url} onChange={(event) => updateTrack({ url: event.target.value })} />
+        <input value={config.url} onChange={(event) => updateConfig({ url: event.target.value })} />
       </label>
     </SettingsSection>
   );
@@ -101,16 +102,16 @@ function ExampleSettings({ config, updateTrack }: TrackSettingsProps<ExampleConf
 ```tsx
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser-v2";
 
-function ExampleSettings({ config, updateTrack }: TrackSettingsProps<ExampleConfig>) {
-  const addTenPixels = () => updateTrack({ height: config.height + 10 });
+function ExampleSettings({ config, updateConfig }: TrackSettingsProps<ExampleConfig>) {
+  const useLogScale = () => updateConfig({ scale: "log" });
 
   return (
-    <button onClick={addTenPixels}>Taller</button>
+    <button onClick={useLogScale}>Use log scale</button>
   );
 }
 ```
 
-Prefer using the `updateTrack` prop passed to settings components when that is enough. Reach for `useTrackStore` when a component needs a selector or store behavior that is not already passed through props.
+Prefer using the `updateConfig` prop passed to module settings components when that is enough. Reach for `useTrackStore` when a component needs a selector or store behavior that is not already passed through props.
 
 ## `useSettingsStore`
 
@@ -127,7 +128,6 @@ const settingsStore = createSettingsStore({
 <GenomeBrowser
   browserStore={browserStore}
   trackStore={trackStore}
-  modules={modules}
   settingsStore={settingsStore}
 />;
 ```

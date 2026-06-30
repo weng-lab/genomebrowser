@@ -1,6 +1,8 @@
-import type { TrackConfigBase } from "../../modules/types";
+import type { TrackInstance } from "../../modules/types";
 import { getTrackWrapperHeight } from "./trackLayout";
 import type { SwapPreview } from "./swapTypes";
+
+type AnyTrackInstance = TrackInstance<any, any>;
 
 export function isSameSwapPreview(a: SwapPreview | null, b: SwapPreview) {
   return (
@@ -12,11 +14,11 @@ export function isSameSwapPreview(a: SwapPreview | null, b: SwapPreview) {
 
 export function getSwapPreview(
   id: string,
-  tracks: TrackConfigBase[],
+  tracks: AnyTrackInstance[],
   titleSize: number,
   deltaY: number,
 ): SwapPreview | null {
-  const currentIndex = tracks.findIndex((track) => track.id === id);
+  const currentIndex = tracks.findIndex((track) => track.base.id === id);
   if (currentIndex < 0) return null;
 
   const heights = tracks.map((track) => getTrackWrapperHeight(track, titleSize));
@@ -41,7 +43,7 @@ export function getSwapPreview(
 export function getSwapPreviewOffsetY(
   index: number,
   trackId: string,
-  tracks: TrackConfigBase[],
+  tracks: AnyTrackInstance[],
   titleSize: number,
   preview: SwapPreview | null,
 ) {
@@ -61,7 +63,7 @@ export function getSwapPreviewOffsetY(
 
 export function getSwapOrder(
   id: string,
-  tracks: TrackConfigBase[],
+  tracks: AnyTrackInstance[],
   titleSize: number,
   deltaY: number,
 ) {
@@ -71,7 +73,7 @@ export function getSwapOrder(
   const { currentIndex, targetIndex } = preview;
 
   if (targetIndex === currentIndex) return null;
-  const nextOrder = tracks.map((track) => track.id);
+  const nextOrder = tracks.map((track) => track.base.id);
   const [movedId] = nextOrder.splice(currentIndex, 1);
   nextOrder.splice(targetIndex, 0, movedId);
   return nextOrder;

@@ -138,7 +138,8 @@ function createTrackModule<
   const Renderers extends object,
   Item,
 >(definition: TrackModuleDefinition<Type, ConfigSchema, Fetch, Renderers, Item>) {
-  assertNoReservedConfigFields(definition.type, definition.configSchema);
+  const configSchema = definition.configSchema.strict() as ConfigSchema;
+  assertNoReservedConfigFields(definition.type, configSchema);
 
   const displays = Object.keys(definition.render as object) as Array<DisplayKey<Renderers>>;
   assertDisplayModes(definition.type, displays);
@@ -170,7 +171,7 @@ function createTrackModule<
     .object({
       type: z.literal(definition.type),
       base: fullBaseSchema,
-      config: definition.configSchema,
+      config: configSchema,
       interaction: interactionSchema.optional(),
     })
     .strict();
@@ -178,12 +179,12 @@ function createTrackModule<
   return {
     type: definition.type,
     displays,
-    configSchema: definition.configSchema,
+    configSchema,
     create(input: FlatCreateInput<ConfigSchema, DisplayKey<Renderers>, Item>) {
-      const partitioned = partitionCreateInput(definition.type, definition.configSchema, input);
+      const partitioned = partitionCreateInput(definition.type, configSchema, input);
       const base = parsePublicInput(createBaseSchema, partitioned.base, `${definition.type} base`);
       const config = parsePublicInput(
-        definition.configSchema,
+        configSchema,
         { ...definition.defaults?.config, ...partitioned.config },
         `${definition.type} config`,
       );

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFetchSignature } from "../../modules/fetchOnChange";
 import type { ModuleRegistry } from "../../modules/registry";
-import type { TrackConfigBase } from "../../modules/types";
+import type { TrackInstance } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { fetchTrackData } from "./fetchTrackData";
 import type { DataResult, DataState, DataStoreInstance } from "./types";
+
+type AnyTrackInstance = TrackInstance<any, any>;
 
 export function useTrackData({
   useDataStore,
@@ -15,7 +17,7 @@ export function useTrackData({
 }: {
   useDataStore: DataStoreInstance;
   registry: ModuleRegistry;
-  tracks: TrackConfigBase[];
+  tracks: AnyTrackInstance[];
   region: BrowserRegion;
   onSettled?: () => void;
 }) {
@@ -31,7 +33,7 @@ export function useTrackData({
 
   useEffect(() => {
     let active = true;
-    const currentTrackIds = new Set(tracks.map((track) => track.id));
+    const currentTrackIds = new Set(tracks.map((track) => track.base.id));
     const currentFetchKeys = createTrackFetchKeys(registry, tracks);
     const prunedData = pruneData(useDataStore.getState().data, currentTrackIds);
     const removedTracks =
@@ -46,8 +48,8 @@ export function useTrackData({
       isInitialFetch || isRegionChanged
         ? tracks
         : tracks.filter((track) => {
-            const previousKey = previousFetchKeys.current[track.id];
-            const currentKey = currentFetchKeys[track.id];
+            const previousKey = previousFetchKeys.current[track.base.id];
+            const currentKey = currentFetchKeys[track.base.id];
             return previousKey === undefined || previousKey !== currentKey;
           });
 
@@ -58,13 +60,13 @@ export function useTrackData({
       return;
     }
 
-    const fetchIds = new Set(tracksToFetch.map((track) => track.id));
+    const fetchIds = new Set(tracksToFetch.map((track) => track.base.id));
     setFetchingTrackIds(fetchIds);
 
     Promise.all(
       tracksToFetch.map(async (track) => {
         const result = await fetchTrackData({ registry, track, region });
-        return [track.id, result] as const;
+        return [track.base.id, result] as const;
       }),
     ).then((results) => {
       if (!active) return;
@@ -100,13 +102,13 @@ function createRegionKey(region: BrowserRegion) {
   return `${region.chromosome}:${region.start}-${region.end}`;
 }
 
-function createTrackFetchKeys(registry: ModuleRegistry, tracks: TrackConfigBase[]) {
+function createTrackFetchKeys(registry: ModuleRegistry, tracks: AnyTrackInstance[]) {
   const keys: Record<string, string> = {};
   for (const track of tracks) {
     try {
-      keys[track.id] = createFetchSignature(registry.get(track.type), track);
+      keys[track.base.id] = createFetchSignature(registry.get(track.type), track);
     } catch {
-      keys[track.id] = "{}";
+      keys[track.base.id] = "{}";
     }
   }
   return keys;
@@ -122,17 +124,18 @@ function pruneData(data: Record<string, DataResult>, trackIds: Set<string>) {
 }
 
 function createDataStates(
-  tracks: TrackConfigBase[],
+  tracks: AnyTrackInstance[],
   data: Record<string, DataResult>,
   fetchingTrackIds: Set<string>,
 ) {
   const states: Record<string, DataState> = {};
   for (const track of tracks) {
-    const result = data[track.id];
-    if (fetchingTrackIds.has(track.id)) {
-      states[track.id] = result?.status === "success" ? result : { status: "loading" };
+    const trackId = track.base.id;
+    const result = data[trackId];
+    if (fetchingTrackIds.has(trackId)) {
+      states[trackId] = result?.status === "success" ? result : { status: "loading" };
     } else {
-      states[track.id] = result ?? { status: "loading" };
+      states[trackId] = result ?? { status: "loading" };
     }
   }
   return states;

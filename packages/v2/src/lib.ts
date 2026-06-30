@@ -62,7 +62,8 @@ export type {
   TrackStore,
   TrackStoreInstance,
   TrackStoreOptions,
-  TrackUpdate,
+  TrackConfigUpdate,
+  TrackInteractionUpdate,
 } from "./browser/state/trackStore";
 
 export { bigBedModule } from "./tracks/bigbed/module";

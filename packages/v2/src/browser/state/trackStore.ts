@@ -1,33 +1,41 @@
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { createModuleRegistry, type ModuleRegistry } from "../../modules/registry";
-import type { AnyTrackModule, TrackConfigBase, TrackMutationResult } from "../../modules/types";
+import type {
+  AnyTrackModule,
+  TrackBase,
+  TrackInstance,
+  TrackInteraction,
+  TrackMutationResult,
+} from "../../modules/types";
 
-export type TrackStoreOptions<Config extends TrackConfigBase = TrackConfigBase> = {
+type AnyTrackInstance = TrackInstance<any, any>;
+
+export type TrackStoreOptions<Track extends AnyTrackInstance = AnyTrackInstance> = {
   modules: AnyTrackModule[];
-  tracks?: Config[];
+  tracks?: Track[];
 };
 
-export type TrackUpdate<Config extends TrackConfigBase = TrackConfigBase> = Partial<Config>;
+export type TrackConfigUpdate<Config> = Partial<Config>;
+export type TrackInteractionUpdate<Item> = Partial<TrackInteraction<Item>>;
 
 export type TrackStore = {
-  tracks: TrackConfigBase[];
+  tracks: AnyTrackInstance[];
   order: string[];
   registry: ModuleRegistry;
-  setTracks: <Config extends TrackConfigBase>(tracks: Config[]) => TrackMutationResult;
-  addTrack: <Config extends TrackConfigBase>(track: Config, index?: number) => TrackMutationResult;
+  setTracks: <Track extends AnyTrackInstance>(tracks: Track[]) => TrackMutationResult;
+  addTrack: <Track extends AnyTrackInstance>(track: Track, index?: number) => TrackMutationResult;
   removeTrack: (id: string) => TrackMutationResult;
   reorderTracks: (ids: string[]) => TrackMutationResult;
-  updateTrack: <Config extends TrackConfigBase>(
-    id: string,
-    partial: TrackUpdate<Config>,
-  ) => TrackMutationResult;
-  getTrack: (id: string) => TrackConfigBase | undefined;
+  updateBase: (id: string, partial: Partial<TrackBase>) => TrackMutationResult;
+  updateConfig: <Config>(id: string, partial: TrackConfigUpdate<Config>) => TrackMutationResult;
+  updateInteraction: <Item>(id: string, partial: TrackInteractionUpdate<Item>) => TrackMutationResult;
+  getTrack: (id: string) => AnyTrackInstance | undefined;
 };
 
 export type TrackStoreInstance = UseBoundStore<StoreApi<TrackStore>>;
 
-export function createTrackStore<Config extends TrackConfigBase = TrackConfigBase>(
-  options: TrackStoreOptions<Config>,
+export function createTrackStore<Track extends AnyTrackInstance = AnyTrackInstance>(
+  options: TrackStoreOptions<Track>,
 ): TrackStoreInstance {
   const registry = createModuleRegistry(options.modules);
   const initialTracks = validateTracks(options.tracks ?? [], registry);
@@ -35,7 +43,7 @@ export function createTrackStore<Config extends TrackConfigBase = TrackConfigBas
 
   return create<TrackStore>((set, get) => ({
     tracks: initialTracks,
-    order: initialTracks.map((track) => track.id),
+    order: initialTracks.map(getTrackId),
     registry,
     setTracks: (tracks) => {
       const result = getValidatedTracks(tracks, registry);
@@ -43,7 +51,7 @@ export function createTrackStore<Config extends TrackConfigBase = TrackConfigBas
       const duplicateResult = getUniqueTrackIdsResult(result.tracks);
       if (!duplicateResult.ok) return duplicateResult;
       const validatedTracks = result.tracks;
-      set({ tracks: validatedTracks, order: validatedTracks.map((track) => track.id) });
+      set({ tracks: validatedTracks, order: validatedTracks.map(getTrackId) });
       return mutationOk;
     },
     addTrack: (track, index) => {
@@ -51,23 +59,24 @@ export function createTrackStore<Config extends TrackConfigBase = TrackConfigBas
       if (!result.ok) return result;
       const validatedTrack = result.track;
       const tracks = [...get().tracks];
-      if (tracks.some((existing) => existing.id === validatedTrack.id)) {
-        return mutationError(`Duplicate track id: ${validatedTrack.id}`);
+      const trackId = getTrackId(validatedTrack);
+      if (tracks.some((existing) => getTrackId(existing) === trackId)) {
+        return mutationError(`Duplicate track id: ${trackId}`);
       }
       tracks.splice(index ?? tracks.length, 0, validatedTrack);
-      set({ tracks, order: tracks.map((item) => item.id) });
+      set({ tracks, order: tracks.map(getTrackId) });
       return mutationOk;
     },
     removeTrack: (id) => {
-      if (!get().tracks.some((track) => track.id === id)) {
+      if (!get().tracks.some((track) => getTrackId(track) === id)) {
         return mutationError(`No track found for id: ${id}`);
       }
-      const tracks = get().tracks.filter((track) => track.id !== id);
-      set({ tracks, order: tracks.map((track) => track.id) });
+      const tracks = get().tracks.filter((track) => getTrackId(track) !== id);
+      set({ tracks, order: tracks.map(getTrackId) });
       return mutationOk;
     },
     reorderTracks: (ids) => {
-      const tracksById = new Map(get().tracks.map((track) => [track.id, track]));
+      const tracksById = new Map(get().tracks.map((track) => [getTrackId(track), track]));
       const result = getValidOrderResult(ids, tracksById);
       if (!result.ok) return result;
       set({
@@ -76,36 +85,68 @@ export function createTrackStore<Config extends TrackConfigBase = TrackConfigBas
       });
       return mutationOk;
     },
-    updateTrack: (id, partial) => {
-      const currentTrack = get().tracks.find((track) => track.id === id);
+    updateBase: (id, partial) => {
+      const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
       if (!currentTrack) return mutationError(`No track found for id: ${id}`);
-      if (partial.type !== undefined && partial.type !== currentTrack.type) {
-        return mutationError("Track type cannot be changed");
-      }
-      const result = getValidatedTrack(
-        { ...currentTrack, ...partial, id: currentTrack.id, type: currentTrack.type },
-        registry,
-      );
+      const result = getValidatedTrack({
+        ...currentTrack,
+        base: { ...currentTrack.base, ...partial, id: currentTrack.base.id },
+      }, registry);
       if (!result.ok) return result;
 
       set((state) => ({
-        tracks: state.tracks.map((track) => (track.id === id ? result.track : track)),
+        tracks: state.tracks.map((track) => (getTrackId(track) === id ? result.track : track)),
         order: state.order,
       }));
       return mutationOk;
     },
-    getTrack: (id) => get().tracks.find((track) => track.id === id),
+    updateConfig: (id, partial) => {
+      const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
+      if (!currentTrack) return mutationError(`No track found for id: ${id}`);
+      const result = getValidatedTrack({
+        ...currentTrack,
+        config: { ...currentTrack.config, ...partial },
+      }, registry);
+      if (!result.ok) return result;
+
+      set((state) => ({
+        tracks: state.tracks.map((track) => (getTrackId(track) === id ? result.track : track)),
+        order: state.order,
+      }));
+      return mutationOk;
+    },
+    updateInteraction: (id, partial) => {
+      const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
+      if (!currentTrack) return mutationError(`No track found for id: ${id}`);
+      const interaction = { ...currentTrack.interaction, ...partial };
+      const result = getValidatedTrack({
+        ...currentTrack,
+        interaction,
+      }, registry);
+      if (!result.ok) return result;
+
+      set((state) => ({
+        tracks: state.tracks.map((track) => (getTrackId(track) === id ? result.track : track)),
+        order: state.order,
+      }));
+      return mutationOk;
+    },
+    getTrack: (id) => get().tracks.find((track) => getTrackId(track) === id),
   }));
 }
 
-type ValidatedTrackResult = { ok: true; track: TrackConfigBase } | { ok: false; error: string };
-type ValidatedTracksResult = { ok: true; tracks: TrackConfigBase[] } | { ok: false; error: string };
+type ValidatedTrackResult = { ok: true; track: AnyTrackInstance } | { ok: false; error: string };
+type ValidatedTracksResult = { ok: true; tracks: AnyTrackInstance[] } | { ok: false; error: string };
 
-function validateTrack(track: TrackConfigBase, registry: ModuleRegistry): TrackConfigBase {
+function getTrackId(track: AnyTrackInstance) {
+  return track.base.id;
+}
+
+function validateTrack(track: AnyTrackInstance, registry: ModuleRegistry): AnyTrackInstance {
   return registry.get(track.type).validate(track);
 }
 
-function validateTracks(tracks: TrackConfigBase[], registry: ModuleRegistry): TrackConfigBase[] {
+function validateTracks(tracks: AnyTrackInstance[], registry: ModuleRegistry): AnyTrackInstance[] {
   return tracks.map((track) => validateTrack(track, registry));
 }
 
@@ -119,7 +160,7 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown error";
 }
 
-function getValidatedTrack(track: TrackConfigBase, registry: ModuleRegistry): ValidatedTrackResult {
+function getValidatedTrack(track: AnyTrackInstance, registry: ModuleRegistry): ValidatedTrackResult {
   try {
     return { ok: true as const, track: validateTrack(track, registry) };
   } catch (error) {
@@ -128,7 +169,7 @@ function getValidatedTrack(track: TrackConfigBase, registry: ModuleRegistry): Va
 }
 
 function getValidatedTracks(
-  tracks: TrackConfigBase[],
+  tracks: AnyTrackInstance[],
   registry: ModuleRegistry,
 ): ValidatedTracksResult {
   try {
@@ -138,7 +179,7 @@ function getValidatedTracks(
   }
 }
 
-function getUniqueTrackIdsResult(tracks: TrackConfigBase[]) {
+function getUniqueTrackIdsResult(tracks: AnyTrackInstance[]) {
   try {
     assertUniqueTrackIds(tracks);
     return mutationOk;
@@ -147,19 +188,20 @@ function getUniqueTrackIdsResult(tracks: TrackConfigBase[]) {
   }
 }
 
-function assertUniqueTrackIds(tracks: TrackConfigBase[]) {
+function assertUniqueTrackIds(tracks: AnyTrackInstance[]) {
   const ids = new Set<string>();
   for (const track of tracks) {
-    if (ids.has(track.id)) {
-      throw new Error(`Duplicate track id: ${track.id}`);
+    const trackId = getTrackId(track);
+    if (ids.has(trackId)) {
+      throw new Error(`Duplicate track id: ${trackId}`);
     }
-    ids.add(track.id);
+    ids.add(trackId);
   }
 }
 
 function getValidOrderResult(
   ids: string[],
-  tracksById: Map<string, TrackConfigBase>,
+  tracksById: Map<string, AnyTrackInstance>,
 ): TrackMutationResult {
   if (ids.length !== tracksById.size) {
     return mutationError("Invalid track order");

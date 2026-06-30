@@ -4,7 +4,7 @@ import {
   getSwapPreview,
   getSwapPreviewOffsetY,
 } from "../../src/browser/track-row/trackSwapMath";
-import type { TrackConfigBase } from "../../src/modules/types";
+import type { TrackInstance } from "../../src/modules/types";
 
 const tracks = [makeTrack("a", 10), makeTrack("b", 10), makeTrack("c", 10)];
 
@@ -62,12 +62,15 @@ describe("track swap math", () => {
   });
 });
 
-function makeTrack(id: string, height: number): TrackConfigBase {
+function makeTrack(id: string, height: number): TrackInstance<{}> {
   return {
-    id,
     type: "test",
-    title: "",
-    display: "dense",
-    height,
+    base: {
+      id,
+      title: "",
+      display: "dense",
+      height,
+    },
+    config: {},
   };
 }

@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import type { z } from "zod";
 import type { BrowserRegion } from "./utils/region";
 
 export type TrackBase = {
@@ -61,7 +62,7 @@ export type TrackTooltipComponent<Item, Config> = ComponentType<{
 export type TrackModule<Config, Data, Item = unknown> = {
   type: string;
   displays: string[];
-  configSchema: unknown;
+  configSchema: z.ZodType<Config>;
   create(input: unknown): TrackInstance<Config, Item>;
   validate(instance: unknown): TrackInstance<Config, Item>;
   fetch: TrackFetch<Config, Data>;

@@ -1,14 +1,14 @@
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
-import type { TrackSettingsUpdate } from "../../modules/types";
+import type { TrackBase } from "../../modules/types";
 import { isHexColor } from "./settingsColor";
 import type { BaseSettingsProps } from "./types";
 
-export function DefaultBaseSettings({ config, displayOptions, updateTrack }: BaseSettingsProps) {
+export function DefaultBaseSettings({ base, displayOptions, updateBase }: BaseSettingsProps) {
   const [error, setError] = useState<string | null>(null);
-  const applyUpdate = (partial: TrackSettingsUpdate<typeof config>) => {
-    const result = updateTrack(partial);
+  const applyUpdate = (partial: Partial<TrackBase>) => {
+    const result = updateBase(partial);
     setError(result.ok ? null : result.error);
   };
 
@@ -19,7 +19,7 @@ export function DefaultBaseSettings({ config, displayOptions, updateTrack }: Bas
         Title
         <input
           type="text"
-          value={config.title}
+          value={base.title}
           onChange={(event) => applyUpdate({ title: event.target.value })}
         />
       </label>
@@ -28,12 +28,12 @@ export function DefaultBaseSettings({ config, displayOptions, updateTrack }: Bas
         <div style={{ display: "flex", gap: "6px" }}>
           <input
             type="color"
-            value={isHexColor(config.color) ? config.color : "#000000"}
+            value={isHexColor(base.color) ? base.color : "#000000"}
             onChange={(event) => applyUpdate({ color: event.target.value })}
           />
           <input
             type="text"
-            value={config.color ?? ""}
+            value={base.color ?? ""}
             placeholder="#000000"
             onChange={(event) => applyUpdate({ color: event.target.value || undefined })}
           />
@@ -44,7 +44,7 @@ export function DefaultBaseSettings({ config, displayOptions, updateTrack }: Bas
         <input
           type="number"
           min={20}
-          value={config.height}
+          value={base.height}
           onChange={(event) => {
             const height = Number(event.target.value);
             if (!Number.isNaN(height)) applyUpdate({ height: Math.max(20, height) });
@@ -55,7 +55,7 @@ export function DefaultBaseSettings({ config, displayOptions, updateTrack }: Bas
         <label style={fieldStyle}>
           Display
           <select
-            value={config.display}
+            value={base.display}
             onChange={(event) => applyUpdate({ display: event.target.value })}
           >
             {displayOptions.map((display) => (

@@ -1,6 +1,7 @@
 import { memo, type ComponentType } from "react";
 import type { DataState } from "../data/types";
-import type { TrackConfigBase, TrackRendererProps } from "../../modules/types";
+import { TrackInteractionProvider } from "../../modules/interaction";
+import type { TrackInstance, TrackRendererProps } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { useRegistry } from "../state/useRegistry";
 import { ErrorState } from "./ErrorState";
@@ -14,7 +15,7 @@ export const TrackContent = memo(function TrackContent({
   height,
   titleMargin,
 }: {
-  track: TrackConfigBase;
+  track: TrackInstance<any, any>;
   dataState: DataState;
   region: BrowserRegion;
   width: number;
@@ -40,8 +41,8 @@ export const TrackContent = memo(function TrackContent({
 
   try {
     const module = registry.get(track.type);
-    const Renderer = module.render[track.display] as
-      | ComponentType<TrackRendererProps<TrackConfigBase, unknown>>
+    const Renderer = module.render[track.base.display] as
+      | ComponentType<TrackRendererProps<unknown, unknown>>
       | undefined;
     if (!Renderer) {
       return (
@@ -50,18 +51,22 @@ export const TrackContent = memo(function TrackContent({
           y={0}
           width={width}
           height={height}
-          message={`Display "${track.display}" is not supported by "${track.type}"`}
+          message={`Display "${track.base.display}" is not supported by "${track.type}"`}
         />
       );
     }
     return (
-      <Renderer
-        config={track}
-        data={dataState.data}
-        region={region}
-        width={width}
-        height={height}
-      />
+      <TrackInteractionProvider interaction={track.interaction}>
+        <Renderer
+          id={track.base.id}
+          config={track.config}
+          color={track.base.color}
+          data={dataState.data}
+          region={region}
+          width={width}
+          height={height}
+        />
+      </TrackInteractionProvider>
     );
   } catch (error) {
     return (

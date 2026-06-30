@@ -48,11 +48,14 @@ describe("fetchTrackData", () => {
       fetchTrackData({
         registry,
         track: {
-          id: "missing",
           type: "missing",
-          title: "Missing",
-          display: "full",
-          height: 80,
+          base: {
+            id: "missing",
+            title: "Missing",
+            display: "full",
+            height: 80,
+          },
+          config: {},
         },
         region,
       }),

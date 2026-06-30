@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { TrackConfigBase, TrackSettingsProps, TrackSettingsUpdate } from "../../modules/types";
+import type { TrackSettingsProps } from "../../modules/types";
 import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../state/BrowserContext";
 import { useRegistry } from "../state/useRegistry";
 
@@ -12,7 +12,8 @@ export function SettingsModalController() {
   const BaseSettingsComponent = useSettingsStore((state) => state.baseSettingsComponent);
   const closeSettings = useSettingsStore((state) => state.closeSettings);
   const track = useTrackStore((state) => (trackId ? state.getTrack(trackId) : undefined));
-  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const updateBase = useTrackStore((state) => state.updateBase);
+  const updateConfig = useTrackStore((state) => state.updateConfig);
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
 
   if (!open || !track) return null;
@@ -20,16 +21,19 @@ export function SettingsModalController() {
   try {
     const module = registry.get(track.type);
     const ModuleSettingsComponent = module.settingsComponent as
-      | ComponentType<TrackSettingsProps<TrackConfigBase>>
+      | ComponentType<TrackSettingsProps<unknown>>
       | undefined;
-    const updateActiveTrack = (partial: TrackSettingsUpdate<TrackConfigBase>) => {
-      return runTrackMutation(() => updateTrack(track.id, partial));
+    const updateActiveBase = (partial: Parameters<typeof updateBase>[1]) => {
+      return runTrackMutation(() => updateBase(track.base.id, partial));
+    };
+    const updateActiveConfig = (partial: Partial<unknown>) => {
+      return runTrackMutation(() => updateConfig(track.base.id, partial));
     };
 
     return (
       <ModalComponent
         track={track}
-        title={`Configure ${track.title}`}
+        title={`Configure ${track.base.title}`}
         position={position}
         closeSettings={closeSettings}
       >
@@ -38,12 +42,16 @@ export function SettingsModalController() {
           style={{ pointerEvents: isInteractionBlocked ? "none" : undefined }}
         >
           <BaseSettingsComponent
-            config={track}
+            base={track.base}
             displayOptions={Object.keys(module.render)}
-            updateTrack={updateActiveTrack}
+            updateBase={updateActiveBase}
           />
           {ModuleSettingsComponent && (
-            <ModuleSettingsComponent config={track} updateTrack={updateActiveTrack} />
+            <ModuleSettingsComponent
+              id={track.base.id}
+              config={track.config}
+              updateConfig={updateActiveConfig}
+            />
           )}
         </div>
       </ModalComponent>
@@ -52,7 +60,7 @@ export function SettingsModalController() {
     return (
       <ModalComponent
         track={track}
-        title={`Configure ${track.title}`}
+        title={`Configure ${track.base.title}`}
         position={position}
         closeSettings={closeSettings}
       >
