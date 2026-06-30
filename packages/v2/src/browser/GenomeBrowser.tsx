@@ -111,7 +111,6 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
           <BrowserSvgProvider svg={svg}>
             <TrackHeightProvider>
               <TooltipProvider
-                disabled={false}
                 isDisabled={panDrag.isDragging}
                 getTooltipComponent={(type) => registry.get(type).tooltipComponent}
               >

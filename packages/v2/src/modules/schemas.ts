@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-export const functionSchema = z.custom<Function>((value) => typeof value === "function", {
-  error: "Input must be a function",
-});
-
 function formatZodError(error: z.ZodError) {
   return error.issues
     .map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`)

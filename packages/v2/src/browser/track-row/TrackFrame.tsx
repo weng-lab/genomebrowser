@@ -54,10 +54,6 @@ export function TrackFrame({
     return registerContentGroup(contentGroupRef.current);
   }, [isDragClone, registerContentGroup]);
 
-  useEffect(() => {
-    if (disableHover) setHover(false);
-  }, [disableHover]);
-
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
     openContextMenu(track.base.id, { x: event.pageX, y: event.pageY });

@@ -1,4 +1,4 @@
-import { createContext, createElement, useContext } from "react";
+import { createContext, createElement, use } from "react";
 import type { ReactNode } from "react";
 import type { TrackInteraction } from "./types";
 
@@ -15,5 +15,5 @@ export function TrackInteractionProvider({
 }
 
 export function useInteraction<Item>() {
-  return useContext(interactionContext) as TrackInteraction<Item> | null;
+  return use(interactionContext) as TrackInteraction<Item> | null;
 }

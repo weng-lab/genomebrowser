@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useReducer, useRef, type ReactNode } from "react";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { createReverseXScale } from "../../modules/utils/scale";
 import { svgPoint } from "../../modules/utils/svg";
@@ -34,13 +34,15 @@ export function SelectRegion({
   const cleanupListenersRef = useRef<(() => void) | null>(null);
   selectionRef.current = selection;
 
-  useEffect(() => {
-    return () => cleanupListenersRef.current?.();
+  const cleanupListeners = useCallback(() => {
+    cleanupListenersRef.current?.();
   }, []);
+
+  useEffect(() => cleanupListeners, [cleanupListeners]);
 
   const startListening = () => {
     if (!svg) return;
-    cleanupListenersRef.current?.();
+    cleanupListeners();
 
     const handleMove = (event: MouseEvent) => {
       if (!selectingRef.current) return;
@@ -52,7 +54,7 @@ export function SelectRegion({
 
     const handleUp = () => {
       if (!selectingRef.current) return;
-      cleanupListenersRef.current?.();
+      cleanupListeners();
       selectingRef.current = false;
       dispatchSelection({ type: "clear" });
       const current = selectionRef.current;

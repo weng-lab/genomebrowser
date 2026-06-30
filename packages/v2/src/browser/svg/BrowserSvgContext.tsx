@@ -1,6 +1,6 @@
 import { createContext, use, type ReactNode } from "react";
 
-export const BrowserSvgContext = createContext<SVGSVGElement | null | undefined>(undefined);
+const BrowserSvgContext = createContext<SVGSVGElement | null | undefined>(undefined);
 
 export function BrowserSvgProvider({
   children,

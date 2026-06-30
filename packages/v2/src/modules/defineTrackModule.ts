@@ -29,13 +29,10 @@ type RendererMap<Config, Data, Renderers> = {
   [Display in keyof Renderers]: TrackRenderer<Config, Data>;
 };
 
-type ValidateRenderers<Config, Data, Renderers> = Renderers extends RendererMap<
-  Config,
-  Data,
-  Renderers
->
-  ? unknown
-  : { render: RendererMap<Config, Data, Renderers> };
+type ValidateRenderers<Config, Data, Renderers> =
+  Renderers extends RendererMap<Config, Data, Renderers>
+    ? unknown
+    : { render: RendererMap<Config, Data, Renderers> };
 
 type TrackModuleDefinition<
   Type extends string,
@@ -53,15 +50,13 @@ type TrackModuleDefinition<
   tooltipComponent?: TrackTooltipComponent<Item, z.output<ConfigSchema>>;
 } & ValidateRenderers<z.output<ConfigSchema>, FetchData<Fetch>, Renderers>;
 
-const baseSchema = z
-  .object({
-    id: z.string().min(1),
-    title: z.string().min(1),
-    display: z.string().min(1),
-    height: z.number().positive(),
-    color: z.string().optional(),
-  })
-  .strict();
+const baseSchema = z.strictObject({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  display: z.string().min(1),
+  height: z.number().positive(),
+  color: z.string().optional(),
+});
 
 const interactionCallbackSchema = z.custom<TrackInteractionCallback<unknown>>(
   (value) => typeof value === "function",
@@ -70,13 +65,11 @@ const interactionCallbackSchema = z.custom<TrackInteractionCallback<unknown>>(
   },
 );
 
-const interactionSchema = z
-  .object({
-    onClick: interactionCallbackSchema.optional(),
-    onHover: interactionCallbackSchema.optional(),
-    onLeave: interactionCallbackSchema.optional(),
-  })
-  .strict();
+const interactionSchema = z.strictObject({
+  onClick: interactionCallbackSchema.optional(),
+  onHover: interactionCallbackSchema.optional(),
+  onLeave: interactionCallbackSchema.optional(),
+});
 
 export function defineTrackModule<Item = unknown>(): <
   const Type extends string,
@@ -89,11 +82,9 @@ export function defineTrackModule<Item = unknown>(): <
   type: Type;
   displays: Array<DisplayKey<Renderers>>;
   render: Renderers;
-  create(input: FlatCreateInput<ConfigSchema, DisplayKey<Renderers>, Item>): DefinedTrackInstance<
-    Type,
-    z.output<ConfigSchema>,
-    Item
-  >;
+  create(
+    input: FlatCreateInput<ConfigSchema, DisplayKey<Renderers>, Item>,
+  ): DefinedTrackInstance<Type, z.output<ConfigSchema>, Item>;
   validate(instance: unknown): DefinedTrackInstance<Type, z.output<ConfigSchema>, Item>;
 };
 export function defineTrackModule<
@@ -107,11 +98,9 @@ export function defineTrackModule<
   type: Type;
   displays: Array<DisplayKey<Renderers>>;
   render: Renderers;
-  create(input: FlatCreateInput<ConfigSchema, DisplayKey<Renderers>, unknown>): DefinedTrackInstance<
-    Type,
-    z.output<ConfigSchema>,
-    unknown
-  >;
+  create(
+    input: FlatCreateInput<ConfigSchema, DisplayKey<Renderers>, unknown>,
+  ): DefinedTrackInstance<Type, z.output<ConfigSchema>, unknown>;
   validate(instance: unknown): DefinedTrackInstance<Type, z.output<ConfigSchema>, unknown>;
 };
 export function defineTrackModule(definition?: any): any {
@@ -167,14 +156,12 @@ function createTrackModule<
     })
     .strict();
 
-  const instanceSchema = z
-    .object({
-      type: z.literal(definition.type),
-      base: fullBaseSchema,
-      config: configSchema,
-      interaction: interactionSchema.optional(),
-    })
-    .strict();
+  const instanceSchema = z.strictObject({
+    type: z.literal(definition.type),
+    base: fullBaseSchema,
+    config: configSchema,
+    interaction: interactionSchema.optional(),
+  });
 
   return {
     type: definition.type,
@@ -189,7 +176,11 @@ function createTrackModule<
         `${definition.type} config`,
       );
       const interaction = partitioned.interaction
-        ? parsePublicInput(interactionSchema, partitioned.interaction, `${definition.type} interaction`)
+        ? parsePublicInput(
+            interactionSchema,
+            partitioned.interaction,
+            `${definition.type} interaction`,
+          )
         : undefined;
       const instance = {
         type: definition.type,
