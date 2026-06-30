@@ -6,10 +6,14 @@ import { createXScale } from "../../modules/utils/scale";
 import { renderDenseBigBedData, renderSquishBigBedData } from "./helpers";
 import type { BigBedConfig, BigBedRow } from "./types";
 
-export function DenseBigBed<
-  Row extends BigBedRow = BigBedRow,
-  Config extends BigBedConfig = BigBedConfig,
->({ config, color = "#4b9560", data, region, width, height }: TrackRendererProps<Config, Row[]>) {
+export function DenseBigBed<Row extends BigBedRow = BigBedRow, Config extends BigBedConfig = BigBedConfig>({
+  config,
+  color = "#4b9560",
+  data,
+  region,
+  width,
+  height,
+}: TrackRendererProps<Config, Row[]>) {
   const x = createXScale(region, width);
   const rects = renderDenseBigBedData(data, x);
   const rectHeight = height * 0.6;
@@ -44,10 +48,7 @@ export function DenseBigBed<
   );
 }
 
-export function SquishBigBed<
-  Row extends BigBedRow = BigBedRow,
-  Config extends BigBedConfig = BigBedConfig,
->({
+export function SquishBigBed<Row extends BigBedRow = BigBedRow, Config extends BigBedConfig = BigBedConfig>({
   id,
   config,
   color = "#4b9560",

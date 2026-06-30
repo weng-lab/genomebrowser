@@ -39,9 +39,7 @@ export function useTrackData({
     const removedTracks =
       Object.keys(useDataStore.getState().data).length !== Object.keys(prunedData).length;
 
-    if (removedTracks) {
-      setData(prunedData);
-    }
+    if (removedTracks) setData(prunedData);
 
     const isInitialFetch = previousRegionKey.current === null;
     const isRegionChanged =
@@ -58,9 +56,7 @@ export function useTrackData({
     if (tracksToFetch.length === 0) {
       previousRegionKey.current = regionKey;
       previousFetchKeys.current = currentFetchKeys;
-      if (isInitialFetch || isRegionChanged) {
-        onSettledRef.current?.();
-      }
+      if (isInitialFetch || isRegionChanged) onSettledRef.current?.();
       return;
     }
 
@@ -69,13 +65,11 @@ export function useTrackData({
 
     Promise.all(
       tracksToFetch.map(async (track) => {
-        const result = await fetchTrackData({ region, registry, track });
+        const result = await fetchTrackData({ registry, track, region });
         return [track.base.id, result] as const;
       }),
     ).then((results) => {
-      if (!active) {
-        return;
-      }
+      if (!active) return;
       const latestData = pruneData(useDataStore.getState().data, currentTrackIds);
       const nextData: Record<string, DataResult> = { ...latestData };
       for (const [trackId, result] of results) {
@@ -124,9 +118,7 @@ function pruneData(data: Record<string, DataResult>, trackIds: Set<string>) {
   const nextData: Record<string, DataResult> = {};
   for (const trackId of trackIds) {
     const result = data[trackId];
-    if (result) {
-      nextData[trackId] = result;
-    }
+    if (result) nextData[trackId] = result;
   }
   return nextData;
 }
