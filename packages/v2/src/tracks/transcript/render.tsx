@@ -95,7 +95,8 @@ function TranscriptRows({
 }
 
 function getTranscriptColor(config: TranscriptConfig, transcript: Transcript, color: string) {
-  if (isManeSelectTranscript(transcript.tag)) return config.canonicalColor ?? color;
+  if (isManeSelectTranscript(transcript.tag))
+    return config.canonicalColor ?? color;
   if (config.geneName && transcript.name.toLowerCase().includes(config.geneName.toLowerCase())) {
     return config.highlightColor ?? color;
   }

@@ -15,8 +15,8 @@ export async function fetchTrackData({
   try {
     const module = registry.get(track.type);
     const data = await module.fetch({ config: track.config, region });
-    return { data, status: "success" };
+    return { status: "success", data };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Unknown error", status: "error" };
+    return { status: "error", error: error instanceof Error ? error.message : "Unknown error" };
   }
 }
