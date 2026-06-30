@@ -1,7 +1,5 @@
-import { create } from "zustand";
-import type { StoreApi, UseBoundStore } from "zustand";
-import { createModuleRegistry } from "../../modules/registry";
-import type { ModuleRegistry } from "../../modules/registry";
+import { create, type StoreApi, type UseBoundStore } from "zustand";
+import { createModuleRegistry, type ModuleRegistry } from "../../modules/registry";
 import type {
   AnyTrackModule,
   TrackBase,
@@ -12,15 +10,15 @@ import type {
 
 type AnyTrackInstance = TrackInstance<any, any>;
 
-export interface TrackStoreOptions<Track extends AnyTrackInstance = AnyTrackInstance> {
+export type TrackStoreOptions<Track extends AnyTrackInstance = AnyTrackInstance> = {
   modules: AnyTrackModule[];
   tracks?: Track[];
-}
+};
 
 export type TrackConfigUpdate<Config> = Partial<Config>;
 export type TrackInteractionUpdate<Item> = Partial<TrackInteraction<Item>>;
 
-export interface TrackStore {
+export type TrackStore = {
   tracks: AnyTrackInstance[];
   order: string[];
   registry: ModuleRegistry;
@@ -35,7 +33,7 @@ export interface TrackStore {
     partial: TrackInteractionUpdate<Item>,
   ) => TrackMutationResult;
   getTrack: (id: string) => AnyTrackInstance | undefined;
-}
+};
 
 export type TrackStoreInstance = UseBoundStore<StoreApi<TrackStore>>;
 
@@ -47,6 +45,18 @@ export function createTrackStore<Track extends AnyTrackInstance = AnyTrackInstan
   assertUniqueTrackIds(initialTracks);
 
   return create<TrackStore>((set, get) => ({
+    tracks: initialTracks,
+    order: initialTracks.map(getTrackId),
+    registry,
+    setTracks: (tracks) => {
+      const result = getValidatedTracks(tracks, registry);
+      if (!result.ok) return result;
+      const duplicateResult = getUniqueTrackIdsResult(result.tracks);
+      if (!duplicateResult.ok) return duplicateResult;
+      const validatedTracks = result.tracks;
+      set({ tracks: validatedTracks, order: validatedTracks.map(getTrackId) });
+      return mutationOk;
+    },
     addTrack: (track, index) => {
       const result = getValidatedTrack(track, registry);
       if (!result.ok) return result;
@@ -60,9 +70,6 @@ export function createTrackStore<Track extends AnyTrackInstance = AnyTrackInstan
       set({ tracks, order: tracks.map(getTrackId) });
       return mutationOk;
     },
-    getTrack: (id) => get().tracks.find((track) => getTrackId(track) === id),
-    order: initialTracks.map(getTrackId),
-    registry,
     removeTrack: (id) => {
       if (!get().tracks.some((track) => getTrackId(track) === id)) {
         return mutationError(`No track found for id: ${id}`);
@@ -81,16 +88,6 @@ export function createTrackStore<Track extends AnyTrackInstance = AnyTrackInstan
       });
       return mutationOk;
     },
-    setTracks: (tracks) => {
-      const result = getValidatedTracks(tracks, registry);
-      if (!result.ok) return result;
-      const duplicateResult = getUniqueTrackIdsResult(result.tracks);
-      if (!duplicateResult.ok) return duplicateResult;
-      const validatedTracks = result.tracks;
-      set({ tracks: validatedTracks, order: validatedTracks.map(getTrackId) });
-      return mutationOk;
-    },
-    tracks: initialTracks,
     updateBase: (id, partial) => {
       const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
       if (!currentTrack) return mutationError(`No track found for id: ${id}`);
@@ -146,6 +143,7 @@ export function createTrackStore<Track extends AnyTrackInstance = AnyTrackInstan
       }));
       return mutationOk;
     },
+    getTrack: (id) => get().tracks.find((track) => getTrackId(track) === id),
   }));
 }
 
@@ -169,7 +167,7 @@ function validateTracks(tracks: AnyTrackInstance[], registry: ModuleRegistry): A
 const mutationOk = { ok: true } as const satisfies TrackMutationResult;
 
 function mutationError(error: string): TrackMutationResult {
-  return { error, ok: false };
+  return { ok: false, error };
 }
 
 function getErrorMessage(error: unknown) {
@@ -183,7 +181,7 @@ function getValidatedTrack(
   try {
     return { ok: true as const, track: validateTrack(track, registry) };
   } catch (error) {
-    return { error: getErrorMessage(error), ok: false };
+    return { ok: false, error: getErrorMessage(error) };
   }
 }
 
@@ -194,7 +192,7 @@ function getValidatedTracks(
   try {
     return { ok: true as const, tracks: validateTracks(tracks, registry) };
   } catch (error) {
-    return { error: getErrorMessage(error), ok: false };
+    return { ok: false, error: getErrorMessage(error) };
   }
 }
 
