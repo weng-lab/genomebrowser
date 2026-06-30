@@ -1,6 +1,17 @@
 {
+  "dependencies": {
+    "@mui/x-tree-view": "^8.18.0"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "oxfmt": "^0.57.0",
+    "oxlint": "^1.72.0",
+    "prettier": "3.6.2",
+    "react-doctor": "^0.5.6",
+    "typescript": "~5.7.3",
+    "ultracite": "7.8.3"
+  },
   "name": "@weng-lab/genomebrowser-monorepo",
-  "private": true,
   "scripts": {
     "build": "pnpm -r build",
     "build:core": "pnpm --filter @weng-lab/genomebrowser build",
@@ -16,15 +27,12 @@
     "version:core": "cd packages/core && pnpm version",
     "version:ui": "cd packages/ui && pnpm version",
     "lint": "pnpm -r lint",
-    "doctor": "npx react-doctor@latest"
+    "doctor": "npx react-doctor@latest",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "prepare": "husky"
   },
-  "devDependencies": {
-    "prettier": "3.6.2",
-    "react-doctor": "^0.5.6",
-    "typescript": "~5.7.3"
-  },
-  "dependencies": {
-    "@mui/x-tree-view": "^8.18.0"
-  },
+  "type": "module",
+  "private": true,
   "packageManager": "pnpm@10.33.1+sha512.05ba3c1d5d1c18f68df06470d74055e62d41fc110a0c660db1b2dfb2785327f04cf0f68345d4609bc52089e7fa0343c31593b2f9594e2c5d5da426230acc9820"
 }
