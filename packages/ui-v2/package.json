@@ -1,0 +1,44 @@
+{
+  "name": "@weng-lab/genomebrowser-ui-v2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "module": "dist/genomebrowser-ui-v2.es.js",
+  "types": "dist/src/lib.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/lib.d.ts",
+      "import": "./dist/genomebrowser-ui-v2.es.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "schema": "tsx scripts/writeTrackSelectJsonSchema.ts",
+    "schema:example": "tsx scripts/writeExampleTrackSelectJsonSchema.ts",
+    "build": "tsgo -b && vite build"
+  },
+  "dependencies": {
+    "@weng-lab/genomebrowser-v2": "workspace:*",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.0.0",
+    "@emotion/styled": "^11.0.0",
+    "@mui/material": "^7.0.0",
+    "@mui/x-data-grid-premium": "^8.0.0",
+    "@mui/x-license": "^8.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@typescript/native-preview": "7.0.0-dev.20260421.2",
+    "@vitejs/plugin-react": "^6.0.2",
+    "tsx": "^4.22.4",
+    "typescript": "npm:@typescript/typescript6@^6.0.1",
+    "vite": "^8.0.13",
+    "vite-plugin-dts": "^4.5.4"
+  }
+}

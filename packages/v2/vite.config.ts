@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     react(),
     dts({
-      entryRoot: ".",
+      entryRoot: "src",
       exclude: ["src/App.tsx", "src/main.tsx", "test"],
       tsconfigPath: "./tsconfig.app.json",
     }),

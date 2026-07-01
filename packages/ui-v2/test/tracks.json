@@ -1,0 +1,54 @@
+{
+  "$schema": "../schemas/trackSelectFolder.example.schema.json",
+  "id": "test-tracks",
+  "label": "Test Tracks",
+  "description": "Small test folder for Track Select JSON loading.",
+  "views": [
+    {
+      "id": "default",
+      "label": "Default",
+      "columns": [
+        {
+          "field": "trackType",
+          "label": "Track Type"
+        },
+        {
+          "field": "source",
+          "label": "Source"
+        }
+      ],
+      "grouping": ["trackType"],
+      "leaf": "title"
+    }
+  ],
+  "tracks": [
+    {
+      "type": "bigwig",
+      "config": {
+        "id": "dnase",
+        "title": "DNase aggregate",
+        "color": "#1B2021",
+        "height": 50,
+        "url": "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw"
+      },
+      "metadata": {
+        "trackType": "BigWig",
+        "source": "ENCODE"
+      }
+    },
+    {
+      "type": "bigbed",
+      "config": {
+        "id": "example-bigbed",
+        "title": "Example BigBed",
+        "color": "#4b9560",
+        "height": 60,
+        "url": "YOUR_URL_HERE"
+      },
+      "metadata": {
+        "trackType": "BigBed",
+        "source": "Example"
+      }
+    }
+  ]
+}

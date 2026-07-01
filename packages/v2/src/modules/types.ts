@@ -63,6 +63,7 @@ export type TrackModule<Config, Data, Item = unknown> = {
   type: string;
   displays: string[];
   configSchema: z.ZodType<Config>;
+  createInputSchema: z.ZodType<unknown>;
   create(input: unknown): TrackInstance<Config, Item>;
   validate(instance: unknown): TrackInstance<Config, Item>;
   fetch: TrackFetch<Config, Data>;
