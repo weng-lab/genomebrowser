@@ -4,7 +4,15 @@ For package specific scripts, refer to it's package.json file. (build, dev etc.)
 
 ## Refer to Docs
 
-ALWAYS refer to docs/${PACKAGE} for up to date ADRs and documentation about said package.
+Root `docs/` contains maintainer documentation: ADRs, design notes, style guidance, implementation concepts, and other contributor-facing material.
+
+Package-level `packages/*/docs/` contains user-facing documentation that ships with packages and must be readable from `node_modules`.
+
+For v2 work, use `docs/v2` and `docs/ui` for maintainer docs, and `packages/v2/docs` or `packages/ui-v2/docs` for shipped package-user docs. Do not add shipped docs for deprecated legacy packages unless explicitly requested.
+
+Package docs must be self-contained. Do not link upward from `packages/*/docs/` into root `docs/`, because those links break from installed packages.
+
+ALWAYS refer to the relevant root maintainer docs and ADRs before changing package behavior.
 
 ## ADRs are the source of truth
 

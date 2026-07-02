@@ -2,13 +2,13 @@
 
 `@weng-lab/genomebrowser-v2` is the active v2 workspace for the genome browser.
 
-This package is still being shaped. Keep the README focused on the package itself and put maintainer notes in `docs/`.
+This package is still being shaped. Keep the README focused on the package itself and put maintainer notes in the repository root `docs/` folder.
 
 ## Docs
 
-- [Concepts](../../docs/v2/concepts.md)
-- [Tracks and track modules](../../docs/v2/tracks.md)
-- [Schema validation](../../docs/v2/validation.md)
+User-facing package docs live in [`./docs`](./docs/) and are intended to ship with the package.
+
+Maintainer docs, design notes, and ADRs live in the repository root `docs/` folder and are not shipped with this package.
 
 ## Scripts
 

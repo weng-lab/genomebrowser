@@ -2,6 +2,10 @@
   "name": "@weng-lab/genomebrowser-ui-v2",
   "version": "0.0.0",
   "private": true,
+  "files": [
+    "dist",
+    "docs"
+  ],
   "type": "module",
   "module": "dist/genomebrowser-ui-v2.es.js",
   "types": "dist/src/lib.d.ts",
