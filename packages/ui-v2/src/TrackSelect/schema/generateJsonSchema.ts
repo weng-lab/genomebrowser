@@ -15,8 +15,6 @@ export function generateTrackSelectFolderJsonSchema(
   return z.toJSONSchema(schema, { io: "input" });
 }
 
-export const genereteSchema = generateTrackSelectFolderJsonSchema;
-
 function createTrackEntrySchema(modules: TrackSelectSchemaModule[]) {
   if (modules.length === 0) {
     throw new Error(

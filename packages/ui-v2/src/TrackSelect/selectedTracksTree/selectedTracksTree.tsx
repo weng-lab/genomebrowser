@@ -5,7 +5,9 @@ import Typography from "@mui/material/Typography";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { useMemo } from "react";
 import type { SelectedByFolder } from "../catalog/catalogSelection";
+import { getActiveView } from "../catalog/catalogViews";
 import type { TrackSelectFolder } from "../schema/folderSchema";
+import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { buildSelectedTree } from "./buildSelectedTree";
 import { SelectedTreeItem } from "./selectedTreeItem";
 
@@ -28,9 +30,7 @@ export function SelectedTracksTree({
     () =>
       folders.flatMap((folder) => {
         const selectedIds = selectedByFolder.get(folder.id) ?? new Set<string>();
-        const view =
-          folder.views.find((candidate) => candidate.id === activeViewIdByFolder.get(folder.id)) ??
-          folder.views[0];
+        const view = getActiveView(folder, activeViewIdByFolder);
         const tree = buildSelectedTree({ folder, view, selectedIds });
         return tree ? [tree] : [];
       }),
@@ -39,7 +39,7 @@ export function SelectedTracksTree({
   return (
     <Paper
       sx={{
-        height: 500,
+        height: trackSelectPanelHeight,
         width: "100%",
         border: "10px solid",
         borderColor: "grey.200",

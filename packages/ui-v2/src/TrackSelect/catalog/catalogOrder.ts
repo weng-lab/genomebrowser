@@ -1,5 +1,6 @@
 import { getCatalogRows, type CatalogGridRow } from "./catalogRows";
 import type { TrackSelectFolder, TrackSelectView } from "../schema/folderSchema";
+import { groupRowsByField } from "./catalogGrouping";
 
 export function getOrderedSelectedRows(
   folder: TrackSelectFolder,
@@ -22,25 +23,9 @@ function flattenGroup(
 ): CatalogGridRow[] {
   if (depth >= grouping.length) return rows;
 
-  const field = grouping[depth];
-  const groupedRows = new Map<string, CatalogGridRow[]>();
-
-  for (const row of rows) {
-    const value = formatGroupValue(row[field], row.id);
-    const group = groupedRows.get(value);
-    if (group) {
-      group.push(row);
-    } else {
-      groupedRows.set(value, [row]);
-    }
-  }
+  const groupedRows = groupRowsByField(rows, grouping[depth], (row) => row.id);
 
   return Array.from(groupedRows.values()).flatMap((group) =>
     flattenGroup(group, grouping, depth + 1),
   );
-}
-
-function formatGroupValue(value: unknown, fallback: string) {
-  if (value === null || value === undefined || value === "") return fallback;
-  return String(value);
 }

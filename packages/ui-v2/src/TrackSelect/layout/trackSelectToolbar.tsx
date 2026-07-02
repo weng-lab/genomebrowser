@@ -2,28 +2,14 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
-import type { TrackSelectFolder, TrackSelectView } from "../schema/folderSchema";
-import type { TrackSelectScreen } from "../types";
+import { useTrackSelect } from "../session/trackSelectContext";
 
-type TrackSelectToolbarProps = {
-  folders: TrackSelectFolder[];
-  screen: TrackSelectScreen;
-  activeFolder: TrackSelectFolder | undefined;
-  activeView: TrackSelectView | undefined;
-  onBackToFolders: () => void;
-  onViewSelect: (viewId: string) => void;
-};
+export function TrackSelectToolbar() {
+  const { state, actions } = useTrackSelect();
+  const { folders, screen, activeFolder, activeView } = state;
 
-export function TrackSelectToolbar({
-  folders,
-  screen,
-  activeFolder,
-  activeView,
-  onBackToFolders,
-  onViewSelect,
-}: TrackSelectToolbarProps) {
   function handleViewChange(event: SelectChangeEvent) {
-    onViewSelect(event.target.value);
+    actions.selectView(event.target.value);
   }
 
   return (
@@ -34,7 +20,7 @@ export function TrackSelectToolbar({
       sx={{ mb: 2 }}
     >
       {screen === "folder-detail" && folders.length > 1 ? (
-        <Button size="small" onClick={onBackToFolders}>
+        <Button size="small" onClick={actions.backToFolders}>
           Back to Folders
         </Button>
       ) : (

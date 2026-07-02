@@ -38,6 +38,7 @@ function TreeItemLabel({
     <Box sx={{ display: "flex", alignItems: "center", minWidth: 0, gap: 1 }}>
       {removable ? (
         <IconButton
+          aria-label={`Remove ${node.label}`}
           size="small"
           onClick={(event) => {
             event.stopPropagation();

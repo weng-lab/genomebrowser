@@ -1,9 +1,6 @@
 import type { TrackSelectFolder } from "../schema/folderSchema";
 import { getCatalogTrackId } from "./catalogRows";
-
-type StoreTrack = {
-  base: { id: string };
-};
+import type { CatalogStoreTrack } from "./catalogTypes";
 
 export type SelectedByFolder = Map<string, Set<string>>;
 
@@ -13,7 +10,7 @@ function createEmptySelection(folders: TrackSelectFolder[]) {
 
 export function createSelectionFromTracks(
   folders: TrackSelectFolder[],
-  tracks: StoreTrack[],
+  tracks: CatalogStoreTrack[],
 ) {
   const selectedByFolder = createEmptySelection(folders);
   const storeTrackIds = new Set(tracks.map((track) => track.base.id));

@@ -1,6 +1,5 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
 import {
   DataGridPremium,
   type GridColDef,
@@ -12,6 +11,8 @@ import {
   getCatalogTrackIds,
   type CatalogGridRow,
 } from "../catalog/catalogRows";
+import { trackSelectPanelHeight } from "../trackSelectConstants";
+import { TrackSelectEmptyPanel } from "../trackSelectEmptyPanel";
 import type {
   TrackSelectColumn,
   TrackSelectFolder,
@@ -21,6 +22,13 @@ import type {
 type CatalogGridProps = {
   folder: TrackSelectFolder | undefined;
   view: TrackSelectView | undefined;
+  selectedIds: Set<string>;
+  onSelectionChange: (selectedIds: Set<string>) => void;
+};
+
+type CatalogDataGridProps = {
+  folder: TrackSelectFolder;
+  view: TrackSelectView;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
 };
@@ -38,13 +46,7 @@ export function CatalogGrid({
   onSelectionChange,
 }: CatalogGridProps) {
   if (!folder || !view) {
-    return (
-      <Paper variant="outlined" sx={{ height: 500, borderWidth: 2 }}>
-        <Typography color="text.secondary" sx={{ p: 3 }}>
-          No folder selected.
-        </Typography>
-      </Paper>
-    );
+    return <TrackSelectEmptyPanel>No folder selected.</TrackSelectEmptyPanel>;
   }
 
   return (
@@ -72,7 +74,9 @@ function CatalogDataGrid({
 
   return (
     <Paper sx={{ width: "100%" }}>
-      <Box sx={{ height: 500, width: "100%", overflow: "auto" }}>
+      <Box
+        sx={{ height: trackSelectPanelHeight, width: "100%", overflow: "auto" }}
+      >
         <DataGridPremium
           rows={rows}
           columns={columns}
@@ -88,7 +92,10 @@ function CatalogDataGrid({
           columnVisibilityModel={columnVisibilityModel}
           onColumnVisibilityModelChange={setColumnVisibilityModel}
           onRowSelectionModelChange={(selection) => {
-            const emittedIds = (selection as { ids?: Set<unknown> }).ids ?? new Set();
+            // MUI exposes the selected IDs as a Set, but the generic event type
+            // does not preserve that shape here.
+            const emittedIds =
+              (selection as { ids?: Set<unknown> }).ids ?? new Set();
             const nextSelectedIds = new Set<string>();
             for (const id of emittedIds) {
               if (typeof id === "string" && validLeafIds.has(id)) {
@@ -112,13 +119,6 @@ function CatalogDataGrid({
     </Paper>
   );
 }
-
-type CatalogDataGridProps = {
-  folder: TrackSelectFolder;
-  view: TrackSelectView;
-  selectedIds: Set<string>;
-  onSelectionChange: (selectedIds: Set<string>) => void;
-};
 
 function getRowId(row: CatalogGridRow) {
   return row.id;

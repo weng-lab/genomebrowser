@@ -5,6 +5,7 @@ export type CatalogGridRow = {
   title: string;
   type: string;
   track: TrackSelectTrack;
+  // Metadata defines dynamic grid columns, so rows need a string index signature.
   [field: string]: unknown;
 };
 
@@ -14,6 +15,7 @@ export function getCatalogTrackId(folderId: string, trackId: string) {
 
 export function getCatalogRows(folder: Pick<TrackSelectFolder, "id" | "tracks">) {
   return folder.tracks.map((track): CatalogGridRow => ({
+    // Keep metadata first so reserved catalog fields below cannot be clobbered.
     ...track.metadata,
     id: getCatalogTrackId(folder.id, track.config.id),
     title: track.config.title,

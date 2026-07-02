@@ -3,35 +3,22 @@ import Stack from "@mui/material/Stack";
 import type { SelectedByFolder } from "../catalog/catalogSelection";
 import { CatalogGrid } from "../catalogGrid/catalogGrid";
 import { FolderList } from "../folderList/folderList";
-import type { TrackSelectFolder, TrackSelectView } from "../schema/folderSchema";
+import type { TrackSelectFolder } from "../schema/folderSchema";
 import { SelectedTracksTree } from "../selectedTracksTree/selectedTracksTree";
-import type { TrackSelectScreen } from "../types";
+import { useTrackSelect } from "../session/trackSelectContext";
 
-type TrackSelectBodyProps = {
-  folders: TrackSelectFolder[];
-  screen: TrackSelectScreen;
-  activeFolder: TrackSelectFolder | undefined;
-  activeView: TrackSelectView | undefined;
-  activeViewIdByFolder: Map<string, string>;
-  selectedByFolder: SelectedByFolder;
-  selectedTrackCount: number;
-  onFolderSelect: (folderId: string) => void;
-  onActiveFolderSelectionChange: (selectedIds: Set<string>) => void;
-  onRemoveTrackIds: (trackIds: string[]) => void;
-};
+export function TrackSelectBody() {
+  const { state, actions } = useTrackSelect();
+  const {
+    folders,
+    screen,
+    activeFolder,
+    activeView,
+    activeViewIdByFolder,
+    selectedByFolder,
+    selectedTrackCount,
+  } = state;
 
-export function TrackSelectBody({
-  folders,
-  screen,
-  activeFolder,
-  activeView,
-  activeViewIdByFolder,
-  selectedByFolder,
-  selectedTrackCount,
-  onFolderSelect,
-  onActiveFolderSelectionChange,
-  onRemoveTrackIds,
-}: TrackSelectBodyProps) {
   return (
     <Stack
       direction={{ xs: "column", md: "row" }}
@@ -46,13 +33,16 @@ export function TrackSelectBody({
         }}
       >
         {screen === "folder-list" ? (
-          <FolderList folders={folders} onFolderSelect={onFolderSelect} />
+          <FolderList folders={folders} onFolderSelect={actions.selectFolder} />
         ) : (
           <CatalogGrid
             folder={activeFolder}
             view={activeView}
-            selectedIds={getActiveFolderSelection(activeFolder, selectedByFolder)}
-            onSelectionChange={onActiveFolderSelectionChange}
+            selectedIds={getActiveFolderSelection(
+              activeFolder,
+              selectedByFolder,
+            )}
+            onSelectionChange={actions.selectActiveFolderTracks}
           />
         )}
       </Box>
@@ -68,7 +58,7 @@ export function TrackSelectBody({
           selectedByFolder={selectedByFolder}
           activeViewIdByFolder={activeViewIdByFolder}
           selectedCount={selectedTrackCount}
-          onRemoveTrackIds={onRemoveTrackIds}
+          onRemoveTrackIds={actions.removeSelectedTrackIds}
         />
       </Box>
     </Stack>

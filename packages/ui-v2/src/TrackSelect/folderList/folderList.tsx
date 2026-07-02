@@ -1,7 +1,8 @@
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
 import type { TrackSelectFolder } from "../schema/folderSchema";
+import { trackSelectPanelHeight } from "../trackSelectConstants";
+import { TrackSelectEmptyPanel } from "../trackSelectEmptyPanel";
 import { FolderCard } from "./folderCard";
 
 type FolderListProps = {
@@ -11,19 +12,17 @@ type FolderListProps = {
 
 export function FolderList({ folders, onFolderSelect }: FolderListProps) {
   if (folders.length === 0) {
-    return (
-      <Paper variant="outlined" sx={{ height: 500, borderWidth: 2 }}>
-        <Typography color="text.secondary" sx={{ p: 3 }}>
-          No folders available
-        </Typography>
-      </Paper>
-    );
+    return <TrackSelectEmptyPanel>No folders available</TrackSelectEmptyPanel>;
   }
 
   return (
     <Paper
       variant="outlined"
-      sx={{ height: 500, overflow: "auto", borderWidth: 2 }}
+      sx={{
+        height: trackSelectPanelHeight,
+        overflow: "auto",
+        borderWidth: 2,
+      }}
     >
       <Stack spacing={2} sx={{ p: 2 }}>
         {folders.map((folder) => (

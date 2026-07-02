@@ -1,4 +1,8 @@
 import { getOrderedSelectedRows } from "../catalog/catalogOrder";
+import {
+  formatCatalogValue,
+  groupRowsByField,
+} from "../catalog/catalogGrouping";
 import type { TrackSelectFolder, TrackSelectView } from "../schema/folderSchema";
 
 export type SelectedTreeNode = {
@@ -59,42 +63,31 @@ function buildGroupNodes({
   if (depth >= grouping.length) {
     return rows.map((row) => ({
       id: `${folderId}::leaf::${row.id}`,
-      label: formatLabel(row[leafField], row.title),
+      label: formatCatalogValue(row[leafField], row.title),
       kind: "leaf",
       trackIds: [row.id],
     }));
   }
 
   const field = grouping[depth];
-  const groupedRows = new Map<string, SelectedTreeRow[]>();
+  const groupedRows = groupRowsByField(rows, field, (row) => row.id);
 
-  for (const row of rows) {
-    const value = formatLabel(row[field], row.id);
-    const group = groupedRows.get(value);
-    if (group) {
-      group.push(row);
-    } else {
-      groupedRows.set(value, [row]);
-    }
-  }
+  return Array.from(groupedRows, ([value, groupRows]) => {
+    const nextPath = [...path, `${field}=${encodeURIComponent(value)}`];
 
-  return Array.from(groupedRows, ([value, groupRows]) => ({
-    id: `${folderId}::group::${[...path, `${field}=${encodeURIComponent(value)}`].join("::")}`,
-    label: value,
-    kind: "group" as const,
-    trackIds: groupRows.map((row) => row.id),
-    children: buildGroupNodes({
-      rows: groupRows,
-      grouping,
-      leafField,
-      folderId,
-      depth: depth + 1,
-      path: [...path, `${field}=${encodeURIComponent(value)}`],
-    }),
-  }));
-}
-
-function formatLabel(value: unknown, fallback: string) {
-  if (value === null || value === undefined || value === "") return fallback;
-  return String(value);
+    return {
+      id: `${folderId}::group::${nextPath.join("::")}`,
+      label: value,
+      kind: "group" as const,
+      trackIds: groupRows.map((row) => row.id),
+      children: buildGroupNodes({
+        rows: groupRows,
+        grouping,
+        leafField,
+        folderId,
+        depth: depth + 1,
+        path: nextPath,
+      }),
+    };
+  });
 }

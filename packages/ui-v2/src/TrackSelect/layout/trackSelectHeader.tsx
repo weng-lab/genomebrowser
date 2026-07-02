@@ -21,6 +21,7 @@ export function TrackSelectHeader({ title, onClose }: TrackSelectHeaderProps) {
     >
       {title}
       <IconButton
+        aria-label="Close track select"
         size="large"
         onClick={onClose}
         sx={{ color: "primary.contrastText", p: 0 }}

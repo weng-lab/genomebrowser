@@ -1,11 +1,12 @@
-import type { TrackSelectFolder, TrackSelectTrack } from "../schema/folderSchema";
+import type {
+  TrackSelectFolder,
+  TrackSelectTrack,
+} from "../schema/folderSchema";
 import type { SelectedByFolder } from "./catalogSelection";
 import { getCatalogTrackById } from "./catalogRows";
 import { getOrderedSelectedRows } from "./catalogOrder";
-
-type StoreTrack = {
-  base: { id: string };
-};
+import type { CatalogStoreTrack } from "./catalogTypes";
+import { getActiveView } from "./catalogViews";
 
 export function getSelectionDiff({
   folders,
@@ -14,7 +15,7 @@ export function getSelectionDiff({
   activeViewIdByFolder,
 }: {
   folders: TrackSelectFolder[];
-  tracks: StoreTrack[];
+  tracks: CatalogStoreTrack[];
   selectedByFolder: SelectedByFolder;
   activeViewIdByFolder: Map<string, string>;
 }) {
@@ -32,9 +33,7 @@ export function getSelectionDiff({
     const selectedIds = selectedByFolder.get(folder.id) ?? new Set<string>();
     for (const id of selectedIds) nextSelectedIds.add(id);
 
-    const activeView =
-      folder.views.find((view) => view.id === activeViewIdByFolder.get(folder.id)) ??
-      folder.views[0];
+    const activeView = getActiveView(folder, activeViewIdByFolder);
     for (const row of getOrderedSelectedRows(folder, activeView, selectedIds)) {
       if (currentCatalogTrackIds.has(row.id)) continue;
       tracksToAdd.push({ id: row.id, track: row.track });
