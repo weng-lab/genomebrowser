@@ -18,10 +18,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsgo -b && vite build",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "format": "oxfmt",
-    "format:check": "oxfmt --check",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check",
     "test": "vitest run",
     "preview": "vite preview"
   },
@@ -37,8 +37,6 @@
     "@types/react-dom": "^19.2.3",
     "@typescript/native-preview": "7.0.0-dev.20260421.2",
     "@vitejs/plugin-react": "^6.0.2",
-    "oxfmt": "^0.50.0",
-    "oxlint": "^1.65.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "typescript": "npm:@typescript/typescript6@^6.0.1",

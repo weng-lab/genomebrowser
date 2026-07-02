@@ -20,6 +20,8 @@
     "doctor": "npx react-doctor@latest"
   },
   "devDependencies": {
+    "oxfmt": "^0.50.0",
+    "oxlint": "^1.65.0",
     "prettier": "3.6.2",
     "react-doctor": "^0.5.6",
     "typescript": "~5.7.3"

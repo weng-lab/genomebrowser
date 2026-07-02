@@ -18,6 +18,12 @@ importers:
         specifier: ^8.18.0
         version: 8.22.0(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6))(@types/react@19.2.14)(react@19.2.6))(@mui/material@7.3.6(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6))(@types/react@19.2.14)(react@19.2.6))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@mui/system@7.3.6(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6))(@types/react@19.2.14)(react@19.2.6))(@types/react@19.2.14)(react@19.2.6))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
     devDependencies:
+      oxfmt:
+        specifier: ^0.50.0
+        version: 0.50.0
+      oxlint:
+        specifier: ^1.65.0
+        version: 1.66.0
       prettier:
         specifier: 3.6.2
         version: 3.6.2
@@ -319,12 +325,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.0.2
         version: 6.0.2(vite@8.0.13(@types/node@24.10.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
-      oxfmt:
-        specifier: ^0.50.0
-        version: 0.50.0
-      oxlint:
-        specifier: ^1.65.0
-        version: 1.66.0
       react:
         specifier: ^19.2.6
         version: 19.2.6
