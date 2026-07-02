@@ -1,0 +1,171 @@
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import {
+  DataGridPremium,
+  type GridColDef,
+  type GridColumnVisibilityModel,
+} from "@mui/x-data-grid-premium";
+import { useMemo, useState } from "react";
+import {
+  getCatalogRows,
+  getCatalogTrackIds,
+  type CatalogGridRow,
+} from "../catalog/catalogRows";
+import type {
+  TrackSelectColumn,
+  TrackSelectFolder,
+  TrackSelectView,
+} from "../schema/folderSchema";
+
+type CatalogGridProps = {
+  folder: TrackSelectFolder | undefined;
+  view: TrackSelectView | undefined;
+  selectedIds: Set<string>;
+  onSelectionChange: (selectedIds: Set<string>) => void;
+};
+
+const builtInLabels: Record<string, string> = {
+  id: "ID",
+  title: "Title",
+  type: "Type",
+};
+
+export function CatalogGrid({
+  folder,
+  view,
+  selectedIds,
+  onSelectionChange,
+}: CatalogGridProps) {
+  if (!folder || !view) {
+    return (
+      <Paper variant="outlined" sx={{ height: 500, borderWidth: 2 }}>
+        <Typography color="text.secondary" sx={{ p: 3 }}>
+          No folder selected.
+        </Typography>
+      </Paper>
+    );
+  }
+
+  return (
+    <CatalogDataGrid
+      key={`${folder.id}:${view.id}`}
+      folder={folder}
+      view={view}
+      selectedIds={selectedIds}
+      onSelectionChange={onSelectionChange}
+    />
+  );
+}
+
+function CatalogDataGrid({
+  folder,
+  view,
+  selectedIds,
+  onSelectionChange,
+}: CatalogDataGridProps) {
+  const rows = useMemo(() => getCatalogRows(folder), [folder]);
+  const validLeafIds = useMemo(() => getCatalogTrackIds(folder), [folder]);
+  const columns = useMemo(() => getColumns(view), [view]);
+  const [columnVisibilityModel, setColumnVisibilityModel] =
+    useState<GridColumnVisibilityModel>(() => getColumnVisibilityModel(view));
+
+  return (
+    <Paper sx={{ width: "100%" }}>
+      <Box sx={{ height: 500, width: "100%", overflow: "auto" }}>
+        <DataGridPremium
+          rows={rows}
+          columns={columns}
+          getRowId={getRowId}
+          rowGroupingModel={view.grouping}
+          groupingColDef={{
+            leafField: view.leaf,
+            display: "flex",
+            minWidth: 300,
+            maxWidth: 500,
+            flex: 2,
+          }}
+          columnVisibilityModel={columnVisibilityModel}
+          onColumnVisibilityModelChange={setColumnVisibilityModel}
+          onRowSelectionModelChange={(selection) => {
+            const emittedIds = (selection as { ids?: Set<unknown> }).ids ?? new Set();
+            const nextSelectedIds = new Set<string>();
+            for (const id of emittedIds) {
+              if (typeof id === "string" && validLeafIds.has(id)) {
+                nextSelectedIds.add(id);
+              }
+            }
+            onSelectionChange(nextSelectedIds);
+          }}
+          rowSelectionModel={{ type: "include", ids: selectedIds }}
+          rowSelectionPropagation={{ descendants: true, parents: false }}
+          keepNonExistentRowsSelected
+          showToolbar
+          checkboxSelection
+          disableAggregation
+          disablePivoting
+          disableRowSelectionExcludeModel
+          hideFooterSelectedRowCount
+          pagination
+        />
+      </Box>
+    </Paper>
+  );
+}
+
+type CatalogDataGridProps = {
+  folder: TrackSelectFolder;
+  view: TrackSelectView;
+  selectedIds: Set<string>;
+  onSelectionChange: (selectedIds: Set<string>) => void;
+};
+
+function getRowId(row: CatalogGridRow) {
+  return row.id;
+}
+
+function getColumns(view: TrackSelectView): GridColDef<CatalogGridRow>[] {
+  const viewColumnsByField = new Map(
+    view.columns.map((column) => [column.field, column]),
+  );
+  return getViewFields(view).map((field) =>
+    getColumn(field, viewColumnsByField.get(field)),
+  );
+}
+
+function getColumn(
+  field: string,
+  column: TrackSelectColumn | undefined,
+): GridColDef<CatalogGridRow> {
+  return {
+    field,
+    headerName: column?.label ?? builtInLabels[field] ?? field,
+    description: column?.description,
+    width: column?.width,
+    flex: column?.width ? undefined : 1,
+    minWidth: 120,
+  };
+}
+
+function getColumnVisibilityModel(view: TrackSelectView) {
+  const visibility: GridColumnVisibilityModel = { id: false };
+
+  for (const column of view.columns) {
+    if (column.hidden) visibility[column.field] = false;
+  }
+  for (const field of view.grouping) visibility[field] = false;
+  if (view.grouping.length > 0) visibility[view.leaf] = false;
+
+  return visibility;
+}
+
+function getViewFields(view: TrackSelectView) {
+  return [
+    ...new Set([
+      "id",
+      ...view.columns.map((column) => column.field),
+      ...view.grouping,
+      view.leaf,
+    ]),
+  ];
+}

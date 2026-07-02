@@ -17,7 +17,7 @@ const trackCreateInputSchema = z
   })
   .catchall(z.unknown());
 
-export const TrackSelectColumnSchema = z.strictObject({
+const TrackSelectColumnSchema = z.strictObject({
   field: z.string().min(1),
   label: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
@@ -25,7 +25,7 @@ export const TrackSelectColumnSchema = z.strictObject({
   hidden: z.boolean().optional(),
 });
 
-export const TrackSelectViewSchema = z.strictObject({
+const TrackSelectViewSchema = z.strictObject({
   id: z.string().min(1),
   label: z.string().min(1),
   description: z.string().min(1).optional(),
@@ -34,7 +34,7 @@ export const TrackSelectViewSchema = z.strictObject({
   leaf: z.string().min(1).default("title"),
 });
 
-export const TrackSelectTrackSchema = z.strictObject({
+const TrackSelectTrackSchema = z.strictObject({
   type: z.string().min(1),
   config: trackCreateInputSchema,
   metadata: z.record(z.string(), TrackSelectMetadataValueSchema).default({}),
@@ -48,8 +48,6 @@ export const TrackSelectFolderSchema = z.strictObject({
   views: z.array(TrackSelectViewSchema).min(1),
   tracks: z.array(TrackSelectTrackSchema),
 });
-
-export const TrackSelectFoldersSchema = z.array(TrackSelectFolderSchema);
 
 export type TrackSelectColumn = z.infer<typeof TrackSelectColumnSchema>;
 export type TrackSelectView = z.infer<typeof TrackSelectViewSchema>;

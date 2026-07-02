@@ -5,13 +5,17 @@ import {
 } from "./folderSchema";
 import type { TrackSelectSchemaModule } from "./modules";
 
-export function generateTrackSelectFolderJsonSchema(modules: TrackSelectSchemaModule[]) {
+export function generateTrackSelectFolderJsonSchema(
+  modules: TrackSelectSchemaModule[],
+) {
   const schema = TrackSelectFolderSchema.extend({
     tracks: z.array(createTrackEntrySchema(modules)),
   });
 
   return z.toJSONSchema(schema, { io: "input" });
 }
+
+export const genereteSchema = generateTrackSelectFolderJsonSchema;
 
 function createTrackEntrySchema(modules: TrackSelectSchemaModule[]) {
   if (modules.length === 0) {

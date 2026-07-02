@@ -13,8 +13,6 @@
   },
   "scripts": {
     "dev": "vite",
-    "schema": "tsx scripts/writeTrackSelectJsonSchema.ts",
-    "schema:example": "tsx scripts/writeExampleTrackSelectJsonSchema.ts",
     "build": "tsgo -b && vite build"
   },
   "dependencies": {
@@ -24,9 +22,11 @@
   "peerDependencies": {
     "@emotion/react": "^11.0.0",
     "@emotion/styled": "^11.0.0",
+    "@mui/icons-material": "^7.0.0",
     "@mui/material": "^7.0.0",
     "@mui/x-data-grid-premium": "^8.0.0",
     "@mui/x-license": "^8.0.0",
+    "@mui/x-tree-view": "^8.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

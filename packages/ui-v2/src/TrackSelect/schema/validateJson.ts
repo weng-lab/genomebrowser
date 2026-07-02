@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   TrackSelectFolderSchema,
-  TrackSelectFoldersSchema,
   type TrackSelectFolder,
   type TrackSelectView,
 } from "./folderSchema";
@@ -18,24 +17,12 @@ function formatZodError(error: z.ZodError) {
     .join("; ");
 }
 
-export function parseTrackSelectFolder(input: unknown): TrackSelectFolder {
+function parseTrackSelectFolder(input: unknown): TrackSelectFolder {
   const result = TrackSelectFolderSchema.safeParse(input);
 
   if (!result.success) {
     throw new Error(
       `TrackSelect folder is invalid: ${formatZodError(result.error)}`,
-    );
-  }
-
-  return result.data;
-}
-
-export function parseTrackSelectFolders(input: unknown): TrackSelectFolder[] {
-  const result = TrackSelectFoldersSchema.safeParse(input);
-
-  if (!result.success) {
-    throw new Error(
-      `TrackSelect folders are invalid: ${formatZodError(result.error)}`,
     );
   }
 
