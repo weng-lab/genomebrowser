@@ -2,7 +2,7 @@
   "$schema": "./schema.json",
   "id": "test-tracks",
   "label": "Test Tracks",
-  "description": "Small test folder for Track Select JSON loading.",
+  "description": "Small test catalog for Track Select JSON loading.",
   "views": [
     {
       "id": "default",

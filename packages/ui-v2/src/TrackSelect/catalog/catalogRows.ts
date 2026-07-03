@@ -1,4 +1,4 @@
-import type { TrackSelectFolder, TrackSelectTrack } from "../schema/folderSchema";
+import type { TrackSelectCatalog, TrackSelectTrack } from "../schema/catalogSchema";
 
 export type CatalogGridRow = {
   id: string;
@@ -9,51 +9,51 @@ export type CatalogGridRow = {
   [field: string]: unknown;
 };
 
-export function getCatalogTrackId(folderId: string, trackId: string) {
-  return `${folderId}::${trackId}`;
+export function getCatalogTrackId(catalogId: string, trackId: string) {
+  return `${catalogId}::${trackId}`;
 }
 
-export function getCatalogRows(folder: Pick<TrackSelectFolder, "id" | "tracks">) {
-  return folder.tracks.map((track): CatalogGridRow => ({
-    // Keep metadata first so reserved catalog fields below cannot be clobbered.
-    ...track.metadata,
-    id: getCatalogTrackId(folder.id, track.config.id),
-    title: track.config.title,
-    type: track.type,
-    track,
-  }));
-}
-
-export function getCatalogTrackIds(folder: Pick<TrackSelectFolder, "id" | "tracks">) {
-  return new Set(
-    folder.tracks.map((track) => getCatalogTrackId(folder.id, track.config.id)),
+export function getCatalogRows(catalog: Pick<TrackSelectCatalog, "id" | "tracks">) {
+  return catalog.tracks.map(
+    (track): CatalogGridRow => ({
+      // Keep metadata first so reserved catalog fields below cannot be clobbered.
+      ...track.metadata,
+      id: getCatalogTrackId(catalog.id, track.config.id),
+      title: track.config.title,
+      type: track.type,
+      track,
+    }),
   );
 }
 
-export function getCatalogTrackById(folders: TrackSelectFolder[]) {
+export function getCatalogTrackIds(catalog: Pick<TrackSelectCatalog, "id" | "tracks">) {
+  return new Set(catalog.tracks.map((track) => getCatalogTrackId(catalog.id, track.config.id)));
+}
+
+export function getCatalogTrackById(trackCatalogs: TrackSelectCatalog[]) {
   const tracksById = new Map<string, TrackSelectTrack>();
 
-  for (const folder of folders) {
-    for (const track of folder.tracks) {
-      tracksById.set(getCatalogTrackId(folder.id, track.config.id), track);
+  for (const catalog of trackCatalogs) {
+    for (const track of catalog.tracks) {
+      tracksById.set(getCatalogTrackId(catalog.id, track.config.id), track);
     }
   }
 
   return tracksById;
 }
 
-export function assertUniqueCatalogTrackIds(folders: TrackSelectFolder[]) {
-  const folderIds = new Set<string>();
+export function assertUniqueCatalogTrackIds(trackCatalogs: TrackSelectCatalog[]) {
+  const catalogIds = new Set<string>();
   const seen = new Set<string>();
 
-  for (const folder of folders) {
-    if (folderIds.has(folder.id)) {
-      throw new Error(`Duplicate catalog folder id: ${folder.id}`);
+  for (const catalog of trackCatalogs) {
+    if (catalogIds.has(catalog.id)) {
+      throw new Error(`Duplicate track catalog id: ${catalog.id}`);
     }
-    folderIds.add(folder.id);
+    catalogIds.add(catalog.id);
 
-    for (const track of folder.tracks) {
-      const id = getCatalogTrackId(folder.id, track.config.id);
+    for (const track of catalog.tracks) {
+      const id = getCatalogTrackId(catalog.id, track.config.id);
       if (seen.has(id)) throw new Error(`Duplicate catalog track id: ${id}`);
       seen.add(id);
     }

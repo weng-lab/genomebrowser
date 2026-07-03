@@ -6,28 +6,24 @@ import {
   type GridColumnVisibilityModel,
 } from "@mui/x-data-grid-premium";
 import { useMemo, useState } from "react";
-import {
-  getCatalogRows,
-  getCatalogTrackIds,
-  type CatalogGridRow,
-} from "../catalog/catalogRows";
+import { getCatalogRows, getCatalogTrackIds, type CatalogGridRow } from "../catalog/catalogRows";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { TrackSelectEmptyPanel } from "../trackSelectEmptyPanel";
 import type {
   TrackSelectColumn,
-  TrackSelectFolder,
+  TrackSelectCatalog,
   TrackSelectView,
-} from "../schema/folderSchema";
+} from "../schema/catalogSchema";
 
 type CatalogGridProps = {
-  folder: TrackSelectFolder | undefined;
+  catalog: TrackSelectCatalog | undefined;
   view: TrackSelectView | undefined;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
 };
 
 type CatalogDataGridProps = {
-  folder: TrackSelectFolder;
+  catalog: TrackSelectCatalog;
   view: TrackSelectView;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
@@ -39,20 +35,15 @@ const builtInLabels: Record<string, string> = {
   type: "Type",
 };
 
-export function CatalogGrid({
-  folder,
-  view,
-  selectedIds,
-  onSelectionChange,
-}: CatalogGridProps) {
-  if (!folder || !view) {
-    return <TrackSelectEmptyPanel>No folder selected.</TrackSelectEmptyPanel>;
+export function CatalogGrid({ catalog, view, selectedIds, onSelectionChange }: CatalogGridProps) {
+  if (!catalog || !view) {
+    return <TrackSelectEmptyPanel>No track catalog selected.</TrackSelectEmptyPanel>;
   }
 
   return (
     <CatalogDataGrid
-      key={`${folder.id}:${view.id}`}
-      folder={folder}
+      key={`${catalog.id}:${view.id}`}
+      catalog={catalog}
       view={view}
       selectedIds={selectedIds}
       onSelectionChange={onSelectionChange}
@@ -60,23 +51,17 @@ export function CatalogGrid({
   );
 }
 
-function CatalogDataGrid({
-  folder,
-  view,
-  selectedIds,
-  onSelectionChange,
-}: CatalogDataGridProps) {
-  const rows = useMemo(() => getCatalogRows(folder), [folder]);
-  const validLeafIds = useMemo(() => getCatalogTrackIds(folder), [folder]);
+function CatalogDataGrid({ catalog, view, selectedIds, onSelectionChange }: CatalogDataGridProps) {
+  const rows = useMemo(() => getCatalogRows(catalog), [catalog]);
+  const validLeafIds = useMemo(() => getCatalogTrackIds(catalog), [catalog]);
   const columns = useMemo(() => getColumns(view), [view]);
-  const [columnVisibilityModel, setColumnVisibilityModel] =
-    useState<GridColumnVisibilityModel>(() => getColumnVisibilityModel(view));
+  const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
+    () => getColumnVisibilityModel(view),
+  );
 
   return (
     <Paper sx={{ width: "100%" }}>
-      <Box
-        sx={{ height: trackSelectPanelHeight, width: "100%", overflow: "auto" }}
-      >
+      <Box sx={{ height: trackSelectPanelHeight, width: "100%", overflow: "auto" }}>
         <DataGridPremium
           rows={rows}
           columns={columns}
@@ -94,8 +79,7 @@ function CatalogDataGrid({
           onRowSelectionModelChange={(selection) => {
             // MUI exposes the selected IDs as a Set, but the generic event type
             // does not preserve that shape here.
-            const emittedIds =
-              (selection as { ids?: Set<unknown> }).ids ?? new Set();
+            const emittedIds = (selection as { ids?: Set<unknown> }).ids ?? new Set();
             const nextSelectedIds = new Set<string>();
             for (const id of emittedIds) {
               if (typeof id === "string" && validLeafIds.has(id)) {
@@ -125,12 +109,8 @@ function getRowId(row: CatalogGridRow) {
 }
 
 function getColumns(view: TrackSelectView): GridColDef<CatalogGridRow>[] {
-  const viewColumnsByField = new Map(
-    view.columns.map((column) => [column.field, column]),
-  );
-  return getViewFields(view).map((field) =>
-    getColumn(field, viewColumnsByField.get(field)),
-  );
+  const viewColumnsByField = new Map(view.columns.map((column) => [column.field, column]));
+  return getViewFields(view).map((field) => getColumn(field, viewColumnsByField.get(field)));
 }
 
 function getColumn(
@@ -161,11 +141,6 @@ function getColumnVisibilityModel(view: TrackSelectView) {
 
 function getViewFields(view: TrackSelectView) {
   return [
-    ...new Set([
-      "id",
-      ...view.columns.map((column) => column.field),
-      ...view.grouping,
-      view.leaf,
-    ]),
+    ...new Set(["id", ...view.columns.map((column) => column.field), ...view.grouping, view.leaf]),
   ];
 }

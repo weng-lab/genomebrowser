@@ -4,37 +4,37 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { useMemo } from "react";
-import type { SelectedByFolder } from "../catalog/catalogSelection";
+import type { SelectedByCatalog } from "../catalog/catalogSelection";
 import { getActiveView } from "../catalog/catalogViews";
-import type { TrackSelectFolder } from "../schema/folderSchema";
+import type { TrackSelectCatalog } from "../schema/catalogSchema";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { buildSelectedTree } from "./buildSelectedTree";
 import { SelectedTreeItem } from "./selectedTreeItem";
 
 type SelectedTracksTreeProps = {
-  folders: TrackSelectFolder[];
-  selectedByFolder: SelectedByFolder;
-  activeViewIdByFolder: Map<string, string>;
+  trackCatalogs: TrackSelectCatalog[];
+  selectedByCatalog: SelectedByCatalog;
+  activeViewIdByCatalog: Map<string, string>;
   selectedCount: number;
   onRemoveTrackIds: (trackIds: string[]) => void;
 };
 
 export function SelectedTracksTree({
-  folders,
-  selectedByFolder,
-  activeViewIdByFolder,
+  trackCatalogs,
+  selectedByCatalog,
+  activeViewIdByCatalog,
   selectedCount,
   onRemoveTrackIds,
 }: SelectedTracksTreeProps) {
   const trees = useMemo(
     () =>
-      folders.flatMap((folder) => {
-        const selectedIds = selectedByFolder.get(folder.id) ?? new Set<string>();
-        const view = getActiveView(folder, activeViewIdByFolder);
-        const tree = buildSelectedTree({ folder, view, selectedIds });
+      trackCatalogs.flatMap((catalog) => {
+        const selectedIds = selectedByCatalog.get(catalog.id) ?? new Set<string>();
+        const view = getActiveView(catalog, activeViewIdByCatalog);
+        const tree = buildSelectedTree({ catalog, view, selectedIds });
         return tree ? [tree] : [];
       }),
-    [activeViewIdByFolder, folders, selectedByFolder],
+    [activeViewIdByCatalog, selectedByCatalog, trackCatalogs],
   );
   return (
     <Paper
@@ -77,11 +77,7 @@ export function SelectedTracksTree({
         {trees.length > 0 ? (
           <SimpleTreeView itemChildrenIndentation={12}>
             {trees.map((tree) => (
-              <SelectedTreeItem
-                key={tree.id}
-                node={tree}
-                onRemove={onRemoveTrackIds}
-              />
+              <SelectedTreeItem key={tree.id} node={tree} onRemove={onRemoveTrackIds} />
             ))}
           </SimpleTreeView>
         ) : (

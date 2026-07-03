@@ -2,7 +2,7 @@
   "$schema": "./schema.json",
   "id": "secondary-test-tracks",
   "label": "Secondary Test Tracks",
-  "description": "Second test folder for checking Track Select folder navigation.",
+  "description": "Second test catalog for checking Track Select catalog navigation.",
   "views": [
     {
       "id": "default",

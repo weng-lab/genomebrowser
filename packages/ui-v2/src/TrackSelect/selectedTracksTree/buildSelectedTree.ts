@@ -1,9 +1,6 @@
 import { getOrderedSelectedRows } from "../catalog/catalogOrder";
-import {
-  formatCatalogValue,
-  groupRowsByField,
-} from "../catalog/catalogGrouping";
-import type { TrackSelectFolder, TrackSelectView } from "../schema/folderSchema";
+import { formatCatalogValue, groupRowsByField } from "../catalog/catalogGrouping";
+import type { TrackSelectCatalog, TrackSelectView } from "../schema/catalogSchema";
 
 export type SelectedTreeNode = {
   id: string;
@@ -14,29 +11,29 @@ export type SelectedTreeNode = {
 };
 
 export function buildSelectedTree({
-  folder,
+  catalog,
   view,
   selectedIds,
 }: {
-  folder: TrackSelectFolder;
+  catalog: TrackSelectCatalog;
   view: TrackSelectView;
   selectedIds: Set<string>;
 }): SelectedTreeNode | undefined {
-  const rows = getOrderedSelectedRows(folder, view, selectedIds);
+  const rows = getOrderedSelectedRows(catalog, view, selectedIds);
   if (rows.length === 0) return undefined;
 
   const children = buildGroupNodes({
     rows,
     grouping: view.grouping,
     leafField: view.leaf,
-    folderId: folder.id,
+    catalogId: catalog.id,
     depth: 0,
     path: [],
   });
 
   return {
-    id: `${folder.id}::root`,
-    label: folder.label,
+    id: `${catalog.id}::root`,
+    label: catalog.label,
     kind: "root",
     trackIds: rows.map((row) => row.id),
     children,
@@ -49,20 +46,20 @@ function buildGroupNodes({
   rows,
   grouping,
   leafField,
-  folderId,
+  catalogId,
   depth,
   path,
 }: {
   rows: SelectedTreeRow[];
   grouping: string[];
   leafField: string;
-  folderId: string;
+  catalogId: string;
   depth: number;
   path: string[];
 }): SelectedTreeNode[] {
   if (depth >= grouping.length) {
     return rows.map((row) => ({
-      id: `${folderId}::leaf::${row.id}`,
+      id: `${catalogId}::leaf::${row.id}`,
       label: formatCatalogValue(row[leafField], row.title),
       kind: "leaf",
       trackIds: [row.id],
@@ -76,7 +73,7 @@ function buildGroupNodes({
     const nextPath = [...path, `${field}=${encodeURIComponent(value)}`];
 
     return {
-      id: `${folderId}::group::${nextPath.join("::")}`,
+      id: `${catalogId}::group::${nextPath.join("::")}`,
       label: value,
       kind: "group" as const,
       trackIds: groupRows.map((row) => row.id),
@@ -84,7 +81,7 @@ function buildGroupNodes({
         rows: groupRows,
         grouping,
         leafField,
-        folderId,
+        catalogId,
         depth: depth + 1,
         path: nextPath,
       }),

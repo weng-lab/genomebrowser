@@ -9,8 +9,8 @@ type ActionDialog = "clear" | "reset" | null;
 export function TrackSelectActionBar() {
   const [dialog, setDialog] = useState<ActionDialog>(null);
   const { state, actions } = useTrackSelect();
-  const clearAll = state.screen === "folder-list";
-  const folderLabel = state.activeFolder?.label ?? "tracks";
+  const clearAll = state.screen === "catalog-list";
+  const catalogLabel = state.activeCatalog?.label ?? "tracks";
 
   function confirmClear() {
     actions.clearDraftSelection();
@@ -55,11 +55,7 @@ export function TrackSelectActionBar() {
           <Button variant="outlined" size="small" onClick={actions.cancel}>
             Cancel
           </Button>
-          <Button
-            variant="contained"
-            size="small"
-            onClick={actions.submitSelection}
-          >
+          <Button variant="contained" size="small" onClick={actions.submitSelection}>
             Submit
           </Button>
         </Box>
@@ -70,7 +66,7 @@ export function TrackSelectActionBar() {
         text={
           clearAll
             ? "This will clear all selected catalog tracks from the draft."
-            : `This will clear selected tracks from ${folderLabel}.`
+            : `This will clear selected tracks from ${catalogLabel}.`
         }
         confirmLabel="Clear"
         onClose={() => setDialog(null)}

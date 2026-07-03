@@ -29,17 +29,6 @@
     "@weng-lab/genomebrowser-v2": "workspace:*",
     "zod": "^4.4.3"
   },
-  "peerDependencies": {
-    "@emotion/react": "^11.0.0",
-    "@emotion/styled": "^11.0.0",
-    "@mui/icons-material": "^7.0.0",
-    "@mui/material": "^7.0.0",
-    "@mui/x-data-grid-premium": "^8.0.0",
-    "@mui/x-license": "^8.0.0",
-    "@mui/x-tree-view": "^8.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
   "devDependencies": {
     "@types/node": "^24.3.1",
     "@types/react": "^19.2.14",
@@ -50,5 +39,16 @@
     "typescript": "npm:@typescript/typescript6@^6.0.1",
     "vite": "^8.0.13",
     "vite-plugin-dts": "^4.5.4"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.0.0",
+    "@emotion/styled": "^11.0.0",
+    "@mui/icons-material": "^7.0.0",
+    "@mui/material": "^7.0.0",
+    "@mui/x-data-grid-premium": "^8.0.0",
+    "@mui/x-license": "^8.0.0",
+    "@mui/x-tree-view": "^8.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }

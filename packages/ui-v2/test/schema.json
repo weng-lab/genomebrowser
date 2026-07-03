@@ -1,5 +1,5 @@
 {
-  "$id": "https://weng-lab.github.io/genomebrowser/schemas/trackSelectFolder.example.schema.json",
+  "$id": "https://weng-lab.github.io/genomebrowser/schemas/trackSelectCatalog.example.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
@@ -63,9 +63,7 @@
                   "type": "boolean"
                 }
               },
-              "required": [
-                "field"
-              ],
+              "required": ["field"],
               "additionalProperties": false
             }
           },
@@ -83,11 +81,7 @@
             "minLength": 1
           }
         },
-        "required": [
-          "id",
-          "label",
-          "columns"
-        ],
+        "required": ["id", "label", "columns"],
         "additionalProperties": false
       }
     },
@@ -116,10 +110,7 @@
                   "display": {
                     "default": "full",
                     "type": "string",
-                    "enum": [
-                      "full",
-                      "dense"
-                    ]
+                    "enum": ["full", "dense"]
                   },
                   "height": {
                     "default": 80,
@@ -148,17 +139,10 @@
                         "type": "number"
                       }
                     },
-                    "required": [
-                      "min",
-                      "max"
-                    ]
+                    "required": ["min", "max"]
                   }
                 },
-                "required": [
-                  "id",
-                  "title",
-                  "url"
-                ],
+                "required": ["id", "title", "url"],
                 "additionalProperties": false
               },
               "metadata": {
@@ -185,10 +169,7 @@
                 }
               }
             },
-            "required": [
-              "type",
-              "config"
-            ],
+            "required": ["type", "config"],
             "additionalProperties": false
           },
           {
@@ -212,10 +193,7 @@
                   "display": {
                     "default": "dense",
                     "type": "string",
-                    "enum": [
-                      "dense",
-                      "squish"
-                    ]
+                    "enum": ["dense", "squish"]
                   },
                   "height": {
                     "default": 60,
@@ -231,11 +209,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "id",
-                  "title",
-                  "url"
-                ],
+                "required": ["id", "title", "url"],
                 "additionalProperties": false
               },
               "metadata": {
@@ -262,21 +236,13 @@
                 }
               }
             },
-            "required": [
-              "type",
-              "config"
-            ],
+            "required": ["type", "config"],
             "additionalProperties": false
           }
         ]
       }
     }
   },
-  "required": [
-    "id",
-    "label",
-    "views",
-    "tracks"
-  ],
+  "required": ["id", "label", "views", "tracks"],
   "additionalProperties": false
 }

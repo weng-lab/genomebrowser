@@ -1,14 +1,14 @@
 import CardActionArea from "@mui/material/CardActionArea";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import type { TrackSelectFolder } from "../schema/folderSchema";
+import type { TrackSelectCatalog } from "../schema/catalogSchema";
 
-type FolderCardProps = {
-  folder: TrackSelectFolder;
+type CatalogCardProps = {
+  catalog: TrackSelectCatalog;
   onClick: () => void;
 };
 
-export function FolderCard({ folder, onClick }: FolderCardProps) {
+export function CatalogCard({ catalog, onClick }: CatalogCardProps) {
   return (
     <Paper
       elevation={1}
@@ -22,15 +22,15 @@ export function FolderCard({ folder, onClick }: FolderCardProps) {
     >
       <CardActionArea onClick={onClick} sx={{ display: "block", p: 3 }}>
         <Typography variant="h6" gutterBottom>
-          {folder.label}
+          {catalog.label}
         </Typography>
-        {folder.description ? (
+        {catalog.description ? (
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            {folder.description}
+            {catalog.description}
           </Typography>
         ) : null}
         <Typography variant="caption" color="text.secondary">
-          {folder.tracks.length.toLocaleString()} tracks available
+          {catalog.tracks.length.toLocaleString()} tracks available
         </Typography>
       </CardActionArea>
     </Paper>

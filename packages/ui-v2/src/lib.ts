@@ -1,7 +1,7 @@
 import "./muiLicense";
 import TrackSelect from "./TrackSelect/TrackSelect";
 export { TrackSelect };
-export { generateTrackSelectFolderJsonSchema } from "./TrackSelect/schema/generateJsonSchema";
+export { generateTrackCatalogJsonSchema } from "./TrackSelect/schema/generateJsonSchema";
 export type {
   TrackSelectSchemaModule,
   TrackSelectSchemaRegistry,

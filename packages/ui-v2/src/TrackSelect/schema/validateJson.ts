@@ -1,36 +1,31 @@
 import { z } from "zod";
 import {
-  TrackSelectFolderSchema,
-  type TrackSelectFolder,
+  TrackSelectCatalogSchema,
+  type TrackSelectCatalog,
   type TrackSelectView,
-} from "./folderSchema";
-import {
-  getTrackSelectSchemaModule,
-  type TrackSelectSchemaSource,
-} from "./modules";
+} from "./catalogSchema";
+import { getTrackSelectSchemaModule, type TrackSelectSchemaSource } from "./modules";
 
 const builtInFields = new Set(["id", "title", "type"]);
 
 function formatZodError(error: z.ZodError) {
   return error.issues
-    .map((issue) => `${issue.path.join(".") || "folder"}: ${issue.message}`)
+    .map((issue) => `${issue.path.join(".") || "catalog"}: ${issue.message}`)
     .join("; ");
 }
 
-function parseTrackSelectFolder(input: unknown): TrackSelectFolder {
-  const result = TrackSelectFolderSchema.safeParse(input);
+function parseTrackSelectCatalog(input: unknown): TrackSelectCatalog {
+  const result = TrackSelectCatalogSchema.safeParse(input);
 
   if (!result.success) {
-    throw new Error(
-      `TrackSelect folder is invalid: ${formatZodError(result.error)}`,
-    );
+    throw new Error(`TrackSelect catalog is invalid: ${formatZodError(result.error)}`);
   }
 
   return result.data;
 }
 
 function validateViewField(
-  folder: TrackSelectFolder,
+  catalog: TrackSelectCatalog,
   field: string,
   context: string,
   errors: string[],
@@ -39,36 +34,28 @@ function validateViewField(
     return;
   }
 
-  folder.tracks.forEach((track, index) => {
+  catalog.tracks.forEach((track, index) => {
     if (!(field in track.metadata)) {
-      errors.push(
-        `tracks.${index}.metadata is missing "${field}" required by ${context}`,
-      );
+      errors.push(`tracks.${index}.metadata is missing "${field}" required by ${context}`);
     }
   });
 }
 
-function validateLeafField(
-  folder: TrackSelectFolder,
-  view: TrackSelectView,
-  errors: string[],
-) {
-  validateViewField(folder, view.leaf, `views.${view.id}.leaf`, errors);
+function validateLeafField(catalog: TrackSelectCatalog, view: TrackSelectView, errors: string[]) {
+  validateViewField(catalog, view.leaf, `views.${view.id}.leaf`, errors);
 }
 
 function formatConfigPath(index: number, path: PropertyKey[]) {
   const configPath = path.join(".");
-  return configPath
-    ? `tracks.${index}.config.${configPath}`
-    : `tracks.${index}.config`;
+  return configPath ? `tracks.${index}.config.${configPath}` : `tracks.${index}.config`;
 }
 
 function validateTrackConfigs(
-  folder: TrackSelectFolder,
+  catalog: TrackSelectCatalog,
   source: TrackSelectSchemaSource,
   errors: string[],
 ) {
-  folder.tracks.forEach((track, index) => {
+  catalog.tracks.forEach((track, index) => {
     let module: ReturnType<typeof getTrackSelectSchemaModule>;
     try {
       module = getTrackSelectSchemaModule(source, track.type);
@@ -90,37 +77,29 @@ function validateTrackConfigs(
   });
 }
 
-export function validateJson(
-  input: unknown,
-  source?: TrackSelectSchemaSource,
-): TrackSelectFolder {
-  const folder = parseTrackSelectFolder(input);
+export function validateJson(input: unknown, source?: TrackSelectSchemaSource): TrackSelectCatalog {
+  const catalog = parseTrackSelectCatalog(input);
   const errors: string[] = [];
 
-  folder.views.forEach((view) => {
+  catalog.views.forEach((view) => {
     view.columns.forEach((column) => {
-      validateViewField(
-        folder,
-        column.field,
-        `views.${view.id}.columns.${column.field}`,
-        errors,
-      );
+      validateViewField(catalog, column.field, `views.${view.id}.columns.${column.field}`, errors);
     });
 
     view.grouping.forEach((field) => {
-      validateViewField(folder, field, `views.${view.id}.grouping`, errors);
+      validateViewField(catalog, field, `views.${view.id}.grouping`, errors);
     });
 
-    validateLeafField(folder, view, errors);
+    validateLeafField(catalog, view, errors);
   });
 
   if (source) {
-    validateTrackConfigs(folder, source, errors);
+    validateTrackConfigs(catalog, source, errors);
   }
 
   if (errors.length > 0) {
-    throw new Error(`TrackSelect folder is invalid: ${errors.join("; ")}`);
+    throw new Error(`TrackSelect catalog is invalid: ${errors.join("; ")}`);
   }
 
-  return folder;
+  return catalog;
 }

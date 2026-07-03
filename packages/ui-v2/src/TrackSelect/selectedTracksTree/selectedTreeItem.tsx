@@ -1,4 +1,4 @@
-import FolderIcon from "@mui/icons-material/Folder";
+import CategoryIcon from "@mui/icons-material/Category";
 import IndeterminateCheckBoxRoundedIcon from "@mui/icons-material/IndeterminateCheckBoxRounded";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
@@ -14,10 +14,7 @@ type SelectedTreeItemProps = {
 
 export function SelectedTreeItem({ node, onRemove }: SelectedTreeItemProps) {
   return (
-    <TreeItem
-      itemId={node.id}
-      label={<TreeItemLabel node={node} onRemove={onRemove} />}
-    >
+    <TreeItem itemId={node.id} label={<TreeItemLabel node={node} onRemove={onRemove} />}>
       {node.children?.map((child) => (
         <SelectedTreeItem key={child.id} node={child} onRemove={onRemove} />
       ))}
@@ -49,7 +46,7 @@ function TreeItemLabel({
           <IndeterminateCheckBoxRoundedIcon fontSize="small" />
         </IconButton>
       ) : (
-        <FolderIcon fontSize="small" />
+        <CategoryIcon fontSize="small" />
       )}
       <Tooltip title={node.label} enterDelay={500} placement="top">
         <Typography

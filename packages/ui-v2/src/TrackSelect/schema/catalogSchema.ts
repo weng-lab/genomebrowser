@@ -40,7 +40,7 @@ const TrackSelectTrackSchema = z.strictObject({
   metadata: z.record(z.string(), TrackSelectMetadataValueSchema).default({}),
 });
 
-export const TrackSelectFolderSchema = z.strictObject({
+export const TrackSelectCatalogSchema = z.strictObject({
   $schema: z.string().min(1).optional(),
   id: z.string().min(1),
   label: z.string().min(1),
@@ -52,4 +52,4 @@ export const TrackSelectFolderSchema = z.strictObject({
 export type TrackSelectColumn = z.infer<typeof TrackSelectColumnSchema>;
 export type TrackSelectView = z.infer<typeof TrackSelectViewSchema>;
 export type TrackSelectTrack = z.infer<typeof TrackSelectTrackSchema>;
-export type TrackSelectFolder = z.infer<typeof TrackSelectFolderSchema>;
+export type TrackSelectCatalog = z.infer<typeof TrackSelectCatalogSchema>;

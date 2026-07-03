@@ -1,16 +1,15 @@
-import type { TrackSelectFolder } from "../schema/folderSchema";
+import type { TrackSelectCatalog } from "../schema/catalogSchema";
 
-export function getInitialViewIds(folders: TrackSelectFolder[]) {
-  return new Map(folders.map((folder) => [folder.id, folder.views[0].id]));
+export function getInitialViewIds(trackCatalogs: TrackSelectCatalog[]) {
+  return new Map(trackCatalogs.map((catalog) => [catalog.id, catalog.views[0].id]));
 }
 
 export function getActiveView(
-  folder: TrackSelectFolder,
-  activeViewIdByFolder: Map<string, string>,
+  catalog: TrackSelectCatalog,
+  activeViewIdByCatalog: Map<string, string>,
 ) {
   return (
-    folder.views.find(
-      (view) => view.id === activeViewIdByFolder.get(folder.id),
-    ) ?? folder.views[0]
+    catalog.views.find((view) => view.id === activeViewIdByCatalog.get(catalog.id)) ??
+    catalog.views[0]
   );
 }

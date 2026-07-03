@@ -1,84 +1,78 @@
-import type { TrackSelectFolder } from "../schema/folderSchema";
+import type { TrackSelectCatalog } from "../schema/catalogSchema";
 import { getCatalogTrackId } from "./catalogRows";
 import type { CatalogStoreTrack } from "./catalogTypes";
 
-export type SelectedByFolder = Map<string, Set<string>>;
+export type SelectedByCatalog = Map<string, Set<string>>;
 
-function createEmptySelection(folders: TrackSelectFolder[]) {
-  return new Map(folders.map((folder) => [folder.id, new Set<string>()]));
+function createEmptySelection(trackCatalogs: TrackSelectCatalog[]) {
+  return new Map(trackCatalogs.map((catalog) => [catalog.id, new Set<string>()]));
 }
 
 export function createSelectionFromTracks(
-  folders: TrackSelectFolder[],
+  trackCatalogs: TrackSelectCatalog[],
   tracks: CatalogStoreTrack[],
 ) {
-  const selectedByFolder = createEmptySelection(folders);
+  const selectedByCatalog = createEmptySelection(trackCatalogs);
   const storeTrackIds = new Set(tracks.map((track) => track.base.id));
 
-  for (const folder of folders) {
-    const selectedIds = selectedByFolder.get(folder.id)!;
-    for (const track of folder.tracks) {
-      const trackId = getCatalogTrackId(folder.id, track.config.id);
+  for (const catalog of trackCatalogs) {
+    const selectedIds = selectedByCatalog.get(catalog.id)!;
+    for (const track of catalog.tracks) {
+      const trackId = getCatalogTrackId(catalog.id, track.config.id);
       if (storeTrackIds.has(trackId)) selectedIds.add(trackId);
     }
   }
 
-  return selectedByFolder;
+  return selectedByCatalog;
 }
 
-export function countSelectedTracks(selectedByFolder: SelectedByFolder) {
+export function countSelectedTracks(selectedByCatalog: SelectedByCatalog) {
   let count = 0;
-  for (const selectedIds of selectedByFolder.values()) count += selectedIds.size;
+  for (const selectedIds of selectedByCatalog.values()) count += selectedIds.size;
   return count;
 }
 
-function cloneSelection(selectedByFolder: SelectedByFolder) {
+function cloneSelection(selectedByCatalog: SelectedByCatalog) {
   return new Map(
-    Array.from(selectedByFolder, ([folderId, selectedIds]) => [
-      folderId,
-      new Set(selectedIds),
-    ]),
+    Array.from(selectedByCatalog, ([catalogId, selectedIds]) => [catalogId, new Set(selectedIds)]),
   );
 }
 
-export function setFolderSelection(
-  selectedByFolder: SelectedByFolder,
-  folderId: string,
+export function setCatalogSelection(
+  selectedByCatalog: SelectedByCatalog,
+  catalogId: string,
   selectedIds: Set<string>,
 ) {
-  const next = cloneSelection(selectedByFolder);
-  next.set(folderId, new Set(selectedIds));
+  const next = cloneSelection(selectedByCatalog);
+  next.set(catalogId, new Set(selectedIds));
   return next;
 }
 
 export function clearSelection(
-  folders: TrackSelectFolder[],
-  selectedByFolder: SelectedByFolder,
-  folderId?: string,
+  trackCatalogs: TrackSelectCatalog[],
+  selectedByCatalog: SelectedByCatalog,
+  catalogId?: string,
 ) {
-  const next = cloneSelection(selectedByFolder);
+  const next = cloneSelection(selectedByCatalog);
 
-  if (folderId) {
-    next.set(folderId, new Set<string>());
+  if (catalogId) {
+    next.set(catalogId, new Set<string>());
     return next;
   }
 
-  for (const folder of folders) next.set(folder.id, new Set<string>());
+  for (const catalog of trackCatalogs) next.set(catalog.id, new Set<string>());
   return next;
 }
 
 export function removeTrackIdsFromSelection(
-  selectedByFolder: SelectedByFolder,
+  selectedByCatalog: SelectedByCatalog,
   trackIds: string[],
 ) {
   const idsToRemove = new Set(trackIds);
-  const next = cloneSelection(selectedByFolder);
+  const next = cloneSelection(selectedByCatalog);
 
-  for (const [folderId, selectedIds] of next) {
-    next.set(
-      folderId,
-      new Set(Array.from(selectedIds).filter((id) => !idsToRemove.has(id))),
-    );
+  for (const [catalogId, selectedIds] of next) {
+    next.set(catalogId, new Set(Array.from(selectedIds).filter((id) => !idsToRemove.has(id))));
   }
 
   return next;

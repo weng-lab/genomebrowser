@@ -11,19 +11,12 @@ type TrackSelectDialogProps = {
   children: ReactNode;
 };
 
-export function TrackSelectDialog({
-  open,
-  title,
-  onClose,
-  children,
-}: TrackSelectDialogProps) {
+export function TrackSelectDialog({ open, title, onClose, children }: TrackSelectDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <TrackSelectHeader title={title} onClose={onClose} />
       <DialogContent sx={{ mt: 1 }}>
-        <Box sx={{ flex: 1, pt: 1 }}>
-          {children}
-        </Box>
+        <Box sx={{ flex: 1, pt: 1 }}>{children}</Box>
       </DialogContent>
     </Dialog>
   );

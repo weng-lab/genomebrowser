@@ -1,13 +1,9 @@
 import { createRoot } from "react-dom/client";
 import { useState } from "react";
-import folder from "./tracks.json";
-import secondaryFolder from "./tracks-secondary.json";
+import catalog from "./tracks.json";
+import secondaryCatalog from "./tracks-secondary.json";
 import { TrackSelect } from "../src/lib";
-import {
-  bigBedModule,
-  bigWigModule,
-  createTrackStore,
-} from "@weng-lab/genomebrowser-v2";
+import { bigBedModule, bigWigModule, createTrackStore } from "@weng-lab/genomebrowser-v2";
 import Button from "@mui/material/Button";
 
 const useTrackStore = createTrackStore({
@@ -27,7 +23,7 @@ function Main() {
       <TrackSelect
         open={open}
         onClose={() => setOpen(false)}
-        folders={[folder, secondaryFolder]}
+        trackCatalogs={[catalog, secondaryCatalog]}
         useTrackStore={useTrackStore}
       />
     </>

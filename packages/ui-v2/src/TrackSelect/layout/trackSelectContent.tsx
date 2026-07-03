@@ -1,10 +1,7 @@
 import type { TrackStore } from "@weng-lab/genomebrowser-v2";
 import { ConfirmDialog } from "../dialogs/confirmDialog";
-import type { TrackSelectFolder } from "../schema/folderSchema";
-import {
-  TrackSelectProvider,
-  useTrackSelect,
-} from "../session/trackSelectContext";
+import type { TrackSelectCatalog } from "../schema/catalogSchema";
+import { TrackSelectProvider, useTrackSelect } from "../session/trackSelectContext";
 import { useTrackSelectState } from "../session/useTrackSelectState";
 import { TrackSelectActionBar } from "./trackSelectActionBar";
 import { TrackSelectBody } from "./trackSelectBody";
@@ -12,7 +9,7 @@ import { TrackSelectSubmitError } from "./trackSelectSubmitError";
 import { TrackSelectToolbar } from "./trackSelectToolbar";
 
 type TrackSelectContentProps = {
-  folders: TrackSelectFolder[];
+  trackCatalogs: TrackSelectCatalog[];
   tracks: TrackStore["tracks"];
   registry: TrackStore["registry"];
   addTrack: TrackStore["addTrack"];

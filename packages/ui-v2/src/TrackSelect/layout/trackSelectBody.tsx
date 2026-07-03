@@ -1,30 +1,26 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import type { SelectedByFolder } from "../catalog/catalogSelection";
+import type { SelectedByCatalog } from "../catalog/catalogSelection";
 import { CatalogGrid } from "../catalog/catalogGrid";
-import { FolderList } from "../folderList/folderList";
-import type { TrackSelectFolder } from "../schema/folderSchema";
+import { CatalogList } from "../catalogList/catalogList";
+import type { TrackSelectCatalog } from "../schema/catalogSchema";
 import { SelectedTracksTree } from "../selectedTracksTree/selectedTracksTree";
 import { useTrackSelect } from "../session/trackSelectContext";
 
 export function TrackSelectBody() {
   const { state, actions } = useTrackSelect();
   const {
-    folders,
+    trackCatalogs,
     screen,
-    activeFolder,
+    activeCatalog,
     activeView,
-    activeViewIdByFolder,
-    selectedByFolder,
+    activeViewIdByCatalog,
+    selectedByCatalog,
     selectedTrackCount,
   } = state;
 
   return (
-    <Stack
-      direction={{ xs: "column", md: "row" }}
-      spacing={2}
-      sx={{ width: "100%" }}
-    >
+    <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ width: "100%" }}>
       <Box
         sx={{
           flex: { xs: "none", md: 3 },
@@ -32,17 +28,14 @@ export function TrackSelectBody() {
           width: { xs: "100%", md: "auto" },
         }}
       >
-        {screen === "folder-list" ? (
-          <FolderList folders={folders} onFolderSelect={actions.selectFolder} />
+        {screen === "catalog-list" ? (
+          <CatalogList catalogs={trackCatalogs} onCatalogSelect={actions.selectCatalog} />
         ) : (
           <CatalogGrid
-            folder={activeFolder}
+            catalog={activeCatalog}
             view={activeView}
-            selectedIds={getActiveFolderSelection(
-              activeFolder,
-              selectedByFolder,
-            )}
-            onSelectionChange={actions.selectActiveFolderTracks}
+            selectedIds={getActiveCatalogSelection(activeCatalog, selectedByCatalog)}
+            onSelectionChange={actions.selectActiveCatalogTracks}
           />
         )}
       </Box>
@@ -54,9 +47,9 @@ export function TrackSelectBody() {
         }}
       >
         <SelectedTracksTree
-          folders={folders}
-          selectedByFolder={selectedByFolder}
-          activeViewIdByFolder={activeViewIdByFolder}
+          trackCatalogs={trackCatalogs}
+          selectedByCatalog={selectedByCatalog}
+          activeViewIdByCatalog={activeViewIdByCatalog}
           selectedCount={selectedTrackCount}
           onRemoveTrackIds={actions.removeSelectedTrackIds}
         />
@@ -65,10 +58,10 @@ export function TrackSelectBody() {
   );
 }
 
-function getActiveFolderSelection(
-  activeFolder: TrackSelectFolder | undefined,
-  selectedByFolder: SelectedByFolder,
+function getActiveCatalogSelection(
+  activeCatalog: TrackSelectCatalog | undefined,
+  selectedByCatalog: SelectedByCatalog,
 ) {
-  if (!activeFolder) return new Set<string>();
-  return selectedByFolder.get(activeFolder.id) ?? new Set<string>();
+  if (!activeCatalog) return new Set<string>();
+  return selectedByCatalog.get(activeCatalog.id) ?? new Set<string>();
 }

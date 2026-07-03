@@ -6,34 +6,29 @@ import { useTrackSelect } from "../session/trackSelectContext";
 
 export function TrackSelectToolbar() {
   const { state, actions } = useTrackSelect();
-  const { folders, screen, activeFolder, activeView } = state;
+  const { trackCatalogs, screen, activeCatalog, activeView } = state;
 
   function handleViewChange(event: SelectChangeEvent) {
     actions.selectView(event.target.value);
   }
 
   return (
-    <Box
-      display="flex"
-      justifyContent="space-between"
-      alignItems="center"
-      sx={{ mb: 2 }}
-    >
-      {screen === "folder-detail" && folders.length > 1 ? (
-        <Button size="small" onClick={actions.backToFolders}>
-          Back to Folders
+    <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+      {screen === "catalog-detail" && trackCatalogs.length > 1 ? (
+        <Button size="small" onClick={actions.backToCatalogs}>
+          Back to Catalogs
         </Button>
       ) : (
         <Box />
       )}
-      {screen === "folder-detail" && activeFolder && activeView ? (
+      {screen === "catalog-detail" && activeCatalog && activeView ? (
         <Select
           size="small"
           value={activeView.id}
           onChange={handleViewChange}
           sx={{ minWidth: 180 }}
         >
-          {activeFolder.views.map((view) => (
+          {activeCatalog.views.map((view) => (
             <MenuItem key={view.id} value={view.id}>
               {view.label}
             </MenuItem>

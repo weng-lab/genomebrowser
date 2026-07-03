@@ -6,16 +6,16 @@ import {
   countSelectedTracks,
   createSelectionFromTracks,
   removeTrackIdsFromSelection,
-  setFolderSelection,
-  type SelectedByFolder,
+  setCatalogSelection,
+  type SelectedByCatalog,
 } from "../catalog/catalogSelection";
 import { getActiveView, getInitialViewIds } from "../catalog/catalogViews";
-import type { TrackSelectFolder } from "../schema/folderSchema";
+import type { TrackSelectCatalog } from "../schema/catalogSchema";
 
-type TrackSelectScreen = "folder-list" | "folder-detail";
+type TrackSelectScreen = "catalog-list" | "catalog-detail";
 
 type TrackSelectStateOptions = {
-  folders: TrackSelectFolder[];
+  trackCatalogs: TrackSelectCatalog[];
   tracks: TrackStore["tracks"];
   registry: TrackStore["registry"];
   addTrack: TrackStore["addTrack"];
@@ -27,7 +27,7 @@ type TrackSelectStateOptions = {
 export type TrackSelectState = ReturnType<typeof useTrackSelectState>;
 
 export function useTrackSelectState({
-  folders,
+  trackCatalogs,
   tracks,
   registry,
   addTrack,
@@ -36,89 +36,85 @@ export function useTrackSelectState({
   onClose,
 }: TrackSelectStateOptions) {
   const [screen, setScreen] = useState<TrackSelectScreen>(() =>
-    folders.length === 1 ? "folder-detail" : "folder-list",
+    trackCatalogs.length === 1 ? "catalog-detail" : "catalog-list",
   );
-  const [activeFolderId, setActiveFolderId] = useState(
-    () => folders[0]?.id ?? "",
+  const [activeCatalogId, setActiveCatalogId] = useState(() => trackCatalogs[0]?.id ?? "");
+  const [activeViewIdByCatalog, setActiveViewIdByCatalog] = useState(() =>
+    getInitialViewIds(trackCatalogs),
   );
-  const [activeViewIdByFolder, setActiveViewIdByFolder] = useState(() =>
-    getInitialViewIds(folders),
-  );
-  const [selectedByFolder, setSelectedByFolder] = useState(() =>
-    createSelectionFromTracks(folders, tracks),
+  const [selectedByCatalog, setSelectedByCatalog] = useState(() =>
+    createSelectionFromTracks(trackCatalogs, tracks),
   );
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string>();
 
-  const currentScreen = getCurrentScreen(screen, folders.length);
-  const activeFolder =
-    folders.find((folder) => folder.id === activeFolderId) ?? folders[0];
-  const activeView = activeFolder
-    ? getActiveView(activeFolder, activeViewIdByFolder)
+  const currentScreen = getCurrentScreen(screen, trackCatalogs.length);
+  const activeCatalog =
+    trackCatalogs.find((catalog) => catalog.id === activeCatalogId) ?? trackCatalogs[0];
+  const activeView = activeCatalog
+    ? getActiveView(activeCatalog, activeViewIdByCatalog)
     : undefined;
-  const selectedTrackCount = countSelectedTracks(selectedByFolder);
+  const selectedTrackCount = countSelectedTracks(selectedByCatalog);
 
-  function selectFolder(folderId: string) {
-    setActiveFolderId(folderId);
-    setScreen("folder-detail");
+  function selectCatalog(catalogId: string) {
+    setActiveCatalogId(catalogId);
+    setScreen("catalog-detail");
   }
 
   function selectView(viewId: string) {
-    if (!activeFolder) return;
+    if (!activeCatalog) return;
 
-    setActiveViewIdByFolder((current) => {
+    setActiveViewIdByCatalog((current) => {
       const next = new Map(current);
-      next.set(activeFolder.id, viewId);
+      next.set(activeCatalog.id, viewId);
       return next;
     });
   }
 
-  function setDraftSelection(nextSelectedByFolder: SelectedByFolder) {
-    const currentCount = countSelectedTracks(selectedByFolder);
-    const nextCount = countSelectedTracks(nextSelectedByFolder);
+  function setDraftSelection(nextSelectedByCatalog: SelectedByCatalog) {
+    const currentCount = countSelectedTracks(selectedByCatalog);
+    const nextCount = countSelectedTracks(nextSelectedByCatalog);
     if (nextCount > maxTracks && nextCount > currentCount) {
       setLimitDialogOpen(true);
       return;
     }
 
     setSubmitError(undefined);
-    setSelectedByFolder(nextSelectedByFolder);
+    setSelectedByCatalog(nextSelectedByCatalog);
   }
 
-  function selectActiveFolderTracks(selectedIds: Set<string>) {
-    if (!activeFolder) return;
-    setDraftSelection(
-      setFolderSelection(selectedByFolder, activeFolder.id, selectedIds),
-    );
+  function selectActiveCatalogTracks(selectedIds: Set<string>) {
+    if (!activeCatalog) return;
+    setDraftSelection(setCatalogSelection(selectedByCatalog, activeCatalog.id, selectedIds));
   }
 
   function clearDraftSelection() {
     setDraftSelection(
       clearSelection(
-        folders,
-        selectedByFolder,
-        currentScreen === "folder-detail" ? activeFolder?.id : undefined,
+        trackCatalogs,
+        selectedByCatalog,
+        currentScreen === "catalog-detail" ? activeCatalog?.id : undefined,
       ),
     );
   }
 
   function resetDraftSelection() {
     setSubmitError(undefined);
-    setSelectedByFolder(createSelectionFromTracks(folders, tracks));
+    setSelectedByCatalog(createSelectionFromTracks(trackCatalogs, tracks));
   }
 
   function removeSelectedTrackIds(trackIds: string[]) {
-    setDraftSelection(removeTrackIdsFromSelection(selectedByFolder, trackIds));
+    setDraftSelection(removeTrackIdsFromSelection(selectedByCatalog, trackIds));
   }
 
   function submitSelection() {
     setSubmitError(undefined);
 
     const { idsToRemove, tracksToAdd } = getSelectionDiff({
-      folders,
+      trackCatalogs,
       tracks,
-      selectedByFolder,
-      activeViewIdByFolder,
+      selectedByCatalog,
+      activeViewIdByCatalog,
     });
 
     let createdTracks: TrackInstance<any, any>[];
@@ -152,21 +148,21 @@ export function useTrackSelectState({
 
   return {
     state: {
-      folders,
+      trackCatalogs,
       screen: currentScreen,
-      activeFolder,
+      activeCatalog,
       activeView,
-      activeViewIdByFolder,
-      selectedByFolder,
+      activeViewIdByCatalog,
+      selectedByCatalog,
       selectedTrackCount,
       limitDialogOpen,
       submitError,
     },
     actions: {
-      selectFolder,
-      backToFolders: () => setScreen("folder-list"),
+      selectCatalog,
+      backToCatalogs: () => setScreen("catalog-list"),
       selectView,
-      selectActiveFolderTracks,
+      selectActiveCatalogTracks,
       removeSelectedTrackIds,
       clearDraftSelection,
       resetDraftSelection,
@@ -180,9 +176,9 @@ export function useTrackSelectState({
   };
 }
 
-function getCurrentScreen(screen: TrackSelectScreen, folderCount: number) {
-  if (folderCount === 0) return "folder-list";
-  if (folderCount === 1) return "folder-detail";
+function getCurrentScreen(screen: TrackSelectScreen, catalogCount: number) {
+  if (catalogCount === 0) return "catalog-list";
+  if (catalogCount === 1) return "catalog-detail";
   return screen;
 }
 

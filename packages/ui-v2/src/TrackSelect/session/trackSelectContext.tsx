@@ -1,9 +1,7 @@
 import { createContext, use, type ReactNode } from "react";
 import type { TrackSelectState } from "./useTrackSelectState";
 
-const TrackSelectContext = createContext<TrackSelectState | undefined>(
-  undefined,
-);
+const TrackSelectContext = createContext<TrackSelectState | undefined>(undefined);
 
 export function TrackSelectProvider({
   value,
@@ -18,9 +16,7 @@ export function TrackSelectProvider({
 export function useTrackSelect() {
   const trackSelect = use(TrackSelectContext);
   if (!trackSelect) {
-    throw new Error(
-      "TrackSelect components must be rendered inside TrackSelectProvider",
-    );
+    throw new Error("TrackSelect components must be rendered inside TrackSelectProvider");
   }
   return trackSelect;
 }

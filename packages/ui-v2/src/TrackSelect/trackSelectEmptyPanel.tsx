@@ -5,10 +5,7 @@ import { trackSelectPanelHeight } from "./trackSelectConstants";
 
 export function TrackSelectEmptyPanel({ children }: { children: ReactNode }) {
   return (
-    <Paper
-      variant="outlined"
-      sx={{ height: trackSelectPanelHeight, borderWidth: 2 }}
-    >
+    <Paper variant="outlined" sx={{ height: trackSelectPanelHeight, borderWidth: 2 }}>
       <Typography color="text.secondary" sx={{ p: 3 }}>
         {children}
       </Typography>
