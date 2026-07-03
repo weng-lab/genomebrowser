@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import type { SelectedByFolder } from "../catalog/catalogSelection";
-import { CatalogGrid } from "../catalogGrid/catalogGrid";
+import { CatalogGrid } from "../catalog/catalogGrid";
 import { FolderList } from "../folderList/folderList";
 import type { TrackSelectFolder } from "../schema/folderSchema";
 import { SelectedTracksTree } from "../selectedTracksTree/selectedTracksTree";
