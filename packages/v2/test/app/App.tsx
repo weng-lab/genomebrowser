@@ -19,6 +19,7 @@ import {
 
 const browserStore = createBrowserStore({
   region: "chr12:53,372,922-53,423,700",
+  marginWidth: 60,
   highlights: [
     {
       id: "test-highlight",
