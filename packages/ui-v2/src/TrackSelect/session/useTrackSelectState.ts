@@ -18,8 +18,7 @@ type TrackSelectStateOptions = {
   trackCatalogs: TrackSelectCatalog[];
   tracks: TrackStore["tracks"];
   registry: TrackStore["registry"];
-  addTrack: TrackStore["addTrack"];
-  removeTrack: TrackStore["removeTrack"];
+  applyTrackChanges: TrackStore["applyTrackChanges"];
   maxTracks: number;
   onClose: () => void;
 };
@@ -30,8 +29,7 @@ export function useTrackSelectState({
   trackCatalogs,
   tracks,
   registry,
-  addTrack,
-  removeTrack,
+  applyTrackChanges,
   maxTracks,
   onClose,
 }: TrackSelectStateOptions) {
@@ -127,20 +125,10 @@ export function useTrackSelectState({
       return;
     }
 
-    for (const id of idsToRemove) {
-      const result = removeTrack(id);
-      if (!result.ok) {
-        setSubmitError(result.error);
-        return;
-      }
-    }
-
-    for (const track of createdTracks) {
-      const result = addTrack(track);
-      if (!result.ok) {
-        setSubmitError(result.error);
-        return;
-      }
+    const result = applyTrackChanges({ add: createdTracks, remove: idsToRemove });
+    if (!result.ok) {
+      setSubmitError(result.error);
+      return;
     }
 
     onClose();

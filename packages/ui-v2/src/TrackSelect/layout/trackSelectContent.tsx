@@ -12,8 +12,7 @@ type TrackSelectContentProps = {
   trackCatalogs: TrackSelectCatalog[];
   tracks: TrackStore["tracks"];
   registry: TrackStore["registry"];
-  addTrack: TrackStore["addTrack"];
-  removeTrack: TrackStore["removeTrack"];
+  applyTrackChanges: TrackStore["applyTrackChanges"];
   maxTracks: number;
   onClose: () => void;
 };

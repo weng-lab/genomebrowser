@@ -114,6 +114,62 @@ describe("createTrackStore", () => {
     ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig instance is invalid/) });
   });
 
+  it("applies bulk adds and removes in one update", () => {
+    const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
+    const added = bigWigTrack("added");
+
+    expect(
+      store.getState().applyTrackChanges({ add: [added], remove: ["signal"] }),
+    ).toEqual({ ok: true });
+    expect(store.getState().tracks).toEqual([added]);
+    expect(store.getState().order).toEqual(["added"]);
+  });
+
+  it("allows replacing a track id within one bulk change", () => {
+    const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
+    const replacement = bigWigTrack("signal");
+
+    expect(
+      store.getState().applyTrackChanges({ add: [replacement], remove: ["signal"] }),
+    ).toEqual({ ok: true });
+    expect(store.getState().tracks).toEqual([replacement]);
+  });
+
+  it("rejects bulk changes atomically", () => {
+    const initial = bigWigTrack();
+    const store = createTrackStore({ modules: [bigWigModule], tracks: [initial] });
+
+    expect(
+      store.getState().applyTrackChanges({ add: [bigWigTrack("next")], remove: ["missing"] }),
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/No track found/) });
+    expect(store.getState().tracks).toEqual([initial]);
+
+    expect(
+      store.getState().applyTrackChanges({
+        add: [
+          {
+            type: "bigwig",
+            base: {
+              id: "bad",
+              title: "Bad",
+              display: "full",
+              height: 80,
+            },
+            config: {},
+          },
+        ],
+        remove: ["signal"],
+      }),
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig instance is invalid/) });
+    expect(store.getState().tracks).toEqual([initial]);
+
+    expect(store.getState().applyTrackChanges({ add: [bigWigTrack()] })).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/Duplicate track id/),
+    });
+    expect(store.getState().tracks).toEqual([initial]);
+  });
+
   it("preserves interaction callbacks on initial tracks, added tracks, and updates", () => {
     const onClick = () => undefined;
     const onHover = () => undefined;

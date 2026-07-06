@@ -28,8 +28,7 @@ export default function TrackSelect({
 }: TrackSelectProps) {
   const registry = useTrackStore((state) => state.registry);
   const tracks = useTrackStore((state) => state.tracks);
-  const addTrack = useTrackStore((state) => state.addTrack);
-  const removeTrack = useTrackStore((state) => state.removeTrack);
+  const applyTrackChanges = useTrackStore((state) => state.applyTrackChanges);
   const parsedTrackCatalogs = useMemo(() => {
     const parsedCatalogs = trackCatalogs.map((catalog) => validateJson(catalog, registry));
     assertUniqueCatalogTrackIds(parsedCatalogs);
@@ -45,8 +44,7 @@ export default function TrackSelect({
           trackCatalogs={parsedTrackCatalogs}
           tracks={tracks}
           registry={registry}
-          addTrack={addTrack}
-          removeTrack={removeTrack}
+          applyTrackChanges={applyTrackChanges}
           maxTracks={maxTracks}
           onClose={onClose}
         />

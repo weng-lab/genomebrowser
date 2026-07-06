@@ -25,6 +25,10 @@ export type TrackStore = {
   setTracks: <Track extends AnyTrackInstance>(tracks: Track[]) => TrackMutationResult;
   addTrack: <Track extends AnyTrackInstance>(track: Track, index?: number) => TrackMutationResult;
   removeTrack: (id: string) => TrackMutationResult;
+  applyTrackChanges: <Track extends AnyTrackInstance>(changes: {
+    add?: Track[];
+    remove?: string[];
+  }) => TrackMutationResult;
   reorderTracks: (ids: string[]) => TrackMutationResult;
   updateBase: (id: string, partial: Partial<TrackBase>) => TrackMutationResult;
   updateConfig: <Config>(id: string, partial: TrackConfigUpdate<Config>) => TrackMutationResult;
@@ -72,6 +76,25 @@ export function createTrackStore<Track extends AnyTrackInstance = AnyTrackInstan
         return mutationError(`No track found for id: ${id}`);
       }
       const tracks = get().tracks.filter((track) => getTrackId(track) !== id);
+      set({ tracks, order: tracks.map(getTrackId) });
+      return mutationOk;
+    },
+    applyTrackChanges: (changes) => {
+      const result = getValidatedTracks(changes.add ?? [], registry);
+      if (!result.ok) return result;
+      const currentTracks = get().tracks;
+      const removeIds = new Set(changes.remove ?? []);
+      for (const id of removeIds) {
+        if (!currentTracks.some((track) => getTrackId(track) === id)) {
+          return mutationError(`No track found for id: ${id}`);
+        }
+      }
+      const tracks = [
+        ...currentTracks.filter((track) => !removeIds.has(getTrackId(track))),
+        ...result.tracks,
+      ];
+      const duplicateResult = getUniqueTrackIdsResult(tracks);
+      if (!duplicateResult.ok) return duplicateResult;
       set({ tracks, order: tracks.map(getTrackId) });
       return mutationOk;
     },
