@@ -21,7 +21,24 @@ function parseTrackSelectCatalog(input: unknown, registry: ModuleRegistry): Trac
     throw new Error(`TrackSelect catalog is invalid: ${formatZodError(result.error)}`);
   }
 
-  return result.data;
+  const rawTracks = isRecord(input) && Array.isArray(input.tracks) ? input.tracks : [];
+
+  return {
+    ...result.data,
+    tracks: result.data.tracks.map((track, index) => {
+      const rawTrack = rawTracks[index];
+      if (!isRecord(rawTrack)) return track;
+
+      return {
+        ...rawTrack,
+        metadata: track.metadata,
+      } as TrackSelectCatalog["tracks"][number];
+    }),
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 function validateViewField(

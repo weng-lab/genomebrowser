@@ -20,6 +20,7 @@ export const exampleTrackModule = defineTrackModule({
   },
   configSchema: z.object({
     url: z.string().min(1),
+    smoothing: z.number().default(0),
   }),
   fetch: fetchExample,
   render: {
@@ -59,7 +60,7 @@ Display modes come from the `render` keys, and each module must provide at least
 - `create(input, interaction?)` parses nested public input, applies defaults, validates optional code-only interaction callbacks, and returns the nested runtime instance
 - `validate(instance)` checks a full nested track instance and requires the fixed `type`
 
-The optional `defaults` object can provide `display`, `height`, `color`, and default `config` values. If `height` is omitted, it defaults to `80`; if `color` is omitted, color remains optional.
+The optional `defaults` object can provide browser-owned base defaults: `display`, `height`, and `color`. If `height` is omitted, it defaults to `80`; if `color` is omitted, color remains optional. Module-owned config defaults belong in `configSchema` with Zod `.default()` so runtime parsing, TypeScript input types, and generated JSON Schema share the same source of truth.
 
 Track instances should be created through the module. The canonical JSON contract for a module's create input is `z.input<typeof module.createInputSchema>`:
 

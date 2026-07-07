@@ -18,10 +18,13 @@ export type TrackInteraction<InteractionItem = unknown> = {
   onLeave?: TrackInteractionCallback<InteractionItem>;
 };
 
-export type TrackCreateInput<ConfigInput> = {
+export type TrackCreateInput<
+  ConfigInput,
+  Display extends string = string,
+> = {
   id: string;
   title: string;
-  display?: string;
+  display?: Display;
   height?: number;
   color?: string;
   config: ConfigInput;
@@ -68,31 +71,34 @@ export type TrackTooltipComponent<Item, Config> = ComponentType<{
   config: Config;
 }>;
 
-export type TrackCreateInputSchema<ConfigSchema extends z.ZodObject> =
-  z.ZodObject<
-    {
-      id: z.ZodString;
-      title: z.ZodString;
-      display: z.ZodDefault<z.ZodType<string, string>>;
-      height: z.ZodDefault<z.ZodNumber>;
-      color: z.ZodOptional<z.ZodString>;
-      config: ConfigSchema;
-    },
-    z.core.$strict
-  >;
+export type TrackCreateInputSchema<
+  ConfigSchema extends z.ZodObject,
+  Display extends string = string,
+> = z.ZodObject<
+  {
+    id: z.ZodString;
+    title: z.ZodString;
+    display: z.ZodDefault<z.ZodType<Display, Display>>;
+    height: z.ZodDefault<z.ZodNumber>;
+    color: z.ZodOptional<z.ZodString>;
+    config: ConfigSchema;
+  },
+  z.core.$strict
+>;
 
 export type TrackModule<
   Type extends string,
   ConfigSchema extends z.ZodObject,
   Data,
   Item = unknown,
+  Display extends string = string,
 > = {
   type: Type;
-  displays: string[];
+  displays: Display[];
   configSchema: ConfigSchema;
-  createInputSchema: TrackCreateInputSchema<ConfigSchema>;
+  createInputSchema: TrackCreateInputSchema<ConfigSchema, Display>;
   create(
-    input: TrackCreateInput<z.input<ConfigSchema>>,
+    input: TrackCreateInput<z.input<ConfigSchema>, Display>,
     interaction?: TrackInteraction<Item>,
   ): TrackInstance<z.output<ConfigSchema>, Item> & { type: Type };
   validate(
@@ -108,7 +114,7 @@ export type AnyTrackModule = {
   type: string;
   displays: string[];
   configSchema: z.ZodObject;
-  createInputSchema: TrackCreateInputSchema<z.ZodObject>;
+  createInputSchema: TrackCreateInputSchema<z.ZodObject, string>;
   create(
     input: unknown,
     interaction?: unknown,

@@ -12,7 +12,7 @@ Most module `create` helpers accept these shared fields:
 - `height`: track height in pixels
 - `color`: optional module-specific color
 
-Modules may provide defaults for `display`, `height`, and `color`.
+Modules may provide defaults for `display`, `height`, and `color`. Module-owned config defaults come from the module's Zod `configSchema`.
 
 ## Built-in modules
 

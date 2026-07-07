@@ -35,7 +35,7 @@ describe("track module type contracts", () => {
     expectTypeOf<ModuleCreateInput<typeof moduleA>>().toEqualTypeOf<{
       id: string;
       title: string;
-      display?: string | undefined;
+      display?: "full" | undefined;
       height?: number | undefined;
       color?: string | undefined;
       config: {
@@ -47,7 +47,7 @@ describe("track module type contracts", () => {
     expectTypeOf<ModuleCreateInput<typeof moduleB>>().toEqualTypeOf<{
       id: string;
       title: string;
-      display?: string | undefined;
+      display?: "dense" | undefined;
       height?: number | undefined;
       color?: string | undefined;
       config: {
@@ -55,6 +55,43 @@ describe("track module type contracts", () => {
         enabled?: boolean | undefined;
       };
     }>();
+  });
+
+  it("narrows create input display to renderer keys", () => {
+    const multiDisplayModule = defineTrackModule({
+      type: "multi-display",
+      configSchema: z.object({ url: z.string().min(1) }),
+      fetch: async () => null,
+      render: { full: Renderer, dense: Renderer },
+    });
+
+    expectTypeOf<ModuleCreateInput<typeof moduleA>["display"]>().toEqualTypeOf<
+      "full" | undefined
+    >();
+    expectTypeOf<ModuleCreateInput<typeof multiDisplayModule>["display"]>().toEqualTypeOf<
+      "full" | "dense" | undefined
+    >();
+
+    if (false) {
+      moduleA.create({
+        id: "track-a",
+        title: "Track A",
+        // @ts-expect-error display must be one of the module's renderer keys.
+        display: "dense",
+        config: { url: "YOUR_URL_HERE" },
+      });
+
+      defineTrackModule({
+        type: "bad-default-display",
+        defaults: {
+          // @ts-expect-error defaults.display must be one of the module's renderer keys.
+          display: "dense",
+        },
+        configSchema: z.object({}),
+        fetch: async () => null,
+        render: { full: Renderer },
+      });
+    }
   });
 
   it("narrows registry lookups by literal module type", () => {
