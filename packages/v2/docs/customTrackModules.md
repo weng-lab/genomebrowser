@@ -10,6 +10,7 @@ import { defineTrackModule } from "@weng-lab/genomebrowser-v2";
 
 const configSchema = z.object({
   url: z.string().min(1),
+  smoothing: z.number().default(0),
 });
 
 type Config = z.infer<typeof configSchema>;
@@ -57,7 +58,7 @@ const useTrackStore = createTrackStore({
 
 ## Mental model
 
-Put stable behavior in the module and per-track choices in the track instance. The browser owns base fields such as `id`, `title`, `display`, `height`, and `color`; the module owns fields under `config`, such as a URL; callbacks are passed as the optional second argument to `create`.
+Put stable behavior in the module and per-track choices in the track instance. The browser owns base fields such as `id`, `title`, `display`, `height`, and `color`; the module owns fields under `config`, such as a URL; callbacks are passed as the optional second argument to `create`. Use module `defaults` for base fields, and use Zod `.default()` inside `configSchema` for config defaults.
 
 ## Sharp edges
 

@@ -26,7 +26,6 @@ describe("defineTrackModule", () => {
     defaults: {
       height: 80,
       color: "#2266aa",
-      config: { enabled: true },
     },
     configSchema: z.object({
       url: z.string().min(1),
@@ -97,6 +96,30 @@ describe("defineTrackModule", () => {
     );
   });
 
+  it("returns create output that passes validate", () => {
+    const track = module.create({
+      id: "signal",
+      title: "Signal",
+      config: { url: "YOUR_URL_HERE" },
+    });
+
+    expect(module.validate(track)).toEqual(track);
+  });
+
+  it("rejects invalid module-authored defaults at module definition time", () => {
+    expect(() =>
+      defineTrackModule({
+        type: "bad-default-height",
+        defaults: {
+          height: -1,
+        },
+        configSchema: z.object({}),
+        fetch: async () => null,
+        render: { full: FullRenderer },
+      }),
+    ).toThrow(/bad-default-height defaults is invalid/);
+  });
+
   it("preserves optional module-owned components", () => {
     expect(module.settingsComponent).toBe(SettingsComponent);
     expect(module.tooltipComponent).toBe(TooltipComponent);
@@ -150,6 +173,39 @@ describe("defineTrackModule", () => {
     ).toThrow(/min must be less than max/);
   });
 
+  it("applies Zod config defaults without dropping object refinements", () => {
+    const rangeModule = defineTrackModule({
+      type: "defaulted-range",
+      configSchema: z
+        .object({
+          min: z.number().default(0),
+          max: z.number(),
+        })
+        .refine((range) => range.min < range.max, {
+          error: "min must be less than max",
+        }),
+      fetch: async () => null,
+      render: {
+        full: FullRenderer,
+      },
+    });
+
+    expect(
+      rangeModule.create({
+        id: "range",
+        title: "Range",
+        config: { max: 10 },
+      }).config,
+    ).toEqual({ min: 0, max: 10 });
+    expect(() =>
+      rangeModule.create({
+        id: "range",
+        title: "Range",
+        config: { max: -1 },
+      }),
+    ).toThrow(/min must be less than max/);
+  });
+
   it("stores item-only interaction callbacks separately from config", () => {
     const onClick = () => undefined;
     const onHover = () => undefined;
@@ -193,14 +249,12 @@ describe("defineTrackModule", () => {
     ).toThrow(/example interaction is invalid/);
   });
 
-  it("merges module config defaults before parsing required fields", () => {
+  it("applies Zod config defaults through the create input schema", () => {
     const defaultedModule = defineTrackModule({
       type: "defaulted",
-      defaults: {
-        config: { url: "YOUR_URL_HERE" },
-      },
       configSchema: z.object({
-        url: z.string().min(1),
+        url: z.string().min(1).default("YOUR_URL_HERE"),
+        assembly: z.string().min(1),
         enabled: z.boolean().default(true),
       }),
       fetch: async () => null,
@@ -211,9 +265,25 @@ describe("defineTrackModule", () => {
       defaultedModule.create({
         id: "signal",
         title: "Signal",
+        config: { assembly: "hg38" },
+      }).config,
+    ).toEqual({ url: "YOUR_URL_HERE", assembly: "hg38", enabled: true });
+    expect(() =>
+      defaultedModule.create({
+        id: "signal",
+        title: "Signal",
         config: {},
-      } as never).config,
-    ).toEqual({ url: "YOUR_URL_HERE", enabled: true });
+      } as never),
+    ).toThrow(/defaulted input is invalid/);
+
+    const schema = z.toJSONSchema(defaultedModule.createInputSchema, { io: "input" }) as {
+      properties?: {
+        config?: { required?: string[] };
+      };
+    };
+    const required = schema.properties?.config?.required;
+    expect(required).toContain("assembly");
+    expect(required).not.toContain("url");
   });
 
   it("rejects missing or non-object config input", () => {

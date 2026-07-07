@@ -189,7 +189,7 @@ const registry = createModuleRegistry([bigWigModule]);
 const schema = generateTrackCatalogJsonSchema(registry);
 ```
 
-The generated schema includes the allowed `type` values and the matching create-input shape for each registered module. Register at least one module; schema generation throws if the registry is empty.
+The generated schema includes the allowed `type` values and the matching create-input shape for each registered module. Config fields with Zod defaults in a module's `configSchema` are optional in the generated input schema. Register at least one module; schema generation throws if the registry is empty.
 
 ## Validating catalog JSON
 
@@ -203,7 +203,7 @@ const registry = createModuleRegistry([bigWigModule]);
 const catalog = validateJson(rawCatalog, registry);
 ```
 
-Pass the registry from a v2 track store, or another registry created from the same modules. If a track references an unknown `type`, or its entry does not match that module's create-input schema, validation fails.
+Pass the registry from a v2 track store, or another registry created from the same modules. If a track references an unknown `type`, or its entry does not match that module's create-input schema, validation fails. `validateJson` validates catalog entries but keeps returned track rows as catalog data; module defaults are applied later when the selected entry is passed to the module's `create` function.
 
 `TrackSelect` calls `validateJson` for each track catalog with the registry from `useTrackStore`, so the rendered dialog uses the same module set as the browser.
 
