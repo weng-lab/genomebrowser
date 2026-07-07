@@ -8,7 +8,7 @@ describe("MethylC module", () => {
     const track = methylCModule.create({
       id: "methylc",
       title: "MethylC",
-      urls: createUrls("YOUR_URL_HERE"),
+      config: { urls: createUrls("YOUR_URL_HERE") },
     });
 
     expect(track).toMatchObject({
@@ -40,9 +40,9 @@ describe("MethylC module", () => {
         id: "methylc",
         title: "MethylC",
         display: "combined" as never,
-        urls: createUrls("YOUR_URL_HERE"),
+        config: { urls: createUrls("YOUR_URL_HERE") },
       }),
-    ).toThrow(/methylc base/);
+    ).toThrow(/methylc input/);
   });
 
   it("allows empty channel URLs", () => {
@@ -50,7 +50,7 @@ describe("MethylC module", () => {
       methylCModule.create({
         id: "methylc",
         title: "MethylC",
-        urls: createUrls(""),
+        config: { urls: createUrls("") },
       }),
     ).not.toThrow();
   });
@@ -60,17 +60,19 @@ describe("MethylC module", () => {
       methylCModule.create({
         id: "methylc",
         title: "MethylC",
-        urls: createUrls("YOUR_URL_HERE"),
-        range: { min: 1, max: 0 },
+        config: {
+          urls: createUrls("YOUR_URL_HERE"),
+          range: { min: 1, max: 0 },
+        },
       }),
-    ).toThrow(/methylc config/);
+    ).toThrow(/methylc input/);
   });
 
   it("includes nested URLs in fetch signatures", () => {
     const track = methylCModule.create({
       id: "methylc",
       title: "MethylC",
-      urls: createUrls("URL_A"),
+      config: { urls: createUrls("URL_A") },
     });
 
     const changedColor = {

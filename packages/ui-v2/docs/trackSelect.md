@@ -40,9 +40,9 @@ const trackCatalogs = [
     tracks: [
       {
         type: "bigwig",
+        id: "signal",
+        title: "Signal",
         config: {
-          id: "signal",
-          title: "Signal",
           url: "YOUR_URL_HERE",
         },
         metadata: {
@@ -99,9 +99,9 @@ The catalog detail screen shows the catalog's tracks in a grid next to a panel l
   "tracks": [
     {
       "type": "bigwig",
+      "id": "signal",
+      "title": "Signal",
       "config": {
-        "id": "signal",
-        "title": "Signal",
         "url": "YOUR_URL_HERE"
       },
       "metadata": {
@@ -147,7 +147,8 @@ Metadata values can be strings, numbers, booleans, or `null`.
 Each track entry has:
 
 - `type`: the registered track module type, such as `"bigwig"`
-- `config`: the flat create input accepted by that module's `create(...)` function
+- `id`, `title`, `display`, `height`, and `color`: browser-owned create fields
+- `config`: module-owned create fields accepted by that module's `create(...)` function
 - `metadata`: optional values used by TrackSelect views for columns, grouping, and labels
 
 For example:
@@ -155,11 +156,11 @@ For example:
 ```json
 {
   "type": "bigwig",
+  "id": "signal",
+  "title": "Signal",
+  "height": 80,
   "config": {
-    "id": "signal",
-    "title": "Signal",
-    "url": "YOUR_URL_HERE",
-    "height": 80
+    "url": "YOUR_URL_HERE"
   },
   "metadata": {
     "assay": "Example assay",
@@ -168,7 +169,7 @@ For example:
 }
 ```
 
-The `type` field selects the registered module. `config` is then validated with that module's create-input schema before the track can be added.
+The `type` field selects the registered module. The entry is validated with that module's create-input schema before the track can be added.
 
 ## How selection is applied
 
@@ -182,12 +183,13 @@ Use `generateTrackCatalogJsonSchema` when you want editor autocomplete or valida
 
 ```ts
 import { generateTrackCatalogJsonSchema } from "@weng-lab/genomebrowser-ui-v2";
-import { bigWigModule } from "@weng-lab/genomebrowser-v2";
+import { bigWigModule, createModuleRegistry } from "@weng-lab/genomebrowser-v2";
 
-const schema = generateTrackCatalogJsonSchema([bigWigModule]);
+const registry = createModuleRegistry([bigWigModule]);
+const schema = generateTrackCatalogJsonSchema(registry);
 ```
 
-The generated schema includes the allowed `type` values and the matching `config` shape for each module passed in. Pass at least one module; schema generation throws if the module list is empty.
+The generated schema includes the allowed `type` values and the matching create-input shape for each registered module. Register at least one module; schema generation throws if the registry is empty.
 
 ## Validating catalog JSON
 
@@ -195,14 +197,13 @@ Use `validateJson` if you want to validate a track catalog before rendering `Tra
 
 ```ts
 import { validateJson } from "@weng-lab/genomebrowser-ui-v2";
-import { bigWigModule } from "@weng-lab/genomebrowser-v2";
+import { bigWigModule, createModuleRegistry } from "@weng-lab/genomebrowser-v2";
 
-const catalog = validateJson(rawCatalog, [bigWigModule]);
+const registry = createModuleRegistry([bigWigModule]);
+const catalog = validateJson(rawCatalog, registry);
 ```
 
-You can pass either a module array or the registry from a v2 track store. If a track references an unknown `type`, or its `config` does not match that module's create-input schema, validation fails.
-
-Called without a module array or registry, `validateJson` checks only the catalog structure and view field references. Track type and config are not validated against modules.
+Pass the registry from a v2 track store, or another registry created from the same modules. If a track references an unknown `type`, or its entry does not match that module's create-input schema, validation fails.
 
 `TrackSelect` calls `validateJson` for each track catalog with the registry from `useTrackStore`, so the rendered dialog uses the same module set as the browser.
 

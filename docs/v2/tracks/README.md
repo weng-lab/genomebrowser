@@ -8,4 +8,4 @@ v2 ships first-party track modules for common genomic data types. Each module fo
 - [Transcript](transcript.md): gene and transcript models from the SCREEN GraphQL API
 - [MethylC](methylc.md): split-strand methylation signal from BigWig channels
 
-All built-in modules support the shared base config fields: `id`, `title`, `display`, `height`, `color`, and optional interaction callback fields.
+All built-in modules support the shared base fields `id`, `title`, `display`, `height`, and `color` at the top level of create input. Module-specific fields live under `config`, and optional interaction callbacks are passed as the second `create` argument.

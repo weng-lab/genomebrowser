@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import type { TrackInstance } from "../../modules/types";
+import type { AnyTrackInstance } from "../../modules/types";
 import { useContextMenuStore } from "../state/BrowserContext";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { PanTrack } from "./PanTrack";
@@ -24,7 +24,7 @@ export function TrackFrame({
   titleSize,
   children,
 }: {
-  track: TrackInstance<any, any>;
+  track: AnyTrackInstance;
   y: number;
   previewOffsetY?: number;
   marginWidth: number;

@@ -19,12 +19,13 @@ export type CaveConfig = {
 export type CaveInput = {
   id: string;
   title: string;
-  neurotransmitter: CaveNeurotransmitter;
-  age: CaveAge;
   display?: CaveDisplay;
   height?: number;
   color?: string;
-} & Partial<TrackInteraction<CaveTooltipItem>>;
+  config: CaveConfig;
+};
+
+export type CaveInteraction = TrackInteraction<CaveTooltipItem>;
 
 export type CaveData = {
   top: BigWigData[];

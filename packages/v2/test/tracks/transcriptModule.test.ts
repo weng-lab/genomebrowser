@@ -6,8 +6,10 @@ describe("Transcript module", () => {
     const config = transcriptModule.create({
       id: "genes",
       title: "Genes",
-      assembly: "GRCh38",
-      version: 40,
+      config: {
+        assembly: "GRCh38",
+        version: 40,
+      },
     });
 
     expect(transcriptModule.tooltipComponent).toBeTypeOf("function");

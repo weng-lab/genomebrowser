@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { createPortal } from "react-dom";
-import type { TrackInstance } from "../../modules/types";
+import type { AnyTrackInstance } from "../../modules/types";
 import { useTrackSwap } from "./useTrackSwap";
 import type { SwapPreview, SwapTrackRender } from "./swapTypes";
 
@@ -12,7 +12,7 @@ export function SwapTrack({
   onPreviewEnd,
   children,
 }: {
-  track: TrackInstance<any, any>;
+  track: AnyTrackInstance;
   titleSize: number;
   disabled?: boolean;
   onPreviewChange: (preview: SwapPreview) => void;

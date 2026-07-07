@@ -18,7 +18,7 @@ export function createSelectionFromTracks(
   for (const catalog of trackCatalogs) {
     const selectedIds = selectedByCatalog.get(catalog.id)!;
     for (const track of catalog.tracks) {
-      const trackId = getCatalogTrackId(catalog.id, track.config.id);
+      const trackId = getCatalogTrackId(catalog.id, track.id);
       if (storeTrackIds.has(trackId)) selectedIds.add(trackId);
     }
   }

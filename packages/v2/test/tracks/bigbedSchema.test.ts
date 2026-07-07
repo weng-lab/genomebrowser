@@ -9,7 +9,7 @@ describe("BigBed ordered Zod schema parsing", () => {
     const config = bigBedModule.create({
       id: "peaks",
       title: "Peaks",
-      url: "YOUR_URL_HERE",
+      config: { url: "YOUR_URL_HERE" },
     });
 
     expect(bigBedModule.tooltipComponent).toBeTypeOf("function");

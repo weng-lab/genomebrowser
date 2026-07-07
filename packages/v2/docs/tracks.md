@@ -36,7 +36,7 @@ const useTrackStore = createTrackStore({
     bigWigModule.create({
       id: "signal",
       title: "Signal",
-      url: "YOUR_URL_HERE",
+      config: { url: "YOUR_URL_HERE" },
     }),
   ],
 });
@@ -47,14 +47,18 @@ const useTrackStore = createTrackStore({
 Track modules may support `onClick`, `onHover`, and `onLeave` callbacks. The callback item shape is module-specific, so use the exported module types when you need strong typing.
 
 ```ts
-bigWigModule.create({
-  id: "signal",
-  title: "Signal",
-  url: "YOUR_URL_HERE",
-  onHover: (point) => {
-    console.log(point.max);
+bigWigModule.create(
+  {
+    id: "signal",
+    title: "Signal",
+    config: { url: "YOUR_URL_HERE" },
   },
-});
+  {
+    onHover: (point) => {
+      console.log(point.max);
+    },
+  },
+);
 ```
 
 ## Sharp edges

@@ -8,10 +8,12 @@
 const track = bulkBedModule.create({
   id: "bulk-peaks",
   title: "Bulk peaks",
-  datasets: [
-    { name: "Sample A", url: "YOUR_URL_HERE" },
-    { name: "Sample B", url: "YOUR_URL_HERE" },
-  ],
+  config: {
+    datasets: [
+      { name: "Sample A", url: "YOUR_URL_HERE" },
+      { name: "Sample B", url: "YOUR_URL_HERE" },
+    ],
+  },
 });
 ```
 

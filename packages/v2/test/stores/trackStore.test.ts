@@ -8,7 +8,7 @@ describe("createTrackStore", () => {
     return bigWigModule.create({
       id,
       title: "Signal",
-      url: "YOUR_URL_HERE",
+      config: { url: "YOUR_URL_HERE" },
     });
   }
 
@@ -175,14 +175,14 @@ describe("createTrackStore", () => {
     const onHover = () => undefined;
     const onLeave = () => undefined;
     const nextClick = () => undefined;
-    const initial = bigWigModule.create({
-      id: "signal",
-      title: "Signal",
-      url: "YOUR_URL_HERE",
-      onClick,
-      onHover,
-      onLeave,
-    });
+    const initial = bigWigModule.create(
+      {
+        id: "signal",
+        title: "Signal",
+        config: { url: "YOUR_URL_HERE" },
+      },
+      { onClick, onHover, onLeave },
+    );
     const store = createTrackStore({ modules: [bigWigModule], tracks: [initial] });
 
     expect(store.getState().getTrack("signal")).toMatchObject({
@@ -193,12 +193,14 @@ describe("createTrackStore", () => {
       },
     });
 
-    const added = bigWigModule.create({
-      id: "added",
-      title: "Added",
-      url: "YOUR_URL_HERE",
-      onClick: nextClick,
-    });
+    const added = bigWigModule.create(
+      {
+        id: "added",
+        title: "Added",
+        config: { url: "YOUR_URL_HERE" },
+      },
+      { onClick: nextClick },
+    );
     store.getState().addTrack(added);
     expect(store.getState().getTrack("added")).toMatchObject({
       interaction: { onClick: nextClick },
@@ -288,8 +290,10 @@ describe("createTrackStore", () => {
         bigWigModule.create({
           id: "signal",
           title: "Signal",
-          url: "YOUR_URL_HERE",
-          yRange: { min: 0, max: 10 },
+          config: {
+            url: "YOUR_URL_HERE",
+            yRange: { min: 0, max: 10 },
+          },
         }),
       ],
     });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { MouseEvent, RefObject } from "react";
-import type { TrackInstance } from "../../modules/types";
+import type { AnyTrackInstance } from "../../modules/types";
 import { svgPoint } from "../../modules/utils/svg";
 import { useTrackMutationGate, useTrackStore } from "../state/BrowserContext";
 import { useBrowserSvg } from "../svg/BrowserSvgContext";
@@ -21,7 +21,7 @@ export function useTrackSwap({
   onPreviewEnd,
   cloneRef,
 }: {
-  track: TrackInstance<any, any>;
+  track: AnyTrackInstance;
   titleSize: number;
   disabled?: boolean;
   onPreviewChange: (preview: SwapPreview) => void;

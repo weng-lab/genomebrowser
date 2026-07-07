@@ -8,18 +8,20 @@
 const track = methylCModule.create({
   id: "methylation",
   title: "Methylation",
-  urls: {
-    plusStrand: {
-      cpg: { url: "YOUR_URL_HERE" },
-      chg: { url: "YOUR_URL_HERE" },
-      chh: { url: "YOUR_URL_HERE" },
-      depth: { url: "YOUR_URL_HERE" },
-    },
-    minusStrand: {
-      cpg: { url: "YOUR_URL_HERE" },
-      chg: { url: "YOUR_URL_HERE" },
-      chh: { url: "YOUR_URL_HERE" },
-      depth: { url: "YOUR_URL_HERE" },
+  config: {
+    urls: {
+      plusStrand: {
+        cpg: { url: "YOUR_URL_HERE" },
+        chg: { url: "YOUR_URL_HERE" },
+        chh: { url: "YOUR_URL_HERE" },
+        depth: { url: "YOUR_URL_HERE" },
+      },
+      minusStrand: {
+        cpg: { url: "YOUR_URL_HERE" },
+        chg: { url: "YOUR_URL_HERE" },
+        chh: { url: "YOUR_URL_HERE" },
+        depth: { url: "YOUR_URL_HERE" },
+      },
     },
   },
 });

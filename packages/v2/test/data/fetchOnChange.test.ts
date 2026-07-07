@@ -22,8 +22,10 @@ describe("fetchOnChange", () => {
     const track = module.create({
       id: "signal",
       title: "Signal",
-      url: "YOUR_URL_HERE",
-      colorBy: "score",
+      config: {
+        url: "YOUR_URL_HERE",
+        colorBy: "score",
+      },
     });
 
     expect(createFetchSignature(module, track)).toBe(JSON.stringify({ url: "YOUR_URL_HERE" }));
@@ -48,7 +50,11 @@ describe("fetchOnChange", () => {
       fetch: async () => null,
       render: { full: Renderer },
     });
-    const track = module.create({ id: "signal", title: "Signal", url: "YOUR_URL_HERE" });
+    const track = module.create({
+      id: "signal",
+      title: "Signal",
+      config: { url: "YOUR_URL_HERE" },
+    });
 
     expect(
       createFetchSignature(module, {
@@ -66,7 +72,11 @@ describe("fetchOnChange", () => {
       fetch: async () => null,
       render: { full: Renderer },
     });
-    const track = module.create({ id: "signal", title: "Signal", url: "YOUR_URL_HERE" });
+    const track = module.create({
+      id: "signal",
+      title: "Signal",
+      config: { url: "YOUR_URL_HERE" },
+    });
 
     expect(createFetchSignature(module, track)).toBe("{}");
     expect(
@@ -89,7 +99,7 @@ describe("fetchOnChange", () => {
     const track = module.create({
       id: "signal",
       title: "Signal",
-      source: { url: "YOUR_URL_HERE", label: "Signal A" },
+      config: { source: { url: "YOUR_URL_HERE", label: "Signal A" } },
     });
 
     expect(createFetchSignature(module, track)).toBe(
@@ -126,10 +136,12 @@ describe("fetchOnChange", () => {
     const track = module.create({
       id: "bulk-signal",
       title: "Bulk signal",
-      datasets: [
-        { name: "Dataset A", url: "URL_A" },
-        { name: "Dataset B", url: "URL_B" },
-      ],
+      config: {
+        datasets: [
+          { name: "Dataset A", url: "URL_A" },
+          { name: "Dataset B", url: "URL_B" },
+        ],
+      },
     });
 
     expect(createFetchSignature(module, track)).toBe(
@@ -163,10 +175,12 @@ describe("fetchOnChange", () => {
     const track = bulkBedModule.create({
       id: "bulk-peaks",
       title: "Bulk peaks",
-      datasets: [
-        { name: "Dataset A", url: "URL_A" },
-        { name: "Dataset B", url: "URL_B" },
-      ],
+      config: {
+        datasets: [
+          { name: "Dataset A", url: "URL_A" },
+          { name: "Dataset B", url: "URL_B" },
+        ],
+      },
     });
 
     expect(createFetchSignature(bulkBedModule, track)).toBe(

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { DataState } from "../data/types";
-import type { TrackInstance } from "../../modules/types";
+import type { AnyTrackInstance } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { SwapTrack } from "./SwapTrack";
 import { getSwapPreviewOffsetY, isSameSwapPreview } from "./trackSwapMath";
@@ -24,7 +24,7 @@ export function TrackStack({
   titleSize,
   startY,
 }: {
-  tracks: TrackInstance<any, any>[];
+  tracks: AnyTrackInstance[];
   dataStates: Record<string, DataState>;
   region: BrowserRegion;
   marginWidth: number;

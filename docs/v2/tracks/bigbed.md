@@ -8,7 +8,7 @@
 const track = bigBedModule.create({
   id: "peaks",
   title: "Peaks",
-  url: "YOUR_URL_HERE",
+  config: { url: "YOUR_URL_HERE" },
 });
 ```
 

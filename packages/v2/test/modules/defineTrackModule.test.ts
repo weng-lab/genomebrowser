@@ -41,12 +41,12 @@ describe("defineTrackModule", () => {
     tooltipComponent: TooltipComponent,
   });
 
-  it("creates nested track instances from flat public input", () => {
+  it("creates nested track instances from public input", () => {
     expect(
       module.create({
         id: "signal",
         title: "Signal",
-        url: "YOUR_URL_HERE",
+        config: { url: "YOUR_URL_HERE" },
       }),
     ).toEqual({
       type: "example",
@@ -68,14 +68,15 @@ describe("defineTrackModule", () => {
     module.create({
       id: "signal",
       title: "Signal",
-      url: "YOUR_URL_HERE",
+      config: { url: "YOUR_URL_HERE" },
     });
 
     if (false) {
-      // @ts-expect-error url is required by the config schema.
       module.create({
         id: "signal",
         title: "Signal",
+        // @ts-expect-error url is required by the config schema.
+        config: {},
       });
     }
   });
@@ -84,7 +85,7 @@ describe("defineTrackModule", () => {
     const track = module.create({
       id: "signal",
       title: "Signal",
-      url: "YOUR_URL_HERE",
+      config: { url: "YOUR_URL_HERE" },
     });
 
     expect(module.validate(track)).toEqual(track);
@@ -106,20 +107,20 @@ describe("defineTrackModule", () => {
       module.create({
         id: "signal",
         title: "Signal",
-        url: "YOUR_URL_HERE",
+        config: { url: "YOUR_URL_HERE" },
         display: "expanded" as never,
       }),
-    ).toThrow(/example base is invalid/);
+    ).toThrow(/example input is invalid/);
   });
 
-  it("rejects unknown flat input keys", () => {
+  it("rejects unknown input keys", () => {
     expect(() =>
       module.create({
         id: "signal",
         title: "Signal",
-        url: "YOUR_URL_HERE",
+        config: { url: "YOUR_URL_HERE" },
         typo: true,
-      }),
+      } as never),
     ).toThrow(/example input is invalid/);
   });
 
@@ -144,52 +145,23 @@ describe("defineTrackModule", () => {
       rangeModule.create({
         id: "range",
         title: "Range",
-        min: 10,
-        max: 5,
+        config: { min: 10, max: 5 },
       }),
     ).toThrow(/min must be less than max/);
-  });
-
-  it("rejects reserved custom config schema fields", () => {
-    expect(() =>
-      defineTrackModule({
-        type: "reserved",
-        configSchema: z.object({
-          display: z.string(),
-        }),
-        fetch: async () => null,
-        render: {
-          full: FullRenderer,
-        },
-      }),
-    ).toThrow(/cannot define reserved field "display"/);
-
-    expect(() =>
-      defineTrackModule({
-        type: "reserved-interaction",
-        configSchema: z.object({
-          onClick: z.custom<Function>((value) => typeof value === "function"),
-        }),
-        fetch: async () => null,
-        render: {
-          full: FullRenderer,
-        },
-      }),
-    ).toThrow(/cannot define reserved field "onClick"/);
   });
 
   it("stores item-only interaction callbacks separately from config", () => {
     const onClick = () => undefined;
     const onHover = () => undefined;
     const onLeave = () => undefined;
-    const track = module.create({
-      id: "interactive",
-      title: "Interactive",
-      url: "YOUR_URL_HERE",
-      onClick,
-      onHover,
-      onLeave,
-    });
+    const track = module.create(
+      {
+        id: "interactive",
+        title: "Interactive",
+        config: { url: "YOUR_URL_HERE" },
+      },
+      { onClick, onHover, onLeave },
+    );
 
     expect(track.interaction).toEqual({ onClick, onHover, onLeave });
     expect(track.config).not.toHaveProperty("onClick");
@@ -197,13 +169,78 @@ describe("defineTrackModule", () => {
 
   it("rejects invalid interaction field values", () => {
     expect(() =>
+      module.create(
+        {
+          id: "signal",
+          title: "Signal",
+          config: { url: "YOUR_URL_HERE" },
+        },
+        { onClick: "not a function" as never },
+      ),
+    ).toThrow(/example interaction is invalid/);
+  });
+
+  it("rejects invalid falsy interaction values", () => {
+    expect(() =>
+      module.create(
+        {
+          id: "signal",
+          title: "Signal",
+          config: { url: "YOUR_URL_HERE" },
+        },
+        null as never,
+      ),
+    ).toThrow(/example interaction is invalid/);
+  });
+
+  it("merges module config defaults before parsing required fields", () => {
+    const defaultedModule = defineTrackModule({
+      type: "defaulted",
+      defaults: {
+        config: { url: "YOUR_URL_HERE" },
+      },
+      configSchema: z.object({
+        url: z.string().min(1),
+        enabled: z.boolean().default(true),
+      }),
+      fetch: async () => null,
+      render: { full: FullRenderer },
+    });
+
+    expect(
+      defaultedModule.create({
+        id: "signal",
+        title: "Signal",
+        config: {},
+      } as never).config,
+    ).toEqual({ url: "YOUR_URL_HERE", enabled: true });
+  });
+
+  it("rejects missing or non-object config input", () => {
+    expect(() =>
       module.create({
         id: "signal",
         title: "Signal",
-        url: "YOUR_URL_HERE",
-        onClick: "not a function" as never,
-      }),
-    ).toThrow(/example interaction is invalid/);
+      } as never),
+    ).toThrow(/example input is invalid/);
+
+    expect(() =>
+      module.create({
+        id: "signal",
+        title: "Signal",
+        config: null,
+      } as never),
+    ).toThrow(/example input is invalid/);
+  });
+
+  it("emits display options into JSON schema", () => {
+    expect(z.toJSONSchema(module.createInputSchema, { io: "input" })).toMatchObject({
+      properties: {
+        display: {
+          enum: ["full", "dense"],
+        },
+      },
+    });
   });
 
   it("rejects tooltip on create input", () => {
@@ -211,7 +248,7 @@ describe("defineTrackModule", () => {
       module.create({
         id: "signal",
         title: "Signal",
-        url: "YOUR_URL_HERE",
+        config: { url: "YOUR_URL_HERE" },
         tooltip: TooltipComponent,
       } as never),
     ).toThrow(/example input is invalid/);
@@ -249,7 +286,7 @@ describe("defineTrackModule", () => {
       bigWigModule.create({
         id: "signal",
         title: "Signal",
-        url: "YOUR_URL_HERE",
+        config: { url: "YOUR_URL_HERE" },
       }),
     ).toMatchObject({
       type: "bigwig",
@@ -300,13 +337,17 @@ describe("defineTrackModule", () => {
       },
     });
 
-    peaksModule.create({
-      id: "peaks",
-      title: "Peaks",
-      url: "YOUR_URL_HERE",
-      onClick: (item) => {
-        item.signalValue.toFixed(2);
+    peaksModule.create(
+      {
+        id: "peaks",
+        title: "Peaks",
+        config: { url: "YOUR_URL_HERE" },
       },
-    });
+      {
+        onClick: (item) => {
+          item.signalValue.toFixed(2);
+        },
+      },
+    );
   });
 });

@@ -48,8 +48,8 @@ const useTrackStore = createTrackStore({
     customSignalModule.create({
       id: "custom-signal",
       title: "Custom signal",
-      url: "YOUR_URL_HERE",
       display: "full",
+      config: { url: "YOUR_URL_HERE" },
     }),
   ],
 });
@@ -57,7 +57,7 @@ const useTrackStore = createTrackStore({
 
 ## Mental model
 
-Put stable behavior in the module and per-track choices in the track config. For example, the renderer and fetch function belong to the module; a URL, display mode, color, and callback handlers belong to a track instance.
+Put stable behavior in the module and per-track choices in the track instance. The browser owns base fields such as `id`, `title`, `display`, `height`, and `color`; the module owns fields under `config`, such as a URL; callbacks are passed as the optional second argument to `create`.
 
 ## Sharp edges
 

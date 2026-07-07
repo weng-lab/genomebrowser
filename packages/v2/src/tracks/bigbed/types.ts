@@ -41,8 +41,10 @@ export type RenderedBigBedRect<Row extends BigBedRow = BigBedRow> = {
 export type BigBedInput = {
   id: string;
   title: string;
-  url: string;
   display?: BigBedDisplay;
   height?: number;
   color?: string;
-} & Partial<TrackInteraction<BigBedRow>>;
+  config: BigBedConfig;
+};
+
+export type BigBedInteraction = TrackInteraction<BigBedRow>;

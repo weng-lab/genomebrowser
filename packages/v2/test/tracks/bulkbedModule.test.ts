@@ -6,10 +6,12 @@ describe("BulkBed module", () => {
     const track = bulkBedModule.create({
       id: "bulk-peaks",
       title: "Bulk peaks",
-      datasets: [
-        { name: "Dataset A", url: "YOUR_URL_HERE" },
-        { name: "Dataset B", url: "YOUR_URL_HERE" },
-      ],
+      config: {
+        datasets: [
+          { name: "Dataset A", url: "YOUR_URL_HERE" },
+          { name: "Dataset B", url: "YOUR_URL_HERE" },
+        ],
+      },
     });
 
     expect(track).toMatchObject({
@@ -37,9 +39,9 @@ describe("BulkBed module", () => {
       bulkBedModule.create({
         id: "bulk-peaks",
         title: "Bulk peaks",
-        datasets: [],
+        config: { datasets: [] },
       }),
-    ).toThrow(/bulkbed config/);
+    ).toThrow(/bulkbed input/);
   });
 
   it("rejects negative gaps", () => {
@@ -47,9 +49,11 @@ describe("BulkBed module", () => {
       bulkBedModule.create({
         id: "bulk-peaks",
         title: "Bulk peaks",
-        datasets: [{ name: "Dataset A", url: "YOUR_URL_HERE" }],
-        gap: -1,
+        config: {
+          datasets: [{ name: "Dataset A", url: "YOUR_URL_HERE" }],
+          gap: -1,
+        },
       }),
-    ).toThrow(/bulkbed config/);
+    ).toThrow(/bulkbed input/);
   });
 });

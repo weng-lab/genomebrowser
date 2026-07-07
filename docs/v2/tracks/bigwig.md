@@ -8,7 +8,7 @@
 const track = bigWigModule.create({
   id: "signal",
   title: "Signal",
-  url: "YOUR_URL_HERE",
+  config: { url: "YOUR_URL_HERE" },
 });
 ```
 
