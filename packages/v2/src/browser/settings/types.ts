@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import type { TrackBase, TrackInstance, TrackMutationResult } from "../../modules/types";
+import type { AnyTrackInstance, TrackBase, TrackMutationResult } from "../../modules/types";
 
 export type SettingsPosition = {
   x: number;
@@ -7,7 +7,7 @@ export type SettingsPosition = {
 };
 
 export type SettingsModalProps = {
-  track: TrackInstance<any, any>;
+  track: AnyTrackInstance;
   title: string;
   position: SettingsPosition;
   closeSettings: () => void;

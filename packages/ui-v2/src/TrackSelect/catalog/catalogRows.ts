@@ -18,8 +18,8 @@ export function getCatalogRows(catalog: Pick<TrackSelectCatalog, "id" | "tracks"
     (track): CatalogGridRow => ({
       // Keep metadata first so reserved catalog fields below cannot be clobbered.
       ...track.metadata,
-      id: getCatalogTrackId(catalog.id, track.config.id),
-      title: track.config.title,
+      id: getCatalogTrackId(catalog.id, track.id),
+      title: track.title,
       type: track.type,
       track,
     }),
@@ -27,7 +27,7 @@ export function getCatalogRows(catalog: Pick<TrackSelectCatalog, "id" | "tracks"
 }
 
 export function getCatalogTrackIds(catalog: Pick<TrackSelectCatalog, "id" | "tracks">) {
-  return new Set(catalog.tracks.map((track) => getCatalogTrackId(catalog.id, track.config.id)));
+  return new Set(catalog.tracks.map((track) => getCatalogTrackId(catalog.id, track.id)));
 }
 
 export function getCatalogTrackById(trackCatalogs: TrackSelectCatalog[]) {
@@ -35,7 +35,7 @@ export function getCatalogTrackById(trackCatalogs: TrackSelectCatalog[]) {
 
   for (const catalog of trackCatalogs) {
     for (const track of catalog.tracks) {
-      tracksById.set(getCatalogTrackId(catalog.id, track.config.id), track);
+      tracksById.set(getCatalogTrackId(catalog.id, track.id), track);
     }
   }
 
@@ -53,7 +53,7 @@ export function assertUniqueCatalogTrackIds(trackCatalogs: TrackSelectCatalog[])
     catalogIds.add(catalog.id);
 
     for (const track of catalog.tracks) {
-      const id = getCatalogTrackId(catalog.id, track.config.id);
+      const id = getCatalogTrackId(catalog.id, track.id);
       if (seen.has(id)) throw new Error(`Duplicate catalog track id: ${id}`);
       seen.add(id);
     }

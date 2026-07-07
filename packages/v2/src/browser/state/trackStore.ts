@@ -1,17 +1,18 @@
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { createModuleRegistry, type ModuleRegistry } from "../../modules/registry";
 import type {
+  AnyTrackInstance,
   AnyTrackModule,
   TrackBase,
-  TrackInstance,
   TrackInteraction,
   TrackMutationResult,
 } from "../../modules/types";
 
-type AnyTrackInstance = TrackInstance<any, any>;
-
-export type TrackStoreOptions<Track extends AnyTrackInstance = AnyTrackInstance> = {
-  modules: AnyTrackModule[];
+export type TrackStoreOptions<
+  Modules extends readonly AnyTrackModule[] = readonly AnyTrackModule[],
+  Track extends AnyTrackInstance = AnyTrackInstance,
+> = {
+  modules: Modules;
   tracks?: Track[];
 };
 
@@ -32,14 +33,17 @@ export type TrackStore = {
   reorderTracks: (ids: string[]) => TrackMutationResult;
   updateBase: (id: string, partial: Partial<TrackBase>) => TrackMutationResult;
   updateConfig: <Config>(id: string, partial: TrackConfigUpdate<Config>) => TrackMutationResult;
-  updateInteraction: <Item>(id: string, partial: TrackInteractionUpdate<Item>) => TrackMutationResult;
+  updateInteraction: (id: string, partial: TrackInteractionUpdate<unknown>) => TrackMutationResult;
   getTrack: (id: string) => AnyTrackInstance | undefined;
 };
 
 export type TrackStoreInstance = UseBoundStore<StoreApi<TrackStore>>;
 
-export function createTrackStore<Track extends AnyTrackInstance = AnyTrackInstance>(
-  options: TrackStoreOptions<Track>,
+export function createTrackStore<
+  const Modules extends readonly AnyTrackModule[],
+  Track extends AnyTrackInstance = AnyTrackInstance,
+>(
+  options: TrackStoreOptions<Modules, Track>,
 ): TrackStoreInstance {
   const registry = createModuleRegistry(options.modules);
   const initialTracks = validateTracks(options.tracks ?? [], registry);
@@ -126,9 +130,10 @@ export function createTrackStore<Track extends AnyTrackInstance = AnyTrackInstan
     updateConfig: (id, partial) => {
       const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
       if (!currentTrack) return mutationError(`No track found for id: ${id}`);
+      const currentConfig = isRecord(currentTrack.config) ? currentTrack.config : {};
       const result = getValidatedTrack({
         ...currentTrack,
-        config: { ...currentTrack.config, ...partial },
+        config: { ...currentConfig, ...partial },
       }, registry);
       if (!result.ok) return result;
 
@@ -165,6 +170,10 @@ function getTrackId(track: AnyTrackInstance) {
   return track.base.id;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 function validateTrack(track: AnyTrackInstance, registry: ModuleRegistry): AnyTrackInstance {
   return registry.get(track.type).validate(track);
 }
@@ -173,7 +182,7 @@ function validateTracks(tracks: AnyTrackInstance[], registry: ModuleRegistry): A
   return tracks.map((track) => validateTrack(track, registry));
 }
 
-const mutationOk = { ok: true } as const satisfies TrackMutationResult;
+const mutationOk: TrackMutationResult = { ok: true };
 
 function mutationError(error: string): TrackMutationResult {
   return { ok: false, error };
@@ -185,7 +194,7 @@ function getErrorMessage(error: unknown) {
 
 function getValidatedTrack(track: AnyTrackInstance, registry: ModuleRegistry): ValidatedTrackResult {
   try {
-    return { ok: true as const, track: validateTrack(track, registry) };
+    return { ok: true, track: validateTrack(track, registry) };
   } catch (error) {
     return { ok: false, error: getErrorMessage(error) };
   }
@@ -196,7 +205,7 @@ function getValidatedTracks(
   registry: ModuleRegistry,
 ): ValidatedTracksResult {
   try {
-    return { ok: true as const, tracks: validateTracks(tracks, registry) };
+    return { ok: true, tracks: validateTracks(tracks, registry) };
   } catch (error) {
     return { ok: false, error: getErrorMessage(error) };
   }

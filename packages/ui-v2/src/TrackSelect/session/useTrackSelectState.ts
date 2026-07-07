@@ -1,4 +1,4 @@
-import type { TrackInstance, TrackStore } from "@weng-lab/genomebrowser-v2";
+import { createTrackFromEntry, type TrackStore } from "@weng-lab/genomebrowser-v2";
 import { useState } from "react";
 import { getSelectionDiff } from "../catalog/catalogDiff";
 import {
@@ -115,10 +115,10 @@ export function useTrackSelectState({
       activeViewIdByCatalog,
     });
 
-    let createdTracks: TrackInstance<any, any>[];
+    let createdTracks: TrackStore["tracks"];
     try {
       createdTracks = tracksToAdd.map(({ id, track }) =>
-        registry.get(track.type).create({ ...track.config, id }),
+        createTrackFromEntry(registry, { ...track, id }),
       );
     } catch (error) {
       setSubmitError(getErrorMessage(error));

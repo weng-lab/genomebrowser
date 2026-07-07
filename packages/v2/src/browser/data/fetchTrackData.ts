@@ -1,5 +1,5 @@
 import type { ModuleRegistry } from "../../modules/registry";
-import type { TrackInstance } from "../../modules/types";
+import type { AnyTrackInstance, TrackFetch } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import type { DataResult } from "./types";
 
@@ -9,12 +9,13 @@ export async function fetchTrackData({
   region,
 }: {
   registry: ModuleRegistry;
-  track: TrackInstance<any, any>;
+  track: AnyTrackInstance;
   region: BrowserRegion;
 }): Promise<DataResult> {
   try {
     const module = registry.get(track.type);
-    const data = await module.fetch({ config: track.config, region });
+    const fetchTrack = module.fetch as TrackFetch<unknown, unknown>;
+    const data = await fetchTrack({ config: track.config, region });
     return { status: "success", data };
   } catch (error) {
     return { status: "error", error: error instanceof Error ? error.message : "Unknown error" };

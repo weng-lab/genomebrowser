@@ -10,7 +10,7 @@ A track is one rendered row of genomic data in the browser. Examples include sig
 
 ## Track config
 
-A track config is the **runtime** configuration object stored in track state that tells the browser how to render a track. It includes shared fields such as `id`, `type`, `title`, `display`, `height`, and `color`, plus module-specific fields that can change track behavior at runtime.
+A track config is the module-owned **runtime** configuration object stored under `track.config`. It contains module-specific fields such as URLs and render-affecting options. Shared fields such as `id`, `title`, `display`, `height`, and `color` live under `track.base`, and `type` selects the registered module.
 
 ## Track module
 
@@ -18,7 +18,7 @@ A track module is a self-contained unit that defines one track type. It owns tha
 
 ## Renderer
 
-A renderer is the React component a track module uses to draw a track for one display mode. The browser chooses the renderer from the module's `render` map using the track config's `display` value.
+A renderer is the React component a track module uses to draw a track for one display mode. The browser chooses the renderer from the module's `render` map using the track base state's `display` value.
 
 ## Display mode
 

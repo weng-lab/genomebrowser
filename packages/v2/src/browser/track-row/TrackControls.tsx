@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { TrackInstance } from "../../modules/types";
+import type { AnyTrackInstance } from "../../modules/types";
 import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../state/BrowserContext";
 import { BottomIcon, SettingsIcon, TopIcon } from "./icons";
 
@@ -8,7 +8,7 @@ export function TrackControls({
   marginWidth,
   wrapperHeight,
 }: {
-  track: TrackInstance<any, any>;
+  track: AnyTrackInstance;
   marginWidth: number;
   wrapperHeight: number;
 }) {

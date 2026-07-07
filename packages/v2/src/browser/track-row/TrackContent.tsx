@@ -1,7 +1,7 @@
 import { memo, type ComponentType } from "react";
 import type { DataState } from "../data/types";
 import { TrackInteractionProvider } from "../../modules/interaction";
-import type { TrackInstance, TrackRendererProps } from "../../modules/types";
+import type { AnyTrackInstance, TrackRendererProps } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { useRegistry } from "../state/useRegistry";
 import { ErrorState } from "./ErrorState";
@@ -15,7 +15,7 @@ export const TrackContent = memo(function TrackContent({
   height,
   titleMargin,
 }: {
-  track: TrackInstance<any, any>;
+  track: AnyTrackInstance;
   dataState: DataState;
   region: BrowserRegion;
   width: number;

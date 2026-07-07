@@ -29,34 +29,44 @@ type TrackBase = {
 
 The `type` field connects a track instance to a registered track module. `base.display` selects one of that module's renderers.
 
-Module `create` accepts flat public input for ergonomics and returns the nested runtime shape.
+Module `create` accepts nested public input with browser-owned base fields at the top level and module-owned fields under `config`. Optional interaction callbacks are passed as a second argument and are not part of the JSON contract.
 
 ## Track modules
 
 A track module defines one track type:
 
 ```ts
-type TrackModule<Config, Data, Input = unknown> = {
-  type: string;
-  create(input: Input): TrackInstance<Config>;
-  validate(instance: unknown): TrackInstance<Config>;
-  fetch(ctx: TrackFetchContext<Config>): Promise<Data>;
-  render: Record<string, ComponentType<TrackRendererProps<Config, Data>>>;
-  settingsComponent?: ComponentType<TrackSettingsProps<Config>>;
-  tooltipComponent?: ComponentType<{ item: unknown; config: Config }>;
+type TrackModule<
+  Type extends string,
+  ConfigSchema extends z.ZodObject,
+  Data,
+  Item = unknown,
+> = {
+  type: Type;
+  configSchema: ConfigSchema;
+  createInputSchema: TrackCreateInputSchema<ConfigSchema>;
+  create(
+    input: TrackCreateInput<z.input<ConfigSchema>>,
+    interaction?: TrackInteraction<Item>,
+  ): TrackInstance<z.output<ConfigSchema>, Item> & { type: Type };
+  validate(instance: unknown): TrackInstance<z.output<ConfigSchema>, Item> & { type: Type };
+  fetch(ctx: TrackFetchContext<z.output<ConfigSchema>>): Promise<Data>;
+  render: Record<string, ComponentType<TrackRendererProps<z.output<ConfigSchema>, Data>>>;
+  settingsComponent?: ComponentType<TrackSettingsProps<z.output<ConfigSchema>>>;
+  tooltipComponent?: ComponentType<{ item: Item; config: z.output<ConfigSchema> }>;
 };
 ```
 
 The main responsibilities are:
 
-- `create` builds a nested track instance from flat public input
+- `create` builds a nested track instance from nested public input and optional code-only interactions
 - `validate` checks an existing nested track instance before use
 - `fetch` loads raw data for the requested genomic region using module config
 - `render` maps display modes to React renderers
 - `settingsComponent` can provide optional module-specific track settings UI
 - `tooltipComponent` can provide optional module-specific tooltip UI
 
-Track modules should be defined with `defineTrackModule`. Custom track authors provide `configSchema`, a Zod object for the module-specific config fields. The helper partitions flat create input into browser-owned `base`, module-owned `config`, and instance-owned `interaction`, then creates `create` and `validate` functions. See [Schema validation](validation.md) for the config schema convention and [Useful helpers for track modules](helpers.md) for exported hooks that can support custom renderers.
+Track modules should be defined with `defineTrackModule`. Custom track authors provide `configSchema`, a Zod object for the module-specific config fields. The helper derives `createInputSchema`, validates nested create input, applies defaults, and creates `create` and `validate` functions. See [Schema validation](validation.md) for the config schema convention and [Useful helpers for track modules](helpers.md) for exported hooks that can support custom renderers.
 
 `settingsComponent` is only the module-specific settings child. The browser owns the main settings modal and base settings fields such as title, color, height, and display. Consumers can replace the main modal shell or base settings UI through the browser settings store without changing track modules.
 
@@ -89,7 +99,7 @@ export const exampleTrackModule = defineTrackModule<ExampleItem>()({
 });
 ```
 
-The custom config schema must not define reserved fields: `id`, `type`, `title`, `display`, `height`, `color`, `base`, `config`, `interaction`, `onClick`, `onHover`, `onLeave`, or `tooltip`. Display modes come from the `render` keys. If `defaults.display` is omitted, the first renderer key is used.
+Display modes come from the `render` keys. If `defaults.display` is omitted, the first renderer key is used.
 
 `render` must contain at least one renderer. `defaults` is optional; if `height` is omitted it defaults to `80`, and `color` remains optional unless a default color is provided.
 
@@ -111,7 +121,7 @@ import { bigWigModule } from "@weng-lab/genomebrowser-v2";
 const track = bigWigModule.create({
   id: "signal",
   title: "Signal",
-  url: "YOUR_URL_HERE",
+  config: { url: "YOUR_URL_HERE" },
 });
 const region = { chromosome: "chr1", start: 1_000_000, end: 1_010_000 };
 
@@ -187,14 +197,18 @@ export const exampleTrackModule = defineTrackModule<ExampleItem>()({
 Callbacks and tooltips can then narrow on `item.kind`.
 
 ```tsx
-const track = bigBedModule.create({
-  id: "peaks",
-  title: "Peaks",
-  url: "YOUR_URL_HERE",
-  onClick: (item) => {
-    console.log(item.start, item.end);
+const track = bigBedModule.create(
+  {
+    id: "peaks",
+    title: "Peaks",
+    config: { url: "YOUR_URL_HERE" },
   },
-});
+  {
+    onClick: (item) => {
+      console.log(item.start, item.end);
+    },
+  },
+);
 ```
 
 Tooltip components are defined by modules with `tooltipComponent`.
@@ -286,10 +300,23 @@ Use a unique module `type` for each schema-specific BigBed module. Once the sche
 At runtime, the browser uses modules through the registry:
 
 1. `GenomeBrowser` receives a `modules` array.
-2. The module registry indexes modules by `type`.
+2. `createModuleRegistry([moduleA, moduleB])` indexes modules by `type` while preserving the module tuple in its type.
 3. Track instances come from the track store.
-4. Data loading finds the module for each track's `type`.
+4. Data loading calls `registry.get(track.type)`, which returns the exact registered module type for literal module tuples.
 5. The module validates the track instance and fetches data with `track.config` for the current render region.
 6. Rendering finds the module again and chooses `module.render[track.base.display]`.
 
 This keeps the browser generic. Adding or changing a track type should mostly mean changing that track's module, not the browser orchestration layer.
+
+For JSON catalogs, `createTrackFromEntry(registry, entry)` is the JSON-to-typed-track boundary. A catalog entry uses the same nested create input shape plus a `type` discriminator and optional `metadata`:
+
+```json
+{
+  "type": "bigwig",
+  "id": "signal",
+  "title": "Signal",
+  "height": 80,
+  "config": { "url": "YOUR_URL_HERE" },
+  "metadata": { "assay": "signal" }
+}
+```

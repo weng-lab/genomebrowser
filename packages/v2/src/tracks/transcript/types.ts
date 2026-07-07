@@ -54,12 +54,10 @@ export type TranscriptRow = {
 export type TranscriptInput = {
   id: string;
   title: string;
-  assembly: string;
-  version: number;
-  geneName?: string;
-  canonicalColor?: string;
-  highlightColor?: string;
   display?: TranscriptDisplay;
   height?: number;
   color?: string;
-} & Partial<TrackInteraction<Transcript>>;
+  config: TranscriptConfig;
+};
+
+export type TranscriptInteraction = TrackInteraction<Transcript>;

@@ -11,13 +11,13 @@ export type BigWigConfig = {
 export type BigWigInput = {
   id: string;
   title: string;
-  url: string;
   display?: BigWigDisplay;
   height?: number;
   color?: string;
-  fillWithZero?: boolean;
-  yRange?: YRange;
-} & Partial<TrackInteraction<RenderedBigWigPoint>>;
+  config: BigWigConfig;
+};
+
+export type BigWigInteraction = TrackInteraction<RenderedBigWigPoint>;
 
 export type YRange = {
   min: number;

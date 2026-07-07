@@ -12,100 +12,122 @@ export const bigWigExample = bigWigModule.create({
   title: "DNase aggregate",
   color: "#1B2021",
   height: 50,
-  url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
-});
-
-export const bigBedExample = bigBedModule.create({
-  id: "astro-peaks",
-  title: "Astro peaks",
-  color: "#4b9560",
-  display: "squish",
-  height: 35,
-  url: "https://downloads.wenglab.org/Astro.PeakCalls.bb",
-  onClick: ({ item }) => {
-    console.log(item.name);
+  config: {
+    url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
   },
 });
 
-export const bulkBedExample = bulkBedModule.create({
-  id: "chip-bulk-peaks",
-  title: "bulk BigBed",
-  color: "#db6d28",
-  height: 30,
-  gap: 2,
-  datasets: [
-    {
-      name: "ChIP Dataset 1",
-      url: "https://downloads.wenglab.org/ChIP_ENCSR000AKA-ENCSR000AKC-ENCSR000AKF-ENCSR000AKE-ENCSR000AKD-ENCSR000AOX.bigBed",
+export const bigBedExample = bigBedModule.create(
+  {
+    id: "astro-peaks",
+    title: "Astro peaks",
+    color: "#4b9560",
+    display: "squish",
+    height: 35,
+    config: {
+      url: "https://downloads.wenglab.org/Astro.PeakCalls.bb",
     },
-    {
-      name: "ChIP Dataset 2",
-      url: "https://downloads.wenglab.org/ChIP_ENCSR000EWA-ENCSR000AKP-ENCSR000EWC-ENCSR000DWB-ENCSR000EWB-ENCSR000APE.bigBed",
-    },
-    {
-      name: "ChIP Dataset 3",
-      url: "https://downloads.wenglab.org/ChIP_ENCSR000ARA-ENCSR000AQW-ENCSR000AQY-ENCSR000AQX-ENCSR000ASX-ENCSR000ARZ.bigBed",
-    },
-  ],
-  onClick: ({ item }) => {
-    console.log(item.name);
   },
-});
+  {
+    onClick: (item) => {
+      console.log(item.name);
+    },
+  },
+);
 
-export const transcriptExample = transcriptModule.create({
-  id: "genes",
-  title: "Genes",
-  assembly: "GRCh38",
-  version: 40,
-  geneName: "SOX4",
-  display: "squish",
-  color: "#7a4fb3",
-  canonicalColor: "#d45c2f",
-  highlightColor: "#1f77b4",
-  height: 35,
-  onClick: ({ item }) => {
-    console.log(item.name);
+export const bulkBedExample = bulkBedModule.create(
+  {
+    id: "chip-bulk-peaks",
+    title: "bulk BigBed",
+    color: "#db6d28",
+    height: 30,
+    config: {
+      gap: 2,
+      datasets: [
+        {
+          name: "ChIP Dataset 1",
+          url: "https://downloads.wenglab.org/ChIP_ENCSR000AKA-ENCSR000AKC-ENCSR000AKF-ENCSR000AKE-ENCSR000AKD-ENCSR000AOX.bigBed",
+        },
+        {
+          name: "ChIP Dataset 2",
+          url: "https://downloads.wenglab.org/ChIP_ENCSR000EWA-ENCSR000AKP-ENCSR000EWC-ENCSR000DWB-ENCSR000EWB-ENCSR000APE.bigBed",
+        },
+        {
+          name: "ChIP Dataset 3",
+          url: "https://downloads.wenglab.org/ChIP_ENCSR000ARA-ENCSR000AQW-ENCSR000AQY-ENCSR000AQX-ENCSR000ASX-ENCSR000ARZ.bigBed",
+        },
+      ],
+    },
   },
-});
+  {
+    onClick: (item) => {
+      console.log(item.name);
+    },
+  },
+);
+
+export const transcriptExample = transcriptModule.create(
+  {
+    id: "genes",
+    title: "Genes",
+    display: "squish",
+    color: "#7a4fb3",
+    height: 35,
+    config: {
+      assembly: "GRCh38",
+      version: 40,
+      geneName: "SOX4",
+      canonicalColor: "#d45c2f",
+      highlightColor: "#1f77b4",
+    },
+  },
+  {
+    onClick: (item) => {
+      console.log(item.name);
+    },
+  },
+);
 
 export const MOHDMethylC = methylCModule.create({
   id: "methylc",
   title: "MethylC Track",
   height: 100,
-  colors: {
-    cpg: "#648bd8",
-    chg: "#ff944d",
-    chh: "#ff00ff",
-    depth: "#525252",
-  },
-  range: { min: 0, max: 1 },
-  urls: {
-    plusStrand: {
-      cpg: {
-        url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_pos.bw",
-      },
-      chg: {
-        url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_pos.bw",
-      },
-      chh: {
-        url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_pos.bw",
-      },
-      depth: {
-        url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_pos.bw",
-      },
+  config: {
+    colors: {
+      cpg: "#648bd8",
+      chg: "#ff944d",
+      chh: "#ff00ff",
+      depth: "#525252",
     },
-    minusStrand: {
-      cpg: {
-        url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_neg.bw",
+    range: { min: 0, max: 1 },
+    urls: {
+      plusStrand: {
+        cpg: {
+          url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_pos.bw",
+        },
+        chg: {
+          url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_pos.bw",
+        },
+        chh: {
+          url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_pos.bw",
+        },
+        depth: {
+          url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_pos.bw",
+        },
       },
-      chg: {
-        url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_neg.bw",
-      },
-      chh: {
-        url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_neg.bw",
-      },
-      depth: {
-        url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_neg.bw",
+      minusStrand: {
+        cpg: {
+          url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_neg.bw",
+        },
+        chg: {
+          url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_neg.bw",
+        },
+        chh: {
+          url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_neg.bw",
+        },
+        depth: {
+          url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_neg.bw",
+        },
       },
     },
   },
@@ -121,59 +143,61 @@ export const MukamelMethylC = (name: MukamelMethylationName) =>
     title: "Mukamel " + name,
     height: 50,
     color: "#000000",
-    colors: {
-      cpg: "#648bd8",
-      chg: "#ff944d",
-      chh: "#ff00ff",
-      depth: "#525252",
-    },
-    urls: {
-      plusStrand: {
-        cpg: {
-          url:
-            phanh +
-            "data/Mukamel_2024/binsize1/level3/" +
-            name +
-            ".CGN-Watson.frac.bw",
-        },
-        chg: {
-          url:
-            phanh +
-            "data/Mukamel_2024/binsize1/level3/" +
-            name +
-            ".CHN-Watson.frac.bw",
-        },
-        chh: { url: "" },
-        depth: {
-          url:
-            phanh +
-            "data/Mukamel_2024/binsize1/level3/" +
-            name +
-            ".CGN-Watson.cov.bw",
-        },
+    config: {
+      colors: {
+        cpg: "#648bd8",
+        chg: "#ff944d",
+        chh: "#ff00ff",
+        depth: "#525252",
       },
-      minusStrand: {
-        cpg: {
-          url:
-            phanh +
-            "data/Mukamel_2024/binsize1/level3/" +
-            name +
-            ".CGN-Crick.frac.bw",
+      urls: {
+        plusStrand: {
+          cpg: {
+            url:
+              phanh +
+              "data/Mukamel_2024/binsize1/level3/" +
+              name +
+              ".CGN-Watson.frac.bw",
+          },
+          chg: {
+            url:
+              phanh +
+              "data/Mukamel_2024/binsize1/level3/" +
+              name +
+              ".CHN-Watson.frac.bw",
+          },
+          chh: { url: "" },
+          depth: {
+            url:
+              phanh +
+              "data/Mukamel_2024/binsize1/level3/" +
+              name +
+              ".CGN-Watson.cov.bw",
+          },
         },
-        chg: {
-          url:
-            phanh +
-            "data/Mukamel_2024/binsize1/level3/" +
-            name +
-            ".CHN-Crick.frac.bw",
-        },
-        chh: { url: "" },
-        depth: {
-          url:
-            phanh +
-            "data/Mukamel_2024/binsize1/level3/" +
-            name +
-            ".CGN-Crick.cov.bw",
+        minusStrand: {
+          cpg: {
+            url:
+              phanh +
+              "data/Mukamel_2024/binsize1/level3/" +
+              name +
+              ".CGN-Crick.frac.bw",
+          },
+          chg: {
+            url:
+              phanh +
+              "data/Mukamel_2024/binsize1/level3/" +
+              name +
+              ".CHN-Crick.frac.bw",
+          },
+          chh: { url: "" },
+          depth: {
+            url:
+              phanh +
+              "data/Mukamel_2024/binsize1/level3/" +
+              name +
+              ".CGN-Crick.cov.bw",
+          },
         },
       },
     },
@@ -450,18 +474,20 @@ export const BrainomeBigwig = (
 ) =>
   bigWigModule.create({
     id: nt + " " + assay + " " + age,
-    url:
-      phanh +
-      "data/brainome/Methylation_BS_OXBS_bw/" +
-      nt +
-      "_" +
-      assay +
-      "_" +
-      age +
-      ".CGN-both.frac.cov5.bw",
     title: nt + " " + assay + " " + age,
     color: "#3333ff",
     height: 25,
+    config: {
+      url:
+        phanh +
+        "data/brainome/Methylation_BS_OXBS_bw/" +
+        nt +
+        "_" +
+        assay +
+        "_" +
+        age +
+        ".CGN-both.frac.cov5.bw",
+    },
   });
 
 export const BrainomeCave = (
@@ -472,9 +498,11 @@ export const BrainomeCave = (
   caveModule.create({
     id: nt + " cave " + age,
     title: nt + " cave " + age,
-    neurotransmitter: nt,
-    age,
     color,
+    config: {
+      neurotransmitter: nt,
+      age,
+    },
   });
 
 export const brainomeAges = [

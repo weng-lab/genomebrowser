@@ -41,11 +41,11 @@
   "tracks": [
     {
       "type": "bigwig",
+      "id": "odnasd",
+      "title": "DNase aggregate",
+      "color": "#1B2021",
+      "height": 50,
       "config": {
-        "id": "odnasd",
-        "title": "DNase aggregate",
-        "color": "#1B2021",
-        "height": 50,
         "url": "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw"
       },
       "metadata": {
@@ -55,11 +55,11 @@
     },
     {
       "type": "bigbed",
+      "id": "example-bigbed",
+      "title": "Example BigBed",
+      "color": "#4b9560",
+      "height": 60,
       "config": {
-        "id": "example-bigbed",
-        "title": "Example BigBed",
-        "color": "#4b9560",
-        "height": 60,
         "url": "YOUR_URL_HERE"
       },
       "metadata": {

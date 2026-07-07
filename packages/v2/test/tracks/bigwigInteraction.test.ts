@@ -20,7 +20,7 @@ describe("BigWig interaction helpers", () => {
     const config = bigWigModule.create({
       id: "signal",
       title: "Signal",
-      url: "YOUR_URL_HERE",
+      config: { url: "YOUR_URL_HERE" },
     });
 
     expect(bigWigModule.tooltipComponent).toBeTypeOf("function");

@@ -1,6 +1,6 @@
 # Track Module Spec
 
-Track modules are the main authoring seam for v2 track types. A module author provides a `type`, one Zod schema for module-owned `config`, a fetch function, renderers, and optional module-owned UI. The browser stores a validated `TrackInstance` split by ownership, while `create` keeps a flat ergonomic input for users.
+Track modules are the main authoring seam for v2 track types. A module author provides a `type`, one Zod schema for module-owned `config`, a fetch function, renderers, and optional module-owned UI. The browser stores a validated `TrackInstance` split by ownership, while `create` accepts base fields plus nested module `config`.
 
 ## Runtime Shape
 
@@ -67,25 +67,27 @@ export const exampleModule = defineTrackModule<ExampleItem>()({
 - `defaults.color` is optional; without it, `base.color` remains optional.
 - `defaults.config` can provide module config defaults before schema parsing.
 
-Reserved config schema fields are `id`, `type`, `title`, `display`, `height`, `color`, `base`, `config`, `interaction`, `onClick`, `onHover`, `onLeave`, and `tooltip`.
-
 ## Create Input
 
-`create` accepts flat public input and returns a nested `TrackInstance`.
+`create` accepts browser-owned base fields at the top level, module-owned fields under `config`, and optional interaction callbacks as a second argument. It returns a nested `TrackInstance`.
 
 ```ts
-const track = exampleModule.create({
-  id: "signal",
-  title: "Signal",
-  url: "YOUR_URL_HERE",
-  color: "#2266aa",
-  onClick: (item) => {
-    console.log(item);
+const track = exampleModule.create(
+  {
+    id: "signal",
+    title: "Signal",
+    color: "#2266aa",
+    config: { url: "YOUR_URL_HERE" },
   },
-});
+  {
+    onClick: (item) => {
+      console.log(item);
+    },
+  },
+);
 ```
 
-The module system partitions the flat input into `base`, `config`, and `interaction`. Unknown fields fail validation.
+The module system validates the full input once and stores it as `base`, `config`, and `interaction`. Unknown fields fail validation.
 
 ## Validation
 

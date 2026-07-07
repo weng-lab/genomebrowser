@@ -22,9 +22,10 @@ export type BulkBedData = BulkBedRect[][];
 export type BulkBedInput = {
   id: string;
   title: string;
-  datasets: BulkBedDataset[];
-  gap?: number;
   display?: BulkBedDisplay;
   height?: number;
   color?: string;
-} & Partial<TrackInteraction<BulkBedRect>>;
+  config: BulkBedConfig;
+};
+
+export type BulkBedInteraction = TrackInteraction<BulkBedRect>;

@@ -46,30 +46,28 @@ export const exampleTrackModule = defineTrackModule<ExampleItem>()({
 });
 ```
 
-The config schema should only include custom fields. `defineTrackModule` owns the browser base fields (`id`, `title`, `display`, `height`, and `color`) and interaction callback fields (`onClick`, `onHover`, and `onLeave`), enforces strict object validation, and derives the full nested track instance validator from them. Field-level validation, defaults, and object-level refinements on the custom config schema are preserved.
+The config schema describes the object nested under `config` in public create input and runtime instances. `defineTrackModule` owns the browser base fields (`id`, `title`, `display`, `height`, and `color`), validates interaction callback fields (`onClick`, `onHover`, and `onLeave`) from the optional second `create` argument, enforces strict object validation, and derives the full nested track instance validator from them. Field-level validation, defaults, and object-level refinements on the custom config schema are preserved.
 
 The interaction item type is separate from the config schema. It describes the object shape the renderer passes to `onClick`, `onHover`, `onLeave`, and tooltips. If a renderer can expose several shapes, use a discriminated union such as `type ExampleItem = PeakItem | MotifItem | AnnotationItem`.
 
-Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used. The custom config schema cannot define reserved fields.
-
-Reserved fields are: `id`, `type`, `title`, `display`, `height`, `color`, `base`, `config`, `interaction`, `onClick`, `onHover`, `onLeave`, and `tooltip`.
+Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used.
 
 ## What the helper creates
 
 `defineTrackModule` returns a `TrackModule` with generated `create` and `validate` functions:
 
-- `create(input)` parses flat public input, partitions it into `base`, `config`, and `interaction`, applies defaults, and returns the nested runtime instance
+- `create(input, interaction?)` parses nested public input, applies defaults, validates optional code-only interaction callbacks, and returns the nested runtime instance
 - `validate(instance)` checks a full nested track instance and requires the fixed `type`
 
-The optional `defaults` object can provide `display`, `height`, and `color`. If `height` is omitted, it defaults to `80`; if `color` is omitted, color remains optional.
+The optional `defaults` object can provide `display`, `height`, `color`, and default `config` values. If `height` is omitted, it defaults to `80`; if `color` is omitted, color remains optional.
 
-Track configs should be created through the module:
+Track instances should be created through the module. The canonical JSON contract for a module's create input is `z.input<typeof module.createInputSchema>`:
 
 ```ts
 const track = exampleTrackModule.create({
   id: "signal",
   title: "Signal",
-  url: "YOUR_URL_HERE",
+  config: { url: "YOUR_URL_HERE" },
 });
 ```
 
@@ -82,6 +80,38 @@ The returned runtime shape is nested:
   config: { url: "YOUR_URL_HERE" },
 }
 ```
+
+Interactions are code-only and passed separately:
+
+```ts
+const track = exampleTrackModule.create(
+  {
+    id: "signal",
+    title: "Signal",
+    config: { url: "YOUR_URL_HERE" },
+  },
+  {
+    onClick: (item) => {
+      console.log(item);
+    },
+  },
+);
+```
+
+Catalog JSON entries add `type` and optional `metadata` to that same create input shape:
+
+```json
+{
+  "type": "example",
+  "id": "signal",
+  "title": "Signal",
+  "height": 80,
+  "config": { "url": "YOUR_URL_HERE" },
+  "metadata": { "assay": "signal" }
+}
+```
+
+TrackSelect derives one catalog schema from the registered modules' `createInputSchema` values. The same derived schema validates submitted catalog JSON and generates the editor JSON Schema. `createTrackFromEntry(registry, entry)` is the boundary that turns a parsed catalog entry into the typed track instance for its registered module.
 
 ## Where validation happens
 

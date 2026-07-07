@@ -8,8 +8,10 @@
 const track = transcriptModule.create({
   id: "genes",
   title: "Genes",
-  assembly: "GRCh38",
-  version: 47,
+  config: {
+    assembly: "GRCh38",
+    version: 47,
+  },
 });
 ```
 

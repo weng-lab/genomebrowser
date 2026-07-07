@@ -38,7 +38,8 @@
     "tsx": "^4.22.4",
     "typescript": "npm:@typescript/typescript6@^6.0.1",
     "vite": "^8.0.13",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "4.1.7"
   },
   "peerDependencies": {
     "@emotion/react": "^11.0.0",

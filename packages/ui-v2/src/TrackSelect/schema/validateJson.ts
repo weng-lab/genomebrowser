@@ -1,10 +1,10 @@
 import { z } from "zod";
+import type { ModuleRegistry } from "@weng-lab/genomebrowser-v2";
 import {
-  TrackSelectCatalogSchema,
+  createCatalogSchema,
   type TrackSelectCatalog,
   type TrackSelectView,
 } from "./catalogSchema";
-import { getTrackSelectSchemaModule, type TrackSelectSchemaSource } from "./modules";
 
 const builtInFields = new Set(["id", "title", "type"]);
 
@@ -14,8 +14,8 @@ function formatZodError(error: z.ZodError) {
     .join("; ");
 }
 
-function parseTrackSelectCatalog(input: unknown): TrackSelectCatalog {
-  const result = TrackSelectCatalogSchema.safeParse(input);
+function parseTrackSelectCatalog(input: unknown, registry: ModuleRegistry): TrackSelectCatalog {
+  const result = createCatalogSchema(registry).safeParse(input);
 
   if (!result.success) {
     throw new Error(`TrackSelect catalog is invalid: ${formatZodError(result.error)}`);
@@ -45,40 +45,8 @@ function validateLeafField(catalog: TrackSelectCatalog, view: TrackSelectView, e
   validateViewField(catalog, view.leaf, `views.${view.id}.leaf`, errors);
 }
 
-function formatConfigPath(index: number, path: PropertyKey[]) {
-  const configPath = path.join(".");
-  return configPath ? `tracks.${index}.config.${configPath}` : `tracks.${index}.config`;
-}
-
-function validateTrackConfigs(
-  catalog: TrackSelectCatalog,
-  source: TrackSelectSchemaSource,
-  errors: string[],
-) {
-  catalog.tracks.forEach((track, index) => {
-    let module: ReturnType<typeof getTrackSelectSchemaModule>;
-    try {
-      module = getTrackSelectSchemaModule(source, track.type);
-    } catch (error) {
-      errors.push(
-        error instanceof Error
-          ? `tracks.${index}.type: ${error.message}`
-          : `tracks.${index}.type: Unknown module error`,
-      );
-      return;
-    }
-
-    const result = module.createInputSchema.safeParse(track.config);
-    if (!result.success) {
-      result.error.issues.forEach((issue) => {
-        errors.push(`${formatConfigPath(index, issue.path)}: ${issue.message}`);
-      });
-    }
-  });
-}
-
-export function validateJson(input: unknown, source?: TrackSelectSchemaSource): TrackSelectCatalog {
-  const catalog = parseTrackSelectCatalog(input);
+export function validateJson(input: unknown, registry: ModuleRegistry): TrackSelectCatalog {
+  const catalog = parseTrackSelectCatalog(input, registry);
   const errors: string[] = [];
 
   catalog.views.forEach((view) => {
@@ -92,10 +60,6 @@ export function validateJson(input: unknown, source?: TrackSelectSchemaSource): 
 
     validateLeafField(catalog, view, errors);
   });
-
-  if (source) {
-    validateTrackConfigs(catalog, source, errors);
-  }
 
   if (errors.length > 0) {
     throw new Error(`TrackSelect catalog is invalid: ${errors.join("; ")}`);

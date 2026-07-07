@@ -2,10 +2,15 @@ export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
 
 export { defineTrackModule } from "./modules/defineTrackModule";
+export { createModuleRegistry, createTrackFromEntry } from "./modules/registry";
 export { TrackInteractionProvider, useInteraction } from "./modules/interaction";
 export type {
+  AnyTrackInstance,
   AnyTrackModule,
+  ModuleCreateInput,
+  ModuleInstance,
   TrackBase,
+  TrackCreateInput,
   TrackFetch,
   TrackFetchContext,
   TrackInstance,
@@ -19,6 +24,7 @@ export type {
   TrackSettingsProps,
   TrackTooltipComponent,
 } from "./modules/types";
+export type { ModuleRegistry, TrackCatalogEntry } from "./modules/registry";
 
 export { fetchOnChange } from "./modules/fetchOnChange";
 export { useAutoTrackHeight } from "./browser/track-row/useAutoTrackHeight";

@@ -27,8 +27,8 @@ const useTrackStore = createTrackStore({
     bigWigModule.create({
       id: "signal",
       title: "Signal",
-      url: "YOUR_URL_HERE",
       display: "full",
+      config: { url: "YOUR_URL_HERE" },
     }),
   ],
 });

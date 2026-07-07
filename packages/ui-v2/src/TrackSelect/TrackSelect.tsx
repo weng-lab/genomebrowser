@@ -57,7 +57,7 @@ function getCatalogKey(trackCatalogs: TrackSelectCatalog[]) {
   return trackCatalogs
     .map((catalog) => {
       const viewIds = catalog.views.map((view) => view.id).join(",");
-      const trackIds = catalog.tracks.map((track) => track.config.id).join(",");
+      const trackIds = catalog.tracks.map((track) => track.id).join(",");
       return `${catalog.id}:${viewIds}:${trackIds}`;
     })
     .join("|");

@@ -1,9 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { TrackInstance } from "../../modules/types";
+import type { AnyTrackInstance } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { expandRegion } from "./usePanController";
-
-type AnyTrackInstance = TrackInstance<any, any>;
 
 export function getRenderWindow(
   region: BrowserRegion,

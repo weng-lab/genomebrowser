@@ -33,12 +33,14 @@ describe("browser module wiring", () => {
       fetch: async () => null,
       render: { full: Renderer },
     });
-    const track = module.create({
-      id: "interactive",
-      title: "Interactive",
-      url: "YOUR_URL_HERE",
-      onClick,
-    });
+    const track = module.create(
+      {
+        id: "interactive",
+        title: "Interactive",
+        config: { url: "YOUR_URL_HERE" },
+      },
+      { onClick },
+    );
     const trackStore = createTrackStore({ modules: [module], tracks: [track] });
 
     renderToStaticMarkup(
@@ -89,7 +91,7 @@ describe("browser module wiring", () => {
     const track = module.create({
       id: "settings",
       title: "Settings",
-      url: "YOUR_URL_HERE",
+      config: { url: "YOUR_URL_HERE" },
     });
     const browserStore = createBrowserStore({ region });
     const contextMenuStore = createContextMenuStore();

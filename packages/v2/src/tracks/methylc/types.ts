@@ -55,8 +55,7 @@ export type MethylCInput = {
   display?: MethylCDisplay;
   height?: number;
   color?: string;
-  colors?: Partial<MethylCColors>;
-  urls: MethylCUrls;
-  maskCpgByCoverage?: boolean;
-  range?: YRange;
-} & Partial<TrackInteraction<MethylCTooltipItem>>;
+  config: MethylCConfig;
+};
+
+export type MethylCInteraction = TrackInteraction<MethylCTooltipItem>;
