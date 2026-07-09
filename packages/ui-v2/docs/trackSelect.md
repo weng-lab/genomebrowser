@@ -181,6 +181,38 @@ Browsing and selecting only edits a draft. The track store is untouched until Su
 
 Use `generateTrackCatalogJsonSchema` when you want editor autocomplete or validation for track catalog JSON.
 
+For the simplest workflow, create `trackselect.config.ts` in the directory where you keep your catalog JSON:
+
+```ts
+import { bigWigModule } from "@weng-lab/genomebrowser-v2";
+import { defineTrackSelectConfig } from "@weng-lab/genomebrowser-ui-v2/cli";
+
+export default defineTrackSelectConfig({
+  modules: [bigWigModule],
+});
+```
+
+Then run the CLI from that same directory:
+
+```sh
+trackselect schema
+```
+
+By default, the command looks for `./trackselect.config.ts` and writes `./trackSelectCatalog.schema.json`. The schema is generated from the listed modules, so catalog entries autocomplete and validate against the same module create-input shapes used by TrackSelect at runtime.
+
+Use `schema.outFile` when you want a different package-local output path:
+
+```ts
+export default defineTrackSelectConfig({
+  modules: [bigWigModule],
+  schema: {
+    outFile: "schemas/trackSelectCatalog.schema.json",
+  },
+});
+```
+
+You can also generate the schema in code:
+
 ```ts
 import { generateTrackCatalogJsonSchema } from "@weng-lab/genomebrowser-ui-v2";
 import { bigWigModule, createModuleRegistry } from "@weng-lab/genomebrowser-v2";

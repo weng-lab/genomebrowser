@@ -257,6 +257,9 @@ importers:
       '@weng-lab/genomebrowser-v2':
         specifier: workspace:*
         version: link:../v2
+      jiti:
+        specifier: ^2.6.2
+        version: 2.7.0
       react:
         specifier: ^19.0.0
         version: 19.2.6

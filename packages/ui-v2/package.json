@@ -2,6 +2,9 @@
   "name": "@weng-lab/genomebrowser-ui-v2",
   "version": "0.0.0",
   "private": true,
+  "bin": {
+    "trackselect": "./dist/trackselect.js"
+  },
   "files": [
     "dist",
     "docs"
@@ -13,6 +16,10 @@
     ".": {
       "types": "./dist/src/lib.d.ts",
       "import": "./dist/genomebrowser-ui-v2.es.js"
+    },
+    "./cli": {
+      "types": "./dist/src/cli.d.ts",
+      "import": "./dist/cli.js"
     }
   },
   "scripts": {
@@ -27,6 +34,7 @@
   },
   "dependencies": {
     "@weng-lab/genomebrowser-v2": "workspace:*",
+    "jiti": "^2.6.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
