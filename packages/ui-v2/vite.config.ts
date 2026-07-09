@@ -19,9 +19,14 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/lib.ts"),
+      entry: {
+        "genomebrowser-ui-v2": path.resolve(__dirname, "src/lib.ts"),
+        cli: path.resolve(__dirname, "src/cli.ts"),
+        trackselect: path.resolve(__dirname, "src/trackselect.ts"),
+      },
       name: "genomebrowser-ui-v2",
-      fileName: (format) => `genomebrowser-ui-v2.${format}.js`,
+      fileName: (format, entryName) =>
+        entryName === "genomebrowser-ui-v2" ? `${entryName}.${format}.js` : `${entryName}.js`,
       formats: ["es"],
     },
     rollupOptions: {
@@ -30,7 +35,9 @@ export default defineConfig({
         "react-dom",
         "react/jsx-runtime",
         "@weng-lab/genomebrowser-v2",
+        "jiti",
         "zod",
+        /^node:.*/,
         /^@mui\/.*/,
         /^@emotion\/.*/,
       ],
