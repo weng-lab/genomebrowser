@@ -1,26 +1,31 @@
 import { createRoot } from "react-dom/client";
 import { useState } from "react";
-import catalog from "./tracks.json";
-import secondaryCatalog from "./tracks-secondary.json";
-import psychscreenTracks from "./psychscreen.json";
-import { TrackSelect } from "../src/lib";
+
+import Button from "@mui/material/Button";
+import Stack from "@mui/material/Stack";
+
 import {
   bigBedModule,
   bigWigModule,
   createBrowserStore,
   createTrackStore,
   GenomeBrowser,
+  methylCModule,
   transcriptModule,
 } from "@weng-lab/genomebrowser-v2";
-import Button from "@mui/material/Button";
+import { TrackSelect } from "../src/lib";
+
+// catalogs
+import biosamples from "./human-biosamples.json";
+import psychscreenTracks from "./psychscreen.json";
 
 const useBrowserStore = createBrowserStore({
-  region: "chr11:6,192,271-6,680,547",
+  region: "chr6:21,592,778-21,599,592",
   marginWidth: 55,
   trackWidth: 1445,
 });
 
-const modules = [bigWigModule, bigBedModule, transcriptModule];
+const modules = [bigWigModule, bigBedModule, methylCModule, transcriptModule];
 const useTrackStore = createTrackStore({
   modules,
   tracks: [
@@ -42,31 +47,21 @@ function Main() {
 
   return (
     <>
-      <Button variant="contained" onClick={() => setOpen(true)}>
-        Open
-      </Button>
-      <TrackList />
-      <GenomeBrowser
-        browserStore={useBrowserStore}
-        trackStore={useTrackStore}
-      />
+      <Stack>
+        <Button variant="contained" onClick={() => setOpen(true)}>
+          Open
+        </Button>
+        <GenomeBrowser
+          browserStore={useBrowserStore}
+          trackStore={useTrackStore}
+        />
+      </Stack>
       <TrackSelect
         open={open}
         onClose={() => setOpen(false)}
-        trackCatalogs={[catalog, secondaryCatalog, psychscreenTracks]}
+        trackCatalogs={[biosamples, psychscreenTracks]}
         useTrackStore={useTrackStore}
       />
-    </>
-  );
-}
-
-function TrackList() {
-  const tracks = useTrackStore((state) => state.tracks);
-  return (
-    <>
-      {tracks.map((track) => {
-        return <div key={track.base.id}>{track.base.title}</div>;
-      })}
     </>
   );
 }

@@ -5,6 +5,7 @@ import {
   bigBedModule,
   bigWigModule,
   createModuleRegistry,
+  methylCModule,
   transcriptModule,
 } from "@weng-lab/genomebrowser-v2";
 import { generateTrackCatalogJsonSchema } from "../src/TrackSelect/schema/generateJsonSchema";
@@ -14,6 +15,7 @@ const schemaPath = resolve(packageRoot, "test/schema.json");
 const registry = createModuleRegistry([
   bigWigModule,
   bigBedModule,
+  methylCModule,
   transcriptModule,
 ]);
 const schema = {

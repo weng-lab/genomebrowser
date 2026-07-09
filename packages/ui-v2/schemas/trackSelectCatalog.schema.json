@@ -265,6 +265,242 @@
               "type"
             ],
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1
+              },
+              "display": {
+                "default": "split",
+                "type": "string",
+                "enum": [
+                  "split"
+                ]
+              },
+              "height": {
+                "default": 100,
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "color": {
+                "type": "string"
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "urls": {
+                    "type": "object",
+                    "properties": {
+                      "plusStrand": {
+                        "type": "object",
+                        "properties": {
+                          "cpg": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "url"
+                            ]
+                          },
+                          "chg": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "url"
+                            ]
+                          },
+                          "chh": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "url"
+                            ]
+                          },
+                          "depth": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "url"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "cpg",
+                          "chg",
+                          "chh",
+                          "depth"
+                        ]
+                      },
+                      "minusStrand": {
+                        "type": "object",
+                        "properties": {
+                          "cpg": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "url"
+                            ]
+                          },
+                          "chg": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "url"
+                            ]
+                          },
+                          "chh": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "url"
+                            ]
+                          },
+                          "depth": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "url"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "cpg",
+                          "chg",
+                          "chh",
+                          "depth"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "plusStrand",
+                      "minusStrand"
+                    ]
+                  },
+                  "colors": {
+                    "default": {
+                      "cpg": "#648bd8",
+                      "chg": "#ff944d",
+                      "chh": "#ff00ff",
+                      "depth": "#525252"
+                    },
+                    "type": "object",
+                    "properties": {
+                      "cpg": {
+                        "default": "#648bd8",
+                        "type": "string"
+                      },
+                      "chg": {
+                        "default": "#ff944d",
+                        "type": "string"
+                      },
+                      "chh": {
+                        "default": "#ff00ff",
+                        "type": "string"
+                      },
+                      "depth": {
+                        "default": "#525252",
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "maskCpgByCoverage": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "range": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "number"
+                      },
+                      "max": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max"
+                    ]
+                  }
+                },
+                "required": [
+                  "urls"
+                ],
+                "additionalProperties": false
+              },
+              "type": {
+                "type": "string",
+                "const": "methylc"
+              },
+              "metadata": {
+                "default": {},
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "config",
+              "type"
+            ],
+            "additionalProperties": false
           }
         ]
       }

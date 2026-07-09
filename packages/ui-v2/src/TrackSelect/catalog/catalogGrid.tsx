@@ -73,6 +73,13 @@ function CatalogDataGrid({ catalog, view, selectedIds, onSelectionChange }: Cata
             minWidth: 300,
             maxWidth: 500,
             flex: 2,
+            cellClassName: (params) =>
+              params.rowNode.type === "group" ? "track-select-group-title" : "",
+          }}
+          sx={{
+            "& .track-select-group-title": {
+              fontWeight: "bold",
+            },
           }}
           columnVisibilityModel={columnVisibilityModel}
           onColumnVisibilityModelChange={setColumnVisibilityModel}
