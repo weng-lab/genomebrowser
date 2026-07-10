@@ -1,25 +1,19 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import {
-  DataGridPremium,
-  type GridColDef,
-  type GridColumnVisibilityModel,
-} from "@mui/x-data-grid-premium";
+import { DataGridPremium, type GridColumnVisibilityModel } from "@mui/x-data-grid-premium";
 import { useMemo, useState } from "react";
 import { getCatalogRows, getCatalogTrackIds, type CatalogGridRow } from "../catalog/catalogRows";
+import { getCatalogColumns, type TrackSelectColumnOverrides } from "../catalog/catalogColumns";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { TrackSelectEmptyPanel } from "../trackSelectEmptyPanel";
-import type {
-  TrackSelectColumn,
-  TrackSelectCatalog,
-  TrackSelectView,
-} from "../schema/catalogSchema";
+import type { TrackSelectCatalog, TrackSelectView } from "../schema/catalogSchema";
 
 type CatalogGridProps = {
   catalog: TrackSelectCatalog | undefined;
   view: TrackSelectView | undefined;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
+  columnOverrides?: TrackSelectColumnOverrides;
 };
 
 type CatalogDataGridProps = {
@@ -27,15 +21,16 @@ type CatalogDataGridProps = {
   view: TrackSelectView;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
+  columnOverrides?: TrackSelectColumnOverrides;
 };
 
-const builtInLabels: Record<string, string> = {
-  id: "ID",
-  title: "Title",
-  type: "Type",
-};
-
-export function CatalogGrid({ catalog, view, selectedIds, onSelectionChange }: CatalogGridProps) {
+export function CatalogGrid({
+  catalog,
+  view,
+  selectedIds,
+  onSelectionChange,
+  columnOverrides,
+}: CatalogGridProps) {
   if (!catalog || !view) {
     return <TrackSelectEmptyPanel>No track catalog selected.</TrackSelectEmptyPanel>;
   }
@@ -47,14 +42,24 @@ export function CatalogGrid({ catalog, view, selectedIds, onSelectionChange }: C
       view={view}
       selectedIds={selectedIds}
       onSelectionChange={onSelectionChange}
+      columnOverrides={columnOverrides}
     />
   );
 }
 
-function CatalogDataGrid({ catalog, view, selectedIds, onSelectionChange }: CatalogDataGridProps) {
+function CatalogDataGrid({
+  catalog,
+  view,
+  selectedIds,
+  onSelectionChange,
+  columnOverrides,
+}: CatalogDataGridProps) {
   const rows = useMemo(() => getCatalogRows(catalog), [catalog]);
   const validLeafIds = useMemo(() => getCatalogTrackIds(catalog), [catalog]);
-  const columns = useMemo(() => getColumns(view), [view]);
+  const columns = useMemo(
+    () => getCatalogColumns(catalog.id, view, columnOverrides),
+    [catalog.id, columnOverrides, view],
+  );
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
     () => getColumnVisibilityModel(view),
   );
@@ -115,25 +120,6 @@ function getRowId(row: CatalogGridRow) {
   return row.id;
 }
 
-function getColumns(view: TrackSelectView): GridColDef<CatalogGridRow>[] {
-  const viewColumnsByField = new Map(view.columns.map((column) => [column.field, column]));
-  return getViewFields(view).map((field) => getColumn(field, viewColumnsByField.get(field)));
-}
-
-function getColumn(
-  field: string,
-  column: TrackSelectColumn | undefined,
-): GridColDef<CatalogGridRow> {
-  return {
-    field,
-    headerName: column?.label ?? builtInLabels[field] ?? field,
-    description: column?.description,
-    width: column?.width,
-    flex: column?.width ? undefined : 1,
-    minWidth: 120,
-  };
-}
-
 function getColumnVisibilityModel(view: TrackSelectView) {
   const visibility: GridColumnVisibilityModel = { id: false };
 
@@ -144,10 +130,4 @@ function getColumnVisibilityModel(view: TrackSelectView) {
   if (view.grouping.length > 0) visibility[view.leaf] = false;
 
   return visibility;
-}
-
-function getViewFields(view: TrackSelectView) {
-  return [
-    ...new Set(["id", ...view.columns.map((column) => column.field), ...view.grouping, view.leaf]),
-  ];
 }

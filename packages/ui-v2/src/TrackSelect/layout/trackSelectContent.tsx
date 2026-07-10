@@ -1,4 +1,5 @@
 import type { TrackStore } from "@weng-lab/genomebrowser-v2";
+import type { TrackSelectColumnOverrides } from "../catalog/catalogColumns";
 import { ConfirmDialog } from "../dialogs/confirmDialog";
 import type { TrackSelectCatalog } from "../schema/catalogSchema";
 import { TrackSelectProvider, useTrackSelect } from "../session/trackSelectContext";
@@ -15,6 +16,7 @@ type TrackSelectContentProps = {
   applyTrackChanges: TrackStore["applyTrackChanges"];
   maxTracks: number;
   onClose: () => void;
+  columnOverrides?: TrackSelectColumnOverrides;
 };
 
 export function TrackSelectContent(props: TrackSelectContentProps) {
@@ -23,7 +25,7 @@ export function TrackSelectContent(props: TrackSelectContentProps) {
   return (
     <TrackSelectProvider value={trackSelect}>
       <TrackSelectToolbar />
-      <TrackSelectBody />
+      <TrackSelectBody columnOverrides={props.columnOverrides} />
       <TrackSelectSubmitError />
       <TrackSelectActionBar />
       <TrackSelectLimitDialog />

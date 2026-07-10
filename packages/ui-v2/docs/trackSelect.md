@@ -142,6 +142,39 @@ Metadata values can be strings, numbers, booleans, or `null`.
 }
 ```
 
+## Customizing grid columns
+
+Use `columnOverrides` for presentation that does not belong in catalog JSON. Overrides are grouped first by catalog ID and then by column field, so catalogs can style fields independently even when they use the same field names.
+
+```tsx
+import { TrackSelect, withValueMarkers } from "@weng-lab/genomebrowser-ui-v2";
+
+<TrackSelect
+  open={open}
+  onClose={() => setOpen(false)}
+  trackCatalogs={trackCatalogs}
+  useTrackStore={useTrackStore}
+  columnOverrides={{
+    signals: {
+      assay: withValueMarkers({
+        ATAC: "#02c7b9",
+        RNA: "#00aa00",
+        WGBS: { color: "#648bd8" },
+      }),
+      biosample: {
+        width: 220,
+      },
+    },
+  }}
+/>;
+```
+
+TrackSelect shallowly merges each override onto the generated MUI `GridColDef`. Properties such as `width`, `minWidth`, `valueFormatter`, and `renderCell` therefore follow MUI Data Grid behavior. Setting `width` disables the generated flexible-width default unless the same override also supplies `flex`. A supplied `renderCell` replaces TrackSelect's default cell renderer for that field.
+
+Generated ordinary cells truncate narrow values with an ellipsis and show the complete value in a tooltip. `withValueMarkers` preserves that behavior while adding a square marker to configured values; values without a marker use the normal value cell.
+
+Overrides apply to every view in the matching catalog. Unknown catalog IDs and fields are ignored. DataGrid continues to own grouping structure and expansion behavior. MUI may reuse a source column's `renderCell` for grouped or leaf values, so presentation such as value markers can also appear in the generated grouping column.
+
 ## Track entries
 
 Each track entry has:
@@ -247,6 +280,7 @@ Pass the registry from a v2 track store, or another registry created from the sa
 - `useTrackStore`: v2 track store hook created by `createTrackStore`
 - `title`: dialog title, defaults to `"Track Select"`
 - `maxTracks`: maximum selected tracks, defaults to `50`. Selections that would push the count past the limit are blocked and a track-limit dialog is shown.
+- `columnOverrides`: optional MUI Data Grid column properties, scoped by catalog ID and column field
 
 ## Defaults
 

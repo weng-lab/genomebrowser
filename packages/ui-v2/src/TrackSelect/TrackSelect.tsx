@@ -1,5 +1,6 @@
 import type { TrackStoreInstance } from "@weng-lab/genomebrowser-v2";
 import { useMemo } from "react";
+import type { TrackSelectColumnOverrides } from "./catalog/catalogColumns";
 import { assertUniqueCatalogTrackIds } from "./catalog/catalogRows";
 import { TrackSelectContent } from "./layout/trackSelectContent";
 import { TrackSelectDialog } from "./layout/trackSelectDialog";
@@ -13,6 +14,7 @@ export type TrackSelectProps = {
   useTrackStore: TrackStoreInstance;
   title?: string;
   maxTracks?: number;
+  columnOverrides?: TrackSelectColumnOverrides;
 };
 
 const DEFAULT_TITLE = "Track Select";
@@ -25,6 +27,7 @@ export default function TrackSelect({
   useTrackStore,
   title = DEFAULT_TITLE,
   maxTracks = DEFAULT_MAX_TRACKS,
+  columnOverrides,
 }: TrackSelectProps) {
   const registry = useTrackStore((state) => state.registry);
   const tracks = useTrackStore((state) => state.tracks);
@@ -47,6 +50,7 @@ export default function TrackSelect({
           applyTrackChanges={applyTrackChanges}
           maxTracks={maxTracks}
           onClose={onClose}
+          columnOverrides={columnOverrides}
         />
       ) : null}
     </TrackSelectDialog>

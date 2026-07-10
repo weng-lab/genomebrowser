@@ -13,11 +13,11 @@ import {
   methylCModule,
   transcriptModule,
 } from "@weng-lab/genomebrowser-v2";
-import { TrackSelect } from "../src/lib";
+import { TrackSelect, withValueMarkers } from "../src/lib";
 
 // catalogs
-import biosamples from "./human-biosamples.json";
-import psychscreenTracks from "./psychscreen.json";
+import biosamples from "./catalogs/human-biosamples.json";
+import psychscreenTracks from "./catalogs/psychscreen.json";
 
 const useBrowserStore = createBrowserStore({
   region: "chr6:21,592,778-21,599,592",
@@ -42,6 +42,18 @@ const useTrackStore = createTrackStore({
   ],
 });
 
+const assayColors = {
+  DNase: "#06da93",
+  ATAC: "#02c7b9",
+  H3K4me3: "#ff2020",
+  ChromHMM: "#0097a7",
+  H3K27ac: "#fdc401",
+  CTCF: "#01a6f1",
+  cCRE: "#000000",
+  "RNA-seq": "#00aa00",
+  WGBS: "#648bd8",
+};
+
 function Main() {
   const [open, setOpen] = useState(true);
 
@@ -61,6 +73,11 @@ function Main() {
         onClose={() => setOpen(false)}
         trackCatalogs={[biosamples, psychscreenTracks]}
         useTrackStore={useTrackStore}
+        columnOverrides={{
+          "human-biosamples": {
+            assay: withValueMarkers(assayColors),
+          },
+        }}
       />
     </>
   );

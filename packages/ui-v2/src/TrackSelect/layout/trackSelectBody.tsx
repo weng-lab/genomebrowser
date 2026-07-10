@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
+import type { TrackSelectColumnOverrides } from "../catalog/catalogColumns";
 import type { SelectedByCatalog } from "../catalog/catalogSelection";
 import { CatalogGrid } from "../catalog/catalogGrid";
 import { CatalogList } from "../catalogList/catalogList";
@@ -7,7 +8,11 @@ import type { TrackSelectCatalog } from "../schema/catalogSchema";
 import { SelectedTracksTree } from "../selectedTracksTree/selectedTracksTree";
 import { useTrackSelect } from "../session/trackSelectContext";
 
-export function TrackSelectBody() {
+export function TrackSelectBody({
+  columnOverrides,
+}: {
+  columnOverrides?: TrackSelectColumnOverrides;
+}) {
   const { state, actions } = useTrackSelect();
   const {
     trackCatalogs,
@@ -36,6 +41,7 @@ export function TrackSelectBody() {
             view={activeView}
             selectedIds={getActiveCatalogSelection(activeCatalog, selectedByCatalog)}
             onSelectionChange={actions.selectActiveCatalogTracks}
+            columnOverrides={columnOverrides}
           />
         )}
       </Box>
