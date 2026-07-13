@@ -46,8 +46,8 @@ The settings store owns the active settings modal state and the browser-level se
 
 ## Built-in track
 
-A built-in track is a track type shipped with v2, such as BigWig, BigBed, or Transcript. Built-in tracks can still be wrapped or cloned by apps to override module-level behavior.
+A built-in track is a track type shipped with v2, such as BigWig, BigBed, or Transcript. Applications register the built-in module and create validated instances from it.
 
 ## Custom track module
 
-A custom track module is an app-defined module registered with the browser to add a new track type or specialize an existing one. Custom modules can provide their own renderers and settings component.
+A custom track module is an app-defined module registered with the browser to add a track type with its own validation, fetching, renderers, and optional settings. Reusing parts of a built-in module is supported only when that extension surface is explicitly documented.

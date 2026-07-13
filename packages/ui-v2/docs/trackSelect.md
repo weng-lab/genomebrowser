@@ -1,96 +1,46 @@
 # TrackSelect
 
-Use `TrackSelect` when users need to browse JSON-backed track catalogs and add or remove tracks from a `@weng-lab/genomebrowser-v2` track store.
+Use `TrackSelect` to let users browse track catalogs and update the tracks shown by a v2 `GenomeBrowser`. It is a controlled dialog and a catalog adapter, not a track renderer: the host owns whether it is open, and a shared v2 track store owns committed tracks.
 
-`TrackSelect` is a track catalog adapter. It does not render tracks itself. It reads the registered modules and selected tracks from the provided track store hook, validates track catalogs against that registry, and stages the user's changes as a draft, applying them to the store when the user clicks Submit.
+Start with the integration in [Getting started](gettingStarted.md). The recommended public surface is small:
 
-## Requirements
+- `TrackSelect` for the dialog
+- `withValueMarkers` when catalog values need simple color markers
+- the `trackselect schema` command for catalog authoring
+- `validateJson` or `generateTrackCatalogJsonSchema` only when an application needs programmatic tooling
 
-The package expects these peer dependencies in the host app:
+## Dialog lifecycle
 
-```sh
-pnpm add react@^19 react-dom@^19 @emotion/react@^11 @emotion/styled@^11 @mui/material@^7 @mui/icons-material@^7 @mui/x-data-grid-premium@^8 @mui/x-license@^8 @mui/x-tree-view@^8
-```
+Pass a stable `trackCatalogs` array and the same `useTrackStore` hook used by `GenomeBrowser`. The host controls `open` and closes the dialog in `onClose`.
 
-The catalog grid is built on MUI X Data Grid Premium, which requires a MUI X license key. The package reads the key from `VITE_MUI_X_LICENSE_KEY` or `NEXT_PUBLIC_MUI_X_LICENSE_KEY`. Without a valid key, the grid renders with a watermark and logs console errors.
+Each open session starts with a draft selection. Browsing, selecting, Clear, and Reset edit that draft without changing the track store.
 
-## Minimal setup
+- **Clear** asks for confirmation, then clears the active catalog on its detail screen or all catalogs on the catalog-list screen.
+- **Reset** asks for confirmation, then is intended to restore the host-configured default track list in the draft. The default-list input is not yet public, so do not invent or pass a defaults prop.
+- **Cancel**, the close button, and normal dialog dismissal discard the draft and call `onClose`.
+- **Submit** computes additions and removals for catalog tracks, creates additions through the track-store registry, and applies the changes as one store update. Tracks not represented by the supplied catalogs are preserved.
 
-```tsx
-import { useState } from "react";
-import { TrackSelect } from "@weng-lab/genomebrowser-ui-v2";
-import { bigWigModule, createTrackStore } from "@weng-lab/genomebrowser-v2";
+After a successful Submit, TrackSelect calls `onClose`. If track creation or the store update fails, the store remains unchanged and the dialog stays open with an error.
 
-const useTrackStore = createTrackStore({
-  modules: [bigWigModule],
-});
+With one catalog, the dialog opens on its detail screen. With multiple catalogs, it opens on the catalog list. `title` defaults to `"Track Select"`.
 
-const trackCatalogs = [
-  {
-    id: "signals",
-    label: "Signals",
-    views: [
-      {
-        id: "default",
-        label: "Default",
-        columns: [{ field: "assay", label: "Assay" }],
-        leaf: "title",
-      },
-    ],
-    tracks: [
-      {
-        type: "bigwig",
-        id: "signal",
-        title: "Signal",
-        config: {
-          url: "YOUR_URL_HERE",
-        },
-        metadata: {
-          assay: "Example assay",
-        },
-      },
-    ],
-  },
-];
+## Catalogs and views
 
-export function TrackSelectButton() {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <button onClick={() => setOpen(true)}>Choose tracks</button>
-      <TrackSelect
-        open={open}
-        onClose={() => setOpen(false)}
-        trackCatalogs={trackCatalogs}
-        useTrackStore={useTrackStore}
-      />
-    </>
-  );
-}
-```
-
-## Track catalog mental model
-
-A track catalog contains display views followed by track entries. Views define how TrackSelect presents the catalog. Track entries define the tracks that can be added to the browser.
-
-The catalog detail screen shows the catalog's tracks in a grid next to a panel listing the currently selected tracks.
-
-## Track catalog JSON shape
+A catalog names a collection of available track entries and defines one or more views over them. A view controls visible data, row grouping, and selected-track labels; it does not change the underlying track definitions.
 
 ```json
 {
   "$schema": "./trackSelectCatalog.schema.json",
   "id": "signals",
-  "label": "Signals",
-  "description": "Signal tracks",
+  "label": "Signal tracks",
+  "description": "Example assay signals",
   "views": [
     {
-      "id": "default",
-      "label": "Default",
+      "id": "by-assay",
+      "label": "By assay",
       "columns": [
         { "field": "assay", "label": "Assay" },
-        { "field": "biosample", "label": "Biosample" }
+        { "field": "biosample", "label": "Biosample", "width": 220 }
       ],
       "grouping": ["assay"],
       "leaf": "title"
@@ -99,143 +49,92 @@ The catalog detail screen shows the catalog's tracks in a grid next to a panel l
   "tracks": [
     {
       "type": "bigwig",
-      "id": "signal",
-      "title": "Signal",
+      "id": "example-signal",
+      "title": "Example signal",
+      "height": 80,
       "config": {
         "url": "YOUR_URL_HERE"
       },
       "metadata": {
-        "assay": "Example assay",
-        "biosample": "Example cell type"
+        "assay": "ATAC-seq",
+        "biosample": "Example biosample"
       }
     }
   ]
 }
 ```
 
-## Views
+Catalog and view IDs should be stable and unique in their scopes. Catalog IDs must be unique in the `trackCatalogs` array, and track IDs must be unique within a catalog. A track ID may be reused in another catalog because TrackSelect namespaces track identity across catalogs.
 
-Views define how TrackSelect presents the same tracks:
+Each view requires at least one column:
 
-- `columns` lists fields to show. Each column needs `field` and may include `label`, `description`, `width`, and `hidden`; each view needs at least one column.
-- `grouping` groups rows by fields and defaults to `[]`
-- `leaf` chooses the final item label and defaults to `"title"`
+- `columns` contains a `field` and optional `label`, `description`, `width`, or `hidden` presentation values.
+- `grouping` lists metadata or built-in fields from outermost to innermost group and defaults to `[]`.
+- `leaf` selects the final item label and defaults to `"title"`.
 
-Fields `id`, `title`, and `type` are built in. Other fields referenced by `columns`, `grouping`, or `leaf` must exist in every track's `metadata`.
+The built-in fields are `id`, `title`, and `type`. Any other field referenced by `columns`, `grouping`, or `leaf` must exist in every track's `metadata`. Metadata values may be strings, numbers, booleans, or `null`. Do not use metadata keys named `id`, `title`, or `type`; built-in row values take precedence.
 
-Metadata values can be strings, numbers, booleans, or `null`.
+The active view also determines the order of newly added tracks. Groups follow their first appearance in catalog order, nested groups follow the `grouping` field order, and tracks within the final group retain catalog order. Switching views can therefore change insertion order on Submit.
 
-```json
-{
-  "views": [
-    {
-      "id": "default",
-      "label": "Default",
-      "columns": [
-        { "field": "assay", "label": "Assay" },
-        { "field": "biosample", "label": "Biosample" }
-      ],
-      "grouping": ["assay"], // groups rows by their assay under an accordion
-      "leaf": "title"
-    }
-  ]
-}
-```
+## Registry validation
 
-## Customizing grid columns
+Each catalog track combines browser create fields with module-owned config:
 
-Use `columnOverrides` for presentation that does not belong in catalog JSON. Overrides are grouped first by catalog ID and then by column field, so catalogs can style fields independently even when they use the same field names.
+- `type` selects a module registered in the track store.
+- `id`, `title`, `display`, `height`, and `color` are v2 browser create fields.
+- `config` must match the selected module's create-input schema.
+- `metadata` exists only for TrackSelect views and is not copied into the runtime track instance.
+
+TrackSelect validates every catalog with the registry read from `useTrackStore`. Unknown track types, invalid module config, missing view metadata, and unknown catalog properties fail before the dialog content renders. Module defaults are applied when a selected track is created for submission, not retained as authored catalog data during validation.
+
+Use the same module set for the track store, JSON Schema generation, and any separate `validateJson` call. A catalog generated against one registry can fail in an application that registers another.
+
+## Selection limit
+
+`maxTracks` limits the total draft selection across all supplied catalogs and defaults to `50`. A selection that would increase the draft beyond the limit is rejected and opens a limit dialog. Removing selections remains possible when the draft is already at the limit.
+
+The limit counts TrackSelect catalog entries, not unrelated tracks already in the store.
+
+## Columns, markers, and theme
+
+Keep portable labels, descriptions, widths, and hidden defaults in catalog JSON. Use `columnOverrides` for host-only MUI Data Grid behavior. Overrides are scoped first by catalog ID and then by field and apply to every view in that catalog.
 
 ```tsx
 import { TrackSelect, withValueMarkers } from "@weng-lab/genomebrowser-ui-v2";
 
 <TrackSelect
   open={open}
-  onClose={() => setOpen(false)}
+  onClose={onClose}
   trackCatalogs={trackCatalogs}
   useTrackStore={useTrackStore}
   columnOverrides={{
     signals: {
       assay: withValueMarkers({
-        ATAC: "#02c7b9",
-        RNA: "#00aa00",
-        WGBS: { color: "#648bd8" },
+        "ATAC-seq": "#02c7b9",
+        "RNA-seq": { color: "#00aa00" },
       }),
-      biosample: {
-        width: 220,
-      },
+      biosample: { width: 220 },
     },
   }}
 />;
 ```
 
-TrackSelect shallowly merges each override onto the generated MUI `GridColDef`. Properties such as `width`, `minWidth`, `valueFormatter`, and `renderCell` therefore follow MUI Data Grid behavior. Setting `width` disables the generated flexible-width default unless the same override also supplies `flex`. A supplied `renderCell` replaces TrackSelect's default cell renderer for that field.
+An override is shallowly merged into the generated MUI `GridColDef`. Supplying `width` disables the generated flexible width unless the override also supplies `flex`; supplying `renderCell` replaces TrackSelect's normal truncating, tooltip-enabled cell renderer. Unknown catalog IDs and fields are ignored.
 
-Generated ordinary cells truncate narrow values with an ellipsis and show the complete value in a tooltip. `withValueMarkers` preserves that behavior while adding a square marker to configured values; values without a marker use the normal value cell.
+`withValueMarkers` adds a square marker to configured formatted values and preserves the normal value cell for everything else. MUI Data Grid owns grouping, expansion, filtering, and other grid behavior, so renderers may also appear in generated grouping cells.
 
-Overrides apply to every view in the matching catalog. Unknown catalog IDs and fields are ignored. DataGrid continues to own grouping structure and expansion behavior. MUI may reuse a source column's `renderCell` for grouped or leaf values, so presentation such as value markers can also appear in the generated grouping column.
+TrackSelect uses the host application's normal MUI setup and theme. No package-specific stylesheet or provider is required.
 
-## Track entries
+## Generate a catalog schema
 
-Each track entry has:
+Generate JSON Schema from the same modules used by the track store so editors can autocomplete catalog entries and catch invalid module config.
 
-- `type`: the registered track module type, such as `"bigwig"`
-- `id`, `title`, `display`, `height`, and `color`: browser-owned create fields
-- `config`: module-owned create fields accepted by that module's `create(...)` function
-- `metadata`: optional values used by TrackSelect views for columns, grouping, and labels
-
-For example:
-
-```json
-{
-  "type": "bigwig",
-  "id": "signal",
-  "title": "Signal",
-  "height": 80,
-  "config": {
-    "url": "YOUR_URL_HERE"
-  },
-  "metadata": {
-    "assay": "Example assay",
-    "biosample": "Example cell type"
-  }
-}
-```
-
-The `type` field selects the registered module. The entry is validated with that module's create-input schema before the track can be added.
-
-## How selection is applied
-
-Browsing and selecting only edits a draft. The track store is untouched until Submit. Submit applies all adds and removes as one store update and closes the dialog. If anything fails, such as a module's `create` function throwing or the store rejecting the update, an error alert is shown, the dialog stays open, and the store is left unchanged. Cancel or closing the dialog discards the draft. Clear empties the draft selection for the active catalog on the detail screen, or all catalogs on the list screen. Reset reverts the draft to the store's default tracks. Clear and Reset ask for confirmation first.
-
-> TODO: IMPLEMENT RESET TO DEFAULT TRACKS
-
-## Generating a JSON Schema
-
-Use `generateTrackCatalogJsonSchema` when you want editor autocomplete or validation for track catalog JSON.
-
-For the simplest workflow, create `trackselect.config.ts` in the directory where you keep your catalog JSON:
+Create `trackselect.config.ts` beside the catalogs:
 
 ```ts
-import { bigWigModule } from "@weng-lab/genomebrowser-v2";
 import { defineTrackSelectConfig } from "@weng-lab/genomebrowser-ui-v2/cli";
+import { bigWigModule } from "@weng-lab/genomebrowser-v2";
 
-export default defineTrackSelectConfig({
-  modules: [bigWigModule],
-});
-```
-
-Then run the CLI from that same directory:
-
-```sh
-trackselect schema
-```
-
-By default, the command looks for `./trackselect.config.ts` and writes `./trackSelectCatalog.schema.json`. The schema is generated from the listed modules, so catalog entries autocomplete and validate against the same module create-input shapes used by TrackSelect at runtime.
-
-Use `schema.outFile` when you want a different package-local output path:
-
-```ts
 export default defineTrackSelectConfig({
   modules: [bigWigModule],
   schema: {
@@ -244,7 +143,15 @@ export default defineTrackSelectConfig({
 });
 ```
 
-You can also generate the schema in code:
+Run the command from that directory:
+
+```sh
+trackselect schema
+```
+
+Without `schema.outFile`, the command writes `./trackSelectCatalog.schema.json`. It requires at least one module. Point a catalog's `$schema` field at the generated file.
+
+For build tooling that already has a registry, generate the same schema programmatically:
 
 ```ts
 import { generateTrackCatalogJsonSchema } from "@weng-lab/genomebrowser-ui-v2";
@@ -254,46 +161,22 @@ const registry = createModuleRegistry([bigWigModule]);
 const schema = generateTrackCatalogJsonSchema(registry);
 ```
 
-The generated schema includes the allowed `type` values and the matching create-input shape for each registered module. Config fields with Zod defaults in a module's `configSchema` are optional in the generated input schema. Register at least one module; schema generation throws if the registry is empty.
+Use `validateJson(rawCatalog, registry)` when non-React code needs the runtime validator directly. TrackSelect already performs this validation, so most component integrations do not need a separate call.
 
-## Validating catalog JSON
+## Troubleshooting
 
-Use `validateJson` if you want to validate a track catalog before rendering `TrackSelect`.
+### The catalog fails to open
 
-```ts
-import { validateJson } from "@weng-lab/genomebrowser-ui-v2";
-import { bigWigModule, createModuleRegistry } from "@weng-lab/genomebrowser-v2";
+Read the `TrackSelect catalog is invalid` error path. Confirm that every `type` is registered, every nested `config` matches its module, view fields exist in each track's metadata, and the catalog contains no unsupported properties. Keep `trackCatalogs` stable so unchanged catalogs are not repeatedly parsed on unrelated renders.
 
-const registry = createModuleRegistry([bigWigModule]);
-const catalog = validateJson(rawCatalog, registry);
-```
+### A track cannot be selected
 
-Pass the registry from a v2 track store, or another registry created from the same modules. If a track references an unknown `type`, or its entry does not match that module's create-input schema, validation fails. `validateJson` validates catalog entries but keeps returned track rows as catalog data; module defaults are applied later when the selected entry is passed to the module's `create` function.
+Check the total selection against `maxTracks`. The limit applies across catalogs, and a blocked increase opens the track-limit dialog.
 
-`TrackSelect` calls `validateJson` for each track catalog with the registry from `useTrackStore`, so the rendered dialog uses the same module set as the browser.
+### Submit shows an error
 
-## Props
+Confirm that schema tooling and the application use the same modules and versions. Also check for an ID collision with an existing store track. TrackSelect namespaces IDs across catalogs for uniqueness, but the final store still requires every track ID to be unique.
 
-- `open`: whether the dialog is visible
-- `onClose`: called when the dialog should close
-- `trackCatalogs`: track catalogs to show
-- `useTrackStore`: v2 track store hook created by `createTrackStore`
-- `title`: dialog title, defaults to `"Track Select"`
-- `maxTracks`: maximum selected tracks, defaults to `50`. Selections that would push the count past the limit are blocked and a track-limit dialog is shown.
-- `columnOverrides`: optional MUI Data Grid column properties, scoped by catalog ID and column field
+### Submit order is unexpected
 
-## Defaults
-
-The dialog opens directly to the catalog detail screen when there is only one track catalog. With multiple track catalogs, it opens to the catalog list.
-
-## Sharp edges
-
-Track catalog IDs must be unique. Track IDs must be unique within a track catalog; the same track ID can appear in another catalog because TrackSelect qualifies it with the catalog ID.
-
-Metadata keys named `id`, `title`, or `type` are overwritten by the built-in fields, so metadata under those names is never displayed.
-
-The modules used to generate or pre-validate catalog JSON must match the modules registered in the track store. If a JSON Schema was generated with one module set but the UI store uses another, catalog entries may validate in tooling but fail in the app.
-
-`trackCatalogs` is parsed during render. Keep the array stable when possible so TrackSelect does not re-validate unchanged catalog data on unrelated renders.
-
-`useTrackStore` is named with a `use` prefix because the store returned by `createTrackStore` is a Zustand hook. Keep that naming pattern for local store variables.
+Check the active view. Its grouping fields and the catalog's source order determine the order of newly added tracks; existing tracks keep their current relative order.

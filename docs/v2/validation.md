@@ -1,129 +1,60 @@
-# Schema Validation - WIP
+# Schema Validation
 
-v2 uses Zod for runtime validation at package boundaries and before runtime behavior depends on config shape.
+v2 validates external input at construction and track-store mutation boundaries, then lets internal fetch and render code rely on parsed track instances.
 
-The goal is to fail early with useful errors while keeping custom track definitions small.
+## Module schemas and defaults
 
-## Custom Track Config Schemas
-
-Custom track authors define `configSchema`, a Zod object for track-specific config/input fields, and pass it to `defineTrackModule`:
+Custom modules provide a Zod object under `configSchema`. `defineTrackModule` makes that object strict and combines it with browser-owned base and interaction schemas.
 
 ```ts
-import { z } from "zod";
-import { defineTrackModule } from "@weng-lab/genomebrowser-v2";
-
-export const exampleTrackModule = defineTrackModule({
+const exampleModule = defineTrackModule({
   type: "example",
-  defaults: {
-    height: 80,
-    color: "#2266aa",
-  },
+  defaults: { height: 80, color: "#2266aa" },
   configSchema: z.object({
-    url: z.string().min(1),
+    url: fetchOnChange(z.string().min(1)),
     smoothing: z.number().default(0),
   }),
   fetch: fetchExample,
-  render: {
-    full: FullExample,
-    dense: DenseExample,
-  },
+  render: { full: FullExample },
 });
 ```
 
-If the module exposes typed interaction items, pass that semantic item type to `defineTrackModule`:
+Use Zod `.default()` for module config defaults. Use module `defaults` for browser-owned `display`, `height`, and `color`. If omitted, height is `80`, color stays optional, and display is the first renderer key. Invalid defaults, an empty renderer map, and a default display not present in the renderer map fail when the module is defined.
+
+`module.create(input, interaction?)` parses public create input and applies defaults. `module.validate(instance)` parses the full nested runtime shape. Both throw descriptive errors when input is invalid.
+
+## Construction throws
+
+Construction APIs fail synchronously because there is no valid object or store to return:
+
+- `defineTrackModule(...)` throws for an invalid module definition.
+- `module.create(...)` throws for invalid base fields, config, or callbacks.
+- `createModuleRegistry(...)` throws for duplicate module types.
+- `createBrowserStore(...)` throws for invalid startup input.
+- `createTrackStore(...)` throws when an initial track is malformed, uses an unregistered type, or duplicates another track ID.
+
+Catch these errors at dynamic input boundaries such as loading saved state. Static application setup should usually be allowed to fail during development.
+
+## Runtime mutations return results
+
+Once a track store exists, its mutators do not throw for expected validation failures. They return:
 
 ```ts
-type ExampleItem = { id: string; label: string };
-
-export const exampleTrackModule = defineTrackModule<ExampleItem>()({
-  type: "example",
-  configSchema: z.object({
-    url: z.string().min(1),
-  }),
-  fetch: fetchExample,
-  render: {
-    full: FullExample,
-  },
-});
+type TrackMutationResult = { ok: true } | { ok: false; error: string };
 ```
 
-The config schema describes the object nested under `config` in public create input and runtime instances. `defineTrackModule` owns the browser base fields (`id`, `title`, `display`, `height`, and `color`), validates interaction callback fields (`onClick`, `onHover`, and `onLeave`) from the optional second `create` argument, enforces strict object validation, and derives the full nested track instance validator from them. Field-level validation, defaults, and object-level refinements on the custom config schema are preserved.
+This applies to `setTracks`, `addTrack`, `removeTrack`, `applyTrackChanges`, `reorderTracks`, `updateBase`, `updateConfig`, and `updateInteraction`. Callers should surface `error` when a change came from user input.
 
-The interaction item type is separate from the config schema. It describes the object shape the renderer passes to `onClick`, `onHover`, `onLeave`, and tooltips. If a renderer can expose several shapes, use a discriminated union such as `type ExampleItem = PeakItem | MotifItem | AnnotationItem`.
+Every failed mutation is atomic: validation completes before `set`, so tracks and order remain unchanged. `applyTrackChanges` validates the complete add/remove operation before applying any part of it, and `setTracks` validates the full replacement before replacing current state.
 
-Display modes come from the `render` keys, and each module must provide at least one renderer. If `defaults.display` is omitted, the first renderer key is used.
+## Identity rules
 
-## What the helper creates
+Track IDs are unique within a store. Duplicate IDs are rejected during construction and mutation. A reorder must contain every current ID exactly once.
 
-`defineTrackModule` returns a `TrackModule` with generated `create` and `validate` functions:
+`updateBase(id, partial)` deliberately preserves the existing ID even if `partial.id` contains another value. Identity and `type` are immutable through update APIs. To change either, remove and create a track through the intended module; use `applyTrackChanges` when replacement must be atomic.
 
-- `create(input, interaction?)` parses nested public input, applies defaults, validates optional code-only interaction callbacks, and returns the nested runtime instance
-- `validate(instance)` checks a full nested track instance and requires the fixed `type`
+## Catalog input is not an instance
 
-The optional `defaults` object can provide browser-owned base defaults: `display`, `height`, and `color`. If `height` is omitted, it defaults to `80`; if `color` is omitted, color remains optional. Module-owned config defaults belong in `configSchema` with Zod `.default()` so runtime parsing, TypeScript input types, and generated JSON Schema share the same source of truth.
+Catalog JSON uses top-level base fields plus `type`, `config`, and optional `metadata`. `createTrackFromEntry(registry, entry)` chooses the module and calls its `create` method. The resulting runtime instance nests parsed base fields under `base`, keeps module values under `config`, omits catalog metadata, and includes applied defaults.
 
-Track instances should be created through the module. The canonical JSON contract for a module's create input is `z.input<typeof module.createInputSchema>`:
-
-```ts
-const track = exampleTrackModule.create({
-  id: "signal",
-  title: "Signal",
-  config: { url: "YOUR_URL_HERE" },
-});
-```
-
-The returned runtime shape is nested:
-
-```ts
-{
-  type: "example",
-  base: { id: "signal", title: "Signal", display: "full", height: 80 },
-  config: { url: "YOUR_URL_HERE" },
-}
-```
-
-Interactions are code-only and passed separately:
-
-```ts
-const track = exampleTrackModule.create(
-  {
-    id: "signal",
-    title: "Signal",
-    config: { url: "YOUR_URL_HERE" },
-  },
-  {
-    onClick: (item) => {
-      console.log(item);
-    },
-  },
-);
-```
-
-Catalog JSON entries add `type` and optional `metadata` to that same create input shape:
-
-```json
-{
-  "type": "example",
-  "id": "signal",
-  "title": "Signal",
-  "height": 80,
-  "config": { "url": "YOUR_URL_HERE" },
-  "metadata": { "assay": "signal" }
-}
-```
-
-TrackSelect derives one catalog schema from the registered modules' `createInputSchema` values. The same derived schema validates submitted catalog JSON and generates the editor JSON Schema. `createTrackFromEntry(registry, entry)` is the boundary that turns a parsed catalog entry into the typed track instance for its registered module.
-
-## Where validation happens
-
-Validation is used in a few places:
-
-- browser store input is parsed when the browser store is created
-- region input is parsed by the region utilities
-- track instances are validated through registered modules before entering or changing track state
-- browser runtime code trusts track instances from the track store when fetching, rendering, and opening settings
-- track mutators return a result object so callers can display validation errors without duplicating validation
-
-## Design direction
-
-Use schemas at boundaries, not everywhere. Once input has been parsed, prefer passing typed values through the browser, hooks, and modules.
+Keep schema validation at these boundaries rather than repeatedly parsing values inside hooks and renderers.

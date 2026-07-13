@@ -1,49 +1,74 @@
 # v2 Concepts
 
-These notes describe the current maintainer-facing direction for v2.
+This page orients maintainers to `@weng-lab/genomebrowser-v2`: what the package owns, how state and work move through it, and where to debug a problem.
 
-## Browser as orchestration
+## Purpose and boundaries
 
-`GenomeBrowser` should mostly orchestrate other pieces. It receives browser state, track state, and registered track modules, then coordinates viewport behavior, data loading, rendering, and other interactions.
+v2 is a React genome-browser runtime. It coordinates a genomic viewport, a validated list of tracks, regional data requests, SVG rendering, and browser-level interactions. It intentionally does not provide the larger catalog and application UI; `@weng-lab/genomebrowser-ui-v2` builds those workflows on the v2 track store.
 
-The browser should avoid owning track-specific behavior directly. Track-specific data fetching, rendering, validation, and module-owned config belong in track modules.
+The browser stays generic. Track modules own behavior specific to one track type: config validation, fetching, renderers, display modes, and optional settings and tooltip components. Stable behavior belongs on a module; values and callbacks that vary per track belong on its instance.
 
-Implementation code follows three main seams:
+Dependencies should point inward toward narrow contracts:
 
-- `src/modules` owns the module system, module contracts, validation helpers, and module-author utilities
-- `src/browser` owns the `GenomeBrowser` implementation, browser stores, viewport behavior, data orchestration, overlays, and settings shell
-- `src/tracks` owns first-party track module implementations that consume `src/modules` the same way custom tracks should
+- `src/modules` owns track contracts, schemas, registry behavior, and module-author utilities. It must not depend on `src/browser`.
+- `src/browser` owns orchestration and browser features. Each feature keeps its providers, stores, hooks, and DOM/SVG details together and exposes a narrow API.
+- `src/tracks` owns first-party modules. They use the same module contract as downstream modules and may use focused browser feature hooks, but not browser orchestration or feature-private files.
 
-`src/browser` and `src/tracks` both depend on `src/modules`. `src/tracks` may import narrow browser feature APIs intended for track modules, but should not import browser orchestration, stores, viewport implementation, or feature-private files; `src/modules` should not import `src/browser`.
+## State ownership and lifetimes
 
-## State and hooks
+There are three important lifetimes:
 
-State and hooks provide focused browser behavior:
+- Application lifetime: the browser and track store hooks are created by the application and passed to `GenomeBrowser`. They survive React renders and can be shared with other UI.
+- Browser instance lifetime: `GenomeBrowser` creates its data, context-menu, and default settings stores once for that mounted browser. An application may supply a settings store override.
+- Track-type lifetime: registered module objects hold stable behavior for a type. Track instances hold `{ type, base, config, interaction? }` and may be added, reordered, updated, or removed.
 
-- browser state owns the current region and layout values
-- track state owns the list of track instances
-- viewport hooks handle panning, render windows, and SVG content movement
-- data hooks ask track modules to fetch data for the current render region
-- utility modules handle shared region, scale, and SVG behavior
+The browser store owns the visible region, width and typography values, zoom, and highlights. The track store owns the registry, validated track instances, and order. `track.base` contains browser-owned identity and presentation fields, `track.config` contains module-owned instance values, and `track.interaction` contains optional app callbacks.
 
-The browser composes these pieces instead of making each behavior part of one large component.
+Store factories return Zustand hooks. Keep application-created stores stable rather than constructing them during component render.
 
-## Track modules
+## Request and render flow
 
-Track modules are the main extension point for track types. A module is a self-contained unit that defines one track type's config shape, creation, validation, fetch logic, renderers, display modes, and optional settings component.
+For each browser render:
 
-See [Tracks and track modules](tracks.md) for the current module shape and runtime flow.
+1. `GenomeBrowser` reads the visible region and dimensions from the browser store and tracks plus registry from the track store.
+2. `useRenderWindow` expands the visible region to a three-viewport render region and computes the corresponding SVG width.
+3. `useTrackData` resolves each track's registered module and calls its `fetch({ config, region })` when required.
+4. Fetch functions return raw data for that genomic region. Display- and width-specific shaping belongs in renderers.
+5. `TrackStack` selects `module.render[track.base.display]` and supplies the data, render region, dimensions, color, and config.
+6. Browser-owned wrappers provide panning, controls, loading and error states, settings, highlights, interaction gating, and tooltip positioning.
 
-## Design direction
+An initial render or render-region change fetches every track. A config-only mutation fetches a track only when the value of a field marked by `fetchOnChange` changes. Base fields, interaction callbacks, and unmarked config fields do not cause a request. Failed requests become per-track error states rather than escaping from the browser render.
 
-Keep the core browser generic. When adding behavior, prefer putting it in the narrowest place that owns it:
+## Panning and settlement
 
-- browser-level behavior goes in browser hooks or components
-- track-specific behavior goes in track modules
-- reusable calculations go in utility modules
-- shared runtime contracts go in `src/modules`
-- browser-backed helpers used by modules are owned by their browser feature and exposed through narrow feature APIs
+Panning separates the visible viewport from the larger render window. During drag, the browser moves existing SVG content directly instead of committing a new visible region for every pointer event. The overscanned data usually covers nearby movement.
 
-Panning is browser-level behavior. The browser wraps rendered track content so SVG elements can still receive normal click and hover events while drag gestures bubble to the browser pan controller.
+When a pan commits, the browser targets a new overscanned region. Previously successful data remains visible while requests are in flight. The displayed render region and content offset update only when data for the latest render signature settles; stale async completion cannot settle a newer target. Panning commits and pointer interactions are blocked while the browser is locked or fetching so callbacks do not run against mismatched visual state.
 
-See [Schema validation](validation.md) for how runtime input is checked at package and module boundaries. See [Useful helpers for track modules](helpers.md) for public hooks that custom module authors can use.
+## Feature ownership
+
+Put new behavior in the narrowest owner:
+
+- viewport movement, selection, and zoom coordination: `src/browser/viewport`
+- request coordination and request state: `src/browser/data`
+- track layout, controls, swapping, and automatic height: `src/browser/track-row`
+- tooltip behavior: `src/browser/tooltip`
+- browser and track state: `src/browser/state`
+- settings and overlays: `src/browser/settings` and `src/browser/overlays`
+- contracts shared by browser and tracks: `src/modules`
+- type-specific data and presentation: `src/tracks/<type>`
+
+Do not give a track access to a broad browser context to solve one feature. Add a focused API to the feature that owns the capability, as `useTooltip` and `useAutoTrackHeight` do.
+
+## Directory and debugging map
+
+Start from the symptom:
+
+- invalid creation or mutation: `src/modules/defineTrackModule.ts`, `src/modules/registry.ts`, `src/browser/state/trackStore.ts`, and `test/stores/trackStore.test.ts`
+- unexpected request or no request after config changes: `src/modules/fetchOnChange.ts`, `src/browser/data/useTrackData.ts`, and `test/data/fetchOnChange.test.ts`
+- network or parser failure: the module's `src/tracks/<type>/fetch.ts` and `src/browser/data/fetchTrackData.ts`
+- wrong renderer or settings UI: the module definition plus `src/browser/track-row` or `src/browser/settings`
+- pan offset, stale region, or interaction lock: `src/browser/viewport`, `src/browser/GenomeBrowser.tsx`, and viewport tests
+- tooltip, highlight, or context-menu behavior: the matching feature directory under `src/browser`
+
+For browser-only failures that require console output, inspect `.devserve/out.log` and `.devserve/err.log`. See [Tracks and track modules](tracks.md), [Schema validation](validation.md), [Module-author helpers](helpers.md), and [Testing guidelines](testing.md) for focused guidance.

@@ -36,6 +36,6 @@ Defaults:
 
 ## Fetch Behavior
 
-The module posts a region query to `https://screen.api.wenglab.org/graphql`. The runtime must provide `SCREEN_API_KEY`; fetching throws if it is missing.
+The module posts a region query to `https://screen.api.wenglab.org/graphql`. `SCREEN_API_KEY` is read from `import.meta.env` when the package is built, so the package build environment must provide it. A browser runtime environment variable set after the library has been built does not inject the key. Fetching throws if the built value is missing.
 
 Changing `assembly` or `version` triggers a refetch. Changing `geneName`, colors, height, or display mode does not refetch data.
