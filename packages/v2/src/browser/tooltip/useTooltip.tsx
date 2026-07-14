@@ -1,9 +1,10 @@
-import { createElement, useRef } from "react";
+import { createElement, useEffect, useEffectEvent, useId, useRef } from "react";
 import { useSvgPoint } from "../svg/useSvgPoint";
 import { useInternalTooltipStore, useTooltipComponent, useTooltipDisabled } from "./TooltipContext";
 import type { MousePosition } from "./types";
 
 export function useTooltip<Item, Config>({ type, config }: { type: string; config: Config }) {
+  const owner = useId();
   const showTooltip = useInternalTooltipStore((state) => state.show);
   const hideTooltip = useInternalTooltipStore((state) => state.hide);
   const isDisabled = useTooltipDisabled();
@@ -16,7 +17,7 @@ export function useTooltip<Item, Config>({ type, config }: { type: string; confi
       cancelAnimationFrame(frameRef.current);
       frameRef.current = undefined;
     }
-    hideTooltip();
+    hideTooltip(owner);
   };
 
   const show = (item: Item, position: MousePosition) => {
@@ -33,9 +34,12 @@ export function useTooltip<Item, Config>({ type, config }: { type: string; confi
     if (frameRef.current !== undefined) cancelAnimationFrame(frameRef.current);
     frameRef.current = requestAnimationFrame(() => {
       frameRef.current = undefined;
-      showTooltip(content, anchor);
+      showTooltip(owner, content, anchor);
     });
   };
+
+  const hideOnUnmount = useEffectEvent(hide);
+  useEffect(() => () => hideOnUnmount(), []);
 
   return { hide, show };
 }

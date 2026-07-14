@@ -8,7 +8,18 @@ export function createTooltipStore() {
     isVisible: false,
     content: undefined,
     anchor: { x: 0, y: 0 },
-    show: (content, anchor) => set({ isVisible: true, content, anchor }),
-    hide: () => set({ isVisible: false, content: undefined, anchor: { x: 0, y: 0 } }),
+    owner: undefined,
+    show: (owner, content, anchor) => set({ isVisible: true, content, anchor, owner }),
+    hide: (owner) =>
+      set((state) =>
+        state.owner === owner
+          ? {
+              isVisible: false,
+              content: undefined,
+              anchor: { x: 0, y: 0 },
+              owner: undefined,
+            }
+          : state,
+      ),
   }));
 }
