@@ -24,7 +24,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsgo -b && vite build",
+    "build": "tsc -b && vite build",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt .",
@@ -41,11 +41,11 @@
     "@types/node": "^24.3.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@typescript/native-preview": "7.0.0-dev.20260421.2",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.0.2",
     "jsdom": "^26.1.0",
     "tsx": "^4.22.4",
-    "typescript": "npm:@typescript/typescript6@^6.0.1",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vite": "^8.0.13",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "4.1.7"
