@@ -19,8 +19,10 @@ Current automated coverage includes:
 
 - `test/catalogSchema.test.ts`: registry-derived catalog validation, module defaults, generated JSON Schema, and empty-registry errors
 - `test/catalogColumns.test.tsx`: generated cells, catalog-scoped overrides, and value markers
+- `test/catalogDefaults.test.ts`: ordered draft transformations, default reconciliation, and invalid default IDs
+- `test/trackSelectWorkflow.test.tsx`: session draft isolation, catalog and view changes, limits, Clear, Reset, Cancel, Submit success and rejection, and shared-store default initialization
 
-The highest-value missing coverage is the TrackSelect session and store workflow. Add tests for draft initialization, catalog-qualified identity, catalog and view switching, track limits, Clear, Reset, diff ordering, Cancel, successful Submit, failed track creation, and rejected atomic store updates. These are workflow gaps, not a shipped user-facing TODO list.
+Keep MUI Data Grid gestures and dialog presentation in the manual harness unless a regression requires a focused component test. Workflow tests should exercise the session hook and store boundary rather than reproduce third-party component behavior.
 
 ## Harness and fixtures
 
@@ -45,10 +47,10 @@ A TrackSelect workflow test should make the ownership boundaries visible:
 2. Open TrackSelect with stable catalogs and derive the initial draft from catalog tracks represented in the store.
 3. Change selections and assert that the store remains unchanged before Submit.
 4. Assert that Cancel or dialog dismissal drops the session without a store mutation.
-5. On Submit, assert the catalog-owned diff, active-view ordering, one `applyTrackChanges` operation, and preservation of tracks outside the catalogs.
+5. On Submit, assert active-view ordering, one atomic `setTracks` replacement, and preservation of tracks outside the catalogs.
 6. For failures, assert that the dialog remains open, an actionable error is shown, and no partial store update occurs.
 
-Reset coverage should target the intended contract: after arbitrary draft edits, Reset restores the host-configured default track-store list in the draft. Cover defaults that span catalogs. Until the future default-list input exists, mark such tests as pending rather than encoding the temporary current-store behavior as the specification.
+Reset coverage should target the public contract: after arbitrary draft edits, Reset restores `defaultTrackIds` in their exact cross-catalog order. Initialization coverage should also assert that non-catalog tracks remain first and that the ordered defaults immediately populate the shared store.
 
 ## Debugging
 
@@ -58,7 +60,7 @@ Start failures at the boundary where they occur:
 - Grid or grouping errors: reduce the catalog to one view and inspect `columns`, `grouping`, `leaf`, and required metadata. Built-in fields are `id`, `title`, and `type`.
 - Selection errors: compare catalog-qualified IDs in rows, the draft map, and store track `base.id` values.
 - Ordering errors: inspect the active view and the catalog's source row order before examining the diff.
-- Submit errors: separate track creation failures from an `applyTrackChanges` rejection. Both must leave the store unchanged.
+- Submit errors: separate track creation failures from a `setTracks` rejection. Both must leave the store unchanged.
 - Manual harness failures: inspect `.devserve/out.log` and `.devserve/err.log` when the user-run server is managed through the repository development tooling.
 
 When fixing a workflow defect, prefer a test at the narrowest deterministic layer plus one integration assertion at the session/store boundary when the regression crossed that boundary.

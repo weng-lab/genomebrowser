@@ -14,7 +14,7 @@ The draft selection is the TrackSelect session's uncommitted set of selected cat
 
 ## Catalog-qualified ID
 
-A catalog-qualified ID combines catalog identity with track identity so equal track IDs from different catalogs remain distinct. It is an internal TrackSelect identity, not a catalog-authoring field.
+A catalog-qualified ID uses `${catalogId}::${trackId}` to combine catalog identity with track identity so equal track IDs from different catalogs remain distinct. It is the public identity accepted by TrackSelect APIs such as `defaultTrackIds`, not a field authored inside a catalog track.
 
 ## Module registry
 

@@ -345,4 +345,29 @@ describe("TrackSelect default initialization", () => {
     expect(store.getState().order).toEqual(["unmanaged", ...defaults, "later"]);
     expect(setTracks).toHaveBeenCalledOnce();
   });
+
+  it("initializes a replacement store with the same defaults", async () => {
+    const defaults = ["beta::one", "alpha::two"];
+    const firstStore = createStore(["first"]);
+    const secondStore = createStore(["second"]);
+    const firstSetTracks = vi.fn(firstStore.getState().setTracks);
+    const secondSetTracks = vi.fn(secondStore.getState().setTracks);
+    firstStore.setState({ setTracks: firstSetTracks });
+    secondStore.setState({ setTracks: secondSetTracks });
+    const props = {
+      open: true,
+      onClose: vi.fn(),
+      trackCatalogs: catalogs,
+      defaultTrackIds: defaults,
+    };
+
+    await renderUi(<TrackSelect {...props} useTrackStore={firstStore} />);
+    expect(firstStore.getState().order).toEqual(["first", ...defaults]);
+
+    await rerenderUi(<TrackSelect {...props} useTrackStore={secondStore} />);
+
+    expect(secondStore.getState().order).toEqual(["second", ...defaults]);
+    expect(firstSetTracks).toHaveBeenCalledOnce();
+    expect(secondSetTracks).toHaveBeenCalledOnce();
+  });
 });

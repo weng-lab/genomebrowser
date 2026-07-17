@@ -13,7 +13,8 @@ type TrackSelectContentProps = {
   trackCatalogs: TrackSelectCatalog[];
   tracks: TrackStore["tracks"];
   registry: TrackStore["registry"];
-  applyTrackChanges: TrackStore["applyTrackChanges"];
+  setTracks: TrackStore["setTracks"];
+  defaultTrackIds?: readonly string[];
   maxTracks: number;
   onClose: () => void;
   columnOverrides?: TrackSelectColumnOverrides;

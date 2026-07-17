@@ -75,7 +75,7 @@ export function TrackSelectActionBar() {
       <ConfirmDialog
         open={dialog === "reset"}
         title="Reset selection?"
-        text="This will reset the draft selection back to the current track store."
+        text="This will restore the configured defaults, or the current committed tracks when no defaults are configured."
         confirmLabel="Reset"
         onClose={() => setDialog(null)}
         onConfirm={confirmReset}

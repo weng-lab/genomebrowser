@@ -1,14 +1,13 @@
-import { createTrackFromEntry, type TrackStore } from "@weng-lab/genomebrowser-v2";
+import type { TrackStore } from "@weng-lab/genomebrowser-v2";
 import { useState } from "react";
-import { getSelectionDiff } from "../catalog/catalogDiff";
 import {
-  clearSelection,
-  countSelectedTracks,
-  createSelectionFromTracks,
-  removeTrackIdsFromSelection,
-  setCatalogSelection,
-  type SelectedByCatalog,
+  clearOrderedSelection,
+  createOrderedSelectionFromTracks,
+  createSelectionByCatalog,
+  removeOrderedTrackIds,
+  setOrderedCatalogSelection,
 } from "../catalog/catalogSelection";
+import { getReconciledTracks } from "../catalog/catalogStore";
 import { getActiveView, getInitialViewIds } from "../catalog/catalogViews";
 import type { TrackSelectCatalog } from "../schema/catalogSchema";
 
@@ -18,7 +17,8 @@ type TrackSelectStateOptions = {
   trackCatalogs: TrackSelectCatalog[];
   tracks: TrackStore["tracks"];
   registry: TrackStore["registry"];
-  applyTrackChanges: TrackStore["applyTrackChanges"];
+  setTracks: TrackStore["setTracks"];
+  defaultTrackIds?: readonly string[];
   maxTracks: number;
   onClose: () => void;
 };
@@ -29,7 +29,8 @@ export function useTrackSelectState({
   trackCatalogs,
   tracks,
   registry,
-  applyTrackChanges,
+  setTracks,
+  defaultTrackIds,
   maxTracks,
   onClose,
 }: TrackSelectStateOptions) {
@@ -40,8 +41,8 @@ export function useTrackSelectState({
   const [activeViewIdByCatalog, setActiveViewIdByCatalog] = useState(() =>
     getInitialViewIds(trackCatalogs),
   );
-  const [selectedByCatalog, setSelectedByCatalog] = useState(() =>
-    createSelectionFromTracks(trackCatalogs, tracks),
+  const [selectedTrackIds, setSelectedTrackIds] = useState(() =>
+    createOrderedSelectionFromTracks(trackCatalogs, tracks),
   );
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string>();
@@ -52,7 +53,8 @@ export function useTrackSelectState({
   const activeView = activeCatalog
     ? getActiveView(activeCatalog, activeViewIdByCatalog)
     : undefined;
-  const selectedTrackCount = countSelectedTracks(selectedByCatalog);
+  const selectedByCatalog = createSelectionByCatalog(trackCatalogs, selectedTrackIds);
+  const selectedTrackCount = selectedTrackIds.length;
 
   function selectCatalog(catalogId: string) {
     setActiveCatalogId(catalogId);
@@ -69,63 +71,70 @@ export function useTrackSelectState({
     });
   }
 
-  function setDraftSelection(nextSelectedByCatalog: SelectedByCatalog) {
-    const currentCount = countSelectedTracks(selectedByCatalog);
-    const nextCount = countSelectedTracks(nextSelectedByCatalog);
+  function setDraftSelection(nextSelectedTrackIds: string[]) {
+    const currentCount = selectedTrackIds.length;
+    const nextCount = nextSelectedTrackIds.length;
     if (nextCount > maxTracks && nextCount > currentCount) {
       setLimitDialogOpen(true);
       return;
     }
 
     setSubmitError(undefined);
-    setSelectedByCatalog(nextSelectedByCatalog);
+    setSelectedTrackIds(nextSelectedTrackIds);
   }
 
   function selectActiveCatalogTracks(selectedIds: Set<string>) {
-    if (!activeCatalog) return;
-    setDraftSelection(setCatalogSelection(selectedByCatalog, activeCatalog.id, selectedIds));
+    if (!activeCatalog || !activeView) return;
+    setDraftSelection(
+      setOrderedCatalogSelection({
+        selectedTrackIds,
+        catalog: activeCatalog,
+        view: activeView,
+        selectedIds,
+      }),
+    );
   }
 
   function clearDraftSelection() {
     setDraftSelection(
-      clearSelection(
-        trackCatalogs,
-        selectedByCatalog,
-        currentScreen === "catalog-detail" ? activeCatalog?.id : undefined,
+      clearOrderedSelection(
+        selectedTrackIds,
+        currentScreen === "catalog-detail" ? activeCatalog : undefined,
       ),
     );
   }
 
   function resetDraftSelection() {
     setSubmitError(undefined);
-    setSelectedByCatalog(createSelectionFromTracks(trackCatalogs, tracks));
+    setSelectedTrackIds(
+      defaultTrackIds
+        ? [...defaultTrackIds]
+        : createOrderedSelectionFromTracks(trackCatalogs, tracks),
+    );
   }
 
   function removeSelectedTrackIds(trackIds: string[]) {
-    setDraftSelection(removeTrackIdsFromSelection(selectedByCatalog, trackIds));
+    setDraftSelection(removeOrderedTrackIds(selectedTrackIds, trackIds));
   }
 
   function submitSelection() {
     setSubmitError(undefined);
 
-    const { idsToRemove, tracksToAdd } = getSelectionDiff({
-      trackCatalogs,
-      tracks,
-      selectedByCatalog,
-      activeViewIdByCatalog,
-    });
-
-    let createdTracks: TrackStore["tracks"];
+    let nextTracks: TrackStore["tracks"];
     try {
-      createdTracks = tracksToAdd.map(({ id, track }) =>
-        createTrackFromEntry(registry, { ...track, id }),
-      );
+      nextTracks = getReconciledTracks({
+        trackCatalogs,
+        tracks,
+        selectedTrackIds,
+        registry,
+        maxTracks,
+      });
     } catch (error) {
       setSubmitError(getErrorMessage(error));
       return;
     }
 
-    const result = applyTrackChanges({ add: createdTracks, remove: idsToRemove });
+    const result = setTracks(nextTracks);
     if (!result.ok) {
       setSubmitError(result.error);
       return;

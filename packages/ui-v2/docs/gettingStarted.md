@@ -52,6 +52,8 @@ const trackCatalogs = [
   },
 ];
 
+const defaultTrackIds = ["signals::example-signal"];
+
 export function BrowserWithTrackSelect() {
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
 
@@ -68,6 +70,7 @@ export function BrowserWithTrackSelect() {
         onClose={() => setTrackSelectOpen(false)}
         trackCatalogs={trackCatalogs}
         useTrackStore={useTrackStore}
+        defaultTrackIds={defaultTrackIds}
       />
     </>
   );
@@ -76,6 +79,6 @@ export function BrowserWithTrackSelect() {
 
 `open` and `onClose` make the dialog controlled by the host. Catalog selections remain a draft until Submit; Cancel or closing the dialog does not update the store.
 
-Reset is intended to restore the host-configured default track list in the draft. The default-list input is not yet part of the public API, so no defaults prop is shown here.
+`defaultTrackIds` immediately adds catalog tracks to the shared store in the supplied order, so the browser renders them without opening the dialog or submitting a draft. IDs use the public `${catalogId}::${trackId}` format. Reset restores this ordered list.
 
 See [TrackSelect](trackSelect.md) for catalog rules, action semantics, limits, customization, and schema generation.

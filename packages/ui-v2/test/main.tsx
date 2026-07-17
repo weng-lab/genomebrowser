@@ -63,16 +63,17 @@ function Main() {
         <Button variant="contained" onClick={() => setOpen(true)}>
           Open
         </Button>
-        <GenomeBrowser
-          browserStore={useBrowserStore}
-          trackStore={useTrackStore}
-        />
+        <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
       </Stack>
       <TrackSelect
         open={open}
         onClose={() => setOpen(false)}
         trackCatalogs={[biosamples, psychscreenTracks]}
         useTrackStore={useTrackStore}
+        defaultTrackIds={[
+          "human-biosamples::human-biosamples/ccre-aggregate",
+          "human-psychscreen::human-psychscreen/epigenetic/adult-bcres",
+        ]}
         columnOverrides={{
           "human-biosamples": {
             assay: withValueMarkers(assayColors),

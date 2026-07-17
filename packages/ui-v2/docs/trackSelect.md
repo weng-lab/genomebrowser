@@ -13,10 +13,24 @@ Start with the integration in [Getting started](gettingStarted.md). The recommen
 
 Pass a stable `trackCatalogs` array and the same `useTrackStore` hook used by `GenomeBrowser`. The host controls `open` and closes the dialog in `onClose`.
 
+Use `defaultTrackIds` to immediately initialize the catalog-owned part of the track store. The array contains catalog-qualified IDs in browser order:
+
+```tsx
+<TrackSelect
+  open={open}
+  onClose={onClose}
+  trackCatalogs={trackCatalogs}
+  useTrackStore={useTrackStore}
+  defaultTrackIds={["genes::gencode", "signals::example-signal"]} // catalogId::trackId
+/>
+```
+
+TrackSelect preserves non-catalog tracks first in their existing order, then places the default tracks in the exact supplied order. Passing `undefined` leaves the initial store unchanged; passing `[]` removes all tracks represented by the supplied catalogs. Defaults are reapplied when TrackSelect mounts or when the list changes by value, but not after ordinary store updates.
+
 Each open session starts with a draft selection. Browsing, selecting, Clear, and Reset edit that draft without changing the track store.
 
 - **Clear** asks for confirmation, then clears the active catalog on its detail screen or all catalogs on the catalog-list screen.
-- **Reset** asks for confirmation, then is intended to restore the host-configured default track list in the draft. The default-list input is not yet public, so do not invent or pass a defaults prop.
+- **Reset** asks for confirmation, then restores `defaultTrackIds` in their supplied order. Without `defaultTrackIds`, it restores the catalog tracks currently committed in the store.
 - **Cancel**, the close button, and normal dialog dismissal discard the draft and call `onClose`.
 - **Submit** computes additions and removals for catalog tracks, creates additions through the track-store registry, and applies the changes as one store update. Tracks not represented by the supplied catalogs are preserved.
 
@@ -66,6 +80,10 @@ A catalog names a collection of available track entries and defines one or more 
 
 Catalog and view IDs should be stable and unique in their scopes. Catalog IDs must be unique in the `trackCatalogs` array, and track IDs must be unique within a catalog. A track ID may be reused in another catalog because TrackSelect namespaces track identity across catalogs.
 
+The public catalog-qualified ID format is `${catalogId}::${trackId}`. Use these IDs for `defaultTrackIds`; for example, track `example-signal` in catalog `signals` is `signals::example-signal`. Duplicate IDs, unknown IDs, and default lists longer than `maxTracks` are rejected.
+
+TrackSelect treats any store track whose ID matches an entry in the supplied catalogs as catalog-owned. Give fixed or otherwise non-catalog tracks IDs outside this reserved catalog-qualified set.
+
 Each view requires at least one column:
 
 - `columns` contains a `field` and optional `label`, `description`, `width`, or `hidden` presentation values.
@@ -85,7 +103,7 @@ Each catalog track combines browser create fields with module-owned config:
 - `config` must match the selected module's create-input schema.
 - `metadata` exists only for TrackSelect views and is not copied into the runtime track instance.
 
-TrackSelect validates every catalog with the registry read from `useTrackStore`. Unknown track types, invalid module config, missing view metadata, and unknown catalog properties fail before the dialog content renders. Module defaults are applied when a selected track is created for submission, not retained as authored catalog data during validation.
+TrackSelect validates every catalog with the registry read from `useTrackStore`. Unknown track types, invalid module config, missing view metadata, and unknown catalog properties fail before the dialog content renders. Module defaults are applied when a selected track is created during default initialization or submission, not retained as authored catalog data during validation.
 
 Use the same module set for the track store, JSON Schema generation, and any separate `validateJson` call. A catalog generated against one registry can fail in an application that registers another.
 

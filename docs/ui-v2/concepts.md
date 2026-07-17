@@ -11,10 +11,11 @@ TrackSelect follows one path from application data to browser state:
 1. The host passes track catalogs and a v2 track store hook.
 2. TrackSelect reads the store's module registry and validates every catalog against schemas derived from that registry.
 3. Valid catalog entries become grid rows. TrackSelect qualifies row IDs with their catalog IDs so entries from different catalogs cannot collide.
-4. Opening the dialog creates a session draft from catalog tracks represented in the store.
-5. Catalog and view interactions edit only that draft.
-6. Submit compares the draft with the current catalog-owned store tracks, creates added tracks through the registry, and sends additions and removals to `applyTrackChanges` in one atomic store update.
-7. The dialog closes only after the store accepts the update. Creation or store validation failures leave the store unchanged and keep the dialog open with an error.
+4. When configured, the ordered default track IDs immediately initialize the catalog-owned portion of the store.
+5. Opening the dialog creates an ordered session draft from catalog tracks represented in the store.
+6. Catalog and view interactions edit only that draft.
+7. Submit resolves the ordered draft and replaces the store contents in one atomic validated update.
+8. The dialog closes only after the store accepts the update. Creation or store validation failures leave the store unchanged and keep the dialog open with an error.
 
 This flow preserves the v2 rule that track state is validated through registered modules. Catalog validation and submitted track creation must use the same module registry as the browser that will render the tracks.
 
@@ -43,13 +44,15 @@ The v2 track store remains the source of truth for committed browser tracks. The
 
 Cancel, the close button, and backdrop or escape dismissal close the controlled dialog without submitting the draft. Clear changes the draft only and asks for confirmation. On a catalog detail screen it clears that catalog; on the catalog list it clears all catalogs.
 
-Reset is intended to restore the configured default track-store list into the draft, not merely undo changes made since the dialog opened. The host will supply that default list through a future public contract. Until that contract is implemented, do not invent a prop or treat the current-store reset behavior as the settled design.
+Reset restores the ordered `defaultTrackIds` list into the draft. Without configured defaults, Reset restores the catalog tracks currently represented in the store.
 
-Submit creates a diff only for tracks represented by the supplied catalogs. Tracks outside those catalogs are not removed. New catalog tracks are appended by the store's atomic change operation.
+Submit atomically replaces the catalog-owned portion of the store in draft order. Tracks outside the supplied catalogs remain first in their existing order.
 
 ## Catalog identity and ordering
 
-Catalog IDs must be unique, and track IDs must be unique within a catalog. Internally, TrackSelect encodes a row and store identity as `${catalogId}::${trackId}`. This qualification exists only to prevent collisions when different catalogs reuse a track ID; it is not an extension API.
+Catalog IDs must be unique, and track IDs must be unique within a catalog. TrackSelect encodes row and store identity as `${catalogId}::${trackId}`. This catalog-qualified format is a public contract used by `defaultTrackIds` and prevents collisions when different catalogs reuse a track ID.
+
+TrackSelect treats a store track whose ID matches a supplied catalog-qualified ID as catalog-owned. Fixed or otherwise non-catalog tracks must not use those reserved IDs.
 
 Each catalog has one or more views. The active view controls grid columns, grouping, leaf labels, and the order in which newly selected tracks are submitted. Group order follows first appearance in the catalog rows, nested grouping follows the view's `grouping` field order, and rows within the final group retain catalog order. Switching views therefore changes the presentation and may change the insertion order of tracks added on Submit.
 
@@ -67,7 +70,7 @@ The package keeps TrackSelect as a deep subsystem with a narrow public surface:
 - `src/cli.ts` is the public configuration entry point for schema generation.
 - `src/trackselect.ts` implements the `trackselect` executable and should remain a thin adapter over public configuration and schema behavior.
 - `src/TrackSelect/schema` owns registry-derived runtime validation and JSON Schema generation.
-- `src/TrackSelect/catalog` owns rows, IDs, views, grouping, ordering, columns, selection operations, and diffs.
+- `src/TrackSelect/catalog` owns rows, IDs, views, grouping, ordering, columns, selection operations, and store reconciliation.
 - `src/TrackSelect/session` owns the open-session state machine and store submission boundary.
 - `src/TrackSelect/layout`, `catalogList`, `selectedTracksTree`, and `dialogs` own component composition and presentation.
 - `test/main.tsx` is the manual integration harness; `test/catalogs` contains its fixtures.
