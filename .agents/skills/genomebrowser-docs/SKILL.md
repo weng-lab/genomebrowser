@@ -1,6 +1,6 @@
 ---
 name: genomebrowser-docs
-description: Use when creating or revising Genome Browser documentation, including user guides, maintainer docs, package docs, examples, recipes, API-adjacent explanations, or docs affected by behavior changes. Exclude ADRs, commit messages, and code comments unless the user explicitly asks for them. Use only for documentation work in docs/ directories.
+description: Use when creating or revising documentation, including user guides, maintainer docs, package docs, examples, recipes, API-adjacent explanations, or docs affected by behavior changes. Exclude ADRs, commit messages, and code comments unless the user explicitly asks for them. Use only for documentation work in docs/ directories.
 ---
 
 # Genome Browser Docs
