@@ -29,15 +29,13 @@ during the beta only when the limitation is explicit. P2 items are post-beta fol
       `docs/trackSelect.md`, and v2's unique-ID boundary in
       `packages/v2/src/browser/state/trackStore.ts`.
 
-- [ ] **[Known bug / state ownership] Make TrackSelect initialization identity explicit.**
-      A mounted `TrackSelect` remembers only catalog/default/max keys, so replacing
-      `useTrackStore` with another store using the same inputs can skip default initialization.
-      Choose the smallest contract: support store replacement by including store identity in the
-      initialization lifetime, or declare the store a construction-time input and require a keyed
-      remount with a development-time guard. Do not solve this with memoization. Cover `undefined`,
-      `[]`, changed defaults, remounts, and two isolated stores. Evidence:
-      `src/TrackSelect/TrackSelect.tsx`, `docs/gettingStarted.md`,
-      `docs/ui-v2/concepts.md`, and `docs/ideas/browser-sessions.md`.
+- [x] **[Known bug / state ownership] Make TrackSelect initialization identity explicit.**
+      Initialization is scoped to the mounted `TrackSelect` and its current combination of store,
+      catalogs, defaults, and limit. Changing that combination initializes again; ordinary store
+      updates do not. A remount starts a new lifetime. Tests distinguish `undefined` from `[]` and
+      cover changed defaults, remounts, and two isolated stores. Evidence:
+      `src/TrackSelect/TrackSelect.tsx`, `test/trackSelectWorkflow.test.tsx`,
+      `docs/trackSelect.md`, and `docs/ui-v2/concepts.md`.
 
 - [ ] **[Tests] Close the remaining TrackSelect component-boundary gaps.** The current workflow
       suite covers draft isolation, navigation, ordering, limits, Clear, Reset, Cancel, successful

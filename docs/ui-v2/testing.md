@@ -50,7 +50,7 @@ A TrackSelect workflow test should make the ownership boundaries visible:
 5. On Submit, assert active-view ordering, one atomic `setTracks` replacement, and preservation of tracks outside the catalogs.
 6. For failures, assert that the dialog remains open, an actionable error is shown, and no partial store update occurs.
 
-Reset coverage should target the public contract: after arbitrary draft edits, Reset restores `defaultTrackIds` in their exact cross-catalog order. Initialization coverage should also assert that non-catalog tracks remain first and that the ordered defaults immediately populate the shared store.
+Reset coverage should target the public contract: after arbitrary draft edits, Reset restores `defaultTrackIds` in their exact cross-catalog order. Initialization coverage should also assert that non-catalog tracks remain first, `undefined` and `[]` remain distinct, and defaults are applied again for changed values, replacement stores, and component remounts.
 
 ## Debugging
 

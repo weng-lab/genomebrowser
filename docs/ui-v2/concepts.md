@@ -11,7 +11,7 @@ TrackSelect follows one path from application data to browser state:
 1. The host passes track catalogs and a v2 track store hook.
 2. TrackSelect reads the store's module registry and validates every catalog against schemas derived from that registry.
 3. Valid catalog entries become grid rows. TrackSelect qualifies row IDs with their catalog IDs so entries from different catalogs cannot collide.
-4. When configured, the ordered default track IDs immediately initialize the catalog-owned portion of the store.
+4. When configured, the ordered default track IDs immediately initialize the catalog-owned portion of the store. TrackSelect remembers its current combination of store, catalog identity, defaults, and limit. Changing that combination or remounting initializes again; ordinary store updates do not.
 5. Opening the dialog creates an ordered session draft from catalog tracks represented in the store.
 6. Catalog and view interactions edit only that draft.
 7. Submit resolves the ordered draft and replaces the store contents in one atomic validated update.

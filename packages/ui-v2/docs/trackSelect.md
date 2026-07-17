@@ -25,7 +25,7 @@ Use `defaultTrackIds` to immediately initialize the catalog-owned part of the tr
 />
 ```
 
-TrackSelect preserves non-catalog tracks first in their existing order, then places the default tracks in the exact supplied order. Passing `undefined` leaves the initial store unchanged; passing `[]` removes all tracks represented by the supplied catalogs. Defaults are reapplied when TrackSelect mounts or when the list changes by value, but not after ordinary store updates.
+TrackSelect preserves non-catalog tracks first in their existing order, then places the default tracks in the exact supplied order. Passing `undefined` leaves the initial store unchanged; passing `[]` removes all tracks represented by the supplied catalogs. Defaults are applied when TrackSelect mounts and whenever its current initialization identity changes: a different store, different catalog/view/track IDs, a different default list by value, or a different `maxTracks`. A remount starts a new initialization lifetime. Ordinary updates to the same store do not reapply defaults.
 
 Each open session starts with a draft selection. Browsing, selecting, Clear, and Reset edit that draft without changing the track store.
 
