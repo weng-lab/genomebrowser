@@ -82,7 +82,7 @@ Catalog and view IDs should be stable and unique in their scopes. Catalog IDs mu
 
 The public catalog-qualified ID format is `${catalogId}::${trackId}`. Use these IDs for `defaultTrackIds`; for example, track `example-signal` in catalog `signals` is `signals::example-signal`. Duplicate IDs, unknown IDs, and default lists longer than `maxTracks` are rejected.
 
-TrackSelect treats any store track whose ID matches an entry in the supplied catalogs as catalog-owned. Give fixed or otherwise non-catalog tracks IDs outside this reserved catalog-qualified set.
+TrackSelect treats any store track whose ID matches an entry in the supplied catalogs as catalog-owned. This reserved namespace is the ownership rule: TrackSelect does not inspect the track's type or configuration to distinguish how it was created. Give fixed or otherwise non-catalog tracks IDs outside the reserved catalog-qualified set. If application code inserts a different track with a reserved ID, initialization or Submit may reuse or remove it as part of normal catalog reconciliation.
 
 Each view requires at least one column:
 
@@ -193,7 +193,7 @@ Check the total selection against `maxTracks`. The limit applies across catalogs
 
 ### Submit shows an error
 
-Confirm that schema tooling and the application use the same modules and versions. Also check for an ID collision with an existing store track. TrackSelect namespaces IDs across catalogs for uniqueness, but the final store still requires every track ID to be unique.
+Confirm that schema tooling and the application use the same modules and versions. Check that the selected tracks still satisfy their registered modules and inspect the displayed error for any additional reason the track store rejected the update.
 
 ### Submit order is unexpected
 

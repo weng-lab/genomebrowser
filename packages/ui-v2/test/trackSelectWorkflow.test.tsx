@@ -260,6 +260,22 @@ describe("TrackSelect session workflow", () => {
 
     expect(result.current.state.selectedTrackCount).toBe(0);
     expect(setup.store.getState().order).toEqual(["alpha::one", "beta::one"]);
+
+    await act(async () => result.current.actions.submitSelection());
+
+    expect(setup.store.getState().order).toEqual([]);
+    expect(setup.onClose).toHaveBeenCalledOnce();
+  });
+
+  it("reuses an existing track whose ID is reserved by the catalog", async () => {
+    const setup = createStateOptions({ trackIds: ["alpha::one"] });
+    const existingTrack = setup.store.getState().tracks[0];
+    const result = await renderState(setup.options);
+
+    await act(async () => result.current.actions.submitSelection());
+
+    expect(setup.store.getState().tracks).toEqual([existingTrack]);
+    expect(setup.onClose).toHaveBeenCalledOnce();
   });
 
   it("rejects draft growth beyond the track limit", async () => {
@@ -299,8 +315,9 @@ describe("TrackSelect session workflow", () => {
 });
 
 describe("TrackSelect default initialization", () => {
-  it("initializes once and creates a fresh draft after Cancel", async () => {
+  it("treats reserved IDs as catalog-owned during initialization", async () => {
     const store = createStore(["unmanaged", "alpha::one"]);
+    const reservedTrack = store.getState().getTrack("alpha::one");
     const setTracks = vi.fn(store.getState().setTracks);
     store.setState({ setTracks });
     const defaults = ["beta::one", "alpha::two"];
@@ -316,6 +333,7 @@ describe("TrackSelect default initialization", () => {
     await renderUi(<TrackSelect {...props} />);
 
     expect(store.getState().order).toEqual(["unmanaged", ...defaults]);
+    expect(store.getState().tracks).not.toContain(reservedTrack);
     expect(setTracks).toHaveBeenCalledOnce();
     expect(selectedIds(getTrackSelectContentState(), "alpha")).toEqual(["alpha::two"]);
     expect(selectedIds(getTrackSelectContentState(), "beta")).toEqual(["beta::one"]);

@@ -18,14 +18,14 @@ during the beta only when the limitation is explicit. P2 items are post-beta fol
 
 ## P0: beta blockers
 
-- [ ] **[Known bug] Prevent catalog identity from silently taking ownership of a fixed track.**
-      Define and enforce the collision rule when an existing store track has the same
-      `${catalogId}::${trackId}` ID as a catalog entry. Clear/default reconciliation currently
-      classifies ownership by ID alone and can remove that existing track; selected reconciliation
-      can retain its unrelated instance instead of creating the catalog entry. The outcome must be
-      an actionable pre-mutation error or another explicit provenance rule, with regression tests
-      for initialization, Clear, and Submit. Evidence:
-      `src/TrackSelect/catalog/catalogStore.ts`, `src/TrackSelect/catalog/catalogRows.ts`,
+- [x] **[Behavior contract] Reserve catalog-qualified track IDs for TrackSelect ownership.**
+      TrackSelect intentionally classifies store tracks by `${catalogId}::${trackId}` ID alone.
+      Hosts must not assign an ID reserved by a supplied catalog to a fixed or otherwise
+      non-catalog track. Doing so makes that track catalog-owned, so initialization or Submit may
+      reuse or remove it. This keeps provenance deterministic without adding runtime metadata for
+      unsupported programmatic collisions. Regression tests cover initialization, Clear, and
+      Submit. Evidence: `src/TrackSelect/catalog/catalogStore.ts`,
+      `src/TrackSelect/catalog/catalogRows.ts`, `test/trackSelectWorkflow.test.tsx`,
       `docs/trackSelect.md`, and v2's unique-ID boundary in
       `packages/v2/src/browser/state/trackStore.ts`.
 

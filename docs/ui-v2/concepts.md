@@ -52,7 +52,7 @@ Submit atomically replaces the catalog-owned portion of the store in draft order
 
 Catalog IDs must be unique, and track IDs must be unique within a catalog. TrackSelect encodes row and store identity as `${catalogId}::${trackId}`. This catalog-qualified format is a public contract used by `defaultTrackIds` and prevents collisions when different catalogs reuse a track ID.
 
-TrackSelect treats a store track whose ID matches a supplied catalog-qualified ID as catalog-owned. Fixed or otherwise non-catalog tracks must not use those reserved IDs.
+TrackSelect treats a store track whose ID matches a supplied catalog-qualified ID as catalog-owned, regardless of how the track was created. This ID rule is the provenance boundary; TrackSelect does not compare type or configuration to infer ownership. Fixed or otherwise non-catalog tracks must not use those reserved IDs because initialization or Submit may reuse or remove them during catalog reconciliation.
 
 Each catalog has one or more views. The active view controls grid columns, grouping, leaf labels, and the order in which newly selected tracks are submitted. Group order follows first appearance in the catalog rows, nested grouping follows the view's `grouping` field order, and rows within the final group retain catalog order. Switching views therefore changes the presentation and may change the insertion order of tracks added on Submit.
 
