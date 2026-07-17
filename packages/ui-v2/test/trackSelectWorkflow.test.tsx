@@ -45,6 +45,13 @@ const signalModule = defineTrackModule({
   render: { full: Renderer },
 });
 
+const annotationModule = defineTrackModule({
+  type: "annotation",
+  configSchema: z.object({ url: z.string().min(1) }),
+  fetch: async () => null,
+  render: { full: Renderer },
+});
+
 const defaultView: TrackSelectView = {
   id: "default",
   label: "Default",
@@ -105,10 +112,10 @@ function createTrack(id: string) {
   return signalModule.create({ id, title: id, config: { url: id } });
 }
 
-function createStore(trackIds: string[] = []) {
+function createStore(trackIds: string[] = [], tracks?: TrackStore["tracks"]) {
   return createTrackStore({
-    modules: [signalModule],
-    tracks: trackIds.map(createTrack),
+    modules: [signalModule, annotationModule],
+    tracks: tracks ?? trackIds.map(createTrack),
   });
 }
 
@@ -145,13 +152,15 @@ function createStateOptions({
   defaultTrackIds,
   maxTracks = 10,
   setTracks,
+  tracks,
 }: {
   trackIds?: string[];
   defaultTrackIds?: readonly string[];
   maxTracks?: number;
   setTracks?: TrackStore["setTracks"];
+  tracks?: TrackStore["tracks"];
 } = {}) {
-  const store = createStore(trackIds);
+  const store = createStore(trackIds, tracks);
   const onClose = vi.fn();
   const commitTracks = setTracks ?? vi.fn(store.getState().setTracks);
 
@@ -268,9 +277,15 @@ describe("TrackSelect session workflow", () => {
   });
 
   it("reuses an existing track whose ID is reserved by the catalog", async () => {
-    const setup = createStateOptions({ trackIds: ["alpha::one"] });
-    const existingTrack = setup.store.getState().tracks[0];
+    const existingTrack = annotationModule.create({
+      id: "alpha::one",
+      title: "Unrelated annotation",
+      config: { url: "annotation" },
+    });
+    const setup = createStateOptions({ tracks: [existingTrack] });
     const result = await renderState(setup.options);
+
+    expect(selectedIds(result.current, "alpha")).toEqual(["alpha::one"]);
 
     await act(async () => result.current.actions.submitSelection());
 
