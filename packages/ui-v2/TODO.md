@@ -77,15 +77,19 @@ during the beta only when the limitation is explicit. P2 items are post-beta fol
 
 ## P1: beta-quality and high-value
 
-- [ ] **[Feature / legacy parity candidate] Separate initial selection, Reset defaults, and
-      committed-selection notification.** Confirm the persistence design's smallest beta scope:
-      either add only `initialTrackIds` plus `onCommittedTrackIds` first, or also ship the proposed
-      storage-agnostic parser/reconciler/controller and safe local-storage adapter. Reset must
-      continue to target product defaults; an explicit persisted `[]` must remain distinct from
-      missing/invalid state; Cancel and failed Submit must not commit. Do not put storage keys or
-      direct `localStorage` calls in TrackSelect. Evidence: `docs/ideas/track-select-persistence.md`,
-      `src/TrackSelect/TrackSelect.tsx`, `src/TrackSelect/session/useTrackSelectState.ts`, and the
-      legacy `sessionStorageKey` implementation in `packages/ui/src/TrackSelect/TrackSelect.tsx`.
+- [x] **[Feature / legacy parity candidate] Separate initial selection, Reset defaults, and
+      committed-selection notification.** The narrow, storage-agnostic persistence API seam is
+      shipped. `initialTrackIds` restores an ordered initial catalog selection, while
+      `defaultTrackIds` remains the product baseline and Reset target. Hosts can preserve the
+      distinction between missing persisted state and an explicit persisted `[]` by passing
+      `undefined` or `[]`, respectively. `onCommittedTrackIds` reports the complete ordered catalog
+      selection only after a successful Submit; initialization, Cancel or dismissal, draft actions,
+      and failed Submit do not report a commit. TrackSelect does not choose storage keys or call
+      `localStorage` directly. The reusable payload parser, storage adapter, catalog reconciliation
+      helper, and persistence controller remain proposed in
+      `docs/ideas/trackSelectPersistence.md`. Evidence: `src/TrackSelect/TrackSelect.tsx`,
+      `src/TrackSelect/session/useTrackSelectState.ts`, `test/trackSelectWorkflow.test.tsx`,
+      `docs/trackSelect.md`, and `docs/ideas/trackSelectPersistence.md`.
 
 - [ ] **[Feature / legacy parity candidate] Provide or reject a narrow interaction-callback seam.**
       Catalog JSON is correctly data-only, but UI v2 calls `createTrackFromEntry` without the
