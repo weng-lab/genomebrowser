@@ -79,6 +79,19 @@ export function App() {
 
 The renderer emits only `item`. The browser adds the latest validated context when it invokes the application callback or renders the tooltip. Updating the track's URL or color changes later events and tooltips; it does not make base or interaction changes fetch data, and config requests remain controlled by `fetchOnChange`.
 
+### Keep hover callbacks lightweight
+
+Treat `onHover` as a potentially high-frequency callback. Renderers decide what counts as a semantic hover target, and moving across a dense signal can still expose many different items quickly. Do not assume every track type throttles or deduplicates hover events for the application.
+
+- Avoid putting transient hover state in a component above `GenomeBrowser`; each update can revisit the entire browser subtree.
+- Keep React hover state in the smallest component that renders it, and skip updates when the semantic item has not changed.
+- For an imperative readout that does not affect React output, a ref can update the target directly without scheduling a render.
+- When several isolated components need hover data, use a host-owned external store with narrow subscriptions rather than lifting the state to the page root.
+- Keep expensive requests and analytics out of raw hover handlers, or deduplicate and rate-limit them according to application needs.
+- Clear any retained application hover state in `onLeave`.
+
+Memoizing the browser does not fix state placed above it. First isolate or deduplicate the high-frequency state; optimize individual computations only when measurement shows they remain expensive.
+
 ## Add, remove, reorder, and update tracks
 
 Create a track through its module, then check the store mutation result:

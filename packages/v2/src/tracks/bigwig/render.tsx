@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import { useTooltip } from "../../browser/tooltip/useTooltip";
 import { useInteraction } from "../../modules/interaction";
 import type { TrackRendererProps } from "../../modules/types";
@@ -83,24 +83,31 @@ function BigWigHoverOverlay({
   points: RenderedBigWigPoint[];
 }) {
   const [hoveredPoint, setHoveredPoint] = useState<RenderedBigWigPoint | undefined>();
+  const hoveredPointRef = useRef<RenderedBigWigPoint | undefined>(undefined);
   const interaction = useInteraction<RenderedBigWigPoint>();
   const tooltip = useTooltip<RenderedBigWigPoint, BigWigConfig>();
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const point = getPointAtMouseX(points, getLocalMouseX(event, width), width);
     if (!point) {
-      if (hoveredPoint) interaction?.onLeave?.(hoveredPoint);
+      if (!hoveredPointRef.current) return;
+      interaction?.onLeave?.(hoveredPointRef.current);
+      hoveredPointRef.current = undefined;
       setHoveredPoint(undefined);
       tooltip.hide();
       return;
     }
+    if (point === hoveredPointRef.current) return;
+
+    hoveredPointRef.current = point;
     setHoveredPoint(point);
     interaction?.onHover?.(point);
     tooltip.show(point, event);
   };
 
   const handleMouseOut = () => {
-    if (hoveredPoint) interaction?.onLeave?.(hoveredPoint);
+    if (hoveredPointRef.current) interaction?.onLeave?.(hoveredPointRef.current);
+    hoveredPointRef.current = undefined;
     setHoveredPoint(undefined);
     tooltip.hide();
   };

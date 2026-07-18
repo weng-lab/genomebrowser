@@ -166,3 +166,17 @@ TrackSelect invokes the resolver for selected entries during default or explicit
 The callback runs later, when a renderer emits an item. Core supplies the current runtime context at that moment, so settings changes to the URL or color are visible without rerunning the resolver. The captured catalog context supplies the owning catalog ID, authored track ID, and metadata separately. Do not copy metadata into runtime config or base state.
 
 Persist only the catalog-qualified IDs reported by `onCommittedTrackIds`. Catalog metadata remains in the catalog, while callbacks are reconstructed from application code through `resolveTrackInteraction`; neither callbacks nor metadata belong in persisted track-selection data.
+
+## Keep hover interactions responsive
+
+`onHover` may run frequently as the pointer crosses dense track data. TrackSelect supplies the callback but does not impose one universal throttling policy across every registered module.
+
+- Do not store transient hover state in the component that owns `GenomeBrowser` and `TrackSelect`; doing so can revisit both trees on every update.
+- Place a hover preview's React state in the smallest leaf that renders the preview.
+- Skip state updates when the item or derived preview has not changed.
+- Use a ref for a rapidly changing imperative readout that does not need to participate in React rendering.
+- Use a host-owned external store with narrow subscriptions when unrelated components need the current hover value.
+- Deduplicate or rate-limit network requests, analytics, and other expensive effects separately from visual hover feedback.
+- Use `onLeave` to clear retained hover state.
+
+Start with state placement and semantic deduplication rather than wrapping the browser or resolver in memoization. Memoization cannot prevent rerenders caused by state owned above the browser.
