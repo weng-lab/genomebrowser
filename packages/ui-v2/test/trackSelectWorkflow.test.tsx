@@ -153,12 +153,16 @@ function createStateOptions({
   maxTracks = 10,
   setTracks,
   tracks,
+  onCommittedTrackIds = vi.fn(),
+  trackCatalogs = catalogs,
 }: {
   trackIds?: string[];
   defaultTrackIds?: readonly string[];
   maxTracks?: number;
   setTracks?: TrackStore["setTracks"];
   tracks?: TrackStore["tracks"];
+  onCommittedTrackIds?: (trackIds: readonly string[]) => void;
+  trackCatalogs?: TrackSelectCatalog[];
 } = {}) {
   const store = createStore(trackIds, tracks);
   const onClose = vi.fn();
@@ -167,13 +171,15 @@ function createStateOptions({
   return {
     store,
     onClose,
+    onCommittedTrackIds,
     setTracks: commitTracks,
     options: {
-      trackCatalogs: catalogs,
+      trackCatalogs,
       tracks: store.getState().tracks,
       registry: store.getState().registry,
       setTracks: commitTracks,
       defaultTrackIds,
+      onCommittedTrackIds,
       maxTracks,
       onClose,
     } satisfies StateOptions,
@@ -224,11 +230,27 @@ describe("TrackSelect session workflow", () => {
     await act(async () => {
       result.current.actions.selectActiveCatalogTracks(new Set(["beta::one"]));
     });
+    vi.mocked(setup.onCommittedTrackIds).mockImplementation(() => {
+      expect(setup.store.getState().order).toEqual([
+        "unmanaged",
+        "alpha::one",
+        "alpha::three",
+        "alpha::two",
+        "beta::one",
+      ]);
+    });
     await act(async () => result.current.actions.submitSelection());
 
     expect(setup.setTracks).toHaveBeenCalledOnce();
     expect(setup.store.getState().order).toEqual([
       "unmanaged",
+      "alpha::one",
+      "alpha::three",
+      "alpha::two",
+      "beta::one",
+    ]);
+    expect(setup.onCommittedTrackIds).toHaveBeenCalledOnce();
+    expect(setup.onCommittedTrackIds).toHaveBeenCalledWith([
       "alpha::one",
       "alpha::three",
       "alpha::two",
@@ -252,6 +274,40 @@ describe("TrackSelect session workflow", () => {
     expect(setup.store.getState().order).toEqual(["unmanaged", "alpha::one"]);
     await act(async () => result.current.actions.submitSelection());
     expect(setup.store.getState().order).toEqual(["unmanaged", "beta::one", "alpha::two"]);
+  });
+
+  it("resets to an empty catalog selection when defaults are absent", async () => {
+    const setup = createStateOptions({ trackIds: ["unmanaged", "alpha::one"] });
+    const result = await renderState(setup.options);
+
+    await act(async () => result.current.actions.resetDraftSelection());
+
+    expect(result.current.state.selectedTrackCount).toBe(0);
+    expect(setup.store.getState().order).toEqual(["unmanaged", "alpha::one"]);
+
+    await act(async () => result.current.actions.submitSelection());
+
+    expect(setup.store.getState().order).toEqual(["unmanaged"]);
+    expect(setup.onCommittedTrackIds).toHaveBeenCalledWith([]);
+  });
+
+  it("does not report draft changes or cancellation as a commit", async () => {
+    const setup = createStateOptions({
+      trackIds: ["alpha::one"],
+      defaultTrackIds: ["beta::one"],
+    });
+    const result = await renderState(setup.options);
+
+    await act(async () => {
+      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::two"]));
+      result.current.actions.clearDraftSelection();
+      result.current.actions.resetDraftSelection();
+      result.current.actions.cancel();
+    });
+
+    expect(setup.store.getState().order).toEqual(["alpha::one"]);
+    expect(setup.onCommittedTrackIds).not.toHaveBeenCalled();
+    expect(setup.onClose).toHaveBeenCalledOnce();
   });
 
   it("clears either the active catalog or the complete draft", async () => {
@@ -325,12 +381,30 @@ describe("TrackSelect session workflow", () => {
 
     expect(result.current.state.submitError).toBe("Store rejected the update");
     expect(setup.setTracks).toHaveBeenCalledOnce();
+    expect(setup.onCommittedTrackIds).not.toHaveBeenCalled();
+    expect(setup.onClose).not.toHaveBeenCalled();
+  });
+
+  it("does not report a commit when track creation fails", async () => {
+    const trackCatalogs = structuredClone(catalogs);
+    const setup = createStateOptions({ trackCatalogs });
+    const result = await renderState(setup.options);
+
+    await act(async () => {
+      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::one"]));
+    });
+    trackCatalogs[0]!.tracks[0]!.config = { url: "" };
+    await act(async () => result.current.actions.submitSelection());
+
+    expect(result.current.state.submitError).toMatch(/signal input is invalid/);
+    expect(setup.setTracks).not.toHaveBeenCalled();
+    expect(setup.onCommittedTrackIds).not.toHaveBeenCalled();
     expect(setup.onClose).not.toHaveBeenCalled();
   });
 });
 
-describe("TrackSelect default initialization", () => {
-  it("leaves the store unchanged when defaults are undefined", async () => {
+describe("TrackSelect initialization", () => {
+  it("leaves the store unchanged when initial tracks and defaults are undefined", async () => {
     const store = createStore(["unmanaged", "alpha::one"]);
     const setTracks = vi.fn(store.getState().setTracks);
     store.setState({ setTracks });
@@ -341,6 +415,85 @@ describe("TrackSelect default initialization", () => {
 
     expect(store.getState().order).toEqual(["unmanaged", "alpha::one"]);
     expect(setTracks).not.toHaveBeenCalled();
+  });
+
+  it("uses explicit initial tracks instead of defaults", async () => {
+    const store = createStore(["unmanaged"]);
+    const setTracks = vi.fn(store.getState().setTracks);
+    const onCommittedTrackIds = vi.fn();
+    store.setState({ setTracks });
+
+    await renderUi(
+      <TrackSelect
+        open
+        onClose={vi.fn()}
+        trackCatalogs={catalogs}
+        useTrackStore={store}
+        initialTrackIds={["alpha::one"]}
+        defaultTrackIds={["beta::one"]}
+        onCommittedTrackIds={onCommittedTrackIds}
+      />,
+    );
+
+    expect(store.getState().order).toEqual(["unmanaged", "alpha::one"]);
+    expect(onCommittedTrackIds).not.toHaveBeenCalled();
+
+    await act(async () => getTrackSelectContentState().actions.resetDraftSelection());
+    expect(selectedIds(getTrackSelectContentState(), "alpha")).toEqual([]);
+    expect(selectedIds(getTrackSelectContentState(), "beta")).toEqual(["beta::one"]);
+  });
+
+  it("validates defaults when explicit initial tracks take precedence", async () => {
+    const store = createStore(["unmanaged"]);
+
+    await expect(
+      renderUi(
+        <TrackSelect
+          open
+          onClose={vi.fn()}
+          trackCatalogs={catalogs}
+          useTrackStore={store}
+          initialTrackIds={["alpha::one"]}
+          defaultTrackIds={["alpha::missing"]}
+        />,
+      ),
+    ).rejects.toThrow("Unknown track selection id: alpha::missing");
+  });
+
+  it("reports invalid explicit initial tracks as an initial selection error", async () => {
+    const store = createStore(["unmanaged"]);
+
+    await expect(
+      renderUi(
+        <TrackSelect
+          open
+          onClose={vi.fn()}
+          trackCatalogs={catalogs}
+          useTrackStore={store}
+          initialTrackIds={["alpha::missing"]}
+        />,
+      ),
+    ).rejects.toThrow("Unknown track selection id: alpha::missing");
+  });
+
+  it("treats an empty initial list as explicit initialization", async () => {
+    const store = createStore(["unmanaged", "alpha::one"]);
+    const setTracks = vi.fn(store.getState().setTracks);
+    store.setState({ setTracks });
+
+    await renderUi(
+      <TrackSelect
+        open
+        onClose={vi.fn()}
+        trackCatalogs={catalogs}
+        useTrackStore={store}
+        initialTrackIds={[]}
+        defaultTrackIds={["beta::one"]}
+      />,
+    );
+
+    expect(store.getState().order).toEqual(["unmanaged"]);
+    expect(setTracks).toHaveBeenCalledOnce();
   });
 
   it("treats an empty default list as explicit initialization", async () => {
@@ -431,6 +584,54 @@ describe("TrackSelect default initialization", () => {
     await rerenderUi(<TrackSelect {...props} defaultTrackIds={["beta::one", "alpha::two"]} />);
 
     expect(store.getState().order).toEqual(["unmanaged", "beta::one", "alpha::two"]);
+    expect(setTracks).toHaveBeenCalledTimes(2);
+  });
+
+  it("changes the reset target without reinitializing explicit initial tracks", async () => {
+    const store = createStore(["unmanaged"]);
+    const setTracks = vi.fn(store.getState().setTracks);
+    store.setState({ setTracks });
+    const props = {
+      open: true,
+      onClose: vi.fn(),
+      trackCatalogs: catalogs,
+      useTrackStore: store,
+      initialTrackIds: ["alpha::one"],
+    };
+
+    await renderUi(<TrackSelect {...props} defaultTrackIds={["beta::one"]} />);
+    expect(store.getState().order).toEqual(["unmanaged", "alpha::one"]);
+
+    await rerenderUi(<TrackSelect {...props} defaultTrackIds={["alpha::two"]} />);
+
+    expect(store.getState().order).toEqual(["unmanaged", "alpha::one"]);
+    expect(setTracks).toHaveBeenCalledOnce();
+
+    await act(async () => getTrackSelectContentState().actions.resetDraftSelection());
+    expect(selectedIds(getTrackSelectContentState(), "alpha")).toEqual(["alpha::two"]);
+  });
+
+  it("reinitializes when the same defaults return after being removed", async () => {
+    const store = createStore(["unmanaged"]);
+    const commitTracks = store.getState().setTracks;
+    const setTracks = vi.fn(commitTracks);
+    store.setState({ setTracks });
+    const props = {
+      open: true,
+      onClose: vi.fn(),
+      trackCatalogs: catalogs,
+      useTrackStore: store,
+    };
+
+    await renderUi(<TrackSelect {...props} defaultTrackIds={["alpha::one"]} />);
+    await rerenderUi(<TrackSelect {...props} />);
+    await act(async () => {
+      commitTracks([createTrack("unmanaged"), createTrack("beta::one")]);
+    });
+
+    await rerenderUi(<TrackSelect {...props} defaultTrackIds={["alpha::one"]} />);
+
+    expect(store.getState().order).toEqual(["unmanaged", "alpha::one"]);
     expect(setTracks).toHaveBeenCalledTimes(2);
   });
 

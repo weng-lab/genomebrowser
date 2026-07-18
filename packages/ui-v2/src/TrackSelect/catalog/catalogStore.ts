@@ -31,6 +31,14 @@ export function getReconciledTracks({
   return [...nonCatalogTracks, ...selectedTracks];
 }
 
+export function assertValidCatalogTrackIds(
+  trackCatalogs: TrackSelectCatalog[],
+  selectedTrackIds: readonly string[],
+  maxTracks: number,
+) {
+  assertValidSelectedTrackIds(selectedTrackIds, getCatalogTrackById(trackCatalogs), maxTracks);
+}
+
 function assertValidSelectedTrackIds(
   selectedTrackIds: readonly string[],
   catalogTracksById: ReadonlyMap<string, unknown>,
@@ -38,14 +46,14 @@ function assertValidSelectedTrackIds(
 ) {
   if (selectedTrackIds.length > maxTracks) {
     throw new Error(
-      `Default track count ${selectedTrackIds.length.toLocaleString()} exceeds the maximum of ${maxTracks.toLocaleString()}`,
+      `Track selection count ${selectedTrackIds.length.toLocaleString()} exceeds the maximum of ${maxTracks.toLocaleString()}`,
     );
   }
 
   const seen = new Set<string>();
   for (const id of selectedTrackIds) {
-    if (seen.has(id)) throw new Error(`Duplicate default track id: ${id}`);
-    if (!catalogTracksById.has(id)) throw new Error(`Unknown default track id: ${id}`);
+    if (seen.has(id)) throw new Error(`Duplicate track selection id: ${id}`);
+    if (!catalogTracksById.has(id)) throw new Error(`Unknown track selection id: ${id}`);
     seen.add(id);
   }
 }

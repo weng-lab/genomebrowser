@@ -79,6 +79,8 @@ export function BrowserWithTrackSelect() {
 
 `open` and `onClose` make the dialog controlled by the host. Catalog selections remain a draft until Submit; Cancel or closing the dialog does not update the store.
 
-`defaultTrackIds` immediately adds catalog tracks to the shared store in the supplied order, so the browser renders them without opening the dialog or submitting a draft. IDs use the public `${catalogId}::${trackId}` format. Reset restores this ordered list.
+`defaultTrackIds` immediately adds catalog tracks to the shared store in the supplied order, so the browser renders them without opening the dialog or submitting a draft. IDs use the public `${catalogId}::${trackId}` format. Reset restores this ordered list; without defaults, Reset clears all catalog tracks while preserving tracks outside the catalogs.
+
+When restoring a saved selection, pass it as `initialTrackIds` and keep the page's recommended tracks in `defaultTrackIds`. Explicit initial tracks take precedence only during initialization, so Reset still returns to the page defaults. Use `onCommittedTrackIds` to save the ordered catalog selection after a successful Submit. Storage access and parsing remain application responsibilities.
 
 See [TrackSelect](trackSelect.md) for catalog rules, action semantics, limits, customization, and schema generation.

@@ -2,11 +2,11 @@
 
 ## Status
 
-Proposed design for restoring persistent catalog-track selection across reloads and navigation while retaining the browser session factory pattern.
+The TrackSelect API seam is implemented; the reusable storage, reconciliation, and controller design remains proposed for restoring catalog-track selection across reloads and navigation while retaining the browser session factory pattern.
 
 ## Problem
 
-Track Select currently initializes catalog-owned tracks from `defaultTrackIds`. Browser session factories correctly isolate runtime browser state, but those sessions are intentionally ephemeral: reloading a page or navigating away creates a new session and loses the user's catalog selections.
+Track Select can initialize catalog-owned tracks from `initialTrackIds`, falling back to `defaultTrackIds`, and report successful submissions through `onCommittedTrackIds`. Browser session factories correctly isolate runtime browser state, but those sessions are intentionally ephemeral: without a host persistence integration, reloading a page or navigating away creates a new session and loses the user's catalog selections.
 
 An earlier implementation associated Track Select state with a session ID. The useful property was not the ID itself; it was that the frontend could choose a stable identity and recover the corresponding selection later.
 
@@ -50,10 +50,13 @@ The client application chooses:
 
 ### `genomebrowser-ui-v2` owns reusable mechanics
 
-The UI library should provide:
+The UI library provides:
 
 - separate initial-selection and Reset-default APIs;
 - committed-selection notifications;
+
+The proposed reusable persistence layer would also provide:
+
 - persisted payload parsing and version handling;
 - catalog-ID reconciliation helpers;
 - a storage interface and optional local-storage adapter.
@@ -168,16 +171,16 @@ The adapter should:
 
 Applications may inject another implementation for tests, memory-only behavior, or future user-profile storage.
 
-## Required Track Select API change
+## Track Select API
 
-`defaultTrackIds` currently serves two responsibilities:
+TrackSelect separates two responsibilities that were previously both served by `defaultTrackIds`:
 
 1. initializing a new store; and
 2. defining Reset behavior.
 
-Persistence requires those responsibilities to be separated. Passing persisted IDs as `defaultTrackIds` would incorrectly make Reset restore the previous user selection instead of product defaults.
+Passing persisted IDs as `defaultTrackIds` would incorrectly make Reset restore the previous user selection instead of product defaults.
 
-Proposed API:
+Implemented API:
 
 ```ts
 export type TrackSelectProps = {
@@ -373,18 +376,9 @@ Recommended owner:
 
 ```tsx
 function GenePage({ gene }: { gene: string }) {
-  const persistenceKey = useMemo(
-    () => `psychscreen:tracks:v1:gene:${normalizeGene(gene)}`,
-    [gene],
-  );
+  const persistenceKey = useMemo(() => `psychscreen:tracks:v1:gene:${normalizeGene(gene)}`, [gene]);
 
-  return (
-    <GeneBrowserPanel
-      key={persistenceKey}
-      persistenceKey={persistenceKey}
-      gene={gene}
-    />
-  );
+  return <GeneBrowserPanel key={persistenceKey} persistenceKey={persistenceKey} gene={gene} />;
 }
 ```
 
@@ -506,7 +500,7 @@ Rejected unless the frontend deliberately supplies a stable value. Random runtim
 
 ## Suggested implementation sequence
 
-1. Add `initialTrackIds` and `onCommittedTrackIds` to Track Select while preserving current behavior when omitted.
+1. [x] Add `initialTrackIds` and `onCommittedTrackIds` to Track Select, with omitted initial IDs falling back to defaults and Reset without defaults clearing the catalog draft.
 2. Add payload parsing, reconciliation, and a `TrackSelectionStorage` interface to `genomebrowser-ui-v2`.
 3. Add a safe local-storage adapter.
 4. Add the headless persistence controller.

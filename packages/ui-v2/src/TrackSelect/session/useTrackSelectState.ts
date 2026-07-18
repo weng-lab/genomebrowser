@@ -19,6 +19,7 @@ type TrackSelectStateOptions = {
   registry: TrackStore["registry"];
   setTracks: TrackStore["setTracks"];
   defaultTrackIds?: readonly string[];
+  onCommittedTrackIds?: (trackIds: readonly string[]) => void;
   maxTracks: number;
   onClose: () => void;
 };
@@ -31,6 +32,7 @@ export function useTrackSelectState({
   registry,
   setTracks,
   defaultTrackIds,
+  onCommittedTrackIds,
   maxTracks,
   onClose,
 }: TrackSelectStateOptions) {
@@ -106,11 +108,7 @@ export function useTrackSelectState({
 
   function resetDraftSelection() {
     setSubmitError(undefined);
-    setSelectedTrackIds(
-      defaultTrackIds
-        ? [...defaultTrackIds]
-        : createOrderedSelectionFromTracks(trackCatalogs, tracks),
-    );
+    setSelectedTrackIds([...(defaultTrackIds ?? [])]);
   }
 
   function removeSelectedTrackIds(trackIds: string[]) {
@@ -140,7 +138,11 @@ export function useTrackSelectState({
       return;
     }
 
-    onClose();
+    try {
+      onCommittedTrackIds?.([...selectedTrackIds]);
+    } finally {
+      onClose();
+    }
   }
 
   return {

@@ -11,11 +11,11 @@ TrackSelect follows one path from application data to browser state:
 1. The host passes track catalogs and a v2 track store hook.
 2. TrackSelect reads the store's module registry and validates every catalog against schemas derived from that registry.
 3. Valid catalog entries become grid rows. TrackSelect qualifies row IDs with their catalog IDs so entries from different catalogs cannot collide.
-4. When configured, the ordered default track IDs immediately initialize the catalog-owned portion of the store. TrackSelect remembers its current combination of store, catalog identity, defaults, and limit. Changing that combination or remounting initializes again; ordinary store updates do not.
+4. When configured, ordered initial track IDs initialize the catalog-owned portion of the store. Explicit `initialTrackIds` take precedence over `defaultTrackIds`; with neither, the store is preserved. TrackSelect remembers its current combination of store, catalog identity, effective initial IDs, and limit. Changing that combination or remounting initializes again; ordinary store updates do not.
 5. Opening the dialog creates an ordered session draft from catalog tracks represented in the store.
 6. Catalog and view interactions edit only that draft.
 7. Submit resolves the ordered draft and replaces the store contents in one atomic validated update.
-8. The dialog closes only after the store accepts the update. Creation or store validation failures leave the store unchanged and keep the dialog open with an error.
+8. The dialog closes only after the store accepts the update. An optional commit callback then reports the complete ordered catalog selection for host-owned persistence. Creation or store validation failures leave the store unchanged, do not notify the callback, and keep the dialog open with an error.
 
 This flow preserves the v2 rule that track state is validated through registered modules. Catalog validation and submitted track creation must use the same module registry as the browser that will render the tracks.
 
@@ -27,7 +27,7 @@ The host application owns:
 - registered track modules
 - catalog data and stable catalog identity
 - whether the dialog is open
-- the configured default track-store list
+- optional saved initial selection, product defaults, and persistence
 - normal MUI ecosystem setup and theme customization
 
 TrackSelect owns:
@@ -44,13 +44,13 @@ The v2 track store remains the source of truth for committed browser tracks. The
 
 Cancel, the close button, and backdrop or escape dismissal close the controlled dialog without submitting the draft. Clear changes the draft only and asks for confirmation. On a catalog detail screen it clears that catalog; on the catalog list it clears all catalogs.
 
-Reset restores the ordered `defaultTrackIds` list into the draft. Without configured defaults, Reset restores the catalog tracks currently represented in the store.
+Reset restores the ordered `defaultTrackIds` list into the draft. Without configured defaults, Reset clears the catalog selection. Explicit `initialTrackIds` affect initialization only and do not change the Reset target.
 
-Submit atomically replaces the catalog-owned portion of the store in draft order. Tracks outside the supplied catalogs remain first in their existing order.
+Submit atomically replaces the catalog-owned portion of the store in draft order. Tracks outside the supplied catalogs remain first in their existing order. After a successful update, `onCommittedTrackIds` receives only the ordered catalog-qualified IDs; initialization and draft actions do not trigger it.
 
 ## Catalog identity and ordering
 
-Catalog IDs must be unique, and track IDs must be unique within a catalog. TrackSelect encodes row and store identity as `${catalogId}::${trackId}`. This catalog-qualified format is a public contract used by `defaultTrackIds` and prevents collisions when different catalogs reuse a track ID.
+Catalog IDs must be unique, and track IDs must be unique within a catalog. TrackSelect encodes row and store identity as `${catalogId}::${trackId}`. This catalog-qualified format is a public contract used by `initialTrackIds`, `defaultTrackIds`, and `onCommittedTrackIds`, and prevents collisions when different catalogs reuse a track ID.
 
 TrackSelect treats a store track whose ID matches a supplied catalog-qualified ID as catalog-owned, regardless of how the track was created. This ID rule is the provenance boundary; TrackSelect does not compare type or configuration to infer ownership. Fixed or otherwise non-catalog tracks must not use those reserved IDs because initialization or Submit may reuse or remove them during catalog reconciliation.
 
@@ -80,4 +80,4 @@ Extend the schema layer when changing portable catalog data, the catalog layer f
 
 ## Related decisions
 
-UI v2 follows the v2 decisions that track state is validated through registered modules, startup stores remain externally initialized, and features expose narrow public APIs. See the v2 ADRs in `docs/v2/adr/`, especially 0001, 0003, 0006, and 0007, before changing these boundaries.
+UI v2 follows the v2 decisions that track state is validated through registered modules, startup stores remain externally initialized, and features expose narrow public APIs. UI v2 ADR 0001 records TrackSelect's catalog ownership boundary. See the v2 ADRs in `docs/v2/adr/`, especially 0001, 0003, 0006, and 0007, before changing these boundaries.

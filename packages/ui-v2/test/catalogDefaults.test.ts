@@ -140,16 +140,16 @@ describe("TrackSelect default track reconciliation", () => {
         ...options,
         selectedTrackIds: ["alpha::one", "alpha::one"],
       }),
-    ).toThrow("Duplicate default track id: alpha::one");
+    ).toThrow("Duplicate track selection id: alpha::one");
     expect(() => getReconciledTracks({ ...options, selectedTrackIds: ["alpha::missing"] })).toThrow(
-      "Unknown default track id: alpha::missing",
+      "Unknown track selection id: alpha::missing",
     );
     expect(() =>
       getReconciledTracks({
         ...options,
         selectedTrackIds: ["alpha::one", "alpha::two", "beta::one"],
       }),
-    ).toThrow("Default track count 3 exceeds the maximum of 2");
+    ).toThrow("Track selection count 3 exceeds the maximum of 2");
   });
 });
 

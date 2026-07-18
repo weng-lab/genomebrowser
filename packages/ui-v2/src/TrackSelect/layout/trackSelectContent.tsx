@@ -15,6 +15,7 @@ type TrackSelectContentProps = {
   registry: TrackStore["registry"];
   setTracks: TrackStore["setTracks"];
   defaultTrackIds?: readonly string[];
+  onCommittedTrackIds?: (trackIds: readonly string[]) => void;
   maxTracks: number;
   onClose: () => void;
   columnOverrides?: TrackSelectColumnOverrides;

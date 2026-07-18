@@ -13,7 +13,7 @@ Start with the integration in [Getting started](gettingStarted.md). The recommen
 
 Pass a stable `trackCatalogs` array and the same `useTrackStore` hook used by `GenomeBrowser`. The host controls `open` and closes the dialog in `onClose`.
 
-Use `defaultTrackIds` to immediately initialize the catalog-owned part of the track store. The array contains catalog-qualified IDs in browser order:
+Use `defaultTrackIds` to initialize the catalog-owned part of the track store and define the selection restored by Reset. The array contains catalog-qualified IDs in browser order:
 
 ```tsx
 <TrackSelect
@@ -25,12 +25,32 @@ Use `defaultTrackIds` to immediately initialize the catalog-owned part of the tr
 />
 ```
 
-TrackSelect preserves non-catalog tracks first in their existing order, then places the default tracks in the exact supplied order. Passing `undefined` leaves the initial store unchanged; passing `[]` removes all tracks represented by the supplied catalogs. Defaults are applied when TrackSelect mounts and whenever its current initialization identity changes: a different store, different catalog/view/track IDs, a different default list by value, or a different `maxTracks`. A remount starts a new initialization lifetime. Ordinary updates to the same store do not reapply defaults.
+TrackSelect preserves non-catalog tracks first in their existing order, then places initialized tracks in the exact supplied order. Passing `undefined` for both `initialTrackIds` and `defaultTrackIds` leaves the initial store unchanged. Passing an explicit empty array removes all tracks represented by the supplied catalogs.
+
+Use `initialTrackIds` when the first selection should differ from the product defaults, such as when restoring a saved selection. It takes precedence over `defaultTrackIds` during initialization, while Reset continues to target `defaultTrackIds`. TrackSelect initializes when it mounts and whenever its current initialization identity changes: a different store, different catalog/view/track IDs, different effective initial IDs, or a different `maxTracks`. Changing only `defaultTrackIds` while explicit `initialTrackIds` are present changes the Reset target without overwriting the store. A remount starts a new initialization lifetime. Ordinary updates to the same store do not reapply initial tracks.
+
+The host can persist successful submissions without subscribing to unrelated store changes:
+
+```tsx
+<TrackSelect
+  open={open}
+  onClose={onClose}
+  trackCatalogs={trackCatalogs}
+  useTrackStore={useTrackStore}
+  initialTrackIds={savedTrackIds}
+  defaultTrackIds={["signals::example-signal"]}
+  onCommittedTrackIds={(trackIds) => {
+    sessionStorage.setItem("selectedTracks", JSON.stringify(trackIds));
+  }}
+/>
+```
+
+Storage access, parsing, and invalid-data handling remain host responsibilities. `onCommittedTrackIds` receives the complete ordered catalog selection after the store accepts Submit. It excludes tracks outside the supplied catalogs and does not run for initialization, draft actions, Cancel, or failed Submit.
 
 Each open session starts with a draft selection. Browsing, selecting, Clear, and Reset edit that draft without changing the track store.
 
 - **Clear** asks for confirmation, then clears the active catalog on its detail screen or all catalogs on the catalog-list screen.
-- **Reset** asks for confirmation, then restores `defaultTrackIds` in their supplied order. Without `defaultTrackIds`, it restores the catalog tracks currently committed in the store.
+- **Reset** asks for confirmation, then restores `defaultTrackIds` in their supplied order. Without `defaultTrackIds`, it clears the catalog selection. It never changes non-catalog tracks.
 - **Cancel**, the close button, and normal dialog dismissal discard the draft and call `onClose`.
 - **Submit** computes additions and removals for catalog tracks, creates additions through the track-store registry, and applies the changes as one store update. Tracks not represented by the supplied catalogs are preserved.
 
@@ -80,7 +100,7 @@ A catalog names a collection of available track entries and defines one or more 
 
 Catalog and view IDs should be stable and unique in their scopes. Catalog IDs must be unique in the `trackCatalogs` array, and track IDs must be unique within a catalog. A track ID may be reused in another catalog because TrackSelect namespaces track identity across catalogs.
 
-The public catalog-qualified ID format is `${catalogId}::${trackId}`. Use these IDs for `defaultTrackIds`; for example, track `example-signal` in catalog `signals` is `signals::example-signal`. Duplicate IDs, unknown IDs, and default lists longer than `maxTracks` are rejected.
+The public catalog-qualified ID format is `${catalogId}::${trackId}`. Use these IDs for `initialTrackIds`, `defaultTrackIds`, and values received by `onCommittedTrackIds`; for example, track `example-signal` in catalog `signals` is `signals::example-signal`. Duplicate IDs, unknown IDs, and initialization lists longer than `maxTracks` are rejected.
 
 TrackSelect treats any store track whose ID matches an entry in the supplied catalogs as catalog-owned. This reserved namespace is the ownership rule: TrackSelect does not inspect the track's type or configuration to distinguish how it was created. Give fixed or otherwise non-catalog tracks IDs outside the reserved catalog-qualified set. If application code inserts a different track with a reserved ID, initialization or Submit may reuse or remove it as part of normal catalog reconciliation.
 
@@ -103,7 +123,7 @@ Each catalog track combines browser create fields with module-owned config:
 - `config` must match the selected module's create-input schema.
 - `metadata` exists only for TrackSelect views and is not copied into the runtime track instance.
 
-TrackSelect validates every catalog with the registry read from `useTrackStore`. Unknown track types, invalid module config, missing view metadata, and unknown catalog properties fail before the dialog content renders. Module defaults are applied when a selected track is created during default initialization or submission, not retained as authored catalog data during validation.
+TrackSelect validates every catalog with the registry read from `useTrackStore`. Unknown track types, invalid module config, missing view metadata, and unknown catalog properties fail before the dialog content renders. Module defaults are applied when a selected track is created during initialization or submission, not retained as authored catalog data during validation.
 
 Use the same module set for the track store, JSON Schema generation, and any separate `validateJson` call. A catalog generated against one registry can fail in an application that registers another.
 
