@@ -72,11 +72,7 @@ export async function fetchTranscript({
 
   const payload = (await response.json()) as TranscriptGraphQlResponse;
   if (payload.errors?.length) {
-    throw new Error(
-      payload.errors
-        .map((error) => error.message ?? "GraphQL error")
-        .join("; "),
-    );
+    throw new Error(payload.errors.map((error) => error.message ?? "GraphQL error").join("; "));
   }
   if (!payload.data) {
     throw new Error("Transcript response did not include data");

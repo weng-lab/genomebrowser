@@ -54,10 +54,7 @@
           "width": 260
         }
       ],
-      "grouping": [
-        "ontology",
-        "displayName"
-      ],
+      "grouping": ["ontology", "displayName"],
       "leaf": "assay"
     },
     {
@@ -110,10 +107,7 @@
           "width": 260
         }
       ],
-      "grouping": [
-        "assay",
-        "ontology"
-      ],
+      "grouping": ["assay", "ontology"],
       "leaf": "displayName"
     }
   ],

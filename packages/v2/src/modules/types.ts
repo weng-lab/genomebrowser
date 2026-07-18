@@ -18,10 +18,7 @@ export type TrackInteraction<InteractionItem = unknown> = {
   onLeave?: TrackInteractionCallback<InteractionItem>;
 };
 
-export type TrackCreateInput<
-  ConfigInput,
-  Display extends string = string,
-> = {
+export type TrackCreateInput<ConfigInput, Display extends string = string> = {
   id: string;
   title: string;
   display?: Display;
@@ -101,9 +98,7 @@ export type TrackModule<
     input: TrackCreateInput<z.input<ConfigSchema>, Display>,
     interaction?: TrackInteraction<Item>,
   ): TrackInstance<z.output<ConfigSchema>, Item> & { type: Type };
-  validate(
-    instance: unknown,
-  ): TrackInstance<z.output<ConfigSchema>, Item> & { type: Type };
+  validate(instance: unknown): TrackInstance<z.output<ConfigSchema>, Item> & { type: Type };
   fetch: TrackFetch<z.output<ConfigSchema>, Data>;
   render: Record<string, TrackRenderer<z.output<ConfigSchema>, Data>>;
   settingsComponent?: TrackSettingsComponent<z.output<ConfigSchema>>;
@@ -115,10 +110,7 @@ export type AnyTrackModule = {
   displays: string[];
   configSchema: z.ZodObject;
   createInputSchema: TrackCreateInputSchema<z.ZodObject, string>;
-  create(
-    input: unknown,
-    interaction?: unknown,
-  ): AnyTrackInstance;
+  create(input: unknown, interaction?: unknown): AnyTrackInstance;
   validate(instance: unknown): AnyTrackInstance;
   fetch: unknown;
   render: Record<string, unknown>;
@@ -128,9 +120,7 @@ export type AnyTrackModule = {
 export type AnyTrackInstance = TrackInstance<unknown, never> & {
   type: string;
 };
-export type ModuleCreateInput<M extends AnyTrackModule> = z.input<
-  M["createInputSchema"]
->;
+export type ModuleCreateInput<M extends AnyTrackModule> = z.input<M["createInputSchema"]>;
 export type ModuleInstance<M extends AnyTrackModule> = M extends AnyTrackModule
   ? ReturnType<M["validate"]>
   : never;

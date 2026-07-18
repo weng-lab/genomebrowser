@@ -49,7 +49,7 @@ export function createCatalogSchema(registry: ModuleRegistry) {
     tracks: z.array(
       z.discriminatedUnion(
         "type",
-        entries as [typeof entries[number], ...Array<typeof entries[number]>],
+        entries as [(typeof entries)[number], ...Array<(typeof entries)[number]>],
       ),
     ),
   });

@@ -1,22 +1,16 @@
-import type {
-  AnyTrackModule,
-  ModuleInstance,
-  ModuleCreateInput,
-  TrackCreateInput,
-} from "./types";
+import type { AnyTrackModule, ModuleInstance, ModuleCreateInput, TrackCreateInput } from "./types";
 
 type ModuleForType<Modules extends readonly AnyTrackModule[], Type extends string> =
   Extract<Modules[number], { type: Type }> extends never
     ? Modules[number]
     : Extract<Modules[number], { type: Type }>;
 
-export type ModuleRegistry<
-  Modules extends readonly AnyTrackModule[] = readonly AnyTrackModule[],
-> = {
-  modules: Readonly<Modules>;
-  get<T extends string>(type: T): ModuleForType<Modules, T>;
-  get(type: string): Modules[number];
-};
+export type ModuleRegistry<Modules extends readonly AnyTrackModule[] = readonly AnyTrackModule[]> =
+  {
+    modules: Readonly<Modules>;
+    get<T extends string>(type: T): ModuleForType<Modules, T>;
+    get(type: string): Modules[number];
+  };
 
 export type TrackCatalogEntry = TrackCreateInput<unknown> & {
   type: string;

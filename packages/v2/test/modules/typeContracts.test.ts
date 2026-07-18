@@ -117,9 +117,7 @@ describe("track module type contracts", () => {
     modules.push(moduleB as never);
 
     expect(snapshotRegistry.modules).toHaveLength(1);
-    expect(() => snapshotRegistry.get("b")).toThrow(
-      /No track module registered for type: b/,
-    );
+    expect(() => snapshotRegistry.get("b")).toThrow(/No track module registered for type: b/);
   });
 
   it("creates entries as the precise registry instance union", () => {

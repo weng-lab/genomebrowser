@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import {
-  createModuleRegistry,
-  defineTrackModule,
-} from "../../v2/src/lib";
+import { createModuleRegistry, defineTrackModule } from "../../v2/src/lib";
 import { createCatalogSchema } from "../src/TrackSelect/schema/catalogSchema";
 import { generateTrackCatalogJsonSchema } from "../src/TrackSelect/schema/generateJsonSchema";
 import { validateJson } from "../src/TrackSelect/schema/validateJson";
@@ -163,8 +160,8 @@ describe("TrackSelect catalog schemas", () => {
         };
       };
     };
-    const configRequired = schema.properties?.tracks?.items?.oneOf?.[0]
-      ?.properties?.config?.required ?? [];
+    const configRequired =
+      schema.properties?.tracks?.items?.oneOf?.[0]?.properties?.config?.required ?? [];
     expect(configRequired).toContain("assembly");
     expect(configRequired).not.toContain("url");
   });

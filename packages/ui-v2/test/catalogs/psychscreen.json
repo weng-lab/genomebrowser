@@ -29,10 +29,7 @@
           "width": 120
         }
       ],
-      "grouping": [
-        "category",
-        "subcategory"
-      ],
+      "grouping": ["category", "subcategory"],
       "leaf": "title"
     }
   ],

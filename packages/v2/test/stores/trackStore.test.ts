@@ -118,9 +118,9 @@ describe("createTrackStore", () => {
     const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
     const added = bigWigTrack("added");
 
-    expect(
-      store.getState().applyTrackChanges({ add: [added], remove: ["signal"] }),
-    ).toEqual({ ok: true });
+    expect(store.getState().applyTrackChanges({ add: [added], remove: ["signal"] })).toEqual({
+      ok: true,
+    });
     expect(store.getState().tracks).toEqual([added]);
     expect(store.getState().order).toEqual(["added"]);
   });
@@ -129,9 +129,9 @@ describe("createTrackStore", () => {
     const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
     const replacement = bigWigTrack("signal");
 
-    expect(
-      store.getState().applyTrackChanges({ add: [replacement], remove: ["signal"] }),
-    ).toEqual({ ok: true });
+    expect(store.getState().applyTrackChanges({ add: [replacement], remove: ["signal"] })).toEqual({
+      ok: true,
+    });
     expect(store.getState().tracks).toEqual([replacement]);
   });
 

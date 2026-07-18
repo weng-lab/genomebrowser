@@ -42,9 +42,7 @@ export type TrackStoreInstance = UseBoundStore<StoreApi<TrackStore>>;
 export function createTrackStore<
   const Modules extends readonly AnyTrackModule[],
   Track extends AnyTrackInstance = AnyTrackInstance,
->(
-  options: TrackStoreOptions<Modules, Track>,
-): TrackStoreInstance {
+>(options: TrackStoreOptions<Modules, Track>): TrackStoreInstance {
   const registry = createModuleRegistry(options.modules);
   const initialTracks = validateTracks(options.tracks ?? [], registry);
   assertUniqueTrackIds(initialTracks);
@@ -115,10 +113,13 @@ export function createTrackStore<
     updateBase: (id, partial) => {
       const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
       if (!currentTrack) return mutationError(`No track found for id: ${id}`);
-      const result = getValidatedTrack({
-        ...currentTrack,
-        base: { ...currentTrack.base, ...partial, id: currentTrack.base.id },
-      }, registry);
+      const result = getValidatedTrack(
+        {
+          ...currentTrack,
+          base: { ...currentTrack.base, ...partial, id: currentTrack.base.id },
+        },
+        registry,
+      );
       if (!result.ok) return result;
 
       set((state) => ({
@@ -131,10 +132,13 @@ export function createTrackStore<
       const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
       if (!currentTrack) return mutationError(`No track found for id: ${id}`);
       const currentConfig = isRecord(currentTrack.config) ? currentTrack.config : {};
-      const result = getValidatedTrack({
-        ...currentTrack,
-        config: { ...currentConfig, ...partial },
-      }, registry);
+      const result = getValidatedTrack(
+        {
+          ...currentTrack,
+          config: { ...currentConfig, ...partial },
+        },
+        registry,
+      );
       if (!result.ok) return result;
 
       set((state) => ({
@@ -147,10 +151,13 @@ export function createTrackStore<
       const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
       if (!currentTrack) return mutationError(`No track found for id: ${id}`);
       const interaction = { ...currentTrack.interaction, ...partial };
-      const result = getValidatedTrack({
-        ...currentTrack,
-        interaction,
-      }, registry);
+      const result = getValidatedTrack(
+        {
+          ...currentTrack,
+          interaction,
+        },
+        registry,
+      );
       if (!result.ok) return result;
 
       set((state) => ({
@@ -164,7 +171,9 @@ export function createTrackStore<
 }
 
 type ValidatedTrackResult = { ok: true; track: AnyTrackInstance } | { ok: false; error: string };
-type ValidatedTracksResult = { ok: true; tracks: AnyTrackInstance[] } | { ok: false; error: string };
+type ValidatedTracksResult =
+  | { ok: true; tracks: AnyTrackInstance[] }
+  | { ok: false; error: string };
 
 function getTrackId(track: AnyTrackInstance) {
   return track.base.id;
@@ -192,7 +201,10 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown error";
 }
 
-function getValidatedTrack(track: AnyTrackInstance, registry: ModuleRegistry): ValidatedTrackResult {
+function getValidatedTrack(
+  track: AnyTrackInstance,
+  registry: ModuleRegistry,
+): ValidatedTrackResult {
   try {
     return { ok: true, track: validateTrack(track, registry) };
   } catch (error) {

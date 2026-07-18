@@ -13,8 +13,7 @@ import type {
 } from "./types";
 
 type TrackConfigSchema = z.ZodObject;
-type FetchData<Fetch> =
-  Fetch extends TrackFetch<infer _Config, infer Data> ? Data : never;
+type FetchData<Fetch> = Fetch extends TrackFetch<infer _Config, infer Data> ? Data : never;
 type DisplayKey<Renderers> = Extract<keyof Renderers, string>;
 type ParsedCreateInput<ConfigSchema extends TrackConfigSchema, Display extends string> = {
   id: string;
@@ -84,33 +83,15 @@ export function defineTrackModule<Item = unknown>(): <
   const Renderers extends object,
 >(
   definition: TrackModuleDefinition<Type, ConfigSchema, Fetch, Renderers, Item>,
-) => TrackModule<
-  Type,
-  ConfigSchema,
-  FetchData<Fetch>,
-  Item,
-  DisplayKey<Renderers>
->;
+) => TrackModule<Type, ConfigSchema, FetchData<Fetch>, Item, DisplayKey<Renderers>>;
 export function defineTrackModule<
   const Type extends string,
   ConfigSchema extends TrackConfigSchema,
   Fetch extends TrackFetch<z.output<ConfigSchema>, unknown>,
   const Renderers extends object,
 >(
-  definition: TrackModuleDefinition<
-    Type,
-    ConfigSchema,
-    Fetch,
-    Renderers,
-    unknown
-  >,
-): TrackModule<
-  Type,
-  ConfigSchema,
-  FetchData<Fetch>,
-  unknown,
-  DisplayKey<Renderers>
->;
+  definition: TrackModuleDefinition<Type, ConfigSchema, Fetch, Renderers, unknown>,
+): TrackModule<Type, ConfigSchema, FetchData<Fetch>, unknown, DisplayKey<Renderers>>;
 export function defineTrackModule(
   definition?: TrackModuleDefinition<
     string,
@@ -130,9 +111,7 @@ function createTrackModule<
   Fetch extends TrackFetch<z.output<ConfigSchema>, unknown>,
   const Renderers extends object,
   Item,
->(
-  definition: TrackModuleDefinition<Type, ConfigSchema, Fetch, Renderers, Item>,
-) {
+>(definition: TrackModuleDefinition<Type, ConfigSchema, Fetch, Renderers, Item>) {
   const configSchema = definition.configSchema.strict() as ConfigSchema;
   const displays = Object.keys(definition.render) as DisplayKey<Renderers>[];
   assertDisplayModes(definition.type, displays);
@@ -152,7 +131,10 @@ function createTrackModule<
     id: z.string().min(1),
     title: z.string().min(1),
     display: displaySchema.default(defaultDisplay),
-    height: z.number().positive().default(definition.defaults?.height ?? 80),
+    height: z
+      .number()
+      .positive()
+      .default(definition.defaults?.height ?? 80),
     color: z.string().optional(),
     config: configSchema,
   }) as TrackCreateInputSchema<ConfigSchema, DisplayKey<Renderers>>;
@@ -163,12 +145,7 @@ function createTrackModule<
     config: configSchema,
     interaction: interactionSchema.optional(),
   });
-  validateModuleDefaults(
-    definition.type,
-    definition.defaults,
-    defaultDisplay,
-    fullBaseSchema,
-  );
+  validateModuleDefaults(definition.type, definition.defaults, defaultDisplay, fullBaseSchema);
 
   return {
     type: definition.type,
@@ -184,13 +161,10 @@ function createTrackModule<
         input,
         `${definition.type} input`,
       ) as ParsedCreateInput<ConfigSchema, DisplayKey<Renderers>>;
-      const parsedInteraction = interaction !== undefined
-        ? parsePublicInput(
-            interactionSchema,
-            interaction,
-            `${definition.type} interaction`,
-          )
-        : undefined;
+      const parsedInteraction =
+        interaction !== undefined
+          ? parsePublicInput(interactionSchema, interaction, `${definition.type} interaction`)
+          : undefined;
       const instance = {
         type: definition.type,
         base: {
@@ -207,11 +181,7 @@ function createTrackModule<
       return instance;
     },
     validate(instance: unknown) {
-      return parsePublicInput(
-        instanceSchema,
-        instance,
-        `${definition.type} instance`,
-      );
+      return parsePublicInput(instanceSchema, instance, `${definition.type} instance`);
     },
     fetch: definition.fetch,
     render: definition.render,
@@ -246,9 +216,7 @@ function assertDisplayModes(type: string, displays: string[]) {
 
   for (const display of displays) {
     if (display.trim() === "") {
-      throw new Error(
-        `Track module "${type}" cannot define an empty display mode`,
-      );
+      throw new Error(`Track module "${type}" cannot define an empty display mode`);
     }
   }
 }

@@ -153,50 +153,26 @@ export const MukamelMethylC = (name: MukamelMethylationName) =>
       urls: {
         plusStrand: {
           cpg: {
-            url:
-              phanh +
-              "data/Mukamel_2024/binsize1/level3/" +
-              name +
-              ".CGN-Watson.frac.bw",
+            url: phanh + "data/Mukamel_2024/binsize1/level3/" + name + ".CGN-Watson.frac.bw",
           },
           chg: {
-            url:
-              phanh +
-              "data/Mukamel_2024/binsize1/level3/" +
-              name +
-              ".CHN-Watson.frac.bw",
+            url: phanh + "data/Mukamel_2024/binsize1/level3/" + name + ".CHN-Watson.frac.bw",
           },
           chh: { url: "" },
           depth: {
-            url:
-              phanh +
-              "data/Mukamel_2024/binsize1/level3/" +
-              name +
-              ".CGN-Watson.cov.bw",
+            url: phanh + "data/Mukamel_2024/binsize1/level3/" + name + ".CGN-Watson.cov.bw",
           },
         },
         minusStrand: {
           cpg: {
-            url:
-              phanh +
-              "data/Mukamel_2024/binsize1/level3/" +
-              name +
-              ".CGN-Crick.frac.bw",
+            url: phanh + "data/Mukamel_2024/binsize1/level3/" + name + ".CGN-Crick.frac.bw",
           },
           chg: {
-            url:
-              phanh +
-              "data/Mukamel_2024/binsize1/level3/" +
-              name +
-              ".CHN-Crick.frac.bw",
+            url: phanh + "data/Mukamel_2024/binsize1/level3/" + name + ".CHN-Crick.frac.bw",
           },
           chh: { url: "" },
           depth: {
-            url:
-              phanh +
-              "data/Mukamel_2024/binsize1/level3/" +
-              name +
-              ".CGN-Crick.cov.bw",
+            url: phanh + "data/Mukamel_2024/binsize1/level3/" + name + ".CGN-Crick.cov.bw",
           },
         },
       },
@@ -467,11 +443,7 @@ export const mukamelMethylationNames = [
 ] as const;
 export type MukamelMethylationName = (typeof mukamelMethylationNames)[number];
 
-export const BrainomeBigwig = (
-  nt: Neurotransmitter,
-  assay: Assay,
-  age: BrainomeAge,
-) =>
+export const BrainomeBigwig = (nt: Neurotransmitter, assay: Assay, age: BrainomeAge) =>
   bigWigModule.create({
     id: nt + " " + assay + " " + age,
     title: nt + " " + assay + " " + age,
@@ -490,11 +462,7 @@ export const BrainomeBigwig = (
     },
   });
 
-export const BrainomeCave = (
-  nt: Neurotransmitter,
-  age: BrainomeAge,
-  color: string,
-) =>
+export const BrainomeCave = (nt: Neurotransmitter, age: BrainomeAge, color: string) =>
   caveModule.create({
     id: nt + " cave " + age,
     title: nt + " cave " + age,
