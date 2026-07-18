@@ -63,13 +63,10 @@ during the beta only when the limitation is explicit. P2 items are post-beta fol
       dry-run pack exposes 47 files but has no installed-consumer test. Evidence: `package.json`,
       `vite.config.ts`, `src/trackselect.ts`, `src/cli.ts`, and `src/lib.ts`.
 
-- [ ] **[Release / MUI] Finalize MUI X license ownership without embedding a secret.** The package
-      root currently imports `src/muiLicense.ts`, which reads Vite build-time environment values;
-      a consuming application's environment cannot reliably configure an already-built library.
-      Choose either host-owned `LicenseInfo.setLicenseKey` setup (and remove the package side
-      effect) or an explicit public configuration API, then document and test that contract. Never
-      publish a license key in the bundle. Evidence: `src/lib.ts`, `src/muiLicense.ts`,
-      `vite.config.ts`, `docs/README.md`, and `docs/trackSelect.md`.
+- [x] **[Release / MUI] Make MUI X license setup host-owned.** UI v2 no longer reads build-time
+      license environment values or calls `LicenseInfo.setLicenseKey`. Consuming applications must
+      configure their own MUI X Premium license before rendering UI v2. Evidence: `src/lib.ts`,
+      `vite.config.ts`, `docs/README.md`, and `docs/ui-v2/concepts.md`.
 
 - [ ] **[Release hygiene] Restore a green formatting gate.** `format:check` currently fails on
       checked source, tests, fixtures, and generated schemas, so it cannot serve as a beta gate.

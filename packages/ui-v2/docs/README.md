@@ -14,6 +14,16 @@ The supported peer major versions are React 19, Emotion 11, MUI 7, and MUI X 8. 
 
 UI v2 participates in the host application's normal MUI setup and theme. It does not require a package-specific stylesheet or provider.
 
+UI v2 uses MUI X Premium components but does not provide or configure an MUI X license. The host application must have its own MUI X Premium license and call `LicenseInfo.setLicenseKey` before rendering UI v2:
+
+```ts
+import { LicenseInfo } from "@mui/x-license";
+
+LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_X_LICENSE_KEY);
+```
+
+Keep this setup in the host application's entry point or another module imported before `TrackSelect`. The environment variable name is host-defined; UI v2 does not read it or include a license key in the distributed package.
+
 ## Start here
 
 - [Getting started](gettingStarted.md) shows a browser and TrackSelect sharing one stable track store.

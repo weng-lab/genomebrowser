@@ -58,7 +58,7 @@ Each catalog has one or more views. The active view controls grid columns, group
 
 ## MUI boundary
 
-UI v2 owns its MUI component composition and default presentation. The host owns its MUI dependency setup and may provide its normal application theme. TrackSelect does not require a UI-v2-specific stylesheet or provider.
+UI v2 owns its MUI component composition and default presentation. The host owns its MUI dependency and MUI X license setup and may provide its normal application theme. TrackSelect does not require a UI-v2-specific stylesheet or provider. UI v2 must not read a build-time license environment variable or configure `LicenseInfo`; doing so would couple the published library to the publisher's build environment instead of the consuming application.
 
 Catalog JSON should contain portable data, not React or MUI behavior. Host-only presentation belongs in `columnOverrides`; reusable value-marker rendering is exposed through `withValueMarkers`. Data Grid continues to own grid interaction, grouping expansion, filtering, and column behavior.
 

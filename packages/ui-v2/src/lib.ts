@@ -1,4 +1,3 @@
-import "./muiLicense";
 import TrackSelect from "./TrackSelect/TrackSelect";
 export { TrackSelect };
 export { withValueMarkers } from "./TrackSelect/catalog/catalogColumns";
