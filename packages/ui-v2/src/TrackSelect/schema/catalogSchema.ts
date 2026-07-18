@@ -57,6 +57,7 @@ export function createCatalogSchema(registry: ModuleRegistry) {
 
 export type TrackSelectColumn = z.infer<typeof TrackSelectColumnSchema>;
 export type TrackSelectView = z.infer<typeof TrackSelectViewSchema>;
+export type TrackSelectMetadata = Record<string, string | number | boolean | null>;
 export type TrackSelectTrack = {
   type: string;
   id: string;
@@ -65,7 +66,7 @@ export type TrackSelectTrack = {
   height?: number;
   color?: string;
   config: Record<string, unknown>;
-  metadata: Record<string, string | number | boolean | null>;
+  metadata: TrackSelectMetadata;
 };
 export type TrackSelectCatalog = z.infer<typeof TrackSelectCatalogBaseSchema> & {
   tracks: TrackSelectTrack[];

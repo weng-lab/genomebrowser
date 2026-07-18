@@ -1,5 +1,6 @@
 import type { TrackStore } from "@weng-lab/genomebrowser-v2";
 import type { TrackSelectColumnOverrides } from "../catalog/catalogColumns";
+import type { TrackSelectInteractionResolver } from "../catalog/catalogInteraction";
 import { ConfirmDialog } from "../dialogs/confirmDialog";
 import type { TrackSelectCatalog } from "../schema/catalogSchema";
 import { TrackSelectProvider, useTrackSelect } from "../session/trackSelectContext";
@@ -19,6 +20,7 @@ type TrackSelectContentProps = {
   maxTracks: number;
   onClose: () => void;
   columnOverrides?: TrackSelectColumnOverrides;
+  resolveTrackInteraction?: TrackSelectInteractionResolver;
 };
 
 export function TrackSelectContent(props: TrackSelectContentProps) {

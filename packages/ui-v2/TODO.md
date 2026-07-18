@@ -91,16 +91,17 @@ during the beta only when the limitation is explicit. P2 items are post-beta fol
       `src/TrackSelect/session/useTrackSelectState.ts`, `test/trackSelectWorkflow.test.tsx`,
       `docs/trackSelect.md`, and `docs/ideas/trackSelectPersistence.md`.
 
-- [ ] **[Feature / legacy parity candidate] Provide or reject a narrow interaction-callback seam.**
-      Catalog JSON is correctly data-only, and `createTrackFromEntry` deliberately remains a
-      two-argument, data-only creation boundary. UI v2 therefore has no host callback adapter for
-      catalog-created tracks, so they cannot receive host-specific `onClick`, `onHover`, or
-      `onLeave` callbacks. Choose between a catalog-entry-to-interaction resolver prop or an
-      explicit documented post-creation integration pattern; do not restore legacy's
-      application-specific intersection type. Evidence:
-      `src/TrackSelect/catalog/catalogStore.ts`, `packages/v2/src/modules/registry.ts`,
-      `docs/v2/adr/0007-track-configs-hold-instance-state-modules-hold-stable-behavior.md`, and
-      legacy `packages/ui/src/TrackSelect/trackContext.ts`.
+- [x] **[Feature / legacy parity candidate] Provide or reject a narrow interaction-callback seam.**
+      `resolveTrackInteraction` now adapts host callbacks for selected catalog entries during
+      initialization and successful Submit while catalog JSON and `createTrackFromEntry` remain
+      data-only. Core supplies current runtime context at event time, and UI v2 appends separate
+      catalog-owned metadata without copying it into tracks or persistence. Resolver output is
+      authoritative when supplied, failures are atomic, and non-catalog tracks remain untouched.
+      Evidence: `src/TrackSelect/catalog/catalogInteraction.ts`,
+      `src/TrackSelect/catalog/catalogStore.ts`, `src/TrackSelect/TrackSelect.tsx`,
+      `packages/v2/src/modules/types.ts`, `test/catalogDefaults.test.ts`,
+      `test/trackSelectWorkflow.test.tsx`, `docs/trackSelect.md`, and
+      `docs/recipes/trackInteractions.md`.
 
 - [ ] **[Accessibility / responsive UI] Establish a keyboard and small-screen acceptance pass.**
       Give the view selector an accessible name, verify focus entry/return and nested confirmation

@@ -1,6 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { createModuleRegistry, defineTrackModule } from "../../v2/src/lib";
+import {
+  createModuleRegistry,
+  defineTrackModule,
+  type TrackInteraction,
+  type TrackRuntimeContext,
+} from "../../v2/src/lib";
+import type {
+  AnyTrackSelectInteraction,
+  TrackSelectInteraction,
+  TrackSelectInteractionResolver,
+} from "../src/lib";
 import {
   clearOrderedSelection,
   createOrderedSelectionFromTracks,
@@ -15,7 +25,10 @@ function Renderer() {
   return null;
 }
 
-const signalModule = defineTrackModule({
+type SignalItem = { id: string };
+type SignalConfig = { url: string };
+
+const signalModule = defineTrackModule<SignalItem>()({
   type: "signal",
   configSchema: z.object({ url: z.string().min(1) }),
   fetch: async () => null,
@@ -151,7 +164,138 @@ describe("TrackSelect default track reconciliation", () => {
       }),
     ).toThrow("Track selection count 3 exceeds the maximum of 2");
   });
+
+  it("resolves new track interactions with owning catalog context", () => {
+    const onClick = vi.fn();
+    const interaction: TrackSelectInteraction<unknown, unknown> = {
+      onClick(item, runtime, catalog) {
+        if (
+          !isRecord(item) ||
+          typeof item.id !== "string" ||
+          !isRecord(runtime.config) ||
+          typeof runtime.config.url !== "string"
+        ) {
+          return;
+        }
+        onClick(item, runtime, catalog);
+      },
+    };
+    const resolveTrackInteraction: TrackSelectInteractionResolver = vi.fn(() => interaction);
+
+    const [track] = getReconciledTracks({
+      trackCatalogs: catalogs,
+      tracks: [],
+      selectedTrackIds: ["beta::one"],
+      registry,
+      maxTracks: 10,
+      resolveTrackInteraction,
+    });
+
+    expect(resolveTrackInteraction).toHaveBeenCalledWith({
+      catalogId: "beta",
+      qualifiedTrackId: "beta::one",
+      track: catalogs[1]!.tracks[0],
+    });
+    expect(track).not.toHaveProperty("metadata");
+    expect(track.config).not.toHaveProperty("metadata");
+    expect(track.base).not.toHaveProperty("metadata");
+
+    const runtime: TrackRuntimeContext<SignalConfig> = {
+      type: "signal",
+      base: { ...track.base, color: "#123456" },
+      config: { url: "current-url" },
+    };
+    const coreInteraction = track.interaction as TrackInteraction<SignalItem, SignalConfig>;
+    coreInteraction.onClick?.({ id: "item" }, runtime);
+
+    expect(onClick).toHaveBeenCalledWith({ id: "item" }, runtime, {
+      catalogId: "beta",
+      authoredTrackId: "one",
+      metadata: {},
+    });
+  });
+
+  it("preserves, replaces, or clears reused interactions according to resolver presence", () => {
+    const unmanagedInteraction = { onClick: vi.fn() };
+    const existingInteraction = { onHover: vi.fn(), onLeave: vi.fn() };
+    const unmanagedTrack = signalModule.create(
+      { id: "unmanaged", title: "Unmanaged", config: { url: "unmanaged" } },
+      unmanagedInteraction,
+    );
+    const existingTrack = signalModule.create(
+      { id: "alpha::one", title: "Existing", config: { url: "existing" } },
+      existingInteraction,
+    );
+
+    const preserved = getReconciledTracks({
+      trackCatalogs: catalogs,
+      tracks: [unmanagedTrack, existingTrack],
+      selectedTrackIds: ["alpha::one"],
+      registry,
+      maxTracks: 10,
+    });
+    expect(preserved).toEqual([unmanagedTrack, existingTrack]);
+    expect(preserved[1]!.interaction).toBe(existingTrack.interaction);
+
+    const replacement = { onClick: vi.fn() };
+    const replaced = getReconciledTracks({
+      trackCatalogs: catalogs,
+      tracks: [unmanagedTrack, existingTrack],
+      selectedTrackIds: ["alpha::one"],
+      registry,
+      maxTracks: 10,
+      resolveTrackInteraction: () => replacement,
+    });
+    expect(replaced[0]).toBe(unmanagedTrack);
+    expect(replaced[0]!.interaction).toBe(unmanagedTrack.interaction);
+    expect(replaced[1]).not.toBe(existingTrack);
+    expect(replaced[1]!.interaction).toHaveProperty("onClick");
+    expect(replaced[1]!.interaction).not.toHaveProperty("onHover");
+    expect(replaced[1]!.interaction).not.toHaveProperty("onLeave");
+
+    const cleared = getReconciledTracks({
+      trackCatalogs: catalogs,
+      tracks: [unmanagedTrack, existingTrack],
+      selectedTrackIds: ["alpha::one"],
+      registry,
+      maxTracks: 10,
+      resolveTrackInteraction: () => undefined,
+    });
+    expect(cleared[0]).toBe(unmanagedTrack);
+    expect(cleared[1]).not.toHaveProperty("interaction");
+  });
+
+  it("rejects invalid resolver output before returning reconciled tracks", () => {
+    expect(() =>
+      getReconciledTracks({
+        trackCatalogs: catalogs,
+        tracks: [],
+        selectedTrackIds: ["alpha::one"],
+        registry,
+        maxTracks: 10,
+        resolveTrackInteraction: () =>
+          ({ onClick: "not a function" }) as unknown as AnyTrackSelectInteraction,
+      }),
+    ).toThrow("TrackSelect interaction onClick must be a function");
+  });
+
+  it.each([null, false])("rejects falsy non-undefined resolver output: %s", (invalidValue) => {
+    expect(() =>
+      getReconciledTracks({
+        trackCatalogs: catalogs,
+        tracks: [],
+        selectedTrackIds: ["alpha::one"],
+        registry,
+        maxTracks: 10,
+        resolveTrackInteraction: () => invalidValue as unknown as AnyTrackSelectInteraction,
+      }),
+    ).toThrow("TrackSelect interaction must be an object");
+  });
 });
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
 
 describe("TrackSelect ordered draft selection", () => {
   it("derives catalog selections without losing store order", () => {

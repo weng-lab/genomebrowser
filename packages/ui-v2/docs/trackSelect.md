@@ -6,6 +6,7 @@ Start with the integration in [Getting started](gettingStarted.md). The recommen
 
 - `TrackSelect` for the dialog
 - `withValueMarkers` when catalog values need simple color markers
+- `resolveTrackInteraction` when catalog-created tracks need host callbacks
 - the `trackselect schema` command for catalog authoring
 - `validateJson` or `generateTrackCatalogJsonSchema` only when an application needs programmatic tooling
 
@@ -55,6 +56,18 @@ Each open session starts with a draft selection. Browsing, selecting, Clear, and
 - **Submit** computes additions and removals for catalog tracks, creates additions through the track-store registry, and applies the changes as one store update. Tracks not represented by the supplied catalogs are preserved.
 
 After a successful Submit, TrackSelect calls `onClose`. If track creation or the store update fails, the store remains unchanged and the dialog stays open with an error.
+
+## Catalog track interactions
+
+Pass `resolveTrackInteraction` to attach host callbacks while keeping catalog JSON data-only. It receives the owning `catalogId`, the public `qualifiedTrackId`, and the parsed authored `track`. TrackSelect calls it only for selected entries during initialization and Submit reconciliation, never for browsing, draft selection, Clear, Reset, or Cancel.
+
+Resolved callbacks receive three separate values: the renderer's semantic item, core's current `TrackRuntimeContext`, and `TrackSelectCatalogContext` with the catalog ID, authored track ID, and read-only metadata. Metadata remains catalog-owned and is not copied into runtime `type`, `base`, `config`, or persisted IDs.
+
+When no resolver is supplied, TrackSelect preserves an existing interaction on a reused catalog-owned track. When a resolver is supplied, it is authoritative: returning `undefined` removes an existing interaction, while a returned object replaces all callbacks rather than merging them. Tracks outside the supplied catalogs are never changed by this reconciliation.
+
+Resolver or interaction-validation failures leave the store unchanged. Submit keeps the dialog open and displays the error. Changing only resolver identity does not reinitialize or rewrite tracks. Since core supplies runtime context when an event occurs, later config or base updates are visible without rerunning the resolver.
+
+For a heterogeneous catalog, define a specifically typed interaction before returning it, or use `TrackSelectInteraction<unknown, unknown>` with explicit item/config guards. See the complete [Track interactions recipe](recipes/trackInteractions.md).
 
 With one catalog, the dialog opens on its detail screen. With multiple catalogs, it opens on the catalog list. `title` defaults to `"Track Select"`.
 
@@ -213,7 +226,7 @@ Check the total selection against `maxTracks`. The limit applies across catalogs
 
 ### Submit shows an error
 
-Confirm that schema tooling and the application use the same modules and versions. Check that the selected tracks still satisfy their registered modules and inspect the displayed error for any additional reason the track store rejected the update.
+Confirm that schema tooling and the application use the same modules and versions. Check that the selected tracks still satisfy their registered modules, that the interaction resolver returns only supported callback functions, and inspect the displayed error for any additional reason the track store rejected the update.
 
 ### Submit order is unexpected
 

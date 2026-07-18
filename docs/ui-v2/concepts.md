@@ -8,13 +8,13 @@ TrackSelect is currently the main UI v2 subsystem. It lets an application descri
 
 TrackSelect follows one path from application data to browser state:
 
-1. The host passes track catalogs and a v2 track store hook.
+1. The host passes track catalogs, a v2 track store hook, and optionally an interaction resolver.
 2. TrackSelect reads the store's module registry and validates every catalog against schemas derived from that registry.
 3. Valid catalog entries become grid rows. TrackSelect qualifies row IDs with their catalog IDs so entries from different catalogs cannot collide.
-4. When configured, ordered initial track IDs initialize the catalog-owned portion of the store. Explicit `initialTrackIds` take precedence over `defaultTrackIds`; with neither, the store is preserved. TrackSelect remembers its current combination of store, catalog identity, effective initial IDs, and limit. Changing that combination or remounting initializes again; ordinary store updates do not.
+4. When configured, ordered initial track IDs initialize the catalog-owned portion of the store. Explicit `initialTrackIds` take precedence over `defaultTrackIds`; with neither, the store is preserved. During this reconciliation, TrackSelect resolves host interactions only for selected catalog entries and adapts them to core callbacks.
 5. Opening the dialog creates an ordered session draft from catalog tracks represented in the store.
 6. Catalog and view interactions edit only that draft.
-7. Submit resolves the ordered draft and replaces the store contents in one atomic validated update.
+7. Submit resolves the ordered draft, resolves interactions for selected catalog entries, and replaces the store contents in one atomic validated update.
 8. The dialog closes only after the store accepts the update. An optional commit callback then reports the complete ordered catalog selection for host-owned persistence. Creation or store validation failures leave the store unchanged, do not notify the callback, and keep the dialog open with an error.
 
 This flow preserves the v2 rule that track state is validated through registered modules. Catalog validation and submitted track creation must use the same module registry as the browser that will render the tracks.
@@ -28,6 +28,7 @@ The host application owns:
 - catalog data and stable catalog identity
 - whether the dialog is open
 - optional saved initial selection, product defaults, and persistence
+- host interaction behavior and the optional catalog-entry interaction resolver
 - normal MUI ecosystem setup and theme customization
 
 TrackSelect owns:
@@ -40,6 +41,8 @@ TrackSelect owns:
 
 The v2 track store remains the source of truth for committed browser tracks. The draft is deliberately local to an open TrackSelect session.
 
+Catalog metadata remains on the parsed catalog for views, grouping, and host integration. It is never copied into runtime track base/config state or persisted selection IDs. A resolved UI callback receives the semantic item, core's current `TrackRuntimeContext`, and a separate catalog context containing the owning catalog ID, authored track ID, and read-only metadata.
+
 ## Session actions and defaults
 
 Cancel, the close button, and backdrop or escape dismissal close the controlled dialog without submitting the draft. Clear changes the draft only and asks for confirmation. On a catalog detail screen it clears that catalog; on the catalog list it clears all catalogs.
@@ -48,11 +51,15 @@ Reset restores the ordered `defaultTrackIds` list into the draft. Without config
 
 Submit atomically replaces the catalog-owned portion of the store in draft order. Tracks outside the supplied catalogs remain first in their existing order. After a successful update, `onCommittedTrackIds` receives only the ordered catalog-qualified IDs; initialization and draft actions do not trigger it.
 
+`resolveTrackInteraction` runs only while reconciling selected entries during initialization or Submit. Draft browsing, selection, Clear, Reset, and Cancel do not call it. When omitted, an interaction already present on a reused catalog-owned track is preserved. When supplied, its result is authoritative for both new and reused catalog-owned tracks: `undefined` clears the interaction, and an object replaces rather than merges callbacks. Resolver or validation failures leave the store unchanged; Submit uses its existing visible error state.
+
+Resolver identity is not part of initialization identity, so changing only the function does not rewrite the store. The adapter captures catalog context, but core supplies runtime context when an event occurs. Later base/config mutations therefore reach later callbacks without rerunning the resolver.
+
 ## Catalog identity and ordering
 
 Catalog IDs must be unique, and track IDs must be unique within a catalog. TrackSelect encodes row and store identity as `${catalogId}::${trackId}`. This catalog-qualified format is a public contract used by `initialTrackIds`, `defaultTrackIds`, and `onCommittedTrackIds`, and prevents collisions when different catalogs reuse a track ID.
 
-TrackSelect treats a store track whose ID matches a supplied catalog-qualified ID as catalog-owned, regardless of how the track was created. This ID rule is the provenance boundary; TrackSelect does not compare type or configuration to infer ownership. Fixed or otherwise non-catalog tracks must not use those reserved IDs because initialization or Submit may reuse or remove them during catalog reconciliation.
+TrackSelect treats a store track whose ID matches a supplied catalog-qualified ID as catalog-owned, regardless of how the track was created. Catalog lookup retains both the qualified ID and owning catalog ID so interaction resolution can provide unambiguous catalog context. This ID rule is the provenance boundary; TrackSelect does not compare type or configuration to infer ownership. Fixed or otherwise non-catalog tracks must not use those reserved IDs because initialization or Submit may reuse or remove them during catalog reconciliation.
 
 Each catalog has one or more views. The active view controls grid columns, grouping, leaf labels, and the order in which newly selected tracks are submitted. Group order follows first appearance in the catalog rows, nested grouping follows the view's `grouping` field order, and rows within the final group retain catalog order. Switching views therefore changes the presentation and may change the insertion order of tracks added on Submit.
 

@@ -83,4 +83,6 @@ export function BrowserWithTrackSelect() {
 
 When restoring a saved selection, pass it as `initialTrackIds` and keep the page's recommended tracks in `defaultTrackIds`. Explicit initial tracks take precedence only during initialization, so Reset still returns to the page defaults. Use `onCommittedTrackIds` to save the ordered catalog selection after a successful Submit. Storage access and parsing remain application responsibilities.
 
-See [TrackSelect](trackSelect.md) for catalog rules, action semantics, limits, customization, and schema generation.
+Use `resolveTrackInteraction` when catalog-created tracks need host callbacks. The resolver receives the owning catalog ID, qualified ID, and authored track entry during initialization and successful Submit reconciliation. Its callbacks later receive the semantic item, current core runtime context, and separate catalog metadata. Catalog JSON and persisted selection IDs remain data-only.
+
+See [TrackSelect](trackSelect.md) for catalog rules, action semantics, limits, customization, and schema generation. See [Track interactions](recipes/trackInteractions.md) for a complete resolver integration.

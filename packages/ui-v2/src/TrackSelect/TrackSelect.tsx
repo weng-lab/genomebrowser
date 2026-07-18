@@ -1,6 +1,7 @@
 import type { TrackStoreInstance } from "@weng-lab/genomebrowser-v2";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { TrackSelectColumnOverrides } from "./catalog/catalogColumns";
+import type { TrackSelectInteractionResolver } from "./catalog/catalogInteraction";
 import { assertUniqueCatalogTrackIds } from "./catalog/catalogRows";
 import { assertValidCatalogTrackIds, getReconciledTracks } from "./catalog/catalogStore";
 import { TrackSelectContent } from "./layout/trackSelectContent";
@@ -19,6 +20,7 @@ export type TrackSelectProps = {
   defaultTrackIds?: readonly string[];
   onCommittedTrackIds?: (trackIds: readonly string[]) => void;
   columnOverrides?: TrackSelectColumnOverrides;
+  resolveTrackInteraction?: TrackSelectInteractionResolver;
 };
 
 const DEFAULT_TITLE = "Track Select";
@@ -40,6 +42,7 @@ export default function TrackSelect({
   defaultTrackIds,
   onCommittedTrackIds,
   columnOverrides,
+  resolveTrackInteraction,
 }: TrackSelectProps) {
   const registry = useTrackStore((state) => state.registry);
   const tracks = useTrackStore((state) => state.tracks);
@@ -82,6 +85,7 @@ export default function TrackSelect({
       selectedTrackIds: initializationTrackIds,
       registry,
       maxTracks,
+      resolveTrackInteraction,
     });
     const result = setTracks(nextTracks);
     if (!result.ok) throw new Error(result.error);
@@ -96,6 +100,7 @@ export default function TrackSelect({
     maxTracks,
     parsedTrackCatalogs,
     registry,
+    resolveTrackInteraction,
     setTracks,
     useTrackStore,
   ]);
@@ -119,6 +124,7 @@ export default function TrackSelect({
           maxTracks={maxTracks}
           onClose={onClose}
           columnOverrides={columnOverrides}
+          resolveTrackInteraction={resolveTrackInteraction}
         />
       ) : null}
     </TrackSelectDialog>

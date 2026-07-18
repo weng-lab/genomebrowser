@@ -9,6 +9,12 @@ export type CatalogGridRow = {
   [field: string]: unknown;
 };
 
+export type CatalogTrackEntry = Readonly<{
+  catalogId: string;
+  qualifiedTrackId: string;
+  track: TrackSelectTrack;
+}>;
+
 export function getCatalogTrackId(catalogId: string, trackId: string) {
   return `${catalogId}::${trackId}`;
 }
@@ -31,11 +37,16 @@ export function getCatalogTrackIds(catalog: Pick<TrackSelectCatalog, "id" | "tra
 }
 
 export function getCatalogTrackById(trackCatalogs: TrackSelectCatalog[]) {
-  const tracksById = new Map<string, TrackSelectTrack>();
+  const tracksById = new Map<string, CatalogTrackEntry>();
 
   for (const catalog of trackCatalogs) {
     for (const track of catalog.tracks) {
-      tracksById.set(getCatalogTrackId(catalog.id, track.id), track);
+      const qualifiedTrackId = getCatalogTrackId(catalog.id, track.id);
+      tracksById.set(qualifiedTrackId, {
+        catalogId: catalog.id,
+        qualifiedTrackId,
+        track,
+      });
     }
   }
 

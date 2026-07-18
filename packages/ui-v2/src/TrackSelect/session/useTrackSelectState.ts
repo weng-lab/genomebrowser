@@ -7,6 +7,7 @@ import {
   removeOrderedTrackIds,
   setOrderedCatalogSelection,
 } from "../catalog/catalogSelection";
+import type { TrackSelectInteractionResolver } from "../catalog/catalogInteraction";
 import { getReconciledTracks } from "../catalog/catalogStore";
 import { getActiveView, getInitialViewIds } from "../catalog/catalogViews";
 import type { TrackSelectCatalog } from "../schema/catalogSchema";
@@ -22,6 +23,7 @@ type TrackSelectStateOptions = {
   onCommittedTrackIds?: (trackIds: readonly string[]) => void;
   maxTracks: number;
   onClose: () => void;
+  resolveTrackInteraction?: TrackSelectInteractionResolver;
 };
 
 export type TrackSelectState = ReturnType<typeof useTrackSelectState>;
@@ -35,6 +37,7 @@ export function useTrackSelectState({
   onCommittedTrackIds,
   maxTracks,
   onClose,
+  resolveTrackInteraction,
 }: TrackSelectStateOptions) {
   const [screen, setScreen] = useState<TrackSelectScreen>(() =>
     trackCatalogs.length === 1 ? "catalog-detail" : "catalog-list",
@@ -126,6 +129,7 @@ export function useTrackSelectState({
         selectedTrackIds,
         registry,
         maxTracks,
+        resolveTrackInteraction,
       });
     } catch (error) {
       setSubmitError(getErrorMessage(error));

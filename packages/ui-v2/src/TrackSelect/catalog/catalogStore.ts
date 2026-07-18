@@ -1,4 +1,8 @@
 import { createTrackFromEntry, type TrackStore } from "@weng-lab/genomebrowser-v2";
+import {
+  adaptTrackSelectInteraction,
+  type TrackSelectInteractionResolver,
+} from "./catalogInteraction";
 import type { TrackSelectCatalog } from "../schema/catalogSchema";
 import { getCatalogTrackById } from "./catalogRows";
 
@@ -8,13 +12,15 @@ export function getReconciledTracks({
   selectedTrackIds,
   registry,
   maxTracks,
+  resolveTrackInteraction,
 }: {
   trackCatalogs: TrackSelectCatalog[];
   tracks: TrackStore["tracks"];
   selectedTrackIds: readonly string[];
   registry: TrackStore["registry"];
   maxTracks: number;
-}) {
+  resolveTrackInteraction?: TrackSelectInteractionResolver;
+}): TrackStore["tracks"] {
   const catalogTracksById = getCatalogTrackById(trackCatalogs);
   assertValidSelectedTrackIds(selectedTrackIds, catalogTracksById, maxTracks);
 
@@ -22,10 +28,25 @@ export function getReconciledTracks({
   const nonCatalogTracks = tracks.filter((track) => !catalogTracksById.has(track.base.id));
   const selectedTracks = selectedTrackIds.map((id) => {
     const existingTrack = existingTracksById.get(id);
-    if (existingTrack) return existingTrack;
+    const entry = catalogTracksById.get(id)!;
+    if (!resolveTrackInteraction) {
+      if (existingTrack) return existingTrack;
+      return createTrackFromEntry(registry, { ...entry.track, id });
+    }
 
-    const track = catalogTracksById.get(id)!;
-    return createTrackFromEntry(registry, { ...track, id });
+    const resolvedInteraction = resolveTrackInteraction(entry);
+    const track = existingTrack ?? createTrackFromEntry(registry, { ...entry.track, id });
+    const { interaction: _interaction, ...trackWithoutInteraction } = track;
+    if (resolvedInteraction === undefined) return trackWithoutInteraction;
+
+    return {
+      ...trackWithoutInteraction,
+      interaction: adaptTrackSelectInteraction(resolvedInteraction, {
+        catalogId: entry.catalogId,
+        authoredTrackId: entry.track.id,
+        metadata: entry.track.metadata,
+      }),
+    };
   });
 
   return [...nonCatalogTracks, ...selectedTracks];

@@ -4,7 +4,14 @@ import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { createTrackStore, defineTrackModule, type TrackStore } from "../../v2/src/lib";
+import {
+  createTrackStore,
+  defineTrackModule,
+  type TrackInteraction,
+  type TrackRuntimeContext,
+  type TrackStore,
+} from "../../v2/src/lib";
+import type { TrackSelectInteraction, TrackSelectInteractionResolver } from "../src/lib";
 import TrackSelect from "../src/TrackSelect/TrackSelect";
 import type {
   TrackSelectCatalog,
@@ -34,11 +41,14 @@ vi.mock("../src/TrackSelect/layout/trackSelectContent", async () => {
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
+type SignalItem = { id: string };
+type SignalConfig = { url: string };
+
 function Renderer() {
   return null;
 }
 
-const signalModule = defineTrackModule({
+const signalModule = defineTrackModule<SignalItem>()({
   type: "signal",
   configSchema: z.object({ url: z.string().min(1) }),
   fetch: async () => null,
@@ -155,6 +165,7 @@ function createStateOptions({
   tracks,
   onCommittedTrackIds = vi.fn(),
   trackCatalogs = catalogs,
+  resolveTrackInteraction,
 }: {
   trackIds?: string[];
   defaultTrackIds?: readonly string[];
@@ -163,6 +174,7 @@ function createStateOptions({
   tracks?: TrackStore["tracks"];
   onCommittedTrackIds?: (trackIds: readonly string[]) => void;
   trackCatalogs?: TrackSelectCatalog[];
+  resolveTrackInteraction?: TrackSelectInteractionResolver;
 } = {}) {
   const store = createStore(trackIds, tracks);
   const onClose = vi.fn();
@@ -182,6 +194,7 @@ function createStateOptions({
       onCommittedTrackIds,
       maxTracks,
       onClose,
+      resolveTrackInteraction,
     } satisfies StateOptions,
   };
 }
@@ -310,6 +323,26 @@ describe("TrackSelect session workflow", () => {
     expect(setup.onClose).toHaveBeenCalledOnce();
   });
 
+  it("does not resolve interactions for draft actions or cancellation", async () => {
+    const resolveTrackInteraction = vi.fn<TrackSelectInteractionResolver>();
+    const setup = createStateOptions({
+      trackIds: ["alpha::one"],
+      defaultTrackIds: ["beta::one"],
+      resolveTrackInteraction,
+    });
+    const result = await renderState(setup.options);
+
+    await act(async () => {
+      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::two"]));
+      result.current.actions.clearDraftSelection();
+      result.current.actions.resetDraftSelection();
+      result.current.actions.cancel();
+    });
+
+    expect(resolveTrackInteraction).not.toHaveBeenCalled();
+    expect(setup.setTracks).not.toHaveBeenCalled();
+  });
+
   it("clears either the active catalog or the complete draft", async () => {
     const setup = createStateOptions({ trackIds: ["alpha::one", "beta::one"] });
     const result = await renderState(setup.options);
@@ -401,6 +434,68 @@ describe("TrackSelect session workflow", () => {
     expect(setup.onCommittedTrackIds).not.toHaveBeenCalled();
     expect(setup.onClose).not.toHaveBeenCalled();
   });
+
+  it("forwards current runtime state and catalog context without rerunning the resolver", async () => {
+    const onClick = vi.fn();
+    const interaction: TrackSelectInteraction<SignalItem, SignalConfig> = { onClick };
+    const resolveTrackInteraction: TrackSelectInteractionResolver = vi.fn(() => interaction);
+    const setup = createStateOptions({ trackIds: ["unmanaged"], resolveTrackInteraction });
+    const result = await renderState(setup.options);
+
+    await act(async () => {
+      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::one"]));
+    });
+    await act(async () => result.current.actions.submitSelection());
+
+    expect(resolveTrackInteraction).toHaveBeenCalledOnce();
+    expect(
+      setup.store.getState().updateConfig<SignalConfig>("alpha::one", { url: "updated-url" }),
+    ).toEqual({ ok: true });
+    expect(setup.store.getState().updateBase("alpha::one", { color: "#abcdef" })).toEqual({
+      ok: true,
+    });
+
+    const track = setup.store.getState().getTrack("alpha::one")!;
+    const runtime: TrackRuntimeContext<SignalConfig> = {
+      type: track.type,
+      base: track.base,
+      config: track.config as SignalConfig,
+    };
+    const coreInteraction = track.interaction as TrackInteraction<SignalItem, SignalConfig>;
+    coreInteraction.onClick?.({ id: "semantic-item" }, runtime);
+
+    expect(onClick).toHaveBeenCalledWith({ id: "semantic-item" }, runtime, {
+      catalogId: "alpha",
+      authoredTrackId: "one",
+      metadata: { group: "A" },
+    });
+    expect(runtime.config.url).toBe("updated-url");
+    expect(runtime.base.color).toBe("#abcdef");
+    expect(resolveTrackInteraction).toHaveBeenCalledOnce();
+    expect(track).not.toHaveProperty("metadata");
+  });
+
+  it("keeps resolver failures atomic and visible", async () => {
+    const setup = createStateOptions({
+      trackIds: ["unmanaged"],
+      resolveTrackInteraction: () => {
+        throw new Error("Resolver failed");
+      },
+    });
+    const originalTracks = setup.store.getState().tracks;
+    const result = await renderState(setup.options);
+
+    await act(async () => {
+      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::one"]));
+    });
+    await act(async () => result.current.actions.submitSelection());
+
+    expect(result.current.state.submitError).toBe("Resolver failed");
+    expect(setup.store.getState().tracks).toBe(originalTracks);
+    expect(setup.setTracks).not.toHaveBeenCalled();
+    expect(setup.onCommittedTrackIds).not.toHaveBeenCalled();
+    expect(setup.onClose).not.toHaveBeenCalled();
+  });
 });
 
 describe("TrackSelect initialization", () => {
@@ -441,6 +536,66 @@ describe("TrackSelect initialization", () => {
     await act(async () => getTrackSelectContentState().actions.resetDraftSelection());
     expect(selectedIds(getTrackSelectContentState(), "alpha")).toEqual([]);
     expect(selectedIds(getTrackSelectContentState(), "beta")).toEqual(["beta::one"]);
+  });
+
+  it("resolves interactions for new and reused initial tracks", async () => {
+    const existingInteraction = { onHover: vi.fn() };
+    const existingTrack = signalModule.create(
+      { id: "alpha::one", title: "Existing", config: { url: "existing" } },
+      existingInteraction,
+    );
+    const store = createStore([], [createTrack("unmanaged"), existingTrack]);
+    const setTracks = vi.fn(store.getState().setTracks);
+    store.setState({ setTracks });
+    const replacement = { onClick: vi.fn() };
+    const resolveTrackInteraction = vi.fn<TrackSelectInteractionResolver>(() => replacement);
+
+    await renderUi(
+      <TrackSelect
+        open
+        onClose={vi.fn()}
+        trackCatalogs={catalogs}
+        useTrackStore={store}
+        defaultTrackIds={["alpha::one", "beta::one"]}
+        resolveTrackInteraction={resolveTrackInteraction}
+      />,
+    );
+
+    expect(resolveTrackInteraction).toHaveBeenCalledTimes(2);
+    expect(resolveTrackInteraction.mock.calls.map(([entry]) => entry.qualifiedTrackId)).toEqual([
+      "alpha::one",
+      "beta::one",
+    ]);
+    expect(store.getState().getTrack("alpha::one")).not.toBe(existingTrack);
+    expect(store.getState().getTrack("alpha::one")?.interaction).toHaveProperty("onClick");
+    expect(store.getState().getTrack("alpha::one")?.interaction).not.toHaveProperty("onHover");
+    expect(store.getState().getTrack("beta::one")?.interaction).toHaveProperty("onClick");
+    expect(store.getState().getTrack("unmanaged")).toBeDefined();
+  });
+
+  it("does not reinitialize when only resolver identity changes", async () => {
+    const store = createStore(["unmanaged"]);
+    const setTracks = vi.fn(store.getState().setTracks);
+    store.setState({ setTracks });
+    const firstResolver = vi.fn<TrackSelectInteractionResolver>(() => ({ onClick: vi.fn() }));
+    const secondResolver = vi.fn<TrackSelectInteractionResolver>(() => ({ onHover: vi.fn() }));
+    const props = {
+      open: true,
+      onClose: vi.fn(),
+      trackCatalogs: catalogs,
+      useTrackStore: store,
+      defaultTrackIds: ["alpha::one"],
+    };
+
+    await renderUi(<TrackSelect {...props} resolveTrackInteraction={firstResolver} />);
+    const initializedTrack = store.getState().getTrack("alpha::one");
+
+    await rerenderUi(<TrackSelect {...props} resolveTrackInteraction={secondResolver} />);
+
+    expect(firstResolver).toHaveBeenCalledOnce();
+    expect(secondResolver).not.toHaveBeenCalled();
+    expect(setTracks).toHaveBeenCalledOnce();
+    expect(store.getState().getTrack("alpha::one")).toBe(initializedTrack);
   });
 
   it("validates defaults when explicit initial tracks take precedence", async () => {
