@@ -39,3 +39,7 @@ Inside .devserve there are out.log and err.log files. Read them when attempting 
 ## Reference style sheet
 
 Reference docs/style.md for code style guidelines and ALWAYS adhere to them.
+
+## TODO.md files
+
+These files include prioritized tasks/decisions/ideas/prototypes to work on. Only modify when explicitly asked to.
