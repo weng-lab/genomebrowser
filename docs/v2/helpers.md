@@ -17,12 +17,12 @@ Mark data sources and query inputs. Leave colors, display options, labels, heigh
 
 ## Renderer interactions
 
-`useInteraction<Item>()` exposes the active track instance's optional callbacks. `useTooltip({ type, config })` positions the registered module's tooltip component in the active browser.
+`useInteraction<Item>()` exposes item-only handlers bound to the active track instance's application callbacks. `useTooltip<Item, Config>()` reads the active runtime context and positions that type's registered tooltip component in the browser. Renderers do not construct or pass runtime type, base, or config.
 
 ```tsx
 function ExampleRenderer({ config, data }: TrackRendererProps<Config, Data>) {
   const interaction = useInteraction<ExampleItem>();
-  const tooltip = useTooltip({ type: "example", config });
+  const tooltip = useTooltip<ExampleItem, Config>();
 
   return data.map((item) => (
     <rect
@@ -41,7 +41,9 @@ function ExampleRenderer({ config, data }: TrackRendererProps<Config, Data>) {
 }
 ```
 
-If the module has no `tooltipComponent`, `show` is a no-op. Tooltip state belongs to the active browser and is suppressed during panning. These hooks require the providers rendered by `GenomeBrowser`.
+If the module has no `tooltipComponent`, `show` is a no-op. A tooltip component receives `{ item, context }`; application interactions receive `(item, context)`. Both see the current shallow read-only `{ type, base, config }` view, including later validated mutations. Tooltip state belongs to the active browser and is suppressed during panning. These hooks require the providers rendered by `GenomeBrowser`.
+
+Runtime context contains no TrackSelect catalog metadata. Core owns runtime state; UI v2 owns catalog metadata and may adapt callbacks where those values need to be combined.
 
 ## Automatic track height
 

@@ -206,7 +206,7 @@ describe("defineTrackModule", () => {
     ).toThrow(/min must be less than max/);
   });
 
-  it("stores item-only interaction callbacks separately from config", () => {
+  it("stores runtime-aware interaction callbacks separately from config", () => {
     const onClick = () => undefined;
     const onHover = () => undefined;
     const onLeave = () => undefined;
@@ -401,8 +401,9 @@ describe("defineTrackModule", () => {
       render: {
         dense: DenseRenderer,
       },
-      tooltipComponent: ({ item }) => {
+      tooltipComponent: ({ item, context }) => {
         item.signalValue.toFixed(2);
+        context.config.url.toUpperCase();
         return null;
       },
     });
@@ -414,8 +415,9 @@ describe("defineTrackModule", () => {
         config: { url: "YOUR_URL_HERE" },
       },
       {
-        onClick: (item) => {
+        onClick: (item, context) => {
           item.signalValue.toFixed(2);
+          context.config.url.toUpperCase();
         },
       },
     );

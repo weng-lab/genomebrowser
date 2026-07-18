@@ -60,4 +60,4 @@ export type TranscriptInput = {
   config: TranscriptConfig;
 };
 
-export type TranscriptInteraction = TrackInteraction<Transcript>;
+export type TranscriptInteraction = TrackInteraction<Transcript, TranscriptConfig>;

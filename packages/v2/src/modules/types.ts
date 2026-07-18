@@ -10,13 +10,30 @@ export type TrackBase = {
   color?: string;
 };
 
-export type TrackInteractionCallback<InteractionItem> = (item: InteractionItem) => void;
+export type TrackRuntimeContext<Config = unknown> = Readonly<{
+  type: string;
+  base: Readonly<TrackBase>;
+  config: Config extends object ? Readonly<Config> : Config;
+}>;
 
-export type TrackInteraction<InteractionItem = unknown> = {
-  onClick?: TrackInteractionCallback<InteractionItem>;
-  onHover?: TrackInteractionCallback<InteractionItem>;
-  onLeave?: TrackInteractionCallback<InteractionItem>;
+export type TrackInteractionCallback<InteractionItem, Config = unknown> = (
+  item: InteractionItem,
+  context: TrackRuntimeContext<Config>,
+) => void;
+
+export type TrackInteraction<InteractionItem = unknown, Config = unknown> = {
+  onClick?: TrackInteractionCallback<InteractionItem, Config>;
+  onHover?: TrackInteractionCallback<InteractionItem, Config>;
+  onLeave?: TrackInteractionCallback<InteractionItem, Config>;
 };
+
+export type TrackRendererInteraction<InteractionItem> = {
+  onClick?: (item: InteractionItem) => void;
+  onHover?: (item: InteractionItem) => void;
+  onLeave?: (item: InteractionItem) => void;
+};
+
+export type AnyTrackInteraction = TrackInteraction<never, never>;
 
 export type TrackCreateInput<ConfigInput, Display extends string = string> = {
   id: string;
@@ -31,7 +48,7 @@ export type TrackInstance<Config, InteractionItem = unknown> = {
   type: string;
   base: TrackBase;
   config: Config;
-  interaction?: TrackInteraction<InteractionItem>;
+  interaction?: TrackInteraction<InteractionItem, Config>;
 };
 
 export type TrackFetchContext<Config> = {
@@ -65,8 +82,10 @@ export type TrackSettingsComponent<Config> = ComponentType<TrackSettingsProps<Co
 
 export type TrackTooltipComponent<Item, Config> = ComponentType<{
   item: Item;
-  config: Config;
+  context: TrackRuntimeContext<Config>;
 }>;
+
+export type AnyTrackTooltipComponent = TrackTooltipComponent<never, never>;
 
 export type TrackCreateInputSchema<
   ConfigSchema extends z.ZodObject,
@@ -96,7 +115,7 @@ export type TrackModule<
   createInputSchema: TrackCreateInputSchema<ConfigSchema, Display>;
   create(
     input: TrackCreateInput<z.input<ConfigSchema>, Display>,
-    interaction?: TrackInteraction<Item>,
+    interaction?: TrackInteraction<Item, z.output<ConfigSchema>>,
   ): TrackInstance<z.output<ConfigSchema>, Item> & { type: Type };
   validate(instance: unknown): TrackInstance<z.output<ConfigSchema>, Item> & { type: Type };
   fetch: TrackFetch<z.output<ConfigSchema>, Data>;
@@ -110,15 +129,18 @@ export type AnyTrackModule = {
   displays: string[];
   configSchema: z.ZodObject;
   createInputSchema: TrackCreateInputSchema<z.ZodObject, string>;
-  create(input: unknown, interaction?: unknown): AnyTrackInstance;
+  create(input: unknown, interaction?: AnyTrackInteraction): AnyTrackInstance;
   validate(instance: unknown): AnyTrackInstance;
   fetch: unknown;
   render: Record<string, unknown>;
   settingsComponent?: unknown;
   tooltipComponent?: unknown;
 };
-export type AnyTrackInstance = TrackInstance<unknown, never> & {
+export type AnyTrackInstance = {
   type: string;
+  base: TrackBase;
+  config: Record<string, unknown>;
+  interaction?: AnyTrackInteraction;
 };
 export type ModuleCreateInput<M extends AnyTrackModule> = z.input<M["createInputSchema"]>;
 export type ModuleInstance<M extends AnyTrackModule> = M extends AnyTrackModule

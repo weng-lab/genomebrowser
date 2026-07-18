@@ -1,6 +1,7 @@
 import { memo, type ComponentType } from "react";
 import type { DataState } from "../data/types";
-import { TrackInteractionProvider } from "../../modules/interaction";
+import { bindTrackInteraction, TrackInteractionProvider } from "../../modules/interaction";
+import { TrackRuntimeContextProvider } from "../../modules/runtimeContext";
 import type { AnyTrackInstance, TrackRendererProps } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { useRegistry } from "../state/useRegistry";
@@ -55,18 +56,26 @@ export const TrackContent = memo(function TrackContent({
         />
       );
     }
+    const context = {
+      type: track.type,
+      base: track.base,
+      config: track.config,
+    };
+    const interaction = bindTrackInteraction(track.interaction, context);
     return (
-      <TrackInteractionProvider interaction={track.interaction}>
-        <Renderer
-          id={track.base.id}
-          config={track.config}
-          color={track.base.color}
-          data={dataState.data}
-          region={region}
-          width={width}
-          height={height}
-        />
-      </TrackInteractionProvider>
+      <TrackRuntimeContextProvider context={context}>
+        <TrackInteractionProvider interaction={interaction}>
+          <Renderer
+            id={track.base.id}
+            config={track.config}
+            color={track.base.color}
+            data={dataState.data}
+            region={region}
+            width={width}
+            height={height}
+          />
+        </TrackInteractionProvider>
+      </TrackRuntimeContextProvider>
     );
   } catch (error) {
     return (

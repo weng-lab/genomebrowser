@@ -1,5 +1,6 @@
+import { isValidElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { SettingsModalController } from "../../src/browser/overlays/SettingsModalController";
 import type { BaseSettingsProps } from "../../src/browser/settings/types";
@@ -9,27 +10,43 @@ import { createContextMenuStore } from "../../src/browser/state/contextMenuStore
 import { RegistryProvider } from "../../src/browser/state/RegistryContext";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
+import { BrowserSvgProvider } from "../../src/browser/svg/BrowserSvgContext";
 import { TrackContent } from "../../src/browser/track-row/TrackContent";
+import { TooltipContextProvider } from "../../src/browser/tooltip/TooltipContext";
+import { createTooltipStore } from "../../src/browser/tooltip/tooltipStore";
+import { useTooltip } from "../../src/browser/tooltip/useTooltip";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { useInteraction } from "../../src/modules/interaction";
-import type { TrackRendererProps, TrackSettingsProps } from "../../src/modules/types";
+import type {
+  AnyTrackTooltipComponent,
+  TrackRendererInteraction,
+  TrackRendererProps,
+  TrackRuntimeContext,
+  TrackSettingsProps,
+} from "../../src/modules/types";
 
 describe("browser module wiring", () => {
   const region = { chromosome: "chr1", start: 0, end: 10 };
 
-  it("provides instance interactions to module renderers", () => {
+  it("binds current runtime context while keeping renderer callbacks item-only", () => {
     type Item = { id: string };
-    let rendererInteraction = false;
-    const onClick = () => undefined;
+    type Config = { url: string; enabled: boolean };
+    const rendererInteraction: { current: TrackRendererInteraction<Item> | null } = {
+      current: null,
+    };
+    const events: Array<{ item: Item; context: TrackRuntimeContext<Config> }> = [];
+    const onClick = (item: Item, context: TrackRuntimeContext<Config>) => {
+      events.push({ item, context });
+    };
 
-    function Renderer(_props: TrackRendererProps<{ url: string }, null>) {
-      rendererInteraction = useInteraction<Item>()?.onClick === onClick;
+    function Renderer(_props: TrackRendererProps<Config, null>) {
+      rendererInteraction.current = useInteraction<Item>();
       return null;
     }
 
     const module = defineTrackModule<Item>()({
       type: "interactive-test",
-      configSchema: z.object({ url: z.string().min(1) }),
+      configSchema: z.object({ url: z.string().min(1), enabled: z.boolean().default(true) }),
       fetch: async () => null,
       render: { full: Renderer },
     });
@@ -43,20 +60,149 @@ describe("browser module wiring", () => {
     );
     const trackStore = createTrackStore({ modules: [module], tracks: [track] });
 
-    renderToStaticMarkup(
-      <RegistryProvider registry={trackStore.getState().registry}>
-        <TrackContent
-          track={track}
-          dataState={{ status: "success", data: null }}
-          region={region}
-          width={100}
-          height={80}
-          titleMargin={0}
-        />
-      </RegistryProvider>,
-    );
+    const renderTrack = () => {
+      renderToStaticMarkup(
+        <RegistryProvider registry={trackStore.getState().registry}>
+          <TrackContent
+            track={trackStore.getState().getTrack("interactive")!}
+            dataState={{ status: "success", data: null }}
+            region={region}
+            width={100}
+            height={80}
+            titleMargin={0}
+          />
+        </RegistryProvider>,
+      );
+    };
 
-    expect(rendererInteraction).toBe(true);
+    renderTrack();
+    rendererInteraction.current?.onClick?.({ id: "first" });
+
+    expect(events).toEqual([
+      {
+        item: { id: "first" },
+        context: {
+          type: "interactive-test",
+          base: { ...track.base },
+          config: { url: "YOUR_URL_HERE", enabled: true },
+        },
+      },
+    ]);
+
+    expect(trackStore.getState().updateBase("interactive", { color: "#112233" })).toEqual({
+      ok: true,
+    });
+    expect(
+      trackStore.getState().updateConfig<Config>("interactive", { url: "YOUR_OTHER_URL_HERE" }),
+    ).toEqual({ ok: true });
+
+    renderTrack();
+    rendererInteraction.current?.onClick?.({ id: "second" });
+
+    expect(events[1]).toEqual({
+      item: { id: "second" },
+      context: {
+        type: "interactive-test",
+        base: { ...track.base, color: "#112233" },
+        config: { url: "YOUR_OTHER_URL_HERE", enabled: true },
+      },
+    });
+  });
+
+  it("renders tooltips with the same current runtime context", () => {
+    type Item = { id: string };
+    type Config = { url: string; enabled: boolean };
+    let tooltip: ReturnType<typeof useTooltip<Item, Config>> | undefined;
+
+    function Renderer() {
+      tooltip = useTooltip<Item, Config>();
+      return null;
+    }
+
+    function TooltipComponent() {
+      return null;
+    }
+
+    const module = defineTrackModule<Item>()({
+      type: "tooltip-test",
+      defaults: { color: "#445566" },
+      configSchema: z.object({ url: z.string().min(1), enabled: z.boolean().default(true) }),
+      fetch: async () => null,
+      render: { full: Renderer },
+      tooltipComponent: TooltipComponent,
+    });
+    const track = module.create({
+      id: "tooltip",
+      title: "Tooltip",
+      config: { url: "YOUR_URL_HERE" },
+    });
+    const trackStore = createTrackStore({ modules: [module], tracks: [track] });
+    const tooltipStore = createTooltipStore();
+
+    const renderTrack = () => {
+      renderToStaticMarkup(
+        <BrowserSvgProvider svg={null}>
+          <TooltipContextProvider
+            isDisabled={() => false}
+            getTooltipComponent={() => module.tooltipComponent as AnyTrackTooltipComponent}
+            store={tooltipStore}
+          >
+            <RegistryProvider registry={trackStore.getState().registry}>
+              <TrackContent
+                track={trackStore.getState().getTrack("tooltip")!}
+                dataState={{ status: "success", data: null }}
+                region={region}
+                width={100}
+                height={80}
+                titleMargin={0}
+              />
+            </RegistryProvider>
+          </TooltipContextProvider>
+        </BrowserSvgProvider>,
+      );
+    };
+    const showTooltip = (item: Item) => {
+      tooltip?.show(item, { clientX: 10, clientY: 20 });
+      const content = tooltipStore.getState().content;
+      expect(isValidElement(content)).toBe(true);
+      if (!isValidElement(content)) throw new Error("Expected tooltip content");
+      return content.props as { item: Item; context: TrackRuntimeContext<Config> };
+    };
+
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      callback(0);
+      return 1;
+    });
+
+    try {
+      renderTrack();
+      expect(showTooltip({ id: "first" })).toEqual({
+        item: { id: "first" },
+        context: {
+          type: "tooltip-test",
+          base: track.base,
+          config: { url: "YOUR_URL_HERE", enabled: true },
+        },
+      });
+
+      expect(trackStore.getState().updateBase("tooltip", { color: "#abcdef" })).toEqual({
+        ok: true,
+      });
+      expect(
+        trackStore.getState().updateConfig<Config>("tooltip", { url: "YOUR_OTHER_URL_HERE" }),
+      ).toEqual({ ok: true });
+
+      renderTrack();
+      expect(showTooltip({ id: "second" })).toMatchObject({
+        context: {
+          type: "tooltip-test",
+          base: { color: "#abcdef" },
+          config: { url: "YOUR_OTHER_URL_HERE", enabled: true },
+        },
+      });
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("wires settings base updates separately from module config updates", () => {

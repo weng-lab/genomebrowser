@@ -2,6 +2,7 @@ import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { createModuleRegistry, type ModuleRegistry } from "../../modules/registry";
 import type {
   AnyTrackInstance,
+  AnyTrackInteraction,
   AnyTrackModule,
   TrackBase,
   TrackInteraction,
@@ -17,7 +18,9 @@ export type TrackStoreOptions<
 };
 
 export type TrackConfigUpdate<Config> = Partial<Config>;
-export type TrackInteractionUpdate<Item> = Partial<TrackInteraction<Item>>;
+export type TrackInteractionUpdate<Item, Config = unknown> = Partial<
+  TrackInteraction<Item, Config>
+>;
 
 export type TrackStore = {
   tracks: AnyTrackInstance[];
@@ -33,7 +36,7 @@ export type TrackStore = {
   reorderTracks: (ids: string[]) => TrackMutationResult;
   updateBase: (id: string, partial: Partial<TrackBase>) => TrackMutationResult;
   updateConfig: <Config>(id: string, partial: TrackConfigUpdate<Config>) => TrackMutationResult;
-  updateInteraction: (id: string, partial: TrackInteractionUpdate<unknown>) => TrackMutationResult;
+  updateInteraction: (id: string, partial: Partial<AnyTrackInteraction>) => TrackMutationResult;
   getTrack: (id: string) => AnyTrackInstance | undefined;
 };
 

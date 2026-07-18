@@ -21,6 +21,8 @@ A registered module holds stable behavior for one type: schemas, defaults, fetch
 
 Create tracks through `module.create(...)`, then register that same module in the track store. Track IDs and module types must be unique in their respective collections.
 
+When a renderer emits a semantic item, the browser invokes the stored application callback with that item and a current `TrackRuntimeContext`: `{ type, base, config }`. Module tooltip components receive the same context with their item. `base` and `config` are shallow read-only views, and later validated store mutations appear in later events and tooltip renders. The context is derived runtime state, not a separately persisted object, and it does not contain catalog metadata from optional UI packages.
+
 ## Exact request behavior
 
 On initial mount, the browser requests every track for an overscanned render region around the visible region. A visible-region change targets a new overscanned region and requests every track again.
@@ -37,7 +39,7 @@ Static construction fails by throwing: invalid module input, browser-store input
 
 After a track store exists, expected mutation failures return `{ ok: false, error }` instead. Failed mutations are atomic and leave tracks and order unchanged. Check results from add, remove, reorder, replace, and update actions when the operation comes from user or external input.
 
-Interaction callbacks are functions and are therefore not part of serializable catalog or saved-session JSON. Catalog entries are create input; they become nested runtime instances only after the selected module creates them.
+Interaction callbacks are functions and are therefore not part of serializable catalog or saved-session JSON. Catalog entries are create input; they become nested runtime instances only after the selected module creates them. Runtime context is also derived rather than serialized.
 
 ## Public boundary
 

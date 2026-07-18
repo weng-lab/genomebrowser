@@ -18,7 +18,7 @@ import { RegistryProvider } from "./state/RegistryContext";
 import { SvgShell } from "./svg/SvgShell";
 import { getTracksHeight } from "./track-row/trackLayout";
 import { TrackStack } from "./track-row/TrackStack";
-import type { TrackTooltipComponent } from "../modules/types";
+import type { AnyTrackTooltipComponent } from "../modules/types";
 import { RULER_HEIGHT, Ruler } from "./viewport/Ruler";
 import { SelectRegion } from "./viewport/SelectRegion";
 import { useContentTransform } from "./viewport/useContentTransform";
@@ -114,9 +114,7 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
               <TooltipProvider
                 isDisabled={panDrag.isDragging}
                 getTooltipComponent={(type) =>
-                  registry.get(type).tooltipComponent as
-                    | TrackTooltipComponent<unknown, unknown>
-                    | undefined
+                  registry.get(type).tooltipComponent as AnyTrackTooltipComponent | undefined
                 }
               >
                 <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>

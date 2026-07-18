@@ -47,7 +47,7 @@ function TranscriptRows({
     transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, width)),
   }));
   const interaction = useInteraction<Transcript>();
-  const tooltip = useTooltip<Transcript, TranscriptConfig>({ type: "transcript", config });
+  const tooltip = useTooltip<Transcript, TranscriptConfig>();
 
   return (
     <g>

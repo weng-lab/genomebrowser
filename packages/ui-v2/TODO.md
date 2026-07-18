@@ -92,11 +92,12 @@ during the beta only when the limitation is explicit. P2 items are post-beta fol
       `docs/trackSelect.md`, and `docs/ideas/trackSelectPersistence.md`.
 
 - [ ] **[Feature / legacy parity candidate] Provide or reject a narrow interaction-callback seam.**
-      Catalog JSON is correctly data-only, but UI v2 calls `createTrackFromEntry` without the
-      optional v2 interaction argument, so catalog-created tracks cannot receive host-specific
-      `onClick`, `onHover`, or `onLeave` callbacks. Choose between a catalog-entry-to-interaction
-      resolver prop or an explicit documented post-creation integration pattern; do not restore
-      legacy's application-specific intersection type. Evidence:
+      Catalog JSON is correctly data-only, and `createTrackFromEntry` deliberately remains a
+      two-argument, data-only creation boundary. UI v2 therefore has no host callback adapter for
+      catalog-created tracks, so they cannot receive host-specific `onClick`, `onHover`, or
+      `onLeave` callbacks. Choose between a catalog-entry-to-interaction resolver prop or an
+      explicit documented post-creation integration pattern; do not restore legacy's
+      application-specific intersection type. Evidence:
       `src/TrackSelect/catalog/catalogStore.ts`, `packages/v2/src/modules/registry.ts`,
       `docs/v2/adr/0007-track-configs-hold-instance-state-modules-hold-stable-behavior.md`, and
       legacy `packages/ui/src/TrackSelect/trackContext.ts`.

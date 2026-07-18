@@ -2,6 +2,83 @@
 
 These recipes assume stable `useBrowserStore` and `useTrackStore` hooks created as shown in [Getting started](gettingStarted.md).
 
+## Read current URL and color in interactions and tooltips
+
+Core v2 supplies the same current runtime context to application callbacks and module tooltips. This direct setup does not require TrackSelect or another catalog UI:
+
+```tsx
+import { z } from "zod";
+import {
+  GenomeBrowser,
+  createBrowserStore,
+  createTrackStore,
+  defineTrackModule,
+  fetchOnChange,
+  useInteraction,
+  useTooltip,
+  type TrackRendererProps,
+} from "@weng-lab/genomebrowser-v2";
+
+type Item = { id: string; start: number; end: number };
+const configSchema = z.object({ url: fetchOnChange(z.string().min(1)) });
+type Config = z.infer<typeof configSchema>;
+
+function Renderer({ data }: TrackRendererProps<Config, Item[]>) {
+  const interaction = useInteraction<Item>();
+  const tooltip = useTooltip<Item, Config>();
+
+  return data.map((item) => (
+    <rect
+      key={item.id}
+      onClick={() => interaction?.onClick?.(item)}
+      onMouseEnter={(event) => tooltip.show(item, event)}
+      onMouseLeave={tooltip.hide}
+    />
+  ));
+}
+
+const runtimeModule = defineTrackModule<Item>()({
+  type: "runtime-example",
+  defaults: { color: "#2266aa" },
+  configSchema,
+  async fetch() {
+    return [] as Item[];
+  },
+  render: { full: Renderer },
+  tooltipComponent: ({ item, context }) => (
+    <g>
+      <text fill={context.base.color}>{item.id}</text>
+      <text y={14}>{context.config.url}</text>
+    </g>
+  ),
+});
+
+const runtimeTrack = runtimeModule.create(
+  {
+    id: "runtime-example",
+    title: "Runtime example",
+    config: { url: "YOUR_URL_HERE" },
+  },
+  {
+    onClick: (item, context) => {
+      openItem(item.id, {
+        url: context.config.url,
+        color: context.base.color,
+      });
+    },
+  },
+);
+
+const useBrowserStore = createBrowserStore({ region: "chr1:1-1000" });
+const useTrackStore = createTrackStore({ modules: [runtimeModule], tracks: [runtimeTrack] });
+
+export function App() {
+  return <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />;
+}
+```
+
+The renderer emits only `item`. The browser adds the latest validated context when it invokes the application callback or renders the tooltip. Updating the track's URL or color changes later events and tooltips; it does not make base or interaction changes fetch data, and config requests remain controlled by `fetchOnChange`.
+
 ## Add, remove, reorder, and update tracks
 
 Create a track through its module, then check the store mutation result:

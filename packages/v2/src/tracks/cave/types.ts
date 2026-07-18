@@ -25,7 +25,7 @@ export type CaveInput = {
   config: CaveConfig;
 };
 
-export type CaveInteraction = TrackInteraction<CaveTooltipItem>;
+export type CaveInteraction = TrackInteraction<CaveTooltipItem, CaveConfig>;
 
 export type CaveData = {
   top: BigWigData[];

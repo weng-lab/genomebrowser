@@ -6,7 +6,9 @@ export { createModuleRegistry, createTrackFromEntry } from "./modules/registry";
 export { TrackInteractionProvider, useInteraction } from "./modules/interaction";
 export type {
   AnyTrackInstance,
+  AnyTrackInteraction,
   AnyTrackModule,
+  AnyTrackTooltipComponent,
   ModuleCreateInput,
   ModuleInstance,
   TrackBase,
@@ -19,9 +21,11 @@ export type {
   TrackMutationResult,
   TrackModule,
   TrackRenderer,
+  TrackRendererInteraction,
   TrackRendererProps,
   TrackSettingsComponent,
   TrackSettingsProps,
+  TrackRuntimeContext,
   TrackTooltipComponent,
 } from "./modules/types";
 export type { ModuleRegistry, TrackCatalogEntry } from "./modules/registry";

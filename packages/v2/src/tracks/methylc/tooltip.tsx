@@ -1,7 +1,13 @@
 import { TrackTooltip } from "../shared/TrackTooltip";
+import type { TrackRuntimeContext } from "../../modules/types";
 import type { MethylCConfig, MethylCShowRows, MethylCTooltipItem } from "./types";
 
-export function MethylCTooltip({ item }: { item: MethylCTooltipItem; config: MethylCConfig }) {
+export function MethylCTooltip({
+  item,
+}: {
+  item: MethylCTooltipItem;
+  context: TrackRuntimeContext<MethylCConfig>;
+}) {
   const rows = getMethylCTooltipRows(item);
   return (
     <TrackTooltip>

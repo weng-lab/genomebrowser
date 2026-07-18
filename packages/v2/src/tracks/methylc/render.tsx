@@ -146,30 +146,23 @@ export function SplitMethylC({
         {signals.chhMinus?.values}
         {signals.depthMinus}
       </g>
-      <MethylCHoverOverlay
-        config={config}
-        data={renderedData}
-        showRows={showRows}
-        width={width}
-        height={height}
-      />
+      <MethylCHoverOverlay data={renderedData} showRows={showRows} width={width} height={height} />
     </g>
   );
 }
 
 function MethylCHoverOverlay({
-  config,
   data,
   showRows,
   width,
   height,
-}: Pick<TrackRendererProps<MethylCConfig, MethylCData>, "config" | "width" | "height"> & {
+}: Pick<TrackRendererProps<MethylCConfig, MethylCData>, "width" | "height"> & {
   data: MethylCRenderedPoint[][];
   showRows: MethylCShowRows;
 }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | undefined>();
   const interaction = useInteraction<MethylCTooltipItem>();
-  const tooltip = useTooltip<MethylCTooltipItem, MethylCConfig>({ type: "methylc", config });
+  const tooltip = useTooltip<MethylCTooltipItem, MethylCConfig>();
   const tooltipValues = useMemo(
     () => (hoveredIndex === undefined ? [] : data.map((channel) => channel[hoveredIndex])),
     [data, hoveredIndex],

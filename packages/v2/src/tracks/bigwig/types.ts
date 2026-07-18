@@ -17,7 +17,7 @@ export type BigWigInput = {
   config: BigWigConfig;
 };
 
-export type BigWigInteraction = TrackInteraction<RenderedBigWigPoint>;
+export type BigWigInteraction = TrackInteraction<RenderedBigWigPoint, BigWigConfig>;
 
 export type YRange = {
   min: number;

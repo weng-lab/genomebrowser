@@ -2,14 +2,21 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { createModuleRegistry, createTrackFromEntry } from "../../src/modules/registry";
-import type { ModuleCreateInput, ModuleInstance } from "../../src/modules/types";
+import type {
+  ModuleCreateInput,
+  ModuleInstance,
+  TrackInteraction,
+  TrackRuntimeContext,
+} from "../../src/lib";
 
 describe("track module type contracts", () => {
   function Renderer() {
     return null;
   }
 
-  const moduleA = defineTrackModule({
+  type ItemA = { id: string };
+
+  const moduleA = defineTrackModule<ItemA>()({
     type: "a",
     configSchema: z.object({
       url: z.string().min(1),
@@ -141,6 +148,30 @@ describe("track module type contracts", () => {
       endpoint: string;
       enabled?: boolean | undefined;
     }>();
+  });
+
+  it("ties interaction item and parsed config types to the selected module", () => {
+    const oneArgumentCallback = (_item: ItemA) => undefined;
+    const interaction: TrackInteraction<ItemA, ModuleInstance<typeof moduleA>["config"]> = {
+      onHover: oneArgumentCallback,
+      onClick: (item, context) => {
+        expectTypeOf(item).toEqualTypeOf<ItemA>();
+        expectTypeOf(context).toEqualTypeOf<
+          TrackRuntimeContext<{ url: string; scale: "auto" | "fixed" }>
+        >();
+      },
+    };
+
+    const track = moduleA.create(
+      {
+        id: "track-a",
+        title: "Track A",
+        config: { url: "YOUR_URL_HERE" },
+      },
+      interaction,
+    );
+
+    expectTypeOf(track).toEqualTypeOf<ModuleInstance<typeof moduleA>>();
   });
 
   it("creates catalog entries through the runtime validation boundary", () => {

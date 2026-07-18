@@ -22,7 +22,7 @@ There are three important lifetimes:
 - Browser instance lifetime: `GenomeBrowser` creates its data, context-menu, and default settings stores once for that mounted browser. An application may supply a settings store override.
 - Track-type lifetime: registered module objects hold stable behavior for a type. Track instances hold `{ type, base, config, interaction? }` and may be added, reordered, updated, or removed.
 
-The browser store owns the visible region, width and typography values, zoom, and highlights. The track store owns the registry, validated track instances, and order. `track.base` contains browser-owned identity and presentation fields, `track.config` contains module-owned instance values, and `track.interaction` contains optional app callbacks.
+The browser store owns the visible region, width and typography values, zoom, and highlights. The track store owns the registry, validated track instances, and order. `track.base` contains browser-owned identity and presentation fields, `track.config` contains module-owned instance values, and `track.interaction` contains optional app callbacks. Runtime context is derived from the current `{ type, base, config }`; it is not another stored state object.
 
 Store factories return Zustand hooks. Keep application-created stores stable rather than constructing them during component render.
 
@@ -35,9 +35,13 @@ For each browser render:
 3. `useTrackData` resolves each track's registered module and calls its `fetch({ config, region })` when required.
 4. Fetch functions return raw data for that genomic region. Display- and width-specific shaping belongs in renderers.
 5. `TrackStack` selects `module.render[track.base.display]` and supplies the data, render region, dimensions, color, and config.
-6. Browser-owned wrappers provide panning, controls, loading and error states, settings, highlights, interaction gating, and tooltip positioning.
+6. `TrackContent` derives a shallow read-only runtime context from the current validated instance. It binds that context to application callbacks while keeping renderer-facing `useInteraction` handlers item-only.
+7. `useTooltip` resolves the current module from that context and gives its tooltip component the semantic item plus the same context.
+8. Browser-owned wrappers provide panning, controls, loading and error states, settings, highlights, interaction gating, and tooltip positioning.
 
 An initial render or render-region change fetches every track. A config-only mutation fetches a track only when the value of a field marked by `fetchOnChange` changes. Base fields, interaction callbacks, and unmarked config fields do not cause a request. Failed requests become per-track error states rather than escaping from the browser render.
+
+Later validated base or config mutations appear in later callback events and tooltip renders because context is derived at the rendering boundary. It contains only core runtime `type`, `base`, and `config`; TrackSelect catalog metadata remains catalog-owned and must be combined separately by UI v2 or its host.
 
 ## Panning and settlement
 

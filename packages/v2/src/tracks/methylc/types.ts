@@ -58,4 +58,4 @@ export type MethylCInput = {
   config: MethylCConfig;
 };
 
-export type MethylCInteraction = TrackInteraction<MethylCTooltipItem>;
+export type MethylCInteraction = TrackInteraction<MethylCTooltipItem, MethylCConfig>;

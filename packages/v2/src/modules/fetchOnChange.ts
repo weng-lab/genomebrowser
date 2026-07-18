@@ -1,6 +1,4 @@
 import { z } from "zod";
-import type { TrackInstance } from "./types";
-
 const fetchOnChangeRegistry = z.registry<{ fetchOnChange: true }, z.core.$ZodType>();
 
 export function fetchOnChange<Schema extends z.core.$ZodType>(schema: Schema): Schema {
@@ -8,9 +6,9 @@ export function fetchOnChange<Schema extends z.core.$ZodType>(schema: Schema): S
   return schema;
 }
 
-export function createFetchSignature<Config>(
+export function createFetchSignature<Config, Track extends { config: Config }>(
   module: { configSchema: z.ZodType<Config> },
-  track: TrackInstance<Config, never>,
+  track: Track,
 ) {
   return JSON.stringify(createSchemaSignature(module.configSchema, track.config) ?? {});
 }

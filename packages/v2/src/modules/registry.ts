@@ -1,4 +1,4 @@
-import type { AnyTrackModule, ModuleInstance, ModuleCreateInput, TrackCreateInput } from "./types";
+import type { AnyTrackModule, ModuleCreateInput, ModuleInstance, TrackCreateInput } from "./types";
 
 type ModuleForType<Modules extends readonly AnyTrackModule[], Type extends string> =
   Extract<Modules[number], { type: Type }> extends never

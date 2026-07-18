@@ -7,7 +7,6 @@ import type { RenderedBigWigPoint, YRange } from "../bigwig/types";
 import type { CaveConfig, CaveData, CaveTooltipItem } from "./types";
 
 export function FullCave({
-  config,
   color = "#3333ff",
   data,
   width,
@@ -26,7 +25,6 @@ export function FullCave({
       <path d={topPath} fill={lighten(color, 0.4)} />
       <path d={bottomPath} fill={color} />
       <CaveHoverOverlay
-        config={config}
         topPoints={topPoints}
         bottomPoints={bottomPoints}
         width={width}
@@ -63,19 +61,18 @@ function getCaveY(value: number, range: YRange, height: number, side: "top" | "b
 }
 
 function CaveHoverOverlay({
-  config,
   topPoints,
   bottomPoints,
   width,
   height,
-}: Pick<TrackRendererProps<CaveConfig, CaveData>, "config" | "width" | "height"> & {
+}: Pick<TrackRendererProps<CaveConfig, CaveData>, "width" | "height"> & {
   topPoints: RenderedBigWigPoint[];
   bottomPoints: RenderedBigWigPoint[];
 }) {
   const [hoveredX, setHoveredX] = useState<number | undefined>();
   const hoveredItemRef = useRef<CaveTooltipItem | undefined>(undefined);
   const interaction = useInteraction<CaveTooltipItem>();
-  const tooltip = useTooltip<CaveTooltipItem, CaveConfig>({ type: "cave", config });
+  const tooltip = useTooltip<CaveTooltipItem, CaveConfig>();
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const mouseX = getLocalMouseX(event, width);

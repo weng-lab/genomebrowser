@@ -34,7 +34,7 @@ export function FullBigWig({
       <path d={paths.maxPath} fill={color} />
       <path d={paths.clampHighPath} stroke="#ff0000" strokeWidth={2} fill="none" />
       <path d={paths.clampLowPath} stroke="#ff0000" strokeWidth={2} fill="none" />
-      <BigWigHoverOverlay config={config} points={points} width={width} height={height} />
+      <BigWigHoverOverlay points={points} width={width} height={height} />
     </g>
   );
 }
@@ -70,22 +70,21 @@ export function DenseBigWig({
           />
         );
       })}
-      <BigWigHoverOverlay config={config} points={points} width={width} height={height} />
+      <BigWigHoverOverlay points={points} width={width} height={height} />
     </g>
   );
 }
 
 function BigWigHoverOverlay({
-  config,
   points,
   width,
   height,
-}: Pick<TrackRendererProps<BigWigConfig, BigWigData[]>, "config" | "width" | "height"> & {
+}: Pick<TrackRendererProps<BigWigConfig, BigWigData[]>, "width" | "height"> & {
   points: RenderedBigWigPoint[];
 }) {
   const [hoveredPoint, setHoveredPoint] = useState<RenderedBigWigPoint | undefined>();
   const interaction = useInteraction<RenderedBigWigPoint>();
-  const tooltip = useTooltip<RenderedBigWigPoint, BigWigConfig>({ type: "bigwig", config });
+  const tooltip = useTooltip<RenderedBigWigPoint, BigWigConfig>();
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const point = getPointAtMouseX(points, getLocalMouseX(event, width), width);

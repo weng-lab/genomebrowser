@@ -18,7 +18,7 @@ export function FullBulkBed({
   const totalGaps = gap * Math.max(0, data.length - 1);
   const rowHeight = data.length > 0 ? Math.max(1, (height - totalGaps) / data.length) : height;
   const interaction = useInteraction<BulkBedRect>();
-  const tooltip = useTooltip<BulkBedRect, BulkBedConfig>({ type: "bulkbed", config });
+  const tooltip = useTooltip<BulkBedRect, BulkBedConfig>();
 
   return (
     <g>

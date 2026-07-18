@@ -63,7 +63,7 @@ const instanceBaseSchema = z.strictObject({
   color: z.string().optional(),
 });
 
-const interactionCallbackSchema = z.custom<TrackInteractionCallback<unknown>>(
+const interactionCallbackSchema = z.custom<TrackInteractionCallback<unknown, unknown>>(
   (value) => typeof value === "function",
   {
     error: "Input must be a function",
@@ -154,7 +154,7 @@ function createTrackModule<
     createInputSchema,
     create(
       input: TrackCreateInput<z.input<ConfigSchema>, DisplayKey<Renderers>>,
-      interaction?: TrackInteraction<Item>,
+      interaction?: TrackInteraction<Item, z.output<ConfigSchema>>,
     ) {
       const parsed = parsePublicInput(
         createInputSchema,

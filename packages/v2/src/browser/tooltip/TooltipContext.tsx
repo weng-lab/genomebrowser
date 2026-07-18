@@ -1,11 +1,11 @@
 import { createContext, use, useMemo, type ReactNode } from "react";
-import type { TrackTooltipComponent } from "../../modules/types";
+import type { AnyTrackTooltipComponent, TrackTooltipComponent } from "../../modules/types";
 import type { TooltipStore } from "./types";
 import type { TooltipStoreInstance } from "./tooltipStore";
 
 export type TooltipContextValue = {
   isDisabled: () => boolean;
-  getTooltipComponent: (type: string) => TrackTooltipComponent<any, any> | undefined;
+  getTooltipComponent: (type: string) => AnyTrackTooltipComponent | undefined;
   store: TooltipStoreInstance;
 };
 
@@ -19,7 +19,7 @@ export function TooltipContextProvider({
 }: {
   children: ReactNode;
   isDisabled: () => boolean;
-  getTooltipComponent: (type: string) => TrackTooltipComponent<any, any> | undefined;
+  getTooltipComponent: (type: string) => AnyTrackTooltipComponent | undefined;
   store: TooltipStoreInstance;
 }) {
   const value = useMemo(

@@ -28,4 +28,4 @@ export type BulkBedInput = {
   config: BulkBedConfig;
 };
 
-export type BulkBedInteraction = TrackInteraction<BulkBedRect>;
+export type BulkBedInteraction = TrackInteraction<BulkBedRect, BulkBedConfig>;

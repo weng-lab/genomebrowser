@@ -17,14 +17,14 @@ type TrackInstance<Config, Item = unknown> = {
     color?: string;
   };
   config: Config;
-  interaction?: TrackInteraction<Item>;
+  interaction?: TrackInteraction<Item, Config>;
 };
 ```
 
 - `type` resolves the registered module.
 - `base` is browser-owned per-instance state. `display` selects a key from the module's renderer map.
 - `config` is module-owned per-instance state parsed by the module's Zod schema.
-- `interaction` contains optional `onClick`, `onHover`, and `onLeave` app callbacks.
+- `interaction` contains optional `onClick`, `onHover`, and `onLeave` app callbacks. Their config type follows the module's parsed config type.
 
 The module owns the config schema, creation and validation, fetch function, renderer map, defaults, and optional settings and tooltip components. Components and stable type behavior do not belong in track instances. Interactions make an instance code-bearing and therefore not fully JSON-serializable.
 
@@ -85,7 +85,9 @@ Changing `url` requests new data. Changing `colorScale` re-renders with the curr
 
 Renderer-map keys are the module's allowed display values. The browser validates `base.display`, chooses the renderer, and supplies browser-level controls. A module's `settingsComponent` receives `{ id, config, updateConfig }`; it should use `updateConfig` and handle its mutation result. The browser separately owns base settings such as title, display, height, and color.
 
-A renderer decides when a semantic interaction happens. It can read callbacks with `useInteraction<Item>()` and use `useTooltip` for browser-positioned module tooltips. The module's item generic describes the semantic object exposed to callbacks and the tooltip, not necessarily its raw fetch row.
+A renderer decides when a semantic interaction happens. It can read item-only callbacks with `useInteraction<Item>()` and use parameterless `useTooltip<Item, Config>()` for browser-positioned module tooltips. The browser binds the current `TrackRuntimeContext<Config>` before an application callback runs. Tooltip components receive `{ item, context }` with the same current `type`, read-only `base`, and read-only parsed `config`. The module's item generic describes the semantic object exposed to callbacks and the tooltip, not necessarily its raw fetch row.
+
+The context is derived from the current validated instance on each render, so later base and config updates reach later events and tooltip renders. It is not persisted and never includes TrackSelect catalog metadata.
 
 ## Registry and catalog boundaries
 
@@ -103,7 +105,7 @@ A catalog entry is create input, not a runtime instance:
 }
 ```
 
-`createTrackFromEntry(registry, entry)` removes catalog-only `type` and `metadata`, then delegates to the selected module's `create`. The result has the nested runtime shape and applied defaults. Keep this boundary explicit when loading JSON.
+`createTrackFromEntry(registry, entry)` removes catalog-only `type` and `metadata`, then delegates to the selected module's `create`. The result is typed as the registry's instance union and has the nested runtime shape with applied defaults. Keep this data-only boundary explicit when loading JSON; attach typed interactions through the selected module's `create` API.
 
 ## Stable extension seams
 

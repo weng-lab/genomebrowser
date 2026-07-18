@@ -47,4 +47,4 @@ export type BigBedInput = {
   config: BigBedConfig;
 };
 
-export type BigBedInteraction = TrackInteraction<BigBedRow>;
+export type BigBedInteraction = TrackInteraction<BigBedRow, BigBedConfig>;
