@@ -3,7 +3,7 @@ import humanData from "./data/human.json";
 import { PsychscreenDataFile } from "./shared/types";
 
 export const humanPsychscreenFolder = createPsychscreenFolder({
-  id: "human-psychscreen",
+  id: "psychscreen",
   label: "PsychSCREEN",
   description: "PsychSCREEN browser tracks",
   data: humanData as PsychscreenDataFile,

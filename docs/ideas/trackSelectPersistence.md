@@ -128,8 +128,8 @@ Example payload:
 {
   "schemaVersion": 1,
   "trackIds": [
-    "human-psychscreen::human-psychscreen/epigenetic/adult-bcres",
-    "human-psychscreen::human-psychscreen/conservation/240-mammal-phylop-vertical-range"
+    "psychscreen::epigenetic/adult-bcres",
+    "psychscreen::conservation/240-mammal-phylop-vertical-range"
   ],
   "updatedAt": "2026-07-16T17:00:00.000Z"
 }
@@ -376,9 +376,18 @@ Recommended owner:
 
 ```tsx
 function GenePage({ gene }: { gene: string }) {
-  const persistenceKey = useMemo(() => `psychscreen:tracks:v1:gene:${normalizeGene(gene)}`, [gene]);
+  const persistenceKey = useMemo(
+    () => `psychscreen:tracks:v1:gene:${normalizeGene(gene)}`,
+    [gene],
+  );
 
-  return <GeneBrowserPanel key={persistenceKey} persistenceKey={persistenceKey} gene={gene} />;
+  return (
+    <GeneBrowserPanel
+      key={persistenceKey}
+      persistenceKey={persistenceKey}
+      gene={gene}
+    />
+  );
 }
 ```
 

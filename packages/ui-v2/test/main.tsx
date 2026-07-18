@@ -196,7 +196,7 @@ function InteractionShowcase() {
         useTrackStore={useTrackStore}
         defaultTrackIds={[
           "human-biosamples::human-biosamples/ccre-aggregate",
-          "human-psychscreen::human-psychscreen/epigenetic/adult-bcres",
+          "psychscreen::epigenetic/adult-bcres",
         ]}
         resolveTrackInteraction={resolveTrackInteraction}
         columnOverrides={{
