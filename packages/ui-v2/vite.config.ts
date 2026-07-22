@@ -7,9 +7,11 @@ import { defineConfig } from "vitest/config";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(({ mode }) => {
-  const screenApiKey =
-    process.env.SCREEN_API_KEY ?? loadEnv(mode, process.cwd(), "").SCREEN_API_KEY;
+export default defineConfig(({ command, isPreview, mode }) => {
+  const isDevelopmentServer = command === "serve" && !isPreview;
+  const screenApiKey = isDevelopmentServer
+    ? (process.env.SCREEN_API_KEY ?? loadEnv(mode, process.cwd(), "").SCREEN_API_KEY)
+    : undefined;
 
   return {
     envPrefix: ["VITE_", "NEXT_PUBLIC_"],
@@ -26,14 +28,20 @@ export default defineConfig(({ mode }) => {
     ],
     server: {
       allowedHosts: true,
-      proxy: {
-        "/api/screen-graphql": {
-          target: "https://screen.api.wenglab.org",
-          changeOrigin: true,
-          rewrite: () => "/graphql",
-          ...(screenApiKey ? { headers: { authorization: `Bearer ${screenApiKey}` } } : undefined),
-        },
-      },
+      ...(isDevelopmentServer
+        ? {
+            proxy: {
+              "/api/screen-graphql": {
+                target: "https://screen.api.wenglab.org",
+                changeOrigin: true,
+                rewrite: () => "/graphql",
+                ...(screenApiKey
+                  ? { headers: { authorization: `Bearer ${screenApiKey}` } }
+                  : undefined),
+              },
+            },
+          }
+        : undefined),
     },
     build: {
       lib: {
