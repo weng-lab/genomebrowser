@@ -1,5 +1,5 @@
 import { svgPoint } from "../../modules/utils/svg";
-import { useBrowserSvg } from "./BrowserSvgContext";
+import { useBrowserSvg } from "./browserSvgState";
 
 export function useSvgPoint() {
   const svg = useBrowserSvg();

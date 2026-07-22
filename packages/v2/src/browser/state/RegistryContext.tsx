@@ -1,7 +1,6 @@
-import { createContext, useMemo, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import type { ModuleRegistry } from "../../modules/registry";
-
-export const RegistryContext = createContext<ModuleRegistry | null>(null);
+import { RegistryContext } from "./registryContextValue";
 
 export function RegistryProvider({
   registry,

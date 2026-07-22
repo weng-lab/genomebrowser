@@ -1,5 +1,5 @@
 import { use, useEffect } from "react";
-import { TrackHeightContext } from "./TrackHeightProvider";
+import { TrackHeightContext } from "./trackHeightContext";
 
 export type AutoTrackHeightOptions = {
   rowHeight?: number;

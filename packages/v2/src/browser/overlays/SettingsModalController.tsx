@@ -1,6 +1,10 @@
 import type { ComponentType } from "react";
 import type { TrackSettingsProps } from "../../modules/types";
-import { useSettingsStore, useTrackMutationGate, useTrackStore } from "../state/BrowserContext";
+import {
+  useSettingsStore,
+  useTrackMutationGate,
+  useTrackStore,
+} from "../state/browserContextState";
 import { useRegistry } from "../state/useRegistry";
 
 export function SettingsModalController() {

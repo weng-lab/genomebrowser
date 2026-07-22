@@ -1,5 +1,5 @@
 import { use } from "react";
-import { RegistryContext } from "./RegistryContext";
+import { RegistryContext } from "./registryContextValue";
 
 export function useRegistry() {
   const registry = use(RegistryContext);

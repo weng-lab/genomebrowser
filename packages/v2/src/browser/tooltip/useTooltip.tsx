@@ -1,7 +1,11 @@
 import { createElement, useEffect, useEffectEvent, useId, useRef } from "react";
-import { useTrackRuntimeContext } from "../../modules/runtimeContext";
+import { useTrackRuntimeContext } from "../../modules/runtimeContextState";
 import { useSvgPoint } from "../svg/useSvgPoint";
-import { useInternalTooltipStore, useTooltipComponent, useTooltipDisabled } from "./TooltipContext";
+import {
+  useInternalTooltipStore,
+  useTooltipComponent,
+  useTooltipDisabled,
+} from "./tooltipContextState";
 import type { MousePosition } from "./types";
 
 export function useTooltip<Item, Config>() {

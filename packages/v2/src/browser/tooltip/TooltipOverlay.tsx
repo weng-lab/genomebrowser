@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { useInternalTooltipStore } from "./TooltipContext";
+import { useInternalTooltipStore } from "./tooltipContextState";
 
 const TOOLTIP_OFFSET = 10;
 

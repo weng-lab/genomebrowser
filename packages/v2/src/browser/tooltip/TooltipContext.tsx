@@ -1,15 +1,7 @@
-import { createContext, use, useMemo, type ReactNode } from "react";
-import type { AnyTrackTooltipComponent, TrackTooltipComponent } from "../../modules/types";
-import type { TooltipStore } from "./types";
+import { useMemo, type ReactNode } from "react";
+import type { AnyTrackTooltipComponent } from "../../modules/types";
 import type { TooltipStoreInstance } from "./tooltipStore";
-
-export type TooltipContextValue = {
-  isDisabled: () => boolean;
-  getTooltipComponent: (type: string) => AnyTrackTooltipComponent | undefined;
-  store: TooltipStoreInstance;
-};
-
-const TooltipContext = createContext<TooltipContextValue | null>(null);
+import { TooltipContext } from "./tooltipContextState";
 
 export function TooltipContextProvider({
   children,
@@ -28,22 +20,4 @@ export function TooltipContextProvider({
   );
 
   return <TooltipContext.Provider value={value}>{children}</TooltipContext.Provider>;
-}
-
-export function useTooltipDisabled() {
-  const context = use(TooltipContext);
-  if (!context) throw new Error("useTooltip must be used within a GenomeBrowser");
-  return context.isDisabled;
-}
-
-export function useTooltipComponent<Item, Config>(type: string) {
-  const context = use(TooltipContext);
-  if (!context) throw new Error("useTooltip must be used within a GenomeBrowser");
-  return context.getTooltipComponent(type) as TrackTooltipComponent<Item, Config> | undefined;
-}
-
-export function useInternalTooltipStore<T>(selector: (state: TooltipStore) => T): T {
-  const context = use(TooltipContext);
-  if (!context) throw new Error("useTooltip must be used within a GenomeBrowser");
-  return context.store(selector);
 }

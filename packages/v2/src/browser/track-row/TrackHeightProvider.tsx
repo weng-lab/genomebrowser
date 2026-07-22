@@ -1,13 +1,6 @@
-import { createContext, useMemo, type ReactNode } from "react";
-import type { TrackMutationResult } from "../../modules/types";
-import { useTrackStore } from "../state/BrowserContext";
-
-export type TrackHeightContextValue = {
-  getTrackHeight: (trackId: string) => number | undefined;
-  updateHeight: (trackId: string, height: number) => TrackMutationResult;
-};
-
-export const TrackHeightContext = createContext<TrackHeightContextValue | null>(null);
+import { useMemo, type ReactNode } from "react";
+import { useTrackStore } from "../state/browserContextState";
+import { TrackHeightContext, type TrackHeightContextValue } from "./trackHeightContext";
 
 export function TrackHeightProvider({ children }: { children: ReactNode }) {
   const getTrack = useTrackStore((state) => state.getTrack);

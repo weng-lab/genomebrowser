@@ -47,7 +47,7 @@ export {
   useBrowserStore,
   useSettingsStore,
   useTrackStore,
-} from "./browser/state/BrowserContext";
+} from "./browser/state/browserContextState";
 export { createSettingsStore } from "./browser/state/settingsStore";
 export { createTrackStore } from "./browser/state/trackStore";
 export type {

@@ -1,6 +1,5 @@
-import { createContext, use, type ReactNode } from "react";
-
-const BrowserSvgContext = createContext<SVGSVGElement | null | undefined>(undefined);
+import type { ReactNode } from "react";
+import { BrowserSvgContext } from "./browserSvgState";
 
 export function BrowserSvgProvider({
   children,
@@ -10,10 +9,4 @@ export function BrowserSvgProvider({
   svg: SVGSVGElement | null;
 }) {
   return <BrowserSvgContext.Provider value={svg}>{children}</BrowserSvgContext.Provider>;
-}
-
-export function useBrowserSvg() {
-  const svg = use(BrowserSvgContext);
-  if (svg === undefined) throw new Error("useBrowserSvg must be used within a GenomeBrowser");
-  return svg;
 }
