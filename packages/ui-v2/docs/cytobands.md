@@ -184,4 +184,6 @@ Visual tooltips are pointer-hover-only. Keyboard focus does not open one and clo
 - It does not own or subscribe to a browser store. The caller selects and passes `currentRegion`.
 - It does not require a GenomeBrowser, track store, Apollo provider, or application tooltip-data API.
 - Cytoband bands, highlights, and the current-region bracket are clipped to the fetched chromosome extent. Tooltip SVG may extend below the requested ideogram height so it remains visible.
+- Highlight tooltips use an opaque neutral background so cytoband geometry cannot show through their text.
+- Cytobands does not impose positioning or z-index on its SVG. When multiple ideograms are stacked closely enough for tooltips to overlap later rows, the host should raise the hovered row in its own stacking context.
 - Overlapping pointer targets follow deterministic SVG paint order; the later rendered target receives pointer input where targets overlap.

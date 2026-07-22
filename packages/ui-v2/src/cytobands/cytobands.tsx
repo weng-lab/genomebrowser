@@ -88,7 +88,7 @@ export function Cytobands({
         aria-label={`Chromosome ${chromosome} ideogram`}
         height={renderedHeight}
         role={onHighlightClick || currentRegion ? "group" : "img"}
-        style={{ display: "block", overflow: "visible", position: "relative", zIndex: 1000 }}
+        style={{ display: "block", overflow: "visible" }}
         viewBox={`0 0 ${renderedWidth} ${renderedHeight}`}
         width={renderedWidth}
       >

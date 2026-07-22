@@ -607,11 +607,14 @@ describe("Cytobands highlights", () => {
       const tooltip = container?.querySelector('[role="tooltip"]');
       expect(tooltip?.namespaceURI).toBe("http://www.w3.org/2000/svg");
       expect(tooltip?.getAttribute("transform")).toBe("translate(0 20)");
+      expect(tooltip?.querySelector("rect")?.getAttribute("fill")).toBe("#f5f5f5");
       expect(tooltip?.querySelector("rect")?.getAttribute("stroke")).toBe("#777777");
       expect(tooltip?.querySelector("rect")?.getAttribute("width")).toBe("200");
       expect(container?.querySelector("foreignObject")).toBeNull();
-      expect(container?.querySelector<SVGSVGElement>("svg")?.style.position).toBe("relative");
-      expect(container?.querySelector<SVGSVGElement>("svg")?.style.zIndex).toBe("1000");
+      const svg = container?.querySelector<SVGSVGElement>("svg");
+      expect(svg?.style.overflow).toBe("visible");
+      expect(svg?.style.position).toBe("");
+      expect(svg?.style.zIndex).toBe("");
       dispatch(element, "pointerout");
       expect(onPointerLeave).toHaveBeenCalledTimes(1);
       expect(onPointerLeave.mock.calls[0]?.[0]).toBe(item);

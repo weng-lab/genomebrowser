@@ -83,13 +83,7 @@ function HighlightTooltip({
 
   return (
     <g pointerEvents="none" role="tooltip" transform={`translate(${x} ${height})`}>
-      <rect
-        fill="rgba(255, 255, 255, 0.96)"
-        height={tooltipHeight}
-        rx={3}
-        stroke="#777777"
-        width={tooltipWidth}
-      />
+      <rect fill="#f5f5f5" height={tooltipHeight} rx={3} stroke="#777777" width={tooltipWidth} />
       <g
         fill="#111111"
         fontFamily="sans-serif"
