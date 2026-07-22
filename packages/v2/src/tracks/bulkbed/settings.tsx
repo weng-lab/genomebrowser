@@ -1,17 +1,18 @@
 import type { CSSProperties } from "react";
-import { useRef } from "react";
+import { useEffect, useState } from "react";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackSettingsProps } from "../../modules/types";
 import type { BulkBedConfig, BulkBedDataset } from "./types";
 
-export function BulkBedSettings({ config, updateConfig }: TrackSettingsProps<BulkBedConfig>) {
-  const datasetKeys = useRef<string[]>([]);
-  const nextDatasetKey = useRef(0);
-  while (datasetKeys.current.length < config.datasets.length)
-    datasetKeys.current.push(`bulkbed-dataset-${nextDatasetKey.current++}`);
-  if (datasetKeys.current.length > config.datasets.length) {
-    datasetKeys.current = datasetKeys.current.slice(0, config.datasets.length);
-  }
+export function BulkBedSettings({ id, config, updateConfig }: TrackSettingsProps<BulkBedConfig>) {
+  const [datasetKeyState, setDatasetKeyState] = useState(() =>
+    createDatasetKeyState(id, config.datasets.length),
+  );
+  const renderedKeyState = reconcileDatasetKeys(datasetKeyState, id, config.datasets.length);
+
+  useEffect(() => {
+    setDatasetKeyState((current) => reconcileDatasetKeys(current, id, config.datasets.length));
+  }, [id, config.datasets.length]);
 
   const invalidDatasets =
     config.datasets.length === 0 ||
@@ -35,7 +36,7 @@ export function BulkBedSettings({ config, updateConfig }: TrackSettingsProps<Bul
       <div style={{ display: "grid", gap: "8px" }}>
         <div style={{ fontWeight: 600 }}>Datasets</div>
         {config.datasets.map((dataset, index) => (
-          <div key={datasetKeys.current[index]} style={datasetStyle}>
+          <div key={renderedKeyState.keys[index]} style={datasetStyle}>
             <label style={fieldStyle}>
               Name
               <input
@@ -64,12 +65,18 @@ export function BulkBedSettings({ config, updateConfig }: TrackSettingsProps<Bul
               type="button"
               disabled={config.datasets.length === 1}
               onClick={() => {
-                datasetKeys.current = datasetKeys.current.filter(
-                  (_, datasetIndex) => datasetIndex !== index,
-                );
-                updateConfig({
+                const result = updateConfig({
                   datasets: config.datasets.filter((_, datasetIndex) => datasetIndex !== index),
                 });
+                if (result.ok) {
+                  setDatasetKeyState((current) => {
+                    const reconciled = reconcileDatasetKeys(current, id, config.datasets.length);
+                    return {
+                      ...reconciled,
+                      keys: reconciled.keys.filter((_, datasetIndex) => datasetIndex !== index),
+                    };
+                  });
+                }
               }}
             >
               Remove
@@ -80,13 +87,22 @@ export function BulkBedSettings({ config, updateConfig }: TrackSettingsProps<Bul
           <button
             type="button"
             onClick={() => {
-              datasetKeys.current.push(`bulkbed-dataset-${nextDatasetKey.current++}`);
-              updateConfig({
+              const result = updateConfig({
                 datasets: [
                   ...config.datasets,
                   { name: `Dataset ${config.datasets.length + 1}`, url: "YOUR_URL_HERE" },
                 ],
               });
+              if (result.ok) {
+                setDatasetKeyState((current) => {
+                  const reconciled = reconcileDatasetKeys(current, id, config.datasets.length);
+                  return {
+                    ...reconciled,
+                    keys: [...reconciled.keys, datasetKey(reconciled.id, reconciled.nextKey)],
+                    nextKey: reconciled.nextKey + 1,
+                  };
+                });
+              }
             }}
           >
             Add dataset
@@ -98,6 +114,40 @@ export function BulkBedSettings({ config, updateConfig }: TrackSettingsProps<Bul
       </div>
     </SettingsSection>
   );
+}
+
+type DatasetKeyState = {
+  id: string;
+  keys: string[];
+  nextKey: number;
+};
+
+function createDatasetKeyState(id: string, count: number): DatasetKeyState {
+  return {
+    id,
+    keys: Array.from({ length: count }, (_, index) => datasetKey(id, index)),
+    nextKey: count,
+  };
+}
+
+function reconcileDatasetKeys(state: DatasetKeyState, id: string, count: number) {
+  if (state.id !== id) return createDatasetKeyState(id, count);
+  if (state.keys.length === count) return state;
+  if (state.keys.length > count) return { ...state, keys: state.keys.slice(0, count) };
+
+  const addedCount = count - state.keys.length;
+  return {
+    ...state,
+    keys: [
+      ...state.keys,
+      ...Array.from({ length: addedCount }, (_, index) => datasetKey(id, state.nextKey + index)),
+    ],
+    nextKey: state.nextKey + addedCount,
+  };
+}
+
+function datasetKey(id: string, sequence: number) {
+  return `bulkbed-dataset-${id}-${sequence}`;
 }
 
 function updateDataset(
