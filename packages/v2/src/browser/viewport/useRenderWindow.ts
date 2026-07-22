@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { expandRegion } from "./usePanController";
@@ -43,16 +43,13 @@ export function useRenderWindow({
     () => createRenderWindowSignature(targetRenderRegion, tracks),
     [targetRenderRegion, tracks],
   );
-  const dataKeyRef = useRef(dataKey);
-  dataKeyRef.current = dataKey;
-
   const settleData = useCallback(
     (key: string) => {
-      if (key !== dataKeyRef.current) return false;
+      if (key !== dataKey) return false;
       setDisplayedRenderRegion(targetRenderRegion);
       return true;
     },
-    [targetRenderRegion],
+    [dataKey, targetRenderRegion],
   );
 
   return {
