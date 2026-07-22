@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef, type ReactNode } from "react";
+import { useEffect, useReducer, useRef, type ReactNode } from "react";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { createReverseXScale } from "../../modules/utils/scale";
 import { svgPoint } from "../../modules/utils/svg";
@@ -29,36 +29,38 @@ export function SelectRegion({
   children?: ReactNode;
 }) {
   const [selection, dispatchSelection] = useReducer(selectionReducer, null);
-  const selectingRef = useRef(false);
-  const selectionRef = useRef<Selection>(selection);
+  const dragSessionRef = useRef<Selection>(null);
   const cleanupListenersRef = useRef<(() => void) | null>(null);
-  selectionRef.current = selection;
 
-  const cleanupListeners = useCallback(() => {
-    cleanupListenersRef.current?.();
-  }, []);
-
-  useEffect(() => cleanupListeners, [cleanupListeners]);
+  useEffect(
+    () => () => {
+      cleanupListenersRef.current?.();
+      cleanupListenersRef.current = null;
+    },
+    [],
+  );
 
   const startListening = () => {
     if (!svg) return;
-    cleanupListeners();
+    cleanupListenersRef.current?.();
 
     const handleMove = (event: MouseEvent) => {
-      if (!selectingRef.current) return;
+      const current = dragSessionRef.current;
+      if (!current) return;
       const point = svgPoint(svg, event.clientX, event.clientY);
       if (!point) return;
       const end = Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x));
+      dragSessionRef.current = { ...current, end };
       dispatchSelection({ type: "move", x: end });
     };
 
     const handleUp = () => {
-      if (!selectingRef.current) return;
-      cleanupListeners();
-      selectingRef.current = false;
-      dispatchSelection({ type: "clear" });
-      const current = selectionRef.current;
+      const current = dragSessionRef.current;
+      cleanupListenersRef.current?.();
+      cleanupListenersRef.current = null;
       if (!current) return;
+      dragSessionRef.current = null;
+      dispatchSelection({ type: "clear" });
       const start = Math.min(current.start, current.end);
       const end = Math.max(current.start, current.end);
       if (end - start >= 10) {
@@ -71,13 +73,7 @@ export function SelectRegion({
       }
     };
 
-    document.addEventListener("mousemove", handleMove);
-    document.addEventListener("mouseup", handleUp);
-    cleanupListenersRef.current = () => {
-      document.removeEventListener("mousemove", handleMove);
-      document.removeEventListener("mouseup", handleUp);
-      cleanupListenersRef.current = null;
-    };
+    cleanupListenersRef.current = listenForDocumentMouseEvents(handleMove, handleUp);
   };
 
   const handleMouseDown = (event: React.MouseEvent<SVGRectElement>) => {
@@ -86,8 +82,8 @@ export function SelectRegion({
     const point = svgPoint(svg, event.clientX, event.clientY);
     if (!point) return;
     const start = Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x));
+    dragSessionRef.current = { start, end: start };
     dispatchSelection({ type: "start", x: start });
-    selectingRef.current = true;
     startListening();
   };
 
@@ -118,6 +114,19 @@ export function SelectRegion({
       )}
     </>
   );
+}
+
+function listenForDocumentMouseEvents(
+  handleMove: (event: MouseEvent) => void,
+  handleUp: () => void,
+) {
+  document.addEventListener("mousemove", handleMove);
+  document.addEventListener("mouseup", handleUp);
+
+  return () => {
+    document.removeEventListener("mousemove", handleMove);
+    document.removeEventListener("mouseup", handleUp);
+  };
 }
 
 function selectionReducer(selection: Selection, action: SelectionAction): Selection {
