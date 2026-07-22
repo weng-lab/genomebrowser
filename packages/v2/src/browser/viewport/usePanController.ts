@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import type { BrowserRegion } from "../../modules/utils/region";
 import { usePanDrag } from "./usePanDrag";
 
@@ -46,11 +46,6 @@ export function usePanController({
   onPanStart: () => void;
 }) {
   const [isPanLocked, setIsPanLocked] = useState(false);
-  const regionRef = useRef(region);
-  const trackWidthRef = useRef(trackWidth);
-
-  regionRef.current = region;
-  trackWidthRef.current = trackWidth;
 
   const unlockPan = useCallback(() => {
     setIsPanLocked(false);
@@ -65,7 +60,7 @@ export function usePanController({
     onStart: onPanStart,
     onCommit: (committedDeltaPx) => {
       setIsPanLocked(true);
-      setRegion(getPanCommitRegion(regionRef.current, trackWidthRef.current, committedDeltaPx));
+      setRegion(getPanCommitRegion(region, trackWidth, committedDeltaPx));
     },
   });
 
