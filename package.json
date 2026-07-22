@@ -21,6 +21,7 @@
     "format:check": "pnpm -r format:check",
     "format:check:core": "pnpm --filter @weng-lab/genomebrowser format:check",
     "format:check:ui": "pnpm --filter @weng-lab/genomebrowser-ui format:check",
+    "validate:packed-consumers": "node scripts/validatePackedConsumers.mjs",
     "doctor": "pnpm exec react-doctor . --verbose",
     "publish:dry-run": "pnpm publish -r --tag alpha --dry-run --no-git-checks",
     "publish:alpha": "pnpm publish -r --tag alpha"

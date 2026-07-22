@@ -1,6 +1,6 @@
 # Ticket 05: Validate packed consumers
 
-**Status:** In Progress
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R10, R11, R12
 **Blocked by:** Ticket 04
@@ -15,15 +15,15 @@ Create or formalize a repeatable packed-artifact smoke-test seam outside workspa
 
 ## Acceptance Criteria
 
-- [ ] Verification packs both canonical packages and installs their tarballs without workspace linking or unpublished temporary package identities.
-- [ ] A clean consumer can import the runtime and UI package roots together and type-check against their emitted declarations.
-- [ ] A minimal production consumer build succeeds with the documented React and UI peer dependencies.
-- [ ] `@weng-lab/genomebrowser-ui/cli` resolves, and the installed `trackselect` executable responds successfully to its help invocation.
-- [ ] The UI resolves the packed runtime package rather than repository source aliases.
-- [ ] Tarball inspection confirms expected distribution files, declarations, shipped docs, schemas, executable files, and licenses are present, with source-only or secret material absent.
-- [ ] The validation is repeatable through a documented repository command or test procedure and cleans up or isolates generated artifacts.
-- [ ] Any public installation or CLI guidance corrected during validation is updated in the same ticket.
-- [ ] No npm publication or dist-tag mutation occurs.
+- [x] Verification packs both canonical packages and installs their tarballs without workspace linking or unpublished temporary package identities.
+- [x] A clean consumer can import the runtime and UI package roots together and type-check against their emitted declarations.
+- [x] A minimal production consumer build succeeds with the documented React and UI peer dependencies.
+- [x] `@weng-lab/genomebrowser-ui/cli` resolves, and the installed `trackselect` executable responds successfully to its help invocation.
+- [x] The UI resolves the packed runtime package rather than repository source aliases.
+- [x] Tarball inspection confirms expected distribution files, declarations, shipped docs, schemas, executable files, and licenses are present, with source-only or secret material absent.
+- [x] The validation is repeatable through a documented repository command or test procedure and cleans up or isolates generated artifacts.
+- [x] Any public installation or CLI guidance corrected during validation is updated in the same ticket.
+- [x] No npm publication or dist-tag mutation occurs.
 
 ## Verification
 

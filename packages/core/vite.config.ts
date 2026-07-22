@@ -61,6 +61,9 @@ export default defineConfig(({ command, isPreview, mode }) => {
           id === "buffer" ||
           id === "axios" ||
           id.startsWith("axios/"),
+        output: {
+          sourcemapExcludeSources: true,
+        },
       },
       sourcemap: true,
       cssCodeSplit: true,

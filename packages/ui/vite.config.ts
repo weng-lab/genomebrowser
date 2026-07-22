@@ -74,6 +74,9 @@ export default defineConfig(({ command, isPreview, mode }) => {
           /^@mui\/.*/,
           /^@emotion\/.*/,
         ],
+        output: {
+          sourcemapExcludeSources: true,
+        },
       },
       sourcemap: true,
       cssCodeSplit: true,
