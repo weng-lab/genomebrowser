@@ -1,51 +1,59 @@
 ---
 name: react-doctor
-description: Use when finishing a feature, fixing a bug, before committing React code, or when the user types `/doctor`, asks to scan, triage, or clean up React diagnostics. Covers lint, accessibility, bundle size, architecture. Includes a regression check and a full local-triage workflow that fetches the canonical playbook.
-version: "1.2.0"
+description: Use when the user asks to run React Doctor, inspect or triage its diagnostics, compare React health, or understand and configure its rules. Covers project selection, scan scope, findings, and rule configuration; it is not the repository's general verification checklist.
+version: "1.3.0"
 ---
 
 # React Doctor
 
-Scans React codebases for security, performance, correctness, and architecture issues. Outputs a 0–100 health score.
+Scans React codebases for security, performance, correctness, accessibility, and architecture issues. Its diagnostics and 0–100 health score are signals to investigate, not proof that code is correct.
 
-## After making React code changes:
+## Choose the scan
 
-Run `npx react-doctor@latest --verbose --scope changed` and check the score did not regress.
-
-If the score dropped, fix the regressions before committing.
-
-## For general cleanup or code improvement:
-
-Run `npx react-doctor@latest --verbose` (the default `--scope full`) to scan the full codebase. Fix issues by severity — errors first, then warnings.
-
-## /doctor — full local triage workflow
-
-When the user types `/doctor`, says "run react doctor", or asks for a full triage / cleanup pass (not just a regression check), fetch the canonical local-triage playbook and follow every step in it:
+Use the repository's installed version. Run a full scan when the user asks for general cleanup or a health assessment:
 
 ```bash
-curl --fail --silent --show-error \
-  --header 'Cache-Control: no-cache' \
-  https://www.react.doctor/prompts/react-doctor-agent.md
+pnpm exec react-doctor . --verbose
 ```
 
-The playbook is the single source of truth — a scan → filter → triage → fix → validate loop that edits the working tree directly (never commits, never opens PRs). Updating the prompt at its source updates every agent on its next fetch — no skill reinstall needed.
-
-Pair it with the matching per-rule prompts at `https://www.react.doctor/prompts/rules/<plugin>/<rule>.md` (fetched on demand inside the playbook) so each fix uses the canonical, reviewer-tested recipe.
-
-## Configuring or explaining rules
-
-When the user wants to understand a rule, disagrees with one, or wants to disable / tune which rules run (not fix code), read [references/explain.md](references/explain.md) and follow it. Start with `npx react-doctor@latest rules explain <rule>`, then apply the narrowest control via `npx react-doctor@latest rules disable|set|category|ignore-tag …`, which edits your `doctor.config.*` (or `package.json#reactDoctor`).
-
-## Command
+Target an affected package or project when a repository contains multiple projects:
 
 ```bash
-npx react-doctor@latest --verbose --scope changed
+pnpm exec react-doctor packages/ui-v2 --verbose
 ```
 
-| Flag              | Purpose                                                          |
-| ----------------- | ---------------------------------------------------------------- |
-| `.`               | Scan current directory                                           |
-| `--verbose`       | Show affected files and line numbers per rule                    |
-| `--scope changed` | Only report issues introduced vs the base branch (default: full) |
-| `--scope lines`   | Only report issues on the changed lines                          |
-| `--score`         | Output only the numeric score                                    |
+Use a Git-based scope only when the relevant Git changes are the intended scan boundary:
+
+```bash
+pnpm exec react-doctor . --verbose --scope changed --include-untracked
+```
+
+`files`, `changed`, and `lines` derive their inputs from Git relative to a base ref. They do not mean files touched during the current agent session. Do not use them when unrelated worktree changes would contaminate the scan.
+
+## Triage findings
+
+1. Inspect errors before warnings.
+2. Confirm each diagnostic applies to the code and intended behavior before changing it.
+3. Fix diagnostics only when the user asked for code changes or cleanup. Otherwise, report the findings without editing.
+4. Avoid unrelated findings unless the user requested a broader cleanup.
+5. Rerun the same command after fixes and report the remaining diagnostics and score.
+
+## Command options
+
+| Option                | Purpose                                                           |
+| --------------------- | ----------------------------------------------------------------- |
+| `[directory]`         | Scan a project directory; defaults to the current directory       |
+| `--project <name>`    | Select one or more workspace projects                             |
+| `--verbose`           | Show every rule and per-file details                              |
+| `--scope full`        | Scan the selected project in full; this is the default            |
+| `--scope files`       | Report diagnostics in files changed relative to the Git base      |
+| `--scope changed`     | Report new diagnostics relative to the Git base                   |
+| `--scope lines`       | Report diagnostics whose source spans touch Git-changed lines     |
+| `--include-untracked` | Include ordinary untracked files with a Git-based scope           |
+| `--base <ref>`        | Override the base ref used by a Git-based scope                   |
+| `--score`             | Output only the numeric score                                     |
+| `--no-score`          | Skip the score service, share URL, crash reporting, and telemetry |
+
+## Resources
+
+- `references/explain.md`: explains React Doctor rules and the available configuration controls. Read it when the user asks why a rule fired or wants to disable, enable, or tune rules.
