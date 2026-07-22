@@ -1,6 +1,6 @@
 # Ticket 05: Validate packed consumers
 
-**Status:** Ready
+**Status:** In Progress
 **Spec:** `./spec.md`
 **Requirements:** R10, R11, R12
 **Blocked by:** Ticket 04
