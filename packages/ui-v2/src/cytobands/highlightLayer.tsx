@@ -49,8 +49,8 @@ export function highlightLayer(props: highlightLayerProps) {
 
   return (
     <HighlightInteractions
-      {...props}
       key={`${props.chromosome}:${renderedHighlightIds}`}
+      {...props}
       renderedHighlights={renderedHighlights}
     />
   );

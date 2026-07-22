@@ -52,9 +52,10 @@ export function setOrderedCatalogSelection({
   const catalogTrackIds = getCatalogTrackIds(catalog);
   const next = selectedTrackIds.filter((id) => !catalogTrackIds.has(id) || selectedIds.has(id));
   const retainedIds = new Set(next);
-  const additions = getOrderedSelectedRows(catalog, view, selectedIds)
-    .map((row) => row.id)
-    .filter((id) => !retainedIds.has(id));
+  const additions: string[] = [];
+  for (const row of getOrderedSelectedRows(catalog, view, selectedIds)) {
+    if (!retainedIds.has(row.id)) additions.push(row.id);
+  }
 
   return [...next, ...additions];
 }
