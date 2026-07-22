@@ -1,4 +1,4 @@
-import type { TrackStoreInstance } from "@weng-lab/genomebrowser-v2";
+import type { TrackStoreInstance } from "@weng-lab/genomebrowser";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { TrackSelectColumnOverrides } from "./catalog/catalogColumns";
 import type { TrackSelectInteractionResolver } from "./catalog/catalogInteraction";

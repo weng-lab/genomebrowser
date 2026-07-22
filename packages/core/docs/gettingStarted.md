@@ -3,7 +3,7 @@
 Install the package and its React peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-v2 react@^19.2 react-dom@^19.2
+pnpm add @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2
 ```
 
 The browser needs one stable browser store, one stable track store, and at least one registered module. The application is responsible for measuring the available track width.
@@ -19,7 +19,7 @@ import {
   bigWigModule,
   createBrowserStore,
   createTrackStore,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 
 const marginWidth = 120;
 

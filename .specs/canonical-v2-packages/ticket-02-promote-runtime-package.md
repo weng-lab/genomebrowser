@@ -1,6 +1,6 @@
 # Ticket 02: Promote the runtime package
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R2, R3, R4, R5, R6, R7, R8, R12
 **Blocked by:** Ticket 01
@@ -15,14 +15,14 @@ Move `packages/v2` to `packages/core`, adopt the canonical runtime package name 
 
 ## Acceptance Criteria
 
-- [ ] The runtime resides at `packages/core`; `packages/v2` no longer exists.
-- [ ] Its manifest name is `@weng-lab/genomebrowser` and its version is `2.0.0-alpha.0`.
-- [ ] Runtime exports, declaration paths, and generated bundle names consistently use the canonical identity and remain valid after a clean build.
-- [ ] The UI package's workspace dependency and all source, test, configuration, and example imports resolve through `@weng-lab/genomebrowser`.
-- [ ] Active runtime maintainer docs move from `docs/v2` to `docs/core`, and runtime package docs use canonical installation and import instructions.
-- [ ] Root runtime scripts, `AGENTS.md`, and applicable checked-in tooling references use the `core` folder and canonical package name without temporary v2 aliases.
-- [ ] The root lockfile is regenerated with `packages/core` as the runtime importer and no `packages/v2` importer.
-- [ ] Prioritized `TODO.md` files are not edited; stale references are reported in the handoff.
+- [x] The runtime resides at `packages/core`; `packages/v2` no longer exists.
+- [x] Its manifest name is `@weng-lab/genomebrowser` and its version is `2.0.0-alpha.0`.
+- [x] Runtime exports, declaration paths, and generated bundle names consistently use the canonical identity and remain valid after a clean build.
+- [x] The UI package's workspace dependency and all source, test, configuration, and example imports resolve through `@weng-lab/genomebrowser`.
+- [x] Active runtime maintainer docs move from `docs/v2` to `docs/core`, and runtime package docs use canonical installation and import instructions.
+- [x] Root runtime scripts, `AGENTS.md`, and applicable checked-in tooling references use the `core` folder and canonical package name without temporary v2 aliases.
+- [x] The root lockfile is regenerated with `packages/core` as the runtime importer and no `packages/v2` importer.
+- [x] Prioritized `TODO.md` files are not edited; stale references are reported in the handoff.
 
 ## Verification
 

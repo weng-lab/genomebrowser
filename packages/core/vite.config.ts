@@ -46,8 +46,8 @@ export default defineConfig(({ command, isPreview, mode }) => {
     build: {
       lib: {
         entry: "src/lib.ts",
-        name: "genomebrowser-v2",
-        fileName: (format) => `genomebrowser-v2.${format}.js`,
+        name: "genomebrowser",
+        fileName: (format) => `genomebrowser.${format}.js`,
         formats: ["es"],
       },
       rollupOptions: {

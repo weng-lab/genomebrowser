@@ -1,4 +1,4 @@
-import { createTrackFromEntry, type TrackStore } from "@weng-lab/genomebrowser-v2";
+import { createTrackFromEntry, type TrackStore } from "@weng-lab/genomebrowser";
 import {
   adaptTrackSelectInteraction,
   type TrackSelectInteractionResolver,

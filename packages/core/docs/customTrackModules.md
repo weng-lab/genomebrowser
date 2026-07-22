@@ -22,7 +22,7 @@ import {
   useTooltip,
   type TrackRendererProps,
   type TrackSettingsProps,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 
 const configSchema = z.object({
   url: fetchOnChange(z.string().min(1)),

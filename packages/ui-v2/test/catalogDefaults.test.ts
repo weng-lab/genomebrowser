@@ -5,7 +5,7 @@ import {
   defineTrackModule,
   type TrackInteraction,
   type TrackRuntimeContext,
-} from "../../v2/src/lib";
+} from "@weng-lab/genomebrowser";
 import type {
   AnyTrackSelectInteraction,
   TrackSelectInteraction,

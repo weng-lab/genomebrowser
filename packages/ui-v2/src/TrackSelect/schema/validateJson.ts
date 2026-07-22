@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ModuleRegistry } from "@weng-lab/genomebrowser-v2";
+import type { ModuleRegistry } from "@weng-lab/genomebrowser";
 import {
   createCatalogSchema,
   type TrackSelectCatalog,

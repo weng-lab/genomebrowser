@@ -1,4 +1,4 @@
-import type { BrowserRegion } from "@weng-lab/genomebrowser-v2";
+import type { BrowserRegion } from "@weng-lab/genomebrowser";
 
 const bracketColor = "#1976d2";
 const minimumBracketWidth = 8;

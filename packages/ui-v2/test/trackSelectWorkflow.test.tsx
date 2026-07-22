@@ -10,7 +10,7 @@ import {
   type TrackInteraction,
   type TrackRuntimeContext,
   type TrackStore,
-} from "../../v2/src/lib";
+} from "@weng-lab/genomebrowser";
 import type { TrackSelectInteraction, TrackSelectInteractionResolver } from "../src/lib";
 import TrackSelect from "../src/TrackSelect/TrackSelect";
 import type {

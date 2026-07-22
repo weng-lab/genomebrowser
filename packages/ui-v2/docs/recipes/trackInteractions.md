@@ -18,7 +18,7 @@ import {
   bigWigModule,
   createBrowserStore,
   createTrackStore,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 
 const trackCatalogs = [
   {

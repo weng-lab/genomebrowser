@@ -17,7 +17,7 @@ import {
   useInteraction,
   useTooltip,
   type TrackRendererProps,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 
 type Item = { id: string; start: number; end: number };
 const configSchema = z.object({ url: fetchOnChange(z.string().min(1)) });

@@ -4,8 +4,8 @@ import { access } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import process from "node:process";
 import { createJiti } from "jiti";
-import { createModuleRegistry } from "@weng-lab/genomebrowser-v2";
-import type { AnyTrackModule } from "@weng-lab/genomebrowser-v2";
+import { createModuleRegistry } from "@weng-lab/genomebrowser";
+import type { AnyTrackModule } from "@weng-lab/genomebrowser";
 import { generateTrackCatalogJsonSchema } from "./TrackSelect/schema/generateJsonSchema";
 import type { TrackSelectCliConfig } from "./cli";
 

@@ -1,4 +1,4 @@
-import type { BrowserRegion, Highlight } from "@weng-lab/genomebrowser-v2";
+import type { BrowserRegion, Highlight } from "@weng-lab/genomebrowser";
 import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,

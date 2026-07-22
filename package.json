@@ -3,11 +3,11 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
-    "build:v2": "pnpm --filter @weng-lab/genomebrowser-v2 build",
+    "build:core": "pnpm --filter @weng-lab/genomebrowser build",
     "dev": "pnpm -r dev",
-    "dev:v2": "pnpm --filter @weng-lab/genomebrowser-v2 dev",
+    "dev:core": "pnpm --filter @weng-lab/genomebrowser dev",
     "dev:ui-v2": "pnpm --filter @weng-lab/genomebrowser-ui-v2 dev",
-    "test:v2": "pnpm --filter @weng-lab/genomebrowser-v2 test",
+    "test:core": "pnpm --filter @weng-lab/genomebrowser test",
     "lint": "pnpm -r lint",
     "doctor": "npx react-doctor@latest"
   },

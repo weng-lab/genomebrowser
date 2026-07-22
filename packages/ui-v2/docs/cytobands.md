@@ -20,7 +20,7 @@ Cytobands defaults to the same-origin `/api/screen-graphql` route. The host appl
 
 ```tsx
 import { Cytobands } from "@weng-lab/genomebrowser-ui-v2";
-import { createBrowserStore, type Highlight } from "@weng-lab/genomebrowser-v2";
+import { createBrowserStore, type Highlight } from "@weng-lab/genomebrowser";
 
 const useBrowserStore = createBrowserStore({
   region: "chr6:20,000,000-23,000,000",
@@ -78,7 +78,7 @@ Keep application-specific data outside `Highlight`. Use its stable ID or coordin
 ```tsx
 import { useEffect, useState } from "react";
 import { Cytobands } from "@weng-lab/genomebrowser-ui-v2";
-import type { Highlight } from "@weng-lab/genomebrowser-v2";
+import type { Highlight } from "@weng-lab/genomebrowser";
 
 const labels: Readonly<Record<string, string>> = {
   "broad-locus": "MHC-associated locus",

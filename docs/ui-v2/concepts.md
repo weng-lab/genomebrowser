@@ -1,6 +1,6 @@
 # UI v2 Concepts
 
-`@weng-lab/genomebrowser-ui-v2` provides higher-level React UI for `@weng-lab/genomebrowser-v2`. The v2 package owns browser runtime state, track modules, validation, and rendering. UI v2 consumes those public boundaries rather than duplicating them.
+`@weng-lab/genomebrowser-ui-v2` provides higher-level React UI for `@weng-lab/genomebrowser`. The core package owns browser runtime state, track modules, validation, and rendering. UI v2 consumes those public boundaries rather than duplicating them.
 
 TrackSelect is currently the main UI v2 subsystem. It lets an application describe available tracks as catalogs and lets a user reconcile those catalogs with a v2 track store.
 
@@ -87,4 +87,4 @@ Extend the schema layer when changing portable catalog data, the catalog layer f
 
 ## Related decisions
 
-UI v2 follows the v2 decisions that track state is validated through registered modules, startup stores remain externally initialized, and features expose narrow public APIs. UI v2 ADR 0001 records TrackSelect's catalog ownership boundary. See the v2 ADRs in `docs/v2/adr/`, especially 0001, 0003, 0006, and 0007, before changing these boundaries.
+UI v2 follows the runtime decisions that track state is validated through registered modules, startup stores remain externally initialized, and features expose narrow public APIs. UI v2 ADR 0001 records TrackSelect's catalog ownership boundary. See the runtime ADRs in `docs/core/adr/`, especially 0001, 0003, 0006, and 0007, before changing these boundaries.

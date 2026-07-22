@@ -1,18 +1,18 @@
 {
-  "name": "@weng-lab/genomebrowser-v2",
-  "version": "0.0.0",
+  "name": "@weng-lab/genomebrowser",
+  "version": "2.0.0-alpha.0",
   "private": true,
   "files": [
     "dist",
     "docs"
   ],
   "type": "module",
-  "module": "dist/genomebrowser-v2.es.js",
+  "module": "dist/genomebrowser.es.js",
   "types": "dist/src/lib.d.ts",
   "exports": {
     ".": {
       "types": "./dist/src/lib.d.ts",
-      "import": "./dist/genomebrowser-v2.es.js"
+      "import": "./dist/genomebrowser.es.js"
     }
   },
   "scripts": {

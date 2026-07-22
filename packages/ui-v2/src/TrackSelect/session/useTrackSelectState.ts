@@ -1,4 +1,4 @@
-import type { TrackStore } from "@weng-lab/genomebrowser-v2";
+import type { TrackStore } from "@weng-lab/genomebrowser";
 import { useState } from "react";
 import {
   clearOrderedSelection,

@@ -9,7 +9,7 @@ Create the track store and catalog outside React rendering. In a browser integra
 ```tsx
 import { useState } from "react";
 import { TrackSelect, type TrackSelectCatalog } from "@weng-lab/genomebrowser-ui-v2";
-import { bigWigModule, createTrackStore } from "@weng-lab/genomebrowser-v2";
+import { bigWigModule, createTrackStore } from "@weng-lab/genomebrowser";
 
 const useTrackStore = createTrackStore({
   modules: [bigWigModule],
@@ -313,7 +313,7 @@ Create `trackselect.config.ts` in the directory where you will run the command:
 
 ```ts
 import { defineTrackSelectConfig } from "@weng-lab/genomebrowser-ui-v2/cli";
-import { bigBedModule, bigWigModule } from "@weng-lab/genomebrowser-v2";
+import { bigBedModule, bigWigModule } from "@weng-lab/genomebrowser";
 
 export default defineTrackSelectConfig({
   modules: [bigWigModule, bigBedModule],
@@ -394,7 +394,7 @@ For build tooling that already owns a registry, generate the same schema program
 
 ```ts
 import { generateTrackCatalogJsonSchema } from "@weng-lab/genomebrowser-ui-v2";
-import { bigWigModule, createModuleRegistry } from "@weng-lab/genomebrowser-v2";
+import { bigWigModule, createModuleRegistry } from "@weng-lab/genomebrowser";
 
 const registry = createModuleRegistry([bigWigModule]);
 const schema = generateTrackCatalogJsonSchema(registry);

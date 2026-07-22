@@ -1,21 +1,21 @@
 # Testing Guidelines
 
-Run v2 tests from the repository root:
+Run runtime tests from the repository root:
 
 ```sh
-pnpm test:v2
+pnpm test:core
 ```
 
 Run the package command directly, or pass a test file while iterating:
 
 ```sh
-pnpm --filter @weng-lab/genomebrowser-v2 test
-pnpm --filter @weng-lab/genomebrowser-v2 exec vitest run test/stores/trackStore.test.ts
+pnpm --filter @weng-lab/genomebrowser test
+pnpm --filter @weng-lab/genomebrowser exec vitest run test/stores/trackStore.test.ts
 ```
 
 ## Test taxonomy and locations
 
-Tests live under `packages/v2/test` and mirror behavior boundaries rather than individual source files:
+Tests live under `packages/core/test` and mirror behavior boundaries rather than individual source files:
 
 - `modules`: module definition, inferred contracts, defaults, and validation
 - `stores`: browser, track, settings, and context-menu state transitions

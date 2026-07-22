@@ -1,4 +1,4 @@
-import type { Highlight } from "@weng-lab/genomebrowser-v2";
+import type { Highlight } from "@weng-lab/genomebrowser";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import type { renderedHighlight } from "./highlightLayer";
 

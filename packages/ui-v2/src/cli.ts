@@ -1,4 +1,4 @@
-import type { AnyTrackModule } from "@weng-lab/genomebrowser-v2";
+import type { AnyTrackModule } from "@weng-lab/genomebrowser";
 
 export type TrackSelectCliConfig = {
   modules: readonly AnyTrackModule[];

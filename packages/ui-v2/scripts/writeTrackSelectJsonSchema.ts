@@ -6,7 +6,7 @@ import {
   bigWigModule,
   createModuleRegistry,
   methylCModule,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 import { generateTrackCatalogJsonSchema } from "../src/TrackSelect/schema/generateJsonSchema";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");

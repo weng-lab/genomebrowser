@@ -1,4 +1,4 @@
-import { defaultScreenGraphQlEndpoint } from "@weng-lab/genomebrowser-v2";
+import { defaultScreenGraphQlEndpoint } from "@weng-lab/genomebrowser";
 import { useEffect, useId, useState } from "react";
 import { acquireCytobands, type cytobandData } from "./cytobandData";
 import type { CytobandColors, CytobandsProps } from "./cytobandsTypes";

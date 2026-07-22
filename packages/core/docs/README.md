@@ -1,18 +1,18 @@
-# @weng-lab/genomebrowser-v2
+# @weng-lab/genomebrowser
 
-`@weng-lab/genomebrowser-v2` is a React runtime for displaying genomic tracks. It provides the browser viewport, validated Zustand stores, first-party track modules, and an extension API for custom track types.
+`@weng-lab/genomebrowser` is a React runtime for displaying genomic tracks. It provides the browser viewport, validated Zustand stores, first-party track modules, and an extension API for custom track types.
 
 Install the package with its React peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-v2 react@^19.2 react-dom@^19.2
+pnpm add @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2
 ```
 
 The package is intended for client-side React 19.2+ applications. Its browser uses SVG, pointer events, `ResizeObserver` in responsive integrations, and remote data requests. It is not a server-rendered visualization runtime.
 
 ## v2 and UI-v2
 
-`@weng-lab/genomebrowser-v2` renders and manages the browser itself. `@weng-lab/genomebrowser-ui-v2` is a separate optional package for higher-level application UI such as catalog-backed track selection. Both can share the same v2 track store; installing the UI package is not required to render a browser.
+`@weng-lab/genomebrowser` renders and manages the browser itself. `@weng-lab/genomebrowser-ui-v2` is a separate optional package for higher-level application UI such as catalog-backed track selection. Both can share the same track store; installing the UI package is not required to render a browser.
 
 ## Recommended API
 

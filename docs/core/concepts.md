@@ -1,10 +1,10 @@
-# v2 Concepts
+# Runtime concepts
 
-This page orients maintainers to `@weng-lab/genomebrowser-v2`: what the package owns, how state and work move through it, and where to debug a problem.
+This page orients maintainers to `@weng-lab/genomebrowser`: what the package owns, how state and work move through it, and where to debug a problem.
 
 ## Purpose and boundaries
 
-v2 is a React genome-browser runtime. It coordinates a genomic viewport, a validated list of tracks, regional data requests, SVG rendering, and browser-level interactions. It intentionally does not provide the larger catalog and application UI; `@weng-lab/genomebrowser-ui-v2` builds those workflows on the v2 track store.
+The core package is a React genome-browser runtime. It coordinates a genomic viewport, a validated list of tracks, regional data requests, SVG rendering, and browser-level interactions. It intentionally does not provide the larger catalog and application UI; `@weng-lab/genomebrowser-ui-v2` builds those workflows on the runtime track store.
 
 The browser stays generic. Track modules own behavior specific to one track type: config validation, fetching, renderers, display modes, and optional settings and tooltip components. Stable behavior belongs on a module; values and callbacks that vary per track belong on its instance.
 

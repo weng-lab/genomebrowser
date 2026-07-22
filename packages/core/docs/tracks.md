@@ -51,7 +51,7 @@ const methylCTrack = methylCModule.create({
 Create Transcript tracks normally when the host implements the conventional proxy route:
 
 ```ts
-import { createTrackStore, transcriptModule } from "@weng-lab/genomebrowser-v2";
+import { createTrackStore, transcriptModule } from "@weng-lab/genomebrowser";
 
 const transcriptTrack = transcriptModule.create({
   id: "genes",
@@ -77,7 +77,7 @@ Transcript defaults to `/api/screen-graphql`. The host must implement that route
 Register every module used by initial tracks, later mutations, or catalog UI:
 
 ```ts
-import { bigWigModule, createTrackStore } from "@weng-lab/genomebrowser-v2";
+import { bigWigModule, createTrackStore } from "@weng-lab/genomebrowser";
 
 const useTrackStore = createTrackStore({
   modules: [bigWigModule],

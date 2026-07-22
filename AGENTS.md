@@ -4,7 +4,7 @@ pnpm monorepo for an embeddable React genome browser.
 
 ## Package map
 
-- `packages/v2` (`@weng-lab/genomebrowser-v2`) — the browser runtime.
+- `packages/core` (`@weng-lab/genomebrowser`) — the browser runtime.
 - `packages/ui-v2` (`@weng-lab/genomebrowser-ui-v2`) — catalog and
   application UI built on v2.
 
@@ -18,10 +18,10 @@ link from it into root `docs/` (those links break in `node_modules`).
 
 - Writing or editing code → `docs/conventions.md`. Always adhere to it.
 - Changing package behavior or architecture → the package's concepts doc and
-  ADRs (`docs/v2/`, `docs/ui-v2/`). ADRs are the source of truth — do not
+  ADRs (`docs/core/`, `docs/ui-v2/`). ADRs are the source of truth — do not
   stray from them; if a change requires it, stop and ask first, explaining why.
-- Writing or changing tests → `docs/v2/testing.md` / `docs/ui-v2/testing.md`.
-- Unfamiliar domain terms → `docs/v2/GLOSSARY.md`, `docs/ui-v2/GLOSSARY.md`.
+- Writing or changing tests → `docs/core/testing.md` / `docs/ui-v2/testing.md`.
+- Unfamiliar domain terms → `docs/core/GLOSSARY.md`, `docs/ui-v2/GLOSSARY.md`.
 - Creating or updating documentation → load the `genomebrowser-docs` skill.
 
 ## Documentation is part of every change

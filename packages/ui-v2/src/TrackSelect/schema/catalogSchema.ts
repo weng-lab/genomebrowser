@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ModuleRegistry } from "@weng-lab/genomebrowser-v2";
+import type { ModuleRegistry } from "@weng-lab/genomebrowser";
 
 export const TrackSelectMetadataValueSchema = z.union([
   z.string(),

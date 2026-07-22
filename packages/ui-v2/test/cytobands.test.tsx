@@ -5,7 +5,7 @@ import {
   defaultScreenGraphQlEndpoint,
   type BrowserRegion,
   type Highlight,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 import { act, useEffect, useState, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

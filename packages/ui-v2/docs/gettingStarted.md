@@ -10,7 +10,7 @@ import {
   createBrowserStore,
   createTrackStore,
   GenomeBrowser,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 
 const useBrowserStore = createBrowserStore({
   region: "chr1:1,000,000-1,100,000",

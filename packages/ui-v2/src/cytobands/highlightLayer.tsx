@@ -1,4 +1,4 @@
-import type { Highlight } from "@weng-lab/genomebrowser-v2";
+import type { Highlight } from "@weng-lab/genomebrowser";
 import {
   useState,
   type FocusEvent,

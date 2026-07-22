@@ -1,13 +1,13 @@
 # @weng-lab/genomebrowser-ui-v2
 
-`@weng-lab/genomebrowser-ui-v2` provides higher-level React UI for `@weng-lab/genomebrowser-v2`. Use it when an application needs browser controls such as `TrackSelect` in addition to the v2 rendering runtime and stores.
+`@weng-lab/genomebrowser-ui-v2` provides higher-level React UI for `@weng-lab/genomebrowser`. Use it when an application needs browser controls such as `TrackSelect` in addition to the rendering runtime and stores.
 
 ## Install
 
 Install UI v2, v2, and the UI package's peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui-v2 @weng-lab/genomebrowser-v2 react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
+pnpm add @weng-lab/genomebrowser-ui-v2 @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
 ```
 
 The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. Use your package manager's peer-dependency output to keep the installed versions compatible with the release you select.

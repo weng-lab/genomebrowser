@@ -1,6 +1,6 @@
 # @weng-lab/genomebrowser-ui-v2
 
-Ready-made React controls for applications built with `@weng-lab/genomebrowser-v2`.
+Ready-made React controls for applications built with `@weng-lab/genomebrowser`.
 
 UI v2 provides higher-level interfaces such as catalog-backed track selection and interactive cytoband navigation. Its controls share v2 stores with `GenomeBrowser`, keeping application UI and rendered tracks synchronized.
 
@@ -11,7 +11,7 @@ UI v2 provides higher-level interfaces such as catalog-backed track selection an
 Install UI v2, the browser runtime, and the required peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui-v2 @weng-lab/genomebrowser-v2 react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
+pnpm add @weng-lab/genomebrowser-ui-v2 @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
 ```
 
 The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. UI v2 participates in your application's normal MUI theme and does not require a package-specific stylesheet or provider.
@@ -40,7 +40,7 @@ import {
   bigWigModule,
   createBrowserStore,
   createTrackStore,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 
 const useBrowserStore = createBrowserStore({
   region: "chr1:1000000-1100000",
@@ -103,7 +103,7 @@ Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser. Catalog s
 
 ## When to use UI v2
 
-Use `@weng-lab/genomebrowser-v2` by itself when you only need to render and control a genome browser. Add UI v2 when you need its ready-made application controls and can provide the required MUI dependencies and licensing.
+Use `@weng-lab/genomebrowser` by itself when you only need to render and control a genome browser. Add UI v2 when you need its ready-made application controls and can provide the required MUI dependencies and licensing.
 
 ## Documentation
 

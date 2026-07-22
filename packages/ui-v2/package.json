@@ -33,7 +33,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@weng-lab/genomebrowser-v2": "workspace:*",
+    "@weng-lab/genomebrowser": "workspace:*",
     "jiti": "^2.6.2",
     "zod": "^4.4.3"
   },

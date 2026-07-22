@@ -1,4 +1,4 @@
-# @weng-lab/genomebrowser-v2
+# @weng-lab/genomebrowser
 
 A React runtime for displaying interactive genomic tracks.
 
@@ -9,7 +9,7 @@ Genome Browser v2 provides the browser viewport, validated state stores, built-i
 ## Install
 
 ```sh
-pnpm add @weng-lab/genomebrowser-v2 react@^19.2 react-dom@^19.2
+pnpm add @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2
 ```
 
 ## Quick start
@@ -22,7 +22,7 @@ import {
   bigWigModule,
   createBrowserStore,
   createTrackStore,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 
 const useBrowserStore = createBrowserStore({
   region: "chr1:1000000-1100000",

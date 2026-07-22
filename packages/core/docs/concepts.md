@@ -43,4 +43,4 @@ Interaction callbacks are functions and are therefore not part of serializable c
 
 ## Public boundary
 
-Application code should use exports from `@weng-lab/genomebrowser-v2`. The ordinary path is `GenomeBrowser`, store factories, and built-in modules. The custom-module path adds `defineTrackModule`, `fetchOnChange`, focused hooks, and module contract types. Files inside the package's `src` tree are implementation details.
+Application code should use exports from `@weng-lab/genomebrowser`. The ordinary path is `GenomeBrowser`, store factories, and built-in modules. The custom-module path adds `defineTrackModule`, `fetchOnChange`, focused hooks, and module contract types. Files inside the package's `src` tree are implementation details.

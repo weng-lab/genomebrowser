@@ -19,6 +19,7 @@ pnpm exec react-doctor . --verbose
 Target an affected package or project when a repository contains multiple projects:
 
 ```bash
+pnpm exec react-doctor packages/core --verbose
 pnpm exec react-doctor packages/ui-v2 --verbose
 ```
 

@@ -60,7 +60,7 @@ export default defineConfig(({ command, isPreview, mode }) => {
           "react",
           "react-dom",
           "react/jsx-runtime",
-          "@weng-lab/genomebrowser-v2",
+          "@weng-lab/genomebrowser",
           "jiti",
           "zod",
           /^node:.*/,

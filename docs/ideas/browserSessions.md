@@ -84,7 +84,7 @@ import {
   createTrackStore,
   type AnyTrackModule,
   type BrowserRegion,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 
 type CreateSessionOptions = {
   initialRegion: BrowserRegion;

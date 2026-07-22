@@ -19,7 +19,7 @@ import {
   type Highlight,
   type TrackRuntimeContext,
   transcriptModule,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 import {
   Cytobands,
   TrackSelect,

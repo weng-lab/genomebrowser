@@ -2,7 +2,7 @@ import type {
   AnyTrackInteraction,
   TrackInteraction,
   TrackRuntimeContext,
-} from "@weng-lab/genomebrowser-v2";
+} from "@weng-lab/genomebrowser";
 import type { TrackSelectMetadata, TrackSelectTrack } from "../schema/catalogSchema";
 
 export type TrackSelectCatalogContext = Readonly<{
