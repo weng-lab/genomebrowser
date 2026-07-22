@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { createFetchSignature } from "../../modules/fetchOnChange";
 import type { ModuleRegistry } from "../../modules/registry";
 import type { AnyTrackInstance } from "../../modules/types";
@@ -24,10 +24,8 @@ export function useTrackData({
   const [fetchingTrackIds, setFetchingTrackIds] = useState<Set<string>>(() => new Set());
   const previousRegionKey = useRef<string | null>(null);
   const previousFetchKeys = useRef<Record<string, string>>({});
-  const onSettledRef = useRef(onSettled);
+  const onSettledEvent = useEffectEvent(() => onSettled?.());
   const regionKey = createRegionKey(region);
-
-  onSettledRef.current = onSettled;
 
   useEffect(() => {
     let active = true;
@@ -54,7 +52,7 @@ export function useTrackData({
     if (tracksToFetch.length === 0) {
       previousRegionKey.current = regionKey;
       previousFetchKeys.current = currentFetchKeys;
-      if (isInitialFetch || isRegionChanged) onSettledRef.current?.();
+      if (isInitialFetch || isRegionChanged) onSettledEvent();
       return;
     }
 
@@ -77,7 +75,7 @@ export function useTrackData({
       previousFetchKeys.current = currentFetchKeys;
       setData(nextData);
       setFetchingTrackIds(new Set());
-      onSettledRef.current?.();
+      onSettledEvent();
     });
 
     return () => {

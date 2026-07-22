@@ -40,4 +40,4 @@ Track-store mutations use result objects for expected runtime failures. Catch th
 
 ## Client-runtime requirements
 
-Use the package in a React 19 client environment with `react` and `react-dom` installed. Rendering and interaction depend on browser SVG/DOM APIs, pointer events, and network access. Responsive examples additionally use `ResizeObserver`. In SSR frameworks, render the browser from a client-only boundary rather than expecting server-side SVG output.
+Use the package in a React 19.2+ client environment with `react` and `react-dom` installed. Rendering and interaction depend on browser SVG/DOM APIs, pointer events, and network access. Responsive examples additionally use `ResizeObserver`. In SSR frameworks, render the browser from a client-only boundary rather than expecting server-side SVG output.

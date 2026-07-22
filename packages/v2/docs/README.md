@@ -5,10 +5,10 @@
 Install the package with its React peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-v2 react@^19 react-dom@^19
+pnpm add @weng-lab/genomebrowser-v2 react@^19.2 react-dom@^19.2
 ```
 
-The package is intended for client-side React 19 applications. Its browser uses SVG, pointer events, `ResizeObserver` in responsive integrations, and remote data requests. It is not a server-rendered visualization runtime.
+The package is intended for client-side React 19.2+ applications. Its browser uses SVG, pointer events, `ResizeObserver` in responsive integrations, and remote data requests. It is not a server-rendered visualization runtime.
 
 ## v2 and UI-v2
 

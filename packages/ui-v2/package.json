@@ -58,7 +58,7 @@
     "@mui/x-data-grid-premium": "^8.0.0",
     "@mui/x-license": "^8.0.0",
     "@mui/x-tree-view": "^8.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   }
 }
