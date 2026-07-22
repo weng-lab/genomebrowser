@@ -7,8 +7,8 @@ pnpm monorepo for an embeddable React genome browser.
 - `packages/v2` (`@weng-lab/genomebrowser-v2`) — the browser runtime.
 - `packages/ui-v2` (`@weng-lab/genomebrowser-ui-v2`) — catalog and
   application UI built on v2.
-- `packages/core` and `packages/ui` — legacy, pending removal. Do not modify,
-  reference, or port patterns from them unless explicitly asked.
+
+These are the only workspace packages during the package transition.
 
 Root `docs/` is maintainer documentation. `packages/*/docs/` is user-facing
 documentation that ships with the package; it must be self-contained — never

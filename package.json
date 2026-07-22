@@ -3,19 +3,11 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
-    "build:core": "pnpm --filter @weng-lab/genomebrowser build",
-    "build:ui": "pnpm --filter @weng-lab/genomebrowser-ui build",
     "build:v2": "pnpm --filter @weng-lab/genomebrowser-v2 build",
     "dev": "pnpm -r dev",
-    "dev:core": "pnpm --filter @weng-lab/genomebrowser dev",
-    "dev:ui": "pnpm --filter @weng-lab/genomebrowser-ui dev",
     "dev:v2": "pnpm --filter @weng-lab/genomebrowser-v2 dev",
     "dev:ui-v2": "pnpm --filter @weng-lab/genomebrowser-ui-v2 dev",
     "test:v2": "pnpm --filter @weng-lab/genomebrowser-v2 test",
-    "publish:core": "pnpm --filter @weng-lab/genomebrowser publish",
-    "publish:ui": "pnpm --filter @weng-lab/genomebrowser-ui publish",
-    "version:core": "cd packages/core && pnpm version",
-    "version:ui": "cd packages/ui && pnpm version",
     "lint": "pnpm -r lint",
     "doctor": "npx react-doctor@latest"
   },
@@ -25,9 +17,6 @@
     "prettier": "3.6.2",
     "react-doctor": "^0.7.8",
     "typescript": "~5.7.3"
-  },
-  "dependencies": {
-    "@mui/x-tree-view": "^8.18.0"
   },
   "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b"
 }
