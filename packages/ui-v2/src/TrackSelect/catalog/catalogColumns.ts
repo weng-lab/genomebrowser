@@ -1,6 +1,6 @@
-import Box from "@mui/material/Box";
-import Tooltip from "@mui/material/Tooltip";
+import { createElement } from "react";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
+import { DataGridCellValue, ValueMarkerCell } from "./CatalogCells";
 import type { CatalogGridRow } from "./catalogRows";
 import type { TrackSelectColumn, TrackSelectView } from "../schema/catalogSchema";
 
@@ -42,53 +42,6 @@ export function getCatalogColumns(
   });
 }
 
-export function DataGridCellValue({ value }: { value: unknown }) {
-  const text = String(value ?? "");
-
-  return (
-    <Tooltip title={text} enterDelay={500} placement="top-start">
-      <Box
-        component="span"
-        sx={{
-          display: "block",
-          flex: 1,
-          minWidth: 0,
-          width: "100%",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {text}
-      </Box>
-    </Tooltip>
-  );
-}
-
-export function ValueMarkerCell({
-  value,
-  marker,
-}: {
-  value: unknown;
-  marker: ValueMarkerConfig | undefined;
-}) {
-  if (!marker) return <DataGridCellValue value={value} />;
-
-  return (
-    <Box
-      component="span"
-      sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0, width: "100%" }}
-    >
-      <Box
-        component="span"
-        aria-hidden
-        sx={{ width: 10, height: 10, flex: "0 0 auto", backgroundColor: marker.color }}
-      />
-      <DataGridCellValue value={value} />
-    </Box>
-  );
-}
-
 export function withValueMarkers(markers: ValueMarkerMap): TrackSelectColumnOverride {
   const markerConfigs = new Map(
     Object.entries(markers).map(([value, marker]) => [
@@ -100,7 +53,10 @@ export function withValueMarkers(markers: ValueMarkerMap): TrackSelectColumnOver
   return {
     renderCell: (params) => {
       const value = params.formattedValue ?? params.value;
-      return <ValueMarkerCell value={value} marker={markerConfigs.get(String(value ?? ""))} />;
+      return createElement(ValueMarkerCell, {
+        value,
+        marker: markerConfigs.get(String(value ?? "")),
+      });
     },
   };
 }
@@ -121,7 +77,7 @@ function getColumn(
 }
 
 function renderDefaultCell(params: GridRenderCellParams<CatalogGridRow>) {
-  return <DataGridCellValue value={params.formattedValue ?? params.value} />;
+  return createElement(DataGridCellValue, { value: params.formattedValue ?? params.value });
 }
 
 function getViewFields(view: TrackSelectView) {

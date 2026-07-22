@@ -1,11 +1,7 @@
 import { isValidElement, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
-import {
-  DataGridCellValue,
-  getCatalogColumns,
-  ValueMarkerCell,
-  withValueMarkers,
-} from "../src/TrackSelect/catalog/catalogColumns";
+import { DataGridCellValue, ValueMarkerCell } from "../src/TrackSelect/catalog/CatalogCells";
+import { getCatalogColumns, withValueMarkers } from "../src/TrackSelect/catalog/catalogColumns";
 import type { TrackSelectView } from "../src/TrackSelect/schema/catalogSchema";
 
 const defaultView: TrackSelectView = {
