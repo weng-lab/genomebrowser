@@ -1,22 +1,85 @@
-# Genome Browser v2
+# @weng-lab/genomebrowser-v2
 
-`@weng-lab/genomebrowser-v2` is the active v2 workspace for the genome browser.
+A React runtime for displaying interactive genomic tracks.
 
-This package is still being shaped. Keep the README focused on the package itself and put maintainer notes in the repository root `docs/` folder.
+Genome Browser v2 provides the browser viewport, validated state stores, built-in track modules, and an extension API for custom track types.
 
-## Docs
+> This package is under active development and its public API may change.
 
-User-facing package docs live in [`./docs`](./docs/) and are intended to ship with the package.
+## Install
 
-Maintainer docs, design notes, and ADRs live in the repository root `docs/` folder and are not shipped with this package.
-
-## Scripts
-
-Run package scripts through the workspace package manager:
-
-```bash
-pnpm --filter @weng-lab/genomebrowser-v2 build
-pnpm --filter @weng-lab/genomebrowser-v2 test
-pnpm --filter @weng-lab/genomebrowser-v2 lint
-pnpm --filter @weng-lab/genomebrowser-v2 format:check
+```sh
+pnpm add @weng-lab/genomebrowser-v2 react@^19.2 react-dom@^19.2
 ```
+
+## Quick start
+
+Create the browser and track stores once, outside component rendering, then pass them to `GenomeBrowser`.
+
+```tsx
+import {
+  GenomeBrowser,
+  bigWigModule,
+  createBrowserStore,
+  createTrackStore,
+} from "@weng-lab/genomebrowser-v2";
+
+const useBrowserStore = createBrowserStore({
+  region: "chr1:1000000-1100000",
+  marginWidth: 120,
+  trackWidth: 880,
+});
+
+const useTrackStore = createTrackStore({
+  modules: [bigWigModule],
+  tracks: [
+    bigWigModule.create({
+      id: "signal",
+      title: "Signal",
+      config: {
+        url: "YOUR_URL_HERE",
+      },
+    }),
+  ],
+});
+
+export function BrowserPage() {
+  return <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />;
+}
+```
+
+Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser.
+
+Store factory results are Zustand hooks, so their names should begin with `use`. Keep both stores stable: recreating them during render resets browser state and request coordination.
+
+For a responsive browser that follows its container width, see [Getting started](docs/gettingStarted.md).
+
+## What it provides
+
+- An interactive genomic viewport
+- Validated browser and track stores
+- Built-in genomic track modules
+- Programmatic navigation, highlighting, and track updates
+- Request coordination as regions and track configuration change
+- An extension API for custom fetch-and-render track modules
+
+## Do you need UI v2?
+
+Start with this package when you need to render or control a genome browser.
+
+Add `@weng-lab/genomebrowser-ui-v2` when you also need ready-made application controls such as catalog-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same v2 track store.
+
+## Documentation
+
+- [Getting started](docs/gettingStarted.md) - installation, stable stores, and responsive sizing
+- [Core concepts](docs/concepts.md) - state ownership, requests, and interaction lifetimes
+- [Recipes](docs/recipes.md) - common navigation, track, highlight, and sizing tasks
+- [Built-in tracks](docs/tracks.md) - available first-party track modules
+- [Custom track modules](docs/customTrackModules.md) - create a validated track type
+- [Troubleshooting](docs/troubleshooting.md) - diagnose setup, validation, request, and sizing problems
+
+## Runtime requirements
+
+Genome Browser v2 is intended for client-side React 19.2+ applications. It uses browser APIs including SVG, pointer events, remote data requests, and, when implementing responsive sizing, `ResizeObserver`.
+
+It is not a server-rendered visualization runtime.
