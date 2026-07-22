@@ -35,7 +35,7 @@ export const bigBedExample = bigBedModule.create(
   },
 );
 
-export const bulkBedExample = bulkBedModule.create(
+const bulkBedExample = bulkBedModule.create(
   {
     id: "chip-bulk-peaks",
     title: "bulk BigBed",
@@ -65,6 +65,7 @@ export const bulkBedExample = bulkBedModule.create(
     },
   },
 );
+void bulkBedExample;
 
 export const transcriptExample = transcriptModule.create(
   {
@@ -89,7 +90,7 @@ export const transcriptExample = transcriptModule.create(
   },
 );
 
-export const MOHDMethylC = methylCModule.create({
+const MOHDMethylC = methylCModule.create({
   id: "methylc",
   title: "MethylC Track",
   height: 100,
@@ -133,6 +134,7 @@ export const MOHDMethylC = methylCModule.create({
     },
   },
 });
+void MOHDMethylC;
 
 /**
  * Mukamel 2024 DNA Methylation Tracks
@@ -179,7 +181,7 @@ export const MukamelMethylC = (name: MukamelMethylationName) =>
       },
     },
   });
-export const mukamelMethylationNames = [
+const mukamelMethylationNames = [
   "CGE_ADARB2_ADAM33",
   "CGE_ADARB2_ADAM33.female",
   "CGE_ADARB2_ADAM33.female.old",
@@ -444,7 +446,7 @@ export const mukamelMethylationNames = [
 ] as const;
 export type MukamelMethylationName = (typeof mukamelMethylationNames)[number];
 
-export const BrainomeBigwig = (nt: Neurotransmitter, assay: Assay, age: BrainomeAge) =>
+const BrainomeBigwig = (nt: Neurotransmitter, assay: Assay, age: BrainomeAge) =>
   bigWigModule.create({
     id: nt + " " + assay + " " + age,
     title: nt + " " + assay + " " + age,
@@ -462,6 +464,7 @@ export const BrainomeBigwig = (nt: Neurotransmitter, assay: Assay, age: Brainome
         ".CGN-both.frac.cov5.bw",
     },
   });
+void BrainomeBigwig;
 
 export const BrainomeCave = (nt: Neurotransmitter, age: BrainomeAge, color: string) =>
   caveModule.create({
@@ -474,7 +477,7 @@ export const BrainomeCave = (nt: Neurotransmitter, age: BrainomeAge, color: stri
     },
   });
 
-export const brainomeAges = [
+const brainomeAges = [
   "Infancy",
   "Early_Childhood",
   "Late_Childhood",
@@ -485,5 +488,5 @@ export const brainomeAges = [
 export type BrainomeAge = (typeof brainomeAges)[number];
 export const neurotransmitter = ["GABA", "GLU"] as const;
 export type Neurotransmitter = (typeof neurotransmitter)[number];
-export const assays = ["BS", "hmC", "OXBS"] as const;
+const assays = ["BS", "hmC", "OXBS"] as const;
 export type Assay = (typeof assays)[number];

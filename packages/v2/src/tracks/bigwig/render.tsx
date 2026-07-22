@@ -143,7 +143,7 @@ function getLocalMouseX(event: MouseEvent<SVGRectElement>, width: number) {
   return ((event.clientX - box.left) / box.width) * width;
 }
 
-export function getRenderedPoints(
+function getRenderedPoints(
   config: BigWigConfig,
   data: BigWigData[],
   region: TrackRendererProps<BigWigConfig, BigWigData[]>["region"],
@@ -158,7 +158,7 @@ function getRenderRange(track: BigWigConfig, points: RenderedBigWigPoint[]): YRa
   return track.yRange ?? getBigWigRange(points);
 }
 
-export function createSignalPaths(points: RenderedBigWigPoint[], range: YRange, height: number) {
+function createSignalPaths(points: RenderedBigWigPoint[], range: YRange, height: number) {
   const y = createYScale(range, height);
   const zeroY = y(clamp(0, range));
   let minPath = `M 0 ${zeroY}`;
@@ -185,6 +185,6 @@ export function createSignalPaths(points: RenderedBigWigPoint[], range: YRange, 
   return { minPath, maxPath, clampHighPath, clampLowPath };
 }
 
-export function clamp(value: number, range: YRange) {
+function clamp(value: number, range: YRange) {
   return Math.max(range.min, Math.min(range.max, value));
 }

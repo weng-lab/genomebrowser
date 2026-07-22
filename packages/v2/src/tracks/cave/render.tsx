@@ -6,6 +6,8 @@ import { condenseBigWigData, getPointAtMouseX, lighten } from "../bigwig/helpers
 import type { RenderedBigWigPoint, YRange } from "../bigwig/types";
 import type { CaveConfig, CaveData, CaveTooltipItem } from "./types";
 
+const CAVE_SIGNAL_RANGE: YRange = { min: 0, max: 1 };
+
 export function FullCave({
   color = "#3333ff",
   data,
@@ -13,11 +15,10 @@ export function FullCave({
   height,
   region,
 }: TrackRendererProps<CaveConfig, CaveData>) {
-  const range = { min: 0, max: 1 };
   const topPoints = condenseBigWigData(data.top, region, width);
   const bottomPoints = condenseBigWigData(data.bottom, region, width);
-  const topPath = createCavePath(topPoints, range, height, "top");
-  const bottomPath = createCavePath(bottomPoints, range, height, "bottom");
+  const topPath = createCavePath(topPoints, CAVE_SIGNAL_RANGE, height, "top");
+  const bottomPath = createCavePath(bottomPoints, CAVE_SIGNAL_RANGE, height, "bottom");
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
