@@ -28,6 +28,8 @@ Keep MUI Data Grid gestures and dialog presentation in the manual harness unless
 
 `test/main.tsx` is the manual integration harness. It creates one browser store and one track store, then passes that same track store to `GenomeBrowser` and `TrackSelect`. Use it to inspect dialog layout, catalog navigation, MUI grid behavior, grouping, markers, and the effect of Submit on the rendered browser.
 
+The harness uses the packages' default `/api/screen-graphql` endpoint for Cytobands and Transcript. The UI-v2 Vite server proxies that route to SCREEN and adds `SCREEN_API_KEY` from the server process or local Vite environment. The key is not exposed through `import.meta.env` or included in the browser bundle. Set the key before starting the user-managed development server; without it, SCREEN will reject authenticated requests.
+
 Catalog fixtures live in `test/catalogs/`. Prefer a small fixture that isolates the behavior under test; use the larger biosample and PsychSCREEN fixtures for realistic manual checks. Keep fixture entries aligned with modules registered by the harness. Use `YOUR_URL_HERE` for new illustrative URLs unless an existing repository fixture URL is intentionally reused.
 
 The schema artifacts and scripts have distinct roles:

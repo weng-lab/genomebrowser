@@ -1,6 +1,6 @@
 # Transcript Track
 
-`transcriptModule` renders gene and transcript models from the SCREEN GraphQL API.
+`transcriptModule` renders gene and transcript models from a host-provided GraphQL endpoint.
 
 ## Config
 
@@ -9,6 +9,7 @@ const track = transcriptModule.create({
   id: "genes",
   title: "Genes",
   config: {
+    endpoint: "/api/screen-graphql",
     assembly: "GRCh38",
     version: 47,
   },
@@ -17,6 +18,7 @@ const track = transcriptModule.create({
 
 Fields:
 
+- `endpoint`: optional host-owned GraphQL POST endpoint; defaults to `/api/screen-graphql`
 - `assembly`: SCREEN assembly name, required
 - `version`: positive integer SCREEN annotation version, required
 - `geneName`: optional gene name to highlight
@@ -36,6 +38,6 @@ Defaults:
 
 ## Fetch Behavior
 
-The module posts a region query to `https://screen.api.wenglab.org/graphql`. `SCREEN_API_KEY` is read from `import.meta.env` when the package is built, so the package build environment must provide it. A browser runtime environment variable set after the library has been built does not inject the key. Fetching throws if the built value is missing.
+The module posts region queries to `config.endpoint` with JSON content type and no package-created authorization header. The default `/api/screen-graphql` route must be implemented by the host application; its server proxy owns any upstream credential. An endpoint override is non-secret data-source configuration and may be stored in catalogs or browser state.
 
-Changing `assembly` or `version` triggers a refetch. Changing `geneName`, colors, height, or display mode does not refetch data.
+Changing `endpoint`, `assembly`, or `version` triggers a refetch. Changing `geneName`, colors, height, or display mode does not refetch data.

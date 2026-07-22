@@ -141,9 +141,7 @@ function createBrowserSession({
 }
 
 function sameRegion(a: BrowserRegion, b: BrowserRegion) {
-  return (
-    a.chromosome === b.chromosome && a.start === b.start && a.end === b.end
-  );
+  return a.chromosome === b.chromosome && a.start === b.start && a.end === b.end;
 }
 ```
 
@@ -190,10 +188,7 @@ export function createGenePortalSession(region: BrowserRegion) {
 An optional dataset can produce a simpler session without forcing placeholder tracks:
 
 ```ts
-export function createDiseasePortalSession(
-  region: BrowserRegion,
-  summaryStatisticsUrl?: string,
-) {
+export function createDiseasePortalSession(region: BrowserRegion, summaryStatisticsUrl?: string) {
   const gene = createGeneTrack({ id: "disease-transcripts" });
 
   if (!summaryStatisticsUrl) {
@@ -266,11 +261,7 @@ Decide which factory inputs can change without replacing the session:
 If a construction-time input changes, recreate the owning component with a stable key or explicitly replace and dispose the session. Do not silently keep association tracks connected to the previous dataset.
 
 ```tsx
-<DiseaseBrowserPanel
-  key={diseaseId}
-  region={region}
-  summaryStatisticsUrl={summaryStatisticsUrl}
-/>
+<DiseaseBrowserPanel key={diseaseId} region={region} summaryStatisticsUrl={summaryStatisticsUrl} />
 ```
 
 Use keys for genuine resource identity changes, not as a general way to force refreshes.
@@ -290,11 +281,7 @@ Track Select creates and reconciles catalog tracks using the same track store. T
 ```ts
 const STANDARD_MODULES = [bigBedModule, bigWigModule, transcriptModule];
 
-const SINGLE_CELL_MODULES = [
-  ...STANDARD_MODULES,
-  singleCellGrnModule,
-  singleCellQtlModule,
-];
+const SINGLE_CELL_MODULES = [...STANDARD_MODULES, singleCellGrnModule, singleCellQtlModule];
 ```
 
 Do not expose a catalog containing `singleCellGrn` to a store that has not registered that module. Conversely, avoid registering and exposing every application module everywhere merely to make validation pass. Match registries and catalogs to the session's product scope.
@@ -350,16 +337,12 @@ useEffect(
 If Track Select reapplies defaults when it mounts, conditionally rendering the active browser can erase user changes every time a tab is revisited. A useful compromise is to mount each expensive browser lazily, then keep it mounted while hidden:
 
 ```tsx
-const [visited, setVisited] = useState<ReadonlySet<number>>(
-  () => new Set([ATAC_TAB]),
-);
+const [visited, setVisited] = useState<ReadonlySet<number>>(() => new Set([ATAC_TAB]));
 
 function selectTab(nextTab: number) {
   setActiveTab(nextTab);
   if (isBrowserTab(nextTab)) {
-    setVisited((current) =>
-      current.has(nextTab) ? current : new Set([...current, nextTab]),
-    );
+    setVisited((current) => (current.has(nextTab) ? current : new Set([...current, nextTab])));
   }
 }
 

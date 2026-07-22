@@ -1,45 +1,43 @@
 # Genomebrowser Monorepo
 
-## Refer to Docs
+pnpm monorepo for an embeddable React genome browser.
 
-Root `docs/` contains maintainer documentation: ADRs, design notes, style guidance, implementation concepts, and other contributor-facing material.
+## Package map
 
-Package-level `packages/*/docs/` contains user-facing documentation that ships with packages and must be readable from `node_modules`.
+- `packages/v2` (`@weng-lab/genomebrowser-v2`) — the browser runtime.
+- `packages/ui-v2` (`@weng-lab/genomebrowser-ui-v2`) — catalog and
+  application UI built on v2.
+- `packages/core` and `packages/ui` — legacy, pending removal. Do not modify,
+  reference, or port patterns from them unless explicitly asked.
 
-Package docs must be self-contained. Do not link upward from `packages/*/docs/` into root `docs/`, because those links break from installed packages.
+Root `docs/` is maintainer documentation. `packages/*/docs/` is user-facing
+documentation that ships with the package; it must be self-contained — never
+link from it into root `docs/` (those links break in `node_modules`).
 
-ALWAYS refer to the relevant root maintainer docs and ADRs before changing package behavior.
+## When to read what
 
-After completing a change, check whether it affects documented behavior, APIs, config, or decisions. If so, suggest updates to the relevant maintainer or package docs, naming the specific files. Do not let docs silently drift from the code.
+- Writing or editing code → `docs/conventions.md`. Always adhere to it.
+- Changing package behavior or architecture → the package's concepts doc and
+  ADRs (`docs/v2/`, `docs/ui-v2/`). ADRs are the source of truth — do not
+  stray from them; if a change requires it, stop and ask first, explaining why.
+- Writing or changing tests → `docs/v2/testing.md` / `docs/ui-v2/testing.md`.
+- Unfamiliar domain terms → `docs/v2/GLOSSARY.md`, `docs/ui-v2/GLOSSARY.md`.
+- Creating or updating documentation → load the `genomebrowser-docs` skill.
 
-## ADRs are the source of truth
+## Documentation is part of every change
 
-A package's ADR documents are the source of truth for high level decisions. DO NOT stray from them. If you find it necessary, ask first and explain why before doing.
+If a change affects public behavior, APIs, configuration, or contributor
+guidance, the docs update ships in the same change — never as a follow-up.
+In your final response, name the docs files updated or state why the change
+has no documentation impact.
 
-## Never run `pnpm run dev`
+## Hard rules
 
-User will run the dev server manually.
-
-## Don't hallucinate track URLs
-
-Use `"YOUR_URL_HERE"` or existing URLs when making example track configs.
-
-## Fix State Placement Before Memoizing
-
-Before adding `useMemo`/`useCallback`/`React.memo`, check: is state placed too high (in a parent/root re-rendering siblings that don't need it)? Fix colocation first. Only memoize for a measured expensive computation or to stabilize a prop for a `React.memo` child — not as a default reflex.
-
-## Zustand stores ARE React hooks
-
-The name of a zustand store MUST include "use" at the beginning, as they are React hooks, and must be treated as such by the compilers.
-
-## Read .devserve for server logs
-
-Inside .devserve there are out.log and err.log files. Read them when attempting to diagnose issues where the console would be necessary to read.
-
-## Reference style sheet
-
-Reference docs/style.md for code style guidelines and ALWAYS adhere to them.
-
-## TODO.md files
-
-These files include prioritized tasks/decisions/ideas/prototypes to work on. Only modify when explicitly asked to.
+- Never run `pnpm run dev`. The user runs the dev server manually.
+- Read `.devserve/out.log` and `.devserve/err.log` when you need server or
+  console output to diagnose an issue.
+- Never invent track URLs in examples — use `"YOUR_URL_HERE"` or existing URLs.
+- Zustand store names MUST start with `use` — they are React hooks and the
+  compiler treats them as such.
+- `TODO.md` files are the user's prioritized lists. Only modify when
+  explicitly asked.

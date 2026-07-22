@@ -75,4 +75,4 @@ Start from the symptom:
 - pan offset, stale region, or interaction lock: `src/browser/viewport`, `src/browser/GenomeBrowser.tsx`, and viewport tests
 - tooltip, highlight, or context-menu behavior: the matching feature directory under `src/browser`
 
-For browser-only failures that require console output, inspect `.devserve/out.log` and `.devserve/err.log`. See [Tracks and track modules](tracks.md), [Schema validation](validation.md), [Module-author helpers](helpers.md), and [Testing guidelines](testing.md) for focused guidance.
+For browser-only failures that require console output, inspect `.devserve/out.log` and `.devserve/err.log`. See [Tracks and track modules](tracks.md), [SCREEN GraphQL data fetching](dataFetching.md), [Schema validation](validation.md), [Module-author helpers](helpers.md), and [Testing guidelines](testing.md) for focused guidance.

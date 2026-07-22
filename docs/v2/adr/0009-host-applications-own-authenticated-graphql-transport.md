@@ -1,0 +1,3 @@
+# Host applications own authenticated GraphQL transport
+
+Browser packages own their GraphQL operations, variables, response validation, and domain errors, but they never read, accept, or embed service credentials or default to an authenticated upstream endpoint. SCREEN-backed features default to the conventional same-origin route `/api/screen-graphql` and accept a non-secret endpoint override in component or track configuration. Host applications route that browser request through a server proxy that adds credentials; they may also point Apollo at the same proxy, but Apollo is product infrastructure rather than a genomebrowser dependency or provider contract.
