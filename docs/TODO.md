@@ -13,3 +13,5 @@ Make a design.md doc that describes the ui design phillosophy, including fonts c
 Make clean tooltips and settings modals for each module and component v2
 
 Port/write from scratch the UI components like zoom buttons, searches, highlight modals, etc.
+
+Cytoband should get the current list of browser highlights, and have them navigable on click

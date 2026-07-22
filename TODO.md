@@ -20,6 +20,13 @@ before implementation. Package-specific implementation work remains in each pack
       the chosen setup. Until then, keep deterministic logic and store behavior in existing unit or
       hook-level tests, and explicitly waive any beta test gates that require a new test layer.
 
+## Components
+
+Highlight Modal
+Settings Modal Components per module
+Tooltips
+check docs/ideas
+
 ## Later
 
 Add cross-package or hard-to-reverse decisions here as they arise. Keep concrete implementation

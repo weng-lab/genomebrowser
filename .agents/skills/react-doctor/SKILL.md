@@ -1,7 +1,7 @@
 ---
 name: react-doctor
 description: Use when the user asks to run React Doctor, inspect or triage its diagnostics, compare React health, or understand and configure its rules. Covers project selection, scan scope, findings, and rule configuration; it is not the repository's general verification checklist.
-version: "1.3.0"
+notes: Adapted from the original React Doctor skill.
 ---
 
 # React Doctor

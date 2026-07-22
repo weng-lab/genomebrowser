@@ -14,7 +14,7 @@ specifically by another library, package, script, etc.
 
 Compose components such that their main entry point is mainly orchestration.
 The main component should be easy to reason about and be less than 300 lines
-long.
+long. No index.ts or barrel imports.
 
 ## Fix state placement before memoizing
 
