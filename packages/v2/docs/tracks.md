@@ -9,7 +9,7 @@ The package currently exports these first-party modules:
 - `bigWigModule`: quantitative BigWig signal
 - `bigBedModule`: generic BigBed intervals
 - `bulkBedModule`: multiple BigBed datasets in one row
-- `transcriptModule`: transcript models from the SCREEN service
+- `transcriptModule`: transcript models from a host-owned GraphQL endpoint
 - `methylCModule`: split-strand methylation channels
 - `caveModule`: CAVE data
 
@@ -48,7 +48,29 @@ const methylCTrack = methylCModule.create({
 });
 ```
 
-The Transcript module uses the SCREEN service and requires its API key to be present when this package is built. CAVE selects from package-defined datasets rather than accepting a URL. These service-specific modules may not fit every deployment.
+Create Transcript tracks normally when the host implements the conventional proxy route:
+
+```ts
+import { createTrackStore, transcriptModule } from "@weng-lab/genomebrowser-v2";
+
+const transcriptTrack = transcriptModule.create({
+  id: "genes",
+  title: "Genes",
+  config: {
+    assembly: "GRCh38",
+    version: 47,
+  },
+});
+
+const useTrackStore = createTrackStore({
+  modules: [transcriptModule],
+  tracks: [transcriptTrack],
+});
+```
+
+Transcript defaults to `/api/screen-graphql`. The host must implement that route as a GraphQL POST endpoint or provide a different non-secret `config.endpoint`. The module does not read a service key or construct an authorization header, so authenticated services should be reached through a host-owned server proxy that adds credentials server-side. The browser's normal `fetch` credential behavior still applies, including same-origin cookies. CAVE selects from package-defined datasets rather than accepting a URL. These service-specific modules may not fit every deployment.
+
+`defaultScreenGraphQlEndpoint` exports the default route string for hosts that need to share the same value with their own routing or request code.
 
 ## Registration
 

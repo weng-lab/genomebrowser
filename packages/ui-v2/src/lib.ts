@@ -1,5 +1,7 @@
 import TrackSelect from "./TrackSelect/TrackSelect";
 export { TrackSelect };
+export { Cytobands } from "./cytobands/cytobands";
+export type { CytobandColors, CytobandsProps } from "./cytobands/cytobands";
 export { withValueMarkers } from "./TrackSelect/catalog/catalogColumns";
 export type {
   TrackSelectColumnOverride,

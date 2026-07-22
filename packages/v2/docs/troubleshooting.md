@@ -20,7 +20,7 @@ Do not mark visual-only fields. They should re-render with existing data. If a b
 
 Fetch failures appear in the affected track's error state. Check browser network tools for status, CORS, authentication, and response-shape errors. Confirm the URL points to the format expected by the selected module; `YOUR_URL_HERE` in examples is only a placeholder.
 
-The Transcript module's API key is read from `import.meta.env.SCREEN_API_KEY` when the package is built. Supplying a runtime-only browser environment variable after build does not inject it.
+For Transcript failures, confirm the host implements the default `/api/screen-graphql` route or that the track's `config.endpoint` names the intended alternative. The module does not construct an authorization header. If the upstream service requires a credential, point the track at an application-owned server proxy and verify that the proxy adds the credential server-side.
 
 ## Browser is blank, clipped, or too wide
 

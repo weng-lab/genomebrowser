@@ -3,6 +3,7 @@ import type { TrackInteraction } from "../../modules/types";
 export type TranscriptDisplay = "squish" | "pack";
 
 export type TranscriptConfig = {
+  endpoint: string;
   assembly: string;
   version: number;
   geneName?: string;
@@ -57,7 +58,7 @@ export type TranscriptInput = {
   display?: TranscriptDisplay;
   height?: number;
   color?: string;
-  config: TranscriptConfig;
+  config: Omit<TranscriptConfig, "endpoint"> & { endpoint?: string };
 };
 
 export type TranscriptInteraction = TrackInteraction<Transcript, TranscriptConfig>;

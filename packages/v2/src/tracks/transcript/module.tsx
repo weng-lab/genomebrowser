@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchOnChange } from "../../modules/fetchOnChange";
+import { defaultScreenGraphQlEndpoint } from "../../screen";
 import { TrackTooltip } from "../shared/TrackTooltip";
 import { fetchTranscript } from "./fetch";
 import { PackTranscript, SquishTranscript } from "./render";
@@ -8,6 +9,7 @@ import { TranscriptSettings } from "./settings";
 import type { Transcript } from "./types";
 
 const transcriptInputSchema = z.object({
+  endpoint: fetchOnChange(z.string().trim().min(1).default(defaultScreenGraphQlEndpoint)),
   assembly: fetchOnChange(z.string().min(1)),
   version: fetchOnChange(z.number().int().positive()),
   geneName: z.string().optional(),

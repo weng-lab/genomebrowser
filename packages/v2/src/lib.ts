@@ -1,5 +1,6 @@
 export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
+export { defaultScreenGraphQlEndpoint } from "./screen";
 
 export { defineTrackModule } from "./modules/defineTrackModule";
 export { createModuleRegistry, createTrackFromEntry } from "./modules/registry";

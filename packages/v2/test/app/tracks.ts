@@ -74,6 +74,7 @@ export const transcriptExample = transcriptModule.create(
     color: "#7a4fb3",
     height: 35,
     config: {
+      endpoint: "/api/screen-graphql",
       assembly: "GRCh38",
       version: 40,
       geneName: "SOX4",

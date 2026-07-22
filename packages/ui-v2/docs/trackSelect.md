@@ -1,161 +1,120 @@
 # TrackSelect
 
-Use `TrackSelect` to let users browse track catalogs and update the tracks shown by a v2 `GenomeBrowser`. It is a controlled dialog and a catalog adapter, not a track renderer: the host owns whether it is open, and a shared v2 track store owns committed tracks.
+`TrackSelect` lets users browse one or more track catalogs and commit a selection to a v2 track store. Use it with `GenomeBrowser` when your application needs a catalog-driven track picker rather than a fixed list of tracks.
 
-Start with the integration in [Getting started](gettingStarted.md). The recommended public surface is small:
+## Usage
 
-- `TrackSelect` for the dialog
-- `withValueMarkers` when catalog values need simple color markers
-- `resolveTrackInteraction` when catalog-created tracks need host callbacks
-- the `trackselect schema` command for catalog authoring
-- `validateJson` or `generateTrackCatalogJsonSchema` only when an application needs programmatic tooling
-
-## Dialog lifecycle
-
-Pass a stable `trackCatalogs` array and the same `useTrackStore` hook used by `GenomeBrowser`. The host controls `open` and closes the dialog in `onClose`.
-
-Use `defaultTrackIds` to initialize the catalog-owned part of the track store and define the selection restored by Reset. The array contains catalog-qualified IDs in browser order:
+Create the track store and catalog outside React rendering. In a browser integration, pass the same store hook to `TrackSelect` and `GenomeBrowser`.
 
 ```tsx
-<TrackSelect
-  open={open}
-  onClose={onClose}
-  trackCatalogs={trackCatalogs}
-  useTrackStore={useTrackStore}
-  defaultTrackIds={["genes::gencode", "signals::example-signal"]} // catalogId::trackId
-/>
+import { useState } from "react";
+import { TrackSelect, type TrackSelectCatalog } from "@weng-lab/genomebrowser-ui-v2";
+import { bigWigModule, createTrackStore } from "@weng-lab/genomebrowser-v2";
+
+const useTrackStore = createTrackStore({
+  modules: [bigWigModule],
+});
+
+const trackCatalogs = [
+  {
+    id: "signals",
+    label: "Signal tracks",
+    views: [
+      {
+        id: "all-signals",
+        label: "All signals",
+        columns: [{ field: "title", label: "Track" }],
+        grouping: [],
+        leaf: "title",
+      },
+    ],
+    tracks: [
+      {
+        type: "bigwig",
+        id: "example-signal",
+        title: "Example signal",
+        config: { url: "YOUR_URL_HERE" },
+        metadata: {},
+      },
+    ],
+  },
+] satisfies TrackSelectCatalog[];
+
+export function TrackPicker() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)}>
+        Choose tracks
+      </button>
+
+      <TrackSelect
+        open={open}
+        onClose={() => setOpen(false)}
+        trackCatalogs={trackCatalogs}
+        useTrackStore={useTrackStore}
+      />
+    </>
+  );
+}
 ```
 
-TrackSelect preserves non-catalog tracks first in their existing order, then places initialized tracks in the exact supplied order. Passing `undefined` for both `initialTrackIds` and `defaultTrackIds` leaves the initial store unchanged. Passing an explicit empty array removes all tracks represented by the supplied catalogs.
+The host controls the dialog through `open` and `onClose`. Browsing and selection changes remain a draft until the user submits them.
 
-Use `initialTrackIds` when the first selection should differ from the product defaults, such as when restoring a saved selection. It takes precedence over `defaultTrackIds` during initialization, while Reset continues to target `defaultTrackIds`. TrackSelect initializes when it mounts and whenever its current initialization identity changes: a different store, different catalog/view/track IDs, different effective initial IDs, or a different `maxTracks`. Changing only `defaultTrackIds` while explicit `initialTrackIds` are present changes the Reset target without overwriting the store. A remount starts a new initialization lifetime. Ordinary updates to the same store do not reapply initial tracks.
+See [Getting started](gettingStarted.md) for a complete example in which `TrackSelect` and `GenomeBrowser` share the store.
 
-The host can persist successful submissions without subscribing to unrelated store changes:
+## Examples
+
+### Set initial and reset selections
+
+Use catalog-qualified IDs in the form `${catalogId}::${trackId}`. `initialTrackIds` selects tracks for the current initialization lifetime, while `defaultTrackIds` defines the selection restored by Reset.
 
 ```tsx
 <TrackSelect
   open={open}
-  onClose={onClose}
+  onClose={() => setOpen(false)}
   trackCatalogs={trackCatalogs}
   useTrackStore={useTrackStore}
   initialTrackIds={savedTrackIds}
   defaultTrackIds={["signals::example-signal"]}
+/>
+```
+
+When both props are supplied, `initialTrackIds` takes precedence during initialization. Reset still targets `defaultTrackIds`. Passing an explicit empty array removes all tracks represented by the supplied catalogs; leaving both props `undefined` preserves the initial store.
+
+Initialization runs when the component mounts and when its initialization identity changes: the store, catalog/view/track IDs, effective initial IDs, or `maxTracks`. Changing only `defaultTrackIds` while `initialTrackIds` is present changes the Reset target without rewriting the store. Ordinary updates to the same store do not reapply the initial selection, while a remount starts a new initialization lifetime.
+
+TrackSelect preserves non-catalog tracks first in their existing order, followed by initialized catalog tracks in the supplied ID order.
+
+### Persist submitted selections
+
+`onCommittedTrackIds` runs after the store accepts Submit. It receives the complete ordered catalog selection and excludes tracks outside the supplied catalogs.
+
+```tsx
+<TrackSelect
+  open={open}
+  onClose={() => setOpen(false)}
+  trackCatalogs={trackCatalogs}
+  useTrackStore={useTrackStore}
   onCommittedTrackIds={(trackIds) => {
     sessionStorage.setItem("selectedTracks", JSON.stringify(trackIds));
   }}
 />
 ```
 
-Storage access, parsing, and invalid-data handling remain host responsibilities. `onCommittedTrackIds` receives the complete ordered catalog selection after the store accepts Submit. It excludes tracks outside the supplied catalogs and does not run for initialization, draft actions, Cancel, or failed Submit.
+The callback does not run for initialization, draft actions, Cancel, or failed submissions. Storage access, parsing, and invalid-data handling remain application responsibilities.
 
-Each open session starts with a draft selection. Browsing, selecting, Clear, and Reset edit that draft without changing the track store.
+### Customize catalog columns
 
-- **Clear** asks for confirmation, then clears the active catalog on its detail screen or all catalogs on the catalog-list screen.
-- **Reset** asks for confirmation, then restores `defaultTrackIds` in their supplied order. Without `defaultTrackIds`, it clears the catalog selection. It never changes non-catalog tracks.
-- **Cancel**, the close button, and normal dialog dismissal discard the draft and call `onClose`.
-- **Submit** computes additions and removals for catalog tracks, creates additions through the track-store registry, and applies the changes as one store update. Tracks not represented by the supplied catalogs are preserved.
-
-After a successful Submit, TrackSelect calls `onClose`. If track creation or the store update fails, the store remains unchanged and the dialog stays open with an error.
-
-## Catalog track interactions
-
-Pass `resolveTrackInteraction` to attach host callbacks while keeping catalog JSON data-only. It receives the owning `catalogId`, the public `qualifiedTrackId`, and the parsed authored `track`. TrackSelect calls it only for selected entries during initialization and Submit reconciliation, never for browsing, draft selection, Clear, Reset, or Cancel.
-
-Resolved callbacks receive three separate values: the renderer's semantic item, core's current `TrackRuntimeContext`, and `TrackSelectCatalogContext` with the catalog ID, authored track ID, and read-only metadata. Metadata remains catalog-owned and is not copied into runtime `type`, `base`, `config`, or persisted IDs.
-
-When no resolver is supplied, TrackSelect preserves an existing interaction on a reused catalog-owned track. When a resolver is supplied, it is authoritative: returning `undefined` removes an existing interaction, while a returned object replaces all callbacks rather than merging them. Tracks outside the supplied catalogs are never changed by this reconciliation.
-
-Resolver or interaction-validation failures leave the store unchanged. Submit keeps the dialog open and displays the error. Changing only resolver identity does not reinitialize or rewrite tracks. Since core supplies runtime context when an event occurs, later config or base updates are visible without rerunning the resolver.
-
-For a heterogeneous catalog, define a specifically typed interaction before returning it, or use `TrackSelectInteraction<unknown, unknown>` with explicit item/config guards. See the complete [Track interactions recipe](recipes/trackInteractions.md).
-
-With one catalog, the dialog opens on its detail screen. With multiple catalogs, it opens on the catalog list. `title` defaults to `"Track Select"`.
-
-## Catalogs and views
-
-A catalog names a collection of available track entries and defines one or more views over them. A view controls visible data, row grouping, and selected-track labels; it does not change the underlying track definitions.
-
-```json
-{
-  "$schema": "./trackSelectCatalog.schema.json",
-  "id": "signals",
-  "label": "Signal tracks",
-  "description": "Example assay signals",
-  "views": [
-    {
-      "id": "by-assay",
-      "label": "By assay",
-      "columns": [
-        { "field": "assay", "label": "Assay" },
-        { "field": "biosample", "label": "Biosample", "width": 220 }
-      ],
-      "grouping": ["assay"],
-      "leaf": "title"
-    }
-  ],
-  "tracks": [
-    {
-      "type": "bigwig",
-      "id": "example-signal",
-      "title": "Example signal",
-      "height": 80,
-      "config": {
-        "url": "YOUR_URL_HERE"
-      },
-      "metadata": {
-        "assay": "ATAC-seq",
-        "biosample": "Example biosample"
-      }
-    }
-  ]
-}
-```
-
-Catalog and view IDs should be stable and unique in their scopes. Catalog IDs must be unique in the `trackCatalogs` array, and track IDs must be unique within a catalog. A track ID may be reused in another catalog because TrackSelect namespaces track identity across catalogs.
-
-The public catalog-qualified ID format is `${catalogId}::${trackId}`. Use these IDs for `initialTrackIds`, `defaultTrackIds`, and values received by `onCommittedTrackIds`; for example, track `example-signal` in catalog `signals` is `signals::example-signal`. Duplicate IDs, unknown IDs, and initialization lists longer than `maxTracks` are rejected.
-
-TrackSelect treats any store track whose ID matches an entry in the supplied catalogs as catalog-owned. This reserved namespace is the ownership rule: TrackSelect does not inspect the track's type or configuration to distinguish how it was created. Give fixed or otherwise non-catalog tracks IDs outside the reserved catalog-qualified set. If application code inserts a different track with a reserved ID, initialization or Submit may reuse or remove it as part of normal catalog reconciliation.
-
-Each view requires at least one column:
-
-- `columns` contains a `field` and optional `label`, `description`, `width`, or `hidden` presentation values.
-- `grouping` lists metadata or built-in fields from outermost to innermost group and defaults to `[]`.
-- `leaf` selects the final item label and defaults to `"title"`.
-
-The built-in fields are `id`, `title`, and `type`. Any other field referenced by `columns`, `grouping`, or `leaf` must exist in every track's `metadata`. Metadata values may be strings, numbers, booleans, or `null`. Do not use metadata keys named `id`, `title`, or `type`; built-in row values take precedence.
-
-The active view also determines the order of newly added tracks. Groups follow their first appearance in catalog order, nested groups follow the `grouping` field order, and tracks within the final group retain catalog order. Switching views can therefore change insertion order on Submit.
-
-## Registry validation
-
-Each catalog track combines browser create fields with module-owned config:
-
-- `type` selects a module registered in the track store.
-- `id`, `title`, `display`, `height`, and `color` are v2 browser create fields.
-- `config` must match the selected module's create-input schema.
-- `metadata` exists only for TrackSelect views and is not copied into the runtime track instance.
-
-TrackSelect validates every catalog with the registry read from `useTrackStore`. Unknown track types, invalid module config, missing view metadata, and unknown catalog properties fail before the dialog content renders. Module defaults are applied when a selected track is created during initialization or submission, not retained as authored catalog data during validation.
-
-Use the same module set for the track store, JSON Schema generation, and any separate `validateJson` call. A catalog generated against one registry can fail in an application that registers another.
-
-## Selection limit
-
-`maxTracks` limits the total draft selection across all supplied catalogs and defaults to `50`. A selection that would increase the draft beyond the limit is rejected and opens a limit dialog. Removing selections remains possible when the draft is already at the limit.
-
-The limit counts TrackSelect catalog entries, not unrelated tracks already in the store.
-
-## Columns, markers, and theme
-
-Keep portable labels, descriptions, widths, and hidden defaults in catalog JSON. Use `columnOverrides` for host-only MUI Data Grid behavior. Overrides are scoped first by catalog ID and then by field and apply to every view in that catalog.
+Use `columnOverrides` for host-specific MUI Data Grid behavior. Overrides are keyed first by catalog ID and then by field. `withValueMarkers` adds a visual marker while preserving the formatted text value.
 
 ```tsx
 import { TrackSelect, withValueMarkers } from "@weng-lab/genomebrowser-ui-v2";
 
 <TrackSelect
   open={open}
-  onClose={onClose}
+  onClose={() => setOpen(false)}
   trackCatalogs={trackCatalogs}
   useTrackStore={useTrackStore}
   columnOverrides={{
@@ -170,39 +129,249 @@ import { TrackSelect, withValueMarkers } from "@weng-lab/genomebrowser-ui-v2";
 />;
 ```
 
-An override is shallowly merged into the generated MUI `GridColDef`. Supplying `width` disables the generated flexible width unless the override also supplies `flex`; supplying `renderCell` replaces TrackSelect's normal truncating, tooltip-enabled cell renderer. Unknown catalog IDs and fields are ignored.
+Overrides are shallowly merged into the generated MUI `GridColDef`. Setting `width` disables the generated flexible width unless the override also supplies `flex`. Setting `renderCell` replaces the default truncating, tooltip-enabled renderer. Unknown catalog IDs and fields are ignored.
 
-`withValueMarkers` adds a square marker to configured formatted values and preserves the normal value cell for everything else. MUI Data Grid owns grouping, expansion, filtering, and other grid behavior, so renderers may also appear in generated grouping cells.
+### Attach track interactions
 
-TrackSelect uses the host application's normal MUI setup and theme. No package-specific stylesheet or provider is required.
+Pass `resolveTrackInteraction` when catalog-created tracks need host callbacks. The resolver receives the owning catalog ID, qualified track ID, and parsed authored track during initialization and successful Submit reconciliation. It is not called while users browse or edit the draft.
 
-## Generate a catalog schema
+The returned callbacks later receive the renderer item, current v2 runtime context, and catalog context. Keep catalog JSON data-only and use the resolver to attach application behavior. See [Track interactions](recipes/trackInteractions.md) for a complete typed example.
 
-Generate JSON Schema from the same modules used by the track store so editors can autocomplete catalog entries and catch invalid module config.
+Without a resolver, TrackSelect preserves an existing interaction on a reused catalog track. When a resolver is supplied, its result is authoritative. Changing only the resolver identity does not reinitialize or rewrite tracks.
 
-Create `trackselect.config.ts` beside the catalogs:
+## API
+
+### TrackSelect props
+
+| Prop                      | Type                                    | Default          | Description                                                                                                                                                 |
+| ------------------------- | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `open`                    | `boolean`                               | Required         | Controls whether the dialog is open.                                                                                                                        |
+| `onClose`                 | `() => void`                            | Required         | Runs after Cancel, the close button, a normal MUI dialog dismissal, or a successful Submit. The host must update `open`.                                    |
+| `trackCatalogs`           | `unknown[]`                             | Required         | Supplies catalogs to validate against the track-store registry. Keep the array identity stable to avoid reparsing unchanged catalogs.                       |
+| `useTrackStore`           | `TrackStoreInstance`                    | Required         | Provides the v2 track store and module registry used for validation, initialization, and submission. Pass the same hook used by `GenomeBrowser`.            |
+| `title`                   | `string`                                | `"Track Select"` | Sets the visible dialog title.                                                                                                                              |
+| `maxTracks`               | `number`                                | `50`             | Limits the total draft selection across all supplied catalogs. It does not count tracks outside those catalogs.                                             |
+| `initialTrackIds`         | `readonly string[]`                     | `undefined`      | Sets the ordered catalog selection during initialization. It takes precedence over `defaultTrackIds` but does not change the Reset target.                  |
+| `defaultTrackIds`         | `readonly string[]`                     | `undefined`      | Sets the ordered catalog selection used for initialization when `initialTrackIds` is absent and restored by Reset. Without it, Reset clears catalog tracks. |
+| `onCommittedTrackIds`     | `(trackIds: readonly string[]) => void` | `undefined`      | Runs after a successful Submit with all selected catalog-qualified IDs in browser order.                                                                    |
+| `columnOverrides`         | `TrackSelectColumnOverrides`            | `undefined`      | Applies host-only MUI Data Grid column options by catalog ID and field. The `field` option cannot be overridden.                                            |
+| `resolveTrackInteraction` | `TrackSelectInteractionResolver`        | `undefined`      | Resolves application callbacks for selected catalog tracks during initialization and Submit reconciliation.                                                 |
+
+### Dialog actions
+
+- **Clear** confirms before clearing the active catalog on a detail screen or all catalogs on the catalog-list screen.
+- **Reset** confirms before restoring `defaultTrackIds` in their supplied order. Without defaults, it clears catalog tracks. It never changes tracks outside the catalogs.
+- **Cancel**, the close button, and normal dialog dismissal discard the current draft and call `onClose`.
+- **Submit** creates additions through the track-store registry and applies catalog additions and removals as one store update. A successful Submit calls `onCommittedTrackIds`, then `onClose`.
+
+If track creation, interaction validation, or the store update fails, the store remains unchanged and the dialog stays open with an error.
+
+### Catalog options
+
+Each catalog describes available tracks and one or more ways to view them.
+
+| Option        | Type                          | Default     | Description                                                                                                  |
+| ------------- | ----------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------ |
+| `$schema`     | `string`                      | `undefined` | Points JSON editors to a generated TrackSelect catalog schema.                                               |
+| `id`          | `string`                      | Required    | Uniquely identifies the catalog within `trackCatalogs` and forms the first part of every qualified track ID. |
+| `label`       | `string`                      | Required    | Names the catalog in the catalog list and selection tree.                                                    |
+| `description` | `string`                      | `undefined` | Adds supporting catalog text in the selection UI.                                                            |
+| `views`       | `TrackSelectCatalog["views"]` | Required    | Defines one or more table layouts over the same tracks. At least one view is required.                       |
+| `tracks`      | `TrackSelectTrack[]`          | Required    | Defines the catalog tracks. Track IDs must be unique within the catalog.                                     |
+
+With one catalog, TrackSelect opens directly on its detail screen. With multiple catalogs, it opens on the catalog list.
+
+### View options
+
+| Option        | Type                                             | Default     | Description                                                                                    |
+| ------------- | ------------------------------------------------ | ----------- | ---------------------------------------------------------------------------------------------- |
+| `id`          | `string`                                         | Required    | Uniquely identifies the view within its catalog.                                               |
+| `label`       | `string`                                         | Required    | Names the view in the view selector.                                                           |
+| `description` | `string`                                         | `undefined` | Stores descriptive view text. The current component accepts this value but does not render it. |
+| `columns`     | `TrackSelectCatalog["views"][number]["columns"]` | Required    | Defines at least one visible or available data field.                                          |
+| `grouping`    | `string[]`                                       | `[]`        | Lists built-in or metadata fields from the outermost to innermost row group.                   |
+| `leaf`        | `string`                                         | `"title"`   | Selects the field used to label the final track item.                                          |
+
+The active view determines the order of newly added tracks. Groups follow their first appearance in catalog order, nested groups follow `grouping`, and tracks within the final group retain catalog order. Switching views can therefore change insertion order on Submit.
+
+### Column options
+
+| Option        | Type      | Default                      | Description                                                                                                                            |
+| ------------- | --------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `field`       | `string`  | Required                     | Selects a built-in field or a metadata key from every catalog track.                                                                   |
+| `label`       | `string`  | Built-in label or field name | Sets the column header. Built-in labels are `ID`, `Title`, and `Type`.                                                                 |
+| `description` | `string`  | `undefined`                  | Sets the MUI Data Grid column description.                                                                                             |
+| `width`       | `number`  | Flexible width               | Sets a positive fixed width in pixels. Without it, the generated column uses `flex: 1` and `minWidth: 120`.                            |
+| `hidden`      | `boolean` | `false`                      | Hides the column initially. Grouping fields, the ID field, and a grouped leaf field are also hidden by the generated visibility model. |
+
+The built-in fields are `id`, `title`, and `type`. Every other field used by `columns`, `grouping`, or `leaf` must exist in every track's `metadata`. Do not use metadata keys named `id`, `title`, or `type`; built-in values take precedence.
+
+### Track options
+
+| Option     | Type                                                  | Default                | Description                                                                                                                           |
+| ---------- | ----------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`     | `string`                                              | Required               | Selects a track module registered in `useTrackStore`.                                                                                 |
+| `id`       | `string`                                              | Required               | Uniquely identifies the track within its catalog and forms the second part of its qualified ID.                                       |
+| `title`    | `string`                                              | Required               | Sets the track title and the default leaf label.                                                                                      |
+| `display`  | `string`                                              | Module default         | Selects a display supported by the registered module. The module's first display is the fallback when it defines no explicit default. |
+| `height`   | `number`                                              | Module default or `80` | Sets the positive initial track height.                                                                                               |
+| `color`    | `string`                                              | `undefined`            | Sets the initial track color when supported by its renderer.                                                                          |
+| `config`   | `Record<string, unknown>`                             | Required               | Supplies create configuration validated by the selected module's schema.                                                              |
+| `metadata` | `Record<string, string or number or boolean or null>` | `{}`                   | Supplies catalog-only values for columns, grouping, labels, and interaction context. It is not copied into the runtime track.         |
+
+Module defaults are applied when a selected track is created during initialization or Submit, not retained as authored catalog data during catalog validation.
+
+### Qualified track IDs and ownership
+
+The public qualified ID format is `${catalogId}::${trackId}`. Use it in `initialTrackIds`, `defaultTrackIds`, and values received by `onCommittedTrackIds`. Duplicate IDs, unknown IDs, and initialization lists longer than `maxTracks` are rejected.
+
+TrackSelect treats any store track whose ID matches a supplied catalog entry as catalog-owned. Give fixed or non-catalog tracks IDs outside that reserved set. If application code inserts a different track with a reserved ID, initialization or Submit may reuse or remove it during normal reconciliation.
+
+### Column override options
+
+`TrackSelectColumnOverrides` is a read-only map shaped as `catalogId -> field -> TrackSelectColumnOverride`. A `TrackSelectColumnOverride` accepts every partial MUI `GridColDef` option except `field`, which always comes from the catalog view.
+
+`withValueMarkers` accepts a read-only value map:
+
+| Value        | Type                            | Description                                                                                           |
+| ------------ | ------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Marker key   | `string`                        | Matches the string form of a cell's formatted value, or its raw value when no formatted value exists. |
+| Marker value | `string` or `{ color: string }` | Sets the square marker color. Values without a configured marker keep the normal cell renderer.       |
+
+### Interaction options
+
+`TrackSelectInteractionResolver` receives one object:
+
+| Field              | Type               | Description                                        |
+| ------------------ | ------------------ | -------------------------------------------------- |
+| `catalogId`        | `string`           | Identifies the owning catalog.                     |
+| `qualifiedTrackId` | `string`           | Provides the public `${catalogId}::${trackId}` ID. |
+| `track`            | `TrackSelectTrack` | Provides the parsed authored catalog track.        |
+
+It returns `TrackSelectInteraction` or `undefined`. When supplied, resolver output is authoritative: `undefined` removes an existing interaction from a reused catalog track, and a returned object replaces all callbacks rather than merging them.
+
+| Callback  | Signature                          | Description                                       |
+| --------- | ---------------------------------- | ------------------------------------------------- |
+| `onClick` | `(item, runtime, catalog) => void` | Runs when the renderer emits a click interaction. |
+| `onHover` | `(item, runtime, catalog) => void` | Runs when the renderer emits a hover interaction. |
+| `onLeave` | `(item, runtime, catalog) => void` | Runs when the renderer emits a leave interaction. |
+
+The callback's `catalog` argument is a `TrackSelectCatalogContext`:
+
+| Field             | Type                            | Description                                                                    |
+| ----------------- | ------------------------------- | ------------------------------------------------------------------------------ |
+| `catalogId`       | `string`                        | Identifies the owning catalog.                                                 |
+| `authoredTrackId` | `string`                        | Provides the unqualified track ID authored in the catalog.                     |
+| `metadata`        | `Readonly<TrackSelectMetadata>` | Provides the catalog-owned metadata without copying it into the runtime track. |
+
+The runtime context comes from v2 when the event occurs, so later base or config changes are visible without rerunning the resolver.
+
+### Related exports
+
+| Export                           | Signature                                                          | Description                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `withValueMarkers`               | `(markers: ValueMarkerMap) => TrackSelectColumnOverride`           | Creates a column override that adds square color markers to configured formatted values.         |
+| `generateTrackCatalogJsonSchema` | `(registry: ModuleRegistry) => object`                             | Generates JSON Schema for catalogs using the registry's module-specific create schemas.          |
+| `validateJson`                   | `(input: unknown, registry: ModuleRegistry) => TrackSelectCatalog` | Validates and parses one catalog against a module registry. `TrackSelect` calls this internally. |
+
+### Generate a schema for catalog JSON
+
+Generate JSON Schema from the same track modules used by your application. Editors that support the standard JSON `$schema` property can then autocomplete catalog fields, list allowed track types and displays, and report many invalid module-specific `config` values before runtime.
+
+This workflow creates the following files:
+
+```text
+trackselect.config.ts
+catalogs/
+  signals.json
+schemas/
+  trackSelectCatalog.schema.json
+```
+
+#### 1. Configure the generator
+
+Create `trackselect.config.ts` in the directory where you will run the command:
 
 ```ts
 import { defineTrackSelectConfig } from "@weng-lab/genomebrowser-ui-v2/cli";
-import { bigWigModule } from "@weng-lab/genomebrowser-v2";
+import { bigBedModule, bigWigModule } from "@weng-lab/genomebrowser-v2";
 
 export default defineTrackSelectConfig({
-  modules: [bigWigModule],
+  modules: [bigWigModule, bigBedModule],
   schema: {
     outFile: "schemas/trackSelectCatalog.schema.json",
   },
 });
 ```
 
-Run the command from that directory:
+The configuration has these public options:
+
+| Option           | Type                        | Default                            | Description                                                                                                     |
+| ---------------- | --------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `modules`        | `readonly AnyTrackModule[]` | Required                           | Supplies at least one module. Use the same module set and versions registered in the application's track store. |
+| `schema`         | `object`                    | `undefined`                        | Groups optional JSON Schema output settings.                                                                    |
+| `schema.outFile` | `string`                    | `"trackSelectCatalog.schema.json"` | Sets the output path relative to the directory where you run the command. Missing directories are created.      |
+| `schema.id`      | `string`                    | `undefined`                        | Adds a non-empty supplied value as the generated schema's `$id`.                                                |
+
+The CLI looks only for `./trackselect.config.ts` in its current working directory; it does not search parent directories.
+
+#### 2. Generate the schema
+
+Run the package binary from the directory containing `trackselect.config.ts`:
 
 ```sh
-trackselect schema
+pnpm exec trackselect schema
 ```
 
-Without `schema.outFile`, the command writes `./trackSelectCatalog.schema.json`. It requires at least one module. Point a catalog's `$schema` field at the generated file.
+Use your package manager's equivalent when you do not use pnpm. The command prints the absolute path it wrote. Run it again whenever you add or remove a track module, update a module version, or change a module's config schema.
 
-For build tooling that already has a registry, generate the same schema programmatically:
+Consider committing the generated schema so editor support and validation do not depend on every contributor running the generator first.
+
+#### 3. Connect a catalog to the schema
+
+Set `$schema` in each catalog JSON file to a path relative to that catalog. For the file layout above, `catalogs/signals.json` starts with:
+
+```json
+{
+  "$schema": "../schemas/trackSelectCatalog.schema.json",
+  "id": "signals",
+  "label": "Signal tracks",
+  "views": [
+    {
+      "id": "all-signals",
+      "label": "All signals",
+      "columns": [{ "field": "title", "label": "Track" }],
+      "grouping": [],
+      "leaf": "title"
+    }
+  ],
+  "tracks": [
+    {
+      "type": "bigwig",
+      "id": "example-signal",
+      "title": "Example signal",
+      "config": { "url": "YOUR_URL_HERE" },
+      "metadata": {}
+    }
+  ]
+}
+```
+
+Your editor resolves that path from the JSON file, not from `trackselect.config.ts`. If the editor cannot load the schema, first check that the generated file exists and that the relative path is correct.
+
+The generated file provides JSON-aware completion and validation; it does not turn a JSON import into a TypeScript value with a static `TrackSelectCatalog` type. Runtime parsing remains necessary.
+
+#### 4. Keep runtime and editor validation aligned
+
+The generator builds module-specific catalog entries from each module's `createInputSchema`. Use the same module set for:
+
+- `createTrackStore({ modules })`
+- `trackselect.config.ts`
+- any programmatic `generateTrackCatalogJsonSchema` or `validateJson` calls
+
+The generated schema validates JSON structure, allowed track types and displays, and the parts of module-specific track config represented in JSON Schema. Custom Zod refinements may remain runtime-only after conversion. `TrackSelect` also performs runtime validation for cross-field and multi-catalog rules, including metadata fields referenced across views, duplicate qualified track IDs across supplied catalogs, and selection IDs checked against the complete catalog list. Treat editor feedback as an early check, not a replacement for runtime parsing.
+
+For build tooling that already owns a registry, generate the same schema programmatically:
 
 ```ts
 import { generateTrackCatalogJsonSchema } from "@weng-lab/genomebrowser-ui-v2";
@@ -212,22 +381,37 @@ const registry = createModuleRegistry([bigWigModule]);
 const schema = generateTrackCatalogJsonSchema(registry);
 ```
 
-Use `validateJson(rawCatalog, registry)` when non-React code needs the runtime validator directly. TrackSelect already performs this validation, so most component integrations do not need a separate call.
+Use `validateJson(rawCatalog, registry)` when non-React code also needs the runtime parser. `TrackSelect` already calls it for every supplied catalog, so normal component integrations do not need to validate a second time.
 
-## Troubleshooting
+## Accessibility
 
-### The catalog fails to open
+- TrackSelect renders a MUI modal dialog and inherits its focus management and Escape-key dismissal behavior. The host must close the controlled dialog when `onClose` runs.
+- The close icon button has the accessible name `Close track select`. Clear, Reset, Cancel, Submit, and catalog navigation use text-labeled buttons.
+- Removing a selected node uses an accessible name in the form `Remove {track label}`.
+- Catalog selection and view controls use MUI X Data Grid Premium, MUI Select, and MUI X Tree View keyboard and focus behavior.
+- Markers created by `withValueMarkers` are hidden from assistive technology; the formatted text remains available. If you replace `renderCell`, you are responsible for preserving an accessible text equivalent and keyboard behavior.
+- MUI associates the visible `title` with the dialog as its accessible name. The view selector does not currently have a package-supplied accessible label, and TrackSelect does not expose a prop that lets the host provide one.
 
-Read the `TrackSelect catalog is invalid` error path. Confirm that every `type` is registered, every nested `config` matches its module, view fields exist in each track's metadata, and the catalog contains no unsupported properties. Keep `trackCatalogs` stable so unchanged catalogs are not repeatedly parsed on unrelated renders.
+## Notes
 
-### A track cannot be selected
+### Selection and validation constraints
 
-Check the total selection against `maxTracks`. The limit applies across catalogs, and a blocked increase opens the track-limit dialog.
+- `maxTracks` counts selected catalog entries across all supplied catalogs, not unrelated store tracks. Attempts to increase the draft past the limit open a limit dialog; removing selections remains possible.
+- Catalog IDs must be unique in `trackCatalogs`, and track IDs must be unique within a catalog. The same authored track ID may appear in different catalogs because TrackSelect qualifies it with the catalog ID.
+- TrackSelect validates catalogs against the registry before rendering dialog content. Unknown track types, unsupported properties, invalid module config, and missing view metadata fail validation.
+- Use the same module set for the track store, JSON Schema generation, and standalone validation. A catalog generated for one registry can fail against another.
+- Keep `trackCatalogs` stable. Recreating the array causes unchanged catalogs to be parsed again and can change initialization identity if catalog, view, or track IDs also change.
 
-### Submit shows an error
+### Theme and licensing
 
-Confirm that schema tooling and the application use the same modules and versions. Check that the selected tracks still satisfy their registered modules, that the interaction resolver returns only supported callback functions, and inspect the displayed error for any additional reason the track store rejected the update.
+TrackSelect uses the host application's MUI theme and needs no package-specific stylesheet or provider. It uses MUI X Premium components; the host must configure its own MUI X Premium license before rendering the component.
 
-### Submit order is unexpected
+### Troubleshooting
 
-Check the active view. Its grouping fields and the catalog's source order determine the order of newly added tracks; existing tracks keep their current relative order.
+**The catalog fails to open:** Read the `TrackSelect catalog is invalid` error. Confirm that every `type` is registered, every `config` matches its module, view fields exist in each track's metadata, and the catalog has no unsupported properties.
+
+**A track cannot be selected:** Check the total catalog selection against `maxTracks`. The limit applies across catalogs, and a blocked increase opens the track-limit dialog.
+
+**Submit shows an error:** Confirm that schema tooling and the application use the same modules and versions. Check that selected tracks still satisfy their modules and that the interaction resolver returns only supported callback functions.
+
+**Submit order is unexpected:** Check the active view. Its grouping fields and the catalog's source order determine newly added track order; existing tracks retain their relative order.

@@ -1,9 +1,6 @@
 import type { TrackFetchContext } from "../../modules/types";
 import type { TranscriptConfig, TranscriptData } from "./types";
 
-const TRANSCRIPT_GRAPHQL_ENDPOINT = "https://screen.api.wenglab.org/graphql";
-const SCREEN_API_KEY = import.meta.env.SCREEN_API_KEY;
-
 const TRANSCRIPT_GENES_QUERY = `
   query Gene($chromosome: String, $assembly: String!, $start: Int, $end: Int, $version: Int) {
     gene(assembly: $assembly, chromosome: $chromosome, start: $start, end: $end, version: $version) {
@@ -44,16 +41,9 @@ export async function fetchTranscript({
   config,
   region,
 }: TrackFetchContext<TranscriptConfig>): Promise<TranscriptData> {
-  if (!SCREEN_API_KEY) {
-    throw new Error("SCREEN_API_KEY is required to fetch transcript data");
-  }
-
-  const response = await fetch(TRANSCRIPT_GRAPHQL_ENDPOINT, {
+  const response = await fetch(config.endpoint, {
     method: "POST",
-    headers: {
-      authorization: `Bearer ${SCREEN_API_KEY}`,
-      "content-type": "application/json",
-    },
+    headers: { "content-type": "application/json" },
     body: JSON.stringify({
       query: TRANSCRIPT_GENES_QUERY,
       variables: {
