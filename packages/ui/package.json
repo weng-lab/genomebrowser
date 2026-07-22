@@ -1,13 +1,24 @@
 {
   "name": "@weng-lab/genomebrowser-ui",
   "version": "2.0.0-alpha.0",
-  "private": true,
+  "description": "Optional React application controls for @weng-lab/genomebrowser.",
+  "homepage": "https://github.com/weng-lab/genomebrowser#readme",
+  "bugs": {
+    "url": "https://github.com/weng-lab/genomebrowser/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weng-lab/genomebrowser.git",
+    "directory": "packages/ui"
+  },
   "bin": {
-    "trackselect": "./dist/trackselect.js"
+    "trackselect": "dist/trackselect.js"
   },
   "files": [
     "dist",
-    "docs"
+    "docs",
+    "LICENSE"
   ],
   "type": "module",
   "module": "dist/genomebrowser-ui.es.js",
@@ -22,6 +33,10 @@
       "import": "./dist/cli.js"
     }
   },
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -30,10 +45,11 @@
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
     "test": "vitest run",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepack": "pnpm --filter @weng-lab/genomebrowser build && pnpm run build"
   },
   "dependencies": {
-    "@weng-lab/genomebrowser": "workspace:*",
+    "@weng-lab/genomebrowser": "workspace:^2.0.0-alpha.0",
     "jiti": "^2.6.2",
     "zod": "^4.4.3"
   },

@@ -1,6 +1,6 @@
 # Ticket 04: Normalize monorepo and package metadata
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R5, R6, R7, R8, R10, R12
 **Blocked by:** Ticket 03
@@ -15,16 +15,16 @@ Audit root and package-level dependencies and tooling ownership, remove stale co
 
 ## Acceptance Criteria
 
-- [ ] Root dependencies contain only dependencies genuinely required by root-owned tooling; package runtime and peer dependencies are owned by the appropriate package.
-- [ ] Root scripts expose a coherent command set for `core`, `ui`, and recursive checks without obsolete, duplicate, or misleading aliases.
-- [ ] Shared formatter, linter, TypeScript, Vite, and test configuration is either intentionally root-owned or intentionally package-owned; legacy configuration residue is removed.
-- [ ] The root README explains the two-package map, supported development and verification commands, prerelease status, and the separation between runtime and optional UI.
-- [ ] Both package manifests include accurate description, license, repository/homepage metadata, files, exports, types, and explicit public `publishConfig` fields.
-- [ ] Both packages retain or include the required license material in their packed files.
-- [ ] The UI dependency on `@weng-lab/genomebrowser` has a publishable prerelease-compatible relationship rather than relying on an invalid external `workspace:*` declaration.
-- [ ] A publication dry run reports both packages as `2.0.0-alpha.0` and does not modify npm state.
-- [ ] Documentation and contributor guidance affected by command or metadata changes are updated in the same ticket.
-- [ ] The root lockfile is current and remains the only lockfile.
+- [x] Root dependencies contain only dependencies genuinely required by root-owned tooling; package runtime and peer dependencies are owned by the appropriate package.
+- [x] Root scripts expose a coherent command set for `core`, `ui`, and recursive checks without obsolete, duplicate, or misleading aliases.
+- [x] Shared formatter, linter, TypeScript, Vite, and test configuration is either intentionally root-owned or intentionally package-owned; legacy configuration residue is removed.
+- [x] The root README explains the two-package map, supported development and verification commands, prerelease status, and the separation between runtime and optional UI.
+- [x] Both package manifests include accurate description, license, repository/homepage metadata, files, exports, types, and explicit public `publishConfig` fields.
+- [x] Both packages retain or include the required license material in their packed files.
+- [x] The UI dependency on `@weng-lab/genomebrowser` has a publishable prerelease-compatible relationship rather than relying on an invalid external `workspace:*` declaration.
+- [x] A publication dry run reports both packages as `2.0.0-alpha.0` and does not modify npm state.
+- [x] Documentation and contributor guidance affected by command or metadata changes are updated in the same ticket.
+- [x] The root lockfile is current and remains the only lockfile.
 
 ## Verification
 

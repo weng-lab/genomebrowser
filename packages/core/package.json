@@ -1,10 +1,21 @@
 {
   "name": "@weng-lab/genomebrowser",
   "version": "2.0.0-alpha.0",
-  "private": true,
+  "description": "An extensible React runtime for displaying genomic tracks.",
+  "homepage": "https://github.com/weng-lab/genomebrowser#readme",
+  "bugs": {
+    "url": "https://github.com/weng-lab/genomebrowser/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weng-lab/genomebrowser.git",
+    "directory": "packages/core"
+  },
   "files": [
     "dist",
-    "docs"
+    "docs",
+    "LICENSE"
   ],
   "type": "module",
   "module": "dist/genomebrowser.es.js",
@@ -15,6 +26,10 @@
       "import": "./dist/genomebrowser.es.js"
     }
   },
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -24,7 +39,7 @@
     "format:check": "oxfmt . --check",
     "test": "vitest run",
     "preview": "vite preview",
-    "doctor": "npx react-doctor@latest"
+    "prepack": "pnpm run build"
   },
   "dependencies": {
     "axios": "0.33.0",
