@@ -204,12 +204,12 @@ function ResponsiveBrowser() {
 }
 ```
 
-## Share the track store with UI-v2
+## Share the track store with the UI package
 
-`@weng-lab/genomebrowser-ui-v2` is a separate optional package. Pass exactly the same track store hook to `GenomeBrowser` and `TrackSelect` so catalog validation and mutations use the browser's registry and tracks:
+`@weng-lab/genomebrowser-ui@2.0.0-alpha.0` is a separate optional package. Pass exactly the same track store hook to `GenomeBrowser` and `TrackSelect` so catalog validation and mutations use the browser's registry and tracks:
 
 ```tsx
-import { TrackSelect } from "@weng-lab/genomebrowser-ui-v2";
+import { TrackSelect } from "@weng-lab/genomebrowser-ui";
 
 <>
   <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
@@ -222,4 +222,4 @@ import { TrackSelect } from "@weng-lab/genomebrowser-ui-v2";
 </>;
 ```
 
-Register every module referenced by the catalogs in that shared store. See the UI-v2 package's own shipped docs for catalog shape and additional peer dependencies.
+Register every module referenced by the catalogs in that shared store. See the UI package's own shipped docs for catalog shape and additional peer dependencies.

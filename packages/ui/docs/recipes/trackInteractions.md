@@ -11,7 +11,7 @@ import {
   type TrackSelectCatalog,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
-} from "@weng-lab/genomebrowser-ui-v2";
+} from "@weng-lab/genomebrowser-ui";
 import {
   GenomeBrowser,
   bigBedModule,

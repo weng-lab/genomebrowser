@@ -1,14 +1,14 @@
-# UI v2 Concepts
+# UI concepts
 
-`@weng-lab/genomebrowser-ui-v2` provides higher-level React UI for `@weng-lab/genomebrowser`. The core package owns browser runtime state, track modules, validation, and rendering. UI v2 consumes those public boundaries rather than duplicating them.
+`@weng-lab/genomebrowser-ui` provides higher-level React UI for `@weng-lab/genomebrowser`. The core package owns browser runtime state, track modules, validation, and rendering. The UI package consumes those public boundaries rather than duplicating them.
 
-TrackSelect is currently the main UI v2 subsystem. It lets an application describe available tracks as catalogs and lets a user reconcile those catalogs with a v2 track store.
+TrackSelect is currently the main UI subsystem. It lets an application describe available tracks as catalogs and lets a user reconcile those catalogs with a runtime track store.
 
 ## Data flow
 
 TrackSelect follows one path from application data to browser state:
 
-1. The host passes track catalogs, a v2 track store hook, and optionally an interaction resolver.
+1. The host passes track catalogs, a runtime track store hook, and optionally an interaction resolver.
 2. TrackSelect reads the store's module registry and validates every catalog against schemas derived from that registry.
 3. Valid catalog entries become grid rows. TrackSelect qualifies row IDs with their catalog IDs so entries from different catalogs cannot collide.
 4. When configured, ordered initial track IDs initialize the catalog-owned portion of the store. Explicit `initialTrackIds` take precedence over `defaultTrackIds`; with neither, the store is preserved. During this reconciliation, TrackSelect resolves host interactions only for selected catalog entries and adapts them to core callbacks.
@@ -17,7 +17,7 @@ TrackSelect follows one path from application data to browser state:
 7. Submit resolves the ordered draft, resolves interactions for selected catalog entries, and replaces the store contents in one atomic validated update.
 8. The dialog closes only after the store accepts the update. An optional commit callback then reports the complete ordered catalog selection for host-owned persistence. Creation or store validation failures leave the store unchanged, do not notify the callback, and keep the dialog open with an error.
 
-This flow preserves the v2 rule that track state is validated through registered modules. Catalog validation and submitted track creation must use the same module registry as the browser that will render the tracks.
+This flow preserves the runtime rule that track state is validated through registered modules. Catalog validation and submitted track creation must use the same module registry as the browser that will render the tracks.
 
 ## Ownership
 
@@ -39,7 +39,7 @@ TrackSelect owns:
 - catalog row IDs and the selected-track tree
 - conversion of the submitted draft into one track-store change
 
-The v2 track store remains the source of truth for committed browser tracks. The draft is deliberately local to an open TrackSelect session.
+The runtime track store remains the source of truth for committed browser tracks. The draft is deliberately local to an open TrackSelect session.
 
 Catalog metadata remains on the parsed catalog for views, grouping, and host integration. It is never copied into runtime track base/config state or persisted selection IDs. A resolved UI callback receives the semantic item, core's current `TrackRuntimeContext`, and a separate catalog context containing the owning catalog ID, authored track ID, and read-only metadata.
 
@@ -65,7 +65,7 @@ Each catalog has one or more views. The active view controls grid columns, group
 
 ## MUI boundary
 
-UI v2 owns its MUI component composition and default presentation. The host owns its MUI dependency and MUI X license setup and may provide its normal application theme. TrackSelect does not require a UI-v2-specific stylesheet or provider. UI v2 must not read a build-time license environment variable or configure `LicenseInfo`; doing so would couple the published library to the publisher's build environment instead of the consuming application.
+The UI package owns its MUI component composition and default presentation. The host owns its MUI dependency and MUI X license setup and may provide its normal application theme. TrackSelect does not require a package-specific stylesheet or provider. The UI package must not read a build-time license environment variable or configure `LicenseInfo`; doing so would couple the published library to the publisher's build environment instead of the consuming application.
 
 Catalog JSON should contain portable data, not React or MUI behavior. Host-only presentation belongs in `columnOverrides`; reusable value-marker rendering is exposed through `withValueMarkers`. Data Grid continues to own grid interaction, grouping expansion, filtering, and column behavior.
 
@@ -83,8 +83,8 @@ The package keeps TrackSelect as a deep subsystem with a narrow public surface:
 - `test/main.tsx` is the manual integration harness; `test/catalogs` contains its fixtures.
 - `scripts` contains repository maintenance scripts for checked-in schemas, not additional package APIs.
 
-Extend the schema layer when changing portable catalog data, the catalog layer for deterministic data transformations, and the session layer for user workflow. Keep MUI components out of schema and store logic. New public exports should be added only when an application needs a stable capability that cannot be expressed through catalogs, the existing TrackSelect props, or the v2 store and module APIs.
+Extend the schema layer when changing portable catalog data, the catalog layer for deterministic data transformations, and the session layer for user workflow. Keep MUI components out of schema and store logic. New public exports should be added only when an application needs a stable capability that cannot be expressed through catalogs, the existing TrackSelect props, or the runtime store and module APIs.
 
 ## Related decisions
 
-UI v2 follows the runtime decisions that track state is validated through registered modules, startup stores remain externally initialized, and features expose narrow public APIs. UI v2 ADR 0001 records TrackSelect's catalog ownership boundary. See the runtime ADRs in `docs/core/adr/`, especially 0001, 0003, 0006, and 0007, before changing these boundaries.
+The UI package follows the runtime decisions that track state is validated through registered modules, startup stores remain externally initialized, and features expose narrow public APIs. UI ADR 0001 records TrackSelect's catalog ownership boundary. See the runtime ADRs in `docs/core/adr/`, especially 0001, 0003, 0006, and 0007, before changing these boundaries.

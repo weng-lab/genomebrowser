@@ -1,6 +1,6 @@
 # Ticket 03: Promote the UI package
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R2, R3, R4, R5, R6, R7, R8, R12, R13
 **Blocked by:** Ticket 02
@@ -15,15 +15,15 @@ Move `packages/ui-v2` to `packages/ui`, adopt the canonical UI npm identity and 
 
 ## Acceptance Criteria
 
-- [ ] The UI resides at `packages/ui`; `packages/ui-v2` no longer exists.
-- [ ] Its manifest name is `@weng-lab/genomebrowser-ui` and its version is `2.0.0-alpha.0`.
-- [ ] The package root export, `./cli` export, `trackselect` executable, declaration paths, and generated bundle names remain valid under the canonical identity.
-- [ ] Active UI maintainer docs move from `docs/ui-v2` to `docs/ui`, and shipped UI docs use only canonical installation and import instructions.
-- [ ] Root scripts, `AGENTS.md`, applicable checked-in skills, examples, and configuration describe only `packages/core` and `packages/ui` under their canonical npm names.
-- [ ] A concise ADR records that the v2 implementations replace the legacy package lines, use canonical npm names, and do not retain an in-tree legacy copy.
-- [ ] The root lockfile is regenerated with exactly the `packages/core` and `packages/ui` workspace importers.
-- [ ] A tracked search outside explicitly exempt historical or prioritized TODO material finds no obsolete `@weng-lab/genomebrowser-v2`, `@weng-lab/genomebrowser-ui-v2`, `packages/v2`, or `packages/ui-v2` references.
-- [ ] Prioritized `TODO.md` files are not edited; stale references are reported in the handoff.
+- [x] The UI resides at `packages/ui`; `packages/ui-v2` no longer exists.
+- [x] Its manifest name is `@weng-lab/genomebrowser-ui` and its version is `2.0.0-alpha.0`.
+- [x] The package root export, `./cli` export, `trackselect` executable, declaration paths, and generated bundle names remain valid under the canonical identity.
+- [x] Active UI maintainer docs move from `docs/ui-v2` to `docs/ui`, and shipped UI docs use only canonical installation and import instructions.
+- [x] Root scripts, `AGENTS.md`, applicable checked-in skills, examples, and configuration describe only `packages/core` and `packages/ui` under their canonical npm names.
+- [x] A concise ADR records that the v2 implementations replace the legacy package lines, use canonical npm names, and do not retain an in-tree legacy copy.
+- [x] The root lockfile is regenerated with exactly the `packages/core` and `packages/ui` workspace importers.
+- [x] A tracked search outside explicitly exempt historical or prioritized TODO material finds no obsolete `@weng-lab/genomebrowser-v2`, `@weng-lab/genomebrowser-ui-v2`, `packages/v2`, or `packages/ui-v2` references.
+- [x] Prioritized `TODO.md` files are not edited; stale references are reported in the handoff.
 
 ## Verification
 

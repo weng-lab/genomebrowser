@@ -18,8 +18,8 @@ A catalog-qualified ID uses `${catalogId}::${trackId}` to combine catalog identi
 
 ## Module registry
 
-The module registry is the v2 track store's map of track types to their modules. TrackSelect uses it to validate catalog entries and create submitted track instances.
+The module registry is the runtime track store's map of track types to their modules. TrackSelect uses it to validate catalog entries and create submitted track instances.
 
 ## Track store
 
-The track store is the v2 Zustand hook that owns committed track instances and their order. The same store instance must be shared by TrackSelect and the `GenomeBrowser` it controls.
+The track store is the Zustand hook that owns committed track instances and their order. The same store instance must be shared by TrackSelect and the `GenomeBrowser` it controls.

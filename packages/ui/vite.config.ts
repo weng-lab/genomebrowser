@@ -1,4 +1,5 @@
 import react from "@vitejs/plugin-react";
+import { chmodSync } from "node:fs";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadEnv } from "vite";
@@ -25,6 +26,12 @@ export default defineConfig(({ command, isPreview, mode }) => {
       dts({
         tsconfigPath: "./tsconfig.app.json",
       }),
+      {
+        name: "make-trackselect-executable",
+        writeBundle() {
+          chmodSync(path.resolve(__dirname, "dist/trackselect.js"), 0o755);
+        },
+      },
     ],
     server: {
       allowedHosts: true,
@@ -46,13 +53,13 @@ export default defineConfig(({ command, isPreview, mode }) => {
     build: {
       lib: {
         entry: {
-          "genomebrowser-ui-v2": path.resolve(__dirname, "src/lib.ts"),
+          "genomebrowser-ui": path.resolve(__dirname, "src/lib.ts"),
           cli: path.resolve(__dirname, "src/cli.ts"),
           trackselect: path.resolve(__dirname, "src/trackselect.ts"),
         },
-        name: "genomebrowser-ui-v2",
+        name: "genomebrowser-ui",
         fileName: (format, entryName) =>
-          entryName === "genomebrowser-ui-v2" ? `${entryName}.${format}.js` : `${entryName}.js`,
+          entryName === "genomebrowser-ui" ? `${entryName}.${format}.js` : `${entryName}.js`,
         formats: ["es"],
       },
       rollupOptions: {

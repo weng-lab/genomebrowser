@@ -1,6 +1,6 @@
 # TrackSelect
 
-`TrackSelect` lets users browse one or more track catalogs and commit a selection to a v2 track store. Use it with `GenomeBrowser` when your application needs a catalog-driven track picker rather than a fixed list of tracks.
+`TrackSelect` lets users browse one or more track catalogs and commit a selection to a runtime track store. Use it with `GenomeBrowser` when your application needs a catalog-driven track picker rather than a fixed list of tracks.
 
 ## Usage
 
@@ -8,7 +8,7 @@ Create the track store and catalog outside React rendering. In a browser integra
 
 ```tsx
 import { useState } from "react";
-import { TrackSelect, type TrackSelectCatalog } from "@weng-lab/genomebrowser-ui-v2";
+import { TrackSelect, type TrackSelectCatalog } from "@weng-lab/genomebrowser-ui";
 import { bigWigModule, createTrackStore } from "@weng-lab/genomebrowser";
 
 const useTrackStore = createTrackStore({
@@ -129,7 +129,7 @@ The callback does not run for initialization, draft actions, Cancel, or failed s
 Use `columnOverrides` for host-specific MUI Data Grid behavior. Overrides are keyed first by catalog ID and then by field. `withValueMarkers` adds a visual marker while preserving the formatted text value.
 
 ```tsx
-import { TrackSelect, withValueMarkers } from "@weng-lab/genomebrowser-ui-v2";
+import { TrackSelect, withValueMarkers } from "@weng-lab/genomebrowser-ui";
 
 <TrackSelect
   open={open}
@@ -167,7 +167,7 @@ Without a resolver, TrackSelect preserves an existing interaction on a reused ca
 | `open`                    | `boolean`                               | Required         | Controls whether the dialog is open.                                                                                                                        |
 | `onClose`                 | `() => void`                            | Required         | Runs after Cancel, the close button, a normal MUI dialog dismissal, or a successful Submit. The host must update `open`.                                    |
 | `trackCatalogs`           | `unknown[]`                             | Required         | Supplies catalogs to validate against the track-store registry. Keep the array identity stable to avoid reparsing unchanged catalogs.                       |
-| `useTrackStore`           | `TrackStoreInstance`                    | Required         | Provides the v2 track store and module registry used for validation, initialization, and submission. Pass the same hook used by `GenomeBrowser`.            |
+| `useTrackStore`           | `TrackStoreInstance`                    | Required         | Provides the runtime track store and module registry used for validation, initialization, and submission. Pass the same hook used by `GenomeBrowser`.       |
 | `title`                   | `string`                                | `"Track Select"` | Sets the visible dialog title.                                                                                                                              |
 | `maxTracks`               | `number`                                | `50`             | Limits the total draft selection across all supplied catalogs. It does not count tracks outside those catalogs.                                             |
 | `initialTrackIds`         | `readonly string[]`                     | `undefined`      | Sets the ordered catalog selection during initialization. It takes precedence over `defaultTrackIds` but does not change the Reset target.                  |
@@ -312,7 +312,7 @@ schemas/
 Create `trackselect.config.ts` in the directory where you will run the command:
 
 ```ts
-import { defineTrackSelectConfig } from "@weng-lab/genomebrowser-ui-v2/cli";
+import { defineTrackSelectConfig } from "@weng-lab/genomebrowser-ui/cli";
 import { bigBedModule, bigWigModule } from "@weng-lab/genomebrowser";
 
 export default defineTrackSelectConfig({
@@ -393,7 +393,7 @@ The generated schema validates JSON structure, allowed track types and displays,
 For build tooling that already owns a registry, generate the same schema programmatically:
 
 ```ts
-import { generateTrackCatalogJsonSchema } from "@weng-lab/genomebrowser-ui-v2";
+import { generateTrackCatalogJsonSchema } from "@weng-lab/genomebrowser-ui";
 import { bigWigModule, createModuleRegistry } from "@weng-lab/genomebrowser";
 
 const registry = createModuleRegistry([bigWigModule]);

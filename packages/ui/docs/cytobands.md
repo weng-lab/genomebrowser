@@ -5,7 +5,7 @@
 ## Usage
 
 ```tsx
-import { Cytobands } from "@weng-lab/genomebrowser-ui-v2";
+import { Cytobands } from "@weng-lab/genomebrowser-ui";
 
 export function ChromosomeOverview() {
   return <Cytobands assembly="GRCh38" chromosome="chr6" width={720} height={28} />;
@@ -19,7 +19,7 @@ Cytobands defaults to the same-origin `/api/screen-graphql` route. The host appl
 `currentRegion` accepts the complete `BrowserRegion` from a v2 browser store without adaptation. It is independent from `highlights`, so browser navigation moves the blue bracket without changing application loci or refetching cytobands.
 
 ```tsx
-import { Cytobands } from "@weng-lab/genomebrowser-ui-v2";
+import { Cytobands } from "@weng-lab/genomebrowser-ui";
 import { createBrowserStore, type Highlight } from "@weng-lab/genomebrowser";
 
 const useBrowserStore = createBrowserStore({
@@ -77,7 +77,7 @@ Keep application-specific data outside `Highlight`. Use its stable ID or coordin
 
 ```tsx
 import { useEffect, useState } from "react";
-import { Cytobands } from "@weng-lab/genomebrowser-ui-v2";
+import { Cytobands } from "@weng-lab/genomebrowser-ui";
 import type { Highlight } from "@weng-lab/genomebrowser";
 
 const labels: Readonly<Record<string, string>> = {
@@ -127,12 +127,12 @@ Requests use native `fetch` and are keyed by the exact `endpoint`, `assembly`, a
 When the host does not implement `/api/screen-graphql`, pass its GraphQL proxy URL through `endpoint`:
 
 ```tsx
-import { Cytobands } from "@weng-lab/genomebrowser-ui-v2";
+import { Cytobands } from "@weng-lab/genomebrowser-ui";
 
 <Cytobands assembly="GRCh38" chromosome="chr6" endpoint="YOUR_URL_HERE" width={720} height={28} />;
 ```
 
-The proxy must accept the component's GraphQL POST and provide any required authentication itself. UI v2 does not read a service key or construct an authorization header. The browser's normal `fetch` credential behavior still applies, including same-origin cookies. An application may point its Apollo client at the same proxy, but Cytobands uses native `fetch` and does not require an Apollo provider.
+The proxy must accept the component's GraphQL POST and provide any required authentication itself. The UI package does not read a service key or construct an authorization header. The browser's normal `fetch` credential behavior still applies, including same-origin cookies. An application may point its Apollo client at the same proxy, but Cytobands uses native `fetch` and does not require an Apollo provider.
 
 Loading, empty, network, GraphQL, and malformed-response states render text inside an SVG with the requested dimensions and expose a polite live status. Long status text may overflow a narrow width.
 
@@ -168,7 +168,7 @@ Loading, empty, network, GraphQL, and malformed-response states render text insi
 | `centromere` | `string` | `#9e2a2b` | Centromere (`acen`) bands.                                  |
 | `unknown`    | `string` | `#b8b8b8` | Unrecognized stain values.                                  |
 
-`Highlight` and `BrowserRegion` are public v2 types, not UI-v2-specific copies. A `Highlight` contains `id`, `region: { chromosome?: string; start: number; end: number }`, `color`, and optional `opacity`. A `BrowserRegion` contains required `chromosome`, `start`, and `end` fields. Highlight opacity accepts `0` through `1`; explicit `0`, fractional values, and `1` are preserved.
+`Highlight` and `BrowserRegion` are public runtime types, not UI-package-specific copies. A `Highlight` contains `id`, `region: { chromosome?: string; start: number; end: number }`, `color`, and optional `opacity`. A `BrowserRegion` contains required `chromosome`, `start`, and `end` fields. Highlight opacity accepts `0` through `1`; explicit `0`, fractional values, and `1` are preserved.
 
 ## Accessibility
 

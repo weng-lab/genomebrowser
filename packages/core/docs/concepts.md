@@ -6,7 +6,7 @@ The v2 package separates application-owned state, track-type behavior, and brows
 
 `createBrowserStore` and `createTrackStore` return Zustand hooks that the application creates and keeps stable.
 
-The browser store owns the visible genomic region, track-area width, margin and typography sizes, zoom behavior, and highlights. The track store owns the registered module set, validated track instances, and their order. Because the stores live outside `GenomeBrowser`, application controls and optional UI-v2 components can use the same state.
+The browser store owns the visible genomic region, track-area width, margin and typography sizes, zoom behavior, and highlights. The track store owns the registered module set, validated track instances, and their order. Because the stores live outside `GenomeBrowser`, application controls and optional UI-package components can use the same state.
 
 `GenomeBrowser` creates short-lived internal state for the mounted browser, including request results and default settings/context-menu state. Unmounting it discards that internal state, but does not discard the application-owned browser or track stores. An application may provide a custom settings store when it needs to replace browser-owned settings UI.
 

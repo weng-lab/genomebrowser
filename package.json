@@ -4,10 +4,12 @@
   "scripts": {
     "build": "pnpm -r build",
     "build:core": "pnpm --filter @weng-lab/genomebrowser build",
+    "build:ui": "pnpm --filter @weng-lab/genomebrowser-ui build",
     "dev": "pnpm -r dev",
     "dev:core": "pnpm --filter @weng-lab/genomebrowser dev",
-    "dev:ui-v2": "pnpm --filter @weng-lab/genomebrowser-ui-v2 dev",
+    "dev:ui": "pnpm --filter @weng-lab/genomebrowser-ui dev",
     "test:core": "pnpm --filter @weng-lab/genomebrowser test",
+    "test:ui": "pnpm --filter @weng-lab/genomebrowser-ui test",
     "lint": "pnpm -r lint",
     "doctor": "npx react-doctor@latest"
   },

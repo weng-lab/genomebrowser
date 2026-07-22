@@ -63,11 +63,11 @@ For a responsive browser that follows its container width, see [Getting started]
 - Request coordination as regions and track configuration change
 - An extension API for custom fetch-and-render track modules
 
-## Do you need UI v2?
+## Do you need the UI package?
 
 Start with this package when you need to render or control a genome browser.
 
-Add `@weng-lab/genomebrowser-ui-v2` when you also need ready-made application controls such as catalog-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same v2 track store.
+Add `@weng-lab/genomebrowser-ui@2.0.0-alpha.0` when you also need ready-made application controls such as catalog-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
 
 ## Documentation
 

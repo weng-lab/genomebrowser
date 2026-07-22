@@ -21,7 +21,7 @@ The new design must preserve that capability without conflating:
 - Let the frontend decide whether persistence is per portal, entity, route, cell type, tab, or another product scope.
 - Preserve product defaults as the Track Select Reset target.
 - Keep fixed non-catalog tracks, such as gene, Manhattan, and LD, outside persisted selection for now.
-- Make persistence reusable across applications using `genomebrowser-ui-v2`.
+- Make persistence reusable across applications using `@weng-lab/genomebrowser-ui`.
 - Keep storage replaceable rather than coupling Track Select directly to `localStorage`.
 - Handle stale, malformed, or partially obsolete persisted data safely.
 - Integrate persistence cleanup with the browser session lifecycle.
@@ -48,7 +48,7 @@ The client application chooses:
 - when a key change means the browser session must be replaced;
 - which storage adapter to inject.
 
-### `genomebrowser-ui-v2` owns reusable mechanics
+### `@weng-lab/genomebrowser-ui` owns reusable mechanics
 
 The UI library provides:
 
@@ -510,7 +510,7 @@ Rejected unless the frontend deliberately supplies a stable value. Random runtim
 ## Suggested implementation sequence
 
 1. [x] Add `initialTrackIds` and `onCommittedTrackIds` to Track Select, with omitted initial IDs falling back to defaults and Reset without defaults clearing the catalog draft.
-2. Add payload parsing, reconciliation, and a `TrackSelectionStorage` interface to `genomebrowser-ui-v2`.
+2. Add payload parsing, reconciliation, and a `TrackSelectionStorage` interface to `@weng-lab/genomebrowser-ui`.
 3. Add a safe local-storage adapter.
 4. Add the headless persistence controller.
 5. Extend the application browser-session composition to accept an optional persistence configuration.

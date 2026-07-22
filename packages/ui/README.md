@@ -1,24 +1,24 @@
-# @weng-lab/genomebrowser-ui-v2
+# @weng-lab/genomebrowser-ui
 
 Ready-made React controls for applications built with `@weng-lab/genomebrowser`.
 
-UI v2 provides higher-level interfaces such as catalog-backed track selection and interactive cytoband navigation. Its controls share v2 stores with `GenomeBrowser`, keeping application UI and rendered tracks synchronized.
+The UI package provides higher-level interfaces such as catalog-backed track selection and interactive cytoband navigation. Its controls share runtime stores with `GenomeBrowser`, keeping application UI and rendered tracks synchronized.
 
 > This package is under active development and its public API may change.
 
 ## Install
 
-Install UI v2, the browser runtime, and the required peer dependencies:
+Install the UI package, the browser runtime, and the required peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui-v2 @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
+pnpm add @weng-lab/genomebrowser-ui@2.0.0-alpha.0 @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
 ```
 
-The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. UI v2 participates in your application's normal MUI theme and does not require a package-specific stylesheet or provider.
+The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. The UI package participates in your application's normal MUI theme and does not require a package-specific stylesheet or provider.
 
 ## MUI X license
 
-UI v2 uses MUI X Premium components. Your application must have an MUI X Premium license and configure it before rendering UI v2:
+The UI package uses MUI X Premium components. Your application must have an MUI X Premium license and configure it before rendering its components:
 
 ```ts
 import { LicenseInfo } from "@mui/x-license";
@@ -26,15 +26,15 @@ import { LicenseInfo } from "@mui/x-license";
 LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_X_LICENSE_KEY);
 ```
 
-Keep this setup in your application entry point or another module imported before UI v2. The environment variable name is application-defined; UI v2 does not read it or distribute a license key.
+Keep this setup in your application entry point or another module imported before the UI package. The environment variable name is application-defined; the package does not read it or distribute a license key.
 
 ## Quick start
 
-Create the v2 stores and track catalogs outside component rendering. Pass the same track store to `GenomeBrowser` and `TrackSelect`.
+Create the runtime stores and track catalogs outside component rendering. Pass the same track store to `GenomeBrowser` and `TrackSelect`.
 
 ```tsx
 import { useState } from "react";
-import { TrackSelect } from "@weng-lab/genomebrowser-ui-v2";
+import { TrackSelect } from "@weng-lab/genomebrowser-ui";
 import {
   GenomeBrowser,
   bigWigModule,
@@ -101,9 +101,9 @@ export function BrowserWithTrackSelect() {
 
 Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser. Catalog selections remain a draft until the user submits them; canceling or closing the dialog leaves the track store unchanged.
 
-## When to use UI v2
+## When to use the UI package
 
-Use `@weng-lab/genomebrowser` by itself when you only need to render and control a genome browser. Add UI v2 when you need its ready-made application controls and can provide the required MUI dependencies and licensing.
+Use `@weng-lab/genomebrowser` by itself when you only need to render and control a genome browser. Add `@weng-lab/genomebrowser-ui` when you need its ready-made application controls and can provide the required MUI dependencies and licensing.
 
 ## Documentation
 

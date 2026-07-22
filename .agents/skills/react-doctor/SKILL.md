@@ -20,7 +20,7 @@ Target an affected package or project when a repository contains multiple projec
 
 ```bash
 pnpm exec react-doctor packages/core --verbose
-pnpm exec react-doctor packages/ui-v2 --verbose
+pnpm exec react-doctor packages/ui --verbose
 ```
 
 Use a Git-based scope only when the relevant Git changes are the intended scan boundary:

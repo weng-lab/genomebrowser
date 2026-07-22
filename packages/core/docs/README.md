@@ -10,9 +10,9 @@ pnpm add @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2
 
 The package is intended for client-side React 19.2+ applications. Its browser uses SVG, pointer events, `ResizeObserver` in responsive integrations, and remote data requests. It is not a server-rendered visualization runtime.
 
-## v2 and UI-v2
+## Runtime and optional UI
 
-`@weng-lab/genomebrowser` renders and manages the browser itself. `@weng-lab/genomebrowser-ui-v2` is a separate optional package for higher-level application UI such as catalog-backed track selection. Both can share the same track store; installing the UI package is not required to render a browser.
+`@weng-lab/genomebrowser` renders and manages the browser itself. `@weng-lab/genomebrowser-ui@2.0.0-alpha.0` is a separate optional package for higher-level application UI such as catalog-backed track selection. Both can share the same track store; installing the UI package is not required to render a browser.
 
 ## Recommended API
 
@@ -29,7 +29,7 @@ Create the stores once, outside ordinary component render, and pass the same tra
 
 - [Getting started](gettingStarted.md): install, create stable stores, render responsively, and update state.
 - [Core concepts](concepts.md): state ownership, request behavior, and interaction lifetimes.
-- [Recipes](recipes.md): common track, navigation, highlight, sizing, and UI-v2 tasks.
+- [Recipes](recipes.md): common track, navigation, highlight, sizing, and optional UI tasks.
 - [Tracks](tracks.md): the concise current built-in module inventory.
 - [Custom track modules](customTrackModules.md): add a validated fetch/render type.
 - [Troubleshooting](troubleshooting.md): diagnose setup, validation, request, and sizing failures.

@@ -1,6 +1,6 @@
 {
-  "name": "@weng-lab/genomebrowser-ui-v2",
-  "version": "0.0.0",
+  "name": "@weng-lab/genomebrowser-ui",
+  "version": "2.0.0-alpha.0",
   "private": true,
   "bin": {
     "trackselect": "./dist/trackselect.js"
@@ -10,12 +10,12 @@
     "docs"
   ],
   "type": "module",
-  "module": "dist/genomebrowser-ui-v2.es.js",
+  "module": "dist/genomebrowser-ui.es.js",
   "types": "dist/src/lib.d.ts",
   "exports": {
     ".": {
       "types": "./dist/src/lib.d.ts",
-      "import": "./dist/genomebrowser-ui-v2.es.js"
+      "import": "./dist/genomebrowser-ui.es.js"
     },
     "./cli": {
       "types": "./dist/src/cli.d.ts",

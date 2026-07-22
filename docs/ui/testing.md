@@ -1,19 +1,19 @@
-# UI v2 Testing
+# UI testing
 
-Run UI v2 checks from the repository root:
+Run UI package checks from the repository root:
 
 ```sh
-pnpm --filter @weng-lab/genomebrowser-ui-v2 test
-pnpm --filter @weng-lab/genomebrowser-ui-v2 build
-pnpm --filter @weng-lab/genomebrowser-ui-v2 lint
-pnpm --filter @weng-lab/genomebrowser-ui-v2 format:check
+pnpm --filter @weng-lab/genomebrowser-ui test
+pnpm --filter @weng-lab/genomebrowser-ui build
+pnpm --filter @weng-lab/genomebrowser-ui lint
+pnpm --filter @weng-lab/genomebrowser-ui format:check
 ```
 
 The test command runs Vitest once. The build also checks TypeScript and package entry points. Do not use the development server as an automated check.
 
 ## Test categories
 
-Keep deterministic catalog transformations in focused unit tests. Component or integration tests should cover behavior that depends on React state, MUI events, or the v2 track store.
+Keep deterministic catalog transformations in focused unit tests. Component or integration tests should cover behavior that depends on React state, MUI events, or the runtime track store.
 
 Current automated coverage includes:
 
@@ -28,7 +28,7 @@ Keep MUI Data Grid gestures and dialog presentation in the manual harness unless
 
 `test/main.tsx` is the manual integration harness. It creates one browser store and one track store, then passes that same track store to `GenomeBrowser` and `TrackSelect`. Use it to inspect dialog layout, catalog navigation, MUI grid behavior, grouping, markers, and the effect of Submit on the rendered browser.
 
-The harness uses the packages' default `/api/screen-graphql` endpoint for Cytobands and Transcript. The UI-v2 Vite server proxies that route to SCREEN and adds `SCREEN_API_KEY` from the server process or local Vite environment. The key is not exposed through `import.meta.env` or included in the browser bundle. Set the key before starting the user-managed development server; without it, SCREEN will reject authenticated requests.
+The harness uses the packages' default `/api/screen-graphql` endpoint for Cytobands and Transcript. The UI package's Vite server proxies that route to SCREEN and adds `SCREEN_API_KEY` from the server process or local Vite environment. The key is not exposed through `import.meta.env` or included in the browser bundle. Set the key before starting the user-managed development server; without it, SCREEN will reject authenticated requests.
 
 Catalog fixtures live in `test/catalogs/`. Prefer a small fixture that isolates the behavior under test; use the larger biosample and PsychSCREEN fixtures for realistic manual checks. Keep fixture entries aligned with modules registered by the harness. Use `YOUR_URL_HERE` for new illustrative URLs unless an existing repository fixture URL is intentionally reused.
 
@@ -45,7 +45,7 @@ Generated schemas should be checked by regenerating them only when schema or mod
 
 A TrackSelect workflow test should make the ownership boundaries visible:
 
-1. Create a real v2 track store with the modules needed by the fixture.
+1. Create a real runtime track store with the modules needed by the fixture.
 2. Open TrackSelect with stable catalogs and derive the initial draft from catalog tracks represented in the store.
 3. Change selections and assert that the store remains unchanged before Submit.
 4. Assert that Cancel or dialog dismissal drops the session without a store mutation.

@@ -1,10 +1,10 @@
 # Getting Started
 
-The key integration rule is to create the v2 stores and catalogs outside React rendering, then pass the same track store to both `GenomeBrowser` and `TrackSelect`. The browser renders committed tracks while TrackSelect stages and submits changes to that store.
+The key integration rule is to create the runtime stores and catalogs outside React rendering, then pass the same track store to both `GenomeBrowser` and `TrackSelect`. The browser renders committed tracks while TrackSelect stages and submits changes to that store.
 
 ```tsx
 import { useState } from "react";
-import { TrackSelect } from "@weng-lab/genomebrowser-ui-v2";
+import { TrackSelect } from "@weng-lab/genomebrowser-ui";
 import {
   bigWigModule,
   createBrowserStore,
