@@ -64,6 +64,25 @@ The host controls the dialog through `open` and `onClose`. Browsing and selectio
 
 See [Getting started](gettingStarted.md) for a complete example in which `TrackSelect` and `GenomeBrowser` share the store.
 
+### Choose JSON or TypeScript catalogs
+
+Use JSON for static, data-owned catalogs that benefit from schema-backed editor completion and validation. Use TypeScript when catalog entries come from application data or shared constants. For example, you can replace the inline tracks above with generated entries:
+
+```ts
+const generatedCatalog = {
+  ...trackCatalogs[0],
+  tracks: datasets.map((dataset) => ({
+    type: "bigwig",
+    id: dataset.id,
+    title: dataset.label,
+    config: { url: dataset.url },
+    metadata: {},
+  })),
+} satisfies TrackSelectCatalog;
+```
+
+The `satisfies` check catches structural TypeScript errors without changing the inferred value type. `TrackSelect` validates both JSON and TypeScript catalog values against the track-store registry at runtime.
+
 ## Examples
 
 ### Set initial and reset selections
