@@ -226,6 +226,25 @@ describe("TrackSelect session workflow", () => {
     expect(setup.setTracks).not.toHaveBeenCalled();
   });
 
+  it("keeps synthetic grid group IDs out of the draft, commit callback, and store", async () => {
+    const setup = createStateOptions();
+    const result = await renderState(setup.options);
+
+    await act(async () => {
+      result.current.actions.selectActiveCatalogTracks(
+        new Set(["alpha::one", "auto-generated-grid-group-id"]),
+      );
+    });
+
+    expect(selectedIds(result.current, "alpha")).toEqual(["alpha::one"]);
+    expect(result.current.state.selectedTrackCount).toBe(1);
+
+    await act(async () => result.current.actions.submitSelection());
+
+    expect(setup.store.getState().order).toEqual(["alpha::one"]);
+    expect(setup.onCommittedTrackIds).toHaveBeenCalledWith(["alpha::one"]);
+  });
+
   it("submits once in active-view order and preserves non-catalog tracks", async () => {
     const setup = createStateOptions({ trackIds: ["unmanaged"] });
     const result = await renderState(setup.options);

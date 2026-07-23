@@ -213,6 +213,8 @@ With one catalog, TrackSelect opens directly on its detail screen. With multiple
 
 The active view determines the order of newly added tracks. Groups follow their first appearance in catalog order, nested groups follow `grouping`, and tracks within the final group retain catalog order. Switching views can therefore change insertion order on Submit.
 
+In a grouped view, each group checkbox summarizes all selectable descendant tracks, including tracks in nested groups. An unchecked or partially selected group can select all of its descendants, and a fully selected group can deselect them. Groups are grid interactions rather than tracks: TrackSelect keeps only catalog-qualified leaf track IDs in the draft, runtime store, and `onCommittedTrackIds` callback.
+
 ### Column options
 
 | Option        | Type      | Default                      | Description                                                                                                                            |

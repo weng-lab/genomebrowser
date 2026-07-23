@@ -1,7 +1,12 @@
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
-import { DataGridPremium, type GridColumnVisibilityModel } from "@mui/x-data-grid-premium";
-import { useMemo, useState } from "react";
+import {
+  DataGridPremium,
+  type GridColumnVisibilityModel,
+  type GridRowSelectionModel,
+  useGridApiRef,
+} from "@mui/x-data-grid-premium";
+import { useEffect, useMemo, useState } from "react";
 import { getCatalogRows, getCatalogTrackIds, type CatalogGridRow } from "../catalog/catalogRows";
 import { getCatalogColumns, type TrackSelectColumnOverrides } from "../catalog/catalogColumns";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
@@ -63,11 +68,29 @@ function CatalogDataGrid({
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
     () => getColumnVisibilityModel(view),
   );
+  const apiRef = useGridApiRef();
+  const [gridSelectionModel, setGridSelectionModel] = useState<GridRowSelectionModel>(() => ({
+    type: "include",
+    ids: selectedIds,
+  }));
+
+  useEffect(() => {
+    const nextGridSelectionModel = apiRef.current?.getPropagatedRowSelectionModel({
+      type: "include",
+      ids: selectedIds,
+    });
+    if (!nextGridSelectionModel) return;
+
+    setGridSelectionModel((current) =>
+      selectionModelsAreEqual(current, nextGridSelectionModel) ? current : nextGridSelectionModel,
+    );
+  }, [apiRef, selectedIds]);
 
   return (
     <Paper sx={{ width: "100%" }}>
       <Box sx={{ height: trackSelectPanelHeight, width: "100%", overflow: "auto" }}>
         <DataGridPremium
+          apiRef={apiRef}
           rows={rows}
           columns={columns}
           getRowId={getRowId}
@@ -98,10 +121,16 @@ function CatalogDataGrid({
                 nextSelectedIds.add(id);
               }
             }
+            if (setsAreEqual(nextSelectedIds, selectedIds)) {
+              setGridSelectionModel((current) =>
+                selectionModelsAreEqual(current, selection) ? current : selection,
+              );
+              return;
+            }
             onSelectionChange(nextSelectedIds);
           }}
-          rowSelectionModel={{ type: "include", ids: selectedIds }}
-          rowSelectionPropagation={{ descendants: true, parents: false }}
+          rowSelectionModel={gridSelectionModel}
+          rowSelectionPropagation={{ descendants: true, parents: true }}
           keepNonExistentRowsSelected
           showToolbar
           checkboxSelection
@@ -118,6 +147,22 @@ function CatalogDataGrid({
 
 function getRowId(row: CatalogGridRow) {
   return row.id;
+}
+
+function setsAreEqual(left: Set<string>, right: Set<string>) {
+  if (left.size !== right.size) return false;
+  for (const value of left) {
+    if (!right.has(value)) return false;
+  }
+  return true;
+}
+
+function selectionModelsAreEqual(left: GridRowSelectionModel, right: GridRowSelectionModel) {
+  if (left.type !== right.type || left.ids.size !== right.ids.size) return false;
+  for (const id of left.ids) {
+    if (!right.ids.has(id)) return false;
+  }
+  return true;
 }
 
 function getColumnVisibilityModel(view: TrackSelectView) {
