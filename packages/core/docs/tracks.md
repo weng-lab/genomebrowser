@@ -11,7 +11,7 @@ The package currently exports these first-party modules:
 - `bulkBedModule`: multiple BigBed datasets in one row
 - `transcriptModule`: transcript models from a host-owned GraphQL endpoint
 - `methylCModule`: split-strand methylation channels
-- `caveModule`: CAVE data
+- [`caveModule`](tracks/cave.md): paired hmC and OXBS CAVE data
 
 The built-in inventory and detailed support are still evolving. The minimum create inputs below reflect the current implementation; each module's `create` signature and runtime validation remain the source of truth for optional config. BigBed-derived renderer reuse is not a recommended public workflow at this stage.
 

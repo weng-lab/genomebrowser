@@ -10,6 +10,7 @@ const CAVE_SIGNAL_RANGE: YRange = { min: 0, max: 1 };
 
 export function FullCave({
   color = "#3333ff",
+  config,
   data,
   width,
   height,
@@ -19,12 +20,14 @@ export function FullCave({
   const bottomPoints = condenseBigWigData(data.bottom, region, width);
   const topPath = createCavePath(topPoints, CAVE_SIGNAL_RANGE, height, "top");
   const bottomPath = createCavePath(bottomPoints, CAVE_SIGNAL_RANGE, height, "bottom");
+  const bottomColor = config.bottomColor ?? color;
+  const topColor = config.topColor ?? lighten(bottomColor, 0.65);
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
       <line x1={0} x2={width} y1={height / 2} y2={height / 2} stroke="#dddddd" strokeWidth={1} />
-      <path d={topPath} fill={lighten(color, 0.65)} />
-      <path d={bottomPath} fill={color} />
+      <path d={topPath} fill={topColor} />
+      <path d={bottomPath} fill={bottomColor} />
       <CaveHoverOverlay
         topPoints={topPoints}
         bottomPoints={bottomPoints}

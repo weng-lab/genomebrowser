@@ -4,6 +4,7 @@ import { fetchOnChange } from "../../modules/fetchOnChange";
 import { TrackTooltip } from "../shared/TrackTooltip";
 import { FullCave } from "./render";
 import { fetchCave } from "./fetch";
+import { CaveSettings } from "./settings";
 import type { CaveTooltipItem } from "./types";
 
 const caveConfigSchema = z.object({
@@ -18,6 +19,8 @@ const caveConfigSchema = z.object({
       "Adulthood",
     ]),
   ),
+  topColor: z.string().optional(),
+  bottomColor: z.string().optional(),
 });
 
 export const caveModule = defineTrackModule<CaveTooltipItem>()({
@@ -41,6 +44,7 @@ export const caveModule = defineTrackModule<CaveTooltipItem>()({
   render: {
     full: FullCave,
   },
+  settingsComponent: CaveSettings,
 });
 
 function formatValue(point: CaveTooltipItem["top"]) {

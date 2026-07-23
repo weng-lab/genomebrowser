@@ -109,7 +109,14 @@ export function SplitMethylC({
         depthRange,
       ),
     }),
-    [config.colors, config.maskCpgByCoverage, depthRange, effectiveRange, halfHeight, renderedData],
+    [
+      config.colors,
+      config.maskCpgByCoverage,
+      depthRange,
+      effectiveRange,
+      halfHeight,
+      renderedData,
+    ],
   );
   const showRows: MethylCShowRows = useMemo(
     () => ({
@@ -129,24 +136,29 @@ export function SplitMethylC({
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
       <g id={`${id}-plusStrand`}>
-        {signals.cpgPlus?.indicator}
-        {signals.chgPlus?.indicator}
         {signals.chhPlus?.indicator}
-        {signals.cpgPlus?.values}
-        {signals.chgPlus?.values}
+        {signals.chgPlus?.indicator}
+        {signals.cpgPlus?.indicator}
         {signals.chhPlus?.values}
+        {signals.chgPlus?.values}
+        {signals.cpgPlus?.values}
         {signals.depthPlus}
       </g>
       <g id={`${id}-minusStrand`} transform={`translate(0, ${halfHeight})`}>
-        {signals.cpgMinus?.indicator}
-        {signals.chgMinus?.indicator}
         {signals.chhMinus?.indicator}
-        {signals.cpgMinus?.values}
-        {signals.chgMinus?.values}
+        {signals.chgMinus?.indicator}
+        {signals.cpgMinus?.indicator}
         {signals.chhMinus?.values}
+        {signals.chgMinus?.values}
+        {signals.cpgMinus?.values}
         {signals.depthMinus}
       </g>
-      <MethylCHoverOverlay data={renderedData} showRows={showRows} width={width} height={height} />
+      <MethylCHoverOverlay
+        data={renderedData}
+        showRows={showRows}
+        width={width}
+        height={height}
+      />
     </g>
   );
 }
@@ -164,13 +176,19 @@ function MethylCHoverOverlay({
   const interaction = useInteraction<MethylCTooltipItem>();
   const tooltip = useTooltip<MethylCTooltipItem, MethylCConfig>();
   const tooltipValues = useMemo(
-    () => (hoveredIndex === undefined ? [] : data.map((channel) => channel[hoveredIndex])),
+    () =>
+      hoveredIndex === undefined
+        ? []
+        : data.map((channel) => channel[hoveredIndex]),
     [data, hoveredIndex],
   );
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const index = getMouseIndex(event, width);
-    const item = { tooltipValues: data.map((channel) => channel[index]), showRows };
+    const item = {
+      tooltipValues: data.map((channel) => channel[index]),
+      showRows,
+    };
     setHoveredIndex(index);
     interaction?.onHover?.(item);
     tooltip.show(item, event);
@@ -208,6 +226,10 @@ function MethylCHoverOverlay({
 
 function getMouseIndex(event: MouseEvent<SVGRectElement>, width: number) {
   const box = event.currentTarget.getBoundingClientRect();
-  const localX = box.width <= 0 ? 0 : ((event.clientX - box.left) / box.width) * width;
-  return Math.max(0, Math.min(Math.max(0, Math.floor(width) - 1), Math.round(localX)));
+  const localX =
+    box.width <= 0 ? 0 : ((event.clientX - box.left) / box.width) * width;
+  return Math.max(
+    0,
+    Math.min(Math.max(0, Math.floor(width) - 1), Math.round(localX)),
+  );
 }

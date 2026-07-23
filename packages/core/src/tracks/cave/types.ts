@@ -14,6 +14,8 @@ export type CaveAge =
 export type CaveConfig = {
   neurotransmitter: CaveNeurotransmitter;
   age: CaveAge;
+  topColor?: string;
+  bottomColor?: string;
 };
 
 export type CaveInput = {
