@@ -37,13 +37,13 @@ export function FullBigWig({
           <path
             d={paths.clampHighPath}
             stroke={config.clampIndicatorColor ?? "#ff0000"}
-            strokeWidth={2}
+            strokeWidth={1}
             fill="none"
           />
           <path
             d={paths.clampLowPath}
             stroke={config.clampIndicatorColor ?? "#ff0000"}
-            strokeWidth={2}
+            strokeWidth={1}
             fill="none"
           />
         </>
@@ -188,12 +188,13 @@ function createSignalPaths(points: RenderedBigWigPoint[], range: YRange, height:
     const minY = y(clampedMin);
     const maxY = y(clampedMax);
     const x2 = point.x + 1;
+    const centerX = point.x + 0.5;
 
     minPath += ` L ${point.x} ${zeroY} L ${point.x} ${minY} L ${x2} ${minY} L ${x2} ${zeroY}`;
     maxPath += ` L ${point.x} ${zeroY} L ${point.x} ${maxY} L ${x2} ${maxY} L ${x2} ${zeroY}`;
 
-    if (point.max > range.max) clampHighPath += `M ${point.x} 0 l 0 2 `;
-    if (point.min < range.min) clampLowPath += `M ${point.x} ${height} l 0 -2 `;
+    if (point.max > range.max) clampHighPath += `M ${centerX} 0 l 0 2 `;
+    if (point.min < range.min) clampLowPath += `M ${centerX} ${height} l 0 -2 `;
   }
 
   return { minPath, maxPath, clampHighPath, clampLowPath };

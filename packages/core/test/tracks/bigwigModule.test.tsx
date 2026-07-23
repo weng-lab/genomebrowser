@@ -50,7 +50,7 @@ describe("BigWig module", () => {
     ).toBe(signature);
   });
 
-  it("uses one configured color for both full-mode clamp boundaries", () => {
+  it("aligns both full-mode clamp boundaries with the one-unit signal column", () => {
     const markup = renderFull({
       ...createTrack().config,
       yRange: { min: -1, max: 1 },
@@ -58,8 +58,14 @@ describe("BigWig module", () => {
     });
 
     expect(markup.match(/stroke="#123456"/g)).toHaveLength(2);
-    expect(markup).toContain('d="M 0 0 l 0 2 "');
-    expect(markup).toContain('d="M 0 80 l 0 -2 "');
+    expect(markup).toContain(
+      '<path d="M 0.5 0 l 0 2 " stroke="#123456" stroke-width="1" fill="none"></path>',
+    );
+    expect(markup).toContain(
+      '<path d="M 0.5 80 l 0 -2 " stroke="#123456" stroke-width="1" fill="none"></path>',
+    );
+    expect(markup).toContain('d="M 0 40 L 0 40 L 0 80 L 1 80 L 1 40"');
+    expect(markup).toContain('d="M 0 40 L 0 40 L 0 0 L 1 0 L 1 40"');
   });
 
   it("hides both full-mode indicators without changing clipped signal geometry", () => {
@@ -70,8 +76,8 @@ describe("BigWig module", () => {
     });
 
     expect(markup).not.toContain('stroke="#ff0000"');
-    expect(markup).not.toContain('d="M 0 0 l 0 2 "');
-    expect(markup).not.toContain('d="M 0 80 l 0 -2 "');
+    expect(markup).not.toContain('d="M 0.5 0 l 0 2 "');
+    expect(markup).not.toContain('d="M 0.5 80 l 0 -2 "');
     expect(markup).toContain('d="M 0 40 L 0 40 L 0 80 L 1 80 L 1 40"');
     expect(markup).toContain('d="M 0 40 L 0 40 L 0 0 L 1 0 L 1 40"');
   });
