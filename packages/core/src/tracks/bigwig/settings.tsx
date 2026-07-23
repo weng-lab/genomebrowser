@@ -35,6 +35,23 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
         />
         Fill missing values with zero
       </label>
+      <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <input
+          type="checkbox"
+          checked={config.showClampIndicators ?? true}
+          onChange={(event) => updateConfig({ showClampIndicators: event.target.checked })}
+        />
+        Show clamp indicators
+      </label>
+      <label style={{ display: "grid", gap: "4px" }}>
+        Clamp indicator color
+        <input
+          type="text"
+          value={config.clampIndicatorColor ?? "#ff0000"}
+          disabled={!(config.showClampIndicators ?? true)}
+          onChange={(event) => updateConfig({ clampIndicatorColor: event.target.value })}
+        />
+      </label>
       <div style={{ display: "grid", gap: "6px" }}>
         <div style={{ fontWeight: 600 }}>Y range</div>
         <div style={{ display: "flex", gap: "6px" }}>

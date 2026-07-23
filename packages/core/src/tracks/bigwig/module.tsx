@@ -21,6 +21,8 @@ const bigWigConfigSchema = z.object({
   url: fetchOnChange(z.string().min(1)),
   fillWithZero: z.boolean().default(false),
   yRange: yRangeSchema.optional(),
+  showClampIndicators: z.boolean().default(true),
+  clampIndicatorColor: z.string().default("#ff0000"),
 });
 
 export const bigWigModule = defineTrackModule<RenderedBigWigPoint>()({

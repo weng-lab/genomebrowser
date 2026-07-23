@@ -32,8 +32,22 @@ export function FullBigWig({
       <line x1={0} x2={width} y1={zeroY} y2={zeroY} stroke="#dddddd" strokeWidth={1} />
       {range.min < 0 && <path d={paths.minPath} fill={lighten(color, 0.2)} />}
       <path d={paths.maxPath} fill={color} />
-      <path d={paths.clampHighPath} stroke="#ff0000" strokeWidth={2} fill="none" />
-      <path d={paths.clampLowPath} stroke="#ff0000" strokeWidth={2} fill="none" />
+      {(config.showClampIndicators ?? true) && (
+        <>
+          <path
+            d={paths.clampHighPath}
+            stroke={config.clampIndicatorColor ?? "#ff0000"}
+            strokeWidth={2}
+            fill="none"
+          />
+          <path
+            d={paths.clampLowPath}
+            stroke={config.clampIndicatorColor ?? "#ff0000"}
+            strokeWidth={2}
+            fill="none"
+          />
+        </>
+      )}
       <BigWigHoverOverlay points={points} width={width} height={height} />
     </g>
   );

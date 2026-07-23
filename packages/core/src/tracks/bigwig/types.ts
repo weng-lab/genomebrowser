@@ -6,6 +6,8 @@ export type BigWigConfig = {
   url: string;
   fillWithZero?: boolean;
   yRange?: YRange;
+  showClampIndicators?: boolean;
+  clampIndicatorColor?: string;
 };
 
 export type BigWigInput = {

@@ -93,6 +93,25 @@ const useTrackStore = createTrackStore({
 
 The store resolves validation, requests, rendering, settings, and tooltips through `track.type`. An unregistered type is rejected. Track IDs must be unique.
 
+### BigWig clamp indicators
+
+In `full` display mode, BigWig values outside a fixed `yRange` remain clipped to that range and are marked at the upper or lower boundary. Clamp indicators are visible and red by default. Configure them per track with `showClampIndicators` (default `true`) and `clampIndicatorColor` (default `"#ff0000"`):
+
+```ts
+bigWigModule.create({
+  id: "signal",
+  title: "Signal",
+  config: {
+    url: "YOUR_URL_HERE",
+    yRange: { min: 0, max: 10 },
+    showClampIndicators: true,
+    clampIndicatorColor: "#663399",
+  },
+});
+```
+
+The BigWig settings panel provides a **Show clamp indicators** checkbox and a text-based **Clamp indicator color** control. Hiding indicators disables the color control without clearing its value. These options affect rendering only and do not trigger a data refetch. Dense display mode does not render clamp indicators.
+
 Optional interaction callbacks are passed as the second argument to `module.create(...)`; their item and parsed-config types are module-specific. Each callback receives `(item, context)`, where `context.type`, `context.base`, and `context.config` are the current shallow read-only runtime view. One-argument callbacks remain valid when they do not need context.
 
 Renderers continue to call item-only handlers from `useInteraction<Item>()`. Module tooltip components receive `{ item, context }`, and renderers open them with parameterless `useTooltip<Item, Config>()`. Later base and config updates appear in later callbacks and tooltip renders. Runtime context is derived rather than persisted and contains no metadata from optional catalog UI packages.
