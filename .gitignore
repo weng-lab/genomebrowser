@@ -24,10 +24,11 @@ dist-ssr
 *.sln
 *.sw?
 *.exe
+.zed
 
 *storybook.log
 storybook-static
 
-.lore
 .opencode
 .devserve
+.specs
