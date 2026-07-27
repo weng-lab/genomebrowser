@@ -21,7 +21,7 @@ export function FullCave({
   const topPath = createCavePath(topPoints, CAVE_SIGNAL_RANGE, height, "top");
   const bottomPath = createCavePath(bottomPoints, CAVE_SIGNAL_RANGE, height, "bottom");
   const bottomColor = config.bottomColor ?? color;
-  const topColor = config.topColor ?? lighten(bottomColor, 0.65);
+  const topColor = config.topColor ?? lighten(bottomColor, 0.5);
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />

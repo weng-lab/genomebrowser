@@ -109,14 +109,7 @@ export function SplitMethylC({
         depthRange,
       ),
     }),
-    [
-      config.colors,
-      config.maskCpgByCoverage,
-      depthRange,
-      effectiveRange,
-      halfHeight,
-      renderedData,
-    ],
+    [config.colors, config.maskCpgByCoverage, depthRange, effectiveRange, halfHeight, renderedData],
   );
   const showRows: MethylCShowRows = useMemo(
     () => ({
@@ -153,12 +146,7 @@ export function SplitMethylC({
         {signals.cpgMinus?.values}
         {signals.depthMinus}
       </g>
-      <MethylCHoverOverlay
-        data={renderedData}
-        showRows={showRows}
-        width={width}
-        height={height}
-      />
+      <MethylCHoverOverlay data={renderedData} showRows={showRows} width={width} height={height} />
     </g>
   );
 }
@@ -176,10 +164,7 @@ function MethylCHoverOverlay({
   const interaction = useInteraction<MethylCTooltipItem>();
   const tooltip = useTooltip<MethylCTooltipItem, MethylCConfig>();
   const tooltipValues = useMemo(
-    () =>
-      hoveredIndex === undefined
-        ? []
-        : data.map((channel) => channel[hoveredIndex]),
+    () => (hoveredIndex === undefined ? [] : data.map((channel) => channel[hoveredIndex])),
     [data, hoveredIndex],
   );
 
@@ -226,10 +211,6 @@ function MethylCHoverOverlay({
 
 function getMouseIndex(event: MouseEvent<SVGRectElement>, width: number) {
   const box = event.currentTarget.getBoundingClientRect();
-  const localX =
-    box.width <= 0 ? 0 : ((event.clientX - box.left) / box.width) * width;
-  return Math.max(
-    0,
-    Math.min(Math.max(0, Math.floor(width) - 1), Math.round(localX)),
-  );
+  const localX = box.width <= 0 ? 0 : ((event.clientX - box.left) / box.width) * width;
+  return Math.max(0, Math.min(Math.max(0, Math.floor(width) - 1), Math.round(localX)));
 }

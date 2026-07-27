@@ -10,6 +10,10 @@ The browser store owns the visible genomic region, track-area width, margin and 
 
 `GenomeBrowser` creates short-lived internal state for the mounted browser, including request results and default settings/context-menu state. Unmounting it discards that internal state, but does not discard the application-owned browser or track stores. An application may provide a custom settings store when it needs to replace browser-owned settings UI.
 
+## Track row hover feedback
+
+Hovering the left track margin, including its color strip and track controls, highlights the full track row. The highlight turns off when the pointer leaves that margin. Hovering the centered track title or genomic data area does not activate the row highlight.
+
 ## Modules define track types
 
 A registered module holds stable behavior for one type: schemas, defaults, fetching, renderers, display modes, and optional settings and tooltip components. A track instance holds values for one row:

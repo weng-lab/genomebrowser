@@ -32,13 +32,7 @@ export function generateSignal2(
   data.forEach((point, index) => {
     if (point.min === null || point.max === null) return;
     if (requireCoverage && !hasCoverage(coverageData?.[index])) return;
-    const normalized = normalizePoint(
-      point,
-      range,
-      rangeSize,
-      height,
-      inverted,
-    );
+    const normalized = normalizePoint(point, range, rangeSize, height, inverted);
     opaquePathString +=
       l(point.x, startY) +
       l(normalized.x, inverted ? height : 0) +
@@ -53,9 +47,7 @@ export function generateSignal2(
   });
 
   return {
-    indicator: (
-      <path d={opaquePathString} fill={lighten(color, 0.25)} fillOpacity={1} />
-    ),
+    indicator: <path d={opaquePathString} fill={lighten(color, 0.25)} fillOpacity={1} />,
     values: <path d={pathString} fill={color} />,
   };
 }
@@ -76,13 +68,7 @@ export function generateLineGraph(
 
   data.forEach((point) => {
     if (point.min === null || point.max === null) return;
-    const normalized = normalizePoint(
-      point,
-      range,
-      rangeSize,
-      height,
-      inverted,
-    );
+    const normalized = normalizePoint(point, range, rangeSize, height, inverted);
 
     if (!started) {
       pathString += m(normalized.x, normalized.y);
@@ -92,9 +78,7 @@ export function generateLineGraph(
     }
   });
 
-  return pathString ? (
-    <path d={pathString} stroke={color} fill="none" strokeWidth="1" />
-  ) : null;
+  return pathString ? <path d={pathString} stroke={color} fill="none" strokeWidth="1" /> : null;
 }
 
 export function getMethylCRange(channels: MethylCRenderedPoint[][]): YRange {
@@ -113,10 +97,7 @@ export function getMethylCRange(channels: MethylCRenderedPoint[][]): YRange {
   return { min, max };
 }
 
-function validateAndNormalizeData(
-  data: MethylCRenderedPoint[],
-  customRange?: YRange,
-) {
+function validateAndNormalizeData(data: MethylCRenderedPoint[], customRange?: YRange) {
   if (!data || data.length === 0) return null;
 
   const range = customRange || getMethylCRange([data]);

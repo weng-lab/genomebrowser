@@ -60,13 +60,7 @@ export function TrackFrame({
   };
 
   return (
-    <g
-      transform={`translate(0,${y + previewOffsetY})`}
-      onMouseMove={() => {
-        if (!disableHover) setHover(true);
-      }}
-      onMouseLeave={() => setHover(false)}
-    >
+    <g transform={`translate(0,${y + previewOffsetY})`}>
       <defs>
         <clipPath id={contentClipId}>
           <rect x={marginWidth} y={titleMargin} width={trackWidth} height={track.base.height} />
@@ -104,26 +98,33 @@ export function TrackFrame({
       >
         {track.base.title}
       </text>
-      <rect
-        x={0}
-        y={0}
-        width={marginWidth}
-        height={wrapperHeight}
-        fill="#ffffff"
-        onMouseDown={onSwapMouseDown}
-        style={{ cursor: onSwapMouseDown ? (swapping ? "grabbing" : "grab") : "default" }}
-      />
-      <rect
-        x={0}
-        y={0}
-        width={marginWidth / 15}
-        height={wrapperHeight}
-        stroke="#000000"
-        strokeWidth={0.5}
-        fill={track.base.color || "#ffffff"}
-      />
-      <TrackControls track={track} marginWidth={marginWidth} wrapperHeight={wrapperHeight} />
-      <line stroke="#cccccc" x1={marginWidth} x2={marginWidth} y1={0} y2={wrapperHeight} />
+      <g
+        onMouseEnter={() => {
+          if (!disableHover) setHover(true);
+        }}
+        onMouseLeave={() => setHover(false)}
+      >
+        <rect
+          x={0}
+          y={0}
+          width={marginWidth}
+          height={wrapperHeight}
+          fill="#ffffff"
+          onMouseDown={onSwapMouseDown}
+          style={{ cursor: onSwapMouseDown ? (swapping ? "grabbing" : "grab") : "default" }}
+        />
+        <rect
+          x={0}
+          y={0}
+          width={marginWidth / 15}
+          height={wrapperHeight}
+          stroke="#000000"
+          strokeWidth={0.5}
+          fill={track.base.color || "#ffffff"}
+        />
+        <TrackControls track={track} marginWidth={marginWidth} wrapperHeight={wrapperHeight} />
+        <line stroke="#cccccc" x1={marginWidth} x2={marginWidth} y1={0} y2={wrapperHeight} />
+      </g>
       {showHover && (
         <rect
           width={marginWidth + trackWidth}
