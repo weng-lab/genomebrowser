@@ -43,12 +43,6 @@ packages; append `:core` or `:ui` to target one package.
 | Check formatting | `pnpm format:check` | `pnpm format:check:core` | `pnpm format:check:ui` |
 | Apply formatting | `pnpm format`       | `pnpm format:core`       | `pnpm format:ui`       |
 
-Run `pnpm validate:packed-consumers` to pack both packages and test the exact
-tarballs in a temporary consumer outside the workspace. The check installs the
-documented UI peers, type-checks emitted declarations, creates a production
-browser build without source aliases, exercises the UI CLI, and inspects the
-published files. It removes its temporary tarballs and consumer when finished.
-
 Human maintainers can use `pnpm dev` to start both package servers concurrently,
 or `pnpm dev:core` and `pnpm dev:ui` to start one server. Automation agents must
 not start the development servers; inspect `.devserve/out.log` and
