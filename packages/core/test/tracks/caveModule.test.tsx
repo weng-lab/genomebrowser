@@ -49,9 +49,9 @@ describe("CAVE module", () => {
       "#123456",
     );
 
-    expect(fallbackMarkup).toContain('fill="#b8dafc"');
+    expect(fallbackMarkup).toContain('fill="#92b4d6"');
     expect(fallbackMarkup).toContain('fill="#123456"');
-    expect(bottomOnlyMarkup).toContain('fill="#ffe9c7"');
+    expect(bottomOnlyMarkup).toContain('fill="#e5c3a1"');
     expect(bottomOnlyMarkup).toContain('fill="#654321"');
     expect(configuredMarkup).toContain('fill="rebeccapurple"');
     expect(configuredMarkup).toContain('fill="tomato"');
