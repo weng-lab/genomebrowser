@@ -18,25 +18,6 @@ during the beta only when the limitation is explicit. P2 items are post-beta fol
 
 ## P0: beta blockers
 
-- [x] **[Behavior contract] Reserve catalog-qualified track IDs for TrackSelect ownership.**
-      TrackSelect intentionally classifies store tracks by `${catalogId}::${trackId}` ID alone.
-      Hosts must not assign an ID reserved by a supplied catalog to a fixed or otherwise
-      non-catalog track. Doing so makes that track catalog-owned, so initialization or Submit may
-      reuse or remove it. This keeps provenance deterministic without adding runtime metadata for
-      unsupported programmatic collisions. Regression tests cover initialization, Clear, and
-      Submit. Evidence: `src/TrackSelect/catalog/catalogStore.ts`,
-      `src/TrackSelect/catalog/catalogRows.ts`, `test/trackSelectWorkflow.test.tsx`,
-      `docs/trackSelect.md`, and v2's unique-ID boundary in
-      `packages/v2/src/browser/state/trackStore.ts`.
-
-- [x] **[Known bug / state ownership] Make TrackSelect initialization identity explicit.**
-      Initialization is scoped to the mounted `TrackSelect` and its current combination of store,
-      catalogs, defaults, and limit. Changing that combination initializes again; ordinary store
-      updates do not. A remount starts a new lifetime. Tests distinguish `undefined` from `[]` and
-      cover changed defaults, remounts, and two isolated stores. Evidence:
-      `src/TrackSelect/TrackSelect.tsx`, `test/trackSelectWorkflow.test.tsx`,
-      `docs/trackSelect.md`, and `docs/ui-v2/concepts.md`.
-
 - [ ] **[Tests] Close the remaining TrackSelect component-boundary gaps.** The current workflow
       suite covers draft isolation, navigation, ordering, limits, Clear, Reset, Cancel, successful
       Submit, rejected `setTracks`, atomicity, and preservation of external tracks through the
@@ -63,11 +44,6 @@ during the beta only when the limitation is explicit. P2 items are post-beta fol
       dry-run pack exposes 47 files but has no installed-consumer test. Evidence: `package.json`,
       `vite.config.ts`, `src/trackselect.ts`, `src/cli.ts`, and `src/lib.ts`.
 
-- [x] **[Release / MUI] Make MUI X license setup host-owned.** UI v2 no longer reads build-time
-      license environment values or calls `LicenseInfo.setLicenseKey`. Consuming applications must
-      configure their own MUI X Premium license before rendering UI v2. Evidence: `src/lib.ts`,
-      `vite.config.ts`, `docs/README.md`, and `docs/ui-v2/concepts.md`.
-
 - [ ] **[Release hygiene] Restore a green formatting gate.** `format:check` currently fails on
       checked source, tests, fixtures, and generated schemas, so it cannot serve as a beta gate.
       Apply the repository formatter, review generated-data diffs, and keep the check in the
@@ -90,18 +66,6 @@ during the beta only when the limitation is explicit. P2 items are post-beta fol
       `docs/ideas/trackSelectPersistence.md`. Evidence: `src/TrackSelect/TrackSelect.tsx`,
       `src/TrackSelect/session/useTrackSelectState.ts`, `test/trackSelectWorkflow.test.tsx`,
       `docs/trackSelect.md`, and `docs/ideas/trackSelectPersistence.md`.
-
-- [x] **[Feature / legacy parity candidate] Provide or reject a narrow interaction-callback seam.**
-      `resolveTrackInteraction` now adapts host callbacks for selected catalog entries during
-      initialization and successful Submit while catalog JSON and `createTrackFromEntry` remain
-      data-only. Core supplies current runtime context at event time, and UI v2 appends separate
-      catalog-owned metadata without copying it into tracks or persistence. Resolver output is
-      authoritative when supplied, failures are atomic, and non-catalog tracks remain untouched.
-      Evidence: `src/TrackSelect/catalog/catalogInteraction.ts`,
-      `src/TrackSelect/catalog/catalogStore.ts`, `src/TrackSelect/TrackSelect.tsx`,
-      `packages/v2/src/modules/types.ts`, `test/catalogDefaults.test.ts`,
-      `test/trackSelectWorkflow.test.tsx`, `docs/trackSelect.md`, and
-      `docs/recipes/trackInteractions.md`.
 
 - [ ] **[Accessibility / responsive UI] Establish a keyboard and small-screen acceptance pass.**
       Give the view selector an accessible name, verify focus entry/return and nested confirmation
