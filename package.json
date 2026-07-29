@@ -4,9 +4,11 @@
   "scripts": {
     "build": "pnpm -r build",
     "build:core": "pnpm --filter @weng-lab/genomebrowser build",
+    "build:app": "pnpm --filter @weng-lab/genomebrowser-app build",
     "build:ui": "pnpm --filter @weng-lab/genomebrowser-ui build",
     "dev": "pnpm --parallel -r dev",
     "dev:core": "pnpm --filter @weng-lab/genomebrowser dev",
+    "dev:app": "pnpm --filter @weng-lab/genomebrowser-app dev",
     "dev:ui": "pnpm --filter @weng-lab/genomebrowser-ui dev",
     "test": "pnpm -r test",
     "test:core": "pnpm --filter @weng-lab/genomebrowser test",

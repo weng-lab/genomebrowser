@@ -1,3 +1,17 @@
+diff --git a/package.json b/package.json
+index bbded75..1f22ba3 100644
+--- a/package.json
++++ b/package.json
+@@ -2,6 +2,9 @@
+   "name": "genomic-reader",
+   "version": "1.4.10",
+   "main": "dist/index.js",
++  "browser": {
++    "fs": false
++  },
+   "types": "dist/index.d.ts",
+   "license": "MIT",
+   "repository": {
 diff --git a/dist/bigwig/BigWigHeaderReader.js b/dist/bigwig/BigWigHeaderReader.js
 index cabd808eb950db555e64c302b483317eb1373cc8..a2d2881a3e13491a4c761b51683106a779e32c92 100644
 --- a/dist/bigwig/BigWigHeaderReader.js
