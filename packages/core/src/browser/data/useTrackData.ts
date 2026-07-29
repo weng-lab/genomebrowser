@@ -49,15 +49,15 @@ export function useTrackData({
             return previousKey === undefined || previousKey !== currentKey;
           });
 
+    const fetchIds = new Set(tracksToFetch.map((track) => track.base.id));
+    setFetchingTrackIds(fetchIds);
+
     if (tracksToFetch.length === 0) {
       previousRegionKey.current = regionKey;
       previousFetchKeys.current = currentFetchKeys;
       if (isInitialFetch || isRegionChanged) onSettledEvent();
       return;
     }
-
-    const fetchIds = new Set(tracksToFetch.map((track) => track.base.id));
-    setFetchingTrackIds(fetchIds);
 
     Promise.all(
       tracksToFetch.map(async (track) => {
