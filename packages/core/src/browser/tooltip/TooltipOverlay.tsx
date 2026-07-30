@@ -1,12 +1,15 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type ErrorInfo } from "react";
+import { RenderErrorBoundary } from "../RenderErrorBoundary";
 import { useInternalTooltipStore } from "./tooltipContextState";
 
 const TOOLTIP_OFFSET = 10;
+const tooltipRenderErrorPrefix = "[genomebrowser] Tooltip render error";
 
 export function TooltipOverlay({ width, height }: { width: number; height: number }) {
   const content = useInternalTooltipStore((state) => state.content);
   const isVisible = useInternalTooltipStore((state) => state.isVisible);
   const anchor = useInternalTooltipStore((state) => state.anchor);
+  const owner = useInternalTooltipStore((state) => state.owner);
   const ref = useRef<SVGGElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
@@ -37,7 +40,39 @@ export function TooltipOverlay({ width, height }: { width: number; height: numbe
       transform={`translate(${position.x},${position.y})`}
       style={{ pointerEvents: "none" }}
     >
-      {content}
+      <RenderErrorBoundary
+        key={owner}
+        fallback={<TooltipErrorFallback />}
+        onError={reportTooltipRenderError}
+      >
+        {content}
+      </RenderErrorBoundary>
     </g>
   );
+}
+
+function TooltipErrorFallback() {
+  return (
+    <g>
+      <rect width={144} height={30} rx={2} fill="#ffffff" stroke="#cccccc" />
+      <text
+        x={72}
+        y={15}
+        fill="#000000"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="12px"
+      >
+        Tooltip unavailable
+      </text>
+    </g>
+  );
+}
+
+function reportTooltipRenderError(error: unknown, info: ErrorInfo) {
+  console.error(tooltipRenderErrorPrefix, {
+    extensionPoint: "tooltip content",
+    error,
+    ...(info.componentStack ? { componentStack: info.componentStack } : {}),
+  });
 }

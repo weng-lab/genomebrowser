@@ -30,52 +30,40 @@ export const TrackContent = memo(function TrackContent({
     return <ErrorState x={0} y={0} width={width} height={height} message={dataState.error} />;
   }
 
-  try {
-    const module = registry.get(track.type);
-    const Renderer = module.render[track.base.display] as
-      | ComponentType<TrackRendererProps<unknown, unknown>>
-      | undefined;
-    if (!Renderer) {
-      return (
-        <ErrorState
-          x={0}
-          y={0}
-          width={width}
-          height={height}
-          message={`Display "${track.base.display}" is not supported by "${track.type}"`}
-        />
-      );
-    }
-    const context = {
-      type: track.type,
-      base: track.base,
-      config: track.config,
-    };
-    const interaction = bindTrackInteraction(track.interaction, context);
-    return (
-      <TrackRuntimeContextProvider context={context}>
-        <TrackInteractionProvider interaction={interaction}>
-          <Renderer
-            id={track.base.id}
-            config={track.config}
-            color={track.base.color}
-            data={dataState.data}
-            region={region}
-            width={width}
-            height={height}
-          />
-        </TrackInteractionProvider>
-      </TrackRuntimeContextProvider>
-    );
-  } catch (error) {
+  const module = registry.get(track.type);
+  const Renderer = module.render[track.base.display] as
+    | ComponentType<TrackRendererProps<unknown, unknown>>
+    | undefined;
+  if (!Renderer) {
     return (
       <ErrorState
         x={0}
         y={0}
         width={width}
         height={height}
-        message={error instanceof Error ? error.message : "Unknown error"}
+        message={`Display "${track.base.display}" is not supported by "${track.type}"`}
       />
     );
   }
+  const context = {
+    type: track.type,
+    base: track.base,
+    config: track.config,
+  };
+  const interaction = bindTrackInteraction(track.interaction, context);
+  return (
+    <TrackRuntimeContextProvider context={context}>
+      <TrackInteractionProvider interaction={interaction}>
+        <Renderer
+          id={track.base.id}
+          config={track.config}
+          color={track.base.color}
+          data={dataState.data}
+          region={region}
+          width={width}
+          height={height}
+        />
+      </TrackInteractionProvider>
+    </TrackRuntimeContextProvider>
+  );
 });

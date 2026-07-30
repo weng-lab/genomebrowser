@@ -22,6 +22,12 @@ Fetch failures appear in the affected track's error state. Check browser network
 
 For Transcript failures, confirm the host implements the default `/api/screen-graphql` route or that the track's `config.endpoint` names the intended alternative. The module does not construct an authorization header. If the upstream service requires a credential, point the track at an application-owned server proxy and verify that the proxy adds the credential server-side.
 
+## Custom renderer or tooltip failure
+
+An unexpected error while React renders a custom track renderer is contained to that track's content area. An error from custom tooltip content is replaced by `Tooltip unavailable`; hide the tooltip or show one from another track to clear that fallback. Other tracks and browser controls remain available in both cases.
+
+Inspect the original error and React component stack in the browser console. Contained track failures use the `[genomebrowser] Track render error` prefix, and contained tooltip failures use `[genomebrowser] Tooltip render error`.
+
 ## Browser is blank, clipped, or too wide
 
 The browser does not measure its parent. Set `trackWidth` to a positive value and update it from a `ResizeObserver` when the container changes. The complete SVG width is `marginWidth + trackWidth`, so subtract the margin from the measured host width if the browser should fit exactly.
