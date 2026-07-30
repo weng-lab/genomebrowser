@@ -3,7 +3,7 @@
 Install the package and its React peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2
+pnpm add @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2
 ```
 
 The browser needs one stable browser store, one stable track store, and at least one registered module. The application is responsible for measuring the available track width.
@@ -19,12 +19,14 @@ import {
   bigWigModule,
   createBrowserStore,
   createTrackStore,
+  hg38,
 } from "@weng-lab/genomebrowser";
 
 const marginWidth = 120;
 
 const useBrowserStore = createBrowserStore({
-  region: "chr1:1000000-1100000",
+  assembly: hg38,
+  region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
   marginWidth,
   trackWidth: 880,
 });
@@ -68,20 +70,28 @@ Store factory results are Zustand hooks, so local names should begin with `use`.
 
 ## Updating the browser
 
-Store actions are available through `getState()` outside React. Region methods throw for invalid input; track mutations return a result so expected user-input errors can be displayed.
+Store actions are available through `getState()` outside React. Runtime region, zoom, viewport-size, and track mutations return discriminated results so expected user-input errors can be displayed.
 
 ```ts
-useBrowserStore.getState().setRegion("chr1:1200000-1250000");
+const regionResult = useBrowserStore.getState().setRegion({
+  chromosome: "chr1",
+  start: 1_200_000,
+  end: 1_250_000,
+});
+
+if (!regionResult.ok) {
+  console.error(regionResult.error);
+}
 
 const result = useTrackStore.getState().updateConfig("signal", {
   url: "YOUR_URL_HERE",
 });
 
 if (!result.ok) {
-  showError(result.error);
+  console.error(result.error);
 }
 ```
 
-Changing the region requests all tracks for the new render region. BigWig marks its URL as data-dependent, so changing that URL requests the track again. Invalid updates leave the existing track unchanged.
+Changing the region requests all tracks for the new render region. BigWig marks its URL as data-dependent, so changing that URL requests the track again. Invalid runtime updates leave existing state unchanged. Browser-store construction instead throws when its required assembly, initial region, or dimensions are invalid.
 
 Next, read [Core concepts](concepts.md) for lifecycle and request semantics, then use [Recipes](recipes.md) for common mutations and navigation.

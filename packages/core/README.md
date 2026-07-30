@@ -9,7 +9,7 @@ Genome Browser v2 provides the browser viewport, validated state stores, built-i
 ## Install
 
 ```sh
-pnpm add @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2
+pnpm add @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2
 ```
 
 ## Quick start
@@ -22,10 +22,12 @@ import {
   bigWigModule,
   createBrowserStore,
   createTrackStore,
+  hg38,
 } from "@weng-lab/genomebrowser";
 
 const useBrowserStore = createBrowserStore({
-  region: "chr1:1000000-1100000",
+  assembly: hg38,
+  region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
   marginWidth: 120,
   trackWidth: 880,
 });
@@ -67,7 +69,7 @@ For a responsive browser that follows its container width, see [Getting started]
 
 Start with this package when you need to render or control a genome browser.
 
-Add `@weng-lab/genomebrowser-ui@2.0.0-alpha.0` when you also need ready-made application controls such as catalog-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
+Add `@weng-lab/genomebrowser-ui@alpha` when you also need ready-made application controls such as catalog-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
 
 ## Documentation
 

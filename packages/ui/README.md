@@ -11,7 +11,7 @@ The UI package provides higher-level interfaces such as catalog-backed track sel
 Install the UI package, the browser runtime, and the required peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui@2.0.0-alpha.0 @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
+pnpm add @weng-lab/genomebrowser-ui@alpha @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
 ```
 
 The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. The UI package participates in your application's normal MUI theme and does not require a package-specific stylesheet or provider.
@@ -40,10 +40,12 @@ import {
   bigWigModule,
   createBrowserStore,
   createTrackStore,
+  hg38,
 } from "@weng-lab/genomebrowser";
 
 const useBrowserStore = createBrowserStore({
-  region: "chr1:1000000-1100000",
+  assembly: hg38,
+  region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
   trackWidth: 900,
 });
 

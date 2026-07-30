@@ -14,6 +14,7 @@ import {
   createTrackStore,
   defineTrackModule,
   fetchOnChange,
+  hg38,
   useInteraction,
   useTooltip,
   type TrackRendererProps,
@@ -22,6 +23,9 @@ import {
 type Item = { id: string; start: number; end: number };
 const configSchema = z.object({ url: fetchOnChange(z.string().min(1)) });
 type Config = z.infer<typeof configSchema>;
+
+// Implement this host-owned navigation function in your application.
+declare function openItem(id: string, details: { url: string; color: string | undefined }): void;
 
 function Renderer({ data }: TrackRendererProps<Config, Item[]>) {
   const interaction = useInteraction<Item>();
@@ -69,7 +73,10 @@ const runtimeTrack = runtimeModule.create(
   },
 );
 
-const useBrowserStore = createBrowserStore({ region: "chr1:1-1000" });
+const useBrowserStore = createBrowserStore({
+  assembly: hg38,
+  region: { chromosome: "chr1", start: 1, end: 1_000 },
+});
 const useTrackStore = createTrackStore({ modules: [runtimeModule], tracks: [runtimeTrack] });
 
 export function App() {
@@ -104,25 +111,25 @@ const nextTrack = bigWigModule.create({
 });
 
 const addResult = useTrackStore.getState().addTrack(nextTrack);
-if (!addResult.ok) showError(addResult.error);
+if (!addResult.ok) console.error(addResult.error);
 
 const updateResult = useTrackStore.getState().updateBase("signal-2", {
   title: "Renamed signal",
   height: 100,
 });
-if (!updateResult.ok) showError(updateResult.error);
+if (!updateResult.ok) console.error(updateResult.error);
 
 const configResult = useTrackStore.getState().updateConfig("signal-2", {
   fillWithZero: true,
 });
-if (!configResult.ok) showError(configResult.error);
+if (!configResult.ok) console.error(configResult.error);
 
 const ids = useTrackStore.getState().order;
 const reorderResult = useTrackStore.getState().reorderTracks([...ids].reverse());
-if (!reorderResult.ok) showError(reorderResult.error);
+if (!reorderResult.ok) console.error(reorderResult.error);
 
 const removeResult = useTrackStore.getState().removeTrack("signal-2");
-if (!removeResult.ok) showError(removeResult.error);
+if (!removeResult.ok) console.error(removeResult.error);
 ```
 
 A reorder array must contain every current track ID exactly once. `updateBase` preserves the existing ID; replace a track if its identity or type must change.
@@ -143,22 +150,81 @@ const result = useTrackStore.getState().applyTrackChanges({
   add: [replacement],
 });
 
-if (!result.ok) showError(result.error);
+if (!result.ok) console.error(result.error);
 ```
 
 If any ID, module, or config is invalid, no part of the change is applied.
 
-## Navigate and zoom
+## Configure a custom assembly
+
+Use `createAssemblyDefinition` to validate and snapshot custom sequence bounds. Sequence keys can use any non-empty name and are matched exactly and case-sensitively.
+
+```ts
+import { createAssemblyDefinition, createBrowserStore } from "@weng-lab/genomebrowser";
+
+const customAssembly = createAssemblyDefinition({
+  id: "my-reference",
+  chromosomes: {
+    contigA: 125_000,
+    "scaffold-2": 48_500,
+  },
+});
+
+const useBrowserStore = createBrowserStore({
+  assembly: customAssembly,
+  region: { chromosome: "contigA", start: 0, end: 10_000 },
+});
+```
+
+You may also pass an object with the same `AssemblyDefinition` shape directly to `createBrowserStore`; store construction performs the same validation and snapshot. IDs do not register definitions globally, so a custom definition may reuse a built-in ID without inheriting that preset's chromosomes. Definitions require a non-empty ID and chromosome map, non-empty sequence names, and positive safe-integer lengths.
+
+## Parse, navigate, and zoom
+
+`createBrowserStore` and `setRegion` accept only `GenomicRegion` objects. When a user supplies text, call the assembly-independent `parseRegion` facade explicitly before updating the store:
+
+```ts
+import { parseRegion, type GenomicRegion } from "@weng-lab/genomebrowser";
+
+function goToRegion(input: string) {
+  let region: GenomicRegion;
+
+  try {
+    region = parseRegion(input);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : "Invalid region");
+    return;
+  }
+
+  const result = useBrowserStore.getState().setRegion(region);
+  if (!result.ok) {
+    console.error(result.error);
+  } else if (result.clamped) {
+    console.info(`Showing ${result.region.chromosome}:${result.region.start}-${result.region.end}`);
+  }
+}
+
+goToRegion("chr12:53,372,922-53,423,700");
+goToRegion("  chr12\t53372922\t53423700  ");
+```
+
+The parser accepts `chromosome:start-end` and exactly three whitespace-delimited fields. It accepts commas in coordinates, trims surrounding whitespace, and allows whitespace next to `:` and `-` or one or more whitespace characters between fields. It preserves chromosome case and throws for structurally malformed or ambiguous strings. Parsing does not check assembly membership, coordinate ordering or bounds, and does not clamp; `setRegion` performs those checks against the store's assembly. If a custom sequence name conflicts with the parser's punctuation grammar, construct a `GenomicRegion` object directly.
+
+Core coordinates are zero-based and half-open. The first base is `{ start: 0, end: 1 }`, and width is `end - start`.
 
 ```ts
 const browser = useBrowserStore.getState();
 
-browser.setRegion("chr2:2000000-2100000");
-browser.zoom(0.5); // Zoom in around the region center.
-browser.zoom(2, 2_050_000); // Zoom out around a genomic base.
+const regionResult = browser.setRegion({ chromosome: "chr2", start: 2_000_000, end: 2_100_000 });
+if (!regionResult.ok) console.error(regionResult.error);
+
+const zoomInResult = browser.zoom(0.5); // Zoom in around the region center.
+if (!zoomInResult.ok) console.error(zoomInResult.error);
+
+const zoomOutResult = browser.zoom(2, 2_050_000); // Zoom out around a genomic base.
+if (!zoomOutResult.ok) console.error(zoomOutResult.error);
 ```
 
-Zoom factors must be greater than zero. Region parsing and invalid zoom factors throw, so catch errors when these values come from user input.
+`setRegion` and `zoom` return the committed region and `clamped` status on success. A partial chromosome overlap clamps to its bounds; a completely non-overlapping, malformed, or unknown region returns `{ ok: false, code, error }`. Zoom factors must be finite and greater than zero, and explicit centers must be safe integers within the current chromosome. Runtime failures do not throw and leave the previous state unchanged.
 
 ## Add and remove highlights
 
@@ -189,7 +255,10 @@ function ResponsiveBrowser() {
 
     const observer = new ResizeObserver(([entry]) => {
       const marginWidth = useBrowserStore.getState().marginWidth;
-      useBrowserStore.getState().setTrackWidth(Math.max(1, entry.contentRect.width - marginWidth));
+      const result = useBrowserStore
+        .getState()
+        .setTrackWidth(Math.max(1, entry.contentRect.width - marginWidth));
+      if (!result.ok) console.error(result.error);
     });
 
     observer.observe(element);
@@ -204,9 +273,11 @@ function ResponsiveBrowser() {
 }
 ```
 
+`setTrackWidth` returns `{ ok: true, trackWidth }` after committing a finite positive width. Invalid runtime widths return `{ ok: false, code, error }` and preserve the existing width.
+
 ## Share the track store with the UI package
 
-`@weng-lab/genomebrowser-ui@2.0.0-alpha.0` is a separate optional package. Pass exactly the same track store hook to `GenomeBrowser` and `TrackSelect` so catalog validation and mutations use the browser's registry and tracks:
+`@weng-lab/genomebrowser-ui@alpha` is a separate optional package. Pass exactly the same track store hook to `GenomeBrowser` and `TrackSelect` so catalog validation and mutations use the browser's registry and tracks:
 
 ```tsx
 import { TrackSelect } from "@weng-lab/genomebrowser-ui";
