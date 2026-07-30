@@ -8,7 +8,7 @@ import type { SwapPreview } from "./swapTypes";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { TrackContent } from "./TrackContent";
 import { TrackFrame } from "./TrackFrame";
-import { getTrackTitleMargin, getTrackWrapperHeight } from "./trackLayout";
+import { getTrackWrapperHeight } from "./trackLayout";
 
 export function TrackStack({
   tracks,
@@ -49,7 +49,6 @@ export function TrackStack({
   return tracks.map((track, index) => {
     const trackY = y;
     const wrapperHeight = getTrackWrapperHeight(track, titleSize);
-    const titleMargin = getTrackTitleMargin(track, titleSize);
     const previewOffsetY = getSwapPreviewOffsetY(
       index,
       track.base.id,
@@ -90,7 +89,6 @@ export function TrackStack({
               region={region}
               width={contentWidth ?? trackWidth}
               height={track.base.height}
-              titleMargin={titleMargin}
             />
           </TrackFrame>
         )}

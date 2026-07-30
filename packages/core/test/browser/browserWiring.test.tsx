@@ -28,6 +28,64 @@ import type {
 describe("browser module wiring", () => {
   const region = { chromosome: "chr1", start: 0, end: 10 };
 
+  it("positions fetch errors at the top of the track content", () => {
+    const module = defineTrackModule({
+      type: "error-alignment-test",
+      configSchema: z.object({}),
+      fetch: async () => null,
+      render: { full: () => null },
+    });
+    const track = module.create({ id: "error", title: "Error", config: {}, height: 60 });
+    const trackStore = createTrackStore({ modules: [module], tracks: [track] });
+
+    const markup = renderToStaticMarkup(
+      <RegistryProvider registry={trackStore.getState().registry}>
+        <TrackContent
+          track={track}
+          dataState={{ status: "error", error: "Failed to load" }}
+          region={region}
+          width={100}
+          height={track.base.height}
+        />
+      </RegistryProvider>,
+    );
+
+    expect(markup).toContain('transform="translate(40,0)"');
+    expect(markup).toContain("Failed to load");
+  });
+
+  it("hides the error icon and scales the message for short tracks", () => {
+    const module = defineTrackModule({
+      type: "short-error-test",
+      configSchema: z.object({}),
+      fetch: async () => null,
+      render: { full: () => null },
+    });
+    const track = module.create({
+      id: "short-error",
+      title: "Short error",
+      config: {},
+      height: 10,
+    });
+    const trackStore = createTrackStore({ modules: [module], tracks: [track] });
+
+    const markup = renderToStaticMarkup(
+      <RegistryProvider registry={trackStore.getState().registry}>
+        <TrackContent
+          track={track}
+          dataState={{ status: "error", error: "Failed to load" }}
+          region={region}
+          width={100}
+          height={track.base.height}
+        />
+      </RegistryProvider>,
+    );
+
+    expect(markup).not.toContain("<svg");
+    expect(markup).toContain('font-size="10px"');
+    expect(markup).toContain('transform="translate(50,0)"');
+  });
+
   it("binds current runtime context while keeping renderer callbacks item-only", () => {
     type Item = { id: string };
     type Config = { url: string; enabled: boolean };
@@ -69,7 +127,6 @@ describe("browser module wiring", () => {
             region={region}
             width={100}
             height={80}
-            titleMargin={0}
           />
         </RegistryProvider>,
       );
@@ -154,7 +211,6 @@ describe("browser module wiring", () => {
                 region={region}
                 width={100}
                 height={80}
-                titleMargin={0}
               />
             </RegistryProvider>
           </TooltipContextProvider>
