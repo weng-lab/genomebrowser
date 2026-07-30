@@ -14,14 +14,12 @@ export const TrackContent = memo(function TrackContent({
   region,
   width,
   height,
-  titleMargin,
 }: {
   track: AnyTrackInstance;
   dataState: DataState;
   region: BrowserRegion;
   width: number;
   height: number;
-  titleMargin: number;
 }) {
   const registry = useRegistry();
 
@@ -29,15 +27,7 @@ export const TrackContent = memo(function TrackContent({
     return <LoadingState x={0} y={0} width={width} height={height} />;
   }
   if (dataState.status === "error") {
-    return (
-      <ErrorState
-        x={0}
-        y={0}
-        width={width}
-        height={height + titleMargin}
-        message={dataState.error}
-      />
-    );
+    return <ErrorState x={0} y={0} width={width} height={height} message={dataState.error} />;
   }
 
   try {
