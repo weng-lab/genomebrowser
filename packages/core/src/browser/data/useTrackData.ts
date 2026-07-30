@@ -25,7 +25,11 @@ export function useTrackData({
   const previousRegionKey = useRef<string | null>(null);
   const previousFetchKeys = useRef<Record<string, string>>({});
   const onSettledEvent = useEffectEvent(() => onSettled?.());
-  const regionKey = createRegionKey(region);
+  const fetchRegion = useMemo<GenomicRegion>(
+    () => ({ ...region }),
+    [region.chromosome, region.end, region.start],
+  );
+  const regionKey = createRegionKey(fetchRegion);
 
   useEffect(() => {
     let active = true;
@@ -55,13 +59,13 @@ export function useTrackData({
     if (tracksToFetch.length === 0) {
       previousRegionKey.current = regionKey;
       previousFetchKeys.current = currentFetchKeys;
-      if (isInitialFetch || isRegionChanged) onSettledEvent();
+      onSettledEvent();
       return;
     }
 
     Promise.all(
       tracksToFetch.map(async (track) => {
-        const result = await fetchTrackData({ registry, track, region });
+        const result = await fetchTrackData({ registry, track, region: fetchRegion });
         return [track.base.id, result] as const;
       }),
     ).then((results) => {
@@ -81,7 +85,7 @@ export function useTrackData({
     return () => {
       active = false;
     };
-  }, [region, regionKey, registry, setData, tracks, useDataStore]);
+  }, [fetchRegion, regionKey, registry, setData, tracks, useDataStore]);
 
   const dataStates = useMemo(
     () => createDataStates(tracks, completedData, fetchingTrackIds),

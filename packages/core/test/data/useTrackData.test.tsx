@@ -244,6 +244,59 @@ describe("useTrackData", () => {
     expect(onSettled).toHaveBeenCalledTimes(2);
   });
 
+  it("keeps an identical genomic request active when the region object changes", async () => {
+    const request = createDeferred<null>();
+    const fetch = vi.fn(() => request.promise);
+    const module = defineTrackModule({
+      type: "example",
+      configSchema: z.object({}),
+      fetch,
+      render: { full: () => null },
+    });
+    const registry = createModuleRegistry([module]);
+    const tracks = [module.create({ id: "signal", title: "Signal", config: {} })];
+    const useDataStore = createDataStore();
+    const onSettled = vi.fn();
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          registry={registry}
+          tracks={tracks}
+          region={{ chromosome: "chr1", start: 0, end: 10 }}
+          onSettled={onSettled}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(onSettled).not.toHaveBeenCalled();
+
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          registry={registry}
+          tracks={tracks}
+          region={{ chromosome: "chr1", start: 0, end: 10 }}
+          onSettled={onSettled}
+        />,
+      ),
+    );
+
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(onSettled).not.toHaveBeenCalled();
+
+    await act(async () => request.resolve(null));
+
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it("uses the latest settlement callback without issuing another request", async () => {
     let completeRequest: ((data: unknown) => void) | undefined;
     const fetch = vi.fn(

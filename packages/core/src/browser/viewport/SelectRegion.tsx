@@ -1,7 +1,8 @@
-import { useEffect, useReducer, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useReducer, useRef, type ReactNode } from "react";
 import type { GenomicRegion } from "../../genome/region";
 import { createReverseXScale } from "../../modules/utils/scale";
 import { svgPoint } from "../../modules/utils/svg";
+import type { BrowserRegionMutationResult } from "../state/browserStore";
 
 type Selection = { start: number; end: number } | null;
 type SelectionAction =
@@ -24,31 +25,51 @@ export function SelectRegion({
   trackWidth: number;
   totalHeight: number;
   region: GenomicRegion;
-  setRegion: (region: GenomicRegion) => void;
+  setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
   disabled?: boolean;
   children?: ReactNode;
 }) {
   const [selection, dispatchSelection] = useReducer(selectionReducer, null);
   const dragSessionRef = useRef<Selection>(null);
   const cleanupListenersRef = useRef<(() => void) | null>(null);
+  const hasValidDimensions =
+    Number.isFinite(marginWidth) &&
+    marginWidth > 0 &&
+    Number.isFinite(trackWidth) &&
+    trackWidth > 0 &&
+    Number.isFinite(totalHeight) &&
+    totalHeight > 0;
+
+  const cancelDragSession = useCallback(() => {
+    cleanupListenersRef.current?.();
+    cleanupListenersRef.current = null;
+    dragSessionRef.current = null;
+    dispatchSelection({ type: "clear" });
+  }, []);
 
   useEffect(
-    () => () => {
-      cleanupListenersRef.current?.();
-      cleanupListenersRef.current = null;
-    },
-    [],
+    () => cancelDragSession,
+    [
+      cancelDragSession,
+      disabled,
+      marginWidth,
+      region.chromosome,
+      region.end,
+      region.start,
+      svg,
+      totalHeight,
+      trackWidth,
+    ],
   );
 
   const startListening = () => {
     if (!svg) return;
-    cleanupListenersRef.current?.();
 
     const handleMove = (event: MouseEvent) => {
       const current = dragSessionRef.current;
       if (!current) return;
       const point = svgPoint(svg, event.clientX, event.clientY);
-      if (!point) return;
+      if (!point || !Number.isFinite(point.x)) return;
       const end = Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x));
       dragSessionRef.current = { ...current, end };
       dispatchSelection({ type: "move", x: end });
@@ -56,20 +77,18 @@ export function SelectRegion({
 
     const handleUp = () => {
       const current = dragSessionRef.current;
-      cleanupListenersRef.current?.();
-      cleanupListenersRef.current = null;
+      cancelDragSession();
       if (!current) return;
-      dragSessionRef.current = null;
-      dispatchSelection({ type: "clear" });
       const start = Math.min(current.start, current.end);
       const end = Math.max(current.start, current.end);
-      if (end - start >= 10) {
+      if (hasValidDimensions && end - start >= 10) {
         const reverseX = createReverseXScale(region, trackWidth);
-        setRegion({
+        const result = setRegion({
           chromosome: region.chromosome,
           start: reverseX(start - marginWidth),
           end: reverseX(end - marginWidth),
         });
+        if (!result.ok) return;
       }
     };
 
@@ -77,11 +96,12 @@ export function SelectRegion({
   };
 
   const handleMouseDown = (event: React.MouseEvent<SVGRectElement>) => {
-    if (disabled) return;
+    if (disabled || !hasValidDimensions) return;
     if (!svg) return;
     const point = svgPoint(svg, event.clientX, event.clientY);
-    if (!point) return;
+    if (!point || !Number.isFinite(point.x)) return;
     const start = Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x));
+    cancelDragSession();
     dragSessionRef.current = { start, end: start };
     dispatchSelection({ type: "start", x: start });
     startListening();
@@ -91,9 +111,9 @@ export function SelectRegion({
     <>
       <rect
         fill="#ffffff"
-        width={trackWidth}
+        width={hasValidDimensions ? trackWidth : 0}
         height={80}
-        x={marginWidth}
+        x={hasValidDimensions ? marginWidth : 0}
         y={0}
         onMouseDown={handleMouseDown}
       />

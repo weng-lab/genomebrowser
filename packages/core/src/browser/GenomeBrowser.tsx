@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { createDataStore } from "./data/dataStore";
 import { useTrackData } from "./data/useTrackData";
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
@@ -37,6 +37,7 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
 
   const region = browserStore((state) => state.region);
+  const assembly = browserStore((state) => state.assembly);
   const marginWidth = browserStore((state) => state.marginWidth);
   const trackWidth = browserStore((state) => state.trackWidth);
   const titleSize = browserStore((state) => state.titleSize);
@@ -50,21 +51,28 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
   const internalSettingsStore = useMemo(() => createSettingsStore(), []);
 
   const activeSettingsStore = settingsStore ?? internalSettingsStore;
-  const sideWidth = trackWidth;
   const browserWidth = marginWidth + trackWidth;
   const totalHeight = RULER_HEIGHT + getTracksHeight(tracks, titleSize);
-  const baseContentX = marginWidth - sideWidth;
+
+  const {
+    dataKey,
+    displayedRenderRegion,
+    isDataSettled,
+    renderStartOffset,
+    renderWidth,
+    settleData,
+    targetRenderRegion,
+  } = useRenderWindow({
+    assembly,
+    region,
+    tracks,
+    trackWidth,
+    overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
+  });
+  const baseContentX = marginWidth - renderStartOffset;
 
   const { getContentOffset, registerContentGroup, setContentOffset } =
     useContentTransform(baseContentX);
-
-  const { dataKey, displayedRenderRegion, renderWidth, settleData, targetRenderRegion } =
-    useRenderWindow({
-      region,
-      tracks,
-      trackWidth,
-      overscanMultiplier: PAN_OVERSCAN_MULTIPLIER,
-    });
 
   const { isPanLocked, panDrag, unlockPan } = usePanController({
     svg,
@@ -78,12 +86,16 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
 
   const handleDataSettled = useCallback(
     (key: string) => {
-      if (!settleData(key)) return;
-      setContentOffset(0);
-      unlockPan();
+      settleData(key);
     },
-    [settleData, setContentOffset, unlockPan],
+    [settleData],
   );
+
+  useLayoutEffect(() => {
+    if (!isPanLocked || !isDataSettled) return;
+    setContentOffset(0);
+    unlockPan();
+  }, [isDataSettled, isPanLocked, setContentOffset, unlockPan]);
 
   const { dataStates, isFetching } = useTrackData({
     useDataStore,
