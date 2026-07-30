@@ -8,6 +8,7 @@ import {
   bigWigModule,
   createBrowserStore,
   createTrackStore,
+  hg38,
   transcriptModule,
 } from "@weng-lab/genomebrowser";
 import { TrackSelect, type TrackSelectCatalog } from "@weng-lab/genomebrowser-ui";
@@ -15,7 +16,8 @@ import { TrackSelect, type TrackSelectCatalog } from "@weng-lab/genomebrowser-ui
 const marginWidth = 50;
 
 const useBrowserStore = createBrowserStore({
-  region: "chr12:53,372,922-53,423,700",
+  assembly: hg38,
+  region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
   marginWidth,
   trackWidth: 1350,
 });

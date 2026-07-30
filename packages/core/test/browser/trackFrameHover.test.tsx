@@ -10,6 +10,7 @@ import { createContextMenuStore } from "../../src/browser/state/contextMenuStore
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { TrackFrame } from "../../src/browser/track-row/TrackFrame";
+import { hg38 } from "../../src/genome/presets";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -94,7 +95,10 @@ async function renderFrame({
   onSwapMouseDown?: (event: React.MouseEvent<SVGRectElement>) => void;
   settingsStore?: ReturnType<typeof createSettingsStore>;
 }) {
-  const browserStore = createBrowserStore({ region: "chr1:1-100" });
+  const browserStore = createBrowserStore({
+    assembly: hg38,
+    region: { chromosome: "chr1", start: 1, end: 100 },
+  });
   const trackStore = createTrackStore({ modules: [module], tracks: [track] });
   const contextMenuStore = createContextMenuStore();
   container = document.createElement("div");

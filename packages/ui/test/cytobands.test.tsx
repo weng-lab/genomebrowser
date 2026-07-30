@@ -1049,6 +1049,7 @@ describe("Cytobands current region", () => {
     const fetchMock = vi.fn().mockResolvedValue(response(cytobandPayload(chromosome)));
     const applicationHighlight = highlight("unchanged", 60, 80);
     const useTestBrowserStore = createBrowserStore({
+      assembly: { id: "cytoband-test", chromosomes: { [chromosome]: 100 } },
       region: { chromosome, start: 10, end: 20 },
     });
     vi.stubGlobal("fetch", fetchMock);
