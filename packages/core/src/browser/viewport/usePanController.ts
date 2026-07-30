@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { usePanDrag } from "./usePanDrag";
 
-export function expandRegion(region: BrowserRegion, multiplier: number): BrowserRegion {
+export function expandRegion(region: GenomicRegion, multiplier: number): GenomicRegion {
   const span = region.end - region.start;
   const sideBases = Math.floor((span * (multiplier - 1)) / 2);
 
@@ -14,10 +14,10 @@ export function expandRegion(region: BrowserRegion, multiplier: number): Browser
 }
 
 export function getPanCommitRegion(
-  region: BrowserRegion,
+  region: GenomicRegion,
   width: number,
   deltaPx: number,
-): BrowserRegion {
+): GenomicRegion {
   const span = region.end - region.start;
   const shiftBases = Math.floor((deltaPx / width) * span);
 
@@ -38,11 +38,11 @@ export function usePanController({
   onPanStart,
 }: {
   svg: SVGSVGElement | null;
-  region: BrowserRegion;
+  region: GenomicRegion;
   trackWidth: number;
   getContentOffset: () => number;
   setContentOffset: (deltaPx: number) => void;
-  setRegion: (region: BrowserRegion) => void;
+  setRegion: (region: GenomicRegion) => void;
   onPanStart: () => void;
 }) {
   const [isPanLocked, setIsPanLocked] = useState(false);

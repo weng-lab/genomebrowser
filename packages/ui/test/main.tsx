@@ -15,7 +15,7 @@ import {
   createTrackStore,
   GenomeBrowser,
   methylCModule,
-  type BrowserRegion,
+  type GenomicRegion,
   type Highlight,
   type TrackRuntimeContext,
   transcriptModule,
@@ -262,7 +262,7 @@ function InteractionShowcase() {
               height={28}
               highlights={cytobandHighlights}
               onHighlightClick={(highlight) => {
-                const nextRegion: BrowserRegion = {
+                const nextRegion: GenomicRegion = {
                   chromosome: highlight.region.chromosome ?? region.chromosome,
                   start: highlight.region.start,
                   end: highlight.region.end,

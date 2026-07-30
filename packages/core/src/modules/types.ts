@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import type { z } from "zod";
-import type { BrowserRegion } from "./utils/region";
+import type { GenomicRegion } from "../genome/region";
 
 export type TrackBase = {
   id: string;
@@ -53,7 +53,7 @@ export type TrackInstance<Config, InteractionItem = unknown> = {
 
 export type TrackFetchContext<Config> = {
   config: Config;
-  region: BrowserRegion;
+  region: GenomicRegion;
 };
 
 export type TrackFetch<Config, Data> = (context: TrackFetchContext<Config>) => Promise<Data>;
@@ -63,7 +63,7 @@ export type TrackRendererProps<Config, Data> = {
   config: Config;
   color?: string;
   data: Data;
-  region: BrowserRegion;
+  region: GenomicRegion;
   width: number;
   height: number;
 };

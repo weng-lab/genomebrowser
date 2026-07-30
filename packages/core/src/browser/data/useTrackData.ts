@@ -2,7 +2,7 @@ import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { createFetchSignature } from "../../modules/fetchOnChange";
 import type { ModuleRegistry } from "../../modules/registry";
 import type { AnyTrackInstance } from "../../modules/types";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { fetchTrackData } from "./fetchTrackData";
 import type { DataResult, DataState, DataStoreInstance } from "./types";
 
@@ -16,7 +16,7 @@ export function useTrackData({
   useDataStore: DataStoreInstance;
   registry: ModuleRegistry;
   tracks: AnyTrackInstance[];
-  region: BrowserRegion;
+  region: GenomicRegion;
   onSettled?: () => void;
 }) {
   const completedData = useDataStore((state) => state.data);
@@ -94,7 +94,7 @@ export function useTrackData({
   };
 }
 
-function createRegionKey(region: BrowserRegion) {
+function createRegionKey(region: GenomicRegion) {
   return `${region.chromosome}:${region.start}-${region.end}`;
 }
 

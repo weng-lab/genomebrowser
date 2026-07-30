@@ -1,4 +1,4 @@
-import type { BrowserRegion } from "@weng-lab/genomebrowser";
+import type { GenomicRegion } from "@weng-lab/genomebrowser";
 
 export const cytobandQuery = `
   query Cytobands($assembly: String!, $chromosome: String) {
@@ -15,12 +15,12 @@ export const cytobandQuery = `
 
 export type cytoband = {
   stain: string;
-  coordinates: BrowserRegion;
+  coordinates: GenomicRegion;
 };
 
 export type cytobandData = {
   bands: cytoband[];
-  extent: BrowserRegion;
+  extent: GenomicRegion;
 };
 
 export type cytobandRequest = {

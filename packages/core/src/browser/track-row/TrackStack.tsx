@@ -1,7 +1,7 @@
 import { useCallback, useState, type ErrorInfo } from "react";
 import type { DataState } from "../data/types";
 import type { AnyTrackInstance } from "../../modules/types";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
 import { SwapTrack } from "./SwapTrack";
 import { getSwapPreviewOffsetY, isSameSwapPreview } from "./trackSwapMath";
@@ -30,7 +30,7 @@ export function TrackStack({
 }: {
   tracks: AnyTrackInstance[];
   dataStates: Record<string, DataState>;
-  region: BrowserRegion;
+  region: GenomicRegion;
   marginWidth: number;
   trackWidth: number;
   contentX?: number;

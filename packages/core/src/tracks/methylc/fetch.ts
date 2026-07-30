@@ -1,7 +1,7 @@
 import axios from "axios";
 import { AxiosDataLoader, BigWigReader, FileType } from "genomic-reader";
 import type { TrackFetchContext } from "../../modules/types";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import type { BigWigData } from "../bigwig/types";
 import type { MethylCConfig, MethylCData } from "./types";
 
@@ -21,7 +21,7 @@ export async function fetchMethylC({
   ]);
 }
 
-async function fetchMethylCChannel(url: string, region: BrowserRegion): Promise<BigWigData[]> {
+async function fetchMethylCChannel(url: string, region: GenomicRegion): Promise<BigWigData[]> {
   if (!url) return [];
 
   await ensureBrowserBuffer();

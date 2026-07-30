@@ -5,6 +5,8 @@ export { defaultScreenGraphQlEndpoint } from "./screen";
 export { createAssemblyDefinition } from "./genome/assembly";
 export type { AssemblyDefinition } from "./genome/assembly";
 export { ce11, dm6, hg38, mm10, tair10 } from "./genome/presets";
+export { normalizeRegion, parseRegion } from "./genome/region";
+export type { GenomicRegion, RegionErrorCode, RegionResult } from "./genome/region";
 
 export { defineTrackModule } from "./modules/defineTrackModule";
 export { createModuleRegistry, createTrackFromEntry } from "./modules/registry";
@@ -150,5 +152,3 @@ export type {
   CaveNeurotransmitter,
   CaveTooltipItem,
 } from "./tracks/cave/types";
-
-export type { BrowserRegion } from "./modules/utils/region";

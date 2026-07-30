@@ -1,4 +1,4 @@
-import type { BrowserRegion } from "@weng-lab/genomebrowser";
+import type { GenomicRegion } from "@weng-lab/genomebrowser";
 
 const bracketColor = "#1976d2";
 const minimumBracketWidth = 8;
@@ -11,7 +11,7 @@ type currentRegionBracketProps = {
   extentEnd: number;
   width: number;
   height: number;
-  currentRegion?: BrowserRegion;
+  currentRegion?: GenomicRegion;
 };
 
 export function currentRegionBracket({
@@ -104,6 +104,6 @@ function getBracketGeometry({
   };
 }
 
-function formatRegion(region: BrowserRegion) {
+function formatRegion(region: GenomicRegion) {
   return `${region.chromosome}: ${coordinateFormatter.format(region.start)}–${coordinateFormatter.format(region.end)}`;
 }

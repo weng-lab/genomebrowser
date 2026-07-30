@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { expandRegion } from "./usePanController";
 
 export function getRenderWindow(
-  region: BrowserRegion,
+  region: GenomicRegion,
   trackWidth: number,
   overscanMultiplier: number,
 ) {
@@ -14,7 +14,7 @@ export function getRenderWindow(
   };
 }
 
-export function createRenderWindowSignature(region: BrowserRegion, tracks: AnyTrackInstance[]) {
+export function createRenderWindowSignature(region: GenomicRegion, tracks: AnyTrackInstance[]) {
   return JSON.stringify({ region, trackIds: createTrackIdsSignature(tracks) });
 }
 
@@ -28,7 +28,7 @@ export function useRenderWindow({
   trackWidth,
   overscanMultiplier,
 }: {
-  region: BrowserRegion;
+  region: GenomicRegion;
   tracks: AnyTrackInstance[];
   trackWidth: number;
   overscanMultiplier: number;
@@ -38,7 +38,7 @@ export function useRenderWindow({
     [overscanMultiplier, region, trackWidth],
   );
   const [displayedRenderRegion, setDisplayedRenderRegion] =
-    useState<BrowserRegion>(targetRenderRegion);
+    useState<GenomicRegion>(targetRenderRegion);
   const dataKey = useMemo(
     () => createRenderWindowSignature(targetRenderRegion, tracks),
     [targetRenderRegion, tracks],

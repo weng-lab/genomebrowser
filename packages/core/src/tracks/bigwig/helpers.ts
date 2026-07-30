@@ -1,9 +1,9 @@
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import type { BigWigData, RenderedBigWigPoint, YRange } from "./types";
 
 export function condenseBigWigData(
   data: BigWigData[],
-  region: BrowserRegion,
+  region: GenomicRegion,
   width: number,
 ): RenderedBigWigPoint[] {
   const pixelWidth = Math.max(1, Math.floor(width));

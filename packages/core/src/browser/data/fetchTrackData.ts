@@ -1,6 +1,6 @@
 import type { ModuleRegistry } from "../../modules/registry";
 import type { AnyTrackInstance, TrackFetch } from "../../modules/types";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import type { DataResult } from "./types";
 
 export async function fetchTrackData({
@@ -10,7 +10,7 @@ export async function fetchTrackData({
 }: {
   registry: ModuleRegistry;
   track: AnyTrackInstance;
-  region: BrowserRegion;
+  region: GenomicRegion;
 }): Promise<DataResult> {
   try {
     const module = registry.get(track.type);

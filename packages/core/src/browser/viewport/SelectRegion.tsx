@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, type ReactNode } from "react";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { createReverseXScale } from "../../modules/utils/scale";
 import { svgPoint } from "../../modules/utils/svg";
 
@@ -23,8 +23,8 @@ export function SelectRegion({
   marginWidth: number;
   trackWidth: number;
   totalHeight: number;
-  region: BrowserRegion;
-  setRegion: (region: BrowserRegion) => void;
+  region: GenomicRegion;
+  setRegion: (region: GenomicRegion) => void;
   disabled?: boolean;
   children?: ReactNode;
 }) {

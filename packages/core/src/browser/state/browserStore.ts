@@ -1,7 +1,7 @@
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { z } from "zod";
+import { parseRegion, type GenomicRegion } from "../../genome/region";
 import { parsePublicInput } from "../../modules/schemas";
-import { parseRegion, type BrowserRegion } from "../../modules/utils/region";
 
 export type Highlight = {
   id: string;
@@ -15,7 +15,7 @@ export type Highlight = {
 };
 
 export type BrowserStoreInput = {
-  region: BrowserRegion | string;
+  region: GenomicRegion | string;
   marginWidth?: number;
   trackWidth?: number;
   fontSize?: number;
@@ -24,13 +24,13 @@ export type BrowserStoreInput = {
 };
 
 export type BrowserStore = {
-  region: BrowserRegion;
+  region: GenomicRegion;
   marginWidth: number;
   trackWidth: number;
   fontSize: number;
   titleSize: number;
   highlights: Highlight[];
-  setRegion: (region: BrowserRegion | string) => void;
+  setRegion: (region: GenomicRegion | string) => void;
   setTrackWidth: (trackWidth: number) => void;
   zoom: (factor: number, centerBase?: number) => void;
   addHighlight: (highlight: Highlight) => void;
@@ -55,15 +55,19 @@ const highlightSchema = z.object({
   opacity: z.number().min(0).max(1).optional(),
 });
 
+const genomicRegionSchema = z
+  .object({
+    chromosome: z.string().min(1),
+    start: z.number().int(),
+    end: z.number().int(),
+  })
+  .refine((region) => region.start < region.end, {
+    message: "start must be less than end",
+    path: ["start"],
+  });
+
 const browserStoreInputSchema = z.object({
-  region: z.union([
-    z.string().min(1),
-    z.object({
-      chromosome: z.string().min(1),
-      start: z.number().int(),
-      end: z.number().int(),
-    }),
-  ]),
+  region: z.union([z.string().min(1), genomicRegionSchema]),
   marginWidth: z.number().positive().optional(),
   trackWidth: z.number().positive().optional(),
   fontSize: z.number().positive().optional(),
@@ -74,14 +78,14 @@ const browserStoreInputSchema = z.object({
 export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstance {
   const parsedInput = parsePublicInput(browserStoreInputSchema, input, "Browser store input");
   return create<BrowserStore>((set, get) => ({
-    region: parseRegion(parsedInput.region),
+    region: parseStoreRegion(parsedInput.region),
     marginWidth: parsedInput.marginWidth ?? 120,
     trackWidth: parsedInput.trackWidth ?? 1000,
     fontSize: parsedInput.fontSize ?? 10,
     titleSize: parsedInput.titleSize ?? 12,
     highlights: parsedInput.highlights ?? [],
 
-    setRegion: (region) => set({ region: parseRegion(region) }),
+    setRegion: (region) => set({ region: parseStoreRegion(region) }),
     setTrackWidth: (trackWidth) => set({ trackWidth }),
     zoom: (factor, centerBase) => {
       if (factor <= 0) throw new Error("Zoom factor must be greater than 0");
@@ -106,4 +110,9 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
       set((state) => ({ highlights: state.highlights.filter((highlight) => highlight.id !== id) }));
     },
   }));
+}
+
+function parseStoreRegion(region: GenomicRegion | string): GenomicRegion {
+  const parsedRegion = typeof region === "string" ? parseRegion(region) : region;
+  return parsePublicInput(genomicRegionSchema, parsedRegion, "Region");
 }

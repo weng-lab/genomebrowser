@@ -3,7 +3,7 @@ import type { DataState } from "../data/types";
 import { bindTrackInteraction, TrackInteractionProvider } from "../../modules/interaction";
 import { TrackRuntimeContextProvider } from "../../modules/runtimeContext";
 import type { AnyTrackInstance, TrackRendererProps } from "../../modules/types";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { useRegistry } from "../state/useRegistry";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
@@ -17,7 +17,7 @@ export const TrackContent = memo(function TrackContent({
 }: {
   track: AnyTrackInstance;
   dataState: DataState;
-  region: BrowserRegion;
+  region: GenomicRegion;
   width: number;
   height: number;
 }) {
