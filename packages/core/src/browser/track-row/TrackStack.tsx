@@ -1,14 +1,18 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, type ErrorInfo } from "react";
 import type { DataState } from "../data/types";
 import type { AnyTrackInstance } from "../../modules/types";
 import type { BrowserRegion } from "../../modules/utils/region";
+import { RenderErrorBoundary } from "../RenderErrorBoundary";
 import { SwapTrack } from "./SwapTrack";
 import { getSwapPreviewOffsetY, isSameSwapPreview } from "./trackSwapMath";
 import type { SwapPreview } from "./swapTypes";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { TrackContent } from "./TrackContent";
 import { TrackFrame } from "./TrackFrame";
+import { ErrorState } from "./ErrorState";
 import { getTrackWrapperHeight } from "./trackLayout";
+
+const trackRenderErrorPrefix = "[genomebrowser] Track render error";
 
 export function TrackStack({
   tracks,
@@ -83,16 +87,42 @@ export function TrackStack({
             disableHover={!!swapPreview}
             titleSize={titleSize}
           >
-            <TrackContent
-              track={track}
-              dataState={dataStates[track.base.id]}
-              region={region}
-              width={contentWidth ?? trackWidth}
-              height={track.base.height}
-            />
+            <RenderErrorBoundary
+              fallback={
+                <ErrorState
+                  x={0}
+                  y={0}
+                  width={contentWidth ?? trackWidth}
+                  height={track.base.height}
+                  message={`Track unavailable: ${track.base.title || track.base.id}`}
+                />
+              }
+              onError={(error, info) => reportTrackRenderError(track, error, info)}
+            >
+              <TrackContent
+                track={track}
+                dataState={dataStates[track.base.id]}
+                region={region}
+                width={contentWidth ?? trackWidth}
+                height={track.base.height}
+              />
+            </RenderErrorBoundary>
           </TrackFrame>
         )}
       </SwapTrack>
     );
+  });
+}
+
+function reportTrackRenderError(track: AnyTrackInstance, error: unknown, info: ErrorInfo) {
+  console.error(trackRenderErrorPrefix, {
+    track: {
+      id: track.base.id,
+      type: track.type,
+      display: track.base.display,
+      ...(track.base.title ? { title: track.base.title } : {}),
+    },
+    error,
+    ...(info.componentStack ? { componentStack: info.componentStack } : {}),
   });
 }
