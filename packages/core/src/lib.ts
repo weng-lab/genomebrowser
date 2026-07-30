@@ -2,6 +2,10 @@ export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
 export { defaultScreenGraphQlEndpoint } from "./screen";
 
+export { createAssemblyDefinition } from "./genome/assembly";
+export type { AssemblyDefinition } from "./genome/assembly";
+export { ce11, dm6, hg38, mm10, tair10 } from "./genome/presets";
+
 export { defineTrackModule } from "./modules/defineTrackModule";
 export { createModuleRegistry, createTrackFromEntry } from "./modules/registry";
 export { TrackInteractionProvider, useInteraction } from "./modules/interaction";
