@@ -28,6 +28,9 @@ the pull request resolves an issue.
 Automated checks belong in CI and do not need to be repeated in the pull
 request description.
 
+Before requesting review or handing off a pull request, update its description
+and metadata to reflect the final scope.
+
 ## Issues
 
 State the desired outcome first, then include only the context, constraints, or
