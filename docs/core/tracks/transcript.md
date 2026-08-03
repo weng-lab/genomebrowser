@@ -38,6 +38,6 @@ Defaults:
 
 ## Fetch Behavior
 
-The module posts region queries to `config.endpoint` with JSON content type and no package-created authorization header. The default `/api/screen-graphql` route must be implemented by the host application; its server proxy owns any upstream credential. An endpoint override is non-secret data-source configuration and may be stored in catalogs or browser state.
+The module posts region queries to `config.endpoint` with JSON content type and no package-created authorization header. The default `/api/screen-graphql` route must be implemented by the host application; its server proxy owns any upstream credential. An endpoint override is non-secret data-source configuration and may be stored in collections or browser state.
 
 Changing `endpoint`, `assembly`, or `version` triggers a refetch. Changing `geneName`, colors, height, or display mode does not refetch data.

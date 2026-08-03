@@ -43,7 +43,7 @@ function ExampleRenderer({ config, data }: TrackRendererProps<Config, Data>) {
 
 If the module has no `tooltipComponent`, `show` is a no-op. A tooltip component receives `{ item, context }`; application interactions receive `(item, context)`. Both see the current shallow read-only `{ type, base, config }` view, including later validated mutations. Tooltip state belongs to the active browser and is suppressed during panning. These hooks require the providers rendered by `GenomeBrowser`.
 
-Runtime context contains no TrackSelect catalog metadata. Core owns runtime state; the UI package owns catalog metadata and may adapt callbacks where those values need to be combined.
+Runtime context contains no TrackSelect collection metadata. Core owns runtime state; the UI package owns collection metadata and may adapt callbacks where those values need to be combined.
 
 ## Automatic track height
 

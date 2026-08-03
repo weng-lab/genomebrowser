@@ -6,7 +6,7 @@ export function groupRowsByField<Row extends Record<string, unknown>>(
   const groupedRows = new Map<string, Row[]>();
 
   for (const row of rows) {
-    const value = formatCatalogValue(row[field], getFallback(row));
+    const value = formatCollectionValue(row[field], getFallback(row));
     const group = groupedRows.get(value);
     if (group) {
       group.push(row);
@@ -18,7 +18,7 @@ export function groupRowsByField<Row extends Record<string, unknown>>(
   return groupedRows;
 }
 
-export function formatCatalogValue(value: unknown, fallback: string) {
+export function formatCollectionValue(value: unknown, fallback: string) {
   if (value === null || value === undefined || value === "") return fallback;
   return String(value);
 }

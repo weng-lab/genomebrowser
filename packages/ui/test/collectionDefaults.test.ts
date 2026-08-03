@@ -14,12 +14,15 @@ import type {
 import {
   clearOrderedSelection,
   createOrderedSelectionFromTracks,
-  createSelectionByCatalog,
+  createSelectionByCollection,
   removeOrderedTrackIds,
-  setOrderedCatalogSelection,
-} from "../src/TrackSelect/catalog/catalogSelection";
-import { getReconciledTracks } from "../src/TrackSelect/catalog/catalogStore";
-import type { TrackSelectCatalog, TrackSelectView } from "../src/TrackSelect/schema/catalogSchema";
+  setOrderedCollectionSelection,
+} from "../src/TrackSelect/collection/collectionSelection";
+import { getReconciledTracks } from "../src/TrackSelect/collection/collectionStore";
+import type {
+  TrackSelectCollection,
+  TrackSelectView,
+} from "../src/TrackSelect/schema/collectionSchema";
 
 function Renderer() {
   return null;
@@ -44,7 +47,7 @@ const defaultView: TrackSelectView = {
   leaf: "title",
 };
 
-const catalogs: TrackSelectCatalog[] = [
+const collections: TrackSelectCollection[] = [
   {
     id: "alpha",
     label: "Alpha",
@@ -83,7 +86,7 @@ const catalogs: TrackSelectCatalog[] = [
 ];
 
 describe("TrackSelect default track reconciliation", () => {
-  it("preserves non-catalog tracks and applies the exact cross-catalog order", () => {
+  it("preserves non-collection tracks and applies the exact cross-collection order", () => {
     const unmanagedTrack = signalModule.create({
       id: "unmanaged",
       title: "Unmanaged",
@@ -94,15 +97,15 @@ describe("TrackSelect default track reconciliation", () => {
       title: "Existing alpha one",
       config: { url: "existing" },
     });
-    const unselectedCatalogTrack = signalModule.create({
+    const unselectedCollectionTrack = signalModule.create({
       id: "alpha::two",
       title: "Unselected alpha two",
       config: { url: "unselected" },
     });
 
     const nextTracks = getReconciledTracks({
-      trackCatalogs: catalogs,
-      tracks: [existingDefault, unmanagedTrack, unselectedCatalogTrack],
+      trackCollections: collections,
+      tracks: [existingDefault, unmanagedTrack, unselectedCollectionTrack],
       selectedTrackIds: ["beta::one", "alpha::one"],
       registry,
       maxTracks: 10,
@@ -114,24 +117,24 @@ describe("TrackSelect default track reconciliation", () => {
       "alpha::one",
     ]);
     expect(nextTracks[2]).toBe(existingDefault);
-    expect(nextTracks).not.toContain(unselectedCatalogTrack);
+    expect(nextTracks).not.toContain(unselectedCollectionTrack);
   });
 
-  it("treats an empty default list as an authoritative catalog clear", () => {
+  it("treats an empty default list as an authoritative collection clear", () => {
     const unmanagedTrack = signalModule.create({
       id: "unmanaged",
       title: "Unmanaged",
       config: { url: "unmanaged" },
     });
-    const catalogTrack = signalModule.create({
+    const collectionTrack = signalModule.create({
       id: "alpha::one",
       title: "Alpha one",
       config: { url: "alpha-one" },
     });
 
     const nextTracks = getReconciledTracks({
-      trackCatalogs: catalogs,
-      tracks: [catalogTrack, unmanagedTrack],
+      trackCollections: collections,
+      tracks: [collectionTrack, unmanagedTrack],
       selectedTrackIds: [],
       registry,
       maxTracks: 10,
@@ -142,7 +145,7 @@ describe("TrackSelect default track reconciliation", () => {
 
   it("rejects duplicate, unknown, and over-limit defaults", () => {
     const options = {
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       tracks: [],
       registry,
       maxTracks: 2,
@@ -165,10 +168,10 @@ describe("TrackSelect default track reconciliation", () => {
     ).toThrow("Track selection count 3 exceeds the maximum of 2");
   });
 
-  it("resolves new track interactions with owning catalog context", () => {
+  it("resolves new track interactions with owning collection context", () => {
     const onClick = vi.fn();
     const interaction: TrackSelectInteraction<unknown, unknown> = {
-      onClick(item, runtime, catalog) {
+      onClick(item, runtime, collection) {
         if (
           !isRecord(item) ||
           typeof item.id !== "string" ||
@@ -177,13 +180,13 @@ describe("TrackSelect default track reconciliation", () => {
         ) {
           return;
         }
-        onClick(item, runtime, catalog);
+        onClick(item, runtime, collection);
       },
     };
     const resolveTrackInteraction: TrackSelectInteractionResolver = vi.fn(() => interaction);
 
     const [track] = getReconciledTracks({
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       tracks: [],
       selectedTrackIds: ["beta::one"],
       registry,
@@ -192,9 +195,9 @@ describe("TrackSelect default track reconciliation", () => {
     });
 
     expect(resolveTrackInteraction).toHaveBeenCalledWith({
-      catalogId: "beta",
+      collectionId: "beta",
       qualifiedTrackId: "beta::one",
-      track: catalogs[1]!.tracks[0],
+      track: collections[1]!.tracks[0],
     });
     expect(track).not.toHaveProperty("metadata");
     expect(track.config).not.toHaveProperty("metadata");
@@ -209,7 +212,7 @@ describe("TrackSelect default track reconciliation", () => {
     coreInteraction.onClick?.({ id: "item" }, runtime);
 
     expect(onClick).toHaveBeenCalledWith({ id: "item" }, runtime, {
-      catalogId: "beta",
+      collectionId: "beta",
       authoredTrackId: "one",
       metadata: {},
     });
@@ -228,7 +231,7 @@ describe("TrackSelect default track reconciliation", () => {
     );
 
     const preserved = getReconciledTracks({
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       tracks: [unmanagedTrack, existingTrack],
       selectedTrackIds: ["alpha::one"],
       registry,
@@ -239,7 +242,7 @@ describe("TrackSelect default track reconciliation", () => {
 
     const replacement = { onClick: vi.fn() };
     const replaced = getReconciledTracks({
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       tracks: [unmanagedTrack, existingTrack],
       selectedTrackIds: ["alpha::one"],
       registry,
@@ -254,7 +257,7 @@ describe("TrackSelect default track reconciliation", () => {
     expect(replaced[1]!.interaction).not.toHaveProperty("onLeave");
 
     const cleared = getReconciledTracks({
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       tracks: [unmanagedTrack, existingTrack],
       selectedTrackIds: ["alpha::one"],
       registry,
@@ -268,7 +271,7 @@ describe("TrackSelect default track reconciliation", () => {
   it("rejects invalid resolver output before returning reconciled tracks", () => {
     expect(() =>
       getReconciledTracks({
-        trackCatalogs: catalogs,
+        trackCollections: collections,
         tracks: [],
         selectedTrackIds: ["alpha::one"],
         registry,
@@ -282,7 +285,7 @@ describe("TrackSelect default track reconciliation", () => {
   it.each([null, false])("rejects falsy non-undefined resolver output: %s", (invalidValue) => {
     expect(() =>
       getReconciledTracks({
-        trackCatalogs: catalogs,
+        trackCollections: collections,
         tracks: [],
         selectedTrackIds: ["alpha::one"],
         registry,
@@ -298,23 +301,23 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 describe("TrackSelect ordered draft selection", () => {
-  it("derives catalog selections without losing store order", () => {
-    const orderedIds = createOrderedSelectionFromTracks(catalogs, [
+  it("derives collection selections without losing store order", () => {
+    const orderedIds = createOrderedSelectionFromTracks(collections, [
       { base: { id: "beta::one" } },
       { base: { id: "unmanaged" } },
       { base: { id: "alpha::one" } },
     ]);
-    const selectedByCatalog = createSelectionByCatalog(catalogs, orderedIds);
+    const selectedByCollection = createSelectionByCollection(collections, orderedIds);
 
     expect(orderedIds).toEqual(["beta::one", "alpha::one"]);
-    expect(Array.from(selectedByCatalog.get("alpha") ?? [])).toEqual(["alpha::one"]);
-    expect(Array.from(selectedByCatalog.get("beta") ?? [])).toEqual(["beta::one"]);
+    expect(Array.from(selectedByCollection.get("alpha") ?? [])).toEqual(["alpha::one"]);
+    expect(Array.from(selectedByCollection.get("beta") ?? [])).toEqual(["beta::one"]);
   });
 
   it("preserves surviving tracks and appends additions in active-view order", () => {
-    const next = setOrderedCatalogSelection({
+    const next = setOrderedCollectionSelection({
       selectedTrackIds: ["beta::one", "alpha::one"],
-      catalog: catalogs[0],
+      collection: collections[0],
       view: defaultView,
       selectedIds: new Set(["alpha::two", "alpha::one"]),
     });
@@ -325,7 +328,7 @@ describe("TrackSelect ordered draft selection", () => {
   it("clears and removes tracks without disturbing remaining order", () => {
     const selectedIds = ["alpha::one", "beta::one", "alpha::two"];
 
-    expect(clearOrderedSelection(selectedIds, catalogs[0])).toEqual(["beta::one"]);
+    expect(clearOrderedSelection(selectedIds, collections[0])).toEqual(["beta::one"]);
     expect(clearOrderedSelection(selectedIds)).toEqual([]);
     expect(removeOrderedTrackIds(selectedIds, ["beta::one"])).toEqual(["alpha::one", "alpha::two"]);
   });

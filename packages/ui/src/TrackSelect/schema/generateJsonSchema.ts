@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { ModuleRegistry } from "@weng-lab/genomebrowser";
-import { createCatalogSchema } from "./catalogSchema";
+import { createCollectionSchema } from "./collectionSchema";
 
-export function generateTrackCatalogJsonSchema(registry: ModuleRegistry) {
-  return z.toJSONSchema(createCatalogSchema(registry), { io: "input" });
+export function generateTrackCollectionJsonSchema(registry: ModuleRegistry) {
+  return z.toJSONSchema(createCollectionSchema(registry), { io: "input" });
 }

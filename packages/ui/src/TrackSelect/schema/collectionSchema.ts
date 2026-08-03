@@ -25,7 +25,7 @@ const TrackSelectViewSchema = z.strictObject({
   leaf: z.string().min(1).default("title"),
 });
 
-export const TrackSelectCatalogBaseSchema = z.strictObject({
+export const TrackSelectCollectionBaseSchema = z.strictObject({
   $schema: z.string().min(1).optional(),
   id: z.string().min(1),
   label: z.string().min(1),
@@ -33,7 +33,7 @@ export const TrackSelectCatalogBaseSchema = z.strictObject({
   views: z.array(TrackSelectViewSchema).min(1),
 });
 
-export function createCatalogSchema(registry: ModuleRegistry) {
+export function createCollectionSchema(registry: ModuleRegistry) {
   if (registry.modules.length === 0) {
     throw new Error("At least one track module is required to generate a TrackSelect schema");
   }
@@ -45,7 +45,7 @@ export function createCatalogSchema(registry: ModuleRegistry) {
     }),
   );
 
-  return TrackSelectCatalogBaseSchema.extend({
+  return TrackSelectCollectionBaseSchema.extend({
     tracks: z.array(
       z.discriminatedUnion(
         "type",
@@ -68,6 +68,6 @@ export type TrackSelectTrack = {
   config: Record<string, unknown>;
   metadata: TrackSelectMetadata;
 };
-export type TrackSelectCatalog = z.infer<typeof TrackSelectCatalogBaseSchema> & {
+export type TrackSelectCollection = z.infer<typeof TrackSelectCollectionBaseSchema> & {
   tracks: TrackSelectTrack[];
 };

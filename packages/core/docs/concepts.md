@@ -35,7 +35,7 @@ A registered module holds stable behavior for one type: schemas, defaults, fetch
 
 Create tracks through `module.create(...)`, then register that same module in the track store. Track IDs and module types must be unique in their respective collections.
 
-When a renderer emits a semantic item, the browser invokes the stored application callback with that item and a current `TrackRuntimeContext`: `{ type, base, config }`. Module tooltip components receive the same context with their item. `base` and `config` are shallow read-only views, and later validated store mutations appear in later events and tooltip renders. The context is derived runtime state, not a separately persisted object, and it does not contain catalog metadata from optional UI packages.
+When a renderer emits a semantic item, the browser invokes the stored application callback with that item and a current `TrackRuntimeContext`: `{ type, base, config }`. Module tooltip components receive the same context with their item. `base` and `config` are shallow read-only views, and later validated store mutations appear in later events and tooltip renders. The context is derived runtime state, not a separately persisted object, and it does not contain collection metadata from optional UI packages.
 
 ## Exact request behavior
 
@@ -55,7 +55,7 @@ After a store exists, expected mutation failures return discriminated results in
 
 Region normalization accepts only finite safe-integer coordinates with `start < end` on an exact assembly sequence key. A region that partially overlaps its chromosome is intersected with `[0, chromosomeLength)` and succeeds with `clamped: true`. A malformed region, unknown sequence, or region with no overlap is rejected. Check mutation results when values come from user or external input.
 
-Interaction callbacks are functions and are therefore not part of serializable catalog or saved-session JSON. Catalog entries are create input; they become nested runtime instances only after the selected module creates them. Runtime context is also derived rather than serialized.
+Interaction callbacks are functions and are therefore not part of serializable collection or saved-session JSON. Collection entries are create input; they become nested runtime instances only after the selected module creates them. Runtime context is also derived rather than serialized.
 
 ## Public boundary
 

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createModuleRegistry, defineTrackModule } from "@weng-lab/genomebrowser";
-import { createCatalogSchema } from "../src/TrackSelect/schema/catalogSchema";
-import { generateTrackCatalogJsonSchema } from "../src/TrackSelect/schema/generateJsonSchema";
+import { createCollectionSchema } from "../src/TrackSelect/schema/collectionSchema";
+import { generateTrackCollectionJsonSchema } from "../src/TrackSelect/schema/generateJsonSchema";
 import { validateJson } from "../src/TrackSelect/schema/validateJson";
 
-describe("TrackSelect catalog schemas", () => {
+describe("TrackSelect collection schemas", () => {
   function Renderer() {
     return null;
   }
@@ -25,9 +25,9 @@ describe("TrackSelect catalog schemas", () => {
 
   const registry = createModuleRegistry([signalModule]);
 
-  const validCatalog = {
+  const validCollection = {
     id: "catalog",
-    label: "Catalog",
+    label: "Collection",
     views: [
       {
         id: "default",
@@ -48,8 +48,8 @@ describe("TrackSelect catalog schemas", () => {
     ],
   };
 
-  it("validates registry-derived catalog entries", () => {
-    expect(validateJson(validCatalog, registry).tracks[0]).toEqual({
+  it("validates registry-derived collection entries", () => {
+    expect(validateJson(validCollection, registry).tracks[0]).toEqual({
       type: "signal",
       id: "signal-1",
       title: "Signal 1",
@@ -65,26 +65,26 @@ describe("TrackSelect catalog schemas", () => {
     expect(() =>
       validateJson(
         {
-          ...validCatalog,
-          tracks: [{ ...validCatalog.tracks[0], type: "missing" }],
+          ...validCollection,
+          tracks: [{ ...validCollection.tracks[0], type: "missing" }],
         },
         registry,
       ),
-    ).toThrow(/TrackSelect catalog is invalid/);
+    ).toThrow(/TrackSelect collection is invalid/);
 
     expect(() =>
       validateJson(
         {
-          ...validCatalog,
-          tracks: [{ ...validCatalog.tracks[0], config: {} }],
+          ...validCollection,
+          tracks: [{ ...validCollection.tracks[0], config: {} }],
         },
         registry,
       ),
-    ).toThrow(/TrackSelect catalog is invalid/);
+    ).toThrow(/TrackSelect collection is invalid/);
   });
 
   it("generates display enum values in JSON schema", () => {
-    const schema = generateTrackCatalogJsonSchema(registry);
+    const schema = generateTrackCollectionJsonSchema(registry);
 
     expect(schema).toMatchObject({
       properties: {
@@ -105,7 +105,7 @@ describe("TrackSelect catalog schemas", () => {
     });
   });
 
-  it("honors Zod config defaults at the catalog validation boundary", () => {
+  it("honors Zod config defaults at the collection validation boundary", () => {
     const defaultedModule = defineTrackModule({
       type: "defaulted-signal",
       configSchema: z.object({
@@ -117,8 +117,8 @@ describe("TrackSelect catalog schemas", () => {
       render: { full: Renderer },
     });
     const defaultedRegistry = createModuleRegistry([defaultedModule]);
-    const catalog = {
-      ...validCatalog,
+    const collection = {
+      ...validCollection,
       tracks: [
         {
           type: "defaulted-signal",
@@ -130,7 +130,7 @@ describe("TrackSelect catalog schemas", () => {
       ],
     };
 
-    expect(validateJson(catalog, defaultedRegistry).tracks[0]).toEqual({
+    expect(validateJson(collection, defaultedRegistry).tracks[0]).toEqual({
       type: "defaulted-signal",
       id: "signal-1",
       title: "Signal 1",
@@ -140,14 +140,14 @@ describe("TrackSelect catalog schemas", () => {
     expect(() =>
       validateJson(
         {
-          ...catalog,
-          tracks: [{ ...catalog.tracks[0], config: {} }],
+          ...collection,
+          tracks: [{ ...collection.tracks[0], config: {} }],
         },
         defaultedRegistry,
       ),
-    ).toThrow(/TrackSelect catalog is invalid/);
+    ).toThrow(/TrackSelect collection is invalid/);
 
-    const schema = generateTrackCatalogJsonSchema(defaultedRegistry) as {
+    const schema = generateTrackCollectionJsonSchema(defaultedRegistry) as {
       properties?: {
         tracks?: {
           items?: {
@@ -167,7 +167,7 @@ describe("TrackSelect catalog schemas", () => {
   });
 
   it("rejects empty registries", () => {
-    expect(() => createCatalogSchema(createModuleRegistry([]))).toThrow(
+    expect(() => createCollectionSchema(createModuleRegistry([]))).toThrow(
       /At least one track module is required/,
     );
   });

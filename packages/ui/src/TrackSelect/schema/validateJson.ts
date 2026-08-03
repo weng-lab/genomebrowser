@@ -1,24 +1,27 @@
 import { z } from "zod";
 import type { ModuleRegistry } from "@weng-lab/genomebrowser";
 import {
-  createCatalogSchema,
-  type TrackSelectCatalog,
+  createCollectionSchema,
+  type TrackSelectCollection,
   type TrackSelectView,
-} from "./catalogSchema";
+} from "./collectionSchema";
 
 const builtInFields = new Set(["id", "title", "type"]);
 
 function formatZodError(error: z.ZodError) {
   return error.issues
-    .map((issue) => `${issue.path.join(".") || "catalog"}: ${issue.message}`)
+    .map((issue) => `${issue.path.join(".") || "collection"}: ${issue.message}`)
     .join("; ");
 }
 
-function parseTrackSelectCatalog(input: unknown, registry: ModuleRegistry): TrackSelectCatalog {
-  const result = createCatalogSchema(registry).safeParse(input);
+function parseTrackSelectCollection(
+  input: unknown,
+  registry: ModuleRegistry,
+): TrackSelectCollection {
+  const result = createCollectionSchema(registry).safeParse(input);
 
   if (!result.success) {
-    throw new Error(`TrackSelect catalog is invalid: ${formatZodError(result.error)}`);
+    throw new Error(`TrackSelect collection is invalid: ${formatZodError(result.error)}`);
   }
 
   const rawTracks = isRecord(input) && Array.isArray(input.tracks) ? input.tracks : [];
@@ -32,7 +35,7 @@ function parseTrackSelectCatalog(input: unknown, registry: ModuleRegistry): Trac
       return {
         ...rawTrack,
         metadata: track.metadata,
-      } as TrackSelectCatalog["tracks"][number];
+      } as TrackSelectCollection["tracks"][number];
     }),
   };
 }
@@ -42,7 +45,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function validateViewField(
-  catalog: TrackSelectCatalog,
+  collection: TrackSelectCollection,
   field: string,
   context: string,
   errors: string[],
@@ -51,36 +54,45 @@ function validateViewField(
     return;
   }
 
-  catalog.tracks.forEach((track, index) => {
+  collection.tracks.forEach((track, index) => {
     if (!(field in track.metadata)) {
       errors.push(`tracks.${index}.metadata is missing "${field}" required by ${context}`);
     }
   });
 }
 
-function validateLeafField(catalog: TrackSelectCatalog, view: TrackSelectView, errors: string[]) {
-  validateViewField(catalog, view.leaf, `views.${view.id}.leaf`, errors);
+function validateLeafField(
+  collection: TrackSelectCollection,
+  view: TrackSelectView,
+  errors: string[],
+) {
+  validateViewField(collection, view.leaf, `views.${view.id}.leaf`, errors);
 }
 
-export function validateJson(input: unknown, registry: ModuleRegistry): TrackSelectCatalog {
-  const catalog = parseTrackSelectCatalog(input, registry);
+export function validateJson(input: unknown, registry: ModuleRegistry): TrackSelectCollection {
+  const collection = parseTrackSelectCollection(input, registry);
   const errors: string[] = [];
 
-  catalog.views.forEach((view) => {
+  collection.views.forEach((view) => {
     view.columns.forEach((column) => {
-      validateViewField(catalog, column.field, `views.${view.id}.columns.${column.field}`, errors);
+      validateViewField(
+        collection,
+        column.field,
+        `views.${view.id}.columns.${column.field}`,
+        errors,
+      );
     });
 
     view.grouping.forEach((field) => {
-      validateViewField(catalog, field, `views.${view.id}.grouping`, errors);
+      validateViewField(collection, field, `views.${view.id}.grouping`, errors);
     });
 
-    validateLeafField(catalog, view, errors);
+    validateLeafField(collection, view, errors);
   });
 
   if (errors.length > 0) {
-    throw new Error(`TrackSelect catalog is invalid: ${errors.join("; ")}`);
+    throw new Error(`TrackSelect collection is invalid: ${errors.join("; ")}`);
   }
 
-  return catalog;
+  return collection;
 }

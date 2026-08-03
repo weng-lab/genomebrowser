@@ -2,33 +2,33 @@ import { createTrackFromEntry, type TrackStore } from "@weng-lab/genomebrowser";
 import {
   adaptTrackSelectInteraction,
   type TrackSelectInteractionResolver,
-} from "./catalogInteraction";
-import type { TrackSelectCatalog } from "../schema/catalogSchema";
-import { getCatalogTrackById } from "./catalogRows";
+} from "./collectionInteraction";
+import type { TrackSelectCollection } from "../schema/collectionSchema";
+import { getCollectionTrackById } from "./collectionRows";
 
 export function getReconciledTracks({
-  trackCatalogs,
+  trackCollections,
   tracks,
   selectedTrackIds,
   registry,
   maxTracks,
   resolveTrackInteraction,
 }: {
-  trackCatalogs: TrackSelectCatalog[];
+  trackCollections: TrackSelectCollection[];
   tracks: TrackStore["tracks"];
   selectedTrackIds: readonly string[];
   registry: TrackStore["registry"];
   maxTracks: number;
   resolveTrackInteraction?: TrackSelectInteractionResolver;
 }): TrackStore["tracks"] {
-  const catalogTracksById = getCatalogTrackById(trackCatalogs);
-  assertValidSelectedTrackIds(selectedTrackIds, catalogTracksById, maxTracks);
+  const collectionTracksById = getCollectionTrackById(trackCollections);
+  assertValidSelectedTrackIds(selectedTrackIds, collectionTracksById, maxTracks);
 
   const existingTracksById = new Map(tracks.map((track) => [track.base.id, track]));
-  const nonCatalogTracks = tracks.filter((track) => !catalogTracksById.has(track.base.id));
+  const nonCollectionTracks = tracks.filter((track) => !collectionTracksById.has(track.base.id));
   const selectedTracks = selectedTrackIds.map((id) => {
     const existingTrack = existingTracksById.get(id);
-    const entry = catalogTracksById.get(id)!;
+    const entry = collectionTracksById.get(id)!;
     if (!resolveTrackInteraction) {
       if (existingTrack) return existingTrack;
       return createTrackFromEntry(registry, { ...entry.track, id });
@@ -42,27 +42,31 @@ export function getReconciledTracks({
     return {
       ...trackWithoutInteraction,
       interaction: adaptTrackSelectInteraction(resolvedInteraction, {
-        catalogId: entry.catalogId,
+        collectionId: entry.collectionId,
         authoredTrackId: entry.track.id,
         metadata: entry.track.metadata,
       }),
     };
   });
 
-  return [...nonCatalogTracks, ...selectedTracks];
+  return [...nonCollectionTracks, ...selectedTracks];
 }
 
-export function assertValidCatalogTrackIds(
-  trackCatalogs: TrackSelectCatalog[],
+export function assertValidCollectionTrackIds(
+  trackCollections: TrackSelectCollection[],
   selectedTrackIds: readonly string[],
   maxTracks: number,
 ) {
-  assertValidSelectedTrackIds(selectedTrackIds, getCatalogTrackById(trackCatalogs), maxTracks);
+  assertValidSelectedTrackIds(
+    selectedTrackIds,
+    getCollectionTrackById(trackCollections),
+    maxTracks,
+  );
 }
 
 function assertValidSelectedTrackIds(
   selectedTrackIds: readonly string[],
-  catalogTracksById: ReadonlyMap<string, unknown>,
+  collectionTracksById: ReadonlyMap<string, unknown>,
   maxTracks: number,
 ) {
   if (selectedTrackIds.length > maxTracks) {
@@ -74,7 +78,7 @@ function assertValidSelectedTrackIds(
   const seen = new Set<string>();
   for (const id of selectedTrackIds) {
     if (seen.has(id)) throw new Error(`Duplicate track selection id: ${id}`);
-    if (!catalogTracksById.has(id)) throw new Error(`Unknown track selection id: ${id}`);
+    if (!collectionTracksById.has(id)) throw new Error(`Unknown track selection id: ${id}`);
     seen.add(id);
   }
 }

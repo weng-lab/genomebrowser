@@ -3,15 +3,15 @@
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CatalogGrid } from "../src/TrackSelect/catalog/catalogGrid";
-import type { TrackSelectCatalog } from "../src/TrackSelect/schema/catalogSchema";
+import { CollectionGrid } from "../src/TrackSelect/collection/collectionGrid";
+import type { TrackSelectCollection } from "../src/TrackSelect/schema/collectionSchema";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
-const catalog: TrackSelectCatalog = {
+const collection: TrackSelectCollection = {
   id: "catalog",
-  label: "Catalog",
+  label: "Collection",
   views: [
     {
       id: "grouped",
@@ -46,7 +46,7 @@ const catalog: TrackSelectCatalog = {
   ],
 };
 
-const view = catalog.views[0]!;
+const view = collection.views[0]!;
 const groupALeafIds = ["catalog::one", "catalog::two"];
 
 let container: HTMLDivElement | undefined;
@@ -68,8 +68,8 @@ function renderGrid(initialIds: string[] = [], acceptSelection = true) {
     setSelectedIds = setSelection;
 
     return (
-      <CatalogGrid
-        catalog={catalog}
+      <CollectionGrid
+        collection={collection}
         view={view}
         selectedIds={selectedIds}
         onSelectionChange={(nextSelectedIds) => {
@@ -143,7 +143,7 @@ async function setQuickFilter(value: string) {
   });
 }
 
-describe("CatalogGrid grouped selection", () => {
+describe("CollectionGrid grouped selection", () => {
   it("presents none, partial, and full descendant selection correctly at nested levels", () => {
     const grid = renderGrid();
 

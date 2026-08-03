@@ -38,4 +38,4 @@ type TrackInteraction<Item, Config> = {
 };
 ```
 
-The browser binds the current context before exposing callbacks to renderers, so `useInteraction<Item>()` remains item-only. Module tooltips receive `{ item, context }`, not a separate config prop. This context is derived at render time and is not persisted, deep-frozen, or extended with TrackSelect catalog metadata.
+The browser binds the current context before exposing callbacks to renderers, so `useInteraction<Item>()` remains item-only. Module tooltips receive `{ item, context }`, not a separate config prop. This context is derived at render time and is not persisted, deep-frozen, or extended with TrackSelect collection metadata.

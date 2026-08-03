@@ -2,7 +2,7 @@
 
 Ready-made React controls for applications built with `@weng-lab/genomebrowser`.
 
-The UI package provides higher-level interfaces such as catalog-backed track selection and interactive cytoband navigation. Its controls share runtime stores with `GenomeBrowser`, keeping application UI and rendered tracks synchronized.
+The UI package provides higher-level interfaces such as collection-backed track selection and interactive cytoband navigation. Its controls share runtime stores with `GenomeBrowser`, keeping application UI and rendered tracks synchronized.
 
 > This package is under active development and its public API may change.
 
@@ -30,7 +30,7 @@ Keep this setup in your application entry point or another module imported befor
 
 ## Quick start
 
-Create the runtime stores and track catalogs outside component rendering. Pass the same track store to `GenomeBrowser` and `TrackSelect`.
+Create the runtime stores and track collections outside component rendering. Pass the same track store to `GenomeBrowser` and `TrackSelect`.
 
 ```tsx
 import { useState } from "react";
@@ -53,7 +53,7 @@ const useTrackStore = createTrackStore({
   modules: [bigWigModule],
 });
 
-const trackCatalogs = [
+const trackCollections = [
   {
     id: "signals",
     label: "Signal tracks",
@@ -92,7 +92,7 @@ export function BrowserWithTrackSelect() {
       <TrackSelect
         open={trackSelectOpen}
         onClose={() => setTrackSelectOpen(false)}
-        trackCatalogs={trackCatalogs}
+        trackCollections={trackCollections}
         useTrackStore={useTrackStore}
         defaultTrackIds={["signals::example-signal"]}
       />
@@ -101,7 +101,7 @@ export function BrowserWithTrackSelect() {
 }
 ```
 
-Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser. Catalog selections remain a draft until the user submits them; canceling or closing the dialog leaves the track store unchanged.
+Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser. Collection selections remain a draft until the user submits them; canceling or closing the dialog leaves the track store unchanged.
 
 ## When to use the UI package
 
@@ -110,6 +110,6 @@ Use `@weng-lab/genomebrowser` by itself when you only need to render and control
 ## Documentation
 
 - [Getting started](docs/gettingStarted.md) - connect `TrackSelect` to a browser
-- [TrackSelect](docs/trackSelect.md) - catalogs, selection behavior, customization, and schema tooling
+- [TrackSelect](docs/trackSelect.md) - collections, selection behavior, customization, and schema tooling
 - [Cytobands](docs/cytobands.md) - chromosome ideograms, region brackets, and interactive loci
-- [Track interactions](docs/recipes/trackInteractions.md) - connect catalog tracks to host callbacks
+- [Track interactions](docs/recipes/trackInteractions.md) - connect collection tracks to host callbacks

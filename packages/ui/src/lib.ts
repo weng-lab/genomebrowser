@@ -2,24 +2,24 @@ import TrackSelect from "./TrackSelect/TrackSelect";
 export { TrackSelect };
 export { Cytobands } from "./cytobands/cytobands";
 export type { CytobandColors, CytobandsProps } from "./cytobands/cytobands";
-export { withValueMarkers } from "./TrackSelect/catalog/catalogColumns";
+export { withValueMarkers } from "./TrackSelect/collection/collectionColumns";
 export type {
   TrackSelectColumnOverride,
   TrackSelectColumnOverrides,
   ValueMarkerConfig,
   ValueMarkerMap,
-} from "./TrackSelect/catalog/catalogColumns";
+} from "./TrackSelect/collection/collectionColumns";
 export type {
   AnyTrackSelectInteraction,
-  TrackSelectCatalogContext,
+  TrackSelectCollectionContext,
   TrackSelectInteraction,
   TrackSelectInteractionResolver,
-} from "./TrackSelect/catalog/catalogInteraction";
+} from "./TrackSelect/collection/collectionInteraction";
 export type {
-  TrackSelectCatalog,
+  TrackSelectCollection,
   TrackSelectMetadata,
   TrackSelectTrack,
-} from "./TrackSelect/schema/catalogSchema";
+} from "./TrackSelect/schema/collectionSchema";
 export type { TrackSelectProps } from "./TrackSelect/TrackSelect";
-export { generateTrackCatalogJsonSchema } from "./TrackSelect/schema/generateJsonSchema";
+export { generateTrackCollectionJsonSchema } from "./TrackSelect/schema/generateJsonSchema";
 export { validateJson } from "./TrackSelect/schema/validateJson";

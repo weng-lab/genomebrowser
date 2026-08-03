@@ -4,37 +4,37 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { useMemo } from "react";
-import type { SelectedByCatalog } from "../catalog/catalogSelection";
-import { getActiveView } from "../catalog/catalogViews";
-import type { TrackSelectCatalog } from "../schema/catalogSchema";
+import type { SelectedByCollection } from "../collection/collectionSelection";
+import { getActiveView } from "../collection/collectionViews";
+import type { TrackSelectCollection } from "../schema/collectionSchema";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { buildSelectedTree } from "./buildSelectedTree";
 import { SelectedTreeItem } from "./selectedTreeItem";
 
 type SelectedTracksTreeProps = {
-  trackCatalogs: TrackSelectCatalog[];
-  selectedByCatalog: SelectedByCatalog;
-  activeViewIdByCatalog: Map<string, string>;
+  trackCollections: TrackSelectCollection[];
+  selectedByCollection: SelectedByCollection;
+  activeViewIdByCollection: Map<string, string>;
   selectedCount: number;
   onRemoveTrackIds: (trackIds: string[]) => void;
 };
 
 export function SelectedTracksTree({
-  trackCatalogs,
-  selectedByCatalog,
-  activeViewIdByCatalog,
+  trackCollections,
+  selectedByCollection,
+  activeViewIdByCollection,
   selectedCount,
   onRemoveTrackIds,
 }: SelectedTracksTreeProps) {
   const trees = useMemo(
     () =>
-      trackCatalogs.flatMap((catalog) => {
-        const selectedIds = selectedByCatalog.get(catalog.id) ?? new Set<string>();
-        const view = getActiveView(catalog, activeViewIdByCatalog);
-        const tree = buildSelectedTree({ catalog, view, selectedIds });
+      trackCollections.flatMap((collection) => {
+        const selectedIds = selectedByCollection.get(collection.id) ?? new Set<string>();
+        const view = getActiveView(collection, activeViewIdByCollection);
+        const tree = buildSelectedTree({ collection, view, selectedIds });
         return tree ? [tree] : [];
       }),
-    [activeViewIdByCatalog, selectedByCatalog, trackCatalogs],
+    [activeViewIdByCollection, selectedByCollection, trackCollections],
   );
   return (
     <Paper

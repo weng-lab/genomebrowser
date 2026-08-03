@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import Tooltip from "@mui/material/Tooltip";
-import type { ValueMarkerConfig } from "./catalogColumns";
+import type { ValueMarkerConfig } from "./collectionColumns";
 
 export function DataGridCellValue({ value }: { value: unknown }) {
   const text = String(value ?? "");

@@ -3,10 +3,10 @@ import type {
   TrackInteraction,
   TrackRuntimeContext,
 } from "@weng-lab/genomebrowser";
-import type { TrackSelectMetadata, TrackSelectTrack } from "../schema/catalogSchema";
+import type { TrackSelectMetadata, TrackSelectTrack } from "../schema/collectionSchema";
 
-export type TrackSelectCatalogContext = Readonly<{
-  catalogId: string;
+export type TrackSelectCollectionContext = Readonly<{
+  collectionId: string;
   authoredTrackId: string;
   metadata: Readonly<TrackSelectMetadata>;
 }>;
@@ -14,7 +14,7 @@ export type TrackSelectCatalogContext = Readonly<{
 type TrackSelectInteractionCallback<Item, Config> = (
   item: Item,
   runtime: TrackRuntimeContext<Config>,
-  catalog: TrackSelectCatalogContext,
+  collection: TrackSelectCollectionContext,
 ) => void;
 
 export type TrackSelectInteraction<Item, Config = unknown> = {
@@ -27,7 +27,7 @@ export type AnyTrackSelectInteraction = TrackSelectInteraction<never, never>;
 
 export type TrackSelectInteractionResolver = (
   entry: Readonly<{
-    catalogId: string;
+    collectionId: string;
     qualifiedTrackId: string;
     track: TrackSelectTrack;
   }>,
@@ -35,7 +35,7 @@ export type TrackSelectInteractionResolver = (
 
 export function adaptTrackSelectInteraction(
   interaction: AnyTrackSelectInteraction,
-  catalog: TrackSelectCatalogContext,
+  collection: TrackSelectCollectionContext,
 ): AnyTrackInteraction {
   assertValidTrackSelectInteraction(interaction);
 
@@ -49,9 +49,9 @@ export function adaptTrackSelectInteraction(
     | TrackSelectInteractionCallback<unknown, unknown>
     | undefined;
   const adapted: TrackInteraction<unknown, unknown> = {
-    ...(onClick ? { onClick: (item, runtime) => onClick(item, runtime, catalog) } : {}),
-    ...(onHover ? { onHover: (item, runtime) => onHover(item, runtime, catalog) } : {}),
-    ...(onLeave ? { onLeave: (item, runtime) => onLeave(item, runtime, catalog) } : {}),
+    ...(onClick ? { onClick: (item, runtime) => onClick(item, runtime, collection) } : {}),
+    ...(onHover ? { onHover: (item, runtime) => onHover(item, runtime, collection) } : {}),
+    ...(onLeave ? { onLeave: (item, runtime) => onLeave(item, runtime, collection) } : {}),
   };
 
   return adapted as AnyTrackInteraction;

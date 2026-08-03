@@ -45,7 +45,7 @@ The useful split is:
 
 - browser and track stores;
 - the registered module set;
-- fixed tracks that are not catalog-managed;
+- fixed tracks that are not collection-managed;
 - cross-track coordination;
 - region-dependent transient state;
 - subscriptions, caches, and cleanup.
@@ -70,7 +70,7 @@ The useful split is:
 - opening Track Select and highlight dialogs;
 - displaying loading and error states.
 
-Track catalogs and default catalog IDs are configuration passed to the view. They are not fixed tracks secretly inserted by the session.
+Track collections and default collection IDs are configuration passed to the view. They are not fixed tracks secretly inserted by the session.
 
 ## Core recipe
 
@@ -242,7 +242,7 @@ function GeneBrowserPanel({ region }: { region: BrowserRegion }) {
     <GenomeBrowserView
       browserStore={session.browserStore}
       trackStore={session.trackStore}
-      trackCatalogs={MAIN_TRACK_CATALOGS}
+      trackCollections={MAIN_TRACK_COLLECTIONS}
       defaultTrackIds={GENE_DEFAULT_TRACK_IDS}
     />
   );
@@ -266,17 +266,17 @@ If a construction-time input changes, recreate the owning component with a stabl
 
 Use keys for genuine resource identity changes, not as a general way to force refreshes.
 
-## Catalog tracks and fixed tracks
+## Collection tracks and fixed tracks
 
-The session's fixed tracks and Track Select's catalog tracks have different ownership.
+The session's fixed tracks and Track Select's collection tracks have different ownership.
 
 ### Fixed tracks
 
 Use fixed tracks for tracks that the application currently requires and that Track Select does not own, such as the gene, Manhattan, and LD tracks in this project.
 
-### Catalog tracks
+### Collection tracks
 
-Track Select creates and reconciles catalog tracks using the same track store. The store must register every module type present in the catalogs supplied to that browser.
+Track Select creates and reconciles collection tracks using the same track store. The store must register every module type present in the collections supplied to that browser.
 
 ```ts
 const STANDARD_MODULES = [bigBedModule, bigWigModule, transcriptModule];
@@ -284,11 +284,11 @@ const STANDARD_MODULES = [bigBedModule, bigWigModule, transcriptModule];
 const SINGLE_CELL_MODULES = [...STANDARD_MODULES, singleCellGrnModule, singleCellQtlModule];
 ```
 
-Do not expose a catalog containing `singleCellGrn` to a store that has not registered that module. Conversely, avoid registering and exposing every application module everywhere merely to make validation pass. Match registries and catalogs to the session's product scope.
+Do not expose a collection containing `singleCellGrn` to a store that has not registered that module. Conversely, avoid registering and exposing every application module everywhere merely to make validation pass. Match registries and collections to the session's product scope.
 
 ### Defaults
 
-Keep default catalog IDs as stable, readonly configuration:
+Keep default collection IDs as stable, readonly configuration:
 
 ```ts
 export const GRN_DEFAULT_TRACK_IDS = [
@@ -298,20 +298,20 @@ export const GRN_DEFAULT_TRACK_IDS = [
 ] as const;
 ```
 
-Pass them through the catalog UI's public API:
+Pass them through the collection UI's public API:
 
 ```tsx
 <GenomeBrowserView
   browserStore={session.browserStore}
   trackStore={session.trackStore}
-  trackCatalogs={SINGLE_CELL_TRACK_CATALOGS}
+  trackCollections={SINGLE_CELL_TRACK_COLLECTIONS}
   defaultTrackIds={GRN_DEFAULT_TRACK_IDS}
 />
 ```
 
 Do not also create those tracks directly in the session. Two owners for the same tracks lead to duplicate IDs, surprising Reset behavior, and unclear ordering.
 
-Catalog-qualified IDs have the form `${catalogId}::${trackId}`. Validate them against the exact catalogs and module registry used by the session.
+Collection-qualified IDs have the form `${collectionId}::${trackId}`. Validate them against the exact collections and module registry used by the session.
 
 ## Sessions in tabs
 
@@ -416,11 +416,11 @@ Remount only when resource identity changes. Use session methods for normal muta
 
 ### Giving tracks two owners
 
-Do not create the same track as both a fixed session track and a catalog default.
+Do not create the same track as both a fixed session track and a collection default.
 
-### Exposing catalogs the registry cannot construct
+### Exposing collections the registry cannot construct
 
-Track catalog validation and creation depend on matching registered modules.
+Track collection validation and creation depend on matching registered modules.
 
 ### Building a universal portal factory too early
 
@@ -444,22 +444,22 @@ Consider a simpler component-owned store when the browser is static, appears onc
 1. Name the session's owner and lifetime.
 2. Identify mutable inputs versus construction-time identity.
 3. Create browser and track stores inside the factory.
-4. Register only modules needed by supplied fixed tracks and catalogs.
+4. Register only modules needed by supplied fixed tracks and collections.
 5. Attach cross-track behavior inside the session.
 6. Enforce transition-based invariants with store subscriptions.
 7. Return explicit stores, narrow commands, and an idempotent `dispose()`.
 8. Wrap the primitive with product-named factories.
 9. Create each session once in its React owner.
 10. Dispose it on unmount or identity replacement.
-11. Keep catalog defaults stable and catalog-owned.
+11. Keep collection defaults stable and collection-owned.
 12. Decide intentionally whether tab switches preserve or destroy sessions.
 
 ## How this maps to PsychSCREEN
 
 - `src/gb-view/stores.ts` contains the shared construction and portal factories.
-- `src/gb-view/GenomeBrowserView.tsx` is the presentation boundary receiving explicit stores, catalogs, and defaults.
-- `src/gb-view/catalogs.ts` scopes catalogs by portal capability.
-- `src/gb-view/defaultTrackIds.ts` defines stable catalog-owned defaults.
+- `src/gb-view/GenomeBrowserView.tsx` is the presentation boundary receiving explicit stores, collections, and defaults.
+- The portal capability configuration scopes collections for each browser session.
+- `src/gb-view/defaultTrackIds.ts` defines stable collection-owned defaults.
 - Gene and Disease/Trait sessions attach fixed Manhattan/LD behavior.
 - Single Cell sessions register the custom GRN/QTL modules.
 - Single Cell browser tabs use separate sessions and retain visited browsers to preserve user changes.
