@@ -10,6 +10,16 @@ The browser store owns the visible genomic region, track-area width, margin and 
 
 `GenomeBrowser` creates short-lived internal state for the mounted browser, including request results and default settings/context-menu state. Unmounting it discards that internal state, but does not discard the application-owned browser or track stores. An application may provide a custom settings store when it needs to replace browser-owned settings UI.
 
+## Assemblies bound every browser region
+
+Every browser store requires an `AssemblyDefinition` and an object `GenomicRegion`. The assembly is immutable configuration for that store: construction validates and snapshots it, and there is no runtime assembly setter or global assembly registry.
+
+The package exports `hg38`, `mm10`, `ce11`, `dm6`, and `tair10`. Each built-in contains canonical nuclear chromosomes plus organelle sequences only. Alternate loci, random sequences, unlocalized scaffolds, and unplaced contigs are not included. Use a custom definition when your data needs other sequence keys.
+
+An `AssemblyDefinition` has a non-empty `id` and a non-empty `chromosomes` record whose values are positive safe-integer sequence lengths. Sequence names are authoritative, exact, and case-sensitive. The core does not infer aliases or attach special behavior to a built-in ID, so a custom definition can use any ID and arbitrary sequence keys.
+
+Core coordinates are zero-based and half-open. `{ chromosome: "chr1", start: 0, end: 1 }` selects the first base, and region width is `end - start`. The assembly definition does not change this convention.
+
 ## Track row hover feedback
 
 Hovering the left track margin, including its color strip and track controls, highlights the full track row. The highlight turns off when the pointer leaves that margin. Hovering the centered track title or genomic data area does not activate the row highlight.
@@ -39,9 +49,11 @@ During panning, existing SVG content moves immediately. Previously successful tr
 
 ## Mutation behavior
 
-Static construction fails by throwing: invalid module input, browser-store input, initial tracks, unknown module types, and duplicate IDs cannot produce a valid object.
+Static construction fails by throwing: invalid assembly or initial-region input, invalid browser dimensions, invalid module input, initial tracks, unknown module types, and duplicate IDs cannot produce a valid object.
 
-After a track store exists, expected mutation failures return `{ ok: false, error }` instead. Failed mutations are atomic and leave tracks and order unchanged. Check results from add, remove, reorder, replace, and update actions when the operation comes from user or external input.
+After a store exists, expected mutation failures return discriminated results instead. `setRegion` and `zoom` return either `{ ok: true, region, clamped }` or `{ ok: false, code, error }`; `setTrackWidth` returns the committed width on success or a coded error. Track mutations likewise return `{ ok: false, error }` when rejected. Failed mutations are atomic and leave the current region, dimensions, tracks, and order unchanged.
+
+Region normalization accepts only finite safe-integer coordinates with `start < end` on an exact assembly sequence key. A region that partially overlaps its chromosome is intersected with `[0, chromosomeLength)` and succeeds with `clamped: true`. A malformed region, unknown sequence, or region with no overlap is rejected. Check mutation results when values come from user or external input.
 
 Interaction callbacks are functions and are therefore not part of serializable catalog or saved-session JSON. Catalog entries are create input; they become nested runtime instances only after the selected module creates them. Runtime context is also derived rather than serialized.
 

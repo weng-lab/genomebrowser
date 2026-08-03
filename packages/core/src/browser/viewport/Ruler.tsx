@@ -1,10 +1,11 @@
 import { useMemo } from "react";
-import { formatLength, type BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
+import { formatLength } from "../../modules/utils/region";
 import { createXScale } from "../../modules/utils/scale";
 
 export const RULER_HEIGHT = 80;
 
-export function Ruler({ region, width }: { region: BrowserRegion; width: number }) {
+export function Ruler({ region, width }: { region: GenomicRegion; width: number }) {
   const content = useMemo(() => {
     const len = region.end - region.start;
     const tickTarget = 20;

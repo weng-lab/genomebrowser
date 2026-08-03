@@ -3,7 +3,7 @@
 import {
   createBrowserStore,
   defaultScreenGraphQlEndpoint,
-  type BrowserRegion,
+  type GenomicRegion,
   type Highlight,
 } from "@weng-lab/genomebrowser";
 import { act, useEffect, useState, type ReactNode } from "react";
@@ -386,7 +386,7 @@ describe("Cytobands response handling", () => {
 
   it("normalizes valid bands, ignores invalid coordinates, and renders every stain safely", async () => {
     const chromosome = "chrGeometry";
-    const coordinate: BrowserRegion = { chromosome, start: 100, end: 200 };
+    const coordinate: GenomicRegion = { chromosome, start: 100, end: 200 };
     const bands = [
       { stain: "mystery", coordinates: { chromosome, start: 600, end: 700 } },
       { stain: "acen", coordinates: { chromosome, start: 400, end: 500 } },
@@ -1006,7 +1006,7 @@ describe("Cytobands current region", () => {
       { chromosome, start: Number.NaN, end: 20 },
       { chromosome, start: -20, end: -10 },
       { chromosome, start: 100, end: 110 },
-    ] as BrowserRegion[];
+    ] as GenomicRegion[];
     for (const currentRegion of suppressedRegions) {
       render({ ...base, currentRegion });
       expect(container?.querySelector('[data-testid="current-region-bracket"]')).toBeNull();
@@ -1049,6 +1049,7 @@ describe("Cytobands current region", () => {
     const fetchMock = vi.fn().mockResolvedValue(response(cytobandPayload(chromosome)));
     const applicationHighlight = highlight("unchanged", 60, 80);
     const useTestBrowserStore = createBrowserStore({
+      assembly: { id: "cytoband-test", chromosomes: { [chromosome]: 100 } },
       region: { chromosome, start: 10, end: 20 },
     });
     vi.stubGlobal("fetch", fetchMock);

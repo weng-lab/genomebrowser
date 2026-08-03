@@ -7,7 +7,7 @@
 Install the coordinated UI and runtime prereleases with the UI package's peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui@2.0.0-alpha.0 @weng-lab/genomebrowser@2.0.0-alpha.0 react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
+pnpm add @weng-lab/genomebrowser-ui@alpha @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
 ```
 
 The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. Use your package manager's peer-dependency output to keep the installed versions compatible with the release you select.

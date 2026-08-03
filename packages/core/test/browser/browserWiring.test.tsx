@@ -14,6 +14,7 @@ import { BrowserSvgProvider } from "../../src/browser/svg/BrowserSvgContext";
 import { TrackContent } from "../../src/browser/track-row/TrackContent";
 import { TooltipContextProvider } from "../../src/browser/tooltip/TooltipContext";
 import { createTooltipStore } from "../../src/browser/tooltip/tooltipStore";
+import { hg38 } from "../../src/genome/presets";
 import { useTooltip } from "../../src/browser/tooltip/useTooltip";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { useInteraction } from "../../src/modules/interaction";
@@ -295,7 +296,7 @@ describe("browser module wiring", () => {
       title: "Settings",
       config: { url: "YOUR_URL_HERE" },
     });
-    const browserStore = createBrowserStore({ region });
+    const browserStore = createBrowserStore({ assembly: hg38, region });
     const contextMenuStore = createContextMenuStore();
     const settingsStore = createSettingsStore({
       modalComponent: Modal,

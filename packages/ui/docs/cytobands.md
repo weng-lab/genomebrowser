@@ -16,14 +16,15 @@ Cytobands defaults to the same-origin `/api/screen-graphql` route. The host appl
 
 ## Browser region and loci
 
-`currentRegion` accepts the complete `BrowserRegion` from a v2 browser store without adaptation. It is independent from `highlights`, so browser navigation moves the blue bracket without changing application loci or refetching cytobands.
+`currentRegion` accepts the complete `GenomicRegion` from a v2 browser store without adaptation. It is independent from `highlights`, so browser navigation moves the blue bracket without changing application loci or refetching cytobands.
 
 ```tsx
 import { Cytobands } from "@weng-lab/genomebrowser-ui";
-import { createBrowserStore, type Highlight } from "@weng-lab/genomebrowser";
+import { createBrowserStore, hg38, type Highlight } from "@weng-lab/genomebrowser";
 
 const useBrowserStore = createBrowserStore({
-  region: "chr6:20,000,000-23,000,000",
+  assembly: hg38,
+  region: { chromosome: "chr6", start: 20_000_000, end: 23_000_000 },
   trackWidth: 900,
 });
 
@@ -64,6 +65,8 @@ export function BrowserIdeogram() {
   );
 }
 ```
+
+A `GenomicRegion` uses the core's zero-based, half-open coordinates. The `Cytobands` string `assembly` prop controls its GraphQL query separately from the browser store's `AssemblyDefinition`; the core still matches assembly chromosome keys exactly and case-sensitively.
 
 A highlight without `region.chromosome` inherits the displayed chromosome. An explicit matching chromosome renders; a different chromosome is filtered out. Valid intervals are clipped to the fetched chromosome extent. Empty, reversed, non-integer, non-finite, or entirely out-of-range intervals do not render. Narrow loci receive a visible marker and a wider transparent pointer target; wide loci render as interval overlays. Overlaps render deterministically by coordinates and stable `id`.
 
@@ -149,7 +152,7 @@ Loading, empty, network, GraphQL, and malformed-response states render text insi
 | `endpoint`                | `string`                              | `/api/screen-graphql` | Host-owned GraphQL POST destination. Cytobands does not construct an authorization header.                                                                                                |
 | `colors`                  | `Partial<CytobandColors>`             | See below             | Overrides one or more cytoband stain colors.                                                                                                                                              |
 | `highlights`              | `readonly Highlight[]`                | `[]`                  | V2 application loci. Each requires a stable `id`, genomic interval, and color; omitted opacity renders as `0.2`.                                                                          |
-| `currentRegion`           | `BrowserRegion`                       | None                  | Separate v2 browser viewport rendered as a non-interactive blue bracket. It does not alter highlights or request identity.                                                                |
+| `currentRegion`           | `GenomicRegion`                       | None                  | Separate v2 browser viewport rendered as a non-interactive blue bracket. It does not alter highlights or request identity.                                                                |
 | `renderHighlightTooltip`  | `(highlight: Highlight) => ReactNode` | Coordinate tooltip    | Returns SVG-compatible content for the currently pointer-hovered highlight only.                                                                                                          |
 | `onHighlightClick`        | `(highlight, event) => void`          | None                  | Runs for a pointer click or non-repeated Enter/Space activation. The event is a React SVG-group mouse or keyboard event. Supplying it makes rendered highlights buttons in the tab order. |
 | `onHighlightPointerEnter` | `(highlight, event) => void`          | None                  | Runs when the pointer enters a rendered highlight's SVG group.                                                                                                                            |
@@ -168,7 +171,7 @@ Loading, empty, network, GraphQL, and malformed-response states render text insi
 | `centromere` | `string` | `#9e2a2b` | Centromere (`acen`) bands.                                  |
 | `unknown`    | `string` | `#b8b8b8` | Unrecognized stain values.                                  |
 
-`Highlight` and `BrowserRegion` are public runtime types, not UI-package-specific copies. A `Highlight` contains `id`, `region: { chromosome?: string; start: number; end: number }`, `color`, and optional `opacity`. A `BrowserRegion` contains required `chromosome`, `start`, and `end` fields. Highlight opacity accepts `0` through `1`; explicit `0`, fractional values, and `1` are preserved.
+`Highlight` and `GenomicRegion` are public runtime types, not UI-package-specific copies. A `Highlight` contains `id`, `region: { chromosome?: string; start: number; end: number }`, `color`, and optional `opacity`. A `GenomicRegion` contains required `chromosome`, `start`, and `end` fields. Highlight opacity accepts `0` through `1`; explicit `0`, fractional values, and `1` are preserved.
 
 ## Accessibility
 

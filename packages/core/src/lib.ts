@@ -2,6 +2,12 @@ export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
 export { defaultScreenGraphQlEndpoint } from "./screen";
 
+export { createAssemblyDefinition } from "./genome/assembly";
+export type { AssemblyDefinition } from "./genome/assembly";
+export { ce11, dm6, hg38, mm10, tair10 } from "./genome/presets";
+export { normalizeRegion, parseRegion } from "./genome/region";
+export type { GenomicRegion, RegionErrorCode, RegionResult } from "./genome/region";
+
 export { defineTrackModule } from "./modules/defineTrackModule";
 export { createModuleRegistry, createTrackFromEntry } from "./modules/registry";
 export { TrackInteractionProvider, useInteraction } from "./modules/interaction";
@@ -51,9 +57,12 @@ export {
 export { createSettingsStore } from "./browser/state/settingsStore";
 export { createTrackStore } from "./browser/state/trackStore";
 export type {
+  BrowserRegionMutationErrorCode,
+  BrowserRegionMutationResult,
   BrowserStore,
   BrowserStoreInput,
   BrowserStoreInstance,
+  BrowserViewportMutationResult,
   Highlight,
 } from "./browser/state/browserStore";
 export type {
@@ -146,5 +155,3 @@ export type {
   CaveNeurotransmitter,
   CaveTooltipItem,
 } from "./tracks/cave/types";
-
-export type { BrowserRegion } from "./modules/utils/region";

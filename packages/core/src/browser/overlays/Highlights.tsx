@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef } from "react";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { useBrowserStore } from "../state/browserContextState";
 import { getHighlightRects } from "./highlightRects";
 
@@ -12,7 +12,7 @@ export function Highlights({
   totalHeight,
   registerContentGroup,
 }: {
-  region: BrowserRegion;
+  region: GenomicRegion;
   marginWidth: number;
   renderWidth: number;
   contentX: number;

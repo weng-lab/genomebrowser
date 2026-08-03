@@ -1,11 +1,11 @@
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { condenseBigWigData, lighten } from "../bigwig/helpers";
 import type { YRange } from "../bigwig/types";
 import type { MethylCData, MethylCRenderedPoint } from "./types";
 
 export function condenseMethylCChannels(
   data: MethylCData,
-  region: BrowserRegion,
+  region: GenomicRegion,
   width: number,
 ): MethylCRenderedPoint[][] {
   return data.map((channel) =>

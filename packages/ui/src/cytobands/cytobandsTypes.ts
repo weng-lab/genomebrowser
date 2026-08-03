@@ -1,4 +1,4 @@
-import type { BrowserRegion, Highlight } from "@weng-lab/genomebrowser";
+import type { GenomicRegion, Highlight } from "@weng-lab/genomebrowser";
 import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
@@ -23,7 +23,7 @@ export type CytobandsProps = {
   endpoint?: string;
   colors?: Partial<CytobandColors>;
   highlights?: readonly Highlight[];
-  currentRegion?: BrowserRegion;
+  currentRegion?: GenomicRegion;
   renderHighlightTooltip?: (highlight: Highlight) => ReactNode;
   onHighlightClick?: (
     highlight: Highlight,

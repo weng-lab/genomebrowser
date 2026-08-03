@@ -1,4 +1,4 @@
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { createXScale } from "../../modules/utils/scale";
 import type { Highlight } from "../state/browserStore";
 
@@ -16,7 +16,7 @@ export function getHighlightRects({
   width,
 }: {
   highlights: Highlight[];
-  region: BrowserRegion;
+  region: GenomicRegion;
   width: number;
 }): HighlightRect[] {
   const xScale = createXScale(region, width);

@@ -21,5 +21,8 @@ Root `docs/` is maintainer documentation. Things like design decisions and ADRs 
 - Read `.devserve/out.log` and `.devserve/err.log` when you need server or
   console output to diagnose an issue.
 - Never invent track URLs in examples — use `"YOUR_URL_HERE"` or existing URLs.
-- Zustand store names MUST start with `use` — they are React hooks and the
-  compiler treats them as such.
+- Zustand store names MUST start with `use` — they are React hooks and the compiler
+  treats them as such.
+- Do NOT suggest compatibility layers, aliases, temporary exports, to support
+  older versions of any package, this repo is under alpha so breaking changes are
+  necessary and expected.

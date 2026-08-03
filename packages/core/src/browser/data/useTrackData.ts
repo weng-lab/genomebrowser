@@ -2,7 +2,7 @@ import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { createFetchSignature } from "../../modules/fetchOnChange";
 import type { ModuleRegistry } from "../../modules/registry";
 import type { AnyTrackInstance } from "../../modules/types";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { fetchTrackData } from "./fetchTrackData";
 import type { DataResult, DataState, DataStoreInstance } from "./types";
 
@@ -16,7 +16,7 @@ export function useTrackData({
   useDataStore: DataStoreInstance;
   registry: ModuleRegistry;
   tracks: AnyTrackInstance[];
-  region: BrowserRegion;
+  region: GenomicRegion;
   onSettled?: () => void;
 }) {
   const completedData = useDataStore((state) => state.data);
@@ -25,7 +25,11 @@ export function useTrackData({
   const previousRegionKey = useRef<string | null>(null);
   const previousFetchKeys = useRef<Record<string, string>>({});
   const onSettledEvent = useEffectEvent(() => onSettled?.());
-  const regionKey = createRegionKey(region);
+  const fetchRegion = useMemo<GenomicRegion>(
+    () => ({ ...region }),
+    [region.chromosome, region.end, region.start],
+  );
+  const regionKey = createRegionKey(fetchRegion);
 
   useEffect(() => {
     let active = true;
@@ -55,13 +59,13 @@ export function useTrackData({
     if (tracksToFetch.length === 0) {
       previousRegionKey.current = regionKey;
       previousFetchKeys.current = currentFetchKeys;
-      if (isInitialFetch || isRegionChanged) onSettledEvent();
+      onSettledEvent();
       return;
     }
 
     Promise.all(
       tracksToFetch.map(async (track) => {
-        const result = await fetchTrackData({ registry, track, region });
+        const result = await fetchTrackData({ registry, track, region: fetchRegion });
         return [track.base.id, result] as const;
       }),
     ).then((results) => {
@@ -81,7 +85,7 @@ export function useTrackData({
     return () => {
       active = false;
     };
-  }, [region, regionKey, registry, setData, tracks, useDataStore]);
+  }, [fetchRegion, regionKey, registry, setData, tracks, useDataStore]);
 
   const dataStates = useMemo(
     () => createDataStates(tracks, completedData, fetchingTrackIds),
@@ -94,7 +98,7 @@ export function useTrackData({
   };
 }
 
-function createRegionKey(region: BrowserRegion) {
+function createRegionKey(region: GenomicRegion) {
   return `${region.chromosome}:${region.start}-${region.end}`;
 }
 

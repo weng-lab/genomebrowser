@@ -10,6 +10,7 @@ import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { RegistryProvider } from "../../src/browser/state/RegistryContext";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { TrackContent } from "../../src/browser/track-row/TrackContent";
+import { hg38 } from "../../src/genome/presets";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import type { AnyTrackInstance } from "../../src/modules/types";
 
@@ -68,7 +69,8 @@ describe("track render error isolation", () => {
       config: {},
     });
     const browserStore = createBrowserStore({
-      region: "chr1:1-1000",
+      assembly: hg38,
+      region: { chromosome: "chr1", start: 1, end: 1000 },
       marginWidth: 120,
       trackWidth: 500,
       titleSize: 12,

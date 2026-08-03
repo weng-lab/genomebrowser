@@ -10,6 +10,14 @@ Create tracks with `module.create(...)` rather than assembling the nested runtim
 
 Initial construction throws because no valid store can be returned. After construction, track-store mutations return `{ ok: false, error }` and leave all state unchanged. Check the return value from `addTrack`, `removeTrack`, `applyTrackChanges`, `reorderTracks`, `updateBase`, `updateConfig`, and `updateInteraction`.
 
+## A browser region is rejected or clamped
+
+Confirm that `createBrowserStore` received an `assembly` and an object region. Browser stores do not accept region strings; use `parseRegion` explicitly, then pass its object result to `setRegion`.
+
+Chromosome names must exactly match a case-sensitive key in `assembly.chromosomes`. Coordinates must be safe integers with `start < end`. Partial overlap with `[0, chromosomeLength)` succeeds with `clamped: true`; a region entirely before or after the chromosome returns `OUTSIDE_CHROMOSOME` without changing state. Unknown chromosomes and malformed, reversed, or zero-width regions likewise return coded failures at runtime.
+
+`parseRegion` only checks the text structure. It preserves chromosome case and does not validate membership, ordering, bounds, or perform clamping, so a successful parse can still produce a rejected `setRegion` result.
+
 ## Config changes but data does not refetch
 
 For custom modules, wrap every config schema field that changes the fetched response with `fetchOnChange`. A region change always requests all tracks, but a config-only change requests a track only when its marked-field signature changes.
@@ -40,9 +48,9 @@ Store factories return Zustand hooks. Create them outside ordinary component ren
 
 ## A method threw instead of returning a result
 
-Construction and malformed browser-level input throw: module definition and creation, registry creation, browser-store creation, track-store creation, region parsing, invalid zoom factors, and invalid highlights.
+Construction and parsing throw when no valid value can be produced: module definition and creation, registry creation, browser-store creation, track-store creation, `parseRegion`, and invalid highlights.
 
-Track-store mutations use result objects for expected runtime failures. Catch thrown errors where dynamic input enters construction or browser methods; branch on `result.ok` for track mutations.
+After browser-store construction, `setRegion`, `zoom`, and `setTrackWidth` use result objects for expected runtime failures and preserve state on failure. Track-store mutations do the same. Catch errors where dynamic input enters construction or parsing; branch on `result.ok` for runtime mutations.
 
 ## Client-runtime requirements
 

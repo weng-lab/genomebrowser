@@ -1,7 +1,7 @@
 import axios from "axios";
 import { AxiosDataLoader, BigWigReader, FileType } from "genomic-reader";
 import type { TrackFetchContext } from "../../modules/types";
-import type { BrowserRegion } from "../../modules/utils/region";
+import type { GenomicRegion } from "../../genome/region";
 import { createBigBedSchemaParser } from "./schema";
 import type { BigBedConfig, BigBedData, BigBedRow, BigBedSchema, InferBigBedRow } from "./types";
 
@@ -30,7 +30,7 @@ export async function fetchBigBedRows<TSchema extends BigBedSchema | undefined =
 }: {
   url: string;
   schema?: TSchema;
-  region: BrowserRegion;
+  region: GenomicRegion;
 }): Promise<InferBigBedRow<TSchema>[]> {
   await ensureBrowserBuffer();
 

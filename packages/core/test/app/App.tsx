@@ -8,6 +8,7 @@ import {
   methylCModule,
   transcriptModule,
   GenomeBrowser,
+  hg38,
 } from "../../src/lib";
 import {
   bigBedExample,
@@ -18,7 +19,8 @@ import {
 } from "./tracks";
 
 const browserStore = createBrowserStore({
-  region: "chr12:53,372,922-53,423,700",
+  assembly: hg38,
+  region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
   marginWidth: 60,
   highlights: [
     {

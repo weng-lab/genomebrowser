@@ -10,10 +10,12 @@ import {
   createBrowserStore,
   createTrackStore,
   GenomeBrowser,
+  hg38,
 } from "@weng-lab/genomebrowser";
 
 const useBrowserStore = createBrowserStore({
-  region: "chr1:1,000,000-1,100,000",
+  assembly: hg38,
+  region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
   trackWidth: 900,
 });
 

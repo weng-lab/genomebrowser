@@ -14,8 +14,9 @@ import {
   createBrowserStore,
   createTrackStore,
   GenomeBrowser,
+  hg38,
   methylCModule,
-  type BrowserRegion,
+  type GenomicRegion,
   type Highlight,
   type TrackRuntimeContext,
   transcriptModule,
@@ -34,7 +35,8 @@ import biosamples from "./catalogs/human-biosamples.json";
 import psychscreenTracks from "./catalogs/psychscreen.json";
 
 const useBrowserStore = createBrowserStore({
-  region: "chr6:20,092,778-23,099,592",
+  assembly: hg38,
+  region: { chromosome: "chr6", start: 20_092_778, end: 23_099_592 },
   marginWidth: 55,
   trackWidth: 1445,
 });
@@ -262,7 +264,7 @@ function InteractionShowcase() {
               height={28}
               highlights={cytobandHighlights}
               onHighlightClick={(highlight) => {
-                const nextRegion: BrowserRegion = {
+                const nextRegion: GenomicRegion = {
                   chromosome: highlight.region.chromosome ?? region.chromosome,
                   start: highlight.region.start,
                   end: highlight.region.end,
