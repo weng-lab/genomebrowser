@@ -11,7 +11,6 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
-  statuses: write
 
 concurrency:
   group: react-doctor-${{ github.event.pull_request.number || github.ref }}
@@ -34,3 +33,4 @@ jobs:
         uses: millionco/react-doctor@v2
         with:
           blocking: none
+          commit-status: false
