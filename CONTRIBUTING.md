@@ -3,6 +3,10 @@
 Keep contributions focused and easy to review. Include documentation, scripts,
 or cleanup only when they are necessary for the change.
 
+When creating or updating an issue or pull request, apply relevant labels and
+assign the responsible person when known. Leave uncertain metadata unset rather
+than guessing.
+
 ## Commits
 
 Write a short, specific commit message in the imperative mood. Describe the
