@@ -32,14 +32,15 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "pnpm typecheck && vite build",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
-    "test": "vitest run",
     "preview": "vite preview",
-    "prepack": "pnpm run build"
+    "prepack": "pnpm build"
   },
   "dependencies": {
     "axios": "0.33.0",

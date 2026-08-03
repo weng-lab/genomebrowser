@@ -40,14 +40,15 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "pnpm typecheck && vite build",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
-    "test": "vitest run",
     "preview": "vite preview",
-    "prepack": "pnpm --filter @weng-lab/genomebrowser build && pnpm run build"
+    "prepack": "pnpm --filter @weng-lab/genomebrowser build && pnpm build"
   },
   "dependencies": {
     "@weng-lab/genomebrowser": "workspace:^2.0.0-alpha.0",
