@@ -18,7 +18,6 @@
   "files": [
     "dist",
     "docs",
-    "schemas",
     "LICENSE"
   ],
   "type": "module",

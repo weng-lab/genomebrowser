@@ -2,9 +2,9 @@
   "name": "@weng-lab/genomebrowser-monorepo",
   "private": true,
   "scripts": {
-    "pkg:core": "pnpm --filter @weng-lab/genomebrowser",
-    "pkg:ui": "pnpm --filter @weng-lab/genomebrowser-ui",
-    "pkg:app": "pnpm --filter @weng-lab/genomebrowser-app",
+    "core": "pnpm --filter @weng-lab/genomebrowser",
+    "ui": "pnpm --filter @weng-lab/genomebrowser-ui",
+    "app": "pnpm --filter @weng-lab/genomebrowser-app",
     "build": "pnpm -r build",
     "dev": "pnpm --parallel -r dev",
     "test": "pnpm -r test",
