@@ -2,7 +2,7 @@
 
 ## `No track module registered for type`
 
-The track's `type` is absent from `createTrackStore({ modules })`. Register the same module before creating initial tracks, adding a track, or passing the store to catalog UI. Module `type` values must also be unique.
+The track's `type` is absent from `createTrackStore({ modules })`. Register the same module before creating initial tracks, adding a track, or passing the store to collection UI. Module `type` values must also be unique.
 
 ## Validation errors or duplicate IDs
 

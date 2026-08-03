@@ -1,8 +1,8 @@
 import type { TrackStore } from "@weng-lab/genomebrowser";
-import type { TrackSelectColumnOverrides } from "../catalog/catalogColumns";
-import type { TrackSelectInteractionResolver } from "../catalog/catalogInteraction";
+import type { TrackSelectColumnOverrides } from "../collection/collectionColumns";
+import type { TrackSelectInteractionResolver } from "../collection/collectionInteraction";
 import { ConfirmDialog } from "../dialogs/confirmDialog";
-import type { TrackSelectCatalog } from "../schema/catalogSchema";
+import type { TrackSelectCollection } from "../schema/collectionSchema";
 import { useTrackSelect } from "../session/trackSelectContext";
 import { TrackSelectProvider } from "../session/TrackSelectProvider";
 import { useTrackSelectState } from "../session/useTrackSelectState";
@@ -12,7 +12,7 @@ import { TrackSelectSubmitError } from "./trackSelectSubmitError";
 import { TrackSelectToolbar } from "./trackSelectToolbar";
 
 type TrackSelectContentProps = {
-  trackCatalogs: TrackSelectCatalog[];
+  trackCollections: TrackSelectCollection[];
   tracks: TrackStore["tracks"];
   registry: TrackStore["registry"];
   setTracks: TrackStore["setTracks"];

@@ -6,11 +6,11 @@ import process from "node:process";
 import { createJiti } from "jiti";
 import { createModuleRegistry } from "@weng-lab/genomebrowser";
 import type { AnyTrackModule } from "@weng-lab/genomebrowser";
-import { generateTrackCatalogJsonSchema } from "./TrackSelect/schema/generateJsonSchema";
+import { generateTrackCollectionJsonSchema } from "./TrackSelect/schema/generateJsonSchema";
 import type { TrackSelectCliConfig } from "./cli";
 
 const configFileName = "trackselect.config.ts";
-const defaultSchemaOutFile = "trackSelectCatalog.schema.json";
+const defaultSchemaOutFile = "trackSelectCollection.schema.json";
 
 async function main() {
   const [command] = process.argv.slice(2);
@@ -40,7 +40,7 @@ async function writeSchema(cwd: string) {
   assertConfig(config);
 
   const registry = createModuleRegistry([...config.modules]);
-  const generatedSchema = generateTrackCatalogJsonSchema(registry);
+  const generatedSchema = generateTrackCollectionJsonSchema(registry);
   const schema = config.schema?.id
     ? { $id: config.schema.id, ...generatedSchema }
     : generatedSchema;

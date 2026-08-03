@@ -11,7 +11,7 @@ import {
   hg38,
   transcriptModule,
 } from "@weng-lab/genomebrowser";
-import { TrackSelect, type TrackSelectCatalog } from "@weng-lab/genomebrowser-ui";
+import { TrackSelect, type TrackSelectCollection } from "@weng-lab/genomebrowser-ui";
 
 const marginWidth = 50;
 
@@ -27,7 +27,7 @@ const useTrackStore = createTrackStore({
   tracks: [],
 });
 
-const trackCatalog = {
+const trackCollection = {
   id: "comparison-tracks",
   label: "Comparison tracks",
   views: [
@@ -94,7 +94,7 @@ const trackCatalog = {
       metadata: { category: "Annotation" },
     },
   ],
-} satisfies TrackSelectCatalog;
+} satisfies TrackSelectCollection;
 
 const defaultTrackIds = [
   "comparison-tracks::genes",
@@ -143,7 +143,7 @@ export function BrowserExperience() {
         open={trackSelectOpen}
         onClose={() => setTrackSelectOpen(false)}
         title="Choose tracks"
-        trackCatalogs={[trackCatalog]}
+        trackCollections={[trackCollection]}
         useTrackStore={useTrackStore}
         defaultTrackIds={defaultTrackIds}
       />

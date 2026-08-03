@@ -12,7 +12,7 @@ The package is intended for client-side React 19.2+ applications. Its browser us
 
 ## Runtime and optional UI
 
-`@weng-lab/genomebrowser` renders and manages the browser itself. `@weng-lab/genomebrowser-ui@alpha` is a separate optional package for higher-level application UI such as catalog-backed track selection. Both can share the same track store; installing the UI package is not required to render a browser.
+`@weng-lab/genomebrowser` renders and manages the browser itself. `@weng-lab/genomebrowser-ui@alpha` is a separate optional package for higher-level application UI such as collection-backed track selection. Both can share the same track store; installing the UI package is not required to render a browser.
 
 ## Recommended API
 

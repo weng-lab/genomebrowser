@@ -1,8 +1,11 @@
 import { isValidElement, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
-import { DataGridCellValue, ValueMarkerCell } from "../src/TrackSelect/catalog/CatalogCells";
-import { getCatalogColumns, withValueMarkers } from "../src/TrackSelect/catalog/catalogColumns";
-import type { TrackSelectView } from "../src/TrackSelect/schema/catalogSchema";
+import { DataGridCellValue, ValueMarkerCell } from "../src/TrackSelect/collection/CollectionCells";
+import {
+  getCollectionColumns,
+  withValueMarkers,
+} from "../src/TrackSelect/collection/collectionColumns";
+import type { TrackSelectView } from "../src/TrackSelect/schema/collectionSchema";
 
 const defaultView: TrackSelectView = {
   id: "default",
@@ -15,9 +18,9 @@ const defaultView: TrackSelectView = {
   leaf: "title",
 };
 
-describe("TrackSelect catalog columns", () => {
+describe("TrackSelect collection columns", () => {
   it("adds the default value renderer to generated columns", () => {
-    const columns = getCatalogColumns("catalog-a", defaultView);
+    const columns = getCollectionColumns("catalog-a", defaultView);
     const assayColumn = columns.find((column) => column.field === "assay");
     const rendered = assayColumn?.renderCell?.({
       value: "ATAC",
@@ -30,7 +33,7 @@ describe("TrackSelect catalog columns", () => {
     expect(getElementProps<{ value: unknown }>(rendered).value).toBe("Assay: ATAC");
   });
 
-  it("applies overrides by catalog and field", () => {
+  it("applies overrides by collection and field", () => {
     const renderCell = () => "custom cell";
     const columnOverrides = {
       "catalog-a": {
@@ -42,21 +45,21 @@ describe("TrackSelect catalog columns", () => {
       },
     };
 
-    const catalogAColumns = getCatalogColumns("catalog-a", defaultView, columnOverrides);
-    const catalogBColumns = getCatalogColumns("catalog-b", defaultView, columnOverrides);
-    const catalogCColumns = getCatalogColumns("catalog-c", defaultView, columnOverrides);
+    const collectionAColumns = getCollectionColumns("catalog-a", defaultView, columnOverrides);
+    const collectionBColumns = getCollectionColumns("catalog-b", defaultView, columnOverrides);
+    const collectionCColumns = getCollectionColumns("catalog-c", defaultView, columnOverrides);
 
-    expect(catalogAColumns.find((column) => column.field === "assay")).toMatchObject({
+    expect(collectionAColumns.find((column) => column.field === "assay")).toMatchObject({
       width: 220,
       renderCell,
     });
-    expect(catalogAColumns.find((column) => column.field === "assay")?.flex).toBeUndefined();
-    expect(catalogBColumns.find((column) => column.field === "assay")?.width).toBe(300);
-    expect(catalogCColumns.find((column) => column.field === "assay")?.width).toBeUndefined();
-    expect(catalogAColumns.some((column) => column.field === "missing")).toBe(false);
+    expect(collectionAColumns.find((column) => column.field === "assay")?.flex).toBeUndefined();
+    expect(collectionBColumns.find((column) => column.field === "assay")?.width).toBe(300);
+    expect(collectionCColumns.find((column) => column.field === "assay")?.width).toBeUndefined();
+    expect(collectionAColumns.some((column) => column.field === "missing")).toBe(false);
   });
 
-  it("applies a catalog override across its views", () => {
+  it("applies a collection override across its views", () => {
     const columnOverrides = { "catalog-a": { assay: { width: 220 } } };
     const alternateView: TrackSelectView = {
       ...defaultView,
@@ -65,10 +68,10 @@ describe("TrackSelect catalog columns", () => {
       columns: [{ field: "assay", label: "Data type" }],
     };
 
-    const defaultAssay = getCatalogColumns("catalog-a", defaultView, columnOverrides).find(
+    const defaultAssay = getCollectionColumns("catalog-a", defaultView, columnOverrides).find(
       (column) => column.field === "assay",
     );
-    const alternateAssay = getCatalogColumns("catalog-a", alternateView, columnOverrides).find(
+    const alternateAssay = getCollectionColumns("catalog-a", alternateView, columnOverrides).find(
       (column) => column.field === "assay",
     );
 

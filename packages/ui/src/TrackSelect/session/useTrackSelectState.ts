@@ -3,19 +3,19 @@ import { useState } from "react";
 import {
   clearOrderedSelection,
   createOrderedSelectionFromTracks,
-  createSelectionByCatalog,
+  createSelectionByCollection,
   removeOrderedTrackIds,
-  setOrderedCatalogSelection,
-} from "../catalog/catalogSelection";
-import type { TrackSelectInteractionResolver } from "../catalog/catalogInteraction";
-import { getReconciledTracks } from "../catalog/catalogStore";
-import { getActiveView, getInitialViewIds } from "../catalog/catalogViews";
-import type { TrackSelectCatalog } from "../schema/catalogSchema";
+  setOrderedCollectionSelection,
+} from "../collection/collectionSelection";
+import type { TrackSelectInteractionResolver } from "../collection/collectionInteraction";
+import { getReconciledTracks } from "../collection/collectionStore";
+import { getActiveView, getInitialViewIds } from "../collection/collectionViews";
+import type { TrackSelectCollection } from "../schema/collectionSchema";
 
-type TrackSelectScreen = "catalog-list" | "catalog-detail";
+type TrackSelectScreen = "collection-list" | "collection-detail";
 
 type TrackSelectStateOptions = {
-  trackCatalogs: TrackSelectCatalog[];
+  trackCollections: TrackSelectCollection[];
   tracks: TrackStore["tracks"];
   registry: TrackStore["registry"];
   setTracks: TrackStore["setTracks"];
@@ -29,7 +29,7 @@ type TrackSelectStateOptions = {
 export type TrackSelectState = ReturnType<typeof useTrackSelectState>;
 
 export function useTrackSelectState({
-  trackCatalogs,
+  trackCollections,
   tracks,
   registry,
   setTracks,
@@ -40,38 +40,39 @@ export function useTrackSelectState({
   resolveTrackInteraction,
 }: TrackSelectStateOptions) {
   const [screen, setScreen] = useState<TrackSelectScreen>(() =>
-    trackCatalogs.length === 1 ? "catalog-detail" : "catalog-list",
+    trackCollections.length === 1 ? "collection-detail" : "collection-list",
   );
-  const [activeCatalogId, setActiveCatalogId] = useState(() => trackCatalogs[0]?.id ?? "");
-  const [activeViewIdByCatalog, setActiveViewIdByCatalog] = useState(() =>
-    getInitialViewIds(trackCatalogs),
+  const [activeCollectionId, setActiveCollectionId] = useState(() => trackCollections[0]?.id ?? "");
+  const [activeViewIdByCollection, setActiveViewIdByCollection] = useState(() =>
+    getInitialViewIds(trackCollections),
   );
   const [selectedTrackIds, setSelectedTrackIds] = useState(() =>
-    createOrderedSelectionFromTracks(trackCatalogs, tracks),
+    createOrderedSelectionFromTracks(trackCollections, tracks),
   );
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string>();
 
-  const currentScreen = getCurrentScreen(screen, trackCatalogs.length);
-  const activeCatalog =
-    trackCatalogs.find((catalog) => catalog.id === activeCatalogId) ?? trackCatalogs[0];
-  const activeView = activeCatalog
-    ? getActiveView(activeCatalog, activeViewIdByCatalog)
+  const currentScreen = getCurrentScreen(screen, trackCollections.length);
+  const activeCollection =
+    trackCollections.find((collection) => collection.id === activeCollectionId) ??
+    trackCollections[0];
+  const activeView = activeCollection
+    ? getActiveView(activeCollection, activeViewIdByCollection)
     : undefined;
-  const selectedByCatalog = createSelectionByCatalog(trackCatalogs, selectedTrackIds);
+  const selectedByCollection = createSelectionByCollection(trackCollections, selectedTrackIds);
   const selectedTrackCount = selectedTrackIds.length;
 
-  function selectCatalog(catalogId: string) {
-    setActiveCatalogId(catalogId);
-    setScreen("catalog-detail");
+  function selectCollection(collectionId: string) {
+    setActiveCollectionId(collectionId);
+    setScreen("collection-detail");
   }
 
   function selectView(viewId: string) {
-    if (!activeCatalog) return;
+    if (!activeCollection) return;
 
-    setActiveViewIdByCatalog((current) => {
+    setActiveViewIdByCollection((current) => {
       const next = new Map(current);
-      next.set(activeCatalog.id, viewId);
+      next.set(activeCollection.id, viewId);
       return next;
     });
   }
@@ -88,12 +89,12 @@ export function useTrackSelectState({
     setSelectedTrackIds(nextSelectedTrackIds);
   }
 
-  function selectActiveCatalogTracks(selectedIds: Set<string>) {
-    if (!activeCatalog || !activeView) return;
+  function selectActiveCollectionTracks(selectedIds: Set<string>) {
+    if (!activeCollection || !activeView) return;
     setDraftSelection(
-      setOrderedCatalogSelection({
+      setOrderedCollectionSelection({
         selectedTrackIds,
-        catalog: activeCatalog,
+        collection: activeCollection,
         view: activeView,
         selectedIds,
       }),
@@ -104,7 +105,7 @@ export function useTrackSelectState({
     setDraftSelection(
       clearOrderedSelection(
         selectedTrackIds,
-        currentScreen === "catalog-detail" ? activeCatalog : undefined,
+        currentScreen === "collection-detail" ? activeCollection : undefined,
       ),
     );
   }
@@ -124,7 +125,7 @@ export function useTrackSelectState({
     let nextTracks: TrackStore["tracks"];
     try {
       nextTracks = getReconciledTracks({
-        trackCatalogs,
+        trackCollections,
         tracks,
         selectedTrackIds,
         registry,
@@ -151,21 +152,21 @@ export function useTrackSelectState({
 
   return {
     state: {
-      trackCatalogs,
+      trackCollections,
       screen: currentScreen,
-      activeCatalog,
+      activeCollection,
       activeView,
-      activeViewIdByCatalog,
-      selectedByCatalog,
+      activeViewIdByCollection,
+      selectedByCollection,
       selectedTrackCount,
       limitDialogOpen,
       submitError,
     },
     actions: {
-      selectCatalog,
-      backToCatalogs: () => setScreen("catalog-list"),
+      selectCollection,
+      backToCollections: () => setScreen("collection-list"),
       selectView,
-      selectActiveCatalogTracks,
+      selectActiveCollectionTracks,
       removeSelectedTrackIds,
       clearDraftSelection,
       resetDraftSelection,
@@ -179,9 +180,9 @@ export function useTrackSelectState({
   };
 }
 
-function getCurrentScreen(screen: TrackSelectScreen, catalogCount: number) {
-  if (catalogCount === 0) return "catalog-list";
-  if (catalogCount === 1) return "catalog-detail";
+function getCurrentScreen(screen: TrackSelectScreen, collectionCount: number) {
+  if (collectionCount === 0) return "collection-list";
+  if (collectionCount === 1) return "collection-detail";
   return screen;
 }
 

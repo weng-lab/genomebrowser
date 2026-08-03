@@ -4,7 +4,7 @@ These recipes assume stable `useBrowserStore` and `useTrackStore` hooks created 
 
 ## Read current URL and color in interactions and tooltips
 
-Core v2 supplies the same current runtime context to application callbacks and module tooltips. This direct setup does not require TrackSelect or another catalog UI:
+Core v2 supplies the same current runtime context to application callbacks and module tooltips. This direct setup does not require TrackSelect or another collection UI:
 
 ```tsx
 import { z } from "zod";
@@ -277,7 +277,7 @@ function ResponsiveBrowser() {
 
 ## Share the track store with the UI package
 
-`@weng-lab/genomebrowser-ui@alpha` is a separate optional package. Pass exactly the same track store hook to `GenomeBrowser` and `TrackSelect` so catalog validation and mutations use the browser's registry and tracks:
+`@weng-lab/genomebrowser-ui@alpha` is a separate optional package. Pass exactly the same track store hook to `GenomeBrowser` and `TrackSelect` so collection validation and mutations use the browser's registry and tracks:
 
 ```tsx
 import { TrackSelect } from "@weng-lab/genomebrowser-ui";
@@ -287,10 +287,10 @@ import { TrackSelect } from "@weng-lab/genomebrowser-ui";
   <TrackSelect
     open={trackSelectOpen}
     onClose={() => setTrackSelectOpen(false)}
-    trackCatalogs={trackCatalogs}
+    trackCollections={trackCollections}
     useTrackStore={useTrackStore}
   />
 </>;
 ```
 
-Register every module referenced by the catalogs in that shared store. See the UI package's own shipped docs for catalog shape and additional peer dependencies.
+Register every module referenced by the collections in that shared store. See the UI package's own shipped docs for collection shape and additional peer dependencies.

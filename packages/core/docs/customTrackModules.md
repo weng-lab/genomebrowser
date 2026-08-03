@@ -129,7 +129,7 @@ const useTrackStore = createTrackStore({
 });
 ```
 
-The optional second argument contains per-instance callbacks and is not serializable catalog data. Its item type and parsed config type come from the module. A callback may ignore its second argument, so existing one-argument functions remain usable.
+The optional second argument contains per-instance callbacks and is not serializable collection data. Its item type and parsed config type come from the module. A callback may ignore its second argument, so existing one-argument functions remain usable.
 
 ## Settings, tooltip, and interactions
 
@@ -137,6 +137,6 @@ Module settings receive `config` and `updateConfig`; use that focused API instea
 
 The renderer decides what semantic item a click or hover represents. `useInteraction<Item>()` returns item-only handlers because the browser binds the current runtime context. `useTooltip<Item, Config>()` reads that same context and opens the module's browser-positioned `tooltipComponent` with `{ item, context }`. Renderers do not pass a type or config to either hook. Both hooks require the renderer to run inside `GenomeBrowser`.
 
-`context.type`, `context.base`, and `context.config` reflect the current validated instance. Later base or config mutations therefore reach later interactions and tooltip renders without changing fetch behavior: only `fetchOnChange` fields control config-triggered requests. The core context does not include metadata owned by a catalog UI.
+`context.type`, `context.base`, and `context.config` reflect the current validated instance. Later base or config mutations therefore reach later interactions and tooltip renders without changing fetch behavior: only `fetchOnChange` fields control config-triggered requests. The core context does not include metadata owned by a collection UI.
 
 Use only package-root exports for module authoring. BigBed-specific renderer reuse is not currently a recommended extension path.

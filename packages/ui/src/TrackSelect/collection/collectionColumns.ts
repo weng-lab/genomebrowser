@@ -1,8 +1,8 @@
 import { createElement } from "react";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
-import { DataGridCellValue, ValueMarkerCell } from "./CatalogCells";
-import type { CatalogGridRow } from "./catalogRows";
-import type { TrackSelectColumn, TrackSelectView } from "../schema/catalogSchema";
+import { DataGridCellValue, ValueMarkerCell } from "./CollectionCells";
+import type { CollectionGridRow } from "./collectionRows";
+import type { TrackSelectColumn, TrackSelectView } from "../schema/collectionSchema";
 
 export type TrackSelectColumnOverride = Omit<Partial<GridColDef>, "field">;
 
@@ -22,16 +22,16 @@ const builtInLabels: Record<string, string> = {
   type: "Type",
 };
 
-export function getCatalogColumns(
-  catalogId: string,
+export function getCollectionColumns(
+  collectionId: string,
   view: TrackSelectView,
   columnOverrides?: TrackSelectColumnOverrides,
-): GridColDef<CatalogGridRow>[] {
+): GridColDef<CollectionGridRow>[] {
   const viewColumnsByField = new Map(view.columns.map((column) => [column.field, column]));
-  const catalogOverrides = columnOverrides?.[catalogId];
+  const collectionOverrides = columnOverrides?.[collectionId];
 
   return getViewFields(view).map((field) => {
-    const override = catalogOverrides?.[field];
+    const override = collectionOverrides?.[field];
 
     return {
       ...getColumn(field, viewColumnsByField.get(field)),
@@ -64,7 +64,7 @@ export function withValueMarkers(markers: ValueMarkerMap): TrackSelectColumnOver
 function getColumn(
   field: string,
   column: TrackSelectColumn | undefined,
-): GridColDef<CatalogGridRow> {
+): GridColDef<CollectionGridRow> {
   return {
     field,
     headerName: column?.label ?? builtInLabels[field] ?? field,
@@ -76,7 +76,7 @@ function getColumn(
   };
 }
 
-function renderDefaultCell(params: GridRenderCellParams<CatalogGridRow>) {
+function renderDefaultCell(params: GridRenderCellParams<CollectionGridRow>) {
   return createElement(DataGridCellValue, { value: params.formattedValue ?? params.value });
 }
 

@@ -34,11 +34,7 @@ Use `defineTrackModule` rather than constructing the contract by hand:
 
 ```tsx
 import { z } from "zod";
-import {
-  defineTrackModule,
-  fetchOnChange,
-  type TrackRendererProps,
-} from "@weng-lab/genomebrowser";
+import { defineTrackModule, fetchOnChange, type TrackRendererProps } from "@weng-lab/genomebrowser";
 
 const configSchema = z.object({
   url: fetchOnChange(z.string().min(1)),
@@ -87,13 +83,13 @@ Renderer-map keys are the module's allowed display values. The browser validates
 
 A renderer decides when a semantic interaction happens. It can read item-only callbacks with `useInteraction<Item>()` and use parameterless `useTooltip<Item, Config>()` for browser-positioned module tooltips. The browser binds the current `TrackRuntimeContext<Config>` before an application callback runs. Tooltip components receive `{ item, context }` with the same current `type`, read-only `base`, and read-only parsed `config`. The module's item generic describes the semantic object exposed to callbacks and the tooltip, not necessarily its raw fetch row.
 
-The context is derived from the current validated instance on each render, so later base and config updates reach later events and tooltip renders. It is not persisted and never includes TrackSelect catalog metadata.
+The context is derived from the current validated instance on each render, so later base and config updates reach later events and tooltip renders. It is not persisted and never includes TrackSelect collection metadata.
 
-## Registry and catalog boundaries
+## Registry and collection boundaries
 
 `createTrackStore({ modules, tracks })` creates the registry and validates initial instances. At runtime, fetching, rendering, settings, and tooltips all resolve the module by `track.type`. Module types and track IDs must be unique.
 
-A catalog entry is create input, not a runtime instance:
+A collection entry is create input, not a runtime instance:
 
 ```json
 {
@@ -105,7 +101,7 @@ A catalog entry is create input, not a runtime instance:
 }
 ```
 
-`createTrackFromEntry(registry, entry)` removes catalog-only `type` and `metadata`, then delegates to the selected module's `create`. The result is typed as the registry's instance union and has the nested runtime shape with applied defaults. Keep this data-only boundary explicit when loading JSON; attach typed interactions through the selected module's `create` API.
+`createTrackFromEntry(registry, entry)` removes collection-only `type` and `metadata`, then delegates to the selected module's `create`. The result is typed as the registry's instance union and has the nested runtime shape with applied defaults. Keep this data-only boundary explicit when loading JSON; attach typed interactions through the selected module's `create` API.
 
 ## Stable extension seams
 

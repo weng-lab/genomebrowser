@@ -53,8 +53,8 @@ Track IDs are unique within a store. Duplicate IDs are rejected during construct
 
 `updateBase(id, partial)` deliberately preserves the existing ID even if `partial.id` contains another value. Identity and `type` are immutable through update APIs. To change either, remove and create a track through the intended module; use `applyTrackChanges` when replacement must be atomic.
 
-## Catalog input is not an instance
+## Collection input is not an instance
 
-Catalog JSON uses top-level base fields plus `type`, `config`, and optional `metadata`. `createTrackFromEntry(registry, entry)` chooses the module and calls its `create` method. The resulting runtime instance nests parsed base fields under `base`, keeps module values under `config`, omits catalog metadata, and includes applied defaults.
+Collection JSON uses top-level base fields plus `type`, `config`, and optional `metadata`. `createTrackFromEntry(registry, entry)` chooses the module and calls its `create` method. The resulting runtime instance nests parsed base fields under `base`, keeps module values under `config`, omits collection metadata, and includes applied defaults.
 
 Keep schema validation at these boundaries rather than repeatedly parsing values inside hooks and renderers.

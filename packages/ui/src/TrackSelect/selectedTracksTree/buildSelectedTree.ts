@@ -1,6 +1,6 @@
-import { getOrderedSelectedRows } from "../catalog/catalogOrder";
-import { formatCatalogValue, groupRowsByField } from "../catalog/catalogGrouping";
-import type { TrackSelectCatalog, TrackSelectView } from "../schema/catalogSchema";
+import { getOrderedSelectedRows } from "../collection/collectionOrder";
+import { formatCollectionValue, groupRowsByField } from "../collection/collectionGrouping";
+import type { TrackSelectCollection, TrackSelectView } from "../schema/collectionSchema";
 
 export type SelectedTreeNode = {
   id: string;
@@ -11,29 +11,29 @@ export type SelectedTreeNode = {
 };
 
 export function buildSelectedTree({
-  catalog,
+  collection,
   view,
   selectedIds,
 }: {
-  catalog: TrackSelectCatalog;
+  collection: TrackSelectCollection;
   view: TrackSelectView;
   selectedIds: Set<string>;
 }): SelectedTreeNode | undefined {
-  const rows = getOrderedSelectedRows(catalog, view, selectedIds);
+  const rows = getOrderedSelectedRows(collection, view, selectedIds);
   if (rows.length === 0) return undefined;
 
   const children = buildGroupNodes({
     rows,
     grouping: view.grouping,
     leafField: view.leaf,
-    catalogId: catalog.id,
+    collectionId: collection.id,
     depth: 0,
     path: [],
   });
 
   return {
-    id: `${catalog.id}::root`,
-    label: catalog.label,
+    id: `${collection.id}::root`,
+    label: collection.label,
     kind: "root",
     trackIds: rows.map((row) => row.id),
     children,
@@ -46,21 +46,21 @@ function buildGroupNodes({
   rows,
   grouping,
   leafField,
-  catalogId,
+  collectionId,
   depth,
   path,
 }: {
   rows: SelectedTreeRow[];
   grouping: string[];
   leafField: string;
-  catalogId: string;
+  collectionId: string;
   depth: number;
   path: string[];
 }): SelectedTreeNode[] {
   if (depth >= grouping.length) {
     return rows.map((row) => ({
-      id: `${catalogId}::leaf::${row.id}`,
-      label: formatCatalogValue(row[leafField], row.title),
+      id: `${collectionId}::leaf::${row.id}`,
+      label: formatCollectionValue(row[leafField], row.title),
       kind: "leaf",
       trackIds: [row.id],
     }));
@@ -73,7 +73,7 @@ function buildGroupNodes({
     const nextPath = [...path, `${field}=${encodeURIComponent(value)}`];
 
     return {
-      id: `${catalogId}::group::${nextPath.join("::")}`,
+      id: `${collectionId}::group::${nextPath.join("::")}`,
       label: value,
       kind: "group" as const,
       trackIds: groupRows.map((row) => row.id),
@@ -81,7 +81,7 @@ function buildGroupNodes({
         rows: groupRows,
         grouping,
         leafField,
-        catalogId,
+        collectionId,
         depth: depth + 1,
         path: nextPath,
       }),

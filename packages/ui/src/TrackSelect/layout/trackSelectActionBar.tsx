@@ -9,8 +9,8 @@ type ActionDialog = "clear" | "reset" | null;
 export function TrackSelectActionBar() {
   const [dialog, setDialog] = useState<ActionDialog>(null);
   const { state, actions } = useTrackSelect();
-  const clearAll = state.screen === "catalog-list";
-  const catalogLabel = state.activeCatalog?.label ?? "tracks";
+  const clearAll = state.screen === "collection-list";
+  const collectionLabel = state.activeCollection?.label ?? "tracks";
 
   function confirmClear() {
     actions.clearDraftSelection();
@@ -65,8 +65,8 @@ export function TrackSelectActionBar() {
         title="Clear selected tracks?"
         text={
           clearAll
-            ? "This will clear all selected catalog tracks from the draft."
-            : `This will clear selected tracks from ${catalogLabel}.`
+            ? "This will clear all selected collection tracks from the draft."
+            : `This will clear selected tracks from ${collectionLabel}.`
         }
         confirmLabel="Clear"
         onClose={() => setDialog(null)}
@@ -75,7 +75,7 @@ export function TrackSelectActionBar() {
       <ConfirmDialog
         open={dialog === "reset"}
         title="Reset selection?"
-        text="This will restore the configured defaults, or clear the catalog selection when no defaults are configured."
+        text="This will restore the configured defaults, or clear the collection selection when no defaults are configured."
         confirmLabel="Reset"
         onClose={() => setDialog(null)}
         onConfirm={confirmReset}

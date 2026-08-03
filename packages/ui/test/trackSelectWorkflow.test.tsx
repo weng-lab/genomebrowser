@@ -14,10 +14,10 @@ import {
 import type { TrackSelectInteraction, TrackSelectInteractionResolver } from "../src/lib";
 import TrackSelect from "../src/TrackSelect/TrackSelect";
 import type {
-  TrackSelectCatalog,
+  TrackSelectCollection,
   TrackSelectTrack,
   TrackSelectView,
-} from "../src/TrackSelect/schema/catalogSchema";
+} from "../src/TrackSelect/schema/collectionSchema";
 import {
   type TrackSelectState,
   useTrackSelectState,
@@ -78,7 +78,7 @@ const groupedView: TrackSelectView = {
   grouping: ["group"],
 };
 
-function catalogTrack(id: string, group: string): TrackSelectTrack {
+function collectionTrack(id: string, group: string): TrackSelectTrack {
   return {
     type: "signal",
     id,
@@ -88,18 +88,22 @@ function catalogTrack(id: string, group: string): TrackSelectTrack {
   };
 }
 
-const catalogs: TrackSelectCatalog[] = [
+const collections: TrackSelectCollection[] = [
   {
     id: "alpha",
     label: "Alpha",
     views: [defaultView, groupedView],
-    tracks: [catalogTrack("one", "A"), catalogTrack("two", "B"), catalogTrack("three", "A")],
+    tracks: [
+      collectionTrack("one", "A"),
+      collectionTrack("two", "B"),
+      collectionTrack("three", "A"),
+    ],
   },
   {
     id: "beta",
     label: "Beta",
     views: [defaultView],
-    tracks: [catalogTrack("one", "A")],
+    tracks: [collectionTrack("one", "A")],
   },
 ];
 
@@ -164,7 +168,7 @@ function createStateOptions({
   setTracks,
   tracks,
   onCommittedTrackIds = vi.fn(),
-  trackCatalogs = catalogs,
+  trackCollections = collections,
   resolveTrackInteraction,
 }: {
   trackIds?: string[];
@@ -173,7 +177,7 @@ function createStateOptions({
   setTracks?: TrackStore["setTracks"];
   tracks?: TrackStore["tracks"];
   onCommittedTrackIds?: (trackIds: readonly string[]) => void;
-  trackCatalogs?: TrackSelectCatalog[];
+  trackCollections?: TrackSelectCollection[];
   resolveTrackInteraction?: TrackSelectInteractionResolver;
 } = {}) {
   const store = createStore(trackIds, tracks);
@@ -186,7 +190,7 @@ function createStateOptions({
     onCommittedTrackIds,
     setTracks: commitTracks,
     options: {
-      trackCatalogs,
+      trackCollections,
       tracks: store.getState().tracks,
       registry: store.getState().registry,
       setTracks: commitTracks,
@@ -199,8 +203,8 @@ function createStateOptions({
   };
 }
 
-function selectedIds(state: TrackSelectState, catalogId: string) {
-  return Array.from(state.state.selectedByCatalog.get(catalogId) ?? []);
+function selectedIds(state: TrackSelectState, collectionId: string) {
+  return Array.from(state.state.selectedByCollection.get(collectionId) ?? []);
 }
 
 function getTrackSelectContentState() {
@@ -218,7 +222,7 @@ describe("TrackSelect session workflow", () => {
     expect(selectedIds(result.current, "alpha")).toEqual(["alpha::one"]);
 
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::two"]));
+      result.current.actions.selectActiveCollectionTracks(new Set(["alpha::two"]));
     });
 
     expect(selectedIds(result.current, "alpha")).toEqual(["alpha::two"]);
@@ -231,7 +235,7 @@ describe("TrackSelect session workflow", () => {
     const result = await renderState(setup.options);
 
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(
+      result.current.actions.selectActiveCollectionTracks(
         new Set(["alpha::one", "auto-generated-grid-group-id"]),
       );
     });
@@ -245,22 +249,22 @@ describe("TrackSelect session workflow", () => {
     expect(setup.onCommittedTrackIds).toHaveBeenCalledWith(["alpha::one"]);
   });
 
-  it("submits once in active-view order and preserves non-catalog tracks", async () => {
+  it("submits once in active-view order and preserves non-collection tracks", async () => {
     const setup = createStateOptions({ trackIds: ["unmanaged"] });
     const result = await renderState(setup.options);
 
     await act(async () => {
-      result.current.actions.selectCatalog("alpha");
+      result.current.actions.selectCollection("alpha");
       result.current.actions.selectView("grouped");
     });
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(
+      result.current.actions.selectActiveCollectionTracks(
         new Set(["alpha::one", "alpha::two", "alpha::three"]),
       );
-      result.current.actions.selectCatalog("beta");
+      result.current.actions.selectCollection("beta");
     });
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(new Set(["beta::one"]));
+      result.current.actions.selectActiveCollectionTracks(new Set(["beta::one"]));
     });
     vi.mocked(setup.onCommittedTrackIds).mockImplementation(() => {
       expect(setup.store.getState().order).toEqual([
@@ -299,7 +303,7 @@ describe("TrackSelect session workflow", () => {
     const result = await renderState(setup.options);
 
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::three"]));
+      result.current.actions.selectActiveCollectionTracks(new Set(["alpha::three"]));
       result.current.actions.resetDraftSelection();
     });
 
@@ -308,7 +312,7 @@ describe("TrackSelect session workflow", () => {
     expect(setup.store.getState().order).toEqual(["unmanaged", "beta::one", "alpha::two"]);
   });
 
-  it("resets to an empty catalog selection when defaults are absent", async () => {
+  it("resets to an empty collection selection when defaults are absent", async () => {
     const setup = createStateOptions({ trackIds: ["unmanaged", "alpha::one"] });
     const result = await renderState(setup.options);
 
@@ -331,7 +335,7 @@ describe("TrackSelect session workflow", () => {
     const result = await renderState(setup.options);
 
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::two"]));
+      result.current.actions.selectActiveCollectionTracks(new Set(["alpha::two"]));
       result.current.actions.clearDraftSelection();
       result.current.actions.resetDraftSelection();
       result.current.actions.cancel();
@@ -352,7 +356,7 @@ describe("TrackSelect session workflow", () => {
     const result = await renderState(setup.options);
 
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::two"]));
+      result.current.actions.selectActiveCollectionTracks(new Set(["alpha::two"]));
       result.current.actions.clearDraftSelection();
       result.current.actions.resetDraftSelection();
       result.current.actions.cancel();
@@ -362,17 +366,17 @@ describe("TrackSelect session workflow", () => {
     expect(setup.setTracks).not.toHaveBeenCalled();
   });
 
-  it("clears either the active catalog or the complete draft", async () => {
+  it("clears either the active collection or the complete draft", async () => {
     const setup = createStateOptions({ trackIds: ["alpha::one", "beta::one"] });
     const result = await renderState(setup.options);
 
-    await act(async () => result.current.actions.selectCatalog("alpha"));
+    await act(async () => result.current.actions.selectCollection("alpha"));
     await act(async () => result.current.actions.clearDraftSelection());
 
     expect(selectedIds(result.current, "alpha")).toEqual([]);
     expect(selectedIds(result.current, "beta")).toEqual(["beta::one"]);
 
-    await act(async () => result.current.actions.backToCatalogs());
+    await act(async () => result.current.actions.backToCollections());
     await act(async () => result.current.actions.clearDraftSelection());
 
     expect(result.current.state.selectedTrackCount).toBe(0);
@@ -384,7 +388,7 @@ describe("TrackSelect session workflow", () => {
     expect(setup.onClose).toHaveBeenCalledOnce();
   });
 
-  it("reuses an existing track whose ID is reserved by the catalog", async () => {
+  it("reuses an existing track whose ID is reserved by the collection", async () => {
     const existingTrack = annotationModule.create({
       id: "alpha::one",
       title: "Unrelated annotation",
@@ -406,7 +410,7 @@ describe("TrackSelect session workflow", () => {
     const result = await renderState(setup.options);
 
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::one"]));
+      result.current.actions.selectActiveCollectionTracks(new Set(["alpha::one"]));
     });
 
     expect(selectedIds(result.current, "alpha")).toEqual([]);
@@ -427,7 +431,7 @@ describe("TrackSelect session workflow", () => {
     const result = await renderState(setup.options);
 
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::one"]));
+      result.current.actions.selectActiveCollectionTracks(new Set(["alpha::one"]));
     });
     await act(async () => result.current.actions.submitSelection());
 
@@ -438,14 +442,14 @@ describe("TrackSelect session workflow", () => {
   });
 
   it("does not report a commit when track creation fails", async () => {
-    const trackCatalogs = structuredClone(catalogs);
-    const setup = createStateOptions({ trackCatalogs });
+    const trackCollections = structuredClone(collections);
+    const setup = createStateOptions({ trackCollections });
     const result = await renderState(setup.options);
 
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::one"]));
+      result.current.actions.selectActiveCollectionTracks(new Set(["alpha::one"]));
     });
-    trackCatalogs[0]!.tracks[0]!.config = { url: "" };
+    trackCollections[0]!.tracks[0]!.config = { url: "" };
     await act(async () => result.current.actions.submitSelection());
 
     expect(result.current.state.submitError).toMatch(/signal input is invalid/);
@@ -454,7 +458,7 @@ describe("TrackSelect session workflow", () => {
     expect(setup.onClose).not.toHaveBeenCalled();
   });
 
-  it("forwards current runtime state and catalog context without rerunning the resolver", async () => {
+  it("forwards current runtime state and collection context without rerunning the resolver", async () => {
     const onClick = vi.fn();
     const interaction: TrackSelectInteraction<SignalItem, SignalConfig> = { onClick };
     const resolveTrackInteraction: TrackSelectInteractionResolver = vi.fn(() => interaction);
@@ -462,7 +466,7 @@ describe("TrackSelect session workflow", () => {
     const result = await renderState(setup.options);
 
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::one"]));
+      result.current.actions.selectActiveCollectionTracks(new Set(["alpha::one"]));
     });
     await act(async () => result.current.actions.submitSelection());
 
@@ -484,7 +488,7 @@ describe("TrackSelect session workflow", () => {
     coreInteraction.onClick?.({ id: "semantic-item" }, runtime);
 
     expect(onClick).toHaveBeenCalledWith({ id: "semantic-item" }, runtime, {
-      catalogId: "alpha",
+      collectionId: "alpha",
       authoredTrackId: "one",
       metadata: { group: "A" },
     });
@@ -505,7 +509,7 @@ describe("TrackSelect session workflow", () => {
     const result = await renderState(setup.options);
 
     await act(async () => {
-      result.current.actions.selectActiveCatalogTracks(new Set(["alpha::one"]));
+      result.current.actions.selectActiveCollectionTracks(new Set(["alpha::one"]));
     });
     await act(async () => result.current.actions.submitSelection());
 
@@ -524,7 +528,7 @@ describe("TrackSelect initialization", () => {
     store.setState({ setTracks });
 
     await renderUi(
-      <TrackSelect open onClose={vi.fn()} trackCatalogs={catalogs} useTrackStore={store} />,
+      <TrackSelect open onClose={vi.fn()} trackCollections={collections} useTrackStore={store} />,
     );
 
     expect(store.getState().order).toEqual(["unmanaged", "alpha::one"]);
@@ -541,7 +545,7 @@ describe("TrackSelect initialization", () => {
       <TrackSelect
         open
         onClose={vi.fn()}
-        trackCatalogs={catalogs}
+        trackCollections={collections}
         useTrackStore={store}
         initialTrackIds={["alpha::one"]}
         defaultTrackIds={["beta::one"]}
@@ -573,7 +577,7 @@ describe("TrackSelect initialization", () => {
       <TrackSelect
         open
         onClose={vi.fn()}
-        trackCatalogs={catalogs}
+        trackCollections={collections}
         useTrackStore={store}
         defaultTrackIds={["alpha::one", "beta::one"]}
         resolveTrackInteraction={resolveTrackInteraction}
@@ -601,7 +605,7 @@ describe("TrackSelect initialization", () => {
     const props = {
       open: true,
       onClose: vi.fn(),
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       useTrackStore: store,
       defaultTrackIds: ["alpha::one"],
     };
@@ -625,7 +629,7 @@ describe("TrackSelect initialization", () => {
         <TrackSelect
           open
           onClose={vi.fn()}
-          trackCatalogs={catalogs}
+          trackCollections={collections}
           useTrackStore={store}
           initialTrackIds={["alpha::one"]}
           defaultTrackIds={["alpha::missing"]}
@@ -642,7 +646,7 @@ describe("TrackSelect initialization", () => {
         <TrackSelect
           open
           onClose={vi.fn()}
-          trackCatalogs={catalogs}
+          trackCollections={collections}
           useTrackStore={store}
           initialTrackIds={["alpha::missing"]}
         />,
@@ -659,7 +663,7 @@ describe("TrackSelect initialization", () => {
       <TrackSelect
         open
         onClose={vi.fn()}
-        trackCatalogs={catalogs}
+        trackCollections={collections}
         useTrackStore={store}
         initialTrackIds={[]}
         defaultTrackIds={["beta::one"]}
@@ -679,7 +683,7 @@ describe("TrackSelect initialization", () => {
       <TrackSelect
         open
         onClose={vi.fn()}
-        trackCatalogs={catalogs}
+        trackCollections={collections}
         useTrackStore={store}
         defaultTrackIds={[]}
       />,
@@ -689,7 +693,7 @@ describe("TrackSelect initialization", () => {
     expect(setTracks).toHaveBeenCalledOnce();
   });
 
-  it("treats reserved IDs as catalog-owned during initialization", async () => {
+  it("treats reserved IDs as collection-owned during initialization", async () => {
     const store = createStore(["unmanaged", "alpha::one"]);
     const reservedTrack = store.getState().getTrack("alpha::one");
     const setTracks = vi.fn(store.getState().setTracks);
@@ -699,7 +703,7 @@ describe("TrackSelect initialization", () => {
     const props = {
       open: true,
       onClose,
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       useTrackStore: store,
       defaultTrackIds: defaults,
     };
@@ -712,7 +716,7 @@ describe("TrackSelect initialization", () => {
     expect(selectedIds(getTrackSelectContentState(), "alpha")).toEqual(["alpha::two"]);
     expect(selectedIds(getTrackSelectContentState(), "beta")).toEqual(["beta::one"]);
 
-    await rerenderUi(<TrackSelect {...props} trackCatalogs={[...catalogs]} />);
+    await rerenderUi(<TrackSelect {...props} trackCollections={[...collections]} />);
     expect(setTracks).toHaveBeenCalledOnce();
 
     await act(async () => {
@@ -722,7 +726,7 @@ describe("TrackSelect initialization", () => {
     expect(setTracks).toHaveBeenCalledOnce();
 
     await act(async () => {
-      getTrackSelectContentState().actions.selectActiveCatalogTracks(new Set(["alpha::three"]));
+      getTrackSelectContentState().actions.selectActiveCollectionTracks(new Set(["alpha::three"]));
       getTrackSelectContentState().actions.cancel();
     });
 
@@ -745,7 +749,7 @@ describe("TrackSelect initialization", () => {
     const props = {
       open: true,
       onClose: vi.fn(),
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       useTrackStore: store,
     };
 
@@ -768,7 +772,7 @@ describe("TrackSelect initialization", () => {
     const props = {
       open: true,
       onClose: vi.fn(),
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       useTrackStore: store,
       initialTrackIds: ["alpha::one"],
     };
@@ -793,7 +797,7 @@ describe("TrackSelect initialization", () => {
     const props = {
       open: true,
       onClose: vi.fn(),
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       useTrackStore: store,
     };
 
@@ -820,7 +824,7 @@ describe("TrackSelect initialization", () => {
     const props = {
       open: true,
       onClose: vi.fn(),
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       defaultTrackIds: defaults,
     };
 
@@ -842,7 +846,7 @@ describe("TrackSelect initialization", () => {
     const props = {
       open: true,
       onClose: vi.fn(),
-      trackCatalogs: catalogs,
+      trackCollections: collections,
       useTrackStore: store,
       defaultTrackIds: ["alpha::one"],
     };

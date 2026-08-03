@@ -35,7 +35,7 @@ export type {
   TrackRuntimeContext,
   TrackTooltipComponent,
 } from "./modules/types";
-export type { ModuleRegistry, TrackCatalogEntry } from "./modules/registry";
+export type { ModuleRegistry, TrackCollectionEntry } from "./modules/registry";
 
 export { fetchOnChange } from "./modules/fetchOnChange";
 export { useAutoTrackHeight } from "./browser/track-row/useAutoTrackHeight";

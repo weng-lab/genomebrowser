@@ -1,18 +1,18 @@
 import type { TrackStoreInstance } from "@weng-lab/genomebrowser";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { TrackSelectColumnOverrides } from "./catalog/catalogColumns";
-import type { TrackSelectInteractionResolver } from "./catalog/catalogInteraction";
-import { assertUniqueCatalogTrackIds } from "./catalog/catalogRows";
-import { assertValidCatalogTrackIds, getReconciledTracks } from "./catalog/catalogStore";
+import type { TrackSelectColumnOverrides } from "./collection/collectionColumns";
+import type { TrackSelectInteractionResolver } from "./collection/collectionInteraction";
+import { assertUniqueCollectionTrackIds } from "./collection/collectionRows";
+import { assertValidCollectionTrackIds, getReconciledTracks } from "./collection/collectionStore";
 import { TrackSelectContent } from "./layout/trackSelectContent";
 import { TrackSelectDialog } from "./layout/trackSelectDialog";
-import type { TrackSelectCatalog } from "./schema/catalogSchema";
+import type { TrackSelectCollection } from "./schema/collectionSchema";
 import { validateJson } from "./schema/validateJson";
 
 export type TrackSelectProps = {
   open: boolean;
   onClose: () => void;
-  trackCatalogs: unknown[];
+  trackCollections: unknown[];
   useTrackStore: TrackStoreInstance;
   title?: string;
   maxTracks?: number;
@@ -34,7 +34,7 @@ type InitializedDefaults = {
 export default function TrackSelect({
   open,
   onClose,
-  trackCatalogs,
+  trackCollections,
   useTrackStore,
   title = DEFAULT_TITLE,
   maxTracks = DEFAULT_MAX_TRACKS,
@@ -47,25 +47,30 @@ export default function TrackSelect({
   const registry = useTrackStore((state) => state.registry);
   const tracks = useTrackStore((state) => state.tracks);
   const setTracks = useTrackStore((state) => state.setTracks);
-  const parsedTrackCatalogs = useMemo(() => {
-    const parsedCatalogs = trackCatalogs.map((catalog) => validateJson(catalog, registry));
-    assertUniqueCatalogTrackIds(parsedCatalogs);
-    return parsedCatalogs;
-  }, [trackCatalogs, registry]);
-  const catalogKey = useMemo(() => getCatalogKey(parsedTrackCatalogs), [parsedTrackCatalogs]);
+  const parsedTrackCollections = useMemo(() => {
+    const parsedCollections = trackCollections.map((collection) =>
+      validateJson(collection, registry),
+    );
+    assertUniqueCollectionTrackIds(parsedCollections);
+    return parsedCollections;
+  }, [trackCollections, registry]);
+  const collectionKey = useMemo(
+    () => getCollectionKey(parsedTrackCollections),
+    [parsedTrackCollections],
+  );
   const initializationTrackIds = initialTrackIds ?? defaultTrackIds;
   const initializationTrackKey = initializationTrackIds
     ? JSON.stringify(initializationTrackIds)
     : undefined;
   const initializationKey = initializationTrackKey
-    ? `${catalogKey}:${maxTracks}:${initializationTrackKey}`
+    ? `${collectionKey}:${maxTracks}:${initializationTrackKey}`
     : undefined;
   const initializedDefaultsRef = useRef<InitializedDefaults | undefined>(undefined);
   const [initializedDefaults, setInitializedDefaults] = useState<InitializedDefaults>();
 
   useLayoutEffect(() => {
     if (defaultTrackIds) {
-      assertValidCatalogTrackIds(parsedTrackCatalogs, defaultTrackIds, maxTracks);
+      assertValidCollectionTrackIds(parsedTrackCollections, defaultTrackIds, maxTracks);
     }
     if (!initializationKey || !initializationTrackIds) {
       initializedDefaultsRef.current = undefined;
@@ -80,7 +85,7 @@ export default function TrackSelect({
     }
 
     const nextTracks = getReconciledTracks({
-      trackCatalogs: parsedTrackCatalogs,
+      trackCollections: parsedTrackCollections,
       tracks: useTrackStore.getState().tracks,
       selectedTrackIds: initializationTrackIds,
       registry,
@@ -98,7 +103,7 @@ export default function TrackSelect({
     initializationKey,
     initializationTrackIds,
     maxTracks,
-    parsedTrackCatalogs,
+    parsedTrackCollections,
     registry,
     resolveTrackInteraction,
     setTracks,
@@ -114,8 +119,8 @@ export default function TrackSelect({
     <TrackSelectDialog open={open} title={title} onClose={onClose}>
       {open && defaultsReady ? (
         <TrackSelectContent
-          key={catalogKey}
-          trackCatalogs={parsedTrackCatalogs}
+          key={collectionKey}
+          trackCollections={parsedTrackCollections}
           tracks={tracks}
           registry={registry}
           setTracks={setTracks}
@@ -131,12 +136,12 @@ export default function TrackSelect({
   );
 }
 
-function getCatalogKey(trackCatalogs: TrackSelectCatalog[]) {
-  return trackCatalogs
-    .map((catalog) => {
-      const viewIds = catalog.views.map((view) => view.id).join(",");
-      const trackIds = catalog.tracks.map((track) => track.id).join(",");
-      return `${catalog.id}:${viewIds}:${trackIds}`;
+function getCollectionKey(trackCollections: TrackSelectCollection[]) {
+  return trackCollections
+    .map((collection) => {
+      const viewIds = collection.views.map((view) => view.id).join(",");
+      const trackIds = collection.tracks.map((track) => track.id).join(",");
+      return `${collection.id}:${viewIds}:${trackIds}`;
     })
     .join("|");
 }

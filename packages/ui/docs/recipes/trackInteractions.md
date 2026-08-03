@@ -1,14 +1,14 @@
 # Track Interactions
 
-Use an interaction resolver when tracks selected from a data-only catalog need host application behavior. The resolver reconstructs callbacks from application code while TrackSelect keeps catalog metadata separate from core runtime state.
+Use an interaction resolver when tracks selected from a data-only collection need host application behavior. The resolver reconstructs callbacks from application code while TrackSelect keeps collection metadata separate from core runtime state.
 
-This example uses one shared callback implementation across a heterogeneous catalog. Metadata drives the catalog columns and grouping, then helps the callback choose application behavior.
+This example uses one shared callback implementation across a heterogeneous collection. Metadata drives the collection columns and grouping, then helps the callback choose application behavior.
 
 ```tsx
 import { useState } from "react";
 import {
   TrackSelect,
-  type TrackSelectCatalog,
+  type TrackSelectCollection,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
@@ -21,7 +21,7 @@ import {
   hg38,
 } from "@weng-lab/genomebrowser";
 
-const trackCatalogs = [
+const trackCollections = [
   {
     id: "signals",
     label: "Signals and regions",
@@ -62,7 +62,7 @@ const trackCatalogs = [
       },
     ],
   },
-] satisfies TrackSelectCatalog[];
+] satisfies TrackSelectCollection[];
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -111,20 +111,20 @@ function isUrlConfig(config: unknown): config is UrlConfig {
 }
 
 const sharedInteraction: TrackSelectInteraction<unknown, unknown> = {
-  onClick(item, runtime, catalog) {
+  onClick(item, runtime, collection) {
     if (!isUrlConfig(runtime.config)) return;
 
     const sourceUrl = runtime.config.url;
     const trackColor = runtime.base.color;
-    const interactionKind = catalog.metadata.interaction;
+    const interactionKind = collection.metadata.interaction;
 
     if (runtime.type === "bigwig" && interactionKind === "signal" && isSignalItem(item)) {
-      openSignalDetails({ item, sourceUrl, trackColor, assay: catalog.metadata.assay });
+      openSignalDetails({ item, sourceUrl, trackColor, assay: collection.metadata.assay });
       return;
     }
 
     if (runtime.type === "bigbed" && interactionKind === "region" && isRegionItem(item)) {
-      openRegionDetails({ item, sourceUrl, trackColor, assay: catalog.metadata.assay });
+      openRegionDetails({ item, sourceUrl, trackColor, assay: collection.metadata.assay });
     }
   },
 };
@@ -150,7 +150,7 @@ export function BrowserWithTrackInteractions() {
       <TrackSelect
         open={trackSelectOpen}
         onClose={() => setTrackSelectOpen(false)}
-        trackCatalogs={trackCatalogs}
+        trackCollections={trackCollections}
         useTrackStore={useTrackStore}
         defaultTrackIds={defaultTrackIds}
         resolveTrackInteraction={resolveTrackInteraction}
@@ -161,13 +161,13 @@ export function BrowserWithTrackInteractions() {
 }
 ```
 
-Create the browser store, track store, catalogs, shared interaction, and resolver outside component rendering so their identities remain stable. Register every module named by the catalog.
+Create the browser store, track store, collections, shared interaction, and resolver outside component rendering so their identities remain stable. Register every module named by the collection.
 
-TrackSelect invokes the resolver for selected entries during default or explicit initialization and successful Submit reconciliation. It also applies authoritative resolver output to reused catalog-owned tracks. Draft browsing and edits do not invoke it, and changing only resolver identity does not rewrite the store.
+TrackSelect invokes the resolver for selected entries during default or explicit initialization and successful Submit reconciliation. It also applies authoritative resolver output to reused collection-owned tracks. Draft browsing and edits do not invoke it, and changing only resolver identity does not rewrite the store.
 
-The callback runs later, when a renderer emits an item. Core supplies the current runtime context at that moment, so settings changes to the URL or color are visible without rerunning the resolver. The captured catalog context supplies the owning catalog ID, authored track ID, and metadata separately. Do not copy metadata into runtime config or base state.
+The callback runs later, when a renderer emits an item. Core supplies the current runtime context at that moment, so settings changes to the URL or color are visible without rerunning the resolver. The captured collection context supplies the owning collection ID, authored track ID, and metadata separately. Do not copy metadata into runtime config or base state.
 
-Persist only the catalog-qualified IDs reported by `onCommittedTrackIds`. Catalog metadata remains in the catalog, while callbacks are reconstructed from application code through `resolveTrackInteraction`; neither callbacks nor metadata belong in persisted track-selection data.
+Persist only the collection-qualified IDs reported by `onCommittedTrackIds`. Collection metadata remains in the collection, while callbacks are reconstructed from application code through `resolveTrackInteraction`; neither callbacks nor metadata belong in persisted track-selection data.
 
 ## Keep hover interactions responsive
 

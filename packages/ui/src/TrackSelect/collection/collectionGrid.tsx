@@ -7,43 +7,43 @@ import {
   useGridApiRef,
 } from "@mui/x-data-grid-premium";
 import { useEffect, useMemo, useState } from "react";
-import { getCatalogRows, getCatalogTrackIds, type CatalogGridRow } from "../catalog/catalogRows";
-import { getCatalogColumns, type TrackSelectColumnOverrides } from "../catalog/catalogColumns";
+import { getCollectionRows, getCollectionTrackIds, type CollectionGridRow } from "./collectionRows";
+import { getCollectionColumns, type TrackSelectColumnOverrides } from "./collectionColumns";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { TrackSelectEmptyPanel } from "../trackSelectEmptyPanel";
-import type { TrackSelectCatalog, TrackSelectView } from "../schema/catalogSchema";
+import type { TrackSelectCollection, TrackSelectView } from "../schema/collectionSchema";
 
-type CatalogGridProps = {
-  catalog: TrackSelectCatalog | undefined;
+type CollectionGridProps = {
+  collection: TrackSelectCollection | undefined;
   view: TrackSelectView | undefined;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
   columnOverrides?: TrackSelectColumnOverrides;
 };
 
-type CatalogDataGridProps = {
-  catalog: TrackSelectCatalog;
+type CollectionDataGridProps = {
+  collection: TrackSelectCollection;
   view: TrackSelectView;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
   columnOverrides?: TrackSelectColumnOverrides;
 };
 
-export function CatalogGrid({
-  catalog,
+export function CollectionGrid({
+  collection,
   view,
   selectedIds,
   onSelectionChange,
   columnOverrides,
-}: CatalogGridProps) {
-  if (!catalog || !view) {
-    return <TrackSelectEmptyPanel>No track catalog selected.</TrackSelectEmptyPanel>;
+}: CollectionGridProps) {
+  if (!collection || !view) {
+    return <TrackSelectEmptyPanel>No track collection selected.</TrackSelectEmptyPanel>;
   }
 
   return (
-    <CatalogDataGrid
-      key={`${catalog.id}:${view.id}`}
-      catalog={catalog}
+    <CollectionDataGrid
+      key={`${collection.id}:${view.id}`}
+      collection={collection}
       view={view}
       selectedIds={selectedIds}
       onSelectionChange={onSelectionChange}
@@ -52,18 +52,18 @@ export function CatalogGrid({
   );
 }
 
-function CatalogDataGrid({
-  catalog,
+function CollectionDataGrid({
+  collection,
   view,
   selectedIds,
   onSelectionChange,
   columnOverrides,
-}: CatalogDataGridProps) {
-  const rows = useMemo(() => getCatalogRows(catalog), [catalog]);
-  const validLeafIds = useMemo(() => getCatalogTrackIds(catalog), [catalog]);
+}: CollectionDataGridProps) {
+  const rows = useMemo(() => getCollectionRows(collection), [collection]);
+  const validLeafIds = useMemo(() => getCollectionTrackIds(collection), [collection]);
   const columns = useMemo(
-    () => getCatalogColumns(catalog.id, view, columnOverrides),
-    [catalog.id, columnOverrides, view],
+    () => getCollectionColumns(collection.id, view, columnOverrides),
+    [collection.id, columnOverrides, view],
   );
   const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(
     () => getColumnVisibilityModel(view),
@@ -145,7 +145,7 @@ function CatalogDataGrid({
   );
 }
 
-function getRowId(row: CatalogGridRow) {
+function getRowId(row: CollectionGridRow) {
   return row.id;
 }
 

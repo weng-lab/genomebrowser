@@ -1,8 +1,8 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "../schemas/trackSelectCollection.schema.json",
   "id": "secondary-test-tracks",
   "label": "Secondary Test Tracks",
-  "description": "Second test catalog for checking Track Select catalog navigation.",
+  "description": "Second test collection for checking Track Select collection navigation.",
   "views": [
     {
       "id": "default",

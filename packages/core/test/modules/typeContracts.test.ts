@@ -174,7 +174,7 @@ describe("track module type contracts", () => {
     expectTypeOf(track).toEqualTypeOf<ModuleInstance<typeof moduleA>>();
   });
 
-  it("creates catalog entries through the runtime validation boundary", () => {
+  it("creates collection entries through the runtime validation boundary", () => {
     expect(
       createTrackFromEntry(registry, {
         type: "a",

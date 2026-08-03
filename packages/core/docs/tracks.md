@@ -74,7 +74,7 @@ Transcript defaults to `/api/screen-graphql`. The host must implement that route
 
 ## Registration
 
-Register every module used by initial tracks, later mutations, or catalog UI:
+Register every module used by initial tracks, later mutations, or collection UI:
 
 ```ts
 import { bigWigModule, createTrackStore } from "@weng-lab/genomebrowser";
@@ -114,6 +114,6 @@ The BigWig settings panel provides a **Show clamp indicators** checkbox and a te
 
 Optional interaction callbacks are passed as the second argument to `module.create(...)`; their item and parsed-config types are module-specific. Each callback receives `(item, context)`, where `context.type`, `context.base`, and `context.config` are the current shallow read-only runtime view. One-argument callbacks remain valid when they do not need context.
 
-Renderers continue to call item-only handlers from `useInteraction<Item>()`. Module tooltip components receive `{ item, context }`, and renderers open them with parameterless `useTooltip<Item, Config>()`. Later base and config updates appear in later callbacks and tooltip renders. Runtime context is derived rather than persisted and contains no metadata from optional catalog UI packages.
+Renderers continue to call item-only handlers from `useInteraction<Item>()`. Module tooltip components receive `{ item, context }`, and renderers open them with parameterless `useTooltip<Item, Config>()`. Later base and config updates appear in later callbacks and tooltip renders. Runtime context is derived rather than persisted and contains no metadata from optional collection UI packages.
 
-For catalog-shaped create input, `createTrackFromEntry(registry, entry)` strips `type` and `metadata` before delegating to the selected module. It remains a data-only creation boundary and returns the registry's instance union. Create through a specific module when attaching typed interactions. Use `"YOUR_URL_HERE"` for URLs supplied by your application.
+For collection-shaped create input, `createTrackFromEntry(registry, entry)` strips `type` and `metadata` before delegating to the selected module. It remains a data-only creation boundary and returns the registry's instance union. Create through a specific module when attaching typed interactions. Use `"YOUR_URL_HERE"` for URLs supplied by your application.

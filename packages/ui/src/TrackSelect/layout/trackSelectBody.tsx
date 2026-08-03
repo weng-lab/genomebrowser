@@ -1,10 +1,10 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import type { TrackSelectColumnOverrides } from "../catalog/catalogColumns";
-import type { SelectedByCatalog } from "../catalog/catalogSelection";
-import { CatalogGrid } from "../catalog/catalogGrid";
-import { CatalogList } from "../catalogList/catalogList";
-import type { TrackSelectCatalog } from "../schema/catalogSchema";
+import type { TrackSelectColumnOverrides } from "../collection/collectionColumns";
+import type { SelectedByCollection } from "../collection/collectionSelection";
+import { CollectionGrid } from "../collection/collectionGrid";
+import { CollectionList } from "../collectionList/collectionList";
+import type { TrackSelectCollection } from "../schema/collectionSchema";
 import { SelectedTracksTree } from "../selectedTracksTree/selectedTracksTree";
 import { useTrackSelect } from "../session/trackSelectContext";
 
@@ -15,12 +15,12 @@ export function TrackSelectBody({
 }) {
   const { state, actions } = useTrackSelect();
   const {
-    trackCatalogs,
+    trackCollections,
     screen,
-    activeCatalog,
+    activeCollection,
     activeView,
-    activeViewIdByCatalog,
-    selectedByCatalog,
+    activeViewIdByCollection,
+    selectedByCollection,
     selectedTrackCount,
   } = state;
 
@@ -33,14 +33,17 @@ export function TrackSelectBody({
           width: { xs: "100%", md: "auto" },
         }}
       >
-        {screen === "catalog-list" ? (
-          <CatalogList catalogs={trackCatalogs} onCatalogSelect={actions.selectCatalog} />
+        {screen === "collection-list" ? (
+          <CollectionList
+            collections={trackCollections}
+            onCollectionSelect={actions.selectCollection}
+          />
         ) : (
-          <CatalogGrid
-            catalog={activeCatalog}
+          <CollectionGrid
+            collection={activeCollection}
             view={activeView}
-            selectedIds={getActiveCatalogSelection(activeCatalog, selectedByCatalog)}
-            onSelectionChange={actions.selectActiveCatalogTracks}
+            selectedIds={getActiveCollectionSelection(activeCollection, selectedByCollection)}
+            onSelectionChange={actions.selectActiveCollectionTracks}
             columnOverrides={columnOverrides}
           />
         )}
@@ -53,9 +56,9 @@ export function TrackSelectBody({
         }}
       >
         <SelectedTracksTree
-          trackCatalogs={trackCatalogs}
-          selectedByCatalog={selectedByCatalog}
-          activeViewIdByCatalog={activeViewIdByCatalog}
+          trackCollections={trackCollections}
+          selectedByCollection={selectedByCollection}
+          activeViewIdByCollection={activeViewIdByCollection}
           selectedCount={selectedTrackCount}
           onRemoveTrackIds={actions.removeSelectedTrackIds}
         />
@@ -64,10 +67,10 @@ export function TrackSelectBody({
   );
 }
 
-function getActiveCatalogSelection(
-  activeCatalog: TrackSelectCatalog | undefined,
-  selectedByCatalog: SelectedByCatalog,
+function getActiveCollectionSelection(
+  activeCollection: TrackSelectCollection | undefined,
+  selectedByCollection: SelectedByCollection,
 ) {
-  if (!activeCatalog) return new Set<string>();
-  return selectedByCatalog.get(activeCatalog.id) ?? new Set<string>();
+  if (!activeCollection) return new Set<string>();
+  return selectedByCollection.get(activeCollection.id) ?? new Set<string>();
 }

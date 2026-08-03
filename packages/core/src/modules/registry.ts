@@ -12,7 +12,7 @@ export type ModuleRegistry<Modules extends readonly AnyTrackModule[] = readonly 
     get(type: string): Modules[number];
   };
 
-export type TrackCatalogEntry = TrackCreateInput<unknown> & {
+export type TrackCollectionEntry = TrackCreateInput<unknown> & {
   type: string;
   metadata?: Record<string, string | number | boolean | null>;
 };
@@ -45,7 +45,7 @@ export function createModuleRegistry<const Modules extends readonly AnyTrackModu
 
 export function createTrackFromEntry<Modules extends readonly AnyTrackModule[]>(
   registry: ModuleRegistry<Modules>,
-  entry: TrackCatalogEntry,
+  entry: TrackCollectionEntry,
 ): ModuleInstance<Modules[number]> {
   const module = registry.get(entry.type);
   const { type: _type, metadata: _metadata, ...input } = entry;

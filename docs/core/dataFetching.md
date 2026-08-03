@@ -31,7 +31,7 @@ const transcriptTrack = transcriptModule.create({
 <Cytobands assembly="GRCh38" chromosome="chr6" width={720} height={28} />;
 ```
 
-When a host does not use the conventional route, set `config.endpoint` on Transcript tracks and `endpoint` on Cytobands. Endpoint overrides are ordinary, non-secret data-source configuration and may appear in catalogs or saved browser state; credentials must not.
+When a host does not use the conventional route, set `config.endpoint` on Transcript tracks and `endpoint` on Cytobands. Endpoint overrides are ordinary, non-secret data-source configuration and may appear in collections or saved browser state; credentials must not.
 
 ## CORS errors usually indicate authentication failure
 

@@ -25,14 +25,14 @@ import {
   Cytobands,
   TrackSelect,
   withValueMarkers,
-  type TrackSelectCatalogContext,
+  type TrackSelectCollectionContext,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "../src/lib";
 
-// catalogs
-import biosamples from "./catalogs/human-biosamples.json";
-import psychscreenTracks from "./catalogs/psychscreen.json";
+// collections
+import biosamples from "./collections/human-biosamples.json";
+import psychscreenTracks from "./collections/psychscreen.json";
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -153,14 +153,14 @@ function getInteractionPreview(
   action: string,
   item: unknown,
   runtime: TrackRuntimeContext,
-  catalog: TrackSelectCatalogContext,
+  collection: TrackSelectCollectionContext,
 ): InteractionPreview {
   return {
     action,
     track: `${runtime.base.title} (${runtime.type}, ${runtime.base.id})`,
     item: describeItem(item),
     source: describeConfig(runtime.config),
-    metadata: describeMetadata(catalog.metadata),
+    metadata: describeMetadata(collection.metadata),
     color: runtime.base.color,
   };
 }
@@ -192,11 +192,11 @@ function describeConfig(config: unknown) {
   return `config keys: ${Object.keys(config).join(", ")}`;
 }
 
-function describeMetadata(metadata: TrackSelectCatalogContext["metadata"]) {
+function describeMetadata(metadata: TrackSelectCollectionContext["metadata"]) {
   const entries = Object.entries(metadata).slice(0, 4);
   return entries.length > 0
     ? entries.map(([key, value]) => `${key}: ${String(value)}`).join(" · ")
-    : "No catalog metadata";
+    : "No collection metadata";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -219,24 +219,24 @@ function InteractionShowcase() {
     if (itemRef.current) itemRef.current.textContent = `Item — ${preview.item}`;
     if (sourceRef.current) sourceRef.current.textContent = `Runtime config — ${preview.source}`;
     if (metadataRef.current) {
-      metadataRef.current.textContent = `Catalog metadata — ${preview.metadata}`;
+      metadataRef.current.textContent = `Collection metadata — ${preview.metadata}`;
     }
   }
 
   const sharedInteraction: TrackSelectInteraction<unknown, unknown> = {
-    onClick(item, runtime, catalog) {
-      showInteractionPreview(getInteractionPreview("Clicked", item, runtime, catalog));
+    onClick(item, runtime, collection) {
+      showInteractionPreview(getInteractionPreview("Clicked", item, runtime, collection));
       console.info("[TrackSelect interaction demo] click", {
         item,
         runtime,
-        catalog,
+        collection,
       });
     },
-    onHover(item, runtime, catalog) {
-      showInteractionPreview(getInteractionPreview("Hovering", item, runtime, catalog));
+    onHover(item, runtime, collection) {
+      showInteractionPreview(getInteractionPreview("Hovering", item, runtime, collection));
     },
-    onLeave(item, runtime, catalog) {
-      showInteractionPreview(getInteractionPreview("Left", item, runtime, catalog));
+    onLeave(item, runtime, collection) {
+      showInteractionPreview(getInteractionPreview("Left", item, runtime, collection));
     },
   };
   const resolveTrackInteraction: TrackSelectInteractionResolver = () => sharedInteraction;
@@ -289,8 +289,8 @@ function InteractionShowcase() {
       >
         <Stack spacing={0.5}>
           <Typography ref={actionRef} variant="subtitle2" color="text.secondary">
-            Hover or click a catalog track feature to inspect its item, runtime context, and catalog
-            metadata.
+            Hover or click a collection track feature to inspect its item, runtime context, and
+            collection metadata.
           </Typography>
           <Typography ref={itemRef} variant="body2" />
           <Typography ref={sourceRef} variant="body2" />
@@ -300,7 +300,7 @@ function InteractionShowcase() {
       <TrackSelect
         open={open}
         onClose={() => setOpen(false)}
-        trackCatalogs={[biosamples, psychscreenTracks]}
+        trackCollections={[biosamples, psychscreenTracks]}
         useTrackStore={useTrackStore}
         defaultTrackIds={[
           "human-biosamples::human-biosamples/ccre-aggregate",

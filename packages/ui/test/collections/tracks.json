@@ -1,8 +1,8 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "../schemas/trackSelectCollection.schema.json",
   "id": "test-tracks",
   "label": "Test Tracks",
-  "description": "Small test catalog for Track Select JSON loading.",
+  "description": "Small test collection for Track Select JSON loading.",
   "views": [
     {
       "id": "default",

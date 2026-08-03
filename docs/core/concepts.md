@@ -4,7 +4,7 @@ This page orients maintainers to `@weng-lab/genomebrowser`: what the package own
 
 ## Purpose and boundaries
 
-The core package is a React genome-browser runtime. It coordinates a genomic viewport, a validated list of tracks, regional data requests, SVG rendering, and browser-level interactions. It intentionally does not provide the larger catalog and application UI; `@weng-lab/genomebrowser-ui` builds those workflows on the runtime track store.
+The core package is a React genome-browser runtime. It coordinates a genomic viewport, a validated list of tracks, regional data requests, SVG rendering, and browser-level interactions. It intentionally does not provide the larger collection and application UI; `@weng-lab/genomebrowser-ui` builds those workflows on the runtime track store.
 
 The browser stays generic. Track modules own behavior specific to one track type: config validation, fetching, renderers, display modes, and optional settings and tooltip components. Stable behavior belongs on a module; values and callbacks that vary per track belong on its instance.
 
@@ -41,7 +41,7 @@ For each browser render:
 
 An initial render or render-region change fetches every track. A config-only mutation fetches a track only when the value of a field marked by `fetchOnChange` changes. Base fields, interaction callbacks, and unmarked config fields do not cause a request. Failed requests become per-track error states rather than escaping from the browser render.
 
-Later validated base or config mutations appear in later callback events and tooltip renders because context is derived at the rendering boundary. It contains only core runtime `type`, `base`, and `config`; TrackSelect catalog metadata remains catalog-owned and must be combined separately by the UI package or its host.
+Later validated base or config mutations appear in later callback events and tooltip renders because context is derived at the rendering boundary. It contains only core runtime `type`, `base`, and `config`; TrackSelect collection metadata remains collection-owned and must be combined separately by the UI package or its host.
 
 ## Panning and settlement
 

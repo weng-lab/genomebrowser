@@ -69,7 +69,7 @@ For a responsive browser that follows its container width, see [Getting started]
 
 Start with this package when you need to render or control a genome browser.
 
-Add `@weng-lab/genomebrowser-ui@alpha` when you also need ready-made application controls such as catalog-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
+Add `@weng-lab/genomebrowser-ui@alpha` when you also need ready-made application controls such as collection-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
 
 ## Documentation
 

@@ -1,6 +1,6 @@
 # Getting Started
 
-The key integration rule is to create the runtime stores and catalogs outside React rendering, then pass the same track store to both `GenomeBrowser` and `TrackSelect`. The browser renders committed tracks while TrackSelect stages and submits changes to that store.
+The key integration rule is to create the runtime stores and collections outside React rendering, then pass the same track store to both `GenomeBrowser` and `TrackSelect`. The browser renders committed tracks while TrackSelect stages and submits changes to that store.
 
 ```tsx
 import { useState } from "react";
@@ -23,7 +23,7 @@ const useTrackStore = createTrackStore({
   modules: [bigWigModule],
 });
 
-const trackCatalogs = [
+const trackCollections = [
   {
     id: "signals",
     label: "Signal tracks",
@@ -70,7 +70,7 @@ export function BrowserWithTrackSelect() {
       <TrackSelect
         open={trackSelectOpen}
         onClose={() => setTrackSelectOpen(false)}
-        trackCatalogs={trackCatalogs}
+        trackCollections={trackCollections}
         useTrackStore={useTrackStore}
         defaultTrackIds={defaultTrackIds}
       />
@@ -79,12 +79,12 @@ export function BrowserWithTrackSelect() {
 }
 ```
 
-`open` and `onClose` make the dialog controlled by the host. Catalog selections remain a draft until Submit; Cancel or closing the dialog does not update the store.
+`open` and `onClose` make the dialog controlled by the host. Collection selections remain a draft until Submit; Cancel or closing the dialog does not update the store.
 
-`defaultTrackIds` immediately adds catalog tracks to the shared store in the supplied order, so the browser renders them without opening the dialog or submitting a draft. IDs use the public `${catalogId}::${trackId}` format. Reset restores this ordered list; without defaults, Reset clears all catalog tracks while preserving tracks outside the catalogs.
+`defaultTrackIds` immediately adds collection tracks to the shared store in the supplied order, so the browser renders them without opening the dialog or submitting a draft. IDs use the public `${collectionId}::${trackId}` format. Reset restores this ordered list; without defaults, Reset clears all collection tracks while preserving tracks outside the collections.
 
-When restoring a saved selection, pass it as `initialTrackIds` and keep the page's recommended tracks in `defaultTrackIds`. Explicit initial tracks take precedence only during initialization, so Reset still returns to the page defaults. Use `onCommittedTrackIds` to save the ordered catalog selection after a successful Submit. Storage access and parsing remain application responsibilities.
+When restoring a saved selection, pass it as `initialTrackIds` and keep the page's recommended tracks in `defaultTrackIds`. Explicit initial tracks take precedence only during initialization, so Reset still returns to the page defaults. Use `onCommittedTrackIds` to save the ordered collection selection after a successful Submit. Storage access and parsing remain application responsibilities.
 
-Use `resolveTrackInteraction` when catalog-created tracks need host callbacks. The resolver receives the owning catalog ID, qualified ID, and authored track entry during initialization and successful Submit reconciliation. Its callbacks later receive the semantic item, current core runtime context, and separate catalog metadata. Catalog JSON and persisted selection IDs remain data-only.
+Use `resolveTrackInteraction` when collection-created tracks need host callbacks. The resolver receives the owning collection ID, qualified ID, and authored track entry during initialization and successful Submit reconciliation. Its callbacks later receive the semantic item, current core runtime context, and separate collection metadata. Collection JSON and persisted selection IDs remain data-only.
 
-See [TrackSelect](trackSelect.md) for catalog rules, action semantics, limits, customization, and schema generation. See [Track interactions](recipes/trackInteractions.md) for a complete resolver integration.
+See [TrackSelect](trackSelect.md) for collection rules, action semantics, limits, customization, and schema generation. See [Track interactions](recipes/trackInteractions.md) for a complete resolver integration.
