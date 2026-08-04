@@ -33,3 +33,4 @@ When creating or editing commits, pull requests, or issues, follow
   treats them as such.
 - Do NOT suggest compatibility layers, aliases, temporary exports, to support
   older versions of any package.
+- When committing changes to git, if there are any changes not made by you in this session, ask if they should also be added to the commit.

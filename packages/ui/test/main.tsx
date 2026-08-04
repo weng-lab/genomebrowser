@@ -14,6 +14,7 @@ import {
   createTrackStore,
   GenomeBrowser,
   hg38,
+  parseRegion,
   type GenomicRegion,
   type Highlight,
   type TrackRuntimeContext,
@@ -40,7 +41,7 @@ import psychscreenTracks from "./collections/psychscreen.json";
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
-  region: { chromosome: "chr6", start: 20_092_778, end: 23_099_592 },
+  region: parseRegion("chr6:21,592,778-21,599,592"),
   marginWidth: 55,
   trackWidth: 1445,
 });
