@@ -15,6 +15,10 @@ Root `docs/` is maintainer documentation. Things like design decisions and ADRs 
 
 `packages/*/docs/` is user-facing documentation that ships with the package; it must be self-contained.
 
+## Application design
+
+Before designing, implementing, or reviewing application UI in `packages/ui` or `packages/app`, read and follow [`DESIGN.md`](DESIGN.md).
+
 ## Contributing
 
 When creating or editing commits, pull requests, or issues, follow

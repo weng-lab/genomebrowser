@@ -1,0 +1,134 @@
+// @vitest-environment jsdom
+
+import { bigWigModule, type BigWigConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { bigWigModuleWithSettings } from "../src/tracks/bigwig/module";
+import { BigWigSettings } from "../src/tracks/bigwig/settings";
+
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
+  true;
+
+const config: BigWigConfig = {
+  url: "YOUR_URL_HERE",
+  fillWithZero: false,
+  yRange: { min: -2, max: 8 },
+  showClampIndicators: true,
+  clampIndicatorColor: "#ff0000",
+};
+
+let container: HTMLDivElement | undefined;
+let root: Root | undefined;
+
+afterEach(() => {
+  act(() => root?.unmount());
+  container?.remove();
+  container = undefined;
+  root = undefined;
+});
+
+describe("BigWig settings", () => {
+  it("renders accessible controls for every BigWig config option", () => {
+    renderSettings();
+
+    expect(getInput("URL").value).toBe(config.url);
+    expect(getInput("Minimum").value).toBe(String(config.yRange?.min));
+    expect(getInput("Maximum").value).toBe(String(config.yRange?.max));
+    expect(getInput("Fill missing values with zero").checked).toBe(false);
+    expect(getInput("Show clamp indicators").checked).toBe(true);
+    expect(getInput("Clamp indicator color").value).toBe(config.clampIndicatorColor);
+  });
+
+  it("updates scalar options and preserves both y-axis bounds", () => {
+    const updateConfig = renderSettings();
+
+    updateInput("URL", "YOUR_OTHER_URL_HERE");
+    clickInput("Fill missing values with zero");
+    updateInput("Clamp indicator color", "rebeccapurple");
+    clickInput("Show clamp indicators");
+    updateInput("Minimum", "-1.5");
+    updateInput("Maximum", "12");
+
+    expect(updateConfig.mock.calls).toEqual([
+      [{ url: "YOUR_OTHER_URL_HERE" }],
+      [{ fillWithZero: true }],
+      [{ clampIndicatorColor: "rebeccapurple" }],
+      [{ showClampIndicators: false }],
+      [{ yRange: { min: -1.5, max: 8 } }],
+      [{ yRange: { min: -1.5, max: 12 } }],
+    ]);
+  });
+
+  it("can create and clear an optional y-axis range", () => {
+    const updateConfig = renderSettings({ ...config, yRange: undefined });
+
+    updateInput("Minimum", "0");
+    expect(updateConfig).not.toHaveBeenCalled();
+
+    updateInput("Maximum", "10");
+    expect(updateConfig).toHaveBeenLastCalledWith({ yRange: { min: 0, max: 10 } });
+
+    const automaticRangeButton = Array.from(container?.querySelectorAll("button") ?? []).find(
+      (button) => button.textContent === "Use automatic range",
+    );
+    if (!automaticRangeButton) throw new Error("Could not find the automatic range button");
+    act(() => automaticRangeButton.click());
+
+    expect(updateConfig).toHaveBeenLastCalledWith({ yRange: undefined });
+    expect(getInput("Minimum").value).toBe("");
+    expect(getInput("Maximum").value).toBe("");
+  });
+
+  it("clears an optional clamp indicator color", () => {
+    const updateConfig = renderSettings();
+
+    updateInput("Clamp indicator color", "");
+
+    expect(updateConfig).toHaveBeenCalledWith({ clampIndicatorColor: undefined });
+  });
+});
+
+describe("BigWig module with settings", () => {
+  it("adds the UI settings component without changing the core module", () => {
+    expect(bigWigModuleWithSettings).not.toBe(bigWigModule);
+    expect(bigWigModuleWithSettings.settingsComponent).toBe(BigWigSettings);
+    expect(bigWigModule.settingsComponent).not.toBe(BigWigSettings);
+  });
+});
+
+function renderSettings(initialConfig = config) {
+  const updateConfig = vi.fn<TrackSettingsProps<BigWigConfig>["updateConfig"]>(() => ({
+    ok: true,
+  }));
+  container = document.createElement("div");
+  document.body.append(container);
+  root = createRoot(container);
+  act(() => {
+    root?.render(<BigWigSettings id="signal" config={initialConfig} updateConfig={updateConfig} />);
+  });
+  return updateConfig;
+}
+
+function getInput(label: string) {
+  const input = Array.from(container?.querySelectorAll<HTMLInputElement>("input") ?? []).find(
+    (candidate) =>
+      Array.from(candidate.labels ?? []).some((element) => element.textContent === label),
+  );
+  if (!input) throw new Error(`Could not find input labeled ${label}`);
+  return input;
+}
+
+function updateInput(label: string, value: string) {
+  const input = getInput(label);
+  const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+  if (!valueSetter) throw new Error("Input value setter is unavailable");
+  act(() => {
+    valueSetter.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
+function clickInput(label: string) {
+  act(() => getInput(label).click());
+}
