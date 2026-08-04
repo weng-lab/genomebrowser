@@ -144,7 +144,7 @@ function MethylCRangeSettings({ range, updateConfig }: MethylCRangeSettingsProps
     updateConfig({ range: { min: nextMin, max: nextMax } });
   };
 
-  const useAutomaticRange = () => {
+  const handleAutomaticRangeClick = () => {
     setDraft({ source: range, values: toRangeValues() });
     updateConfig({ range: undefined });
   };
@@ -173,7 +173,7 @@ function MethylCRangeSettings({ range, updateConfig }: MethylCRangeSettingsProps
         size="small"
         sx={{ justifySelf: "start", textTransform: "none" }}
         type="button"
-        onClick={useAutomaticRange}
+        onClick={handleAutomaticRangeClick}
       >
         Use automatic range
       </Button>
