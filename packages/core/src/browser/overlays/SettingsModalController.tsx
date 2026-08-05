@@ -43,7 +43,12 @@ export function SettingsModalController() {
       >
         <div
           aria-disabled={isInteractionBlocked}
-          style={{ pointerEvents: isInteractionBlocked ? "none" : undefined }}
+          style={{
+            display: "grid",
+            gap: "12px",
+            minWidth: 0,
+            pointerEvents: isInteractionBlocked ? "none" : undefined,
+          }}
         >
           <BaseSettingsComponent
             base={track.base}

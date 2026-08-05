@@ -9,6 +9,7 @@ import type {
 import { lightenColor, neutralTrackColor } from "../../TrackSettings/color";
 import { TrackColorField } from "../../TrackSettings/trackColorField";
 import { TrackSettingsFieldRow } from "../../TrackSettings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
 
 const neurotransmitterOptions = [
@@ -30,7 +31,7 @@ export function CaveSettings({ config, updateConfig }: TrackSettingsProps<CaveCo
   const topFallbackColor = lightenColor(bottomFallbackColor, 0.5);
 
   return (
-    <>
+    <TrackSettingsLayout>
       <TrackSettingsSection title="CAVE dataset">
         <TrackSettingsFieldRow>
           <TextField
@@ -85,6 +86,6 @@ export function CaveSettings({ config, updateConfig }: TrackSettingsProps<CaveCo
           />
         </TrackSettingsFieldRow>
       </TrackSettingsSection>
-    </>
+    </TrackSettingsLayout>
   );
 }

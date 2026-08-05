@@ -7,5 +7,5 @@ export type TrackSettingsLayoutProps = {
 
 /** Shared root spacing for multi-section track settings forms. */
 export function TrackSettingsLayout({ children }: TrackSettingsLayoutProps) {
-  return <Box sx={{ display: "grid", gap: 1.25, minWidth: 0 }}>{children}</Box>;
+  return <Box sx={{ display: "grid", gap: "12px", minWidth: 0 }}>{children}</Box>;
 }

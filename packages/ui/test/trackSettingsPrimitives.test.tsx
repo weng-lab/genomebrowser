@@ -9,6 +9,7 @@ import {
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
 } from "../src/TrackSettings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../src/TrackSettings/trackSettingsLayout";
 import { TrackSourceUrlField } from "../src/TrackSettings/trackSourceUrlField";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -216,6 +217,19 @@ describe("draft track settings fields", () => {
 });
 
 describe("track settings layout primitives", () => {
+  it("uses one shared gap between top-level settings sections", () => {
+    mount(
+      <TrackSettingsLayout>
+        <div>First section</div>
+        <div>Second section</div>
+      </TrackSettingsLayout>,
+    );
+
+    const layout = container?.firstElementChild as HTMLElement;
+    expect(getComputedStyle(layout).display).toBe("grid");
+    expect(getComputedStyle(layout).gap).toBe("12px");
+  });
+
   it("allows an item to deliberately span a responsive field grid", () => {
     mount(
       <TrackSettingsFieldGrid>

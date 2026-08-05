@@ -13,11 +13,12 @@ import {
   TrackSettingsFieldRow,
   TrackSettingsFullRow,
 } from "../../TrackSettings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
 
 export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<TranscriptConfig>) {
   return (
-    <>
+    <TrackSettingsLayout>
       <TrackSettingsSection title="Transcript source">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
@@ -89,6 +90,6 @@ export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
-    </>
+    </TrackSettingsLayout>
   );
 }

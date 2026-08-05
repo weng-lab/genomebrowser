@@ -18,7 +18,7 @@ export function TrackSettingsSection({ title, children }: TrackSettingsSectionPr
         display: "grid",
         gap: 1.25,
         m: 0,
-        mb: 1.25,
+        mb: 0,
         minWidth: 0,
         px: 1.25,
         pb: 1.25,
