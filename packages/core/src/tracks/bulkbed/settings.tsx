@@ -2,9 +2,14 @@ import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackSettingsProps } from "../../modules/types";
-import type { BulkBedConfig, BulkBedDataset } from "./types";
+import type { BulkBedConfig, BulkBedDataset, BulkBedRect } from "./types";
 
-export function BulkBedSettings({ id, config, updateConfig }: TrackSettingsProps<BulkBedConfig>) {
+export function BulkBedSettings({
+  track,
+  updateTrack,
+}: TrackSettingsProps<BulkBedConfig, BulkBedRect>) {
+  const { config } = track;
+  const id = track.base.id;
   const [datasetKeyState, setDatasetKeyState] = useState(() =>
     createDatasetKeyState(id, config.datasets.length),
   );
@@ -29,7 +34,7 @@ export function BulkBedSettings({ id, config, updateConfig }: TrackSettingsProps
           value={config.gap ?? 0}
           onChange={(event) => {
             const gap = Number(event.target.value);
-            if (Number.isFinite(gap) && gap >= 0) updateConfig({ gap });
+            if (Number.isFinite(gap) && gap >= 0) updateTrack({ config: { gap } });
           }}
         />
       </label>
@@ -43,8 +48,10 @@ export function BulkBedSettings({ id, config, updateConfig }: TrackSettingsProps
                 type="text"
                 value={dataset.name}
                 onChange={(event) =>
-                  updateConfig({
-                    datasets: updateDataset(config.datasets, index, "name", event.target.value),
+                  updateTrack({
+                    config: {
+                      datasets: updateDataset(config.datasets, index, "name", event.target.value),
+                    },
                   })
                 }
               />
@@ -55,8 +62,10 @@ export function BulkBedSettings({ id, config, updateConfig }: TrackSettingsProps
                 type="text"
                 value={dataset.url}
                 onChange={(event) =>
-                  updateConfig({
-                    datasets: updateDataset(config.datasets, index, "url", event.target.value),
+                  updateTrack({
+                    config: {
+                      datasets: updateDataset(config.datasets, index, "url", event.target.value),
+                    },
                   })
                 }
               />
@@ -65,8 +74,10 @@ export function BulkBedSettings({ id, config, updateConfig }: TrackSettingsProps
               type="button"
               disabled={config.datasets.length === 1}
               onClick={() => {
-                const result = updateConfig({
-                  datasets: config.datasets.filter((_, datasetIndex) => datasetIndex !== index),
+                const result = updateTrack({
+                  config: {
+                    datasets: config.datasets.filter((_, datasetIndex) => datasetIndex !== index),
+                  },
                 });
                 if (result.ok) {
                   setDatasetKeyState((current) => {
@@ -87,11 +98,13 @@ export function BulkBedSettings({ id, config, updateConfig }: TrackSettingsProps
           <button
             type="button"
             onClick={() => {
-              const result = updateConfig({
-                datasets: [
-                  ...config.datasets,
-                  { name: `Dataset ${config.datasets.length + 1}`, url: "YOUR_URL_HERE" },
-                ],
+              const result = updateTrack({
+                config: {
+                  datasets: [
+                    ...config.datasets,
+                    { name: `Dataset ${config.datasets.length + 1}`, url: "YOUR_URL_HERE" },
+                  ],
+                },
               });
               if (result.ok) {
                 setDatasetKeyState((current) => {

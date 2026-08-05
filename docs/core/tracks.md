@@ -14,7 +14,7 @@ type TrackInstance<Config, Item = unknown> = {
     title: string;
     display: string;
     height: number;
-    color?: string;
+    color: string;
   };
   config: Config;
   interaction?: TrackInteraction<Item, Config>;
@@ -60,7 +60,7 @@ export const exampleModule = defineTrackModule({
 });
 ```
 
-`defineTrackModule` makes the config schema strict, derives the full create-input and instance schemas, and supplies `create` and `validate`. Zod config defaults belong in `configSchema`. Browser-owned defaults belong in `defaults`: `height` falls back to `80`, `color` remains optional, and `display` falls back to the first renderer key. At least one renderer is required, and an explicit default display must name one of them.
+`defineTrackModule` makes the config schema strict, derives the full create-input and instance schemas, and supplies `create` and `validate`. Zod config defaults belong in `configSchema`. Browser-owned defaults belong in `defaults`: `height` falls back to `80`, `color` falls back to `#000000`, and `display` falls back to the first renderer key. Creation input may omit color, but validated instances always contain a case-insensitive six-digit `#RRGGBB` value. At least one renderer is required, and an explicit default display must name one of them.
 
 Module fetch functions receive only `{ config, region }` and return raw regional data. Renderers receive that data plus config, dimensions, region, ID, and color; they own display- and pixel-specific transformations. The browser owns loading and error presentation, panning, track controls, and renderer selection.
 
@@ -79,7 +79,7 @@ Changing `url` requests new data. Changing `colorScale` re-renders with the curr
 
 ## Display, settings, and interaction
 
-Renderer-map keys are the module's allowed display values. The browser validates `base.display`, chooses the renderer, and supplies browser-level controls. A module's `settingsComponent` receives `{ id, config, updateConfig }`; it should use `updateConfig` and handle its mutation result. The browser separately owns base settings such as title, display, height, and color.
+Renderer-map keys are the module's allowed display values. The browser validates `base.display`, chooses the renderer, and supplies browser-level controls. A module's `settingsComponent` receives `{ track, updateTrack }`: a read-only current track snapshot and a validated updater bound to its ID. The updater accepts optional shallow base and config patches and returns a mutation result. Settings should use these props rather than a global store. The browser separately renders base settings such as title, display, height, and color.
 
 A renderer decides when a semantic interaction happens. It can read item-only callbacks with `useInteraction<Item>()` and use parameterless `useTooltip<Item, Config>()` for browser-positioned module tooltips. The browser binds the current `TrackRuntimeContext<Config>` before an application callback runs. Tooltip components receive `{ item, context }` with the same current `type`, read-only `base`, and read-only parsed `config`. The module's item generic describes the semantic object exposed to callbacks and the tooltip, not necessarily its raw fetch row.
 

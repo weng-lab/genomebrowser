@@ -13,7 +13,7 @@ export function ContextMenuController() {
   const position = useContextMenuStore((state) => state.position);
   const closeContextMenu = useContextMenuStore((state) => state.closeContextMenu);
   const track = useTrackStore((state) => (trackId ? state.getTrack(trackId) : undefined));
-  const updateBase = useTrackStore((state) => state.updateBase);
+  const updateTrack = useTrackStore((state) => state.updateTrack);
   const removeTrack = useTrackStore((state) => state.removeTrack);
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -48,7 +48,7 @@ export function ContextMenuController() {
   }
 
   const handleDisplayClick = (display: string) => {
-    if (runTrackMutation(() => updateBase(trackId, { display })).ok) closeContextMenu();
+    if (runTrackMutation(() => updateTrack(trackId, { base: { display } })).ok) closeContextMenu();
   };
 
   const handleRemoveClick = () => {

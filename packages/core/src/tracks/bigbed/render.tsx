@@ -9,7 +9,7 @@ import type { BigBedConfig, BigBedRow } from "./types";
 export function DenseBigBed<
   Row extends BigBedRow = BigBedRow,
   Config extends BigBedConfig = BigBedConfig,
->({ color = "#4b9560", data, region, width, height }: TrackRendererProps<Config, Row[]>) {
+>({ color, data, region, width, height }: TrackRendererProps<Config, Row[]>) {
   const x = createXScale(region, width);
   const rects = renderDenseBigBedData(data, x);
   const rectHeight = height * 0.6;
@@ -47,7 +47,7 @@ export function DenseBigBed<
 export function SquishBigBed<
   Row extends BigBedRow = BigBedRow,
   Config extends BigBedConfig = BigBedConfig,
->({ id, color = "#4b9560", data, region, width, height }: TrackRendererProps<Config, Row[]>) {
+>({ id, color, data, region, width, height }: TrackRendererProps<Config, Row[]>) {
   const x = createXScale(region, width);
   const rows = renderSquishBigBedData(data, x);
   const rowHeight = useAutoTrackHeight(id, rows.length);

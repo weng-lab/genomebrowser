@@ -29,7 +29,7 @@ Hovering the left track margin, including its color strip and track controls, hi
 A registered module holds stable behavior for one type: schemas, defaults, fetching, renderers, display modes, and optional settings and tooltip components. A track instance holds values for one row:
 
 - `type` chooses the module.
-- `base` contains ID, title, display, height, and optional color.
+- `base` contains ID, title, display, height, and a concrete color.
 - `config` contains module-specific values such as URLs and visual options.
 - `interaction` optionally contains app callbacks for that instance.
 

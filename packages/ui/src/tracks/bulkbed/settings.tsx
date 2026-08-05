@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import type {
   BulkBedConfig,
   BulkBedDataset,
+  BulkBedRect,
   TrackMutationResult,
   TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
@@ -32,11 +33,16 @@ type DatasetRows = {
   source: BulkBedDataset[];
 };
 
-export function BulkBedSettings(props: TrackSettingsProps<BulkBedConfig>) {
-  return <BulkBedSettingsEditor key={props.id} {...props} />;
+export function BulkBedSettings(props: TrackSettingsProps<BulkBedConfig, BulkBedRect>) {
+  return <BulkBedSettingsEditor key={props.track.base.id} {...props} />;
 }
 
-function BulkBedSettingsEditor({ id, config, updateConfig }: TrackSettingsProps<BulkBedConfig>) {
+function BulkBedSettingsEditor({
+  track,
+  updateTrack,
+}: TrackSettingsProps<BulkBedConfig, BulkBedRect>) {
+  const { config } = track;
+  const id = track.base.id;
   const [datasetRows, setDatasetRows] = useState(() => createDatasetRows(config.datasets, id));
   const committedConfigRef = useRef(config);
   const [topologyError, setTopologyError] = useState<string>();
@@ -54,7 +60,7 @@ function BulkBedSettingsEditor({ id, config, updateConfig }: TrackSettingsProps<
   }, [config.datasets, id]);
 
   const applyConfig = (partial: Partial<BulkBedConfig>) => {
-    const result = updateConfig(partial);
+    const result = updateTrack({ config: partial });
     if (result.ok) {
       committedConfigRef.current = { ...committedConfigRef.current, ...partial };
     }

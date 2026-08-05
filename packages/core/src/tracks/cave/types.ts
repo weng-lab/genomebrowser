@@ -14,8 +14,8 @@ export type CaveAge =
 export type CaveConfig = {
   neurotransmitter: CaveNeurotransmitter;
   age: CaveAge;
-  topColor?: string;
-  bottomColor?: string;
+  topColor: string;
+  bottomColor: string;
 };
 
 export type CaveInput = {
@@ -24,7 +24,10 @@ export type CaveInput = {
   display?: CaveDisplay;
   height?: number;
   color?: string;
-  config: CaveConfig;
+  config: Omit<CaveConfig, "topColor" | "bottomColor"> & {
+    topColor?: string;
+    bottomColor?: string;
+  };
 };
 
 export type CaveInteraction = TrackInteraction<CaveTooltipItem, CaveConfig>;

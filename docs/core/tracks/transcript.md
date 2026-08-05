@@ -22,8 +22,8 @@ Fields:
 - `assembly`: SCREEN assembly name, required
 - `version`: positive integer SCREEN annotation version, required
 - `geneName`: optional gene name to highlight
-- `canonicalColor`: optional color for canonical transcripts
-- `highlightColor`: optional color for highlighted genes/transcripts
+- `canonicalColor`: six-digit `#RRGGBB` color for canonical transcripts; defaults to `#000000`
+- `highlightColor`: six-digit `#RRGGBB` color for highlighted genes/transcripts; defaults to `#000000`
 
 Display modes:
 

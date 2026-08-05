@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchOnChange } from "../../modules/fetchOnChange";
+import { hexColorSchema } from "../../modules/schemas";
 import { TrackTooltip } from "../shared/TrackTooltip";
 import { fetchBigWig } from "./fetch";
 import { formatBigWigTooltip } from "./helpers";
@@ -23,7 +24,7 @@ const bigWigConfigSchema = z.object({
   fillWithZero: z.boolean().default(false),
   yRange: yRangeSchema.optional(),
   showClampIndicators: z.boolean().default(true),
-  clampIndicatorColor: z.string().default("#ff0000"),
+  clampIndicatorColor: hexColorSchema.default("#ff0000"),
 });
 
 export const bigWigModule = defineTrackModule<RenderedBigWigPoint>()({

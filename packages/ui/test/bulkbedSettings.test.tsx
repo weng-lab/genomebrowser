@@ -60,36 +60,40 @@ describe("BulkBed settings", () => {
 
   it("updates gap and dataset fields without losing unaffected draft values", () => {
     vi.useFakeTimers();
-    const { updateConfig } = renderSettings();
+    const { updateTrack } = renderSettings();
 
     updateInput(gapInput(), "6.5");
     updateInput(rowInput(datasetRows()[1], "Name"), "Dataset B updated");
     updateInput(rowInput(datasetRows()[0], "URL"), "DATASET_A_UPDATED_URL");
     act(() => vi.advanceTimersByTime(300));
 
-    expect(updateConfig.mock.calls).toEqual([
-      [{ gap: 6.5 }],
+    expect(updateTrack.mock.calls).toEqual([
+      [{ config: { gap: 6.5 } }],
       [
         {
-          datasets: [
-            { name: "Dataset A", url: "DATASET_A_URL" },
-            { name: "Dataset B updated", url: "DATASET_B_URL" },
-          ],
+          config: {
+            datasets: [
+              { name: "Dataset A", url: "DATASET_A_URL" },
+              { name: "Dataset B updated", url: "DATASET_B_URL" },
+            ],
+          },
         },
       ],
       [
         {
-          datasets: [
-            { name: "Dataset A", url: "DATASET_A_UPDATED_URL" },
-            { name: "Dataset B updated", url: "DATASET_B_URL" },
-          ],
+          config: {
+            datasets: [
+              { name: "Dataset A", url: "DATASET_A_UPDATED_URL" },
+              { name: "Dataset B updated", url: "DATASET_B_URL" },
+            ],
+          },
         },
       ],
     ]);
   });
 
   it("adds and removes datasets while retaining stable rows and one required dataset", () => {
-    const updateConfig = vi.fn<(partial: Partial<BulkBedConfig>) => void>();
+    const onUpdate = vi.fn<(partial: Partial<BulkBedConfig>) => void>();
     renderStatefulSettings(
       {
         gap: 4,
@@ -99,7 +103,7 @@ describe("BulkBed settings", () => {
           { name: "Dataset C", url: "DATASET_C_URL" },
         ],
       },
-      updateConfig,
+      onUpdate,
     );
 
     const [firstRow, middleRow, lastRow] = datasetRows();
@@ -119,7 +123,7 @@ describe("BulkBed settings", () => {
     click(removeButton(datasetRows()[1]));
     expect(datasetNames()).toEqual(["Dataset A"]);
     expect(removeButton(datasetRows()[0]).disabled).toBe(true);
-    expect(updateConfig).toHaveBeenCalledWith({
+    expect(onUpdate).toHaveBeenCalledWith({
       datasets: [
         { name: "Dataset A", url: "DATASET_A_URL" },
         { name: "Dataset C", url: "DATASET_C_URL" },
@@ -129,13 +133,13 @@ describe("BulkBed settings", () => {
   });
 
   it("preserves invalid drafts through controlled prop reconciliation", () => {
-    const { rerender, updateConfig } = renderSettings();
+    const { rerender, updateTrack } = renderSettings();
 
     updateInput(rowInput(datasetRows()[0], "Name"), "");
     updateInput(rowInput(datasetRows()[0], "URL"), "");
     updateInput(gapInput(), "-2");
 
-    expect(updateConfig).not.toHaveBeenCalled();
+    expect(updateTrack).not.toHaveBeenCalled();
     expect(container?.textContent).toContain("Enter a non-negative number.");
     expect(container?.textContent).toContain("Enter a dataset name.");
     expect(container?.textContent).toContain("Enter a URL.");
@@ -149,11 +153,11 @@ describe("BulkBed settings", () => {
 
   it("keeps a core-rejected complete draft visible", () => {
     vi.useFakeTimers();
-    const updateConfig = vi.fn<TrackSettingsProps<BulkBedConfig>["updateConfig"]>(() => ({
+    const updateTrack = vi.fn<TrackSettingsProps<BulkBedConfig>["updateTrack"]>(() => ({
       ok: false,
       error: "Core rejected the update.",
     }));
-    const { rerender } = renderSettings(initialConfig, updateConfig);
+    const { rerender } = renderSettings(initialConfig, updateTrack);
 
     updateInput(rowInput(datasetRows()[0], "Name"), "Dataset A updated");
     act(() => vi.advanceTimersByTime(300));
@@ -204,31 +208,44 @@ function StatefulSettings({
 }) {
   const [config, setConfig] = useState(initialConfig);
 
-  const updateConfig: TrackSettingsProps<BulkBedConfig>["updateConfig"] = (partial) => {
+  const updateTrack: TrackSettingsProps<BulkBedConfig>["updateTrack"] = (update) => {
+    const partial = update.config ?? {};
     onUpdate(partial);
     setConfig((current) => ({ ...current, ...partial }));
     return { ok: true };
   };
 
-  return <BulkBedSettings id="bulkbed" config={config} updateConfig={updateConfig} />;
+  return <BulkBedSettings track={track(config)} updateTrack={updateTrack} />;
 }
 
 function renderSettings(
   config = initialConfig,
-  updateConfig = vi.fn<TrackSettingsProps<BulkBedConfig>["updateConfig"]>(() => ({ ok: true })),
+  updateTrack = vi.fn<TrackSettingsProps<BulkBedConfig>["updateTrack"]>(() => ({ ok: true })),
 ) {
   mount();
 
   const rerender = (nextConfig: BulkBedConfig) => {
     act(() => {
-      root?.render(
-        <BulkBedSettings id="bulkbed" config={nextConfig} updateConfig={updateConfig} />,
-      );
+      root?.render(<BulkBedSettings track={track(nextConfig)} updateTrack={updateTrack} />);
     });
   };
 
   rerender(config);
-  return { rerender, updateConfig };
+  return { rerender, updateTrack };
+}
+
+function track(config: BulkBedConfig) {
+  return {
+    type: "bulkbed",
+    base: {
+      id: "bulkbed",
+      title: "BulkBed",
+      display: "full",
+      height: 80,
+      color: "#4b9560",
+    },
+    config,
+  };
 }
 
 function renderStatefulSettings(

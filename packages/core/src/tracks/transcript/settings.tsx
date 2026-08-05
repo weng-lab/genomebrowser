@@ -1,8 +1,13 @@
+import { DraftColorInput } from "../../browser/settings/DraftColorInput";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackSettingsProps } from "../../modules/types";
-import type { TranscriptConfig } from "./types";
+import type { Transcript, TranscriptConfig } from "./types";
 
-export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<TranscriptConfig>) {
+export function TranscriptSettings({
+  track,
+  updateTrack,
+}: TrackSettingsProps<TranscriptConfig, Transcript>) {
+  const { config } = track;
   return (
     <SettingsSection title="Transcript">
       <label style={{ display: "grid", gap: "4px" }}>
@@ -10,7 +15,9 @@ export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<
         <input
           type="text"
           value={config.geneName ?? ""}
-          onChange={(event) => updateConfig({ geneName: event.target.value || undefined })}
+          onChange={(event) =>
+            updateTrack({ config: { geneName: event.target.value || undefined } })
+          }
         />
       </label>
       <label style={{ display: "grid", gap: "4px" }}>
@@ -18,7 +25,7 @@ export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<
         <input
           type="text"
           value={config.assembly}
-          onChange={(event) => updateConfig({ assembly: event.target.value })}
+          onChange={(event) => updateTrack({ config: { assembly: event.target.value } })}
         />
       </label>
       <label style={{ display: "grid", gap: "4px" }}>
@@ -30,26 +37,22 @@ export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<
           value={config.version}
           onChange={(event) => {
             const version = Number(event.target.value);
-            if (Number.isInteger(version) && version > 0) updateConfig({ version });
+            if (Number.isInteger(version) && version > 0) updateTrack({ config: { version } });
           }}
         />
       </label>
       <label style={{ display: "grid", gap: "4px" }}>
         Canonical color
-        <input
-          type="text"
-          value={config.canonicalColor ?? ""}
-          placeholder="#000000"
-          onChange={(event) => updateConfig({ canonicalColor: event.target.value || undefined })}
+        <DraftColorInput
+          value={config.canonicalColor}
+          onCommit={(canonicalColor) => updateTrack({ config: { canonicalColor } })}
         />
       </label>
       <label style={{ display: "grid", gap: "4px" }}>
         Highlight color
-        <input
-          type="text"
-          value={config.highlightColor ?? ""}
-          placeholder="#000000"
-          onChange={(event) => updateConfig({ highlightColor: event.target.value || undefined })}
+        <DraftColorInput
+          value={config.highlightColor}
+          onCommit={(highlightColor) => updateTrack({ config: { highlightColor } })}
         />
       </label>
     </SettingsSection>

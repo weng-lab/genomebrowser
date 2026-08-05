@@ -99,6 +99,7 @@ describe("render window", () => {
           title: "Signal",
           display: "full",
           height: 80,
+          color: "#000000",
         },
         config: {},
       },

@@ -1,4 +1,3 @@
-import ClearIcon from "@mui/icons-material/Clear";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -24,31 +23,15 @@ type CommonTrackSettingsColorFieldProps = {
   label: string;
 };
 
-type RequiredTrackSettingsColorFieldProps = CommonTrackSettingsColorFieldProps &
-  (
-    | { fallbackColor: string; value: string | undefined }
-    | { fallbackColor?: undefined; value: string }
-  ) & {
-    mode: "required";
-    onCommit: (color: string) => TrackMutationResult;
-  };
-
-type OptionalTrackSettingsColorFieldProps = CommonTrackSettingsColorFieldProps & {
-  fallbackColor: string;
-  mode: "optional";
-  value: string | undefined;
-  onCommit: (color: string | undefined) => TrackMutationResult;
+export type TrackSettingsColorFieldProps = CommonTrackSettingsColorFieldProps & {
+  value: string;
+  onCommit: (color: string) => TrackMutationResult;
 };
-
-export type TrackSettingsColorFieldProps =
-  | RequiredTrackSettingsColorFieldProps
-  | OptionalTrackSettingsColorFieldProps;
 
 type PickerSession = {
   color: HsvColor;
   emittedColor?: string;
   externalColor: string;
-  externalValue: string | undefined;
 };
 
 /** A validated hexadecimal field with an accessible saturation/value and hue picker. */
@@ -59,50 +42,26 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
   const activePointerRef = useRef<number | undefined>(undefined);
   const shouldRestoreFocusRef = useRef(false);
   const instructionId = useId();
-  const optional = props.mode === "optional";
-  const fallbackColor =
-    props.fallbackColor === undefined ? undefined : requireHexColor(props.fallbackColor);
-  const explicitColor = props.value === undefined ? undefined : normalizeHexColor(props.value);
-  const pickerSourceColor = explicitColor ?? fallbackColor;
-  if (pickerSourceColor === undefined) throw new Error("A color field must have a picker color");
-  const hasExplicitValue = props.value !== undefined;
-  const swatchColor = props.value ?? pickerSourceColor;
+  const externalColor = requireHexColor(props.value);
 
-  const controller = useDraftController<string, string | undefined>({
+  const controller = useDraftController<string, string>({
     value: props.value,
-    toRaw: (color) =>
-      color === undefined
-        ? optional
-          ? ""
-          : pickerSourceColor
-        : (normalizeHexColor(color) ?? color),
-    validate: (value): DraftValidation<string | undefined> =>
-      validateHexColorDraft(value, optional),
+    toRaw: (color) => normalizeHexColor(color) ?? color,
+    validate: (value): DraftValidation<string> => validateHexColorDraft(value),
     isEqual: colorsAreEqual,
     onCommit: (color) => {
       if (props.disabled) return { ok: false, error: "The color field is disabled." };
-      if (props.mode === "optional") return props.onCommit(color);
-      if (color === undefined) {
-        return { ok: false, error: "A required color cannot be cleared." };
-      }
       return props.onCommit(color);
     },
     debounceMs: false,
   });
-  const externalPickerColor = hexToHsv(pickerSourceColor);
+  const externalPickerColor = hexToHsv(externalColor);
   let currentPickerSession = pickerSession;
-  if (
-    pickerSession !== undefined &&
-    (!colorsAreEqual(pickerSession.externalValue, props.value) ||
-      pickerSession.externalColor !== pickerSourceColor)
-  ) {
+  if (pickerSession !== undefined && pickerSession.externalColor !== externalColor) {
     currentPickerSession = {
       color:
-        pickerSession.emittedColor === pickerSourceColor
-          ? pickerSession.color
-          : externalPickerColor,
-      externalColor: pickerSourceColor,
-      externalValue: props.value,
+        pickerSession.emittedColor === externalColor ? pickerSession.color : externalPickerColor,
+      externalColor,
     };
     setPickerSession(currentPickerSession);
   }
@@ -136,8 +95,7 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
     if (props.disabled) return;
     setPickerSession({
       color: externalPickerColor,
-      externalColor: pickerSourceColor,
-      externalValue: props.value,
+      externalColor,
     });
     setAnchorElement(element);
   };
@@ -151,8 +109,7 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
     setPickerSession({
       color,
       emittedColor: hexColor,
-      externalColor: pickerSourceColor,
-      externalValue: props.value,
+      externalColor,
     });
   };
 
@@ -171,13 +128,9 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
         disabled={props.disabled}
         error={controller.error !== undefined}
         fullWidth
-        helperText={
-          controller.error ??
-          (!hasExplicitValue ? `Using fallback ${pickerSourceColor}.` : undefined)
-        }
+        helperText={controller.error}
         label={props.label}
-        placeholder={fallbackColor}
-        required={!optional}
+        required
         size="small"
         slotProps={{
           htmlInput: { inputMode: "text", spellCheck: false },
@@ -204,7 +157,7 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
                   <Box
                     aria-hidden="true"
                     sx={{
-                      bgcolor: swatchColor,
+                      bgcolor: externalColor,
                       border: 1,
                       borderColor: "divider",
                       borderRadius: 0.5,
@@ -216,21 +169,6 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
                 </IconButton>
               </InputAdornment>
             ),
-            endAdornment: optional ? (
-              <InputAdornment position="end">
-                <IconButton
-                  aria-label={`Clear ${props.label}`}
-                  disabled={props.disabled || !hasExplicitValue}
-                  edge="end"
-                  size="small"
-                  type="button"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => controller.submit("")}
-                >
-                  <ClearIcon fontSize="small" />
-                </IconButton>
-              </InputAdornment>
-            ) : undefined,
           },
         }}
         value={controller.value}
@@ -394,8 +332,7 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
   );
 }
 
-function colorsAreEqual(left: string | undefined, right: string | undefined) {
-  if (left === undefined || right === undefined) return left === right;
+function colorsAreEqual(left: string, right: string) {
   const normalizedLeft = normalizeHexColor(left);
   const normalizedRight = normalizeHexColor(right);
   if (normalizedLeft === undefined || normalizedRight === undefined) return left === right;

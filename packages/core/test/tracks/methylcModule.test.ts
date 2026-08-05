@@ -68,6 +68,24 @@ describe("MethylC module", () => {
     ).toThrow(/methylc input/);
   });
 
+  it("rejects non-hexadecimal channel colors", () => {
+    expect(() =>
+      methylCModule.create({
+        id: "methylc",
+        title: "MethylC",
+        config: {
+          urls: createUrls("YOUR_URL_HERE"),
+          colors: {
+            cpg: "rebeccapurple",
+            chg: "#ff944d",
+            chh: "#ff00ff",
+            depth: "#525252",
+          },
+        },
+      }),
+    ).toThrow(/six-digit hexadecimal color/);
+  });
+
   it("includes nested URLs in fetch signatures", () => {
     const track = methylCModule.create({
       id: "methylc",

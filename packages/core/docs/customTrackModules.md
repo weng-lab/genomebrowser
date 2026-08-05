@@ -58,16 +58,18 @@ function SignalRenderer({ config, data, region, width, height }: TrackRendererPr
     });
 }
 
-function SignalSettings({ config, updateConfig }: TrackSettingsProps<Config>) {
+function SignalSettings({ track, updateTrack }: TrackSettingsProps<Config, Item>) {
   return (
     <SettingsSection title="Signal">
       <label>
         Threshold
         <input
           type="number"
-          value={config.threshold}
+          value={track.config.threshold}
           onChange={(event) => {
-            const result = updateConfig({ threshold: event.currentTarget.valueAsNumber });
+            const result = updateTrack({
+              config: { threshold: event.currentTarget.valueAsNumber },
+            });
             if (!result.ok) console.error(result.error);
           }}
         />
@@ -102,7 +104,7 @@ export const customSignalModule = defineTrackModule<Item>()({
 
 The fetch function receives only parsed config and a genomic region. Return raw regional data; the renderer owns conversion to pixels and display-specific shaping. Throwing from fetch produces the browser's error state for that track.
 
-Renderer-map keys are allowed display values. If `defaults.display` is absent, the first key is the default. Base defaults belong in `defaults`; config defaults belong in the Zod schema.
+Renderer-map keys are allowed display values. If `defaults.display` is absent, the first key is the default. Base defaults belong in `defaults`; config defaults belong in the Zod schema. Base colors use case-insensitive six-digit `#RRGGBB` syntax. Creation uses `"#000000"` when `defaults.color` and the create input both omit color, so validated track instances always have a concrete base color.
 
 ## Register and create
 
@@ -133,7 +135,7 @@ The optional second argument contains per-instance callbacks and is not serializ
 
 ## Settings, tooltip, and interactions
 
-Module settings receive `config` and `updateConfig`; use that focused API instead of reaching into the whole track store. Check its mutation result for user-entered values. The browser separately owns title, display, color, and height controls.
+Module settings receive `{ track, updateTrack }`. `track` is the current read-only validated snapshot, including base, config, and interaction context. The callback is bound to that track's ID and accepts optional shallow `base` and `config` patches, so a settings action can update both atomically. Check its mutation result for user-entered values instead of reaching into a global store. The browser still renders the standard title, display, color, and height controls separately.
 
 The renderer decides what semantic item a click or hover represents. `useInteraction<Item>()` returns item-only handlers because the browser binds the current runtime context. `useTooltip<Item, Config>()` reads that same context and opens the module's browser-positioned `tooltipComponent` with `{ item, context }`. Renderers do not pass a type or config to either hook. Both hooks require the renderer to run inside `GenomeBrowser`.
 

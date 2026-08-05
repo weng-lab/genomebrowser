@@ -4,9 +4,9 @@ import type {
   CaveAge,
   CaveConfig,
   CaveNeurotransmitter,
+  CaveTooltipItem,
   TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
-import { lightenColor, neutralTrackColor } from "../../TrackSettings/color";
 import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
 import { TrackSettingsFieldRow } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
@@ -26,10 +26,11 @@ const ageOptions = [
   { label: "Adulthood", value: "Adulthood" },
 ] as const satisfies readonly { label: string; value: CaveAge }[];
 
-export function CaveSettings({ config, updateConfig }: TrackSettingsProps<CaveConfig>) {
-  const bottomFallbackColor = config.bottomColor ?? neutralTrackColor;
-  const topFallbackColor = lightenColor(bottomFallbackColor, 0.5);
-
+export function CaveSettings({
+  track,
+  updateTrack,
+}: TrackSettingsProps<CaveConfig, CaveTooltipItem>) {
+  const { config } = track;
   return (
     <TrackSettingsLayout>
       <TrackSettingsSection title="CAVE dataset">
@@ -41,7 +42,9 @@ export function CaveSettings({ config, updateConfig }: TrackSettingsProps<CaveCo
             size="small"
             value={config.neurotransmitter}
             onChange={(event) => {
-              updateConfig({ neurotransmitter: event.target.value as CaveNeurotransmitter });
+              updateTrack({
+                config: { neurotransmitter: event.target.value as CaveNeurotransmitter },
+              });
             }}
           >
             {neurotransmitterOptions.map((option) => (
@@ -57,7 +60,7 @@ export function CaveSettings({ config, updateConfig }: TrackSettingsProps<CaveCo
             size="small"
             value={config.age}
             onChange={(event) => {
-              updateConfig({ age: event.target.value as CaveAge });
+              updateTrack({ config: { age: event.target.value as CaveAge } });
             }}
           >
             {ageOptions.map((option) => (
@@ -71,18 +74,14 @@ export function CaveSettings({ config, updateConfig }: TrackSettingsProps<CaveCo
       <TrackSettingsSection title="Signal colors">
         <TrackSettingsFieldRow>
           <TrackSettingsColorField
-            fallbackColor={topFallbackColor}
             label="Top color"
-            mode="optional"
             value={config.topColor}
-            onCommit={(topColor) => updateConfig({ topColor })}
+            onCommit={(topColor) => updateTrack({ config: { topColor } })}
           />
           <TrackSettingsColorField
-            fallbackColor={neutralTrackColor}
             label="Bottom color"
-            mode="optional"
             value={config.bottomColor}
-            onCommit={(bottomColor) => updateConfig({ bottomColor })}
+            onCommit={(bottomColor) => updateTrack({ config: { bottomColor } })}
           />
         </TrackSettingsFieldRow>
       </TrackSettingsSection>

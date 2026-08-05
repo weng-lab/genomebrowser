@@ -96,7 +96,7 @@ describe("methylC settings", () => {
 
   it("updates nested values while preserving their siblings", () => {
     vi.useFakeTimers();
-    const { updateConfig } = renderSettings();
+    const { updateTrack } = renderSettings();
 
     updateInput("Plus-strand CpG URL", "UPDATED_PLUS_CPG_URL");
     updateInput("Plus-strand CHG URL", "UPDATED_PLUS_CHG_URL");
@@ -107,29 +107,33 @@ describe("methylC settings", () => {
     clickInput("Mask CpG by coverage");
     act(() => vi.advanceTimersByTime(300));
 
-    expect(updateConfig.mock.calls).toEqual([
-      [{ colors: { ...config.colors, depth: "#663399" } }],
-      [{ colors: { ...config.colors, chh: "#112233", depth: "#663399" } }],
-      [{ maskCpgByCoverage: false }],
+    expect(updateTrack.mock.calls).toEqual([
+      [{ config: { colors: { ...config.colors, depth: "#663399" } } }],
+      [{ config: { colors: { ...config.colors, chh: "#112233", depth: "#663399" } } }],
+      [{ config: { maskCpgByCoverage: false } }],
       [
         {
-          urls: {
-            ...config.urls,
-            plusStrand: {
-              ...config.urls.plusStrand,
-              cpg: { url: "UPDATED_PLUS_CPG_URL" },
+          config: {
+            urls: {
+              ...config.urls,
+              plusStrand: {
+                ...config.urls.plusStrand,
+                cpg: { url: "UPDATED_PLUS_CPG_URL" },
+              },
             },
           },
         },
       ],
       [
         {
-          urls: {
-            ...config.urls,
-            plusStrand: {
-              ...config.urls.plusStrand,
-              cpg: { url: "UPDATED_PLUS_CPG_URL" },
-              chg: { url: "UPDATED_PLUS_CHG_URL" },
+          config: {
+            urls: {
+              ...config.urls,
+              plusStrand: {
+                ...config.urls.plusStrand,
+                cpg: { url: "UPDATED_PLUS_CPG_URL" },
+                chg: { url: "UPDATED_PLUS_CHG_URL" },
+              },
             },
           },
         },
@@ -137,36 +141,15 @@ describe("methylC settings", () => {
     ]);
   });
 
-  it("preserves required legacy channel colors until replacement", () => {
-    const legacyConfig: MethylCConfig = {
-      ...config,
-      colors: { ...config.colors, cpg: "rebeccapurple", depth: "#abc" },
-    };
-    const { updateConfig } = renderSettings(legacyConfig);
-
-    expect(getInput("CpG color").value).toBe("rebeccapurple");
-    expect(getInput("Depth color").value).toBe("#abc");
-    const opener = getButton("Open CpG color color picker");
-    act(() => opener.click());
-    expect(document.body.textContent).toContain("Selected color: #000000");
-    const saturation = getSlider("CpG color saturation");
-    act(() =>
-      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
-    );
-
-    expect(updateConfig).not.toHaveBeenCalled();
-    expect(getInput("CpG color").value).toBe("rebeccapurple");
-  });
-
   it("retains the first bound through a focus transition and commits the pair on Enter", () => {
     vi.useFakeTimers();
-    const { updateConfig } = renderSettings({ ...config, range: undefined });
+    const { updateTrack } = renderSettings({ ...config, range: undefined });
 
     focusInput("Minimum");
     updateInput("Minimum", "0");
     focusInput("Maximum");
 
-    expect(updateConfig).not.toHaveBeenCalled();
+    expect(updateTrack).not.toHaveBeenCalled();
     expect(getInput("Minimum").value).toBe("0");
     expect(getInput("Maximum").value).toBe("");
     expect(container?.textContent).toContain("Enter both minimum and maximum.");
@@ -174,28 +157,28 @@ describe("methylC settings", () => {
     updateInput("Maximum", "10");
     keyDownInput("Maximum", "Enter");
 
-    expect(updateConfig).toHaveBeenLastCalledWith({ range: { min: 0, max: 10 } });
+    expect(updateTrack).toHaveBeenLastCalledWith({ config: { range: { min: 0, max: 10 } } });
   });
 
   it("requires both manually entered bounds and clears the pair with the automatic action", () => {
     vi.useFakeTimers();
-    const { updateConfig } = renderSettings();
+    const { updateTrack } = renderSettings();
 
     updateInput("Minimum", "");
     act(() => vi.advanceTimersByTime(300));
 
-    expect(updateConfig).not.toHaveBeenCalled();
+    expect(updateTrack).not.toHaveBeenCalled();
     expect(getInput("Minimum").value).toBe("");
     expect(getInput("Maximum").value).toBe("8");
 
     act(() => getAutomaticRangeButton().click());
 
-    expect(updateConfig).toHaveBeenLastCalledWith({ range: undefined });
+    expect(updateTrack).toHaveBeenLastCalledWith({ config: { range: undefined } });
   });
 });
 
 function renderSettings(initialConfig = config) {
-  const updateConfig = vi.fn<TrackSettingsProps<MethylCConfig>["updateConfig"]>(() => ({
+  const updateTrack = vi.fn<TrackSettingsProps<MethylCConfig>["updateTrack"]>(() => ({
     ok: true,
   }));
   container = document.createElement("div");
@@ -205,13 +188,26 @@ function renderSettings(initialConfig = config) {
   const rerender = (nextConfig: MethylCConfig) => {
     act(() => {
       root?.render(
-        <MethylCSettings id="methylc" config={nextConfig} updateConfig={updateConfig} />,
+        <MethylCSettings
+          track={{
+            type: "methylc",
+            base: {
+              id: "methylc",
+              title: "MethylC",
+              display: "full",
+              height: 80,
+              color: "#000000",
+            },
+            config: nextConfig,
+          }}
+          updateTrack={updateTrack}
+        />,
       );
     });
   };
 
   rerender(initialConfig);
-  return { rerender, updateConfig };
+  return { rerender, updateTrack };
 }
 
 function getInput(label: string) {
@@ -264,20 +260,4 @@ function getAutomaticRangeButton() {
   );
   if (!button) throw new Error("Could not find the automatic range button");
   return button;
-}
-
-function getButton(name: string) {
-  const button = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
-    (candidate) => candidate.getAttribute("aria-label") === name,
-  );
-  if (!button) throw new Error(`Could not find button named ${name}`);
-  return button;
-}
-
-function getSlider(name: string) {
-  const slider = Array.from(
-    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
-  ).find((candidate) => candidate.getAttribute("aria-label") === name);
-  if (!slider) throw new Error(`Could not find slider named ${name}`);
-  return slider;
 }

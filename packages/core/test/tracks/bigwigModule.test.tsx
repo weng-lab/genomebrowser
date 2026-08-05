@@ -72,7 +72,7 @@ describe("BigWig module", () => {
     );
   });
 
-  it("parses clamp indicator defaults and explicit values", () => {
+  it("parses clamp indicator defaults and explicit hexadecimal values", () => {
     const defaultTrack = createTrack();
     const configuredTrack = bigWigModule.create({
       id: "configured-signal",
@@ -80,14 +80,21 @@ describe("BigWig module", () => {
       config: {
         url: "YOUR_URL_HERE",
         showClampIndicators: false,
-        clampIndicatorColor: "rebeccapurple",
+        clampIndicatorColor: "#663399",
       },
     });
 
     expect(defaultTrack.config.showClampIndicators).toBe(true);
     expect(defaultTrack.config.clampIndicatorColor).toBe("#ff0000");
     expect(configuredTrack.config.showClampIndicators).toBe(false);
-    expect(configuredTrack.config.clampIndicatorColor).toBe("rebeccapurple");
+    expect(configuredTrack.config.clampIndicatorColor).toBe("#663399");
+    expect(() =>
+      bigWigModule.create({
+        id: "invalid-color",
+        title: "Invalid color",
+        config: { url: "YOUR_URL_HERE", clampIndicatorColor: "rebeccapurple" },
+      }),
+    ).toThrow(/six-digit hexadecimal color/);
   });
 
   it("excludes both clamp indicator options from the fetch signature", () => {
@@ -144,6 +151,7 @@ describe("BigWig module", () => {
     const configuredMarkup = renderToStaticMarkup(
       <DenseRenderer
         id="signal"
+        color="#2266aa"
         config={{
           ...createTrack().config,
           yRange: { min: -1, max: 1 },
@@ -158,6 +166,7 @@ describe("BigWig module", () => {
     const hiddenMarkup = renderToStaticMarkup(
       <DenseRenderer
         id="signal"
+        color="#2266aa"
         config={{
           ...createTrack().config,
           yRange: { min: -1, max: 1 },
@@ -189,6 +198,7 @@ function renderFull(config: ReturnType<typeof createTrack>["config"]) {
   return renderToStaticMarkup(
     <FullRenderer
       id="signal"
+      color="#2266aa"
       config={config}
       data={clampedData}
       region={region}

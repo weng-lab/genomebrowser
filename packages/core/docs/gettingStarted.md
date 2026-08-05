@@ -83,8 +83,8 @@ if (!regionResult.ok) {
   console.error(regionResult.error);
 }
 
-const result = useTrackStore.getState().updateConfig("signal", {
-  url: "YOUR_URL_HERE",
+const result = useTrackStore.getState().updateTrack("signal", {
+  config: { url: "YOUR_URL_HERE" },
 });
 
 if (!result.ok) {

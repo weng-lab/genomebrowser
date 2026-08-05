@@ -15,12 +15,11 @@ const data = {
 };
 
 describe("CAVE module", () => {
-  it("accepts optional top and bottom colors without adding defaults to config", () => {
+  it("parses concrete top and bottom color defaults", () => {
     const defaultTrack = createTrack();
     const configuredTrack = createTrack({ topColor: "#123456", bottomColor: "#654321" });
 
-    expect(defaultTrack.config).not.toHaveProperty("topColor");
-    expect(defaultTrack.config).not.toHaveProperty("bottomColor");
+    expect(defaultTrack.config).toMatchObject({ topColor: "#000000", bottomColor: "#000000" });
     expect(configuredTrack.config).toMatchObject({
       topColor: "#123456",
       bottomColor: "#654321",
@@ -41,20 +40,25 @@ describe("CAVE module", () => {
     ).toBe(signature);
   });
 
-  it("preserves the track color fallback and supports independent overrides", () => {
-    const fallbackMarkup = renderFull(createTrack().config, "#123456");
+  it("renders concrete config colors directly", () => {
+    const defaultMarkup = renderFull(createTrack().config, "#123456");
     const bottomOnlyMarkup = renderFull(createTrack({ bottomColor: "#654321" }).config, "#123456");
     const configuredMarkup = renderFull(
-      createTrack({ topColor: "rebeccapurple", bottomColor: "tomato" }).config,
+      createTrack({ topColor: "#112233", bottomColor: "#445566" }).config,
       "#123456",
     );
 
-    expect(fallbackMarkup).toContain('fill="#92b4d6"');
-    expect(fallbackMarkup).toContain('fill="#123456"');
-    expect(bottomOnlyMarkup).toContain('fill="#e5c3a1"');
+    expect(defaultMarkup.match(/fill="#000000"/g)).toHaveLength(2);
+    expect(defaultMarkup).not.toContain('fill="#123456"');
+    expect(bottomOnlyMarkup).toContain('fill="#000000"');
     expect(bottomOnlyMarkup).toContain('fill="#654321"');
-    expect(configuredMarkup).toContain('fill="rebeccapurple"');
-    expect(configuredMarkup).toContain('fill="tomato"');
+    expect(configuredMarkup).toContain('fill="#112233"');
+    expect(configuredMarkup).toContain('fill="#445566"');
+  });
+
+  it("rejects non-hexadecimal signal colors", () => {
+    expect(() => createTrack({ topColor: "rebeccapurple" })).toThrow(/six-digit hexadecimal color/);
+    expect(() => createTrack({ bottomColor: "#abc" })).toThrow(/six-digit hexadecimal color/);
   });
 });
 

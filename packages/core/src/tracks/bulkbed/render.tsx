@@ -7,7 +7,7 @@ import type { BulkBedConfig, BulkBedData, BulkBedRect } from "./types";
 
 export function FullBulkBed({
   config,
-  color = "#4b9560",
+  color,
   data,
   region,
   width,

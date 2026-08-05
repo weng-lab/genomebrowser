@@ -25,7 +25,7 @@ const configSchema = z.object({ url: fetchOnChange(z.string().min(1)) });
 type Config = z.infer<typeof configSchema>;
 
 // Implement this host-owned navigation function in your application.
-declare function openItem(id: string, details: { url: string; color: string | undefined }): void;
+declare function openItem(id: string, details: { url: string; color: string }): void;
 
 function Renderer({ data }: TrackRendererProps<Config, Item[]>) {
   const interaction = useInteraction<Item>();
@@ -113,16 +113,11 @@ const nextTrack = bigWigModule.create({
 const addResult = useTrackStore.getState().addTrack(nextTrack);
 if (!addResult.ok) console.error(addResult.error);
 
-const updateResult = useTrackStore.getState().updateBase("signal-2", {
-  title: "Renamed signal",
-  height: 100,
+const updateResult = useTrackStore.getState().updateTrack("signal-2", {
+  base: { title: "Renamed signal", height: 100 },
+  config: { fillWithZero: true },
 });
 if (!updateResult.ok) console.error(updateResult.error);
-
-const configResult = useTrackStore.getState().updateConfig("signal-2", {
-  fillWithZero: true,
-});
-if (!configResult.ok) console.error(configResult.error);
 
 const ids = useTrackStore.getState().order;
 const reorderResult = useTrackStore.getState().reorderTracks([...ids].reverse());
@@ -132,7 +127,7 @@ const removeResult = useTrackStore.getState().removeTrack("signal-2");
 if (!removeResult.ok) console.error(removeResult.error);
 ```
 
-A reorder array must contain every current track ID exactly once. `updateBase` preserves the existing ID; replace a track if its identity or type must change.
+A reorder array must contain every current track ID exactly once. `updateTrack` shallowly merges the supplied `base` and `config` patches, validates the complete candidate once, and commits both sections or neither. Track ID and type are immutable; replace a track if either identity value must change. Interaction callbacks continue to use `updateInteraction`.
 
 ## Apply track changes atomically
 

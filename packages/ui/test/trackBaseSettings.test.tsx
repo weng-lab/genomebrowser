@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { TrackBase, TrackMutationResult } from "@weng-lab/genomebrowser";
+import type { TrackBase, TrackMutationResult, TrackUpdate } from "@weng-lab/genomebrowser";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -30,11 +30,15 @@ afterEach(() => {
 
 describe("TrackBaseSettings", () => {
   it("groups base fields into two semantic rows in source order", () => {
-    const updateBase = vi.fn<(partial: Partial<TrackBase>) => TrackMutationResult>(() => ({
+    const updateTrack = vi.fn<(update: TrackUpdate<never>) => TrackMutationResult>(() => ({
       ok: true,
     }));
     mount(
-      <TrackBaseSettings base={base} displayOptions={["full", "dense"]} updateBase={updateBase} />,
+      <TrackBaseSettings
+        base={base}
+        displayOptions={["full", "dense"]}
+        updateTrack={updateTrack}
+      />,
     );
 
     const title = getInput("Title");
@@ -60,10 +64,10 @@ describe("TrackBaseSettings", () => {
   });
 
   it("omits a single unavailable display option without leaving a placeholder field", () => {
-    const updateBase = vi.fn<(partial: Partial<TrackBase>) => TrackMutationResult>(() => ({
+    const updateTrack = vi.fn<(update: TrackUpdate<never>) => TrackMutationResult>(() => ({
       ok: true,
     }));
-    mount(<TrackBaseSettings base={base} displayOptions={["full"]} updateBase={updateBase} />);
+    mount(<TrackBaseSettings base={base} displayOptions={["full"]} updateTrack={updateTrack} />);
 
     expect(getOptionalSelect("Display mode")).toBeUndefined();
     const height = getInput("Height");
@@ -76,11 +80,15 @@ describe("TrackBaseSettings", () => {
 
   it("keeps required title and height drafts visible before valid debounced updates", () => {
     vi.useFakeTimers();
-    const updateBase = vi.fn<(partial: Partial<TrackBase>) => TrackMutationResult>(() => ({
+    const updateTrack = vi.fn<(update: TrackUpdate<never>) => TrackMutationResult>(() => ({
       ok: true,
     }));
     mount(
-      <TrackBaseSettings base={base} displayOptions={["full", "dense"]} updateBase={updateBase} />,
+      <TrackBaseSettings
+        base={base}
+        displayOptions={["full", "dense"]}
+        updateTrack={updateTrack}
+      />,
     );
 
     const title = getInput("Title");
@@ -92,98 +100,48 @@ describe("TrackBaseSettings", () => {
     updateInput(title, "Updated title");
     updateInput(height, "1.");
     act(() => vi.advanceTimersByTime(300));
-    expect(updateBase).toHaveBeenCalledWith({ title: "Updated title" });
+    expect(updateTrack).toHaveBeenCalledWith({ base: { title: "Updated title" } });
     expect(height.value).toBe("1.");
-    expect(updateBase).toHaveBeenCalledTimes(1);
+    expect(updateTrack).toHaveBeenCalledTimes(1);
 
     updateInput(height, "100");
     act(() => vi.advanceTimersByTime(300));
-    expect(updateBase).toHaveBeenLastCalledWith({ height: 100 });
+    expect(updateTrack).toHaveBeenLastCalledWith({ base: { height: 100 } });
   });
 
   it("commits valid colors and surfaces rejected mutations", () => {
-    const updateBase = vi
-      .fn<(partial: Partial<TrackBase>) => TrackMutationResult>()
+    const updateTrack = vi
+      .fn<(update: TrackUpdate<never>) => TrackMutationResult>()
       .mockReturnValueOnce({ ok: false, error: "Core rejected this color." })
       .mockReturnValueOnce({ ok: true });
     mount(
-      <TrackBaseSettings base={base} displayOptions={["full", "dense"]} updateBase={updateBase} />,
+      <TrackBaseSettings
+        base={base}
+        displayOptions={["full", "dense"]}
+        updateTrack={updateTrack}
+      />,
     );
 
     updateInput(getInput("Color"), "#abcdef");
     blurInput("Color");
     updateInput(getSelectInput(), "dense");
 
-    expect(updateBase).toHaveBeenNthCalledWith(1, { color: "#ABCDEF" });
-    expect(updateBase).toHaveBeenNthCalledWith(2, { display: "dense" });
+    expect(updateTrack).toHaveBeenNthCalledWith(1, { base: { color: "#ABCDEF" } });
+    expect(updateTrack).toHaveBeenNthCalledWith(2, { base: { display: "dense" } });
     expect(getInput("Color").getAttribute("aria-invalid")).toBe("true");
     expect(container?.textContent).toContain("Core rejected this color.");
   });
 
-  it("uses a required neutral display fallback without materializing a missing base color", () => {
-    const updateBase = vi.fn<(partial: Partial<TrackBase>) => TrackMutationResult>(() => ({
-      ok: true,
-    }));
-    mount(
-      <TrackBaseSettings
-        base={{ ...base, color: undefined }}
-        displayOptions={["full", "dense"]}
-        updateBase={updateBase}
-      />,
-    );
-
-    const color = getInput("Color");
-    expect(color.value).toBe("#000000");
-    expect(color.required).toBe(true);
-    blurInput("Color");
-    const opener = getButton("Open Color color picker");
-    act(() => opener.click());
-    const saturation = getSlider("Color saturation");
-    act(() =>
-      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
-    );
-    expect(updateBase).not.toHaveBeenCalled();
-    expect(document.activeElement).toBe(opener);
-
-    updateInput(color, "#a1b2c3");
-    blurInput("Color");
-    expect(updateBase).toHaveBeenCalledWith({ color: "#A1B2C3" });
-  });
-
-  it("preserves a core-valid legacy base color until it is replaced", () => {
-    const updateBase = vi.fn<(partial: Partial<TrackBase>) => TrackMutationResult>(() => ({
-      ok: true,
-    }));
-    mount(
-      <TrackBaseSettings
-        base={{ ...base, color: "rebeccapurple" }}
-        displayOptions={["full", "dense"]}
-        updateBase={updateBase}
-      />,
-    );
-
-    expect(getInput("Color").value).toBe("rebeccapurple");
-    const opener = getButton("Open Color color picker");
-    act(() => opener.click());
-    expect(document.body.textContent).toContain("Selected color: #000000");
-    const saturation = getSlider("Color saturation");
-    act(() =>
-      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
-    );
-    expect(updateBase).not.toHaveBeenCalled();
-    expect(getInput("Color").value).toBe("rebeccapurple");
-
-    updateInput(getInput("Color"), "#123456");
-    blurInput("Color");
-    expect(updateBase).toHaveBeenCalledWith({ color: "#123456" });
-  });
-
   it("keeps title validation associated with its field", () => {
-    const updateBase = vi.fn<(partial: Partial<TrackBase>) => TrackMutationResult>(() => ({
+    const updateTrack = vi.fn<(update: TrackUpdate<never>) => TrackMutationResult>(() => ({
       ok: true,
     }));
     mount(
-      <TrackBaseSettings base={base} displayOptions={["full", "dense"]} updateBase={updateBase} />,
+      <TrackBaseSettings
+        base={base}
+        displayOptions={["full", "dense"]}
+        updateTrack={updateTrack}
+      />,
     );
 
     const title = getInput("Title");
@@ -192,7 +150,7 @@ describe("TrackBaseSettings", () => {
     const describedBy = title.getAttribute("aria-describedby");
     expect(describedBy).toBeTruthy();
     expect(document.getElementById(describedBy ?? "")?.textContent).toBe("Enter a title.");
-    expect(updateBase).not.toHaveBeenCalled();
+    expect(updateTrack).not.toHaveBeenCalled();
   });
 });
 
@@ -239,22 +197,6 @@ function getSelectInput() {
   const input = container?.querySelector<HTMLInputElement>(".MuiSelect-nativeInput");
   if (!input) throw new Error("Could not find native select input");
   return input;
-}
-
-function getButton(name: string) {
-  const button = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
-    (candidate) => candidate.getAttribute("aria-label") === name,
-  );
-  if (!button) throw new Error(`Could not find button named ${name}`);
-  return button;
-}
-
-function getSlider(name: string) {
-  const slider = Array.from(
-    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
-  ).find((candidate) => candidate.getAttribute("aria-label") === name);
-  if (!slider) throw new Error(`Could not find slider named ${name}`);
-  return slider;
 }
 
 function getFieldRow(control: Element) {

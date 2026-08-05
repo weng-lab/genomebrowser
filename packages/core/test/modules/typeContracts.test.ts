@@ -7,6 +7,8 @@ import type {
   ModuleInstance,
   TrackInteraction,
   TrackRuntimeContext,
+  TrackSettingsProps,
+  TrackUpdate,
 } from "../../src/lib";
 
 describe("track module type contracts", () => {
@@ -172,6 +174,30 @@ describe("track module type contracts", () => {
     );
 
     expectTypeOf(track).toEqualTypeOf<ModuleInstance<typeof moduleA>>();
+  });
+
+  it("makes settings snapshots and track identity read-only at the type boundary", () => {
+    type Config = { url: string; enabled: boolean };
+
+    expectTypeOf<TrackSettingsProps<Config, ItemA>["track"]["config"]>().toEqualTypeOf<
+      Readonly<Config>
+    >();
+    expectTypeOf<Parameters<TrackSettingsProps<Config, ItemA>["updateTrack"]>[0]>().toEqualTypeOf<
+      TrackUpdate<Config>
+    >();
+
+    const assertImmutableSettingsContract = () => {
+      const props = null as unknown as TrackSettingsProps<Config, ItemA>;
+      // @ts-expect-error settings snapshots cannot mutate browser-owned base state.
+      props.track.base.height = 100;
+      // @ts-expect-error settings snapshots cannot mutate module config directly.
+      props.track.config.url = "YOUR_OTHER_URL_HERE";
+      // @ts-expect-error base identity is not part of the mutable base patch.
+      props.updateTrack({ base: { id: "other" } });
+      // @ts-expect-error track type is not part of an update.
+      props.updateTrack({ type: "other" });
+    };
+    expectTypeOf(assertImmutableSettingsContract).toBeFunction();
   });
 
   it("creates collection entries through the runtime validation boundary", () => {

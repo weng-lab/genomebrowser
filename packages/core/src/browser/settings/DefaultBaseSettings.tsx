@@ -2,14 +2,16 @@ import type { CSSProperties } from "react";
 import { useState } from "react";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackBase } from "../../modules/types";
+import { DraftColorInput } from "./DraftColorInput";
 import { isHexColor } from "./settingsColor";
 import type { BaseSettingsProps } from "./types";
 
-export function DefaultBaseSettings({ base, displayOptions, updateBase }: BaseSettingsProps) {
+export function DefaultBaseSettings({ base, displayOptions, updateTrack }: BaseSettingsProps) {
   const [error, setError] = useState<string | null>(null);
   const applyUpdate = (partial: Partial<TrackBase>) => {
-    const result = updateBase(partial);
+    const result = updateTrack({ base: partial });
     setError(result.ok ? null : result.error);
+    return result;
   };
 
   return (
@@ -31,11 +33,10 @@ export function DefaultBaseSettings({ base, displayOptions, updateBase }: BaseSe
             value={isHexColor(base.color) ? base.color : "#000000"}
             onChange={(event) => applyUpdate({ color: event.target.value })}
           />
-          <input
-            type="text"
-            value={base.color ?? ""}
-            placeholder="#000000"
-            onChange={(event) => applyUpdate({ color: event.target.value || undefined })}
+          <DraftColorInput
+            ariaLabel="Color hexadecimal value"
+            value={base.color}
+            onCommit={(color) => applyUpdate({ color })}
           />
         </div>
       </label>

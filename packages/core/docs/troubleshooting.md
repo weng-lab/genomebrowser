@@ -8,7 +8,7 @@ The track's `type` is absent from `createTrackStore({ modules })`. Register the 
 
 Create tracks with `module.create(...)` rather than assembling the nested runtime object by hand. IDs must be non-empty and unique within the store, display must name one of the module's renderers, height must be positive, and config must pass the module's strict Zod schema.
 
-Initial construction throws because no valid store can be returned. After construction, track-store mutations return `{ ok: false, error }` and leave all state unchanged. Check the return value from `addTrack`, `removeTrack`, `applyTrackChanges`, `reorderTracks`, `updateBase`, `updateConfig`, and `updateInteraction`.
+Initial construction throws because no valid store can be returned. After construction, track-store mutations return `{ ok: false, error }` and leave all state unchanged. Check the return value from `addTrack`, `removeTrack`, `applyTrackChanges`, `reorderTracks`, `updateTrack`, and `updateInteraction`.
 
 ## A browser region is rejected or clamped
 

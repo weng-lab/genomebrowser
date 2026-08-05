@@ -30,7 +30,7 @@ const track = methylCModule.create({
 Fields:
 
 - `urls`: plus-strand and minus-strand channel URLs for `cpg`, `chg`, `chh`, and `depth`
-- `colors`: optional channel colors for `cpg`, `chg`, `chh`, and `depth`
+- `colors`: optional channel colors for `cpg`, `chg`, `chh`, and `depth`; every value uses six-digit `#RRGGBB` syntax
 - `maskCpgByCoverage`: masks CpG values by coverage when `true`, default `false`
 - `range`: optional fixed y-axis range with `{ min, max }`; `min` must be less than `max`
 

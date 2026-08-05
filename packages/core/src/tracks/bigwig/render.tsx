@@ -16,7 +16,7 @@ import type { BigWigConfig, BigWigData, RenderedBigWigPoint, YRange } from "./ty
 
 export function FullBigWig({
   config,
-  color = "#2266aa",
+  color,
   data,
   width,
   height,
@@ -38,13 +38,13 @@ export function FullBigWig({
         <>
           <path
             d={paths.clampHighPath}
-            stroke={config.clampIndicatorColor ?? "#ff0000"}
+            stroke={config.clampIndicatorColor}
             strokeWidth={1}
             fill="none"
           />
           <path
             d={paths.clampLowPath}
-            stroke={config.clampIndicatorColor ?? "#ff0000"}
+            stroke={config.clampIndicatorColor}
             strokeWidth={1}
             fill="none"
           />
@@ -57,7 +57,7 @@ export function FullBigWig({
 
 export function DenseBigWig({
   config,
-  color = "#2266aa",
+  color,
   data,
   width,
   height,

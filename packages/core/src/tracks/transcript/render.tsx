@@ -33,7 +33,7 @@ export function PackTranscript(props: TrackRendererProps<TranscriptConfig, Trans
 function TranscriptRows({
   id,
   config,
-  color = "#7a4fb3",
+  color,
   region,
   width,
   height,
@@ -95,9 +95,9 @@ function TranscriptRows({
 }
 
 function getTranscriptColor(config: TranscriptConfig, transcript: Transcript, color: string) {
-  if (isManeSelectTranscript(transcript.tag)) return config.canonicalColor ?? color;
+  if (isManeSelectTranscript(transcript.tag)) return config.canonicalColor;
   if (config.geneName && transcript.name.toLowerCase().includes(config.geneName.toLowerCase())) {
-    return config.highlightColor ?? color;
+    return config.highlightColor;
   }
   return transcript.color || color;
 }

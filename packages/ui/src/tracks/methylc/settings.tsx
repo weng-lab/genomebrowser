@@ -1,8 +1,11 @@
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
-import type { MethylCConfig, TrackSettingsProps } from "@weng-lab/genomebrowser";
+import type {
+  MethylCConfig,
+  MethylCTooltipItem,
+  TrackSettingsProps,
+} from "@weng-lab/genomebrowser";
 import { useEffect, useRef } from "react";
-import { neutralTrackColor } from "../../TrackSettings/color";
 import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
@@ -33,14 +36,18 @@ const colors: ReadonlyArray<{ key: Color; label: string }> = [
   { key: "depth", label: "Depth color" },
 ];
 
-export function MethylCSettings({ config, updateConfig }: TrackSettingsProps<MethylCConfig>) {
+export function MethylCSettings({
+  track,
+  updateTrack,
+}: TrackSettingsProps<MethylCConfig, MethylCTooltipItem>) {
+  const { config } = track;
   const committedConfigRef = useRef(config);
   useEffect(() => {
     committedConfigRef.current = config;
   }, [config]);
 
   const applyConfig = (partial: Partial<MethylCConfig>) => {
-    const result = updateConfig(partial);
+    const result = updateTrack({ config: partial });
     if (result.ok) {
       committedConfigRef.current = { ...committedConfigRef.current, ...partial };
     }
@@ -95,9 +102,7 @@ export function MethylCSettings({ config, updateConfig }: TrackSettingsProps<Met
           {colors.map(({ key, label }) => (
             <TrackSettingsColorField
               key={key}
-              fallbackColor={neutralTrackColor}
               label={label}
-              mode="required"
               value={config.colors[key]}
               onCommit={(value) => updateColor(key, value)}
             />

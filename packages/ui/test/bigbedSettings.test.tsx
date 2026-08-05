@@ -22,18 +22,14 @@ afterEach(() => {
 describe("BigBed settings", () => {
   it("renders a controlled URL field and forwards URL changes", () => {
     vi.useFakeTimers();
-    const updateConfig = vi.fn((): { ok: true } => ({ ok: true }));
+    const updateTrack = vi.fn((): { ok: true } => ({ ok: true }));
 
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
     act(() => {
       root?.render(
-        <BigBedSettings
-          id="bigbed"
-          config={{ url: "YOUR_URL_HERE" }}
-          updateConfig={updateConfig}
-        />,
+        <BigBedSettings track={track({ url: "YOUR_URL_HERE" })} updateTrack={updateTrack} />,
       );
     });
 
@@ -56,8 +52,22 @@ describe("BigBed settings", () => {
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
 
-    expect(updateConfig).not.toHaveBeenCalled();
+    expect(updateTrack).not.toHaveBeenCalled();
     act(() => vi.advanceTimersByTime(300));
-    expect(updateConfig).toHaveBeenCalledWith({ url: "UPDATED_URL" });
+    expect(updateTrack).toHaveBeenCalledWith({ config: { url: "UPDATED_URL" } });
   });
 });
+
+function track(config: { url: string }) {
+  return {
+    type: "bigbed",
+    base: {
+      id: "bigbed",
+      title: "BigBed",
+      display: "dense",
+      height: 60,
+      color: "#4b9560",
+    },
+    config,
+  };
+}

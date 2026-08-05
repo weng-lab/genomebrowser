@@ -3,7 +3,7 @@
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { TrackMutationResult } from "../../src/modules/types";
+import type { TrackSettingsProps } from "../../src/modules/types";
 import { BulkBedSettings } from "../../src/tracks/bulkbed/settings";
 import type { BulkBedConfig, BulkBedDataset } from "../../src/tracks/bulkbed/types";
 
@@ -30,7 +30,8 @@ function Harness({
 }: HarnessProps) {
   const [config, setConfig] = useState(initialConfig);
 
-  const updateConfig = (partial: Partial<BulkBedConfig>): TrackMutationResult => {
+  const updateTrack: TrackSettingsProps<BulkBedConfig>["updateTrack"] = (update) => {
+    const partial = update.config ?? {};
     const nextLength = partial.datasets?.length ?? config.datasets.length;
     if (
       (rejectAdd && nextLength > config.datasets.length) ||
@@ -67,7 +68,20 @@ function Harness({
       >
         Shorten externally
       </button>
-      <BulkBedSettings id={trackId} config={config} updateConfig={updateConfig} />
+      <BulkBedSettings
+        track={{
+          type: "bulkbed",
+          base: {
+            id: trackId,
+            title: "BulkBed",
+            display: "full",
+            height: 80,
+            color: "#000000",
+          },
+          config,
+        }}
+        updateTrack={updateTrack}
+      />
     </>
   );
 }

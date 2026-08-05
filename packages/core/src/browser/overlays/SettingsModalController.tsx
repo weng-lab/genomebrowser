@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { TrackSettingsProps } from "../../modules/types";
+import type { ReadonlyTrackInstance, TrackSettingsProps } from "../../modules/types";
 import {
   useSettingsStore,
   useTrackMutationGate,
@@ -16,8 +16,7 @@ export function SettingsModalController() {
   const BaseSettingsComponent = useSettingsStore((state) => state.baseSettingsComponent);
   const closeSettings = useSettingsStore((state) => state.closeSettings);
   const track = useTrackStore((state) => (trackId ? state.getTrack(trackId) : undefined));
-  const updateBase = useTrackStore((state) => state.updateBase);
-  const updateConfig = useTrackStore((state) => state.updateConfig);
+  const updateTrack = useTrackStore((state) => state.updateTrack);
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
 
   if (!open || !track) return null;
@@ -27,11 +26,8 @@ export function SettingsModalController() {
     const ModuleSettingsComponent = module.settingsComponent as
       | ComponentType<TrackSettingsProps<unknown>>
       | undefined;
-    const updateActiveBase = (partial: Parameters<typeof updateBase>[1]) => {
-      return runTrackMutation(() => updateBase(track.base.id, partial));
-    };
-    const updateActiveConfig = (partial: Partial<unknown>) => {
-      return runTrackMutation(() => updateConfig(track.base.id, partial));
+    const updateActiveTrack: TrackSettingsProps<unknown>["updateTrack"] = (update) => {
+      return runTrackMutation(() => updateTrack(track.base.id, update));
     };
 
     return (
@@ -42,6 +38,7 @@ export function SettingsModalController() {
         closeSettings={closeSettings}
       >
         <div
+          key={track.base.id}
           aria-disabled={isInteractionBlocked}
           style={{
             display: "grid",
@@ -53,13 +50,12 @@ export function SettingsModalController() {
           <BaseSettingsComponent
             base={track.base}
             displayOptions={Object.keys(module.render)}
-            updateBase={updateActiveBase}
+            updateTrack={updateActiveTrack}
           />
           {ModuleSettingsComponent && (
             <ModuleSettingsComponent
-              id={track.base.id}
-              config={track.config}
-              updateConfig={updateActiveConfig}
+              track={track as ReadonlyTrackInstance<unknown>}
+              updateTrack={updateActiveTrack}
             />
           )}
         </div>

@@ -1,13 +1,18 @@
 import { useRef, useState } from "react";
+import { DraftColorInput } from "../../browser/settings/DraftColorInput";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackSettingsProps } from "../../modules/types";
-import type { BigWigConfig } from "./types";
+import type { BigWigConfig, RenderedBigWigPoint } from "./types";
 
-export function BigWigSettings({ id, config, updateConfig }: TrackSettingsProps<BigWigConfig>) {
+export function BigWigSettings({
+  track,
+  updateTrack,
+}: TrackSettingsProps<BigWigConfig, RenderedBigWigPoint>) {
+  const { config } = track;
   const minRef = useRef<HTMLInputElement>(null);
   const maxRef = useRef<HTMLInputElement>(null);
   const [rangeError, setRangeError] = useState<string>();
-  const rangeErrorId = `${id}-y-range-error`;
+  const rangeErrorId = `${track.base.id}-y-range-error`;
   const updateYRange = () => {
     const minValue = minRef.current?.value ?? "";
     const maxValue = maxRef.current?.value ?? "";
@@ -27,7 +32,7 @@ export function BigWigSettings({ id, config, updateConfig }: TrackSettingsProps<
       min === undefined && max === undefined
         ? undefined
         : { ...(min !== undefined ? { min } : {}), ...(max !== undefined ? { max } : {}) };
-    const result = updateConfig({ yRange });
+    const result = updateTrack({ config: { yRange } });
     setRangeError(result.ok ? undefined : result.error);
   };
 
@@ -38,14 +43,14 @@ export function BigWigSettings({ id, config, updateConfig }: TrackSettingsProps<
         <input
           type="text"
           value={config.url}
-          onChange={(event) => updateConfig({ url: event.target.value })}
+          onChange={(event) => updateTrack({ config: { url: event.target.value } })}
         />
       </label>
       <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         <input
           type="checkbox"
           checked={config.fillWithZero ?? false}
-          onChange={(event) => updateConfig({ fillWithZero: event.target.checked })}
+          onChange={(event) => updateTrack({ config: { fillWithZero: event.target.checked } })}
         />
         Fill missing values with zero
       </label>
@@ -53,17 +58,18 @@ export function BigWigSettings({ id, config, updateConfig }: TrackSettingsProps<
         <input
           type="checkbox"
           checked={config.showClampIndicators ?? true}
-          onChange={(event) => updateConfig({ showClampIndicators: event.target.checked })}
+          onChange={(event) =>
+            updateTrack({ config: { showClampIndicators: event.target.checked } })
+          }
         />
         Show clamp indicators
       </label>
       <label style={{ display: "grid", gap: "4px" }}>
         Clamp indicator color
-        <input
-          type="text"
-          value={config.clampIndicatorColor ?? "#ff0000"}
+        <DraftColorInput
+          value={config.clampIndicatorColor}
           disabled={!(config.showClampIndicators ?? true)}
-          onChange={(event) => updateConfig({ clampIndicatorColor: event.target.value })}
+          onCommit={(clampIndicatorColor) => updateTrack({ config: { clampIndicatorColor } })}
         />
       </label>
       <div style={{ display: "grid", gap: "6px" }}>
@@ -98,7 +104,7 @@ export function BigWigSettings({ id, config, updateConfig }: TrackSettingsProps<
             onClick={() => {
               if (minRef.current) minRef.current.value = "";
               if (maxRef.current) maxRef.current.value = "";
-              const result = updateConfig({ yRange: undefined });
+              const result = updateTrack({ config: { yRange: undefined } });
               setRangeError(result.ok ? undefined : result.error);
             }}
           >

@@ -68,7 +68,7 @@ describe("BigWig settings", () => {
 
   it("updates scalar options and preserves both y-axis bounds", () => {
     vi.useFakeTimers();
-    const updateConfig = renderSettings();
+    const updateTrack = renderSettings();
 
     updateInput("URL", "YOUR_OTHER_URL_HERE");
     clickInput("Fill missing values with zero");
@@ -79,70 +79,70 @@ describe("BigWig settings", () => {
     updateInput("Maximum", "12");
     act(() => vi.advanceTimersByTime(300));
 
-    expect(updateConfig.mock.calls).toEqual([
-      [{ fillWithZero: true }],
-      [{ clampIndicatorColor: "#663399" }],
-      [{ showClampIndicators: false }],
-      [{ url: "YOUR_OTHER_URL_HERE" }],
-      [{ yRange: { min: -1.5, max: 12 } }],
+    expect(updateTrack.mock.calls).toEqual([
+      [{ config: { fillWithZero: true } }],
+      [{ config: { clampIndicatorColor: "#663399" } }],
+      [{ config: { showClampIndicators: false } }],
+      [{ config: { url: "YOUR_OTHER_URL_HERE" } }],
+      [{ config: { yRange: { min: -1.5, max: 12 } } }],
     ]);
   });
 
   it("commits and preserves a minimum-only y-axis override on blur", () => {
     vi.useFakeTimers();
-    const updateConfig = renderSettings({ ...config, yRange: undefined });
+    const updateTrack = renderSettings({ ...config, yRange: undefined });
 
     updateInput("Minimum", "0");
     blurInput("Minimum");
 
-    expect(updateConfig).toHaveBeenCalledWith({ yRange: { min: 0 } });
+    expect(updateTrack).toHaveBeenCalledWith({ config: { yRange: { min: 0 } } });
     expect(getInput("Minimum").value).toBe("0");
     expect(getInput("Maximum").value).toBe("");
   });
 
   it("commits and preserves a maximum-only y-axis override on blur", () => {
     vi.useFakeTimers();
-    const updateConfig = renderSettings({ ...config, yRange: undefined });
+    const updateTrack = renderSettings({ ...config, yRange: undefined });
 
     updateInput("Maximum", "10");
     blurInput("Maximum");
 
-    expect(updateConfig).toHaveBeenCalledWith({ yRange: { max: 10 } });
+    expect(updateTrack).toHaveBeenCalledWith({ config: { yRange: { max: 10 } } });
     expect(getInput("Minimum").value).toBe("");
     expect(getInput("Maximum").value).toBe("10");
   });
 
   it("commits both explicit y-axis bounds together", () => {
     vi.useFakeTimers();
-    const updateConfig = renderSettings({ ...config, yRange: undefined });
+    const updateTrack = renderSettings({ ...config, yRange: undefined });
 
     updateInput("Minimum", "0");
     updateInput("Maximum", "10");
     act(() => vi.advanceTimersByTime(300));
 
-    expect(updateConfig).toHaveBeenCalledTimes(1);
-    expect(updateConfig).toHaveBeenCalledWith({ yRange: { min: 0, max: 10 } });
+    expect(updateTrack).toHaveBeenCalledTimes(1);
+    expect(updateTrack).toHaveBeenCalledWith({ config: { yRange: { min: 0, max: 10 } } });
   });
 
   it("commits undefined when both y-axis bounds are blank", () => {
-    const updateConfig = renderSettings();
+    const updateTrack = renderSettings();
 
     act(() => getAutomaticRangeButton().click());
 
-    expect(updateConfig).toHaveBeenCalledWith({ yRange: undefined });
+    expect(updateTrack).toHaveBeenCalledWith({ config: { yRange: undefined } });
     expect(getInput("Minimum").value).toBe("");
     expect(getInput("Maximum").value).toBe("");
   });
 
   it("preserves an invalid explicit pair and shows an error without committing it", () => {
     vi.useFakeTimers();
-    const updateConfig = renderSettings({ ...config, yRange: undefined });
+    const updateTrack = renderSettings({ ...config, yRange: undefined });
 
     updateInput("Minimum", "10");
     updateInput("Maximum", "5");
     blurInput("Maximum");
 
-    expect(updateConfig).not.toHaveBeenCalled();
+    expect(updateTrack).not.toHaveBeenCalled();
     expect(getInput("Minimum").value).toBe("10");
     expect(getInput("Maximum").value).toBe("5");
     expect(container?.textContent).toContain("Minimum must be less than maximum.");
@@ -168,7 +168,7 @@ describe("BigWig settings", () => {
       title: "Normalized signal",
       config: { url: "YOUR_URL_HERE" },
     }).config;
-    const updateConfig = renderSettings(normalizedConfig);
+    const updateTrack = renderSettings(normalizedConfig);
 
     const color = getInput("Clamp indicator color");
     expect(normalizedConfig.clampIndicatorColor).toBe("#ff0000");
@@ -181,53 +181,46 @@ describe("BigWig settings", () => {
     act(() =>
       saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
     );
-    expect(updateConfig).not.toHaveBeenCalled();
+    expect(updateTrack).not.toHaveBeenCalled();
     expect(document.activeElement).toBe(opener);
   });
 
-  it("preserves a core-normalized CSS clamp color and starts its picker from red", () => {
-    const normalizedConfig = bigWigModule.create({
-      id: "legacy-signal",
-      title: "Legacy signal",
-      config: { url: "YOUR_URL_HERE", clampIndicatorColor: "rebeccapurple" },
-    }).config;
-    const updateConfig = renderSettings(normalizedConfig);
-
-    expect(getInput("Clamp indicator color").value).toBe("rebeccapurple");
-    const opener = getButton("Open Clamp indicator color color picker");
-    act(() => opener.click());
-    expect(document.body.textContent).toContain("Selected color: #FF0000");
-    const saturation = getSlider("Clamp indicator color saturation");
-    act(() =>
-      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
-    );
-
-    expect(updateConfig).not.toHaveBeenCalled();
-    expect(getInput("Clamp indicator color").value).toBe("rebeccapurple");
-  });
-
   it("disables the complete clamp color control when clamp indicators are hidden", () => {
-    const updateConfig = renderSettings({ ...config, showClampIndicators: false });
+    const updateTrack = renderSettings({ ...config, showClampIndicators: false });
 
     const color = getInput("Clamp indicator color");
     expect(color.disabled).toBe(true);
     expect(getButton("Open Clamp indicator color color picker").disabled).toBe(true);
     expect(getOptionalButton("Clear Clamp indicator color")).toBeUndefined();
-    expect(updateConfig).not.toHaveBeenCalled();
+    expect(updateTrack).not.toHaveBeenCalled();
   });
 });
 
 function renderSettings(initialConfig = config) {
-  const updateConfig = vi.fn<TrackSettingsProps<BigWigConfig>["updateConfig"]>(() => ({
+  const updateTrack = vi.fn<TrackSettingsProps<BigWigConfig>["updateTrack"]>(() => ({
     ok: true,
   }));
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
   act(() => {
-    root?.render(<BigWigSettings id="signal" config={initialConfig} updateConfig={updateConfig} />);
+    root?.render(<BigWigSettings track={track(initialConfig)} updateTrack={updateTrack} />);
   });
-  return updateConfig;
+  return updateTrack;
+}
+
+function track(config: BigWigConfig) {
+  return {
+    type: "bigwig",
+    base: {
+      id: "signal",
+      title: "Signal",
+      display: "full",
+      height: 80,
+      color: "#2266aa",
+    },
+    config,
+  };
 }
 
 function getInput(label: string) {

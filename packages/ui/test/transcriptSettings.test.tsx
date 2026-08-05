@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
 
-import { defaultScreenGraphQlEndpoint, type TranscriptConfig } from "@weng-lab/genomebrowser";
+import {
+  defaultScreenGraphQlEndpoint,
+  type TrackSettingsProps,
+  type TranscriptConfig,
+} from "@weng-lab/genomebrowser";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -63,85 +67,57 @@ describe("Transcript settings", () => {
     expect(getComputedStyle(assemblyRow).flexWrap).toBe("nowrap");
   });
 
-  it("updates typed values and clears optional values", () => {
+  it("updates typed values and the optional gene name", () => {
     vi.useFakeTimers();
-    const updateConfig = renderSettings();
+    const updateTrack = renderSettings();
 
     updateInput("Endpoint", "");
     updateInput("Assembly", "GRCh37");
     updateInput("Version", "41");
     act(() => vi.advanceTimersByTime(300));
     updateInput("Highlight gene", "");
-    updateInput("Canonical color", "");
+    updateInput("Canonical color", "#112233");
     blurInput("Canonical color");
-    updateInput("Highlight color", "");
+    updateInput("Highlight color", "#445566");
     blurInput("Highlight color");
     updateInput("Version", "4.5");
 
-    expect(updateConfig.mock.calls).toEqual([
-      [{ assembly: "GRCh37" }],
-      [{ version: 41 }],
-      [{ geneName: undefined }],
-      [{ canonicalColor: undefined }],
-      [{ highlightColor: undefined }],
+    expect(updateTrack.mock.calls).toEqual([
+      [{ config: { assembly: "GRCh37" } }],
+      [{ config: { version: 41 } }],
+      [{ config: { geneName: undefined } }],
+      [{ config: { canonicalColor: "#112233" } }],
+      [{ config: { highlightColor: "#445566" } }],
     ]);
-  });
-
-  it("uses neutral display-only fallbacks without materializing optional colors", () => {
-    const updateConfig = renderSettings({
-      ...config,
-      canonicalColor: undefined,
-      highlightColor: undefined,
-    });
-
-    expect(getInput("Canonical color").value).toBe("");
-    expect(getInput("Canonical color").placeholder).toBe("#000000");
-    expect(getInput("Highlight color").value).toBe("");
-    expect(getInput("Highlight color").placeholder).toBe("#000000");
-    const opener = getButton("Open Canonical color color picker");
-    act(() => opener.click());
-    const saturation = getSlider("Canonical color saturation");
-    act(() =>
-      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
-    );
-
-    expect(updateConfig).not.toHaveBeenCalled();
-    expect(document.activeElement).toBe(opener);
-  });
-
-  it("preserves core-valid legacy highlight colors until replacement", () => {
-    const updateConfig = renderSettings({
-      ...config,
-      canonicalColor: "rebeccapurple",
-      highlightColor: "#abc",
-    });
-
-    expect(getInput("Canonical color").value).toBe("rebeccapurple");
-    expect(getInput("Highlight color").value).toBe("#abc");
-    const opener = getButton("Open Canonical color color picker");
-    act(() => opener.click());
-    expect(document.body.textContent).toContain("Selected color: #000000");
-    const saturation = getSlider("Canonical color saturation");
-    act(() =>
-      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
-    );
-
-    expect(updateConfig).not.toHaveBeenCalled();
-    expect(getInput("Canonical color").value).toBe("rebeccapurple");
   });
 });
 
 function renderSettings(initialConfig = config) {
-  const updateConfig = vi.fn((): { ok: true } => ({ ok: true }));
+  const updateTrack = vi.fn<TrackSettingsProps<TranscriptConfig>["updateTrack"]>(() => ({
+    ok: true,
+  }));
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
   act(() => {
     root?.render(
-      <TranscriptSettings id="genes" config={initialConfig} updateConfig={updateConfig} />,
+      <TranscriptSettings
+        track={{
+          type: "transcript",
+          base: {
+            id: "genes",
+            title: "Genes",
+            display: "pack",
+            height: 90,
+            color: "#7a4fb3",
+          },
+          config: initialConfig,
+        }}
+        updateTrack={updateTrack}
+      />,
     );
   });
-  return updateConfig;
+  return updateTrack;
 }
 
 function getInput(label: string) {
@@ -173,20 +149,4 @@ function updateInput(label: string, value: string) {
 
 function blurInput(label: string) {
   act(() => getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
-}
-
-function getButton(name: string) {
-  const button = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
-    (candidate) => candidate.getAttribute("aria-label") === name,
-  );
-  if (!button) throw new Error(`Could not find button named ${name}`);
-  return button;
-}
-
-function getSlider(name: string) {
-  const slider = Array.from(
-    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
-  ).find((candidate) => candidate.getAttribute("aria-label") === name);
-  if (!slider) throw new Error(`Could not find slider named ${name}`);
-  return slider;
 }

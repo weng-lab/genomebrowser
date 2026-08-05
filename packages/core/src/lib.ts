@@ -18,7 +18,9 @@ export type {
   AnyTrackTooltipComponent,
   ModuleCreateInput,
   ModuleInstance,
+  ReadonlyTrackInstance,
   TrackBase,
+  TrackBaseUpdate,
   TrackCreateInput,
   TrackFetch,
   TrackFetchContext,
@@ -34,6 +36,7 @@ export type {
   TrackSettingsProps,
   TrackRuntimeContext,
   TrackTooltipComponent,
+  TrackUpdate,
 } from "./modules/types";
 export type { ModuleRegistry, TrackCollectionEntry } from "./modules/registry";
 
@@ -82,7 +85,6 @@ export type {
   TrackStore,
   TrackStoreInstance,
   TrackStoreOptions,
-  TrackConfigUpdate,
   TrackInteractionUpdate,
 } from "./browser/state/trackStore";
 

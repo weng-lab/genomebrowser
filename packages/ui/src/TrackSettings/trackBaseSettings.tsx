@@ -3,7 +3,6 @@ import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import type { BaseSettingsProps, TrackBase } from "@weng-lab/genomebrowser";
 import { useState } from "react";
-import { neutralTrackColor } from "./color";
 import { TrackSettingsColorField } from "./trackSettingsColorField";
 import { TrackSettingsNumberField } from "./trackSettingsNumberField";
 import { TrackSettingsTextField } from "./trackSettingsTextField";
@@ -13,11 +12,11 @@ import { TrackSettingsSection } from "./trackSettingsSection";
 
 export type TrackBaseSettingsProps = BaseSettingsProps;
 
-export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBaseSettingsProps) {
+export function TrackBaseSettings({ base, displayOptions, updateTrack }: TrackBaseSettingsProps) {
   const [error, setError] = useState<string>();
 
   const applyImmediateUpdate = (partial: Partial<TrackBase>) => {
-    const result = updateBase(partial);
+    const result = updateTrack({ base: partial });
     setError(result.ok ? undefined : result.error);
     return result;
   };
@@ -32,12 +31,10 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
             required
             value={base.title}
             validate={(title) => (title.trim() === "" ? "Enter a title." : undefined)}
-            onCommit={(title) => updateBase({ title })}
+            onCommit={(title) => updateTrack({ base: { title } })}
           />
           <TrackSettingsColorField
-            fallbackColor={neutralTrackColor}
             label="Color"
-            mode="required"
             value={base.color}
             onCommit={(color) => applyImmediateUpdate({ color })}
           />
@@ -66,7 +63,7 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
             required
             value={base.height}
             validate={(height) => (height >= 20 ? undefined : "Enter a height of at least 20.")}
-            onCommit={(height) => updateBase({ height })}
+            onCommit={(height) => updateTrack({ base: { height } })}
           />
         </TrackSettingsFieldRow>
       </TrackSettingsSection>

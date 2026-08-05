@@ -33,13 +33,14 @@ describe("TrackSettingsColorField", () => {
     mount(
       <TrackSettingsColorField
         label="Track color"
-        mode="required"
         value="#1a2b3c"
         onCommit={() => ({ ok: true })}
       />,
     );
 
     expect(getInput("Track color").value).toBe("#1A2B3C");
+    expect(getInput("Track color").placeholder).toBe("");
+    expect(document.body.textContent).not.toContain("fallback");
     expect(getButton("Open Track color color picker")).toBeTruthy();
     expect(getOptionalButton("Clear Track color")).toBeUndefined();
     expect(
@@ -85,120 +86,10 @@ describe("TrackSettingsColorField", () => {
     expect(onCommit).toHaveBeenLastCalledWith("#FEDCBA");
   });
 
-  it("preserves an optional fallback until a picker change and clears only explicit values", () => {
-    const onCommit = vi.fn<(color: string | undefined) => TrackMutationResult>(() => ({
-      ok: true,
-    }));
-    mount(<OptionalHarness initialValue={undefined} onCommit={onCommit} />);
-    const input = getInput("Signal color");
-
-    expect(input.value).toBe("");
-    expect(input.placeholder).toBe("#0A0B0C");
-    expect(document.body.textContent).toContain("Using fallback #0A0B0C.");
-    expect(getButton("Clear Signal color").disabled).toBe(true);
-
-    const opener = getButton("Open Signal color color picker");
-    click(opener);
-    expect(getSaturationValueSurface("Signal color").getAttribute("role")).toBe("img");
-    keyDown(getSlider("Signal color saturation"), "Escape");
-    expect(onCommit).not.toHaveBeenCalled();
-    expect(document.activeElement).toBe(opener);
-
-    click(opener);
-    updateRange(getSlider("Signal color saturation"), "50");
-    expect(onCommit).toHaveBeenCalledWith(expect.stringMatching(/^#[0-9A-F]{6}$/));
-
-    onCommit.mockClear();
-    rerender(<OptionalHarness key="explicit" initialValue="#123456" onCommit={onCommit} />);
-    click(getButton("Clear Signal color"));
-    expect(onCommit).toHaveBeenCalledWith(undefined);
-  });
-
-  it("shows a required display-only fallback without materializing it", () => {
-    const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
-    mount(
-      <TrackSettingsColorField
-        fallbackColor="#000000"
-        label="Track color"
-        mode="required"
-        value={undefined}
-        onCommit={onCommit}
-      />,
-    );
-
-    const input = getInput("Track color");
-    expect(input.value).toBe("#000000");
-    expect(input.required).toBe(true);
-    blur(input);
-    click(getButton("Open Track color color picker"));
-    keyDown(getSlider("Track color saturation"), "Escape");
-    expect(onCommit).not.toHaveBeenCalled();
-
-    updateInput(input, "#123456");
-    blur(input);
-    expect(onCommit).toHaveBeenCalledWith("#123456");
-  });
-
-  it("preserves legacy controlled colors and initializes their picker from the fallback", () => {
-    const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
-    mount(
-      <TrackSettingsColorField
-        fallbackColor="#0A0B0C"
-        label="Track color"
-        mode="required"
-        value="rebeccapurple"
-        onCommit={onCommit}
-      />,
-    );
-
-    const input = getInput("Track color");
-    expect(input.value).toBe("rebeccapurple");
-    expect(
-      getComputedStyle(getButton("Open Track color color picker").firstElementChild as HTMLElement)
-        .backgroundColor,
-    ).toBe("rgb(102, 51, 153)");
-    const opener = getButton("Open Track color color picker");
-    click(opener);
-    expect(document.body.textContent).toContain("Selected color: #0A0B0C");
-    keyDown(getSlider("Track color saturation"), "Escape");
-    expect(onCommit).not.toHaveBeenCalled();
-    expect(input.value).toBe("rebeccapurple");
-
-    click(opener);
-    updateRange(getSlider("Track color brightness"), "50");
-    expect(onCommit).toHaveBeenCalledWith(expect.stringMatching(/^#[0-9A-F]{6}$/));
-    expect(input.value).toMatch(/^#[0-9A-F]{6}$/);
-  });
-
-  it("preserves and clears an optional three-digit controlled color", () => {
-    const onCommit = vi.fn<(color: string | undefined) => TrackMutationResult>(() => ({
-      ok: true,
-    }));
-    mount(
-      <TrackSettingsColorField
-        fallbackColor="#010203"
-        label="Signal color"
-        mode="optional"
-        value="#abc"
-        onCommit={onCommit}
-      />,
-    );
-
-    expect(getInput("Signal color").value).toBe("#abc");
-    click(getButton("Open Signal color color picker"));
-    expect(document.body.textContent).toContain("Selected color: #010203");
-    keyDown(getSlider("Signal color saturation"), "Escape");
-    expect(onCommit).not.toHaveBeenCalled();
-
-    click(getButton("Clear Signal color"));
-    expect(onCommit).toHaveBeenCalledWith(undefined);
-  });
-
   it("opens with named controls, focuses the picker, and restores focus when closed", () => {
     mount(
       <TrackSettingsColorField
         label="Track color"
-        mode="required"
         value="#FF0000"
         onCommit={() => ({ ok: true })}
       />,
@@ -259,14 +150,7 @@ describe("TrackSettingsColorField", () => {
       ok: false,
       error: "Core rejected this color.",
     }));
-    mount(
-      <TrackSettingsColorField
-        label="Track color"
-        mode="required"
-        value="#FF0000"
-        onCommit={onCommit}
-      />,
-    );
+    mount(<TrackSettingsColorField label="Track color" value="#FF0000" onCommit={onCommit} />);
     click(getButton("Open Track color color picker"));
 
     updateRange(getSlider("Track color hue"), "120");
@@ -280,14 +164,7 @@ describe("TrackSettingsColorField", () => {
 
   it("preserves hue through achromatic picker changes and honest external updates", () => {
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
-    mount(
-      <TrackSettingsColorField
-        label="Track color"
-        mode="required"
-        value="#000000"
-        onCommit={onCommit}
-      />,
-    );
+    mount(<TrackSettingsColorField label="Track color" value="#000000" onCommit={onCommit} />);
     click(getButton("Open Track color color picker"));
 
     updateRange(getSlider("Track color hue"), "240");
@@ -299,14 +176,7 @@ describe("TrackSettingsColorField", () => {
     updateRange(getSlider("Track color brightness"), "10");
     expect(onCommit).toHaveBeenLastCalledWith("#00001A");
 
-    rerender(
-      <TrackSettingsColorField
-        label="Track color"
-        mode="required"
-        value="#00FF00"
-        onCommit={onCommit}
-      />,
-    );
+    rerender(<TrackSettingsColorField label="Track color" value="#00FF00" onCommit={onCommit} />);
     expect(Number(getSlider("Track color hue").value)).toBeCloseTo(120);
   });
 
@@ -335,7 +205,6 @@ describe("TrackSettingsColorField", () => {
       <TrackSettingsColorField
         disabled={disabled}
         label="Track color"
-        mode="required"
         value="#FF0000"
         onCommit={onCommit}
       />
@@ -392,7 +261,6 @@ describe("TrackSettingsColorField", () => {
     mount(
       <TrackSettingsColorField
         label="Track color"
-        mode="required"
         value="#123456"
         onCommit={() => ({ ok: true })}
       />,
@@ -418,30 +286,6 @@ function RequiredHarness({
   return (
     <TrackSettingsColorField
       label="Track color"
-      mode="required"
-      value={value}
-      onCommit={(color) => {
-        const result = onCommit(color);
-        if (result.ok) setValue(color);
-        return result;
-      }}
-    />
-  );
-}
-
-function OptionalHarness({
-  initialValue,
-  onCommit,
-}: {
-  initialValue: string | undefined;
-  onCommit: (color: string | undefined) => TrackMutationResult;
-}) {
-  const [value, setValue] = useState(initialValue);
-  return (
-    <TrackSettingsColorField
-      fallbackColor="#0A0B0C"
-      label="Signal color"
-      mode="optional"
       value={value}
       onCommit={(color) => {
         const result = onCommit(color);

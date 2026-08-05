@@ -19,7 +19,7 @@ const exampleModule = defineTrackModule({
 });
 ```
 
-Use Zod `.default()` for module config defaults. Use module `defaults` for browser-owned `display`, `height`, and `color`. If omitted, height is `80`, color stays optional, and display is the first renderer key. Invalid defaults, an empty renderer map, and a default display not present in the renderer map fail when the module is defined.
+Use Zod `.default()` for module config defaults. Use module `defaults` for browser-owned `display`, `height`, and `color`. Colors use case-insensitive six-digit `#RRGGBB` syntax. If omitted, height is `80`, color is `#000000`, and display is the first renderer key. Creation input may omit color, but validated track instances always contain one. Invalid defaults, an empty renderer map, and a default display not present in the renderer map fail when the module is defined.
 
 `module.create(input, interaction?)` parses public create input and applies defaults. `module.validate(instance)` parses the full nested runtime shape. Both throw descriptive errors when input is invalid.
 
@@ -43,15 +43,15 @@ Once a track store exists, its mutators do not throw for expected validation fai
 type TrackMutationResult = { ok: true } | { ok: false; error: string };
 ```
 
-This applies to `setTracks`, `addTrack`, `removeTrack`, `applyTrackChanges`, `reorderTracks`, `updateBase`, `updateConfig`, and `updateInteraction`. Callers should surface `error` when a change came from user input.
+This applies to `setTracks`, `addTrack`, `removeTrack`, `applyTrackChanges`, `reorderTracks`, `updateTrack`, and `updateInteraction`. Callers should surface `error` when a change came from user input.
 
-Every failed mutation is atomic: validation completes before `set`, so tracks and order remain unchanged. `applyTrackChanges` validates the complete add/remove operation before applying any part of it, and `setTracks` validates the full replacement before replacing current state.
+Every failed mutation is atomic: validation completes before `set`, so tracks and order remain unchanged. `updateTrack` shallowly merges optional base and config patches, validates the complete candidate once, and commits both sections or neither. `applyTrackChanges` validates the complete add/remove operation before applying any part of it, and `setTracks` validates the full replacement before replacing current state.
 
 ## Identity rules
 
 Track IDs are unique within a store. Duplicate IDs are rejected during construction and mutation. A reorder must contain every current ID exactly once.
 
-`updateBase(id, partial)` deliberately preserves the existing ID even if `partial.id` contains another value. Identity and `type` are immutable through update APIs. To change either, remove and create a track through the intended module; use `applyTrackChanges` when replacement must be atomic.
+`updateTrack(id, update)` does not accept `base.id` or `type`. It also preserves both values if untyped JavaScript supplies them. To change identity, remove and create a track through the intended module; use `applyTrackChanges` when replacement must be atomic.
 
 ## Collection input is not an instance
 

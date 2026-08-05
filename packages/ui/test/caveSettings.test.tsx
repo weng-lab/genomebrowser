@@ -52,8 +52,8 @@ describe("CAVE settings", () => {
     expect(getComputedStyle(colorRow).flexWrap).toBe("nowrap");
   });
 
-  it("updates dataset selections and validated color overrides, including cleared colors", async () => {
-    const updateConfig = renderSettings();
+  it("updates dataset selections and validated concrete colors", async () => {
+    const updateTrack = renderSettings();
 
     await chooseOption("Neurotransmitter", "GLU");
     await chooseOption("Age", "Late childhood");
@@ -61,96 +61,50 @@ describe("CAVE settings", () => {
     blurInput("Top color");
     updateInput("Bottom color", "#445566");
     blurInput("Bottom color");
-    updateInput("Top color", "");
-    blurInput("Top color");
-    updateInput("Bottom color", "");
-    blurInput("Bottom color");
 
-    expect(updateConfig.mock.calls).toEqual([
-      [{ neurotransmitter: "GLU" }],
-      [{ age: "Late_Childhood" }],
-      [{ topColor: "#112233" }],
-      [{ bottomColor: "#445566" }],
-      [{ topColor: undefined }],
-      [{ bottomColor: undefined }],
+    expect(updateTrack.mock.calls).toEqual([
+      [{ config: { neurotransmitter: "GLU" } }],
+      [{ config: { age: "Late_Childhood" } }],
+      [{ config: { topColor: "#112233" } }],
+      [{ config: { bottomColor: "#445566" } }],
     ]);
-  });
-
-  it("derives display-only fallbacks without materializing optional overrides", () => {
-    const updateConfig = renderSettings({ ...config, topColor: undefined, bottomColor: undefined });
-
-    expect(getInput("Top color").value).toBe("");
-    expect(getInput("Top color").placeholder).toBe("#808080");
-    expect(getInput("Bottom color").value).toBe("");
-    expect(getInput("Bottom color").placeholder).toBe("#000000");
-    const opener = getButton("Open Top color color picker");
-    act(() => opener.click());
-    const saturation = getSlider("Top color saturation");
-    act(() =>
-      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
-    );
-
-    expect(updateConfig).not.toHaveBeenCalled();
-    expect(document.activeElement).toBe(opener);
-  });
-
-  it("derives the top display fallback from an explicit bottom color", () => {
-    renderSettings({ ...config, topColor: undefined, bottomColor: "#3333ff" });
-
-    expect(getInput("Top color").placeholder).toBe("#B3B3FF");
-    expect(getInput("Bottom color").value).toBe("#3333FF");
-  });
-
-  it("preserves legacy colors and derives a defensive picker fallback", () => {
-    const updateConfig = renderSettings({ ...config, topColor: "tomato", bottomColor: "#abc" });
-
-    expect(getInput("Top color").value).toBe("tomato");
-    expect(getInput("Top color").placeholder).toBe("#FFFFFF");
-    expect(getInput("Bottom color").value).toBe("#abc");
-    const opener = getButton("Open Top color color picker");
-    act(() => opener.click());
-    expect(document.body.textContent).toContain("Selected color: #FFFFFF");
-    const saturation = getSlider("Top color saturation");
-    act(() =>
-      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
-    );
-
-    expect(updateConfig).not.toHaveBeenCalled();
-    expect(getInput("Top color").value).toBe("tomato");
-    expect(getInput("Bottom color").value).toBe("#abc");
-  });
-
-  it("derives safely when the bottom color is an existing CSS value", () => {
-    const updateConfig = renderSettings({
-      ...config,
-      topColor: undefined,
-      bottomColor: "tomato",
-    });
-
-    expect(getInput("Top color").value).toBe("");
-    expect(getInput("Top color").placeholder).toBe("#808080");
-    expect(getInput("Bottom color").value).toBe("tomato");
-    expect(updateConfig).not.toHaveBeenCalled();
   });
 });
 
 function renderSettings(initialConfig = config) {
-  const updateConfig = vi.fn<TrackSettingsProps<CaveConfig>["updateConfig"]>(() => ({
+  const updateTrack = vi.fn<TrackSettingsProps<CaveConfig>["updateTrack"]>(() => ({
     ok: true,
   }));
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
   act(() => {
-    root?.render(<CaveSettings id="cave" config={initialConfig} updateConfig={updateConfig} />);
+    root?.render(
+      <CaveSettings
+        track={{
+          type: "cave",
+          base: {
+            id: "cave",
+            title: "CAVE",
+            display: "full",
+            height: 35,
+            color: "#3333ff",
+          },
+          config: initialConfig,
+        }}
+        updateTrack={updateTrack}
+      />,
+    );
   });
-  return updateConfig;
+  return updateTrack;
 }
 
 function getInput(label: string) {
   const input = Array.from(container?.querySelectorAll<HTMLInputElement>("input") ?? []).find(
     (candidate) =>
-      Array.from(candidate.labels ?? []).some((element) => element.textContent === label),
+      Array.from(candidate.labels ?? []).some(
+        (element) => element.textContent?.replace("*", "").trim() === label,
+      ),
   );
   if (!input) throw new Error(`Could not find input labeled ${label}`);
   return input;
@@ -200,20 +154,4 @@ function updateInput(label: string, value: string) {
 
 function blurInput(label: string) {
   act(() => getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
-}
-
-function getButton(name: string) {
-  const button = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
-    (candidate) => candidate.getAttribute("aria-label") === name,
-  );
-  if (!button) throw new Error(`Could not find button named ${name}`);
-  return button;
-}
-
-function getSlider(name: string) {
-  const slider = Array.from(
-    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
-  ).find((candidate) => candidate.getAttribute("aria-label") === name);
-  if (!slider) throw new Error(`Could not find slider named ${name}`);
-  return slider;
 }

@@ -2,14 +2,13 @@ import { useRef, useState, type MouseEvent } from "react";
 import { useTooltip } from "../../browser/tooltip/useTooltip";
 import { useInteraction } from "../../modules/interaction";
 import type { TrackRendererProps } from "../../modules/types";
-import { condenseBigWigData, getPointAtMouseX, hasBigWigData, lighten } from "../bigwig/helpers";
+import { condenseBigWigData, getPointAtMouseX, hasBigWigData } from "../bigwig/helpers";
 import type { RenderedBigWigPoint, YRange } from "../bigwig/types";
 import type { CaveConfig, CaveData, CaveTooltipItem } from "./types";
 
 const CAVE_SIGNAL_RANGE: YRange = { min: 0, max: 1 };
 
 export function FullCave({
-  color = "#3333ff",
   config,
   data,
   width,
@@ -20,14 +19,12 @@ export function FullCave({
   const bottomPoints = condenseBigWigData(data.bottom, region, width);
   const topPath = createCavePath(topPoints, CAVE_SIGNAL_RANGE, height, "top");
   const bottomPath = createCavePath(bottomPoints, CAVE_SIGNAL_RANGE, height, "bottom");
-  const bottomColor = config.bottomColor ?? color;
-  const topColor = config.topColor ?? lighten(bottomColor, 0.5);
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
       <line x1={0} x2={width} y1={height / 2} y2={height / 2} stroke="#dddddd" strokeWidth={1} />
-      <path d={topPath} fill={topColor} />
-      <path d={bottomPath} fill={bottomColor} />
+      <path d={topPath} fill={config.topColor} />
+      <path d={bottomPath} fill={config.bottomColor} />
       <CaveHoverOverlay
         topPoints={topPoints}
         bottomPoints={bottomPoints}

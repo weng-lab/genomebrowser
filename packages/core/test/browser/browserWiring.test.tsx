@@ -147,11 +147,11 @@ describe("browser module wiring", () => {
       },
     ]);
 
-    expect(trackStore.getState().updateBase("interactive", { color: "#112233" })).toEqual({
-      ok: true,
-    });
     expect(
-      trackStore.getState().updateConfig<Config>("interactive", { url: "YOUR_OTHER_URL_HERE" }),
+      trackStore.getState().updateTrack<Config>("interactive", {
+        base: { color: "#112233" },
+        config: { url: "YOUR_OTHER_URL_HERE" },
+      }),
     ).toEqual({ ok: true });
 
     renderTrack();
@@ -242,11 +242,11 @@ describe("browser module wiring", () => {
         },
       });
 
-      expect(trackStore.getState().updateBase("tooltip", { color: "#abcdef" })).toEqual({
-        ok: true,
-      });
       expect(
-        trackStore.getState().updateConfig<Config>("tooltip", { url: "YOUR_OTHER_URL_HERE" }),
+        trackStore.getState().updateTrack<Config>("tooltip", {
+          base: { color: "#abcdef" },
+          config: { url: "YOUR_OTHER_URL_HERE" },
+        }),
       ).toEqual({ ok: true });
 
       renderTrack();
@@ -262,7 +262,7 @@ describe("browser module wiring", () => {
     }
   });
 
-  it("wires settings base updates separately from module config updates", () => {
+  it("wires settings to the active track snapshot and a bound atomic updater", () => {
     let baseProps: BaseSettingsProps | undefined;
     let moduleProps: TrackSettingsProps<{ url: string }> | undefined;
 
@@ -291,11 +291,15 @@ describe("browser module wiring", () => {
       render: { full: Renderer },
       settingsComponent: ModuleSettings,
     });
-    const track = module.create({
-      id: "settings",
-      title: "Settings",
-      config: { url: "YOUR_URL_HERE" },
-    });
+    const onClick = vi.fn();
+    const track = module.create(
+      {
+        id: "settings",
+        title: "Settings",
+        config: { url: "YOUR_URL_HERE" },
+      },
+      { onClick },
+    );
     const browserStore = createBrowserStore({ assembly: hg38, region });
     const contextMenuStore = createContextMenuStore();
     const settingsStore = createSettingsStore({
@@ -317,13 +321,18 @@ describe("browser module wiring", () => {
     );
 
     expect(baseProps?.base).toEqual(track.base);
-    expect(moduleProps?.id).toBe("settings");
-    expect(moduleProps?.config).toEqual(track.config);
+    expect(moduleProps?.track).toEqual(track);
+    expect(moduleProps?.track.interaction?.onClick).toBe(onClick);
 
-    expect(baseProps?.updateBase({ title: "Updated" })).toEqual({ ok: true });
-    expect(moduleProps?.updateConfig({ url: "YOUR_OTHER_URL_HERE" })).toEqual({ ok: true });
+    expect(baseProps?.updateTrack({ base: { title: "Updated" } })).toEqual({ ok: true });
+    expect(
+      moduleProps?.updateTrack({
+        base: { height: 100 },
+        config: { url: "YOUR_OTHER_URL_HERE" },
+      }),
+    ).toEqual({ ok: true });
     expect(trackStore.getState().getTrack("settings")).toMatchObject({
-      base: { title: "Updated" },
+      base: { id: "settings", title: "Updated", height: 100 },
       config: { url: "YOUR_OTHER_URL_HERE" },
     });
   });

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchOnChange } from "../../modules/fetchOnChange";
+import { hexColorSchema } from "../../modules/schemas";
 import { TrackTooltip } from "../shared/TrackTooltip";
 import { FullCave } from "./render";
 import { fetchCave } from "./fetch";
@@ -19,8 +20,8 @@ const caveConfigSchema = z.object({
       "Adulthood",
     ]),
   ),
-  topColor: z.string().optional(),
-  bottomColor: z.string().optional(),
+  topColor: hexColorSchema.default("#000000"),
+  bottomColor: hexColorSchema.default("#000000"),
 });
 
 export const caveModule = defineTrackModule<CaveTooltipItem>()({

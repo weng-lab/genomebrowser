@@ -51,7 +51,13 @@ describe("signal renderer no-data hover", () => {
         <svg>
           <FullBigWig
             id="signal"
-            config={{ url: "YOUR_URL_HERE" }}
+            color="#000000"
+            config={{
+              url: "YOUR_URL_HERE",
+              fillWithZero: false,
+              showClampIndicators: true,
+              clampIndicatorColor: "#ff0000",
+            }}
             data={[]}
             region={region}
             width={4}
@@ -76,7 +82,13 @@ describe("signal renderer no-data hover", () => {
         <svg>
           <FullCave
             id="cave"
-            config={{ neurotransmitter: "GABA", age: "Adulthood" }}
+            color="#000000"
+            config={{
+              neurotransmitter: "GABA",
+              age: "Adulthood",
+              topColor: "#000000",
+              bottomColor: "#000000",
+            }}
             data={{ top: [], bottom: [] }}
             region={region}
             width={4}

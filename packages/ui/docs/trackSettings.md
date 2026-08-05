@@ -13,7 +13,12 @@ The UI package owns the MUI authoring controls on this page. Core remains indepe
 This example replaces the settings component on the core BigWig module. The component receives validated configuration and returns every update through the mutation callback supplied by core.
 
 ```tsx
-import { bigWigModule, type BigWigConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
+import {
+  bigWigModule,
+  type BigWigConfig,
+  type RenderedBigWigPoint,
+  type TrackSettingsProps,
+} from "@weng-lab/genomebrowser";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
@@ -23,7 +28,10 @@ import {
   TrackSettingsUrlField,
 } from "@weng-lab/genomebrowser-ui";
 
-function SignalSettings({ config, updateConfig }: TrackSettingsProps<BigWigConfig>) {
+function SignalSettings({
+  track,
+  updateTrack,
+}: TrackSettingsProps<BigWigConfig, RenderedBigWigPoint>) {
   return (
     <TrackSettingsLayout>
       <TrackSettingsSection title="Signal source and range">
@@ -32,15 +40,15 @@ function SignalSettings({ config, updateConfig }: TrackSettingsProps<BigWigConfi
             <TrackSettingsUrlField
               label="BigWig URL"
               required
-              value={config.url}
-              onCommit={(url) => updateConfig({ url })}
+              value={track.config.url}
+              onCommit={(url) => updateTrack({ config: { url } })}
             />
           </TrackSettingsFullRow>
           <TrackSettingsFullRow>
             <TrackSettingsRangeFields
               mode="independent"
-              range={config.yRange}
-              onCommit={(yRange) => updateConfig({ yRange })}
+              range={track.config.yRange}
+              onCommit={(yRange) => updateTrack({ config: { yRange } })}
             />
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
@@ -61,7 +69,19 @@ export const signalTrack = signalModule.create({
 });
 ```
 
-Register `signalModule` and `signalTrack` with the track store in the same way as any core module and track. Core supplies `id`, `config`, and `updateConfig` when it opens the component.
+Register `signalModule` and `signalTrack` with the track store in the same way as any core module and track. Core supplies the current read-only `track` snapshot and an `updateTrack` callback bound to its ID. The callback can submit optional shallow `base` and `config` patches in one validated, all-or-nothing mutation.
+
+## `TrackBaseSettings` API
+
+`TrackBaseSettings` renders the shared title, color, display, and height controls. Pass it the active validated base snapshot and the same bound updater used by module settings. It submits only `base` patches; failed mutations remain visible without replacing the accepted values.
+
+| Prop             | Type                                                                    | Default  | Description                                                                                                           |
+| ---------------- | ----------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `base`           | `Readonly<TrackBase>`                                                   | Required | Current validated base fields. `color` must be a six-digit `#RRGGBB` value.                                           |
+| `displayOptions` | `string[]`                                                              | Required | Allowed display modes. The display control is omitted when the array contains fewer than two options.                 |
+| `updateTrack`    | `(update: TrackUpdate<Record<string, unknown>>) => TrackMutationResult` | Required | Attempts a live base update. The component submits `{ base: patch }` and displays rejected immediate mutation errors. |
+
+The title, color, display, and height controls have visible labels. Color uses the accessible picker behavior documented below. Height must be at least 20 in this UI, and title cannot be blank.
 
 ## Compose the layout
 
@@ -77,9 +97,9 @@ Use a field row when the controls have a fixed relationship, such as minimum and
 
 The text, number, URL, and range components keep an editable draft separate from the accepted configuration. A valid changed draft commits after 300 ms, or immediately on blur or Enter. Escape restores the last accepted value. Local validation failures and errors returned by `onCommit` remain visible without discarding the draft or changing track configuration. An external accepted value updates a field when it has no unresolved draft.
 
-`onCommit` must return the core `TrackMutationResult` union: `{ ok: true }` for an accepted mutation or `{ ok: false, error: string }` for a rejected mutation. Return the result from `updateConfig` or `updateBase` directly, as in the example.
+`onCommit` must return the core `TrackMutationResult` union: `{ ok: true }` for an accepted mutation or `{ ok: false, error: string }` for a rejected mutation. Return the result from `updateTrack` directly, as in the example.
 
-The color field is deliberately different. Manual hexadecimal drafts commit only on blur or Enter; picker changes commit continuously for preview. Escape cancels a manual draft, and closing an unchanged picker does not materialize a fallback value.
+The color field is deliberately different. Manual hexadecimal drafts commit only on blur or Enter; picker changes commit continuously for preview. Escape cancels a manual draft.
 
 ## Layout component API
 
@@ -191,32 +211,14 @@ Every entered bound must be finite. When both are present, minimum must be less 
 
 ### `TrackSettingsColorField`
 
-`mode` is required; there is no implicit color mode. A fallback is display-only until the user changes the picker or enters a value.
+| Prop       | Type                                     | Default  | Description                                                    |
+| ---------- | ---------------------------------------- | -------- | -------------------------------------------------------------- |
+| `label`    | `string`                                 | Required | Visible field label and the basis for picker accessible names. |
+| `value`    | `string`                                 | Required | Current concrete six-digit hexadecimal color.                  |
+| `disabled` | `boolean`                                | `false`  | Disables the text field, picker, and commits.                  |
+| `onCommit` | `(color: string) => TrackMutationResult` | Required | Attempts to persist a normalized `#RRGGBB` color.              |
 
-| Prop       | Type      | Default  | Description                                                                     |
-| ---------- | --------- | -------- | ------------------------------------------------------------------------------- |
-| `label`    | `string`  | Required | Visible field label and the basis for picker and clear-action accessible names. |
-| `disabled` | `boolean` | `false`  | Disables the text field, picker, clear action, and commits.                     |
-
-#### Required mode
-
-| Prop            | Type                                     | Default  | Description                                                                                           |
-| --------------- | ---------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------- |
-| `mode`          | `"required"`                             | Required | Prevents clearing.                                                                                    |
-| `value`         | `string \| undefined`                    | Required | Current explicit color. It may be `undefined` only when a fallback is supplied.                       |
-| `fallbackColor` | `string \| undefined`                    | None     | Required when a required field's `value` is `undefined`; must be a valid six-digit hexadecimal color. |
-| `onCommit`      | `(color: string) => TrackMutationResult` | Required | Attempts to persist a normalized `#RRGGBB` color.                                                     |
-
-#### Optional mode
-
-| Prop            | Type                                                  | Default  | Description                                                                                     |
-| --------------- | ----------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
-| `mode`          | `"optional"`                                          | Required | Adds a clear action that commits `undefined`.                                                   |
-| `value`         | `string \| undefined`                                 | Required | Current explicit override, or `undefined` to use the fallback.                                  |
-| `fallbackColor` | `string`                                              | Required | Display and picker color when no explicit override exists; must be valid six-digit hexadecimal. |
-| `onCommit`      | `(color: string \| undefined) => TrackMutationResult` | Required | Attempts to persist a normalized color or clear the override.                                   |
-
-Manual entries must use six-digit hexadecimal `#RRGGBB` form and are normalized to uppercase. Existing controlled CSS color strings and three-digit hexadecimal values remain visible until replaced, but the picker starts from the normalized fallback when such a value cannot initialize it. Required fields have no clear action. Optional fields disable the clear action while no explicit value exists.
+Manual entries must use six-digit hexadecimal `#RRGGBB` form and are normalized to uppercase. The field is required and has no clear action or fallback state.
 
 ## Accessibility
 

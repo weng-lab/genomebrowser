@@ -2,8 +2,6 @@ import type { DraftValidation } from "./draftInput";
 
 const hexColorPattern = /^#[0-9a-f]{6}$/i;
 
-export const neutralTrackColor = "#000000";
-
 export type HsvColor = {
   hue: number;
   saturation: number;
@@ -14,12 +12,7 @@ export function normalizeHexColor(value: string) {
   return hexColorPattern.test(value) ? value.toUpperCase() : undefined;
 }
 
-export function validateHexColorDraft(
-  value: string,
-  optional: boolean,
-): DraftValidation<string | undefined> {
-  if (optional && value === "") return { ok: true, value: undefined };
-
+export function validateHexColorDraft(value: string): DraftValidation<string> {
   const color = normalizeHexColor(value);
   return color === undefined
     ? {
@@ -84,30 +77,6 @@ export function constrainHsv({ hue, saturation, value }: HsvColor): HsvColor {
     saturation: clamp(saturation, 0, 100),
     value: clamp(value, 0, 100),
   };
-}
-
-/** Matches the renderer's defensive additive lightening for existing color strings. */
-export function lightenColor(value: string, amount: number) {
-  const color = normalizeRendererColor(value);
-  let result = "#";
-  for (let offset = 0; offset < color.length; offset += 2) {
-    const channel = Number.parseInt(color.slice(offset, offset + 2), 16);
-    result += Math.round(Math.min(Math.max(0, channel + amount * 255), 255))
-      .toString(16)
-      .padStart(2, "0");
-  }
-  return result.toUpperCase();
-}
-
-function normalizeRendererColor(value: string) {
-  let color = value.replace(/[^0-9a-f]/gi, "");
-  if (color.length === 3) {
-    color = color
-      .split("")
-      .map((channel) => channel + channel)
-      .join("");
-  }
-  return color.length >= 6 ? color.slice(0, 6) : "000000";
 }
 
 function toHex(value: number) {

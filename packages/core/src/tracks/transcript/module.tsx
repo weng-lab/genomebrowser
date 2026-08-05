@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchOnChange } from "../../modules/fetchOnChange";
+import { hexColorSchema } from "../../modules/schemas";
 import { defaultScreenGraphQlEndpoint } from "../../screen";
 import { TrackTooltip } from "../shared/TrackTooltip";
 import { fetchTranscript } from "./fetch";
@@ -13,8 +14,8 @@ const transcriptInputSchema = z.object({
   assembly: fetchOnChange(z.string().min(1)),
   version: fetchOnChange(z.number().int().positive()),
   geneName: z.string().optional(),
-  canonicalColor: z.string().optional(),
-  highlightColor: z.string().optional(),
+  canonicalColor: hexColorSchema.default("#000000"),
+  highlightColor: hexColorSchema.default("#000000"),
 });
 
 export const transcriptModule = defineTrackModule<Transcript>()({

@@ -63,15 +63,15 @@ const rowHeight = useAutoTrackHeight(id, rows.length, {
 A module settings component should normally use its props:
 
 ```tsx
-function ExampleSettings({ config, updateConfig }: TrackSettingsProps<Config>) {
+function ExampleSettings({ track, updateTrack }: TrackSettingsProps<Config>) {
   const setLogScale = () => {
-    const result = updateConfig({ scale: "log" });
+    const result = updateTrack({ config: { scale: "log" } });
     if (!result.ok) reportError(result.error);
   };
 
   return (
     <SettingsSection title="Scale">
-      <button onClick={setLogScale} disabled={config.scale === "log"}>
+      <button onClick={setLogScale} disabled={track.config.scale === "log"}>
         Use log scale
       </button>
     </SettingsSection>
@@ -83,23 +83,7 @@ function ExampleSettings({ config, updateConfig }: TrackSettingsProps<Config>) {
 
 ## Store hooks
 
-The package exports `useBrowserStore`, `useTrackStore`, `useSettingsStore`, and `useContextMenuStore` to read the stores provided by the nearest `GenomeBrowser`. They are contextual integration APIs, not the ordinary way to mutate a track from its own settings panel.
-
-For example, a module settings panel might need to know whether another track is present while still using its focused prop for its own update:
-
-```tsx
-function ExampleSettings({ updateConfig }: TrackSettingsProps<Config>) {
-  const hasReference = useTrackStore((state) => state.getTrack("reference") !== undefined);
-
-  return (
-    <button disabled={!hasReference} onClick={() => updateConfig({ compareWithReference: true })}>
-      Compare with reference
-    </button>
-  );
-}
-```
-
-Prefer renderer and settings props first. Use a contextual store hook only when a component genuinely needs browser-wide state that its focused API does not provide. Applications outside the browser tree already hold the stable store hook returned by the corresponding factory and can read it directly.
+The package exports `useBrowserStore`, `useTrackStore`, `useSettingsStore`, and `useContextMenuStore` to read the stores provided by the nearest `GenomeBrowser`. They are contextual integration APIs for browser-level composition. Module settings should use their read-only `track` snapshot and bound `updateTrack` prop rather than assuming global store access. Applications outside the browser tree already hold the stable store hook returned by the corresponding factory and can read it directly.
 
 ## Application store factories
 

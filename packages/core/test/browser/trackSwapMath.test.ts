@@ -70,6 +70,7 @@ function makeTrack(id: string, height: number): TrackInstance<{}> {
       title: "",
       display: "dense",
       height,
+      color: "#000000",
     },
     config: {},
   };

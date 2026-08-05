@@ -11,7 +11,7 @@ import type { AnyTrackInstance } from "../../src/modules/types";
 
 const track: AnyTrackInstance = {
   type: "test",
-  base: { id: "test", title: "Test track", display: "full", height: 80 },
+  base: { id: "test", title: "Test track", display: "full", height: 80, color: "#000000" },
   config: {},
 };
 

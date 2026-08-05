@@ -1,6 +1,6 @@
 # Tracks
 
-Tracks are created by registered modules. Every module `create` input has a unique `id`, a `title`, optional `display`, `height`, and `color`, plus module-specific `config`. A module always supplies a default display and height. Color and config defaults are module-specific; required config must still be provided.
+Tracks are created by registered modules. Every module `create` input has a unique `id`, a `title`, optional `display`, `height`, and `color`, plus module-specific `config`. Track colors use case-insensitive six-digit `#RRGGBB` syntax. A module always supplies a default display, height, and validated base color. When a module has no configured color default, creation uses `"#000000"`. Config defaults remain module-specific; required config must still be provided.
 
 ## Current built-in modules
 
@@ -48,6 +48,8 @@ const methylCTrack = methylCModule.create({
 });
 ```
 
+MethylC channel colors (`colors.cpg`, `colors.chg`, `colors.chh`, and `colors.depth`) are optional creation values with module defaults. Every parsed channel color uses six-digit `#RRGGBB` syntax.
+
 Create Transcript tracks normally when the host implements the conventional proxy route:
 
 ```ts
@@ -69,6 +71,8 @@ const useTrackStore = createTrackStore({
 ```
 
 Transcript defaults to `/api/screen-graphql`. The host must implement that route as a GraphQL POST endpoint or provide a different non-secret `config.endpoint`. The module does not read a service key or construct an authorization header, so authenticated services should be reached through a host-owned server proxy that adds credentials server-side. The browser's normal `fetch` credential behavior still applies, including same-origin cookies. CAVE selects from package-defined datasets rather than accepting a URL. These service-specific modules may not fit every deployment.
+
+CAVE `topColor` and `bottomColor` and Transcript `canonicalColor` and `highlightColor` are optional creation inputs that each default to `"#000000"`. Their parsed config values are always concrete six-digit hexadecimal colors, and the renderers use them directly rather than deriving colors from the base track color.
 
 `defaultScreenGraphQlEndpoint` exports the default route string for hosts that need to share the same value with their own routing or request code.
 
@@ -125,7 +129,7 @@ bigWigModule.create({
 });
 ```
 
-The dependency-free BigWig settings panel provides a **Show clamp indicators** checkbox and a plain-text **Clamp indicator color** field. Core validation materializes the red default, and hiding indicators disables the color field without changing its value. The field accepts the color strings supported by `clampIndicatorColor` and updates the configuration as you type. These options affect rendering only and do not trigger a data refetch. Dense display mode does not render clamp indicators.
+The dependency-free BigWig settings panel provides a **Show clamp indicators** checkbox and a plain-text **Clamp indicator color** field. Core validation materializes the red default, and hiding indicators disables the color field without changing its value. `clampIndicatorColor` must use six-digit `#RRGGBB` syntax. The field keeps incomplete drafts editable and commits a valid color on blur or Enter. These options affect rendering only and do not trigger a data refetch. Dense display mode does not render clamp indicators.
 
 Optional interaction callbacks are passed as the second argument to `module.create(...)`; their item and parsed-config types are module-specific. Each callback receives `(item, context)`, where `context.type`, `context.base`, and `context.config` are the current shallow read-only runtime view. One-argument callbacks remain valid when they do not need context.
 

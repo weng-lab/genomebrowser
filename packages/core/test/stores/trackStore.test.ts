@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { bigBedModule } from "../../src/tracks/bigbed/module";
 import { bigWigModule } from "../../src/tracks/bigwig/module";
@@ -31,6 +31,7 @@ describe("createTrackStore", () => {
               title: "Signal",
               display: "full",
               height: 80,
+              color: "#000000",
             },
             config: {},
           },
@@ -51,6 +52,7 @@ describe("createTrackStore", () => {
               title: "Unknown",
               display: "full",
               height: 80,
+              color: "#000000",
             },
             config: {},
           },
@@ -81,6 +83,7 @@ describe("createTrackStore", () => {
             title: "Bad",
             display: "full",
             height: 80,
+            color: "#000000",
           },
           config: {},
         },
@@ -108,6 +111,7 @@ describe("createTrackStore", () => {
           title: "Bad",
           display: "full",
           height: 80,
+          color: "#000000",
         },
         config: {},
       }),
@@ -154,6 +158,7 @@ describe("createTrackStore", () => {
               title: "Bad",
               display: "full",
               height: 80,
+              color: "#000000",
             },
             config: {},
           },
@@ -232,6 +237,7 @@ describe("createTrackStore", () => {
           title: "Signal",
           display: "full",
           height: 80,
+          color: "#000000",
         },
         config: {
           url: "YOUR_URL_HERE",
@@ -241,7 +247,9 @@ describe("createTrackStore", () => {
     ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig instance is invalid/) });
 
     store.getState().addTrack(bigWigTrack());
-    expect(store.getState().updateConfig("signal", { tooltip: Tooltip } as never)).toMatchObject({
+    expect(
+      store.getState().updateTrack("signal", { config: { tooltip: Tooltip } } as never),
+    ).toMatchObject({
       ok: false,
       error: expect.stringMatching(/bigwig instance is invalid/),
     });
@@ -255,32 +263,58 @@ describe("createTrackStore", () => {
     ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig instance is invalid/) });
   });
 
-  it("validates split updates and preserves id", () => {
+  it("validates base and config patches atomically while preserving identity", () => {
     const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
+    const validate = vi.spyOn(bigWigModule, "validate");
+    const subscriber = vi.fn();
+    const unsubscribe = store.subscribe(subscriber);
 
-    expect(store.getState().updateBase("signal", { id: "ignored", height: 120 })).toEqual({
-      ok: true,
-    });
+    expect(
+      store.getState().updateTrack("signal", {
+        type: "ignored",
+        base: { id: "ignored", height: 120 },
+        config: { url: "YOUR_OTHER_URL_HERE" },
+      } as never),
+    ).toEqual({ ok: true });
+    expect(validate).toHaveBeenCalledTimes(1);
+    expect(subscriber).toHaveBeenCalledTimes(1);
     expect(store.getState().getTrack("signal")).toMatchObject({
+      type: "bigwig",
       base: { id: "signal", height: 120 },
+      config: { url: "YOUR_OTHER_URL_HERE" },
     });
     expect(store.getState().getTrack("ignored")).toBeUndefined();
 
-    expect(store.getState().updateConfig("signal", { url: "YOUR_OTHER_URL_HERE" })).toEqual({
-      ok: true,
+    const accepted = store.getState().getTrack("signal");
+    expect(
+      store.getState().updateTrack("signal", {
+        base: { height: 140 },
+        config: { url: "" },
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/bigwig instance is invalid/),
     });
+    expect(store.getState().getTrack("signal")).toBe(accepted);
     expect(store.getState().getTrack("signal")).toMatchObject({
+      base: { height: 120 },
       config: { url: "YOUR_OTHER_URL_HERE" },
     });
+    expect(subscriber).toHaveBeenCalledTimes(1);
 
-    expect(store.getState().updateBase("signal", { height: -1 })).toMatchObject({
+    expect(
+      store.getState().updateTrack("signal", {
+        base: { color: "rebeccapurple" },
+        config: { clampIndicatorColor: "#abc" },
+      }),
+    ).toMatchObject({
       ok: false,
-      error: expect.stringMatching(/bigwig instance is invalid/),
+      error: expect.stringMatching(/six-digit hexadecimal color/),
     });
-    expect(store.getState().updateConfig("signal", { url: "" })).toMatchObject({
-      ok: false,
-      error: expect.stringMatching(/bigwig instance is invalid/),
-    });
+    expect(store.getState().getTrack("signal")).toBe(accepted);
+    expect(subscriber).toHaveBeenCalledTimes(1);
+    unsubscribe();
+    validate.mockRestore();
   });
 
   it("persists BigWig yRange from initial config and external updates", () => {
@@ -302,14 +336,16 @@ describe("createTrackStore", () => {
       config: { yRange: { min: 0, max: 10 } },
     });
 
-    expect(store.getState().updateConfig("signal", { yRange: { min: 5, max: 20 } })).toEqual({
-      ok: true,
-    });
+    expect(
+      store.getState().updateTrack("signal", { config: { yRange: { min: 5, max: 20 } } }),
+    ).toEqual({ ok: true });
     expect(store.getState().getTrack("signal")).toMatchObject({
       config: { yRange: { min: 5, max: 20 } },
     });
 
-    expect(store.getState().updateConfig("signal", { yRange: { min: 20, max: 5 } })).toMatchObject({
+    expect(
+      store.getState().updateTrack("signal", { config: { yRange: { min: 20, max: 5 } } }),
+    ).toMatchObject({
       ok: false,
       error: expect.stringMatching(/bigwig instance is invalid/),
     });
@@ -318,14 +354,15 @@ describe("createTrackStore", () => {
     });
   });
 
-  it("exposes split update APIs", () => {
+  it("exposes atomic track and separate interaction update APIs", () => {
     const store = createTrackStore({
       modules: [bigWigModule, bigBedModule],
       tracks: [bigWigTrack()],
     });
 
-    expect(store.getState().updateBase).toBeTypeOf("function");
-    expect(store.getState().updateConfig).toBeTypeOf("function");
+    expect(store.getState().updateTrack).toBeTypeOf("function");
+    expect(store.getState()).not.toHaveProperty("updateBase");
+    expect(store.getState()).not.toHaveProperty("updateConfig");
     expect(store.getState().updateInteraction).toBeTypeOf("function");
   });
 });
