@@ -1,6 +1,6 @@
 # Ticket 04: Integrate color controls across settings
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R4, R5, R12, R14, R15
 **Blocked by:** Ticket 03
@@ -15,15 +15,15 @@ Replace the base color text field and the existing BigWig, CAVE, Transcript, and
 
 ## Acceptance Criteria
 
-- [ ] Base track Color uses the shared required color field and continues updating `base.color` through the existing base mutation path.
-- [ ] BigWig clamp indicator color uses the shared field, remains associated with clamp visibility, and retains its existing default when no override is stored.
-- [ ] CAVE Top color and Bottom color use the shared optional contract and retain their derived fallback semantics.
-- [ ] Transcript Canonical color and Highlight color use the shared optional contract and remain a responsive semantic pair.
-- [ ] All four MethylC channel colors use the shared required color behavior and retain their nested configuration update path.
-- [ ] Clearing an optional field restores its existing fallback; opening or cancelling a picker does not materialize the fallback into configuration.
-- [ ] Required and optional color edits preserve existing track mutation errors and interaction blocking behavior.
-- [ ] No obsolete plain-text color helper or duplicated picker/conversion implementation remains in the UI settings code.
-- [ ] Every integrated color field stacks safely at narrow widths, remains reachable in the scroll region, and does not create page-level horizontal overflow.
+- [x] Base track Color uses the shared required color field and continues updating `base.color` through the existing base mutation path.
+- [x] BigWig clamp indicator color uses the shared field, remains associated with clamp visibility, and retains its existing default when no override is stored.
+- [x] CAVE Top color and Bottom color use the shared optional contract and retain their derived fallback semantics.
+- [x] Transcript Canonical color and Highlight color use the shared optional contract and remain a responsive semantic pair.
+- [x] All four MethylC channel colors use the shared required color behavior and retain their nested configuration update path.
+- [x] Clearing an optional field restores its existing fallback; opening or cancelling a picker does not materialize the fallback into configuration.
+- [x] Required and optional color edits preserve existing track mutation errors and interaction blocking behavior.
+- [x] No obsolete plain-text color helper or duplicated picker/conversion implementation remains in the UI settings code.
+- [x] Every integrated color field stacks safely at narrow widths, remains reachable in the scroll region, and does not create page-level horizontal overflow.
 
 ## Verification
 
@@ -52,3 +52,17 @@ Pay particular attention to CAVE's derived Top/Bottom fallbacks, BigWig's defaul
 - Changing core's dependency-free fallback `DefaultBaseSettings` color control.
 - Adding new color configuration options.
 - Modal resizing, position persistence, or drag-boundary redesign.
+
+## Amendments
+
+### A001 - Integrate with neutral unavailable fallbacks
+
+- **Supersedes:** Acceptance criteria 1, 3, and 4 where they require an unavailable base-derived fallback.
+- **Replacement:** Base Color uses the shared required field and displays `#000000` when `base.color` is absent without committing that value until the user selects or enters a valid color. CAVE and Transcript optional fields preserve `undefined` and clearing semantics but use the spec's neutral display-only fallback when the current module settings props cannot provide the active base color. CAVE Top color continues to derive its display fallback from the available Bottom color or neutral bottom fallback. No settings props contract change is part of this ticket.
+- **Reason:** Complete track context will be addressed by the separate atomic track-update/settings-contract work.
+
+### A002 - Match existing color configuration contracts
+
+- **Supersedes:** Acceptance criteria 2 and 6 for BigWig, plus any criterion that assumes all incoming controlled colors are already six-digit hex.
+- **Replacement:** BigWig clamp indicator color uses the shared required field with the validated `#ff0000` default and has no clear action. Existing core-valid color strings in any integrated field remain visible and do not crash settings; they are preserved until replaced by a valid six-digit manual value or picker selection. Picker initialization for a non-hex controlled value uses that field's fallback without materializing it on open or cancel.
+- **Reason:** Core validation materializes BigWig's default and existing schemas still accept CSS color strings beyond the picker's new-entry format.

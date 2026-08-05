@@ -3,8 +3,10 @@ import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import type { BaseSettingsProps, TrackBase } from "@weng-lab/genomebrowser";
 import { useState } from "react";
+import { neutralTrackColor } from "./color";
 import { DraftNumberField } from "./draftNumberField";
 import { DraftTextField } from "./draftTextField";
+import { TrackColorField } from "./trackColorField";
 import { TrackSettingsFieldRow } from "./trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "./trackSettingsLayout";
 import { TrackSettingsSection } from "./trackSettingsSection";
@@ -17,6 +19,7 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
   const applyImmediateUpdate = (partial: Partial<TrackBase>) => {
     const result = updateBase(partial);
     setError(result.ok ? undefined : result.error);
+    return result;
   };
 
   return (
@@ -30,13 +33,12 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
           validate={(title) => (title.trim() === "" ? "Enter a title." : undefined)}
           onCommit={(title) => updateBase({ title })}
         />
-        <TextField
-          fullWidth
+        <TrackColorField
+          fallbackColor={neutralTrackColor}
           label="Color"
-          placeholder="#000000"
-          size="small"
-          value={base.color ?? ""}
-          onChange={(event) => applyImmediateUpdate({ color: event.target.value || undefined })}
+          mode="required"
+          value={base.color}
+          onCommit={(color) => applyImmediateUpdate({ color })}
         />
       </TrackSettingsFieldRow>
       <TrackSettingsSection title="Track display settings">

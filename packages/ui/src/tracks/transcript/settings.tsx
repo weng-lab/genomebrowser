@@ -6,7 +6,8 @@ import {
 } from "@weng-lab/genomebrowser";
 import { DraftNumberField } from "../../TrackSettings/draftNumberField";
 import { DraftTextField } from "../../TrackSettings/draftTextField";
-import { OptionalTrackColorField } from "../../TrackSettings/optionalTrackColorField";
+import { neutralTrackColor } from "../../TrackSettings/color";
+import { TrackColorField } from "../../TrackSettings/trackColorField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
@@ -70,17 +71,19 @@ export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<
           </TrackSettingsFullRow>
           <TrackSettingsFullRow>
             <TrackSettingsFieldRow>
-              <OptionalTrackColorField
+              <TrackColorField
+                fallbackColor={neutralTrackColor}
                 label="Canonical color"
-                placeholder="#000000"
+                mode="optional"
                 value={config.canonicalColor}
-                onChange={(canonicalColor) => updateConfig({ canonicalColor })}
+                onCommit={(canonicalColor) => updateConfig({ canonicalColor })}
               />
-              <OptionalTrackColorField
+              <TrackColorField
+                fallbackColor={neutralTrackColor}
                 label="Highlight color"
-                placeholder="#000000"
+                mode="optional"
                 value={config.highlightColor}
-                onChange={(highlightColor) => updateConfig({ highlightColor })}
+                onCommit={(highlightColor) => updateConfig({ highlightColor })}
               />
             </TrackSettingsFieldRow>
           </TrackSettingsFullRow>

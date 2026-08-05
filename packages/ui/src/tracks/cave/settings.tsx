@@ -6,7 +6,8 @@ import type {
   CaveNeurotransmitter,
   TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
-import { OptionalTrackColorField } from "../../TrackSettings/optionalTrackColorField";
+import { lightenColor, neutralTrackColor } from "../../TrackSettings/color";
+import { TrackColorField } from "../../TrackSettings/trackColorField";
 import { TrackSettingsFieldRow } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
 
@@ -25,6 +26,9 @@ const ageOptions = [
 ] as const satisfies readonly { label: string; value: CaveAge }[];
 
 export function CaveSettings({ config, updateConfig }: TrackSettingsProps<CaveConfig>) {
+  const bottomFallbackColor = config.bottomColor ?? neutralTrackColor;
+  const topFallbackColor = lightenColor(bottomFallbackColor, 0.5);
+
   return (
     <>
       <TrackSettingsSection title="CAVE dataset">
@@ -65,17 +69,19 @@ export function CaveSettings({ config, updateConfig }: TrackSettingsProps<CaveCo
       </TrackSettingsSection>
       <TrackSettingsSection title="Signal colors">
         <TrackSettingsFieldRow>
-          <OptionalTrackColorField
+          <TrackColorField
+            fallbackColor={topFallbackColor}
             label="Top color"
-            placeholder="Derived from bottom color"
+            mode="optional"
             value={config.topColor}
-            onChange={(topColor) => updateConfig({ topColor })}
+            onCommit={(topColor) => updateConfig({ topColor })}
           />
-          <OptionalTrackColorField
+          <TrackColorField
+            fallbackColor={neutralTrackColor}
             label="Bottom color"
-            placeholder="Track color"
+            mode="optional"
             value={config.bottomColor}
-            onChange={(bottomColor) => updateConfig({ bottomColor })}
+            onCommit={(bottomColor) => updateConfig({ bottomColor })}
           />
         </TrackSettingsFieldRow>
       </TrackSettingsSection>

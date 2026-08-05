@@ -49,7 +49,7 @@ Color options affect rendering only and do not trigger another data request. Aut
 
 ## Settings
 
-The CAVE settings section provides text-based **Top color** and **Bottom color** controls. Clearing a control removes that override and restores its fallback behavior. The browser's base settings still provide the shared track color control; it affects CAVE only when `bottomColor` is not set.
+The dependency-free CAVE settings section provides plain-text **Top color** and **Bottom color** fields. Clearing a field removes that override and restores its renderer fallback behavior. The browser's default base settings provide native and plain-text controls for the track color; that color affects CAVE only when `bottomColor` is not set. These fields accept the color strings supported by the configuration schema and update the configuration as you type.
 
 ## API
 

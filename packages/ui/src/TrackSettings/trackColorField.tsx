@@ -24,11 +24,14 @@ type CommonTrackColorFieldProps = {
   label: string;
 };
 
-type RequiredTrackColorFieldProps = CommonTrackColorFieldProps & {
-  mode: "required";
-  value: string;
-  onCommit: (color: string) => TrackMutationResult;
-};
+type RequiredTrackColorFieldProps = CommonTrackColorFieldProps &
+  (
+    | { fallbackColor: string; value: string | undefined }
+    | { fallbackColor?: undefined; value: string }
+  ) & {
+    mode: "required";
+    onCommit: (color: string) => TrackMutationResult;
+  };
 
 type OptionalTrackColorFieldProps = CommonTrackColorFieldProps & {
   fallbackColor: string;
@@ -43,6 +46,7 @@ type PickerSession = {
   color: HsvColor;
   emittedColor?: string;
   externalColor: string;
+  externalValue: string | undefined;
 };
 
 /** A validated hexadecimal field with an accessible saturation/value and hue picker. */
@@ -54,14 +58,22 @@ export function TrackColorField(props: TrackColorFieldProps) {
   const shouldRestoreFocusRef = useRef(false);
   const instructionId = useId();
   const optional = props.mode === "optional";
-  const fallbackColor = optional ? requireHexColor(props.fallbackColor) : undefined;
-  const explicitColor = props.value === undefined ? undefined : requireHexColor(props.value);
-  const displayedColor = explicitColor ?? fallbackColor;
-  if (displayedColor === undefined) throw new Error("A color field must have a displayed color");
+  const fallbackColor =
+    props.fallbackColor === undefined ? undefined : requireHexColor(props.fallbackColor);
+  const explicitColor = props.value === undefined ? undefined : normalizeHexColor(props.value);
+  const pickerSourceColor = explicitColor ?? fallbackColor;
+  if (pickerSourceColor === undefined) throw new Error("A color field must have a picker color");
+  const hasExplicitValue = props.value !== undefined;
+  const swatchColor = props.value ?? pickerSourceColor;
 
   const controller = useDraftController<string, string | undefined>({
     value: props.value,
-    toRaw: (color) => (color === undefined ? "" : requireHexColor(color)),
+    toRaw: (color) =>
+      color === undefined
+        ? optional
+          ? ""
+          : pickerSourceColor
+        : (normalizeHexColor(color) ?? color),
     validate: (value): DraftValidation<string | undefined> =>
       validateHexColorDraft(value, optional),
     isEqual: colorsAreEqual,
@@ -75,13 +87,20 @@ export function TrackColorField(props: TrackColorFieldProps) {
     },
     debounceMs: false,
   });
-  const externalPickerColor = hexToHsv(displayedColor);
+  const externalPickerColor = hexToHsv(pickerSourceColor);
   let currentPickerSession = pickerSession;
-  if (pickerSession !== undefined && pickerSession.externalColor !== displayedColor) {
+  if (
+    pickerSession !== undefined &&
+    (!colorsAreEqual(pickerSession.externalValue, props.value) ||
+      pickerSession.externalColor !== pickerSourceColor)
+  ) {
     currentPickerSession = {
       color:
-        pickerSession.emittedColor === displayedColor ? pickerSession.color : externalPickerColor,
-      externalColor: displayedColor,
+        pickerSession.emittedColor === pickerSourceColor
+          ? pickerSession.color
+          : externalPickerColor,
+      externalColor: pickerSourceColor,
+      externalValue: props.value,
     };
     setPickerSession(currentPickerSession);
   }
@@ -113,7 +132,11 @@ export function TrackColorField(props: TrackColorFieldProps) {
 
   const openPicker = (element: HTMLButtonElement) => {
     if (props.disabled) return;
-    setPickerSession({ color: externalPickerColor, externalColor: displayedColor });
+    setPickerSession({
+      color: externalPickerColor,
+      externalColor: pickerSourceColor,
+      externalValue: props.value,
+    });
     setAnchorElement(element);
   };
 
@@ -121,9 +144,14 @@ export function TrackColorField(props: TrackColorFieldProps) {
     if (props.disabled) return;
     const color = constrainHsv(nextColor);
     const hexColor = hsvToHex(color);
-    const result = controller.submit(hexColor);
+    const result = controller.submit(hexColor, { retainRejectedDraft: false });
     if (!result.ok) return;
-    setPickerSession({ color, emittedColor: hexColor, externalColor: displayedColor });
+    setPickerSession({
+      color,
+      emittedColor: hexColor,
+      externalColor: pickerSourceColor,
+      externalValue: props.value,
+    });
   };
 
   const updateSaturationValueFromPointer = (event: PointerEvent<HTMLDivElement>) => {
@@ -143,7 +171,7 @@ export function TrackColorField(props: TrackColorFieldProps) {
         fullWidth
         helperText={
           controller.error ??
-          (explicitColor === undefined ? `Using fallback ${displayedColor}.` : undefined)
+          (!hasExplicitValue ? `Using fallback ${pickerSourceColor}.` : undefined)
         }
         label={props.label}
         placeholder={fallbackColor}
@@ -174,7 +202,7 @@ export function TrackColorField(props: TrackColorFieldProps) {
                   <Box
                     aria-hidden="true"
                     sx={{
-                      bgcolor: displayedColor,
+                      bgcolor: swatchColor,
                       border: 1,
                       borderColor: "divider",
                       borderRadius: 0.5,
@@ -190,7 +218,7 @@ export function TrackColorField(props: TrackColorFieldProps) {
               <InputAdornment position="end">
                 <IconButton
                   aria-label={`Clear ${props.label}`}
-                  disabled={props.disabled || explicitColor === undefined}
+                  disabled={props.disabled || !hasExplicitValue}
                   edge="end"
                   size="small"
                   type="button"
@@ -253,11 +281,7 @@ export function TrackColorField(props: TrackColorFieldProps) {
               activePointerRef.current = undefined;
             }}
             onPointerDown={(event) => {
-              if (
-                props.disabled ||
-                !event.isPrimary ||
-                (event.pointerType === "mouse" && event.button !== 0)
-              ) {
+              if (props.disabled || !event.isPrimary || event.button !== 0) {
                 return;
               }
               activePointerRef.current = event.pointerId;
@@ -370,7 +394,10 @@ export function TrackColorField(props: TrackColorFieldProps) {
 
 function colorsAreEqual(left: string | undefined, right: string | undefined) {
   if (left === undefined || right === undefined) return left === right;
-  return normalizeHexColor(left) === normalizeHexColor(right);
+  const normalizedLeft = normalizeHexColor(left);
+  const normalizedRight = normalizeHexColor(right);
+  if (normalizedLeft === undefined || normalizedRight === undefined) return left === right;
+  return normalizedLeft === normalizedRight;
 }
 
 function requireHexColor(value: string) {

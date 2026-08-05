@@ -34,8 +34,8 @@ describe("CAVE settings", () => {
     expect(container?.textContent).toContain("Signal colors");
     expect(getSelect("Neurotransmitter").textContent).toBe("GABA");
     expect(getSelect("Age").textContent).toBe("Early adulthood");
-    expect(getInput("Top color").value).toBe(config.topColor);
-    expect(getInput("Bottom color").value).toBe(config.bottomColor);
+    expect(getInput("Top color").value).toBe("#D9D9FF");
+    expect(getInput("Bottom color").value).toBe("#3333FF");
   });
 
   it("groups dataset selectors and signal colors into semantic rows", () => {
@@ -53,28 +53,89 @@ describe("CAVE settings", () => {
     ).toBe("wrap");
   });
 
-  it("updates dataset selections and color overrides, including cleared colors", async () => {
+  it("updates dataset selections and validated color overrides, including cleared colors", async () => {
     const updateConfig = renderSettings();
 
     await chooseOption("Neurotransmitter", "GLU");
     await chooseOption("Age", "Late childhood");
-    updateInput("Top color", "rebeccapurple");
-    updateInput("Bottom color", "tomato");
+    updateInput("Top color", "#112233");
+    blurInput("Top color");
+    updateInput("Bottom color", "#445566");
+    blurInput("Bottom color");
     updateInput("Top color", "");
+    blurInput("Top color");
     updateInput("Bottom color", "");
+    blurInput("Bottom color");
 
     expect(updateConfig.mock.calls).toEqual([
       [{ neurotransmitter: "GLU" }],
       [{ age: "Late_Childhood" }],
-      [{ topColor: "rebeccapurple" }],
-      [{ bottomColor: "tomato" }],
+      [{ topColor: "#112233" }],
+      [{ bottomColor: "#445566" }],
       [{ topColor: undefined }],
       [{ bottomColor: undefined }],
     ]);
   });
+
+  it("derives display-only fallbacks without materializing optional overrides", () => {
+    const updateConfig = renderSettings({ ...config, topColor: undefined, bottomColor: undefined });
+
+    expect(getInput("Top color").value).toBe("");
+    expect(getInput("Top color").placeholder).toBe("#808080");
+    expect(getInput("Bottom color").value).toBe("");
+    expect(getInput("Bottom color").placeholder).toBe("#000000");
+    const opener = getButton("Open Top color color picker");
+    act(() => opener.click());
+    const saturation = getSlider("Top color saturation");
+    act(() =>
+      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+    );
+
+    expect(updateConfig).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it("derives the top display fallback from an explicit bottom color", () => {
+    renderSettings({ ...config, topColor: undefined, bottomColor: "#3333ff" });
+
+    expect(getInput("Top color").placeholder).toBe("#B3B3FF");
+    expect(getInput("Bottom color").value).toBe("#3333FF");
+  });
+
+  it("preserves legacy colors and derives a defensive picker fallback", () => {
+    const updateConfig = renderSettings({ ...config, topColor: "tomato", bottomColor: "#abc" });
+
+    expect(getInput("Top color").value).toBe("tomato");
+    expect(getInput("Top color").placeholder).toBe("#FFFFFF");
+    expect(getInput("Bottom color").value).toBe("#abc");
+    const opener = getButton("Open Top color color picker");
+    act(() => opener.click());
+    expect(document.body.textContent).toContain("Selected color: #FFFFFF");
+    const saturation = getSlider("Top color saturation");
+    act(() =>
+      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+    );
+
+    expect(updateConfig).not.toHaveBeenCalled();
+    expect(getInput("Top color").value).toBe("tomato");
+    expect(getInput("Bottom color").value).toBe("#abc");
+  });
+
+  it("derives safely when the bottom color is an existing CSS value", () => {
+    const updateConfig = renderSettings({
+      ...config,
+      topColor: undefined,
+      bottomColor: "tomato",
+    });
+
+    expect(getInput("Top color").value).toBe("");
+    expect(getInput("Top color").placeholder).toBe("#808080");
+    expect(getInput("Bottom color").value).toBe("tomato");
+    expect(updateConfig).not.toHaveBeenCalled();
+  });
 });
 
-function renderSettings() {
+function renderSettings(initialConfig = config) {
   const updateConfig = vi.fn<TrackSettingsProps<CaveConfig>["updateConfig"]>(() => ({
     ok: true,
   }));
@@ -82,7 +143,7 @@ function renderSettings() {
   document.body.append(container);
   root = createRoot(container);
   act(() => {
-    root?.render(<CaveSettings id="cave" config={config} updateConfig={updateConfig} />);
+    root?.render(<CaveSettings id="cave" config={initialConfig} updateConfig={updateConfig} />);
   });
   return updateConfig;
 }
@@ -136,4 +197,24 @@ function updateInput(label: string, value: string) {
     valueSetter.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   });
+}
+
+function blurInput(label: string) {
+  act(() => getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
+}
+
+function getButton(name: string) {
+  const button = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
+    (candidate) => candidate.getAttribute("aria-label") === name,
+  );
+  if (!button) throw new Error(`Could not find button named ${name}`);
+  return button;
+}
+
+function getSlider(name: string) {
+  const slider = Array.from(
+    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
+  ).find((candidate) => candidate.getAttribute("aria-label") === name);
+  if (!slider) throw new Error(`Could not find slider named ${name}`);
+  return slider;
 }

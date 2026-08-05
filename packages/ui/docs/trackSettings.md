@@ -133,6 +133,10 @@ Track-specific controls follow the same container-responsive layout. Related ran
 
 `BigWigSettings` treats its Y-axis minimum and maximum as independent overrides. Leaving either field blank keeps that bound automatic, while clearing both fields restores a fully automatic range. It rejects a minimum greater than or equal to the maximum only when both fields contain explicit numbers and retains the invalid draft so you can correct it. `MethylCSettings` treats a manual range as a complete pair. A single entered bound remains available while you move between fields, but both bounds are required before the range updates. Use **Use automatic range** to clear the complete pair.
 
+Color controls show a swatch and accept new values in six-digit hexadecimal `#RRGGBB` form. Entered values commit on blur or Enter, Escape restores the committed value, and invalid drafts remain visible with an error without updating the track. Existing CSS color strings and three-digit hexadecimal values remain visible until you replace them; their picker starts from the field's fallback without changing configuration merely by opening or cancelling it. Select the swatch to open saturation, brightness, and hue controls; picker changes preview continuously. Required base, BigWig clamp, and methylC colors cannot be cleared. CAVE and transcript overrides provide a clear action that restores their derived behavior.
+
+Core validation materializes the BigWig clamp color's red default (`#ff0000`), so its field is always required and has no clear action. The complete control is disabled while clamp indicators are hidden. Because module settings do not receive the active base color, unset CAVE and transcript color pickers use a display-only neutral `#000000` fallback. CAVE's unset Top color picker shows a defensively lightened version of its explicit Bottom color, or lightened neutral black when Bottom is also unset. These display fallbacks are not written to configuration by rendering, opening, or cancelling a picker. An absent base Color similarly displays `#000000` without storing it until you enter or select a valid color.
+
 ## Component API
 
 ### TrackBaseSettings
@@ -168,8 +172,8 @@ BigWig, CAVE, and methylC signal tooltips keep their normal rows over empty pixe
 
 ## Accessibility
 
-The existing core modal provides its heading, close action, dragging, and Escape-key behavior. All MUI form controls have visible labels. A range error is described by both coordinated bound inputs without repeating the message. Disabled controls remain visible when their dependent option is off.
+The existing core modal provides its heading, close action, dragging, and Escape-key behavior. All MUI form controls have visible labels. A range error is described by both coordinated bound inputs without repeating the message. Disabled controls remain visible when their dependent option is off. Color picker controls have names for saturation, brightness, and hue, support keyboard slider operation, move focus into the picker when opened, and restore focus to the swatch button when closed. The selected hexadecimal value is also shown as text rather than communicated by its swatch alone.
 
 ## Notes
 
-Settings apply as fields change. Validation is intentionally limited to maintaining the runtime configuration types; data-source availability and biological compatibility are not checked by these forms.
+Settings generally apply as fields change. Manual color drafts apply on blur or Enter, while picker changes apply continuously. Validation is intentionally limited to maintaining the runtime configuration types; data-source availability and biological compatibility are not checked by these forms.

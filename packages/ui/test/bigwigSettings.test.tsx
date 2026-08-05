@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { type BigWigConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { bigWigModule, type BigWigConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -37,7 +37,9 @@ describe("BigWig settings", () => {
     expect(getInput("Maximum").value).toBe(String(config.yRange?.max));
     expect(getInput("Fill missing values with zero").checked).toBe(false);
     expect(getInput("Show clamp indicators").checked).toBe(true);
-    expect(getInput("Clamp indicator color").value).toBe(config.clampIndicatorColor);
+    expect(getInput("Clamp indicator color").value).toBe("#FF0000");
+    expect(getInput("Clamp indicator color").required).toBe(true);
+    expect(getOptionalButton("Clear Clamp indicator color")).toBeUndefined();
   });
 
   it("keeps full-width and related controls in semantic rows", () => {
@@ -70,7 +72,8 @@ describe("BigWig settings", () => {
 
     updateInput("URL", "YOUR_OTHER_URL_HERE");
     clickInput("Fill missing values with zero");
-    updateInput("Clamp indicator color", "rebeccapurple");
+    updateInput("Clamp indicator color", "#663399");
+    blurInput("Clamp indicator color");
     clickInput("Show clamp indicators");
     updateInput("Minimum", "-1.5");
     updateInput("Maximum", "12");
@@ -78,7 +81,7 @@ describe("BigWig settings", () => {
 
     expect(updateConfig.mock.calls).toEqual([
       [{ fillWithZero: true }],
-      [{ clampIndicatorColor: "rebeccapurple" }],
+      [{ clampIndicatorColor: "#663399" }],
       [{ showClampIndicators: false }],
       [{ url: "YOUR_OTHER_URL_HERE" }],
       [{ yRange: { min: -1.5, max: 12 } }],
@@ -159,12 +162,58 @@ describe("BigWig settings", () => {
     ).toHaveLength(1);
   });
 
-  it("clears an optional clamp indicator color", () => {
-    const updateConfig = renderSettings();
+  it("renders the required clamp default materialized by the core module", () => {
+    const normalizedConfig = bigWigModule.create({
+      id: "normalized-signal",
+      title: "Normalized signal",
+      config: { url: "YOUR_URL_HERE" },
+    }).config;
+    const updateConfig = renderSettings(normalizedConfig);
 
-    updateInput("Clamp indicator color", "");
+    const color = getInput("Clamp indicator color");
+    expect(normalizedConfig.clampIndicatorColor).toBe("#ff0000");
+    expect(color.value).toBe("#FF0000");
+    expect(color.required).toBe(true);
+    expect(getOptionalButton("Clear Clamp indicator color")).toBeUndefined();
+    const opener = getButton("Open Clamp indicator color color picker");
+    act(() => opener.click());
+    const saturation = getSlider("Clamp indicator color saturation");
+    act(() =>
+      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+    );
+    expect(updateConfig).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(opener);
+  });
 
-    expect(updateConfig).toHaveBeenCalledWith({ clampIndicatorColor: undefined });
+  it("preserves a core-normalized CSS clamp color and starts its picker from red", () => {
+    const normalizedConfig = bigWigModule.create({
+      id: "legacy-signal",
+      title: "Legacy signal",
+      config: { url: "YOUR_URL_HERE", clampIndicatorColor: "rebeccapurple" },
+    }).config;
+    const updateConfig = renderSettings(normalizedConfig);
+
+    expect(getInput("Clamp indicator color").value).toBe("rebeccapurple");
+    const opener = getButton("Open Clamp indicator color color picker");
+    act(() => opener.click());
+    expect(document.body.textContent).toContain("Selected color: #FF0000");
+    const saturation = getSlider("Clamp indicator color saturation");
+    act(() =>
+      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+    );
+
+    expect(updateConfig).not.toHaveBeenCalled();
+    expect(getInput("Clamp indicator color").value).toBe("rebeccapurple");
+  });
+
+  it("disables the complete clamp color control when clamp indicators are hidden", () => {
+    const updateConfig = renderSettings({ ...config, showClampIndicators: false });
+
+    const color = getInput("Clamp indicator color");
+    expect(color.disabled).toBe(true);
+    expect(getButton("Open Clamp indicator color color picker").disabled).toBe(true);
+    expect(getOptionalButton("Clear Clamp indicator color")).toBeUndefined();
+    expect(updateConfig).not.toHaveBeenCalled();
   });
 });
 
@@ -219,6 +268,26 @@ function getAutomaticRangeButton() {
   );
   if (!button) throw new Error("Could not find the automatic range button");
   return button;
+}
+
+function getButton(name: string) {
+  const button = getOptionalButton(name);
+  if (!button) throw new Error(`Could not find button named ${name}`);
+  return button;
+}
+
+function getOptionalButton(name: string) {
+  return Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
+    (candidate) => candidate.getAttribute("aria-label") === name,
+  );
+}
+
+function getSlider(name: string) {
+  const slider = Array.from(
+    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
+  ).find((candidate) => candidate.getAttribute("aria-label") === name);
+  if (!slider) throw new Error(`Could not find slider named ${name}`);
+  return slider;
 }
 
 function clickInput(label: string) {

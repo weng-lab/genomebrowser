@@ -125,7 +125,7 @@ bigWigModule.create({
 });
 ```
 
-The BigWig settings panel provides a **Show clamp indicators** checkbox and a text-based **Clamp indicator color** control. Hiding indicators disables the color control without clearing its value. These options affect rendering only and do not trigger a data refetch. Dense display mode does not render clamp indicators.
+The dependency-free BigWig settings panel provides a **Show clamp indicators** checkbox and a plain-text **Clamp indicator color** field. Core validation materializes the red default, and hiding indicators disables the color field without changing its value. The field accepts the color strings supported by `clampIndicatorColor` and updates the configuration as you type. These options affect rendering only and do not trigger a data refetch. Dense display mode does not render clamp indicators.
 
 Optional interaction callbacks are passed as the second argument to `module.create(...)`; their item and parsed-config types are module-specific. Each callback receives `(item, context)`, where `context.type`, `context.base`, and `context.config` are the current shallow read-only runtime view. One-argument callbacks remain valid when they do not need context.
 

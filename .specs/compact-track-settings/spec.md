@@ -82,3 +82,17 @@ Track settings use a compact, responsive layout that places closely related cont
 - Continuous picker updates can be frequent. Updates must remain responsive and use the existing mutation path without introducing duplicated local configuration state.
 - Saturation/value controls require deliberate keyboard semantics and visible focus treatment; a pointer-only custom canvas or surface is insufficient.
 - The wider shell can overflow if opened near a viewport edge. Narrow-viewport and close-button reachability checks are required even though drag-boundary redesign is outside this specification.
+
+## Amendments
+
+### A001 - Neutral fallback without base settings context
+
+- **Supersedes:** R12 and the Technical Decisions statement that optional fallback display and explicit stored value are distinct states, only where the effective fallback depends on browser-owned base state unavailable to the module settings component.
+- **Replacement:** Optional color fields must still keep displayed fallback and explicit stored value distinct and clearing must still restore `undefined`. When the current settings contract cannot provide the effective base-derived color, the picker may use `#000000` as a neutral display-only fallback without writing it to configuration. CAVE's display-only top fallback derives from the available bottom color or this neutral bottom fallback. A missing base track color is likewise displayed as `#000000` without being committed until the user makes a valid color selection. Supplying the complete track snapshot and atomic updater to module settings is deferred to the separate atomic track-update/settings-contract work.
+- **Reason:** Exact base-derived fallbacks cannot be represented through the current `{ id, config, updateConfig }` module settings contract, and changing that public contract is outside this work.
+
+### A002 - Preserve existing CSS color values
+
+- **Supersedes:** R10 only for controlled values that were already accepted by existing track schemas, and R12 for BigWig clamp indicator color.
+- **Replacement:** New manual color edits still accept and commit only six-digit `#RRGGBB` values. Existing controlled color strings accepted by current track schemas, including three-digit hex and CSS color values, must remain visible and must not crash settings; the user may replace them with a picker-generated or manually entered six-digit value. A non-hex value unavailable to picker conversion uses the field's display fallback to initialize the picker without committing on open or cancel. BigWig clamp indicator color is presented as required because core validation always materializes its `#ff0000` schema default; it is not clearable in the UI.
+- **Reason:** Layout and picker integration must not invalidate existing configurations, and the BigWig validated config cannot represent the optional cleared state assumed by the original requirement.

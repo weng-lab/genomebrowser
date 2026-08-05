@@ -1,9 +1,10 @@
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
-import TextField from "@mui/material/TextField";
 import type { MethylCConfig, TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { useEffect, useRef } from "react";
+import { neutralTrackColor } from "../../TrackSettings/color";
 import { DraftRangeFields } from "../../TrackSettings/draftRangeFields";
+import { TrackColorField } from "../../TrackSettings/trackColorField";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
@@ -92,14 +93,13 @@ export function MethylCSettings({ config, updateConfig }: TrackSettingsProps<Met
       <TrackSettingsSection title="Colors">
         <TrackSettingsFieldGrid>
           {colors.map(({ key, label }) => (
-            <TextField
+            <TrackColorField
               key={key}
-              fullWidth
+              fallbackColor={neutralTrackColor}
               label={label}
-              placeholder="#000000"
-              size="small"
+              mode="required"
               value={config.colors[key]}
-              onChange={(event) => updateColor(key, event.target.value)}
+              onCommit={(value) => updateColor(key, value)}
             />
           ))}
         </TrackSettingsFieldGrid>

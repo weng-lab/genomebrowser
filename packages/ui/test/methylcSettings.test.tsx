@@ -61,10 +61,10 @@ describe("methylC settings", () => {
     expect(getInput("Minus-strand CHG URL").value).toBe(config.urls.minusStrand.chg.url);
     expect(getInput("Minus-strand CHH URL").value).toBe(config.urls.minusStrand.chh.url);
     expect(getInput("Minus-strand Depth URL").value).toBe(config.urls.minusStrand.depth.url);
-    expect(getInput("CpG color").value).toBe(config.colors.cpg);
-    expect(getInput("CHG color").value).toBe(config.colors.chg);
-    expect(getInput("CHH color").value).toBe(config.colors.chh);
-    expect(getInput("Depth color").value).toBe(config.colors.depth);
+    expect(getInput("CpG color").value).toBe("#648BD8");
+    expect(getInput("CHG color").value).toBe("#FF944D");
+    expect(getInput("CHH color").value).toBe("#FF00FF");
+    expect(getInput("Depth color").value).toBe("#525252");
     expect(getInput("Mask CpG by coverage").checked).toBe(true);
     expect(getInput("Minimum").value).toBe(String(config.range?.min));
     expect(getInput("Maximum").value).toBe(String(config.range?.max));
@@ -100,12 +100,16 @@ describe("methylC settings", () => {
 
     updateInput("Plus-strand CpG URL", "UPDATED_PLUS_CPG_URL");
     updateInput("Plus-strand CHG URL", "UPDATED_PLUS_CHG_URL");
-    updateInput("Depth color", "rebeccapurple");
+    updateInput("Depth color", "#663399");
+    blurInput("Depth color");
+    updateInput("CHH color", "#112233");
+    blurInput("CHH color");
     clickInput("Mask CpG by coverage");
     act(() => vi.advanceTimersByTime(300));
 
     expect(updateConfig.mock.calls).toEqual([
-      [{ colors: { ...config.colors, depth: "rebeccapurple" } }],
+      [{ colors: { ...config.colors, depth: "#663399" } }],
+      [{ colors: { ...config.colors, chh: "#112233", depth: "#663399" } }],
       [{ maskCpgByCoverage: false }],
       [
         {
@@ -131,6 +135,27 @@ describe("methylC settings", () => {
         },
       ],
     ]);
+  });
+
+  it("preserves required legacy channel colors until replacement", () => {
+    const legacyConfig: MethylCConfig = {
+      ...config,
+      colors: { ...config.colors, cpg: "rebeccapurple", depth: "#abc" },
+    };
+    const { updateConfig } = renderSettings(legacyConfig);
+
+    expect(getInput("CpG color").value).toBe("rebeccapurple");
+    expect(getInput("Depth color").value).toBe("#abc");
+    const opener = getButton("Open CpG color color picker");
+    act(() => opener.click());
+    expect(document.body.textContent).toContain("Selected color: #000000");
+    const saturation = getSlider("CpG color saturation");
+    act(() =>
+      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+    );
+
+    expect(updateConfig).not.toHaveBeenCalled();
+    expect(getInput("CpG color").value).toBe("rebeccapurple");
   });
 
   it("retains the first bound through a focus transition and commits the pair on Enter", () => {
@@ -192,7 +217,9 @@ function renderSettings(initialConfig = config) {
 function getInput(label: string) {
   const input = Array.from(container?.querySelectorAll<HTMLInputElement>("input") ?? []).find(
     (candidate) =>
-      Array.from(candidate.labels ?? []).some((element) => element.textContent === label),
+      Array.from(candidate.labels ?? []).some(
+        (element) => element.textContent?.replace("*", "").trim() === label,
+      ),
   );
   if (!input) throw new Error(`Could not find input labeled ${label}`);
   return input;
@@ -215,6 +242,10 @@ function updateInput(label: string, value: string) {
   });
 }
 
+function blurInput(label: string) {
+  act(() => getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
+}
+
 function clickInput(label: string) {
   act(() => getInput(label).click());
 }
@@ -233,4 +264,20 @@ function getAutomaticRangeButton() {
   );
   if (!button) throw new Error("Could not find the automatic range button");
   return button;
+}
+
+function getButton(name: string) {
+  const button = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
+    (candidate) => candidate.getAttribute("aria-label") === name,
+  );
+  if (!button) throw new Error(`Could not find button named ${name}`);
+  return button;
+}
+
+function getSlider(name: string) {
+  const slider = Array.from(
+    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
+  ).find((candidate) => candidate.getAttribute("aria-label") === name);
+  if (!slider) throw new Error(`Could not find slider named ${name}`);
+  return slider;
 }

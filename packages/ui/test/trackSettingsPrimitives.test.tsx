@@ -5,7 +5,6 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DraftNumberField } from "../src/TrackSettings/draftNumberField";
 import { DraftTextField } from "../src/TrackSettings/draftTextField";
-import { OptionalTrackColorField } from "../src/TrackSettings/optionalTrackColorField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
@@ -213,23 +212,6 @@ describe("draft track settings fields", () => {
     updateInput(input, "YOUR_OTHER_URL_HERE");
     act(() => vi.advanceTimersByTime(300));
     expect(onCommit).toHaveBeenCalledWith("YOUR_OTHER_URL_HERE");
-  });
-
-  it("clears optional color overrides to undefined", () => {
-    const onChange = vi.fn();
-    mount(
-      <OptionalTrackColorField
-        label="Signal color"
-        placeholder="Track color"
-        value="#123456"
-        onChange={onChange}
-      />,
-    );
-    const input = getInput("Signal color");
-
-    expect(input.placeholder).toBe("Track color");
-    updateInput(input, "");
-    expect(onChange).toHaveBeenCalledWith(undefined);
   });
 });
 

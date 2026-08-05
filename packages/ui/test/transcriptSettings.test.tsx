@@ -39,8 +39,8 @@ describe("Transcript settings", () => {
     expect(getInput("Assembly").value).toBe(config.assembly);
     expect(getInput("Version").value).toBe(String(config.version));
     expect(getInput("Highlight gene").value).toBe(config.geneName);
-    expect(getInput("Canonical color").value).toBe(config.canonicalColor);
-    expect(getInput("Highlight color").value).toBe(config.highlightColor);
+    expect(getInput("Canonical color").value).toBe("#D45C2F");
+    expect(getInput("Highlight color").value).toBe("#1F77B4");
   });
 
   it("uses full-width controls and semantic responsive pairs", () => {
@@ -73,7 +73,9 @@ describe("Transcript settings", () => {
     act(() => vi.advanceTimersByTime(300));
     updateInput("Highlight gene", "");
     updateInput("Canonical color", "");
+    blurInput("Canonical color");
     updateInput("Highlight color", "");
+    blurInput("Highlight color");
     updateInput("Version", "4.5");
 
     expect(updateConfig.mock.calls).toEqual([
@@ -84,15 +86,60 @@ describe("Transcript settings", () => {
       [{ highlightColor: undefined }],
     ]);
   });
+
+  it("uses neutral display-only fallbacks without materializing optional colors", () => {
+    const updateConfig = renderSettings({
+      ...config,
+      canonicalColor: undefined,
+      highlightColor: undefined,
+    });
+
+    expect(getInput("Canonical color").value).toBe("");
+    expect(getInput("Canonical color").placeholder).toBe("#000000");
+    expect(getInput("Highlight color").value).toBe("");
+    expect(getInput("Highlight color").placeholder).toBe("#000000");
+    const opener = getButton("Open Canonical color color picker");
+    act(() => opener.click());
+    const saturation = getSlider("Canonical color saturation");
+    act(() =>
+      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+    );
+
+    expect(updateConfig).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it("preserves core-valid legacy highlight colors until replacement", () => {
+    const updateConfig = renderSettings({
+      ...config,
+      canonicalColor: "rebeccapurple",
+      highlightColor: "#abc",
+    });
+
+    expect(getInput("Canonical color").value).toBe("rebeccapurple");
+    expect(getInput("Highlight color").value).toBe("#abc");
+    const opener = getButton("Open Canonical color color picker");
+    act(() => opener.click());
+    expect(document.body.textContent).toContain("Selected color: #000000");
+    const saturation = getSlider("Canonical color saturation");
+    act(() =>
+      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+    );
+
+    expect(updateConfig).not.toHaveBeenCalled();
+    expect(getInput("Canonical color").value).toBe("rebeccapurple");
+  });
 });
 
-function renderSettings() {
+function renderSettings(initialConfig = config) {
   const updateConfig = vi.fn((): { ok: true } => ({ ok: true }));
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
   act(() => {
-    root?.render(<TranscriptSettings id="genes" config={config} updateConfig={updateConfig} />);
+    root?.render(
+      <TranscriptSettings id="genes" config={initialConfig} updateConfig={updateConfig} />,
+    );
   });
   return updateConfig;
 }
@@ -122,4 +169,24 @@ function updateInput(label: string, value: string) {
     valueSetter.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   });
+}
+
+function blurInput(label: string) {
+  act(() => getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
+}
+
+function getButton(name: string) {
+  const button = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
+    (candidate) => candidate.getAttribute("aria-label") === name,
+  );
+  if (!button) throw new Error(`Could not find button named ${name}`);
+  return button;
+}
+
+function getSlider(name: string) {
+  const slider = Array.from(
+    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
+  ).find((candidate) => candidate.getAttribute("aria-label") === name);
+  if (!slider) throw new Error(`Could not find slider named ${name}`);
+  return slider;
 }

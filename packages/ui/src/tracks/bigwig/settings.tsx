@@ -1,9 +1,9 @@
 import Box from "@mui/material/Box";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
-import TextField from "@mui/material/TextField";
 import type { BigWigConfig, TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { DraftRangeFields } from "../../TrackSettings/draftRangeFields";
+import { TrackColorField } from "../../TrackSettings/trackColorField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
@@ -68,16 +68,13 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
                   label="Show clamp indicators"
                   sx={{ m: 0, minWidth: 0 }}
                 />
-                <TextField
+                <TrackColorField
                   disabled={!showClampIndicators}
-                  fullWidth
+                  fallbackColor={defaultClampIndicatorColor}
                   label="Clamp indicator color"
-                  placeholder={defaultClampIndicatorColor}
-                  size="small"
-                  value={config.clampIndicatorColor ?? defaultClampIndicatorColor}
-                  onChange={(event) =>
-                    updateConfig({ clampIndicatorColor: event.target.value || undefined })
-                  }
+                  mode="required"
+                  value={config.clampIndicatorColor}
+                  onCommit={(clampIndicatorColor) => updateConfig({ clampIndicatorColor })}
                 />
               </TrackSettingsFieldRow>
             </Box>

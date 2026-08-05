@@ -95,23 +95,81 @@ describe("TrackBaseSettings", () => {
     expect(updateBase).toHaveBeenLastCalledWith({ height: 100 });
   });
 
-  it("preserves immediate color and display updates and surfaces rejected mutations", () => {
+  it("commits valid colors and surfaces rejected mutations", () => {
     const updateBase = vi
       .fn<(partial: Partial<TrackBase>) => TrackMutationResult>()
-      .mockReturnValueOnce({ ok: true })
-      .mockReturnValueOnce({ ok: false, error: "Core rejected this display mode." });
+      .mockReturnValueOnce({ ok: false, error: "Core rejected this color." })
+      .mockReturnValueOnce({ ok: true });
     mount(
       <TrackBaseSettings base={base} displayOptions={["full", "dense"]} updateBase={updateBase} />,
     );
 
     updateInput(getInput("Color"), "#abcdef");
+    blurInput("Color");
     updateInput(getSelectInput(), "dense");
 
-    expect(updateBase).toHaveBeenNthCalledWith(1, { color: "#abcdef" });
+    expect(updateBase).toHaveBeenNthCalledWith(1, { color: "#ABCDEF" });
     expect(updateBase).toHaveBeenNthCalledWith(2, { display: "dense" });
-    expect(container?.querySelector('[role="alert"]')?.textContent).toContain(
-      "Core rejected this display mode.",
+    expect(getInput("Color").getAttribute("aria-invalid")).toBe("true");
+    expect(container?.textContent).toContain("Core rejected this color.");
+  });
+
+  it("uses a required neutral display fallback without materializing a missing base color", () => {
+    const updateBase = vi.fn<(partial: Partial<TrackBase>) => TrackMutationResult>(() => ({
+      ok: true,
+    }));
+    mount(
+      <TrackBaseSettings
+        base={{ ...base, color: undefined }}
+        displayOptions={["full", "dense"]}
+        updateBase={updateBase}
+      />,
     );
+
+    const color = getInput("Color");
+    expect(color.value).toBe("#000000");
+    expect(color.required).toBe(true);
+    blurInput("Color");
+    const opener = getButton("Open Color color picker");
+    act(() => opener.click());
+    const saturation = getSlider("Color saturation");
+    act(() =>
+      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+    );
+    expect(updateBase).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(opener);
+
+    updateInput(color, "#a1b2c3");
+    blurInput("Color");
+    expect(updateBase).toHaveBeenCalledWith({ color: "#A1B2C3" });
+  });
+
+  it("preserves a core-valid legacy base color until it is replaced", () => {
+    const updateBase = vi.fn<(partial: Partial<TrackBase>) => TrackMutationResult>(() => ({
+      ok: true,
+    }));
+    mount(
+      <TrackBaseSettings
+        base={{ ...base, color: "rebeccapurple" }}
+        displayOptions={["full", "dense"]}
+        updateBase={updateBase}
+      />,
+    );
+
+    expect(getInput("Color").value).toBe("rebeccapurple");
+    const opener = getButton("Open Color color picker");
+    act(() => opener.click());
+    expect(document.body.textContent).toContain("Selected color: #000000");
+    const saturation = getSlider("Color saturation");
+    act(() =>
+      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+    );
+    expect(updateBase).not.toHaveBeenCalled();
+    expect(getInput("Color").value).toBe("rebeccapurple");
+
+    updateInput(getInput("Color"), "#123456");
+    blurInput("Color");
+    expect(updateBase).toHaveBeenCalledWith({ color: "#123456" });
   });
 
   it("keeps title validation associated with its field", () => {
@@ -177,6 +235,22 @@ function getSelectInput() {
   return input;
 }
 
+function getButton(name: string) {
+  const button = Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
+    (candidate) => candidate.getAttribute("aria-label") === name,
+  );
+  if (!button) throw new Error(`Could not find button named ${name}`);
+  return button;
+}
+
+function getSlider(name: string) {
+  const slider = Array.from(
+    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
+  ).find((candidate) => candidate.getAttribute("aria-label") === name);
+  if (!slider) throw new Error(`Could not find slider named ${name}`);
+  return slider;
+}
+
 function getFieldRow(control: Element) {
   const field = control.closest(".MuiFormControl-root");
   const row = field?.parentElement;
@@ -191,4 +265,8 @@ function updateInput(input: HTMLInputElement, value: string) {
     valueSetter.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
   });
+}
+
+function blurInput(label: string) {
+  act(() => getInput(label).dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
 }

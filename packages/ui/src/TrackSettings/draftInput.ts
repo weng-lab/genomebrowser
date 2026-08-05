@@ -22,7 +22,7 @@ export type DraftController<Raw> = {
   change: (value: Raw) => void;
   blur: () => void;
   keyDown: (event: KeyboardEvent<HTMLElement>) => void;
-  submit: (value: Raw) => TrackMutationResult;
+  submit: (value: Raw, options?: { retainRejectedDraft?: boolean }) => TrackMutationResult;
 };
 
 type DraftState<Raw, Value> = {
@@ -66,7 +66,7 @@ export function useDraftController<Raw, Value>(
     } satisfies DraftState<Raw, Value>;
   };
 
-  const attemptCommit = (currentDraft: DraftState<Raw, Value>) => {
+  const attemptCommit = (currentDraft: DraftState<Raw, Value>, retainRejectedDraft = true) => {
     const validation = options.validate(currentDraft.raw);
     if (!validation.ok) {
       setDraft({ ...currentDraft, error: validation.error, pendingRevision: undefined });
@@ -91,7 +91,18 @@ export function useDraftController<Raw, Value>(
 
     const result = options.onCommit(validation.value);
     if (!result.ok) {
-      setDraft({ ...currentDraft, error: result.error, pendingRevision: undefined });
+      setDraft(
+        retainRejectedDraft
+          ? { ...currentDraft, error: result.error, pendingRevision: undefined }
+          : {
+              raw: options.toRaw(baseline),
+              baseline,
+              externalValue: options.value,
+              dirty: false,
+              error: result.error,
+              revision: currentDraft.revision,
+            },
+      );
       return result;
     }
 
@@ -124,10 +135,10 @@ export function useDraftController<Raw, Value>(
     if (draft?.dirty) attemptCommit(draft);
   };
 
-  const submit = (raw: Raw) => {
+  const submit = (raw: Raw, submitOptions?: { retainRejectedDraft?: boolean }) => {
     const nextDraft = makeDraft(raw);
     setDraft(nextDraft);
-    return attemptCommit(nextDraft);
+    return attemptCommit(nextDraft, submitOptions?.retainRejectedDraft);
   };
 
   const cancel = () => {
