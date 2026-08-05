@@ -41,7 +41,7 @@ Build calm, compact scientific application UI.
 - `TrackBaseSettings` owns title, color, display, and height controls.
 - A module `settingsComponent` renders only its track-specific config controls.
 - Extend imported core modules directly with `settingsComponent`; do not introduce core helpers solely for UI composition.
-- Use `TrackSettingsSection` and `TrackSettingsFieldGrid` for consistent grouping.
+- Use `TrackSettingsSection` for grouping, `TrackSettingsFieldRow` for fixed peer rows, and `TrackSettingsFieldGrid` for free-flowing peer fields.
 - Every public config option must have an accessible input.
 
 ## Actions and accessibility

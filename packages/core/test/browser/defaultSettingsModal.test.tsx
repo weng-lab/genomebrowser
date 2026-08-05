@@ -50,8 +50,8 @@ describe("DefaultSettingsModal", () => {
     if (!modal) throw new Error("Could not find settings modal");
 
     expect(modal.style.boxSizing).toBe("border-box");
-    expect(modal.style.width).toBe("calc(100vw - 16px)");
-    expect(modal.style.maxWidth).toBe("520px");
+    expect(modal.style.width).toBe("550px");
+    expect(modal.style.maxWidth).toBe("calc(100vw - 16px)");
     expect(modal.querySelector('button[aria-label="Close settings"]')).toBeTruthy();
     expect(modal.lastElementChild?.textContent).toBe("Settings content");
     expect(modal.lastElementChild?.getAttribute("style")).toContain("overflow-y: auto");
@@ -60,7 +60,7 @@ describe("DefaultSettingsModal", () => {
   it("bounds initial, reset, dragged, and resized positions within the viewport", () => {
     vi.stubGlobal("innerWidth", 800);
     vi.stubGlobal("innerHeight", 600);
-    let modalWidth = 520;
+    let modalWidth = 550;
     let modalHeight = 400;
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
       function (this: HTMLElement) {
@@ -81,7 +81,7 @@ describe("DefaultSettingsModal", () => {
     );
 
     const modal = renderModal({ x: 300, y: 250 });
-    expect(modal.style.left).toBe("272px");
+    expect(modal.style.left).toBe("242px");
     expect(modal.style.top).toBe("192px");
 
     renderModal({ x: 40, y: 40 });
@@ -97,7 +97,7 @@ describe("DefaultSettingsModal", () => {
       handle.dispatchEvent(pointerEvent("pointermove", 780, 580));
       handle.dispatchEvent(pointerEvent("pointerup", 780, 580));
     });
-    expect(modal.style.left).toBe("272px");
+    expect(modal.style.left).toBe("242px");
     expect(modal.style.top).toBe("192px");
 
     renderModal({ x: 120, y: 100 });

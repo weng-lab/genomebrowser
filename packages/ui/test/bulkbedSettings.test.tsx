@@ -52,10 +52,10 @@ describe("BulkBed settings", () => {
     expect(fieldContainer(rowInput(rows[0], "Name")).parentElement).toBe(
       fieldContainer(rowInput(rows[0], "URL")).parentElement,
     );
-    expect(
-      getComputedStyle(fieldContainer(rowInput(rows[0], "Name")).parentElement as HTMLElement)
-        .flexWrap,
-    ).toBe("wrap");
+    const firstDatasetFieldRow = fieldContainer(rowInput(rows[0], "Name"))
+      .parentElement as HTMLElement;
+    expect(getComputedStyle(firstDatasetFieldRow).display).toBe("flex");
+    expect(getComputedStyle(firstDatasetFieldRow).flexWrap).toBe("nowrap");
   });
 
   it("updates gap and dataset fields without losing unaffected draft values", () => {

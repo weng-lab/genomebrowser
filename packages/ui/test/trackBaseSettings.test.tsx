@@ -50,7 +50,13 @@ describe("TrackBaseSettings", () => {
     expect(getFieldRow(display)).toBe(getFieldRow(height));
     expect(getFieldRow(title)).not.toBe(getFieldRow(display));
     expect(getComputedStyle(getFieldRow(title)).display).toBe("flex");
-    expect(getComputedStyle(getFieldRow(title)).flexWrap).toBe("wrap");
+    expect(getComputedStyle(getFieldRow(title)).flexWrap).toBe("nowrap");
+    expect(getComputedStyle(title.closest(".MuiFormControl-root") as HTMLElement).flex).toBe(
+      "1 1 0px",
+    );
+    expect(getComputedStyle(color.closest(".MuiFormControl-root") as HTMLElement).minWidth).toBe(
+      "0",
+    );
   });
 
   it("omits a single unavailable display option without leaving a placeholder field", () => {
@@ -64,8 +70,8 @@ describe("TrackBaseSettings", () => {
     expect(getFieldRow(height).querySelectorAll(".MuiFormControl-root")).toHaveLength(1);
     const heightField = height.closest<HTMLElement>(".MuiFormControl-root");
     expect(heightField).toBeTruthy();
-    expect(getComputedStyle(heightField as HTMLElement).flexGrow).toBe("0");
-    expect(getComputedStyle(heightField as HTMLElement).flexBasis).toBe("12rem");
+    expect(getComputedStyle(heightField as HTMLElement).flex).toBe("1 1 0px");
+    expect(getComputedStyle(heightField as HTMLElement).width).toBe("100%");
   });
 
   it("keeps required title and height drafts visible before valid debounced updates", () => {

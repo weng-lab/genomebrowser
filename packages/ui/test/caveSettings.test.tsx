@@ -47,10 +47,9 @@ describe("CAVE settings", () => {
     expect(getFieldContainer(getInput("Top color")).parentElement).toBe(
       getFieldContainer(getInput("Bottom color")).parentElement,
     );
-    expect(
-      getComputedStyle(getFieldContainer(getInput("Top color")).parentElement as HTMLElement)
-        .flexWrap,
-    ).toBe("wrap");
+    const colorRow = getFieldContainer(getInput("Top color")).parentElement as HTMLElement;
+    expect(getComputedStyle(colorRow).display).toBe("flex");
+    expect(getComputedStyle(colorRow).flexWrap).toBe("nowrap");
   });
 
   it("updates dataset selections and validated color overrides, including cleared colors", async () => {

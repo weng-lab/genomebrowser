@@ -29,15 +29,19 @@ export function TrackSettingsFieldRow({ children }: TrackSettingsFieldGridProps)
       sx={{
         alignItems: "start",
         display: "flex",
-        flexWrap: "wrap",
+        flexWrap: "nowrap",
         gap: 1.25,
         minWidth: 0,
         "& > *": {
-          flex: "0 1 12rem",
-          minWidth: "min(100%, 12rem)",
+          flex: "1 1 0",
+          minWidth: 0,
         },
-        "& > *:not(:only-child)": {
-          flexGrow: 1,
+        "@media (max-width: 566px)": {
+          flexDirection: "column",
+          "& > *": {
+            flex: "0 0 auto",
+            width: "100%",
+          },
         },
       }}
     >

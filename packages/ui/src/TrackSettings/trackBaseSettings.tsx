@@ -25,23 +25,24 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
   return (
     <TrackSettingsLayout>
       {error ? <Alert severity="error">{error}</Alert> : null}
-      <TrackSettingsFieldRow>
-        <DraftTextField
-          label="Title"
-          required
-          value={base.title}
-          validate={(title) => (title.trim() === "" ? "Enter a title." : undefined)}
-          onCommit={(title) => updateBase({ title })}
-        />
-        <TrackColorField
-          fallbackColor={neutralTrackColor}
-          label="Color"
-          mode="required"
-          value={base.color}
-          onCommit={(color) => applyImmediateUpdate({ color })}
-        />
-      </TrackSettingsFieldRow>
-      <TrackSettingsSection title="Track display settings">
+      <TrackSettingsSection title="Track base settings">
+        <TrackSettingsFieldRow>
+          <DraftTextField
+            label="Title"
+            required
+            value={base.title}
+            validate={(title) => (title.trim() === "" ? "Enter a title." : undefined)}
+            onCommit={(title) => updateBase({ title })}
+          />
+          <TrackColorField
+            fallbackColor={neutralTrackColor}
+            label="Color"
+            mode="required"
+            value={base.color}
+            onCommit={(color) => applyImmediateUpdate({ color })}
+          />
+        </TrackSettingsFieldRow>
+
         <TrackSettingsFieldRow>
           {displayOptions.length > 1 ? (
             <TextField

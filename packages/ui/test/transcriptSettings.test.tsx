@@ -58,9 +58,9 @@ describe("Transcript settings", () => {
     expect(getFieldContainer("Canonical color").parentElement).toBe(
       getFieldContainer("Highlight color").parentElement,
     );
-    expect(
-      getComputedStyle(getFieldContainer("Assembly").parentElement as HTMLElement).flexWrap,
-    ).toBe("wrap");
+    const assemblyRow = getFieldContainer("Assembly").parentElement as HTMLElement;
+    expect(getComputedStyle(assemblyRow).display).toBe("flex");
+    expect(getComputedStyle(assemblyRow).flexWrap).toBe("nowrap");
   });
 
   it("updates typed values and clears optional values", () => {
