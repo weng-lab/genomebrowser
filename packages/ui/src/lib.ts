@@ -26,6 +26,13 @@ export { TrackSettingsTextField } from "./TrackSettings/trackSettingsTextField";
 export type { TrackSettingsTextFieldProps } from "./TrackSettings/trackSettingsTextField";
 export { TrackSettingsUrlField } from "./TrackSettings/trackSettingsUrlField";
 export type { TrackSettingsUrlFieldProps } from "./TrackSettings/trackSettingsUrlField";
+export { TrackTooltip } from "./tracks/trackTooltip";
+export type { TrackTooltipProps, TrackTooltipRow } from "./tracks/trackTooltip";
+export {
+  formatGenomicInterval,
+  formatOptionalBedValue,
+  formatSignalValue,
+} from "./tracks/trackTooltipFormatters";
 export { BigBedSettings } from "./tracks/bigbed/settings";
 export { BigBedTooltip } from "./tracks/bigbed/tooltip";
 export { BigWigSettings } from "./tracks/bigwig/settings";

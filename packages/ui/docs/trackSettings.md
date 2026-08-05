@@ -6,7 +6,7 @@ Use the track-settings authoring components from `@weng-lab/genomebrowser-ui` to
 
 The core browser owns the settings modal shell: its title, close behavior, position, and width. It renders the configured base-settings component and then the active module's `settingsComponent`. A module settings component should therefore render only controls for that module's track-specific configuration. Do not add another modal, title, close button, or fixed width.
 
-The UI package owns the MUI authoring controls on this page. Core remains independent of MUI. `TrackBaseSettings` is the optional UI implementation for shared title, color, display, and height controls; track-specific components should not repeat those fields.
+The UI package owns the MUI authoring controls on this page. Core remains independent of MUI. `TrackBaseSettings` is the optional UI implementation for shared title, color, display, and height controls; track-specific components should not repeat those fields. Tooltip content has separate module ownership and authoring conventions; see [Author track tooltips](trackTooltips.md).
 
 ## Minimal settings component
 
@@ -226,4 +226,4 @@ Range validation is associated with both bound inputs while rendering one shared
 
 ## Built-in settings components
 
-The UI package also exports `BigWigSettings`, `BigBedSettings`, `BulkBedSettings`, `CaveSettings`, `MethylCSettings`, and `TranscriptSettings` for the matching core modules. Assign one to the matching module's `settingsComponent` when its built-in controls fit your application. The same package exports matching tooltip components and `TrackBaseSettings`. These ready-made components use the authoring primitives and follow the behavior documented above; custom module settings do not need to depend on them.
+The UI package also exports `BigWigSettings`, `BigBedSettings`, `BulkBedSettings`, `CaveSettings`, `MethylCSettings`, and `TranscriptSettings` for the matching core modules. Assign one to the matching module's `settingsComponent` when its built-in controls fit your application. The same package exports `TrackBaseSettings`. These ready-made settings components use the authoring primitives and follow the behavior documented above; custom module settings do not need to depend on them. Matching tooltip components are documented separately in [Author track tooltips](trackTooltips.md).
