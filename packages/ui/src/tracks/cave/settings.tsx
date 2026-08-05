@@ -6,6 +6,7 @@ import type {
   CaveNeurotransmitter,
   TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
+import { OptionalTrackColorField } from "../../TrackSettings/optionalTrackColorField";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
 
@@ -64,25 +65,17 @@ export function CaveSettings({ config, updateConfig }: TrackSettingsProps<CaveCo
       </TrackSettingsSection>
       <TrackSettingsSection title="Signal colors">
         <TrackSettingsFieldGrid>
-          <TextField
-            fullWidth
+          <OptionalTrackColorField
             label="Top color"
             placeholder="Derived from bottom color"
-            size="small"
-            value={config.topColor ?? ""}
-            onChange={(event) => {
-              updateConfig({ topColor: event.target.value || undefined });
-            }}
+            value={config.topColor}
+            onChange={(topColor) => updateConfig({ topColor })}
           />
-          <TextField
-            fullWidth
+          <OptionalTrackColorField
             label="Bottom color"
             placeholder="Track color"
-            size="small"
-            value={config.bottomColor ?? ""}
-            onChange={(event) => {
-              updateConfig({ bottomColor: event.target.value || undefined });
-            }}
+            value={config.bottomColor}
+            onChange={(bottomColor) => updateConfig({ bottomColor })}
           />
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>

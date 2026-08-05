@@ -1,21 +1,14 @@
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
-import type { BigWigConfig, TrackSettingsProps, YRange } from "@weng-lab/genomebrowser";
-import { useState } from "react";
+import type { BigWigConfig, TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { DraftRangeFields } from "../../TrackSettings/draftRangeFields";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
+import { TrackSourceUrlField } from "../../TrackSettings/trackSourceUrlField";
 
 const defaultClampIndicatorColor = "#ff0000";
-
-type YRangeValues = Record<keyof YRange, string>;
-
-type YRangeDraft = {
-  source: BigWigConfig["yRange"];
-  values: YRangeValues;
-};
 
 type YRangeSettingsProps = {
   yRange: BigWigConfig["yRange"];
@@ -26,18 +19,13 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
   const showClampIndicators = config.showClampIndicators ?? true;
 
   return (
-    <Box sx={{ display: "grid", gap: 1.5 }}>
+    <TrackSettingsLayout>
       <TrackSettingsSection title="BigWig source">
         <TrackSettingsFieldGrid>
-          <TextField
-            autoComplete="url"
-            fullWidth
-            label="URL"
-            size="small"
-            slotProps={{ htmlInput: { inputMode: "url" } }}
-            type="url"
+          <TrackSourceUrlField
+            required
             value={config.url}
-            onChange={(event) => updateConfig({ url: event.target.value })}
+            onCommit={(url) => updateConfig({ url })}
           />
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
@@ -81,77 +69,18 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
           />
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
-    </Box>
+    </TrackSettingsLayout>
   );
 }
 
 function YRangeSettings({ yRange, updateConfig }: YRangeSettingsProps) {
-  const [draft, setDraft] = useState<YRangeDraft>();
-  const values = draft && draft.source === yRange ? draft.values : toYRangeValues(yRange);
-
-  const updateYRange = (bound: keyof YRange, value: string) => {
-    const nextValues = { ...values, [bound]: value };
-    setDraft({ source: yRange, values: nextValues });
-
-    const nextMin = parseRangeBound(nextValues.min);
-    const nextMax = parseRangeBound(nextValues.max);
-    if (nextMin === undefined || nextMax === undefined) {
-      if (yRange) updateConfig({ yRange: undefined });
-      return;
-    }
-    if (nextMin === null || nextMax === null) return;
-
-    updateConfig({ yRange: { min: nextMin, max: nextMax } });
-  };
-
-  const handleAutomaticRangeClick = () => {
-    setDraft({ source: yRange, values: toYRangeValues() });
-    updateConfig({ yRange: undefined });
-  };
-
   return (
     <TrackSettingsSection title="Y-axis range">
-      <TrackSettingsFieldGrid>
-        <TextField
-          fullWidth
-          label="Minimum"
-          size="small"
-          slotProps={{ htmlInput: { inputMode: "decimal" } }}
-          value={values.min}
-          onChange={(event) => updateYRange("min", event.target.value)}
-        />
-        <TextField
-          fullWidth
-          label="Maximum"
-          size="small"
-          slotProps={{ htmlInput: { inputMode: "decimal" } }}
-          value={values.max}
-          onChange={(event) => updateYRange("max", event.target.value)}
-        />
-      </TrackSettingsFieldGrid>
-      <Button
-        size="small"
-        sx={{ justifySelf: "start", textTransform: "none" }}
-        type="button"
-        onClick={handleAutomaticRangeClick}
-      >
-        Use automatic range
-      </Button>
+      <DraftRangeFields
+        mode="independent"
+        range={yRange}
+        onCommit={(nextRange) => updateConfig({ yRange: nextRange })}
+      />
     </TrackSettingsSection>
   );
-}
-
-function toYRangeValues(yRange?: YRange): YRangeValues {
-  return {
-    min: yRange?.min === undefined ? "" : String(yRange.min),
-    max: yRange?.max === undefined ? "" : String(yRange.max),
-  };
-}
-
-function parseRangeBound(value: string): number | null | undefined {
-  const trimmedValue = value.trim();
-  if (trimmedValue === "") return undefined;
-
-  const parsedValue = Number(trimmedValue);
-  return Number.isFinite(parsedValue) ? parsedValue : null;
 }

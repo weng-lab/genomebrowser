@@ -1,10 +1,9 @@
 // @vitest-environment jsdom
 
-import { caveModule, type CaveConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { type CaveConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { caveModuleWithSettings } from "../src/tracks/cave/module";
 import { CaveSettings } from "../src/tracks/cave/settings";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -57,15 +56,6 @@ describe("CAVE settings", () => {
       [{ topColor: undefined }],
       [{ bottomColor: undefined }],
     ]);
-  });
-});
-
-describe("CAVE module with settings", () => {
-  it("directly extends the core module with the UI settings component", () => {
-    expect(caveModuleWithSettings).not.toBe(caveModule);
-    expect(caveModuleWithSettings.create).toBe(caveModule.create);
-    expect(caveModuleWithSettings.settingsComponent).toBe(CaveSettings);
-    expect(caveModule.settingsComponent).not.toBe(CaveSettings);
   });
 });
 

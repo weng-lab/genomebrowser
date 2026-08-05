@@ -1,14 +1,9 @@
 // @vitest-environment jsdom
 
-import {
-  methylCModule,
-  type MethylCConfig,
-  type TrackSettingsProps,
-} from "@weng-lab/genomebrowser";
+import { type MethylCConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { methylCModuleWithSettings } from "../src/tracks/methylc/module";
 import { MethylCSettings } from "../src/tracks/methylc/settings";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -47,6 +42,7 @@ afterEach(() => {
   container?.remove();
   container = undefined;
   root = undefined;
+  vi.useRealTimers();
 });
 
 describe("methylC settings", () => {
@@ -75,13 +71,18 @@ describe("methylC settings", () => {
   });
 
   it("updates nested values while preserving their siblings", () => {
+    vi.useFakeTimers();
     const { updateConfig } = renderSettings();
 
     updateInput("Plus-strand CpG URL", "UPDATED_PLUS_CPG_URL");
+    updateInput("Plus-strand CHG URL", "UPDATED_PLUS_CHG_URL");
     updateInput("Depth color", "rebeccapurple");
     clickInput("Mask CpG by coverage");
+    act(() => vi.advanceTimersByTime(300));
 
     expect(updateConfig.mock.calls).toEqual([
+      [{ colors: { ...config.colors, depth: "rebeccapurple" } }],
+      [{ maskCpgByCoverage: false }],
       [
         {
           urls: {
@@ -93,32 +94,54 @@ describe("methylC settings", () => {
           },
         },
       ],
-      [{ colors: { ...config.colors, depth: "rebeccapurple" } }],
-      [{ maskCpgByCoverage: false }],
+      [
+        {
+          urls: {
+            ...config.urls,
+            plusStrand: {
+              ...config.urls.plusStrand,
+              cpg: { url: "UPDATED_PLUS_CPG_URL" },
+              chg: { url: "UPDATED_PLUS_CHG_URL" },
+            },
+          },
+        },
+      ],
     ]);
   });
 
-  it("creates a complete range and clears it when a bound is blank", () => {
-    const { rerender, updateConfig } = renderSettings({ ...config, range: undefined });
+  it("retains the first bound through a focus transition and commits the pair on Enter", () => {
+    vi.useFakeTimers();
+    const { updateConfig } = renderSettings({ ...config, range: undefined });
 
+    focusInput("Minimum");
     updateInput("Minimum", "0");
+    focusInput("Maximum");
+
     expect(updateConfig).not.toHaveBeenCalled();
+    expect(getInput("Minimum").value).toBe("0");
+    expect(getInput("Maximum").value).toBe("");
+    expect(container?.textContent).toContain("Enter both minimum and maximum.");
 
     updateInput("Maximum", "10");
-    expect(updateConfig).toHaveBeenLastCalledWith({ range: { min: 0, max: 10 } });
+    keyDownInput("Maximum", "Enter");
 
-    rerender({ ...config, range: { min: 0, max: 10 } });
+    expect(updateConfig).toHaveBeenLastCalledWith({ range: { min: 0, max: 10 } });
+  });
+
+  it("requires both manually entered bounds and clears the pair with the automatic action", () => {
+    vi.useFakeTimers();
+    const { updateConfig } = renderSettings();
+
     updateInput("Minimum", "");
+    act(() => vi.advanceTimersByTime(300));
+
+    expect(updateConfig).not.toHaveBeenCalled();
+    expect(getInput("Minimum").value).toBe("");
+    expect(getInput("Maximum").value).toBe("8");
+
+    act(() => getAutomaticRangeButton().click());
 
     expect(updateConfig).toHaveBeenLastCalledWith({ range: undefined });
-  });
-});
-
-describe("methylC module with settings", () => {
-  it("adds the UI settings component without changing the core module", () => {
-    expect(methylCModuleWithSettings).not.toBe(methylCModule);
-    expect(methylCModuleWithSettings.settingsComponent).toBe(MethylCSettings);
-    expect(methylCModule.settingsComponent).not.toBe(MethylCSettings);
   });
 });
 
@@ -163,4 +186,20 @@ function updateInput(label: string, value: string) {
 
 function clickInput(label: string) {
   act(() => getInput(label).click());
+}
+
+function focusInput(label: string) {
+  act(() => getInput(label).focus());
+}
+
+function keyDownInput(label: string, key: string) {
+  act(() => getInput(label).dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key })));
+}
+
+function getAutomaticRangeButton() {
+  const button = Array.from(container?.querySelectorAll("button") ?? []).find(
+    (candidate) => candidate.textContent === "Use automatic range",
+  );
+  if (!button) throw new Error("Could not find the automatic range button");
+  return button;
 }

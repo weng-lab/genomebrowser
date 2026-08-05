@@ -16,10 +16,12 @@ afterEach(() => {
   container?.remove();
   container = undefined;
   root = undefined;
+  vi.useRealTimers();
 });
 
 describe("BigBed settings", () => {
   it("renders a controlled URL field and forwards URL changes", () => {
+    vi.useFakeTimers();
     const updateConfig = vi.fn((): { ok: true } => ({ ok: true }));
 
     container = document.createElement("div");
@@ -51,6 +53,8 @@ describe("BigBed settings", () => {
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
 
+    expect(updateConfig).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(300));
     expect(updateConfig).toHaveBeenCalledWith({ url: "UPDATED_URL" });
   });
 });

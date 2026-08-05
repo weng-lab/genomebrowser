@@ -1,28 +1,76 @@
 # Track settings
 
-Use the UI settings components to add MUI controls to the core browser's existing settings modal. The UI package currently provides settings-enabled modules for BigWig, BigBed, BulkBed, CAVE, methylC, and transcript tracks, plus an optional replacement for the shared base controls.
+Use the UI track components to add MUI controls and detailed SVG tooltips to core BigWig, BigBed, BulkBed, CAVE, methylC, and transcript modules. The package also provides an optional replacement for the shared base settings controls.
 
 ## Usage
 
-Create the settings store and track store outside React rendering. Register the settings-enabled modules instead of their core equivalents, then pass all three stores to `GenomeBrowser`.
+Create the settings store and track store outside React rendering. Extend each core module with its matching settings and tooltip components, register the composed modules, then pass all three stores to `GenomeBrowser`.
 
 ```tsx
 import {
+  bigBedModule,
+  bigWigModule,
+  bulkBedModule,
+  caveModule,
   createBrowserStore,
   createSettingsStore,
   createTrackStore,
   GenomeBrowser,
   hg38,
+  methylCModule,
+  transcriptModule,
 } from "@weng-lab/genomebrowser";
 import {
-  bigBedModuleWithSettings,
-  bigWigModuleWithSettings,
-  bulkBedModuleWithSettings,
-  caveModuleWithSettings,
-  methylCModuleWithSettings,
+  BigBedSettings,
+  BigBedTooltip,
+  BigWigSettings,
+  BigWigTooltip,
+  BulkBedSettings,
+  BulkBedTooltip,
+  CaveSettings,
+  CaveTooltip,
+  MethylCSettings,
+  MethylCTooltip,
   TrackBaseSettings,
-  transcriptModuleWithSettings,
+  TranscriptSettings,
+  TranscriptTooltip,
 } from "@weng-lab/genomebrowser-ui";
+
+const bigBedUiModule = {
+  ...bigBedModule,
+  settingsComponent: BigBedSettings,
+  tooltipComponent: BigBedTooltip,
+} satisfies typeof bigBedModule;
+
+const bigWigUiModule = {
+  ...bigWigModule,
+  settingsComponent: BigWigSettings,
+  tooltipComponent: BigWigTooltip,
+} satisfies typeof bigWigModule;
+
+const bulkBedUiModule = {
+  ...bulkBedModule,
+  settingsComponent: BulkBedSettings,
+  tooltipComponent: BulkBedTooltip,
+} satisfies typeof bulkBedModule;
+
+const caveUiModule = {
+  ...caveModule,
+  settingsComponent: CaveSettings,
+  tooltipComponent: CaveTooltip,
+} satisfies typeof caveModule;
+
+const methylCUiModule = {
+  ...methylCModule,
+  settingsComponent: MethylCSettings,
+  tooltipComponent: MethylCTooltip,
+} satisfies typeof methylCModule;
+
+const transcriptUiModule = {
+  ...transcriptModule,
+  settingsComponent: TranscriptSettings,
+  tooltipComponent: TranscriptTooltip,
+} satisfies typeof transcriptModule;
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -36,15 +84,15 @@ const useSettingsStore = createSettingsStore({
 
 const useTrackStore = createTrackStore({
   modules: [
-    bigWigModuleWithSettings,
-    bigBedModuleWithSettings,
-    bulkBedModuleWithSettings,
-    caveModuleWithSettings,
-    methylCModuleWithSettings,
-    transcriptModuleWithSettings,
+    bigWigUiModule,
+    bigBedUiModule,
+    bulkBedUiModule,
+    caveUiModule,
+    methylCUiModule,
+    transcriptUiModule,
   ],
   tracks: [
-    bigWigModuleWithSettings.create({
+    bigWigUiModule.create({
       id: "signal",
       title: "Signal",
       config: { url: "YOUR_URL_HERE" },
@@ -65,20 +113,22 @@ export function Browser() {
 
 Open settings with the settings action on a browser track. Applications can also call `useSettingsStore.getState().openSettings(trackId, position)`.
 
-## Settings-enabled modules
+## Track-specific components
 
-Each UI module extends the corresponding core module with a `settingsComponent`. It preserves the core renderer, creation API, and interaction behavior.
+The UI package exports components rather than precomposed modules, so applications explicitly choose which UI behavior to install. Spreading the core module preserves its renderer, creation API, and interaction behavior.
 
-| Export                         | Track type | Editable track configuration                                                                            |
-| ------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------- |
-| `bigWigModuleWithSettings`     | BigWig     | URL, fill missing values with zero, Y-axis minimum and maximum, clamp indicators, clamp indicator color |
-| `bigBedModuleWithSettings`     | BigBed     | URL                                                                                                     |
-| `bulkBedModuleWithSettings`    | BulkBed    | Dataset names and URLs, inter-dataset gap                                                               |
-| `caveModuleWithSettings`       | CAVE       | Neurotransmitter, age, top color, bottom color                                                          |
-| `methylCModuleWithSettings`    | MethylC    | Plus/minus strand channel URLs, channel colors, coverage mask, range                                    |
-| `transcriptModuleWithSettings` | Transcript | Endpoint, assembly, version, highlighted gene, canonical color, highlight color                         |
+| Track type | Settings component   | Tooltip component   | Editable track configuration                                                                            |
+| ---------- | -------------------- | ------------------- | ------------------------------------------------------------------------------------------------------- |
+| BigWig     | `BigWigSettings`     | `BigWigTooltip`     | URL, fill missing values with zero, Y-axis minimum and maximum, clamp indicators, clamp indicator color |
+| BigBed     | `BigBedSettings`     | `BigBedTooltip`     | URL                                                                                                     |
+| BulkBed    | `BulkBedSettings`    | `BulkBedTooltip`    | Dataset names and URLs, inter-dataset gap                                                               |
+| CAVE       | `CaveSettings`       | `CaveTooltip`       | Neurotransmitter, age, top color, bottom color                                                          |
+| methylC    | `MethylCSettings`    | `MethylCTooltip`    | Plus/minus strand channel URLs, channel colors, coverage mask, range                                    |
+| Transcript | `TranscriptSettings` | `TranscriptTooltip` | Endpoint, assembly, version, highlighted gene, canonical color, highlight color                         |
 
 Every modal also includes `TrackBaseSettings` for the title, color, height, and supported display modes.
+
+`BigWigSettings` treats its Y-axis minimum and maximum as independent overrides. Leaving either field blank keeps that bound automatic, while clearing both fields restores a fully automatic range. It rejects a minimum greater than or equal to the maximum only when both fields contain explicit numbers and retains the invalid draft so you can correct it. `MethylCSettings` treats a manual range as a complete pair. A single entered bound remains available while you move between fields, but both bounds are required before the range updates. Use **Use automatic range** to clear the complete pair.
 
 ## Component API
 
@@ -94,7 +144,7 @@ Edits settings shared by every track.
 
 ### BigWigSettings, BigBedSettings, BulkBedSettings, CaveSettings, MethylCSettings, and TranscriptSettings
 
-These components are already attached to their matching settings-enabled modules. They are also exported for applications composing a custom module.
+Assign the matching component to a core module's `settingsComponent` as shown above.
 
 | Prop           | Type                                                | Default  | Description                                       |
 | -------------- | --------------------------------------------------- | -------- | ------------------------------------------------- |
@@ -102,9 +152,20 @@ These components are already attached to their matching settings-enabled modules
 | `config`       | Matching track config type                          | Required | Current configuration for the matching component. |
 | `updateConfig` | `(partial: Partial<Config>) => TrackMutationResult` | Required | Applies a partial track-configuration update.     |
 
+### BigWigTooltip, BigBedTooltip, BulkBedTooltip, CaveTooltip, MethylCTooltip, and TranscriptTooltip
+
+Assign the matching component to a core module's `tooltipComponent`. The browser supplies these props when a renderer opens a tooltip for a semantic item.
+
+BigWig, CAVE, and methylC signal tooltips keep their normal rows over empty pixels and display `No data`. Signal values use two decimal places. Optional numeric BED scores use at most two decimal places without forced trailing zeros.
+
+| Prop      | Type                          | Default  | Description                                                      |
+| --------- | ----------------------------- | -------- | ---------------------------------------------------------------- |
+| `item`    | Matching track item type      | Required | Semantic item selected by the matching core renderer.            |
+| `context` | `TrackRuntimeContext<Config>` | Required | Current track base settings and validated track-specific config. |
+
 ## Accessibility
 
-The existing core modal provides its heading, close action, dragging, and Escape-key behavior. All MUI form controls have visible labels. Disabled controls remain visible when their dependent option is off.
+The existing core modal provides its heading, close action, dragging, and Escape-key behavior. All MUI form controls have visible labels. A range error is described by both coordinated bound inputs without repeating the message. Disabled controls remain visible when their dependent option is off.
 
 ## Notes
 

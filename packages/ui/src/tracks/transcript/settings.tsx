@@ -4,6 +4,9 @@ import {
   type TrackSettingsProps,
   type TranscriptConfig,
 } from "@weng-lab/genomebrowser";
+import { DraftNumberField } from "../../TrackSettings/draftNumberField";
+import { DraftTextField } from "../../TrackSettings/draftTextField";
+import { OptionalTrackColorField } from "../../TrackSettings/optionalTrackColorField";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
 
@@ -12,36 +15,33 @@ export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<
     <>
       <TrackSettingsSection title="Transcript source">
         <TrackSettingsFieldGrid>
-          <TextField
-            fullWidth
+          <DraftTextField
             label="Endpoint"
             placeholder={defaultScreenGraphQlEndpoint}
-            size="small"
+            required
             value={config.endpoint}
-            onChange={(event) => {
-              updateConfig({ endpoint: event.target.value || undefined });
-            }}
+            normalize={(endpoint) => endpoint.trim()}
+            validate={(endpoint) => (endpoint.trim() === "" ? "Enter an endpoint." : undefined)}
+            onCommit={(endpoint) => updateConfig({ endpoint })}
           />
-          <TextField
-            fullWidth
+          <DraftTextField
             label="Assembly"
-            size="small"
+            required
             value={config.assembly}
-            onChange={(event) => {
-              updateConfig({ assembly: event.target.value });
-            }}
+            validate={(assembly) => (assembly.trim() === "" ? "Enter an assembly." : undefined)}
+            onCommit={(assembly) => updateConfig({ assembly })}
           />
-          <TextField
-            fullWidth
+          <DraftNumberField
+            inputMode="numeric"
             label="Version"
-            size="small"
-            slotProps={{ htmlInput: { min: 1, step: 1 } }}
-            type="number"
+            min={1}
+            required
+            step={1}
             value={config.version}
-            onChange={(event) => {
-              const version = Number(event.target.value);
-              if (Number.isInteger(version) && version > 0) updateConfig({ version });
-            }}
+            validate={(version) =>
+              Number.isInteger(version) && version > 0 ? undefined : "Enter a positive integer."
+            }
+            onCommit={(version) => updateConfig({ version })}
           />
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
@@ -56,25 +56,17 @@ export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<
               updateConfig({ geneName: event.target.value || undefined });
             }}
           />
-          <TextField
-            fullWidth
+          <OptionalTrackColorField
             label="Canonical color"
             placeholder="#000000"
-            size="small"
-            value={config.canonicalColor ?? ""}
-            onChange={(event) => {
-              updateConfig({ canonicalColor: event.target.value || undefined });
-            }}
+            value={config.canonicalColor}
+            onChange={(canonicalColor) => updateConfig({ canonicalColor })}
           />
-          <TextField
-            fullWidth
+          <OptionalTrackColorField
             label="Highlight color"
             placeholder="#000000"
-            size="small"
-            value={config.highlightColor ?? ""}
-            onChange={(event) => {
-              updateConfig({ highlightColor: event.target.value || undefined });
-            }}
+            value={config.highlightColor}
+            onChange={(highlightColor) => updateConfig({ highlightColor })}
           />
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>

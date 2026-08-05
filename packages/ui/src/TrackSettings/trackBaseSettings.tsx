@@ -1,10 +1,12 @@
 import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import type { BaseSettingsProps, TrackBase } from "@weng-lab/genomebrowser";
 import { useState } from "react";
+import { DraftNumberField } from "./draftNumberField";
+import { DraftTextField } from "./draftTextField";
 import { TrackSettingsFieldGrid } from "./trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "./trackSettingsLayout";
 import { TrackSettingsSection } from "./trackSettingsSection";
 
 export type TrackBaseSettingsProps = BaseSettingsProps;
@@ -12,21 +14,21 @@ export type TrackBaseSettingsProps = BaseSettingsProps;
 export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBaseSettingsProps) {
   const [error, setError] = useState<string>();
 
-  const applyUpdate = (partial: Partial<TrackBase>) => {
+  const applyImmediateUpdate = (partial: Partial<TrackBase>) => {
     const result = updateBase(partial);
     setError(result.ok ? undefined : result.error);
   };
 
   return (
-    <Box sx={{ display: "grid", gap: 1.5 }}>
+    <TrackSettingsLayout>
       {error ? <Alert severity="error">{error}</Alert> : null}
       <TrackSettingsFieldGrid>
-        <TextField
-          fullWidth
+        <DraftTextField
           label="Title"
-          size="small"
+          required
           value={base.title}
-          onChange={(event) => applyUpdate({ title: event.target.value })}
+          validate={(title) => (title.trim() === "" ? "Enter a title." : undefined)}
+          onCommit={(title) => updateBase({ title })}
         />
         <TextField
           fullWidth
@@ -34,7 +36,7 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
           placeholder="#000000"
           size="small"
           value={base.color ?? ""}
-          onChange={(event) => applyUpdate({ color: event.target.value || undefined })}
+          onChange={(event) => applyImmediateUpdate({ color: event.target.value || undefined })}
         />
       </TrackSettingsFieldGrid>
       <TrackSettingsSection title="Track display settings">
@@ -46,7 +48,7 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
               label="Display mode"
               size="small"
               value={base.display}
-              onChange={(event) => applyUpdate({ display: event.target.value })}
+              onChange={(event) => applyImmediateUpdate({ display: event.target.value })}
             >
               {displayOptions.map((display) => (
                 <MenuItem key={display} value={display}>
@@ -55,20 +57,16 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
               ))}
             </TextField>
           ) : null}
-          <TextField
-            fullWidth
+          <DraftNumberField
             label="Height"
-            size="small"
-            slotProps={{ htmlInput: { min: 20 } }}
-            type="number"
+            min={20}
+            required
             value={base.height}
-            onChange={(event) => {
-              const height = Number(event.target.value);
-              if (Number.isFinite(height)) applyUpdate({ height: Math.max(20, height) });
-            }}
+            validate={(height) => (height >= 20 ? undefined : "Enter a height of at least 20.")}
+            onCommit={(height) => updateBase({ height })}
           />
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
-    </Box>
+    </TrackSettingsLayout>
   );
 }

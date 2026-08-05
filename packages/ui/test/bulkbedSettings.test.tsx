@@ -1,14 +1,9 @@
 // @vitest-environment jsdom
 
-import {
-  bulkBedModule,
-  type BulkBedConfig,
-  type TrackSettingsProps,
-} from "@weng-lab/genomebrowser";
+import { type BulkBedConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { bulkBedModuleWithSettings } from "../src/tracks/bulkbed/module";
 import { BulkBedSettings } from "../src/tracks/bulkbed/settings";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -30,6 +25,7 @@ afterEach(() => {
   container?.remove();
   container = undefined;
   root = undefined;
+  vi.useRealTimers();
 });
 
 describe("BulkBed settings", () => {
@@ -56,11 +52,13 @@ describe("BulkBed settings", () => {
   });
 
   it("updates gap and dataset fields without losing unaffected draft values", () => {
+    vi.useFakeTimers();
     const { updateConfig } = renderSettings();
 
     updateInput(gapInput(), "6.5");
     updateInput(rowInput(datasetRows()[1], "Name"), "Dataset B updated");
     updateInput(rowInput(datasetRows()[0], "URL"), "DATASET_A_UPDATED_URL");
+    act(() => vi.advanceTimersByTime(300));
 
     expect(updateConfig.mock.calls).toEqual([
       [{ gap: 6.5 }],
@@ -129,23 +127,21 @@ describe("BulkBed settings", () => {
     updateInput(rowInput(datasetRows()[0], "Name"), "");
     updateInput(rowInput(datasetRows()[0], "URL"), "");
     updateInput(gapInput(), "-2");
-    click(addButton());
 
     expect(updateConfig).not.toHaveBeenCalled();
-    expect(datasetRows()).toHaveLength(3);
     expect(container?.textContent).toContain("Enter a non-negative number.");
     expect(container?.textContent).toContain("Enter a dataset name.");
-    expect(container?.textContent).toContain("Enter a dataset URL.");
+    expect(container?.textContent).toContain("Enter a URL.");
 
     rerender({ ...initialConfig, gap: 8 });
 
     expect(gapInput().value).toBe("-2");
     expect(rowInput(datasetRows()[0], "Name").value).toBe("");
     expect(rowInput(datasetRows()[0], "URL").value).toBe("");
-    expect(rowInput(datasetRows()[2], "Name").value).toBe("Dataset 3");
   });
 
   it("keeps a core-rejected complete draft visible", () => {
+    vi.useFakeTimers();
     const updateConfig = vi.fn<TrackSettingsProps<BulkBedConfig>["updateConfig"]>(() => ({
       ok: false,
       error: "Core rejected the update.",
@@ -153,6 +149,7 @@ describe("BulkBed settings", () => {
     const { rerender } = renderSettings(initialConfig, updateConfig);
 
     updateInput(rowInput(datasetRows()[0], "Name"), "Dataset A updated");
+    act(() => vi.advanceTimersByTime(300));
     rerender({ ...initialConfig });
 
     expect(rowInput(datasetRows()[0], "Name").value).toBe("Dataset A updated");
@@ -188,15 +185,6 @@ describe("BulkBed settings", () => {
 
     expect(datasetRows()[0]).toBe(firstRow);
     expect(datasetRows()[1]).toBe(externalRow);
-  });
-});
-
-describe("BulkBed module with settings", () => {
-  it("directly extends the core module with the UI settings component", () => {
-    expect(bulkBedModuleWithSettings).not.toBe(bulkBedModule);
-    expect(bulkBedModuleWithSettings.create).toBe(bulkBedModule.create);
-    expect(bulkBedModuleWithSettings.settingsComponent).toBe(BulkBedSettings);
-    expect(bulkBedModule.settingsComponent).not.toBe(BulkBedSettings);
   });
 });
 
@@ -253,7 +241,9 @@ function mount() {
 }
 
 function gapInput() {
-  const input = container?.querySelector<HTMLInputElement>('input[type="number"]');
+  const input = Array.from(container?.querySelectorAll<HTMLInputElement>("input") ?? []).find(
+    (candidate) => Array.from(candidate.labels ?? []).some((label) => label.textContent === "Gap"),
+  );
   if (!input) throw new Error("Could not find the gap input");
   return input;
 }

@@ -1,23 +1,16 @@
-import TextField from "@mui/material/TextField";
 import type { BigBedConfig, TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
+import { TrackSourceUrlField } from "../../TrackSettings/trackSourceUrlField";
 
 export function BigBedSettings({ config, updateConfig }: TrackSettingsProps<BigBedConfig>) {
   return (
     <TrackSettingsSection title="BigBed">
       <TrackSettingsFieldGrid>
-        <TextField
-          autoComplete="url"
-          fullWidth
-          label="URL"
-          size="small"
-          slotProps={{ htmlInput: { inputMode: "url" } }}
-          type="url"
+        <TrackSourceUrlField
+          required
           value={config.url}
-          onChange={(event) => {
-            updateConfig({ url: event.target.value });
-          }}
+          onCommit={(url) => updateConfig({ url })}
         />
       </TrackSettingsFieldGrid>
     </TrackSettingsSection>

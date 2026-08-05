@@ -9,26 +9,38 @@ import Typography from "@mui/material/Typography";
 import "./muiLicense";
 
 import {
+  bigBedModule,
+  bigWigModule,
+  bulkBedModule,
+  caveModule,
   createBrowserStore,
   createSettingsStore,
   createTrackStore,
   GenomeBrowser,
   hg38,
+  methylCModule,
   parseRegion,
+  transcriptModule,
   type GenomicRegion,
   type Highlight,
   type TrackRuntimeContext,
 } from "@weng-lab/genomebrowser";
 import {
-  bigBedModuleWithSettings,
-  bigWigModuleWithSettings,
-  bulkBedModuleWithSettings,
-  caveModuleWithSettings,
+  BigBedSettings,
+  BigBedTooltip,
+  BigWigSettings,
+  BigWigTooltip,
+  BulkBedSettings,
+  BulkBedTooltip,
+  CaveSettings,
+  CaveTooltip,
   Cytobands,
-  methylCModuleWithSettings,
+  MethylCSettings,
+  MethylCTooltip,
   TrackBaseSettings,
   TrackSelect,
-  transcriptModuleWithSettings,
+  TranscriptSettings,
+  TranscriptTooltip,
   withValueMarkers,
   type TrackSelectCollectionContext,
   type TrackSelectInteraction,
@@ -38,6 +50,42 @@ import {
 // collections
 import biosamples from "./collections/human-biosamples.json";
 import psychscreenTracks from "./collections/psychscreen.json";
+
+const bigBedUiModule = {
+  ...bigBedModule,
+  settingsComponent: BigBedSettings,
+  tooltipComponent: BigBedTooltip,
+} satisfies typeof bigBedModule;
+
+const bigWigUiModule = {
+  ...bigWigModule,
+  settingsComponent: BigWigSettings,
+  tooltipComponent: BigWigTooltip,
+} satisfies typeof bigWigModule;
+
+const bulkBedUiModule = {
+  ...bulkBedModule,
+  settingsComponent: BulkBedSettings,
+  tooltipComponent: BulkBedTooltip,
+} satisfies typeof bulkBedModule;
+
+const caveUiModule = {
+  ...caveModule,
+  settingsComponent: CaveSettings,
+  tooltipComponent: CaveTooltip,
+} satisfies typeof caveModule;
+
+const methylCUiModule = {
+  ...methylCModule,
+  settingsComponent: MethylCSettings,
+  tooltipComponent: MethylCTooltip,
+} satisfies typeof methylCModule;
+
+const transcriptUiModule = {
+  ...transcriptModule,
+  settingsComponent: TranscriptSettings,
+  tooltipComponent: TranscriptTooltip,
+} satisfies typeof transcriptModule;
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -121,17 +169,17 @@ function LocusTooltip({ highlight }: { highlight: Highlight }) {
 }
 
 const modules = [
-  bigWigModuleWithSettings,
-  bigBedModuleWithSettings,
-  bulkBedModuleWithSettings,
-  caveModuleWithSettings,
-  methylCModuleWithSettings,
-  transcriptModuleWithSettings,
+  bigWigUiModule,
+  bigBedUiModule,
+  bulkBedUiModule,
+  caveUiModule,
+  methylCUiModule,
+  transcriptUiModule,
 ];
 const useTrackStore = createTrackStore({
   modules,
   tracks: [
-    bigWigModuleWithSettings.create({
+    bigWigUiModule.create({
       id: "bigwig-settings-example",
       title: "BigWig settings: DNase aggregate",
       color: "#1B2021",
@@ -139,7 +187,7 @@ const useTrackStore = createTrackStore({
         url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
       },
     }),
-    bigBedModuleWithSettings.create({
+    bigBedUiModule.create({
       id: "bigbed-settings-example",
       title: "BigBed settings: ENCODE cCREs",
       color: "#4b9560",
@@ -148,7 +196,7 @@ const useTrackStore = createTrackStore({
         url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
       },
     }),
-    bulkBedModuleWithSettings.create({
+    bulkBedUiModule.create({
       id: "bulkbed-settings-example",
       title: "BulkBed settings: ENCODE datasets",
       color: "#4b9560",
@@ -162,7 +210,7 @@ const useTrackStore = createTrackStore({
         ],
       },
     }),
-    transcriptModuleWithSettings.create({
+    transcriptUiModule.create({
       id: "transcript-settings-example",
       title: "Transcript settings: GENCODE genes",
       display: "squish",
@@ -172,7 +220,7 @@ const useTrackStore = createTrackStore({
         version: 40,
       },
     }),
-    caveModuleWithSettings.create({
+    caveUiModule.create({
       id: "cave-settings-example",
       title: "CAVE settings: adult GABA",
       config: {
@@ -180,7 +228,7 @@ const useTrackStore = createTrackStore({
         age: "Adulthood",
       },
     }),
-    methylCModuleWithSettings.create({
+    methylCUiModule.create({
       id: "methylc-settings-example",
       title: "MethylC settings: EB100001",
       config: {
@@ -412,10 +460,10 @@ function TrackSettingsExamples() {
   return (
     <Paper variant="outlined" sx={{ mb: 1, p: 1.5 }}>
       <Stack spacing={1}>
-        <Typography variant="subtitle1">Track settings examples</Typography>
+        <Typography variant="subtitle1">Track UI examples</Typography>
         <Typography variant="body2">
-          Open a prepared track to review its MUI settings dialog, or use the settings icon beside
-          the matching browser track.
+          Open a prepared track to review its MUI settings dialog. Hover data in any matching
+          browser track to review its tooltip.
         </Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap flexWrap="wrap">
           {settingsExamples.map((example) => (

@@ -26,6 +26,7 @@ afterEach(() => {
   container?.remove();
   container = undefined;
   root = undefined;
+  vi.useRealTimers();
 });
 
 describe("Transcript settings", () => {
@@ -43,18 +44,19 @@ describe("Transcript settings", () => {
   });
 
   it("updates typed values and clears optional values", () => {
+    vi.useFakeTimers();
     const updateConfig = renderSettings();
 
     updateInput("Endpoint", "");
     updateInput("Assembly", "GRCh37");
     updateInput("Version", "41");
+    act(() => vi.advanceTimersByTime(300));
     updateInput("Highlight gene", "");
     updateInput("Canonical color", "");
     updateInput("Highlight color", "");
     updateInput("Version", "4.5");
 
     expect(updateConfig.mock.calls).toEqual([
-      [{ endpoint: undefined }],
       [{ assembly: "GRCh37" }],
       [{ version: 41 }],
       [{ geneName: undefined }],
@@ -78,7 +80,9 @@ function renderSettings() {
 function getInput(label: string) {
   const input = Array.from(container?.querySelectorAll<HTMLInputElement>("input") ?? []).find(
     (candidate) =>
-      Array.from(candidate.labels ?? []).some((element) => element.textContent === label),
+      Array.from(candidate.labels ?? []).some(
+        (element) => element.textContent?.replace("*", "").trim() === label,
+      ),
   );
   if (!input) throw new Error(`Could not find input labeled ${label}`);
   return input;

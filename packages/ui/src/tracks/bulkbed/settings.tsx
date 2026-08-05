@@ -1,30 +1,32 @@
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import type { BulkBedConfig, BulkBedDataset, TrackSettingsProps } from "@weng-lab/genomebrowser";
-import { useState } from "react";
+import type {
+  BulkBedConfig,
+  BulkBedDataset,
+  TrackMutationResult,
+  TrackSettingsProps,
+} from "@weng-lab/genomebrowser";
+import { useEffect, useRef, useState } from "react";
+import { DraftNumberField } from "../../TrackSettings/draftNumberField";
+import { DraftTextField } from "../../TrackSettings/draftTextField";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
+import { TrackSourceUrlField } from "../../TrackSettings/trackSourceUrlField";
 
 type DatasetField = keyof BulkBedDataset;
 
-type DatasetDraft = {
+type DatasetRow = {
   key: string;
-  nameDirty: boolean;
-  urlDirty: boolean;
   values: BulkBedDataset;
 };
 
-type SettingsDraft = {
-  datasets: DatasetDraft[];
-  gap: string;
-  gapDirty: boolean;
+type DatasetRows = {
   nextDatasetKey: number;
-  source: BulkBedConfig;
-  topologyDirty: boolean;
-  updateError?: string;
+  rows: DatasetRow[];
+  source: BulkBedDataset[];
 };
 
 export function BulkBedSettings(props: TrackSettingsProps<BulkBedConfig>) {
@@ -32,124 +34,124 @@ export function BulkBedSettings(props: TrackSettingsProps<BulkBedConfig>) {
 }
 
 function BulkBedSettingsEditor({ id, config, updateConfig }: TrackSettingsProps<BulkBedConfig>) {
-  const [draft, setDraft] = useState(() => createSettingsDraft(config, id));
+  const [datasetRows, setDatasetRows] = useState(() => createDatasetRows(config.datasets, id));
+  const committedConfigRef = useRef(config);
+  const [topologyError, setTopologyError] = useState<string>();
 
-  if (draft.source !== config) {
-    setDraft(reconcileSettingsDraft(draft, config, id));
-  }
+  useEffect(() => {
+    committedConfigRef.current = config;
+  }, [config]);
 
-  const submitDatasets = (nextDraft: SettingsDraft) => {
-    setDraft(nextDraft);
+  useEffect(() => {
+    setDatasetRows((currentRows) =>
+      currentRows.source === config.datasets
+        ? currentRows
+        : reconcileDatasetRows(currentRows, config.datasets, id),
+    );
+  }, [config.datasets, id]);
 
-    const datasets = datasetValues(nextDraft.datasets);
-    if (!hasCompleteDatasets(datasets)) return;
-
-    const result = updateConfig({ datasets });
-    if (!result.ok) setDraft({ ...nextDraft, updateError: result.error });
+  const applyConfig = (partial: Partial<BulkBedConfig>) => {
+    const result = updateConfig(partial);
+    if (result.ok) {
+      committedConfigRef.current = { ...committedConfigRef.current, ...partial };
+    }
+    return result;
   };
 
-  const updateGap = (value: string) => {
-    const nextDraft = {
-      ...draft,
-      gap: value,
-      gapDirty: true,
-      updateError: undefined,
-    };
-    setDraft(nextDraft);
+  const commitDatasetField = (
+    key: string,
+    field: DatasetField,
+    value: string,
+  ): TrackMutationResult => {
+    const datasetIndex = datasetRows.rows.findIndex((dataset) => dataset.key === key);
+    if (datasetIndex === -1) return { ok: false, error: "Dataset is no longer available." };
 
-    const gap = parseGap(value);
-    if (gap === undefined) return;
-
-    const result = updateConfig({ gap });
-    if (!result.ok) setDraft({ ...nextDraft, updateError: result.error });
-  };
-
-  const updateDataset = (key: string, field: DatasetField, value: string) => {
-    const nextDraft = {
-      ...draft,
-      datasets: draft.datasets.map((dataset) => {
-        if (dataset.key !== key) return dataset;
-
-        return {
-          ...dataset,
-          nameDirty: field === "name" ? true : dataset.nameDirty,
-          urlDirty: field === "url" ? true : dataset.urlDirty,
-          values: { ...dataset.values, [field]: value },
-        };
-      }),
-      updateError: undefined,
-    };
-    submitDatasets(nextDraft);
+    const currentConfig = committedConfigRef.current;
+    const datasets = currentConfig.datasets.map((dataset, index) =>
+      index === datasetIndex ? { ...dataset, [field]: value } : dataset,
+    );
+    const result = applyConfig({ datasets });
+    if (result.ok) {
+      setDatasetRows((currentRows) => ({
+        ...currentRows,
+        rows: currentRows.rows.map((dataset) =>
+          dataset.key === key
+            ? {
+                ...dataset,
+                values: { ...dataset.values, [field]: value },
+              }
+            : dataset,
+        ),
+      }));
+    }
+    return result;
   };
 
   const addDataset = () => {
-    const nextDraft = {
-      ...draft,
-      datasets: [
-        ...draft.datasets,
-        makeDatasetDraft(datasetKey(id, draft.nextDatasetKey), {
-          name: `Dataset ${draft.datasets.length + 1}`,
-          url: "YOUR_URL_HERE",
-        }),
-      ],
-      nextDatasetKey: draft.nextDatasetKey + 1,
-      topologyDirty: true,
-      updateError: undefined,
+    const nextDataset: BulkBedDataset = {
+      name: `Dataset ${datasetRows.rows.length + 1}`,
+      url: "YOUR_URL_HERE",
     };
-    submitDatasets(nextDraft);
+    const result = applyConfig({
+      datasets: [...committedConfigRef.current.datasets, nextDataset],
+    });
+    if (!result.ok) {
+      setTopologyError(result.error);
+      return;
+    }
+
+    setTopologyError(undefined);
+    setDatasetRows((currentRows) => ({
+      ...currentRows,
+      nextDatasetKey: currentRows.nextDatasetKey + 1,
+      rows: [
+        ...currentRows.rows,
+        makeDatasetRow(datasetKey(id, currentRows.nextDatasetKey), nextDataset),
+      ],
+    }));
   };
 
   const removeDataset = (key: string) => {
-    if (draft.datasets.length <= 1) return;
+    const datasetIndex = datasetRows.rows.findIndex((dataset) => dataset.key === key);
+    const currentConfig = committedConfigRef.current;
+    if (datasetIndex === -1 || currentConfig.datasets.length <= 1) return;
 
-    const nextDraft = {
-      ...draft,
-      datasets: draft.datasets.filter((dataset) => dataset.key !== key),
-      topologyDirty: true,
-      updateError: undefined,
-    };
-    submitDatasets(nextDraft);
+    const result = applyConfig({
+      datasets: currentConfig.datasets.filter((_, index) => index !== datasetIndex),
+    });
+    if (!result.ok) {
+      setTopologyError(result.error);
+      return;
+    }
+
+    setTopologyError(undefined);
+    setDatasetRows((currentRows) => ({
+      ...currentRows,
+      rows: currentRows.rows.filter((dataset) => dataset.key !== key),
+    }));
   };
 
-  const gapError = parseGap(draft.gap) === undefined ? "Enter a non-negative number." : undefined;
-  const hasNoDatasets = draft.datasets.length === 0;
-  const hasIncompleteDatasets = draft.datasets.some(
-    (dataset) => !isDatasetComplete(dataset.values),
-  );
-  const datasetsError = hasNoDatasets
-    ? "Add at least one dataset."
-    : hasIncompleteDatasets
-      ? "Enter a name and URL for each dataset."
-      : undefined;
-
   return (
-    <Box sx={{ display: "grid", gap: 1.5, minWidth: 0 }}>
-      {draft.updateError ? <Alert severity="error">{draft.updateError}</Alert> : null}
+    <TrackSettingsLayout>
+      {topologyError ? <Alert severity="error">{topologyError}</Alert> : null}
 
       <TrackSettingsSection title="BulkBed">
         <TrackSettingsFieldGrid>
-          <TextField
-            error={Boolean(gapError)}
-            fullWidth
-            helperText={gapError ?? "Use a non-negative value."}
+          <DraftNumberField
             label="Gap"
-            size="small"
-            slotProps={{ htmlInput: { inputMode: "decimal", min: 0, step: "any" } }}
-            type="number"
-            value={draft.gap}
-            onChange={(event) => updateGap(event.target.value)}
+            min={0}
+            step="any"
+            value={config.gap ?? 0}
+            validate={(gap) => (gap >= 0 ? undefined : "Enter a non-negative number.")}
+            onCommit={(gap) => applyConfig({ gap })}
           />
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
 
       <TrackSettingsSection title="Datasets">
         <Box sx={{ display: "grid", gap: 1.5, minWidth: 0 }}>
-          {datasetsError ? <Alert severity="error">{datasetsError}</Alert> : null}
-
-          {draft.datasets.map((dataset, index) => {
-            const nameError = dataset.values.name.trim() === "";
-            const urlError = dataset.values.url.trim() === "";
-            const cannotRemove = draft.datasets.length === 1;
+          {datasetRows.rows.map((dataset, index) => {
+            const cannotRemove = datasetRows.rows.length === 1;
 
             return (
               <Box
@@ -200,29 +202,19 @@ function BulkBedSettingsEditor({ id, config, updateConfig }: TrackSettingsProps<
                 ) : null}
 
                 <TrackSettingsFieldGrid>
-                  <TextField
-                    error={nameError}
-                    fullWidth
-                    helperText={nameError ? "Enter a dataset name." : undefined}
+                  <DraftTextField
                     label="Name"
                     required
-                    size="small"
                     value={dataset.values.name}
-                    onChange={(event) => updateDataset(dataset.key, "name", event.target.value)}
+                    validate={(name) => (name.trim() === "" ? "Enter a dataset name." : undefined)}
+                    onCommit={(name) => commitDatasetField(dataset.key, "name", name)}
                   />
-                  <TextField
-                    autoComplete="url"
-                    error={urlError}
-                    fullWidth
-                    helperText={urlError ? "Enter a dataset URL." : undefined}
+                  <TrackSourceUrlField
                     label="URL"
                     placeholder="YOUR_URL_HERE"
                     required
-                    size="small"
-                    slotProps={{ htmlInput: { inputMode: "url" } }}
-                    type="url"
                     value={dataset.values.url}
-                    onChange={(event) => updateDataset(dataset.key, "url", event.target.value)}
+                    onCommit={(url) => commitDatasetField(dataset.key, "url", url)}
                   />
                 </TrackSettingsFieldGrid>
               </Box>
@@ -240,161 +232,69 @@ function BulkBedSettingsEditor({ id, config, updateConfig }: TrackSettingsProps<
           </Button>
         </Box>
       </TrackSettingsSection>
-    </Box>
+    </TrackSettingsLayout>
   );
 }
 
-function createSettingsDraft(config: BulkBedConfig, id: string): SettingsDraft {
+function createDatasetRows(datasets: BulkBedDataset[], id: string): DatasetRows {
   return {
-    datasets: config.datasets.map((dataset, index) =>
-      makeDatasetDraft(datasetKey(id, index), dataset),
-    ),
-    gap: gapInputValue(config.gap),
-    gapDirty: false,
-    nextDatasetKey: config.datasets.length,
-    source: config,
-    topologyDirty: false,
+    nextDatasetKey: datasets.length,
+    rows: datasets.map((dataset, index) => makeDatasetRow(datasetKey(id, index), dataset)),
+    source: datasets,
   };
 }
 
-function reconcileSettingsDraft(
-  draft: SettingsDraft,
-  config: BulkBedConfig,
-  id: string,
-): SettingsDraft {
-  const draftDatasets = datasetValues(draft.datasets);
-  const datasetsAcknowledged = datasetsAreEqual(draftDatasets, config.datasets);
-  const reconciledDatasetState =
-    datasetsAcknowledged || draft.topologyDirty
-      ? { datasets: draft.datasets, nextDatasetKey: draft.nextDatasetKey }
-      : reconcileDatasetDrafts(draft.datasets, config.datasets, id, draft.nextDatasetKey);
-
-  return {
-    ...draft,
-    datasets: datasetsAcknowledged
-      ? draft.datasets.map(clearDatasetDraft)
-      : reconciledDatasetState.datasets,
-    gap: reconcileGap(draft.gap, draft.gapDirty, config.gap),
-    gapDirty: gapIsAcknowledged(draft.gap, draft.gapDirty, config.gap) ? false : draft.gapDirty,
-    nextDatasetKey: reconciledDatasetState.nextDatasetKey,
-    source: config,
-    topologyDirty: datasetsAcknowledged ? false : draft.topologyDirty,
-  };
-}
-
-function reconcileDatasetDrafts(
-  drafts: DatasetDraft[],
+function reconcileDatasetRows(
+  currentRows: DatasetRows,
   datasets: BulkBedDataset[],
   id: string,
-  nextDatasetKey: number,
-) {
-  const matchedDrafts = matchDatasetDrafts(drafts, datasets);
-  let nextKey = nextDatasetKey;
+): DatasetRows {
+  const matchedRows = matchDatasetRows(currentRows.rows, datasets);
+  let nextDatasetKey = currentRows.nextDatasetKey;
+  const rows = datasets.map((dataset, index) => {
+    const row = matchedRows[index];
+    if (row !== undefined) return { ...row, values: dataset };
 
-  return {
-    datasets: datasets.map((dataset, index) => {
-      const draft = matchedDrafts[index];
-      if (draft) return reconcileDatasetDraft(draft, dataset);
+    const nextRow = makeDatasetRow(datasetKey(id, nextDatasetKey), dataset);
+    nextDatasetKey += 1;
+    return nextRow;
+  });
 
-      const nextDraft = makeDatasetDraft(datasetKey(id, nextKey), dataset);
-      nextKey += 1;
-      return nextDraft;
-    }),
-    nextDatasetKey: nextKey,
-  };
+  return { nextDatasetKey, rows, source: datasets };
 }
 
-function matchDatasetDrafts(drafts: DatasetDraft[], datasets: BulkBedDataset[]) {
-  const unusedDrafts = new Set(drafts);
+function matchDatasetRows(rows: DatasetRow[], datasets: BulkBedDataset[]) {
+  const unusedRows = new Set(rows);
 
   return datasets.map((dataset, index) => {
-    const exactMatch = drafts.find(
-      (draft) => unusedDrafts.has(draft) && datasetIsEqual(draft.values, dataset),
+    const exactMatch = rows.find(
+      (row) => unusedRows.has(row) && datasetsAreEqual(row.values, dataset),
     );
-    if (exactMatch) {
-      unusedDrafts.delete(exactMatch);
+    if (exactMatch !== undefined) {
+      unusedRows.delete(exactMatch);
       return exactMatch;
     }
 
-    const sameIndexDraft = drafts[index];
-    if (sameIndexDraft && unusedDrafts.has(sameIndexDraft)) {
-      unusedDrafts.delete(sameIndexDraft);
-      return sameIndexDraft;
+    const sameIndexRow = rows[index];
+    if (sameIndexRow !== undefined && unusedRows.has(sameIndexRow)) {
+      unusedRows.delete(sameIndexRow);
+      return sameIndexRow;
     }
 
-    const firstUnusedDraft = Array.from(unusedDrafts)[0];
-    if (firstUnusedDraft) unusedDrafts.delete(firstUnusedDraft);
-    return firstUnusedDraft;
+    const firstUnusedRow = Array.from(unusedRows)[0];
+    if (firstUnusedRow !== undefined) unusedRows.delete(firstUnusedRow);
+    return firstUnusedRow;
   });
 }
 
-function reconcileDatasetDraft(draft: DatasetDraft, dataset: BulkBedDataset): DatasetDraft {
-  const nameAcknowledged = draft.nameDirty && draft.values.name === dataset.name;
-  const urlAcknowledged = draft.urlDirty && draft.values.url === dataset.url;
-
-  return {
-    ...draft,
-    nameDirty: nameAcknowledged ? false : draft.nameDirty,
-    urlDirty: urlAcknowledged ? false : draft.urlDirty,
-    values: {
-      name: draft.nameDirty && !nameAcknowledged ? draft.values.name : dataset.name,
-      url: draft.urlDirty && !urlAcknowledged ? draft.values.url : dataset.url,
-    },
-  };
-}
-
-function clearDatasetDraft(draft: DatasetDraft): DatasetDraft {
-  return { ...draft, nameDirty: false, urlDirty: false };
-}
-
-function makeDatasetDraft(key: string, values: BulkBedDataset): DatasetDraft {
-  return { key, nameDirty: false, urlDirty: false, values };
+function makeDatasetRow(key: string, values: BulkBedDataset): DatasetRow {
+  return { key, values };
 }
 
 function datasetKey(id: string, sequence: number) {
   return `bulkbed-dataset-${id}-${sequence}`;
 }
 
-function datasetValues(datasets: DatasetDraft[]): BulkBedDataset[] {
-  return datasets.map((dataset) => dataset.values);
-}
-
-function datasetsAreEqual(left: BulkBedDataset[], right: BulkBedDataset[]) {
-  return (
-    left.length === right.length &&
-    left.every((dataset, index) => datasetIsEqual(dataset, right[index]))
-  );
-}
-
-function datasetIsEqual(left: BulkBedDataset, right: BulkBedDataset | undefined) {
-  return left.name === right?.name && left.url === right?.url;
-}
-
-function hasCompleteDatasets(datasets: BulkBedDataset[]) {
-  return datasets.length > 0 && datasets.every(isDatasetComplete);
-}
-
-function isDatasetComplete(dataset: BulkBedDataset) {
-  return dataset.name.trim() !== "" && dataset.url.trim() !== "";
-}
-
-function reconcileGap(value: string, dirty: boolean, configuredGap: number | undefined) {
-  return gapIsAcknowledged(value, dirty, configuredGap) || !dirty
-    ? gapInputValue(configuredGap)
-    : value;
-}
-
-function gapIsAcknowledged(value: string, dirty: boolean, configuredGap: number | undefined) {
-  return dirty && parseGap(value) === (configuredGap ?? 0);
-}
-
-function gapInputValue(gap: number | undefined) {
-  return String(gap ?? 0);
-}
-
-function parseGap(value: string) {
-  if (value.trim() === "") return undefined;
-
-  const gap = Number(value);
-  return Number.isFinite(gap) && gap >= 0 ? gap : undefined;
+function datasetsAreEqual(left: BulkBedDataset, right: BulkBedDataset) {
+  return left.name === right.name && left.url === right.url;
 }
