@@ -1,6 +1,6 @@
 # Ticket 03: Build the accessible color field
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R5, R8, R9, R10, R11, R12, R13, R15
 **Blocked by:** None
@@ -15,18 +15,18 @@ Implement the shared color field, color conversion utilities, draft lifecycle, p
 
 ## Acceptance Criteria
 
-- [ ] The closed field displays a visible color swatch and a labeled text input containing the current explicit hexadecimal value.
-- [ ] Activating the picker control opens a custom saturation/value surface and hue control initialized from the current color.
-- [ ] Picker changes emit normalized `#RRGGBB` values continuously for live preview.
-- [ ] Manual entry accepts case-insensitive six-digit `#RRGGBB`, commits a normalized valid value on blur or Enter, and does not emit incomplete or invalid drafts.
-- [ ] Invalid manual input remains editable and has an accessible, visibly associated validation error.
-- [ ] Escape restores the last committed text value rather than emitting the draft.
-- [ ] Optional mode can clear an explicit color to `undefined`; merely opening and closing the picker does not convert a displayed fallback into an explicit value.
-- [ ] Required mode cannot be cleared.
-- [ ] The picker can be opened, operated, and closed with a keyboard; every interactive element has a meaningful accessible name and visible focus treatment.
-- [ ] Focus enters the picker predictably and returns to the opening control when it closes.
-- [ ] The selected hexadecimal value remains available as text, so color is not communicated visually alone.
-- [ ] The picker and popover remain usable within the modal's scrolling region and a narrow viewport without horizontal page overflow.
+- [x] The closed field displays a visible color swatch and a labeled text input containing the current explicit hexadecimal value.
+- [x] Activating the picker control opens a custom saturation/value surface and hue control initialized from the current color.
+- [x] Picker changes emit normalized `#RRGGBB` values continuously for live preview.
+- [x] Manual entry accepts case-insensitive six-digit `#RRGGBB`, commits a normalized valid value on blur or Enter, and does not emit incomplete or invalid drafts.
+- [x] Invalid manual input remains editable and has an accessible, visibly associated validation error.
+- [x] Escape restores the last committed text value rather than emitting the draft.
+- [x] Optional mode can clear an explicit color to `undefined`; merely opening and closing the picker does not convert a displayed fallback into an explicit value.
+- [x] Required mode cannot be cleared.
+- [x] The picker can be opened, operated, and closed with a keyboard; every interactive element has a meaningful accessible name and visible focus treatment.
+- [x] Focus enters the picker predictably and returns to the opening control when it closes.
+- [x] The selected hexadecimal value remains available as text, so color is not communicated visually alone.
+- [x] The picker and popover remain usable within the modal's scrolling region and a narrow viewport without horizontal page overflow.
 
 ## Verification
 

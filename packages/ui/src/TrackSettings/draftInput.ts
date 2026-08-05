@@ -13,7 +13,7 @@ export type DraftControllerOptions<Raw, Value> = {
   validate: (raw: Raw) => DraftValidation<Value>;
   isEqual: (left: Value, right: Value) => boolean;
   onCommit: (value: Value) => TrackMutationResult;
-  debounceMs?: number;
+  debounceMs?: number | false;
 };
 
 export type DraftController<Raw> = {
@@ -22,7 +22,7 @@ export type DraftController<Raw> = {
   change: (value: Raw) => void;
   blur: () => void;
   keyDown: (event: KeyboardEvent<HTMLElement>) => void;
-  submit: (value: Raw) => void;
+  submit: (value: Raw) => TrackMutationResult;
 };
 
 type DraftState<Raw, Value> = {
@@ -70,7 +70,7 @@ export function useDraftController<Raw, Value>(
     const validation = options.validate(currentDraft.raw);
     if (!validation.ok) {
       setDraft({ ...currentDraft, error: validation.error, pendingRevision: undefined });
-      return;
+      return { ok: false, error: validation.error } satisfies TrackMutationResult;
     }
 
     const baseline = currentBaseline(currentDraft);
@@ -86,13 +86,13 @@ export function useDraftController<Raw, Value>(
           revision: currentDraft.revision,
         });
       }
-      return;
+      return { ok: true } satisfies TrackMutationResult;
     }
 
     const result = options.onCommit(validation.value);
     if (!result.ok) {
       setDraft({ ...currentDraft, error: result.error, pendingRevision: undefined });
-      return;
+      return result;
     }
 
     setDraft({
@@ -102,6 +102,7 @@ export function useDraftController<Raw, Value>(
       dirty: false,
       revision: currentDraft.revision,
     });
+    return result;
   };
 
   const commitAfterDelay = useEffectEvent((revision: number) => {
@@ -111,7 +112,7 @@ export function useDraftController<Raw, Value>(
   const pendingRevision = draft?.pendingRevision;
   const debounceMs = options.debounceMs ?? defaultDebounceMs;
   useEffect(() => {
-    if (pendingRevision === undefined) return;
+    if (pendingRevision === undefined || debounceMs === false) return;
 
     const timer = setTimeout(() => commitAfterDelay(pendingRevision), debounceMs);
     return () => clearTimeout(timer);
@@ -126,7 +127,7 @@ export function useDraftController<Raw, Value>(
   const submit = (raw: Raw) => {
     const nextDraft = makeDraft(raw);
     setDraft(nextDraft);
-    attemptCommit(nextDraft);
+    return attemptCommit(nextDraft);
   };
 
   const cancel = () => {
