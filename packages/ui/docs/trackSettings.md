@@ -127,6 +127,7 @@ The UI package exports components rather than precomposed modules, so applicatio
 | Transcript | `TranscriptSettings` | `TranscriptTooltip` | Endpoint, assembly, version, highlighted gene, canonical color, highlight color                         |
 
 Every modal also includes `TrackBaseSettings` for the title, color, height, and supported display modes.
+At normal modal width, title and color share one row while display mode and height share another. Each pair stacks in the same order when its settings container is narrow. When a track supports only one display mode, the display control is omitted and height remains a single naturally sized field.
 
 `BigWigSettings` treats its Y-axis minimum and maximum as independent overrides. Leaving either field blank keeps that bound automatic, while clearing both fields restores a fully automatic range. It rejects a minimum greater than or equal to the maximum only when both fields contain explicit numbers and retains the invalid draft so you can correct it. `MethylCSettings` treats a manual range as a complete pair. A single entered bound remains available while you move between fields, but both bounds are required before the range updates. Use **Use automatic range** to clear the complete pair.
 

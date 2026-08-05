@@ -16,12 +16,12 @@ export function TrackSettingsSection({ title, children }: TrackSettingsSectionPr
         borderColor: "divider",
         borderRadius: 1,
         display: "grid",
-        gap: 1.5,
+        gap: 1.25,
         m: 0,
-        mb: 1.5,
+        mb: 1.25,
         minWidth: 0,
-        px: 1.5,
-        pb: 1.5,
+        px: 1.25,
+        pb: 1.25,
       }}
     >
       <Typography component="legend" variant="subtitle2" sx={{ px: 0.5 }}>

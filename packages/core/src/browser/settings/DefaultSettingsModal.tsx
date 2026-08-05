@@ -68,7 +68,7 @@ const modalStyle = {
   position: "fixed",
   zIndex: 10,
   minWidth: "280px",
-  maxWidth: "420px",
+  maxWidth: "520px",
   margin: 0,
   padding: 0,
   background: "#ffffff",

@@ -5,7 +5,7 @@ import type { BaseSettingsProps, TrackBase } from "@weng-lab/genomebrowser";
 import { useState } from "react";
 import { DraftNumberField } from "./draftNumberField";
 import { DraftTextField } from "./draftTextField";
-import { TrackSettingsFieldGrid } from "./trackSettingsFieldGrid";
+import { TrackSettingsFieldRow } from "./trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "./trackSettingsLayout";
 import { TrackSettingsSection } from "./trackSettingsSection";
 
@@ -22,7 +22,7 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
   return (
     <TrackSettingsLayout>
       {error ? <Alert severity="error">{error}</Alert> : null}
-      <TrackSettingsFieldGrid>
+      <TrackSettingsFieldRow>
         <DraftTextField
           label="Title"
           required
@@ -38,9 +38,9 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
           value={base.color ?? ""}
           onChange={(event) => applyImmediateUpdate({ color: event.target.value || undefined })}
         />
-      </TrackSettingsFieldGrid>
+      </TrackSettingsFieldRow>
       <TrackSettingsSection title="Track display settings">
-        <TrackSettingsFieldGrid>
+        <TrackSettingsFieldRow>
           {displayOptions.length > 1 ? (
             <TextField
               select
@@ -65,7 +65,7 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
             validate={(height) => (height >= 20 ? undefined : "Enter a height of at least 20.")}
             onCommit={(height) => updateBase({ height })}
           />
-        </TrackSettingsFieldGrid>
+        </TrackSettingsFieldRow>
       </TrackSettingsSection>
     </TrackSettingsLayout>
   );

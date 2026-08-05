@@ -6,6 +6,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { DraftNumberField } from "../src/TrackSettings/draftNumberField";
 import { DraftTextField } from "../src/TrackSettings/draftTextField";
 import { OptionalTrackColorField } from "../src/TrackSettings/optionalTrackColorField";
+import {
+  TrackSettingsFieldGrid,
+  TrackSettingsFullRow,
+} from "../src/TrackSettings/trackSettingsFieldGrid";
 import { TrackSourceUrlField } from "../src/TrackSettings/trackSourceUrlField";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -226,6 +230,24 @@ describe("draft track settings fields", () => {
     expect(input.placeholder).toBe("Track color");
     updateInput(input, "");
     expect(onChange).toHaveBeenCalledWith(undefined);
+  });
+});
+
+describe("track settings layout primitives", () => {
+  it("allows an item to deliberately span a responsive field grid", () => {
+    mount(
+      <TrackSettingsFieldGrid>
+        <div>Peer field</div>
+        <TrackSettingsFullRow>
+          <div id="full-row-content">Full-row content</div>
+        </TrackSettingsFullRow>
+      </TrackSettingsFieldGrid>,
+    );
+
+    const fullRow = container?.querySelector("#full-row-content")?.parentElement;
+    expect(fullRow).toBeTruthy();
+    expect(getComputedStyle(fullRow as HTMLElement).gridColumn).toBe("1/-1");
+    expect(fullRow?.previousElementSibling?.textContent).toBe("Peer field");
   });
 });
 
