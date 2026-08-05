@@ -1,5 +1,8 @@
 import { useEffect } from "react";
-import { useDraggableSettingsModal } from "./useDraggableSettingsModal";
+import {
+  SETTINGS_MODAL_VIEWPORT_INSET,
+  useDraggableSettingsModal,
+} from "./useDraggableSettingsModal";
 import { getReadableTextColor } from "./settingsColor";
 import type { SettingsModalProps } from "./types";
 
@@ -10,7 +13,7 @@ export function DefaultSettingsModal({
   closeSettings,
   children,
 }: SettingsModalProps) {
-  const { position: dragPosition, handleProps } = useDraggableSettingsModal(position);
+  const { position: dragPosition, modalRef, handleProps } = useDraggableSettingsModal(position);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -22,6 +25,7 @@ export function DefaultSettingsModal({
 
   return (
     <dialog
+      ref={modalRef}
       open
       aria-label={title}
       style={{ ...modalStyle, left: dragPosition.x, top: dragPosition.y }}
@@ -67,7 +71,8 @@ export function DefaultSettingsModal({
 const modalStyle = {
   position: "fixed",
   zIndex: 10,
-  minWidth: "280px",
+  boxSizing: "border-box",
+  width: `calc(100vw - ${SETTINGS_MODAL_VIEWPORT_INSET * 2}px)`,
   maxWidth: "520px",
   margin: 0,
   padding: 0,

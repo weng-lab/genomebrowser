@@ -5,7 +5,7 @@ import TextField from "@mui/material/TextField";
 import type { TrackMutationResult, YRange, YRangeOverride } from "@weng-lab/genomebrowser";
 import { useId } from "react";
 import { parseFiniteNumber, useDraftController, type DraftValidation } from "./draftInput";
-import { TrackSettingsFieldGrid } from "./trackSettingsFieldGrid";
+import { TrackSettingsFieldRow } from "./trackSettingsFieldGrid";
 
 type RangeValues = Record<keyof YRange, string>;
 type RangeLabels = {
@@ -55,7 +55,7 @@ export function DraftRangeFields(props: DraftRangeFieldsProps) {
 
   return (
     <Box sx={{ display: "grid", gap: 1 }}>
-      <TrackSettingsFieldGrid>
+      <TrackSettingsFieldRow>
         <TextField
           error={hasError}
           fullWidth
@@ -90,7 +90,7 @@ export function DraftRangeFields(props: DraftRangeFieldsProps) {
           onChange={(event) => updateBound("max", event.target.value)}
           onKeyDown={controller.keyDown}
         />
-      </TrackSettingsFieldGrid>
+      </TrackSettingsFieldRow>
       {controller.error ? (
         <FormHelperText id={errorId} error sx={{ mx: 1.75 }}>
           {controller.error}

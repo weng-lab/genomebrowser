@@ -40,6 +40,30 @@ describe("BigWig settings", () => {
     expect(getInput("Clamp indicator color").value).toBe(config.clampIndicatorColor);
   });
 
+  it("keeps full-width and related controls in semantic rows", () => {
+    renderSettings();
+
+    expect(getComputedStyle(getFieldContainer("URL").parentElement as HTMLElement).gridColumn).toBe(
+      "1/-1",
+    );
+    expect(getFieldContainer("Minimum").parentElement).toBe(
+      getFieldContainer("Maximum").parentElement,
+    );
+    expect(
+      getComputedStyle(getFieldContainer("Minimum").parentElement as HTMLElement).display,
+    ).toBe("flex");
+    expect(getFieldContainer("Show clamp indicators").parentElement).toBe(
+      getFieldContainer("Clamp indicator color").parentElement,
+    );
+    const clampGroup = getFieldContainer("Show clamp indicators").parentElement?.parentElement;
+    expect(clampGroup).toBeTruthy();
+    expect(getComputedStyle(clampGroup as HTMLElement).borderLeftWidth).toBe("2px");
+    expect(getComputedStyle(clampGroup as HTMLElement).paddingLeft).toBe("8px");
+    expect(getFieldContainer("Fill missing values with zero").parentElement).not.toBe(
+      getFieldContainer("Show clamp indicators").parentElement,
+    );
+  });
+
   it("updates scalar options and preserves both y-axis bounds", () => {
     vi.useFakeTimers();
     const updateConfig = renderSettings();
@@ -166,6 +190,13 @@ function getInput(label: string) {
   );
   if (!input) throw new Error(`Could not find input labeled ${label}`);
   return input;
+}
+
+function getFieldContainer(label: string) {
+  const input = getInput(label);
+  const field = input.closest<HTMLElement>(".MuiFormControl-root, .MuiFormControlLabel-root");
+  if (!field) throw new Error(`Could not find field container for ${label}`);
+  return field;
 }
 
 function updateInput(label: string, value: string) {

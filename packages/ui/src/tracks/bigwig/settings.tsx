@@ -1,9 +1,14 @@
+import Box from "@mui/material/Box";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import type { BigWigConfig, TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { DraftRangeFields } from "../../TrackSettings/draftRangeFields";
-import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
+import {
+  TrackSettingsFieldGrid,
+  TrackSettingsFieldRow,
+  TrackSettingsFullRow,
+} from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
 import { TrackSourceUrlField } from "../../TrackSettings/trackSourceUrlField";
@@ -22,11 +27,13 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
     <TrackSettingsLayout>
       <TrackSettingsSection title="BigWig source">
         <TrackSettingsFieldGrid>
-          <TrackSourceUrlField
-            required
-            value={config.url}
-            onCommit={(url) => updateConfig({ url })}
-          />
+          <TrackSettingsFullRow>
+            <TrackSourceUrlField
+              required
+              value={config.url}
+              onCommit={(url) => updateConfig({ url })}
+            />
+          </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
 
@@ -45,28 +52,36 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
             label="Fill missing values with zero"
             sx={{ m: 0, minWidth: 0 }}
           />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showClampIndicators}
-                size="small"
-                onChange={(event) => updateConfig({ showClampIndicators: event.target.checked })}
-              />
-            }
-            label="Show clamp indicators"
-            sx={{ m: 0, minWidth: 0 }}
-          />
-          <TextField
-            disabled={!showClampIndicators}
-            fullWidth
-            label="Clamp indicator color"
-            placeholder={defaultClampIndicatorColor}
-            size="small"
-            value={config.clampIndicatorColor ?? defaultClampIndicatorColor}
-            onChange={(event) =>
-              updateConfig({ clampIndicatorColor: event.target.value || undefined })
-            }
-          />
+          <TrackSettingsFullRow>
+            <Box sx={{ borderLeft: 2, borderColor: "divider", pl: 1 }}>
+              <TrackSettingsFieldRow>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={showClampIndicators}
+                      size="small"
+                      onChange={(event) =>
+                        updateConfig({ showClampIndicators: event.target.checked })
+                      }
+                    />
+                  }
+                  label="Show clamp indicators"
+                  sx={{ m: 0, minWidth: 0 }}
+                />
+                <TextField
+                  disabled={!showClampIndicators}
+                  fullWidth
+                  label="Clamp indicator color"
+                  placeholder={defaultClampIndicatorColor}
+                  size="small"
+                  value={config.clampIndicatorColor ?? defaultClampIndicatorColor}
+                  onChange={(event) =>
+                    updateConfig({ clampIndicatorColor: event.target.value || undefined })
+                  }
+                />
+              </TrackSettingsFieldRow>
+            </Box>
+          </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
     </TrackSettingsLayout>

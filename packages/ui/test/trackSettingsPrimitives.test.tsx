@@ -246,6 +246,7 @@ describe("track settings layout primitives", () => {
 
     const fullRow = container?.querySelector("#full-row-content")?.parentElement;
     expect(fullRow).toBeTruthy();
+    expect(getComputedStyle(fullRow as HTMLElement).display).toBe("grid");
     expect(getComputedStyle(fullRow as HTMLElement).gridColumn).toBe("1/-1");
     expect(fullRow?.previousElementSibling?.textContent).toBe("Peer field");
   });

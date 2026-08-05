@@ -49,6 +49,13 @@ describe("BulkBed settings", () => {
     expect(rowInput(rows[0], "URL").autocomplete).toBe("url");
     expect(rowInput(rows[0], "URL").inputMode).toBe("url");
     expect(rowInput(rows[0], "URL").placeholder).toBe("YOUR_URL_HERE");
+    expect(fieldContainer(rowInput(rows[0], "Name")).parentElement).toBe(
+      fieldContainer(rowInput(rows[0], "URL")).parentElement,
+    );
+    expect(
+      getComputedStyle(fieldContainer(rowInput(rows[0], "Name")).parentElement as HTMLElement)
+        .flexWrap,
+    ).toBe("wrap");
   });
 
   it("updates gap and dataset fields without losing unaffected draft values", () => {
@@ -262,6 +269,12 @@ function rowInput(row: HTMLElement, label: string) {
   );
   if (!input) throw new Error(`Could not find ${label} input`);
   return input;
+}
+
+function fieldContainer(input: HTMLInputElement) {
+  const field = input.closest<HTMLElement>(".MuiFormControl-root");
+  if (!field) throw new Error("Could not find field container");
+  return field;
 }
 
 function datasetNames() {

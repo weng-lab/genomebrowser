@@ -1,8 +1,19 @@
-import { useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent,
+  type RefCallback,
+} from "react";
 import type { SettingsPosition } from "./types";
+
+export const SETTINGS_MODAL_VIEWPORT_INSET = 8;
 
 export type DraggableSettingsModalResult = {
   position: SettingsPosition;
+  modalRef: RefCallback<HTMLDialogElement>;
   handleProps: {
     onPointerDown: (event: PointerEvent<HTMLElement>) => void;
     onPointerMove: (event: PointerEvent<HTMLElement>) => void;
@@ -18,14 +29,63 @@ export function useDraggableSettingsModal(
   const [position, setPosition] = useState(initialPosition);
   const [previousInitialPosition, setPreviousInitialPosition] = useState(initialPosition);
   const dragOffset = useRef<SettingsPosition | null>(null);
+  const modalElement = useRef<HTMLDialogElement | null>(null);
+
+  const clampPosition = useCallback((candidate: SettingsPosition): SettingsPosition => {
+    const modal = modalElement.current;
+    if (!modal) return candidate;
+
+    const bounds = modal.getBoundingClientRect();
+    return {
+      x: clamp(
+        candidate.x,
+        SETTINGS_MODAL_VIEWPORT_INSET,
+        window.innerWidth - bounds.width - SETTINGS_MODAL_VIEWPORT_INSET,
+      ),
+      y: clamp(
+        candidate.y,
+        SETTINGS_MODAL_VIEWPORT_INSET,
+        window.innerHeight - bounds.height - SETTINGS_MODAL_VIEWPORT_INSET,
+      ),
+    };
+  }, []);
+
+  const updatePositionWithinViewport = useCallback(() => {
+    setPosition((currentPosition) => {
+      const nextPosition = clampPosition(currentPosition);
+      return positionsAreEqual(currentPosition, nextPosition) ? currentPosition : nextPosition;
+    });
+  }, [clampPosition]);
+
+  const modalRef = useCallback<RefCallback<HTMLDialogElement>>(
+    (element) => {
+      modalElement.current = element;
+      if (element) updatePositionWithinViewport();
+    },
+    [updatePositionWithinViewport],
+  );
 
   if (
     initialPosition.x !== previousInitialPosition.x ||
     initialPosition.y !== previousInitialPosition.y
   ) {
     setPreviousInitialPosition(initialPosition);
-    setPosition(initialPosition);
+    setPosition(clampPosition(initialPosition));
   }
+
+  useEffect(() => {
+    window.addEventListener("resize", updatePositionWithinViewport);
+    const resizeObserver =
+      typeof ResizeObserver === "undefined"
+        ? undefined
+        : new ResizeObserver(updatePositionWithinViewport);
+    if (modalElement.current) resizeObserver?.observe(modalElement.current);
+
+    return () => {
+      window.removeEventListener("resize", updatePositionWithinViewport);
+      resizeObserver?.disconnect();
+    };
+  }, [updatePositionWithinViewport]);
 
   const handleDragStart = (event: PointerEvent<HTMLElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -37,10 +97,12 @@ export function useDraggableSettingsModal(
 
   const handleDragMove = (event: PointerEvent<HTMLElement>) => {
     if (!dragOffset.current) return;
-    setPosition({
-      x: event.clientX - dragOffset.current.x,
-      y: event.clientY - dragOffset.current.y,
-    });
+    setPosition(
+      clampPosition({
+        x: event.clientX - dragOffset.current.x,
+        y: event.clientY - dragOffset.current.y,
+      }),
+    );
   };
 
   const handleDragEnd = (event: PointerEvent<HTMLElement>) => {
@@ -52,6 +114,7 @@ export function useDraggableSettingsModal(
 
   return {
     position,
+    modalRef,
     handleProps: {
       onPointerDown: handleDragStart,
       onPointerMove: handleDragMove,
@@ -64,4 +127,12 @@ export function useDraggableSettingsModal(
       },
     },
   };
+}
+
+function clamp(value: number, minimum: number, maximum: number) {
+  return Math.min(Math.max(value, minimum), Math.max(minimum, maximum));
+}
+
+function positionsAreEqual(left: SettingsPosition, right: SettingsPosition) {
+  return left.x === right.x && left.y === right.y;
 }

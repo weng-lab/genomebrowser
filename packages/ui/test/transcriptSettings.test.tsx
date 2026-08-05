@@ -43,6 +43,26 @@ describe("Transcript settings", () => {
     expect(getInput("Highlight color").value).toBe(config.highlightColor);
   });
 
+  it("uses full-width controls and semantic responsive pairs", () => {
+    renderSettings();
+
+    expect(
+      getComputedStyle(getFieldContainer("Endpoint").parentElement as HTMLElement).gridColumn,
+    ).toBe("1/-1");
+    expect(getFieldContainer("Assembly").parentElement).toBe(
+      getFieldContainer("Version").parentElement,
+    );
+    expect(
+      getComputedStyle(getFieldContainer("Highlight gene").parentElement as HTMLElement).gridColumn,
+    ).toBe("1/-1");
+    expect(getFieldContainer("Canonical color").parentElement).toBe(
+      getFieldContainer("Highlight color").parentElement,
+    );
+    expect(
+      getComputedStyle(getFieldContainer("Assembly").parentElement as HTMLElement).flexWrap,
+    ).toBe("wrap");
+  });
+
   it("updates typed values and clears optional values", () => {
     vi.useFakeTimers();
     const updateConfig = renderSettings();
@@ -86,6 +106,12 @@ function getInput(label: string) {
   );
   if (!input) throw new Error(`Could not find input labeled ${label}`);
   return input;
+}
+
+function getFieldContainer(label: string) {
+  const field = getInput(label).closest<HTMLElement>(".MuiFormControl-root");
+  if (!field) throw new Error(`Could not find field container for ${label}`);
+  return field;
 }
 
 function updateInput(label: string, value: string) {

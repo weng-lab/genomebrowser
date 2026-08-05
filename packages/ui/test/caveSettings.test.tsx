@@ -38,6 +38,21 @@ describe("CAVE settings", () => {
     expect(getInput("Bottom color").value).toBe(config.bottomColor);
   });
 
+  it("groups dataset selectors and signal colors into semantic rows", () => {
+    renderSettings();
+
+    expect(getFieldContainer(getSelect("Neurotransmitter")).parentElement).toBe(
+      getFieldContainer(getSelect("Age")).parentElement,
+    );
+    expect(getFieldContainer(getInput("Top color")).parentElement).toBe(
+      getFieldContainer(getInput("Bottom color")).parentElement,
+    );
+    expect(
+      getComputedStyle(getFieldContainer(getInput("Top color")).parentElement as HTMLElement)
+        .flexWrap,
+    ).toBe("wrap");
+  });
+
   it("updates dataset selections and color overrides, including cleared colors", async () => {
     const updateConfig = renderSettings();
 
@@ -92,6 +107,12 @@ function getSelect(label: string) {
   );
   if (!select) throw new Error(`Could not find select labeled ${label}`);
   return select;
+}
+
+function getFieldContainer(control: Element) {
+  const field = control.closest<HTMLElement>(".MuiFormControl-root");
+  if (!field) throw new Error("Could not find field container");
+  return field;
 }
 
 async function chooseOption(label: string, optionLabel: string) {

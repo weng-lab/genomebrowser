@@ -52,5 +52,5 @@ export type TrackSettingsFullRowProps = {
 
 /** An item that deliberately spans every column of a settings field grid. */
 export function TrackSettingsFullRow({ children }: TrackSettingsFullRowProps) {
-  return <Box sx={{ gridColumn: "1 / -1", minWidth: 0 }}>{children}</Box>;
+  return <Box sx={{ display: "grid", gridColumn: "1 / -1", minWidth: 0 }}>{children}</Box>;
 }

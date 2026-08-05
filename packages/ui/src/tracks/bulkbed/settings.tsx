@@ -11,7 +11,10 @@ import type {
 import { useEffect, useRef, useState } from "react";
 import { DraftNumberField } from "../../TrackSettings/draftNumberField";
 import { DraftTextField } from "../../TrackSettings/draftTextField";
-import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
+import {
+  TrackSettingsFieldGrid,
+  TrackSettingsFieldRow,
+} from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
 import { TrackSourceUrlField } from "../../TrackSettings/trackSourceUrlField";
@@ -201,7 +204,7 @@ function BulkBedSettingsEditor({ id, config, updateConfig }: TrackSettingsProps<
                   </Typography>
                 ) : null}
 
-                <TrackSettingsFieldGrid>
+                <TrackSettingsFieldRow>
                   <DraftTextField
                     label="Name"
                     required
@@ -216,7 +219,7 @@ function BulkBedSettingsEditor({ id, config, updateConfig }: TrackSettingsProps<
                     value={dataset.values.url}
                     onCommit={(url) => commitDatasetField(dataset.key, "url", url)}
                   />
-                </TrackSettingsFieldGrid>
+                </TrackSettingsFieldRow>
               </Box>
             );
           })}

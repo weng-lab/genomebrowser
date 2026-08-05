@@ -70,6 +70,30 @@ describe("methylC settings", () => {
     expect(getInput("Maximum").value).toBe(String(config.range?.max));
   });
 
+  it("flows peer fields while keeping the range and coverage controls distinct", () => {
+    renderSettings();
+
+    expect(getFieldContainer("Plus-strand CpG URL").parentElement).toBe(
+      getFieldContainer("Plus-strand CHG URL").parentElement,
+    );
+    expect(
+      getComputedStyle(getFieldContainer("Plus-strand CpG URL").parentElement as HTMLElement)
+        .display,
+    ).toBe("grid");
+    expect(getFieldContainer("CpG color").parentElement).toBe(
+      getFieldContainer("Depth color").parentElement,
+    );
+    expect(getFieldContainer("Minimum").parentElement).toBe(
+      getFieldContainer("Maximum").parentElement,
+    );
+    expect(
+      getComputedStyle(getFieldContainer("Minimum").parentElement as HTMLElement).display,
+    ).toBe("flex");
+    expect(getFieldContainer("Mask CpG by coverage").parentElement).not.toBe(
+      getFieldContainer("Minimum").parentElement,
+    );
+  });
+
   it("updates nested values while preserving their siblings", () => {
     vi.useFakeTimers();
     const { updateConfig } = renderSettings();
@@ -172,6 +196,13 @@ function getInput(label: string) {
   );
   if (!input) throw new Error(`Could not find input labeled ${label}`);
   return input;
+}
+
+function getFieldContainer(label: string) {
+  const input = getInput(label);
+  const field = input.closest<HTMLElement>(".MuiFormControl-root, .MuiFormControlLabel-root");
+  if (!field) throw new Error(`Could not find field container for ${label}`);
+  return field;
 }
 
 function updateInput(label: string, value: string) {
