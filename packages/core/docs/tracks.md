@@ -93,9 +93,24 @@ const useTrackStore = createTrackStore({
 
 The store resolves validation, requests, rendering, settings, and tooltips through `track.type`. An unregistered type is rejected. Track IDs must be unique.
 
-### BigWig clamp indicators
+### BigWig Y-axis range and clamp indicators
 
-In `full` display mode, BigWig values outside a fixed `yRange` remain clipped to that range and are marked at the upper or lower boundary. Clamp indicators are visible and red by default. Configure them per track with `showClampIndicators` (default `true`) and `clampIndicatorColor` (default `"#ff0000"`):
+BigWig calculates a Y-axis range from the rendered data by default. The `yRange` minimum and maximum are independent overrides: omit `min` to keep the calculated minimum, omit `max` to keep the calculated maximum, or provide both to fix the complete range. For example, this track fixes the lower bound at zero while allowing the upper bound to follow the data:
+
+```ts
+bigWigModule.create({
+  id: "signal",
+  title: "Signal",
+  config: {
+    url: "YOUR_URL_HERE",
+    yRange: { min: 0 },
+  },
+});
+```
+
+The renderer calculates the automatic range before applying these overrides. If the merged result has `min >= max`, such as when an independent bound conflicts with the current data range, it ignores all overrides for that render and uses the complete automatic range. An explicit `yRange` containing both bounds must have `min < max` to pass configuration validation.
+
+In `full` display mode, BigWig values outside the resolved range remain clipped to that range and are marked at the upper or lower boundary. Clamp indicators are visible and red by default. Configure them per track with `showClampIndicators` (default `true`) and `clampIndicatorColor` (default `"#ff0000"`):
 
 ```ts
 bigWigModule.create({
@@ -115,5 +130,7 @@ The BigWig settings panel provides a **Show clamp indicators** checkbox and a te
 Optional interaction callbacks are passed as the second argument to `module.create(...)`; their item and parsed-config types are module-specific. Each callback receives `(item, context)`, where `context.type`, `context.base`, and `context.config` are the current shallow read-only runtime view. One-argument callbacks remain valid when they do not need context.
 
 Renderers continue to call item-only handlers from `useInteraction<Item>()`. Module tooltip components receive `{ item, context }`, and renderers open them with parameterless `useTooltip<Item, Config>()`. Later base and config updates appear in later callbacks and tooltip renders. Runtime context is derived rather than persisted and contains no metadata from optional collection UI packages.
+
+BigWig and CAVE renderers keep tooltips available over empty signal pixels so tooltip components can present a stable no-data state. Empty pixels do not trigger application `onHover` callbacks or invent a data feature; leaving a real signal feature for an empty pixel still triggers `onLeave`.
 
 For collection-shaped create input, `createTrackFromEntry(registry, entry)` strips `type` and `metadata` before delegating to the selected module. It remains a data-only creation boundary and returns the registry's instance union. Create through a specific module when attaching typed interactions. Use `"YOUR_URL_HERE"` for URLs supplied by your application.

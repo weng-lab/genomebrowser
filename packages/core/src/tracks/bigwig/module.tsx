@@ -3,16 +3,17 @@ import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchOnChange } from "../../modules/fetchOnChange";
 import { TrackTooltip } from "../shared/TrackTooltip";
 import { fetchBigWig } from "./fetch";
+import { formatBigWigTooltip } from "./helpers";
 import { DenseBigWig, FullBigWig } from "./render";
 import { BigWigSettings } from "./settings";
 import type { RenderedBigWigPoint } from "./types";
 
 const yRangeSchema = z
   .object({
-    min: z.number(),
-    max: z.number(),
+    min: z.number().optional(),
+    max: z.number().optional(),
   })
-  .refine((range) => range.min < range.max, {
+  .refine((range) => range.min === undefined || range.max === undefined || range.min < range.max, {
     error: "min must be less than max",
     path: ["min"],
   });
@@ -34,7 +35,7 @@ export const bigWigModule = defineTrackModule<RenderedBigWigPoint>()({
   tooltipComponent: ({ item }) => (
     <TrackTooltip>
       <text fill="#000000" fontSize={12} dominantBaseline="middle">
-        {item.max?.toFixed(2)}
+        Signal: {formatBigWigTooltip(item)}
       </text>
     </TrackTooltip>
   ),

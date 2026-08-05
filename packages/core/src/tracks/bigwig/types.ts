@@ -5,7 +5,8 @@ export type BigWigDisplay = "full" | "dense";
 export type BigWigConfig = {
   url: string;
   fillWithZero?: boolean;
-  yRange?: YRange;
+  /** Optional minimum and maximum overrides for the automatically calculated Y-axis range. */
+  yRange?: YRangeOverride;
   showClampIndicators?: boolean;
   clampIndicatorColor?: string;
 };
@@ -24,6 +25,12 @@ export type BigWigInteraction = TrackInteraction<RenderedBigWigPoint, BigWigConf
 export type YRange = {
   min: number;
   max: number;
+};
+
+/** Independent overrides applied to an automatically calculated BigWig Y-axis range. */
+export type YRangeOverride = {
+  min?: number;
+  max?: number;
 };
 
 export type RenderedBigWigPoint = {

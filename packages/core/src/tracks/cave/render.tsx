@@ -2,7 +2,7 @@ import { useRef, useState, type MouseEvent } from "react";
 import { useTooltip } from "../../browser/tooltip/useTooltip";
 import { useInteraction } from "../../modules/interaction";
 import type { TrackRendererProps } from "../../modules/types";
-import { condenseBigWigData, getPointAtMouseX, lighten } from "../bigwig/helpers";
+import { condenseBigWigData, getPointAtMouseX, hasBigWigData, lighten } from "../bigwig/helpers";
 import type { RenderedBigWigPoint, YRange } from "../bigwig/types";
 import type { CaveConfig, CaveData, CaveTooltipItem } from "./types";
 
@@ -74,34 +74,40 @@ function CaveHoverOverlay({
   bottomPoints: RenderedBigWigPoint[];
 }) {
   const [hoveredX, setHoveredX] = useState<number | undefined>();
-  const hoveredItemRef = useRef<CaveTooltipItem | undefined>(undefined);
+  const interactionItemRef = useRef<CaveTooltipItem | undefined>(undefined);
   const interaction = useInteraction<CaveTooltipItem>();
   const tooltip = useTooltip<CaveTooltipItem, CaveConfig>();
 
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const mouseX = getLocalMouseX(event, width);
-    const top = getPointAtMouseX(topPoints, mouseX, width);
-    const bottom = getPointAtMouseX(bottomPoints, mouseX, width);
+    const topPixel = getPointAtMouseX(topPoints, mouseX, width);
+    const bottomPixel = getPointAtMouseX(bottomPoints, mouseX, width);
 
-    if (!top && !bottom) {
-      if (hoveredItemRef.current) interaction?.onLeave?.(hoveredItemRef.current);
-      hoveredItemRef.current = undefined;
+    if (!topPixel && !bottomPixel) {
+      if (interactionItemRef.current) interaction?.onLeave?.(interactionItemRef.current);
+      interactionItemRef.current = undefined;
       if (hoveredX !== undefined) setHoveredX(undefined);
       tooltip.hide();
       return;
     }
 
     const x = Math.round(mouseX);
-    const item = { x, top, bottom };
-    hoveredItemRef.current = item;
+    const tooltipItem = { x, top: topPixel, bottom: bottomPixel };
+    const top = hasBigWigData(topPixel) ? topPixel : undefined;
+    const bottom = hasBigWigData(bottomPixel) ? bottomPixel : undefined;
+    const interactionItem = top || bottom ? { x, top, bottom } : undefined;
+    if (!interactionItem && interactionItemRef.current) {
+      interaction?.onLeave?.(interactionItemRef.current);
+    }
+    interactionItemRef.current = interactionItem;
     if (hoveredX !== x) setHoveredX(x);
-    interaction?.onHover?.(item);
-    tooltip.show(item, event);
+    if (interactionItem) interaction?.onHover?.(interactionItem);
+    tooltip.show(tooltipItem, event);
   };
 
   const handleMouseOut = () => {
-    if (hoveredItemRef.current) interaction?.onLeave?.(hoveredItemRef.current);
-    hoveredItemRef.current = undefined;
+    if (interactionItemRef.current) interaction?.onLeave?.(interactionItemRef.current);
+    interactionItemRef.current = undefined;
     setHoveredX(undefined);
     tooltip.hide();
   };

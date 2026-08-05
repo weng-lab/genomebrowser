@@ -1,20 +1,34 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackSettingsProps } from "../../modules/types";
 import type { BigWigConfig } from "./types";
 
-export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigWigConfig>) {
+export function BigWigSettings({ id, config, updateConfig }: TrackSettingsProps<BigWigConfig>) {
   const minRef = useRef<HTMLInputElement>(null);
   const maxRef = useRef<HTMLInputElement>(null);
+  const [rangeError, setRangeError] = useState<string>();
+  const rangeErrorId = `${id}-y-range-error`;
   const updateYRange = () => {
     const minValue = minRef.current?.value ?? "";
     const maxValue = maxRef.current?.value ?? "";
-    if (minValue === "" || maxValue === "") return;
+    const min = parseRangeBound(minValue);
+    const max = parseRangeBound(maxValue);
 
-    const min = Number(minValue);
-    const max = Number(maxValue);
-    if (Number.isFinite(min) && Number.isFinite(max) && min < max)
-      updateConfig({ yRange: { min, max } });
+    if (min === null || max === null) {
+      setRangeError("Enter a finite number.");
+      return;
+    }
+    if (min !== undefined && max !== undefined && min >= max) {
+      setRangeError("Minimum must be less than maximum.");
+      return;
+    }
+
+    const yRange =
+      min === undefined && max === undefined
+        ? undefined
+        : { ...(min !== undefined ? { min } : {}), ...(max !== undefined ? { max } : {}) };
+    const result = updateConfig({ yRange });
+    setRangeError(result.ok ? undefined : result.error);
   };
 
   return (
@@ -56,18 +70,22 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
         <div style={{ fontWeight: 600 }}>Y range</div>
         <div style={{ display: "flex", gap: "6px" }}>
           <input
-            type="number"
-            step="any"
+            type="text"
+            inputMode="decimal"
             aria-label="Minimum Y range"
+            aria-describedby={rangeError ? rangeErrorId : undefined}
+            aria-invalid={rangeError !== undefined}
             placeholder="min"
             defaultValue={config.yRange?.min ?? ""}
             ref={minRef}
             onChange={updateYRange}
           />
           <input
-            type="number"
-            step="any"
+            type="text"
+            inputMode="decimal"
             aria-label="Maximum Y range"
+            aria-describedby={rangeError ? rangeErrorId : undefined}
+            aria-invalid={rangeError !== undefined}
             placeholder="max"
             defaultValue={config.yRange?.max ?? ""}
             ref={maxRef}
@@ -80,13 +98,25 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
             onClick={() => {
               if (minRef.current) minRef.current.value = "";
               if (maxRef.current) maxRef.current.value = "";
-              updateConfig({ yRange: undefined });
+              const result = updateConfig({ yRange: undefined });
+              setRangeError(result.ok ? undefined : result.error);
             }}
           >
             Auto scale
           </button>
         </div>
+        {rangeError && (
+          <div id={rangeErrorId} role="alert" style={{ color: "#b00020" }}>
+            {rangeError}
+          </div>
+        )}
       </div>
     </SettingsSection>
   );
+}
+
+function parseRangeBound(value: string) {
+  if (value.trim() === "") return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }

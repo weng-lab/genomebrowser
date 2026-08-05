@@ -37,16 +37,16 @@ describe("BigWig interaction helpers", () => {
     expect(getPointAtMouseX(points, 100, 3)).toEqual(points[2]);
   });
 
-  it("ignores all-null points", () => {
-    expect(getPointAtMouseX(points, 1, 3)).toBeUndefined();
+  it("returns all-null pixels for stable no-data tooltips", () => {
+    expect(getPointAtMouseX(points, 1, 3)).toEqual(points[1]);
   });
 
   it("formats tooltip labels", () => {
     expect(formatBigWigTooltip({ x: 0, min: 1, max: 1 })).toBe("1.00");
     expect(formatBigWigTooltip({ x: 0, min: 2, max: 5 })).toBe("5.00");
     expect(formatBigWigTooltip({ x: 0, min: null, max: 5 })).toBe("5.00");
-    expect(formatBigWigTooltip({ x: 0, min: 2, max: null })).toBeUndefined();
-    expect(formatBigWigTooltip({ x: 0, min: null, max: null })).toBeUndefined();
+    expect(formatBigWigTooltip({ x: 0, min: 2, max: null })).toBe("No data");
+    expect(formatBigWigTooltip({ x: 0, min: null, max: null })).toBe("No data");
   });
 
   it("condenses raw BigWig data into rendered points", () => {
@@ -81,5 +81,9 @@ describe("BigWig interaction helpers", () => {
       { x: 0, min: 1, max: 1 },
       { x: 1, min: 0, max: 0 },
     ]);
+  });
+
+  it("produces a valid automatic range for a constant negative signal", () => {
+    expect(getBigWigRange([{ x: 0, min: -2, max: -2 }])).toEqual({ min: -2, max: 0 });
   });
 });

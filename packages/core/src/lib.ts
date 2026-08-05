@@ -107,6 +107,7 @@ export type {
   BigWigInput,
   RenderedBigWigPoint,
   YRange,
+  YRangeOverride,
 } from "./tracks/bigwig/types";
 
 export { transcriptModule } from "./tracks/transcript/module";

@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { createFetchSignature } from "../../src/modules/fetchOnChange";
+import { resolveBigWigRange } from "../../src/tracks/bigwig/helpers";
 import { bigWigModule } from "../../src/tracks/bigwig/module";
 
 vi.mock("../../src/modules/interaction", () => ({ useInteraction: () => null }));
@@ -15,6 +16,62 @@ const clampedData = [
 ];
 
 describe("BigWig module", () => {
+  it.each([
+    ["no bounds", {}],
+    ["only a minimum", { min: -1 }],
+    ["only a maximum", { max: 1 }],
+    ["both valid bounds", { min: -1, max: 1 }],
+  ])("accepts yRange with %s", (_label, yRange) => {
+    const track = bigWigModule.create({
+      id: "configured-signal",
+      title: "Configured signal",
+      config: { url: "YOUR_URL_HERE", yRange },
+    });
+
+    expect(track.config.yRange).toEqual(yRange);
+  });
+
+  it.each([
+    { min: 1, max: 1 },
+    { min: 2, max: 1 },
+  ])("rejects an explicitly invalid yRange pair: %j", (yRange) => {
+    expect(() =>
+      bigWigModule.create({
+        id: "configured-signal",
+        title: "Configured signal",
+        config: { url: "YOUR_URL_HERE", yRange },
+      }),
+    ).toThrow(/min must be less than max/);
+  });
+
+  it.each([
+    [undefined, { min: -5, max: 5 }],
+    [{ min: -1 }, { min: -1, max: 5 }],
+    [{ max: 1 }, { min: -5, max: 1 }],
+    [
+      { min: -1, max: 1 },
+      { min: -1, max: 1 },
+    ],
+  ] as const)("resolves the automatic range with override %j", (override, expected) => {
+    expect(resolveBigWigRange({ min: -5, max: 5 }, override)).toEqual(expected);
+  });
+
+  it.each([{ min: 5 }, { max: -5 }, { min: 1, max: 1 }, { min: 2, max: 1 }])(
+    "falls back entirely to the automatic range when override %j resolves invalidly",
+    (override) => {
+      expect(resolveBigWigRange({ min: -5, max: 5 }, override)).toEqual({
+        min: -5,
+        max: 5,
+      });
+    },
+  );
+
+  it("uses the automatic range when a partial override resolves invalidly during rendering", () => {
+    expect(renderFull({ ...createTrack().config, yRange: { min: 5 } })).toBe(
+      renderFull(createTrack().config),
+    );
+  });
+
   it("parses clamp indicator defaults and explicit values", () => {
     const defaultTrack = createTrack();
     const configuredTrack = bigWigModule.create({
