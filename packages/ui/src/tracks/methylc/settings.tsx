@@ -3,12 +3,12 @@ import Switch from "@mui/material/Switch";
 import type { MethylCConfig, TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { useEffect, useRef } from "react";
 import { neutralTrackColor } from "../../TrackSettings/color";
-import { DraftRangeFields } from "../../TrackSettings/draftRangeFields";
-import { TrackColorField } from "../../TrackSettings/trackColorField";
+import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
+import { TrackSettingsRangeFields } from "../../TrackSettings/trackSettingsRangeFields";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
-import { TrackSourceUrlField } from "../../TrackSettings/trackSourceUrlField";
+import { TrackSettingsUrlField } from "../../TrackSettings/trackSettingsUrlField";
 
 type Strand = keyof MethylCConfig["urls"];
 type Channel = keyof MethylCConfig["urls"]["plusStrand"];
@@ -79,7 +79,7 @@ export function MethylCSettings({ config, updateConfig }: TrackSettingsProps<Met
         <TrackSettingsSection key={key} title={title}>
           <TrackSettingsFieldGrid>
             {channels.map(({ key: channel, label }) => (
-              <TrackSourceUrlField
+              <TrackSettingsUrlField
                 key={channel}
                 label={`${labelPrefix} ${label} URL`}
                 value={config.urls[key][channel].url}
@@ -93,7 +93,7 @@ export function MethylCSettings({ config, updateConfig }: TrackSettingsProps<Met
       <TrackSettingsSection title="Colors">
         <TrackSettingsFieldGrid>
           {colors.map(({ key, label }) => (
-            <TrackColorField
+            <TrackSettingsColorField
               key={key}
               fallbackColor={neutralTrackColor}
               label={label}
@@ -119,7 +119,10 @@ export function MethylCSettings({ config, updateConfig }: TrackSettingsProps<Met
             sx={{ m: 0, minWidth: 0 }}
           />
         </TrackSettingsFieldGrid>
-        <DraftRangeFields range={config.range} onCommit={(range) => applyConfig({ range })} />
+        <TrackSettingsRangeFields
+          range={config.range}
+          onCommit={(range) => applyConfig({ range })}
+        />
       </TrackSettingsSection>
     </TrackSettingsLayout>
   );

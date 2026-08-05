@@ -2,6 +2,30 @@ import TrackSelect from "./TrackSelect/TrackSelect";
 export { TrackSelect };
 export { TrackBaseSettings } from "./TrackSettings/trackBaseSettings";
 export type { TrackBaseSettingsProps } from "./TrackSettings/trackBaseSettings";
+export { TrackSettingsColorField } from "./TrackSettings/trackSettingsColorField";
+export type { TrackSettingsColorFieldProps } from "./TrackSettings/trackSettingsColorField";
+export {
+  TrackSettingsFieldGrid,
+  TrackSettingsFieldRow,
+  TrackSettingsFullRow,
+} from "./TrackSettings/trackSettingsFieldGrid";
+export type {
+  TrackSettingsFieldGridProps,
+  TrackSettingsFieldRowProps,
+  TrackSettingsFullRowProps,
+} from "./TrackSettings/trackSettingsFieldGrid";
+export { TrackSettingsLayout } from "./TrackSettings/trackSettingsLayout";
+export type { TrackSettingsLayoutProps } from "./TrackSettings/trackSettingsLayout";
+export { TrackSettingsNumberField } from "./TrackSettings/trackSettingsNumberField";
+export type { TrackSettingsNumberFieldProps } from "./TrackSettings/trackSettingsNumberField";
+export { TrackSettingsRangeFields } from "./TrackSettings/trackSettingsRangeFields";
+export type { TrackSettingsRangeFieldsProps } from "./TrackSettings/trackSettingsRangeFields";
+export { TrackSettingsSection } from "./TrackSettings/trackSettingsSection";
+export type { TrackSettingsSectionProps } from "./TrackSettings/trackSettingsSection";
+export { TrackSettingsTextField } from "./TrackSettings/trackSettingsTextField";
+export type { TrackSettingsTextFieldProps } from "./TrackSettings/trackSettingsTextField";
+export { TrackSettingsUrlField } from "./TrackSettings/trackSettingsUrlField";
+export type { TrackSettingsUrlFieldProps } from "./TrackSettings/trackSettingsUrlField";
 export { BigBedSettings } from "./tracks/bigbed/settings";
 export { BigBedTooltip } from "./tracks/bigbed/tooltip";
 export { BigWigSettings } from "./tracks/bigwig/settings";

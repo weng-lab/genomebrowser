@@ -5,7 +5,7 @@ import {
 } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
-import { TrackSourceUrlField } from "../../TrackSettings/trackSourceUrlField";
+import { TrackSettingsUrlField } from "../../TrackSettings/trackSettingsUrlField";
 
 export function BigBedSettings({ config, updateConfig }: TrackSettingsProps<BigBedConfig>) {
   return (
@@ -13,7 +13,7 @@ export function BigBedSettings({ config, updateConfig }: TrackSettingsProps<BigB
       <TrackSettingsSection title="BigBed">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
-            <TrackSourceUrlField
+            <TrackSettingsUrlField
               required
               value={config.url}
               onCommit={(url) => updateConfig({ url })}

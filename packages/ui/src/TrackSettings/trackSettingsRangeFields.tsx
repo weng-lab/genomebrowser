@@ -13,7 +13,7 @@ type RangeLabels = {
   minimumLabel?: string;
 };
 
-export type DraftRangeFieldsProps = RangeLabels &
+export type TrackSettingsRangeFieldsProps = RangeLabels &
   (
     | {
         mode: "independent";
@@ -28,7 +28,7 @@ export type DraftRangeFieldsProps = RangeLabels &
   );
 
 /** An optional range editor with complete-pair and independent-bound modes. */
-export function DraftRangeFields(props: DraftRangeFieldsProps) {
+export function TrackSettingsRangeFields(props: TrackSettingsRangeFieldsProps) {
   const errorId = useId();
   const maximumLabel = props.maximumLabel ?? "Maximum";
   const minimumLabel = props.minimumLabel ?? "Minimum";

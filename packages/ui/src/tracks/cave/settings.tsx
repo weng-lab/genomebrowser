@@ -7,7 +7,7 @@ import type {
   TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
 import { lightenColor, neutralTrackColor } from "../../TrackSettings/color";
-import { TrackColorField } from "../../TrackSettings/trackColorField";
+import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
 import { TrackSettingsFieldRow } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
@@ -70,14 +70,14 @@ export function CaveSettings({ config, updateConfig }: TrackSettingsProps<CaveCo
       </TrackSettingsSection>
       <TrackSettingsSection title="Signal colors">
         <TrackSettingsFieldRow>
-          <TrackColorField
+          <TrackSettingsColorField
             fallbackColor={topFallbackColor}
             label="Top color"
             mode="optional"
             value={config.topColor}
             onCommit={(topColor) => updateConfig({ topColor })}
           />
-          <TrackColorField
+          <TrackSettingsColorField
             fallbackColor={neutralTrackColor}
             label="Bottom color"
             mode="optional"

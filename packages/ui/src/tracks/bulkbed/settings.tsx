@@ -9,15 +9,15 @@ import type {
   TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
 import { useEffect, useRef, useState } from "react";
-import { DraftNumberField } from "../../TrackSettings/draftNumberField";
-import { DraftTextField } from "../../TrackSettings/draftTextField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
 } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
+import { TrackSettingsNumberField } from "../../TrackSettings/trackSettingsNumberField";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
-import { TrackSourceUrlField } from "../../TrackSettings/trackSourceUrlField";
+import { TrackSettingsTextField } from "../../TrackSettings/trackSettingsTextField";
+import { TrackSettingsUrlField } from "../../TrackSettings/trackSettingsUrlField";
 
 type DatasetField = keyof BulkBedDataset;
 
@@ -140,7 +140,7 @@ function BulkBedSettingsEditor({ id, config, updateConfig }: TrackSettingsProps<
 
       <TrackSettingsSection title="BulkBed">
         <TrackSettingsFieldGrid>
-          <DraftNumberField
+          <TrackSettingsNumberField
             label="Gap"
             min={0}
             step="any"
@@ -205,14 +205,14 @@ function BulkBedSettingsEditor({ id, config, updateConfig }: TrackSettingsProps<
                 ) : null}
 
                 <TrackSettingsFieldRow>
-                  <DraftTextField
+                  <TrackSettingsTextField
                     label="Name"
                     required
                     value={dataset.values.name}
                     validate={(name) => (name.trim() === "" ? "Enter a dataset name." : undefined)}
                     onCommit={(name) => commitDatasetField(dataset.key, "name", name)}
                   />
-                  <TrackSourceUrlField
+                  <TrackSettingsUrlField
                     label="URL"
                     placeholder="YOUR_URL_HERE"
                     required

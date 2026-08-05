@@ -3,14 +3,14 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DraftNumberField } from "../src/TrackSettings/draftNumberField";
-import { DraftTextField } from "../src/TrackSettings/draftTextField";
+import { TrackSettingsNumberField } from "../src/TrackSettings/trackSettingsNumberField";
+import { TrackSettingsTextField } from "../src/TrackSettings/trackSettingsTextField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
 } from "../src/TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../src/TrackSettings/trackSettingsLayout";
-import { TrackSourceUrlField } from "../src/TrackSettings/trackSourceUrlField";
+import { TrackSettingsUrlField } from "../src/TrackSettings/trackSettingsUrlField";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -26,12 +26,12 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("draft track settings fields", () => {
+describe("track settings fields", () => {
   it("retains cleared and partial numeric drafts before committing a completed value", () => {
     vi.useFakeTimers();
     const onCommit = vi.fn(() => ({ ok: true }) as const);
     mount(
-      <DraftNumberField
+      <TrackSettingsNumberField
         label="Threshold"
         value={12}
         validate={() => undefined}
@@ -64,7 +64,7 @@ describe("draft track settings fields", () => {
     vi.useFakeTimers();
     const onCommit = vi.fn(() => ({ ok: true }) as const);
     mount(
-      <DraftTextField
+      <TrackSettingsTextField
         label="Title"
         value="Saved title"
         validate={() => undefined}
@@ -92,7 +92,7 @@ describe("draft track settings fields", () => {
     vi.useFakeTimers();
     const onCommit = vi.fn(() => ({ ok: false, error: "Core rejected this title." }) as const);
     mount(
-      <DraftTextField
+      <TrackSettingsTextField
         label="Title"
         value="Saved title"
         validate={() => undefined}
@@ -107,7 +107,7 @@ describe("draft track settings fields", () => {
     expect(container?.textContent).toContain("Core rejected this title.");
 
     rerender(
-      <DraftTextField
+      <TrackSettingsTextField
         label="Title"
         value="External title"
         validate={() => undefined}
@@ -120,7 +120,7 @@ describe("draft track settings fields", () => {
     expect(input.value).toBe("External title");
 
     rerender(
-      <DraftTextField
+      <TrackSettingsTextField
         label="Title"
         value="Latest external title"
         validate={() => undefined}
@@ -137,7 +137,7 @@ describe("draft track settings fields", () => {
       .mockReturnValueOnce({ ok: false, error: "Core rejected this title." })
       .mockReturnValueOnce({ ok: true });
     mount(
-      <DraftTextField
+      <TrackSettingsTextField
         label="Title"
         value="Saved title"
         validate={() => undefined}
@@ -163,7 +163,7 @@ describe("draft track settings fields", () => {
     const staleCommit = vi.fn(() => ({ ok: true }) as const);
     const latestCommit = vi.fn(() => ({ ok: true }) as const);
     mount(
-      <DraftTextField
+      <TrackSettingsTextField
         label="Assembly"
         value="GRCh38"
         validate={() => undefined}
@@ -175,7 +175,7 @@ describe("draft track settings fields", () => {
     updateInput(input, "GRCh37");
     updateInput(input, "T2T-CHM13");
     rerender(
-      <DraftTextField
+      <TrackSettingsTextField
         label="Assembly"
         value="GRCh38"
         validate={() => undefined}
@@ -196,7 +196,12 @@ describe("draft track settings fields", () => {
     vi.useFakeTimers();
     const onCommit = vi.fn(() => ({ ok: true }) as const);
     mount(
-      <TrackSourceUrlField label="Signal URL" required value="YOUR_URL_HERE" onCommit={onCommit} />,
+      <TrackSettingsUrlField
+        label="Signal URL"
+        required
+        value="YOUR_URL_HERE"
+        onCommit={onCommit}
+      />,
     );
     const input = getInput("Signal URL");
 

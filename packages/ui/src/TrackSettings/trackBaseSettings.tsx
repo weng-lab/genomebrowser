@@ -4,9 +4,9 @@ import TextField from "@mui/material/TextField";
 import type { BaseSettingsProps, TrackBase } from "@weng-lab/genomebrowser";
 import { useState } from "react";
 import { neutralTrackColor } from "./color";
-import { DraftNumberField } from "./draftNumberField";
-import { DraftTextField } from "./draftTextField";
-import { TrackColorField } from "./trackColorField";
+import { TrackSettingsColorField } from "./trackSettingsColorField";
+import { TrackSettingsNumberField } from "./trackSettingsNumberField";
+import { TrackSettingsTextField } from "./trackSettingsTextField";
 import { TrackSettingsFieldRow } from "./trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "./trackSettingsLayout";
 import { TrackSettingsSection } from "./trackSettingsSection";
@@ -27,14 +27,14 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
       {error ? <Alert severity="error">{error}</Alert> : null}
       <TrackSettingsSection title="Track base settings">
         <TrackSettingsFieldRow>
-          <DraftTextField
+          <TrackSettingsTextField
             label="Title"
             required
             value={base.title}
             validate={(title) => (title.trim() === "" ? "Enter a title." : undefined)}
             onCommit={(title) => updateBase({ title })}
           />
-          <TrackColorField
+          <TrackSettingsColorField
             fallbackColor={neutralTrackColor}
             label="Color"
             mode="required"
@@ -60,7 +60,7 @@ export function TrackBaseSettings({ base, displayOptions, updateBase }: TrackBas
               ))}
             </TextField>
           ) : null}
-          <DraftNumberField
+          <TrackSettingsNumberField
             label="Height"
             min={20}
             required

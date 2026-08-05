@@ -2,7 +2,7 @@ import TextField from "@mui/material/TextField";
 import type { TrackMutationResult } from "@weng-lab/genomebrowser";
 import { useDraftController, type DraftValidation } from "./draftInput";
 
-export type DraftTextFieldProps = {
+export type TrackSettingsTextFieldProps = {
   autoComplete?: string;
   disabled?: boolean;
   inputMode?: "email" | "search" | "tel" | "text" | "url";
@@ -17,7 +17,7 @@ export type DraftTextFieldProps = {
 };
 
 /** A compact text field that retains its local draft until it is accepted. */
-export function DraftTextField({
+export function TrackSettingsTextField({
   autoComplete,
   disabled,
   inputMode,
@@ -29,7 +29,7 @@ export function DraftTextField({
   type = "text",
   validate,
   value,
-}: DraftTextFieldProps) {
+}: TrackSettingsTextFieldProps) {
   const controller = useDraftController<string, string>({
     value,
     toRaw: (nextValue) => nextValue,

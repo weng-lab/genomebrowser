@@ -19,12 +19,12 @@ import {
 } from "./color";
 import { useDraftController, type DraftValidation } from "./draftInput";
 
-type CommonTrackColorFieldProps = {
+type CommonTrackSettingsColorFieldProps = {
   disabled?: boolean;
   label: string;
 };
 
-type RequiredTrackColorFieldProps = CommonTrackColorFieldProps &
+type RequiredTrackSettingsColorFieldProps = CommonTrackSettingsColorFieldProps &
   (
     | { fallbackColor: string; value: string | undefined }
     | { fallbackColor?: undefined; value: string }
@@ -33,14 +33,16 @@ type RequiredTrackColorFieldProps = CommonTrackColorFieldProps &
     onCommit: (color: string) => TrackMutationResult;
   };
 
-type OptionalTrackColorFieldProps = CommonTrackColorFieldProps & {
+type OptionalTrackSettingsColorFieldProps = CommonTrackSettingsColorFieldProps & {
   fallbackColor: string;
   mode: "optional";
   value: string | undefined;
   onCommit: (color: string | undefined) => TrackMutationResult;
 };
 
-export type TrackColorFieldProps = RequiredTrackColorFieldProps | OptionalTrackColorFieldProps;
+export type TrackSettingsColorFieldProps =
+  | RequiredTrackSettingsColorFieldProps
+  | OptionalTrackSettingsColorFieldProps;
 
 type PickerSession = {
   color: HsvColor;
@@ -50,7 +52,7 @@ type PickerSession = {
 };
 
 /** A validated hexadecimal field with an accessible saturation/value and hue picker. */
-export function TrackColorField(props: TrackColorFieldProps) {
+export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
   const [anchorElement, setAnchorElement] = useState<HTMLButtonElement>();
   const [pickerSession, setPickerSession] = useState<PickerSession>();
   const openingControlRef = useRef<HTMLButtonElement>(null);

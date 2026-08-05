@@ -23,7 +23,11 @@ export function TrackSettingsFieldGrid({ children }: TrackSettingsFieldGridProps
 }
 
 /** A responsive row whose related fields stay together and stack in source order. */
-export function TrackSettingsFieldRow({ children }: TrackSettingsFieldGridProps) {
+export type TrackSettingsFieldRowProps = {
+  children: ReactNode;
+};
+
+export function TrackSettingsFieldRow({ children }: TrackSettingsFieldRowProps) {
   return (
     <Box
       sx={{

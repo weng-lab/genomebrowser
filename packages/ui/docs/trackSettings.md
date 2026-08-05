@@ -1,179 +1,229 @@
-# Track settings
+# Author track settings
 
-Use the UI track components to add MUI controls and detailed SVG tooltips to core BigWig, BigBed, BulkBed, CAVE, methylC, and transcript modules. The package also provides an optional replacement for the shared base settings controls.
+Use the track-settings authoring components from `@weng-lab/genomebrowser-ui` to build compact, consistent MUI controls for a track module. They compose with the public module and mutation types from `@weng-lab/genomebrowser`.
 
-## Usage
+## Ownership
 
-Create the settings store and track store outside React rendering. Extend each core module with its matching settings and tooltip components, register the composed modules, then pass all three stores to `GenomeBrowser`.
+The core browser owns the settings modal shell: its title, close behavior, position, and width. It renders the configured base-settings component and then the active module's `settingsComponent`. A module settings component should therefore render only controls for that module's track-specific configuration. Do not add another modal, title, close button, or fixed width.
+
+The UI package owns the MUI authoring controls on this page. Core remains independent of MUI. `TrackBaseSettings` is the optional UI implementation for shared title, color, display, and height controls; track-specific components should not repeat those fields.
+
+## Minimal settings component
+
+This example replaces the settings component on the core BigWig module. The component receives validated configuration and returns every update through the mutation callback supplied by core.
 
 ```tsx
+import { bigWigModule, type BigWigConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import {
-  bigBedModule,
-  bigWigModule,
-  bulkBedModule,
-  caveModule,
-  createBrowserStore,
-  createSettingsStore,
-  createTrackStore,
-  GenomeBrowser,
-  hg38,
-  methylCModule,
-  transcriptModule,
-} from "@weng-lab/genomebrowser";
-import {
-  BigBedSettings,
-  BigBedTooltip,
-  BigWigSettings,
-  BigWigTooltip,
-  BulkBedSettings,
-  BulkBedTooltip,
-  CaveSettings,
-  CaveTooltip,
-  MethylCSettings,
-  MethylCTooltip,
-  TrackBaseSettings,
-  TranscriptSettings,
-  TranscriptTooltip,
+  TrackSettingsFieldGrid,
+  TrackSettingsFullRow,
+  TrackSettingsLayout,
+  TrackSettingsRangeFields,
+  TrackSettingsSection,
+  TrackSettingsUrlField,
 } from "@weng-lab/genomebrowser-ui";
 
-const bigBedUiModule = {
-  ...bigBedModule,
-  settingsComponent: BigBedSettings,
-  tooltipComponent: BigBedTooltip,
-} satisfies typeof bigBedModule;
-
-const bigWigUiModule = {
-  ...bigWigModule,
-  settingsComponent: BigWigSettings,
-  tooltipComponent: BigWigTooltip,
-} satisfies typeof bigWigModule;
-
-const bulkBedUiModule = {
-  ...bulkBedModule,
-  settingsComponent: BulkBedSettings,
-  tooltipComponent: BulkBedTooltip,
-} satisfies typeof bulkBedModule;
-
-const caveUiModule = {
-  ...caveModule,
-  settingsComponent: CaveSettings,
-  tooltipComponent: CaveTooltip,
-} satisfies typeof caveModule;
-
-const methylCUiModule = {
-  ...methylCModule,
-  settingsComponent: MethylCSettings,
-  tooltipComponent: MethylCTooltip,
-} satisfies typeof methylCModule;
-
-const transcriptUiModule = {
-  ...transcriptModule,
-  settingsComponent: TranscriptSettings,
-  tooltipComponent: TranscriptTooltip,
-} satisfies typeof transcriptModule;
-
-const useBrowserStore = createBrowserStore({
-  assembly: hg38,
-  region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
-  trackWidth: 900,
-});
-
-const useSettingsStore = createSettingsStore({
-  baseSettingsComponent: TrackBaseSettings,
-});
-
-const useTrackStore = createTrackStore({
-  modules: [
-    bigWigUiModule,
-    bigBedUiModule,
-    bulkBedUiModule,
-    caveUiModule,
-    methylCUiModule,
-    transcriptUiModule,
-  ],
-  tracks: [
-    bigWigUiModule.create({
-      id: "signal",
-      title: "Signal",
-      config: { url: "YOUR_URL_HERE" },
-    }),
-  ],
-});
-
-export function Browser() {
+function SignalSettings({ config, updateConfig }: TrackSettingsProps<BigWigConfig>) {
   return (
-    <GenomeBrowser
-      browserStore={useBrowserStore}
-      settingsStore={useSettingsStore}
-      trackStore={useTrackStore}
-    />
+    <TrackSettingsLayout>
+      <TrackSettingsSection title="Signal source and range">
+        <TrackSettingsFieldGrid>
+          <TrackSettingsFullRow>
+            <TrackSettingsUrlField
+              label="BigWig URL"
+              required
+              value={config.url}
+              onCommit={(url) => updateConfig({ url })}
+            />
+          </TrackSettingsFullRow>
+          <TrackSettingsFullRow>
+            <TrackSettingsRangeFields
+              mode="independent"
+              range={config.yRange}
+              onCommit={(yRange) => updateConfig({ yRange })}
+            />
+          </TrackSettingsFullRow>
+        </TrackSettingsFieldGrid>
+      </TrackSettingsSection>
+    </TrackSettingsLayout>
   );
 }
+
+export const signalModule = {
+  ...bigWigModule,
+  settingsComponent: SignalSettings,
+} satisfies typeof bigWigModule;
+
+export const signalTrack = signalModule.create({
+  id: "signal",
+  title: "Signal",
+  config: { url: "YOUR_URL_HERE" },
+});
 ```
 
-Open settings with the settings action on a browser track. Applications can also call `useSettingsStore.getState().openSettings(trackId, position)`.
+Register `signalModule` and `signalTrack` with the track store in the same way as any core module and track. Core supplies `id`, `config`, and `updateConfig` when it opens the component.
 
-## Track-specific components
+## Compose the layout
 
-The UI package exports components rather than precomposed modules, so applications explicitly choose which UI behavior to install. Spreading the core module preserves its renderer, creation API, and interaction behavior.
+- `TrackSettingsLayout` is the root for a module settings component. It puts one 12 px gap between its top-level children, normally sections.
+- `TrackSettingsSection` groups related controls in a bordered `fieldset` with a visible legend.
+- `TrackSettingsFieldRow` keeps a fixed set of peer controls on one row. At viewport widths of 566 px or less, it stacks them at full width in source order.
+- `TrackSettingsFieldGrid` lets peer controls flow into as many usable columns as fit. Each column is at least 12 rem unless the available width is smaller.
+- `TrackSettingsFullRow` makes one grid item span every column. Use it for long values such as source URLs or for a nested fixed row that must stay together.
 
-| Track type | Settings component   | Tooltip component   | Editable track configuration                                                                            |
-| ---------- | -------------------- | ------------------- | ------------------------------------------------------------------------------------------------------- |
-| BigWig     | `BigWigSettings`     | `BigWigTooltip`     | URL, fill missing values with zero, Y-axis minimum and maximum, clamp indicators, clamp indicator color |
-| BigBed     | `BigBedSettings`     | `BigBedTooltip`     | URL                                                                                                     |
-| BulkBed    | `BulkBedSettings`    | `BulkBedTooltip`    | Dataset names and URLs, inter-dataset gap                                                               |
-| CAVE       | `CaveSettings`       | `CaveTooltip`       | Neurotransmitter, age, top color, bottom color                                                          |
-| methylC    | `MethylCSettings`    | `MethylCTooltip`    | Plus/minus strand channel URLs, channel colors, coverage mask, range                                    |
-| Transcript | `TranscriptSettings` | `TranscriptTooltip` | Endpoint, assembly, version, highlighted gene, canonical color, highlight color                         |
+Use a field row when the controls have a fixed relationship, such as minimum and maximum or a switch and its dependent color. Use a field grid when a variable set of peer controls can flow freely. Keep source order consistent with reading and keyboard order.
 
-Every modal also includes `TrackBaseSettings` for the title, color, height, and supported display modes.
-At normal modal width, title and color share one row while display mode and height share another. Each pair stacks in the same order when its settings container is narrow. When a track supports only one display mode, the display control is omitted and height remains a single naturally sized field.
+## Commit and validation behavior
 
-Track-specific controls follow the same container-responsive layout. Related range bounds, CAVE selectors and colors, transcript assembly metadata and colors, and each BulkBed dataset's name and URL share semantic rows when space allows, then stack in source order rather than compressing. BigWig and BigBed source URLs and the transcript endpoint and highlighted gene use the full settings width. MethylC source and color fields flow into as many usable columns as fit, while its coverage switch stays separate from the paired range controls. BigWig keeps its clamp indicator switch beside its dependent color when possible and separate from the fill-missing-values option.
+The text, number, URL, and range components keep an editable draft separate from the accepted configuration. A valid changed draft commits after 300 ms, or immediately on blur or Enter. Escape restores the last accepted value. Local validation failures and errors returned by `onCommit` remain visible without discarding the draft or changing track configuration. An external accepted value updates a field when it has no unresolved draft.
 
-`BigWigSettings` treats its Y-axis minimum and maximum as independent overrides. Leaving either field blank keeps that bound automatic, while clearing both fields restores a fully automatic range. It rejects a minimum greater than or equal to the maximum only when both fields contain explicit numbers and retains the invalid draft so you can correct it. `MethylCSettings` treats a manual range as a complete pair. A single entered bound remains available while you move between fields, but both bounds are required before the range updates. Use **Use automatic range** to clear the complete pair.
+`onCommit` must return the core `TrackMutationResult` union: `{ ok: true }` for an accepted mutation or `{ ok: false, error: string }` for a rejected mutation. Return the result from `updateConfig` or `updateBase` directly, as in the example.
 
-Color controls show a swatch and accept new values in six-digit hexadecimal `#RRGGBB` form. Entered values commit on blur or Enter, Escape restores the committed value, and invalid drafts remain visible with an error without updating the track. Existing CSS color strings and three-digit hexadecimal values remain visible until you replace them; their picker starts from the field's fallback without changing configuration merely by opening or cancelling it. Select the swatch to open saturation, brightness, and hue controls; picker changes preview continuously. Required base, BigWig clamp, and methylC colors cannot be cleared. CAVE and transcript overrides provide a clear action that restores their derived behavior.
+The color field is deliberately different. Manual hexadecimal drafts commit only on blur or Enter; picker changes commit continuously for preview. Escape cancels a manual draft, and closing an unchanged picker does not materialize a fallback value.
 
-Core validation materializes the BigWig clamp color's red default (`#ff0000`), so its field is always required and has no clear action. The complete control is disabled while clamp indicators are hidden. Because module settings do not receive the active base color, unset CAVE and transcript color pickers use a display-only neutral `#000000` fallback. CAVE's unset Top color picker shows a defensively lightened version of its explicit Bottom color, or lightened neutral black when Bottom is also unset. These display fallbacks are not written to configuration by rendering, opening, or cancelling a picker. An absent base Color similarly displays `#000000` without storing it until you enter or select a valid color.
+## Layout component API
 
-## Component API
+### `TrackSettingsLayout`
 
-### TrackBaseSettings
+| Prop       | Type        | Default  | Description                                                         |
+| ---------- | ----------- | -------- | ------------------------------------------------------------------- |
+| `children` | `ReactNode` | Required | Top-level settings content. Direct children are separated by 12 px. |
 
-Edits settings shared by every track.
+### `TrackSettingsSection`
 
-| Prop             | Type                                                   | Default  | Description                                       |
-| ---------------- | ------------------------------------------------------ | -------- | ------------------------------------------------- |
-| `base`           | `TrackBase`                                            | Required | Current title, color, height, and display values. |
-| `displayOptions` | `string[]`                                             | Required | Display modes supported by the active module.     |
-| `updateBase`     | `(partial: Partial<TrackBase>) => TrackMutationResult` | Required | Applies a partial base-settings update.           |
+| Prop       | Type        | Default  | Description                                           |
+| ---------- | ----------- | -------- | ----------------------------------------------------- |
+| `title`    | `string`    | Required | Visible section legend.                               |
+| `children` | `ReactNode` | Required | Controls or layout primitives grouped by the section. |
 
-### BigWigSettings, BigBedSettings, BulkBedSettings, CaveSettings, MethylCSettings, and TranscriptSettings
+### `TrackSettingsFieldRow`
 
-Assign the matching component to a core module's `settingsComponent` as shown above.
+| Prop       | Type        | Default  | Description                                                                                             |
+| ---------- | ----------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| `children` | `ReactNode` | Required | Fixed peer controls. They share the available row width and stack at viewport widths of 566 px or less. |
 
-| Prop           | Type                                                | Default  | Description                                       |
-| -------------- | --------------------------------------------------- | -------- | ------------------------------------------------- |
-| `id`           | `string`                                            | Required | Active track identifier.                          |
-| `config`       | Matching track config type                          | Required | Current configuration for the matching component. |
-| `updateConfig` | `(partial: Partial<Config>) => TrackMutationResult` | Required | Applies a partial track-configuration update.     |
+### `TrackSettingsFieldGrid`
 
-### BigWigTooltip, BigBedTooltip, BulkBedTooltip, CaveTooltip, MethylCTooltip, and TranscriptTooltip
+| Prop       | Type        | Default  | Description                                                                   |
+| ---------- | ----------- | -------- | ----------------------------------------------------------------------------- |
+| `children` | `ReactNode` | Required | Controls that flow into auto-fitting columns with a 12 rem preferred minimum. |
 
-Assign the matching component to a core module's `tooltipComponent`. The browser supplies these props when a renderer opens a tooltip for a semantic item.
+### `TrackSettingsFullRow`
 
-BigWig, CAVE, and methylC signal tooltips keep their normal rows over empty pixels and display `No data`. Signal values use two decimal places. Optional numeric BED scores use at most two decimal places without forced trailing zeros.
+| Prop       | Type        | Default  | Description                                                                  |
+| ---------- | ----------- | -------- | ---------------------------------------------------------------------------- |
+| `children` | `ReactNode` | Required | Content that spans all columns when used as a `TrackSettingsFieldGrid` item. |
 
-| Prop      | Type                          | Default  | Description                                                      |
-| --------- | ----------------------------- | -------- | ---------------------------------------------------------------- |
-| `item`    | Matching track item type      | Required | Semantic item selected by the matching core renderer.            |
-| `context` | `TrackRuntimeContext<Config>` | Required | Current track base settings and validated track-specific config. |
+## Field component API
+
+All field callbacks below return `TrackMutationResult` from `@weng-lab/genomebrowser`.
+
+### `TrackSettingsTextField`
+
+| Prop           | Type                                              | Default         | Description                                                                   |
+| -------------- | ------------------------------------------------- | --------------- | ----------------------------------------------------------------------------- |
+| `autoComplete` | `string`                                          | Browser default | Sets the input's autocomplete hint.                                           |
+| `disabled`     | `boolean`                                         | `false`         | Disables editing and commit interactions.                                     |
+| `inputMode`    | `"email" \| "search" \| "tel" \| "text" \| "url"` | Browser default | Hints which virtual keyboard to show.                                         |
+| `label`        | `string`                                          | Required        | Visible MUI field label and accessible name.                                  |
+| `normalize`    | `(value: string) => string`                       | Identity        | Transforms a locally valid draft before comparison and commit.                |
+| `onCommit`     | `(value: string) => TrackMutationResult`          | Required        | Attempts to persist a validated, normalized value.                            |
+| `placeholder`  | `string`                                          | None            | Example or hint shown when the draft is empty. It does not replace the label. |
+| `required`     | `boolean`                                         | `false`         | Marks the field required. Validation remains controlled by `validate`.        |
+| `type`         | `"text" \| "url"`                                 | `"text"`        | Sets the native input type.                                                   |
+| `validate`     | `(value: string) => string \| undefined`          | Required        | Returns an error for an invalid raw draft or `undefined` when it may commit.  |
+| `value`        | `string`                                          | Required        | Current accepted value.                                                       |
+
+### `TrackSettingsNumberField`
+
+This component uses a text input so partial numeric drafts such as `-` and `1.` remain editable. It commits only complete finite numbers.
+
+| Prop        | Type                                     | Default     | Description                                                                       |
+| ----------- | ---------------------------------------- | ----------- | --------------------------------------------------------------------------------- |
+| `disabled`  | `boolean`                                | `false`     | Disables editing and commit interactions.                                         |
+| `inputMode` | `"decimal" \| "numeric"`                 | `"decimal"` | Hints which numeric virtual keyboard to show.                                     |
+| `label`     | `string`                                 | Required    | Visible MUI field label and accessible name.                                      |
+| `min`       | `number`                                 | None        | Adds minimum-value input metadata. Enforce the limit in `validate` when required. |
+| `onCommit`  | `(value: number) => TrackMutationResult` | Required    | Attempts to persist a validated finite number.                                    |
+| `required`  | `boolean`                                | `false`     | Marks the field required. The field already rejects blank drafts.                 |
+| `step`      | `"any" \| number`                        | None        | Adds numeric step input metadata. Enforce step rules in `validate` when required. |
+| `validate`  | `(value: number) => string \| undefined` | Required    | Applies domain validation after finite-number parsing.                            |
+| `value`     | `number`                                 | Required    | Current accepted value.                                                           |
+
+### `TrackSettingsUrlField`
+
+| Prop          | Type                                   | Default  | Description                                          |
+| ------------- | -------------------------------------- | -------- | ---------------------------------------------------- |
+| `label`       | `string`                               | `"URL"`  | Visible MUI field label and accessible name.         |
+| `onCommit`    | `(url: string) => TrackMutationResult` | Required | Attempts to persist the draft URL string.            |
+| `placeholder` | `string`                               | None     | Example or hint shown when the draft is empty.       |
+| `required`    | `boolean`                              | `false`  | Rejects a blank or whitespace-only URL when enabled. |
+| `value`       | `string`                               | Required | Current accepted URL string.                         |
+
+The component supplies URL input, autocomplete, and virtual-keyboard hints. It does not test data availability or impose URL-format validation beyond rejecting a blank required value.
+
+### `TrackSettingsRangeFields`
+
+The range is optional in both modes. **Use automatic range** commits `undefined`.
+
+| Prop           | Type     | Default     | Description                                       |
+| -------------- | -------- | ----------- | ------------------------------------------------- |
+| `minimumLabel` | `string` | `"Minimum"` | Visible label for the lower bound in either mode. |
+| `maximumLabel` | `string` | `"Maximum"` | Visible label for the upper bound in either mode. |
+
+#### Complete mode
+
+| Prop       | Type                                                  | Default      | Description                                                                 |
+| ---------- | ----------------------------------------------------- | ------------ | --------------------------------------------------------------------------- |
+| `mode`     | `"complete"`                                          | `"complete"` | Requires both bounds together. Both blank values select automatic range.    |
+| `range`    | `YRange \| undefined`                                 | Required     | Current accepted complete range. `YRange` contains numeric `min` and `max`. |
+| `onCommit` | `(range: YRange \| undefined) => TrackMutationResult` | Required     | Attempts to persist a complete range or automatic range.                    |
+
+#### Independent mode
+
+| Prop       | Type                                                          | Default  | Description                                                      |
+| ---------- | ------------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
+| `mode`     | `"independent"`                                               | Required | Allows either bound to be omitted independently.                 |
+| `range`    | `YRangeOverride \| undefined`                                 | Required | Current accepted override; `min`, `max`, or both may be present. |
+| `onCommit` | `(range: YRangeOverride \| undefined) => TrackMutationResult` | Required | Attempts to persist independent overrides or automatic range.    |
+
+Every entered bound must be finite. When both are present, minimum must be less than maximum. Complete mode reports an error until both bounds are present; independent mode can commit either bound alone.
+
+### `TrackSettingsColorField`
+
+`mode` is required; there is no implicit color mode. A fallback is display-only until the user changes the picker or enters a value.
+
+| Prop       | Type      | Default  | Description                                                                     |
+| ---------- | --------- | -------- | ------------------------------------------------------------------------------- |
+| `label`    | `string`  | Required | Visible field label and the basis for picker and clear-action accessible names. |
+| `disabled` | `boolean` | `false`  | Disables the text field, picker, clear action, and commits.                     |
+
+#### Required mode
+
+| Prop            | Type                                     | Default  | Description                                                                                           |
+| --------------- | ---------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------- |
+| `mode`          | `"required"`                             | Required | Prevents clearing.                                                                                    |
+| `value`         | `string \| undefined`                    | Required | Current explicit color. It may be `undefined` only when a fallback is supplied.                       |
+| `fallbackColor` | `string \| undefined`                    | None     | Required when a required field's `value` is `undefined`; must be a valid six-digit hexadecimal color. |
+| `onCommit`      | `(color: string) => TrackMutationResult` | Required | Attempts to persist a normalized `#RRGGBB` color.                                                     |
+
+#### Optional mode
+
+| Prop            | Type                                                  | Default  | Description                                                                                     |
+| --------------- | ----------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `mode`          | `"optional"`                                          | Required | Adds a clear action that commits `undefined`.                                                   |
+| `value`         | `string \| undefined`                                 | Required | Current explicit override, or `undefined` to use the fallback.                                  |
+| `fallbackColor` | `string`                                              | Required | Display and picker color when no explicit override exists; must be valid six-digit hexadecimal. |
+| `onCommit`      | `(color: string \| undefined) => TrackMutationResult` | Required | Attempts to persist a normalized color or clear the override.                                   |
+
+Manual entries must use six-digit hexadecimal `#RRGGBB` form and are normalized to uppercase. Existing controlled CSS color strings and three-digit hexadecimal values remain visible until replaced, but the picker starts from the normalized fallback when such a value cannot initialize it. Required fields have no clear action. Optional fields disable the clear action while no explicit value exists.
 
 ## Accessibility
 
-The existing core modal provides its heading, close action, dragging, and Escape-key behavior. All MUI form controls have visible labels. A range error is described by both coordinated bound inputs without repeating the message. Disabled controls remain visible when their dependent option is off. Color picker controls have names for saturation, brightness, and hue, support keyboard slider operation, move focus into the picker when opened, and restore focus to the swatch button when closed. The selected hexadecimal value is also shown as text rather than communicated by its swatch alone.
+Core supplies the modal heading, close action, dragging behavior, and modal Escape handling. Give every field a specific visible label. Layout primitives preserve source order when rows stack.
 
-## Notes
+Range validation is associated with both bound inputs while rendering one shared error message. Color fields expose the hexadecimal text as well as the swatch. The picker has named saturation, brightness, and hue controls with keyboard slider behavior; opening it moves focus to the saturation control, and closing it restores focus to the swatch button. Disabled dependent controls remain visible but inoperable.
 
-Settings generally apply as fields change. Manual color drafts apply on blur or Enter, while picker changes apply continuously. Validation is intentionally limited to maintaining the runtime configuration types; data-source availability and biological compatibility are not checked by these forms.
+## Built-in settings components
+
+The UI package also exports `BigWigSettings`, `BigBedSettings`, `BulkBedSettings`, `CaveSettings`, `MethylCSettings`, and `TranscriptSettings` for the matching core modules. Assign one to the matching module's `settingsComponent` when its built-in controls fit your application. The same package exports matching tooltip components and `TrackBaseSettings`. These ready-made components use the authoring primitives and follow the behavior documented above; custom module settings do not need to depend on them.

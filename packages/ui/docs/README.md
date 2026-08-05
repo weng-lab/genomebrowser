@@ -27,7 +27,7 @@ Keep this setup in the host application's entry point or another module imported
 ## Start here
 
 - [Getting started](gettingStarted.md) shows a browser and TrackSelect sharing one stable track store.
-- [Track settings](trackSettings.md) shows how to install MUI base controls and configurable track modules.
+- [Track settings](trackSettings.md) shows module authors how to compose consistent MUI settings controls.
 - [Cytobands](cytobands.md) documents chromosome ideograms, browser-region brackets, and interactive loci.
 - [TrackSelect](trackSelect.md) explains collections, the selection lifecycle, customization, schema tooling, and troubleshooting.
 - [Track interactions](recipes/trackInteractions.md) shows one shared runtime-aware callback dispatcher across a heterogeneous collection.

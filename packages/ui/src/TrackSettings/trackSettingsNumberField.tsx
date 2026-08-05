@@ -2,7 +2,7 @@ import TextField from "@mui/material/TextField";
 import type { TrackMutationResult } from "@weng-lab/genomebrowser";
 import { parseFiniteNumber, useDraftController, type DraftValidation } from "./draftInput";
 
-export type DraftNumberFieldProps = {
+export type TrackSettingsNumberFieldProps = {
   disabled?: boolean;
   inputMode?: "decimal" | "numeric";
   label: string;
@@ -19,7 +19,7 @@ export type DraftNumberFieldProps = {
  * still typing. It deliberately uses a text input so browsers do not sanitize
  * values such as "-" or "1." before the draft controller can retain them.
  */
-export function DraftNumberField({
+export function TrackSettingsNumberField({
   disabled,
   inputMode = "decimal",
   label,
@@ -29,7 +29,7 @@ export function DraftNumberField({
   step,
   validate,
   value,
-}: DraftNumberFieldProps) {
+}: TrackSettingsNumberFieldProps) {
   const controller = useDraftController<string, number>({
     value,
     toRaw: String,

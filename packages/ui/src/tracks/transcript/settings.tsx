@@ -4,17 +4,17 @@ import {
   type TrackSettingsProps,
   type TranscriptConfig,
 } from "@weng-lab/genomebrowser";
-import { DraftNumberField } from "../../TrackSettings/draftNumberField";
-import { DraftTextField } from "../../TrackSettings/draftTextField";
 import { neutralTrackColor } from "../../TrackSettings/color";
-import { TrackColorField } from "../../TrackSettings/trackColorField";
+import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
   TrackSettingsFullRow,
 } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
+import { TrackSettingsNumberField } from "../../TrackSettings/trackSettingsNumberField";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
+import { TrackSettingsTextField } from "../../TrackSettings/trackSettingsTextField";
 
 export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<TranscriptConfig>) {
   return (
@@ -22,7 +22,7 @@ export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<
       <TrackSettingsSection title="Transcript source">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
-            <DraftTextField
+            <TrackSettingsTextField
               label="Endpoint"
               placeholder={defaultScreenGraphQlEndpoint}
               required
@@ -34,14 +34,14 @@ export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<
           </TrackSettingsFullRow>
           <TrackSettingsFullRow>
             <TrackSettingsFieldRow>
-              <DraftTextField
+              <TrackSettingsTextField
                 label="Assembly"
                 required
                 value={config.assembly}
                 validate={(assembly) => (assembly.trim() === "" ? "Enter an assembly." : undefined)}
                 onCommit={(assembly) => updateConfig({ assembly })}
               />
-              <DraftNumberField
+              <TrackSettingsNumberField
                 inputMode="numeric"
                 label="Version"
                 min={1}
@@ -72,14 +72,14 @@ export function TranscriptSettings({ config, updateConfig }: TrackSettingsProps<
           </TrackSettingsFullRow>
           <TrackSettingsFullRow>
             <TrackSettingsFieldRow>
-              <TrackColorField
+              <TrackSettingsColorField
                 fallbackColor={neutralTrackColor}
                 label="Canonical color"
                 mode="optional"
                 value={config.canonicalColor}
                 onCommit={(canonicalColor) => updateConfig({ canonicalColor })}
               />
-              <TrackColorField
+              <TrackSettingsColorField
                 fallbackColor={neutralTrackColor}
                 label="Highlight color"
                 mode="optional"

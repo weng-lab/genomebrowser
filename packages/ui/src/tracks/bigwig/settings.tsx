@@ -2,8 +2,8 @@ import Box from "@mui/material/Box";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import type { BigWigConfig, TrackSettingsProps } from "@weng-lab/genomebrowser";
-import { DraftRangeFields } from "../../TrackSettings/draftRangeFields";
-import { TrackColorField } from "../../TrackSettings/trackColorField";
+import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
+import { TrackSettingsRangeFields } from "../../TrackSettings/trackSettingsRangeFields";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
@@ -11,7 +11,7 @@ import {
 } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
-import { TrackSourceUrlField } from "../../TrackSettings/trackSourceUrlField";
+import { TrackSettingsUrlField } from "../../TrackSettings/trackSettingsUrlField";
 
 const defaultClampIndicatorColor = "#ff0000";
 
@@ -28,7 +28,7 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
       <TrackSettingsSection title="BigWig source">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
-            <TrackSourceUrlField
+            <TrackSettingsUrlField
               required
               value={config.url}
               onCommit={(url) => updateConfig({ url })}
@@ -68,7 +68,7 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
                   label="Show clamp indicators"
                   sx={{ m: 0, minWidth: 0 }}
                 />
-                <TrackColorField
+                <TrackSettingsColorField
                   disabled={!showClampIndicators}
                   fallbackColor={defaultClampIndicatorColor}
                   label="Clamp indicator color"
@@ -88,7 +88,7 @@ export function BigWigSettings({ config, updateConfig }: TrackSettingsProps<BigW
 function YRangeSettings({ yRange, updateConfig }: YRangeSettingsProps) {
   return (
     <TrackSettingsSection title="Y-axis range">
-      <DraftRangeFields
+      <TrackSettingsRangeFields
         mode="independent"
         range={yRange}
         onCommit={(nextRange) => updateConfig({ yRange: nextRange })}

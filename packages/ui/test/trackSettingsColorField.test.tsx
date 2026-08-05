@@ -5,7 +5,7 @@ import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { hexToHsv, hsvToHex } from "../src/TrackSettings/color";
-import { TrackColorField } from "../src/TrackSettings/trackColorField";
+import { TrackSettingsColorField } from "../src/TrackSettings/trackSettingsColorField";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -28,10 +28,10 @@ describe("color conversion", () => {
   });
 });
 
-describe("TrackColorField", () => {
+describe("TrackSettingsColorField", () => {
   it("shows a labeled required value and swatch without a clear action", () => {
     mount(
-      <TrackColorField
+      <TrackSettingsColorField
         label="Track color"
         mode="required"
         value="#1a2b3c"
@@ -117,7 +117,7 @@ describe("TrackColorField", () => {
   it("shows a required display-only fallback without materializing it", () => {
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
     mount(
-      <TrackColorField
+      <TrackSettingsColorField
         fallbackColor="#000000"
         label="Track color"
         mode="required"
@@ -142,7 +142,7 @@ describe("TrackColorField", () => {
   it("preserves legacy controlled colors and initializes their picker from the fallback", () => {
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
     mount(
-      <TrackColorField
+      <TrackSettingsColorField
         fallbackColor="#0A0B0C"
         label="Track color"
         mode="required"
@@ -175,7 +175,7 @@ describe("TrackColorField", () => {
       ok: true,
     }));
     mount(
-      <TrackColorField
+      <TrackSettingsColorField
         fallbackColor="#010203"
         label="Signal color"
         mode="optional"
@@ -196,7 +196,7 @@ describe("TrackColorField", () => {
 
   it("opens with named controls, focuses the picker, and restores focus when closed", () => {
     mount(
-      <TrackColorField
+      <TrackSettingsColorField
         label="Track color"
         mode="required"
         value="#FF0000"
@@ -260,7 +260,12 @@ describe("TrackColorField", () => {
       error: "Core rejected this color.",
     }));
     mount(
-      <TrackColorField label="Track color" mode="required" value="#FF0000" onCommit={onCommit} />,
+      <TrackSettingsColorField
+        label="Track color"
+        mode="required"
+        value="#FF0000"
+        onCommit={onCommit}
+      />,
     );
     click(getButton("Open Track color color picker"));
 
@@ -276,7 +281,12 @@ describe("TrackColorField", () => {
   it("preserves hue through achromatic picker changes and honest external updates", () => {
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
     mount(
-      <TrackColorField label="Track color" mode="required" value="#000000" onCommit={onCommit} />,
+      <TrackSettingsColorField
+        label="Track color"
+        mode="required"
+        value="#000000"
+        onCommit={onCommit}
+      />,
     );
     click(getButton("Open Track color color picker"));
 
@@ -290,7 +300,12 @@ describe("TrackColorField", () => {
     expect(onCommit).toHaveBeenLastCalledWith("#00001A");
 
     rerender(
-      <TrackColorField label="Track color" mode="required" value="#00FF00" onCommit={onCommit} />,
+      <TrackSettingsColorField
+        label="Track color"
+        mode="required"
+        value="#00FF00"
+        onCommit={onCommit}
+      />,
     );
     expect(Number(getSlider("Track color hue").value)).toBeCloseTo(120);
   });
@@ -317,7 +332,7 @@ describe("TrackColorField", () => {
     vi.useFakeTimers();
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
     const renderField = (disabled: boolean) => (
-      <TrackColorField
+      <TrackSettingsColorField
         disabled={disabled}
         label="Track color"
         mode="required"
@@ -375,7 +390,7 @@ describe("TrackColorField", () => {
 
   it("constrains the portaled picker to the viewport without clipping its surface", () => {
     mount(
-      <TrackColorField
+      <TrackSettingsColorField
         label="Track color"
         mode="required"
         value="#123456"
@@ -401,7 +416,7 @@ function RequiredHarness({
 }) {
   const [value, setValue] = useState(initialValue);
   return (
-    <TrackColorField
+    <TrackSettingsColorField
       label="Track color"
       mode="required"
       value={value}
@@ -423,7 +438,7 @@ function OptionalHarness({
 }) {
   const [value, setValue] = useState(initialValue);
   return (
-    <TrackColorField
+    <TrackSettingsColorField
       fallbackColor="#0A0B0C"
       label="Signal color"
       mode="optional"

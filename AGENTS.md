@@ -13,7 +13,7 @@ pnpm monorepo for an embeddable React genome browser.
 
 Root `docs/` is maintainer documentation. Things like design decisions and ADRs go here.
 
-`packages/*/docs/` is user-facing documentation that ships with the package; it must be self-contained.
+`packages/*/docs/` is user-facing documentation that ships with the package; it must be self-contained. Ensure you update them as we change public API, behavior and other docs worthy edits.
 
 ## Application design
 
