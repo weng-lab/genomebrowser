@@ -41,6 +41,9 @@ importers:
       '@weng-lab/genomebrowser':
         specifier: workspace:*
         version: link:../core
+      '@weng-lab/genomebrowser-ui':
+        specifier: workspace:*
+        version: link:../ui
       next:
         specifier: 16.2.12
         version: 16.2.12(@babel/core@7.28.5(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(babel-plugin-macros@3.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
