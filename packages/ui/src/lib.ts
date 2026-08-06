@@ -1,7 +1,6 @@
 import TrackSelect from "./TrackSelect/TrackSelect";
 export { TrackSelect };
 export { TrackBaseSettings } from "./TrackSettings/trackBaseSettings";
-export type { TrackBaseSettingsProps } from "./TrackSettings/trackBaseSettings";
 export { TrackSettingsColorField } from "./TrackSettings/trackSettingsColorField";
 export type { TrackSettingsColorFieldProps } from "./TrackSettings/trackSettingsColorField";
 export {

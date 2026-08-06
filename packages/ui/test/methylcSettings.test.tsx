@@ -1,10 +1,52 @@
 // @vitest-environment jsdom
 
-import { type MethylCConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
+import {
+  createTrackStore,
+  methylCModule,
+  type MethylCConfig,
+  type TrackMutationResult,
+  type TrackUpdate,
+} from "@weng-lab/genomebrowser";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MethylCSettings } from "../src/tracks/methylc/settings";
+import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
+
+const fieldRenderCounts = vi.hoisted(() => ({
+  colors: {} as Record<string, number>,
+  urls: {} as Record<string, number>,
+}));
+
+vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...(await import("../../core/src/browser/state/browserContextState")),
+}));
+
+vi.mock("../src/TrackSettings/trackSettingsColorField", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("../src/TrackSettings/trackSettingsColorField")>();
+  return {
+    ...actual,
+    TrackSettingsColorField: (props: Parameters<typeof actual.TrackSettingsColorField>[0]) => {
+      fieldRenderCounts.colors[props.label] = (fieldRenderCounts.colors[props.label] ?? 0) + 1;
+      return <actual.TrackSettingsColorField {...props} />;
+    },
+  };
+});
+
+vi.mock("../src/TrackSettings/trackSettingsUrlField", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("../src/TrackSettings/trackSettingsUrlField")>();
+  return {
+    ...actual,
+    TrackSettingsUrlField: (props: Parameters<typeof actual.TrackSettingsUrlField>[0]) => {
+      const label = props.label ?? "URL";
+      fieldRenderCounts.urls[label] = (fieldRenderCounts.urls[label] ?? 0) + 1;
+      return <actual.TrackSettingsUrlField {...props} />;
+    },
+  };
+});
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -46,6 +88,36 @@ afterEach(() => {
 });
 
 describe("methylC settings", () => {
+  it("rerenders only the changed nested color or URL field", () => {
+    const { trackStore } = renderSettings();
+    clearRenderCounts();
+
+    act(() => {
+      trackStore.getState().updateTrack<MethylCConfig>("methylc", {
+        config: { colors: { ...config.colors, chh: "#112233" } },
+      });
+    });
+    expect(fieldRenderCounts.colors).toEqual({ "CHH color": 1 });
+    expect(fieldRenderCounts.urls).toEqual({});
+
+    clearRenderCounts();
+    act(() => {
+      trackStore.getState().updateTrack<MethylCConfig>("methylc", {
+        config: {
+          urls: {
+            ...config.urls,
+            plusStrand: {
+              ...config.urls.plusStrand,
+              cpg: { url: "UPDATED_PLUS_CPG_URL" },
+            },
+          },
+        },
+      });
+    });
+    expect(fieldRenderCounts.colors).toEqual({});
+    expect(fieldRenderCounts.urls).toEqual({ "Plus-strand CpG URL": 1 });
+  });
+
   it("renders accessible controls for every methylC config option", () => {
     renderSettings();
 
@@ -178,36 +250,54 @@ describe("methylC settings", () => {
 });
 
 function renderSettings(initialConfig = config) {
-  const updateTrack = vi.fn<TrackSettingsProps<MethylCConfig>["updateTrack"]>(() => ({
+  const updateTrack = vi.fn<(update: TrackUpdate<MethylCConfig>) => TrackMutationResult>(() => ({
     ok: true,
   }));
+  const trackStore = createTrackStore({
+    modules: [methylCModule],
+    tracks: [
+      methylCModule.create({
+        id: "methylc",
+        title: "MethylC",
+        height: 80,
+        color: "#000000",
+        config: initialConfig,
+      }),
+    ],
+  });
+  const applyUpdate = trackStore.getState().updateTrack;
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
 
   const rerender = (nextConfig: MethylCConfig) => {
     act(() => {
-      root?.render(
-        <MethylCSettings
-          track={{
-            type: "methylc",
-            base: {
-              id: "methylc",
-              title: "MethylC",
-              display: "full",
-              height: 80,
-              color: "#000000",
-            },
-            config: nextConfig,
-          }}
-          updateTrack={updateTrack}
-        />,
-      );
+      trackStore.getState().updateTrack<MethylCConfig>("methylc", { config: nextConfig });
     });
   };
 
-  rerender(initialConfig);
-  return { rerender, updateTrack };
+  act(() => {
+    root?.render(
+      <TrackSettingsTestProvider
+        trackId="methylc"
+        trackStore={trackStore}
+        updateTrack={(update) => {
+          const typedUpdate = update as TrackUpdate<MethylCConfig>;
+          const result = updateTrack(typedUpdate);
+          if (result.ok) applyUpdate("methylc", typedUpdate);
+          return result;
+        }}
+      >
+        <MethylCSettings />
+      </TrackSettingsTestProvider>,
+    );
+  });
+  return { rerender, trackStore, updateTrack };
+}
+
+function clearRenderCounts() {
+  fieldRenderCounts.colors = {};
+  fieldRenderCounts.urls = {};
 }
 
 function getInput(label: string) {

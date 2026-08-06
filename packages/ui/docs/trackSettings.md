@@ -10,14 +10,14 @@ The UI package owns the MUI authoring controls on this page. Core remains indepe
 
 ## Minimal settings component
 
-This example replaces the settings component on the core BigWig module. The component receives validated configuration and returns every update through the mutation callback supplied by core.
+This example replaces the settings component on the core BigWig module. Each field selects its validated value from the active track and returns every update through the mutation callback supplied by core.
 
 ```tsx
 import {
   bigWigModule,
+  useSettingsStore,
+  useTrackStore,
   type BigWigConfig,
-  type RenderedBigWigPoint,
-  type TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
 import {
   TrackSettingsFieldGrid,
@@ -28,10 +28,19 @@ import {
   TrackSettingsUrlField,
 } from "@weng-lab/genomebrowser-ui";
 
-function SignalSettings({
-  track,
-  updateTrack,
-}: TrackSettingsProps<BigWigConfig, RenderedBigWigPoint>) {
+function SignalSettings() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const url = useTrackStore((state) => (state.getTrack(trackId)?.config as BigWigConfig).url);
+  const rangeMin = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as BigWigConfig).yRange?.min,
+  );
+  const rangeMax = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as BigWigConfig).yRange?.max,
+  );
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const range =
+    rangeMin === undefined && rangeMax === undefined ? undefined : { min: rangeMin, max: rangeMax };
+
   return (
     <TrackSettingsLayout>
       <TrackSettingsSection title="Signal source and range">
@@ -40,15 +49,15 @@ function SignalSettings({
             <TrackSettingsUrlField
               label="BigWig URL"
               required
-              value={track.config.url}
-              onCommit={(url) => updateTrack({ config: { url } })}
+              value={url}
+              onCommit={(url) => updateTrack(trackId, { config: { url } })}
             />
           </TrackSettingsFullRow>
           <TrackSettingsFullRow>
             <TrackSettingsRangeFields
               mode="independent"
-              range={track.config.yRange}
-              onCommit={(yRange) => updateTrack({ config: { yRange } })}
+              range={range}
+              onCommit={(yRange) => updateTrack(trackId, { config: { yRange } })}
             />
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
@@ -69,17 +78,11 @@ export const signalTrack = signalModule.create({
 });
 ```
 
-Register `signalModule` and `signalTrack` with the track store in the same way as any core module and track. Core supplies the current read-only `track` snapshot and an `updateTrack` callback bound to its ID. The callback can submit optional shallow `base` and `config` patches in one validated, all-or-nothing mutation.
+Register `signalModule` and `signalTrack` with the track store in the same way as any core module and track. Read the active ID with `useSettingsStore`, then use `useTrackStore` to subscribe each field to a primitive or stable leaf rather than a complete config object. Call `updateTrack(trackId, update)` with optional shallow `base` and `config` patches for a validated, all-or-nothing mutation. When updating one field inside a nested object or array, use `useTrackStoreApi().getState()` inside the commit handler to preserve the latest sibling values without subscribing the field to the full object.
 
 ## `TrackBaseSettings` API
 
-`TrackBaseSettings` renders the shared title, color, display, and height controls. Pass it the active validated base snapshot and the same bound updater used by module settings. It submits only `base` patches; failed mutations remain visible without replacing the accepted values.
-
-| Prop             | Type                                                                    | Default  | Description                                                                                                           |
-| ---------------- | ----------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
-| `base`           | `Readonly<TrackBase>`                                                   | Required | Current validated base fields. `color` must be a six-digit `#RRGGBB` value.                                           |
-| `displayOptions` | `string[]`                                                              | Required | Allowed display modes. The display control is omitted when the array contains fewer than two options.                 |
-| `updateTrack`    | `(update: TrackUpdate<Record<string, unknown>>) => TrackMutationResult` | Required | Attempts a live base update. The component submits `{ base: patch }` and displays rejected immediate mutation errors. |
+`TrackBaseSettings` renders the shared title, color, display, and height controls. It takes no props; each field reads the active ID and value from the browser stores and submits `base` patches through the track store. Failed mutations remain visible without replacing accepted values. The display control is omitted when the active module has fewer than two display modes.
 
 The title, color, display, and height controls have visible labels. Color uses the accessible picker behavior documented below. Height must be at least 20 in this UI, and title cannot be blank.
 
@@ -218,7 +221,7 @@ Every entered bound must be finite. When both are present, minimum must be less 
 | `disabled` | `boolean`                                | `false`  | Disables the text field, picker, and commits.                  |
 | `onCommit` | `(color: string) => TrackMutationResult` | Required | Attempts to persist a normalized `#RRGGBB` color.              |
 
-Manual entries must use six-digit hexadecimal `#RRGGBB` form and are normalized to uppercase. The field is required and has no clear action or fallback state.
+Manual entries must use six-digit hexadecimal `#RRGGBB` form and are normalized to uppercase. The field is required and has no clear action or fallback state. The picker previews saturation, brightness, and hue changes live. During pointer dragging, it coalesces commits to animation frames and always attempts the final color when the pointer is released.
 
 ## Accessibility
 

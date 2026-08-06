@@ -6,8 +6,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createDataStore } from "../../src/browser/data/dataStore";
 import { useTrackData } from "../../src/browser/data/useTrackData";
+import { createTrackStore } from "../../src/browser/state/trackStore";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
-import { createModuleRegistry } from "../../src/modules/registry";
+import { fetchOnChange } from "../../src/modules/fetchOnChange";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -45,6 +46,264 @@ afterEach(async () => {
 });
 
 describe("useTrackData", () => {
+  it("ignores presentation fields and refetches only a changed module signature", async () => {
+    const changedRequest = createDeferred<unknown>();
+    const retryRequest = createDeferred<unknown>();
+    const fetch = vi.fn(({ config }: { config: { url: string; label: string } }) => {
+      if (config.url === "changed") return changedRequest.promise;
+      if (config.url === "retry") return retryRequest.promise;
+      return Promise.resolve([{ url: config.url }]);
+    });
+    const module = defineTrackModule({
+      type: "signature-test",
+      configSchema: z.object({
+        url: fetchOnChange(z.string().min(1)),
+        label: z.string(),
+      }),
+      fetch,
+      render: { full: () => null },
+    });
+    const track = module.create({
+      id: "signal",
+      title: "Signal",
+      color: "#000000",
+      config: { url: "initial", label: "Initial" },
+    });
+    const otherTrack = module.create({
+      id: "genes",
+      title: "Genes",
+      config: { url: "genes", label: "Genes" },
+    });
+    const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({ modules: [module], tracks: [track, otherTrack] });
+    const region = { chromosome: "chr1", start: 0, end: 10 };
+    const onSettled = vi.fn();
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          useTrackStore={useTrackStore}
+          region={region}
+          onSettled={onSettled}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(onSettled).toHaveBeenCalledOnce();
+
+    await act(async () => {
+      expect(
+        useTrackStore.getState().updateTrack("signal", { base: { color: "#123456" } }),
+      ).toEqual({ ok: true });
+    });
+    expect(useTrackStore.getState().getTrack("signal")?.base.color).toBe("#123456");
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(onSettled).toHaveBeenCalledOnce();
+    expect(getRenderedState().isFetching).toBe(false);
+
+    await act(async () => {
+      expect(
+        useTrackStore.getState().updateTrack("signal", { config: { label: "Updated" } }),
+      ).toEqual({ ok: true });
+    });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(onSettled).toHaveBeenCalledOnce();
+
+    await act(async () => {
+      expect(
+        useTrackStore.getState().updateTrack("signal", { config: { url: "changed" } }),
+      ).toEqual({ ok: true });
+    });
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(fetch.mock.calls.at(-1)?.[0].config.url).toBe("changed");
+    expect(getRenderedState()).toEqual({
+      dataStates: {
+        signal: { status: "success", data: [{ url: "initial" }] },
+        genes: { status: "success", data: [{ url: "genes" }] },
+      },
+      isFetching: true,
+    });
+
+    await act(async () => changedRequest.resolve([{ url: "changed" }]));
+
+    await act(async () => {
+      useDataStore.getState().setTrackData("signal", { status: "error", error: "failed" });
+      expect(
+        useTrackStore.getState().updateTrack("signal", { config: { url: "retry" } }),
+      ).toEqual({ ok: true });
+    });
+    expect(fetch).toHaveBeenCalledTimes(4);
+    expect(fetch.mock.calls.at(-1)?.[0].config.url).toBe("retry");
+    expect(getRenderedState()).toEqual({
+      dataStates: {
+        signal: { status: "loading" },
+        genes: { status: "success", data: [{ url: "genes" }] },
+      },
+      isFetching: true,
+    });
+
+    await act(async () => retryRequest.resolve([{ url: "retry" }]));
+  });
+
+  it("fetches changed regions and new members, then prunes removed results", async () => {
+    const fetch = vi.fn(async ({ config }: { config: { url: string } }) => config.url);
+    const module = defineTrackModule({
+      type: "membership-test",
+      configSchema: z.object({ url: fetchOnChange(z.string().min(1)) }),
+      fetch,
+      render: { full: () => null },
+    });
+    const createTrack = (id: string) =>
+      module.create({ id, title: id, config: { url: id } });
+    const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({
+      modules: [module],
+      tracks: [createTrack("signal"), createTrack("genes")],
+    });
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          useTrackStore={useTrackStore}
+          region={{ chromosome: "chr1", start: 0, end: 10 }}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          useTrackStore={useTrackStore}
+          region={{ chromosome: "chr1", start: 10, end: 20 }}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledTimes(4);
+
+    await act(async () => {
+      expect(useTrackStore.getState().addTrack(createTrack("variants"))).toEqual({ ok: true });
+    });
+    expect(fetch).toHaveBeenCalledTimes(5);
+    expect(useDataStore.getState().data).toHaveProperty("variants");
+
+    await act(async () => {
+      expect(useTrackStore.getState().removeTrack("genes")).toEqual({ ok: true });
+    });
+    expect(fetch).toHaveBeenCalledTimes(5);
+    expect(useDataStore.getState().data).not.toHaveProperty("genes");
+  });
+
+  it("refetches a same-ID replacement when its module type changes", async () => {
+    const firstFetch = vi.fn(async () => "first-data");
+    const secondFetch = vi.fn(async () => "second-data");
+    const firstModule = defineTrackModule({
+      type: "first-type",
+      configSchema: z.object({}),
+      fetch: firstFetch,
+      render: { full: () => null },
+    });
+    const secondModule = defineTrackModule({
+      type: "second-type",
+      configSchema: z.object({}),
+      fetch: secondFetch,
+      render: { full: () => null },
+    });
+    const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({
+      modules: [firstModule, secondModule],
+      tracks: [firstModule.create({ id: "signal", title: "Signal", config: {} })],
+    });
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          useTrackStore={useTrackStore}
+          region={{ chromosome: "chr1", start: 0, end: 10 }}
+        />,
+      ),
+    );
+    expect(firstFetch).toHaveBeenCalledOnce();
+    expect(secondFetch).not.toHaveBeenCalled();
+
+    await act(async () => {
+      expect(
+        useTrackStore.getState().setTracks([
+          secondModule.create({ id: "signal", title: "Signal", config: {} }),
+        ]),
+      ).toEqual({ ok: true });
+    });
+
+    expect(firstFetch).toHaveBeenCalledOnce();
+    expect(secondFetch).toHaveBeenCalledOnce();
+    expect(useDataStore.getState().data.signal).toEqual({
+      status: "success",
+      data: "second-data",
+    });
+  });
+
+  it("distinguishes mixed Date and bigint values in a module fetch signature", async () => {
+    const fetch = vi.fn(async ({ config }: { config: { revision: bigint; timestamp: Date } }) =>
+      config.revision.toString(),
+    );
+    const module = defineTrackModule({
+      type: "bigint-signature",
+      configSchema: z.object({
+        revision: fetchOnChange(z.bigint()),
+        timestamp: fetchOnChange(z.date()),
+      }),
+      fetch,
+      render: { full: () => null },
+    });
+    const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({
+      modules: [module],
+      tracks: [
+        module.create({
+          id: "signal",
+          title: "Signal",
+          config: { revision: 1n, timestamp: new Date("2026-01-01T00:00:00Z") },
+        }),
+      ],
+    });
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          useTrackStore={useTrackStore}
+          region={{ chromosome: "chr1", start: 0, end: 10 }}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledOnce();
+
+    await act(async () => {
+      expect(
+        useTrackStore.getState().updateTrack("signal", { config: { revision: 2n } }),
+      ).toEqual({ ok: true });
+    });
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(useDataStore.getState().data.signal).toEqual({ status: "success", data: "2" });
+  });
+
   it("clears fetching and data when the final pending track is removed", async () => {
     const request = createDeferred<unknown>();
     const fetch = vi.fn(() => request.promise);
@@ -54,7 +313,6 @@ describe("useTrackData", () => {
       fetch,
       render: { full: () => null },
     });
-    const registry = createModuleRegistry([module]);
     const track = module.create({
       id: "signal",
       title: "Signal",
@@ -62,6 +320,7 @@ describe("useTrackData", () => {
     });
     const region = { chromosome: "chr1", start: 0, end: 10 };
     const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({ modules: [module], tracks: [track] });
     const onSettled = vi.fn();
     useDataStore.getState().setTrackData("signal", {
       status: "success",
@@ -76,8 +335,7 @@ describe("useTrackData", () => {
       root?.render(
         <Harness
           useDataStore={useDataStore}
-          registry={registry}
-          tracks={[track]}
+          useTrackStore={useTrackStore}
           region={region}
           onSettled={onSettled}
         />,
@@ -90,17 +348,9 @@ describe("useTrackData", () => {
       isFetching: true,
     });
 
-    await act(async () =>
-      root?.render(
-        <Harness
-          useDataStore={useDataStore}
-          registry={registry}
-          tracks={[]}
-          region={region}
-          onSettled={onSettled}
-        />,
-      ),
-    );
+    await act(async () => {
+      expect(useTrackStore.getState().removeTrack("signal")).toEqual({ ok: true });
+    });
     expect(getRenderedState()).toEqual({ dataStates: {}, isFetching: false });
     expect(useDataStore.getState().data).toEqual({});
     expect(onSettled).toHaveBeenCalledOnce();
@@ -128,7 +378,6 @@ describe("useTrackData", () => {
       fetch,
       render: { full: () => null },
     });
-    const registry = createModuleRegistry([module]);
     const signal = module.create({
       id: "signal",
       title: "Signal",
@@ -141,6 +390,7 @@ describe("useTrackData", () => {
     });
     const region = { chromosome: "chr1", start: 0, end: 10 };
     const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({ modules: [module], tracks: [signal, genes] });
     useDataStore.getState().setData({
       signal: { status: "success", data: [{ id: "old-signal" }] },
       genes: { status: "success", data: [{ id: "old-genes" }] },
@@ -154,24 +404,16 @@ describe("useTrackData", () => {
       root?.render(
         <Harness
           useDataStore={useDataStore}
-          registry={registry}
-          tracks={[signal, genes]}
+          useTrackStore={useTrackStore}
           region={region}
         />,
       ),
     );
     expect(fetch).toHaveBeenCalledTimes(2);
 
-    await act(async () =>
-      root?.render(
-        <Harness
-          useDataStore={useDataStore}
-          registry={registry}
-          tracks={[genes]}
-          region={region}
-        />,
-      ),
-    );
+    await act(async () => {
+      expect(useTrackStore.getState().removeTrack("signal")).toEqual({ ok: true });
+    });
     expect(fetch).toHaveBeenCalledTimes(3);
     expect(getRenderedState()).toEqual({
       dataStates: { genes: { status: "success", data: [{ id: "old-genes" }] } },
@@ -207,8 +449,8 @@ describe("useTrackData", () => {
       fetch: vi.fn(),
       render: { full: () => null },
     });
-    const registry = createModuleRegistry([module]);
     const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({ modules: [module] });
     const onSettled = vi.fn();
 
     container = document.createElement("div");
@@ -219,8 +461,7 @@ describe("useTrackData", () => {
       root?.render(
         <Harness
           useDataStore={useDataStore}
-          registry={registry}
-          tracks={[]}
+          useTrackStore={useTrackStore}
           region={{ chromosome: "chr1", start: 0, end: 10 }}
           onSettled={onSettled}
         />,
@@ -233,8 +474,7 @@ describe("useTrackData", () => {
       root?.render(
         <Harness
           useDataStore={useDataStore}
-          registry={registry}
-          tracks={[]}
+          useTrackStore={useTrackStore}
           region={{ chromosome: "chr1", start: 10, end: 20 }}
           onSettled={onSettled}
         />,
@@ -253,9 +493,9 @@ describe("useTrackData", () => {
       fetch,
       render: { full: () => null },
     });
-    const registry = createModuleRegistry([module]);
     const tracks = [module.create({ id: "signal", title: "Signal", config: {} })];
     const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({ modules: [module], tracks });
     const onSettled = vi.fn();
 
     container = document.createElement("div");
@@ -266,8 +506,7 @@ describe("useTrackData", () => {
       root?.render(
         <Harness
           useDataStore={useDataStore}
-          registry={registry}
-          tracks={tracks}
+          useTrackStore={useTrackStore}
           region={{ chromosome: "chr1", start: 0, end: 10 }}
           onSettled={onSettled}
         />,
@@ -280,8 +519,7 @@ describe("useTrackData", () => {
       root?.render(
         <Harness
           useDataStore={useDataStore}
-          registry={registry}
-          tracks={tracks}
+          useTrackStore={useTrackStore}
           region={{ chromosome: "chr1", start: 0, end: 10 }}
           onSettled={onSettled}
         />,
@@ -311,7 +549,6 @@ describe("useTrackData", () => {
       fetch,
       render: { full: () => null },
     });
-    const registry = createModuleRegistry([module]);
     const tracks = [
       module.create({
         id: "signal",
@@ -321,6 +558,7 @@ describe("useTrackData", () => {
     ];
     const region = { chromosome: "chr1", start: 0, end: 10 };
     const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({ modules: [module], tracks });
     const staleOnSettled = vi.fn();
     const latestOnSettled = vi.fn();
 
@@ -332,8 +570,7 @@ describe("useTrackData", () => {
       root?.render(
         <Harness
           useDataStore={useDataStore}
-          registry={registry}
-          tracks={tracks}
+          useTrackStore={useTrackStore}
           region={region}
           onSettled={staleOnSettled}
         />,
@@ -345,8 +582,7 @@ describe("useTrackData", () => {
       root?.render(
         <Harness
           useDataStore={useDataStore}
-          registry={registry}
-          tracks={tracks}
+          useTrackStore={useTrackStore}
           region={region}
           onSettled={latestOnSettled}
         />,

@@ -9,6 +9,17 @@ describe("fetchOnChange", () => {
     return null;
   }
 
+  const arbitraryValueModule = defineTrackModule({
+    type: "arbitrary-signature-value",
+    configSchema: z.object({ value: fetchOnChange(z.custom<unknown>(() => true)) }),
+    fetch: async () => null,
+    render: { full: Renderer },
+  });
+
+  function signatureFor(value: unknown) {
+    return createFetchSignature(arbitraryValueModule, { config: { value } });
+  }
+
   it("includes only marked config fields in fetch signatures", () => {
     const module = defineTrackModule({
       type: "example",
@@ -28,7 +39,7 @@ describe("fetchOnChange", () => {
       },
     });
 
-    expect(createFetchSignature(module, track)).toBe(JSON.stringify({ url: "YOUR_URL_HERE" }));
+    expect(createFetchSignature(module, track)).toBeTypeOf("string");
     expect(
       createFetchSignature(module, {
         ...track,
@@ -78,10 +89,10 @@ describe("fetchOnChange", () => {
       config: { url: "YOUR_URL_HERE" },
     });
 
-    expect(createFetchSignature(module, track)).toBe("{}");
+    expect(createFetchSignature(module, track)).toBeTypeOf("string");
     expect(
       createFetchSignature(module, { ...track, config: { ...track.config, url: "OTHER_URL" } }),
-    ).toBe("{}");
+    ).toBe(createFetchSignature(module, track));
   });
 
   it("preserves nested object shape for marked fields", () => {
@@ -102,9 +113,7 @@ describe("fetchOnChange", () => {
       config: { source: { url: "YOUR_URL_HERE", label: "Signal A" } },
     });
 
-    expect(createFetchSignature(module, track)).toBe(
-      JSON.stringify({ source: { url: "YOUR_URL_HERE" } }),
-    );
+    expect(createFetchSignature(module, track)).toBeTypeOf("string");
     expect(
       createFetchSignature(module, {
         ...track,
@@ -144,9 +153,7 @@ describe("fetchOnChange", () => {
       },
     });
 
-    expect(createFetchSignature(module, track)).toBe(
-      JSON.stringify({ datasets: [{ url: "URL_A" }, { url: "URL_B" }] }),
-    );
+    expect(createFetchSignature(module, track)).toBeTypeOf("string");
     expect(
       createFetchSignature(module, {
         ...track,
@@ -183,9 +190,7 @@ describe("fetchOnChange", () => {
       },
     });
 
-    expect(createFetchSignature(bulkBedModule, track)).toBe(
-      JSON.stringify({ datasets: [{ url: "URL_A" }, { url: "URL_B" }] }),
-    );
+    expect(createFetchSignature(bulkBedModule, track)).toBeTypeOf("string");
     expect(
       createFetchSignature(bulkBedModule, {
         ...track,
@@ -204,5 +209,61 @@ describe("fetchOnChange", () => {
         },
       }),
     ).not.toBe(createFetchSignature(bulkBedModule, track));
+  });
+
+  it("canonicalizes object keys and distinguishes special numbers", () => {
+    expect(signatureFor({ second: 2, first: 1 })).toBe(
+      signatureFor({ first: 1, second: 2 }),
+    );
+    expect(signatureFor(-0)).not.toBe(signatureFor(0));
+    expect(signatureFor(Number.NaN)).not.toBe(signatureFor(null));
+    expect(signatureFor(Number.POSITIVE_INFINITY)).not.toBe(
+      signatureFor(Number.NEGATIVE_INFINITY),
+    );
+  });
+
+  it("encodes Map, Set, and mixed Date and bigint values", () => {
+    expect(signatureFor(new Map([["key", 1]]))).not.toBe(
+      signatureFor(new Map([["key", 2]])),
+    );
+    expect(signatureFor(new Set(["first"]))).not.toBe(signatureFor(new Set(["second"])));
+
+    const first = { timestamp: new Date("2026-01-01T00:00:00Z"), revision: 1n };
+    const second = { timestamp: new Date("2026-01-01T00:00:00Z"), revision: 2n };
+    expect(() => signatureFor(first)).not.toThrow();
+    expect(signatureFor(first)).not.toBe(signatureFor(second));
+  });
+
+  it("encodes cycles and repeated references without throwing", () => {
+    const cyclic: { self?: unknown } = {};
+    cyclic.self = cyclic;
+    const shared = { value: "shared" };
+    const repeated = { first: shared, second: shared };
+
+    expect(() => signatureFor(cyclic)).not.toThrow();
+    expect(signatureFor(cyclic)).toBe(signatureFor(cyclic));
+    expect(() => signatureFor(repeated)).not.toThrow();
+
+    expect(signatureFor(Symbol("value"))).not.toBe(signatureFor(Symbol("value")));
+    expect(signatureFor(() => 1)).not.toBe(signatureFor(() => 1));
+  });
+
+  it("distinguishes custom instances whose state is not visibly enumerable", () => {
+    class PrivateValue {
+      #value: string;
+
+      constructor(value: string) {
+        this.#value = value;
+      }
+
+      read() {
+        return this.#value;
+      }
+    }
+
+    const first = new PrivateValue("first");
+    expect(first.read()).toBe("first");
+    expect(signatureFor(first)).toBe(signatureFor(first));
+    expect(signatureFor(first)).not.toBe(signatureFor(new PrivateValue("second")));
   });
 });

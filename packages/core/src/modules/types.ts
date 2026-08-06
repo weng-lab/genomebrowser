@@ -86,14 +86,7 @@ export type ReadonlyTrackInstance<Config, InteractionItem = unknown> = Readonly<
   interaction?: Readonly<TrackInteraction<InteractionItem, Config>>;
 }>;
 
-export type TrackSettingsProps<Config, InteractionItem = unknown> = {
-  track: ReadonlyTrackInstance<Config, InteractionItem>;
-  updateTrack: (update: TrackUpdate<Config>) => TrackMutationResult;
-};
-
-export type TrackSettingsComponent<Config, InteractionItem = unknown> = ComponentType<
-  TrackSettingsProps<Config, InteractionItem>
->;
+export type TrackSettingsComponent = ComponentType;
 
 export type TrackTooltipComponent<Item, Config> = ComponentType<{
   item: Item;
@@ -135,7 +128,7 @@ export type TrackModule<
   validate(instance: unknown): TrackInstance<z.output<ConfigSchema>, Item> & { type: Type };
   fetch: TrackFetch<z.output<ConfigSchema>, Data>;
   render: Record<string, TrackRenderer<z.output<ConfigSchema>, Data>>;
-  settingsComponent?: TrackSettingsComponent<z.output<ConfigSchema>, Item>;
+  settingsComponent?: TrackSettingsComponent;
   tooltipComponent?: TrackTooltipComponent<Item, z.output<ConfigSchema>>;
 };
 

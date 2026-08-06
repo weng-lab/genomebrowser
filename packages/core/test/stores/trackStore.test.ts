@@ -264,10 +264,16 @@ describe("createTrackStore", () => {
   });
 
   it("validates base and config patches atomically while preserving identity", () => {
-    const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
+    const unchangedTrack = bigWigTrack("unchanged");
+    const store = createTrackStore({
+      modules: [bigWigModule],
+      tracks: [bigWigTrack(), unchangedTrack],
+    });
     const validate = vi.spyOn(bigWigModule, "validate");
     const subscriber = vi.fn();
     const unsubscribe = store.subscribe(subscriber);
+    const initialOrder = store.getState().order;
+    const initialUnchangedTrack = store.getState().getTrack("unchanged");
 
     expect(
       store.getState().updateTrack("signal", {
@@ -284,6 +290,8 @@ describe("createTrackStore", () => {
       config: { url: "YOUR_OTHER_URL_HERE" },
     });
     expect(store.getState().getTrack("ignored")).toBeUndefined();
+    expect(store.getState().getTrack("unchanged")).toBe(initialUnchangedTrack);
+    expect(store.getState().order).toBe(initialOrder);
 
     const accepted = store.getState().getTrack("signal");
     expect(

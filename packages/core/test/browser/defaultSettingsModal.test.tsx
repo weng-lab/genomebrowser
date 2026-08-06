@@ -4,16 +4,19 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DefaultSettingsModal } from "../../src/browser/settings/DefaultSettingsModal";
-import type { AnyTrackInstance } from "../../src/modules/types";
+import { createTrackStore } from "../../src/browser/state/trackStore";
+import { bigWigModule } from "../../src/tracks/bigwig/module";
+import { TrackSettingsTestProvider } from "../tracks/trackSettingsTestProvider";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
-const track: AnyTrackInstance = {
-  type: "test",
-  base: { id: "test", title: "Test track", display: "full", height: 80, color: "#000000" },
-  config: {},
-};
+const track = bigWigModule.create({
+  id: "test",
+  title: "Test track",
+  config: { url: "YOUR_URL_HERE" },
+});
+const trackStore = createTrackStore({ modules: [bigWigModule], tracks: [track] });
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;
@@ -35,14 +38,11 @@ describe("DefaultSettingsModal", () => {
 
     act(() => {
       root?.render(
-        <DefaultSettingsModal
-          closeSettings={vi.fn()}
-          position={{ x: 0, y: 0 }}
-          title="Configure test track"
-          track={track}
-        >
-          <div>Settings content</div>
-        </DefaultSettingsModal>,
+        <TrackSettingsTestProvider trackId="test" trackStore={trackStore}>
+          <DefaultSettingsModal closeSettings={vi.fn()} position={{ x: 0, y: 0 }} trackId="test">
+            <div>Settings content</div>
+          </DefaultSettingsModal>
+        </TrackSettingsTestProvider>,
       );
     });
 
@@ -55,6 +55,15 @@ describe("DefaultSettingsModal", () => {
     expect(modal.querySelector('button[aria-label="Close settings"]')).toBeTruthy();
     expect(modal.lastElementChild?.textContent).toBe("Settings content");
     expect(modal.lastElementChild?.getAttribute("style")).toContain("overflow-y: auto");
+
+    const header = modal.firstElementChild as HTMLElement;
+    act(() => {
+      trackStore.getState().updateTrack("test", {
+        base: { color: "#112233", title: "Updated track" },
+      });
+    });
+    expect(header.textContent).toContain("Configure Updated track");
+    expect(header.style.background).toBe("rgb(17, 34, 51)");
   });
 
   it("bounds initial, reset, dragged, and resized positions within the viewport", () => {
@@ -123,14 +132,11 @@ function renderModal(position: { x: number; y: number }) {
 
   act(() => {
     root?.render(
-      <DefaultSettingsModal
-        closeSettings={vi.fn()}
-        position={position}
-        title="Configure test track"
-        track={track}
-      >
-        <div>Settings content</div>
-      </DefaultSettingsModal>,
+      <TrackSettingsTestProvider trackId="test" trackStore={trackStore}>
+        <DefaultSettingsModal closeSettings={vi.fn()} position={position} trackId="test">
+          <div>Settings content</div>
+        </DefaultSettingsModal>
+      </TrackSettingsTestProvider>,
     );
   });
 

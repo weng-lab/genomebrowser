@@ -1,30 +1,39 @@
 import type { CSSProperties } from "react";
 import { DraftColorInput } from "../../browser/settings/DraftColorInput";
+import { useSettingsStore, useTrackStore } from "../../browser/state/browserContextState";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
-import type { TrackSettingsProps } from "../../modules/types";
-import type { CaveConfig, CaveTooltipItem } from "./types";
+import type { CaveConfig } from "./types";
 
-export function CaveSettings({
-  track,
-  updateTrack,
-}: TrackSettingsProps<CaveConfig, CaveTooltipItem>) {
+export function CaveSettings() {
   return (
     <SettingsSection title="CAVE">
-      <label style={fieldStyle}>
-        Top color
-        <DraftColorInput
-          value={track.config.topColor}
-          onCommit={(topColor) => updateTrack({ config: { topColor } })}
-        />
-      </label>
-      <label style={fieldStyle}>
-        Bottom color
-        <DraftColorInput
-          value={track.config.bottomColor}
-          onCommit={(bottomColor) => updateTrack({ config: { bottomColor } })}
-        />
-      </label>
+      <CaveColorField configKey="topColor" label="Top color" />
+      <CaveColorField configKey="bottomColor" label="Bottom color" />
     </SettingsSection>
+  );
+}
+
+function CaveColorField({
+  configKey,
+  label,
+}: {
+  configKey: "topColor" | "bottomColor";
+  label: string;
+}) {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const color = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as CaveConfig | undefined)?.[configKey] ?? "",
+  );
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+
+  return (
+    <label style={fieldStyle}>
+      {label}
+      <DraftColorInput
+        value={color}
+        onCommit={(value) => updateTrack(trackId, { config: { [configKey]: value } })}
+      />
+    </label>
   );
 }
 

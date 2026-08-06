@@ -60,18 +60,21 @@ const rowHeight = useAutoTrackHeight(id, rows.length, {
 
 ## Module settings
 
-A module settings component should normally use its props:
+A module settings component reads the active track ID from the settings store and subscribes to each rendered value through the track store:
 
 ```tsx
-function ExampleSettings({ track, updateTrack }: TrackSettingsProps<Config>) {
+function ExampleSettings() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const scale = useTrackStore((state) => (state.getTrack(trackId)?.config as Config).scale);
+  const updateTrack = useTrackStore((state) => state.updateTrack);
   const setLogScale = () => {
-    const result = updateTrack({ config: { scale: "log" } });
+    const result = updateTrack(trackId, { config: { scale: "log" } });
     if (!result.ok) reportError(result.error);
   };
 
   return (
     <SettingsSection title="Scale">
-      <button onClick={setLogScale} disabled={track.config.scale === "log"}>
+      <button onClick={setLogScale} disabled={scale === "log"}>
         Use log scale
       </button>
     </SettingsSection>
@@ -79,11 +82,13 @@ function ExampleSettings({ track, updateTrack }: TrackSettingsProps<Config>) {
 }
 ```
 
-`SettingsSection` supplies consistent section layout. The browser owns the modal shell and base controls. Apps can replace those browser-owned pieces with `createSettingsStore`; `useDraggableSettingsModal` is only for implementing a custom modal shell.
+Select primitives or other stable leaf values so unrelated updates do not re-render the field. Use `useTrackStoreApi().getState()` inside an event handler when a nested patch must preserve the latest sibling values without subscribing the field to the complete object. `SettingsSection` supplies consistent section layout. The browser owns the modal shell and base controls. Apps can replace those browser-owned pieces with `createSettingsStore`; `useDraggableSettingsModal` is only for implementing a custom modal shell.
+
+A custom modal component receives the stable active `trackId`, position, close callback, and settings children. Subscribe to only the track values its shell renders with `useTrackStore`; the default modal isolates its title and color subscriptions in its header.
 
 ## Store hooks
 
-The package exports `useBrowserStore`, `useTrackStore`, `useSettingsStore`, and `useContextMenuStore` to read the stores provided by the nearest `GenomeBrowser`. They are contextual integration APIs for browser-level composition. Module settings should use their read-only `track` snapshot and bound `updateTrack` prop rather than assuming global store access. Applications outside the browser tree already hold the stable store hook returned by the corresponding factory and can read it directly.
+The package exports `useBrowserStore`, `useTrackStore`, `useTrackStoreApi`, `useSettingsStore`, and `useContextMenuStore` to access the stores provided by the nearest `GenomeBrowser`. Module settings use `useSettingsStore` for the active track ID, `useTrackStore` for narrow reactive selections and mutations, and `useTrackStoreApi` for event-time reads. Applications outside the browser tree already hold the stable store hook returned by the corresponding factory and can read it directly.
 
 ## Application store factories
 

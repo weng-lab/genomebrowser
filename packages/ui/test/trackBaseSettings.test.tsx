@@ -1,10 +1,23 @@
 // @vitest-environment jsdom
 
-import type { TrackBase, TrackMutationResult, TrackUpdate } from "@weng-lab/genomebrowser";
+import {
+  bigWigModule,
+  createTrackStore,
+  type TrackBase,
+  type TrackMutationResult,
+  type TrackUpdate,
+} from "@weng-lab/genomebrowser";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TrackBaseSettings } from "../src/TrackSettings/trackBaseSettings";
+import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
+
+vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...(await import("../../core/src/browser/state/browserContextState")),
+  ...(await import("../../core/src/browser/state/useRegistry")),
+}));
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -33,13 +46,7 @@ describe("TrackBaseSettings", () => {
     const updateTrack = vi.fn<(update: TrackUpdate<never>) => TrackMutationResult>(() => ({
       ok: true,
     }));
-    mount(
-      <TrackBaseSettings
-        base={base}
-        displayOptions={["full", "dense"]}
-        updateTrack={updateTrack}
-      />,
-    );
+    mountSettings(updateTrack, ["full", "dense"]);
 
     const title = getInput("Title");
     const color = getInput("Color");
@@ -67,7 +74,7 @@ describe("TrackBaseSettings", () => {
     const updateTrack = vi.fn<(update: TrackUpdate<never>) => TrackMutationResult>(() => ({
       ok: true,
     }));
-    mount(<TrackBaseSettings base={base} displayOptions={["full"]} updateTrack={updateTrack} />);
+    mountSettings(updateTrack, ["full"]);
 
     expect(getOptionalSelect("Display mode")).toBeUndefined();
     const height = getInput("Height");
@@ -83,13 +90,7 @@ describe("TrackBaseSettings", () => {
     const updateTrack = vi.fn<(update: TrackUpdate<never>) => TrackMutationResult>(() => ({
       ok: true,
     }));
-    mount(
-      <TrackBaseSettings
-        base={base}
-        displayOptions={["full", "dense"]}
-        updateTrack={updateTrack}
-      />,
-    );
+    mountSettings(updateTrack, ["full", "dense"]);
 
     const title = getInput("Title");
     const height = getInput("Height");
@@ -114,13 +115,7 @@ describe("TrackBaseSettings", () => {
       .fn<(update: TrackUpdate<never>) => TrackMutationResult>()
       .mockReturnValueOnce({ ok: false, error: "Core rejected this color." })
       .mockReturnValueOnce({ ok: true });
-    mount(
-      <TrackBaseSettings
-        base={base}
-        displayOptions={["full", "dense"]}
-        updateTrack={updateTrack}
-      />,
-    );
+    mountSettings(updateTrack, ["full", "dense"]);
 
     updateInput(getInput("Color"), "#abcdef");
     blurInput("Color");
@@ -136,13 +131,7 @@ describe("TrackBaseSettings", () => {
     const updateTrack = vi.fn<(update: TrackUpdate<never>) => TrackMutationResult>(() => ({
       ok: true,
     }));
-    mount(
-      <TrackBaseSettings
-        base={base}
-        displayOptions={["full", "dense"]}
-        updateTrack={updateTrack}
-      />,
-    );
+    mountSettings(updateTrack, ["full", "dense"]);
 
     const title = getInput("Title");
     updateInput(title, "");
@@ -159,6 +148,43 @@ function mount(node: React.ReactNode) {
   document.body.append(container);
   root = createRoot(container);
   act(() => root?.render(node));
+}
+
+function mountSettings(
+  updateTrack: (update: TrackUpdate<never>) => TrackMutationResult,
+  displayOptions: readonly string[],
+) {
+  const module = {
+    ...bigWigModule,
+    render: Object.fromEntries(
+      displayOptions.map((option) => [
+        option,
+        bigWigModule.render[option as keyof typeof bigWigModule.render],
+      ]),
+    ),
+  };
+  const trackStore = createTrackStore({
+    modules: [module],
+    tracks: [
+      module.create({
+        id: base.id,
+        title: base.title,
+        display: base.display as "full" | "dense",
+        height: base.height,
+        color: base.color,
+        config: { url: "YOUR_URL_HERE" },
+      }),
+    ],
+  });
+  mount(
+    <TrackSettingsTestProvider
+      trackId={base.id}
+      trackStore={trackStore}
+      updateTrack={(update) => updateTrack(update as TrackUpdate<never>)}
+    >
+      <TrackBaseSettings />
+    </TrackSettingsTestProvider>,
+  );
 }
 
 function getInput(label: string) {

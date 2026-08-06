@@ -1,8 +1,8 @@
 import TextField from "@mui/material/TextField";
 import {
   defaultScreenGraphQlEndpoint,
-  type TrackSettingsProps,
-  type Transcript,
+  useSettingsStore,
+  useTrackStore,
   type TranscriptConfig,
 } from "@weng-lab/genomebrowser";
 import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
@@ -16,47 +16,18 @@ import { TrackSettingsNumberField } from "../../TrackSettings/trackSettingsNumbe
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
 import { TrackSettingsTextField } from "../../TrackSettings/trackSettingsTextField";
 
-export function TranscriptSettings({
-  track,
-  updateTrack,
-}: TrackSettingsProps<TranscriptConfig, Transcript>) {
-  const { config } = track;
+export function TranscriptSettings() {
   return (
     <TrackSettingsLayout>
       <TrackSettingsSection title="Transcript source">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
-            <TrackSettingsTextField
-              label="Endpoint"
-              placeholder={defaultScreenGraphQlEndpoint}
-              required
-              value={config.endpoint}
-              normalize={(endpoint) => endpoint.trim()}
-              validate={(endpoint) => (endpoint.trim() === "" ? "Enter an endpoint." : undefined)}
-              onCommit={(endpoint) => updateTrack({ config: { endpoint } })}
-            />
+            <EndpointField />
           </TrackSettingsFullRow>
           <TrackSettingsFullRow>
             <TrackSettingsFieldRow>
-              <TrackSettingsTextField
-                label="Assembly"
-                required
-                value={config.assembly}
-                validate={(assembly) => (assembly.trim() === "" ? "Enter an assembly." : undefined)}
-                onCommit={(assembly) => updateTrack({ config: { assembly } })}
-              />
-              <TrackSettingsNumberField
-                inputMode="numeric"
-                label="Version"
-                min={1}
-                required
-                step={1}
-                value={config.version}
-                validate={(version) =>
-                  Number.isInteger(version) && version > 0 ? undefined : "Enter a positive integer."
-                }
-                onCommit={(version) => updateTrack({ config: { version } })}
-              />
+              <AssemblyField />
+              <VersionField />
             </TrackSettingsFieldRow>
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
@@ -64,32 +35,114 @@ export function TranscriptSettings({
       <TrackSettingsSection title="Transcript highlighting">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
-            <TextField
-              fullWidth
-              label="Highlight gene"
-              size="small"
-              value={config.geneName ?? ""}
-              onChange={(event) => {
-                updateTrack({ config: { geneName: event.target.value || undefined } });
-              }}
-            />
+            <HighlightGeneField />
           </TrackSettingsFullRow>
           <TrackSettingsFullRow>
             <TrackSettingsFieldRow>
-              <TrackSettingsColorField
-                label="Canonical color"
-                value={config.canonicalColor}
-                onCommit={(canonicalColor) => updateTrack({ config: { canonicalColor } })}
-              />
-              <TrackSettingsColorField
-                label="Highlight color"
-                value={config.highlightColor}
-                onCommit={(highlightColor) => updateTrack({ config: { highlightColor } })}
-              />
+              <TranscriptColorField configKey="canonicalColor" label="Canonical color" />
+              <TranscriptColorField configKey="highlightColor" label="Highlight color" />
             </TrackSettingsFieldRow>
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
     </TrackSettingsLayout>
+  );
+}
+
+function EndpointField() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const endpoint = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as TranscriptConfig | undefined)?.endpoint ?? "",
+  );
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  return (
+    <TrackSettingsTextField
+      label="Endpoint"
+      normalize={(value) => value.trim()}
+      placeholder={defaultScreenGraphQlEndpoint}
+      required
+      value={endpoint}
+      validate={(value) => (value.trim() === "" ? "Enter an endpoint." : undefined)}
+      onCommit={(value) => updateTrack(trackId, { config: { endpoint: value } })}
+    />
+  );
+}
+
+function AssemblyField() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const assembly = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as TranscriptConfig | undefined)?.assembly ?? "",
+  );
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  return (
+    <TrackSettingsTextField
+      label="Assembly"
+      required
+      value={assembly}
+      validate={(value) => (value.trim() === "" ? "Enter an assembly." : undefined)}
+      onCommit={(value) => updateTrack(trackId, { config: { assembly: value } })}
+    />
+  );
+}
+
+function VersionField() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const version = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as TranscriptConfig | undefined)?.version ?? 1,
+  );
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  return (
+    <TrackSettingsNumberField
+      inputMode="numeric"
+      label="Version"
+      min={1}
+      required
+      step={1}
+      value={version}
+      validate={(value) =>
+        Number.isInteger(value) && value > 0 ? undefined : "Enter a positive integer."
+      }
+      onCommit={(value) => updateTrack(trackId, { config: { version: value } })}
+    />
+  );
+}
+
+function HighlightGeneField() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const geneName = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as TranscriptConfig | undefined)?.geneName,
+  );
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  return (
+    <TextField
+      fullWidth
+      label="Highlight gene"
+      size="small"
+      value={geneName ?? ""}
+      onChange={(event) =>
+        updateTrack(trackId, { config: { geneName: event.target.value || undefined } })
+      }
+    />
+  );
+}
+
+function TranscriptColorField({
+  configKey,
+  label,
+}: {
+  configKey: "canonicalColor" | "highlightColor";
+  label: string;
+}) {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const color = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as TranscriptConfig | undefined)?.[configKey] ?? "",
+  );
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  return (
+    <TrackSettingsColorField
+      label={label}
+      value={color}
+      onCommit={(value) => updateTrack(trackId, { config: { [configKey]: value } })}
+    />
   );
 }

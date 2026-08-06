@@ -2,14 +2,14 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import type {
-  BulkBedConfig,
-  BulkBedDataset,
-  BulkBedRect,
-  TrackMutationResult,
-  TrackSettingsProps,
+import {
+  useSettingsStore,
+  useTrackStore,
+  useTrackStoreApi,
+  type BulkBedConfig,
+  type BulkBedDataset,
 } from "@weng-lab/genomebrowser";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
@@ -33,76 +33,65 @@ type DatasetRows = {
   source: BulkBedDataset[];
 };
 
-export function BulkBedSettings(props: TrackSettingsProps<BulkBedConfig, BulkBedRect>) {
-  return <BulkBedSettingsEditor key={props.track.base.id} {...props} />;
+export function BulkBedSettings() {
+  return (
+    <TrackSettingsLayout>
+      <GapSettings />
+      <BulkBedDatasetsEditor />
+    </TrackSettingsLayout>
+  );
 }
 
-function BulkBedSettingsEditor({
-  track,
-  updateTrack,
-}: TrackSettingsProps<BulkBedConfig, BulkBedRect>) {
-  const { config } = track;
-  const id = track.base.id;
-  const [datasetRows, setDatasetRows] = useState(() => createDatasetRows(config.datasets, id));
-  const committedConfigRef = useRef(config);
+function GapSettings() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const gap = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as BulkBedConfig | undefined)?.gap,
+  );
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+
+  return (
+    <TrackSettingsSection title="BulkBed">
+      <TrackSettingsFieldGrid>
+        <TrackSettingsNumberField
+          label="Gap"
+          min={0}
+          step="any"
+          value={gap ?? 0}
+          validate={(value) => (value >= 0 ? undefined : "Enter a non-negative number.")}
+          onCommit={(value) => updateTrack(trackId, { config: { gap: value } })}
+        />
+      </TrackSettingsFieldGrid>
+    </TrackSettingsSection>
+  );
+}
+
+function BulkBedDatasetsEditor() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const datasetCount = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as BulkBedConfig | undefined)?.datasets.length ?? 0,
+  );
+  const trackStore = useTrackStoreApi();
+  const datasets = (trackStore.getState().getTrack(trackId)!.config as BulkBedConfig).datasets;
+  const [datasetRows, setDatasetRows] = useState(() => createDatasetRows(datasets, trackId));
   const [topologyError, setTopologyError] = useState<string>();
 
   useEffect(() => {
-    committedConfigRef.current = config;
-  }, [config]);
-
-  useEffect(() => {
     setDatasetRows((currentRows) =>
-      currentRows.source === config.datasets
+      currentRows.source === datasets
         ? currentRows
-        : reconcileDatasetRows(currentRows, config.datasets, id),
+        : reconcileDatasetRows(currentRows, datasets, trackId),
     );
-  }, [config.datasets, id]);
-
-  const applyConfig = (partial: Partial<BulkBedConfig>) => {
-    const result = updateTrack({ config: partial });
-    if (result.ok) {
-      committedConfigRef.current = { ...committedConfigRef.current, ...partial };
-    }
-    return result;
-  };
-
-  const commitDatasetField = (
-    key: string,
-    field: DatasetField,
-    value: string,
-  ): TrackMutationResult => {
-    const datasetIndex = datasetRows.rows.findIndex((dataset) => dataset.key === key);
-    if (datasetIndex === -1) return { ok: false, error: "Dataset is no longer available." };
-
-    const currentConfig = committedConfigRef.current;
-    const datasets = currentConfig.datasets.map((dataset, index) =>
-      index === datasetIndex ? { ...dataset, [field]: value } : dataset,
-    );
-    const result = applyConfig({ datasets });
-    if (result.ok) {
-      setDatasetRows((currentRows) => ({
-        ...currentRows,
-        rows: currentRows.rows.map((dataset) =>
-          dataset.key === key
-            ? {
-                ...dataset,
-                values: { ...dataset.values, [field]: value },
-              }
-            : dataset,
-        ),
-      }));
-    }
-    return result;
-  };
+  }, [datasets, trackId]);
 
   const addDataset = () => {
     const nextDataset: BulkBedDataset = {
       name: `Dataset ${datasetRows.rows.length + 1}`,
       url: "YOUR_URL_HERE",
     };
-    const result = applyConfig({
-      datasets: [...committedConfigRef.current.datasets, nextDataset],
+    const state = trackStore.getState();
+    const currentDatasets = (state.getTrack(trackId)!.config as BulkBedConfig).datasets;
+    const result = state.updateTrack(trackId, {
+      config: { datasets: [...currentDatasets, nextDataset] },
     });
     if (!result.ok) {
       setTopologyError(result.error);
@@ -115,18 +104,19 @@ function BulkBedSettingsEditor({
       nextDatasetKey: currentRows.nextDatasetKey + 1,
       rows: [
         ...currentRows.rows,
-        makeDatasetRow(datasetKey(id, currentRows.nextDatasetKey), nextDataset),
+        makeDatasetRow(datasetKey(trackId, currentRows.nextDatasetKey), nextDataset),
       ],
     }));
   };
 
   const removeDataset = (key: string) => {
     const datasetIndex = datasetRows.rows.findIndex((dataset) => dataset.key === key);
-    const currentConfig = committedConfigRef.current;
-    if (datasetIndex === -1 || currentConfig.datasets.length <= 1) return;
+    const state = trackStore.getState();
+    const currentDatasets = (state.getTrack(trackId)!.config as BulkBedConfig).datasets;
+    if (datasetIndex === -1 || currentDatasets.length <= 1) return;
 
-    const result = applyConfig({
-      datasets: currentConfig.datasets.filter((_, index) => index !== datasetIndex),
+    const result = state.updateTrack(trackId, {
+      config: { datasets: currentDatasets.filter((_, index) => index !== datasetIndex) },
     });
     if (!result.ok) {
       setTopologyError(result.error);
@@ -141,26 +131,13 @@ function BulkBedSettingsEditor({
   };
 
   return (
-    <TrackSettingsLayout>
+    <>
       {topologyError ? <Alert severity="error">{topologyError}</Alert> : null}
-
-      <TrackSettingsSection title="BulkBed">
-        <TrackSettingsFieldGrid>
-          <TrackSettingsNumberField
-            label="Gap"
-            min={0}
-            step="any"
-            value={config.gap ?? 0}
-            validate={(gap) => (gap >= 0 ? undefined : "Enter a non-negative number.")}
-            onCommit={(gap) => applyConfig({ gap })}
-          />
-        </TrackSettingsFieldGrid>
-      </TrackSettingsSection>
 
       <TrackSettingsSection title="Datasets">
         <Box sx={{ display: "grid", gap: 1.5, minWidth: 0 }}>
           {datasetRows.rows.map((dataset, index) => {
-            const cannotRemove = datasetRows.rows.length === 1;
+            const cannotRemove = datasetCount === 1;
 
             return (
               <Box
@@ -210,22 +187,7 @@ function BulkBedSettingsEditor({
                   </Typography>
                 ) : null}
 
-                <TrackSettingsFieldRow>
-                  <TrackSettingsTextField
-                    label="Name"
-                    required
-                    value={dataset.values.name}
-                    validate={(name) => (name.trim() === "" ? "Enter a dataset name." : undefined)}
-                    onCommit={(name) => commitDatasetField(dataset.key, "name", name)}
-                  />
-                  <TrackSettingsUrlField
-                    label="URL"
-                    placeholder="YOUR_URL_HERE"
-                    required
-                    value={dataset.values.url}
-                    onCommit={(url) => commitDatasetField(dataset.key, "url", url)}
-                  />
-                </TrackSettingsFieldRow>
+                <DatasetFields index={index} />
               </Box>
             );
           })}
@@ -241,8 +203,73 @@ function BulkBedSettingsEditor({
           </Button>
         </Box>
       </TrackSettingsSection>
-    </TrackSettingsLayout>
+    </>
   );
+}
+
+function DatasetFields({ index }: { index: number }) {
+  return (
+    <TrackSettingsFieldRow>
+      <DatasetNameField index={index} />
+      <DatasetUrlField index={index} />
+    </TrackSettingsFieldRow>
+  );
+}
+
+function DatasetNameField({ index }: { index: number }) {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const name = useTrackStore(
+    (state) =>
+      (state.getTrack(trackId)?.config as BulkBedConfig | undefined)?.datasets[index]?.name ?? "",
+  );
+  const trackStore = useTrackStoreApi();
+
+  return (
+    <TrackSettingsTextField
+      label="Name"
+      required
+      value={name}
+      validate={(value) => (value.trim() === "" ? "Enter a dataset name." : undefined)}
+      onCommit={(value) => updateDatasetField(trackStore, trackId, index, "name", value)}
+    />
+  );
+}
+
+function DatasetUrlField({ index }: { index: number }) {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const url = useTrackStore(
+    (state) =>
+      (state.getTrack(trackId)?.config as BulkBedConfig | undefined)?.datasets[index]?.url ?? "",
+  );
+  const trackStore = useTrackStoreApi();
+
+  return (
+    <TrackSettingsUrlField
+      label="URL"
+      placeholder="YOUR_URL_HERE"
+      required
+      value={url}
+      onCommit={(value) => updateDatasetField(trackStore, trackId, index, "url", value)}
+    />
+  );
+}
+
+function updateDatasetField(
+  trackStore: ReturnType<typeof useTrackStoreApi>,
+  trackId: string,
+  index: number,
+  field: DatasetField,
+  value: string,
+) {
+  const state = trackStore.getState();
+  const datasets = (state.getTrack(trackId)!.config as BulkBedConfig).datasets;
+  return state.updateTrack(trackId, {
+    config: {
+      datasets: datasets.map((dataset, datasetIndex) =>
+        datasetIndex === index ? { ...dataset, [field]: value } : dataset,
+      ),
+    },
+  });
 }
 
 function createDatasetRows(datasets: BulkBedDataset[], id: string): DatasetRows {

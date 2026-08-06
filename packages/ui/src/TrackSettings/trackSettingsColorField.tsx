@@ -5,9 +5,8 @@ import Popover from "@mui/material/Popover";
 import Slider from "@mui/material/Slider";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import type { TrackMutationResult } from "@weng-lab/genomebrowser";
-import { useCallback, useEffect, useId, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import {
   constrainHsv,
   hexToHsv,
@@ -40,8 +39,9 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
   const [pickerSession, setPickerSession] = useState<PickerSession>();
   const openingControlRef = useRef<HTMLButtonElement>(null);
   const activePointerRef = useRef<number | undefined>(undefined);
+  const animationFrameRef = useRef<number | undefined>(undefined);
+  const pendingColorRef = useRef<HsvColor | undefined>(undefined);
   const shouldRestoreFocusRef = useRef(false);
-  const instructionId = useId();
   const externalColor = requireHexColor(props.value);
 
   const controller = useDraftController<string, string>({
@@ -71,9 +71,19 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
 
   useEffect(() => {
     if (!props.disabled || anchorElement === undefined) return;
+    cancelPendingPickerCommit();
     setPickerSession(undefined);
     setAnchorElement(undefined);
   }, [anchorElement, props.disabled]);
+
+  useEffect(
+    () => () => {
+      if (animationFrameRef.current !== undefined) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (pickerIsOpen || !shouldRestoreFocusRef.current) return;
@@ -86,6 +96,7 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
   }, []);
 
   const closePicker = () => {
+    flushPickerCommit();
     shouldRestoreFocusRef.current = true;
     setPickerSession(undefined);
     setAnchorElement(undefined);
@@ -100,16 +111,55 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
     setAnchorElement(element);
   };
 
-  const emitPickerColor = (nextColor: HsvColor) => {
+  const commitPickerColor = (nextColor: HsvColor) => {
     if (props.disabled) return;
     const color = constrainHsv(nextColor);
     const hexColor = hsvToHex(color);
     const result = controller.submit(hexColor, { retainRejectedDraft: false });
-    if (!result.ok) return;
-    setPickerSession({
-      color,
+    if (!result.ok) {
+      setPickerSession({ color: externalPickerColor, externalColor });
+      return;
+    }
+    setPickerSession((session) => ({
+      color: session?.color ?? color,
       emittedColor: hexColor,
-      externalColor,
+      externalColor: session?.externalColor ?? externalColor,
+    }));
+  };
+
+  const cancelPendingPickerCommit = () => {
+    if (animationFrameRef.current !== undefined) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = undefined;
+    }
+    pendingColorRef.current = undefined;
+  };
+
+  const flushPickerCommit = () => {
+    if (animationFrameRef.current !== undefined) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = undefined;
+    }
+    const color = pendingColorRef.current;
+    pendingColorRef.current = undefined;
+    if (color !== undefined) commitPickerColor(color);
+  };
+
+  const previewPickerColor = (nextColor: HsvColor) => {
+    if (props.disabled) return;
+    const color = constrainHsv(nextColor);
+    setPickerSession((session) => ({
+      color,
+      emittedColor: session?.emittedColor,
+      externalColor: session?.externalColor ?? externalColor,
+    }));
+    pendingColorRef.current = color;
+    if (animationFrameRef.current !== undefined) return;
+    animationFrameRef.current = requestAnimationFrame(() => {
+      animationFrameRef.current = undefined;
+      const pendingColor = pendingColorRef.current;
+      pendingColorRef.current = undefined;
+      if (pendingColor !== undefined) commitPickerColor(pendingColor);
     });
   };
 
@@ -119,7 +169,7 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
 
     const saturation = ((event.clientX - bounds.left) / bounds.width) * 100;
     const value = ((bounds.bottom - event.clientY) / bounds.height) * 100;
-    emitPickerColor({ ...pickerColor, saturation, value });
+    previewPickerColor({ ...pickerColor, saturation, value });
   };
 
   return (
@@ -187,7 +237,8 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
             sx: {
               boxSizing: "border-box",
               maxWidth: "calc(100vw - 16px)",
-              p: 1.5,
+              p: 1.25,
+              pb: 1.5,
               width: "min(17rem, calc(100vw - 16px))",
             },
           },
@@ -200,65 +251,74 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
           closePicker();
         }}
       >
-        <Stack aria-label={`${props.label} color picker`} role="group" spacing={1.25}>
+        <Stack aria-label={`${props.label} color picker`} role="group" spacing={1}>
           <Box
-            aria-label={`${props.label} saturation and brightness plane. Use the saturation and brightness controls for keyboard input.`}
-            role="img"
             sx={{
-              aspectRatio: "3 / 2",
-              bgcolor: hsvToHex({ hue: pickerColor.hue, saturation: 100, value: 100 }),
-              backgroundImage:
-                "linear-gradient(to top, #000000, transparent), linear-gradient(to right, #ffffff, transparent)",
-              border: 1,
-              borderColor: "divider",
-              borderRadius: 0.5,
-              cursor: "crosshair",
+              "&:focus-within > [role='img']": {
+                outline: "2px solid",
+                outlineColor: "primary.main",
+                outlineOffset: -3,
+              },
               position: "relative",
-              touchAction: "none",
-              width: "100%",
-            }}
-            onLostPointerCapture={() => {
-              activePointerRef.current = undefined;
-            }}
-            onPointerDown={(event) => {
-              if (props.disabled || !event.isPrimary || event.button !== 0) {
-                return;
-              }
-              activePointerRef.current = event.pointerId;
-              event.currentTarget.setPointerCapture?.(event.pointerId);
-              updateSaturationValueFromPointer(event);
-            }}
-            onPointerMove={(event) => {
-              if (event.isPrimary && activePointerRef.current === event.pointerId) {
-                updateSaturationValueFromPointer(event);
-              }
-            }}
-            onPointerUp={(event) => {
-              if (activePointerRef.current !== event.pointerId) return;
-              activePointerRef.current = undefined;
-              event.currentTarget.releasePointerCapture?.(event.pointerId);
             }}
           >
             <Box
-              aria-hidden="true"
+              aria-label={`${props.label} saturation and brightness plane. Use the saturation and brightness controls for keyboard input.`}
+              role="img"
               sx={{
-                bgcolor: pickerHexColor,
-                border: "2px solid white",
-                borderRadius: "50%",
-                boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.65)",
-                height: 12,
-                left: `${pickerColor.saturation}%`,
-                position: "absolute",
-                top: `${100 - pickerColor.value}%`,
-                transform: "translate(-50%, -50%)",
-                width: 12,
+                aspectRatio: "4 / 3",
+                bgcolor: hsvToHex({ hue: pickerColor.hue, saturation: 100, value: 100 }),
+                backgroundImage:
+                  "linear-gradient(to top, #000000, transparent), linear-gradient(to right, #ffffff, transparent)",
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 1,
+                boxSizing: "border-box",
+                cursor: "crosshair",
+                overflow: "hidden",
+                position: "relative",
+                touchAction: "none",
+                width: "100%",
               }}
-            />
-          </Box>
-          <Box>
-            <Typography component="label" id={`${instructionId}-saturation`} variant="caption">
-              Saturation
-            </Typography>
+              onLostPointerCapture={() => {
+                activePointerRef.current = undefined;
+                flushPickerCommit();
+              }}
+              onPointerDown={(event) => {
+                if (props.disabled || !event.isPrimary || event.button !== 0) return;
+                activePointerRef.current = event.pointerId;
+                event.currentTarget.setPointerCapture?.(event.pointerId);
+                updateSaturationValueFromPointer(event);
+              }}
+              onPointerMove={(event) => {
+                if (event.isPrimary && activePointerRef.current === event.pointerId) {
+                  updateSaturationValueFromPointer(event);
+                }
+              }}
+              onPointerUp={(event) => {
+                if (activePointerRef.current !== event.pointerId) return;
+                activePointerRef.current = undefined;
+                event.currentTarget.releasePointerCapture?.(event.pointerId);
+                flushPickerCommit();
+              }}
+            >
+              <Box
+                aria-hidden="true"
+                sx={{
+                  bgcolor: pickerHexColor,
+                  border: "3px solid white",
+                  borderRadius: "50%",
+                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.7)",
+                  boxSizing: "border-box",
+                  height: 20,
+                  left: `${pickerColor.saturation}%`,
+                  position: "absolute",
+                  top: `${100 - pickerColor.value}%`,
+                  transform: "translate(-50%, -50%)",
+                  width: 20,
+                }}
+              />
+            </Box>
             <Slider
               aria-label={`${props.label} saturation`}
               getAriaValueText={(saturation) => `${Math.round(saturation)} percent saturation`}
@@ -267,18 +327,15 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
               size="small"
               slotProps={{ input: { ref: focusSaturationControl } }}
               step={1}
+              sx={visuallyHiddenSliderSx}
               value={pickerColor.saturation}
               onChange={(_event, saturation) => {
                 if (typeof saturation === "number") {
-                  emitPickerColor({ ...pickerColor, saturation });
+                  previewPickerColor({ ...pickerColor, saturation });
                 }
               }}
+              onChangeCommitted={flushPickerCommit}
             />
-          </Box>
-          <Box>
-            <Typography component="label" id={`${instructionId}-brightness`} variant="caption">
-              Brightness
-            </Typography>
             <Slider
               aria-label={`${props.label} brightness`}
               getAriaValueText={(value) => `${Math.round(value)} percent brightness`}
@@ -286,51 +343,66 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
               min={0}
               size="small"
               step={1}
+              sx={visuallyHiddenSliderSx}
               value={pickerColor.value}
               onChange={(_event, value) => {
-                if (typeof value === "number") emitPickerColor({ ...pickerColor, value });
+                if (typeof value === "number") previewPickerColor({ ...pickerColor, value });
               }}
+              onChangeCommitted={flushPickerCommit}
             />
           </Box>
-          <Box>
-            <Typography component="label" id={`${instructionId}-hue`} variant="caption">
-              Hue
-            </Typography>
-            <Slider
-              aria-label={`${props.label} hue`}
-              getAriaValueText={(hue) => `${Math.round(hue)} degrees`}
-              max={359}
-              min={0}
-              size="small"
-              step={1}
-              sx={{
-                color: "transparent",
-                height: 8,
-                py: 1,
-                "& .MuiSlider-rail": {
-                  background:
-                    "linear-gradient(to right, #FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF, #FF0000)",
-                  opacity: 1,
-                },
-                "& .MuiSlider-track": { display: "none" },
-                "& .MuiSlider-thumb": {
-                  bgcolor: hsvToHex({ hue: pickerColor.hue, saturation: 100, value: 100 }),
-                  border: "2px solid white",
-                  boxShadow: "0 0 0 1px rgba(0, 0, 0, 0.65)",
-                },
-              }}
-              value={pickerColor.hue}
-              onChange={(_event, hue) => {
-                if (typeof hue === "number") emitPickerColor({ ...pickerColor, hue });
-              }}
-            />
-          </Box>
-          <Typography variant="body2">Selected color: {pickerHexColor}</Typography>
+          <Slider
+            aria-label={`${props.label} hue`}
+            getAriaValueText={(hue) => `${Math.round(hue)} degrees`}
+            max={359}
+            min={0}
+            size="small"
+            step={1}
+            sx={{
+              color: "transparent",
+              height: 8,
+              mx: 0.5,
+              py: 0.625,
+              width: "calc(100% - 8px)",
+              "& .MuiSlider-rail": {
+                background:
+                  "linear-gradient(to right, #FF0000, #FFFF00, #00FF00, #00FFFF, #0000FF, #FF00FF, #FF0000)",
+                borderRadius: 1,
+                opacity: 1,
+              },
+              "& .MuiSlider-track": { display: "none" },
+              "& .MuiSlider-thumb": {
+                bgcolor: hsvToHex({ hue: pickerColor.hue, saturation: 100, value: 100 }),
+                border: "3px solid white",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.55)",
+                height: 18,
+                width: 18,
+              },
+            }}
+            value={pickerColor.hue}
+            onChange={(_event, hue) => {
+              if (typeof hue === "number") previewPickerColor({ ...pickerColor, hue });
+            }}
+            onChangeCommitted={flushPickerCommit}
+          />
         </Stack>
       </Popover>
     </>
   );
 }
+
+const visuallyHiddenSliderSx = {
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
+  height: 1,
+  left: 0,
+  overflow: "hidden",
+  p: 0,
+  position: "absolute",
+  top: 0,
+  whiteSpace: "nowrap",
+  width: 1,
+} as const;
 
 function colorsAreEqual(left: string, right: string) {
   const normalizedLeft = normalizeHexColor(left);

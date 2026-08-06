@@ -6,7 +6,9 @@ export type DataState = { status: "loading" } | DataResult;
 
 export type DataStore = {
   data: Record<string, DataResult>;
+  fetchingTrackIds: ReadonlySet<string>;
   setData: (data: Record<string, DataResult>) => void;
+  setFetchingTrackIds: (trackIds: ReadonlySet<string>) => void;
   setTrackData: (trackId: string, state: DataResult) => void;
   clearTrack: (trackId: string) => void;
   clearAll: () => void;

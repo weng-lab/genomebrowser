@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from "react";
-import type { AnyTrackInstance } from "../../modules/types";
 import type { AssemblyDefinition } from "../../genome/assembly";
 import type { GenomicRegion } from "../../genome/region";
 import { normalizeRegion } from "../../genome/region";
@@ -54,24 +53,24 @@ export function getRenderWindow(
   };
 }
 
-export function createRenderWindowSignature(region: GenomicRegion, tracks: AnyTrackInstance[]) {
-  return JSON.stringify({ region, trackIds: createTrackIdsSignature(tracks) });
+export function createRenderWindowSignature(region: GenomicRegion, trackIds: string[]) {
+  return JSON.stringify({ region, trackIds: createTrackIdsSignature(trackIds) });
 }
 
-function createTrackIdsSignature(tracks: AnyTrackInstance[]) {
-  return JSON.stringify(tracks.map((track) => track.base.id).sort());
+function createTrackIdsSignature(trackIds: string[]) {
+  return JSON.stringify(trackIds.toSorted());
 }
 
 export function useRenderWindow({
   region,
   assembly,
-  tracks,
+  trackIds,
   trackWidth,
   overscanMultiplier,
 }: {
   region: GenomicRegion;
   assembly: AssemblyDefinition;
-  tracks: AnyTrackInstance[];
+  trackIds: string[];
   trackWidth: number;
   overscanMultiplier: number;
 }) {
@@ -85,8 +84,8 @@ export function useRenderWindow({
     [assembly, overscanMultiplier, region, trackWidth],
   );
   const dataKey = useMemo(
-    () => createRenderWindowSignature(targetRenderWindow.targetRenderRegion, tracks),
-    [targetRenderWindow.targetRenderRegion, tracks],
+    () => createRenderWindowSignature(targetRenderWindow.targetRenderRegion, trackIds),
+    [targetRenderWindow.targetRenderRegion, trackIds],
   );
   const [displayedData, setDisplayedData] = useState(() => ({
     region: targetRenderWindow.targetRenderRegion,
@@ -103,7 +102,9 @@ export function useRenderWindow({
   const settleData = useCallback(
     (key: string) => {
       if (key !== dataKey) return false;
-      setDisplayedData({ region: targetRenderWindow.targetRenderRegion, key });
+      setDisplayedData((current) =>
+        current.key === key ? current : { region: targetRenderWindow.targetRenderRegion, key },
+      );
       return true;
     },
     [dataKey, targetRenderWindow],

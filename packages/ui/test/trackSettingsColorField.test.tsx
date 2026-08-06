@@ -100,7 +100,7 @@ describe("TrackSettingsColorField", () => {
 
     const saturation = getSlider("Track color saturation");
     expect(document.activeElement).toBe(saturation);
-    expect(document.body.textContent).toContain("Selected color: #FF0000");
+    expect(document.body.textContent).not.toContain("Selected color:");
     expect(getSaturationValueSurface("Track color").getAttribute("aria-valuenow")).toBeNull();
     expect(saturation.getAttribute("aria-valuemin")).toBe("0");
     expect(saturation.getAttribute("aria-valuemax")).toBe("100");
@@ -115,7 +115,8 @@ describe("TrackSettingsColorField", () => {
     expect(document.activeElement).toBe(opener);
   });
 
-  it("emits normalized previews for pointer, saturation/value keyboard, and hue changes", () => {
+  it("coalesces pointer previews while keeping the picker responsive", () => {
+    vi.useFakeTimers();
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
     mount(<RequiredHarness initialValue="#FF0000" onCommit={onCommit} />);
     click(getButton("Open Track color color picker"));
@@ -134,14 +135,21 @@ describe("TrackSettingsColorField", () => {
       }) as DOMRect;
 
     pointer(surface, "pointerdown", { clientX: 25, clientY: 75, pointerId: 7 });
-    pointer(surface, "pointermove", { clientX: 100, clientY: 0, pointerId: 7 });
-    expect(onCommit.mock.calls.slice(0, 2)).toEqual([["#403030"], ["#FF0000"]]);
+    pointer(surface, "pointermove", { clientX: 50, clientY: 50, pointerId: 7 });
+
+    expect(onCommit).not.toHaveBeenCalled();
+    expect(getComputedStyle(getSelectionHandle(surface)).left).toBe("50%");
+    expect(getComputedStyle(getSelectionHandle(surface)).top).toBe("50%");
+
+    pointer(surface, "pointerup", { clientX: 50, clientY: 50, pointerId: 7 });
+    expect(onCommit).toHaveBeenCalledOnce();
+    expect(onCommit).toHaveBeenLastCalledWith("#804040");
 
     updateRange(getSlider("Track color saturation"), "99");
-    expect(onCommit).toHaveBeenLastCalledWith("#FF0303");
+    expect(onCommit).toHaveBeenLastCalledWith("#800101");
 
     updateRange(getSlider("Track color hue"), "120");
-    expect(onCommit).toHaveBeenLastCalledWith("#03FF03");
+    expect(onCommit).toHaveBeenLastCalledWith("#018001");
     for (const [color] of onCommit.mock.calls) expect(color).toMatch(/^#[0-9A-F]{6}$/);
   });
 
@@ -157,7 +165,6 @@ describe("TrackSettingsColorField", () => {
 
     expect(onCommit).toHaveBeenCalledWith("#00FF00");
     expect(getSlider("Track color hue").value).toBe("0");
-    expect(document.body.textContent).toContain("Selected color: #FF0000");
     expect(getInput("Track color").value).toBe("#FF0000");
     expect(document.body.textContent).toContain("Core rejected this color.");
   });
@@ -254,6 +261,7 @@ describe("TrackSettingsColorField", () => {
     expect(onCommit).not.toHaveBeenCalled();
 
     pointer(surface, "pointerdown", { clientX: 50, clientY: 50, pointerId: 4 });
+    pointer(surface, "pointerup", { clientX: 50, clientY: 50, pointerId: 4 });
     expect(onCommit).toHaveBeenCalledOnce();
   });
 
@@ -336,6 +344,12 @@ function getSaturationValueSurface(label: string) {
   );
   if (!surface) throw new Error(`Could not find saturation/value surface for ${label}`);
   return surface;
+}
+
+function getSelectionHandle(surface: HTMLElement) {
+  const handle = surface.querySelector<HTMLElement>("[aria-hidden='true']");
+  if (!handle) throw new Error("Could not find saturation/value selection handle");
+  return handle;
 }
 
 function getSlider(label: string) {

@@ -8,6 +8,7 @@ import type { TrackInstance } from "../../src/modules/types";
 import { bigWigModule } from "../../src/tracks/bigwig/module";
 import { BigWigSettings } from "../../src/tracks/bigwig/settings";
 import type { BigWigConfig } from "../../src/tracks/bigwig/types";
+import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -20,19 +21,10 @@ let rejectNextUpdate = false;
 function Harness() {
   const useStore = useTrackStore;
   if (!useStore) throw new Error("Track store not initialized");
-  const track = useStore((state) => state.getTrack("signal")) as TrackInstance<BigWigConfig>;
-
   return (
-    <BigWigSettings
-      track={track}
-      updateTrack={(update) => {
-        if (rejectNextUpdate) {
-          rejectNextUpdate = false;
-          return useStore.getState().updateTrack("signal", { ...update, base: { height: 0 } });
-        }
-        return useStore.getState().updateTrack("signal", update);
-      }}
-    />
+    <TrackSettingsTestProvider trackId="signal" trackStore={useStore}>
+      <BigWigSettings />
+    </TrackSettingsTestProvider>
   );
 }
 
@@ -115,6 +107,16 @@ async function renderHarness() {
         config: { url: "YOUR_URL_HERE" },
       }),
     ],
+  });
+  const updateTrack = useTrackStore.getState().updateTrack;
+  useTrackStore.setState({
+    updateTrack: (id, update) => {
+      if (rejectNextUpdate) {
+        rejectNextUpdate = false;
+        return updateTrack(id, { ...update, base: { height: 0 } });
+      }
+      return updateTrack(id, update);
+    },
   });
   container = document.createElement("div");
   document.body.appendChild(container);

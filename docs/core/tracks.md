@@ -79,7 +79,7 @@ Changing `url` requests new data. Changing `colorScale` re-renders with the curr
 
 ## Display, settings, and interaction
 
-Renderer-map keys are the module's allowed display values. The browser validates `base.display`, chooses the renderer, and supplies browser-level controls. A module's `settingsComponent` receives `{ track, updateTrack }`: a read-only current track snapshot and a validated updater bound to its ID. The updater accepts optional shallow base and config patches and returns a mutation result. Settings should use these props rather than a global store. The browser separately renders base settings such as title, display, height, and color.
+Renderer-map keys are the module's allowed display values. The browser validates `base.display`, chooses the renderer, and supplies browser-level controls. A module's `settingsComponent` receives no props. It reads the active ID with `useSettingsStore`, subscribes to narrow values with `useTrackStore`, and calls the track store's validated `updateTrack` action. For nested patches, `useTrackStoreApi().getState()` provides the latest sibling values inside the event handler without adding a render subscription. The browser separately renders base settings such as title, display, height, and color.
 
 A renderer decides when a semantic interaction happens. It can read item-only callbacks with `useInteraction<Item>()` and use parameterless `useTooltip<Item, Config>()` for browser-positioned module tooltips. The browser binds the current `TrackRuntimeContext<Config>` before an application callback runs. Tooltip components receive `{ item, context }` with the same current `type`, read-only `base`, and read-only parsed `config`. The module's item generic describes the semantic object exposed to callbacks and the tooltip, not necessarily its raw fetch row.
 
@@ -105,7 +105,7 @@ A collection entry is create input, not a runtime instance:
 
 ## Stable extension seams
 
-The recommended module-author surface is the package root: `defineTrackModule`, `fetchOnChange`, module contract types, `useInteraction`, `useTooltip`, `useAutoTrackHeight`, and `SettingsSection`. Use store APIs only when the focused renderer or settings props are insufficient. Do not import files under `src/` from downstream modules.
+The recommended module-author surface is the package root: `defineTrackModule`, `fetchOnChange`, module contract types, `useInteraction`, `useTooltip`, `useAutoTrackHeight`, the track-settings hooks, and `SettingsSection`. Do not import files under `src/` from downstream modules.
 
 The built-in BigBed implementation should currently be treated as a first-party track, not as the documented base for derived modules. Typed BigBed specialization and renderer reuse remain deferred until that support is finalized.
 

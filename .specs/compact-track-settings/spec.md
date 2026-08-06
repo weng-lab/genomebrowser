@@ -1,6 +1,6 @@
 # Compact Track Settings
 
-**Status:** Ready
+**Status:** Complete
 
 ## Problem
 

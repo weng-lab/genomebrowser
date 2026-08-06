@@ -33,7 +33,6 @@ export type {
   TrackRendererInteraction,
   TrackRendererProps,
   TrackSettingsComponent,
-  TrackSettingsProps,
   TrackRuntimeContext,
   TrackTooltipComponent,
   TrackUpdate,
@@ -48,7 +47,6 @@ export { useRegistry } from "./browser/state/useRegistry";
 export { SettingsSection } from "./modules/runtime/SettingsSection";
 export { useDraggableSettingsModal } from "./browser/settings/useDraggableSettingsModal";
 export type { DraggableSettingsModalResult } from "./browser/settings/useDraggableSettingsModal";
-
 export { createBrowserStore } from "./browser/state/browserStore";
 export { createContextMenuStore } from "./browser/state/contextMenuStore";
 export {
@@ -56,6 +54,7 @@ export {
   useBrowserStore,
   useSettingsStore,
   useTrackStore,
+  useTrackStoreApi,
 } from "./browser/state/browserContextState";
 export { createSettingsStore } from "./browser/state/settingsStore";
 export { createTrackStore } from "./browser/state/trackStore";
@@ -69,7 +68,6 @@ export type {
   Highlight,
 } from "./browser/state/browserStore";
 export type {
-  BaseSettingsProps,
   SettingsModalProps,
   SettingsPosition,
   SettingsStore,

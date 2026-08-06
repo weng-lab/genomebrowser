@@ -8,6 +8,7 @@ import type { TrackInstance } from "../../src/modules/types";
 import { caveModule } from "../../src/tracks/cave/module";
 import { CaveSettings } from "../../src/tracks/cave/settings";
 import type { CaveConfig } from "../../src/tracks/cave/types";
+import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -19,13 +20,10 @@ let useTrackStore: TrackStoreInstance | undefined;
 function Harness() {
   const useStore = useTrackStore;
   if (!useStore) throw new Error("Track store not initialized");
-  const track = useStore((state) => state.getTrack("cave")) as TrackInstance<CaveConfig>;
-
   return (
-    <CaveSettings
-      track={track}
-      updateTrack={(update) => useStore.getState().updateTrack("cave", update)}
-    />
+    <TrackSettingsTestProvider trackId="cave" trackStore={useStore}>
+      <CaveSettings />
+    </TrackSettingsTestProvider>
   );
 }
 

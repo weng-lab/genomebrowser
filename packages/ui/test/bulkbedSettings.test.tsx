@@ -1,10 +1,22 @@
 // @vitest-environment jsdom
 
-import { type BulkBedConfig, type TrackSettingsProps } from "@weng-lab/genomebrowser";
-import { act, useState } from "react";
+import {
+  bulkBedModule,
+  createTrackStore,
+  type BulkBedConfig,
+  type TrackMutationResult,
+  type TrackUpdate,
+} from "@weng-lab/genomebrowser";
+import { act, Profiler } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BulkBedSettings } from "../src/tracks/bulkbed/settings";
+import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
+
+vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
+  ...(await importOriginal()),
+  ...(await import("../../core/src/browser/state/browserContextState")),
+}));
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -29,6 +41,18 @@ afterEach(() => {
 });
 
 describe("BulkBed settings", () => {
+  it("does not rerender settings when a base update reconstructs datasets", () => {
+    let renderCount = 0;
+    const { trackStore } = renderSettings(initialConfig, undefined, () => renderCount++);
+    const initialRenderCount = renderCount;
+
+    act(() => {
+      trackStore.getState().updateTrack("bulkbed", { base: { color: "#112233" } });
+    });
+
+    expect(renderCount).toBe(initialRenderCount);
+  });
+
   it("renders accessible controls for every BulkBed config option", () => {
     renderSettings();
 
@@ -153,7 +177,7 @@ describe("BulkBed settings", () => {
 
   it("keeps a core-rejected complete draft visible", () => {
     vi.useFakeTimers();
-    const updateTrack = vi.fn<TrackSettingsProps<BulkBedConfig>["updateTrack"]>(() => ({
+    const updateTrack = vi.fn<(update: TrackUpdate<BulkBedConfig>) => TrackMutationResult>(() => ({
       ok: false,
       error: "Core rejected the update.",
     }));
@@ -199,53 +223,57 @@ describe("BulkBed settings", () => {
   });
 });
 
-function StatefulSettings({
-  initialConfig,
-  onUpdate,
-}: {
-  initialConfig: BulkBedConfig;
-  onUpdate: (partial: Partial<BulkBedConfig>) => void;
-}) {
-  const [config, setConfig] = useState(initialConfig);
-
-  const updateTrack: TrackSettingsProps<BulkBedConfig>["updateTrack"] = (update) => {
-    const partial = update.config ?? {};
-    onUpdate(partial);
-    setConfig((current) => ({ ...current, ...partial }));
-    return { ok: true };
-  };
-
-  return <BulkBedSettings track={track(config)} updateTrack={updateTrack} />;
-}
-
 function renderSettings(
   config = initialConfig,
-  updateTrack = vi.fn<TrackSettingsProps<BulkBedConfig>["updateTrack"]>(() => ({ ok: true })),
+  updateTrack = vi.fn<(update: TrackUpdate<BulkBedConfig>) => TrackMutationResult>(() => ({
+    ok: true,
+  })),
+  onSettingsRender = () => undefined,
 ) {
   mount();
+  const trackStore = createBulkBedStore(config);
+  const applyUpdate = trackStore.getState().updateTrack;
 
   const rerender = (nextConfig: BulkBedConfig) => {
     act(() => {
-      root?.render(<BulkBedSettings track={track(nextConfig)} updateTrack={updateTrack} />);
+      trackStore.getState().updateTrack<BulkBedConfig>("bulkbed", { config: nextConfig });
     });
   };
 
-  rerender(config);
-  return { rerender, updateTrack };
+  act(() => {
+    root?.render(
+      <TrackSettingsTestProvider
+        trackId="bulkbed"
+        trackStore={trackStore}
+        updateTrack={(update) => {
+          const typedUpdate = update as TrackUpdate<BulkBedConfig>;
+          const result = updateTrack(typedUpdate);
+          if (result.ok) applyUpdate("bulkbed", typedUpdate);
+          return result;
+        }}
+      >
+        <Profiler id="bulkbed-settings" onRender={onSettingsRender}>
+          <BulkBedSettings />
+        </Profiler>
+      </TrackSettingsTestProvider>,
+    );
+  });
+  return { rerender, trackStore, updateTrack };
 }
 
-function track(config: BulkBedConfig) {
-  return {
-    type: "bulkbed",
-    base: {
-      id: "bulkbed",
-      title: "BulkBed",
-      display: "full",
-      height: 80,
-      color: "#4b9560",
-    },
-    config,
-  };
+function createBulkBedStore(config: BulkBedConfig) {
+  return createTrackStore({
+    modules: [bulkBedModule],
+    tracks: [
+      bulkBedModule.create({
+        id: "bulkbed",
+        title: "BulkBed",
+        height: 80,
+        color: "#4b9560",
+        config,
+      }),
+    ],
+  });
 }
 
 function renderStatefulSettings(
@@ -253,8 +281,22 @@ function renderStatefulSettings(
   onUpdate: (partial: Partial<BulkBedConfig>) => void,
 ) {
   mount();
+  const trackStore = createBulkBedStore(config);
+  const applyUpdate = trackStore.getState().updateTrack;
   act(() => {
-    root?.render(<StatefulSettings initialConfig={config} onUpdate={onUpdate} />);
+    root?.render(
+      <TrackSettingsTestProvider
+        trackId="bulkbed"
+        trackStore={trackStore}
+        updateTrack={(update) => {
+          const typedUpdate = update as TrackUpdate<BulkBedConfig>;
+          onUpdate(typedUpdate.config ?? {});
+          return applyUpdate("bulkbed", typedUpdate);
+        }}
+      >
+        <BulkBedSettings />
+      </TrackSettingsTestProvider>,
+    );
   });
 }
 

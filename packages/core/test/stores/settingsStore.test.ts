@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  type BaseSettingsProps,
   createSettingsStore,
   type SettingsModalProps,
 } from "../../src/browser/state/settingsStore";
@@ -10,7 +9,7 @@ describe("createSettingsStore", () => {
     return null;
   }
 
-  function BaseSettingsComponent(_props: BaseSettingsProps) {
+  function BaseSettingsComponent() {
     return null;
   }
 
@@ -18,7 +17,7 @@ describe("createSettingsStore", () => {
     return null;
   }
 
-  function ReplacementBaseSettings(_props: BaseSettingsProps) {
+  function ReplacementBaseSettings() {
     return null;
   }
 

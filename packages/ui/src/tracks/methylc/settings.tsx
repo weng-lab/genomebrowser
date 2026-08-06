@@ -1,11 +1,11 @@
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
-import type {
-  MethylCConfig,
-  MethylCTooltipItem,
-  TrackSettingsProps,
+import {
+  useSettingsStore,
+  useTrackStore,
+  useTrackStoreApi,
+  type MethylCConfig,
 } from "@weng-lab/genomebrowser";
-import { useEffect, useRef } from "react";
 import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
@@ -36,99 +36,159 @@ const colors: ReadonlyArray<{ key: Color; label: string }> = [
   { key: "depth", label: "Depth color" },
 ];
 
-export function MethylCSettings({
-  track,
-  updateTrack,
-}: TrackSettingsProps<MethylCConfig, MethylCTooltipItem>) {
-  const { config } = track;
-  const committedConfigRef = useRef(config);
-  useEffect(() => {
-    committedConfigRef.current = config;
-  }, [config]);
-
-  const applyConfig = (partial: Partial<MethylCConfig>) => {
-    const result = updateTrack({ config: partial });
-    if (result.ok) {
-      committedConfigRef.current = { ...committedConfigRef.current, ...partial };
-    }
-    return result;
-  };
-
-  const updateUrl = (strand: Strand, channel: Channel, url: string) => {
-    const currentConfig = committedConfigRef.current;
-    return applyConfig({
-      urls: {
-        ...currentConfig.urls,
-        [strand]: {
-          ...currentConfig.urls[strand],
-          [channel]: {
-            ...currentConfig.urls[strand][channel],
-            url,
-          },
-        },
-      },
-    });
-  };
-
-  const updateColor = (color: Color, value: string) => {
-    const currentConfig = committedConfigRef.current;
-    return applyConfig({
-      colors: {
-        ...currentConfig.colors,
-        [color]: value,
-      },
-    });
-  };
-
+export function MethylCSettings() {
   return (
     <TrackSettingsLayout>
-      {strands.map(({ key, title, labelPrefix }) => (
-        <TrackSettingsSection key={key} title={title}>
+      <SourceSettings />
+      <ColorSettings />
+      <RenderingSettings />
+    </TrackSettingsLayout>
+  );
+}
+
+function SourceSettings() {
+  return (
+    <>
+      {strands.map(({ key: strand, title, labelPrefix }) => (
+        <TrackSettingsSection key={strand} title={title}>
           <TrackSettingsFieldGrid>
             {channels.map(({ key: channel, label }) => (
-              <TrackSettingsUrlField
+              <MethylCUrlField
                 key={channel}
+                channel={channel}
                 label={`${labelPrefix} ${label} URL`}
-                value={config.urls[key][channel].url}
-                onCommit={(url) => updateUrl(key, channel, url)}
+                strand={strand}
               />
             ))}
           </TrackSettingsFieldGrid>
         </TrackSettingsSection>
       ))}
+    </>
+  );
+}
 
-      <TrackSettingsSection title="Colors">
-        <TrackSettingsFieldGrid>
-          {colors.map(({ key, label }) => (
-            <TrackSettingsColorField
-              key={key}
-              label={label}
-              value={config.colors[key]}
-              onCommit={(value) => updateColor(key, value)}
-            />
-          ))}
-        </TrackSettingsFieldGrid>
-      </TrackSettingsSection>
+function MethylCUrlField({
+  channel,
+  label,
+  strand,
+}: {
+  channel: Channel;
+  label: string;
+  strand: Strand;
+}) {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const value = useTrackStore(
+    (state) =>
+      (state.getTrack(trackId)?.config as MethylCConfig | undefined)?.urls[strand][channel].url ??
+      "",
+  );
+  const trackStore = useTrackStoreApi();
 
-      <TrackSettingsSection title="Rendering and range">
-        <TrackSettingsFieldGrid>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={config.maskCpgByCoverage ?? false}
-                size="small"
-                onChange={(event) => applyConfig({ maskCpgByCoverage: event.target.checked })}
-              />
-            }
-            label="Mask CpG by coverage"
-            sx={{ m: 0, minWidth: 0 }}
-          />
-        </TrackSettingsFieldGrid>
-        <TrackSettingsRangeFields
-          range={config.range}
-          onCommit={(range) => applyConfig({ range })}
+  return (
+    <TrackSettingsUrlField
+      label={label}
+      value={value}
+      onCommit={(url) => {
+        const state = trackStore.getState();
+        const urls = (state.getTrack(trackId)!.config as MethylCConfig).urls;
+        return state.updateTrack(trackId, {
+          config: {
+            urls: {
+              ...urls,
+              [strand]: {
+                ...urls[strand],
+                [channel]: { ...urls[strand][channel], url },
+              },
+            },
+          },
+        });
+      }}
+    />
+  );
+}
+
+function ColorSettings() {
+  return (
+    <TrackSettingsSection title="Colors">
+      <TrackSettingsFieldGrid>
+        {colors.map(({ key, label }) => (
+          <MethylCColorField key={key} color={key} label={label} />
+        ))}
+      </TrackSettingsFieldGrid>
+    </TrackSettingsSection>
+  );
+}
+
+function MethylCColorField({ color, label }: { color: Color; label: string }) {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const value = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as MethylCConfig | undefined)?.colors[color] ?? "",
+  );
+  const trackStore = useTrackStoreApi();
+
+  return (
+    <TrackSettingsColorField
+      label={label}
+      value={value}
+      onCommit={(nextValue) => {
+        const state = trackStore.getState();
+        const currentColors = (state.getTrack(trackId)!.config as MethylCConfig).colors;
+        return state.updateTrack(trackId, {
+          config: { colors: { ...currentColors, [color]: nextValue } },
+        });
+      }}
+    />
+  );
+}
+
+function RenderingSettings() {
+  return (
+    <TrackSettingsSection title="Rendering and range">
+      <TrackSettingsFieldGrid>
+        <MaskCpgField />
+      </TrackSettingsFieldGrid>
+      <MethylCRangeFields />
+    </TrackSettingsSection>
+  );
+}
+
+function MaskCpgField() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const maskCpgByCoverage = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as MethylCConfig | undefined)?.maskCpgByCoverage,
+  );
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  return (
+    <FormControlLabel
+      control={
+        <Switch
+          checked={maskCpgByCoverage ?? false}
+          size="small"
+          onChange={(event) =>
+            updateTrack(trackId, { config: { maskCpgByCoverage: event.target.checked } })
+          }
         />
-      </TrackSettingsSection>
-    </TrackSettingsLayout>
+      }
+      label="Mask CpG by coverage"
+      sx={{ m: 0, minWidth: 0 }}
+    />
+  );
+}
+
+function MethylCRangeFields() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const min = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as MethylCConfig | undefined)?.range?.min,
+  );
+  const max = useTrackStore(
+    (state) => (state.getTrack(trackId)?.config as MethylCConfig | undefined)?.range?.max,
+  );
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const range = min === undefined || max === undefined ? undefined : { min, max };
+  return (
+    <TrackSettingsRangeFields
+      range={range}
+      onCommit={(nextRange) => updateTrack(trackId, { config: { range: nextRange } })}
+    />
   );
 }

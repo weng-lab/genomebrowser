@@ -51,7 +51,7 @@ type TrackModuleDefinition<
   configSchema: ConfigSchema;
   fetch: Fetch;
   render: Renderers;
-  settingsComponent?: TrackSettingsComponent<z.output<ConfigSchema>, Item>;
+  settingsComponent?: TrackSettingsComponent;
   tooltipComponent?: TrackTooltipComponent<Item, z.output<ConfigSchema>>;
 } & ValidateRenderers<z.output<ConfigSchema>, FetchData<Fetch>, Renderers>;
 
