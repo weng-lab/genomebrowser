@@ -101,7 +101,6 @@ describe("BigWig module", () => {
     const track = createTrack();
     const signature = createFetchSignature(bigWigModule, track);
 
-    expect(signature).toBe(JSON.stringify({ url: "YOUR_URL_HERE" }));
     expect(
       createFetchSignature(bigWigModule, {
         ...track,
@@ -112,6 +111,12 @@ describe("BigWig module", () => {
         },
       }),
     ).toBe(signature);
+    expect(
+      createFetchSignature(bigWigModule, {
+        ...track,
+        config: { ...track.config, url: "ANOTHER_URL" },
+      }),
+    ).not.toBe(signature);
   });
 
   it("aligns both full-mode clamp boundaries with the one-unit signal column", () => {

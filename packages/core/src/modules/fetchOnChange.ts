@@ -176,9 +176,7 @@ function encodeProperties(value: object, context: EncodingContext): EncodedSigna
 }
 
 function encodePropertyKey(key: PropertyKey) {
-  return typeof key === "symbol"
-    ? `symbol:${getSymbolIdentity(key)}`
-    : `string:${String(key)}`;
+  return typeof key === "symbol" ? `symbol:${getSymbolIdentity(key)}` : `string:${String(key)}`;
 }
 
 function compareCodeUnits(left: string, right: string) {

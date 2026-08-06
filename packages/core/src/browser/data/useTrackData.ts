@@ -19,9 +19,7 @@ export function useTrackData({
   region: GenomicRegion;
   onSettled?: () => void;
 }) {
-  const trackDataKey = useTrackStore((state) =>
-    createTrackDataKey(state.registry, state.tracks),
-  );
+  const trackDataKey = useTrackStore((state) => createTrackDataKey(state.registry, state.tracks));
   const trackSnapshot = useMemo(
     () => createTrackSnapshot(useTrackStore, trackDataKey),
     [trackDataKey, useTrackStore],
@@ -35,7 +33,7 @@ export function useTrackData({
   const previousFetchKeys = useRef<Record<string, string>>({});
   const onSettledEvent = useEffectEvent(() => onSettled?.());
   const fetchRegion = useMemo<GenomicRegion>(
-    () => ({ ...region }),
+    () => ({ chromosome: region.chromosome, end: region.end, start: region.start }),
     [region.chromosome, region.end, region.start],
   );
   const regionKey = createRegionKey(fetchRegion);
@@ -94,14 +92,7 @@ export function useTrackData({
     return () => {
       active = false;
     };
-  }, [
-    fetchRegion,
-    regionKey,
-    setData,
-    setFetchingTrackIds,
-    trackSnapshot,
-    useDataStore,
-  ]);
+  }, [fetchRegion, regionKey, registry, setData, setFetchingTrackIds, tracks, useDataStore]);
 
   const dataStates = useMemo(
     () => createDataStates(tracks, completedData, fetchingTrackIds),

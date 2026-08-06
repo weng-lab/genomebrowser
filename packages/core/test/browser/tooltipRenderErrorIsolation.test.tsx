@@ -119,25 +119,27 @@ describe("tooltip render error isolation", () => {
 
   it("does not retry failed content during same-owner movement", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const renderTooltip = vi.fn();
-    await show("moving-owner", <CountingThrowingTooltip onRender={renderTooltip} />, {
+    const CountingThrowingTooltip = vi.fn(function CountingThrowingTooltip(): never {
+      throw renderError;
+    });
+    await show("moving-owner", <CountingThrowingTooltip />, {
       x: 40,
       y: 50,
     });
-    const renderCountAfterFailure = renderTooltip.mock.calls.length;
+    const renderCountAfterFailure = CountingThrowingTooltip.mock.calls.length;
     const reportCountAfterFailure = customReportCount(consoleError.mock.calls);
 
-    await show("moving-owner", <CountingThrowingTooltip onRender={renderTooltip} />, {
+    await show("moving-owner", <CountingThrowingTooltip />, {
       x: 120,
       y: 130,
     });
-    await show("moving-owner", <CountingThrowingTooltip onRender={renderTooltip} />, {
+    await show("moving-owner", <CountingThrowingTooltip />, {
       x: 140,
       y: 150,
     });
 
     expect(requiredText("Tooltip unavailable")).toBeTruthy();
-    expect(renderTooltip).toHaveBeenCalledTimes(renderCountAfterFailure);
+    expect(CountingThrowingTooltip).toHaveBeenCalledTimes(renderCountAfterFailure);
     expect(customReportCount(consoleError.mock.calls)).toBe(reportCountAfterFailure);
     expect(
       requiredText("Tooltip unavailable").parentElement?.parentElement?.getAttribute("transform"),
@@ -167,11 +169,6 @@ function BrowserSurface() {
 }
 
 function ThrowingTooltip({ item: _item }: { item: { secret: string } }): never {
-  throw renderError;
-}
-
-function CountingThrowingTooltip({ onRender }: { onRender: () => void }): never {
-  onRender();
   throw renderError;
 }
 

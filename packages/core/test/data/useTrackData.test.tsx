@@ -132,9 +132,9 @@ describe("useTrackData", () => {
 
     await act(async () => {
       useDataStore.getState().setTrackData("signal", { status: "error", error: "failed" });
-      expect(
-        useTrackStore.getState().updateTrack("signal", { config: { url: "retry" } }),
-      ).toEqual({ ok: true });
+      expect(useTrackStore.getState().updateTrack("signal", { config: { url: "retry" } })).toEqual({
+        ok: true,
+      });
     });
     expect(fetch).toHaveBeenCalledTimes(4);
     expect(fetch.mock.calls.at(-1)?.[0].config.url).toBe("retry");
@@ -157,8 +157,7 @@ describe("useTrackData", () => {
       fetch,
       render: { full: () => null },
     });
-    const createTrack = (id: string) =>
-      module.create({ id, title: id, config: { url: id } });
+    const createTrack = (id: string) => module.create({ id, title: id, config: { url: id } });
     const useDataStore = createDataStore();
     const useTrackStore = createTrackStore({
       modules: [module],
@@ -241,9 +240,9 @@ describe("useTrackData", () => {
 
     await act(async () => {
       expect(
-        useTrackStore.getState().setTracks([
-          secondModule.create({ id: "signal", title: "Signal", config: {} }),
-        ]),
+        useTrackStore
+          .getState()
+          .setTracks([secondModule.create({ id: "signal", title: "Signal", config: {} })]),
       ).toEqual({ ok: true });
     });
 
@@ -295,9 +294,9 @@ describe("useTrackData", () => {
     expect(fetch).toHaveBeenCalledOnce();
 
     await act(async () => {
-      expect(
-        useTrackStore.getState().updateTrack("signal", { config: { revision: 2n } }),
-      ).toEqual({ ok: true });
+      expect(useTrackStore.getState().updateTrack("signal", { config: { revision: 2n } })).toEqual({
+        ok: true,
+      });
     });
 
     expect(fetch).toHaveBeenCalledTimes(2);
@@ -402,11 +401,7 @@ describe("useTrackData", () => {
 
     await act(async () =>
       root?.render(
-        <Harness
-          useDataStore={useDataStore}
-          useTrackStore={useTrackStore}
-          region={region}
-        />,
+        <Harness useDataStore={useDataStore} useTrackStore={useTrackStore} region={region} />,
       ),
     );
     expect(fetch).toHaveBeenCalledTimes(2);

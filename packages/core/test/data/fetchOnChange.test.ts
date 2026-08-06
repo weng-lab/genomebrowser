@@ -212,20 +212,14 @@ describe("fetchOnChange", () => {
   });
 
   it("canonicalizes object keys and distinguishes special numbers", () => {
-    expect(signatureFor({ second: 2, first: 1 })).toBe(
-      signatureFor({ first: 1, second: 2 }),
-    );
+    expect(signatureFor({ second: 2, first: 1 })).toBe(signatureFor({ first: 1, second: 2 }));
     expect(signatureFor(-0)).not.toBe(signatureFor(0));
     expect(signatureFor(Number.NaN)).not.toBe(signatureFor(null));
-    expect(signatureFor(Number.POSITIVE_INFINITY)).not.toBe(
-      signatureFor(Number.NEGATIVE_INFINITY),
-    );
+    expect(signatureFor(Number.POSITIVE_INFINITY)).not.toBe(signatureFor(Number.NEGATIVE_INFINITY));
   });
 
   it("encodes Map, Set, and mixed Date and bigint values", () => {
-    expect(signatureFor(new Map([["key", 1]]))).not.toBe(
-      signatureFor(new Map([["key", 2]])),
-    );
+    expect(signatureFor(new Map([["key", 1]]))).not.toBe(signatureFor(new Map([["key", 2]])));
     expect(signatureFor(new Set(["first"]))).not.toBe(signatureFor(new Set(["second"])));
 
     const first = { timestamp: new Date("2026-01-01T00:00:00Z"), revision: 1n };

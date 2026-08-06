@@ -31,13 +31,18 @@ describe("CAVE module", () => {
     const track = createTrack();
     const signature = createFetchSignature(caveModule, track);
 
-    expect(signature).toBe(JSON.stringify({ neurotransmitter: "GABA", age: "Adulthood" }));
     expect(
       createFetchSignature(caveModule, {
         ...track,
         config: { ...track.config, topColor: "#123456", bottomColor: "#654321" },
       }),
     ).toBe(signature);
+    expect(
+      createFetchSignature(caveModule, {
+        ...track,
+        config: { ...track.config, age: "Prenatal" },
+      }),
+    ).not.toBe(signature);
   });
 
   it("renders concrete config colors directly", () => {

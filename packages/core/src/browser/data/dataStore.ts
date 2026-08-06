@@ -23,10 +23,7 @@ export function createDataStore(): DataStoreInstance {
   }));
 }
 
-export function getTrackDataState(
-  result: DataResult | undefined,
-  isFetching: boolean,
-): DataState {
+export function getTrackDataState(result: DataResult | undefined, isFetching: boolean): DataState {
   if (isFetching) return result?.status === "success" ? result : loadingDataState;
   return result ?? loadingDataState;
 }
