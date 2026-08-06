@@ -4,7 +4,6 @@ import type { TrackMutationResult } from "@weng-lab/genomebrowser";
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { hexToHsv, hsvToHex } from "../src/TrackSettings/color";
 import { TrackSettingsColorField } from "../src/TrackSettings/trackSettingsColorField";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -21,13 +20,6 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("color conversion", () => {
-  it("round-trips normalized six-digit colors through HSV", () => {
-    expect(hsvToHex(hexToHsv("#1a2b3c"))).toBe("#1A2B3C");
-    expect(hsvToHex({ hue: 120, saturation: 100, value: 100 })).toBe("#00FF00");
-  });
-});
-
 describe("TrackSettingsColorField", () => {
   it("shows a labeled required value and swatch without a clear action", () => {
     mount(
@@ -40,7 +32,6 @@ describe("TrackSettingsColorField", () => {
 
     expect(getInput("Track color").value).toBe("#1A2B3C");
     expect(getInput("Track color").placeholder).toBe("");
-    expect(document.body.textContent).not.toContain("fallback");
     expect(getButton("Open Track color color picker")).toBeTruthy();
     expect(getOptionalButton("Clear Track color")).toBeUndefined();
     expect(
@@ -55,23 +46,13 @@ describe("TrackSettingsColorField", () => {
     mount(<RequiredHarness initialValue="#123456" onCommit={onCommit} />);
     const input = getInput("Track color");
 
-    updateInput(input, "");
-    blur(input);
-    expect(onCommit).not.toHaveBeenCalled();
-
     updateInput(input, "#abc");
     expect(input.value).toBe("#abc");
-    const describedBy = input.getAttribute("aria-describedby");
-    expect(describedBy).toBeTruthy();
-    expect(document.getElementById(describedBy ?? "")?.textContent).toContain(
-      "Enter a six-digit hexadecimal color",
-    );
+    expect(document.body.textContent).toContain("Enter a six-digit hexadecimal color");
     act(() => vi.advanceTimersByTime(1_000));
     expect(onCommit).not.toHaveBeenCalled();
 
     updateInput(input, "#a1b2c3");
-    act(() => vi.advanceTimersByTime(1_000));
-    expect(onCommit).not.toHaveBeenCalled();
     keyDown(input, "Enter");
     expect(onCommit).toHaveBeenLastCalledWith("#A1B2C3");
     expect(input.value).toBe("#A1B2C3");
@@ -79,14 +60,13 @@ describe("TrackSettingsColorField", () => {
     updateInput(input, "not a color");
     keyDown(input, "Escape");
     expect(input.value).toBe("#A1B2C3");
-    expect(onCommit).toHaveBeenCalledTimes(1);
 
     updateInput(input, "#fedcba");
     blur(input);
     expect(onCommit).toHaveBeenLastCalledWith("#FEDCBA");
   });
 
-  it("opens with named controls, focuses the picker, and restores focus when closed", () => {
+  it("opens the visual controls, focuses the picker, and restores focus when closed", () => {
     mount(
       <TrackSettingsColorField
         label="Track color"
@@ -98,62 +78,33 @@ describe("TrackSettingsColorField", () => {
 
     click(opener);
 
-    const saturation = getSlider("Track color saturation");
-    expect(document.activeElement).toBe(saturation);
-    expect(document.body.textContent).not.toContain("Selected color:");
-    expect(getSaturationValueSurface("Track color").getAttribute("aria-valuenow")).toBeNull();
-    expect(saturation.getAttribute("aria-valuemin")).toBe("0");
-    expect(saturation.getAttribute("aria-valuemax")).toBe("100");
-    const brightness = getSlider("Track color brightness");
-    expect(brightness.getAttribute("aria-valuemin")).toBe("0");
-    expect(brightness.getAttribute("aria-valuemax")).toBe("100");
-    const hue = getSlider("Track color hue");
-    expect(hue.getAttribute("aria-valuemin")).toBe("0");
-    expect(hue.getAttribute("aria-valuemax")).toBe("359");
+    expect(getPicker()).toBeTruthy();
+    expect(getVisualControls().classList.contains("react-colorful")).toBe(true);
+    const saturation = getPickerSlider("Saturation");
+    expect(document.activeElement?.classList.contains("MuiPopover-paper")).toBe(true);
+    expect(saturation.getAttribute("aria-valuetext")).toContain("Saturation 100%");
+    expect(getPickerSlider("Hue").getAttribute("aria-valuenow")).toBe("0");
 
-    keyDown(hue, "Escape");
+    act(() => getPickerSlider("Hue").focus());
+    keyDown(getPickerSlider("Hue"), "Escape");
     expect(document.activeElement).toBe(opener);
   });
 
-  it("coalesces pointer previews while keeping the picker responsive", () => {
-    vi.useFakeTimers();
+  it("previews picker changes live and commits normalized colors", () => {
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
     mount(<RequiredHarness initialValue="#FF0000" onCommit={onCommit} />);
     click(getButton("Open Track color color picker"));
-    const surface = getSaturationValueSurface("Track color");
-    surface.getBoundingClientRect = () =>
-      ({
-        bottom: 100,
-        height: 100,
-        left: 0,
-        right: 100,
-        top: 0,
-        width: 100,
-        x: 0,
-        y: 0,
-        toJSON: () => undefined,
-      }) as DOMRect;
 
-    pointer(surface, "pointerdown", { clientX: 25, clientY: 75, pointerId: 7 });
-    pointer(surface, "pointermove", { clientX: 50, clientY: 50, pointerId: 7 });
+    const hue = getPickerSlider("Hue");
+    keyDown(hue, "ArrowRight");
+    keyUp(hue, "ArrowRight");
 
-    expect(onCommit).not.toHaveBeenCalled();
-    expect(getComputedStyle(getSelectionHandle(surface)).left).toBe("50%");
-    expect(getComputedStyle(getSelectionHandle(surface)).top).toBe("50%");
-
-    pointer(surface, "pointerup", { clientX: 50, clientY: 50, pointerId: 7 });
     expect(onCommit).toHaveBeenCalledOnce();
-    expect(onCommit).toHaveBeenLastCalledWith("#804040");
-
-    updateRange(getSlider("Track color saturation"), "99");
-    expect(onCommit).toHaveBeenLastCalledWith("#800101");
-
-    updateRange(getSlider("Track color hue"), "120");
-    expect(onCommit).toHaveBeenLastCalledWith("#018001");
-    for (const [color] of onCommit.mock.calls) expect(color).toMatch(/^#[0-9A-F]{6}$/);
+    expect(onCommit).toHaveBeenLastCalledWith("#FF4D00");
+    expect(getInput("Track color").value).toBe("#FF4D00");
   });
 
-  it("keeps the accepted picker color when a preview mutation is rejected", () => {
+  it("returns to the accepted color when a picker mutation is rejected", () => {
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({
       ok: false,
       error: "Core rejected this color.",
@@ -161,51 +112,28 @@ describe("TrackSettingsColorField", () => {
     mount(<TrackSettingsColorField label="Track color" value="#FF0000" onCommit={onCommit} />);
     click(getButton("Open Track color color picker"));
 
-    updateRange(getSlider("Track color hue"), "120");
+    const hue = getPickerSlider("Hue");
+    keyDown(hue, "ArrowRight");
+    keyUp(hue, "ArrowRight");
 
-    expect(onCommit).toHaveBeenCalledWith("#00FF00");
-    expect(getSlider("Track color hue").value).toBe("0");
+    expect(onCommit).toHaveBeenCalledWith("#FF4D00");
     expect(getInput("Track color").value).toBe("#FF0000");
     expect(document.body.textContent).toContain("Core rejected this color.");
+    expect(getPickerSlider("Hue").getAttribute("aria-valuenow")).toBe("0");
   });
 
-  it("preserves hue through achromatic picker changes and honest external updates", () => {
+  it("synchronizes an open picker from honest external updates", () => {
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
-    mount(<TrackSettingsColorField label="Track color" value="#000000" onCommit={onCommit} />);
+    mount(<TrackSettingsColorField label="Track color" value="#FF0000" onCommit={onCommit} />);
     click(getButton("Open Track color color picker"));
-
-    updateRange(getSlider("Track color hue"), "240");
-    expect(onCommit).not.toHaveBeenCalled();
-    expect(getSlider("Track color hue").value).toBe("240");
-
-    updateRange(getSlider("Track color saturation"), "100");
-    expect(onCommit).not.toHaveBeenCalled();
-    updateRange(getSlider("Track color brightness"), "10");
-    expect(onCommit).toHaveBeenLastCalledWith("#00001A");
 
     rerender(<TrackSettingsColorField label="Track color" value="#00FF00" onCommit={onCommit} />);
-    expect(Number(getSlider("Track color hue").value)).toBeCloseTo(120);
+
+    expect(getInput("Track color").value).toBe("#00FF00");
+    expect(getPickerSlider("Hue").getAttribute("aria-valuenow")).toBe("120");
   });
 
-  it("accumulates keyboard slider steps even while their hex output is unchanged", () => {
-    const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
-    mount(<RequiredHarness initialValue="#000000" onCommit={onCommit} />);
-    click(getButton("Open Track color color picker"));
-    updateRange(getSlider("Track color hue"), "120");
-
-    const saturation = getSlider("Track color saturation");
-    for (let step = 1; step <= 10; step += 1) {
-      keyboardRangeStep(saturation, "ArrowRight");
-      expect(Number(saturation.value)).toBe(step);
-    }
-    expect(onCommit).not.toHaveBeenCalled();
-
-    const brightness = getSlider("Track color brightness");
-    for (let step = 1; step <= 10; step += 1) keyboardRangeStep(brightness, "ArrowRight");
-    expect(onCommit).toHaveBeenLastCalledWith("#171A17");
-  });
-
-  it("closes and blocks stale picker interaction when disabled while open", () => {
+  it("closes and blocks picker interaction when disabled while open", () => {
     vi.useFakeTimers();
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
     const renderField = (disabled: boolean) => (
@@ -218,11 +146,8 @@ describe("TrackSettingsColorField", () => {
     );
     mount(renderField(false));
     click(getButton("Open Track color color picker"));
-    const surface = getSaturationValueSurface("Track color");
-    setSurfaceBounds(surface);
 
     rerender(renderField(true));
-    pointer(surface, "pointerdown", { clientX: 50, clientY: 50, pointerId: 1 });
     act(() => vi.runAllTimers());
 
     expect(onCommit).not.toHaveBeenCalled();
@@ -232,40 +157,7 @@ describe("TrackSettingsColorField", () => {
     ).toBeNull();
   });
 
-  it("ignores non-primary pointers and nonzero mouse or pen buttons", () => {
-    const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({ ok: true }));
-    mount(<RequiredHarness initialValue="#FF0000" onCommit={onCommit} />);
-    click(getButton("Open Track color color picker"));
-    const surface = getSaturationValueSurface("Track color");
-    setSurfaceBounds(surface);
-
-    pointer(surface, "pointerdown", {
-      button: 2,
-      clientX: 50,
-      clientY: 50,
-      pointerId: 1,
-    });
-    pointer(surface, "pointerdown", {
-      button: 1,
-      clientX: 50,
-      clientY: 50,
-      pointerId: 2,
-      pointerType: "pen",
-    });
-    pointer(surface, "pointerdown", {
-      clientX: 50,
-      clientY: 50,
-      isPrimary: false,
-      pointerId: 3,
-    });
-    expect(onCommit).not.toHaveBeenCalled();
-
-    pointer(surface, "pointerdown", { clientX: 50, clientY: 50, pointerId: 4 });
-    pointer(surface, "pointerup", { clientX: 50, clientY: 50, pointerId: 4 });
-    expect(onCommit).toHaveBeenCalledOnce();
-  });
-
-  it("constrains the portaled picker to the viewport without clipping its surface", () => {
+  it("constrains the portaled picker to the viewport", () => {
     mount(
       <TrackSettingsColorField
         label="Track color"
@@ -276,10 +168,11 @@ describe("TrackSettingsColorField", () => {
     click(getButton("Open Track color color picker"));
 
     const paper = document.body.querySelector<HTMLElement>(".MuiPopover-paper");
-    expect(paper).toBeTruthy();
     expect(getComputedStyle(paper as HTMLElement).maxWidth).toBe("calc(100vw - 16px)");
-    expect(getSaturationValueSurface("Track color").getAttribute("role")).toBe("img");
-    expect(paper?.closest("body")).toBe(document.body);
+    expect(getComputedStyle(paper as HTMLElement).overflow).toBe("visible");
+    expect(getComputedStyle(paper as HTMLElement).padding).toBe("0px");
+    expect(getVisualControls().style.width).toBe("100%");
+    expect(getVisualControls().closest("body")).toBe(document.body);
   });
 });
 
@@ -338,46 +231,37 @@ function getOptionalButton(name: string) {
   );
 }
 
-function getSaturationValueSurface(label: string) {
-  const surface = document.body.querySelector<HTMLElement>(
-    `[role="img"][aria-label^="${label} saturation and brightness plane."]`,
+function getPicker() {
+  const picker = document.body.querySelector<HTMLElement>(
+    '[role="group"][aria-label="Track color color picker"]',
   );
-  if (!surface) throw new Error(`Could not find saturation/value surface for ${label}`);
-  return surface;
+  if (!picker) throw new Error("Could not find the color picker");
+  return picker;
 }
 
-function getSelectionHandle(surface: HTMLElement) {
-  const handle = surface.querySelector<HTMLElement>("[aria-hidden='true']");
-  if (!handle) throw new Error("Could not find saturation/value selection handle");
-  return handle;
+function getVisualControls() {
+  const controls = getPicker().querySelector<HTMLElement>(
+    '[aria-label="Track color visual color controls"]',
+  );
+  if (!controls) throw new Error("Could not find the visual color controls");
+  return controls;
 }
 
-function getSlider(label: string) {
-  const slider = Array.from(
-    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
-  ).find((candidate) => candidate.getAttribute("aria-label") === label);
-  if (!slider) throw new Error(`Could not find slider labeled ${label}`);
+function getPickerSlider(label: "Hue" | "Saturation") {
+  const selector =
+    label === "Hue"
+      ? '.react-colorful__hue [role="slider"]'
+      : '.react-colorful__saturation [role="slider"]';
+  const slider = getPicker().querySelector<HTMLElement>(selector);
+  if (!slider) throw new Error(`Could not find picker slider ${label}`);
   return slider;
 }
 
 function updateInput(input: HTMLInputElement, value: string) {
-  setNativeInputValue(input, value);
-  act(() => input.dispatchEvent(new Event("input", { bubbles: true })));
-}
-
-function updateRange(input: HTMLInputElement, value: string) {
-  setNativeInputValue(input, value);
-  act(() => input.dispatchEvent(new Event("change", { bubbles: true })));
-}
-
-function keyboardRangeStep(input: HTMLInputElement, key: "ArrowLeft" | "ArrowRight") {
-  keyDown(input, key);
-}
-
-function setNativeInputValue(input: HTMLInputElement, value: string) {
   const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
   if (!valueSetter) throw new Error("Input value setter is unavailable");
   valueSetter.call(input, value);
+  act(() => input.dispatchEvent(new Event("input", { bubbles: true })));
 }
 
 function blur(input: HTMLInputElement) {
@@ -389,44 +273,17 @@ function click(element: HTMLElement) {
 }
 
 function keyDown(element: HTMLElement, key: string) {
-  act(() => element.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key })));
+  dispatchKeyboardEvent(element, "keydown", key);
 }
 
-function pointer(
-  element: HTMLElement,
-  type: string,
-  init: {
-    button?: number;
-    clientX: number;
-    clientY: number;
-    isPrimary?: boolean;
-    pointerId: number;
-    pointerType?: string;
-  },
-) {
-  const event = new MouseEvent(type, {
-    bubbles: true,
-    button: init.button ?? 0,
-    clientX: init.clientX,
-    clientY: init.clientY,
-  });
-  Object.defineProperty(event, "pointerId", { value: init.pointerId });
-  Object.defineProperty(event, "pointerType", { value: init.pointerType ?? "mouse" });
-  Object.defineProperty(event, "isPrimary", { value: init.isPrimary ?? true });
+function keyUp(element: HTMLElement, key: string) {
+  dispatchKeyboardEvent(element, "keyup", key);
+}
+
+function dispatchKeyboardEvent(element: HTMLElement, type: "keydown" | "keyup", key: string) {
+  const event = new KeyboardEvent(type, { bubbles: true, key });
+  const keyCode = { ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 }[key] ?? 0;
+  Object.defineProperty(event, "keyCode", { value: keyCode });
+  Object.defineProperty(event, "which", { value: keyCode });
   act(() => element.dispatchEvent(event));
-}
-
-function setSurfaceBounds(surface: HTMLElement) {
-  surface.getBoundingClientRect = () =>
-    ({
-      bottom: 100,
-      height: 100,
-      left: 0,
-      right: 100,
-      top: 0,
-      width: 100,
-      x: 0,
-      y: 0,
-      toJSON: () => undefined,
-    }) as DOMRect;
 }

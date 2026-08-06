@@ -189,10 +189,15 @@ describe("BigWig settings", () => {
     expect(getOptionalButton("Clear Clamp indicator color")).toBeUndefined();
     const opener = getButton("Open Clamp indicator color color picker");
     act(() => opener.click());
-    const saturation = getSlider("Clamp indicator color saturation");
-    act(() =>
-      saturation.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" })),
+    const picker = document.body.querySelector<HTMLElement>(
+      '[role="group"][aria-label="Clamp indicator color color picker"]',
     );
+    const colorSlider = picker?.querySelector<HTMLElement>('[role="slider"]');
+    if (!colorSlider) throw new Error("Could not find the clamp color picker controls");
+    act(() => {
+      colorSlider.focus();
+      colorSlider.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Escape" }));
+    });
     expect(updateTrack).not.toHaveBeenCalled();
     expect(document.activeElement).toBe(opener);
   });
@@ -291,14 +296,6 @@ function getOptionalButton(name: string) {
   return Array.from(document.body.querySelectorAll<HTMLButtonElement>("button")).find(
     (candidate) => candidate.getAttribute("aria-label") === name,
   );
-}
-
-function getSlider(name: string) {
-  const slider = Array.from(
-    document.body.querySelectorAll<HTMLInputElement>('input[type="range"]'),
-  ).find((candidate) => candidate.getAttribute("aria-label") === name);
-  if (!slider) throw new Error(`Could not find slider named ${name}`);
-  return slider;
 }
 
 function clickInput(label: string) {

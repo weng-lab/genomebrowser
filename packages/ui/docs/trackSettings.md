@@ -221,13 +221,13 @@ Every entered bound must be finite. When both are present, minimum must be less 
 | `disabled` | `boolean`                                | `false`  | Disables the text field, picker, and commits.                  |
 | `onCommit` | `(color: string) => TrackMutationResult` | Required | Attempts to persist a normalized `#RRGGBB` color.              |
 
-Manual entries must use six-digit hexadecimal `#RRGGBB` form and are normalized to uppercase. The field is required and has no clear action or fallback state. The picker previews saturation, brightness, and hue changes live. During pointer dragging, it coalesces commits to animation frames and always attempts the final color when the pointer is released.
+Manual entries must use six-digit hexadecimal `#RRGGBB` form and are normalized to uppercase. The field is required and has no clear action or fallback state. The visual picker provides a saturation and brightness surface plus a hue slider. Pointer and keyboard changes preview live, with rapid updates coalesced to animation frames and the final color committed when the interaction ends.
 
 ## Accessibility
 
 Core supplies the modal heading, close action, dragging behavior, and modal Escape handling. Give every field a specific visible label. Layout primitives preserve source order when rows stack.
 
-Range validation is associated with both bound inputs while rendering one shared error message. Color fields expose the hexadecimal text as well as the swatch. The picker has named saturation, brightness, and hue controls with keyboard slider behavior; opening it moves focus to the saturation control, and closing it restores focus to the swatch button. Disabled dependent controls remain visible but inoperable.
+Range validation is associated with both bound inputs while rendering one shared error message. Color fields expose the hexadecimal text as well as the swatch. The picker exposes keyboard-operable color and hue sliders inside a labeled group. Opening it moves focus into the popover, and closing it restores focus to the swatch button. Disabled dependent controls remain visible but inoperable.
 
 ## Built-in settings components
 
