@@ -40,7 +40,7 @@ describe("CAVE module", () => {
     expect(
       createFetchSignature(caveModule, {
         ...track,
-        config: { ...track.config, age: "Prenatal" },
+        config: { ...track.config, age: "Adolescence" },
       }),
     ).not.toBe(signature);
   });

@@ -15,14 +15,9 @@
   "dependencies": {
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
-    "@mui/icons-material": "7.3.11",
     "@mui/material": "7.3.11",
-    "@mui/x-data-grid-premium": "8.29.2",
     "@mui/x-license": "8.29.2",
-    "@mui/x-tree-view": "8.29.2",
     "@weng-lab/genomebrowser": "workspace:*",
-    "@weng-lab/genomebrowser-ui": "workspace:*",
-    "@weng-lab/ui-components": "^3.2.1",
     "next": "16.2.12",
     "react": "19.2.8",
     "react-dom": "19.2.8"
