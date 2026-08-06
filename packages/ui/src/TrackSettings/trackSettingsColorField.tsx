@@ -27,6 +27,12 @@ type PickerSession = {
 
 /** A validated hexadecimal field with an accessible visual color picker. */
 export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
+  return (
+    <TrackSettingsColorFieldSession key={props.disabled ? "disabled" : "enabled"} {...props} />
+  );
+}
+
+function TrackSettingsColorFieldSession(props: TrackSettingsColorFieldProps) {
   const [anchorElement, setAnchorElement] = useState<HTMLButtonElement>();
   const [pickerSession, setPickerSession] = useState<PickerSession>();
   const openingControlRef = useRef<HTMLButtonElement>(null);
@@ -56,13 +62,6 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
   }
   const pickerColor = currentPickerSession?.color ?? externalColor;
   const pickerIsOpen = anchorElement !== undefined && !props.disabled;
-
-  useEffect(() => {
-    if (!props.disabled || anchorElement === undefined) return;
-    cancelPendingPickerCommit();
-    setPickerSession(undefined);
-    setAnchorElement(undefined);
-  }, [anchorElement, props.disabled]);
 
   useEffect(
     () => () => {
@@ -109,14 +108,6 @@ export function TrackSettingsColorField(props: TrackSettingsColorFieldProps) {
       emittedColor: hexColor,
       externalColor: session?.externalColor ?? externalColor,
     }));
-  };
-
-  const cancelPendingPickerCommit = () => {
-    if (animationFrameRef.current !== undefined) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = undefined;
-    }
-    pendingColorRef.current = undefined;
   };
 
   const flushPickerCommit = () => {
