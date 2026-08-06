@@ -33,7 +33,7 @@ function GapField() {
         step={1}
         value={gap ?? 0}
         onChange={(event) => {
-          const nextGap = Number(event.target.value);
+          const nextGap = event.currentTarget.valueAsNumber;
           if (Number.isFinite(nextGap) && nextGap >= 0) {
             updateTrack(trackId, { config: { gap: nextGap } });
           }

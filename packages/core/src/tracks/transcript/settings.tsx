@@ -61,7 +61,7 @@ function VersionField() {
         step={1}
         value={version}
         onChange={(event) => {
-          const nextVersion = Number(event.target.value);
+          const nextVersion = event.currentTarget.valueAsNumber;
           if (Number.isInteger(nextVersion) && nextVersion > 0) {
             updateTrack(trackId, { config: { version: nextVersion } });
           }

@@ -82,8 +82,8 @@ function HeightField() {
         min={20}
         value={height}
         onChange={(event) => {
-          const nextHeight = Number(event.target.value);
-          if (Number.isNaN(nextHeight)) return;
+          const nextHeight = event.currentTarget.valueAsNumber;
+          if (!Number.isFinite(nextHeight)) return;
           const result = updateTrack(trackId, { base: { height: Math.max(20, nextHeight) } });
           setError(result.ok ? undefined : result.error);
         }}

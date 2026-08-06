@@ -81,6 +81,9 @@ function CollectionDataGrid({
     });
     if (!nextGridSelectionModel) return;
 
+    // MUI's propagated model includes synthetic group IDs that cannot be derived until its grid API
+    // is initialized. This state intentionally adapts the external leaf-only controlled selection.
+    // eslint-disable-next-line react-doctor/no-adjust-state-on-prop-change
     setGridSelectionModel((current) =>
       selectionModelsAreEqual(current, nextGridSelectionModel) ? current : nextGridSelectionModel,
     );
