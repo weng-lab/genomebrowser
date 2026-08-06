@@ -1,5 +1,7 @@
 import TrackSelect from "./TrackSelect/TrackSelect";
 export { TrackSelect };
+export { BrowserNavigationControls } from "./BrowserNavigationControls/browserNavigationControls";
+export type { BrowserNavigationControlsProps } from "./BrowserNavigationControls/browserNavigationControls";
 export { TrackBaseSettings } from "./TrackSettings/trackBaseSettings";
 export { TrackSettingsColorField } from "./TrackSettings/trackSettingsColorField";
 export type { TrackSettingsColorFieldProps } from "./TrackSettings/trackSettingsColorField";

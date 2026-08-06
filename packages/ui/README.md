@@ -113,4 +113,5 @@ Use `@weng-lab/genomebrowser` by itself when you only need to render and control
 - [Track settings](docs/trackSettings.md) - install MUI base controls and configurable track modules
 - [TrackSelect](docs/trackSelect.md) - collections, selection behavior, customization, and schema tooling
 - [Cytobands](docs/cytobands.md) - chromosome ideograms, region brackets, and interactive loci
+- [Browser navigation controls](docs/browserNavigationControls.md) - controlled pan and zoom buttons
 - [Track interactions](docs/recipes/trackInteractions.md) - connect collection tracks to host callbacks

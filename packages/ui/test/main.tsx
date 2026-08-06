@@ -30,6 +30,7 @@ import {
   BigBedTooltip,
   BigWigSettings,
   BigWigTooltip,
+  BrowserNavigationControls,
   BulkBedSettings,
   BulkBedTooltip,
   CaveSettings,
@@ -382,14 +383,22 @@ function InteractionShowcase() {
     <>
       <Paper variant="outlined" sx={{ mb: 1, p: 1.5 }}>
         <Stack spacing={1}>
-          <Typography variant="subtitle1">Cytobands integration</Typography>
+          <Typography variant="subtitle1">Browser navigation and cytobands</Typography>
           <Typography variant="body2">
-            The blue bracket follows the complete browser-store region independently. Hover a locus
-            to start its local application-data lookup; click it to move the browser and bracket.
+            Pan or zoom the browser with the navigation controls. The blue bracket follows the
+            complete browser-store region independently. Hover a locus to start its local
+            application-data lookup; click it to move the browser and bracket.
           </Typography>
           <Typography variant="caption">
             {`Browser store: ${region.chromosome}:${region.start.toLocaleString()}–${region.end.toLocaleString()}`}
           </Typography>
+          <BrowserNavigationControls
+            assembly={hg38}
+            region={region}
+            onRegionChange={(nextRegion) => {
+              setRegion(nextRegion);
+            }}
+          />
           <Stack direction="row" spacing={2} alignItems="center">
             <Button sx={{ width: 96 }} variant="contained" onClick={() => setOpen(true)}>
               Open
