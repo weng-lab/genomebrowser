@@ -1,5 +1,5 @@
 import type { GenomicRegion } from "../../genome/region";
-import type { BigWigData, RenderedBigWigPoint, YRange } from "./types";
+import type { BigWigData, RenderedBigWigPoint, YRange, YRangeOverride } from "./types";
 
 export function condenseBigWigData(
   data: BigWigData[],
@@ -41,8 +41,19 @@ export function getBigWigRange(points: RenderedBigWigPoint[]): YRange {
   }
 
   if (min === Infinity || max === -Infinity) return { min: 0, max: 1 };
-  if (min === max) return { min: Math.min(0, min), max: max === 0 ? 1 : max };
+  if (min === max) {
+    if (min === 0) return { min: 0, max: 1 };
+    return min < 0 ? { min, max: 0 } : { min: 0, max };
+  }
   return { min, max };
+}
+
+export function resolveBigWigRange(automaticRange: YRange, override?: YRangeOverride): YRange {
+  const resolvedRange = {
+    min: override?.min ?? automaticRange.min,
+    max: override?.max ?? automaticRange.max,
+  };
+  return resolvedRange.min < resolvedRange.max ? resolvedRange : automaticRange;
 }
 
 export function applyFillWithZero(points: RenderedBigWigPoint[]) {
@@ -56,13 +67,15 @@ export function getPointAtMouseX(points: RenderedBigWigPoint[], mouseX: number, 
   if (points.length === 0 || width <= 0) return undefined;
   const scale = points.length / width;
   const index = Math.max(0, Math.min(points.length - 1, Math.round(mouseX * scale)));
-  const point = points[index];
-  if (!point || (point.min === null && point.max === null)) return undefined;
-  return point;
+  return points[index];
+}
+
+export function hasBigWigData(point: RenderedBigWigPoint | undefined) {
+  return point !== undefined && (point.min !== null || point.max !== null);
 }
 
 export function formatBigWigTooltip(point: RenderedBigWigPoint) {
-  return point.max === null ? undefined : point.max.toFixed(2);
+  return point.max === null ? "No data" : point.max.toFixed(2);
 }
 
 export function createYScale(range: YRange, height: number) {

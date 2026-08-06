@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { defineTrackModule } from "../../modules/defineTrackModule";
 import { fetchOnChange } from "../../modules/fetchOnChange";
+import { hexColorSchema } from "../../modules/schemas";
 import { fetchMethylC } from "./fetch";
 import { SplitMethylC } from "./render";
 import { MethylCTooltip } from "./tooltip";
@@ -41,10 +42,10 @@ const methylCConfigSchema = z.object({
   }),
   colors: z
     .object({
-      cpg: z.string().default(defaultMethylCColors.cpg),
-      chg: z.string().default(defaultMethylCColors.chg),
-      chh: z.string().default(defaultMethylCColors.chh),
-      depth: z.string().default(defaultMethylCColors.depth),
+      cpg: hexColorSchema.default(defaultMethylCColors.cpg),
+      chg: hexColorSchema.default(defaultMethylCColors.chg),
+      chh: hexColorSchema.default(defaultMethylCColors.chh),
+      depth: hexColorSchema.default(defaultMethylCColors.depth),
     })
     .default(defaultMethylCColors),
   maskCpgByCoverage: z.boolean().default(false),

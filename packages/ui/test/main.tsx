@@ -11,19 +11,36 @@ import "./muiLicense";
 import {
   bigBedModule,
   bigWigModule,
+  bulkBedModule,
+  caveModule,
   createBrowserStore,
+  createSettingsStore,
   createTrackStore,
   GenomeBrowser,
   hg38,
   methylCModule,
+  parseRegion,
+  transcriptModule,
   type GenomicRegion,
   type Highlight,
   type TrackRuntimeContext,
-  transcriptModule,
 } from "@weng-lab/genomebrowser";
 import {
+  BigBedSettings,
+  BigBedTooltip,
+  BigWigSettings,
+  BigWigTooltip,
+  BulkBedSettings,
+  BulkBedTooltip,
+  CaveSettings,
+  CaveTooltip,
   Cytobands,
+  MethylCSettings,
+  MethylCTooltip,
+  TrackBaseSettings,
   TrackSelect,
+  TranscriptSettings,
+  TranscriptTooltip,
   withValueMarkers,
   type TrackSelectCollectionContext,
   type TrackSelectInteraction,
@@ -34,11 +51,51 @@ import {
 import biosamples from "./collections/human-biosamples.json";
 import psychscreenTracks from "./collections/psychscreen.json";
 
+const bigBedUiModule = {
+  ...bigBedModule,
+  settingsComponent: BigBedSettings,
+  tooltipComponent: BigBedTooltip,
+} satisfies typeof bigBedModule;
+
+const bigWigUiModule = {
+  ...bigWigModule,
+  settingsComponent: BigWigSettings,
+  tooltipComponent: BigWigTooltip,
+} satisfies typeof bigWigModule;
+
+const bulkBedUiModule = {
+  ...bulkBedModule,
+  settingsComponent: BulkBedSettings,
+  tooltipComponent: BulkBedTooltip,
+} satisfies typeof bulkBedModule;
+
+const caveUiModule = {
+  ...caveModule,
+  settingsComponent: CaveSettings,
+  tooltipComponent: CaveTooltip,
+} satisfies typeof caveModule;
+
+const methylCUiModule = {
+  ...methylCModule,
+  settingsComponent: MethylCSettings,
+  tooltipComponent: MethylCTooltip,
+} satisfies typeof methylCModule;
+
+const transcriptUiModule = {
+  ...transcriptModule,
+  settingsComponent: TranscriptSettings,
+  tooltipComponent: TranscriptTooltip,
+} satisfies typeof transcriptModule;
+
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
-  region: { chromosome: "chr6", start: 20_092_778, end: 23_099_592 },
+  region: parseRegion("chr6:21,592,778-21,599,592"),
   marginWidth: 55,
   trackWidth: 1445,
+});
+
+const useSettingsStore = createSettingsStore({
+  baseSettingsComponent: TrackBaseSettings,
 });
 
 const cytobandHighlights: readonly Highlight[] = [
@@ -111,13 +168,51 @@ function LocusTooltip({ highlight }: { highlight: Highlight }) {
   );
 }
 
-const modules = [bigWigModule, bigBedModule, methylCModule, transcriptModule];
+const modules = [
+  bigWigUiModule,
+  bigBedUiModule,
+  bulkBedUiModule,
+  caveUiModule,
+  methylCUiModule,
+  transcriptUiModule,
+];
 const useTrackStore = createTrackStore({
   modules,
   tracks: [
-    transcriptModule.create({
-      id: "genes",
-      title: "GENCODE Genes",
+    bigWigUiModule.create({
+      id: "bigwig-settings-example",
+      title: "BigWig settings: DNase aggregate",
+      color: "#1B2021",
+      config: {
+        url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
+      },
+    }),
+    bigBedUiModule.create({
+      id: "bigbed-settings-example",
+      title: "BigBed settings: ENCODE cCREs",
+      color: "#4b9560",
+      display: "dense",
+      config: {
+        url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
+      },
+    }),
+    bulkBedUiModule.create({
+      id: "bulkbed-settings-example",
+      title: "BulkBed settings: ENCODE datasets",
+      color: "#4b9560",
+      config: {
+        gap: 4,
+        datasets: [
+          {
+            name: "ENCODE cCREs",
+            url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
+          },
+        ],
+      },
+    }),
+    transcriptUiModule.create({
+      id: "transcript-settings-example",
+      title: "Transcript settings: GENCODE genes",
       display: "squish",
       color: "#444444",
       config: {
@@ -125,8 +220,50 @@ const useTrackStore = createTrackStore({
         version: 40,
       },
     }),
+    caveUiModule.create({
+      id: "cave-settings-example",
+      title: "CAVE settings: adult GABA",
+      config: {
+        neurotransmitter: "GABA",
+        age: "Adulthood",
+      },
+    }),
+    methylCUiModule.create({
+      id: "methylc-settings-example",
+      title: "MethylC settings: EB100001",
+      config: {
+        range: { min: 0, max: 1 },
+        urls: {
+          plusStrand: {
+            cpg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_pos.bw" },
+            chg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_pos.bw" },
+            chh: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_pos.bw" },
+            depth: {
+              url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_pos.bw",
+            },
+          },
+          minusStrand: {
+            cpg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_cpg_neg.bw" },
+            chg: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chg_neg.bw" },
+            chh: { url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_chh_neg.bw" },
+            depth: {
+              url: "https://users.wenglab.org/mezaj/mohd/EB100001/EB100001_coverage_neg.bw",
+            },
+          },
+        },
+      },
+    }),
   ],
 });
+
+const settingsExamples = [
+  { id: "bigwig-settings-example", label: "Open BigWig settings" },
+  { id: "bigbed-settings-example", label: "Open BigBed settings" },
+  { id: "bulkbed-settings-example", label: "Open BulkBed settings" },
+  { id: "transcript-settings-example", label: "Open transcript settings" },
+  { id: "cave-settings-example", label: "Open CAVE settings" },
+  { id: "methylc-settings-example", label: "Open MethylC settings" },
+] as const;
 
 const assayColors = {
   DNase: "#06da93",
@@ -317,11 +454,44 @@ function InteractionShowcase() {
   );
 }
 
+function TrackSettingsExamples() {
+  const openSettings = useSettingsStore((state) => state.openSettings);
+
+  return (
+    <Paper variant="outlined" sx={{ mb: 1, p: 1.5 }}>
+      <Stack spacing={1}>
+        <Typography variant="subtitle1">Track UI examples</Typography>
+        <Typography variant="body2">
+          Open a prepared track to review its MUI settings dialog. Hover data in any matching
+          browser track to review its tooltip.
+        </Typography>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap flexWrap="wrap">
+          {settingsExamples.map((example) => (
+            <Button
+              key={example.id}
+              size="small"
+              variant="outlined"
+              onClick={() => openSettings(example.id, { x: 0, y: 0 })}
+            >
+              {example.label}
+            </Button>
+          ))}
+        </Stack>
+      </Stack>
+    </Paper>
+  );
+}
+
 function Main() {
   return (
     <Stack>
+      <TrackSettingsExamples />
       <InteractionShowcase />
-      <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
+      <GenomeBrowser
+        browserStore={useBrowserStore}
+        settingsStore={useSettingsStore}
+        trackStore={useTrackStore}
+      />
     </Stack>
   );
 }

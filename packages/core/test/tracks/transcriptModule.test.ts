@@ -23,6 +23,10 @@ describe("Transcript module", () => {
     expect(transcriptModule.tooltipComponent).toBeTypeOf("function");
     expect(config).not.toHaveProperty("tooltip");
     expect(config.config.endpoint).toBe(defaultScreenGraphQlEndpoint);
+    expect(config.config).toMatchObject({
+      canonicalColor: "#000000",
+      highlightColor: "#000000",
+    });
   });
 
   it("posts to its host-owned endpoint without credentials", async () => {
@@ -32,7 +36,13 @@ describe("Transcript module", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     const data = await transcriptModule.fetch({
-      config: { endpoint, assembly: "GRCh38", version: 40 },
+      config: {
+        endpoint,
+        assembly: "GRCh38",
+        version: 40,
+        canonicalColor: "#000000",
+        highlightColor: "#000000",
+      },
       region: { chromosome: "chr6", start: 10, end: 20 },
     });
 
@@ -62,6 +72,31 @@ describe("Transcript module", () => {
     ).toThrow();
   });
 
+  it("rejects non-hexadecimal transcript colors", () => {
+    expect(() =>
+      transcriptModule.create({
+        id: "genes",
+        title: "Genes",
+        config: {
+          assembly: "GRCh38",
+          version: 40,
+          canonicalColor: "rebeccapurple",
+        },
+      }),
+    ).toThrow(/six-digit hexadecimal color/);
+    expect(() =>
+      transcriptModule.create({
+        id: "genes",
+        title: "Genes",
+        config: {
+          assembly: "GRCh38",
+          version: 40,
+          highlightColor: "#abc",
+        },
+      }),
+    ).toThrow(/six-digit hexadecimal color/);
+  });
+
   it.each([
     [
       "HTTP failures",
@@ -77,7 +112,13 @@ describe("Transcript module", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
     await expect(
       transcriptModule.fetch({
-        config: { endpoint, assembly: "GRCh38", version: 40 },
+        config: {
+          endpoint,
+          assembly: "GRCh38",
+          version: 40,
+          canonicalColor: "#000000",
+          highlightColor: "#000000",
+        },
         region: { chromosome: "chr6", start: 10, end: 20 },
       }),
     ).rejects.toThrow(message);

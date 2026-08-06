@@ -25,6 +25,12 @@ export function useTrackStore<T>(selector: (state: TrackStore) => T): T {
   return context.trackStore(selector);
 }
 
+export function useTrackStoreApi(): TrackStoreInstance {
+  const context = use(BrowserContext);
+  if (!context) throw new Error("useTrackStoreApi must be used within a GenomeBrowser");
+  return context.trackStore;
+}
+
 export function useBrowserStore<T>(selector: (state: BrowserStore) => T): T {
   const context = use(BrowserContext);
   if (!context) throw new Error("useBrowserStore must be used within a GenomeBrowser");

@@ -7,7 +7,7 @@ export type TrackBase = {
   title: string;
   display: string;
   height: number;
-  color?: string;
+  color: string;
 };
 
 export type TrackRuntimeContext<Config = unknown> = Readonly<{
@@ -61,7 +61,7 @@ export type TrackFetch<Config, Data> = (context: TrackFetchContext<Config>) => P
 export type TrackRendererProps<Config, Data> = {
   id: string;
   config: Config;
-  color?: string;
+  color: string;
   data: Data;
   region: GenomicRegion;
   width: number;
@@ -72,13 +72,21 @@ export type TrackRenderer<Config, Data> = ComponentType<TrackRendererProps<Confi
 
 export type TrackMutationResult = { ok: true } | { ok: false; error: string };
 
-export type TrackSettingsProps<Config> = {
-  id: string;
-  config: Config;
-  updateConfig: (partial: Partial<Config>) => TrackMutationResult;
+export type TrackBaseUpdate = Partial<Omit<TrackBase, "id">>;
+
+export type TrackUpdate<Config> = {
+  base?: TrackBaseUpdate;
+  config?: Partial<Config>;
 };
 
-export type TrackSettingsComponent<Config> = ComponentType<TrackSettingsProps<Config>>;
+export type ReadonlyTrackInstance<Config, InteractionItem = unknown> = Readonly<{
+  type: string;
+  base: Readonly<TrackBase>;
+  config: Config extends object ? Readonly<Config> : Config;
+  interaction?: Readonly<TrackInteraction<InteractionItem, Config>>;
+}>;
+
+export type TrackSettingsComponent = ComponentType;
 
 export type TrackTooltipComponent<Item, Config> = ComponentType<{
   item: Item;
@@ -120,7 +128,7 @@ export type TrackModule<
   validate(instance: unknown): TrackInstance<z.output<ConfigSchema>, Item> & { type: Type };
   fetch: TrackFetch<z.output<ConfigSchema>, Data>;
   render: Record<string, TrackRenderer<z.output<ConfigSchema>, Data>>;
-  settingsComponent?: TrackSettingsComponent<z.output<ConfigSchema>>;
+  settingsComponent?: TrackSettingsComponent;
   tooltipComponent?: TrackTooltipComponent<Item, z.output<ConfigSchema>>;
 };
 

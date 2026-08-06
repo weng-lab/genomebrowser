@@ -91,22 +91,59 @@ describe("render window", () => {
 
   it("matches the width-independent data signature", () => {
     const region = { chromosome: "chr1", start: 0, end: 300 };
-    const tracks = [
-      {
-        type: "bigwig",
-        base: {
-          id: "signal",
-          title: "Signal",
-          display: "full",
-          height: 80,
-        },
-        config: {},
-      },
-    ];
+    const trackIds = ["signal"];
 
-    expect(createRenderWindowSignature(region, tracks)).toBe(
+    expect(createRenderWindowSignature(region, trackIds)).toBe(
       JSON.stringify({ region, trackIds: JSON.stringify(["signal"]) }),
     );
+  });
+
+  it("changes settlement keys for membership but not equivalent ID snapshots", async () => {
+    const region = { chromosome: "chr1", start: 0, end: 100 };
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    await act(async () =>
+      root?.render(
+        <Harness
+          assembly={assembly}
+          region={region}
+          trackIds={["signal"]}
+          trackWidth={250}
+          overscanMultiplier={3}
+        />,
+      ),
+    );
+    const initialKey = renderWindow?.dataKey;
+
+    await act(async () =>
+      root?.render(
+        <Harness
+          assembly={assembly}
+          region={region}
+          trackIds={["signal"]}
+          trackWidth={250}
+          overscanMultiplier={3}
+        />,
+      ),
+    );
+    expect(renderWindow?.dataKey).toBe(initialKey);
+    expect(renderWindow?.isDataSettled).toBe(true);
+
+    await act(async () =>
+      root?.render(
+        <Harness
+          assembly={assembly}
+          region={region}
+          trackIds={["signal", "genes"]}
+          trackWidth={250}
+          overscanMultiplier={3}
+        />,
+      ),
+    );
+    expect(renderWindow?.dataKey).not.toBe(initialKey);
+    expect(renderWindow?.isDataSettled).toBe(false);
   });
 
   it("settles only data for the current committed render window", async () => {
@@ -114,7 +151,7 @@ describe("render window", () => {
     const nextRegion = { chromosome: "chr1", start: 1_000, end: 1_200 };
     const initialTarget = { chromosome: "chr1", start: 0, end: 200 };
     const nextTarget = { chromosome: "chr1", start: 800, end: 1_400 };
-    const tracks: Parameters<typeof useRenderWindow>[0]["tracks"] = [];
+    const trackIds: Parameters<typeof useRenderWindow>[0]["trackIds"] = [];
 
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -125,7 +162,7 @@ describe("render window", () => {
         <Harness
           assembly={assembly}
           region={initialRegion}
-          tracks={tracks}
+          trackIds={trackIds}
           trackWidth={250}
           overscanMultiplier={3}
         />,
@@ -143,7 +180,7 @@ describe("render window", () => {
         <Harness
           assembly={assembly}
           region={nextRegion}
-          tracks={tracks}
+          trackIds={trackIds}
           trackWidth={250}
           overscanMultiplier={3}
         />,
@@ -168,7 +205,7 @@ describe("render window", () => {
 
   it("derives width-only geometry synchronously without settling data", async () => {
     const region = { chromosome: "chr1", start: 100, end: 200 };
-    const tracks: Parameters<typeof useRenderWindow>[0]["tracks"] = [];
+    const trackIds: Parameters<typeof useRenderWindow>[0]["trackIds"] = [];
 
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -178,7 +215,7 @@ describe("render window", () => {
         <Harness
           assembly={assembly}
           region={region}
-          tracks={tracks}
+          trackIds={trackIds}
           trackWidth={250}
           overscanMultiplier={3}
         />,
@@ -191,7 +228,7 @@ describe("render window", () => {
         <Harness
           assembly={assembly}
           region={region}
-          tracks={tracks}
+          trackIds={trackIds}
           trackWidth={500}
           overscanMultiplier={3}
         />,
@@ -207,7 +244,7 @@ describe("render window", () => {
   it("aligns old displayed data to a clamped visible region before settlement", async () => {
     const initialRegion = { chromosome: "chr1", start: 0, end: 100 };
     const clampedRegion = { chromosome: "chr1", start: 0, end: 80 };
-    const tracks: Parameters<typeof useRenderWindow>[0]["tracks"] = [];
+    const trackIds: Parameters<typeof useRenderWindow>[0]["trackIds"] = [];
 
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -217,7 +254,7 @@ describe("render window", () => {
         <Harness
           assembly={assembly}
           region={initialRegion}
-          tracks={tracks}
+          trackIds={trackIds}
           trackWidth={100}
           overscanMultiplier={3}
         />,
@@ -229,7 +266,7 @@ describe("render window", () => {
         <Harness
           assembly={assembly}
           region={clampedRegion}
-          tracks={tracks}
+          trackIds={trackIds}
           trackWidth={100}
           overscanMultiplier={3}
         />,

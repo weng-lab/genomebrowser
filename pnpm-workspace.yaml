@@ -56,3 +56,6 @@ minimumReleaseAgeExclude:
   - "@types/node@26.1.2"
   - oxfmt@0.61.0
   - oxlint@1.76.0
+  - deslop-js@0.9.5
+  - oxlint-plugin-react-doctor@0.9.5
+  - react-doctor@0.9.5

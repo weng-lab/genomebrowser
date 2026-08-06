@@ -28,7 +28,7 @@ The module chooses its data URLs from `neurotransmitter` and `age`; it does not 
 
 ## Configure colors
 
-The bottom signal uses the track's base `color`, which defaults to `"#3333ff"`. The top signal defaults to a lighter version of the effective bottom color. Override either signal independently through `config`:
+The top and bottom signals use their concrete config colors directly. Both default to `"#000000"`; set either independently through `config` using six-digit `#RRGGBB` syntax:
 
 ```ts
 const caveTrack = caveModule.create({
@@ -43,35 +43,33 @@ const caveTrack = caveModule.create({
 });
 ```
 
-If you omit `bottomColor`, changing the top-level `color` changes the bottom signal and the derived top signal. If you provide `bottomColor`, it takes precedence over the top-level `color`. An explicit `topColor` always takes precedence over the derived color.
-
-Color options affect rendering only and do not trigger another data request. Automatic lightening supports three- and six-digit hex colors. Provide `topColor` when the effective bottom color uses another CSS color format.
+Color options affect rendering only and do not trigger another data request. The base track color remains available to the browser shell but is not a fallback for either signal.
 
 ## Settings
 
-The CAVE settings section provides text-based **Top color** and **Bottom color** controls. Clearing a control removes that override and restores its fallback behavior. The browser's base settings still provide the shared track color control; it affects CAVE only when `bottomColor` is not set.
+The dependency-free CAVE settings section provides plain-text **Top color** and **Bottom color** fields. Both keep incomplete drafts editable and commit a valid concrete color on blur or Enter.
 
 ## API
 
 ### Create input
 
-| Option    | Type         | Default     | Description                                          |
-| --------- | ------------ | ----------- | ---------------------------------------------------- |
-| `id`      | `string`     | Required    | Unique track identifier.                             |
-| `title`   | `string`     | Required    | Track label shown by the browser.                    |
-| `display` | `"full"`     | `"full"`    | CAVE's only supported display mode.                  |
-| `height`  | `number`     | `35`        | Track height in pixels. Must be positive.            |
-| `color`   | `string`     | `"#3333ff"` | Base track color and fallback for the bottom signal. |
-| `config`  | `CaveConfig` | Required    | Dataset selection and signal-specific color options. |
+| Option    | Type         | Default     | Description                                                 |
+| --------- | ------------ | ----------- | ----------------------------------------------------------- |
+| `id`      | `string`     | Required    | Unique track identifier.                                    |
+| `title`   | `string`     | Required    | Track label shown by the browser.                           |
+| `display` | `"full"`     | `"full"`    | CAVE's only supported display mode.                         |
+| `height`  | `number`     | `35`        | Track height in pixels. Must be positive.                   |
+| `color`   | `string`     | `"#3333ff"` | Six-digit hexadecimal base color used by the browser shell. |
+| `config`  | `CaveConfig` | Required    | Dataset selection and signal-specific color options.        |
 
 ### `CaveConfig`
 
-| Option             | Type                                                                                                      | Default       | Description                                                                                     |
-| ------------------ | --------------------------------------------------------------------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------- |
-| `neurotransmitter` | `"GABA" \| "GLU"`                                                                                         | Required      | Selects the neurotransmitter dataset. Changing it requests new data.                            |
-| `age`              | `"Infancy" \| "Early_Childhood" \| "Late_Childhood" \| "Adolescence" \| "Early_Adulthood" \| "Adulthood"` | Required      | Selects the developmental-age dataset. Changing it requests new data.                           |
-| `topColor`         | `string`                                                                                                  | Derived       | Fill color for the top hmC signal. When omitted, it is derived from the effective bottom color. |
-| `bottomColor`      | `string`                                                                                                  | Track `color` | Fill color for the bottom OXBS signal. When omitted, it follows the base track color.           |
+| Option             | Type                                                                                                      | Default     | Description                                                           |
+| ------------------ | --------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------- |
+| `neurotransmitter` | `"GABA" \| "GLU"`                                                                                         | Required    | Selects the neurotransmitter dataset. Changing it requests new data.  |
+| `age`              | `"Infancy" \| "Early_Childhood" \| "Late_Childhood" \| "Adolescence" \| "Early_Adulthood" \| "Adulthood"` | Required    | Selects the developmental-age dataset. Changing it requests new data. |
+| `topColor`         | `string`                                                                                                  | `"#000000"` | Six-digit hexadecimal fill color for the top hmC signal.              |
+| `bottomColor`      | `string`                                                                                                  | `"#000000"` | Six-digit hexadecimal fill color for the bottom OXBS signal.          |
 
 ## Interactions
 

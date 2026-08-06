@@ -1,16 +1,21 @@
-import { useEffect } from "react";
-import { useDraggableSettingsModal } from "./useDraggableSettingsModal";
+import { useEffect, useId } from "react";
+import { useTrackStore } from "../state/browserContextState";
+import {
+  SETTINGS_MODAL_VIEWPORT_INSET,
+  useDraggableSettingsModal,
+  type DraggableSettingsModalResult,
+} from "./useDraggableSettingsModal";
 import { getReadableTextColor } from "./settingsColor";
 import type { SettingsModalProps } from "./types";
 
 export function DefaultSettingsModal({
-  track,
-  title,
+  trackId,
   position,
   closeSettings,
   children,
 }: SettingsModalProps) {
-  const { position: dragPosition, handleProps } = useDraggableSettingsModal(position);
+  const { position: dragPosition, modalRef, handleProps } = useDraggableSettingsModal(position);
+  const titleId = useId();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -22,53 +27,80 @@ export function DefaultSettingsModal({
 
   return (
     <dialog
+      ref={modalRef}
       open
-      aria-label={title}
+      aria-labelledby={titleId}
       style={{ ...modalStyle, left: dragPosition.x, top: dragPosition.y }}
     >
-      <div
-        {...handleProps}
-        style={{
-          ...modalHeaderStyle,
-          background: track.base.color || "#f5f5f5",
-          color: getReadableTextColor(track.base.color || "#f5f5f5"),
-          ...handleProps.style,
-        }}
-      >
-        <div>{title}</div>
-        <button
-          type="button"
-          onClick={closeSettings}
-          onPointerDown={(event) => event.stopPropagation()}
-          aria-label="Close settings"
-          style={closeButtonStyle}
-        >
-          <svg
-            aria-hidden="true"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2.5"
-          >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
-        </button>
-      </div>
+      <SettingsModalHeader
+        closeSettings={closeSettings}
+        handleProps={handleProps}
+        titleId={titleId}
+        trackId={trackId}
+      />
       <div style={modalContentStyle}>{children}</div>
     </dialog>
+  );
+}
+
+function SettingsModalHeader({
+  closeSettings,
+  handleProps,
+  titleId,
+  trackId,
+}: {
+  closeSettings: () => void;
+  handleProps: DraggableSettingsModalResult["handleProps"];
+  titleId: string;
+  trackId: string;
+}) {
+  const title = useTrackStore((state) => state.getTrack(trackId)?.base.title);
+  const color = useTrackStore((state) => state.getTrack(trackId)?.base.color);
+  if (!title || !color) return null;
+
+  return (
+    <div
+      {...handleProps}
+      style={{
+        ...modalHeaderStyle,
+        background: color,
+        color: getReadableTextColor(color),
+        ...handleProps.style,
+      }}
+    >
+      <div id={titleId}>Configure {title}</div>
+      <button
+        type="button"
+        onClick={closeSettings}
+        onPointerDown={(event) => event.stopPropagation()}
+        aria-label="Close settings"
+        style={closeButtonStyle}
+      >
+        <svg
+          aria-hidden="true"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2.5"
+        >
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
+      </button>
+    </div>
   );
 }
 
 const modalStyle = {
   position: "fixed",
   zIndex: 10,
-  minWidth: "280px",
-  maxWidth: "420px",
+  boxSizing: "border-box",
+  width: "550px",
+  maxWidth: `calc(100vw - ${SETTINGS_MODAL_VIEWPORT_INSET * 2}px)`,
   margin: 0,
   padding: 0,
   background: "#ffffff",

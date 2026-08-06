@@ -236,7 +236,7 @@ The built-in fields are `id`, `title`, and `type`. Every other field used by `co
 | `title`    | `string`                                              | Required               | Sets the track title and the default leaf label.                                                                                      |
 | `display`  | `string`                                              | Module default         | Selects a display supported by the registered module. The module's first display is the fallback when it defines no explicit default. |
 | `height`   | `number`                                              | Module default or `80` | Sets the positive initial track height.                                                                                               |
-| `color`    | `string`                                              | `undefined`            | Sets the initial track color when supported by its renderer.                                                                          |
+| `color`    | `string`                                              | `undefined`            | Sets the initial track color when supported by its renderer. It must use six-digit `#RRGGBB` syntax.                                  |
 | `config`   | `Record<string, unknown>`                             | Required               | Supplies create configuration validated by the selected module's schema.                                                              |
 | `metadata` | `Record<string, string or number or boolean or null>` | `{}`                   | Supplies collection-only values for columns, grouping, labels, and interaction context. It is not copied into the runtime track.      |
 

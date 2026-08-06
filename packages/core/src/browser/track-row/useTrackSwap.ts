@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { MouseEvent, RefObject } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
 import { svgPoint } from "../../modules/utils/svg";
-import { useTrackMutationGate, useTrackStore } from "../state/browserContextState";
+import { useTrackMutationGate, useTrackStoreApi } from "../state/browserContextState";
 import { useBrowserSvg } from "../svg/browserSvgState";
 import { getSwapOrder, getSwapPreview, isSameSwapPreview } from "./trackSwapMath";
 import type { SwapPreview, TrackFrameSwapProps } from "./swapTypes";
@@ -29,8 +29,7 @@ export function useTrackSwap({
   cloneRef: RefObject<SVGGElement | null>;
 }) {
   const svg = useBrowserSvg();
-  const tracks = useTrackStore((state) => state.tracks);
-  const reorderTracks = useTrackStore((state) => state.reorderTracks);
+  const useTrackStore = useTrackStoreApi();
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const [dragSession, setDragSession] = useState<DragSession | null>(null);
   const isSwapping = dragSession !== null;
@@ -49,6 +48,7 @@ export function useTrackSwap({
 
   const handleSwapMouseDown = (event: MouseEvent<SVGRectElement>) => {
     if (disabled || isInteractionBlocked || event.button !== 0) return;
+    const { tracks, reorderTracks } = useTrackStore.getState();
     if (!svg || tracks.length < 2) return;
     const startPoint = svgPoint(svg, event.clientX, event.clientY);
     if (!startPoint) return;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parsePublicInput } from "./schemas";
+import { hexColorSchema, parsePublicInput } from "./schemas";
 import type {
   TrackFetch,
   TrackCreateInput,
@@ -51,7 +51,7 @@ type TrackModuleDefinition<
   configSchema: ConfigSchema;
   fetch: Fetch;
   render: Renderers;
-  settingsComponent?: TrackSettingsComponent<z.output<ConfigSchema>>;
+  settingsComponent?: TrackSettingsComponent;
   tooltipComponent?: TrackTooltipComponent<Item, z.output<ConfigSchema>>;
 } & ValidateRenderers<z.output<ConfigSchema>, FetchData<Fetch>, Renderers>;
 
@@ -60,7 +60,7 @@ const instanceBaseSchema = z.strictObject({
   title: z.string().min(1),
   display: z.string().min(1),
   height: z.number().positive(),
-  color: z.string().optional(),
+  color: hexColorSchema,
 });
 
 const interactionCallbackSchema = z.custom<TrackInteractionCallback<unknown, unknown>>(
@@ -135,7 +135,7 @@ function createTrackModule<
       .number()
       .positive()
       .default(definition.defaults?.height ?? 80),
-    color: z.string().optional(),
+    color: hexColorSchema.optional(),
     config: configSchema,
   }) as TrackCreateInputSchema<ConfigSchema, DisplayKey<Renderers>>;
 
@@ -172,7 +172,7 @@ function createTrackModule<
           title: parsed.title,
           display: parsed.display,
           height: parsed.height,
-          color: parsed.color ?? definition.defaults?.color,
+          color: parsed.color ?? definition.defaults?.color ?? "#000000",
         },
         config: parsed.config,
         ...(parsedInteraction ? { interaction: parsedInteraction } : {}),
@@ -203,7 +203,7 @@ function validateModuleDefaults(
       title: "Default validation",
       display: defaultDisplay,
       height: defaults?.height ?? 80,
-      color: defaults?.color,
+      color: defaults?.color ?? "#000000",
     },
     `${type} defaults`,
   );

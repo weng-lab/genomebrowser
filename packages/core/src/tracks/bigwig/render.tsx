@@ -8,13 +8,15 @@ import {
   createYScale,
   getBigWigRange,
   getPointAtMouseX,
+  hasBigWigData,
   lighten,
+  resolveBigWigRange,
 } from "./helpers";
 import type { BigWigConfig, BigWigData, RenderedBigWigPoint, YRange } from "./types";
 
 export function FullBigWig({
   config,
-  color = "#2266aa",
+  color,
   data,
   width,
   height,
@@ -36,13 +38,13 @@ export function FullBigWig({
         <>
           <path
             d={paths.clampHighPath}
-            stroke={config.clampIndicatorColor ?? "#ff0000"}
+            stroke={config.clampIndicatorColor}
             strokeWidth={1}
             fill="none"
           />
           <path
             d={paths.clampLowPath}
-            stroke={config.clampIndicatorColor ?? "#ff0000"}
+            stroke={config.clampIndicatorColor}
             strokeWidth={1}
             fill="none"
           />
@@ -55,7 +57,7 @@ export function FullBigWig({
 
 export function DenseBigWig({
   config,
-  color = "#2266aa",
+  color,
   data,
   width,
   height,
@@ -98,6 +100,7 @@ function BigWigHoverOverlay({
 }) {
   const [hoveredPoint, setHoveredPoint] = useState<RenderedBigWigPoint | undefined>();
   const hoveredPointRef = useRef<RenderedBigWigPoint | undefined>(undefined);
+  const interactionPointRef = useRef<RenderedBigWigPoint | undefined>(undefined);
   const interaction = useInteraction<RenderedBigWigPoint>();
   const tooltip = useTooltip<RenderedBigWigPoint, BigWigConfig>();
 
@@ -105,7 +108,8 @@ function BigWigHoverOverlay({
     const point = getPointAtMouseX(points, getLocalMouseX(event, width), width);
     if (!point) {
       if (!hoveredPointRef.current) return;
-      interaction?.onLeave?.(hoveredPointRef.current);
+      if (interactionPointRef.current) interaction?.onLeave?.(interactionPointRef.current);
+      interactionPointRef.current = undefined;
       hoveredPointRef.current = undefined;
       setHoveredPoint(undefined);
       tooltip.hide();
@@ -113,14 +117,19 @@ function BigWigHoverOverlay({
     }
     if (point === hoveredPointRef.current) return;
 
+    if (!hasBigWigData(point) && interactionPointRef.current) {
+      interaction?.onLeave?.(interactionPointRef.current);
+    }
+    interactionPointRef.current = hasBigWigData(point) ? point : undefined;
     hoveredPointRef.current = point;
     setHoveredPoint(point);
-    interaction?.onHover?.(point);
+    if (interactionPointRef.current) interaction?.onHover?.(interactionPointRef.current);
     tooltip.show(point, event);
   };
 
   const handleMouseOut = () => {
-    if (hoveredPointRef.current) interaction?.onLeave?.(hoveredPointRef.current);
+    if (interactionPointRef.current) interaction?.onLeave?.(interactionPointRef.current);
+    interactionPointRef.current = undefined;
     hoveredPointRef.current = undefined;
     setHoveredPoint(undefined);
     tooltip.hide();
@@ -169,7 +178,8 @@ function getRenderedPoints(
 }
 
 function getRenderRange(track: BigWigConfig, points: RenderedBigWigPoint[]): YRange {
-  return track.yRange ?? getBigWigRange(points);
+  const automaticRange = getBigWigRange(points);
+  return resolveBigWigRange(automaticRange, track.yRange);
 }
 
 function createSignalPaths(points: RenderedBigWigPoint[], range: YRange, height: number) {

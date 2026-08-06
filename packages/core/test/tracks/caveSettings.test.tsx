@@ -1,34 +1,30 @@
 // @vitest-environment jsdom
 
-import { act, useState } from "react";
+import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
-import type { TrackMutationResult } from "../../src/modules/types";
+import { createTrackStore, type TrackStoreInstance } from "../../src/browser/state/trackStore";
+import type { TrackInstance } from "../../src/modules/types";
 import { caveModule } from "../../src/tracks/cave/module";
 import { CaveSettings } from "../../src/tracks/cave/settings";
 import type { CaveConfig } from "../../src/tracks/cave/types";
+import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;
+let useTrackStore: TrackStoreInstance | undefined;
 
 function Harness() {
-  const [config, setConfig] = useState<CaveConfig>(
-    () =>
-      caveModule.create({
-        id: "cave",
-        title: "CAVE",
-        config: { neurotransmitter: "GABA", age: "Adulthood" },
-      }).config,
+  const useStore = useTrackStore;
+  if (!useStore) throw new Error("Track store not initialized");
+  return (
+    <TrackSettingsTestProvider trackId="cave" trackStore={useStore}>
+      <CaveSettings />
+    </TrackSettingsTestProvider>
   );
-  const updateConfig = (partial: Partial<CaveConfig>): TrackMutationResult => {
-    setConfig((current) => ({ ...current, ...partial }));
-    return { ok: true };
-  };
-
-  return <CaveSettings id="cave" config={config} updateConfig={updateConfig} />;
 }
 
 afterEach(async () => {
@@ -36,28 +32,40 @@ afterEach(async () => {
   container?.remove();
   container = undefined;
   root = undefined;
+  useTrackStore = undefined;
 });
 
 describe("CAVE settings", () => {
-  it("updates and clears the top and bottom color overrides", async () => {
+  it("updates concrete top and bottom colors", async () => {
     await renderHarness();
 
-    expect(input("Top color").value).toBe("");
-    expect(input("Bottom color").value).toBe("");
+    expect(input("Top color").value).toBe("#000000");
+    expect(input("Bottom color").value).toBe("#000000");
 
-    await act(async () => setTextInput(input("Top color"), "rebeccapurple"));
-    await act(async () => setTextInput(input("Bottom color"), "tomato"));
-    expect(input("Top color").value).toBe("rebeccapurple");
-    expect(input("Bottom color").value).toBe("tomato");
-
-    await act(async () => setTextInput(input("Top color"), ""));
-    await act(async () => setTextInput(input("Bottom color"), ""));
-    expect(input("Top color").value).toBe("");
-    expect(input("Bottom color").value).toBe("");
+    await act(async () => setTextInput(input("Top color"), "#112233"));
+    await act(async () => blurInput(input("Top color")));
+    await act(async () => setTextInput(input("Bottom color"), "#445566"));
+    await act(async () => blurInput(input("Bottom color")));
+    expect(input("Top color").value).toBe("#112233");
+    expect(input("Bottom color").value).toBe("#445566");
+    const track = useTrackStore?.getState().getTrack("cave") as
+      | TrackInstance<CaveConfig>
+      | undefined;
+    expect(track?.config).toMatchObject({ topColor: "#112233", bottomColor: "#445566" });
   });
 });
 
 async function renderHarness() {
+  useTrackStore = createTrackStore({
+    modules: [caveModule],
+    tracks: [
+      caveModule.create({
+        id: "cave",
+        title: "CAVE",
+        config: { neurotransmitter: "GABA", age: "Adulthood" },
+      }),
+    ],
+  });
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -76,4 +84,8 @@ function setTextInput(element: HTMLInputElement, value: string) {
   const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
   setter?.call(element, value);
   element.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function blurInput(element: HTMLInputElement) {
+  element.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
 }

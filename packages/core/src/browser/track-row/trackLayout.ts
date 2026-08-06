@@ -8,6 +8,19 @@ export function getTrackTitleMargin(track: AnyTrackInstance, titleSize: number) 
   return track.base.title ? titleSize + 5 : 0;
 }
 
-export function getTracksHeight(tracks: AnyTrackInstance[], titleSize: number) {
-  return tracks.reduce((total, track) => total + getTrackWrapperHeight(track, titleSize), 0);
+export type TrackLayout = {
+  id: string;
+  index: number;
+  y: number;
+  wrapperHeight: number;
+};
+
+export function createTrackLayouts(ids: string[], wrapperHeights: number[], startY: number) {
+  let y = startY;
+  return ids.map((id, index): TrackLayout => {
+    const wrapperHeight = wrapperHeights[index] ?? 0;
+    const layout = { id, index, y, wrapperHeight };
+    y += wrapperHeight;
+    return layout;
+  });
 }

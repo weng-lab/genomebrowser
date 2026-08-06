@@ -1,73 +1,127 @@
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
-import type { TrackBase } from "../../modules/types";
+import { useSettingsStore, useTrackStore } from "../state/browserContextState";
+import { useRegistry } from "../state/useRegistry";
+import { DraftColorInput } from "./DraftColorInput";
 import { isHexColor } from "./settingsColor";
-import type { BaseSettingsProps } from "./types";
 
-export function DefaultBaseSettings({ base, displayOptions, updateBase }: BaseSettingsProps) {
-  const [error, setError] = useState<string | null>(null);
-  const applyUpdate = (partial: Partial<TrackBase>) => {
-    const result = updateBase(partial);
-    setError(result.ok ? null : result.error);
-  };
+export function DefaultBaseSettings() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const trackType = useTrackStore((state) => state.getTrack(trackId)?.type);
+  const registry = useRegistry();
+  const displayOptions = trackType ? Object.keys(registry.get(trackType).render) : [];
 
   return (
     <SettingsSection title="Track">
-      {error && <div style={errorStyle}>{error}</div>}
-      <label style={fieldStyle}>
-        Title
-        <input
-          type="text"
-          value={base.title}
-          onChange={(event) => applyUpdate({ title: event.target.value })}
-        />
-      </label>
-      <label style={fieldStyle}>
-        Color
-        <div style={{ display: "flex", gap: "6px" }}>
-          <input
-            type="color"
-            value={isHexColor(base.color) ? base.color : "#000000"}
-            onChange={(event) => applyUpdate({ color: event.target.value })}
-          />
-          <input
-            type="text"
-            value={base.color ?? ""}
-            placeholder="#000000"
-            onChange={(event) => applyUpdate({ color: event.target.value || undefined })}
-          />
-        </div>
-      </label>
-      <label style={fieldStyle}>
-        Height
-        <input
-          type="number"
-          min={20}
-          value={base.height}
-          onChange={(event) => {
-            const height = Number(event.target.value);
-            if (!Number.isNaN(height)) applyUpdate({ height: Math.max(20, height) });
-          }}
-        />
-      </label>
-      {displayOptions.length > 1 && (
-        <label style={fieldStyle}>
-          Display
-          <select
-            value={base.display}
-            onChange={(event) => applyUpdate({ display: event.target.value })}
-          >
-            {displayOptions.map((display) => (
-              <option key={display} value={display}>
-                {display}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
+      <TitleField />
+      <ColorField />
+      <HeightField />
+      {displayOptions.length > 1 && <DisplayField displayOptions={displayOptions} />}
     </SettingsSection>
   );
+}
+
+function TitleField() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const title = useTrackStore((state) => state.getTrack(trackId)?.base.title ?? "");
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const [error, setError] = useState<string>();
+
+  return (
+    <label style={fieldStyle}>
+      Title
+      <input
+        type="text"
+        value={title}
+        onChange={(event) => {
+          const result = updateTrack(trackId, { base: { title: event.target.value } });
+          setError(result.ok ? undefined : result.error);
+        }}
+      />
+      {error && <FieldError>{error}</FieldError>}
+    </label>
+  );
+}
+
+function ColorField() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const color = useTrackStore((state) => state.getTrack(trackId)?.base.color ?? "");
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+
+  return (
+    <label style={fieldStyle}>
+      Color
+      <div style={{ display: "flex", gap: "6px" }}>
+        <input
+          type="color"
+          value={isHexColor(color) ? color : "#000000"}
+          onChange={(event) => updateTrack(trackId, { base: { color: event.target.value } })}
+        />
+        <DraftColorInput
+          ariaLabel="Color hexadecimal value"
+          value={color}
+          onCommit={(nextColor) => updateTrack(trackId, { base: { color: nextColor } })}
+        />
+      </div>
+    </label>
+  );
+}
+
+function HeightField() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const height = useTrackStore((state) => state.getTrack(trackId)?.base.height ?? 20);
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const [error, setError] = useState<string>();
+
+  return (
+    <label style={fieldStyle}>
+      Height
+      <input
+        type="number"
+        min={20}
+        value={height}
+        onChange={(event) => {
+          const nextHeight = event.currentTarget.valueAsNumber;
+          if (!Number.isFinite(nextHeight)) return;
+          const result = updateTrack(trackId, { base: { height: Math.max(20, nextHeight) } });
+          setError(result.ok ? undefined : result.error);
+        }}
+      />
+      {error && <FieldError>{error}</FieldError>}
+    </label>
+  );
+}
+
+function DisplayField({ displayOptions }: { displayOptions: readonly string[] }) {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const display = useTrackStore((state) => state.getTrack(trackId)?.base.display ?? "");
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  const [error, setError] = useState<string>();
+
+  return (
+    <label style={fieldStyle}>
+      Display
+      <select
+        value={display}
+        onChange={(event) => {
+          const result = updateTrack(trackId, { base: { display: event.target.value } });
+          setError(result.ok ? undefined : result.error);
+        }}
+      >
+        {displayOptions.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+      {error && <FieldError>{error}</FieldError>}
+    </label>
+  );
+}
+
+function FieldError({ children }: { children: string }) {
+  return <div style={errorStyle}>{children}</div>;
 }
 
 const fieldStyle = {

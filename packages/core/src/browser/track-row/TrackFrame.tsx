@@ -120,7 +120,7 @@ export function TrackFrame({
           height={wrapperHeight}
           stroke="#000000"
           strokeWidth={0.5}
-          fill={track.base.color || "#ffffff"}
+          fill={track.base.color}
         />
         <TrackControls track={track} marginWidth={marginWidth} wrapperHeight={wrapperHeight} />
         <line stroke="#cccccc" x1={marginWidth} x2={marginWidth} y1={0} y2={wrapperHeight} />
@@ -129,7 +129,7 @@ export function TrackFrame({
         <rect
           width={marginWidth + trackWidth}
           height={wrapperHeight}
-          fill={track.base.color || "transparent"}
+          fill={track.base.color}
           fillOpacity={0.25}
           style={{ pointerEvents: "none" }}
         />

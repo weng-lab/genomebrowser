@@ -1,32 +1,39 @@
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef } from "react";
 import { createFetchSignature } from "../../modules/fetchOnChange";
 import type { ModuleRegistry } from "../../modules/registry";
 import type { AnyTrackInstance } from "../../modules/types";
 import type { GenomicRegion } from "../../genome/region";
+import type { TrackStoreInstance } from "../state/trackStore";
+import { getTrackDataState } from "./dataStore";
 import { fetchTrackData } from "./fetchTrackData";
 import type { DataResult, DataState, DataStoreInstance } from "./types";
 
 export function useTrackData({
   useDataStore,
-  registry,
-  tracks,
+  useTrackStore,
   region,
   onSettled,
 }: {
   useDataStore: DataStoreInstance;
-  registry: ModuleRegistry;
-  tracks: AnyTrackInstance[];
+  useTrackStore: TrackStoreInstance;
   region: GenomicRegion;
   onSettled?: () => void;
 }) {
+  const trackDataKey = useTrackStore((state) => createTrackDataKey(state.registry, state.tracks));
+  const trackSnapshot = useMemo(
+    () => createTrackSnapshot(useTrackStore, trackDataKey),
+    [trackDataKey, useTrackStore],
+  );
+  const { registry, tracks } = trackSnapshot;
   const completedData = useDataStore((state) => state.data);
+  const fetchingTrackIds = useDataStore((state) => state.fetchingTrackIds);
   const setData = useDataStore((state) => state.setData);
-  const [fetchingTrackIds, setFetchingTrackIds] = useState<Set<string>>(() => new Set());
+  const setFetchingTrackIds = useDataStore((state) => state.setFetchingTrackIds);
   const previousRegionKey = useRef<string | null>(null);
   const previousFetchKeys = useRef<Record<string, string>>({});
   const onSettledEvent = useEffectEvent(() => onSettled?.());
   const fetchRegion = useMemo<GenomicRegion>(
-    () => ({ ...region }),
+    () => ({ chromosome: region.chromosome, end: region.end, start: region.start }),
     [region.chromosome, region.end, region.start],
   );
   const regionKey = createRegionKey(fetchRegion);
@@ -85,7 +92,7 @@ export function useTrackData({
     return () => {
       active = false;
     };
-  }, [fetchRegion, regionKey, registry, setData, tracks, useDataStore]);
+  }, [fetchRegion, regionKey, registry, setData, setFetchingTrackIds, tracks, useDataStore]);
 
   const dataStates = useMemo(
     () => createDataStates(tracks, completedData, fetchingTrackIds),
@@ -102,16 +109,33 @@ function createRegionKey(region: GenomicRegion) {
   return `${region.chromosome}:${region.start}-${region.end}`;
 }
 
+function createTrackSnapshot(useTrackStore: TrackStoreInstance, key: string) {
+  const { registry, tracks } = useTrackStore.getState();
+  return { key, registry, tracks };
+}
+
+function createTrackDataKey(registry: ModuleRegistry, tracks: AnyTrackInstance[]) {
+  const entries = tracks.map((track) => ({
+    id: track.base.id,
+    fetch: createTrackFetchKey(registry, track),
+  }));
+  entries.sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0));
+  return JSON.stringify(entries);
+}
+
 function createTrackFetchKeys(registry: ModuleRegistry, tracks: AnyTrackInstance[]) {
   const keys: Record<string, string> = {};
   for (const track of tracks) {
-    try {
-      keys[track.base.id] = createFetchSignature(registry.get(track.type), track);
-    } catch {
-      keys[track.base.id] = "{}";
-    }
+    keys[track.base.id] = createTrackFetchKey(registry, track);
   }
   return keys;
+}
+
+function createTrackFetchKey(registry: ModuleRegistry, track: AnyTrackInstance) {
+  return JSON.stringify({
+    type: track.type,
+    signature: createFetchSignature(registry.get(track.type), track),
+  });
 }
 
 function pruneData(data: Record<string, DataResult>, trackIds: Set<string>) {
@@ -126,17 +150,13 @@ function pruneData(data: Record<string, DataResult>, trackIds: Set<string>) {
 function createDataStates(
   tracks: AnyTrackInstance[],
   data: Record<string, DataResult>,
-  fetchingTrackIds: Set<string>,
+  fetchingTrackIds: ReadonlySet<string>,
 ) {
   const states: Record<string, DataState> = {};
   for (const track of tracks) {
     const trackId = track.base.id;
     const result = data[trackId];
-    if (fetchingTrackIds.has(trackId)) {
-      states[trackId] = result?.status === "success" ? result : { status: "loading" };
-    } else {
-      states[trackId] = result ?? { status: "loading" };
-    }
+    states[trackId] = getTrackDataState(result, fetchingTrackIds.has(trackId));
   }
   return states;
 }

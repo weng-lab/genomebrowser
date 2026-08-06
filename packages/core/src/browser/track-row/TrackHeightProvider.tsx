@@ -4,13 +4,13 @@ import { TrackHeightContext, type TrackHeightContextValue } from "./trackHeightC
 
 export function TrackHeightProvider({ children }: { children: ReactNode }) {
   const getTrack = useTrackStore((state) => state.getTrack);
-  const updateBase = useTrackStore((state) => state.updateBase);
+  const updateTrack = useTrackStore((state) => state.updateTrack);
   const value = useMemo<TrackHeightContextValue>(
     () => ({
       getTrackHeight: (trackId: string) => getTrack(trackId)?.base.height,
-      updateHeight: (trackId: string, height: number) => updateBase(trackId, { height }),
+      updateHeight: (trackId: string, height: number) => updateTrack(trackId, { base: { height } }),
     }),
-    [getTrack, updateBase],
+    [getTrack, updateTrack],
   );
 
   return <TrackHeightContext.Provider value={value}>{children}</TrackHeightContext.Provider>;

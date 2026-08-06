@@ -472,11 +472,13 @@ describe("TrackSelect session workflow", () => {
 
     expect(resolveTrackInteraction).toHaveBeenCalledOnce();
     expect(
-      setup.store.getState().updateConfig<SignalConfig>("alpha::one", { url: "updated-url" }),
+      setup.store
+        .getState()
+        .updateTrack<SignalConfig>("alpha::one", { config: { url: "updated-url" } }),
     ).toEqual({ ok: true });
-    expect(setup.store.getState().updateBase("alpha::one", { color: "#abcdef" })).toEqual({
-      ok: true,
-    });
+    expect(
+      setup.store.getState().updateTrack("alpha::one", { base: { color: "#abcdef" } }),
+    ).toEqual({ ok: true });
 
     const track = setup.store.getState().getTrack("alpha::one")!;
     const runtime: TrackRuntimeContext<SignalConfig> = {

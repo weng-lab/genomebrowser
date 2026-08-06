@@ -54,6 +54,7 @@ describe("fetchTrackData", () => {
             title: "Missing",
             display: "full",
             height: 80,
+            color: "#000000",
           },
           config: {},
         },

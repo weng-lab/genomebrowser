@@ -1,5 +1,4 @@
 import type { ComponentType, ReactNode } from "react";
-import type { AnyTrackInstance, TrackBase, TrackMutationResult } from "../../modules/types";
 
 export type SettingsPosition = {
   x: number;
@@ -7,20 +6,13 @@ export type SettingsPosition = {
 };
 
 export type SettingsModalProps = {
-  track: AnyTrackInstance;
-  title: string;
+  trackId: string;
   position: SettingsPosition;
   closeSettings: () => void;
   children: ReactNode;
 };
 
-export type BaseSettingsProps = {
-  base: TrackBase;
-  displayOptions: string[];
-  updateBase: (partial: Partial<TrackBase>) => TrackMutationResult;
-};
-
 export type SettingsStoreInput = {
   modalComponent?: ComponentType<SettingsModalProps>;
-  baseSettingsComponent?: ComponentType<BaseSettingsProps>;
+  baseSettingsComponent?: ComponentType;
 };

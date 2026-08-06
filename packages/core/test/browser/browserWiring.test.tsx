@@ -3,13 +3,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { SettingsModalController } from "../../src/browser/overlays/SettingsModalController";
-import type { BaseSettingsProps } from "../../src/browser/settings/types";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { BrowserProvider, InteractionGateProvider } from "../../src/browser/state/BrowserContext";
+import { useSettingsStore, useTrackStore } from "../../src/browser/state/browserContextState";
 import { createContextMenuStore } from "../../src/browser/state/contextMenuStore";
 import { RegistryProvider } from "../../src/browser/state/RegistryContext";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
-import { createTrackStore } from "../../src/browser/state/trackStore";
+import { createTrackStore, type TrackStore } from "../../src/browser/state/trackStore";
 import { BrowserSvgProvider } from "../../src/browser/svg/BrowserSvgContext";
 import { TrackContent } from "../../src/browser/track-row/TrackContent";
 import { TooltipContextProvider } from "../../src/browser/tooltip/TooltipContext";
@@ -23,7 +23,6 @@ import type {
   TrackRendererInteraction,
   TrackRendererProps,
   TrackRuntimeContext,
-  TrackSettingsProps,
 } from "../../src/modules/types";
 
 describe("browser module wiring", () => {
@@ -147,11 +146,11 @@ describe("browser module wiring", () => {
       },
     ]);
 
-    expect(trackStore.getState().updateBase("interactive", { color: "#112233" })).toEqual({
-      ok: true,
-    });
     expect(
-      trackStore.getState().updateConfig<Config>("interactive", { url: "YOUR_OTHER_URL_HERE" }),
+      trackStore.getState().updateTrack<Config>("interactive", {
+        base: { color: "#112233" },
+        config: { url: "YOUR_OTHER_URL_HERE" },
+      }),
     ).toEqual({ ok: true });
 
     renderTrack();
@@ -242,11 +241,11 @@ describe("browser module wiring", () => {
         },
       });
 
-      expect(trackStore.getState().updateBase("tooltip", { color: "#abcdef" })).toEqual({
-        ok: true,
-      });
       expect(
-        trackStore.getState().updateConfig<Config>("tooltip", { url: "YOUR_OTHER_URL_HERE" }),
+        trackStore.getState().updateTrack<Config>("tooltip", {
+          base: { color: "#abcdef" },
+          config: { url: "YOUR_OTHER_URL_HERE" },
+        }),
       ).toEqual({ ok: true });
 
       renderTrack();
@@ -262,21 +261,31 @@ describe("browser module wiring", () => {
     }
   });
 
-  it("wires settings base updates separately from module config updates", () => {
-    let baseProps: BaseSettingsProps | undefined;
-    let moduleProps: TrackSettingsProps<{ url: string }> | undefined;
+  it("wires settings components to the browser stores", () => {
+    let baseTitle: string | undefined;
+    let configUrl: string | undefined;
+    let interactionOnClick: unknown;
+    let updateBase: TrackStore["updateTrack"] | undefined;
+    let updateModule: typeof updateBase;
 
     function Modal({ children }: { children: React.ReactNode }) {
       return <>{children}</>;
     }
 
-    function BaseSettings(props: BaseSettingsProps) {
-      baseProps = props;
+    function BaseSettings() {
+      const trackId = useSettingsStore((state) => state.trackId)!;
+      baseTitle = useTrackStore((state) => state.getTrack(trackId)?.base.title);
+      updateBase = useTrackStore((state) => state.updateTrack);
       return null;
     }
 
-    function ModuleSettings(props: TrackSettingsProps<{ url: string }>) {
-      moduleProps = props;
+    function ModuleSettings() {
+      const trackId = useSettingsStore((state) => state.trackId)!;
+      configUrl = useTrackStore(
+        (state) => (state.getTrack(trackId)?.config as { url: string } | undefined)?.url,
+      );
+      interactionOnClick = useTrackStore((state) => state.getTrack(trackId)?.interaction?.onClick);
+      updateModule = useTrackStore((state) => state.updateTrack);
       return null;
     }
 
@@ -291,11 +300,15 @@ describe("browser module wiring", () => {
       render: { full: Renderer },
       settingsComponent: ModuleSettings,
     });
-    const track = module.create({
-      id: "settings",
-      title: "Settings",
-      config: { url: "YOUR_URL_HERE" },
-    });
+    const onClick = vi.fn();
+    const track = module.create(
+      {
+        id: "settings",
+        title: "Settings",
+        config: { url: "YOUR_URL_HERE" },
+      },
+      { onClick },
+    );
     const browserStore = createBrowserStore({ assembly: hg38, region });
     const contextMenuStore = createContextMenuStore();
     const settingsStore = createSettingsStore({
@@ -316,14 +329,19 @@ describe("browser module wiring", () => {
       </BrowserProvider>,
     );
 
-    expect(baseProps?.base).toEqual(track.base);
-    expect(moduleProps?.id).toBe("settings");
-    expect(moduleProps?.config).toEqual(track.config);
+    expect(baseTitle).toBe(track.base.title);
+    expect(configUrl).toBe(track.config.url);
+    expect(interactionOnClick).toBe(onClick);
 
-    expect(baseProps?.updateBase({ title: "Updated" })).toEqual({ ok: true });
-    expect(moduleProps?.updateConfig({ url: "YOUR_OTHER_URL_HERE" })).toEqual({ ok: true });
+    expect(updateBase?.("settings", { base: { title: "Updated" } })).toEqual({ ok: true });
+    expect(
+      updateModule?.("settings", {
+        base: { height: 100 },
+        config: { url: "YOUR_OTHER_URL_HERE" },
+      }),
+    ).toEqual({ ok: true });
     expect(trackStore.getState().getTrack("settings")).toMatchObject({
-      base: { title: "Updated" },
+      base: { id: "settings", title: "Updated", height: 100 },
       config: { url: "YOUR_OTHER_URL_HERE" },
     });
   });

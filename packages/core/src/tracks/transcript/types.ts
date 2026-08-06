@@ -7,8 +7,8 @@ export type TranscriptConfig = {
   assembly: string;
   version: number;
   geneName?: string;
-  canonicalColor?: string;
-  highlightColor?: string;
+  canonicalColor: string;
+  highlightColor: string;
 };
 
 export type TranscriptData = TranscriptList[];
@@ -58,7 +58,11 @@ export type TranscriptInput = {
   display?: TranscriptDisplay;
   height?: number;
   color?: string;
-  config: Omit<TranscriptConfig, "endpoint"> & { endpoint?: string };
+  config: Omit<TranscriptConfig, "endpoint" | "canonicalColor" | "highlightColor"> & {
+    endpoint?: string;
+    canonicalColor?: string;
+    highlightColor?: string;
+  };
 };
 
 export type TranscriptInteraction = TrackInteraction<Transcript, TranscriptConfig>;

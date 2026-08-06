@@ -1,5 +1,4 @@
 import type { ComponentType } from "react";
-import type { TrackSettingsProps } from "../../modules/types";
 import {
   useSettingsStore,
   useTrackMutationGate,
@@ -8,68 +7,42 @@ import {
 import { useRegistry } from "../state/useRegistry";
 
 export function SettingsModalController() {
-  const registry = useRegistry();
   const open = useSettingsStore((state) => state.open);
   const trackId = useSettingsStore((state) => state.trackId);
   const position = useSettingsStore((state) => state.position);
   const ModalComponent = useSettingsStore((state) => state.modalComponent);
   const BaseSettingsComponent = useSettingsStore((state) => state.baseSettingsComponent);
   const closeSettings = useSettingsStore((state) => state.closeSettings);
-  const track = useTrackStore((state) => (trackId ? state.getTrack(trackId) : undefined));
-  const updateBase = useTrackStore((state) => state.updateBase);
-  const updateConfig = useTrackStore((state) => state.updateConfig);
-  const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
+  const trackType = useTrackStore((state) => (trackId ? state.getTrack(trackId)?.type : undefined));
+  const registry = useRegistry();
+  const { isInteractionBlocked } = useTrackMutationGate();
 
-  if (!open || !track) return null;
+  if (!open || !trackId || !trackType) return null;
 
   try {
-    const module = registry.get(track.type);
-    const ModuleSettingsComponent = module.settingsComponent as
-      | ComponentType<TrackSettingsProps<unknown>>
-      | undefined;
-    const updateActiveBase = (partial: Parameters<typeof updateBase>[1]) => {
-      return runTrackMutation(() => updateBase(track.base.id, partial));
-    };
-    const updateActiveConfig = (partial: Partial<unknown>) => {
-      return runTrackMutation(() => updateConfig(track.base.id, partial));
-    };
+    const module = registry.get(trackType);
+    const ModuleSettingsComponent = module.settingsComponent as ComponentType | undefined;
 
     return (
-      <ModalComponent
-        track={track}
-        title={`Configure ${track.base.title}`}
-        position={position}
-        closeSettings={closeSettings}
-      >
-        <div
-          aria-disabled={isInteractionBlocked}
-          style={{ pointerEvents: isInteractionBlocked ? "none" : undefined }}
+      <ModalComponent trackId={trackId} position={position} closeSettings={closeSettings}>
+        <fieldset
+          key={trackId}
+          disabled={isInteractionBlocked}
+          style={{
+            border: 0,
+            display: "grid",
+            gap: "12px",
+            margin: 0,
+            minWidth: 0,
+            padding: 0,
+          }}
         >
-          <BaseSettingsComponent
-            base={track.base}
-            displayOptions={Object.keys(module.render)}
-            updateBase={updateActiveBase}
-          />
-          {ModuleSettingsComponent && (
-            <ModuleSettingsComponent
-              id={track.base.id}
-              config={track.config}
-              updateConfig={updateActiveConfig}
-            />
-          )}
-        </div>
+          <BaseSettingsComponent />
+          {ModuleSettingsComponent && <ModuleSettingsComponent />}
+        </fieldset>
       </ModalComponent>
     );
   } catch (error) {
-    return (
-      <ModalComponent
-        track={track}
-        title={`Configure ${track.base.title}`}
-        position={position}
-        closeSettings={closeSettings}
-      >
-        <div>{error instanceof Error ? error.message : "No settings available"}</div>
-      </ModalComponent>
-    );
+    return <div>{error instanceof Error ? error.message : "No settings available"}</div>;
   }
 }

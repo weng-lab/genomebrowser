@@ -63,6 +63,39 @@ describe("defineTrackModule", () => {
     });
   });
 
+  it("uses an inline black base color when a module has no color default", () => {
+    const uncoloredModule = defineTrackModule({
+      type: "uncolored",
+      configSchema: z.object({}),
+      fetch: async () => null,
+      render: { full: FullRenderer },
+    });
+
+    expect(
+      uncoloredModule.create({ id: "uncolored", title: "Uncolored", config: {} }).base.color,
+    ).toBe("#000000");
+  });
+
+  it("rejects non-hexadecimal base colors from input and validated instances", () => {
+    expect(() =>
+      module.create({
+        id: "signal",
+        title: "Signal",
+        color: "rebeccapurple",
+        config: { url: "YOUR_URL_HERE" },
+      }),
+    ).toThrow(/six-digit hexadecimal color/);
+
+    const track = module.create({
+      id: "signal",
+      title: "Signal",
+      config: { url: "YOUR_URL_HERE" },
+    });
+    expect(() => module.validate({ ...track, base: { ...track.base, color: "#abc" } })).toThrow(
+      /six-digit hexadecimal color/,
+    );
+  });
+
   it("types create input from required and defaulted config schema fields", () => {
     module.create({
       id: "signal",
@@ -118,6 +151,18 @@ describe("defineTrackModule", () => {
         render: { full: FullRenderer },
       }),
     ).toThrow(/bad-default-height defaults is invalid/);
+
+    expect(() =>
+      defineTrackModule({
+        type: "bad-default-color",
+        defaults: {
+          color: "rebeccapurple",
+        },
+        configSchema: z.object({}),
+        fetch: async () => null,
+        render: { full: FullRenderer },
+      }),
+    ).toThrow(/six-digit hexadecimal color/);
   });
 
   it("preserves optional module-owned components", () => {

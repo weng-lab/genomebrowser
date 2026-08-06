@@ -19,9 +19,10 @@ import {
   defineTrackModule,
   fetchOnChange,
   useInteraction,
+  useSettingsStore,
+  useTrackStore,
   useTooltip,
   type TrackRendererProps,
-  type TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
 
 const configSchema = z.object({
@@ -58,16 +59,22 @@ function SignalRenderer({ config, data, region, width, height }: TrackRendererPr
     });
 }
 
-function SignalSettings({ config, updateConfig }: TrackSettingsProps<Config>) {
+function SignalSettings() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const threshold = useTrackStore((state) => (state.getTrack(trackId)?.config as Config).threshold);
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+
   return (
     <SettingsSection title="Signal">
       <label>
         Threshold
         <input
           type="number"
-          value={config.threshold}
+          value={threshold}
           onChange={(event) => {
-            const result = updateConfig({ threshold: event.currentTarget.valueAsNumber });
+            const result = updateTrack(trackId, {
+              config: { threshold: event.currentTarget.valueAsNumber },
+            });
             if (!result.ok) console.error(result.error);
           }}
         />
@@ -100,9 +107,11 @@ export const customSignalModule = defineTrackModule<Item>()({
 });
 ```
 
+Settings components receive no track snapshot props. Read the active track ID with `useSettingsStore`, then select the smallest value each field renders with `useTrackStore`; unchanged selections do not re-render when another setting changes. Call the store's `updateTrack(trackId, update)` action with optional shallow `base` and `config` patches. The nearest browser provides both stores, so multiple browser instances remain isolated. When a nested patch must preserve siblings, use `useTrackStoreApi().getState()` inside the event handler to read the latest track without adding a render subscription.
+
 The fetch function receives only parsed config and a genomic region. Return raw regional data; the renderer owns conversion to pixels and display-specific shaping. Throwing from fetch produces the browser's error state for that track.
 
-Renderer-map keys are allowed display values. If `defaults.display` is absent, the first key is the default. Base defaults belong in `defaults`; config defaults belong in the Zod schema.
+Renderer-map keys are allowed display values. If `defaults.display` is absent, the first key is the default. Base defaults belong in `defaults`; config defaults belong in the Zod schema. Base colors use case-insensitive six-digit `#RRGGBB` syntax. Creation uses `"#000000"` when `defaults.color` and the create input both omit color, so validated track instances always have a concrete base color.
 
 ## Register and create
 
@@ -133,7 +142,7 @@ The optional second argument contains per-instance callbacks and is not serializ
 
 ## Settings, tooltip, and interactions
 
-Module settings receive `config` and `updateConfig`; use that focused API instead of reaching into the whole track store. Check its mutation result for user-entered values. The browser separately owns title, display, color, and height controls.
+Module settings receive no props. Read the active ID from `useSettingsStore`, select active values with `useTrackStore`, and call `updateTrack` from that same store. An update accepts optional shallow `base` and `config` patches, so one settings action can update both atomically. Check its mutation result for user-entered values. The browser still renders the standard title, display, color, and height controls separately.
 
 The renderer decides what semantic item a click or hover represents. `useInteraction<Item>()` returns item-only handlers because the browser binds the current runtime context. `useTooltip<Item, Config>()` reads that same context and opens the module's browser-positioned `tooltipComponent` with `{ item, context }`. Renderers do not pass a type or config to either hook. Both hooks require the renderer to run inside `GenomeBrowser`.
 

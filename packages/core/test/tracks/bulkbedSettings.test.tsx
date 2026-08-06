@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 
-import { act, useState } from "react";
+import { act, Profiler } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { TrackMutationResult } from "../../src/modules/types";
+import { createTrackStore, type TrackStoreInstance } from "../../src/browser/state/trackStore";
+import { bulkBedModule } from "../../src/tracks/bulkbed/module";
 import { BulkBedSettings } from "../../src/tracks/bulkbed/settings";
 import type { BulkBedConfig, BulkBedDataset } from "../../src/tracks/bulkbed/types";
+import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -15,6 +17,7 @@ const initialConfig: BulkBedConfig = {
 };
 
 type HarnessProps = {
+  onSettingsRender?: () => void;
   rejectAdd?: boolean;
   rejectRemove?: boolean;
   trackId?: string;
@@ -22,52 +25,49 @@ type HarnessProps = {
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;
+let useTrackStore: TrackStoreInstance | undefined;
+let rejectAddUpdate = false;
+let rejectRemoveUpdate = false;
 
-function Harness({
-  rejectAdd = false,
-  rejectRemove = false,
-  trackId = "bulk-peaks",
-}: HarnessProps) {
-  const [config, setConfig] = useState(initialConfig);
-
-  const updateConfig = (partial: Partial<BulkBedConfig>): TrackMutationResult => {
-    const nextLength = partial.datasets?.length ?? config.datasets.length;
-    if (
-      (rejectAdd && nextLength > config.datasets.length) ||
-      (rejectRemove && nextLength < config.datasets.length)
-    ) {
-      return { ok: false, error: "Rejected for test" };
-    }
-    setConfig((current) => ({ ...current, ...partial }));
-    return { ok: true };
-  };
+function Harness({ onSettingsRender = () => undefined, trackId = "bulk-peaks" }: HarnessProps) {
+  const useStore = useTrackStore;
+  if (!useStore) throw new Error("Track store not initialized");
 
   return (
     <>
       <button
         type="button"
-        onClick={() =>
-          setConfig((current) => ({
-            ...current,
-            datasets: [
-              ...current.datasets,
-              dataset(`External ${current.datasets.length + 1}`),
-              dataset(`External ${current.datasets.length + 2}`),
-            ],
-          }))
-        }
+        onClick={() => {
+          const current = useStore.getState().getTrack(trackId)?.config as BulkBedConfig;
+          useStore.getState().updateTrack<BulkBedConfig>(trackId, {
+            config: {
+              datasets: [
+                ...current.datasets,
+                dataset(`External ${current.datasets.length + 1}`),
+                dataset(`External ${current.datasets.length + 2}`),
+              ],
+            },
+          });
+        }}
       >
         Append externally
       </button>
       <button
         type="button"
-        onClick={() =>
-          setConfig((current) => ({ ...current, datasets: current.datasets.slice(0, 2) }))
-        }
+        onClick={() => {
+          const current = useStore.getState().getTrack(trackId)?.config as BulkBedConfig;
+          useStore.getState().updateTrack<BulkBedConfig>(trackId, {
+            config: { datasets: current.datasets.slice(0, 2) },
+          });
+        }}
       >
         Shorten externally
       </button>
-      <BulkBedSettings id={trackId} config={config} updateConfig={updateConfig} />
+      <TrackSettingsTestProvider trackId={trackId} trackStore={useStore}>
+        <Profiler id="bulkbed-settings" onRender={onSettingsRender}>
+          <BulkBedSettings />
+        </Profiler>
+      </TrackSettingsTestProvider>
     </>
   );
 }
@@ -77,10 +77,25 @@ afterEach(async () => {
   container?.remove();
   container = undefined;
   root = undefined;
+  useTrackStore = undefined;
+  rejectAddUpdate = false;
+  rejectRemoveUpdate = false;
   vi.restoreAllMocks();
 });
 
 describe("BulkBed settings", () => {
+  it("does not rerender settings when validation reconstructs datasets for a base update", async () => {
+    let renderCount = 0;
+    await renderHarness({ onSettingsRender: () => renderCount++ });
+    const initialRenderCount = renderCount;
+
+    await act(async () => {
+      useTrackStore?.getState().updateTrack("bulk-peaks", { base: { color: "#112233" } });
+    });
+
+    expect(renderCount).toBe(initialRenderCount);
+  });
+
   it("preserves unaffected rows through a middle removal and subsequent addition", async () => {
     await renderHarness();
     const firstRow = datasetRow("Dataset A");
@@ -170,12 +185,46 @@ describe("BulkBed settings", () => {
 });
 
 async function renderHarness(props: HarnessProps = {}) {
+  const trackId = props.trackId ?? "bulk-peaks";
+  rejectAddUpdate = props.rejectAdd ?? false;
+  rejectRemoveUpdate = props.rejectRemove ?? false;
+  if (!useTrackStore) {
+    useTrackStore = createTrackStore({
+      modules: [bulkBedModule],
+      tracks: [createTrack(trackId)],
+    });
+    const updateTrack = useTrackStore.getState().updateTrack;
+    useTrackStore.setState({
+      updateTrack: (id, update) => {
+        const partial = (update.config ?? {}) as Partial<BulkBedConfig>;
+        const current = useTrackStore?.getState().getTrack(id)?.config as BulkBedConfig;
+        const nextLength = partial.datasets?.length ?? current.datasets.length;
+        if (
+          (rejectAddUpdate && nextLength > current.datasets.length) ||
+          (rejectRemoveUpdate && nextLength < current.datasets.length)
+        ) {
+          return { ok: false, error: "Rejected for test" };
+        }
+        return updateTrack(id, update);
+      },
+    });
+  } else if (!useTrackStore.getState().getTrack(trackId)) {
+    await act(async () => useTrackStore?.getState().addTrack(createTrack(trackId)));
+  }
   if (!container) {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
   }
   await act(async () => root?.render(<Harness {...props} />));
+}
+
+function createTrack(id: string) {
+  return bulkBedModule.create({
+    id,
+    title: "BulkBed",
+    config: initialConfig,
+  });
 }
 
 function dataset(name: string): BulkBedDataset {
