@@ -5,9 +5,8 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
 import type { AssemblyDefinition, GenomicRegion } from "@weng-lab/genomebrowser";
-import { useId, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export type BrowserNavigationControlsProps = {
   assembly: AssemblyDefinition;
@@ -17,7 +16,7 @@ export type BrowserNavigationControlsProps = {
 };
 
 const panSteps = [
-  { fraction: 1, label: "1×" },
+  { fraction: 1, label: "1" },
   { fraction: 0.5, label: "½" },
   { fraction: 0.25, label: "¼" },
 ] as const;
@@ -32,8 +31,6 @@ export function BrowserNavigationControls({
   onRegionChange,
   disabled = false,
 }: BrowserNavigationControlsProps) {
-  const panLabelId = useId();
-  const zoomLabelId = useId();
   const chromosomeLength = assembly.chromosomes[region.chromosome];
   const regionSpan = region.end - region.start;
   const hasValidRegion =
@@ -76,11 +73,8 @@ export function BrowserNavigationControls({
   }
 
   return (
-    <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 2 }}>
-      <Box aria-labelledby={panLabelId} role="group">
-        <Typography id={panLabelId} variant="caption" component="div" sx={{ mb: 0.5 }}>
-          Pan
-        </Typography>
+    <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2 }}>
+      <Box aria-label="Pan" role="group">
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
           <Box
             aria-label="Pan left"
@@ -119,10 +113,7 @@ export function BrowserNavigationControls({
         </Box>
       </Box>
 
-      <Box aria-labelledby={zoomLabelId} role="group">
-        <Typography id={zoomLabelId} variant="caption" component="div" sx={{ mb: 0.5 }}>
-          Zoom
-        </Typography>
+      <Box aria-label="Zoom" role="group">
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
           <Box
             aria-label="Zoom out"
