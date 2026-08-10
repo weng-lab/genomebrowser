@@ -1,5 +1,5 @@
 {
-  "name": "@weng-lab/genomic-reader",
+  "name": "@weng-lab/genomebrowser-reader",
   "version": "2.0.0-alpha.1",
   "private": true,
   "description": "Utilities for reading indexed genomic data.",
