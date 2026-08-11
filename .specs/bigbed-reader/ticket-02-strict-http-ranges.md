@@ -1,6 +1,6 @@
 # Ticket 02: Strict HTTP range reads
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R3, R4, R14, R15, R16, R18
 **Blocked by:** None
@@ -15,13 +15,13 @@ Implement the internal random-access HTTP seam used by BigBed operations and an 
 
 ## Acceptance Criteria
 
-- [ ] A request for an offset and length emits `Range: bytes=<start>-<inclusive-end>` and forwards the read's `AbortSignal`.
-- [ ] Only `206 Partial Content` is accepted for a successful byte read.
-- [ ] `Content-Range`, requested start/end, and body length are checked for consistency; missing, malformed, shifted, short, or extra data fails.
-- [ ] A range-ignoring `200` response fails before the complete response body is intentionally buffered.
-- [ ] Invalid offsets, lengths, overflowed range ends, HTTP failures, and unsatisfiable ranges produce useful failures.
-- [ ] The in-memory implementation follows the same exact-range contract and enables binary tests without mocking globals.
-- [ ] The implementation uses browser APIs and introduces no Axios, Buffer, Node stream, or filesystem dependency.
+- [x] A request for an offset and length emits `Range: bytes=<start>-<inclusive-end>` and forwards the read's `AbortSignal`.
+- [x] Only `206 Partial Content` is accepted for a successful byte read.
+- [x] `Content-Range`, requested start/end, and body length are checked for consistency; missing, malformed, shifted, short, or extra data fails.
+- [x] A range-ignoring `200` response fails before the complete response body is intentionally buffered.
+- [x] Invalid offsets, lengths, overflowed range ends, HTTP failures, and unsatisfiable ranges produce useful failures.
+- [x] The in-memory implementation follows the same exact-range contract and enables binary tests without mocking globals.
+- [x] The implementation uses browser APIs and introduces no Axios, Buffer, Node stream, or filesystem dependency.
 
 ## Verification
 
