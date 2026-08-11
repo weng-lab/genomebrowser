@@ -1,7 +1,5 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
@@ -126,9 +124,8 @@ export function BrowserNavigationControls({
                 disabled={atMaximumSpan}
                 label={`Zoom out ${factor}×`}
                 onClick={() => zoom("out", factor)}
-                startIcon={<ZoomOutIcon />}
               >
-                {factor}×
+                − {factor}×
               </NavigationButton>
             ))}
           </Box>
@@ -141,11 +138,10 @@ export function BrowserNavigationControls({
               <NavigationButton
                 key={factor}
                 disabled={atMinimumSpan}
-                endIcon={<ZoomInIcon />}
                 label={`Zoom in ${factor}×`}
                 onClick={() => zoom("in", factor)}
               >
-                {factor}×
+                + {factor}×
               </NavigationButton>
             ))}
           </Box>
