@@ -1,7 +1,7 @@
 import { Box, ButtonBase, Typography } from "@mui/material";
 import { GenomicRegion } from "@weng-lab/genomebrowser";
 import { Cytobands } from "@weng-lab/genomebrowser-ui";
-import { useObservedWidth } from "./useObservedWidth";
+import { useObservedWidth } from "../hooks/useObservedWidth";
 
 export function RegionOverview({ region }: { region: GenomicRegion }) {
   const [cytobandContainerRef, cytobandWidth] = useObservedWidth<HTMLDivElement>();

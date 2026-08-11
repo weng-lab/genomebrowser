@@ -1,5 +1,5 @@
 import type { TrackSelectCollection } from "@weng-lab/genomebrowser-ui";
-import biosampleTracks from "../human-biosamples.json";
+import biosampleTracks from "../app/human-biosamples.json";
 
 const geneTracks = {
   id: "reference-annotations",

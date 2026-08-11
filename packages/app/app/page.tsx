@@ -1,5 +1,5 @@
-import { BrowserExperience } from "./BrowserExperience";
+import { Browser } from "../components/Browser";
 
 export default function Home() {
-  return <BrowserExperience />;
+  return <Browser />;
 }

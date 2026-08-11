@@ -25,10 +25,10 @@ import {
   TranscriptTooltip,
 } from "@weng-lab/genomebrowser-ui";
 import { useLayoutEffect, useState } from "react";
-import { RegionOverview } from "./_browser/RegionOverview";
-import { BrowserHeader, NavigationControls } from "./_browser/Toolbars";
-import { defaultTrackIds, trackCollections } from "./_browser/trackCollections";
-import { useObservedWidth } from "./_browser/useObservedWidth";
+import { RegionOverview } from "./RegionOverview";
+import { BrowserHeader, NavigationControls } from "./Toolbars";
+import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
+import { useObservedWidth } from "../hooks/useObservedWidth";
 
 const marginWidth = 50;
 
@@ -72,7 +72,7 @@ const useSettingsStore = createSettingsStore({
   baseSettingsComponent: TrackBaseSettings,
 });
 
-export function BrowserExperience() {
+export function Browser() {
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
   const [containerRef, containerWidth] = useObservedWidth<HTMLElement>();
   const assembly = useBrowserStore((state) => state.assembly);
