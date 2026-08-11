@@ -1,6 +1,6 @@
 # Ticket 01: Safe binary parsing foundation
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R11, R12, R15, R16, R18
 **Blocked by:** None
@@ -15,12 +15,12 @@ Implement the internal typed-array cursor and package-owned errors needed by lat
 
 ## Acceptance Criteria
 
-- [ ] Binary reads operate on `Uint8Array`/`DataView` and explicitly honor little- and big-endian byte order.
-- [ ] Reads advance deterministically and fail with contextual package errors when data is truncated or a requested value is out of bounds.
-- [ ] Unsigned 64-bit offsets and sizes are accepted only when exactly representable as safe JavaScript integers.
-- [ ] Fixed-length, NUL-terminated, and remaining-string helpers cover the string layouts needed by BigBed.
-- [ ] Package errors preserve useful context and causes without translating a native abort into an unrelated format error.
-- [ ] The implementation imports no `Buffer`, `fs`, Node stream, or Axios APIs.
+- [x] Binary reads operate on `Uint8Array`/`DataView` and explicitly honor little- and big-endian byte order.
+- [x] Reads advance deterministically and fail with contextual package errors when data is truncated or a requested value is out of bounds.
+- [x] Unsigned 64-bit offsets and sizes are accepted only when exactly representable as safe JavaScript integers.
+- [x] Fixed-length, NUL-terminated, and remaining-string helpers cover the string layouts needed by BigBed.
+- [x] Package errors preserve useful context and causes without translating a native abort into an unrelated format error.
+- [x] The implementation imports no `Buffer`, `fs`, Node stream, or Axios APIs.
 
 ## Verification
 
