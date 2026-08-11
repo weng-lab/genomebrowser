@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { MuiXLicenseProvider } from "./MuiXLicenseProvider";
+import { MuiXLicenseProvider } from "../components/MuiXLicenseProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
