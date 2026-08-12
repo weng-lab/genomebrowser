@@ -1,8 +1,7 @@
 {
-  "name": "@weng-lab/genomebrowser-reader",
+  "name": "@weng-lab/genomic-reader",
   "version": "2.0.0-alpha.1",
-  "private": true,
-  "description": "Utilities for reading indexed genomic data.",
+  "description": "TypeScript contracts for reading genomic data by region.",
   "homepage": "https://github.com/weng-lab/genomebrowser#readme",
   "bugs": {
     "url": "https://github.com/weng-lab/genomebrowser/issues"
@@ -32,12 +31,14 @@
     "tag": "alpha"
   },
   "scripts": {
+    "build": "pnpm typecheck && vite build",
     "typecheck": "tsc -b",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt .",
-    "format:check": "oxfmt . --check"
+    "format:check": "oxfmt . --check",
+    "prepack": "pnpm build"
   },
   "devDependencies": {
     "@typescript/native": "npm:typescript@^7.0.2",

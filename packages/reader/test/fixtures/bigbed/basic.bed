@@ -1,0 +1,6 @@
+chr1	10	20	alpha	100	+
+chr1	20	30	boundary	200	-
+chr1	25	40	overlap	300	+
+chr1	90	100	chromosome-end	400	.
+chr2	0	10	chromosome-start	500	-
+chr2	40	60	second-chromosome	600	+

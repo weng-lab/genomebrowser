@@ -4,6 +4,7 @@ import dts from "vite-plugin-dts";
 export default defineConfig({
   plugins: [
     dts({
+      compilerOptions: { declarationMap: true },
       entryRoot: "src",
       exclude: ["test"],
       tsconfigPath: "./tsconfig.json",
