@@ -1,7 +1,7 @@
-import { bed3Schema, createBigBedFile } from "../src/lib";
+import { createBigBedFile } from "../src/lib";
 import { z } from "zod";
 
-const url = "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed";
+// Manual live-network example; excluded from the automated TypeScript and Vitest suites.
 const gene = "https://users.wenglab.org/niship/bigGenePredEx4.bb";
 const uint = z.coerce.number().int().nonnegative();
 
@@ -15,7 +15,7 @@ const exonFrames = z
   .regex(/^(?:-1|0|1|2)(?:,(?:-1|0|1|2))*,?$/)
   .transform((value) => value.replace(/,$/, "").split(",").map(Number));
 
-export const bigGenePredSchema = z.object({
+const bigGenePredSchema = z.object({
   name: z.string(),
   score: uint.pipe(z.number().max(1000)),
   strand: z.enum(["+", "-"]),
@@ -33,15 +33,6 @@ export const bigGenePredSchema = z.object({
   geneName: z.string(),
   geneName2: z.string(),
   geneType: z.string(),
-});
-const ccreSchema = z.object({
-  accession: z.string(),
-  score: z.coerce.number(),
-  strand: z.string(),
-  chromStart: z.coerce.number(),
-  chromEnd: z.coerce.number(),
-  color: z.string(),
-  class: z.string(),
 });
 
 const file = createBigBedFile({ url: gene, schema: bigGenePredSchema });

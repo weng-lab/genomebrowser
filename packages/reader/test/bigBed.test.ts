@@ -2,12 +2,28 @@ import { readFile } from "node:fs/promises";
 import { afterEach, beforeAll, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { z } from "zod";
 import { bed3Schema, createBigBedFile, type GenomicFile, type GenomicRecord } from "../src/lib";
+import { parseBbiHeader } from "../src/internal/bbi/commonHeader";
 
 const url = "https://example.test/basic.bb";
 let fixture: Uint8Array;
+let uncompressedFixture: Uint8Array;
+let sourceRecords: Array<GenomicRecord & { fields: string[] }>;
 
 beforeAll(async () => {
-  fixture = await readFile(new URL("./fixtures/bigbed/basic.bb", import.meta.url));
+  const [compressedBytes, uncompressedBytes, bedSource] = await Promise.all([
+    readFile(new URL("./fixtures/bigbed/basic.bb", import.meta.url)),
+    readFile(new URL("./fixtures/bigbed/basic-unc.bb", import.meta.url)),
+    readFile(new URL("./fixtures/bigbed/basic.bed", import.meta.url), "utf8"),
+  ]);
+  fixture = compressedBytes;
+  uncompressedFixture = uncompressedBytes;
+  sourceRecords = bedSource
+    .trim()
+    .split(/\r?\n/)
+    .map((line) => {
+      const [chromosome, start, end, ...fields] = line.split("\t");
+      return { chromosome: chromosome!, start: Number(start), end: Number(end), fields };
+    });
 });
 
 afterEach(() => {
@@ -41,6 +57,24 @@ function requestedRanges(fetchMock: ReturnType<typeof vi.fn<typeof fetch>>): str
 }
 
 describe("createBigBedFile", () => {
+  it("returns the committed BED source records from compressed and uncompressed fixtures", async () => {
+    expect(parseBbiHeader(fixture).uncompressBufferSize).toBeGreaterThan(0);
+    expect(parseBbiHeader(uncompressedFixture).uncompressBufferSize).toBe(0);
+
+    const observed: Array<Array<GenomicRecord & { fields: string[] }>> = [];
+
+    for (const bytes of [fixture, uncompressedFixture]) {
+      installFixtureFetch(bytes);
+      const file = createBigBedFile({ url, schema: bed3Schema });
+      observed.push([
+        ...(await file.read({ chromosome: "chr1", start: 0, end: 100 })),
+        ...(await file.read({ chromosome: "chr2", start: 0, end: 80 })),
+      ]);
+    }
+
+    expect(observed).toEqual([sourceRecords, sourceRecords]);
+  });
+
   it("reads the committed BED6 fixture through the schema-inferred public API", async () => {
     const fetchMock = installFixtureFetch();
     const file = createBigBedFile({ url, schema: bed3Schema });
@@ -51,6 +85,8 @@ describe("createBigBedFile", () => {
       { chromosome: "chr1", start: 10, end: 20, fields: ["alpha", "100", "+"] },
       { chromosome: "chr1", start: 20, end: 30, fields: ["boundary", "200", "-"] },
       { chromosome: "chr1", start: 25, end: 40, fields: ["overlap", "300", "+"] },
+      { chromosome: "chr1", start: 25, end: 40, fields: ["duplicate-key", "350", "-"] },
+      { chromosome: "chr1", start: 25, end: 40, fields: ["duplicate-key", "350", "-"] },
       { chromosome: "chr1", start: 90, end: 100, fields: ["chromosome-end", "400", "."] },
     ]);
     await expect(file.read({ chromosome: "chr1", start: 20, end: 25 })).resolves.toEqual([
@@ -81,6 +117,19 @@ describe("createBigBedFile", () => {
 
     expect(firstReadRanges[0]).toBe("bytes=0-63");
     expect(requestedRanges(fetchMock)).toEqual(firstReadRanges);
+  });
+
+  it("preserves a native cancellation reason through the public read API", async () => {
+    const fetchMock = installFixtureFetch();
+    const controller = new AbortController();
+    const reason = new DOMException("cancelled", "AbortError");
+    controller.abort(reason);
+
+    const file = createBigBedFile({ url, schema: bed3Schema });
+    await expect(
+      file.read({ chromosome: "chr1", start: 0, end: 100 }, { signal: controller.signal }),
+    ).rejects.toBe(reason);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("maps regular object properties positionally, infers coercions, and retains trailing fields", async () => {

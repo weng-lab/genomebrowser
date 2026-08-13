@@ -1,6 +1,6 @@
 # Ticket 05: Fixtures, browser contract, and docs
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R2, R11, R11a, R12, R14, R15, R16, R17, R19, R22, R24, R26, R29, R30
 **Blocked by:** Ticket 04
