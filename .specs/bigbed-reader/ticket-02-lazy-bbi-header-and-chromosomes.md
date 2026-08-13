@@ -1,6 +1,6 @@
 # Ticket 02: Lazy BBI header and chromosome lookup
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R14, R18, R19, R20, R22, R25, R31, R32
 **Blocked by:** Ticket 01
