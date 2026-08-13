@@ -14,6 +14,10 @@ export function validateHttpUrl(url: string): string {
 }
 
 export function validateBigBedRegion(region: GenomicRegion): void {
+  if (region === null || typeof region !== "object") {
+    throw new TypeError("Region must be an object");
+  }
+
   const coordinates = [region.start, region.end];
   if (
     coordinates.some(

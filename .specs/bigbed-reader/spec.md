@@ -178,3 +178,22 @@ The common BBI header determines whether data blocks are compressed. Compressed 
 - Lazy key-directed chromosome lookup is less common in the reviewed reference implementations, which eagerly flatten the chromosome tree. It requires focused routing tests against the documented BBI B+ tree layout.
 - Supporting both byte orders adds focused parser coverage, but real converter-generated fixtures are likely to exercise only little-endian files.
 - JavaScript buffers use number-based lengths and positions even though BBI offsets are 64-bit. Keeping absolute offsets as `bigint` and checking every conversion avoids precision loss but does not make impractically large individual allocations possible.
+
+## Amendments
+
+### A001 - Object schemas parse positional fields after BED3
+
+- **Supersedes:** R2-R10, R28, the **Public schema-driven API** technical decision, and their related verification language where they describe schemas receiving or returning the complete `{ chromosome, start, end, fields }` record or preserving every post-BED3 column in `fields`.
+- **Replacement:** `createBigBedFile` requires a plain Zod 4 object schema whose declared properties describe consecutive BigBed columns after BED3 in declaration order. The reader owns `chromosome`, `start`, `end`, and `fields`; these names are reserved and cannot be declared by the supplied schema. For a schema with `N` properties, each record must contain at least `N` post-BED3 columns. The reader maps those columns to the schema property names, parses the object synchronously, and returns a flat record in this order: protected BED3 coordinates, parsed schema output properties, then `fields`. `fields` always exists and contains only post-BED3 columns after the `N` consumed columns. It is `[]` when no columns remain. Numeric source columns remain strings unless a property schema explicitly parses or coerces them, such as `z.coerce.number()`. Object-level transforms, refinements, and asynchronous schemas are not accepted; property-level parsing, coercion, and transforms are supported. The inferred read result is `GenomicRecord & z.output<Schema> & { fields: string[] }`. A schema parse failure rejects the complete read with its Zod error. `bed3Schema` consumes zero columns, so its reads return protected BED3 coordinates with every post-BED3 column in `fields`.
+- **Reason:** Real usage showed that repeating BED3 fields in every schema is cumbersome and that `fields` is most useful as the unparsed remainder.
+
+### A002 - Allow asynchronous property schemas
+
+- **Supersedes:** A001's statement that asynchronous schemas are not accepted and that property parsing is synchronous.
+- **Replacement:** The supplied schema must still be a plain Zod 4 object without object-level wrappers, refinements, or transforms, but its individual property schemas may parse synchronously or asynchronously. Reads await property parsing sequentially and preserve native Zod failures. Factory creation must reject reserved keys and integer-index-like property names because JavaScript key enumeration would make positional mapping surprising. Other legal object keys, including `__proto__`, must decode as ordinary own properties without changing an object's prototype. Cancellation must be checked around awaited property parsing.
+- **Reason:** Zod can hide Promise-producing property behavior behind regular functions or lazy schemas, making reliable synchronous detection brittle, while `read()` is already asynchronous.
+
+### A003 - Restrict incompatible object catchalls
+
+- **Supersedes:** A001/A002 where “plain Zod object” could include loose, passthrough, or value-producing catchall policies.
+- **Replacement:** Normal stripping objects, strict objects, and an explicit `z.never()` catchall are accepted. Loose, passthrough, and other value-producing catchalls are rejected synchronously because their output index signatures describe properties that positional decoding never produces. Runtime acceptance and the public TypeScript constraint must agree.

@@ -23,6 +23,7 @@ Add the uncompressed converter-generated fixture and regeneration instructions, 
 - [ ] Build output remains browser ESM with declarations and sourcemaps and contains no prohibited runtime dependencies or public internals.
 - [ ] The package README and self-contained package docs explain installation/dependencies, factory options, inferred records, `fields`, regional reads, cancellation, valid no-data `[]`, and failure behavior using public imports and `YOUR_URL_HERE`.
 - [ ] Fixture output is compared with its BED source or an independent UCSC tool result.
+- [ ] Explain zod fields schema effectively in docs.
 
 ## Verification
 

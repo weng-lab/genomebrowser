@@ -19,6 +19,7 @@ export default defineConfig({
     },
     sourcemap: true,
     rollupOptions: {
+      external: ["zod"],
       output: {
         sourcemapExcludeSources: true,
       },

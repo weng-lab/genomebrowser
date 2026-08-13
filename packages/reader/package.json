@@ -48,6 +48,10 @@
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vite": "^8.0.13",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "4.1.7"
+    "vitest": "4.1.7",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
   }
 }
