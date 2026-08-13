@@ -125,3 +125,17 @@ Files are treated as trusted. Implementations should remain bounds-safe and avoi
 - Treating files as trusted means malformed input may fail with low-level parsing or decompression errors rather than stable package-specific diagnostics.
 - A minimal common interface cannot express every format capability. Concrete file types may add optional read behavior while remaining usable as `GenomicFile<T>`.
 - The reader package duplicates a small structural region type already present in core. This is intentional and avoids coupling the reusable reader to the genome browser runtime.
+
+## Amendments
+
+### A001 - BigBed factory requires a schema
+
+- **Supersedes:** The `createBigBedFile` example in **Format-specific files**.
+- **Replacement:** BigBed creation requires a Zod schema that determines the returned record type:
+
+  ```ts
+  const bigBed = createBigBedFile({
+    url: "YOUR_URL_HERE",
+    schema: bed3Schema,
+  });
+  ```
