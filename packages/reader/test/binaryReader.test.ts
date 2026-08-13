@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BinaryReader, type ByteOrder } from "../src/internal/binaryReader";
-import { unsignedBigIntToNumber } from "../src/internal/bigint";
+import { addUint64Offset, unsignedBigIntToNumber } from "../src/internal/bigint";
 
 describe("BinaryReader", () => {
   it.each<{ byteOrder: ByteOrder; bytes: number[] }>([
@@ -49,5 +49,10 @@ describe("BinaryReader", () => {
     expect(unsignedBigIntToNumber(9_007_199_254_740_991n)).toBe(Number.MAX_SAFE_INTEGER);
     expect(() => unsignedBigIntToNumber(9_007_199_254_740_992n)).toThrow(RangeError);
     expect(() => unsignedBigIntToNumber(-1n)).toThrow(RangeError);
+  });
+
+  it("rejects negative operands when adding unsigned 64-bit offsets", () => {
+    expect(() => addUint64Offset(-1n, 1n)).toThrow(RangeError);
+    expect(() => addUint64Offset(1n, -1n)).toThrow(RangeError);
   });
 });

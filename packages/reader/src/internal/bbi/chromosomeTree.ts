@@ -1,32 +1,14 @@
-import { BinaryReader, type ByteOrder } from "./binaryReader";
-import { unsignedBigIntToNumber } from "./bigint";
-import { readExactRange } from "./httpRange";
+import { addUint64Offset, checkedByteLength } from "../bigint";
+import { BinaryReader, type ByteOrder } from "../binaryReader";
+import { readExactRange } from "../httpRange";
+import type { BbiHeader } from "./commonHeader";
 
-// Wire constants and layouts follow UCSC's public sig.h, bbiFile.h, and bPlusTree.h.
-// Separator routing follows the tree produced and read by UCSC's bPlusTree.c: each
-// internal key is the least key in its child, so lookup selects the last key <= target.
-const BIG_BED_MAGIC = 0x8789f2eb;
+// Layout follows UCSC's public bPlusTree.h. UCSC's bPlusTree.c writes each
+// internal key as the least key in its child, so lookup selects the last key <= target.
 const B_PLUS_TREE_MAGIC = 0x78ca8c91;
-const BBI_HEADER_SIZE = 64n;
 const B_PLUS_TREE_HEADER_SIZE = 32n;
 const B_PLUS_TREE_NODE_HEADER_SIZE = 4n;
 const CHROMOSOME_VALUE_SIZE = 8;
-const MAX_UINT64 = 18_446_744_073_709_551_615n;
-
-export type BbiHeader = {
-  byteOrder: ByteOrder;
-  version: number;
-  zoomLevelCount: number;
-  chromosomeTreeOffset: bigint;
-  unzoomedDataOffset: bigint;
-  unzoomedIndexOffset: bigint;
-  fieldCount: number;
-  definedFieldCount: number;
-  autoSqlOffset: bigint;
-  totalSummaryOffset: bigint;
-  uncompressBufferSize: number;
-  extensionOffset: bigint;
-};
 
 export type Chromosome = {
   id: number;
@@ -39,50 +21,6 @@ type BPlusTreeHeader = {
   itemCount: bigint;
   rootOffset: bigint;
 };
-
-function detectBigBedByteOrder(bytes: Uint8Array): ByteOrder {
-  if (bytes.byteLength < 4) {
-    throw new RangeError("BigBed header is truncated");
-  }
-
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (view.getUint32(0, true) === BIG_BED_MAGIC) return "little-endian";
-  if (view.getUint32(0, false) === BIG_BED_MAGIC) return "big-endian";
-  throw new Error("Invalid BigBed magic");
-}
-
-export function parseBigBedHeader(bytes: Uint8Array): BbiHeader {
-  const byteOrder = detectBigBedByteOrder(bytes);
-  const reader = new BinaryReader(bytes, byteOrder);
-
-  reader.readUint32();
-  return {
-    byteOrder,
-    version: reader.readUint16(),
-    zoomLevelCount: reader.readUint16(),
-    chromosomeTreeOffset: reader.readUint64(),
-    unzoomedDataOffset: reader.readUint64(),
-    unzoomedIndexOffset: reader.readUint64(),
-    fieldCount: reader.readUint16(),
-    definedFieldCount: reader.readUint16(),
-    autoSqlOffset: reader.readUint64(),
-    totalSummaryOffset: reader.readUint64(),
-    uncompressBufferSize: reader.readUint32(),
-    extensionOffset: reader.readUint64(),
-  };
-}
-
-export async function readBigBedHeader(url: string, signal?: AbortSignal): Promise<BbiHeader> {
-  return parseBigBedHeader(await readExactRange(url, 0n, BBI_HEADER_SIZE, signal));
-}
-
-function addOffset(offset: bigint, byteLength: bigint): bigint {
-  const result = offset + byteLength;
-  if (result > MAX_UINT64) {
-    throw new RangeError("BBI file offset exceeds the unsigned 64-bit limit");
-  }
-  return result;
-}
 
 function parseTreeHeader(
   bytes: Uint8Array,
@@ -111,7 +49,7 @@ function parseTreeHeader(
     blockSize,
     keySize,
     itemCount,
-    rootOffset: addOffset(treeOffset, B_PLUS_TREE_HEADER_SIZE),
+    rootOffset: addUint64Offset(treeOffset, B_PLUS_TREE_HEADER_SIZE, "BBI file offset"),
   };
 }
 
@@ -121,12 +59,6 @@ function comparePaddedKey(target: Uint8Array, key: Uint8Array): number {
     if (difference !== 0) return difference;
   }
   return 0;
-}
-
-function checkedNodeBodyLength(count: number, itemSize: bigint): bigint {
-  const byteLength = BigInt(count) * itemSize;
-  unsignedBigIntToNumber(byteLength, "B+ tree node body length");
-  return byteLength;
 }
 
 export async function lookupChromosome(
@@ -171,10 +103,10 @@ export async function lookupChromosome(
 
     const payloadSize = nodeType === 1 ? BigInt(CHROMOSOME_VALUE_SIZE) : 8n;
     const itemSize = BigInt(tree.keySize) + payloadSize;
-    const bodyLength = checkedNodeBodyLength(count, itemSize);
+    const bodyLength = checkedByteLength(count, itemSize, "Tree node body length");
     const bodyBytes = await readExactRange(
       url,
-      addOffset(nodeOffset, B_PLUS_TREE_NODE_HEADER_SIZE),
+      addUint64Offset(nodeOffset, B_PLUS_TREE_NODE_HEADER_SIZE, "BBI file offset"),
       bodyLength,
       signal,
     );

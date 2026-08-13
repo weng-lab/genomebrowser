@@ -1,6 +1,6 @@
 # Ticket 04: Schema-driven BigBed reader
 
-**Status:** Ready
+**Status:** In Progress
 **Spec:** `./spec.md`
 **Requirements:** R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R11a, R12, R13, R15, R21, R26, R27, R28
 **Blocked by:** Ticket 03

@@ -1,6 +1,6 @@
 # Ticket 03: Regional index and BBI blocks
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R14, R15, R18, R19, R20, R22, R23, R24, R25, R31
 **Blocked by:** Ticket 02
@@ -43,3 +43,15 @@ Cover internal and leaf nodes, exact half-open boundaries, no-overlap queries, c
 ## Out of Scope
 
 BigBed payload decoding, exact record filtering, schemas, public factories, and documentation.
+
+## Amendments
+
+### A001 - Narrow and compact block results
+
+- **Supersedes:** Acceptance criterion “Returned block data is private and format-neutral, with no BED fields, Zod, or BigBed record assumptions.”
+- **Replacement:** Returned block data is private and format-neutral and contains only the data-block offset, stored size, decoded bytes, and query context. It must not retain an unused regional-index node offset. Compressed results must expose a compact byte array rather than retaining the full declared decompression buffer.
+
+### A002 - Organize private BBI modules by responsibility
+
+- **Supersedes:** Ticket 02 and Ticket 03 implementation organization in a single `src/internal/bbi.ts` module.
+- **Replacement:** Shared private BBI code must live under `src/internal/bbi/` and be split by focused responsibility: common header parsing, chromosome-tree lookup, regional-index traversal, and block retrieval/decompression. General range, binary, cancellation, bigint, and input-validation utilities remain directly under `src/internal/`. Avoid a broad shared types module; keep types with the operation that owns them and use narrow imports between BBI modules.
