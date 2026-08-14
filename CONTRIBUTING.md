@@ -31,6 +31,8 @@ request description.
 Before requesting review or handing off a pull request, update its description
 and metadata to reflect the final scope.
 
+Briefly run pnpm verify to ensure PR's won't immediately fail. Also run react doctor and report any issues.
+
 ## Issues
 
 State the desired outcome first, then include only the context, constraints, or

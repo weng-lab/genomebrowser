@@ -177,6 +177,7 @@ export async function runComparison(
 
   if (readers !== undefined) {
     const primeOrder: readonly ReaderName[] = newFirst ? ["new", "old"] : ["old", "new"];
+    // Prime sequentially to avoid one reader's network traffic affecting the other reader's cache.
     for (const name of primeOrder) {
       await withRequestContext({ dataset: dataset.id, mode, size, sample: 0, phase: "prime" }, () =>
         readers[name].read(region),
@@ -184,6 +185,7 @@ export async function runComparison(
     }
   }
 
+  // Measurements are sequential and alternate reader order to limit ordering and contention bias.
   for (let sample = 0; sample < sampleCount; sample += 1) {
     const sampleNewFirst = sample % 2 === 0 ? newFirst : !newFirst;
     const order: readonly ReaderName[] = sampleNewFirst ? ["new", "old"] : ["old", "new"];

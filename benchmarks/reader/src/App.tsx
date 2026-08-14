@@ -31,6 +31,12 @@ function milliseconds(value: number): string {
   return value.toFixed(1);
 }
 
+function parseSampleCount(value: string): number | undefined {
+  if (value === "") return undefined;
+  const count = Number(value);
+  return Number.isInteger(count) && count >= 1 && count <= 50 ? count : undefined;
+}
+
 function ResultRow({ result }: { result: BenchmarkResult }) {
   return (
     <tr data-dataset={result.dataset.id} data-mode={result.mode} data-size={result.size}>
@@ -57,12 +63,14 @@ function ResultRow({ result }: { result: BenchmarkResult }) {
 }
 
 export function App() {
-  const [sampleCount, setSampleCount] = useState(5);
+  const [sampleCountInput, setSampleCountInput] = useState("5");
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const [status, setStatus] = useState("Ready");
   const [running, setRunning] = useState(false);
+  const sampleCount = parseSampleCount(sampleCountInput);
 
   async function runBenchmark() {
+    if (sampleCount === undefined) return;
     setRunning(true);
     setResults([]);
     window.__readerBenchmarkResults = [];
@@ -70,6 +78,7 @@ export function App() {
     const nextResults: BenchmarkResult[] = [];
 
     try {
+      // Run comparisons sequentially so concurrent network traffic cannot distort their timings.
       for (const dataset of RUN_DATASETS) {
         for (const size of REGION_SIZES) {
           const region = REGIONS.get(`${dataset.id}:${size}`);
@@ -126,12 +135,17 @@ export function App() {
             type="number"
             min="1"
             max="50"
-            value={sampleCount}
+            value={sampleCountInput}
             disabled={running}
-            onChange={(event) => setSampleCount(Number(event.target.value))}
+            aria-invalid={sampleCount === undefined}
+            onChange={(event) => setSampleCountInput(event.currentTarget.value)}
           />
         </label>
-        <button type="button" disabled={running || sampleCount < 1} onClick={runBenchmark}>
+        <button
+          type="button"
+          disabled={running || sampleCount === undefined}
+          onClick={runBenchmark}
+        >
           {running ? "Running…" : "Run benchmark"}
         </button>
       </section>
