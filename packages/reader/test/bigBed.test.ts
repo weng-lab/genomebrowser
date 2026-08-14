@@ -115,7 +115,9 @@ describe("createBigBedFile", () => {
     const rootOffset = indexOffset + 48n;
     const indexView = new DataView(fixture.buffer, fixture.byteOffset + Number(indexOffset), 48);
     const blockSize = indexView.getUint32(4, header.byteOrder === "little-endian");
-    const maximumRootEnd = rootOffset + 4n + BigInt(blockSize) * 32n - 1n;
+    const maximumRootLength = 4n + BigInt(blockSize) * 32n;
+    const initialRootLength = maximumRootLength < 4096n ? maximumRootLength : 4096n;
+    const maximumRootEnd = rootOffset + initialRootLength - 1n;
     const rootEnd =
       maximumRootEnd < BigInt(fixture.byteLength)
         ? maximumRootEnd

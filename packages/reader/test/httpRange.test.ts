@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { readExactRange } from "../src/internal/httpRange";
+import { readBoundedRange, readExactRange } from "../src/internal/httpRange";
 
 const url = "https://example.test/file.bb";
 
@@ -143,5 +143,60 @@ describe("readExactRange", () => {
     expect(abortedMetadata.resourceSize).toBeUndefined();
     expect(activeMetadata.resourceSize).toBe(4n);
     expect(activeController.signal.aborted).toBe(false);
+  });
+});
+
+describe("readBoundedRange", () => {
+  it("accepts hidden Content-Range and visible EOF-short bodies within its bounds", async () => {
+    const metadata: { resourceSize?: bigint } = {};
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(partialResponse([1, 2, 3], null))
+      .mockResolvedValueOnce(partialResponse([4, 5], "bytes 20-21/22"));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(readBoundedRange(url, 10n, 2n, 4n)).resolves.toEqual(Uint8Array.from([1, 2, 3]));
+    await expect(readBoundedRange(url, 20n, 2n, 4n, { metadata })).resolves.toEqual(
+      Uint8Array.from([4, 5]),
+    );
+    expect(metadata.resourceSize).toBe(22n);
+    expect(fetchMock.mock.calls.map(([, init]) => new Headers(init?.headers).get("Range"))).toEqual(
+      ["bytes=10-13", "bytes=20-23"],
+    );
+  });
+
+  it.each([
+    ["a body shorter than the minimum", () => partialResponse([1], null)],
+    ["a body longer than the maximum", () => partialResponse([1, 2, 3, 4, 5], null)],
+    ["an invalid visible Content-Range", () => partialResponse([1, 2], "bytes invalid")],
+    ["different visible response bytes", () => partialResponse([1, 2], "bytes 11-12/20")],
+    ["a visible range longer than its body", () => partialResponse([1, 2], "bytes 10-13/20")],
+    ["an ignored range", () => partialResponse([1, 2], null, { status: 200 })],
+  ])("rejects %s", async (_case, responseFactory) => {
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockResolvedValue(responseFactory()));
+
+    await expect(readBoundedRange(url, 10n, 2n, 4n)).rejects.toBeInstanceOf(Error);
+  });
+
+  it("preserves abort reasons and rejects invalid bounds before fetching", async () => {
+    const controller = new AbortController();
+    const reason = new DOMException("cancelled", "AbortError");
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation((_input, init) => {
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), {
+          once: true,
+        });
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const read = readBoundedRange(url, 0n, 2n, 4n, { signal: controller.signal });
+    controller.abort(reason);
+    await expect(read).rejects.toBe(reason);
+    await expect(readBoundedRange(url, 0n, 5n, 4n)).rejects.toBeInstanceOf(RangeError);
+    await expect(readBoundedRange(url, 0n, 1n, 9_007_199_254_740_992n)).rejects.toBeInstanceOf(
+      RangeError,
+    );
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
 });

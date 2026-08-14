@@ -1,6 +1,6 @@
 import { addUint64Offset, checkedByteLength } from "../bigint";
 import { BinaryReader, type ByteOrder } from "../binaryReader";
-import { readExactRange, type ExactRangeOptions } from "../httpRange";
+import { readBoundedRange, readExactRange, type ExactRangeOptions } from "../httpRange";
 import type { BbiHeader } from "./commonHeader";
 
 // Wire constants and layout follow UCSC's public sig.h and cirTree.h/cirTree.c.
@@ -9,7 +9,9 @@ const CIRTREE_HEADER_SIZE = 48n;
 const CIRTREE_NODE_HEADER_SIZE = 4n;
 const CIRTREE_INTERNAL_ITEM_SIZE = 24n;
 const CIRTREE_LEAF_ITEM_SIZE = 32n;
+const INITIAL_R_TREE_NODE_READ_AHEAD_SPAN = 4n * 1024n;
 const MAXIMUM_R_TREE_NODE_READ_AHEAD_SPAN = 1024n * 1024n;
+const MAX_UINT64 = 18_446_744_073_709_551_615n;
 
 export type BbiQuery = {
   chromosomeId: number;
@@ -108,19 +110,33 @@ async function findOverlappingBlocks(
 ): Promise<void> {
   const resourceSize = options?.metadata?.resourceSize;
   const maximumNodeLength = maximumNodeReadAheadLength(tree.blockSize);
-  const useReadAhead = resourceSize !== undefined && maximumNodeLength !== undefined;
-  let nodeBytes: Uint8Array;
-  if (!useReadAhead) {
-    nodeBytes = await readExactRange(url, nodeOffset, CIRTREE_NODE_HEADER_SIZE, options);
-  } else {
+  const maximumInitialReadLength =
+    maximumNodeLength !== undefined && maximumNodeLength < INITIAL_R_TREE_NODE_READ_AHEAD_SPAN
+      ? maximumNodeLength
+      : INITIAL_R_TREE_NODE_READ_AHEAD_SPAN;
+  let readAheadLength: bigint | undefined;
+  if (maximumNodeLength !== undefined && resourceSize !== undefined) {
     if (nodeOffset >= resourceSize) {
       throw new RangeError("BBI primary R-tree node offset is outside the resource");
     }
     const remainingResourceLength = resourceSize - nodeOffset;
-    const nodeLength =
-      remainingResourceLength < maximumNodeLength ? remainingResourceLength : maximumNodeLength;
-    nodeBytes = await readExactRange(url, nodeOffset, nodeLength, options);
+    if (remainingResourceLength < CIRTREE_NODE_HEADER_SIZE) {
+      throw new RangeError("BBI primary R-tree node header is truncated");
+    }
+    const boundedLength =
+      remainingResourceLength < maximumInitialReadLength
+        ? remainingResourceLength
+        : maximumInitialReadLength;
+    if (nodeOffset <= MAX_UINT64 - boundedLength + 1n) {
+      readAheadLength = boundedLength;
+    }
+  } else if (maximumNodeLength !== undefined && nodeOffset <= MAX_UINT64 - maximumNodeLength + 1n) {
+    readAheadLength = maximumInitialReadLength;
   }
+  const nodeBytes =
+    readAheadLength === undefined
+      ? await readExactRange(url, nodeOffset, CIRTREE_NODE_HEADER_SIZE, options)
+      : await readBoundedRange(url, nodeOffset, CIRTREE_NODE_HEADER_SIZE, readAheadLength, options);
 
   const node = new BinaryReader(nodeBytes, header.byteOrder);
   const nodeType = node.readUint8();
@@ -137,17 +153,43 @@ async function findOverlappingBlocks(
   const itemSize = nodeType === 1 ? CIRTREE_LEAF_ITEM_SIZE : CIRTREE_INTERNAL_ITEM_SIZE;
   if (count === 0) return;
   const bodyLength = checkedByteLength(count, itemSize, "Tree node body length");
-  const body = !useReadAhead
-    ? new BinaryReader(
-        await readExactRange(
+  const completeNodeLength = CIRTREE_NODE_HEADER_SIZE + bodyLength;
+  if (
+    readAheadLength !== undefined &&
+    resourceSize !== undefined &&
+    completeNodeLength > resourceSize - nodeOffset
+  ) {
+    throw new Error("BBI primary R-tree node body is truncated");
+  }
+  let bodyBytes =
+    readAheadLength === undefined
+      ? await readExactRange(
           url,
           addUint64Offset(nodeOffset, CIRTREE_NODE_HEADER_SIZE, "BBI file offset"),
           bodyLength,
           options,
-        ),
-        header.byteOrder,
-      )
-    : node;
+        )
+      : nodeBytes.subarray(
+          Number(CIRTREE_NODE_HEADER_SIZE),
+          Number(CIRTREE_NODE_HEADER_SIZE + bodyLength),
+        );
+  if (readAheadLength !== undefined && BigInt(bodyBytes.byteLength) < bodyLength) {
+    const missingBodyLength = bodyLength - BigInt(bodyBytes.byteLength);
+    const suffixOffset = addUint64Offset(
+      nodeOffset,
+      BigInt(nodeBytes.byteLength),
+      "BBI file offset",
+    );
+    const suffixBytes = await readExactRange(url, suffixOffset, missingBodyLength, options);
+    const completeBody = new Uint8Array(Number(bodyLength));
+    completeBody.set(bodyBytes);
+    completeBody.set(suffixBytes, bodyBytes.byteLength);
+    bodyBytes = completeBody;
+  }
+  if (BigInt(bodyBytes.byteLength) !== bodyLength) {
+    throw new Error("BBI primary R-tree node body is truncated");
+  }
+  const body = new BinaryReader(bodyBytes, header.byteOrder);
 
   if (nodeType === 1) {
     for (let index = 0; index < count; index += 1) {

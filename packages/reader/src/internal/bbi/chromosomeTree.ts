@@ -1,6 +1,6 @@
 import { addUint64Offset, checkedByteLength } from "../bigint";
 import { BinaryReader, type ByteOrder } from "../binaryReader";
-import { readExactRange, type ExactRangeOptions } from "../httpRange";
+import { readBoundedRange, readExactRange, type ExactRangeOptions } from "../httpRange";
 import type { BbiHeader } from "./commonHeader";
 
 // Layout follows UCSC's public bPlusTree.h. UCSC's bPlusTree.c writes each
@@ -9,6 +9,8 @@ const B_PLUS_TREE_MAGIC = 0x78ca8c91;
 const B_PLUS_TREE_HEADER_SIZE = 32n;
 const B_PLUS_TREE_NODE_HEADER_SIZE = 4n;
 const CHROMOSOME_VALUE_SIZE = 8;
+const MAXIMUM_B_PLUS_TREE_NODE_READ_AHEAD_SPAN = 1024n * 1024n;
+const MAX_UINT64 = 18_446_744_073_709_551_615n;
 
 export type Chromosome = {
   id: number;
@@ -61,6 +63,14 @@ function comparePaddedKey(target: Uint8Array, key: Uint8Array): number {
   return 0;
 }
 
+function maximumNodeReadAheadLength(tree: BPlusTreeHeader): bigint | undefined {
+  const itemSize = BigInt(tree.keySize + CHROMOSOME_VALUE_SIZE);
+  const maximumNodeLength = B_PLUS_TREE_NODE_HEADER_SIZE + BigInt(tree.blockSize) * itemSize;
+  return maximumNodeLength <= MAXIMUM_B_PLUS_TREE_NODE_READ_AHEAD_SPAN
+    ? maximumNodeLength
+    : undefined;
+}
+
 export async function lookupChromosome(
   url: string,
   header: BbiHeader,
@@ -77,18 +87,27 @@ export async function lookupChromosome(
   const target = new TextEncoder().encode(chromosome);
   if (target.byteLength > tree.keySize || tree.itemCount === 0n) return undefined;
 
+  const maximumNodeLength = maximumNodeReadAheadLength(tree);
   let nodeOffset = tree.rootOffset;
   for (;;) {
-    const nodeHeaderBytes = await readExactRange(
-      url,
-      nodeOffset,
-      B_PLUS_TREE_NODE_HEADER_SIZE,
-      options,
-    );
-    const nodeHeader = new BinaryReader(nodeHeaderBytes, header.byteOrder);
-    const nodeType = nodeHeader.readUint8();
-    nodeHeader.readUint8();
-    const count = nodeHeader.readUint16();
+    const readAheadLength =
+      maximumNodeLength !== undefined && nodeOffset <= MAX_UINT64 - maximumNodeLength + 1n
+        ? maximumNodeLength
+        : undefined;
+    const nodeBytes =
+      readAheadLength === undefined
+        ? await readExactRange(url, nodeOffset, B_PLUS_TREE_NODE_HEADER_SIZE, options)
+        : await readBoundedRange(
+            url,
+            nodeOffset,
+            B_PLUS_TREE_NODE_HEADER_SIZE,
+            readAheadLength,
+            options,
+          );
+    const node = new BinaryReader(nodeBytes, header.byteOrder);
+    const nodeType = node.readUint8();
+    node.readUint8();
+    const count = node.readUint16();
 
     if (nodeType !== 0 && nodeType !== 1) {
       throw new Error("Invalid chromosome B+ tree node type");
@@ -104,12 +123,21 @@ export async function lookupChromosome(
     const payloadSize = nodeType === 1 ? BigInt(CHROMOSOME_VALUE_SIZE) : 8n;
     const itemSize = BigInt(tree.keySize) + payloadSize;
     const bodyLength = checkedByteLength(count, itemSize, "Tree node body length");
-    const bodyBytes = await readExactRange(
-      url,
-      addUint64Offset(nodeOffset, B_PLUS_TREE_NODE_HEADER_SIZE, "BBI file offset"),
-      bodyLength,
-      options,
-    );
+    const bodyBytes =
+      readAheadLength === undefined
+        ? await readExactRange(
+            url,
+            addUint64Offset(nodeOffset, B_PLUS_TREE_NODE_HEADER_SIZE, "BBI file offset"),
+            bodyLength,
+            options,
+          )
+        : nodeBytes.subarray(
+            Number(B_PLUS_TREE_NODE_HEADER_SIZE),
+            Number(B_PLUS_TREE_NODE_HEADER_SIZE + bodyLength),
+          );
+    if (BigInt(bodyBytes.byteLength) !== bodyLength) {
+      throw new Error("Chromosome B+ tree node body is truncated");
+    }
     const body = new BinaryReader(bodyBytes, header.byteOrder);
     let selectedChild: bigint | undefined;
 

@@ -1,0 +1,36 @@
+{
+  "name": "@weng-lab/reader-benchmark",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm typecheck && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check",
+    "serve": "vite --host 127.0.0.1",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@weng-lab/genomic-reader": "workspace:*",
+    "axios": "0.33.0",
+    "buffer": "6.0.3",
+    "genomic-reader": "1.4.10",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "stream-browserify": "3.0.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "26.1.2",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.1",
+    "oxfmt": "0.61.0",
+    "oxlint": "1.76.0",
+    "typescript": "7.0.2",
+    "vite": "8.0.13"
+  }
+}
