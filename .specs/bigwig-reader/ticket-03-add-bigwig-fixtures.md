@@ -1,6 +1,6 @@
 # Ticket 03: Add deterministic BigWig fixtures
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R15, R30
 **Blocked by:** None
@@ -17,12 +17,12 @@ Record trusted expected zoom levels and representative zoom summary output using
 
 ## Acceptance Criteria
 
-- [ ] Fixture source signal and chromosome-size files are human-readable and committed.
-- [ ] At least one converter-generated fixture declares zoom levels and supports deterministic unzoomed and zoom regional reads.
-- [ ] Compressed and uncompressed BBI data-block behavior are both represented by committed fixtures.
-- [ ] Inputs cover multiple chromosomes, sparse regions, boundary-overlapping intervals, and varied signal values.
-- [ ] A fixture README records exact generation commands, tool names, relevant options, and trusted inspection commands/output needed by tests.
-- [ ] Fixtures remain small enough for the routine test suite and have clear provenance.
+- [x] Fixture source signal and chromosome-size files are human-readable and committed.
+- [x] At least one converter-generated fixture declares zoom levels and supports deterministic unzoomed and zoom regional reads.
+- [x] Compressed and uncompressed BBI data-block behavior are both represented by committed fixtures.
+- [x] Inputs cover multiple chromosomes, sparse regions, boundary-overlapping intervals, and varied signal values.
+- [x] A fixture README records exact generation commands, tool names, relevant options, and trusted inspection commands/output needed by tests.
+- [x] Fixtures remain small enough for the routine test suite and have clear provenance.
 
 ## Verification
 
