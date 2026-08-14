@@ -1,6 +1,6 @@
 import { addUint64Offset, checkedByteLength } from "../bigint";
 import { BinaryReader, type ByteOrder } from "../binaryReader";
-import { readExactRange } from "../httpRange";
+import { readExactRange, type ExactRangeOptions } from "../httpRange";
 import type { BbiHeader } from "./commonHeader";
 
 // Layout follows UCSC's public bPlusTree.h. UCSC's bPlusTree.c writes each
@@ -65,13 +65,13 @@ export async function lookupChromosome(
   url: string,
   header: BbiHeader,
   chromosome: string,
-  signal?: AbortSignal,
+  options?: ExactRangeOptions,
 ): Promise<Chromosome | undefined> {
   const treeBytes = await readExactRange(
     url,
     header.chromosomeTreeOffset,
     B_PLUS_TREE_HEADER_SIZE,
-    signal,
+    options,
   );
   const tree = parseTreeHeader(treeBytes, header.byteOrder, header.chromosomeTreeOffset);
   const target = new TextEncoder().encode(chromosome);
@@ -83,7 +83,7 @@ export async function lookupChromosome(
       url,
       nodeOffset,
       B_PLUS_TREE_NODE_HEADER_SIZE,
-      signal,
+      options,
     );
     const nodeHeader = new BinaryReader(nodeHeaderBytes, header.byteOrder);
     const nodeType = nodeHeader.readUint8();
@@ -108,7 +108,7 @@ export async function lookupChromosome(
       url,
       addUint64Offset(nodeOffset, B_PLUS_TREE_NODE_HEADER_SIZE, "BBI file offset"),
       bodyLength,
-      signal,
+      options,
     );
     const body = new BinaryReader(bodyBytes, header.byteOrder);
     let selectedChild: bigint | undefined;

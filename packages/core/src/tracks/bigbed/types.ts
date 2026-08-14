@@ -1,9 +1,6 @@
-import type { z } from "zod";
 import type { TrackInteraction } from "../../modules/types";
 
 export type BigBedDisplay = "dense" | "squish";
-
-export type BigBedSchema = z.ZodObject;
 
 export type BigBedConfig = {
   url: string;
@@ -12,22 +9,16 @@ export type BigBedConfig = {
 export type BigBedData = BigBedRow[];
 
 export type BigBedRow = {
-  chr?: string;
-  chrom?: string;
-  chromStart?: number;
-  chromEnd?: number;
+  chromosome: string;
   start: number;
   end: number;
+  fields: string[];
   name?: string;
   score?: number | string;
   strand?: string;
   color?: string;
-  rest?: string[] | string;
   [key: string]: unknown;
 };
-
-export type InferBigBedRow<TSchema extends BigBedSchema | undefined = undefined> =
-  TSchema extends BigBedSchema ? z.output<TSchema> & BigBedRow : BigBedRow;
 
 export type RenderedBigBedRect<Row extends BigBedRow = BigBedRow> = {
   row: Row;

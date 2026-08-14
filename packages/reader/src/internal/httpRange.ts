@@ -21,10 +21,23 @@ function validateRange(offset: bigint, length: bigint): { end: bigint; byteLengt
   return { end, byteLength };
 }
 
-function validateContentRange(contentRange: string | null, offset: bigint, end: bigint): void {
-  if (contentRange === null) {
-    throw new Error("Partial response is missing an accessible Content-Range header");
-  }
+export type ExactRangeMetadata = {
+  resourceSize?: bigint;
+};
+
+export type ExactRangeOptions = {
+  signal?: AbortSignal;
+  metadata?: ExactRangeMetadata;
+};
+
+function validateContentRange(
+  contentRange: string | null,
+  offset: bigint,
+  end: bigint,
+): bigint | undefined {
+  // Browsers hide Content-Range unless the server exposes it through CORS. In that case,
+  // readExactRange still requires a 206 response and an exact body length.
+  if (contentRange === null) return undefined;
 
   const match = CONTENT_RANGE_PATTERN.exec(contentRange);
   if (match === null) {
@@ -41,14 +54,16 @@ function validateContentRange(contentRange: string | null, offset: bigint, end: 
   if (completeLength !== undefined && completeLength <= responseEnd) {
     throw new Error("Partial response has an inconsistent complete length");
   }
+  return completeLength;
 }
 
 export async function readExactRange(
   url: string,
   offset: bigint,
   length: bigint,
-  signal?: AbortSignal,
+  options?: ExactRangeOptions,
 ): Promise<Uint8Array> {
+  const signal = options?.signal;
   const { end, byteLength } = validateRange(offset, length);
   throwIfAborted(signal);
 
@@ -64,7 +79,7 @@ export async function readExactRange(
   if (response.headers.has("Content-Encoding")) {
     throw new Error("Partial response must not use Content-Encoding");
   }
-  validateContentRange(response.headers.get("Content-Range"), offset, end);
+  const resourceSize = validateContentRange(response.headers.get("Content-Range"), offset, end);
 
   throwIfAborted(signal);
   const body = await response.arrayBuffer();
@@ -74,6 +89,10 @@ export async function readExactRange(
     throw new Error(
       `Partial response body has ${body.byteLength} bytes; expected exactly ${byteLength}`,
     );
+  }
+
+  if (resourceSize !== undefined && options?.metadata !== undefined) {
+    options.metadata.resourceSize ??= resourceSize;
   }
 
   return new Uint8Array(body);

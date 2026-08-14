@@ -2,9 +2,11 @@ import { z } from "zod";
 import type { GenomicFile, GenomicRecord, GenomicRegion, ReadOptions } from "./genomicFile";
 import { throwIfAborted } from "./internal/abort";
 import { decodeBigBedBlock, stableSortBigBedRecords } from "./internal/bigBedDecoder";
-import { lookupChromosome } from "./internal/bbi/chromosomeTree";
-import { readBbiHeader } from "./internal/bbi/commonHeader";
+import { lookupChromosome, type Chromosome } from "./internal/bbi/chromosomeTree";
+import { readBbiHeader, type BbiHeader } from "./internal/bbi/commonHeader";
 import { readBbiDataBlocks } from "./internal/bbi/dataBlocks";
+import { readPrimaryRTreeHeader, type PrimaryRTreeHeader } from "./internal/bbi/regionalIndex";
+import type { ExactRangeMetadata } from "./internal/httpRange";
 import { validateBigBedRegion, validateHttpUrl } from "./internal/inputValidation";
 
 export const bed3Schema = z.object({});
@@ -50,6 +52,13 @@ export type BigBedFileOptions<Schema extends z.ZodObject> = {
 
 const protectedFieldNames = new Set<ProtectedBigBedField>(["chromosome", "start", "end", "fields"]);
 
+type BigBedMetadataCache = {
+  header?: BbiHeader;
+  chromosomes: Map<string, Chromosome | undefined>;
+  primaryRTreeHeader?: PrimaryRTreeHeader;
+  rangeMetadata: ExactRangeMetadata;
+};
+
 function isArrayIndexPropertyName(name: string): boolean {
   if (!/^(?:0|[1-9]\d*)$/.test(name)) return false;
   return BigInt(name) < 0xffff_ffffn;
@@ -86,28 +95,53 @@ async function readBigBed<Schema extends z.ZodObject>(
   url: string,
   schema: Schema,
   fieldNames: readonly string[],
+  metadataCache: BigBedMetadataCache,
   region: GenomicRegion,
   options?: ReadOptions,
 ): Promise<BigBedRecord<Schema>[]> {
   validateBigBedRegion(region);
   const signal = options?.signal;
+  const rangeOptions = { signal, metadata: metadataCache.rangeMetadata };
   throwIfAborted(signal);
 
-  const header = await readBbiHeader(url, signal);
-  throwIfAborted(signal);
-  if (header.format !== "bigBed") {
-    throw new Error("Expected a BigBed file");
+  let header = metadataCache.header;
+  if (header === undefined) {
+    header = await readBbiHeader(url, rangeOptions);
+    throwIfAborted(signal);
+    if (header.format !== "bigBed") {
+      throw new Error("Expected a BigBed file");
+    }
+    metadataCache.header = header;
+  } else {
+    throwIfAborted(signal);
   }
 
-  const chromosome = await lookupChromosome(url, header, region.chromosome, signal);
-  throwIfAborted(signal);
+  let chromosome: Chromosome | undefined;
+  if (metadataCache.chromosomes.has(region.chromosome)) {
+    chromosome = metadataCache.chromosomes.get(region.chromosome);
+    throwIfAborted(signal);
+  } else {
+    chromosome = await lookupChromosome(url, header, region.chromosome, rangeOptions);
+    throwIfAborted(signal);
+    metadataCache.chromosomes.set(region.chromosome, chromosome);
+  }
   if (chromosome === undefined) return [];
+
+  let primaryRTreeHeader = metadataCache.primaryRTreeHeader;
+  if (primaryRTreeHeader === undefined) {
+    primaryRTreeHeader = await readPrimaryRTreeHeader(url, header, rangeOptions);
+    throwIfAborted(signal);
+    metadataCache.primaryRTreeHeader = primaryRTreeHeader;
+  } else {
+    throwIfAborted(signal);
+  }
 
   const blocks = await readBbiDataBlocks(
     url,
     header,
+    primaryRTreeHeader,
     { chromosomeId: chromosome.id, start: region.start, end: region.end },
-    signal,
+    rangeOptions,
   );
   throwIfAborted(signal);
 
@@ -146,10 +180,11 @@ export function createBigBedFile<Schema extends z.ZodObject>(
   const url = validateHttpUrl(options.url);
   const schema = options.schema as Schema;
   const fieldNames = Object.keys(schema.shape);
+  const metadataCache: BigBedMetadataCache = { chromosomes: new Map(), rangeMetadata: {} };
 
   return {
     read(region, readOptions) {
-      return readBigBed(url, schema, fieldNames, region, readOptions);
+      return readBigBed(url, schema, fieldNames, metadataCache, region, readOptions);
     },
   };
 }

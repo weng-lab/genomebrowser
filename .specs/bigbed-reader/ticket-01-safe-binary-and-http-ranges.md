@@ -17,7 +17,7 @@ Implement the private foundation needed by later BBI tickets: synchronous HTTP(S
 
 - [ ] HTTP(S) URLs are accepted synchronously without network work; invalid URLs and unsupported schemes throw synchronously.
 - [ ] Invalid region coordinate types and values reject according to R13, while validation performs no fetch.
-- [ ] Exact byte reads send an inclusive `Range` header and require an exact `206` response with an exposed, matching `Content-Range`, no transport `Content-Encoding`, and the requested body length.
+- [ ] Exact byte reads send an inclusive `Range` header and require an exact `206` response, no transport `Content-Encoding`, and the requested body length. An accessible `Content-Range` must match; an inaccessible one is tolerated for browser compatibility.
 - [ ] Ignored ranges, transformed responses, mismatched ranges, and short or oversized bodies reject with ordinary errors.
 - [ ] Native abort behavior is preserved, concurrent signals remain independent, and cancellation can be checked around sequential asynchronous and CPU work.
 - [ ] The binary reader supports both byte orders, bounds-checks local reads, decodes unsigned 8/16/32-bit values, and retains unsigned 64-bit values as `bigint`.

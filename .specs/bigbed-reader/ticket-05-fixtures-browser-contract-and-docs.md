@@ -19,7 +19,7 @@ Add the uncompressed converter-generated fixture and regeneration instructions, 
 - [ ] Compressed and uncompressed fixtures produce equivalent observable regional results where their source records match.
 - [ ] End-to-end coverage includes boundaries, multiple chromosomes, unknown chromosomes, no-data regions, stable duplicate handling, cancellation, and stateless repeated reads.
 - [ ] Focused coverage proves chromosome-spanning index/block filtering even if the converter fixtures do not naturally produce it.
-- [ ] Browser-contract tests cover strict `206`, exposed `Content-Range`, rejected `200`, transformed responses, and exact body ranges.
+- [ ] Browser-contract tests cover strict `206`, exposed and inaccessible `Content-Range`, rejected `200`, transformed responses, and exact body ranges.
 - [ ] Build output remains browser ESM with declarations and sourcemaps and contains no prohibited runtime dependencies or public internals.
 - [ ] The package README and self-contained package docs explain installation/dependencies, factory options, inferred records, `fields`, regional reads, cancellation, valid no-data `[]`, and failure behavior using public imports and `YOUR_URL_HERE`.
 - [ ] Fixture output is compared with its BED source or an independent UCSC tool result.

@@ -10,7 +10,9 @@ import type {
 import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { BigBedTooltip } from "../src/tracks/bigbed/tooltip";
 import { BigWigTooltip } from "../src/tracks/bigwig/tooltip";
+import { BulkBedTooltip } from "../src/tracks/bulkbed/tooltip";
 import { CaveTooltip } from "../src/tracks/cave/tooltip";
 import { MethylCTooltip } from "../src/tracks/methylc/tooltip";
 
@@ -77,6 +79,36 @@ afterEach(() => {
 });
 
 describe("track tooltips", () => {
+  it("shows genomic reader chromosome coordinates for BigBed tracks", () => {
+    mount(
+      <BigBedTooltip
+        item={{ chromosome: "chr1", start: 10, end: 20, fields: [] }}
+        context={context("bigbed", { url: "YOUR_URL_HERE" })}
+      />,
+    );
+
+    expect(tooltipText()).toEqual(["Location", "chr1:10–20"]);
+  });
+
+  it("shows genomic reader chromosome coordinates for bulk BigBed tracks", () => {
+    mount(
+      <BulkBedTooltip
+        item={{
+          chromosome: "chr2",
+          start: 30,
+          end: 40,
+          fields: [],
+          datasetName: "Sample",
+        }}
+        context={context("bulkbed", {
+          datasets: [{ name: "Sample", url: "YOUR_URL_HERE" }],
+        })}
+      />,
+    );
+
+    expect(tooltipText()).toEqual(["Sample", "Location", "chr2:30–40"]);
+  });
+
   it("always renders exactly one BigWig signal row from item.max", () => {
     const rerender = mount(
       <BigWigTooltip

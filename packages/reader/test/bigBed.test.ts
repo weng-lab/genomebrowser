@@ -105,18 +105,222 @@ describe("createBigBedFile", () => {
     await expect(file.read({ chromosome: "chr1", start: 40, end: 90 })).resolves.toEqual([]);
   });
 
-  it("restarts from the header on every stateless read", async () => {
+  it("caches immutable file metadata while repeating index-node and data reads", async () => {
     const fetchMock = installFixtureFetch();
     const file = createBigBedFile({ url, schema: bed3Schema });
     const region = { chromosome: "chr1", start: 10, end: 20 };
+    const header = parseBbiHeader(fixture);
+    const indexOffset = header.unzoomedIndexOffset;
+    const indexRange = `bytes=${indexOffset}-${indexOffset + 47n}`;
+    const rootOffset = indexOffset + 48n;
+    const indexView = new DataView(fixture.buffer, fixture.byteOffset + Number(indexOffset), 48);
+    const blockSize = indexView.getUint32(4, header.byteOrder === "little-endian");
+    const maximumRootEnd = rootOffset + 4n + BigInt(blockSize) * 32n - 1n;
+    const rootEnd =
+      maximumRootEnd < BigInt(fixture.byteLength)
+        ? maximumRootEnd
+        : BigInt(fixture.byteLength) - 1n;
+    const rootRange = `bytes=${rootOffset}-${rootEnd}`;
 
     await file.read(region);
     const firstReadRanges = requestedRanges(fetchMock);
+    const indexRangeIndex = firstReadRanges.indexOf(indexRange);
+    expect(indexRangeIndex).toBeGreaterThan(0);
+    const queryRanges = firstReadRanges.slice(indexRangeIndex + 1);
+    expect(queryRanges[0]).toBe(rootRange);
+    expect(queryRanges.length).toBeGreaterThan(1);
+
     fetchMock.mockClear();
     await file.read(region);
+    expect(requestedRanges(fetchMock)).toEqual(queryRanges);
+    expect(requestedRanges(fetchMock)).not.toContain(indexRange);
+
+    fetchMock.mockClear();
+    await file.read({ chromosome: "chr2", start: 0, end: 10 });
+    const firstChr2Ranges = requestedRanges(fetchMock);
+    expect(firstChr2Ranges).not.toContain("bytes=0-63");
+    expect(firstChr2Ranges).not.toContain(indexRange);
+    const chr2RootRangeIndex = firstChr2Ranges.indexOf(rootRange);
+    expect(chr2RootRangeIndex).toBeGreaterThan(0);
+
+    fetchMock.mockClear();
+    await file.read({ chromosome: "chr2", start: 0, end: 10 });
+    expect(requestedRanges(fetchMock)).toEqual(firstChr2Ranges.slice(chr2RootRangeIndex));
+
+    fetchMock.mockClear();
+    await expect(file.read({ chromosome: "missing", start: 0, end: 10 })).resolves.toEqual([]);
+    expect(requestedRanges(fetchMock)).not.toHaveLength(0);
+
+    fetchMock.mockClear();
+    await expect(file.read({ chromosome: "missing", start: 0, end: 10 })).resolves.toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    const separateFile = createBigBedFile({ url, schema: bed3Schema });
+    await separateFile.read(region);
+    const separateFileRanges = requestedRanges(fetchMock);
+    expect(separateFileRanges[0]).toBe("bytes=0-63");
+    expect(separateFileRanges).toContain(indexRange);
 
     expect(firstReadRanges[0]).toBe("bytes=0-63");
-    expect(requestedRanges(fetchMock)).toEqual(firstReadRanges);
+    expect(queryRanges).not.toContain("bytes=0-63");
+    expect(separateFileRanges.slice(separateFileRanges.indexOf(indexRange) + 1)).toEqual(
+      queryRanges,
+    );
+  });
+
+  it("retries failed and aborted primary R-tree header loads", async () => {
+    const fetchMock = installFixtureFetch();
+    const implementation = fetchMock.getMockImplementation()!;
+    const indexOffset = parseBbiHeader(fixture).unzoomedIndexOffset;
+    const indexRange = `bytes=${indexOffset}-${indexOffset + 47n}`;
+    const region = { chromosome: "chr1", start: 10, end: 20 };
+    const indexFailure = new Error("transient primary R-tree header failure");
+    let failIndex = true;
+    fetchMock.mockImplementation((input, init) => {
+      if (new Headers(init?.headers).get("Range") === indexRange && failIndex) {
+        failIndex = false;
+        return Promise.reject(indexFailure);
+      }
+      return implementation(input, init);
+    });
+    const failureRetryFile = createBigBedFile({ url, schema: bed3Schema });
+
+    await expect(failureRetryFile.read(region)).rejects.toBe(indexFailure);
+    await expect(failureRetryFile.read(region)).resolves.toHaveLength(1);
+    expect(requestedRanges(fetchMock).filter((range) => range === indexRange)).toHaveLength(2);
+    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-63")).toHaveLength(1);
+
+    fetchMock.mockClear();
+    const controller = new AbortController();
+    const reason = new DOMException("cancelled after primary R-tree header fetch", "AbortError");
+    fetchMock.mockImplementation((input, init) => {
+      if (new Headers(init?.headers).get("Range") === indexRange) controller.abort(reason);
+      return implementation(input, init);
+    });
+    const cancellationRetryFile = createBigBedFile({ url, schema: bed3Schema });
+
+    await expect(cancellationRetryFile.read(region, { signal: controller.signal })).rejects.toBe(
+      reason,
+    );
+    expect(requestedRanges(fetchMock)).toContain(indexRange);
+
+    fetchMock.mockClear();
+    fetchMock.mockImplementation(implementation);
+    await expect(cancellationRetryFile.read(region)).resolves.toHaveLength(1);
+    expect(requestedRanges(fetchMock)[0]).toBe(indexRange);
+  });
+
+  it("keeps concurrent primary R-tree header cache misses cancellation-independent", async () => {
+    const fetchMock = installFixtureFetch();
+    const implementation = fetchMock.getMockImplementation()!;
+    const indexOffset = parseBbiHeader(fixture).unzoomedIndexOffset;
+    const indexRange = `bytes=${indexOffset}-${indexOffset + 47n}`;
+    const region = { chromosome: "chr1", start: 10, end: 20 };
+    const file = createBigBedFile({ url, schema: bed3Schema });
+    fetchMock.mockImplementation((input, init) => {
+      if (new Headers(init?.headers).get("Range") === indexRange) {
+        return Promise.reject(new Error("prime metadata before the primary index"));
+      }
+      return implementation(input, init);
+    });
+    await expect(file.read(region)).rejects.toThrow("prime metadata before the primary index");
+
+    fetchMock.mockClear();
+    fetchMock.mockImplementation(implementation);
+    const controller = new AbortController();
+    const reason = new DOMException("cancelled concurrent primary-index read", "AbortError");
+    const cancelledRead = file.read(region, { signal: controller.signal });
+    const activeRead = file.read(region);
+    controller.abort(reason);
+    const [cancelledResult, activeResult] = await Promise.allSettled([cancelledRead, activeRead]);
+
+    expect(cancelledResult).toEqual({ status: "rejected", reason });
+    expect(activeResult).toMatchObject({ status: "fulfilled" });
+    expect(requestedRanges(fetchMock).filter((range) => range === indexRange)).toHaveLength(2);
+  });
+
+  it("retries metadata loads after failures and mid-load cancellation", async () => {
+    const fetchMock = installFixtureFetch();
+    const implementation = fetchMock.getMockImplementation()!;
+    const headerFailure = new Error("transient header failure");
+    fetchMock.mockRejectedValueOnce(headerFailure);
+    const headerRetryFile = createBigBedFile({ url, schema: bed3Schema });
+
+    await expect(headerRetryFile.read({ chromosome: "chr1", start: 10, end: 20 })).rejects.toBe(
+      headerFailure,
+    );
+    await expect(
+      headerRetryFile.read({ chromosome: "chr1", start: 10, end: 20 }),
+    ).resolves.toHaveLength(1);
+    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-63")).toHaveLength(2);
+
+    fetchMock.mockClear();
+    fetchMock.mockImplementation(implementation);
+    fetchMock
+      .mockImplementationOnce(implementation)
+      .mockRejectedValueOnce(new Error("transient chromosome failure"));
+    const chromosomeRetryFile = createBigBedFile({ url, schema: bed3Schema });
+    await expect(
+      chromosomeRetryFile.read({ chromosome: "chr1", start: 10, end: 20 }),
+    ).rejects.toThrow("transient chromosome failure");
+    const failedChromosomeRanges = requestedRanges(fetchMock);
+    expect(failedChromosomeRanges).toHaveLength(2);
+
+    fetchMock.mockClear();
+    await expect(
+      chromosomeRetryFile.read({ chromosome: "chr1", start: 10, end: 20 }),
+    ).resolves.toHaveLength(1);
+    expect(requestedRanges(fetchMock)[0]).toBe(failedChromosomeRanges[1]);
+    expect(requestedRanges(fetchMock)).not.toContain("bytes=0-63");
+
+    fetchMock.mockClear();
+    const controller = new AbortController();
+    const reason = new DOMException("cancelled while loading metadata", "AbortError");
+    const cancellationRetryFile = createBigBedFile({ url, schema: bed3Schema });
+    const cancelledRead = cancellationRetryFile.read(
+      { chromosome: "chr1", start: 10, end: 20 },
+      { signal: controller.signal },
+    );
+    controller.abort(reason);
+    await expect(cancelledRead).rejects.toBe(reason);
+
+    fetchMock.mockClear();
+    await expect(
+      cancellationRetryFile.read({ chromosome: "chr1", start: 10, end: 20 }),
+    ).resolves.toHaveLength(1);
+    expect(requestedRanges(fetchMock)[0]).toBe("bytes=0-63");
+  });
+
+  it("keeps cancellation independent across concurrent metadata cache misses", async () => {
+    const fetchMock = installFixtureFetch();
+    const file = createBigBedFile({ url, schema: bed3Schema });
+    const controller = new AbortController();
+    const reason = new DOMException("cancelled concurrent read", "AbortError");
+    const region = { chromosome: "chr1", start: 10, end: 20 };
+
+    const cancelledRead = file.read(region, { signal: controller.signal });
+    const activeRead = file.read(region);
+    controller.abort(reason);
+    const [cancelledResult, activeResult] = await Promise.allSettled([cancelledRead, activeRead]);
+
+    expect(cancelledResult).toEqual({ status: "rejected", reason });
+    expect(activeResult).toMatchObject({ status: "fulfilled" });
+    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-63")).toHaveLength(2);
+  });
+
+  it("checks cancellation before query work when metadata is cached", async () => {
+    const fetchMock = installFixtureFetch();
+    const file = createBigBedFile({ url, schema: bed3Schema });
+    const region = { chromosome: "chr1", start: 10, end: 20 };
+    await file.read(region);
+    fetchMock.mockClear();
+
+    const controller = new AbortController();
+    const reason = new DOMException("cancelled cached read", "AbortError");
+    controller.abort(reason);
+
+    await expect(file.read(region, { signal: controller.signal })).rejects.toBe(reason);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("preserves a native cancellation reason through the public read API", async () => {

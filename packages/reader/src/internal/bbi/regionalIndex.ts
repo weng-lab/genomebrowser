@@ -1,6 +1,6 @@
 import { addUint64Offset, checkedByteLength } from "../bigint";
 import { BinaryReader, type ByteOrder } from "../binaryReader";
-import { readExactRange } from "../httpRange";
+import { readExactRange, type ExactRangeOptions } from "../httpRange";
 import type { BbiHeader } from "./commonHeader";
 
 // Wire constants and layout follow UCSC's public sig.h and cirTree.h/cirTree.c.
@@ -9,6 +9,7 @@ const CIRTREE_HEADER_SIZE = 48n;
 const CIRTREE_NODE_HEADER_SIZE = 4n;
 const CIRTREE_INTERNAL_ITEM_SIZE = 24n;
 const CIRTREE_LEAF_ITEM_SIZE = 32n;
+const MAXIMUM_R_TREE_NODE_READ_AHEAD_SPAN = 1024n * 1024n;
 
 export type BbiQuery = {
   chromosomeId: number;
@@ -21,7 +22,7 @@ export type BlockReference = {
   size: bigint;
 };
 
-type CirTreeHeader = {
+export type PrimaryRTreeHeader = {
   blockSize: number;
   itemCount: bigint;
   rootOffset: bigint;
@@ -61,11 +62,16 @@ function parseIndexedRange(reader: BinaryReader): IndexedRange {
   };
 }
 
+function maximumNodeReadAheadLength(blockSize: number): bigint | undefined {
+  const maximumNodeLength = CIRTREE_NODE_HEADER_SIZE + BigInt(blockSize) * CIRTREE_LEAF_ITEM_SIZE;
+  return maximumNodeLength <= MAXIMUM_R_TREE_NODE_READ_AHEAD_SPAN ? maximumNodeLength : undefined;
+}
+
 function parseCirTreeHeader(
   bytes: Uint8Array,
   byteOrder: ByteOrder,
   indexOffset: bigint,
-): CirTreeHeader {
+): PrimaryRTreeHeader {
   const reader = new BinaryReader(bytes, byteOrder);
   if (reader.readUint32() !== CIRTREE_MAGIC) {
     throw new Error("Invalid BBI primary R-tree magic or byte order");
@@ -92,17 +98,32 @@ function parseCirTreeHeader(
 async function findOverlappingBlocks(
   url: string,
   header: BbiHeader,
-  tree: CirTreeHeader,
+  tree: PrimaryRTreeHeader,
   nodeOffset: bigint,
   query: BbiQuery,
-  signal: AbortSignal | undefined,
+  options: ExactRangeOptions | undefined,
   blocks: BlockReference[],
 ): Promise<void> {
-  const nodeHeaderBytes = await readExactRange(url, nodeOffset, CIRTREE_NODE_HEADER_SIZE, signal);
-  const nodeHeader = new BinaryReader(nodeHeaderBytes, header.byteOrder);
-  const nodeType = nodeHeader.readUint8();
-  nodeHeader.readUint8();
-  const count = nodeHeader.readUint16();
+  const resourceSize = options?.metadata?.resourceSize;
+  const maximumNodeLength = maximumNodeReadAheadLength(tree.blockSize);
+  const useReadAhead = resourceSize !== undefined && maximumNodeLength !== undefined;
+  let nodeBytes: Uint8Array;
+  if (!useReadAhead) {
+    nodeBytes = await readExactRange(url, nodeOffset, CIRTREE_NODE_HEADER_SIZE, options);
+  } else {
+    if (nodeOffset >= resourceSize) {
+      throw new RangeError("BBI primary R-tree node offset is outside the resource");
+    }
+    const remainingResourceLength = resourceSize - nodeOffset;
+    const nodeLength =
+      remainingResourceLength < maximumNodeLength ? remainingResourceLength : maximumNodeLength;
+    nodeBytes = await readExactRange(url, nodeOffset, nodeLength, options);
+  }
+
+  const node = new BinaryReader(nodeBytes, header.byteOrder);
+  const nodeType = node.readUint8();
+  node.readUint8();
+  const count = node.readUint16();
 
   if (nodeType !== 0 && nodeType !== 1) {
     throw new Error("Invalid BBI primary R-tree node type");
@@ -114,13 +135,17 @@ async function findOverlappingBlocks(
   const itemSize = nodeType === 1 ? CIRTREE_LEAF_ITEM_SIZE : CIRTREE_INTERNAL_ITEM_SIZE;
   if (count === 0) return;
   const bodyLength = checkedByteLength(count, itemSize, "Tree node body length");
-  const bodyBytes = await readExactRange(
-    url,
-    addUint64Offset(nodeOffset, CIRTREE_NODE_HEADER_SIZE, "BBI file offset"),
-    bodyLength,
-    signal,
-  );
-  const body = new BinaryReader(bodyBytes, header.byteOrder);
+  const body = !useReadAhead
+    ? new BinaryReader(
+        await readExactRange(
+          url,
+          addUint64Offset(nodeOffset, CIRTREE_NODE_HEADER_SIZE, "BBI file offset"),
+          bodyLength,
+          options,
+        ),
+        header.byteOrder,
+      )
+    : node;
 
   if (nodeType === 1) {
     for (let index = 0; index < count; index += 1) {
@@ -138,27 +163,35 @@ async function findOverlappingBlocks(
   }
   for (const child of children) {
     if (overlaps(query, child.range)) {
-      await findOverlappingBlocks(url, header, tree, child.offset, query, signal, blocks);
+      await findOverlappingBlocks(url, header, tree, child.offset, query, options, blocks);
     }
   }
+}
+
+export async function readPrimaryRTreeHeader(
+  url: string,
+  header: BbiHeader,
+  options?: ExactRangeOptions,
+): Promise<PrimaryRTreeHeader> {
+  const indexBytes = await readExactRange(
+    url,
+    header.unzoomedIndexOffset,
+    CIRTREE_HEADER_SIZE,
+    options,
+  );
+  return parseCirTreeHeader(indexBytes, header.byteOrder, header.unzoomedIndexOffset);
 }
 
 export async function findPrimaryDataBlocks(
   url: string,
   header: BbiHeader,
+  tree: PrimaryRTreeHeader,
   query: BbiQuery,
-  signal?: AbortSignal,
+  options?: ExactRangeOptions,
 ): Promise<BlockReference[]> {
-  const indexBytes = await readExactRange(
-    url,
-    header.unzoomedIndexOffset,
-    CIRTREE_HEADER_SIZE,
-    signal,
-  );
-  const tree = parseCirTreeHeader(indexBytes, header.byteOrder, header.unzoomedIndexOffset);
   if (tree.itemCount === 0n) return [];
 
   const references: BlockReference[] = [];
-  await findOverlappingBlocks(url, header, tree, tree.rootOffset, query, signal, references);
+  await findOverlappingBlocks(url, header, tree, tree.rootOffset, query, options, references);
   return references;
 }

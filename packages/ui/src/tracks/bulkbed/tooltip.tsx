@@ -10,7 +10,7 @@ export const BulkBedTooltip: TrackTooltipComponent<BulkBedRect, BulkBedConfig> =
     context.config.datasets.length === 1 ? context.config.datasets[0]?.name : undefined;
   const title = item.datasetName?.trim() || configuredDataset?.trim() || context.base.title;
   const featureName = formatOptionalBedValue(item.name);
-  const chromosome = formatOptionalBedValue(item.chr) ?? formatOptionalBedValue(item.chrom);
+  const chromosome = formatOptionalBedValue(item.chromosome);
   const strand = formatOptionalBedValue(item.strand);
   const score = formatOptionalBedValue(item.score);
   const rows: TrackTooltipRow[] = [];

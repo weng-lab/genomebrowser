@@ -95,8 +95,6 @@ export type {
   BigBedDisplay,
   BigBedInput,
   BigBedRow,
-  BigBedSchema,
-  InferBigBedRow,
 } from "./tracks/bigbed/types";
 
 export { bigWigModule } from "./tracks/bigwig/module";

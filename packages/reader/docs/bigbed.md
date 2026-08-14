@@ -5,11 +5,10 @@ the whole file. The factory uses a Zod schema to name and parse positional colum
 
 ## Install
 
-Zod 4 is a peer dependency because your schema crosses the package API boundary. Install both
-packages:
+Zod 4 is required to define what fields to parse after BED3 fields.
 
 ```sh
-npm install @weng-lab/genomic-reader@alpha "zod@^4"
+npm install zod@latest
 ```
 
 ## Start with BED3
@@ -151,16 +150,20 @@ The URL must be an absolute public `http:` or `https:` URL. Authenticated reques
 headers, and custom `fetch` implementations are not supported.
 
 The host must support exact byte-range requests and return `206 Partial Content`. For browser use,
-its CORS policy must allow your application to fetch the file and must expose `Content-Range` to
-JavaScript, typically with:
+its CORS policy must allow your application to fetch the file. Exposing `Content-Range` with a
+numeric complete file size lets the reader verify returned offsets and traverse the primary index
+with fewer requests, so it is recommended:
 
 ```http
 Access-Control-Allow-Origin: https://your-application.example
 Access-Control-Expose-Headers: Content-Range
 ```
 
-The reader rejects servers or intermediaries that return `200 OK`, omit or hide `Content-Range`,
-return different or incorrectly sized byte ranges, or apply transport `Content-Encoding`.
+The reader rejects servers or intermediaries that return `200 OK`, return different byte ranges in
+an accessible `Content-Range`, return incorrectly sized bodies, or apply transport
+`Content-Encoding`. When browser CORS policy hides `Content-Range`, the reader accepts an exact-size
+`206` body but cannot independently verify its starting offset. A hidden header or a wildcard (`*`)
+complete size remains supported; the reader falls back to smaller exact index requests.
 
 ## Lifecycle and failures
 
@@ -168,8 +171,11 @@ Creating a file is synchronous and performs no request. Invalid factory options,
 throw synchronously before a file is returned. File contents and record compatibility are not
 checked until `read()`.
 
-Every `read()` is stateless and uncached: it fetches the metadata, index nodes, and data blocks
-needed for that read again. Reusing a file object is convenient but does not create a cache.
+Each file object lazily caches its successfully loaded file header, primary regional-index header,
+and chromosome lookups, including unknown chromosome names. Repeated reads on that object reuse
+this immutable metadata, while index nodes, data blocks, decoded records, and regional results are
+loaded or computed for every read. Failed or aborted metadata loads can be retried. Create a new
+file object to refresh metadata if the content at a URL changes.
 
 Ordinary no-data cases return `[]`. Once a file exists, `read()` asynchronously rejects for invalid
 regions, network and HTTP contract failures, aborts, incompatible files, binary decode errors,

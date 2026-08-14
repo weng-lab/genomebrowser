@@ -23,6 +23,8 @@ The built-in inventory and detailed support are still evolving. The minimum crea
 | `transcriptModule` | `{ assembly: "GRCh38", version: 47 }`                      | `squish`, `pack`  |
 | `caveModule`       | `{ neurotransmitter: "GABA", age: "Adulthood" }`           | `full`            |
 
+The BigBed and bulk BigBed modules currently read BED3 coordinates from absolute HTTP(S) URLs. Additional BigBed fields are available as unparsed strings on each row's `fields` array but are not mapped to named BED columns.
+
 `methylCModule` requires a URL entry for each methylation and depth channel. A URL may be an empty string when that channel has no data:
 
 ```ts

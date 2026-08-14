@@ -57,6 +57,7 @@ export default defineConfig(({ command, isPreview, mode }) => {
           id === "react/jsx-runtime" ||
           id === "zod" ||
           id === "zustand" ||
+          id === "@weng-lab/genomic-reader" ||
           id === "genomic-reader" ||
           id === "buffer" ||
           id === "axios" ||

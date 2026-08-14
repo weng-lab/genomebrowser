@@ -70,6 +70,10 @@ schema. Remaining, unconsumed columns are always returned in `fields`. See
 [`docs/bigbed.md`](docs/bigbed.md) for schema details, regional behavior, server prerequisites, and
 errors.
 
+The server must support `206 Partial Content` byte-range responses. Exposing `Content-Range` with a
+numeric complete file size is optional, but enables the reader to traverse the primary index with
+fewer requests. Reads remain supported when that size is hidden or reported as `*`.
+
 ## Use the format-independent contract
 
 Use `GenomicFile<T>` when your code can work with any regional genomic file:
@@ -103,8 +107,9 @@ never returns partial results for these failures.
 
 ## Public API
 
-- `createBigBedFile({ url, schema })`: synchronously configures a stateless BigBed file. It performs
-  no network request until `read()`.
+- `createBigBedFile({ url, schema })`: synchronously configures a BigBed file. It performs no network
+  request until `read()` and privately caches successful file-header, chromosome, and primary-index
+  header metadata for that file object.
 - `bed3Schema`: a Zod object schema that consumes zero post-BED3 fields.
 - `BigBedFileOptions<Schema>`: factory options for the public HTTP(S) URL and positional Zod schema.
 - `GenomicRegion`: a chromosome and zero-based, half-open `start` and `end` interval.

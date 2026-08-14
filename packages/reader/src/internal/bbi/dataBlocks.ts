@@ -1,8 +1,8 @@
 import { unzlibSync } from "fflate";
 import { throwIfAborted } from "../abort";
-import { readExactRange } from "../httpRange";
+import { readExactRange, type ExactRangeOptions } from "../httpRange";
 import type { BbiHeader } from "./commonHeader";
-import { findPrimaryDataBlocks, type BbiQuery } from "./regionalIndex";
+import { findPrimaryDataBlocks, type BbiQuery, type PrimaryRTreeHeader } from "./regionalIndex";
 
 export type BbiDataBlock = {
   bytes: Uint8Array;
@@ -25,18 +25,19 @@ function decompressBlock(bytes: Uint8Array, uncompressBufferSize: number): Uint8
 export async function readBbiDataBlocks(
   url: string,
   header: BbiHeader,
+  tree: PrimaryRTreeHeader,
   query: BbiQuery,
-  signal?: AbortSignal,
+  options?: ExactRangeOptions,
 ): Promise<BbiDataBlock[]> {
-  const references = await findPrimaryDataBlocks(url, header, query, signal);
+  const references = await findPrimaryDataBlocks(url, header, tree, query, options);
   const blocks: BbiDataBlock[] = [];
   for (const reference of references) {
-    const compressedBytes = await readExactRange(url, reference.offset, reference.size, signal);
+    const compressedBytes = await readExactRange(url, reference.offset, reference.size, options);
     let bytes = compressedBytes;
     if (header.uncompressBufferSize > 0) {
-      throwIfAborted(signal);
+      throwIfAborted(options?.signal);
       bytes = decompressBlock(compressedBytes, header.uncompressBufferSize);
-      throwIfAborted(signal);
+      throwIfAborted(options?.signal);
     }
     blocks.push({ ...reference, bytes, query });
   }
