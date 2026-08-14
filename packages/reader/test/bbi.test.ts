@@ -4,6 +4,7 @@ import { lookupChromosome } from "../src/internal/bbi/chromosomeTree";
 import { parseBbiHeader, readBbiHeader, type BbiHeader } from "../src/internal/bbi/commonHeader";
 import { readBbiDataBlocks } from "../src/internal/bbi/dataBlocks";
 import { findPrimaryDataBlocks, readPrimaryRTreeHeader } from "../src/internal/bbi/regionalIndex";
+import { parseBbiZoomHeaders, readBbiZoomHeaders } from "../src/internal/bbi/zoomHeaders";
 import type { ByteOrder } from "../src/internal/binaryReader";
 
 const decompressionControl = vi.hoisted(() => ({
@@ -36,7 +37,7 @@ async function readUncachedBbiDataBlocks(
   signal?: AbortSignal,
 ) {
   const options = { signal, metadata: {} };
-  const tree = await readPrimaryRTreeHeader(sourceUrl, header, options);
+  const tree = await readPrimaryRTreeHeader(sourceUrl, header, header.unzoomedIndexOffset, options);
   return readBbiDataBlocks(sourceUrl, header, tree, query, options);
 }
 
@@ -48,7 +49,9 @@ function makeBigBedHeader(
   byteOrder: ByteOrder,
   overrides: Partial<{
     chromosomeTreeOffset: bigint;
+    unzoomedIndexOffset: bigint;
     uncompressBufferSize: number;
+    zoomLevelCount: number;
   }> = {},
 ): Uint8Array {
   const bytes = new Uint8Array(64);
@@ -56,16 +59,35 @@ function makeBigBedHeader(
   const little = littleEndian(byteOrder);
   view.setUint32(0, bigBedMagic, little);
   view.setUint16(4, 4, little);
-  view.setUint16(6, 0xffff, little);
+  view.setUint16(6, overrides.zoomLevelCount ?? 0xffff, little);
   view.setBigUint64(8, overrides.chromosomeTreeOffset ?? 0x20_0000_0000_0001n, little);
   view.setBigUint64(16, 0x30_0000_0000_0002n, little);
-  view.setBigUint64(24, 0x40_0000_0000_0003n, little);
+  view.setBigUint64(24, overrides.unzoomedIndexOffset ?? 0x40_0000_0000_0003n, little);
   view.setUint16(32, 0xffff, little);
   view.setUint16(34, 0xfffe, little);
   view.setBigUint64(36, 0x50_0000_0000_0004n, little);
   view.setBigUint64(44, 0x60_0000_0000_0005n, little);
   view.setUint32(52, overrides.uncompressBufferSize ?? 0xffffffff, little);
   view.setBigUint64(56, 0x70_0000_0000_0006n, little);
+  return bytes;
+}
+
+function makeZoomHeaders(
+  byteOrder: ByteOrder,
+  zoomHeaders: Array<{ reductionLevel: number; dataOffset: bigint; indexOffset: bigint }>,
+): Uint8Array {
+  const bytes = new Uint8Array(zoomHeaders.length * 24);
+  const view = new DataView(bytes.buffer);
+  const little = littleEndian(byteOrder);
+
+  for (const [index, zoomHeader] of zoomHeaders.entries()) {
+    const offset = index * 24;
+    view.setUint32(offset, zoomHeader.reductionLevel, little);
+    view.setUint32(offset + 4, 0xa5a5a5a5, little);
+    view.setBigUint64(offset + 8, zoomHeader.dataOffset, little);
+    view.setBigUint64(offset + 16, zoomHeader.indexOffset, little);
+  }
+
   return bytes;
 }
 
@@ -259,6 +281,52 @@ describe("BBI common header", () => {
   });
 });
 
+describe("BBI zoom headers", () => {
+  it.each<ByteOrder>(["little-endian", "big-endian"])(
+    "reads every declared header in file order with unsigned offsets in %s order",
+    async (byteOrder) => {
+      const expected = [
+        {
+          reductionLevel: 16,
+          dataOffset: 9_007_199_254_740_993n,
+          indexOffset: 0xffff_ffff_ffff_ff00n,
+        },
+        {
+          reductionLevel: 0xffff_ffff,
+          dataOffset: 0x1234_5678_9abc_def0n,
+          indexOffset: 0xfedc_ba98_7654_3210n,
+        },
+      ];
+      const header = parseBbiHeader(
+        makeBigBedHeader(byteOrder, { zoomLevelCount: expected.length }),
+      );
+      const bytes = makeZoomHeaders(byteOrder, expected);
+      const fetchMock = installRangeSource(new Map([[64n, bytes]]));
+
+      expect(parseBbiZoomHeaders(bytes, header)).toEqual(expected);
+      await expect(readBbiZoomHeaders(url, header)).resolves.toEqual(expected);
+      expect(requestedRanges(fetchMock)).toEqual(["bytes=64-111"]);
+    },
+  );
+
+  it("handles zero and one declared header and rejects a truncated declared sequence", async () => {
+    const byteOrder = "little-endian";
+    const onlyZoomHeader = [{ reductionLevel: 4, dataOffset: 0x1234n, indexOffset: 0x5678n }];
+    const bytes = makeZoomHeaders(byteOrder, onlyZoomHeader);
+    const zeroHeader = parseBbiHeader(makeBigBedHeader(byteOrder, { zoomLevelCount: 0 }));
+    const oneHeader = parseBbiHeader(makeBigBedHeader(byteOrder, { zoomLevelCount: 1 }));
+    const twoHeader = parseBbiHeader(makeBigBedHeader(byteOrder, { zoomLevelCount: 2 }));
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(parseBbiZoomHeaders(new Uint8Array(), zeroHeader)).toEqual([]);
+    await expect(readBbiZoomHeaders(url, zeroHeader)).resolves.toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(parseBbiZoomHeaders(bytes, oneHeader)).toEqual(onlyZoomHeader);
+    expect(() => parseBbiZoomHeaders(bytes, twoHeader)).toThrow(RangeError);
+  });
+});
+
 describe("lazy chromosome B+ tree lookup", () => {
   it.each<ByteOrder>(["little-endian", "big-endian"])(
     "follows padded separators through only the selected absolute branch in %s order",
@@ -358,6 +426,77 @@ describe("lazy chromosome B+ tree lookup", () => {
 });
 
 describe("lazy primary R-tree traversal and BBI block retrieval", () => {
+  it("loads and traverses caller-selected unzoomed and zoom indexes", async () => {
+    const byteOrder = "little-endian";
+    const unzoomedIndexOffset = 4096n;
+    const zoomIndexOffset = 8000n;
+    const unzoomedBlockOffset = 12_000n;
+    const zoomBlockOffset = 13_000n;
+    const unzoomedBytes = Uint8Array.of(1, 2);
+    const zoomBytes = Uint8Array.of(3, 4, 5);
+    const makeLeaf = (blockOffset: bigint, size: number) =>
+      makeCirTreeNode(byteOrder, true, [
+        {
+          startChromosomeId: 2,
+          startBase: 10,
+          endChromosomeId: 2,
+          endBase: 20,
+          offset: blockOffset,
+          size: BigInt(size),
+        },
+      ]);
+    const unzoomedLeaf = makeLeaf(unzoomedBlockOffset, unzoomedBytes.byteLength);
+    const zoomLeaf = makeLeaf(zoomBlockOffset, zoomBytes.byteLength);
+    const fetchMock = installRangeSource(
+      new Map([
+        [unzoomedIndexOffset, makeCirTreeHeader(byteOrder, 1, 1n)],
+        [unzoomedIndexOffset + 48n, unzoomedLeaf.subarray(0, 4)],
+        [unzoomedIndexOffset + 52n, unzoomedLeaf.subarray(4)],
+        [zoomIndexOffset, makeCirTreeHeader(byteOrder, 1, 1n)],
+        [zoomIndexOffset + 48n, zoomLeaf.subarray(0, 4)],
+        [zoomIndexOffset + 52n, zoomLeaf.subarray(4)],
+        [unzoomedBlockOffset, unzoomedBytes],
+        [zoomBlockOffset, zoomBytes],
+      ]),
+    );
+    const header = parseBbiHeader(
+      makeBigBedHeader(byteOrder, { uncompressBufferSize: 0, unzoomedIndexOffset }),
+    );
+    const query = { chromosomeId: 2, start: 10, end: 20 };
+
+    const unzoomedTree = await readPrimaryRTreeHeader(url, header, unzoomedIndexOffset);
+    const zoomTree = await readPrimaryRTreeHeader(url, header, zoomIndexOffset);
+
+    expect(unzoomedTree.indexOffset).toBe(unzoomedIndexOffset);
+    expect(zoomTree.indexOffset).toBe(zoomIndexOffset);
+    await expect(readBbiDataBlocks(url, header, unzoomedTree, query)).resolves.toEqual([
+      {
+        bytes: unzoomedBytes,
+        offset: unzoomedBlockOffset,
+        size: BigInt(unzoomedBytes.byteLength),
+        query,
+      },
+    ]);
+    await expect(readBbiDataBlocks(url, header, zoomTree, query)).resolves.toEqual([
+      {
+        bytes: zoomBytes,
+        offset: zoomBlockOffset,
+        size: BigInt(zoomBytes.byteLength),
+        query,
+      },
+    ]);
+    expect(requestedRanges(fetchMock)).toEqual([
+      "bytes=4096-4143",
+      "bytes=8000-8047",
+      "bytes=4144-4147",
+      "bytes=4148-4179",
+      "bytes=12000-12001",
+      "bytes=8048-8051",
+      "bytes=8052-8083",
+      "bytes=13000-13002",
+    ]);
+  });
+
   it("caps read-ahead and preserves cancellation, retry, and boundary checks", async () => {
     const byteOrder = "little-endian";
     const indexOffset = 100n;
@@ -395,7 +534,7 @@ describe("lazy primary R-tree traversal and BBI block retrieval", () => {
     header.unzoomedIndexOffset = indexOffset;
     const metadata: { resourceSize?: bigint } = {};
     const options = { metadata };
-    const tree = await readPrimaryRTreeHeader(url, header, options);
+    const tree = await readPrimaryRTreeHeader(url, header, header.unzoomedIndexOffset, options);
     expect(metadata.resourceSize).toBe(BigInt(resource.byteLength));
 
     const query = { chromosomeId: 2, start: 10, end: 20 };
@@ -467,7 +606,7 @@ describe("lazy primary R-tree traversal and BBI block retrieval", () => {
     header.unzoomedIndexOffset = indexOffset;
     const metadata: { resourceSize?: bigint } = {};
     const options = { metadata };
-    const tree = await readPrimaryRTreeHeader(url, header, options);
+    const tree = await readPrimaryRTreeHeader(url, header, header.unzoomedIndexOffset, options);
 
     await expect(
       findPrimaryDataBlocks(url, header, tree, { chromosomeId: 2, start: 10, end: 20 }, options),
@@ -490,7 +629,7 @@ describe("lazy primary R-tree traversal and BBI block retrieval", () => {
     header.unzoomedIndexOffset = indexOffset;
     const metadata: { resourceSize?: bigint } = {};
     const options = { metadata };
-    const tree = await readPrimaryRTreeHeader(url, header, options);
+    const tree = await readPrimaryRTreeHeader(url, header, header.unzoomedIndexOffset, options);
 
     await expect(
       findPrimaryDataBlocks(url, header, tree, { chromosomeId: 2, start: 10, end: 20 }, options),
@@ -528,7 +667,7 @@ describe("lazy primary R-tree traversal and BBI block retrieval", () => {
     header.unzoomedIndexOffset = indexOffset;
     const metadata: { resourceSize?: bigint } = {};
     const options = { metadata };
-    const tree = await readPrimaryRTreeHeader(url, header, options);
+    const tree = await readPrimaryRTreeHeader(url, header, header.unzoomedIndexOffset, options);
 
     await expect(
       findPrimaryDataBlocks(url, header, tree, { chromosomeId: 2, start: 0, end: 50 }, options),

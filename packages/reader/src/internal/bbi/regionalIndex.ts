@@ -23,6 +23,7 @@ export type BlockReference = {
 };
 
 export type PrimaryRTreeHeader = {
+  indexOffset: bigint;
   blockSize: number;
   itemCount: bigint;
   rootOffset: bigint;
@@ -89,6 +90,7 @@ function parseCirTreeHeader(
   }
 
   return {
+    indexOffset,
     blockSize,
     itemCount,
     rootOffset: addUint64Offset(indexOffset, CIRTREE_HEADER_SIZE, "BBI file offset"),
@@ -171,15 +173,11 @@ async function findOverlappingBlocks(
 export async function readPrimaryRTreeHeader(
   url: string,
   header: BbiHeader,
+  indexOffset: bigint,
   options?: ExactRangeOptions,
 ): Promise<PrimaryRTreeHeader> {
-  const indexBytes = await readExactRange(
-    url,
-    header.unzoomedIndexOffset,
-    CIRTREE_HEADER_SIZE,
-    options,
-  );
-  return parseCirTreeHeader(indexBytes, header.byteOrder, header.unzoomedIndexOffset);
+  const indexBytes = await readExactRange(url, indexOffset, CIRTREE_HEADER_SIZE, options);
+  return parseCirTreeHeader(indexBytes, header.byteOrder, indexOffset);
 }
 
 export async function findPrimaryDataBlocks(

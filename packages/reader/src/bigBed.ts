@@ -129,7 +129,12 @@ async function readBigBed<Schema extends z.ZodObject>(
 
   let primaryRTreeHeader = metadataCache.primaryRTreeHeader;
   if (primaryRTreeHeader === undefined) {
-    primaryRTreeHeader = await readPrimaryRTreeHeader(url, header, rangeOptions);
+    primaryRTreeHeader = await readPrimaryRTreeHeader(
+      url,
+      header,
+      header.unzoomedIndexOffset,
+      rangeOptions,
+    );
     throwIfAborted(signal);
     metadataCache.primaryRTreeHeader = primaryRTreeHeader;
   } else {
