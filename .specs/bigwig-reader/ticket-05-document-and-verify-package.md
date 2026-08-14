@@ -1,6 +1,6 @@
 # Ticket 05: Document and verify the BigWig API
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R1-R13, R21-R22, R29, R31
 **Blocked by:** Ticket 04
@@ -17,16 +17,16 @@ Build and inspect the distributable package to verify declarations, sourcemaps, 
 
 ## Acceptance Criteria
 
-- [ ] `packages/reader/README.md` introduces `createBigWigFile` alongside BigBed without obscuring either API.
-- [ ] A self-contained `packages/reader/docs/bigwig.md` documents every public BigWig type and method needed by consumers.
-- [ ] Documentation states that omitted resolution is unzoomed and explains the scientific distinction between source value records and lossy zoom summaries.
-- [ ] Documentation identifies every stored zoom statistic and clearly labels `mean` as `sum / validCount` rather than an encoded field.
-- [ ] Auto examples calculate `basesPerPixel` from region span and viewport width and explain that this targets resolution rather than enforcing a hard result count.
-- [ ] Explicit-level examples use `getZoomLevels()` and explain exact-match rejection.
-- [ ] Cancellation, sparse `[]`, half-open overlap, original coordinates, supported HTTP(S) range servers, and ordinary failure behavior are documented.
-- [ ] Package verification expects the intended BigWig runtime export and emitted public declarations while rejecting accidental private BBI/decoder exports.
-- [ ] The built package remains browser-compatible ESM with declarations and sourcemaps and introduces no prohibited dependency.
-- [ ] All examples use `"YOUR_URL_HERE"` or existing repository URLs rather than invented track URLs.
+- [x] `packages/reader/README.md` introduces `createBigWigFile` alongside BigBed without obscuring either API.
+- [x] A self-contained `packages/reader/docs/bigwig.md` documents every public BigWig type and method needed by consumers.
+- [x] Documentation states that omitted resolution is unzoomed and explains the scientific distinction between source value records and lossy zoom summaries.
+- [x] Documentation identifies every stored zoom statistic and clearly labels `mean` as `sum / validCount` rather than an encoded field.
+- [x] Auto examples calculate `basesPerPixel` from region span and viewport width and explain that this targets resolution rather than enforcing a hard result count.
+- [x] Explicit-level examples use `getZoomLevels()` and explain exact-match rejection.
+- [x] Cancellation, sparse `[]`, half-open overlap, original coordinates, supported HTTP(S) range servers, and ordinary failure behavior are documented.
+- [x] Package verification expects the intended BigWig runtime export and emitted public declarations while rejecting accidental private BBI/decoder exports.
+- [x] The built package remains browser-compatible ESM with declarations and sourcemaps and introduces no prohibited dependency.
+- [x] All examples use `"YOUR_URL_HERE"` or existing repository URLs rather than invented track URLs.
 
 ## Verification
 

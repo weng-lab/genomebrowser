@@ -53,6 +53,49 @@ const javascriptMap = JSON.parse(javascriptMapText);
 assertSourceMap(javascript, javascriptMapText, javascriptPath);
 assertSourceMap(declaration, declarationMapText, declarationPath);
 
+const declarationExports = collectDeclarationExports(declaration);
+assertJsonEqual(
+  declarationExports.valueNames,
+  ["bed3Schema", "createBigBedFile", "createBigWigFile"],
+  "declaration root value exports",
+);
+assertJsonEqual(
+  declarationExports.typeNames,
+  [
+    "BigBedFileOptions",
+    "BigWigFile",
+    "BigWigFileOptions",
+    "BigWigReadOptions",
+    "BigWigRecord",
+    "BigWigResolution",
+    "BigWigSummaryRecord",
+    "BigWigValueRecord",
+    "GenomicFile",
+    "GenomicRecord",
+    "GenomicRegion",
+    "ReadOptions",
+  ],
+  "declaration root type exports",
+);
+assertJsonEqual(
+  declarationExports.moduleSpecifiers,
+  ["./bigBed", "./bigWig", "./genomicFile"],
+  "declaration root module boundaries",
+);
+assert(!/\bexport\s*\*/.test(declaration), "declaration root must not use wildcard exports");
+assert(
+  !declarationExports.moduleSpecifiers.some(
+    (specifier) => specifier.includes("internal") || specifier.toLowerCase().includes("decoder"),
+  ),
+  "declaration root must not expose private BBI or decoder modules",
+);
+
+await Promise.all(
+  declarationExports.moduleSpecifiers.map((specifier) =>
+    access(resolve(dirname(declarationPath), `${specifier}.d.ts`)),
+  ),
+);
+
 const declarationFiles = (await listFilesRecursively(join(packageDirectory, "dist"))).filter(
   (path) => path.endsWith(".d.ts"),
 );
@@ -110,7 +153,7 @@ for (const dependencyName of Object.keys(manifest.dependencies ?? {})) {
 const runtimeModule = await import(`${pathToFileURL(javascriptPath).href}?verify-package`);
 assertJsonEqual(
   Object.keys(runtimeModule).sort(),
-  ["bed3Schema", "createBigBedFile"],
+  ["bed3Schema", "createBigBedFile", "createBigWigFile"],
   "runtime root exports",
 );
 
@@ -160,6 +203,34 @@ function collectImportedPackages(specifiers) {
       .filter((specifier) => !specifier.startsWith(".") && !specifier.startsWith("/"))
       .map(packageNameFromSpecifier),
   );
+}
+
+function collectDeclarationExports(source) {
+  const valueNames = [];
+  const typeNames = [];
+  const moduleSpecifiers = new Set();
+  const exportPattern = /\bexport\s+(type\s+)?\{([^}]*)\}\s+from\s+["']([^"']+)["']/g;
+
+  for (const match of source.matchAll(exportPattern)) {
+    const declarationIsTypeOnly = match[1] !== undefined;
+    moduleSpecifiers.add(match[3]);
+    for (const rawEntry of match[2].split(",")) {
+      const entry = rawEntry.trim();
+      if (entry === "") continue;
+      const entryIsTypeOnly = declarationIsTypeOnly || entry.startsWith("type ");
+      const exportedName = entry
+        .replace(/^type\s+/, "")
+        .split(/\s+as\s+/)
+        .at(-1);
+      (entryIsTypeOnly ? typeNames : valueNames).push(exportedName);
+    }
+  }
+
+  return {
+    valueNames: valueNames.sort(),
+    typeNames: typeNames.sort(),
+    moduleSpecifiers: [...moduleSpecifiers].sort(),
+  };
 }
 
 function packageNameFromSpecifier(specifier) {

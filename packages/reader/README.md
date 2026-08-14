@@ -1,6 +1,7 @@
 # @weng-lab/genomic-reader
 
-Read records from public BigBed files by genomic region in browser applications.
+Read signal values from public BigWig files and records from public BigBed files by genomic region
+in browser applications.
 
 ## Install
 
@@ -9,6 +10,44 @@ Install the package and its Zod 4 peer dependency:
 ```sh
 npm install @weng-lab/genomic-reader@alpha zod
 ```
+
+## Read a BigWig file
+
+Create a file synchronously, then read source signal values for a region. Omitting `resolution`
+requests unzoomed source values:
+
+```ts
+import { createBigWigFile } from "@weng-lab/genomic-reader";
+
+const file = createBigWigFile({ url: "YOUR_URL_HERE" });
+const records = await file.read({
+  chromosome: "chr1",
+  start: 100_000,
+  end: 101_000,
+});
+```
+
+BigWig files can also contain lossy zoom summaries for wider views. A reduction level is a
+file-declared genomic summary scale measured in bases; larger levels are coarser. Sparse data and
+summary boundaries mean records need not each span exactly that many bases. Discover the available
+levels or let the reader select one from the display resolution:
+
+```ts
+const region = { chromosome: "chr1", start: 0, end: 1_000_000 };
+const viewportWidth = 1_000;
+
+const zoomLevels = await file.getZoomLevels();
+const displayRecords = await file.read(region, {
+  resolution: {
+    mode: "auto",
+    basesPerPixel: (region.end - region.start) / viewportWidth,
+  },
+});
+```
+
+Value and summary records use a `kind` discriminant. Summaries expose every stored statistic plus a
+derived `mean`; they are not source measurements. See [`docs/bigwig.md`](docs/bigwig.md) for exact
+selection, record shapes, cancellation, regional behavior, server prerequisites, and errors.
 
 ## Read a BigBed file
 
@@ -70,9 +109,10 @@ schema. Remaining, unconsumed columns are always returned in `fields`. See
 [`docs/bigbed.md`](docs/bigbed.md) for schema details, regional behavior, server prerequisites, and
 errors.
 
-The server must support `206 Partial Content` byte-range responses. Exposing `Content-Range` with a
-numeric complete file size is optional, but enables the reader to traverse the primary index with
-fewer requests. Reads remain supported when that size is hidden or reported as `*`.
+For both formats, the server must support `206 Partial Content` byte-range responses. Exposing
+`Content-Range` with a numeric complete file size is optional, but enables the reader to traverse
+the file's index with fewer requests. Reads remain supported when that size is hidden or reported
+as `*`.
 
 ## Use the format-independent contract
 
@@ -107,6 +147,13 @@ never returns partial results for these failures.
 
 ## Public API
 
+- `createBigWigFile({ url })`: synchronously configures a BigWig file without making a request. Its
+  `read()` method returns source values by default and can select stored zoom summaries; its
+  `getZoomLevels()` method discovers the available reduction levels.
+- `BigWigFileOptions`, `BigWigFile`, `BigWigReadOptions`, and `BigWigResolution`: BigWig factory,
+  file, read-option, and resolution contracts.
+- `BigWigRecord`, `BigWigValueRecord`, and `BigWigSummaryRecord`: the discriminated BigWig result
+  types.
 - `createBigBedFile({ url, schema })`: synchronously configures a BigBed file. It performs no network
   request until `read()` and privately caches successful file-header, chromosome, and primary-index
   header metadata for that file object.
