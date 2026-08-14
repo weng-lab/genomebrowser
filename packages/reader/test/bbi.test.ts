@@ -3,9 +3,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { lookupChromosome } from "../src/internal/bbi/chromosomeTree";
 import { parseBbiHeader, readBbiHeader, type BbiHeader } from "../src/internal/bbi/commonHeader";
 import { readBbiDataBlocks } from "../src/internal/bbi/dataBlocks";
-import { findPrimaryDataBlocks, readPrimaryRTreeHeader } from "../src/internal/bbi/regionalIndex";
+import {
+  bootstrapPrimaryRTree,
+  findPrimaryDataBlocks,
+  readPrimaryRTreeHeader,
+} from "../src/internal/bbi/regionalIndex";
 import { parseBbiZoomHeaders, readBbiZoomHeaders } from "../src/internal/bbi/zoomHeaders";
 import type { ByteOrder } from "../src/internal/binaryReader";
+import { RequestRangeReader } from "../src/internal/requestRangeReader";
 
 const decompressionControl = vi.hoisted(() => ({
   afterDecompression: undefined as (() => void) | undefined,
@@ -392,6 +397,158 @@ describe("BBI zoom headers", () => {
   });
 });
 
+describe("request-local BBI prefix", () => {
+  it.each([
+    ["little-endian", false],
+    ["big-endian", true],
+  ] as const)(
+    "covers a short file's header, zoom metadata, and chromosome tree in %s order",
+    async (byteOrder, exposeContentRange) => {
+      const treeOffset = 256n;
+      const rootOffset = treeOffset + 32n;
+      const zoomHeaders = [{ reductionLevel: 16, dataOffset: 500n, indexOffset: 600n }];
+      const leaf = makeLeafNode(byteOrder, 8, [["chrM", 7, 16_569]]);
+      const resource = new Uint8Array(Number(rootOffset) + leaf.byteLength);
+      resource.set(
+        makeBigBedHeader(byteOrder, {
+          chromosomeTreeOffset: treeOffset,
+          zoomLevelCount: zoomHeaders.length,
+        }),
+      );
+      resource.set(makeZoomHeaders(byteOrder, zoomHeaders), 64);
+      resource.set(makeTreeHeader(byteOrder, 8, 1n), Number(treeOffset));
+      resource.set(leaf, Number(rootOffset));
+      const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(resource.slice(), {
+          status: 206,
+          headers: exposeContentRange
+            ? { "Content-Range": `bytes 0-${resource.byteLength - 1}/${resource.byteLength}` }
+            : undefined,
+        }),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+      const metadata: { resourceSize?: bigint } = {};
+      const options = { metadata };
+      const requestReader = await RequestRangeReader.withPrefix(url, 64n, 2048n, options);
+
+      const header = await readBbiHeader(url, options, requestReader);
+      await expect(readBbiZoomHeaders(url, header, options, requestReader)).resolves.toEqual(
+        zoomHeaders,
+      );
+      await expect(lookupChromosome(url, header, "chrM", options, requestReader)).resolves.toEqual({
+        id: 7,
+        size: 16_569,
+      });
+      const copiedZoomBytes = await requestReader.readExact(64n, 24n);
+      expect(copiedZoomBytes.buffer.byteLength).toBe(24);
+      expect(metadata.resourceSize).toBe(
+        exposeContentRange ? BigInt(resource.byteLength) : undefined,
+      );
+      expect(requestedRanges(fetchMock)).toEqual(["bytes=0-2047"]);
+    },
+  );
+
+  it("delegates metadata beyond a short prefix without refetching covered bytes", async () => {
+    const byteOrder = "little-endian";
+    const treeOffset = 2000n;
+    const rootOffset = treeOffset + 32n;
+    const prefix = new Uint8Array(1024);
+    prefix.set(makeBigBedHeader(byteOrder, { chromosomeTreeOffset: treeOffset }));
+    const leaf = makeLeafNode(byteOrder, 8, [["chrM", 7, 16_569]]);
+    const fetchMock = installRangeSource(
+      new Map([
+        [0n, prefix],
+        [treeOffset, makeTreeHeader(byteOrder, 8, 1n)],
+        [rootOffset, leaf],
+      ]),
+    );
+    const requestReader = await RequestRangeReader.withPrefix(url, 64n, 2048n);
+    const header = await readBbiHeader(url, undefined, requestReader);
+
+    await expect(lookupChromosome(url, header, "chrM", undefined, requestReader)).resolves.toEqual({
+      id: 7,
+      size: 16_569,
+    });
+    expect(requestedRanges(fetchMock)).toEqual([
+      "bytes=0-2047",
+      "bytes=2000-2031",
+      "bytes=2032-2083",
+    ]);
+  });
+
+  it("recovers an exact B+ root suffix and preserves cancellation during that suffix", async () => {
+    const byteOrder = "little-endian";
+    const treeOffset = 1952n;
+    const rootOffset = treeOffset + 32n;
+    const items = Array.from({ length: 8 }, (_, index) => [
+      `chr${index}`,
+      index,
+      1000 + index,
+    ]) as Array<[string, number, number]>;
+    const leaf = makeLeafNode(byteOrder, 8, items);
+    const prefix = new Uint8Array(2048);
+    prefix.set(makeBigBedHeader(byteOrder, { chromosomeTreeOffset: treeOffset }));
+    prefix.set(
+      makeTreeHeader(byteOrder, 8, BigInt(items.length), items.length),
+      Number(treeOffset),
+    );
+    prefix.set(leaf.subarray(0, 2048 - Number(rootOffset)), Number(rootOffset));
+    const suffix = leaf.subarray(2048 - Number(rootOffset));
+    const chunks = new Map([
+      [0n, prefix],
+      [2048n, suffix],
+    ]);
+    const fetchMock = installRangeSource(chunks, { exposeContentRange: false });
+    const requestReader = await RequestRangeReader.withPrefix(url, 64n, 2048n);
+    const header = await readBbiHeader(url, undefined, requestReader);
+
+    await expect(lookupChromosome(url, header, "chr7", undefined, requestReader)).resolves.toEqual({
+      id: 7,
+      size: 1007,
+    });
+    expect(requestedRanges(fetchMock)).toEqual(["bytes=0-2047", "bytes=2048-2115"]);
+
+    const controller = new AbortController();
+    const reason = new DOMException("cancelled during B+ suffix", "AbortError");
+    const abortedFetchMock = installRangeSource(chunks, { exposeContentRange: false });
+    const implementation = abortedFetchMock.getMockImplementation()!;
+    abortedFetchMock.mockImplementation((input, init) => {
+      if (new Headers(init?.headers).get("Range") === "bytes=2048-2115") {
+        controller.abort(reason);
+      }
+      return implementation(input, init);
+    });
+    const abortedOptions = { signal: controller.signal };
+    const abortedReader = await RequestRangeReader.withPrefix(url, 64n, 2048n, abortedOptions);
+    const abortedHeader = await readBbiHeader(url, abortedOptions, abortedReader);
+    await expect(
+      lookupChromosome(url, abortedHeader, "chr7", abortedOptions, abortedReader),
+    ).rejects.toBe(reason);
+    expect(requestedRanges(abortedFetchMock)).toEqual(["bytes=0-2047", "bytes=2048-2115"]);
+  });
+
+  it("preserves cancellation while fetching the prefix", async () => {
+    const controller = new AbortController();
+    const reason = new DOMException("cancelled during prefix", "AbortError");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>().mockImplementation((_input, init) => {
+        return new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => reject(init.signal?.reason), {
+            once: true,
+          });
+        });
+      }),
+    );
+
+    const prefix = RequestRangeReader.withPrefix(url, 64n, 2048n, {
+      signal: controller.signal,
+    });
+    controller.abort(reason);
+    await expect(prefix).rejects.toBe(reason);
+  });
+});
+
 describe("lazy chromosome B+ tree lookup", () => {
   it.each<ByteOrder>(["little-endian", "big-endian"])(
     "follows padded separators through only the selected absolute branch in %s order",
@@ -535,7 +692,11 @@ describe("lazy chromosome B+ tree lookup", () => {
         [rootOffset, truncatedLeaf],
       ]),
     );
-    await expect(lookupChromosome(url, header, "chrM")).rejects.toThrow("node body is truncated");
+    await expect(
+      lookupChromosome(url, header, "chrM", {
+        metadata: { resourceSize: rootOffset + BigInt(truncatedLeaf.byteLength) },
+      }),
+    ).rejects.toThrow("node body is truncated");
   });
 
   it("falls back to exact node reads when the maximum B+ tree node span exceeds the limit", async () => {
@@ -748,10 +909,55 @@ describe("lazy primary R-tree traversal and BBI block retrieval", () => {
     expect(requestedRanges(fetchMock)).toEqual(["bytes=100-147", "bytes=148-151", "bytes=152-183"]);
   });
 
-  it("fetches only the exact missing suffix for a node larger than the initial read budget", async () => {
+  it.each([
+    ["little-endian", false],
+    ["big-endian", true],
+  ] as const)(
+    "bootstraps a complete %s root without another node request",
+    async (byteOrder, exposeContentRange) => {
+      const indexOffset = 100n;
+      const leaf = makeCirTreeNode(byteOrder, true, [
+        {
+          startChromosomeId: 2,
+          startBase: 10,
+          endChromosomeId: 2,
+          endBase: 20,
+          offset: 250n,
+          size: 3n,
+        },
+      ]);
+      const bootstrapBytes = new Uint8Array(48 + leaf.byteLength);
+      bootstrapBytes.set(makeCirTreeHeader(byteOrder, 1, 1n));
+      bootstrapBytes.set(leaf, 48);
+      const fetchMock = installRangeSource(new Map([[indexOffset, bootstrapBytes]]), {
+        exposeContentRange,
+      });
+      const header = parseBbiHeader(makeBigBedHeader(byteOrder, { uncompressBufferSize: 0 }));
+      const bootstrap = await bootstrapPrimaryRTree(url, header, indexOffset);
+      expect(Object.isFrozen(bootstrap.root)).toBe(true);
+      if (bootstrap.root?.type === "leaf") {
+        expect(Object.isFrozen(bootstrap.root.items)).toBe(true);
+        expect(Object.isFrozen(bootstrap.root.items[0])).toBe(true);
+      }
+
+      await expect(
+        findPrimaryDataBlocks(
+          url,
+          header,
+          bootstrap.tree,
+          { chromosomeId: 2, start: 10, end: 20 },
+          undefined,
+          undefined,
+          bootstrap.root,
+        ),
+      ).resolves.toEqual([{ offset: 250n, size: 3n }]);
+      expect(requestedRanges(fetchMock)).toEqual(["bytes=100-2147"]);
+    },
+  );
+
+  it("bootstraps an index and fetches only the exact missing root suffix", async () => {
     const byteOrder = "little-endian";
     const indexOffset = 100n;
-    const rootOffset = indexOffset + 48n;
     const items = Array.from({ length: 256 }, (_, index) => ({
       startChromosomeId: 2,
       startBase: index * 10,
@@ -761,48 +967,63 @@ describe("lazy primary R-tree traversal and BBI block retrieval", () => {
       size: 1n,
     }));
     const leaf = makeCirTreeNode(byteOrder, true, items);
-    const prefixLength = 4096;
-    const prefix = leaf.subarray(0, prefixLength);
-    const suffix = leaf.subarray(prefixLength);
+    const bootstrapLength = 2048;
+    const rootPrefixLength = bootstrapLength - 48;
+    const bootstrapBytes = new Uint8Array(bootstrapLength);
+    bootstrapBytes.set(makeCirTreeHeader(byteOrder, items.length, BigInt(items.length)));
+    bootstrapBytes.set(leaf.subarray(0, rootPrefixLength), 48);
+    const suffix = leaf.subarray(rootPrefixLength);
     const fetchMock = installRangeSource(
       new Map([
-        [indexOffset, makeCirTreeHeader(byteOrder, items.length, BigInt(items.length))],
-        [rootOffset, prefix],
-        [rootOffset + BigInt(prefixLength), suffix],
+        [indexOffset, bootstrapBytes],
+        [indexOffset + BigInt(bootstrapLength), suffix],
       ]),
     );
     const header = parseBbiHeader(makeBigBedHeader(byteOrder, { uncompressBufferSize: 0 }));
     header.unzoomedIndexOffset = indexOffset;
-    const tree = await readPrimaryRTreeHeader(url, header, indexOffset);
+    const bootstrap = await bootstrapPrimaryRTree(url, header, indexOffset);
 
     await expect(
-      findPrimaryDataBlocks(url, header, tree, {
+      findPrimaryDataBlocks(
+        url,
+        header,
+        bootstrap.tree,
+        { chromosomeId: 2, start: 1270, end: 1275 },
+        undefined,
+        undefined,
+        bootstrap.root,
+      ),
+    ).resolves.toEqual([{ offset: 20_127n, size: 1n }]);
+    expect(requestedRanges(fetchMock)).toEqual(["bytes=100-2147", "bytes=2148-8343"]);
+
+    const rootOffset = indexOffset + 48n;
+    const normalPrefixLength = 4096;
+    const normalFetchMock = installRangeSource(
+      new Map([
+        [rootOffset, leaf.subarray(0, normalPrefixLength)],
+        [rootOffset + BigInt(normalPrefixLength), leaf.subarray(normalPrefixLength)],
+      ]),
+    );
+    await expect(
+      findPrimaryDataBlocks(url, header, bootstrap.tree, {
         chromosomeId: 2,
         start: 1270,
         end: 1275,
       }),
     ).resolves.toEqual([{ offset: 20_127n, size: 1n }]);
-    expect(requestedRanges(fetchMock)).toEqual([
-      "bytes=100-147",
-      "bytes=148-4243",
-      "bytes=4244-8343",
-    ]);
+    expect(requestedRanges(normalFetchMock)).toEqual(["bytes=148-4243", "bytes=4244-8343"]);
 
     const truncatedFetchMock = installRangeSource(
       new Map([
-        [rootOffset, prefix],
-        [rootOffset + BigInt(prefixLength), suffix.subarray(0, -1)],
+        [indexOffset, bootstrapBytes],
+        [indexOffset + BigInt(bootstrapLength), suffix.subarray(0, -1)],
       ]),
       { exposeContentRange: false },
     );
-    await expect(
-      findPrimaryDataBlocks(url, header, tree, {
-        chromosomeId: 2,
-        start: 1270,
-        end: 1275,
-      }),
-    ).rejects.toThrow("expected exactly 4100");
-    expect(requestedRanges(truncatedFetchMock)).toEqual(["bytes=148-4243", "bytes=4244-8343"]);
+    await expect(bootstrapPrimaryRTree(url, header, indexOffset)).rejects.toThrow(
+      "expected exactly 6196",
+    );
+    expect(requestedRanges(truncatedFetchMock)).toEqual(["bytes=100-2147", "bytes=2148-8343"]);
   });
 
   it("rejects an oversized declared count from a known-size read-ahead node", async () => {

@@ -8,10 +8,16 @@ import {
 import { lookupChromosome, type Chromosome } from "./internal/bbi/chromosomeTree";
 import { readBbiHeader, type BbiHeader } from "./internal/bbi/commonHeader";
 import { readBbiDataBlocks } from "./internal/bbi/dataBlocks";
-import { readPrimaryRTreeHeader, type PrimaryRTreeHeader } from "./internal/bbi/regionalIndex";
+import {
+  bootstrapPrimaryRTree,
+  readPrimaryRTreeRoot,
+  type ParsedPrimaryRTreeNode,
+  type PrimaryRTreeHeader,
+} from "./internal/bbi/regionalIndex";
 import { readBbiZoomHeaders, type BbiZoomHeader } from "./internal/bbi/zoomHeaders";
 import type { ExactRangeMetadata } from "./internal/httpRange";
 import { validateHttpUrl, validateRegion } from "./internal/inputValidation";
+import { RequestRangeReader } from "./internal/requestRangeReader";
 
 export type BigWigFileOptions = {
   url: string;
@@ -54,6 +60,7 @@ type BigWigMetadataCache = {
   zoomLevels?: readonly number[];
   chromosomes: Map<string, Chromosome | undefined>;
   rTreeHeaders: Map<bigint, PrimaryRTreeHeader>;
+  rTreeRoots: Map<bigint, ParsedPrimaryRTreeNode>;
   rangeMetadata: ExactRangeMetadata;
 };
 
@@ -100,6 +107,7 @@ function validateResolution(resolution: BigWigResolution | undefined): BigWigRes
 async function loadHeader(
   url: string,
   cache: BigWigMetadataCache,
+  requestReader: RequestRangeReader,
   signal?: AbortSignal,
 ): Promise<BbiHeader> {
   const cached = cache.header;
@@ -108,7 +116,7 @@ async function loadHeader(
     return cached;
   }
 
-  const header = await readBbiHeader(url, { signal, metadata: cache.rangeMetadata });
+  const header = await readBbiHeader(url, { signal, metadata: cache.rangeMetadata }, requestReader);
   throwIfAborted(signal);
   if (header.format !== "bigWig") {
     throw new Error("Expected a BigWig file");
@@ -121,6 +129,7 @@ async function loadZoomHeaders(
   url: string,
   header: BbiHeader,
   cache: BigWigMetadataCache,
+  requestReader: RequestRangeReader,
   signal?: AbortSignal,
 ): Promise<readonly BbiZoomHeader[]> {
   const cached = cache.zoomHeaders;
@@ -129,10 +138,15 @@ async function loadZoomHeaders(
     return cached;
   }
 
-  const zoomHeaders = await readBbiZoomHeaders(url, header, {
-    signal,
-    metadata: cache.rangeMetadata,
-  });
+  const zoomHeaders = await readBbiZoomHeaders(
+    url,
+    header,
+    {
+      signal,
+      metadata: cache.rangeMetadata,
+    },
+    requestReader,
+  );
   throwIfAborted(signal);
   cache.zoomHeaders = zoomHeaders;
   return zoomHeaders;
@@ -143,13 +157,14 @@ async function selectResolution(
   header: BbiHeader,
   cache: BigWigMetadataCache,
   resolution: BigWigResolution,
+  requestReader: RequestRangeReader,
   signal?: AbortSignal,
 ): Promise<SelectedResolution> {
   if (resolution.mode === "unzoomed") {
     return { mode: "unzoomed", indexOffset: header.unzoomedIndexOffset };
   }
 
-  const zoomHeaders = await loadZoomHeaders(url, header, cache, signal);
+  const zoomHeaders = await loadZoomHeaders(url, header, cache, requestReader, signal);
   if (resolution.mode === "level") {
     const selected = zoomHeaders.find(
       (zoomHeader) => zoomHeader.reductionLevel === resolution.reductionLevel,
@@ -187,8 +202,14 @@ async function readBigWig(
   const signal = options?.signal;
   throwIfAborted(signal);
 
-  const header = await loadHeader(url, cache, signal);
-  const selected = await selectResolution(url, header, cache, resolution, signal);
+  const rangeOptions = { signal, metadata: cache.rangeMetadata };
+  const requestReader =
+    cache.header === undefined
+      ? await RequestRangeReader.withPrefix(url, 64n, 2n * 1024n, rangeOptions)
+      : new RequestRangeReader(url, rangeOptions);
+  throwIfAborted(signal);
+  const header = await loadHeader(url, cache, requestReader, signal);
+  const selected = await selectResolution(url, header, cache, resolution, requestReader, signal);
   throwIfAborted(signal);
 
   let chromosome: Chromosome | undefined;
@@ -196,25 +217,40 @@ async function readBigWig(
     chromosome = cache.chromosomes.get(region.chromosome);
     throwIfAborted(signal);
   } else {
-    chromosome = await lookupChromosome(url, header, region.chromosome, {
-      signal,
-      metadata: cache.rangeMetadata,
-    });
+    chromosome = await lookupChromosome(
+      url,
+      header,
+      region.chromosome,
+      rangeOptions,
+      requestReader,
+    );
     throwIfAborted(signal);
     cache.chromosomes.set(region.chromosome, chromosome);
   }
   if (chromosome === undefined) return [];
 
   let rTreeHeader = cache.rTreeHeaders.get(selected.indexOffset);
+  let rTreeRoot = cache.rTreeRoots.get(selected.indexOffset);
   if (rTreeHeader === undefined) {
-    rTreeHeader = await readPrimaryRTreeHeader(url, header, selected.indexOffset, {
-      signal,
-      metadata: cache.rangeMetadata,
-    });
+    const bootstrap = await bootstrapPrimaryRTree(
+      url,
+      header,
+      selected.indexOffset,
+      rangeOptions,
+      requestReader,
+    );
     throwIfAborted(signal);
+    rTreeHeader = bootstrap.tree;
+    rTreeRoot = bootstrap.root;
     cache.rTreeHeaders.set(selected.indexOffset, rTreeHeader);
+    if (rTreeRoot !== undefined) cache.rTreeRoots.set(selected.indexOffset, rTreeRoot);
   } else {
     throwIfAborted(signal);
+  }
+  if (rTreeRoot === undefined && rTreeHeader.itemCount > 0n) {
+    rTreeRoot = await readPrimaryRTreeRoot(url, header, rTreeHeader, rangeOptions, requestReader);
+    throwIfAborted(signal);
+    cache.rTreeRoots.set(selected.indexOffset, rTreeRoot);
   }
 
   const blocks = await readBbiDataBlocks(
@@ -222,7 +258,9 @@ async function readBigWig(
     header,
     rTreeHeader,
     { chromosomeId: chromosome.id, start: region.start, end: region.end },
-    { signal, metadata: cache.rangeMetadata },
+    rangeOptions,
+    requestReader,
+    rTreeRoot,
   );
   throwIfAborted(signal);
 
@@ -267,6 +305,7 @@ export function createBigWigFile(options: BigWigFileOptions): BigWigFile {
   const cache: BigWigMetadataCache = {
     chromosomes: new Map(),
     rTreeHeaders: new Map(),
+    rTreeRoots: new Map(),
     rangeMetadata: {},
   };
 
@@ -277,8 +316,14 @@ export function createBigWigFile(options: BigWigFileOptions): BigWigFile {
     async getZoomLevels(readOptions) {
       const signal = readOptions?.signal;
       throwIfAborted(signal);
-      const header = await loadHeader(url, cache, signal);
-      const zoomHeaders = await loadZoomHeaders(url, header, cache, signal);
+      const rangeOptions = { signal, metadata: cache.rangeMetadata };
+      const requestReader =
+        cache.header === undefined
+          ? await RequestRangeReader.withPrefix(url, 64n, 2n * 1024n, rangeOptions)
+          : new RequestRangeReader(url, rangeOptions);
+      throwIfAborted(signal);
+      const header = await loadHeader(url, cache, requestReader, signal);
+      const zoomHeaders = await loadZoomHeaders(url, header, cache, requestReader, signal);
       throwIfAborted(signal);
 
       if (cache.zoomLevels === undefined) {

@@ -1,5 +1,6 @@
 import { BinaryReader, type ByteOrder } from "../binaryReader";
 import { readExactRange, type ExactRangeOptions } from "../httpRange";
+import type { RequestRangeReader } from "../requestRangeReader";
 
 // Wire constants and layout follow UCSC's public sig.h and bbiFile.h.
 const BIG_BED_MAGIC = 0x8789f2eb;
@@ -60,6 +61,14 @@ export function parseBbiHeader(bytes: Uint8Array): BbiHeader {
   };
 }
 
-export async function readBbiHeader(url: string, options?: ExactRangeOptions): Promise<BbiHeader> {
-  return parseBbiHeader(await readExactRange(url, 0n, BBI_HEADER_SIZE, options));
+export async function readBbiHeader(
+  url: string,
+  options?: ExactRangeOptions,
+  requestReader?: RequestRangeReader,
+): Promise<BbiHeader> {
+  const bytes =
+    requestReader === undefined
+      ? await readExactRange(url, 0n, BBI_HEADER_SIZE, options)
+      : await requestReader.readExact(0n, BBI_HEADER_SIZE);
+  return parseBbiHeader(bytes);
 }

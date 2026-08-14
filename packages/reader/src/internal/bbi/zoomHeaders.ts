@@ -1,6 +1,7 @@
 import { checkedByteLength } from "../bigint";
 import { BinaryReader } from "../binaryReader";
 import { readExactRange, type ExactRangeOptions } from "../httpRange";
+import type { RequestRangeReader } from "../requestRangeReader";
 import type { BbiHeader } from "./commonHeader";
 
 // Zoom headers immediately follow the 64-byte common BBI header. Layout follows
@@ -38,6 +39,7 @@ export async function readBbiZoomHeaders(
   url: string,
   header: BbiHeader,
   options?: ExactRangeOptions,
+  requestReader?: RequestRangeReader,
 ): Promise<BbiZoomHeader[]> {
   if (header.zoomLevelCount === 0) return [];
 
@@ -46,6 +48,9 @@ export async function readBbiZoomHeaders(
     BBI_ZOOM_HEADER_SIZE,
     "BBI zoom headers length",
   );
-  const bytes = await readExactRange(url, BBI_COMMON_HEADER_SIZE, byteLength, options);
+  const bytes =
+    requestReader === undefined
+      ? await readExactRange(url, BBI_COMMON_HEADER_SIZE, byteLength, options)
+      : await requestReader.readExact(BBI_COMMON_HEADER_SIZE, byteLength);
   return parseBbiZoomHeaders(bytes, header);
 }

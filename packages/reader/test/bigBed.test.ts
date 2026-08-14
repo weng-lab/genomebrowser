@@ -105,13 +105,20 @@ describe("createBigBedFile", () => {
     await expect(file.read({ chromosome: "chr1", start: 40, end: 90 })).resolves.toEqual([]);
   });
 
-  it("caches immutable file metadata while repeating index-node and data reads", async () => {
+  it("does not bootstrap an index for an unknown chromosome", async () => {
+    const fetchMock = installFixtureFetch();
+    const file = createBigBedFile({ url, schema: bed3Schema });
+
+    await expect(file.read({ chromosome: "missing", start: 0, end: 10 })).resolves.toEqual([]);
+    expect(requestedRanges(fetchMock)).toEqual(["bytes=0-2047"]);
+  });
+
+  it("caches immutable file metadata and the primary root while repeating data reads", async () => {
     const fetchMock = installFixtureFetch();
     const file = createBigBedFile({ url, schema: bed3Schema });
     const region = { chromosome: "chr1", start: 10, end: 20 };
     const header = parseBbiHeader(fixture);
     const indexOffset = header.unzoomedIndexOffset;
-    const indexRange = `bytes=${indexOffset}-${indexOffset + 47n}`;
     const rootOffset = indexOffset + 48n;
     const indexView = new DataView(fixture.buffer, fixture.byteOffset + Number(indexOffset), 48);
     const blockSize = indexView.getUint32(4, header.byteOrder === "little-endian");
@@ -123,31 +130,36 @@ describe("createBigBedFile", () => {
         ? maximumRootEnd
         : BigInt(fixture.byteLength) - 1n;
     const rootRange = `bytes=${rootOffset}-${rootEnd}`;
+    const prefixRange = "bytes=0-2047";
 
-    await file.read(region);
+    const firstResult = await file.read(region);
     const firstReadRanges = requestedRanges(fetchMock);
-    const indexRangeIndex = firstReadRanges.indexOf(indexRange);
-    expect(indexRangeIndex).toBeGreaterThan(0);
-    const queryRanges = firstReadRanges.slice(indexRangeIndex + 1);
-    expect(queryRanges[0]).toBe(rootRange);
-    expect(queryRanges.length).toBeGreaterThan(1);
+    expect(firstReadRanges).toEqual([prefixRange]);
+
+    fetchMock.mockClear();
+    const secondResult = await file.read(region);
+    const warmQueryRanges = requestedRanges(fetchMock);
+    expect(secondResult).toEqual(firstResult);
+    expect(warmQueryRanges.length).toBeGreaterThan(0);
+    expect(warmQueryRanges).not.toContain(rootRange);
+    expect(warmQueryRanges).not.toContain(prefixRange);
 
     fetchMock.mockClear();
     await file.read(region);
-    expect(requestedRanges(fetchMock)).toEqual(queryRanges);
-    expect(requestedRanges(fetchMock)).not.toContain(indexRange);
+    expect(requestedRanges(fetchMock)).toEqual(warmQueryRanges);
 
     fetchMock.mockClear();
-    await file.read({ chromosome: "chr2", start: 0, end: 10 });
+    const firstChr2Result = await file.read({ chromosome: "chr2", start: 0, end: 10 });
     const firstChr2Ranges = requestedRanges(fetchMock);
-    expect(firstChr2Ranges).not.toContain("bytes=0-63");
-    expect(firstChr2Ranges).not.toContain(indexRange);
-    const chr2RootRangeIndex = firstChr2Ranges.indexOf(rootRange);
-    expect(chr2RootRangeIndex).toBeGreaterThan(0);
+    expect(firstChr2Ranges).not.toContain(prefixRange);
+    expect(firstChr2Ranges).not.toContain(rootRange);
 
     fetchMock.mockClear();
-    await file.read({ chromosome: "chr2", start: 0, end: 10 });
-    expect(requestedRanges(fetchMock)).toEqual(firstChr2Ranges.slice(chr2RootRangeIndex));
+    const secondChr2Result = await file.read({ chromosome: "chr2", start: 0, end: 10 });
+    expect(secondChr2Result).toEqual(firstChr2Result);
+    const secondChr2Ranges = requestedRanges(fetchMock);
+    expect(secondChr2Ranges).toEqual(firstChr2Ranges.slice(2));
+    expect(secondChr2Ranges).not.toContain(rootRange);
 
     fetchMock.mockClear();
     await expect(file.read({ chromosome: "missing", start: 0, end: 10 })).resolves.toEqual([]);
@@ -160,26 +172,29 @@ describe("createBigBedFile", () => {
     const separateFile = createBigBedFile({ url, schema: bed3Schema });
     await separateFile.read(region);
     const separateFileRanges = requestedRanges(fetchMock);
-    expect(separateFileRanges[0]).toBe("bytes=0-63");
-    expect(separateFileRanges).toContain(indexRange);
-
-    expect(firstReadRanges[0]).toBe("bytes=0-63");
-    expect(queryRanges).not.toContain("bytes=0-63");
-    expect(separateFileRanges.slice(separateFileRanges.indexOf(indexRange) + 1)).toEqual(
-      queryRanges,
-    );
+    expect(separateFileRanges).toEqual(firstReadRanges);
   });
 
   it("retries failed and aborted primary R-tree header loads", async () => {
     const fetchMock = installFixtureFetch();
     const implementation = fetchMock.getMockImplementation()!;
     const indexOffset = parseBbiHeader(fixture).unzoomedIndexOffset;
-    const indexRange = `bytes=${indexOffset}-${indexOffset + 47n}`;
+    const prefixRange = "bytes=0-2047";
+    const indexRange = `bytes=${indexOffset}-${indexOffset + 2047n}`;
     const region = { chromosome: "chr1", start: 10, end: 20 };
     const indexFailure = new Error("transient primary R-tree header failure");
     let failIndex = true;
     fetchMock.mockImplementation((input, init) => {
-      if (new Headers(init?.headers).get("Range") === indexRange && failIndex) {
+      const range = new Headers(init?.headers).get("Range");
+      if (range === prefixRange) {
+        return Promise.resolve(
+          new Response(fixture.slice(0, Number(indexOffset)), {
+            status: 206,
+            headers: { "Content-Range": `bytes 0-${indexOffset - 1n}/${fixture.byteLength}` },
+          }),
+        );
+      }
+      if (range === indexRange && failIndex) {
         failIndex = false;
         return Promise.reject(indexFailure);
       }
@@ -188,15 +203,32 @@ describe("createBigBedFile", () => {
     const failureRetryFile = createBigBedFile({ url, schema: bed3Schema });
 
     await expect(failureRetryFile.read(region)).rejects.toBe(indexFailure);
-    await expect(failureRetryFile.read(region)).resolves.toHaveLength(1);
-    expect(requestedRanges(fetchMock).filter((range) => range === indexRange)).toHaveLength(2);
-    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-63")).toHaveLength(1);
+    const failureRetryResult = await failureRetryFile.read(region);
+    const failureRetryRanges = requestedRanges(fetchMock);
+    expect(failureRetryRanges.filter((range) => range === indexRange)).toHaveLength(2);
+    expect(failureRetryRanges.filter((range) => range === prefixRange)).toHaveLength(1);
+    const successfulRetryRanges = failureRetryRanges.slice(
+      failureRetryRanges.lastIndexOf(indexRange),
+    );
+
+    fetchMock.mockClear();
+    await expect(failureRetryFile.read(region)).resolves.toEqual(failureRetryResult);
+    expect(requestedRanges(fetchMock)).toEqual(successfulRetryRanges.slice(1));
 
     fetchMock.mockClear();
     const controller = new AbortController();
     const reason = new DOMException("cancelled after primary R-tree header fetch", "AbortError");
     fetchMock.mockImplementation((input, init) => {
-      if (new Headers(init?.headers).get("Range") === indexRange) controller.abort(reason);
+      const range = new Headers(init?.headers).get("Range");
+      if (range === prefixRange) {
+        return Promise.resolve(
+          new Response(fixture.slice(0, Number(indexOffset)), {
+            status: 206,
+            headers: { "Content-Range": `bytes 0-${indexOffset - 1n}/${fixture.byteLength}` },
+          }),
+        );
+      }
+      if (range === indexRange) controller.abort(reason);
       return implementation(input, init);
     });
     const cancellationRetryFile = createBigBedFile({ url, schema: bed3Schema });
@@ -208,19 +240,34 @@ describe("createBigBedFile", () => {
 
     fetchMock.mockClear();
     fetchMock.mockImplementation(implementation);
-    await expect(cancellationRetryFile.read(region)).resolves.toHaveLength(1);
-    expect(requestedRanges(fetchMock)[0]).toBe(indexRange);
+    const cancellationRetryResult = await cancellationRetryFile.read(region);
+    const cancellationRetryRanges = requestedRanges(fetchMock);
+    expect(cancellationRetryRanges[0]).toBe(indexRange);
+
+    fetchMock.mockClear();
+    await expect(cancellationRetryFile.read(region)).resolves.toEqual(cancellationRetryResult);
+    expect(requestedRanges(fetchMock)).toEqual(cancellationRetryRanges.slice(1));
   });
 
   it("keeps concurrent primary R-tree header cache misses cancellation-independent", async () => {
     const fetchMock = installFixtureFetch();
     const implementation = fetchMock.getMockImplementation()!;
     const indexOffset = parseBbiHeader(fixture).unzoomedIndexOffset;
-    const indexRange = `bytes=${indexOffset}-${indexOffset + 47n}`;
+    const prefixRange = "bytes=0-2047";
+    const indexRange = `bytes=${indexOffset}-${indexOffset + 2047n}`;
     const region = { chromosome: "chr1", start: 10, end: 20 };
     const file = createBigBedFile({ url, schema: bed3Schema });
     fetchMock.mockImplementation((input, init) => {
-      if (new Headers(init?.headers).get("Range") === indexRange) {
+      const range = new Headers(init?.headers).get("Range");
+      if (range === prefixRange) {
+        return Promise.resolve(
+          new Response(fixture.slice(0, Number(indexOffset)), {
+            status: 206,
+            headers: { "Content-Range": `bytes 0-${indexOffset - 1n}/${fixture.byteLength}` },
+          }),
+        );
+      }
+      if (range === indexRange) {
         return Promise.reject(new Error("prime metadata before the primary index"));
       }
       return implementation(input, init);
@@ -254,13 +301,33 @@ describe("createBigBedFile", () => {
     await expect(
       headerRetryFile.read({ chromosome: "chr1", start: 10, end: 20 }),
     ).resolves.toHaveLength(1);
-    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-63")).toHaveLength(2);
+    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-2047")).toHaveLength(2);
 
     fetchMock.mockClear();
     fetchMock.mockImplementation(implementation);
-    fetchMock
-      .mockImplementationOnce(implementation)
-      .mockRejectedValueOnce(new Error("transient chromosome failure"));
+    const chromosomeTreeOffset = parseBbiHeader(fixture).chromosomeTreeOffset;
+    let failChromosome = true;
+    fetchMock.mockImplementation((input, init) => {
+      const range = new Headers(init?.headers).get("Range");
+      if (range === "bytes=0-2047") {
+        return Promise.resolve(
+          new Response(fixture.slice(0, Number(chromosomeTreeOffset)), {
+            status: 206,
+            headers: {
+              "Content-Range": `bytes 0-${chromosomeTreeOffset - 1n}/${fixture.byteLength}`,
+            },
+          }),
+        );
+      }
+      if (
+        range === `bytes=${chromosomeTreeOffset}-${chromosomeTreeOffset + 31n}` &&
+        failChromosome
+      ) {
+        failChromosome = false;
+        return Promise.reject(new Error("transient chromosome failure"));
+      }
+      return implementation(input, init);
+    });
     const chromosomeRetryFile = createBigBedFile({ url, schema: bed3Schema });
     await expect(
       chromosomeRetryFile.read({ chromosome: "chr1", start: 10, end: 20 }),
@@ -273,7 +340,7 @@ describe("createBigBedFile", () => {
       chromosomeRetryFile.read({ chromosome: "chr1", start: 10, end: 20 }),
     ).resolves.toHaveLength(1);
     expect(requestedRanges(fetchMock)[0]).toBe(failedChromosomeRanges[1]);
-    expect(requestedRanges(fetchMock)).not.toContain("bytes=0-63");
+    expect(requestedRanges(fetchMock)).not.toContain("bytes=0-2047");
 
     fetchMock.mockClear();
     const controller = new AbortController();
@@ -290,7 +357,7 @@ describe("createBigBedFile", () => {
     await expect(
       cancellationRetryFile.read({ chromosome: "chr1", start: 10, end: 20 }),
     ).resolves.toHaveLength(1);
-    expect(requestedRanges(fetchMock)[0]).toBe("bytes=0-63");
+    expect(requestedRanges(fetchMock)[0]).toBe("bytes=0-2047");
   });
 
   it("keeps cancellation independent across concurrent metadata cache misses", async () => {
@@ -307,7 +374,7 @@ describe("createBigBedFile", () => {
 
     expect(cancelledResult).toEqual({ status: "rejected", reason });
     expect(activeResult).toMatchObject({ status: "fulfilled" });
-    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-63")).toHaveLength(2);
+    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-2047")).toHaveLength(2);
   });
 
   it("checks cancellation before query work when metadata is cached", async () => {

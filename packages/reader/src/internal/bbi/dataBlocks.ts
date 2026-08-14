@@ -1,11 +1,13 @@
 import { unzlibSync } from "fflate";
 import { throwIfAborted } from "../abort";
-import { readExactRange, type ExactRangeOptions } from "../httpRange";
+import type { ExactRangeOptions } from "../httpRange";
+import { RequestRangeReader } from "../requestRangeReader";
 import type { BbiHeader } from "./commonHeader";
 import {
   findPrimaryDataBlocks,
   type BbiQuery,
   type BlockReference,
+  type ParsedPrimaryRTreeNode,
   type PrimaryRTreeHeader,
 } from "./regionalIndex";
 
@@ -107,8 +109,11 @@ export async function readBbiDataBlocks(
   tree: PrimaryRTreeHeader,
   query: BbiQuery,
   options?: ExactRangeOptions,
+  requestReader?: RequestRangeReader,
+  root?: ParsedPrimaryRTreeNode,
 ): Promise<BbiDataBlock[]> {
-  const references = await findPrimaryDataBlocks(url, header, tree, query, options);
+  const reader = requestReader ?? new RequestRangeReader(url, options);
+  const references = await findPrimaryDataBlocks(url, header, tree, query, options, reader, root);
   const ranges = planMergedRanges(references);
   const blocks: Array<BbiDataBlock | undefined> = Array.from({ length: references.length });
   let nextRangeIndex = 0;
@@ -125,7 +130,7 @@ export async function readBbiDataBlocks(
 
       try {
         throwIfAborted(options?.signal);
-        const mergedBytes = await readExactRange(url, range.offset, range.size, options);
+        const mergedBytes = await reader.readExact(range.offset, range.size);
         throwIfAborted(options?.signal);
 
         for (const plannedBlock of range.blocks) {

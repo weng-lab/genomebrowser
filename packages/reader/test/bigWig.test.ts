@@ -58,13 +58,14 @@ function installFixtureFetch(bytes = fixture): ReturnType<typeof vi.fn<typeof fe
     if (match === null) throw new Error(`Unexpected Range header: ${range}`);
     const start = Number(match[1]);
     const end = Number(match[2]);
-    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || end >= bytes.byteLength) {
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start >= bytes.byteLength) {
       throw new Error(`Unexpected byte request: ${range}`);
     }
+    const responseEnd = Math.min(end, bytes.byteLength - 1);
     return Promise.resolve(
-      new Response(bytes.slice(start, end + 1), {
+      new Response(bytes.slice(start, responseEnd + 1), {
         status: 206,
-        headers: { "Content-Range": `bytes ${start}-${end}/${bytes.byteLength}` },
+        headers: { "Content-Range": `bytes ${start}-${responseEnd}/${bytes.byteLength}` },
       }),
     );
   });
@@ -298,24 +299,24 @@ describe("createBigWigFile", () => {
     await expect(wrongFormatFile.read(validRegion)).rejects.toThrow("Expected a BigWig file");
   });
 
-  it("reuses only completed metadata while repeating index-node, block, decode, and result work", async () => {
+  it("caches completed roots per selected index while repeating block, decode, and result work", async () => {
     const fetchMock = installFixtureFetch();
     const file = createBigWigFile({ url });
     const header = parseBbiHeader(fixture);
     const zoomHeaders = parseBbiZoomHeaders(fixture.subarray(64, 64 + 24 * 4), header);
-    const zoomRange = "bytes=64-159";
-    const unzoomedIndexRange = `bytes=${header.unzoomedIndexOffset}-${header.unzoomedIndexOffset + 47n}`;
+    const prefixRange = "bytes=0-2047";
+    const unzoomedIndexRange = `bytes=${header.unzoomedIndexOffset}-${header.unzoomedIndexOffset + 2047n}`;
     const zoomIndexOffset = zoomHeaders[0]!.indexOffset;
-    const zoomIndexRange = `bytes=${zoomIndexOffset}-${zoomIndexOffset + 47n}`;
+    const zoomIndexRange = `bytes=${zoomIndexOffset}-${fixture.byteLength - 1}`;
     const region = { chromosome: "chr1", start: 0, end: 1_000 };
 
     await file.getZoomLevels();
-    expect(requestedRanges(fetchMock)).toEqual(["bytes=0-63", zoomRange]);
+    expect(requestedRanges(fetchMock)).toEqual([prefixRange]);
     fetchMock.mockClear();
     await file.getZoomLevels();
     expect(fetchMock).not.toHaveBeenCalled();
 
-    await file.read(region);
+    const coldUnzoomedResult = await file.read(region);
     const firstUnzoomedRanges = requestedRanges(fetchMock);
     const unzoomedIndexPosition = firstUnzoomedRanges.indexOf(unzoomedIndexRange);
     expect(unzoomedIndexPosition).toBeGreaterThan(0);
@@ -323,22 +324,34 @@ describe("createBigWigFile", () => {
     expect(unzoomedQueryRanges.length).toBeGreaterThan(1);
     fetchMock.mockClear();
     const firstResult = await file.read(region);
-    expect(requestedRanges(fetchMock)).toEqual(unzoomedQueryRanges);
+    const warmUnzoomedRanges = requestedRanges(fetchMock);
+    expect(firstResult).toEqual(coldUnzoomedResult);
+    expect(warmUnzoomedRanges).toEqual(unzoomedQueryRanges);
+    expect(warmUnzoomedRanges).not.toContain(prefixRange);
+    expect(warmUnzoomedRanges).not.toContain(unzoomedIndexRange);
     const secondResult = await file.read(region);
     expect(secondResult).toEqual(firstResult);
     expect(secondResult).not.toBe(firstResult);
-    expect(requestedRanges(fetchMock)).toEqual([...unzoomedQueryRanges, ...unzoomedQueryRanges]);
+    expect(requestedRanges(fetchMock)).toEqual([...warmUnzoomedRanges, ...warmUnzoomedRanges]);
 
     fetchMock.mockClear();
     const zoomOptions = { resolution: { mode: "level", reductionLevel: 656 } } as const;
-    await file.read(region, zoomOptions);
+    const coldZoomResult = await file.read(region, zoomOptions);
     const firstZoomRanges = requestedRanges(fetchMock);
     expect(firstZoomRanges[0]).toBe(zoomIndexRange);
     const zoomQueryRanges = firstZoomRanges.slice(1);
-    expect(zoomQueryRanges.length).toBeGreaterThan(1);
+    expect(zoomQueryRanges.length).toBeGreaterThan(0);
     fetchMock.mockClear();
-    await file.read(region, zoomOptions);
-    expect(requestedRanges(fetchMock)).toEqual(zoomQueryRanges);
+    const warmZoomResult = await file.read(region, zoomOptions);
+    const warmZoomRanges = requestedRanges(fetchMock);
+    expect(warmZoomResult).toEqual(coldZoomResult);
+    expect(warmZoomRanges).toEqual(zoomQueryRanges);
+    expect(warmZoomRanges).not.toContain(prefixRange);
+    expect(warmZoomRanges).not.toContain(zoomIndexRange);
+
+    fetchMock.mockClear();
+    await expect(file.read(region)).resolves.toEqual(coldUnzoomedResult);
+    expect(requestedRanges(fetchMock)).toEqual(warmUnzoomedRanges);
 
     fetchMock.mockClear();
     await expect(file.read({ chromosome: "missing", start: 0, end: 100 })).resolves.toEqual([]);
@@ -348,9 +361,72 @@ describe("createBigWigFile", () => {
     expect(fetchMock).not.toHaveBeenCalled();
 
     await createBigWigFile({ url }).read(region, zoomOptions);
-    expect(requestedRanges(fetchMock)[0]).toBe("bytes=0-63");
-    expect(requestedRanges(fetchMock)).toContain(zoomRange);
-    expect(requestedRanges(fetchMock)).toContain(zoomIndexRange);
+    expect(requestedRanges(fetchMock)).toEqual([prefixRange, ...firstZoomRanges]);
+
+    fetchMock.mockClear();
+    await expect(
+      createBigWigFile({ url }).read({ chromosome: "missing", start: 0, end: 100 }, zoomOptions),
+    ).resolves.toEqual([]);
+    expect(requestedRanges(fetchMock)).toEqual([prefixRange]);
+  });
+
+  it("retries failed or aborted root bootstraps without poisoning the root cache", async () => {
+    const fetchMock = installFixtureFetch();
+    const implementation = fetchMock.getMockImplementation()!;
+    const header = parseBbiHeader(fixture);
+    const indexOffset = header.unzoomedIndexOffset;
+    const prefixRange = "bytes=0-2047";
+    const indexRange = `bytes=${indexOffset}-${indexOffset + 2047n}`;
+    const region = { chromosome: "chr1", start: 0, end: 1_000 };
+    const truncatedPrefix = () =>
+      Promise.resolve(
+        new Response(fixture.slice(0, Number(indexOffset)), {
+          status: 206,
+          headers: { "Content-Range": `bytes 0-${indexOffset - 1n}/${fixture.byteLength}` },
+        }),
+      );
+    let failIndex = true;
+    const indexFailure = new Error("transient BigWig root bootstrap failure");
+    fetchMock.mockImplementation((input, init) => {
+      const range = new Headers(init?.headers).get("Range");
+      if (range === prefixRange) return truncatedPrefix();
+      if (range === indexRange && failIndex) {
+        failIndex = false;
+        return Promise.reject(indexFailure);
+      }
+      return implementation(input, init);
+    });
+    const failedFile = createBigWigFile({ url });
+
+    await expect(failedFile.read(region)).rejects.toBe(indexFailure);
+    fetchMock.mockClear();
+    const retryResult = await failedFile.read(region);
+    const retryRanges = requestedRanges(fetchMock);
+    expect(retryRanges[0]).toBe(indexRange);
+    fetchMock.mockClear();
+    await expect(failedFile.read(region)).resolves.toEqual(retryResult);
+    expect(requestedRanges(fetchMock)).toEqual(retryRanges.slice(1));
+
+    const controller = new AbortController();
+    const reason = new DOMException("cancelled BigWig root bootstrap", "AbortError");
+    fetchMock.mockClear();
+    fetchMock.mockImplementation((input, init) => {
+      const range = new Headers(init?.headers).get("Range");
+      if (range === prefixRange) return truncatedPrefix();
+      if (range === indexRange) controller.abort(reason);
+      return implementation(input, init);
+    });
+    const abortedFile = createBigWigFile({ url });
+    await expect(abortedFile.read(region, { signal: controller.signal })).rejects.toBe(reason);
+
+    fetchMock.mockClear();
+    fetchMock.mockImplementation(implementation);
+    const abortRetryResult = await abortedFile.read(region);
+    const abortRetryRanges = requestedRanges(fetchMock);
+    expect(abortRetryRanges[0]).toBe(indexRange);
+    fetchMock.mockClear();
+    await expect(abortedFile.read(region)).resolves.toEqual(abortRetryResult);
+    expect(requestedRanges(fetchMock)).toEqual(abortRetryRanges.slice(1));
   });
 
   it("retries failed and aborted metadata and keeps concurrent cancellation independent", async () => {
@@ -361,7 +437,7 @@ describe("createBigWigFile", () => {
     const headerRetryFile = createBigWigFile({ url });
     await expect(headerRetryFile.getZoomLevels()).rejects.toBe(headerFailure);
     await expect(headerRetryFile.getZoomLevels()).resolves.toEqual([656, 2_624, 10_496, 41_984]);
-    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-63")).toHaveLength(2);
+    expect(requestedRanges(fetchMock).filter((range) => range === "bytes=0-2047")).toHaveLength(2);
 
     fetchMock.mockClear();
     fetchMock.mockImplementation(implementation);
