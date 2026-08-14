@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { validateBigBedRegion, validateHttpUrl } from "../src/internal/inputValidation";
+import { validateHttpUrl, validateRegion } from "../src/internal/inputValidation";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -29,9 +29,7 @@ describe("input validation", () => {
       [Number.POSITIVE_INFINITY, 10],
       [0.5, 10],
     ]) {
-      expect(() => validateBigBedRegion({ chromosome: "chr1", start, end } as never)).toThrow(
-        TypeError,
-      );
+      expect(() => validateRegion({ chromosome: "chr1", start, end } as never)).toThrow(TypeError);
     }
 
     for (const [start, end] of [
@@ -40,9 +38,9 @@ describe("input validation", () => {
       [1, 1],
       [2, 1],
     ]) {
-      expect(() => validateBigBedRegion({ chromosome: "chr1", start, end })).toThrow(RangeError);
+      expect(() => validateRegion({ chromosome: "chr1", start, end })).toThrow(RangeError);
     }
 
-    expect(() => validateBigBedRegion({ chromosome: "chr1", start: 0, end: 1 })).not.toThrow();
+    expect(() => validateRegion({ chromosome: "chr1", start: 0, end: 1 })).not.toThrow();
   });
 });

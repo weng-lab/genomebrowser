@@ -7,7 +7,7 @@ import { readBbiHeader, type BbiHeader } from "./internal/bbi/commonHeader";
 import { readBbiDataBlocks } from "./internal/bbi/dataBlocks";
 import { readPrimaryRTreeHeader, type PrimaryRTreeHeader } from "./internal/bbi/regionalIndex";
 import type { ExactRangeMetadata } from "./internal/httpRange";
-import { validateBigBedRegion, validateHttpUrl } from "./internal/inputValidation";
+import { validateHttpUrl, validateRegion } from "./internal/inputValidation";
 
 export const bed3Schema = z.object({});
 
@@ -99,7 +99,7 @@ async function readBigBed<Schema extends z.ZodObject>(
   region: GenomicRegion,
   options?: ReadOptions,
 ): Promise<BigBedRecord<Schema>[]> {
-  validateBigBedRegion(region);
+  validateRegion(region);
   const signal = options?.signal;
   const rangeOptions = { signal, metadata: metadataCache.rangeMetadata };
   throwIfAborted(signal);

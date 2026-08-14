@@ -13,7 +13,7 @@ export function validateHttpUrl(url: string): string {
   return parsedUrl.href;
 }
 
-export function validateBigBedRegion(region: GenomicRegion): void {
+export function validateRegion(region: GenomicRegion): void {
   if (region === null || typeof region !== "object") {
     throw new TypeError("Region must be an object");
   }

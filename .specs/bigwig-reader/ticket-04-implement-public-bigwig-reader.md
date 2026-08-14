@@ -1,6 +1,6 @@
 # Ticket 04: Implement the public BigWig reader
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R1-R28, R30-R31
 **Blocked by:** Ticket 01, Ticket 02, Ticket 03
@@ -17,21 +17,21 @@ Add public API, resolution-policy, fixture-backed integration, HTTP-range, cache
 
 ## Acceptance Criteria
 
-- [ ] `createBigWigFile({ url })` is synchronous, request-free, validates its options and HTTP(S) URL, and returns a reusable `BigWigFile`.
-- [ ] The public record, resolution, read-option, file-option, and file-interface types exactly match the specification.
-- [ ] Omitted resolution and `{ mode: "unzoomed" }` return decoded source value records from all supported unzoomed section types.
-- [ ] Auto mode validates positive finite `basesPerPixel` and chooses the largest declared reduction level not exceeding it, falling back to unzoomed only when none qualifies.
-- [ ] Level mode validates a positive integer and reads exactly that declared reduction level, rejecting unavailable values without substitution.
-- [ ] `getZoomLevels({ signal })` returns all declared reduction levels in ascending order without exposing internal offsets or headers.
-- [ ] Zoom reads return complete summary records, including all stored statistics and derived `mean`; unzoomed and zoom records remain distinguishable by `kind`.
-- [ ] Reads enforce established region validation, chromosome resolution, half-open overlap, source-coordinate preservation, sparse `[]`, stable sorting, and duplicate preservation; emitted records use the exact queried chromosome name without aliasing or reverse mapping.
-- [ ] Reading a BigBed or unsupported container rejects lazily with a clear ordinary format error.
-- [ ] Signals cover metadata, ranges, decompression, and decoding without cross-call cancellation or error translation.
-- [ ] Successfully loaded common headers, zoom headers, chromosome results, and R-tree headers per selected index are reused within one file object.
-- [ ] Failed and aborted metadata loads are retryable; concurrent misses may duplicate work but cannot share signal ownership; separate file objects share no cache.
-- [ ] Index nodes, blocks, decoded records, and regional results are fetched/decoded again for each read.
-- [ ] Fixture-backed reads cover compressed and uncompressed data and agree with committed source/inspection expectations.
-- [ ] Existing BigBed and shared BBI behavior remains passing after BigWig integration.
+- [x] `createBigWigFile({ url })` is synchronous, request-free, validates its options and HTTP(S) URL, and returns a reusable `BigWigFile`.
+- [x] The public record, resolution, read-option, file-option, and file-interface types exactly match the specification.
+- [x] Omitted resolution and `{ mode: "unzoomed" }` return decoded source value records from all supported unzoomed section types.
+- [x] Auto mode validates positive finite `basesPerPixel` and chooses the largest declared reduction level not exceeding it, falling back to unzoomed only when none qualifies.
+- [x] Level mode validates a positive integer and reads exactly that declared reduction level, rejecting unavailable values without substitution.
+- [x] `getZoomLevels({ signal })` returns all declared reduction levels in ascending order without exposing internal offsets or headers.
+- [x] Zoom reads return complete summary records, including all stored statistics and derived `mean`; unzoomed and zoom records remain distinguishable by `kind`.
+- [x] Reads enforce established region validation, chromosome resolution, half-open overlap, source-coordinate preservation, sparse `[]`, stable sorting, and duplicate preservation; emitted records use the exact queried chromosome name without aliasing or reverse mapping.
+- [x] Reading a BigBed or unsupported container rejects lazily with a clear ordinary format error.
+- [x] Signals cover metadata, ranges, decompression, and decoding without cross-call cancellation or error translation.
+- [x] Successfully loaded common headers, zoom headers, chromosome results, and R-tree headers per selected index are reused within one file object.
+- [x] Failed and aborted metadata loads are retryable; concurrent misses may duplicate work but cannot share signal ownership; separate file objects share no cache.
+- [x] Index nodes, blocks, decoded records, and regional results are fetched/decoded again for each read.
+- [x] Fixture-backed reads cover compressed and uncompressed data and agree with committed source/inspection expectations.
+- [x] Existing BigBed and shared BBI behavior remains passing after BigWig integration.
 
 ## Verification
 
