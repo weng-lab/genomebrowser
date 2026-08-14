@@ -18,14 +18,6 @@ export default defineConfig(({ command, isPreview, mode }) => {
         tsconfigPath: "./tsconfig.app.json",
       }),
     ],
-    define: {
-      global: "globalThis",
-    },
-    resolve: {
-      alias: {
-        buffer: "buffer",
-      },
-    },
     server: {
       allowedHosts: true,
       ...(isDevelopmentServer
@@ -57,11 +49,7 @@ export default defineConfig(({ command, isPreview, mode }) => {
           id === "react/jsx-runtime" ||
           id === "zod" ||
           id === "zustand" ||
-          id === "@weng-lab/genomic-reader" ||
-          id === "genomic-reader" ||
-          id === "buffer" ||
-          id === "axios" ||
-          id.startsWith("axios/"),
+          id === "@weng-lab/genomic-reader",
         output: {
           sourcemapExcludeSources: true,
         },

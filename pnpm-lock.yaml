@@ -130,15 +130,6 @@ importers:
       '@weng-lab/genomic-reader':
         specifier: workspace:^2.0.0-alpha.1
         version: link:../reader
-      axios:
-        specifier: 0.33.0
-        version: 0.33.0(debug@4.4.3(supports-color@8.1.1))
-      buffer:
-        specifier: ^6.0.3
-        version: 6.0.3
-      genomic-reader:
-        specifier: ^1.4.10
-        version: 1.4.10(patch_hash=1453f81a506195eea22d8494a2960311cd830e2496af1cc4f96d6dc14a99c9db)(debug@4.4.3(supports-color@8.1.1))
       zod:
         specifier: ^4.4.3
         version: 4.4.3
