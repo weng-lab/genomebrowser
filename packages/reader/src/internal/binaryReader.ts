@@ -61,6 +61,13 @@ export class BinaryReader {
     return value;
   }
 
+  readFloat32(): number {
+    this.#require(4);
+    const value = this.#view.getFloat32(this.#position, this.#littleEndian);
+    this.#position += 4;
+    return value;
+  }
+
   readUint64(): bigint {
     this.#require(8);
     const value = this.#view.getBigUint64(this.#position, this.#littleEndian);

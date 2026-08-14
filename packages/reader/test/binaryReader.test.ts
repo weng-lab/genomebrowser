@@ -27,6 +27,22 @@ describe("BinaryReader", () => {
     expect(reader.remaining).toBe(0);
   });
 
+  it.each<ByteOrder>(["little-endian", "big-endian"])(
+    "decodes 32-bit floating-point values in %s order",
+    (byteOrder) => {
+      const bytes = new Uint8Array(4);
+      new DataView(bytes.buffer).setFloat32(0, -123.5, byteOrder === "little-endian");
+      const reader = new BinaryReader(bytes, byteOrder);
+
+      expect(reader.readFloat32()).toBe(-123.5);
+      expect(reader.position).toBe(4);
+
+      const truncated = new BinaryReader(bytes.subarray(0, 3), byteOrder);
+      expect(() => truncated.readFloat32()).toThrow(RangeError);
+      expect(truncated.position).toBe(0);
+    },
+  );
+
   it("keeps cursor movement and failed reads within the local byte view", () => {
     const backing = Uint8Array.from([99, 1, 2, 3, 99]);
     const reader = new BinaryReader(backing.subarray(1, 4), "little-endian");

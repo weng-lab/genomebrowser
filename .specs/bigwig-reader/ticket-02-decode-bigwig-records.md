@@ -1,6 +1,6 @@
 # Ticket 02: Decode BigWig values and summaries
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R11-R18, R27-R28
 **Blocked by:** None
@@ -15,16 +15,16 @@ Add endian-aware 32-bit floating-point support to the existing binary reader. Ad
 
 ## Acceptance Criteria
 
-- [ ] `BinaryReader` can decode little-endian and big-endian 32-bit floating-point values and rejects truncated reads consistently with its existing operations.
-- [ ] BedGraph-style sections preserve each encoded start, end, and value.
-- [ ] Variable-step sections derive each end from the section item span and preserve each encoded start and value.
-- [ ] Fixed-step sections derive starts from the section start and item step, derive ends from item span, and preserve each value.
-- [ ] Section chromosome, bounds, type, item count, step, and span fields are interpreted with the file's byte order and unsigned semantics.
-- [ ] Zoom records preserve encoded `validCount`, `min`, `max`, `sum`, and `sumSquares`, and expose `mean` as `sum / validCount`.
-- [ ] Unzoomed records use `kind: "value"`; zoom records use `kind: "summary"`; neither decoder fabricates the other shape.
-- [ ] Decoders skip neighboring chromosome IDs and non-overlapping records, retain overlapping source coordinates without clipping, preserve duplicates, and support stable final sorting.
-- [ ] Every emitted record uses the exact queried chromosome name associated with the resolved chromosome ID; decoders do not reverse-map IDs or apply aliases.
-- [ ] Structural truncation, unsupported section types, and ordinary decode failures reject rather than yielding partial or normalized data.
+- [x] `BinaryReader` can decode little-endian and big-endian 32-bit floating-point values and rejects truncated reads consistently with its existing operations.
+- [x] BedGraph-style sections preserve each encoded start, end, and value.
+- [x] Variable-step sections derive each end from the section item span and preserve each encoded start and value.
+- [x] Fixed-step sections derive starts from the section start and item step, derive ends from item span, and preserve each value.
+- [x] Section chromosome, bounds, type, item count, step, and span fields are interpreted with the file's byte order and unsigned semantics.
+- [x] Zoom records preserve encoded `validCount`, `min`, `max`, `sum`, and `sumSquares`, and expose `mean` as `sum / validCount`.
+- [x] Unzoomed records use `kind: "value"`; zoom records use `kind: "summary"`; neither decoder fabricates the other shape.
+- [x] Decoders skip neighboring chromosome IDs and non-overlapping records, retain overlapping source coordinates without clipping, preserve duplicates, and support stable final sorting.
+- [x] Every emitted record uses the exact queried chromosome name associated with the resolved chromosome ID; decoders do not reverse-map IDs or apply aliases.
+- [x] Structural truncation, unsupported section types, and ordinary decode failures reject rather than yielding partial or normalized data.
 
 ## Verification
 
