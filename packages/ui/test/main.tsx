@@ -2,8 +2,10 @@ import { createRoot } from "react-dom/client";
 import { useEffect, useRef, useState } from "react";
 
 import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 
 import "./muiLicense";
@@ -30,7 +32,7 @@ import {
   BigBedTooltip,
   BigWigSettings,
   BigWigTooltip,
-  BrowserNavigationControls,
+  BrowserNavigationButton,
   BulkBedSettings,
   BulkBedTooltip,
   CaveSettings,
@@ -392,13 +394,7 @@ function InteractionShowcase() {
           <Typography variant="caption">
             {`Browser store: ${region.chromosome}:${region.start.toLocaleString()}–${region.end.toLocaleString()}`}
           </Typography>
-          <BrowserNavigationControls
-            assembly={hg38}
-            region={region}
-            onRegionChange={(nextRegion) => {
-              setRegion(nextRegion);
-            }}
-          />
+          <BrowserNavigationCompositions />
           <Stack direction="row" spacing={2} alignItems="center">
             <Button sx={{ width: 96 }} variant="contained" onClick={() => setOpen(true)}>
               Open
@@ -460,6 +456,152 @@ function InteractionShowcase() {
         }}
       />
     </>
+  );
+}
+
+function BrowserNavigationCompositions() {
+  return (
+    <Stack spacing={1.5}>
+      <Box>
+        <Typography component="div" sx={{ mb: 0.5 }} variant="caption">
+          Wide composition
+        </Typography>
+        <Stack
+          aria-label="Wide browser navigation"
+          direction="row"
+          flexWrap="wrap"
+          gap={0.75}
+          role="toolbar"
+          useFlexGap
+        >
+          <BrowserNavigationButton
+            action={{ type: "pan", fraction: -1 }}
+            aria-label="Pan left by one viewport"
+            browserStore={useBrowserStore}
+            size="small"
+            variant="outlined"
+          >
+            ← Full viewport
+          </BrowserNavigationButton>
+          <BrowserNavigationButton
+            action={{ type: "pan", fraction: -0.5 }}
+            aria-label="Pan left by half a viewport"
+            browserStore={useBrowserStore}
+            size="small"
+            variant="outlined"
+          >
+            ← Half viewport
+          </BrowserNavigationButton>
+          <BrowserNavigationButton
+            action={{ type: "pan", fraction: 0.5 }}
+            aria-label="Pan right by half a viewport"
+            browserStore={useBrowserStore}
+            size="small"
+            variant="outlined"
+          >
+            Half viewport →
+          </BrowserNavigationButton>
+          <BrowserNavigationButton
+            action={{ type: "pan", fraction: 1 }}
+            aria-label="Pan right by one viewport"
+            browserStore={useBrowserStore}
+            size="small"
+            variant="outlined"
+          >
+            Full viewport →
+          </BrowserNavigationButton>
+          <BrowserNavigationButton
+            action={{ type: "zoom", factor: 3 }}
+            aria-label="Zoom out 3×"
+            browserStore={useBrowserStore}
+            size="small"
+            variant="outlined"
+          >
+            − 3×
+          </BrowserNavigationButton>
+          <BrowserNavigationButton
+            action={{ type: "zoom", factor: 1 / 3 }}
+            aria-label="Zoom in 3×"
+            browserStore={useBrowserStore}
+            size="small"
+            variant="outlined"
+          >
+            + 3×
+          </BrowserNavigationButton>
+        </Stack>
+      </Box>
+
+      <Box sx={{ maxWidth: "100%", width: 220 }}>
+        <Typography component="div" sx={{ mb: 0.5 }} variant="caption">
+          Narrow composition (220 px)
+        </Typography>
+        <Stack
+          aria-label="Narrow browser navigation"
+          direction="row"
+          flexWrap="wrap"
+          gap={0.75}
+          role="toolbar"
+          useFlexGap
+        >
+          <Tooltip title="Pan left by a quarter viewport">
+            <Box component="span" sx={{ display: "inline-flex" }}>
+              <BrowserNavigationButton
+                action={{ type: "pan", fraction: -0.25 }}
+                aria-label="Pan left by a quarter viewport"
+                browserStore={useBrowserStore}
+                size="small"
+                sx={{ minWidth: 44 }}
+                variant="contained"
+              >
+                <span aria-hidden="true">←</span>
+              </BrowserNavigationButton>
+            </Box>
+          </Tooltip>
+          <Tooltip title="Pan right by a quarter viewport">
+            <Box component="span" sx={{ display: "inline-flex" }}>
+              <BrowserNavigationButton
+                action={{ type: "pan", fraction: 0.25 }}
+                aria-label="Pan right by a quarter viewport"
+                browserStore={useBrowserStore}
+                size="small"
+                sx={{ minWidth: 44 }}
+                variant="contained"
+              >
+                <span aria-hidden="true">→</span>
+              </BrowserNavigationButton>
+            </Box>
+          </Tooltip>
+          <Tooltip title="Zoom out 2×">
+            <Box component="span" sx={{ display: "inline-flex" }}>
+              <BrowserNavigationButton
+                action={{ type: "zoom", factor: 2 }}
+                aria-label="Zoom out 2×"
+                browserStore={useBrowserStore}
+                size="small"
+                sx={{ minWidth: 44 }}
+                variant="outlined"
+              >
+                <span aria-hidden="true">−</span>
+              </BrowserNavigationButton>
+            </Box>
+          </Tooltip>
+          <Tooltip title="Zoom in 2×">
+            <Box component="span" sx={{ display: "inline-flex" }}>
+              <BrowserNavigationButton
+                action={{ type: "zoom", factor: 0.5 }}
+                aria-label="Zoom in 2×"
+                browserStore={useBrowserStore}
+                size="small"
+                sx={{ minWidth: 44 }}
+                variant="outlined"
+              >
+                <span aria-hidden="true">+</span>
+              </BrowserNavigationButton>
+            </Box>
+          </Tooltip>
+        </Stack>
+      </Box>
+    </Stack>
   );
 }
 

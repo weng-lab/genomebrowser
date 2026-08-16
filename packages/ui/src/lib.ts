@@ -1,6 +1,9 @@
 // Browser Controls
-export { BrowserNavigationControls } from "./BrowserNavigationControls/browserNavigationControls";
-export type { BrowserNavigationControlsProps } from "./BrowserNavigationControls/browserNavigationControls";
+export { BrowserNavigationButton } from "./BrowserNavigationButton/browserNavigationButton";
+export type {
+  BrowserNavigationAction,
+  BrowserNavigationButtonProps,
+} from "./BrowserNavigationButton/browserNavigationButton";
 
 // Cytoband
 export { Cytobands } from "./cytobands/cytobands";

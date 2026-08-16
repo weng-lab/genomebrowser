@@ -75,9 +75,7 @@ const useSettingsStore = createSettingsStore({
 export function Browser() {
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
   const [containerRef, containerWidth] = useObservedWidth<HTMLElement>();
-  const assembly = useBrowserStore((state) => state.assembly);
   const region = useBrowserStore((state) => state.region);
-  const setRegion = useBrowserStore((state) => state.setRegion);
 
   useLayoutEffect(() => {
     if (containerWidth === 0) return;
@@ -87,7 +85,7 @@ export function Browser() {
   return (
     <main ref={containerRef}>
       <BrowserHeader onSelectTracks={() => setTrackSelectOpen(true)} />
-      <NavigationControls assembly={assembly} region={region} setRegion={setRegion} />
+      <NavigationControls browserStore={useBrowserStore} />
       <RegionOverview region={region} />
       <Box sx={{ width: "100%", overflowX: "auto" }}>
         <GenomeBrowser

@@ -30,6 +30,6 @@ Keep this setup in the host application's entry point or another module imported
 - [Track settings](trackSettings.md) shows module authors how to compose consistent MUI settings controls.
 - [Track tooltips](trackTooltips.md) shows module authors how to compose consistent SVG tooltip content.
 - [Cytobands](cytobands.md) documents chromosome ideograms, browser-region brackets, and interactive loci.
-- [Browser navigation controls](browserNavigationControls.md) documents controlled pan and zoom buttons.
+- [Browser navigation button](browserNavigationButton.md) documents store-bound pan and zoom composition.
 - [TrackSelect](trackSelect.md) explains collections, the selection lifecycle, customization, schema tooling, and troubleshooting.
 - [Track interactions](recipes/trackInteractions.md) shows one shared runtime-aware callback dispatcher across a heterogeneous collection.
