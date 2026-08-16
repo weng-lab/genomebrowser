@@ -1,9 +1,6 @@
 import { Box, Button, Tooltip, Typography } from "@mui/material";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
-import {
-  BrowserNavigationButton,
-  type BrowserNavigationAction,
-} from "@weng-lab/genomebrowser-ui";
+import { BrowserNavigationButton, type BrowserNavigationAction } from "@weng-lab/genomebrowser-ui";
 import { Result, GenomeSearch } from "@weng-lab/ui-components";
 
 type NavigationButtonDefinition = {
@@ -74,11 +71,7 @@ export function NavigationControls({ browserStore }: { browserStore: BrowserStor
           justifyContent: { xs: "flex-start", md: "flex-end" },
         }}
       >
-        <Box
-          aria-label="Pan"
-          role="group"
-          sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
-        >
+        <Box aria-label="Pan" role="group" sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
           {panButtons.map(({ action, label, name }) => (
             <Tooltip key={name} title={name}>
               <Box component="span" sx={{ display: "inline-flex" }}>
@@ -96,11 +89,7 @@ export function NavigationControls({ browserStore }: { browserStore: BrowserStor
             </Tooltip>
           ))}
         </Box>
-        <Box
-          aria-label="Zoom"
-          role="group"
-          sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}
-        >
+        <Box aria-label="Zoom" role="group" sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
           {zoomButtons.map(({ action, label, name }) => (
             <Tooltip key={name} title={name}>
               <Box component="span" sx={{ display: "inline-flex" }}>
