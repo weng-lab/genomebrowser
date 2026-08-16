@@ -8,12 +8,7 @@ Create the stores outside React rendering, then pass the same browser store to e
 
 ```tsx
 import Stack from "@mui/material/Stack";
-import {
-  GenomeBrowser,
-  createBrowserStore,
-  createTrackStore,
-  hg38,
-} from "@weng-lab/genomebrowser";
+import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
 import { BrowserNavigationButton } from "@weng-lab/genomebrowser-ui";
 
 const useBrowserStore = createBrowserStore({
@@ -90,17 +85,15 @@ These checks do not preview the exact rounded result. A valid zoom factor close 
 
 ### `BrowserNavigationButtonProps`
 
-| Prop | Type | Default | Description |
-| ---- | ---- | ------- | ----------- |
-| `browserStore` | `BrowserStoreInstance` | Required | The same browser store instance used by the `GenomeBrowser` that this button controls. |
-| `action` | `BrowserNavigationAction` | Required | The single pan or zoom action performed on activation. |
+| Prop           | Type                      | Default  | Description                                                                            |
+| -------------- | ------------------------- | -------- | -------------------------------------------------------------------------------------- |
+| `browserStore` | `BrowserStoreInstance`    | Required | The same browser store instance used by the `GenomeBrowser` that this button controls. |
+| `action`       | `BrowserNavigationAction` | Required | The single pan or zoom action performed on activation.                                 |
 
 The component also accepts ordinary MUI `ButtonProps`, including `children`, icons, `variant`, `size`, `sx`, and accessibility attributes. Its navigation `action` replaces MUI Button's similarly named action-ref prop, and it does not accept `onClick`; navigation activation is owned by the component. The standard MUI `disabled` prop defaults to `false` and combines with navigation availability.
 
 ```ts
-type BrowserNavigationAction =
-  | { type: "pan"; fraction: number }
-  | { type: "zoom"; factor: number };
+type BrowserNavigationAction = { type: "pan"; fraction: number } | { type: "zoom"; factor: number };
 ```
 
 Pan fractions must be finite and nonzero. Zoom factors must be finite, positive, and not equal to one. Invalid actions are disabled rather than throwing during rendering.
