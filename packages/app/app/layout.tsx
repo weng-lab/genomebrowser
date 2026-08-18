@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { AppNavbar } from "../components/AppNavbar";
+import { AppNavbarRoute } from "../components/AppNavbarRoute";
 import { MuiXLicenseProvider } from "../components/MuiXLicenseProvider";
 import "./globals.css";
 
@@ -17,7 +17,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="en">
       <body>
         <MuiXLicenseProvider>
-          <AppNavbar />
+          <AppNavbarRoute />
           {children}
         </MuiXLicenseProvider>
       </body>

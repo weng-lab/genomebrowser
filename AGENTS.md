@@ -25,6 +25,10 @@ When creating or editing commits, pull requests, or issues, follow
 [`CONTRIBUTING.md`](CONTRIBUTING.md) and the corresponding templates in
 `.github/`.
 
+## Dependency rules
+
+This is NOT the NextJS you know, it has breaking changes - API, conventions and file structure may all differ from your training data. Read up-to-date documentation in `node_modules/next/dist/docs` (`index.md` for starters) before making any NextJS related changes (applies only to app package). Heed deprecation warnings
+
 ## Hard rules
 
 - Never run `pnpm run dev`. The user runs the dev server manually.
