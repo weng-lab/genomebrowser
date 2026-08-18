@@ -1,8 +1,6 @@
 {
   "$schema": "https://react.doctor/schema/config.json",
-  "projects": [
-    "@weng-lab/genomebrowser-app",
-    "@weng-lab/genomebrowser",
-    "@weng-lab/genomebrowser-ui"
-  ]
+  "ignore": {
+    "files": ["test/**"]
+  }
 }
