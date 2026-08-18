@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { AppNavbar } from "../components/AppNavbar";
 import { MuiXLicenseProvider } from "../components/MuiXLicenseProvider";
 import "./globals.css";
 
@@ -15,7 +16,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body>
-        <MuiXLicenseProvider>{children}</MuiXLicenseProvider>
+        <MuiXLicenseProvider>
+          <AppNavbar />
+          {children}
+        </MuiXLicenseProvider>
       </body>
     </html>
   );

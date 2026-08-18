@@ -38,3 +38,4 @@ benchmarks/**/*-trace.json
 
 .opencode
 .devserve
+.vercel
