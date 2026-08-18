@@ -15,8 +15,8 @@
   "dependencies": {
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
-    "@mui/material": "7.3.11",
     "@mui/icons-material": "7.3.6",
+    "@mui/material": "7.3.11",
     "@mui/x-license": "8.29.2",
     "@weng-lab/genomebrowser": "workspace:*",
     "@weng-lab/genomebrowser-ui": "workspace:*",
