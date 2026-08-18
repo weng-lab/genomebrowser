@@ -1,0 +1,58 @@
+{
+  "name": "@weng-lab/genomic-reader",
+  "version": "2.0.0-alpha.1",
+  "description": "TypeScript contracts for reading genomic data by region.",
+  "homepage": "https://github.com/weng-lab/genomebrowser#readme",
+  "bugs": {
+    "url": "https://github.com/weng-lab/genomebrowser/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weng-lab/genomebrowser.git",
+    "directory": "packages/reader"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "LICENSE"
+  ],
+  "type": "module",
+  "module": "dist/genomic-reader.es.js",
+  "types": "dist/lib.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lib.d.ts",
+      "import": "./dist/genomic-reader.es.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
+  },
+  "scripts": {
+    "build": "pnpm typecheck && vite build && node scripts/verify-package.mjs",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check",
+    "verify:package": "pnpm build",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "fflate": "^0.8.2"
+  },
+  "devDependencies": {
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "vite": "^8.0.13",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "4.1.7",
+    "zod": "^4.4.3"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  }
+}

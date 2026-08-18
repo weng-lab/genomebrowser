@@ -3,7 +3,7 @@ import { TrackTooltip } from "../trackTooltip";
 import { formatGenomicInterval, formatOptionalBedValue } from "../trackTooltipFormatters";
 
 export const BigBedTooltip: TrackTooltipComponent<BigBedRow, BigBedConfig> = ({ item }) => {
-  const chromosome = formatOptionalBedValue(item.chr) ?? formatOptionalBedValue(item.chrom);
+  const chromosome = formatOptionalBedValue(item.chromosome);
   const location = formatGenomicInterval(item.start, item.end, chromosome);
   const strand = formatOptionalBedValue(item.strand);
   const score = formatOptionalBedValue(item.score);

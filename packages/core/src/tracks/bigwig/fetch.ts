@@ -1,5 +1,4 @@
-import axios from "axios";
-import { AxiosDataLoader, BigWigReader, FileType } from "genomic-reader";
+import { createBigWigFile } from "@weng-lab/genomic-reader";
 import type { TrackFetchContext } from "../../modules/types";
 import type { GenomicRegion } from "../../genome/region";
 import type { BigWigConfig, BigWigData } from "./types";
@@ -12,26 +11,19 @@ export async function fetchBigWig({
 }
 
 export async function fetchBigWigRaw({ url, region }: { url: string; region: GenomicRegion }) {
-  await ensureBrowserBuffer();
+  const file = createBigWigFile({ url });
+  const records = await file.read(region, { resolution: { mode: "unzoomed" } });
 
-  const dataLoader = new AxiosDataLoader(url, axios.create() as never);
-  const reader = new BigWigReader(dataLoader);
-  const header = await reader.getHeader();
+  return records.map((record): BigWigData => {
+    if (record.kind !== "value") {
+      throw new Error("Expected unzoomed BigWig value records");
+    }
 
-  if (header.fileType !== FileType.BigWig) {
-    throw new Error("BigWig module only supports BigWig files");
-  }
-
-  return (await reader.readBigWigData(
-    region.chromosome,
-    region.start,
-    region.chromosome,
-    region.end,
-  )) as BigWigData[];
-}
-
-async function ensureBrowserBuffer() {
-  if (typeof window === "undefined" || typeof globalThis.Buffer !== "undefined") return;
-  const { Buffer } = await import("buffer");
-  globalThis.Buffer = Buffer;
+    return {
+      chr: record.chromosome,
+      start: record.start,
+      end: record.end,
+      value: record.value,
+    };
+  });
 }

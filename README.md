@@ -12,6 +12,8 @@ replace an npm `latest` release. Any publication must retain the configured
 - `packages/ui` (`@weng-lab/genomebrowser-ui`) provides optional, higher-level
   application controls that depend on the runtime. Applications that only need
   the browser do not need this package.
+- `packages/reader` (`@weng-lab/genomic-reader`) provides format-independent
+  TypeScript contracts for reading genomic data by region.
 
 ## App map
 

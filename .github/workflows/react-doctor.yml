@@ -11,6 +11,7 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
+  statuses: write
 
 concurrency:
   group: react-doctor-${{ github.event.pull_request.number || github.ref }}
@@ -32,5 +33,6 @@ jobs:
       - name: Scan React projects
         uses: millionco/react-doctor@v2
         with:
+          project: "@weng-lab/genomebrowser-app,@weng-lab/genomebrowser,@weng-lab/genomebrowser-ui"
           blocking: none
-          commit-status: false
+          commit-status: true

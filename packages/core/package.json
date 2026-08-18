@@ -43,9 +43,7 @@
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "axios": "0.33.0",
-    "buffer": "^6.0.3",
-    "genomic-reader": "^1.4.10",
+    "@weng-lab/genomic-reader": "workspace:^2.0.0-alpha.1",
     "zod": "^4.4.3",
     "zustand": "^5.0.13"
   },

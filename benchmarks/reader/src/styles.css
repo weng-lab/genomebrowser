@@ -1,0 +1,188 @@
+:root {
+  color: #17201d;
+  background: #f6f7f5;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  width: min(100% - 32px, 1600px);
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+
+header {
+  max-width: 800px;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 12px;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+
+p {
+  color: #50605a;
+  line-height: 1.55;
+}
+
+.eyebrow {
+  margin-bottom: 8px;
+  color: #23664f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.controls {
+  display: flex;
+  align-items: end;
+  gap: 24px;
+  margin: 32px 0 16px;
+  padding: 20px;
+  border: 1px solid #d9dfdc;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.controls > div {
+  flex: 1;
+}
+
+.controls p {
+  margin-bottom: 0;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: #384641;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+input,
+button {
+  min-height: 38px;
+  border: 1px solid #aeb9b4;
+  border-radius: 6px;
+  font: inherit;
+}
+
+input {
+  width: 110px;
+  padding: 6px 10px;
+}
+
+button {
+  padding: 6px 16px;
+  border-color: #23664f;
+  color: #fff;
+  background: #23664f;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.status {
+  min-height: 24px;
+  margin-bottom: 16px;
+  color: #384641;
+  font-variant-numeric: tabular-nums;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid #d9dfdc;
+  border-radius: 10px;
+  background: #fff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+caption {
+  padding: 14px 16px;
+  color: #50605a;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 10px 12px;
+  border-top: 1px solid #e4e8e6;
+  text-align: left;
+}
+
+thead th {
+  color: #50605a;
+  background: #f2f4f3;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+tbody th {
+  font-weight: 650;
+}
+
+.match {
+  color: #23664f;
+}
+
+.mismatch {
+  color: #a42828;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  main {
+    width: min(100% - 20px, 1600px);
+    padding-top: 28px;
+  }
+
+  .controls {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  input {
+    width: 100%;
+  }
+}
