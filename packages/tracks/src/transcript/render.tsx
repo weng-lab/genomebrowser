@@ -15,9 +15,11 @@ import {
 import type { Transcript, TranscriptConfig, TranscriptData, TranscriptRow } from "./types";
 const fontSize = 10;
 export function SquishTranscript(props: TrackRendererProps<TranscriptConfig, TranscriptData>) {
-  const transcripts = props.data
-    .map(mergeTranscripts)
-    .filter((transcript) => visible(transcript, props.region));
+  const transcripts: Transcript[] = [];
+  for (const transcriptGroup of props.data) {
+    const transcript = mergeTranscripts(transcriptGroup);
+    if (visible(transcript, props.region)) transcripts.push(transcript);
+  }
   return <Rows {...props} transcripts={transcripts} />;
 }
 export function PackTranscript(props: TrackRendererProps<TranscriptConfig, TranscriptData>) {
