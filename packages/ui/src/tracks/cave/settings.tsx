@@ -1,11 +1,11 @@
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
-import {
-  useSettingsStore,
-  useTrackStore,
-  type CaveAge,
-  type CaveConfig,
-  type CaveNeurotransmitter,
+import type {
+  CaveAge,
+  CaveConfig,
+  CaveNeurotransmitter,
+  CaveTooltipItem,
+  TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
 import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
 import { TrackSettingsFieldRow } from "../../TrackSettings/trackSettingsFieldGrid";
@@ -26,26 +26,24 @@ const ageOptions = [
   { label: "Adulthood", value: "Adulthood" },
 ] as const satisfies readonly { label: string; value: CaveAge }[];
 
-export function CaveSettings() {
+type CaveSettingsProps = TrackSettingsProps<CaveConfig, CaveTooltipItem>;
+
+export function CaveSettings({ track, updateTrack }: CaveSettingsProps) {
   return (
     <TrackSettingsLayout>
-      <CaveDatasetSettings />
-      <CaveColorSettings />
+      <CaveDatasetSettings config={track.config} updateTrack={updateTrack} />
+      <CaveColorSettings config={track.config} updateTrack={updateTrack} />
     </TrackSettingsLayout>
   );
 }
 
-function CaveDatasetSettings() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const neurotransmitter = useTrackStore(
-    (state) =>
-      (state.getTrack(trackId)?.config as CaveConfig | undefined)?.neurotransmitter ?? "GABA",
-  );
-  const age = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as CaveConfig | undefined)?.age ?? "Infancy",
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
-
+function CaveDatasetSettings({
+  config,
+  updateTrack,
+}: {
+  config: Readonly<CaveConfig>;
+  updateTrack: CaveSettingsProps["updateTrack"];
+}) {
   return (
     <TrackSettingsSection title="CAVE dataset">
       <TrackSettingsFieldRow>
@@ -54,9 +52,9 @@ function CaveDatasetSettings() {
           fullWidth
           label="Neurotransmitter"
           size="small"
-          value={neurotransmitter}
+          value={config.neurotransmitter}
           onChange={(event) =>
-            updateTrack(trackId, {
+            updateTrack({
               config: { neurotransmitter: event.target.value as CaveNeurotransmitter },
             })
           }
@@ -72,10 +70,8 @@ function CaveDatasetSettings() {
           fullWidth
           label="Age"
           size="small"
-          value={age}
-          onChange={(event) =>
-            updateTrack(trackId, { config: { age: event.target.value as CaveAge } })
-          }
+          value={config.age}
+          onChange={(event) => updateTrack({ config: { age: event.target.value as CaveAge } })}
         >
           {ageOptions.map((option) => (
             <MenuItem key={option.value} value={option.value}>
@@ -88,12 +84,28 @@ function CaveDatasetSettings() {
   );
 }
 
-function CaveColorSettings() {
+function CaveColorSettings({
+  config,
+  updateTrack,
+}: {
+  config: Readonly<CaveConfig>;
+  updateTrack: CaveSettingsProps["updateTrack"];
+}) {
   return (
     <TrackSettingsSection title="Signal colors">
       <TrackSettingsFieldRow>
-        <CaveColorField configKey="topColor" label="Top color" />
-        <CaveColorField configKey="bottomColor" label="Bottom color" />
+        <CaveColorField
+          configKey="topColor"
+          label="Top color"
+          updateTrack={updateTrack}
+          value={config.topColor}
+        />
+        <CaveColorField
+          configKey="bottomColor"
+          label="Bottom color"
+          updateTrack={updateTrack}
+          value={config.bottomColor}
+        />
       </TrackSettingsFieldRow>
     </TrackSettingsSection>
   );
@@ -102,20 +114,19 @@ function CaveColorSettings() {
 function CaveColorField({
   configKey,
   label,
+  updateTrack,
+  value,
 }: {
   configKey: "topColor" | "bottomColor";
   label: string;
+  updateTrack: CaveSettingsProps["updateTrack"];
+  value: string;
 }) {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const value = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as CaveConfig | undefined)?.[configKey] ?? "",
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
   return (
     <TrackSettingsColorField
       label={label}
       value={value}
-      onCommit={(color) => updateTrack(trackId, { config: { [configKey]: color } })}
+      onCommit={(color) => updateTrack({ config: { [configKey]: color } })}
     />
   );
 }

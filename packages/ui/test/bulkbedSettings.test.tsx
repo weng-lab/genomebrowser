@@ -4,19 +4,16 @@ import {
   bulkBedModule,
   createTrackStore,
   type BulkBedConfig,
+  type BulkBedRect,
+  type TrackInstance,
   type TrackMutationResult,
+  type TrackStoreInstance,
   type TrackUpdate,
 } from "@weng-lab/genomebrowser";
 import { act, Profiler } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BulkBedSettings } from "../src/tracks/bulkbed/settings";
-import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal()),
-  ...(await import("../../core/src/browser/state/browserContextState")),
-}));
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -41,16 +38,21 @@ afterEach(() => {
 });
 
 describe("BulkBed settings", () => {
-  it("does not rerender settings when a base update reconstructs datasets", () => {
+  it("renders from the fresh complete track after an unrelated base update", () => {
     let renderCount = 0;
     const { trackStore } = renderSettings(initialConfig, undefined, () => renderCount++);
     const initialRenderCount = renderCount;
+    const initialTrack = trackStore.getState().getTrack("bulkbed");
 
     act(() => {
       trackStore.getState().updateTrack("bulkbed", { base: { color: "#112233" } });
     });
 
-    expect(renderCount).toBe(initialRenderCount);
+    const updatedTrack = trackStore.getState().getTrack("bulkbed");
+    expect(updatedTrack).not.toBe(initialTrack);
+    expect(updatedTrack?.base.color).toBe("#112233");
+    expect(renderCount).toBeGreaterThan(initialRenderCount);
+    expect(datasetNames()).toEqual(["Dataset A", "Dataset B"]);
   });
 
   it("renders accessible controls for every BulkBed config option", () => {
@@ -116,6 +118,41 @@ describe("BulkBed settings", () => {
     ]);
   });
 
+  it("does not replay accepted edits after restoring an earlier datasets reference", () => {
+    vi.useFakeTimers();
+    const baselineTrack = createBulkBedTrack(initialConfig);
+    const advancedTrack = {
+      ...baselineTrack,
+      config: {
+        ...baselineTrack.config,
+        datasets: baselineTrack.config.datasets.map((dataset) => ({
+          ...dataset,
+          name: `${dataset.name} externally updated`,
+        })),
+      },
+    };
+    const updateTrack = vi.fn<
+      (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult
+    >(() => ({ ok: true }));
+
+    renderControlledSettings(baselineTrack, updateTrack);
+    updateInput(rowInput(datasetRows()[0], "Name"), "Accepted Dataset A");
+    act(() => vi.advanceTimersByTime(300));
+    renderControlledSettings(advancedTrack, updateTrack);
+    renderControlledSettings(baselineTrack, updateTrack);
+    updateInput(rowInput(datasetRows()[0], "URL"), "RESTORED_C0_URL");
+    act(() => vi.advanceTimersByTime(300));
+
+    expect(updateTrack).toHaveBeenLastCalledWith({
+      config: {
+        datasets: [
+          { name: "Dataset A", url: "RESTORED_C0_URL" },
+          { name: "Dataset B", url: "DATASET_B_URL" },
+        ],
+      },
+    });
+  });
+
   it("adds and removes datasets while retaining stable rows and one required dataset", () => {
     const onUpdate = vi.fn<(partial: Partial<BulkBedConfig>) => void>();
     renderStatefulSettings(
@@ -177,10 +214,9 @@ describe("BulkBed settings", () => {
 
   it("keeps a core-rejected complete draft visible", () => {
     vi.useFakeTimers();
-    const updateTrack = vi.fn<(update: TrackUpdate<BulkBedConfig>) => TrackMutationResult>(() => ({
-      ok: false,
-      error: "Core rejected the update.",
-    }));
+    const updateTrack = vi.fn<
+      (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult
+    >(() => ({ ok: false, error: "Core rejected the update." }));
     const { rerender } = renderSettings(initialConfig, updateTrack);
 
     updateInput(rowInput(datasetRows()[0], "Name"), "Dataset A updated");
@@ -221,13 +257,32 @@ describe("BulkBed settings", () => {
     expect(datasetRows()[0]).toBe(firstRow);
     expect(datasetRows()[1]).toBe(externalRow);
   });
+
+  it("resets row ownership when the track id changes with the same datasets reference", () => {
+    const baselineTrack = createBulkBedTrack(initialConfig);
+    const replacementTrack = {
+      ...baselineTrack,
+      base: { ...baselineTrack.base, id: "replacement-bulkbed" },
+    };
+    const updateTrack = vi.fn<
+      (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult
+    >(() => ({ ok: true }));
+
+    renderControlledSettings(baselineTrack, updateTrack);
+    const rows = datasetRows();
+    renderControlledSettings(replacementTrack, updateTrack);
+
+    expect(datasetNames()).toEqual(["Dataset A", "Dataset B"]);
+    expect(datasetRows()[0]).not.toBe(rows[0]);
+    expect(datasetRows()[1]).not.toBe(rows[1]);
+  });
 });
 
 function renderSettings(
   config = initialConfig,
-  updateTrack = vi.fn<(update: TrackUpdate<BulkBedConfig>) => TrackMutationResult>(() => ({
-    ok: true,
-  })),
+  updateTrack = vi.fn<(update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult>(
+    () => ({ ok: true }),
+  ),
   onSettingsRender = () => undefined,
 ) {
   mount();
@@ -242,37 +297,49 @@ function renderSettings(
 
   act(() => {
     root?.render(
-      <TrackSettingsTestProvider
-        trackId="bulkbed"
-        trackStore={trackStore}
-        updateTrack={(update) => {
-          const typedUpdate = update as TrackUpdate<BulkBedConfig>;
-          const result = updateTrack(typedUpdate);
-          if (result.ok) applyUpdate("bulkbed", typedUpdate);
-          return result;
-        }}
-      >
-        <Profiler id="bulkbed-settings" onRender={onSettingsRender}>
-          <BulkBedSettings />
-        </Profiler>
-      </TrackSettingsTestProvider>,
+      <Profiler id="bulkbed-settings" onRender={onSettingsRender}>
+        <BulkBedSettingsHarness
+          trackStore={trackStore}
+          updateTrack={(update) => {
+            const result = updateTrack(update);
+            if (result.ok) applyUpdate("bulkbed", update);
+            return result;
+          }}
+        />
+      </Profiler>,
     );
   });
   return { rerender, trackStore, updateTrack };
 }
 
+function BulkBedSettingsHarness({
+  trackStore,
+  updateTrack,
+}: {
+  trackStore: TrackStoreInstance;
+  updateTrack: (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult;
+}) {
+  const track = trackStore((state) => state.getTrack("bulkbed")) as
+    | TrackInstance<BulkBedConfig, BulkBedRect>
+    | undefined;
+  if (!track) throw new Error("BulkBed track not found");
+  return <BulkBedSettings track={track} updateTrack={updateTrack} />;
+}
+
 function createBulkBedStore(config: BulkBedConfig) {
   return createTrackStore({
     modules: [bulkBedModule],
-    tracks: [
-      bulkBedModule.create({
-        id: "bulkbed",
-        title: "BulkBed",
-        height: 80,
-        color: "#4b9560",
-        config,
-      }),
-    ],
+    tracks: [createBulkBedTrack(config)],
+  });
+}
+
+function createBulkBedTrack(config: BulkBedConfig, id = "bulkbed") {
+  return bulkBedModule.create({
+    id,
+    title: "BulkBed",
+    height: 80,
+    color: "#4b9560",
+    config,
   });
 }
 
@@ -285,17 +352,13 @@ function renderStatefulSettings(
   const applyUpdate = trackStore.getState().updateTrack;
   act(() => {
     root?.render(
-      <TrackSettingsTestProvider
-        trackId="bulkbed"
+      <BulkBedSettingsHarness
         trackStore={trackStore}
         updateTrack={(update) => {
-          const typedUpdate = update as TrackUpdate<BulkBedConfig>;
-          onUpdate(typedUpdate.config ?? {});
-          return applyUpdate("bulkbed", typedUpdate);
+          onUpdate(update.config ?? {});
+          return applyUpdate("bulkbed", update);
         }}
-      >
-        <BulkBedSettings />
-      </TrackSettingsTestProvider>,
+      />,
     );
   });
 }
@@ -304,6 +367,14 @@ function mount() {
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
+}
+
+function renderControlledSettings(
+  track: TrackInstance<BulkBedConfig, BulkBedRect>,
+  updateTrack: (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult,
+) {
+  if (!root) mount();
+  act(() => root?.render(<BulkBedSettings track={track} updateTrack={updateTrack} />));
 }
 
 function gapInput() {

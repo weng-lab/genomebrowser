@@ -2,8 +2,8 @@
 
 import {
   caveModule,
-  createTrackStore,
   type CaveConfig,
+  type CaveTooltipItem,
   type TrackMutationResult,
   type TrackUpdate,
 } from "@weng-lab/genomebrowser";
@@ -11,12 +11,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CaveSettings } from "../src/tracks/cave/settings";
-import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal()),
-  ...(await import("../../core/src/browser/state/browserContextState")),
-}));
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -84,34 +78,21 @@ describe("CAVE settings", () => {
 });
 
 function renderSettings(initialConfig = config) {
-  const updateTrack = vi.fn<(update: TrackUpdate<CaveConfig>) => TrackMutationResult>(() => ({
-    ok: true,
-  }));
-  const trackStore = createTrackStore({
-    modules: [caveModule],
-    tracks: [
-      caveModule.create({
-        id: "cave",
-        title: "CAVE",
-        height: 35,
-        color: "#3333ff",
-        config: initialConfig,
-      }),
-    ],
+  const updateTrack = vi.fn<
+    (update: TrackUpdate<CaveConfig, CaveTooltipItem>) => TrackMutationResult
+  >(() => ({ ok: true }));
+  const track = caveModule.create({
+    id: "cave",
+    title: "CAVE",
+    height: 35,
+    color: "#3333ff",
+    config: initialConfig,
   });
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
   act(() => {
-    root?.render(
-      <TrackSettingsTestProvider
-        trackId="cave"
-        trackStore={trackStore}
-        updateTrack={(update) => updateTrack(update as TrackUpdate<CaveConfig>)}
-      >
-        <CaveSettings />
-      </TrackSettingsTestProvider>,
-    );
+    root?.render(<CaveSettings track={track} updateTrack={updateTrack} />);
   });
   return updateTrack;
 }

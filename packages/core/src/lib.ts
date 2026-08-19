@@ -33,6 +33,7 @@ export type {
   TrackRendererInteraction,
   TrackRendererProps,
   TrackSettingsComponent,
+  TrackSettingsProps,
   TrackRuntimeContext,
   TrackTooltipComponent,
   TrackUpdate,
@@ -79,12 +80,7 @@ export type {
   ContextMenuStore,
   ContextMenuStoreInstance,
 } from "./browser/state/contextMenuStore";
-export type {
-  TrackStore,
-  TrackStoreInstance,
-  TrackStoreOptions,
-  TrackInteractionUpdate,
-} from "./browser/state/trackStore";
+export type { TrackStore, TrackStoreInstance, TrackStoreOptions } from "./browser/state/trackStore";
 
 export { bigBedModule } from "./tracks/bigbed/module";
 export { fetchBigBedRows } from "./tracks/bigbed/fetch";

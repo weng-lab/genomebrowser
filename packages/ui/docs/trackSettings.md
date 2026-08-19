@@ -10,14 +10,14 @@ The UI package owns the MUI authoring controls on this page. Core remains indepe
 
 ## Minimal settings component
 
-This example replaces the settings component on the core BigWig module. Each field selects its validated value from the active track and returns every update through the mutation callback supplied by core.
+This example replaces the settings component on the core BigWig module. It reads validated values from the supplied track and returns every live update through the mutation callback supplied by core.
 
 ```tsx
 import {
   bigWigModule,
-  useSettingsStore,
-  useTrackStore,
   type BigWigConfig,
+  type RenderedBigWigPoint,
+  type TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
 import {
   TrackSettingsFieldGrid,
@@ -28,19 +28,10 @@ import {
   TrackSettingsUrlField,
 } from "@weng-lab/genomebrowser-ui";
 
-function SignalSettings() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const url = useTrackStore((state) => (state.getTrack(trackId)?.config as BigWigConfig).url);
-  const rangeMin = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BigWigConfig).yRange?.min,
-  );
-  const rangeMax = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BigWigConfig).yRange?.max,
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
-  const range =
-    rangeMin === undefined && rangeMax === undefined ? undefined : { min: rangeMin, max: rangeMax };
-
+function SignalSettings({
+  track,
+  updateTrack,
+}: TrackSettingsProps<BigWigConfig, RenderedBigWigPoint>) {
   return (
     <TrackSettingsLayout>
       <TrackSettingsSection title="Signal source and range">
@@ -49,15 +40,15 @@ function SignalSettings() {
             <TrackSettingsUrlField
               label="BigWig URL"
               required
-              value={url}
-              onCommit={(url) => updateTrack(trackId, { config: { url } })}
+              value={track.config.url}
+              onCommit={(url) => updateTrack({ config: { url } })}
             />
           </TrackSettingsFullRow>
           <TrackSettingsFullRow>
             <TrackSettingsRangeFields
               mode="independent"
-              range={range}
-              onCommit={(yRange) => updateTrack(trackId, { config: { yRange } })}
+              range={track.config.yRange}
+              onCommit={(yRange) => updateTrack({ config: { yRange } })}
             />
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
@@ -78,7 +69,7 @@ export const signalTrack = signalModule.create({
 });
 ```
 
-Register `signalModule` and `signalTrack` with the track store in the same way as any core module and track. Read the active ID with `useSettingsStore`, then use `useTrackStore` to subscribe each field to a primitive or stable leaf rather than a complete config object. Call `updateTrack(trackId, update)` with optional shallow `base` and `config` patches for a validated, all-or-nothing mutation. When updating one field inside a nested object or array, use `useTrackStoreApi().getState()` inside the commit handler to preserve the latest sibling values without subscribing the field to the full object.
+Register `signalModule` and `signalTrack` with the track store in the same way as any core module and track. Core supplies `TrackSettingsProps`: a current, shallow read-only view of the complete track and an `updateTrack` callback already bound to its ID. Submit edits through that callback as they are accepted. It supports optional shallow `base`, `config`, and `interaction` patches in one validated, all-or-nothing mutation. Replace a complete nested object or array when changing one of its values.
 
 ## `TrackBaseSettings` API
 

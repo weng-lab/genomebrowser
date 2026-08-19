@@ -5,6 +5,7 @@ import {
   REGION_SEED,
   REGION_SIZES,
   runComparison,
+  runSequentially,
   type BenchmarkMode,
   type BenchmarkResult,
 } from "./benchmark";
@@ -79,11 +80,11 @@ export function App() {
 
     try {
       // Run comparisons sequentially so concurrent network traffic cannot distort their timings.
-      for (const dataset of RUN_DATASETS) {
-        for (const size of REGION_SIZES) {
+      await runSequentially(RUN_DATASETS, async (dataset) => {
+        await runSequentially(REGION_SIZES, async (size) => {
           const region = REGIONS.get(`${dataset.id}:${size}`);
           if (region === undefined) throw new Error("Benchmark region is missing");
-          for (const mode of RUN_MODES) {
+          await runSequentially(RUN_MODES, async (mode) => {
             setStatus(
               `Running ${complete + 1} of ${COMPARISON_COUNT}: ${dataset.label}, ${size.toLocaleString()} bp, ${mode}`,
             );
@@ -92,9 +93,9 @@ export function App() {
             complete += 1;
             setResults([...nextResults]);
             window.__readerBenchmarkResults = [...nextResults];
-          }
-        }
-      }
+          });
+        });
+      });
       const mismatches = nextResults.filter((result) => !result.countsMatch).length;
       setStatus(
         mismatches === 0

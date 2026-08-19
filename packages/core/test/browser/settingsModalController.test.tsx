@@ -3,6 +3,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
+import { z } from "zod";
 import { SettingsModalController } from "../../src/browser/overlays/SettingsModalController";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { BrowserProvider, InteractionGateProvider } from "../../src/browser/state/BrowserContext";
@@ -12,8 +13,13 @@ import { RegistryProvider } from "../../src/browser/state/RegistryContext";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { hg38 } from "../../src/genome/presets";
+import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import type { SettingsModalProps } from "../../src/browser/settings/types";
-import type { AnyTrackInstance } from "../../src/modules/types";
+import type {
+  AnyTrackInstance,
+  TrackMutationResult,
+  TrackSettingsProps,
+} from "../../src/modules/types";
 import { bigWigModule } from "../../src/tracks/bigwig/module";
 import type { BigWigConfig } from "../../src/tracks/bigwig/types";
 
@@ -120,7 +126,7 @@ describe("SettingsModalController", () => {
     expect(baseRenderCount).toBe(1);
     expect(colorRenderCount).toBe(2);
     expect(titleRenderCount).toBe(1);
-    expect(moduleRenderCount).toBe(1);
+    expect(moduleRenderCount).toBe(2);
 
     await act(async () => {
       trackStore.getState().updateTrack("track", { base: { title: "Updated track" } });
@@ -130,7 +136,99 @@ describe("SettingsModalController", () => {
     expect(headerRenderCount).toBe(3);
     expect(baseRenderCount).toBe(1);
     expect(titleRenderCount).toBe(2);
-    expect(moduleRenderCount).toBe(1);
+    expect(moduleRenderCount).toBe(3);
+  });
+
+  it("passes the current complete track and a gated updater bound to its ID", async () => {
+    type Item = { value: number };
+    type Config = { url: string };
+    let receivedProps: TrackSettingsProps<Config, Item> | undefined;
+
+    function Modal({ children }: SettingsModalProps) {
+      return <div>{children}</div>;
+    }
+    function ModuleSettings(props: TrackSettingsProps<Config, Item>) {
+      receivedProps = props;
+      return <div>Settings for {props.track.base.id}</div>;
+    }
+    function Renderer() {
+      return null;
+    }
+
+    const module = defineTrackModule<Item>()({
+      type: "bound-settings",
+      configSchema: z.object({ url: z.string().min(1) }),
+      fetch: async () => null,
+      render: { full: Renderer },
+      settingsComponent: ModuleSettings,
+    });
+    const first = module.create({
+      id: "first",
+      title: "First",
+      config: { url: "YOUR_URL_HERE" },
+    });
+    const onClick = () => undefined;
+    const active = module.create(
+      {
+        id: "active",
+        title: "Active",
+        config: { url: "YOUR_OTHER_URL_HERE" },
+      },
+      { onClick },
+    );
+    const trackStore = createTrackStore({ modules: [module], tracks: [first, active] });
+    const settingsStore = createSettingsStore({ modalComponent: Modal });
+    settingsStore.getState().openSettings("active", { x: 0, y: 0 });
+
+    await mountController(trackStore, settingsStore);
+
+    const initialProps = requireValue(receivedProps, "Module settings props not received");
+    expect(initialProps.track).toBe(trackStore.getState().getTrack("active"));
+    expect(initialProps.track).toMatchObject({
+      type: "bound-settings",
+      base: { id: "active", title: "Active" },
+      config: { url: "YOUR_OTHER_URL_HERE" },
+      interaction: { onClick },
+    });
+
+    const nextOnClick = () => undefined;
+    let updateResult: TrackMutationResult | undefined;
+    await act(async () => {
+      updateResult = requireValue(receivedProps, "Module settings props not received").updateTrack({
+        base: { title: "Updated active" },
+        config: { url: "YOUR_URL_HERE" },
+        interaction: { onClick: nextOnClick },
+      });
+    });
+
+    expect(updateResult).toEqual({ ok: true });
+    expect(trackStore.getState().getTrack("first")?.base.title).toBe("First");
+    expect(trackStore.getState().getTrack("active")).toMatchObject({
+      base: { id: "active", title: "Updated active" },
+      config: { url: "YOUR_URL_HERE" },
+      interaction: { onClick: nextOnClick },
+    });
+    expect(requireValue(receivedProps, "Module settings props not received").track).toBe(
+      trackStore.getState().getTrack("active"),
+    );
+
+    await renderController(trackStore, settingsStore, true);
+    let blockedResult: TrackMutationResult | undefined;
+    await act(async () => {
+      blockedResult = requireValue(receivedProps, "Module settings props not received").updateTrack(
+        { base: { title: "Blocked update" } },
+      );
+    });
+    expect(blockedResult).toEqual({
+      ok: false,
+      error: "Track interactions are currently blocked",
+    });
+    expect(trackStore.getState().getTrack("active")?.base.title).toBe("Updated active");
+
+    await act(async () => {
+      trackStore.getState().removeTrack("active");
+    });
+    expect(container?.textContent).not.toContain("Settings for active");
   });
 
   it("does not carry a draft into another same-type track with the same accepted color", async () => {
@@ -175,6 +273,14 @@ async function mountController(
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
+  await renderController(trackStore, settingsStore, false);
+}
+
+async function renderController(
+  trackStore: ReturnType<typeof createTrackStore>,
+  settingsStore: ReturnType<typeof createSettingsStore>,
+  isInteractionBlocked: boolean,
+) {
   await act(async () => {
     root?.render(
       <BrowserProvider
@@ -188,7 +294,7 @@ async function mountController(
           settingsStore,
         }}
       >
-        <InteractionGateProvider value={{ isInteractionBlocked: false }}>
+        <InteractionGateProvider value={{ isInteractionBlocked }}>
           <RegistryProvider registry={trackStore.getState().registry}>
             <SettingsModalController />
           </RegistryProvider>
@@ -214,4 +320,9 @@ function setTextInput(element: HTMLInputElement, value: string) {
 
 function acceptedColor(track: AnyTrackInstance | undefined) {
   return (track?.config as BigWigConfig | undefined)?.clampIndicatorColor;
+}
+
+function requireValue<T>(value: T | undefined, message: string): T {
+  if (value === undefined) throw new Error(message);
+  return value;
 }

@@ -1,4 +1,4 @@
-import { useSettingsStore, useTrackStore, type BigBedConfig } from "@weng-lab/genomebrowser";
+import type { BigBedConfig, BigBedRow, TrackSettingsProps } from "@weng-lab/genomebrowser";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
@@ -7,13 +7,10 @@ import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
 import { TrackSettingsSection } from "../../TrackSettings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../../TrackSettings/trackSettingsUrlField";
 
-export function BigBedSettings() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const url = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BigBedConfig | undefined)?.url ?? "",
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
-
+export function BigBedSettings({
+  track,
+  updateTrack,
+}: TrackSettingsProps<BigBedConfig, BigBedRow>) {
   return (
     <TrackSettingsLayout>
       <TrackSettingsSection title="BigBed">
@@ -21,8 +18,8 @@ export function BigBedSettings() {
           <TrackSettingsFullRow>
             <TrackSettingsUrlField
               required
-              value={url}
-              onCommit={(nextUrl) => updateTrack(trackId, { config: { url: nextUrl } })}
+              value={track.config.url}
+              onCommit={(nextUrl) => updateTrack({ config: { url: nextUrl } })}
             />
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>

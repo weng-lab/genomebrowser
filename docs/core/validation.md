@@ -43,9 +43,9 @@ Once a track store exists, its mutators do not throw for expected validation fai
 type TrackMutationResult = { ok: true } | { ok: false; error: string };
 ```
 
-This applies to `setTracks`, `addTrack`, `removeTrack`, `applyTrackChanges`, `reorderTracks`, `updateTrack`, and `updateInteraction`. Callers should surface `error` when a change came from user input.
+This applies to `setTracks`, `addTrack`, `removeTrack`, `applyTrackChanges`, `reorderTracks`, and `updateTrack`. Callers should surface `error` when a change came from user input.
 
-Every failed mutation is atomic: validation completes before `set`, so tracks and order remain unchanged. `updateTrack` shallowly merges optional base and config patches, validates the complete candidate once, and commits both sections or neither. `applyTrackChanges` validates the complete add/remove operation before applying any part of it, and `setTracks` validates the full replacement before replacing current state.
+Every failed mutation is atomic: validation completes before `set`, so tracks and order remain unchanged. `updateTrack` shallowly merges optional base, config, and interaction patches, validates the complete candidate once, and commits every supplied section or none. Nested values are replaced rather than recursively merged. `applyTrackChanges` validates the complete add/remove operation before applying any part of it, and `setTracks` validates the full replacement before replacing current state.
 
 ## Identity rules
 

@@ -1,16 +1,39 @@
 import { DraftColorInput } from "../../browser/settings/DraftColorInput";
-import { useSettingsStore, useTrackStore } from "../../browser/state/browserContextState";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
-import type { TranscriptConfig } from "./types";
+import type { TrackSettingsProps } from "../../modules/types";
+import type { Transcript, TranscriptConfig } from "./types";
 
-export function TranscriptSettings() {
+type TranscriptSettingsProps = TrackSettingsProps<TranscriptConfig, Transcript>;
+
+export function TranscriptSettings({ track, updateTrack }: TranscriptSettingsProps) {
+  const { config } = track;
   return (
     <SettingsSection title="Transcript">
-      <TextConfigField configKey="geneName" label="Highlight gene" />
-      <TextConfigField configKey="assembly" label="Assembly" />
-      <VersionField />
-      <ColorConfigField configKey="canonicalColor" label="Canonical color" />
-      <ColorConfigField configKey="highlightColor" label="Highlight color" />
+      <TextConfigField
+        configKey="geneName"
+        label="Highlight gene"
+        updateTrack={updateTrack}
+        value={config.geneName}
+      />
+      <TextConfigField
+        configKey="assembly"
+        label="Assembly"
+        updateTrack={updateTrack}
+        value={config.assembly}
+      />
+      <VersionField updateTrack={updateTrack} version={config.version} />
+      <ColorConfigField
+        color={config.canonicalColor}
+        configKey="canonicalColor"
+        label="Canonical color"
+        updateTrack={updateTrack}
+      />
+      <ColorConfigField
+        color={config.highlightColor}
+        configKey="highlightColor"
+        label="Highlight color"
+        updateTrack={updateTrack}
+      />
     </SettingsSection>
   );
 }
@@ -18,16 +41,14 @@ export function TranscriptSettings() {
 function TextConfigField({
   configKey,
   label,
+  updateTrack,
+  value,
 }: {
   configKey: "assembly" | "geneName";
   label: string;
+  updateTrack: TranscriptSettingsProps["updateTrack"];
+  value: string | undefined;
 }) {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const value = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as TranscriptConfig | undefined)?.[configKey],
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
-
   return (
     <label style={fieldStyle}>
       {label}
@@ -36,7 +57,7 @@ function TextConfigField({
         value={value ?? ""}
         onChange={(event) => {
           const nextValue = event.target.value;
-          updateTrack(trackId, {
+          updateTrack({
             config: { [configKey]: configKey === "geneName" ? nextValue || undefined : nextValue },
           });
         }}
@@ -45,13 +66,13 @@ function TextConfigField({
   );
 }
 
-function VersionField() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const version = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as TranscriptConfig | undefined)?.version ?? 1,
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
-
+function VersionField({
+  updateTrack,
+  version,
+}: {
+  updateTrack: TranscriptSettingsProps["updateTrack"];
+  version: number;
+}) {
   return (
     <label style={fieldStyle}>
       Version
@@ -63,7 +84,7 @@ function VersionField() {
         onChange={(event) => {
           const nextVersion = event.currentTarget.valueAsNumber;
           if (Number.isInteger(nextVersion) && nextVersion > 0) {
-            updateTrack(trackId, { config: { version: nextVersion } });
+            updateTrack({ config: { version: nextVersion } });
           }
         }}
       />
@@ -72,24 +93,22 @@ function VersionField() {
 }
 
 function ColorConfigField({
+  color,
   configKey,
   label,
+  updateTrack,
 }: {
+  color: string;
   configKey: "canonicalColor" | "highlightColor";
   label: string;
+  updateTrack: TranscriptSettingsProps["updateTrack"];
 }) {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const color = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as TranscriptConfig | undefined)?.[configKey] ?? "",
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
-
   return (
     <label style={fieldStyle}>
       {label}
       <DraftColorInput
         value={color}
-        onCommit={(value) => updateTrack(trackId, { config: { [configKey]: value } })}
+        onCommit={(value) => updateTrack({ config: { [configKey]: value } })}
       />
     </label>
   );

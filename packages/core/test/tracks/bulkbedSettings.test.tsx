@@ -4,10 +4,10 @@ import { act, Profiler } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTrackStore, type TrackStoreInstance } from "../../src/browser/state/trackStore";
+import type { TrackInstance, TrackMutationResult, TrackUpdate } from "../../src/modules/types";
 import { bulkBedModule } from "../../src/tracks/bulkbed/module";
 import { BulkBedSettings } from "../../src/tracks/bulkbed/settings";
-import type { BulkBedConfig, BulkBedDataset } from "../../src/tracks/bulkbed/types";
-import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
+import type { BulkBedConfig, BulkBedDataset, BulkBedRect } from "../../src/tracks/bulkbed/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -32,6 +32,10 @@ let rejectRemoveUpdate = false;
 function Harness({ onSettingsRender = () => undefined, trackId = "bulk-peaks" }: HarnessProps) {
   const useStore = useTrackStore;
   if (!useStore) throw new Error("Track store not initialized");
+  const track = useStore((state) => state.getTrack(trackId)) as
+    | TrackInstance<BulkBedConfig, BulkBedRect>
+    | undefined;
+  if (!track) throw new Error(`Track not found: ${trackId}`);
 
   return (
     <>
@@ -63,11 +67,12 @@ function Harness({ onSettingsRender = () => undefined, trackId = "bulk-peaks" }:
       >
         Shorten externally
       </button>
-      <TrackSettingsTestProvider trackId={trackId} trackStore={useStore}>
-        <Profiler id="bulkbed-settings" onRender={onSettingsRender}>
-          <BulkBedSettings />
-        </Profiler>
-      </TrackSettingsTestProvider>
+      <Profiler id="bulkbed-settings" onRender={onSettingsRender}>
+        <BulkBedSettings
+          track={track}
+          updateTrack={(update) => useStore.getState().updateTrack(trackId, update)}
+        />
+      </Profiler>
     </>
   );
 }
@@ -84,16 +89,54 @@ afterEach(async () => {
 });
 
 describe("BulkBed settings", () => {
-  it("does not rerender settings when validation reconstructs datasets for a base update", async () => {
+  it("renders from the fresh complete track after an unrelated base update", async () => {
     let renderCount = 0;
     await renderHarness({ onSettingsRender: () => renderCount++ });
     const initialRenderCount = renderCount;
+    const initialTrack = useTrackStore?.getState().getTrack("bulk-peaks");
 
     await act(async () => {
       useTrackStore?.getState().updateTrack("bulk-peaks", { base: { color: "#112233" } });
     });
 
-    expect(renderCount).toBe(initialRenderCount);
+    const updatedTrack = useTrackStore?.getState().getTrack("bulk-peaks");
+    expect(updatedTrack).not.toBe(initialTrack);
+    expect(updatedTrack?.base.color).toBe("#112233");
+    expect(renderCount).toBeGreaterThan(initialRenderCount);
+    expect(datasetNames()).toEqual(["Dataset A", "Dataset B", "Dataset C"]);
+  });
+
+  it("does not replay accepted edits after restoring an earlier datasets reference", async () => {
+    const baselineTrack = createTrack("bulk-peaks");
+    const advancedTrack = {
+      ...baselineTrack,
+      config: {
+        ...baselineTrack.config,
+        datasets: baselineTrack.config.datasets.map((item) => ({
+          ...item,
+          name: `${item.name} externally updated`,
+        })),
+      },
+    };
+    const updateTrack = vi.fn<
+      (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult
+    >(() => ({ ok: true }));
+
+    await renderControlledSettings(baselineTrack, updateTrack);
+    await updateTextInput(textInputs()[0], "Accepted Dataset A");
+    await renderControlledSettings(advancedTrack, updateTrack);
+    await renderControlledSettings(baselineTrack, updateTrack);
+    await updateTextInput(textInputs()[1], "RESTORED_C0_URL");
+
+    expect(updateTrack).toHaveBeenLastCalledWith({
+      config: {
+        datasets: [
+          { name: "Dataset A", url: "RESTORED_C0_URL" },
+          dataset("Dataset B"),
+          dataset("Dataset C"),
+        ],
+      },
+    });
   });
 
   it("preserves unaffected rows through a middle removal and subsequent addition", async () => {
@@ -113,6 +156,23 @@ describe("BulkBed settings", () => {
     expect(datasetRow("Dataset A")).toBe(firstRow);
     expect(datasetRow("Dataset C")).toBe(lastRow);
     expect([firstRow, lastRow]).not.toContain(datasetRow("Dataset 3"));
+  });
+
+  it("numbers rapid additions from the latest accepted datasets", async () => {
+    await renderHarness();
+
+    await act(async () => {
+      button("Add dataset").click();
+      button("Add dataset").click();
+    });
+
+    expect(datasetNames()).toEqual([
+      "Dataset A",
+      "Dataset B",
+      "Dataset C",
+      "Dataset 4",
+      "Dataset 5",
+    ]);
   });
 
   it("gives external appends stable distinct rows without key warnings", async () => {
@@ -219,6 +279,18 @@ async function renderHarness(props: HarnessProps = {}) {
   await act(async () => root?.render(<Harness {...props} />));
 }
 
+async function renderControlledSettings(
+  track: TrackInstance<BulkBedConfig, BulkBedRect>,
+  updateTrack: (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult,
+) {
+  if (!container) {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  }
+  await act(async () => root?.render(<BulkBedSettings track={track} updateTrack={updateTrack} />));
+}
+
 function createTrack(id: string) {
   return bulkBedModule.create({
     id,
@@ -246,6 +318,17 @@ function datasetRow(name: string) {
 
 function textInputs() {
   return Array.from(container?.querySelectorAll<HTMLInputElement>('input[type="text"]') ?? []);
+}
+
+async function updateTextInput(input: HTMLInputElement | undefined, value: string) {
+  if (!input) throw new Error("Text input not found");
+  const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+  if (!valueSetter) throw new Error("Could not set input value");
+
+  await act(async () => {
+    valueSetter.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
 }
 
 function expectExistingRows(rows: HTMLDivElement[]) {

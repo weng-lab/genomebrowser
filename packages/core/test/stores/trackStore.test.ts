@@ -212,7 +212,9 @@ describe("createTrackStore", () => {
     });
 
     expect(
-      store.getState().updateInteraction("signal", { onClick: nextClick, onHover: undefined }),
+      store
+        .getState()
+        .updateTrack("signal", { interaction: { onClick: nextClick, onHover: undefined } }),
     ).toEqual({ ok: true });
     expect(store.getState().getTrack("signal")).toMatchObject({
       interaction: {
@@ -257,17 +259,31 @@ describe("createTrackStore", () => {
 
   it("rejects invalid interaction updates", () => {
     const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
+    const initialTrack = store.getState().getTrack("signal");
 
     expect(
-      store.getState().updateInteraction("signal", { onClick: "not a function" as never }),
+      store
+        .getState()
+        .updateTrack("signal", { interaction: { onClick: "not a function" as never } }),
     ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig instance is invalid/) });
+    expect(store.getState().getTrack("signal")).toBe(initialTrack);
   });
 
-  it("validates base and config patches atomically while preserving identity", () => {
+  it("validates base, config, and interaction patches atomically while preserving identity", () => {
+    const onHover = () => undefined;
+    const nextClick = () => undefined;
+    const signalTrack = bigWigModule.create(
+      {
+        id: "signal",
+        title: "Signal",
+        config: { url: "YOUR_URL_HERE" },
+      },
+      { onHover },
+    );
     const unchangedTrack = bigWigTrack("unchanged");
     const store = createTrackStore({
       modules: [bigWigModule],
-      tracks: [bigWigTrack(), unchangedTrack],
+      tracks: [signalTrack, unchangedTrack],
     });
     const validate = vi.spyOn(bigWigModule, "validate");
     const subscriber = vi.fn();
@@ -280,6 +296,7 @@ describe("createTrackStore", () => {
         type: "ignored",
         base: { id: "ignored", height: 120 },
         config: { url: "YOUR_OTHER_URL_HERE" },
+        interaction: { onClick: nextClick },
       } as never),
     ).toEqual({ ok: true });
     expect(validate).toHaveBeenCalledTimes(1);
@@ -288,6 +305,7 @@ describe("createTrackStore", () => {
       type: "bigwig",
       base: { id: "signal", height: 120 },
       config: { url: "YOUR_OTHER_URL_HERE" },
+      interaction: { onClick: nextClick, onHover },
     });
     expect(store.getState().getTrack("ignored")).toBeUndefined();
     expect(store.getState().getTrack("unchanged")).toBe(initialUnchangedTrack);
@@ -362,7 +380,7 @@ describe("createTrackStore", () => {
     });
   });
 
-  it("exposes atomic track and separate interaction update APIs", () => {
+  it("exposes updateTrack as the only existing-track update API", () => {
     const store = createTrackStore({
       modules: [bigWigModule, bigBedModule],
       tracks: [bigWigTrack()],
@@ -371,6 +389,5 @@ describe("createTrackStore", () => {
     expect(store.getState().updateTrack).toBeTypeOf("function");
     expect(store.getState()).not.toHaveProperty("updateBase");
     expect(store.getState()).not.toHaveProperty("updateConfig");
-    expect(store.getState().updateInteraction).toBeTypeOf("function");
   });
 });

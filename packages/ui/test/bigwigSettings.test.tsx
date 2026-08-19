@@ -2,8 +2,8 @@
 
 import {
   bigWigModule,
-  createTrackStore,
   type BigWigConfig,
+  type RenderedBigWigPoint,
   type TrackMutationResult,
   type TrackUpdate,
 } from "@weng-lab/genomebrowser";
@@ -11,12 +11,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BigWigSettings } from "../src/tracks/bigwig/settings";
-import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal()),
-  ...(await import("../../core/src/browser/state/browserContextState")),
-}));
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -214,34 +208,21 @@ describe("BigWig settings", () => {
 });
 
 function renderSettings(initialConfig = config) {
-  const updateTrack = vi.fn<(update: TrackUpdate<BigWigConfig>) => TrackMutationResult>(() => ({
-    ok: true,
-  }));
-  const trackStore = createTrackStore({
-    modules: [bigWigModule],
-    tracks: [
-      bigWigModule.create({
-        id: "signal",
-        title: "Signal",
-        height: 80,
-        color: "#2266aa",
-        config: initialConfig,
-      }),
-    ],
+  const updateTrack = vi.fn<
+    (update: TrackUpdate<BigWigConfig, RenderedBigWigPoint>) => TrackMutationResult
+  >(() => ({ ok: true }));
+  const track = bigWigModule.create({
+    id: "signal",
+    title: "Signal",
+    height: 80,
+    color: "#2266aa",
+    config: initialConfig,
   });
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
   act(() => {
-    root?.render(
-      <TrackSettingsTestProvider
-        trackId="signal"
-        trackStore={trackStore}
-        updateTrack={(update) => updateTrack(update as TrackUpdate<BigWigConfig>)}
-      >
-        <BigWigSettings />
-      </TrackSettingsTestProvider>,
-    );
+    root?.render(<BigWigSettings track={track} updateTrack={updateTrack} />);
   });
   return updateTrack;
 }

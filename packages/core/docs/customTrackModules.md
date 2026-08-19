@@ -19,10 +19,9 @@ import {
   defineTrackModule,
   fetchOnChange,
   useInteraction,
-  useSettingsStore,
-  useTrackStore,
   useTooltip,
   type TrackRendererProps,
+  type TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
 
 const configSchema = z.object({
@@ -59,20 +58,16 @@ function SignalRenderer({ config, data, region, width, height }: TrackRendererPr
     });
 }
 
-function SignalSettings() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const threshold = useTrackStore((state) => (state.getTrack(trackId)?.config as Config).threshold);
-  const updateTrack = useTrackStore((state) => state.updateTrack);
-
+function SignalSettings({ track, updateTrack }: TrackSettingsProps<Config, Item>) {
   return (
     <SettingsSection title="Signal">
       <label>
         Threshold
         <input
           type="number"
-          value={threshold}
+          value={track.config.threshold}
           onChange={(event) => {
-            const result = updateTrack(trackId, {
+            const result = updateTrack({
               config: { threshold: event.currentTarget.valueAsNumber },
             });
             if (!result.ok) console.error(result.error);
@@ -107,7 +102,7 @@ export const customSignalModule = defineTrackModule<Item>()({
 });
 ```
 
-Settings components receive no track snapshot props. Read the active track ID with `useSettingsStore`, then select the smallest value each field renders with `useTrackStore`; unchanged selections do not re-render when another setting changes. Call the store's `updateTrack(trackId, update)` action with optional shallow `base` and `config` patches. The nearest browser provides both stores, so multiple browser instances remain isolated. When a nested patch must preserve siblings, use `useTrackStoreApi().getState()` inside the event handler to read the latest track without adding a render subscription.
+Settings components receive `{ track, updateTrack }`. `track` is the current complete, shallow read-only instance, including its type, base, parsed config, and optional interaction callbacks. The supplied `updateTrack` is already bound to that track's ID and passes through the browser's interaction gate. Return or inspect its `TrackMutationResult` when an edit can fail. Each `base`, `config`, or `interaction` patch is shallow, so replace a complete nested object or array when changing one of its values.
 
 The fetch function receives only parsed config and a genomic region. Return raw regional data; the renderer owns conversion to pixels and display-specific shaping. Throwing from fetch produces the browser's error state for that track.
 
@@ -142,7 +137,7 @@ The optional second argument contains per-instance callbacks and is not serializ
 
 ## Settings, tooltip, and interactions
 
-Module settings receive no props. Read the active ID from `useSettingsStore`, select active values with `useTrackStore`, and call `updateTrack` from that same store. An update accepts optional shallow `base` and `config` patches, so one settings action can update both atomically. Check its mutation result for user-entered values. The browser still renders the standard title, display, color, and height controls separately.
+Module settings use `TrackSettingsProps<Config, Item>` as their input contract. Read current values from `track` and submit live edits through the supplied `updateTrack`. One update may contain optional shallow `base`, `config`, and `interaction` patches; core validates the complete candidate once and commits all supplied sections or none. The browser still renders the standard title, display, color, and height controls separately, so module settings should render only module-specific config controls.
 
 The renderer decides what semantic item a click or hover represents. `useInteraction<Item>()` returns item-only handlers because the browser binds the current runtime context. `useTooltip<Item, Config>()` reads that same context and opens the module's browser-positioned `tooltipComponent` with `{ item, context }`. Renderers do not pass a type or config to either hook. Both hooks require the renderer to run inside `GenomeBrowser`.
 
