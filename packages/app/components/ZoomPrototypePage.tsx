@@ -16,18 +16,7 @@ import {
   type GenomicRegion,
 } from "@weng-lab/genomebrowser";
 
-import { SpanZoomStepper } from "./zoom-prototypes/SpanZoomStepper";
-import {
-  SpanZoomContextDetail,
-  SpanZoomScaleBar,
-  SpanZoomToolbar,
-} from "./zoom-prototypes/SpanZoomVariants";
-import { SplitZoomButtons } from "./zoom-prototypes/SplitZoomButtons";
-import {
-  SplitZoomCoordinateStack,
-  SplitZoomMagnitudeRail,
-  SplitZoomUnifiedMenu,
-} from "./zoom-prototypes/SplitZoomVariants";
+import { InlineEditableZoomToolbar } from "./zoom-prototypes/InlineEditableZoomToolbar";
 
 const initialRegion: GenomicRegion = {
   chromosome: "chr6",
@@ -57,55 +46,15 @@ const useTrackStore = createTrackStore({
 
 const prototypeGroups = [
   {
-    title: "B. Span and stepper concepts",
-    description: "Keep the current genomic scale visible while making zoom direction immediate.",
-    prototypes: [
-      {
-        title: "B1. Original span stepper — reference",
-        description: "Magnifier controls surround a centered span and coordinate readout.",
-        control: <SpanZoomStepper useBrowserStore={useBrowserStore} />,
-      },
-      {
-        title: "B2. Genomic scale bar",
-        description: "Places the current span on a chromosome-to-base logarithmic scale.",
-        control: <SpanZoomScaleBar useBrowserStore={useBrowserStore} />,
-      },
-      {
-        title: "B3. Coordinate toolbar",
-        description: "Centers coordinates while separating controls and span into stable zones.",
-        control: <SpanZoomToolbar useBrowserStore={useBrowserStore} />,
-      },
-      {
-        title: "B4. Context and detail",
-        description: "Uses analytical intent as the action and previews the resulting span.",
-        control: <SpanZoomContextDetail useBrowserStore={useBrowserStore} />,
-      },
-    ],
-  },
-  {
-    title: "C. Magnitude and menu concepts",
+    title: "E. Inline navigation concept",
     description:
-      "Preserve deliberate zoom amounts without returning to ambiguous plus/minus labels.",
+      "Keep routine zooming immediate while making each part of the current region directly editable.",
     prototypes: [
       {
-        title: "C1. Original split buttons — reference",
-        description: "A gentle 1.5× action stays visible while stronger jumps live in menus.",
-        control: <SplitZoomButtons useBrowserStore={useBrowserStore} />,
-      },
-      {
-        title: "C2. Coordinate stack",
-        description: "Centers coordinates, aligns actions below, and moves span to its own edge.",
-        control: <SplitZoomCoordinateStack useBrowserStore={useBrowserStore} />,
-      },
-      {
-        title: "C3. Magnitude rail",
-        description: "Makes every amount directly scannable against context and detail actions.",
-        control: <SplitZoomMagnitudeRail useBrowserStore={useBrowserStore} />,
-      },
-      {
-        title: "C4. Unified step menu",
-        description: "Selects one shared magnitude between immediate zoom-out and zoom-in actions.",
-        control: <SplitZoomUnifiedMenu useBrowserStore={useBrowserStore} />,
+        title: "E1. Editable region toolbar",
+        description:
+          "Pan and zoom flank the editable region, each with a rarely changed default magnitude.",
+        control: <InlineEditableZoomToolbar useBrowserStore={useBrowserStore} />,
       },
     ],
   },
@@ -126,8 +75,8 @@ export function ZoomPrototypePage() {
             Genome browser zoom concepts
           </Typography>
           <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body1">
-            Eight variations operate the same browser. Compare readability, confidence, and speed
-            across gene, base, and chromosome scales.
+            One deliberately simple toolbar operates the browser across gene, base, and chromosome
+            scales.
           </Typography>
         </Box>
 
@@ -142,7 +91,11 @@ export function ZoomPrototypePage() {
               <Typography color="text.secondary" variant="caption">
                 Current viewport
               </Typography>
-              <Typography sx={{ fontVariantNumeric: "tabular-nums" }} variant="body1">
+              <Typography
+                aria-live="polite"
+                sx={{ fontVariantNumeric: "tabular-nums" }}
+                variant="body1"
+              >
                 {formatRegion(region)}
               </Typography>
             </Box>
@@ -186,10 +139,7 @@ export function ZoomPrototypePage() {
               sx={{
                 display: "grid",
                 gap: 2,
-                gridTemplateColumns: {
-                  xs: "minmax(0, 1fr)",
-                  lg: "repeat(2, minmax(0, 1fr))",
-                },
+                gridTemplateColumns: "minmax(0, 1fr)",
               }}
             >
               {group.prototypes.map((prototype) => (
