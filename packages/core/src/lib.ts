@@ -33,6 +33,7 @@ export type {
   TrackRendererInteraction,
   TrackRendererProps,
   TrackSettingsComponent,
+  TrackSettingsProps,
   TrackRuntimeContext,
   TrackTooltipComponent,
   TrackUpdate,

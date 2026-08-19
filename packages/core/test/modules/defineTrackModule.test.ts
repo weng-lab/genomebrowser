@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { bigWigModule } from "../../src/tracks/bigwig/module";
-import type { TrackRendererProps } from "../../src/modules/types";
+import type { TrackRendererProps, TrackSettingsProps } from "../../src/modules/types";
 
 describe("defineTrackModule", () => {
   function FullRenderer() {
@@ -168,6 +168,23 @@ describe("defineTrackModule", () => {
   it("preserves optional module-owned components", () => {
     expect(module.settingsComponent).toBe(SettingsComponent);
     expect(module.tooltipComponent).toBe(TooltipComponent);
+  });
+
+  it("rejects settings components with incompatible parsed config props", () => {
+    function IncompatibleSettings(_props: TrackSettingsProps<{ url: number }>) {
+      return null;
+    }
+
+    if (false) {
+      defineTrackModule({
+        type: "incompatible-settings",
+        configSchema: z.object({ url: z.string() }),
+        fetch: async () => null,
+        render: { full: FullRenderer },
+        // @ts-expect-error Settings props must match the config schema output.
+        settingsComponent: IncompatibleSettings,
+      });
+    }
   });
 
   it("rejects invalid display modes", () => {

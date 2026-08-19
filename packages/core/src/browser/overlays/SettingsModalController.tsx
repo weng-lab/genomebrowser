@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import type { ReadonlyTrackInstance, TrackSettingsComponent } from "../../modules/types";
 import {
   useSettingsStore,
   useTrackMutationGate,
@@ -21,7 +21,7 @@ export function SettingsModalController() {
 
   try {
     const module = registry.get(trackType);
-    const ModuleSettingsComponent = module.settingsComponent as ComponentType | undefined;
+    const ModuleSettingsComponent = module.settingsComponent;
 
     return (
       <ModalComponent trackId={trackId} position={position} closeSettings={closeSettings}>
@@ -38,11 +38,34 @@ export function SettingsModalController() {
           }}
         >
           <BaseSettingsComponent />
-          {ModuleSettingsComponent && <ModuleSettingsComponent />}
+          {ModuleSettingsComponent !== undefined && (
+            <BoundModuleSettings trackId={trackId} component={ModuleSettingsComponent} />
+          )}
         </fieldset>
       </ModalComponent>
     );
   } catch (error) {
     return <div>{error instanceof Error ? error.message : "No settings available"}</div>;
   }
+}
+
+function BoundModuleSettings({ trackId, component }: { trackId: string; component: unknown }) {
+  const track = useTrackStore((state) => state.getTrack(trackId));
+  const updateStoredTrack = useTrackStore((state) => state.updateTrack);
+  const { runTrackMutation } = useTrackMutationGate();
+
+  if (!track) return null;
+
+  const ModuleSettingsComponent = component as TrackSettingsComponent<
+    Record<string, unknown>,
+    unknown
+  >;
+  const settingsTrack = track as ReadonlyTrackInstance<Record<string, unknown>, unknown>;
+
+  return (
+    <ModuleSettingsComponent
+      track={settingsTrack}
+      updateTrack={(update) => runTrackMutation(() => updateStoredTrack(track.base.id, update))}
+    />
+  );
 }

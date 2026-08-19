@@ -5,8 +5,12 @@ import { createModuleRegistry, createTrackFromEntry } from "../../src/modules/re
 import type {
   ModuleCreateInput,
   ModuleInstance,
+  ReadonlyTrackInstance,
   TrackInteraction,
+  TrackMutationResult,
   TrackRuntimeContext,
+  TrackSettingsComponent,
+  TrackSettingsProps,
   TrackUpdate,
 } from "../../src/lib";
 
@@ -199,6 +203,38 @@ describe("track module type contracts", () => {
         id: "other-track",
       },
     } satisfies UpdateA);
+  });
+
+  it("types module settings from parsed config and interaction items", () => {
+    type ConfigA = ModuleInstance<typeof moduleA>["config"];
+    type SettingsPropsA = TrackSettingsProps<ConfigA, ItemA>;
+
+    expectTypeOf<SettingsPropsA["track"]>().toEqualTypeOf<ReadonlyTrackInstance<ConfigA, ItemA>>();
+    expectTypeOf<SettingsPropsA["updateTrack"]>().toEqualTypeOf<
+      (update: TrackUpdate<ConfigA, ItemA>) => TrackMutationResult
+    >();
+    expectTypeOf<NonNullable<typeof moduleA.settingsComponent>>().toEqualTypeOf<
+      TrackSettingsComponent<ConfigA, ItemA>
+    >();
+
+    if (false) {
+      const props = undefined as unknown as SettingsPropsA;
+      // @ts-expect-error Complete track props are read-only.
+      props.track.type = "other";
+      // @ts-expect-error Base track props are read-only.
+      props.track.base.title = "Other title";
+      // @ts-expect-error Parsed config props are read-only.
+      props.track.config.url = "YOUR_OTHER_URL_HERE";
+
+      const IncompatibleSettings = (
+        _props: TrackSettingsProps<{ url: number; scale: "auto" | "fixed" }, ItemA>,
+      ) => null;
+      void ({
+        ...moduleA,
+        // @ts-expect-error TrackModule settings must use its parsed config type.
+        settingsComponent: IncompatibleSettings,
+      } satisfies typeof moduleA);
+    }
   });
 
   it("creates collection entries through the runtime validation boundary", () => {

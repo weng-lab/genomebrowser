@@ -1,6 +1,6 @@
 # Ticket 02: Bind module settings to a track
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R6, R7, R8
 **Blocked by:** Ticket 01
@@ -15,13 +15,13 @@ Define and export the generic settings props and component types, carry them thr
 
 ## Acceptance Criteria
 
-- [ ] `TrackSettingsProps` exposes a shallow, read-only complete track and the typed updater.
-- [ ] `TrackSettingsComponent` carries the module config and interaction item types.
-- [ ] `TrackModule` and `defineTrackModule` reject settings components with incompatible props.
-- [ ] The controller passes the current track and binds updates to its ID.
-- [ ] The bound updater returns `TrackMutationResult` and rejects changes while the interaction gate is blocked.
-- [ ] The controller stops rendering module settings when the selected track no longer exists.
-- [ ] Focused controller and type-contract tests and the core typecheck pass.
+- [x] `TrackSettingsProps` exposes a shallow, read-only complete track and the typed updater.
+- [x] `TrackSettingsComponent` carries the module config and interaction item types.
+- [x] `TrackModule` and `defineTrackModule` reject settings components with incompatible props.
+- [x] The controller passes the current track and binds updates to its ID.
+- [x] The bound updater returns `TrackMutationResult` and rejects changes while the interaction gate is blocked.
+- [x] The controller stops rendering module settings when the selected track no longer exists.
+- [x] Focused controller and type-contract tests and the core typecheck pass.
 
 ## Verification
 
