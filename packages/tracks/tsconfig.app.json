@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2023",
+    "useDefineForClassFields": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    "moduleResolution": "bundler",
+    "paths": {
+      "@weng-lab/genomebrowser-tracks": ["./src/lib.ts"],
+      "@weng-lab/genomebrowser-tracks/bigbed": ["./src/bigbed/index.ts"],
+      "@weng-lab/genomebrowser-tracks/bigwig": ["./src/bigwig/index.ts"],
+      "@weng-lab/genomebrowser-tracks/bulkbed": ["./src/bulkbed/index.ts"],
+      "@weng-lab/genomebrowser-tracks/cave": ["./src/cave/index.ts"],
+      "@weng-lab/genomebrowser-tracks/methylc": ["./src/methylc/index.ts"],
+      "@weng-lab/genomebrowser-tracks/settings": ["./src/settings/index.ts"],
+      "@weng-lab/genomebrowser-tracks/tooltips": ["./src/tooltips/index.ts"],
+      "@weng-lab/genomebrowser-tracks/transcript": ["./src/transcript/index.ts"]
+    },
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src", "test"]
+}

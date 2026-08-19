@@ -19,6 +19,7 @@
     "@mui/material": "7.3.11",
     "@mui/x-license": "8.29.2",
     "@weng-lab/genomebrowser": "workspace:*",
+    "@weng-lab/genomebrowser-tracks": "workspace:*",
     "@weng-lab/genomebrowser-ui": "workspace:*",
     "@weng-lab/ui-components": "3.1.4",
     "next": "16.2.12",

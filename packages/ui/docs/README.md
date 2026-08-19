@@ -7,7 +7,7 @@
 Install the coordinated UI and runtime prereleases with the UI package's peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui@alpha @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
+pnpm add @weng-lab/genomebrowser-ui@alpha @weng-lab/genomebrowser@alpha @weng-lab/genomebrowser-tracks@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
 ```
 
 The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. Use your package manager's peer-dependency output to keep the installed versions compatible with the release you select.
@@ -27,8 +27,6 @@ Keep this setup in the host application's entry point or another module imported
 ## Start here
 
 - [Getting started](gettingStarted.md) shows a browser and TrackSelect sharing one stable track store.
-- [Track settings](trackSettings.md) shows module authors how to compose consistent MUI settings controls.
-- [Track tooltips](trackTooltips.md) shows module authors how to compose consistent SVG tooltip content.
 - [Cytobands](cytobands.md) documents chromosome ideograms, browser-region brackets, and interactive loci.
 - [Browser navigation button](browserNavigationButton.md) documents store-bound pan and zoom composition.
 - [TrackSelect](trackSelect.md) explains collections, the selection lifecycle, customization, schema tooling, and troubleshooting.

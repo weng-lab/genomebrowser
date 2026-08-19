@@ -1,6 +1,6 @@
 # UI concepts
 
-`@weng-lab/genomebrowser-ui` provides higher-level React UI for `@weng-lab/genomebrowser`. The core package owns browser runtime state, track modules, validation, and rendering. The UI package consumes those public boundaries rather than duplicating them.
+`@weng-lab/genomebrowser-ui` provides higher-level React UI for `@weng-lab/genomebrowser`. Core owns browser runtime state, module infrastructure, validation, and rendering orchestration. `@weng-lab/genomebrowser-tracks` owns the curated first-party modules and UI used specifically by tracks. The UI package owns larger application controls that coordinate with the browser system as a whole.
 
 TrackSelect is currently the main UI subsystem. It lets an application describe available tracks as collections and lets a user reconcile those collections with a runtime track store.
 

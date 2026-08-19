@@ -1,6 +1,6 @@
 # Transcript Track
 
-`transcriptModule` renders gene and transcript models from a host-provided GraphQL endpoint.
+`transcriptModule`, exported by `@weng-lab/genomebrowser-tracks/transcript`, renders gene and transcript models from a host-provided GraphQL endpoint.
 
 ## Config
 

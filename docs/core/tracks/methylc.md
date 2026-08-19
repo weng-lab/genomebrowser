@@ -1,6 +1,6 @@
 # MethylC Track
 
-`methylCModule` renders split-strand methylation signal from BigWig channels.
+`methylCModule`, exported by `@weng-lab/genomebrowser-tracks/methylc`, renders split-strand methylation signal from BigWig channels.
 
 ## Config
 

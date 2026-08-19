@@ -48,8 +48,7 @@ export default defineConfig(({ command, isPreview, mode }) => {
           id === "react-dom" ||
           id === "react/jsx-runtime" ||
           id === "zod" ||
-          id === "zustand" ||
-          id === "@weng-lab/genomic-reader",
+          id === "zustand",
         output: {
           sourcemapExcludeSources: true,
         },

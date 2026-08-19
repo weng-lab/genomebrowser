@@ -104,6 +104,8 @@ Memoizing the browser does not fix state placed above it. First isolate or dedup
 Create a track through its module, then check the store mutation result:
 
 ```ts
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
+
 const nextTrack = bigWigModule.create({
   id: "signal-2",
   title: "Second signal",
@@ -135,6 +137,8 @@ A reorder array must contain every current track ID exactly once. `updateTrack` 
 Use `applyTrackChanges` when adds and removals must succeed together. This also permits replacing a track with another instance using the same ID:
 
 ```ts
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
+
 const replacement = bigWigModule.create({
   id: "signal",
   title: "Replacement signal",

@@ -9,7 +9,8 @@ Create the track store and collection outside React rendering. In a browser inte
 ```tsx
 import { useState } from "react";
 import { TrackSelect, type TrackSelectCollection } from "@weng-lab/genomebrowser-ui";
-import { bigWigModule, createTrackStore } from "@weng-lab/genomebrowser";
+import { createTrackStore } from "@weng-lab/genomebrowser";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const useTrackStore = createTrackStore({
   modules: [bigWigModule],
@@ -315,7 +316,8 @@ Create `trackselect.config.ts` in the directory where you will run the command:
 
 ```ts
 import { defineTrackSelectConfig } from "@weng-lab/genomebrowser-ui/cli";
-import { bigBedModule, bigWigModule } from "@weng-lab/genomebrowser";
+import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 export default defineTrackSelectConfig({
   modules: [bigWigModule, bigBedModule],
@@ -396,7 +398,8 @@ For build tooling that already owns a registry, generate the same schema program
 
 ```ts
 import { generateTrackCollectionJsonSchema } from "@weng-lab/genomebrowser-ui";
-import { bigWigModule, createModuleRegistry } from "@weng-lab/genomebrowser";
+import { createModuleRegistry } from "@weng-lab/genomebrowser";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const registry = createModuleRegistry([bigWigModule]);
 const schema = generateTrackCollectionJsonSchema(registry);

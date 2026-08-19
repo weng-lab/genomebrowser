@@ -33,6 +33,6 @@ jobs:
       - name: Scan React projects
         uses: millionco/react-doctor@v2
         with:
-          project: "@weng-lab/genomebrowser-app,@weng-lab/genomebrowser,@weng-lab/genomebrowser-ui"
+          project: "@weng-lab/genomebrowser-app,@weng-lab/genomebrowser,@weng-lab/genomebrowser-ui,@weng-lab/genomebrowser-tracks"
           blocking: none
           commit-status: true

@@ -1,6 +1,6 @@
 # BigWig Track
 
-`bigWigModule` renders quantitative signal data from a BigWig file.
+`bigWigModule`, exported by `@weng-lab/genomebrowser-tracks/bigwig`, renders quantitative signal data from a BigWig file.
 
 ## Config
 

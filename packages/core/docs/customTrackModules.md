@@ -1,6 +1,6 @@
 # Custom Track Modules
 
-Create a custom module when a data type needs its own validated config, request logic, renderers, settings, or semantic interactions. Applications that only use built-in tracks do not need this API.
+Create a custom module when a data type needs its own validated config, request logic, renderers, settings, or semantic interactions. Applications that only use modules from `@weng-lab/genomebrowser-tracks` do not need this API.
 
 Module schemas use Zod directly, so module authors should install Zod as an application dependency:
 

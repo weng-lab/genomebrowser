@@ -3,27 +3,14 @@
 import Box from "@mui/material/Box";
 import {
   GenomeBrowser,
-  bigBedModule,
-  bigWigModule,
   createBrowserStore,
   createSettingsStore,
   createTrackStore,
   hg38,
-  methylCModule,
-  transcriptModule,
 } from "@weng-lab/genomebrowser";
-import {
-  BigBedSettings,
-  BigBedTooltip,
-  BigWigSettings,
-  BigWigTooltip,
-  MethylCSettings,
-  MethylCTooltip,
-  TrackBaseSettings,
-  TrackSelect,
-  TranscriptSettings,
-  TranscriptTooltip,
-} from "@weng-lab/genomebrowser-ui";
+import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
+import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/settings";
+import { TrackSelect } from "@weng-lab/genomebrowser-ui";
 import { useLayoutEffect, useState } from "react";
 import { RegionOverview } from "./RegionOverview";
 import { BrowserHeader, NavigationControls } from "./Toolbars";
@@ -31,30 +18,6 @@ import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
 import { useObservedWidth } from "../hooks/useObservedWidth";
 
 const marginWidth = 50;
-
-const transcriptUiModule = {
-  ...transcriptModule,
-  settingsComponent: TranscriptSettings,
-  tooltipComponent: TranscriptTooltip,
-} satisfies typeof transcriptModule;
-
-const bigBedUiModule = {
-  ...bigBedModule,
-  settingsComponent: BigBedSettings,
-  tooltipComponent: BigBedTooltip,
-} satisfies typeof bigBedModule;
-
-const bigWigUiModule = {
-  ...bigWigModule,
-  settingsComponent: BigWigSettings,
-  tooltipComponent: BigWigTooltip,
-} satisfies typeof bigWigModule;
-
-const methylCUiModule = {
-  ...methylCModule,
-  settingsComponent: MethylCSettings,
-  tooltipComponent: MethylCTooltip,
-};
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -64,7 +27,7 @@ const useBrowserStore = createBrowserStore({
 });
 
 const useTrackStore = createTrackStore({
-  modules: [transcriptUiModule, bigWigUiModule, bigBedUiModule, methylCUiModule],
+  modules: firstPartyTrackModules,
   tracks: [],
 });
 

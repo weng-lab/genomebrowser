@@ -11,7 +11,7 @@ The UI package provides higher-level interfaces such as collection-backed track 
 Install the UI package, the browser runtime, and the required peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui@alpha @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
+pnpm add @weng-lab/genomebrowser-ui@alpha @weng-lab/genomebrowser@alpha @weng-lab/genomebrowser-tracks@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
 ```
 
 The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. The UI package participates in your application's normal MUI theme and does not require a package-specific stylesheet or provider.
@@ -35,13 +35,8 @@ Create the runtime stores and track collections outside component rendering. Pas
 ```tsx
 import { useState } from "react";
 import { TrackSelect } from "@weng-lab/genomebrowser-ui";
-import {
-  GenomeBrowser,
-  bigWigModule,
-  createBrowserStore,
-  createTrackStore,
-  hg38,
-} from "@weng-lab/genomebrowser";
+import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -105,12 +100,11 @@ Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser. Collectio
 
 ## When to use the UI package
 
-Use `@weng-lab/genomebrowser` by itself when you only need to render and control a genome browser. Add `@weng-lab/genomebrowser-ui` when you need its ready-made application controls and can provide the required MUI dependencies and licensing.
+Use `@weng-lab/genomebrowser` by itself when you only need the runtime and application-defined modules. Add `@weng-lab/genomebrowser-tracks` for curated first-party modules. Add `@weng-lab/genomebrowser-ui` when you need generic application controls and can provide the required MUI dependencies and licensing.
 
 ## Documentation
 
 - [Getting started](docs/gettingStarted.md) - connect `TrackSelect` to a browser
-- [Track settings](docs/trackSettings.md) - install MUI base controls and configurable track modules
 - [TrackSelect](docs/trackSelect.md) - collections, selection behavior, customization, and schema tooling
 - [Cytobands](docs/cytobands.md) - chromosome ideograms, region brackets, and interactive loci
 - [Browser navigation button](docs/browserNavigationButton.md) - compose store-bound pan and zoom controls

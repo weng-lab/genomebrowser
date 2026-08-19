@@ -19,6 +19,9 @@ The product's server route adds `SCREEN_API_KEY` when forwarding to `https://scr
 Pass infrastructure at the narrow public boundary:
 
 ```tsx
+import { transcriptModule } from "@weng-lab/genomebrowser-tracks/transcript";
+import { Cytobands } from "@weng-lab/genomebrowser-ui";
+
 const transcriptTrack = transcriptModule.create({
   id: "genes",
   title: "Genes",

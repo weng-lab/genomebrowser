@@ -3,20 +3,27 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 import { DefaultSettingsModal } from "../../src/browser/settings/DefaultSettingsModal";
 import { createTrackStore } from "../../src/browser/state/trackStore";
-import { bigWigModule } from "../../src/tracks/bigwig/module";
-import { TrackSettingsTestProvider } from "../tracks/trackSettingsTestProvider";
+import { defineTrackModule } from "../../src/modules/defineTrackModule";
+import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
-const track = bigWigModule.create({
+const testModule = defineTrackModule({
+  type: "test",
+  configSchema: z.object({}),
+  fetch: async () => null,
+  render: { full: () => null },
+});
+const track = testModule.create({
   id: "test",
   title: "Test track",
-  config: { url: "YOUR_URL_HERE" },
+  config: {},
 });
-const trackStore = createTrackStore({ modules: [bigWigModule], tracks: [track] });
+const trackStore = createTrackStore({ modules: [testModule], tracks: [track] });
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;

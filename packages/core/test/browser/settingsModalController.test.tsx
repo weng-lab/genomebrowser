@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act } from "react";
+import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 import { z } from "zod";
@@ -20,8 +20,33 @@ import type {
   TrackMutationResult,
   TrackSettingsProps,
 } from "../../src/modules/types";
-import { bigWigModule } from "../../src/tracks/bigwig/module";
-import type { BigWigConfig } from "../../src/tracks/bigwig/types";
+
+type SignalConfig = { url: string; clampIndicatorColor: string };
+function SignalSettings({ track, updateTrack }: TrackSettingsProps<SignalConfig>) {
+  const [color, setColor] = useState(track.config.clampIndicatorColor);
+  return (
+    <label>
+      Clamp indicator color
+      <input
+        value={color}
+        onChange={(event) => setColor(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") updateTrack({ config: { clampIndicatorColor: color } });
+        }}
+      />
+    </label>
+  );
+}
+const signalModule = defineTrackModule({
+  type: "signal",
+  configSchema: z.object({
+    url: z.string().min(1),
+    clampIndicatorColor: z.string().default("#ff0000"),
+  }),
+  fetch: async () => null,
+  render: { full: () => null },
+  settingsComponent: SignalSettings,
+});
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -94,7 +119,7 @@ describe("SettingsModalController", () => {
       return <div>Module settings</div>;
     }
 
-    const module = { ...bigWigModule, settingsComponent: ModuleSettings };
+    const module = { ...signalModule, settingsComponent: ModuleSettings };
     const track = module.create({
       id: "track",
       title: "Track",
@@ -236,17 +261,17 @@ describe("SettingsModalController", () => {
       return <div>{children}</div>;
     }
 
-    const first = bigWigModule.create({
+    const first = signalModule.create({
       id: "first",
       title: "First",
       config: { url: "YOUR_URL_HERE" },
     });
-    const second = bigWigModule.create({
+    const second = signalModule.create({
       id: "second",
       title: "Second",
       config: { url: "YOUR_OTHER_URL_HERE" },
     });
-    const trackStore = createTrackStore({ modules: [bigWigModule], tracks: [first, second] });
+    const trackStore = createTrackStore({ modules: [signalModule], tracks: [first, second] });
     const settingsStore = createSettingsStore({ modalComponent: Modal });
     settingsStore.getState().openSettings("first", { x: 0, y: 0 });
 
@@ -319,7 +344,7 @@ function setTextInput(element: HTMLInputElement, value: string) {
 }
 
 function acceptedColor(track: AnyTrackInstance | undefined) {
-  return (track?.config as BigWigConfig | undefined)?.clampIndicatorColor;
+  return (track?.config as SignalConfig | undefined)?.clampIndicatorColor;
 }
 
 function requireValue<T>(value: T | undefined, message: string): T {
