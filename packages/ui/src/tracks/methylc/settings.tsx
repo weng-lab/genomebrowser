@@ -5,8 +5,7 @@ import type {
   MethylCTooltipItem,
   TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
-import { useState } from "react";
-import { flushSync } from "react-dom";
+import { useRef, useState } from "react";
 import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
@@ -41,23 +40,46 @@ type MethylCSettingsProps = TrackSettingsProps<MethylCConfig, MethylCTooltipItem
 type UpdateConfig = (
   createUpdate: (config: Readonly<MethylCConfig>) => Partial<MethylCConfig>,
 ) => ReturnType<MethylCSettingsProps["updateTrack"]>;
-type PendingConfigUpdates = {
-  source: Readonly<MethylCConfig>;
-  updates: Partial<MethylCConfig>[];
+type ConfigEditorState = {
+  // This version prevents stale accepted edits replaying after controlled config changes A -> B -> A.
+  baselineVersion: number;
+  acceptedUpdates: Partial<MethylCConfig>[];
+  baseConfig: Readonly<MethylCConfig>;
 };
 
 export function MethylCSettings({ track, updateTrack }: MethylCSettingsProps) {
-  const [pendingUpdates, setPendingUpdates] = useState<PendingConfigUpdates>();
-  const activeUpdates = pendingUpdates?.source === track.config ? pendingUpdates.updates : [];
-  const currentConfig = applyConfigUpdates(track.config, activeUpdates);
+  const [configEditor, setConfigEditor] = useState(() => createConfigEditorState(track.config));
+  const latestConfigEditor = useRef(configEditor);
+  const renderedConfigEditor = reconcileConfigEditorState(configEditor, track.config);
+  if (renderedConfigEditor !== configEditor) {
+    setConfigEditor(renderedConfigEditor);
+  }
+
+  const currentConfig = applyConfigUpdates(
+    renderedConfigEditor.baseConfig,
+    renderedConfigEditor.acceptedUpdates,
+  );
 
   const updateConfig: UpdateConfig = (createUpdate) => {
+    const currentConfigEditor = getCommittableConfigEditorState(
+      latestConfigEditor.current,
+      renderedConfigEditor,
+    );
+    const currentConfig = applyConfigUpdates(
+      currentConfigEditor.baseConfig,
+      currentConfigEditor.acceptedUpdates,
+    );
     const configUpdate = createUpdate(currentConfig);
     const result = updateTrack({ config: configUpdate });
     if (result.ok) {
-      flushSync(() => {
-        setPendingUpdates({ source: track.config, updates: [...activeUpdates, configUpdate] });
-      });
+      const nextConfigEditor = {
+        baselineVersion: currentConfigEditor.baselineVersion,
+        baseConfig: currentConfigEditor.baseConfig,
+        acceptedUpdates: [...currentConfigEditor.acceptedUpdates, configUpdate],
+      } satisfies ConfigEditorState;
+      // Compose accepted edits even when React batches multiple input commits.
+      latestConfigEditor.current = nextConfigEditor;
+      setConfigEditor(nextConfigEditor);
     }
     return result;
   };
@@ -71,13 +93,39 @@ export function MethylCSettings({ track, updateTrack }: MethylCSettingsProps) {
   );
 }
 
+function createConfigEditorState(config: Readonly<MethylCConfig>): ConfigEditorState {
+  return { baselineVersion: 0, acceptedUpdates: [], baseConfig: config };
+}
+
+function reconcileConfigEditorState(
+  state: ConfigEditorState,
+  config: Readonly<MethylCConfig>,
+): ConfigEditorState {
+  if (state.baseConfig === config) return state;
+
+  return {
+    baselineVersion: state.baselineVersion + 1,
+    acceptedUpdates: [],
+    baseConfig: config,
+  };
+}
+
+function getCommittableConfigEditorState(
+  latestState: ConfigEditorState,
+  renderedState: ConfigEditorState,
+) {
+  return latestState.baselineVersion === renderedState.baselineVersion
+    ? latestState
+    : renderedState;
+}
+
 function applyConfigUpdates(
   config: Readonly<MethylCConfig>,
   updates: Partial<MethylCConfig>[],
 ): MethylCConfig {
-  return updates.reduce<MethylCConfig>((current, update) => ({ ...current, ...update }), {
-    ...config,
-  });
+  const currentConfig: MethylCConfig = { ...config };
+  for (const update of updates) Object.assign(currentConfig, update);
+  return currentConfig;
 }
 
 function SourceSettings({

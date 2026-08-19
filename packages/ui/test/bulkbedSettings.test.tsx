@@ -118,6 +118,41 @@ describe("BulkBed settings", () => {
     ]);
   });
 
+  it("does not replay accepted edits after restoring an earlier datasets reference", () => {
+    vi.useFakeTimers();
+    const baselineTrack = createBulkBedTrack(initialConfig);
+    const advancedTrack = {
+      ...baselineTrack,
+      config: {
+        ...baselineTrack.config,
+        datasets: baselineTrack.config.datasets.map((dataset) => ({
+          ...dataset,
+          name: `${dataset.name} externally updated`,
+        })),
+      },
+    };
+    const updateTrack = vi.fn<
+      (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult
+    >(() => ({ ok: true }));
+
+    renderControlledSettings(baselineTrack, updateTrack);
+    updateInput(rowInput(datasetRows()[0], "Name"), "Accepted Dataset A");
+    act(() => vi.advanceTimersByTime(300));
+    renderControlledSettings(advancedTrack, updateTrack);
+    renderControlledSettings(baselineTrack, updateTrack);
+    updateInput(rowInput(datasetRows()[0], "URL"), "RESTORED_C0_URL");
+    act(() => vi.advanceTimersByTime(300));
+
+    expect(updateTrack).toHaveBeenLastCalledWith({
+      config: {
+        datasets: [
+          { name: "Dataset A", url: "RESTORED_C0_URL" },
+          { name: "Dataset B", url: "DATASET_B_URL" },
+        ],
+      },
+    });
+  });
+
   it("adds and removes datasets while retaining stable rows and one required dataset", () => {
     const onUpdate = vi.fn<(partial: Partial<BulkBedConfig>) => void>();
     renderStatefulSettings(
@@ -222,6 +257,25 @@ describe("BulkBed settings", () => {
     expect(datasetRows()[0]).toBe(firstRow);
     expect(datasetRows()[1]).toBe(externalRow);
   });
+
+  it("resets row ownership when the track id changes with the same datasets reference", () => {
+    const baselineTrack = createBulkBedTrack(initialConfig);
+    const replacementTrack = {
+      ...baselineTrack,
+      base: { ...baselineTrack.base, id: "replacement-bulkbed" },
+    };
+    const updateTrack = vi.fn<
+      (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult
+    >(() => ({ ok: true }));
+
+    renderControlledSettings(baselineTrack, updateTrack);
+    const rows = datasetRows();
+    renderControlledSettings(replacementTrack, updateTrack);
+
+    expect(datasetNames()).toEqual(["Dataset A", "Dataset B"]);
+    expect(datasetRows()[0]).not.toBe(rows[0]);
+    expect(datasetRows()[1]).not.toBe(rows[1]);
+  });
 });
 
 function renderSettings(
@@ -275,15 +329,17 @@ function BulkBedSettingsHarness({
 function createBulkBedStore(config: BulkBedConfig) {
   return createTrackStore({
     modules: [bulkBedModule],
-    tracks: [
-      bulkBedModule.create({
-        id: "bulkbed",
-        title: "BulkBed",
-        height: 80,
-        color: "#4b9560",
-        config,
-      }),
-    ],
+    tracks: [createBulkBedTrack(config)],
+  });
+}
+
+function createBulkBedTrack(config: BulkBedConfig, id = "bulkbed") {
+  return bulkBedModule.create({
+    id,
+    title: "BulkBed",
+    height: 80,
+    color: "#4b9560",
+    config,
   });
 }
 
@@ -311,6 +367,14 @@ function mount() {
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
+}
+
+function renderControlledSettings(
+  track: TrackInstance<BulkBedConfig, BulkBedRect>,
+  updateTrack: (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult,
+) {
+  if (!root) mount();
+  act(() => root?.render(<BulkBedSettings track={track} updateTrack={updateTrack} />));
 }
 
 function gapInput() {

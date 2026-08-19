@@ -150,6 +150,41 @@ describe("methylC settings", () => {
     ]);
   });
 
+  it("does not replay accepted edits after restoring an earlier config reference", () => {
+    vi.useFakeTimers();
+    const baselineTrack = createMethylCTrack(config);
+    const advancedTrack = {
+      ...baselineTrack,
+      config: {
+        ...baselineTrack.config,
+        colors: { ...baselineTrack.config.colors, cpg: "#000000" },
+      },
+    };
+    const updateTrack = vi.fn<
+      (update: TrackUpdate<MethylCConfig, MethylCTooltipItem>) => TrackMutationResult
+    >(() => ({ ok: true }));
+
+    renderControlledSettings(baselineTrack, updateTrack);
+    updateInput("Plus-strand CpG URL", "ACCEPTED_PLUS_CPG_URL");
+    act(() => vi.advanceTimersByTime(300));
+    renderControlledSettings(advancedTrack, updateTrack);
+    renderControlledSettings(baselineTrack, updateTrack);
+    updateInput("Plus-strand CHG URL", "RESTORED_C0_CHG_URL");
+    act(() => vi.advanceTimersByTime(300));
+
+    expect(updateTrack).toHaveBeenLastCalledWith({
+      config: {
+        urls: {
+          ...baselineTrack.config.urls,
+          plusStrand: {
+            ...baselineTrack.config.urls.plusStrand,
+            chg: { url: "RESTORED_C0_CHG_URL" },
+          },
+        },
+      },
+    });
+  });
+
   it("retains the first bound through a focus transition and commits the pair on Enter", () => {
     vi.useFakeTimers();
     const { updateTrack } = renderSettings({ ...config, range: undefined });
@@ -192,15 +227,7 @@ function renderSettings(initialConfig = config) {
   >(() => ({ ok: true }));
   const trackStore = createTrackStore({
     modules: [methylCModule],
-    tracks: [
-      methylCModule.create({
-        id: "methylc",
-        title: "MethylC",
-        height: 80,
-        color: "#000000",
-        config: initialConfig,
-      }),
-    ],
+    tracks: [createMethylCTrack(initialConfig)],
   });
   const applyUpdate = trackStore.getState().updateTrack;
   container = document.createElement("div");
@@ -226,6 +253,28 @@ function renderSettings(initialConfig = config) {
     );
   });
   return { rerender, trackStore, updateTrack };
+}
+
+function createMethylCTrack(initialConfig: MethylCConfig, id = "methylc") {
+  return methylCModule.create({
+    id,
+    title: "MethylC",
+    height: 80,
+    color: "#000000",
+    config: initialConfig,
+  });
+}
+
+function renderControlledSettings(
+  track: TrackInstance<MethylCConfig, MethylCTooltipItem>,
+  updateTrack: (update: TrackUpdate<MethylCConfig, MethylCTooltipItem>) => TrackMutationResult,
+) {
+  if (!container) {
+    container = document.createElement("div");
+    document.body.append(container);
+    root = createRoot(container);
+  }
+  act(() => root?.render(<MethylCSettings track={track} updateTrack={updateTrack} />));
 }
 
 function MethylCSettingsHarness({

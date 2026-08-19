@@ -45,6 +45,22 @@ type ReaderAdapter = {
   read(region: Region): Promise<unknown[]>;
 };
 
+export function runSequentially<Value>(
+  values: Iterable<Value>,
+  operation: (value: Value) => Promise<void>,
+): Promise<void> {
+  const iterator = values[Symbol.iterator]();
+
+  async function runNext(): Promise<void> {
+    const next = iterator.next();
+    if (next.done) return;
+    await operation(next.value);
+    return runNext();
+  }
+
+  return runNext();
+}
+
 export const DATASETS: readonly Dataset[] = [
   {
     id: "astro-peaks",
@@ -178,31 +194,34 @@ export async function runComparison(
   if (readers !== undefined) {
     const primeOrder: readonly ReaderName[] = newFirst ? ["new", "old"] : ["old", "new"];
     // Prime sequentially to avoid one reader's network traffic affecting the other reader's cache.
-    for (const name of primeOrder) {
+    await runSequentially(primeOrder, async (name) => {
       await withRequestContext({ dataset: dataset.id, mode, size, sample: 0, phase: "prime" }, () =>
         readers[name].read(region),
       );
-    }
+    });
   }
 
   // Measurements are sequential and alternate reader order to limit ordering and contention bias.
-  for (let sample = 0; sample < sampleCount; sample += 1) {
-    const sampleNewFirst = sample % 2 === 0 ? newFirst : !newFirst;
-    const order: readonly ReaderName[] = sampleNewFirst ? ["new", "old"] : ["old", "new"];
-    for (const name of order) {
-      const reader = readers?.[name] ?? createReader(name, dataset);
-      const label = `reader:${name}:${mode}:${dataset.id}:${region.start}-${region.end}:sample-${sample + 1}`;
-      samples[name].push(
-        await timeRead(reader, region, label, {
-          dataset: dataset.id,
-          mode,
-          size,
-          sample: sample + 1,
-          phase: "measure",
-        }),
-      );
-    }
-  }
+  await runSequentially(
+    Array.from({ length: sampleCount }, (_, sample) => sample),
+    async (sample) => {
+      const sampleNewFirst = sample % 2 === 0 ? newFirst : !newFirst;
+      const order: readonly ReaderName[] = sampleNewFirst ? ["new", "old"] : ["old", "new"];
+      await runSequentially(order, async (name) => {
+        const reader = readers?.[name] ?? createReader(name, dataset);
+        const label = `reader:${name}:${mode}:${dataset.id}:${region.start}-${region.end}:sample-${sample + 1}`;
+        samples[name].push(
+          await timeRead(reader, region, label, {
+            dataset: dataset.id,
+            mode,
+            size,
+            sample: sample + 1,
+            phase: "measure",
+          }),
+        );
+      });
+    },
+  );
 
   const newReader = metrics(samples.new);
   const oldReader = metrics(samples.old);

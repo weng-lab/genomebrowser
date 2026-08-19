@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
-import { useEffect, useState } from "react";
-import { flushSync } from "react-dom";
+import { useRef, useState } from "react";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
 import type { TrackMutationResult, TrackSettingsProps } from "../../modules/types";
 import type { BulkBedConfig, BulkBedDataset, BulkBedRect } from "./types";
@@ -11,9 +10,12 @@ type DatasetEdit =
   | { type: "remove"; index: number }
   | { type: "field"; index: number; field: keyof BulkBedDataset; value: string };
 
-type PendingDatasetEdits = {
-  source: BulkBedDataset[];
-  edits: DatasetEdit[];
+type DatasetEditorState = {
+  // This version prevents stale accepted edits replaying after controlled datasets change A -> B -> A.
+  baselineVersion: number;
+  baseDatasets: BulkBedDataset[];
+  datasetKeys: DatasetKeyState;
+  acceptedEdits: DatasetEdit[];
 };
 
 export function BulkBedSettings({ track, updateTrack }: BulkBedSettingsProps) {
@@ -64,27 +66,41 @@ function DatasetsFields({
   id: string;
   updateTrack: BulkBedSettingsProps["updateTrack"];
 }) {
-  const [pendingEdits, setPendingEdits] = useState<PendingDatasetEdits>();
-  const activeEdits = pendingEdits?.source === datasets ? pendingEdits.edits : [];
-  const currentDatasets = applyDatasetEdits(datasets, activeEdits);
+  const [editorState, setEditorState] = useState(() => createDatasetEditorState(datasets, id));
+  const latestEditorState = useRef(editorState);
+  const renderedEditorState = reconcileDatasetEditorState(editorState, datasets, id);
+  if (renderedEditorState !== editorState) {
+    setEditorState(renderedEditorState);
+  }
+
+  const currentDatasets = getCurrentDatasets(renderedEditorState);
   const datasetCount = currentDatasets.length;
-  const [datasetKeyState, setDatasetKeyState] = useState(() =>
-    createDatasetKeyState(id, datasetCount),
-  );
-  const renderedKeyState = reconcileDatasetKeys(datasetKeyState, id, datasetCount);
 
-  useEffect(() => {
-    setDatasetKeyState((current) => reconcileDatasetKeys(current, id, datasetCount));
-  }, [id, datasetCount]);
+  const getCommittableEditorState = () =>
+    getCommittableEditorStateForProps(latestEditorState.current, renderedEditorState);
 
-  const commitDatasetEdit = (edit: DatasetEdit, onAccepted?: () => void) => {
+  const commitDatasetEdit = (
+    edit: DatasetEdit,
+    currentEditorState = getCommittableEditorState(),
+  ) => {
+    const currentDatasets = getCurrentDatasets(currentEditorState);
     const nextDatasets = applyDatasetEdit(currentDatasets, edit);
     const result = updateTrack({ config: { datasets: nextDatasets } });
     if (result.ok) {
-      flushSync(() => {
-        setPendingEdits({ source: datasets, edits: [...activeEdits, edit] });
-        onAccepted?.();
-      });
+      const nextEditorState = {
+        baselineVersion: currentEditorState.baselineVersion,
+        baseDatasets: currentEditorState.baseDatasets,
+        datasetKeys: applyDatasetEditToKeys(
+          currentEditorState.datasetKeys,
+          id,
+          currentDatasets.length,
+          edit,
+        ),
+        acceptedEdits: [...currentEditorState.acceptedEdits, edit],
+      } satisfies DatasetEditorState;
+      // Compose accepted edits even when React batches multiple input commits.
+      latestEditorState.current = nextEditorState;
+      setEditorState(nextEditorState);
     }
     return result;
   };
@@ -93,7 +109,7 @@ function DatasetsFields({
     <div style={{ display: "grid", gap: "8px" }}>
       <div style={{ fontWeight: 600 }}>Datasets</div>
       {Array.from({ length: datasetCount }, (_, index) => (
-        <div key={renderedKeyState.keys[index]} style={datasetStyle}>
+        <div key={renderedEditorState.datasetKeys.keys[index]} style={datasetStyle}>
           <DatasetField
             datasets={currentDatasets}
             index={index}
@@ -111,17 +127,7 @@ function DatasetsFields({
           <button
             type="button"
             disabled={datasetCount === 1}
-            onClick={() => {
-              commitDatasetEdit({ type: "remove", index }, () => {
-                setDatasetKeyState((current) => {
-                  const reconciled = reconcileDatasetKeys(current, id, datasetCount);
-                  return {
-                    ...reconciled,
-                    keys: reconciled.keys.filter((_, datasetIndex) => datasetIndex !== index),
-                  };
-                });
-              });
-            }}
+            onClick={() => commitDatasetEdit({ type: "remove", index })}
           >
             Remove
           </button>
@@ -131,6 +137,8 @@ function DatasetsFields({
         <button
           type="button"
           onClick={() => {
+            const currentEditorState = getCommittableEditorState();
+            const currentDatasets = getCurrentDatasets(currentEditorState);
             commitDatasetEdit(
               {
                 type: "add",
@@ -139,16 +147,7 @@ function DatasetsFields({
                   url: "YOUR_URL_HERE",
                 },
               },
-              () => {
-                setDatasetKeyState((current) => {
-                  const reconciled = reconcileDatasetKeys(current, id, datasetCount);
-                  return {
-                    ...reconciled,
-                    keys: [...reconciled.keys, datasetKey(reconciled.id, reconciled.nextKey)],
-                    nextKey: reconciled.nextKey + 1,
-                  };
-                });
-              },
+              currentEditorState,
             );
           }}
         >
@@ -193,6 +192,10 @@ function applyDatasetEdits(datasets: BulkBedDataset[], edits: DatasetEdit[]) {
   return edits.reduce(applyDatasetEdit, datasets);
 }
 
+function getCurrentDatasets(state: DatasetEditorState) {
+  return applyDatasetEdits(state.baseDatasets, state.acceptedEdits);
+}
+
 function applyDatasetEdit(datasets: BulkBedDataset[], edit: DatasetEdit): BulkBedDataset[] {
   switch (edit.type) {
     case "add":
@@ -222,6 +225,39 @@ type DatasetKeyState = {
   nextKey: number;
 };
 
+function createDatasetEditorState(datasets: BulkBedDataset[], id: string): DatasetEditorState {
+  return {
+    baselineVersion: 0,
+    baseDatasets: datasets,
+    datasetKeys: createDatasetKeyState(id, datasets.length),
+    acceptedEdits: [],
+  };
+}
+
+function reconcileDatasetEditorState(
+  state: DatasetEditorState,
+  datasets: BulkBedDataset[],
+  id: string,
+): DatasetEditorState {
+  if (state.baseDatasets === datasets && state.datasetKeys.id === id) return state;
+
+  return {
+    baselineVersion: state.baselineVersion + 1,
+    baseDatasets: datasets,
+    datasetKeys: reconcileDatasetKeys(state.datasetKeys, id, datasets.length),
+    acceptedEdits: [],
+  };
+}
+
+function getCommittableEditorStateForProps(
+  latestState: DatasetEditorState,
+  renderedState: DatasetEditorState,
+) {
+  return latestState.baselineVersion === renderedState.baselineVersion
+    ? latestState
+    : renderedState;
+}
+
 function createDatasetKeyState(id: string, count: number): DatasetKeyState {
   return {
     id,
@@ -244,6 +280,30 @@ function reconcileDatasetKeys(state: DatasetKeyState, id: string, count: number)
     ],
     nextKey: state.nextKey + addedCount,
   };
+}
+
+function applyDatasetEditToKeys(
+  state: DatasetKeyState,
+  id: string,
+  datasetCount: number,
+  edit: DatasetEdit,
+): DatasetKeyState {
+  const reconciled = reconcileDatasetKeys(state, id, datasetCount);
+  switch (edit.type) {
+    case "add":
+      return {
+        ...reconciled,
+        keys: [...reconciled.keys, datasetKey(reconciled.id, reconciled.nextKey)],
+        nextKey: reconciled.nextKey + 1,
+      };
+    case "remove":
+      return {
+        ...reconciled,
+        keys: reconciled.keys.filter((_, index) => index !== edit.index),
+      };
+    case "field":
+      return reconciled;
+  }
 }
 
 function datasetKey(id: string, sequence: number) {
