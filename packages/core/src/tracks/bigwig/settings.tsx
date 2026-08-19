@@ -1,116 +1,124 @@
 import { useRef, useState } from "react";
 import { DraftColorInput } from "../../browser/settings/DraftColorInput";
-import { useSettingsStore, useTrackStore } from "../../browser/state/browserContextState";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
-import type { BigWigConfig } from "./types";
+import type { TrackSettingsProps } from "../../modules/types";
+import type { BigWigConfig, RenderedBigWigPoint } from "./types";
 
-export function BigWigSettings() {
+type BigWigSettingsProps = TrackSettingsProps<BigWigConfig, RenderedBigWigPoint>;
+
+export function BigWigSettings({ track, updateTrack }: BigWigSettingsProps) {
+  const { config } = track;
   return (
     <SettingsSection title="BigWig">
-      <UrlField />
-      <FillWithZeroField />
-      <ShowClampIndicatorsField />
-      <ClampIndicatorColorField />
-      <YRangeFields />
+      <UrlField updateTrack={updateTrack} url={config.url} />
+      <FillWithZeroField fillWithZero={config.fillWithZero} updateTrack={updateTrack} />
+      <ShowClampIndicatorsField
+        showClampIndicators={config.showClampIndicators}
+        updateTrack={updateTrack}
+      />
+      <ClampIndicatorColorField
+        color={config.clampIndicatorColor}
+        showClampIndicators={config.showClampIndicators}
+        updateTrack={updateTrack}
+      />
+      <YRangeFields id={track.base.id} updateTrack={updateTrack} yRange={config.yRange} />
     </SettingsSection>
   );
 }
 
-function UrlField() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const url = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BigWigConfig | undefined)?.url ?? "",
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
+function UrlField({
+  updateTrack,
+  url,
+}: {
+  updateTrack: BigWigSettingsProps["updateTrack"];
+  url: string;
+}) {
   return (
     <label style={gridFieldStyle}>
       URL
       <input
         type="text"
         value={url}
-        onChange={(event) => updateTrack(trackId, { config: { url: event.target.value } })}
+        onChange={(event) => updateTrack({ config: { url: event.target.value } })}
       />
     </label>
   );
 }
 
-function FillWithZeroField() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const fillWithZero = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BigWigConfig | undefined)?.fillWithZero,
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
+function FillWithZeroField({
+  fillWithZero,
+  updateTrack,
+}: {
+  fillWithZero: boolean;
+  updateTrack: BigWigSettingsProps["updateTrack"];
+}) {
   return (
     <label style={checkboxFieldStyle}>
       <input
         type="checkbox"
         checked={fillWithZero ?? false}
-        onChange={(event) =>
-          updateTrack(trackId, { config: { fillWithZero: event.target.checked } })
-        }
+        onChange={(event) => updateTrack({ config: { fillWithZero: event.target.checked } })}
       />
       Fill missing values with zero
     </label>
   );
 }
 
-function ShowClampIndicatorsField() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const showClampIndicators = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BigWigConfig | undefined)?.showClampIndicators,
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
+function ShowClampIndicatorsField({
+  showClampIndicators,
+  updateTrack,
+}: {
+  showClampIndicators: boolean;
+  updateTrack: BigWigSettingsProps["updateTrack"];
+}) {
   return (
     <label style={checkboxFieldStyle}>
       <input
         type="checkbox"
         checked={showClampIndicators ?? true}
-        onChange={(event) =>
-          updateTrack(trackId, { config: { showClampIndicators: event.target.checked } })
-        }
+        onChange={(event) => updateTrack({ config: { showClampIndicators: event.target.checked } })}
       />
       Show clamp indicators
     </label>
   );
 }
 
-function ClampIndicatorColorField() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const color = useTrackStore(
-    (state) =>
-      (state.getTrack(trackId)?.config as BigWigConfig | undefined)?.clampIndicatorColor ?? "",
-  );
-  const showClampIndicators = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BigWigConfig | undefined)?.showClampIndicators,
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
+function ClampIndicatorColorField({
+  color,
+  showClampIndicators,
+  updateTrack,
+}: {
+  color: string;
+  showClampIndicators: boolean;
+  updateTrack: BigWigSettingsProps["updateTrack"];
+}) {
   return (
     <label style={gridFieldStyle}>
       Clamp indicator color
       <DraftColorInput
         value={color}
         disabled={!(showClampIndicators ?? true)}
-        onCommit={(clampIndicatorColor) =>
-          updateTrack(trackId, { config: { clampIndicatorColor } })
-        }
+        onCommit={(clampIndicatorColor) => updateTrack({ config: { clampIndicatorColor } })}
       />
     </label>
   );
 }
 
-function YRangeFields() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const minValue = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BigWigConfig | undefined)?.yRange?.min,
-  );
-  const maxValue = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BigWigConfig | undefined)?.yRange?.max,
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
+function YRangeFields({
+  id,
+  updateTrack,
+  yRange,
+}: {
+  id: string;
+  updateTrack: BigWigSettingsProps["updateTrack"];
+  yRange: BigWigConfig["yRange"];
+}) {
+  const minValue = yRange?.min;
+  const maxValue = yRange?.max;
   const minRef = useRef<HTMLInputElement>(null);
   const maxRef = useRef<HTMLInputElement>(null);
   const [rangeError, setRangeError] = useState<string>();
-  const rangeErrorId = `${trackId}-y-range-error`;
+  const rangeErrorId = `${id}-y-range-error`;
   const updateYRange = () => {
     const min = parseRangeBound(minRef.current?.value ?? "");
     const max = parseRangeBound(maxRef.current?.value ?? "");
@@ -131,7 +139,7 @@ function YRangeFields() {
             ...(min !== undefined ? { min } : {}),
             ...(max !== undefined ? { max } : {}),
           };
-    const result = updateTrack(trackId, { config: { yRange } });
+    const result = updateTrack({ config: { yRange } });
     setRangeError(result.ok ? undefined : result.error);
   };
 
@@ -168,7 +176,7 @@ function YRangeFields() {
           onClick={() => {
             if (minRef.current) minRef.current.value = "";
             if (maxRef.current) maxRef.current.value = "";
-            const result = updateTrack(trackId, { config: { yRange: undefined } });
+            const result = updateTrack({ config: { yRange: undefined } });
             setRangeError(result.ok ? undefined : result.error);
           }}
         >

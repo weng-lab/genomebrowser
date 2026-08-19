@@ -1,11 +1,12 @@
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
-import {
-  useSettingsStore,
-  useTrackStore,
-  useTrackStoreApi,
-  type MethylCConfig,
+import type {
+  MethylCConfig,
+  MethylCTooltipItem,
+  TrackSettingsProps,
 } from "@weng-lab/genomebrowser";
+import { useState } from "react";
+import { flushSync } from "react-dom";
 import { TrackSettingsColorField } from "../../TrackSettings/trackSettingsColorField";
 import { TrackSettingsFieldGrid } from "../../TrackSettings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../../TrackSettings/trackSettingsLayout";
@@ -36,17 +37,56 @@ const colors: ReadonlyArray<{ key: Color; label: string }> = [
   { key: "depth", label: "Depth color" },
 ];
 
-export function MethylCSettings() {
+type MethylCSettingsProps = TrackSettingsProps<MethylCConfig, MethylCTooltipItem>;
+type UpdateConfig = (
+  createUpdate: (config: Readonly<MethylCConfig>) => Partial<MethylCConfig>,
+) => ReturnType<MethylCSettingsProps["updateTrack"]>;
+type PendingConfigUpdates = {
+  source: Readonly<MethylCConfig>;
+  updates: Partial<MethylCConfig>[];
+};
+
+export function MethylCSettings({ track, updateTrack }: MethylCSettingsProps) {
+  const [pendingUpdates, setPendingUpdates] = useState<PendingConfigUpdates>();
+  const activeUpdates = pendingUpdates?.source === track.config ? pendingUpdates.updates : [];
+  const currentConfig = applyConfigUpdates(track.config, activeUpdates);
+
+  const updateConfig: UpdateConfig = (createUpdate) => {
+    const configUpdate = createUpdate(currentConfig);
+    const result = updateTrack({ config: configUpdate });
+    if (result.ok) {
+      flushSync(() => {
+        setPendingUpdates({ source: track.config, updates: [...activeUpdates, configUpdate] });
+      });
+    }
+    return result;
+  };
+
   return (
     <TrackSettingsLayout>
-      <SourceSettings />
-      <ColorSettings />
-      <RenderingSettings />
+      <SourceSettings config={currentConfig} updateConfig={updateConfig} />
+      <ColorSettings config={currentConfig} updateConfig={updateConfig} />
+      <RenderingSettings config={currentConfig} updateConfig={updateConfig} />
     </TrackSettingsLayout>
   );
 }
 
-function SourceSettings() {
+function applyConfigUpdates(
+  config: Readonly<MethylCConfig>,
+  updates: Partial<MethylCConfig>[],
+): MethylCConfig {
+  return updates.reduce<MethylCConfig>((current, update) => ({ ...current, ...update }), {
+    ...config,
+  });
+}
+
+function SourceSettings({
+  config,
+  updateConfig,
+}: {
+  config: Readonly<MethylCConfig>;
+  updateConfig: UpdateConfig;
+}) {
   return (
     <>
       {strands.map(({ key: strand, title, labelPrefix }) => (
@@ -58,6 +98,8 @@ function SourceSettings() {
                 channel={channel}
                 label={`${labelPrefix} ${label} URL`}
                 strand={strand}
+                updateConfig={updateConfig}
+                urls={config.urls}
               />
             ))}
           </TrackSettingsFieldGrid>
@@ -71,102 +113,113 @@ function MethylCUrlField({
   channel,
   label,
   strand,
+  updateConfig,
+  urls,
 }: {
   channel: Channel;
   label: string;
   strand: Strand;
+  updateConfig: UpdateConfig;
+  urls: MethylCConfig["urls"];
 }) {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const value = useTrackStore(
-    (state) =>
-      (state.getTrack(trackId)?.config as MethylCConfig | undefined)?.urls[strand][channel].url ??
-      "",
-  );
-  const trackStore = useTrackStoreApi();
-
   return (
     <TrackSettingsUrlField
       label={label}
-      value={value}
-      onCommit={(url) => {
-        const state = trackStore.getState();
-        const urls = (state.getTrack(trackId)!.config as MethylCConfig).urls;
-        return state.updateTrack(trackId, {
-          config: {
-            urls: {
-              ...urls,
-              [strand]: {
-                ...urls[strand],
-                [channel]: { ...urls[strand][channel], url },
-              },
+      value={urls[strand][channel].url}
+      onCommit={(url) =>
+        updateConfig((config) => ({
+          urls: {
+            ...config.urls,
+            [strand]: {
+              ...config.urls[strand],
+              [channel]: { ...config.urls[strand][channel], url },
             },
           },
-        });
-      }}
+        }))
+      }
     />
   );
 }
 
-function ColorSettings() {
+function ColorSettings({
+  config,
+  updateConfig,
+}: {
+  config: Readonly<MethylCConfig>;
+  updateConfig: UpdateConfig;
+}) {
   return (
     <TrackSettingsSection title="Colors">
       <TrackSettingsFieldGrid>
         {colors.map(({ key, label }) => (
-          <MethylCColorField key={key} color={key} label={label} />
+          <MethylCColorField
+            key={key}
+            color={key}
+            colors={config.colors}
+            label={label}
+            updateConfig={updateConfig}
+          />
         ))}
       </TrackSettingsFieldGrid>
     </TrackSettingsSection>
   );
 }
 
-function MethylCColorField({ color, label }: { color: Color; label: string }) {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const value = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as MethylCConfig | undefined)?.colors[color] ?? "",
-  );
-  const trackStore = useTrackStoreApi();
-
+function MethylCColorField({
+  color,
+  colors,
+  label,
+  updateConfig,
+}: {
+  color: Color;
+  colors: MethylCConfig["colors"];
+  label: string;
+  updateConfig: UpdateConfig;
+}) {
   return (
     <TrackSettingsColorField
       label={label}
-      value={value}
-      onCommit={(nextValue) => {
-        const state = trackStore.getState();
-        const currentColors = (state.getTrack(trackId)!.config as MethylCConfig).colors;
-        return state.updateTrack(trackId, {
-          config: { colors: { ...currentColors, [color]: nextValue } },
-        });
-      }}
+      value={colors[color]}
+      onCommit={(nextValue) =>
+        updateConfig((config) => ({
+          colors: { ...config.colors, [color]: nextValue },
+        }))
+      }
     />
   );
 }
 
-function RenderingSettings() {
+function RenderingSettings({
+  config,
+  updateConfig,
+}: {
+  config: Readonly<MethylCConfig>;
+  updateConfig: UpdateConfig;
+}) {
   return (
     <TrackSettingsSection title="Rendering and range">
       <TrackSettingsFieldGrid>
-        <MaskCpgField />
+        <MaskCpgField maskCpgByCoverage={config.maskCpgByCoverage} updateConfig={updateConfig} />
       </TrackSettingsFieldGrid>
-      <MethylCRangeFields />
+      <MethylCRangeFields range={config.range} updateConfig={updateConfig} />
     </TrackSettingsSection>
   );
 }
 
-function MaskCpgField() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const maskCpgByCoverage = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as MethylCConfig | undefined)?.maskCpgByCoverage,
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
+function MaskCpgField({
+  maskCpgByCoverage,
+  updateConfig,
+}: {
+  maskCpgByCoverage: boolean | undefined;
+  updateConfig: UpdateConfig;
+}) {
   return (
     <FormControlLabel
       control={
         <Switch
           checked={maskCpgByCoverage ?? false}
           size="small"
-          onChange={(event) =>
-            updateTrack(trackId, { config: { maskCpgByCoverage: event.target.checked } })
-          }
+          onChange={(event) => updateConfig(() => ({ maskCpgByCoverage: event.target.checked }))}
         />
       }
       label="Mask CpG by coverage"
@@ -175,20 +228,17 @@ function MaskCpgField() {
   );
 }
 
-function MethylCRangeFields() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const min = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as MethylCConfig | undefined)?.range?.min,
-  );
-  const max = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as MethylCConfig | undefined)?.range?.max,
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
-  const range = min === undefined || max === undefined ? undefined : { min, max };
+function MethylCRangeFields({
+  range,
+  updateConfig,
+}: {
+  range: MethylCConfig["range"];
+  updateConfig: UpdateConfig;
+}) {
   return (
     <TrackSettingsRangeFields
       range={range}
-      onCommit={(nextRange) => updateTrack(trackId, { config: { range: nextRange } })}
+      onCommit={(nextRange) => updateConfig(() => ({ range: nextRange }))}
     />
   );
 }

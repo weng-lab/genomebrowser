@@ -116,6 +116,7 @@ if (!addResult.ok) console.error(addResult.error);
 const updateResult = useTrackStore.getState().updateTrack("signal-2", {
   base: { title: "Renamed signal", height: 100 },
   config: { fillWithZero: true },
+  interaction: { onLeave: () => undefined },
 });
 if (!updateResult.ok) console.error(updateResult.error);
 
@@ -127,7 +128,7 @@ const removeResult = useTrackStore.getState().removeTrack("signal-2");
 if (!removeResult.ok) console.error(removeResult.error);
 ```
 
-A reorder array must contain every current track ID exactly once. `updateTrack` shallowly merges the supplied `base` and `config` patches, validates the complete candidate once, and commits both sections or neither. Track ID and type are immutable; replace a track if either identity value must change. Interaction callbacks continue to use `updateInteraction`.
+A reorder array must contain every current track ID exactly once. `updateTrack` shallowly merges the supplied `base`, `config`, and `interaction` patches, validates the complete candidate once, and commits every supplied section or none. Nested objects are replaced rather than recursively merged. Track ID and type are immutable; replace a track if either identity value must change.
 
 ## Apply track changes atomically
 

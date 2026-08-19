@@ -1,29 +1,41 @@
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
-import {
-  useSettingsStore,
-  useTrackStore,
-  useTrackStoreApi,
-} from "../../browser/state/browserContextState";
+import { flushSync } from "react-dom";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
-import type { BulkBedConfig, BulkBedDataset } from "./types";
+import type { TrackMutationResult, TrackSettingsProps } from "../../modules/types";
+import type { BulkBedConfig, BulkBedDataset, BulkBedRect } from "./types";
 
-export function BulkBedSettings() {
+type BulkBedSettingsProps = TrackSettingsProps<BulkBedConfig, BulkBedRect>;
+type DatasetEdit =
+  | { type: "add"; dataset: BulkBedDataset }
+  | { type: "remove"; index: number }
+  | { type: "field"; index: number; field: keyof BulkBedDataset; value: string };
+
+type PendingDatasetEdits = {
+  source: BulkBedDataset[];
+  edits: DatasetEdit[];
+};
+
+export function BulkBedSettings({ track, updateTrack }: BulkBedSettingsProps) {
   return (
     <SettingsSection title="BulkBed">
-      <GapField />
-      <DatasetsFields />
+      <GapField gap={track.config.gap} updateTrack={updateTrack} />
+      <DatasetsFields
+        datasets={track.config.datasets}
+        id={track.base.id}
+        updateTrack={updateTrack}
+      />
     </SettingsSection>
   );
 }
 
-function GapField() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const gap = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BulkBedConfig | undefined)?.gap,
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
-
+function GapField({
+  gap,
+  updateTrack,
+}: {
+  gap: number | undefined;
+  updateTrack: BulkBedSettingsProps["updateTrack"];
+}) {
   return (
     <label style={fieldStyle}>
       Gap
@@ -35,7 +47,7 @@ function GapField() {
         onChange={(event) => {
           const nextGap = event.currentTarget.valueAsNumber;
           if (Number.isFinite(nextGap) && nextGap >= 0) {
-            updateTrack(trackId, { config: { gap: nextGap } });
+            updateTrack({ config: { gap: nextGap } });
           }
         }}
       />
@@ -43,48 +55,72 @@ function GapField() {
   );
 }
 
-function DatasetsFields() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const datasetCount = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BulkBedConfig | undefined)?.datasets.length ?? 0,
-  );
-  const trackStore = useTrackStoreApi();
+function DatasetsFields({
+  datasets,
+  id,
+  updateTrack,
+}: {
+  datasets: BulkBedDataset[];
+  id: string;
+  updateTrack: BulkBedSettingsProps["updateTrack"];
+}) {
+  const [pendingEdits, setPendingEdits] = useState<PendingDatasetEdits>();
+  const activeEdits = pendingEdits?.source === datasets ? pendingEdits.edits : [];
+  const currentDatasets = applyDatasetEdits(datasets, activeEdits);
+  const datasetCount = currentDatasets.length;
   const [datasetKeyState, setDatasetKeyState] = useState(() =>
-    createDatasetKeyState(trackId, datasetCount),
+    createDatasetKeyState(id, datasetCount),
   );
-  const renderedKeyState = reconcileDatasetKeys(datasetKeyState, trackId, datasetCount);
+  const renderedKeyState = reconcileDatasetKeys(datasetKeyState, id, datasetCount);
 
   useEffect(() => {
-    setDatasetKeyState((current) => reconcileDatasetKeys(current, trackId, datasetCount));
-  }, [trackId, datasetCount]);
+    setDatasetKeyState((current) => reconcileDatasetKeys(current, id, datasetCount));
+  }, [id, datasetCount]);
+
+  const commitDatasetEdit = (edit: DatasetEdit, onAccepted?: () => void) => {
+    const nextDatasets = applyDatasetEdit(currentDatasets, edit);
+    const result = updateTrack({ config: { datasets: nextDatasets } });
+    if (result.ok) {
+      flushSync(() => {
+        setPendingEdits({ source: datasets, edits: [...activeEdits, edit] });
+        onAccepted?.();
+      });
+    }
+    return result;
+  };
 
   return (
     <div style={{ display: "grid", gap: "8px" }}>
       <div style={{ fontWeight: 600 }}>Datasets</div>
       {Array.from({ length: datasetCount }, (_, index) => (
         <div key={renderedKeyState.keys[index]} style={datasetStyle}>
-          <DatasetField index={index} field="name" label="Name" />
-          <DatasetField index={index} field="url" label="URL" />
+          <DatasetField
+            datasets={currentDatasets}
+            index={index}
+            field="name"
+            label="Name"
+            commitDatasetEdit={commitDatasetEdit}
+          />
+          <DatasetField
+            datasets={currentDatasets}
+            index={index}
+            field="url"
+            label="URL"
+            commitDatasetEdit={commitDatasetEdit}
+          />
           <button
             type="button"
             disabled={datasetCount === 1}
             onClick={() => {
-              const state = trackStore.getState();
-              const datasets = (state.getTrack(trackId)!.config as BulkBedConfig).datasets;
-              const result = state.updateTrack(trackId, {
-                config: {
-                  datasets: datasets.filter((_, datasetIndex) => datasetIndex !== index),
-                },
-              });
-              if (result.ok) {
+              commitDatasetEdit({ type: "remove", index }, () => {
                 setDatasetKeyState((current) => {
-                  const reconciled = reconcileDatasetKeys(current, trackId, datasetCount);
+                  const reconciled = reconcileDatasetKeys(current, id, datasetCount);
                   return {
                     ...reconciled,
                     keys: reconciled.keys.filter((_, datasetIndex) => datasetIndex !== index),
                   };
                 });
-              }
+              });
             }}
           >
             Remove
@@ -95,52 +131,49 @@ function DatasetsFields() {
         <button
           type="button"
           onClick={() => {
-            const state = trackStore.getState();
-            const datasets = (state.getTrack(trackId)!.config as BulkBedConfig).datasets;
-            const result = state.updateTrack(trackId, {
-              config: {
-                datasets: [
-                  ...datasets,
-                  { name: `Dataset ${datasets.length + 1}`, url: "YOUR_URL_HERE" },
-                ],
+            commitDatasetEdit(
+              {
+                type: "add",
+                dataset: {
+                  name: `Dataset ${currentDatasets.length + 1}`,
+                  url: "YOUR_URL_HERE",
+                },
               },
-            });
-            if (result.ok) {
-              setDatasetKeyState((current) => {
-                const reconciled = reconcileDatasetKeys(current, trackId, datasetCount);
-                return {
-                  ...reconciled,
-                  keys: [...reconciled.keys, datasetKey(reconciled.id, reconciled.nextKey)],
-                  nextKey: reconciled.nextKey + 1,
-                };
-              });
-            }
+              () => {
+                setDatasetKeyState((current) => {
+                  const reconciled = reconcileDatasetKeys(current, id, datasetCount);
+                  return {
+                    ...reconciled,
+                    keys: [...reconciled.keys, datasetKey(reconciled.id, reconciled.nextKey)],
+                    nextKey: reconciled.nextKey + 1,
+                  };
+                });
+              },
+            );
           }}
         >
           Add dataset
         </button>
       </div>
-      <DatasetValidationMessage />
+      <DatasetValidationMessage datasets={currentDatasets} />
     </div>
   );
 }
 
 function DatasetField({
+  datasets,
   field,
   index,
   label,
+  commitDatasetEdit,
 }: {
+  datasets: BulkBedDataset[];
   field: keyof BulkBedDataset;
   index: number;
   label: string;
+  commitDatasetEdit: (edit: DatasetEdit) => TrackMutationResult;
 }) {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const value = useTrackStore(
-    (state) =>
-      (state.getTrack(trackId)?.config as BulkBedConfig | undefined)?.datasets[index]?.[field] ??
-      "",
-  );
-  const trackStore = useTrackStoreApi();
+  const value = datasets[index]?.[field] ?? "";
 
   return (
     <label style={fieldStyle}>
@@ -149,30 +182,34 @@ function DatasetField({
         type="text"
         value={value}
         onChange={(event) => {
-          const state = trackStore.getState();
-          const datasets = (state.getTrack(trackId)!.config as BulkBedConfig).datasets;
-          state.updateTrack(trackId, {
-            config: {
-              datasets: datasets.map((dataset, datasetIndex) =>
-                datasetIndex === index ? { ...dataset, [field]: event.target.value } : dataset,
-              ),
-            },
-          });
+          commitDatasetEdit({ type: "field", index, field, value: event.target.value });
         }}
       />
     </label>
   );
 }
 
-function DatasetValidationMessage() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const invalidDatasets = useTrackStore((state) => {
-    const datasets = (state.getTrack(trackId)?.config as BulkBedConfig | undefined)?.datasets ?? [];
-    return (
-      datasets.length === 0 ||
-      datasets.some((dataset) => dataset.name.trim() === "" || dataset.url.trim() === "")
-    );
-  });
+function applyDatasetEdits(datasets: BulkBedDataset[], edits: DatasetEdit[]) {
+  return edits.reduce(applyDatasetEdit, datasets);
+}
+
+function applyDatasetEdit(datasets: BulkBedDataset[], edit: DatasetEdit): BulkBedDataset[] {
+  switch (edit.type) {
+    case "add":
+      return [...datasets, edit.dataset];
+    case "remove":
+      return datasets.filter((_, index) => index !== edit.index);
+    case "field":
+      return datasets.map((dataset, index) =>
+        index === edit.index ? { ...dataset, [edit.field]: edit.value } : dataset,
+      );
+  }
+}
+
+function DatasetValidationMessage({ datasets }: { datasets: BulkBedDataset[] }) {
+  const invalidDatasets =
+    datasets.length === 0 ||
+    datasets.some((dataset) => dataset.name.trim() === "" || dataset.url.trim() === "");
 
   return invalidDatasets ? (
     <div style={{ color: "#b00020" }}>Dataset names and URLs are required.</div>

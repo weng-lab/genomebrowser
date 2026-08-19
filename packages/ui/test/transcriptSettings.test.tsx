@@ -1,23 +1,17 @@
 // @vitest-environment jsdom
 
 import {
-  createTrackStore,
   defaultScreenGraphQlEndpoint,
   transcriptModule,
   type TrackMutationResult,
   type TrackUpdate,
+  type Transcript,
   type TranscriptConfig,
 } from "@weng-lab/genomebrowser";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TranscriptSettings } from "../src/tracks/transcript/settings";
-import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal()),
-  ...(await import("../../core/src/browser/state/browserContextState")),
-}));
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -102,34 +96,21 @@ describe("Transcript settings", () => {
 });
 
 function renderSettings(initialConfig = config) {
-  const updateTrack = vi.fn<(update: TrackUpdate<TranscriptConfig>) => TrackMutationResult>(() => ({
-    ok: true,
-  }));
-  const trackStore = createTrackStore({
-    modules: [transcriptModule],
-    tracks: [
-      transcriptModule.create({
-        id: "genes",
-        title: "Genes",
-        height: 90,
-        color: "#7a4fb3",
-        config: initialConfig,
-      }),
-    ],
+  const updateTrack = vi.fn<
+    (update: TrackUpdate<TranscriptConfig, Transcript>) => TrackMutationResult
+  >(() => ({ ok: true }));
+  const track = transcriptModule.create({
+    id: "genes",
+    title: "Genes",
+    height: 90,
+    color: "#7a4fb3",
+    config: initialConfig,
   });
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
   act(() => {
-    root?.render(
-      <TrackSettingsTestProvider
-        trackId="genes"
-        trackStore={trackStore}
-        updateTrack={(update) => updateTrack(update as TrackUpdate<TranscriptConfig>)}
-      >
-        <TranscriptSettings />
-      </TrackSettingsTestProvider>,
-    );
+    root?.render(<TranscriptSettings track={track} updateTrack={updateTrack} />);
   });
   return updateTrack;
 }

@@ -1,6 +1,6 @@
 # Ticket 03: Migrate module settings and documentation
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R9, R10, R11
 **Blocked by:** Ticket 02
@@ -15,14 +15,14 @@ Migrate every existing core and UI module settings component and its tests. Upda
 
 ## Acceptance Criteria
 
-- [ ] Core and UI module settings read track data from `TrackSettingsProps`.
-- [ ] Core and UI module settings submit live edits through the supplied `updateTrack` callback.
-- [ ] Module settings no longer use the track store, track-store API, or settings store to discover the active track.
-- [ ] Settings tests supply explicit props and verify the expected update patches and returned failures where relevant.
-- [ ] Public docs describe shallow base, config, and interaction updates through `updateTrack`.
-- [ ] Public docs show the typed module settings contract using public exports.
-- [ ] A repository search finds no remaining `updateInteraction` API references outside historical specification text.
-- [ ] Relevant core and UI tests, typechecks, lint, and documentation checks pass.
+- [x] Core and UI module settings read track data from `TrackSettingsProps`.
+- [x] Core and UI module settings submit live edits through the supplied `updateTrack` callback.
+- [x] Module settings no longer use the track store, track-store API, or settings store to discover the active track.
+- [x] Settings tests supply explicit props and verify the expected update patches and returned failures where relevant.
+- [x] Public docs describe shallow base, config, and interaction updates through `updateTrack`.
+- [x] Public docs show the typed module settings contract using public exports.
+- [x] A repository search finds no remaining `updateInteraction` API references outside historical specification text.
+- [x] Relevant core and UI tests, typechecks, lint, and documentation checks pass.
 
 ## Verification
 

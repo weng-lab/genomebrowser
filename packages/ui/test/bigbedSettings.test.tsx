@@ -1,16 +1,10 @@
 // @vitest-environment jsdom
 
 import { act } from "react";
-import { bigBedModule, createTrackStore } from "@weng-lab/genomebrowser";
+import { bigBedModule } from "@weng-lab/genomebrowser";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BigBedSettings } from "../src/tracks/bigbed/settings";
-import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
-
-vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
-  ...(await importOriginal()),
-  ...(await import("../../core/src/browser/state/browserContextState")),
-}));
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -34,29 +28,16 @@ describe("BigBed settings", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
-    const trackStore = createTrackStore({
-      modules: [bigBedModule],
-      tracks: [
-        bigBedModule.create({
-          id: "bigbed",
-          title: "BigBed",
-          display: "dense",
-          height: 60,
-          color: "#4b9560",
-          config: { url: "YOUR_URL_HERE" },
-        }),
-      ],
+    const track = bigBedModule.create({
+      id: "bigbed",
+      title: "BigBed",
+      display: "dense",
+      height: 60,
+      color: "#4b9560",
+      config: { url: "YOUR_URL_HERE" },
     });
     act(() => {
-      root?.render(
-        <TrackSettingsTestProvider
-          trackId="bigbed"
-          trackStore={trackStore}
-          updateTrack={updateTrack}
-        >
-          <BigBedSettings />
-        </TrackSettingsTestProvider>,
-      );
+      root?.render(<BigBedSettings track={track} updateTrack={updateTrack} />);
     });
 
     const input = container.querySelector<HTMLInputElement>('input[type="url"]');

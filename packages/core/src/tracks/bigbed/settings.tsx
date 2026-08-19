@@ -1,23 +1,20 @@
 import type { CSSProperties } from "react";
-import { useSettingsStore, useTrackStore } from "../../browser/state/browserContextState";
 import { SettingsSection } from "../../modules/runtime/SettingsSection";
-import type { BigBedConfig } from "./types";
+import type { TrackSettingsProps } from "../../modules/types";
+import type { BigBedConfig, BigBedRow } from "./types";
 
-export function BigBedSettings() {
-  const trackId = useSettingsStore((state) => state.trackId)!;
-  const url = useTrackStore(
-    (state) => (state.getTrack(trackId)?.config as BigBedConfig | undefined)?.url ?? "",
-  );
-  const updateTrack = useTrackStore((state) => state.updateTrack);
-
+export function BigBedSettings({
+  track,
+  updateTrack,
+}: TrackSettingsProps<BigBedConfig, BigBedRow>) {
   return (
     <SettingsSection title="BigBed">
       <label style={fieldStyle}>
         URL
         <input
           type="text"
-          value={url}
-          onChange={(event) => updateTrack(trackId, { config: { url: event.target.value } })}
+          value={track.config.url}
+          onChange={(event) => updateTrack({ config: { url: event.target.value } })}
         />
       </label>
     </SettingsSection>

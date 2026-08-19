@@ -389,6 +389,5 @@ describe("createTrackStore", () => {
     expect(store.getState().updateTrack).toBeTypeOf("function");
     expect(store.getState()).not.toHaveProperty("updateBase");
     expect(store.getState()).not.toHaveProperty("updateConfig");
-    expect(store.getState()).not.toHaveProperty("updateInteraction");
   });
 });

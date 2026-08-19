@@ -2,42 +2,28 @@
 
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it } from "vitest";
-import { createTrackStore, type TrackStoreInstance } from "../../src/browser/state/trackStore";
-import type { TrackInstance } from "../../src/modules/types";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { TrackMutationResult, TrackUpdate } from "../../src/modules/types";
 import { caveModule } from "../../src/tracks/cave/module";
 import { CaveSettings } from "../../src/tracks/cave/settings";
-import type { CaveConfig } from "../../src/tracks/cave/types";
-import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
+import type { CaveConfig, CaveTooltipItem } from "../../src/tracks/cave/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;
-let useTrackStore: TrackStoreInstance | undefined;
-
-function Harness() {
-  const useStore = useTrackStore;
-  if (!useStore) throw new Error("Track store not initialized");
-  return (
-    <TrackSettingsTestProvider trackId="cave" trackStore={useStore}>
-      <CaveSettings />
-    </TrackSettingsTestProvider>
-  );
-}
 
 afterEach(async () => {
   if (root) await act(async () => root?.unmount());
   container?.remove();
   container = undefined;
   root = undefined;
-  useTrackStore = undefined;
 });
 
 describe("CAVE settings", () => {
   it("updates concrete top and bottom colors", async () => {
-    await renderHarness();
+    const updateTrack = await renderSettings();
 
     expect(input("Top color").value).toBe("#000000");
     expect(input("Bottom color").value).toBe("#000000");
@@ -48,28 +34,27 @@ describe("CAVE settings", () => {
     await act(async () => blurInput(input("Bottom color")));
     expect(input("Top color").value).toBe("#112233");
     expect(input("Bottom color").value).toBe("#445566");
-    const track = useTrackStore?.getState().getTrack("cave") as
-      | TrackInstance<CaveConfig>
-      | undefined;
-    expect(track?.config).toMatchObject({ topColor: "#112233", bottomColor: "#445566" });
+    expect(updateTrack.mock.calls).toEqual([
+      [{ config: { topColor: "#112233" } }],
+      [{ config: { bottomColor: "#445566" } }],
+    ]);
   });
 });
 
-async function renderHarness() {
-  useTrackStore = createTrackStore({
-    modules: [caveModule],
-    tracks: [
-      caveModule.create({
-        id: "cave",
-        title: "CAVE",
-        config: { neurotransmitter: "GABA", age: "Adulthood" },
-      }),
-    ],
+async function renderSettings() {
+  const track = caveModule.create({
+    id: "cave",
+    title: "CAVE",
+    config: { neurotransmitter: "GABA", age: "Adulthood" },
   });
+  const updateTrack = vi.fn<
+    (update: TrackUpdate<CaveConfig, CaveTooltipItem>) => TrackMutationResult
+  >(() => ({ ok: true }));
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  await act(async () => root?.render(<Harness />));
+  await act(async () => root?.render(<CaveSettings track={track} updateTrack={updateTrack} />));
+  return updateTrack;
 }
 
 function input(label: string) {

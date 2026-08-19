@@ -4,10 +4,10 @@ import { act, Profiler } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTrackStore, type TrackStoreInstance } from "../../src/browser/state/trackStore";
+import type { TrackInstance } from "../../src/modules/types";
 import { bulkBedModule } from "../../src/tracks/bulkbed/module";
 import { BulkBedSettings } from "../../src/tracks/bulkbed/settings";
-import type { BulkBedConfig, BulkBedDataset } from "../../src/tracks/bulkbed/types";
-import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
+import type { BulkBedConfig, BulkBedDataset, BulkBedRect } from "../../src/tracks/bulkbed/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -32,6 +32,10 @@ let rejectRemoveUpdate = false;
 function Harness({ onSettingsRender = () => undefined, trackId = "bulk-peaks" }: HarnessProps) {
   const useStore = useTrackStore;
   if (!useStore) throw new Error("Track store not initialized");
+  const track = useStore((state) => state.getTrack(trackId)) as
+    | TrackInstance<BulkBedConfig, BulkBedRect>
+    | undefined;
+  if (!track) throw new Error(`Track not found: ${trackId}`);
 
   return (
     <>
@@ -63,11 +67,12 @@ function Harness({ onSettingsRender = () => undefined, trackId = "bulk-peaks" }:
       >
         Shorten externally
       </button>
-      <TrackSettingsTestProvider trackId={trackId} trackStore={useStore}>
-        <Profiler id="bulkbed-settings" onRender={onSettingsRender}>
-          <BulkBedSettings />
-        </Profiler>
-      </TrackSettingsTestProvider>
+      <Profiler id="bulkbed-settings" onRender={onSettingsRender}>
+        <BulkBedSettings
+          track={track}
+          updateTrack={(update) => useStore.getState().updateTrack(trackId, update)}
+        />
+      </Profiler>
     </>
   );
 }
@@ -84,16 +89,21 @@ afterEach(async () => {
 });
 
 describe("BulkBed settings", () => {
-  it("does not rerender settings when validation reconstructs datasets for a base update", async () => {
+  it("renders from the fresh complete track after an unrelated base update", async () => {
     let renderCount = 0;
     await renderHarness({ onSettingsRender: () => renderCount++ });
     const initialRenderCount = renderCount;
+    const initialTrack = useTrackStore?.getState().getTrack("bulk-peaks");
 
     await act(async () => {
       useTrackStore?.getState().updateTrack("bulk-peaks", { base: { color: "#112233" } });
     });
 
-    expect(renderCount).toBe(initialRenderCount);
+    const updatedTrack = useTrackStore?.getState().getTrack("bulk-peaks");
+    expect(updatedTrack).not.toBe(initialTrack);
+    expect(updatedTrack?.base.color).toBe("#112233");
+    expect(renderCount).toBeGreaterThan(initialRenderCount);
+    expect(datasetNames()).toEqual(["Dataset A", "Dataset B", "Dataset C"]);
   });
 
   it("preserves unaffected rows through a middle removal and subsequent addition", async () => {

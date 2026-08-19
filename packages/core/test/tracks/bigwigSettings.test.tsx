@@ -3,43 +3,34 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
-import { createTrackStore, type TrackStoreInstance } from "../../src/browser/state/trackStore";
-import type { TrackInstance } from "../../src/modules/types";
+import type { TrackMutationResult, TrackUpdate } from "../../src/modules/types";
 import { bigWigModule } from "../../src/tracks/bigwig/module";
 import { BigWigSettings } from "../../src/tracks/bigwig/settings";
-import type { BigWigConfig } from "../../src/tracks/bigwig/types";
-import { TrackSettingsTestProvider } from "./trackSettingsTestProvider";
+import type { BigWigConfig, RenderedBigWigPoint } from "../../src/tracks/bigwig/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;
-let useTrackStore: TrackStoreInstance | undefined;
 let rejectNextUpdate = false;
-
-function Harness() {
-  const useStore = useTrackStore;
-  if (!useStore) throw new Error("Track store not initialized");
-  return (
-    <TrackSettingsTestProvider trackId="signal" trackStore={useStore}>
-      <BigWigSettings />
-    </TrackSettingsTestProvider>
-  );
-}
+let acceptedTrack = bigWigModule.create({
+  id: "signal",
+  title: "Signal",
+  config: { url: "YOUR_URL_HERE" },
+});
 
 afterEach(async () => {
   if (root) await act(async () => root?.unmount());
   container?.remove();
   container = undefined;
   root = undefined;
-  useTrackStore = undefined;
   rejectNextUpdate = false;
 });
 
 describe("BigWig settings", () => {
   it("commits valid color drafts while retaining invalid drafts and accepted state", async () => {
-    await renderHarness();
+    const updateTrack = await renderHarness();
     const visibility = input("Show clamp indicators");
     const color = input("Clamp indicator color");
 
@@ -49,13 +40,13 @@ describe("BigWig settings", () => {
 
     await act(async () => setTextInput(color, "#663"));
     expect(input("Clamp indicator color").value).toBe("#663");
-    expect(acceptedColor()).toBe("#ff0000");
+    expect(acceptedTrack.config.clampIndicatorColor).toBe("#ff0000");
 
     await act(async () => blurInput(color));
     expect(input("Clamp indicator color").value).toBe("#663");
     expect(input("Clamp indicator color").getAttribute("aria-invalid")).toBe("true");
     expect(container?.querySelector('[role="alert"]')?.textContent).toContain("six-digit");
-    expect(acceptedColor()).toBe("#ff0000");
+    expect(acceptedTrack.config.clampIndicatorColor).toBe("#ff0000");
 
     await act(async () => setTextInput(input("Clamp indicator color"), "#663399"));
     await act(async () => {
@@ -64,7 +55,7 @@ describe("BigWig settings", () => {
       );
     });
     expect(input("Clamp indicator color").value).toBe("#663399");
-    expect(acceptedColor()).toBe("#663399");
+    expect(acceptedTrack.config.clampIndicatorColor).toBe("#663399");
 
     await act(async () => setTextInput(input("Clamp indicator color"), "#abcdef"));
     rejectNextUpdate = true;
@@ -75,12 +66,14 @@ describe("BigWig settings", () => {
     });
     expect(input("Clamp indicator color").value).toBe("#abcdef");
     expect(input("Clamp indicator color").getAttribute("aria-invalid")).toBe("true");
-    expect(acceptedColor()).toBe("#663399");
+    expect(acceptedTrack.config.clampIndicatorColor).toBe("#663399");
 
     await act(async () => {
-      useTrackStore?.getState().updateTrack("signal", {
-        config: { clampIndicatorColor: "#AABBCC" },
+      acceptedTrack = bigWigModule.validate({
+        ...acceptedTrack,
+        config: { ...acceptedTrack.config, clampIndicatorColor: "#AABBCC" },
       });
+      root?.render(<BigWigSettings track={acceptedTrack} updateTrack={updateTrack} />);
     });
     expect(input("Clamp indicator color").value).toBe("#AABBCC");
     expect(input("Clamp indicator color").getAttribute("aria-invalid")).toBe("false");
@@ -98,37 +91,32 @@ describe("BigWig settings", () => {
 });
 
 async function renderHarness() {
-  useTrackStore = createTrackStore({
-    modules: [bigWigModule],
-    tracks: [
-      bigWigModule.create({
-        id: "signal",
-        title: "Signal",
-        config: { url: "YOUR_URL_HERE" },
-      }),
-    ],
+  acceptedTrack = bigWigModule.create({
+    id: "signal",
+    title: "Signal",
+    config: { url: "YOUR_URL_HERE" },
   });
-  const updateTrack = useTrackStore.getState().updateTrack;
-  useTrackStore.setState({
-    updateTrack: (id, update) => {
-      if (rejectNextUpdate) {
-        rejectNextUpdate = false;
-        return updateTrack(id, { ...update, base: { height: 0 } });
-      }
-      return updateTrack(id, update);
-    },
-  });
+  const updateTrack = (
+    update: TrackUpdate<BigWigConfig, RenderedBigWigPoint>,
+  ): TrackMutationResult => {
+    if (rejectNextUpdate) {
+      rejectNextUpdate = false;
+      return { ok: false, error: "Rejected for test" };
+    }
+    acceptedTrack = bigWigModule.validate({
+      ...acceptedTrack,
+      config: { ...acceptedTrack.config, ...update.config },
+    });
+    root?.render(<BigWigSettings track={acceptedTrack} updateTrack={updateTrack} />);
+    return { ok: true };
+  };
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  await act(async () => root?.render(<Harness />));
-}
-
-function acceptedColor() {
-  const track = useTrackStore?.getState().getTrack("signal") as
-    | TrackInstance<BigWigConfig>
-    | undefined;
-  return track?.config.clampIndicatorColor;
+  await act(async () =>
+    root?.render(<BigWigSettings track={acceptedTrack} updateTrack={updateTrack} />),
+  );
+  return updateTrack;
 }
 
 function input(label: string) {
