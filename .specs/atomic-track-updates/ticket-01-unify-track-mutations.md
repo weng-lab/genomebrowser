@@ -1,6 +1,6 @@
 # Ticket 01: Unify track mutations
 
-**Status:** Ready
+**Status:** Complete
 **Spec:** `./spec.md`
 **Requirements:** R1, R2, R3, R4, R5
 **Blocked by:** None
@@ -15,12 +15,12 @@ Extend the public update types and track store implementation to include interac
 
 ## Acceptance Criteria
 
-- [ ] `TrackUpdate` accepts typed shallow patches for base, config, and interaction.
-- [ ] One `updateTrack` call can change all three mutable track parts, validates the complete candidate once, and notifies subscribers once.
-- [ ] Failed validation returns an error without changing any part of the stored track.
-- [ ] Untyped attempts to change `type` or `base.id` do not change track identity.
-- [ ] `updateInteraction` is removed from the public store and implementation without an alias.
-- [ ] Focused core tests and the core typecheck pass.
+- [x] `TrackUpdate` accepts typed shallow patches for base, config, and interaction.
+- [x] One `updateTrack` call can change all three mutable track parts, validates the complete candidate once, and notifies subscribers once.
+- [x] Failed validation returns an error without changing any part of the stored track.
+- [x] Untyped attempts to change `type` or `base.id` do not change track identity.
+- [x] `updateInteraction` is removed from the public store and implementation without an alias.
+- [x] Focused core tests and the core typecheck pass.
 
 ## Verification
 

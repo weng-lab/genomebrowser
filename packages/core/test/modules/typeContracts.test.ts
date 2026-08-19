@@ -7,6 +7,7 @@ import type {
   ModuleInstance,
   TrackInteraction,
   TrackRuntimeContext,
+  TrackUpdate,
 } from "../../src/lib";
 
 describe("track module type contracts", () => {
@@ -172,6 +173,32 @@ describe("track module type contracts", () => {
     );
 
     expectTypeOf(track).toEqualTypeOf<ModuleInstance<typeof moduleA>>();
+  });
+
+  it("types base, config, and interaction track update patches", () => {
+    type ConfigA = ModuleInstance<typeof moduleA>["config"];
+    type UpdateA = TrackUpdate<ConfigA, ItemA>;
+
+    expectTypeOf<UpdateA["base"]>().toEqualTypeOf<
+      | {
+          title?: string;
+          display?: string;
+          height?: number;
+          color?: string;
+        }
+      | undefined
+    >();
+    expectTypeOf<UpdateA["config"]>().toEqualTypeOf<Partial<ConfigA> | undefined>();
+    expectTypeOf<UpdateA["interaction"]>().toEqualTypeOf<
+      Partial<TrackInteraction<ItemA, ConfigA>> | undefined
+    >();
+
+    void ({
+      base: {
+        // @ts-expect-error Track identity cannot be updated.
+        id: "other-track",
+      },
+    } satisfies UpdateA);
   });
 
   it("creates collection entries through the runtime validation boundary", () => {

@@ -74,9 +74,10 @@ export type TrackMutationResult = { ok: true } | { ok: false; error: string };
 
 export type TrackBaseUpdate = Partial<Omit<TrackBase, "id">>;
 
-export type TrackUpdate<Config> = {
+export type TrackUpdate<Config, InteractionItem = unknown> = {
   base?: TrackBaseUpdate;
   config?: Partial<Config>;
+  interaction?: Partial<TrackInteraction<InteractionItem, Config>>;
 };
 
 export type ReadonlyTrackInstance<Config, InteractionItem = unknown> = Readonly<{

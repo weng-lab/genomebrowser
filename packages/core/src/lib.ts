@@ -83,7 +83,6 @@ export type {
   TrackStore,
   TrackStoreInstance,
   TrackStoreOptions,
-  TrackInteractionUpdate,
 } from "./browser/state/trackStore";
 
 export { bigBedModule } from "./tracks/bigbed/module";

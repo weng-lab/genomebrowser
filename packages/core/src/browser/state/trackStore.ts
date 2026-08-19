@@ -2,9 +2,7 @@ import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { createModuleRegistry, type ModuleRegistry } from "../../modules/registry";
 import type {
   AnyTrackInstance,
-  AnyTrackInteraction,
   AnyTrackModule,
-  TrackInteraction,
   TrackMutationResult,
   TrackUpdate,
 } from "../../modules/types";
@@ -16,10 +14,6 @@ export type TrackStoreOptions<
   modules: Modules;
   tracks?: Track[];
 };
-
-export type TrackInteractionUpdate<Item, Config = unknown> = Partial<
-  TrackInteraction<Item, Config>
->;
 
 export type TrackStore = {
   tracks: AnyTrackInstance[];
@@ -33,8 +27,10 @@ export type TrackStore = {
     remove?: string[];
   }) => TrackMutationResult;
   reorderTracks: (ids: string[]) => TrackMutationResult;
-  updateTrack: <Config>(id: string, update: TrackUpdate<Config>) => TrackMutationResult;
-  updateInteraction: (id: string, partial: Partial<AnyTrackInteraction>) => TrackMutationResult;
+  updateTrack: <Config, InteractionItem = unknown>(
+    id: string,
+    update: TrackUpdate<Config, InteractionItem>,
+  ) => TrackMutationResult;
   getTrack: (id: string) => AnyTrackInstance | undefined;
 };
 
@@ -115,6 +111,10 @@ export function createTrackStore<
       const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
       if (!currentTrack) return mutationError(`No track found for id: ${id}`);
       const currentConfig = isRecord(currentTrack.config) ? currentTrack.config : {};
+      const interaction =
+        currentTrack.interaction !== undefined || update.interaction !== undefined
+          ? { ...currentTrack.interaction, ...update.interaction }
+          : undefined;
       const result = getValidatedTrack(
         {
           ...currentTrack,
@@ -125,25 +125,7 @@ export function createTrackStore<
             id: currentTrack.base.id,
           },
           config: { ...currentConfig, ...update.config },
-        },
-        registry,
-      );
-      if (!result.ok) return result;
-
-      set((state) => ({
-        tracks: state.tracks.map((track) => (getTrackId(track) === id ? result.track : track)),
-        order: state.order,
-      }));
-      return mutationOk;
-    },
-    updateInteraction: (id, partial) => {
-      const currentTrack = get().tracks.find((track) => getTrackId(track) === id);
-      if (!currentTrack) return mutationError(`No track found for id: ${id}`);
-      const interaction = { ...currentTrack.interaction, ...partial };
-      const result = getValidatedTrack(
-        {
-          ...currentTrack,
-          interaction,
+          ...(interaction !== undefined ? { interaction } : {}),
         },
         registry,
       );
