@@ -1,4 +1,4 @@
-import type { TrackTooltipComponent } from "@weng-lab/genomebrowser";
+import type { TrackRuntimeContext } from "@weng-lab/genomebrowser";
 import { TrackTooltip } from "../shared/tooltips/trackTooltip";
 import {
   formatGenomicInterval,
@@ -6,7 +6,10 @@ import {
 } from "../shared/tooltips/trackTooltipFormatters";
 import type { BigBedConfig, BigBedRow } from "./types";
 
-export const BigBedTooltip: TrackTooltipComponent<BigBedRow, BigBedConfig> = ({ item }) => {
+export function BigBedTooltip<
+  Row extends BigBedRow = BigBedRow,
+  Config extends BigBedConfig = BigBedConfig,
+>({ item }: { item: Row; context: TrackRuntimeContext<Config> }) {
   const location = formatGenomicInterval(
     item.start,
     item.end,
@@ -24,4 +27,4 @@ export const BigBedTooltip: TrackTooltipComponent<BigBedRow, BigBedConfig> = ({ 
       ]}
     />
   );
-};
+}

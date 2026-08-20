@@ -15,11 +15,12 @@ export type TrackTooltipRow = {
 
 export type TrackTooltipProps = {
   title?: string;
+  titleColor?: string;
   rows: readonly TrackTooltipRow[];
 };
 
 /** A compact, theme-aware tooltip surface for content rendered inside the browser SVG. */
-export function TrackTooltip({ title, rows }: TrackTooltipProps) {
+export function TrackTooltip({ title, titleColor, rows }: TrackTooltipProps) {
   const theme = useTheme();
   const contentRef = useRef<SVGGElement>(null);
   const contentHeight = (title ? 20 : 0) + Math.max(rows.length, 1) * rowHeight;
@@ -28,7 +29,7 @@ export function TrackTooltip({ title, rows }: TrackTooltipProps) {
   useLayoutEffect(() => {
     if (!contentRef.current) return;
     setContentWidth(contentRef.current.getBBox().width);
-  }, [rows, title]);
+  }, [rows, title, titleColor]);
 
   return (
     <g role="tooltip" style={{ pointerEvents: "none" }}>
@@ -44,16 +45,22 @@ export function TrackTooltip({ title, rows }: TrackTooltipProps) {
       />
       <g ref={contentRef}>
         {title ? (
-          <text
-            y={1}
-            fill={theme.palette.text.primary}
-            dominantBaseline="hanging"
-            fontFamily={theme.typography.fontFamily}
-            fontSize={12}
-            fontWeight={theme.typography.fontWeightMedium}
-          >
-            {title}
-          </text>
+          <>
+            {titleColor ? (
+              <rect x={0} y={1} width={10} height={10} rx={2} fill={titleColor} />
+            ) : null}
+            <text
+              x={titleColor ? 16 : 0}
+              y={1}
+              fill={theme.palette.text.primary}
+              dominantBaseline="hanging"
+              fontFamily={theme.typography.fontFamily}
+              fontSize={12}
+              fontWeight={theme.typography.fontWeightMedium}
+            >
+              {title}
+            </text>
+          </>
         ) : null}
         <g transform={`translate(0 ${title ? 20 : 0})`}>
           {rows.map((row, index) => {

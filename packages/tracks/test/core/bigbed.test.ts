@@ -49,9 +49,9 @@ describe("BigBed track", () => {
     const records = [{ chromosome: "chr1", start: 12, end: 18, fields: ["feature"] }];
     reader.read.mockResolvedValue(records);
 
-    await expect(fetchBigBedRows({ url: "https://example.org/data.bb", region })).resolves.toBe(
-      records,
-    );
+    await expect(
+      fetchBigBedRows({ url: "https://example.org/data.bb", region, schema: bed3Schema }),
+    ).resolves.toBe(records);
 
     expect(reader.createBigBedFile).toHaveBeenCalledWith({
       url: "https://example.org/data.bb",

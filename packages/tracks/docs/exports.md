@@ -6,14 +6,15 @@ The package has one subpath for each track and one `/shared` subpath for module-
 
 Each track subpath exports one module object:
 
-| Track      | Package entry | Module export      | Type value     |
-| ---------- | ------------- | ------------------ | -------------- |
-| BigBed     | `/bigbed`     | `bigBedModule`     | `"bigbed"`     |
-| BigWig     | `/bigwig`     | `bigWigModule`     | `"bigwig"`     |
-| BulkBed    | `/bulkbed`    | `bulkBedModule`    | `"bulkbed"`    |
-| CAVE       | `/cave`       | `caveModule`       | `"cave"`       |
-| MethylC    | `/methylc`    | `methylCModule`    | `"methylc"`    |
-| Transcript | `/transcript` | `transcriptModule` | `"transcript"` |
+| Track       | Package entry | Module export      | Type value      |
+| ----------- | ------------- | ------------------ | --------------- |
+| BigBed      | `/bigbed`     | `bigBedModule`     | `"bigbed"`      |
+| BigWig      | `/bigwig`     | `bigWigModule`     | `"bigwig"`      |
+| BulkBed     | `/bulkbed`    | `bulkBedModule`    | `"bulkbed"`     |
+| CAVE        | `/cave`       | `caveModule`       | `"cave"`        |
+| cCRE BigBed | `/ccre`       | `ccreBigBedModule` | `"ccre-bigbed"` |
+| MethylC     | `/methylc`    | `methylCModule`    | `"methylc"`     |
+| Transcript  | `/transcript` | `transcriptModule` | `"transcript"`  |
 
 Each module implements `TrackModule` from `@weng-lab/genomebrowser`:
 
@@ -26,7 +27,7 @@ Each module implements `TrackModule` from `@weng-lab/genomebrowser`:
 
 The schemas reject unknown object keys. Create input requires non-empty `id` and `title`. If supplied, `height` must be positive and `color` must use six-digit `#RRGGBB` syntax.
 
-Each module includes its settings component, tooltip component, renderer, and fetcher. The package does not export those track-specific parts separately. Import reusable settings controls, tooltip components, and pure track helpers from `@weng-lab/genomebrowser-tracks/shared`. See [Shared APIs](shared.md) for the full list and [Signal condensation](signal.md) for BigWig-to-pixel behavior.
+Each module includes its settings component, tooltip component, renderer, and fetcher. The BigBed subpath also exports `fetchBigBedRows` for modules that reuse BigBed reading with a different Zod schema. Import other reusable settings controls, tooltip components, and pure track helpers from `@weng-lab/genomebrowser-tracks/shared`. See [Shared APIs](shared.md) for the full list and [Signal condensation](signal.md) for BigWig-to-pixel behavior.
 
 ## Create-input and config types
 
@@ -78,7 +79,7 @@ Renderers do not all emit the same callbacks. Check the track page for supported
 
 ## Register the complete set
 
-`firstPartyTrackModules` is a readonly tuple with the six modules in this order: BigBed, BigWig, BulkBed, CAVE, MethylC, Transcript.
+`firstPartyTrackModules` is a readonly tuple with the seven modules in this order: BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, Transcript.
 
 ```ts
 import { createModuleRegistry } from "@weng-lab/genomebrowser";
@@ -87,4 +88,4 @@ import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 const registry = createModuleRegistry(firstPartyTrackModules);
 ```
 
-Register individual modules if your application supports only some track types. Importing one track subpath does not load the other tracks. The registry then rejects other types and produces narrower collection schemas. Importing the package root loads all six modules because it constructs `firstPartyTrackModules`.
+Register individual modules if your application supports only some track types. Importing one track subpath does not load the other tracks. The registry then rejects other types and produces narrower collection schemas. Importing the package root loads all seven modules because it constructs `firstPartyTrackModules`.

@@ -18,11 +18,11 @@ const track = bulkBedModule.create({
 
 ## Displays and base defaults
 
-| Field     | Supported or default | Behavior                                                                        |
-| --------- | -------------------- | ------------------------------------------------------------------------------- |
-| `display` | `"full"`             | Draws each dataset in one complete vertical row slot.                           |
-| `height`  | `80`                 | Initial height. Rendering replaces it with dataset count times `rowHeight`.     |
-| `color`   | `"#4b9560"`          | Fallback interval color.                                                        |
+| Field     | Supported or default | Behavior                                                                    |
+| --------- | -------------------- | --------------------------------------------------------------------------- |
+| `display` | `"full"`             | Draws each dataset in one complete vertical row slot.                       |
+| `height`  | `80`                 | Initial height. Rendering replaces it with dataset count times `rowHeight`. |
+| `color`   | `"#4b9560"`          | Fallback interval color.                                                    |
 
 ## Config
 
@@ -51,7 +51,7 @@ An interval tooltip uses the dataset name as its title. It also shows the featur
 | Export               | Description                                                        |
 | -------------------- | ------------------------------------------------------------------ |
 | `BulkBedCreateInput` | Input accepted by `bulkBedModule.create`.                          |
-| `BulkBedConfig`      | Parsed datasets, optional gap, and row height.                      |
+| `BulkBedConfig`      | Parsed datasets, optional gap, and row height.                     |
 | `BulkBedDisplay`     | `"full"`.                                                          |
 | `BulkBedDataset`     | One `{ name, url }` source entry.                                  |
 | `BulkBedRect`        | `BigBedRow` with an optional dataset name.                         |

@@ -9,8 +9,13 @@ import {
   hg38,
 } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
+import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
 import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
-import { TrackSelect } from "@weng-lab/genomebrowser-ui";
+import {
+  TrackSelect,
+  type TrackSelectInteraction,
+  type TrackSelectInteractionResolver,
+} from "@weng-lab/genomebrowser-ui";
 import { useLayoutEffect, useState } from "react";
 import { RegionOverview } from "./RegionOverview";
 import { BrowserHeader, NavigationControls } from "./Toolbars";
@@ -34,6 +39,15 @@ const useTrackStore = createTrackStore({
 const useSettingsStore = createSettingsStore({
   baseSettingsComponent: TrackBaseSettings,
 });
+
+const ccreInteraction: TrackSelectInteraction<CcreBigBedRow, CcreBigBedConfig> = {
+  onClick: (item) => {
+    console.log("cCRE BigBed row", item);
+  },
+};
+
+const resolveTrackInteraction: TrackSelectInteractionResolver = ({ qualifiedTrackId }) =>
+  qualifiedTrackId === "human-biosamples::ccre-aggregate" ? ccreInteraction : undefined;
 
 export function Browser() {
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
@@ -64,6 +78,7 @@ export function Browser() {
         defaultTrackIds={defaultTrackIds}
         trackCollections={trackCollections}
         useTrackStore={useTrackStore}
+        resolveTrackInteraction={resolveTrackInteraction}
       />
     </main>
   );

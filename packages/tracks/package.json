@@ -42,6 +42,10 @@
       "types": "./dist/src/cave/index.d.ts",
       "import": "./dist/cave.js"
     },
+    "./ccre": {
+      "types": "./dist/src/ccre/index.d.ts",
+      "import": "./dist/ccre.js"
+    },
     "./methylc": {
       "types": "./dist/src/methylc/index.d.ts",
       "import": "./dist/methylc.js"

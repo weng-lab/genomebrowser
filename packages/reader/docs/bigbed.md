@@ -94,6 +94,8 @@ type Result = {
 };
 ```
 
+Use the exported `BigBedRecord<typeof ccreSchema>` type when another API needs to name this inferred record shape.
+
 BigBed payload values begin as text. Use `z.coerce.number()` when a numeric source column should
 become a number. Regular property-level Zod parsing, coercion, transforms, and asynchronous
 transforms or refinements are supported. Properties are parsed sequentially.

@@ -45,7 +45,7 @@ type AwaitedSchemaOutput<Schema extends z.ZodObject> = keyof Schema["shape"] ext
   ? Record<never, never>
   : { [Key in keyof KnownSchemaOutput<Schema>]: Awaited<KnownSchemaOutput<Schema>[Key]> };
 
-type BigBedRecord<Schema extends z.ZodObject> = GenomicRecord &
+export type BigBedRecord<Schema extends z.ZodObject> = GenomicRecord &
   AwaitedSchemaOutput<Schema> & { fields: string[] };
 
 export type BigBedFileOptions<Schema extends z.ZodObject> = {

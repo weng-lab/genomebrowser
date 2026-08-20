@@ -1,5 +1,5 @@
 export { bed3Schema, createBigBedFile } from "./bigBed";
-export type { BigBedFileOptions } from "./bigBed";
+export type { BigBedFileOptions, BigBedRecord } from "./bigBed";
 export { createBigWigFile } from "./bigWig";
 export type {
   BigWigFile,

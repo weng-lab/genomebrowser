@@ -113,7 +113,7 @@
   ],
   "tracks": [
     {
-      "type": "bigbed",
+      "type": "ccre-bigbed",
       "id": "ccre-aggregate",
       "title": "Aggregate data, all ENCODE Biosamples",
       "display": "dense",

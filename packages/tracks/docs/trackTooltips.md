@@ -54,16 +54,17 @@ When no helper matches the domain, format the value before passing it to `TrackT
 
 ### Colors
 
-Set a row's `color` only when the color already identifies that series or channel in the track. The component adds a tinted label background and a solid leading mark; the visible label and value still communicate the row without color. Omit `color` for ordinary metadata and interface decoration. The value must be a valid CSS color string, and the host browser determines its rendered contrast.
+Set `titleColor` when a feature's color is meaningful and the title needs a matching square swatch. Set a row's `color` only when the color already identifies that series or channel in the track. The component adds a tinted label background and a solid leading mark; visible text must still communicate the same information without color. Omit colors for ordinary metadata and interface decoration. Values must be valid CSS color strings, and the host browser determines their rendered contrast.
 
 ## `TrackTooltip` API
 
 `TrackTooltip` renders an SVG `<g>` and does not forward DOM or SVG props.
 
-| Prop    | Type                         | Default  | Description                                                                                 |
-| ------- | ---------------------------- | -------- | ------------------------------------------------------------------------------------------- |
-| `title` | `string`                     | None     | Optional heading rendered above the rows. An empty string is treated as no title.           |
-| `rows`  | `readonly TrackTooltipRow[]` | Required | Rows rendered in the supplied order. The component does not sort, filter, or format values. |
+| Prop         | Type                         | Default  | Description                                                                                 |
+| ------------ | ---------------------------- | -------- | ------------------------------------------------------------------------------------------- |
+| `title`      | `string`                     | None     | Optional heading rendered above the rows. An empty string is treated as no title.           |
+| `titleColor` | `string`                     | None     | Optional CSS color for a square before the title. It has no effect when `title` is absent.  |
+| `rows`       | `readonly TrackTooltipRow[]` | Required | Rows rendered in the supplied order. The component does not sort, filter, or format values. |
 
 ### `TrackTooltipRow`
 

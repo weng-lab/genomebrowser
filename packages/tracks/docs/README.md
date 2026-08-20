@@ -1,14 +1,14 @@
 # First-party track modules
 
-`@weng-lab/genomebrowser-tracks` contains six track modules for the `@weng-lab/genomebrowser` runtime. Use a module when your data matches its source format and you want its built-in MUI settings.
+`@weng-lab/genomebrowser-tracks` contains seven track modules for the `@weng-lab/genomebrowser` runtime. Use a module when your data matches its source format and you want its built-in MUI settings.
 
 ## Package boundaries
 
 - `@weng-lab/genomebrowser` provides the browser runtime, stores, module contracts, schema helpers, and module-author hooks.
-- `@weng-lab/genomebrowser-tracks` provides the BigBed, BigWig, BulkBed, CAVE, MethylC, and Transcript implementations. It also provides the settings and tooltip controls used by track modules.
+- `@weng-lab/genomebrowser-tracks` provides the BigBed, BigWig, BulkBed, cCRE BigBed, CAVE, MethylC, and Transcript implementations. It also provides the settings and tooltip controls used by track modules.
 - `@weng-lab/genomebrowser-ui` provides application controls that coordinate with the browser system as a whole.
 
-Each module combines its fetcher, renderer, MUI settings component, and tooltip component. The package does not export those parts separately.
+Each module combines its fetcher, renderer, MUI settings component, and tooltip component. BigBed also exports its schema-aware row fetch helper for specialized modules; other track-specific parts remain internal.
 
 ## Start here
 
@@ -20,6 +20,7 @@ Each module combines its fetcher, renderer, MUI settings component, and tooltip 
 - [Track tooltips](trackTooltips.md) documents `TrackTooltip` and the tooltip formatters.
 - [Source layout](new-tracks.md) records the directory convention for track entries.
 - [BigBed](tracks/bigbed.md) displays intervals from one BigBed source.
+- [cCRE BigBed](tracks/ccre.md) parses and displays ENCODE cCRE BigBed records.
 - [BigWig](tracks/bigwig.md) displays quantitative signal from one BigWig source.
 - [BulkBed](tracks/bulkbed.md) displays several BigBed datasets in one row.
 - [CAVE](tracks/cave.md) displays paired hmC and OXBS signals from package-selected datasets.

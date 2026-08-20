@@ -63,6 +63,7 @@ assertJsonEqual(
   declarationExports.typeNames,
   [
     "BigBedFileOptions",
+    "BigBedRecord",
     "BigWigFile",
     "BigWigFileOptions",
     "BigWigReadOptions",

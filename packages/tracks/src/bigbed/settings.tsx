@@ -8,10 +8,10 @@ import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import type { BigBedConfig, BigBedRow } from "./types";
 
-export function BigBedSettings({
+export function BigBedSettings<Row extends BigBedRow = BigBedRow>({
   track,
   updateTrack,
-}: TrackSettingsProps<BigBedConfig, BigBedRow>) {
+}: TrackSettingsProps<BigBedConfig, Row>) {
   return (
     <TrackSettingsLayout>
       <TrackSettingsSection title="BigBed">

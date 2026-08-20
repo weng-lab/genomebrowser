@@ -21,6 +21,7 @@ import {
   type CaveConfig,
   type CaveCreateInput,
 } from "@weng-lab/genomebrowser-tracks/cave";
+import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 import {
   methylCModule,
   type MethylCConfig,
@@ -34,12 +35,13 @@ import {
 import { condenseSignalRecords, type SignalPoint } from "@weng-lab/genomebrowser-tracks/shared";
 
 describe("first-party track package", () => {
-  it("exports all six pre-bound modules as a ready-made collection", () => {
+  it("exports all seven pre-bound modules as a ready-made collection", () => {
     expect(firstPartyTrackModules).toEqual([
       bigBedModule,
       bigWigModule,
       bulkBedModule,
       caveModule,
+      ccreBigBedModule,
       methylCModule,
       transcriptModule,
     ]);
@@ -48,6 +50,7 @@ describe("first-party track package", () => {
       "bigwig",
       "bulkbed",
       "cave",
+      "ccre-bigbed",
       "methylc",
       "transcript",
     ]);

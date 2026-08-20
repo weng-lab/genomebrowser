@@ -14,6 +14,7 @@ describe("public track tooltip authoring API", () => {
     expectTypeOf(TrackTooltip).parameter(0).toEqualTypeOf<TrackTooltipProps>();
     expectTypeOf<TrackTooltipProps>().toEqualTypeOf<{
       title?: string;
+      titleColor?: string;
       rows: readonly TrackTooltipRow[];
     }>();
     expectTypeOf<TrackTooltipRow>().toEqualTypeOf<{

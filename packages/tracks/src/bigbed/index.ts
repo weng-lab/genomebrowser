@@ -25,6 +25,7 @@ export const bigBedModule = defineTrackModule<BigBedRow>()({
 
 export type BigBedCreateInput = ModuleCreateInput<typeof bigBedModule>;
 export type BigBedConfig = ModuleInstance<typeof bigBedModule>["config"];
+export { fetchBigBedRows } from "./fetch";
 export type {
   BigBedData,
   BigBedDisplay,

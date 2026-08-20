@@ -18,6 +18,7 @@ export default defineConfig({
       "@weng-lab/genomebrowser-tracks/bigwig": path.resolve(__dirname, "src/bigwig/index.ts"),
       "@weng-lab/genomebrowser-tracks/bulkbed": path.resolve(__dirname, "src/bulkbed/index.ts"),
       "@weng-lab/genomebrowser-tracks/cave": path.resolve(__dirname, "src/cave/index.ts"),
+      "@weng-lab/genomebrowser-tracks/ccre": path.resolve(__dirname, "src/ccre/index.ts"),
       "@weng-lab/genomebrowser-tracks/methylc": path.resolve(__dirname, "src/methylc/index.ts"),
       "@weng-lab/genomebrowser-tracks/shared": path.resolve(__dirname, "src/shared/index.ts"),
       "@weng-lab/genomebrowser-tracks/transcript": path.resolve(
@@ -50,6 +51,7 @@ export default defineConfig({
         bigwig: path.resolve(__dirname, "src/bigwig/index.ts"),
         bulkbed: path.resolve(__dirname, "src/bulkbed/index.ts"),
         cave: path.resolve(__dirname, "src/cave/index.ts"),
+        ccre: path.resolve(__dirname, "src/ccre/index.ts"),
         methylc: path.resolve(__dirname, "src/methylc/index.ts"),
         transcript: path.resolve(__dirname, "src/transcript/index.ts"),
         shared: path.resolve(__dirname, "src/shared/index.ts"),

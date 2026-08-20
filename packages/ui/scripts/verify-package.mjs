@@ -2,6 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 
 const packageDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const appDirectory = resolve(packageDirectory, "../app");
@@ -35,8 +36,8 @@ export default defineTrackSelectConfig({
     await readFile(resolve(temporaryDirectory, "trackSelectCollection.schema.json"), "utf8"),
   );
   assert(
-    schema?.properties?.tracks?.items?.oneOf?.length === 6,
-    "trackselect schema must include all six first-party modules",
+    schema?.properties?.tracks?.items?.oneOf?.length === firstPartyTrackModules.length,
+    "trackselect schema must include all first-party modules",
   );
 } finally {
   await rm(temporaryDirectory, { recursive: true, force: true });
