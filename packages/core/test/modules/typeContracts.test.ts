@@ -84,6 +84,7 @@ describe("track module type contracts", () => {
       "full" | "dense" | undefined
     >();
 
+    // eslint-disable-next-line no-constant-condition -- Compile-time-only negative type assertions.
     if (false) {
       moduleA.create({
         id: "track-a",
@@ -217,6 +218,7 @@ describe("track module type contracts", () => {
       TrackSettingsComponent<ConfigA, ItemA>
     >();
 
+    // eslint-disable-next-line no-constant-condition -- Compile-time-only negative type assertions.
     if (false) {
       const props = undefined as unknown as SettingsPropsA;
       // @ts-expect-error Complete track props are read-only.

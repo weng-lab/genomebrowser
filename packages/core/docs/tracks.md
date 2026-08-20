@@ -6,7 +6,7 @@ Every `module.create` input has a unique `id`, a `title`, optional `display`, `h
 
 ## Register a module
 
-Applications may define their own modules or install a package that supplies them. The curated BigBed, BigWig, BulkBed, CAVE, MethylC, and Transcript modules come from `@weng-lab/genomebrowser-tracks`:
+Applications may define their own modules or install a package that supplies them. The curated BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Transcript modules come from `@weng-lab/genomebrowser-tracks`:
 
 ```ts
 import { createTrackStore } from "@weng-lab/genomebrowser";

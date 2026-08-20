@@ -102,6 +102,7 @@ describe("defineTrackModule", () => {
       config: { url: "YOUR_URL_HERE" },
     });
 
+    // eslint-disable-next-line no-constant-condition -- Compile-time-only negative type assertions.
     if (false) {
       module.create({
         id: "signal",
@@ -174,6 +175,7 @@ describe("defineTrackModule", () => {
       return null;
     }
 
+    // eslint-disable-next-line no-constant-condition -- Compile-time-only negative type assertions.
     if (false) {
       defineTrackModule({
         type: "incompatible-settings",

@@ -10,7 +10,8 @@ replace an npm `latest` release. Any publication must retain the configured
 - `packages/core` (`@weng-lab/genomebrowser`) is the embeddable React runtime.
   It renders genomic tracks and owns the browser state and extension APIs.
 - `packages/tracks` (`@weng-lab/genomebrowser-tracks`) provides the curated,
-  MUI-based BigBed, BigWig, BulkBed, CAVE, MethylC, and Transcript modules.
+  MUI-based BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Transcript
+  modules.
 - `packages/ui` (`@weng-lab/genomebrowser-ui`) provides optional, higher-level
   application controls that depend on the runtime. Applications that only need
   the browser do not need this package.
@@ -42,7 +43,7 @@ for a focused check.
 
 | Task             | Workspace           | Core                                                 | Tracks                                                      | UI                                                      |
 | ---------------- | ------------------- | ---------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------- |
-| Build            | `pnpm build`        | `pnpm --filter @weng-lab/genomebrowser build`        | `pnpm --filter @weng-lab/genomebrowser-tracks build`        | `pnpm --filter @weng-lab/genomebrowser-ui build`        |
+| Build            | `pnpm build`        | `pnpm --filter @weng-lab/genomebrowser build`        | `pnpm --filter @weng-lab/genomebrowser-tracks... build`     | `pnpm --filter @weng-lab/genomebrowser-ui build`        |
 | Test             | `pnpm test`         | `pnpm --filter @weng-lab/genomebrowser test`         | `pnpm --filter @weng-lab/genomebrowser-tracks test`         | `pnpm --filter @weng-lab/genomebrowser-ui test`         |
 | Lint             | `pnpm lint`         | `pnpm --filter @weng-lab/genomebrowser lint`         | `pnpm --filter @weng-lab/genomebrowser-tracks lint`         | `pnpm --filter @weng-lab/genomebrowser-ui lint`         |
 | Check formatting | `pnpm format:check` | `pnpm --filter @weng-lab/genomebrowser format:check` | `pnpm --filter @weng-lab/genomebrowser-tracks format:check` | `pnpm --filter @weng-lab/genomebrowser-ui format:check` |

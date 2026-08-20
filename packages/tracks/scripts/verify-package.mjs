@@ -5,12 +5,13 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const packageDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(resolve(packageDirectory, "package.json"), "utf8"));
 assertEqual(manifest.sideEffects, false, "package sideEffects declaration");
-const trackNames = ["bigbed", "bigwig", "bulkbed", "cave", "methylc", "transcript"];
+const trackNames = ["bigbed", "bigwig", "bulkbed", "cave", "ccre", "methylc", "transcript"];
 const expectedRuntimeExports = new Map([
-  ["./bigbed", ["bigBedModule"]],
+  ["./bigbed", ["bigBedModule", "fetchBigBedRows"]],
   ["./bigwig", ["bigWigModule"]],
   ["./bulkbed", ["bulkBedModule"]],
   ["./cave", ["caveModule"]],
+  ["./ccre", ["ccreBigBedModule", "ccreBigBedSchema"]],
   ["./methylc", ["methylCModule"]],
   ["./transcript", ["transcriptModule"]],
   [
@@ -34,7 +35,12 @@ const expectedRuntimeExports = new Map([
       "formatGenomicInterval",
       "formatOptionalBedValue",
       "formatSignalValue",
+      "isRowLayoutConfig",
       "packRows",
+      "rowCountFromTrackHeight",
+      "rowHeightFromTrackHeight",
+      "trackHeightFromRowCount",
+      "useRowLayout",
     ],
   ],
   [".", ["firstPartyTrackModules"]],
