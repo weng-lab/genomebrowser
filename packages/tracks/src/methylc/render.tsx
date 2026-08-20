@@ -6,13 +6,8 @@ import {
   generateSignal2,
   getMethylCRange,
 } from "./helpers";
-import type {
-  MethylCConfig,
-  MethylCData,
-  MethylCRenderedPoint,
-  MethylCShowRows,
-  MethylCTooltipItem,
-} from "./types";
+import type { SignalPoint } from "../shared/signal";
+import type { MethylCConfig, MethylCData, MethylCShowRows, MethylCTooltipItem } from "./types";
 
 export function SplitMethylC({
   id,
@@ -114,7 +109,7 @@ function MethylCHoverOverlay({
   width,
   height,
 }: {
-  data: MethylCRenderedPoint[][];
+  data: SignalPoint[][];
   showRows: MethylCShowRows;
   width: number;
   height: number;

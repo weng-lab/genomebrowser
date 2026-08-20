@@ -3,14 +3,14 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TrackSettingsNumberField } from "../../src/settings/trackSettingsNumberField";
-import { TrackSettingsTextField } from "../../src/settings/trackSettingsTextField";
+import { TrackSettingsNumberField } from "../../src/shared/settings/trackSettingsNumberField";
+import { TrackSettingsTextField } from "../../src/shared/settings/trackSettingsTextField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
-} from "../../src/settings/trackSettingsFieldGrid";
-import { TrackSettingsLayout } from "../../src/settings/trackSettingsLayout";
-import { TrackSettingsUrlField } from "../../src/settings/trackSettingsUrlField";
+} from "../../src/shared/settings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../../src/shared/settings/trackSettingsLayout";
+import { TrackSettingsUrlField } from "../../src/shared/settings/trackSettingsUrlField";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;

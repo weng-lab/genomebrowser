@@ -20,7 +20,7 @@ import {
   type TrackSettingsSectionProps,
   type TrackSettingsTextFieldProps,
   type TrackSettingsUrlFieldProps,
-} from "@weng-lab/genomebrowser-tracks/settings";
+} from "@weng-lab/genomebrowser-tracks/shared/settings";
 
 describe("public track settings authoring API", () => {
   it("exports every authoring component", () => {

@@ -1,8 +1,8 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { useRef, useState, type MouseEvent } from "react";
+import type { BigWigValueRecord } from "@weng-lab/genomic-reader";
 import {
   applyFillWithZero,
-  condenseBigWigData,
   createYScale,
   getBigWigRange,
   getPointAtMouseX,
@@ -10,7 +10,8 @@ import {
   lighten,
   resolveBigWigRange,
 } from "./helpers";
-import type { BigWigConfig, BigWigData, RenderedBigWigPoint, YRange } from "./types";
+import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
+import type { BigWigConfig, YRange } from "./types";
 
 export function FullBigWig({
   config,
@@ -19,7 +20,7 @@ export function FullBigWig({
   width,
   height,
   region,
-}: TrackRendererProps<BigWigConfig, BigWigData[]>) {
+}: TrackRendererProps<BigWigConfig, BigWigValueRecord[]>) {
   const points = getRenderedPoints(config, data, region, width);
   const range = resolveBigWigRange(getBigWigRange(points), config.yRange);
   const y = createYScale(range, height);
@@ -65,7 +66,7 @@ export function DenseBigWig({
   width,
   height,
   region,
-}: TrackRendererProps<BigWigConfig, BigWigData[]>) {
+}: TrackRendererProps<BigWigConfig, BigWigValueRecord[]>) {
   const points = getRenderedPoints(config, data, region, width);
   const range = resolveBigWigRange(getBigWigRange(points), config.yRange);
   return (
@@ -96,15 +97,15 @@ function BigWigHoverOverlay({
   width,
   height,
 }: {
-  points: RenderedBigWigPoint[];
+  points: SignalPoint[];
   width: number;
   height: number;
 }) {
-  const [hoveredPoint, setHoveredPoint] = useState<RenderedBigWigPoint>();
-  const hoveredPointRef = useRef<RenderedBigWigPoint | undefined>(undefined);
-  const interactionPointRef = useRef<RenderedBigWigPoint | undefined>(undefined);
-  const interaction = useInteraction<RenderedBigWigPoint>();
-  const tooltip = useTooltip<RenderedBigWigPoint, BigWigConfig>();
+  const [hoveredPoint, setHoveredPoint] = useState<SignalPoint>();
+  const hoveredPointRef = useRef<SignalPoint | undefined>(undefined);
+  const interactionPointRef = useRef<SignalPoint | undefined>(undefined);
+  const interaction = useInteraction<SignalPoint>();
+  const tooltip = useTooltip<SignalPoint, BigWigConfig>();
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
     const point = getPointAtMouseX(
@@ -164,15 +165,15 @@ function BigWigHoverOverlay({
 
 function getRenderedPoints(
   config: BigWigConfig,
-  data: BigWigData[],
-  region: TrackRendererProps<BigWigConfig, BigWigData[]>["region"],
+  data: BigWigValueRecord[],
+  region: TrackRendererProps<BigWigConfig, BigWigValueRecord[]>["region"],
   width: number,
 ) {
-  const points = condenseBigWigData(data, region, width);
+  const points = condenseSignalRecords(data, region, width);
   if (config.fillWithZero) applyFillWithZero(points);
   return points;
 }
-function createSignalPaths(points: RenderedBigWigPoint[], range: YRange, height: number) {
+function createSignalPaths(points: SignalPoint[], range: YRange, height: number) {
   const y = createYScale(range, height);
   const zeroY = y(clamp(0, range));
   let minPath = `M 0 ${zeroY}`;

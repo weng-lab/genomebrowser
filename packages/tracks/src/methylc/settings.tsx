@@ -1,12 +1,12 @@
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
-import { TrackSettingsColorField } from "../settings/trackSettingsColorField";
-import { TrackSettingsFieldGrid } from "../settings/trackSettingsFieldGrid";
-import { TrackSettingsLayout } from "../settings/trackSettingsLayout";
-import { TrackSettingsRangeFields } from "../settings/trackSettingsRangeFields";
-import { TrackSettingsSection } from "../settings/trackSettingsSection";
-import { TrackSettingsUrlField } from "../settings/trackSettingsUrlField";
+import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
+import { TrackSettingsFieldGrid } from "../shared/settings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
+import { TrackSettingsRangeFields } from "../shared/settings/trackSettingsRangeFields";
+import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
+import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import { useRef, useState } from "react";
 import type { MethylCConfig, MethylCTooltipItem } from "./types";
 

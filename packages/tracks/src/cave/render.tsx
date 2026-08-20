@@ -1,7 +1,8 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { useRef, useState, type MouseEvent } from "react";
-import { condenseBigWigData, getPointAtMouseX, hasBigWigData } from "../bigwig/helpers";
-import type { RenderedBigWigPoint, YRange } from "../bigwig/types";
+import { getPointAtMouseX, hasBigWigData } from "../bigwig/helpers";
+import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
+import type { YRange } from "../bigwig/types";
 import type { CaveConfig, CaveData, CaveTooltipItem } from "./types";
 const range: YRange = { min: 0, max: 1 };
 
@@ -12,8 +13,8 @@ export function FullCave({
   height,
   region,
 }: TrackRendererProps<CaveConfig, CaveData>) {
-  const topPoints = condenseBigWigData(data.top, region, width);
-  const bottomPoints = condenseBigWigData(data.bottom, region, width);
+  const topPoints = condenseSignalRecords(data.top, region, width);
+  const bottomPoints = condenseSignalRecords(data.bottom, region, width);
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
@@ -29,7 +30,7 @@ export function FullCave({
     </g>
   );
 }
-function createCavePath(points: RenderedBigWigPoint[], height: number, side: "top" | "bottom") {
+function createCavePath(points: SignalPoint[], height: number, side: "top" | "bottom") {
   const baseline = side === "top" ? 0 : height;
   let path = `M 0 ${baseline}`;
   for (const point of points) {
@@ -47,8 +48,8 @@ function CaveHoverOverlay({
   width,
   height,
 }: {
-  topPoints: RenderedBigWigPoint[];
-  bottomPoints: RenderedBigWigPoint[];
+  topPoints: SignalPoint[];
+  bottomPoints: SignalPoint[];
   width: number;
   height: number;
 }) {

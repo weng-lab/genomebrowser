@@ -4,7 +4,7 @@ import type { TrackMutationResult } from "@weng-lab/genomebrowser";
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TrackSettingsColorField } from "../../src/settings/trackSettingsColorField";
+import { TrackSettingsColorField } from "../../src/shared/settings/trackSettingsColorField";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;

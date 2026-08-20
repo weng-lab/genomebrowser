@@ -18,14 +18,14 @@ describe("BigWig track fetching", () => {
     reader.createBigWigFile.mockReturnValue({ read: reader.read });
   });
 
-  it("reads unzoomed records and adapts them to the existing track data shape", async () => {
+  it("reads unzoomed value records directly from the genomic reader", async () => {
     const region = { chromosome: "chr1", start: 10, end: 20 };
     reader.read.mockResolvedValue([
       { kind: "value", chromosome: "chr1", start: 12, end: 18, value: 2.5 },
     ]);
 
     await expect(fetchBigWigRaw({ url: "https://example.org/data.bw", region })).resolves.toEqual([
-      { chr: "chr1", start: 12, end: 18, value: 2.5 },
+      { kind: "value", chromosome: "chr1", start: 12, end: 18, value: 2.5 },
     ]);
 
     expect(reader.createBigWigFile).toHaveBeenCalledWith({

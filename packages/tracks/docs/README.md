@@ -15,6 +15,7 @@ Each module combines its fetcher, renderer, MUI settings component, and tooltip 
 - [Getting started](gettingStarted.md) shows how to install, create, and register the modules.
 - [Export contract](exports.md) documents the shared module API and Zod schemas.
 - [Track settings](trackSettings.md) documents the reusable settings controls and `TrackBaseSettings`.
+- [Signal condensation](signal.md) documents the shared BigWig-to-pixel signal API.
 - [Track tooltips](trackTooltips.md) documents `TrackTooltip` and the tooltip formatters.
 - [Source layout](new-tracks.md) records the directory convention for track entries.
 - [BigBed](tracks/bigbed.md) displays intervals from one BigBed source.

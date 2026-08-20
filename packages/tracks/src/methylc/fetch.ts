@@ -1,6 +1,6 @@
 import type { GenomicRegion, TrackFetchContext } from "@weng-lab/genomebrowser";
 import { fetchBigWigRaw } from "../bigwig/fetch";
-import type { BigWigData } from "../bigwig/types";
+import type { BigWigValueRecord } from "@weng-lab/genomic-reader";
 import type { MethylCConfig, MethylCData } from "./types";
 export async function fetchMethylC({
   config,
@@ -21,6 +21,6 @@ export async function fetchMethylC({
     ].map((url) => fetchChannel(url, region)),
   );
 }
-async function fetchChannel(url: string, region: GenomicRegion): Promise<BigWigData[]> {
+async function fetchChannel(url: string, region: GenomicRegion): Promise<BigWigValueRecord[]> {
   return url ? fetchBigWigRaw({ url, region }) : [];
 }

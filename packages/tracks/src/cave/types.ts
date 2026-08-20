@@ -1,5 +1,6 @@
 import type { TrackInteraction } from "@weng-lab/genomebrowser";
-import type { BigWigData, RenderedBigWigPoint } from "../bigwig/types";
+import type { BigWigValueRecord } from "@weng-lab/genomic-reader";
+import type { SignalPoint } from "../shared/signal";
 export type CaveDisplay = "full";
 export type CaveNeurotransmitter = "GABA" | "GLU";
 export type CaveAge =
@@ -16,9 +17,9 @@ export type CaveConfig = {
   bottomColor: string;
 };
 export type CaveInteraction = TrackInteraction<CaveTooltipItem, CaveConfig>;
-export type CaveData = { top: BigWigData[]; bottom: BigWigData[] };
+export type CaveData = { top: BigWigValueRecord[]; bottom: BigWigValueRecord[] };
 export type CaveTooltipItem = {
   x: number;
-  top?: RenderedBigWigPoint;
-  bottom?: RenderedBigWigPoint;
+  top?: SignalPoint;
+  bottom?: SignalPoint;
 };

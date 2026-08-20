@@ -46,7 +46,7 @@ CAVE does not accept source URLs. It builds two public BigWig URLs from `neurotr
 
 The settings panel has labeled selectors for neurotransmitter and age. It also has color controls for the top and bottom signals.
 
-The tooltip always lists **hmC** before **OXBS**. Each row uses its signal color and shows the rendered maximum with two decimal places, or **No data**. The renderer emits `onHover` and `onLeave` when either signal has data. It does not emit click interactions.
+The tooltip always lists **hmC** before **OXBS**. Each row uses its signal color and shows the rendered maximum with two decimal places, or **No data**. The renderer emits `onHover` and `onLeave` when either signal has data. It does not emit click interactions. Both channels use the shared signal condensation rules, including zero-based half-open overlap boundaries.
 
 ## Exported types
 

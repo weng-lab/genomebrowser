@@ -50,7 +50,6 @@ export type {
   MethylCData,
   MethylCDisplay,
   MethylCInteraction,
-  MethylCRenderedPoint,
   MethylCShowRows,
   MethylCStrandUrls,
   MethylCTooltipItem,

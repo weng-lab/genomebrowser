@@ -1,6 +1,6 @@
 import type { TrackTooltipComponent } from "@weng-lab/genomebrowser";
-import { TrackTooltip, type TrackTooltipRow } from "../tooltips/trackTooltip";
-import { formatGenomicInterval } from "../tooltips/trackTooltipFormatters";
+import { TrackTooltip, type TrackTooltipRow } from "../shared/tooltips/trackTooltip";
+import { formatGenomicInterval } from "../shared/tooltips/trackTooltipFormatters";
 import type { Transcript, TranscriptConfig } from "./types";
 export const TranscriptTooltip: TrackTooltipComponent<Transcript, TranscriptConfig> = ({
   item,

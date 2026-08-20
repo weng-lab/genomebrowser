@@ -2,15 +2,14 @@ import { describe, expect, it } from "vitest";
 import { bigWigModule } from "../../src/bigwig";
 import {
   applyFillWithZero,
-  condenseBigWigData,
   formatBigWigTooltip,
   getBigWigRange,
   getPointAtMouseX,
 } from "../../src/bigwig/helpers";
-import type { RenderedBigWigPoint } from "../../src/bigwig/types";
+import type { SignalPoint } from "../../src/shared/signal";
 
 describe("BigWig interaction helpers", () => {
-  const points: RenderedBigWigPoint[] = [
+  const points: SignalPoint[] = [
     { x: 0, min: 1, max: 1 },
     { x: 1, min: null, max: null },
     { x: 2, min: 2, max: 5 },
@@ -49,28 +48,8 @@ describe("BigWig interaction helpers", () => {
     expect(formatBigWigTooltip({ x: 0, min: null, max: null })).toBe("No data");
   });
 
-  it("condenses raw BigWig data into rendered points", () => {
-    const rendered = condenseBigWigData(
-      [
-        { chr: "chr1", start: 0, end: 25, value: 2 },
-        { chr: "chr1", start: 10, end: 30, value: 5 },
-        { chr: "chr1", start: 75, end: 100, value: -1 },
-      ],
-      { chromosome: "chr1", start: 0, end: 100 },
-      4,
-    );
-
-    expect(rendered).toEqual([
-      { x: 0, min: 2, max: 5 },
-      { x: 1, min: 2, max: 5 },
-      { x: 2, min: null, max: null },
-      { x: 3, min: -1, max: -1 },
-    ]);
-    expect(getBigWigRange(rendered)).toEqual({ min: -1, max: 5 });
-  });
-
   it("can fill empty rendered points with zero", () => {
-    const rendered: RenderedBigWigPoint[] = [
+    const rendered: SignalPoint[] = [
       { x: 0, min: 1, max: 1 },
       { x: 1, min: null, max: null },
     ];

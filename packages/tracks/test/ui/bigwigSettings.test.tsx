@@ -1,11 +1,8 @@
 // @vitest-environment jsdom
 
 import type { TrackMutationResult, TrackUpdate } from "@weng-lab/genomebrowser";
-import {
-  bigWigModule,
-  type BigWigConfig,
-  type RenderedBigWigPoint,
-} from "@weng-lab/genomebrowser-tracks/bigwig";
+import { bigWigModule, type BigWigConfig } from "@weng-lab/genomebrowser-tracks/bigwig";
+import type { SignalPoint } from "@weng-lab/genomebrowser-tracks/shared/signal";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -208,7 +205,7 @@ describe("BigWig settings", () => {
 
 function renderSettings(initialConfig = config) {
   const updateTrack = vi.fn<
-    (update: TrackUpdate<BigWigConfig, RenderedBigWigPoint>) => TrackMutationResult
+    (update: TrackUpdate<BigWigConfig, SignalPoint>) => TrackMutationResult
   >(() => ({ ok: true }));
   const track = bigWigModule.create({
     id: "signal",

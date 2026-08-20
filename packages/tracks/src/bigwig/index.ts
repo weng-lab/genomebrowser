@@ -6,7 +6,7 @@ import { fetchBigWig } from "./fetch";
 import { DenseBigWig, FullBigWig } from "./render";
 import { BigWigSettings } from "./settings";
 import { BigWigTooltip } from "./tooltip";
-import type { RenderedBigWigPoint } from "./types";
+import type { SignalPoint } from "../shared/signal";
 
 const yRangeSchema = z
   .object({ min: z.number().optional(), max: z.number().optional() })
@@ -22,7 +22,7 @@ const configSchema = z.object({
   clampIndicatorColor: hexColorSchema.default("#ff0000"),
 });
 
-export const bigWigModule = defineTrackModule<RenderedBigWigPoint>()({
+export const bigWigModule = defineTrackModule<SignalPoint>()({
   type: "bigwig",
   defaults: { height: 80, color: "#2266aa" },
   configSchema,
@@ -34,11 +34,4 @@ export const bigWigModule = defineTrackModule<RenderedBigWigPoint>()({
 
 export type BigWigCreateInput = ModuleCreateInput<typeof bigWigModule>;
 export type BigWigConfig = ModuleInstance<typeof bigWigModule>["config"];
-export type {
-  BigWigData,
-  BigWigDisplay,
-  BigWigInteraction,
-  RenderedBigWigPoint,
-  YRange,
-  YRangeOverride,
-} from "./types";
+export type { BigWigDisplay, BigWigInteraction, YRange, YRangeOverride } from "./types";

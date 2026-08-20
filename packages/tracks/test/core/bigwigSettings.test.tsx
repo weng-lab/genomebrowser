@@ -6,7 +6,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { TrackMutationResult, TrackUpdate } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "../../src/bigwig";
 import { BigWigSettings } from "../../src/bigwig/settings";
-import type { BigWigConfig, RenderedBigWigPoint } from "../../src/bigwig/types";
+import type { SignalPoint } from "../../src/shared/signal";
+import type { BigWigConfig } from "../../src/bigwig/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -97,9 +98,7 @@ async function renderHarness() {
     title: "Signal",
     config: { url: "YOUR_URL_HERE" },
   });
-  const updateTrack = (
-    update: TrackUpdate<BigWigConfig, RenderedBigWigPoint>,
-  ): TrackMutationResult => {
+  const updateTrack = (update: TrackUpdate<BigWigConfig, SignalPoint>): TrackMutationResult => {
     if (rejectNextUpdate) {
       rejectNextUpdate = false;
       return { ok: false, error: "Rejected for test" };

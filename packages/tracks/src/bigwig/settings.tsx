@@ -2,19 +2,20 @@ import Box from "@mui/material/Box";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
-import { TrackSettingsColorField } from "../settings/trackSettingsColorField";
+import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
   TrackSettingsFullRow,
-} from "../settings/trackSettingsFieldGrid";
-import { TrackSettingsLayout } from "../settings/trackSettingsLayout";
-import { TrackSettingsRangeFields } from "../settings/trackSettingsRangeFields";
-import { TrackSettingsSection } from "../settings/trackSettingsSection";
-import { TrackSettingsUrlField } from "../settings/trackSettingsUrlField";
-import type { BigWigConfig, RenderedBigWigPoint } from "./types";
+} from "../shared/settings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
+import { TrackSettingsRangeFields } from "../shared/settings/trackSettingsRangeFields";
+import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
+import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
+import type { SignalPoint } from "../shared/signal";
+import type { BigWigConfig } from "./types";
 
-type Props = TrackSettingsProps<BigWigConfig, RenderedBigWigPoint>;
+type Props = TrackSettingsProps<BigWigConfig, SignalPoint>;
 export function BigWigSettings({ track, updateTrack }: Props) {
   const { config } = track;
   return (

@@ -60,20 +60,20 @@ Each non-empty channel URL must be an absolute public HTTP(S) BigWig URL. The se
 
 The settings panel has URL fields for all eight strand and channel combinations. It also has four channel color controls, a **Mask CpG by coverage** switch, and min/max range controls.
 
-The tooltip lists only channels with a non-empty URL. It orders plus CpG/CHG/CHH/depth before minus CpG/CHG/CHH/depth. Rows use their channel colors and show values with two decimal places, or **No data**. With no channels enabled, the tooltip shows **Channels: None enabled**. The renderer emits `onHover` and `onLeave`, but no click interactions.
+The tooltip lists only channels with a non-empty URL. It orders plus CpG/CHG/CHH/depth before minus CpG/CHG/CHH/depth. Rows use their channel colors and show values with two decimal places, or **No data**. With no channels enabled, the tooltip shows **Channels: None enabled**. The renderer emits `onHover` and `onLeave`, but no click interactions. Every channel uses the shared signal condensation rules, including zero-based half-open overlap boundaries.
 
 ## Exported types
 
-| Export                 | Description                                                               |
-| ---------------------- | ------------------------------------------------------------------------- |
-| `MethylCCreateInput`   | Input accepted by `methylCModule.create`.                                 |
-| `MethylCConfig`        | Parsed URLs, colors, masking flag, and optional range.                    |
-| `MethylCDisplay`       | `"split"`.                                                                |
-| `MethylCColors`        | CpG, CHG, CHH, and depth color map.                                       |
-| `MethylCStrandUrls`    | Four channel URL entries for one strand.                                  |
-| `MethylCUrls`          | Plus- and minus-strand URL maps.                                          |
-| `MethylCData`          | Eight BigWig record arrays in renderer channel order.                     |
-| `MethylCRenderedPoint` | Rendered pixel signal point.                                              |
-| `MethylCShowRows`      | Boolean visibility map for all tooltip rows.                              |
-| `MethylCTooltipItem`   | Rendered values and row visibility supplied to hover behavior.            |
-| `MethylCInteraction`   | Interaction callbacks receiving `MethylCTooltipItem` and `MethylCConfig`. |
+| Export                 | Description                                                                |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `MethylCCreateInput`   | Input accepted by `methylCModule.create`.                                  |
+| `MethylCConfig`        | Parsed URLs, colors, masking flag, and optional range.                     |
+| `MethylCDisplay`       | `"split"`.                                                                 |
+| `MethylCColors`        | CpG, CHG, CHH, and depth color map.                                        |
+| `MethylCStrandUrls`    | Four channel URL entries for one strand.                                   |
+| `MethylCUrls`          | Plus- and minus-strand URL maps.                                           |
+| `MethylCData`          | Eight genomic-reader `BigWigValueRecord` arrays in renderer channel order. |
+| `SignalPoint` (shared) | Shared rendered pixel signal point; import it from `/shared/signal`.       |
+| `MethylCShowRows`      | Boolean visibility map for all tooltip rows.                               |
+| `MethylCTooltipItem`   | Rendered values and row visibility supplied to hover behavior.             |
+| `MethylCInteraction`   | Interaction callbacks receiving `MethylCTooltipItem` and `MethylCConfig`.  |

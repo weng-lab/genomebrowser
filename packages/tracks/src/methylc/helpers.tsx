@@ -1,13 +1,14 @@
 import type { GenomicRegion } from "@weng-lab/genomebrowser";
-import { condenseBigWigData, lighten } from "../bigwig/helpers";
+import { lighten } from "../bigwig/helpers";
+import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
 import type { YRange } from "../bigwig/types";
-import type { MethylCData, MethylCRenderedPoint } from "./types";
+import type { MethylCData } from "./types";
 export function condenseMethylCChannels(data: MethylCData, region: GenomicRegion, width: number) {
   return data.map((channel) =>
-    channel.length > 0 ? condenseBigWigData(channel, region, width) : [],
+    channel.length > 0 ? condenseSignalRecords(channel, region, width) : [],
   );
 }
-export function getMethylCRange(channels: MethylCRenderedPoint[][]): YRange {
+export function getMethylCRange(channels: SignalPoint[][]): YRange {
   let min = Infinity;
   let max = -Infinity;
   for (const channel of channels)
@@ -19,19 +20,19 @@ export function getMethylCRange(channels: MethylCRenderedPoint[][]): YRange {
   if (min === max) return { min: Math.min(0, min), max: max === 0 ? 1 : max };
   return { min, max };
 }
-function normalize(point: MethylCRenderedPoint, range: YRange, height: number, inverted: boolean) {
+function normalize(point: SignalPoint, range: YRange, height: number, inverted: boolean) {
   const normalized =
     (Math.max(range.min, Math.min(range.max, point.max ?? range.min)) - range.min) /
     (range.max - range.min);
   return { x: point.x, y: inverted ? normalized * height : height - normalized * height };
 }
 export function generateSignal2(
-  data: MethylCRenderedPoint[],
+  data: SignalPoint[],
   height: number,
   color: string,
   inverted = false,
   customRange?: YRange,
-  coverageData?: MethylCRenderedPoint[],
+  coverageData?: SignalPoint[],
   requireCoverage = false,
 ) {
   if (!data.length) return null;
@@ -58,7 +59,7 @@ export function generateSignal2(
   };
 }
 export function generateLineGraph(
-  data: MethylCRenderedPoint[],
+  data: SignalPoint[],
   height: number,
   color: string,
   inverted = false,

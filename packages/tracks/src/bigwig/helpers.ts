@@ -1,37 +1,7 @@
-import type { GenomicRegion } from "@weng-lab/genomebrowser";
-import type { BigWigData, RenderedBigWigPoint, YRange, YRangeOverride } from "./types";
+import type { SignalPoint } from "../shared/signal";
+import type { YRange, YRangeOverride } from "./types";
 
-export function condenseBigWigData(
-  data: BigWigData[],
-  region: GenomicRegion,
-  width: number,
-): RenderedBigWigPoint[] {
-  const pixelWidth = Math.max(1, Math.floor(width));
-  const points = Array.from(
-    { length: pixelWidth },
-    (_, x) => ({ x, min: null, max: null }) as RenderedBigWigPoint,
-  );
-  const scale = (value: number) =>
-    ((value - region.start) * pixelWidth) / (region.end - region.start);
-  for (const datum of data) {
-    const start = Math.max(
-      0,
-      Math.min(pixelWidth - 1, Math.floor(scale(Math.max(datum.start, region.start)))),
-    );
-    const end = Math.max(
-      start,
-      Math.min(pixelWidth - 1, Math.floor(scale(Math.min(datum.end, region.end)))),
-    );
-    for (let x = start; x <= end; x += 1) {
-      const point = points[x];
-      point.min = point.min === null ? datum.value : Math.min(point.min, datum.value);
-      point.max = point.max === null ? datum.value : Math.max(point.max, datum.value);
-    }
-  }
-  return points;
-}
-
-export function getBigWigRange(points: RenderedBigWigPoint[]): YRange {
+export function getBigWigRange(points: SignalPoint[]): YRange {
   let min = Infinity;
   let max = -Infinity;
   for (const point of points) {
@@ -54,23 +24,23 @@ export function resolveBigWigRange(automaticRange: YRange, override?: YRangeOver
   return range.min < range.max ? range : automaticRange;
 }
 
-export function applyFillWithZero(points: RenderedBigWigPoint[]) {
+export function applyFillWithZero(points: SignalPoint[]) {
   for (const point of points) {
     if (point.min === null) point.min = 0;
     if (point.max === null) point.max = 0;
   }
 }
 
-export function getPointAtMouseX(points: RenderedBigWigPoint[], mouseX: number, width: number) {
+export function getPointAtMouseX(points: SignalPoint[], mouseX: number, width: number) {
   if (points.length === 0 || width <= 0) return undefined;
   return points[
     Math.max(0, Math.min(points.length - 1, Math.round(mouseX * (points.length / width))))
   ];
 }
-export function hasBigWigData(point: RenderedBigWigPoint | undefined) {
+export function hasBigWigData(point: SignalPoint | undefined) {
   return point !== undefined && (point.min !== null || point.max !== null);
 }
-export function formatBigWigTooltip(point: RenderedBigWigPoint) {
+export function formatBigWigTooltip(point: SignalPoint) {
   return point.max === null ? "No data" : point.max.toFixed(2);
 }
 export function createYScale(range: YRange, height: number) {

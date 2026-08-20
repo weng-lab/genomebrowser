@@ -1,15 +1,15 @@
 import TextField from "@mui/material/TextField";
 import { defaultScreenGraphQlEndpoint, type TrackSettingsProps } from "@weng-lab/genomebrowser";
-import { TrackSettingsColorField } from "../settings/trackSettingsColorField";
+import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
   TrackSettingsFullRow,
-} from "../settings/trackSettingsFieldGrid";
-import { TrackSettingsLayout } from "../settings/trackSettingsLayout";
-import { TrackSettingsNumberField } from "../settings/trackSettingsNumberField";
-import { TrackSettingsSection } from "../settings/trackSettingsSection";
-import { TrackSettingsTextField } from "../settings/trackSettingsTextField";
+} from "../shared/settings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
+import { TrackSettingsNumberField } from "../shared/settings/trackSettingsNumberField";
+import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
+import { TrackSettingsTextField } from "../shared/settings/trackSettingsTextField";
 import type { Transcript, TranscriptConfig } from "./types";
 
 type TranscriptSettingsProps = TrackSettingsProps<TranscriptConfig, Transcript>;

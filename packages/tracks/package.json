@@ -49,13 +49,17 @@
       "types": "./dist/src/transcript/index.d.ts",
       "import": "./dist/transcript.js"
     },
-    "./settings": {
-      "types": "./dist/src/settings/index.d.ts",
-      "import": "./dist/settings.js"
+    "./shared/settings": {
+      "types": "./dist/src/shared/settings/index.d.ts",
+      "import": "./dist/shared/settings.js"
     },
-    "./tooltips": {
-      "types": "./dist/src/tooltips/index.d.ts",
-      "import": "./dist/tooltips.js"
+    "./shared/signal": {
+      "types": "./dist/src/shared/signal/index.d.ts",
+      "import": "./dist/shared/signal.js"
+    },
+    "./shared/tooltips": {
+      "types": "./dist/src/shared/tooltips/index.d.ts",
+      "import": "./dist/shared/tooltips.js"
     }
   },
   "publishConfig": {

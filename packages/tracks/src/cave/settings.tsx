@@ -1,10 +1,10 @@
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
-import { TrackSettingsColorField } from "../settings/trackSettingsColorField";
-import { TrackSettingsFieldRow } from "../settings/trackSettingsFieldGrid";
-import { TrackSettingsLayout } from "../settings/trackSettingsLayout";
-import { TrackSettingsSection } from "../settings/trackSettingsSection";
+import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
+import { TrackSettingsFieldRow } from "../shared/settings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
+import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import type { CaveAge, CaveConfig, CaveNeurotransmitter, CaveTooltipItem } from "./types";
 
 const neurotransmitterOptions = [

@@ -40,7 +40,9 @@ describe("MethylC track fetching", () => {
       resolution: { mode: "unzoomed" },
     });
     expect(result).toHaveLength(8);
-    expect(result[0]).toEqual([{ chr: "chr1", start: 12, end: 18, value: 0.75 }]);
+    expect(result[0]).toEqual([
+      { kind: "value", chromosome: "chr1", start: 12, end: 18, value: 0.75 },
+    ]);
   });
 
   it("does not create a reader for empty channel URLs", async () => {

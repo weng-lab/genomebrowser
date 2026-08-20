@@ -10,8 +10,8 @@ vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
 
 const region = { chromosome: "chr1", start: 0, end: 1 };
 const data = {
-  top: [{ chr: "chr1", start: 0, end: 1, value: 0.5 }],
-  bottom: [{ chr: "chr1", start: 0, end: 1, value: 0.5 }],
+  top: [{ kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: 0.5 }],
+  bottom: [{ kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: 0.5 }],
 };
 
 describe("CAVE module", () => {

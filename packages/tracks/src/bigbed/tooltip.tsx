@@ -1,6 +1,9 @@
 import type { TrackTooltipComponent } from "@weng-lab/genomebrowser";
-import { TrackTooltip } from "../tooltips/trackTooltip";
-import { formatGenomicInterval, formatOptionalBedValue } from "../tooltips/trackTooltipFormatters";
+import { TrackTooltip } from "../shared/tooltips/trackTooltip";
+import {
+  formatGenomicInterval,
+  formatOptionalBedValue,
+} from "../shared/tooltips/trackTooltipFormatters";
 import type { BigBedConfig, BigBedRow } from "./types";
 
 export const BigBedTooltip: TrackTooltipComponent<BigBedRow, BigBedConfig> = ({ item }) => {

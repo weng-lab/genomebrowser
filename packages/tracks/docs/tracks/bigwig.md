@@ -38,7 +38,7 @@ Use `bigWigModule.configSchema` to validate config and `bigWigModule.createInput
 
 ## Source requirements
 
-The source must be an absolute public HTTP(S) BigWig URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. The module requests unzoomed value records and condenses them into rendered pixels.
+The source must be an absolute public HTTP(S) BigWig URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. The module requests unzoomed `BigWigValueRecord` records from `@weng-lab/genomic-reader` and condenses them into rendered pixels using the shared signal rules.
 
 ## Settings and tooltip
 
@@ -48,13 +48,12 @@ The tooltip shows the rendered pixel's maximum signal value with two decimal pla
 
 ## Exported types
 
-| Export                | Description                                                                |
-| --------------------- | -------------------------------------------------------------------------- |
-| `BigWigCreateInput`   | Input accepted by `bigWigModule.create`.                                   |
-| `BigWigConfig`        | Parsed config after all schema defaults are applied.                       |
-| `BigWigDisplay`       | `"full" \| "dense"`.                                                       |
-| `BigWigData`          | One unzoomed genomic signal record. Fetch results are arrays of this type. |
-| `RenderedBigWigPoint` | Pixel position with nullable minimum and maximum values.                   |
-| `YRange`              | Complete numeric `{ min, max }` range.                                     |
-| `YRangeOverride`      | Optional independent minimum and maximum overrides.                        |
-| `BigWigInteraction`   | Interaction callbacks receiving `RenderedBigWigPoint` and `BigWigConfig`.  |
+| Export                 | Description                                                       |
+| ---------------------- | ----------------------------------------------------------------- |
+| `BigWigCreateInput`    | Input accepted by `bigWigModule.create`.                          |
+| `BigWigConfig`         | Parsed config after all schema defaults are applied.              |
+| `BigWigDisplay`        | `"full" \| "dense"`.                                              |
+| `SignalPoint` (shared) | Shared rendered pixel position; import it from `/shared/signal`.  |
+| `YRange`               | Complete numeric `{ min, max }` range.                            |
+| `YRangeOverride`       | Optional independent minimum and maximum overrides.               |
+| `BigWigInteraction`    | Interaction callbacks receiving `SignalPoint` and `BigWigConfig`. |

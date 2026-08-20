@@ -1,4 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
+import type { BigWigSummaryRecord, BigWigValueRecord } from "@weng-lab/genomic-reader";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import {
   bigBedModule,
@@ -30,6 +31,10 @@ import {
   type TranscriptConfig,
   type TranscriptCreateInput,
 } from "@weng-lab/genomebrowser-tracks/transcript";
+import {
+  condenseSignalRecords,
+  type SignalPoint,
+} from "@weng-lab/genomebrowser-tracks/shared/signal";
 
 describe("first-party track package", () => {
   it("exports all six pre-bound modules as a ready-made collection", () => {
@@ -98,6 +103,21 @@ describe("first-party track package", () => {
     expectTypeOf<TranscriptConfig>().toEqualTypeOf<
       ReturnType<typeof transcriptModule.validate>["config"]
     >();
+  });
+
+  it("exposes the shared signal condensation API", () => {
+    const records = [{ kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: 2 }];
+    const points: SignalPoint[] = condenseSignalRecords(
+      records,
+      { chromosome: "chr1", start: 0, end: 1 },
+      1,
+    );
+
+    expect(points).toEqual([{ x: 0, min: 2, max: 2 }]);
+    expectTypeOf(condenseSignalRecords)
+      .parameter(0)
+      .toEqualTypeOf<readonly (BigWigValueRecord | BigWigSummaryRecord)[]>();
+    expectTypeOf(points).toEqualTypeOf<SignalPoint[]>();
   });
 });
 

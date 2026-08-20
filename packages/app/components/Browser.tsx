@@ -9,7 +9,7 @@ import {
   hg38,
 } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
-import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/settings";
+import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared/settings";
 import { TrackSelect } from "@weng-lab/genomebrowser-ui";
 import { useLayoutEffect, useState } from "react";
 import { RegionOverview } from "./RegionOverview";

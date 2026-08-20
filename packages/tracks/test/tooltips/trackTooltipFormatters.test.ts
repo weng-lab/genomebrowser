@@ -3,7 +3,7 @@ import {
   formatGenomicInterval,
   formatOptionalBedValue,
   formatSignalValue,
-} from "../../src/tooltips/trackTooltipFormatters";
+} from "../../src/shared/tooltips/trackTooltipFormatters";
 
 describe("track tooltip formatters", () => {
   it("formats finite signal values with fixed grouping and handles all non-finite values", () => {

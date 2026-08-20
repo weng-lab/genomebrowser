@@ -13,7 +13,7 @@ const expectedRuntimeExports = new Map([
   ["./methylc", ["methylCModule"]],
   ["./transcript", ["transcriptModule"]],
   [
-    "./settings",
+    "./shared/settings",
     [
       "TrackBaseSettings",
       "TrackSettingsColorField",
@@ -28,8 +28,9 @@ const expectedRuntimeExports = new Map([
       "TrackSettingsUrlField",
     ],
   ],
+  ["./shared/signal", ["condenseSignalRecords"]],
   [
-    "./tooltips",
+    "./shared/tooltips",
     ["TrackTooltip", "formatGenomicInterval", "formatOptionalBedValue", "formatSignalValue"],
   ],
   [".", ["firstPartyTrackModules"]],

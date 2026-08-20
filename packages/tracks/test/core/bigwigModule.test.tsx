@@ -11,8 +11,8 @@ vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
 
 const region = { chromosome: "chr1", start: 0, end: 1 };
 const clampedData = [
-  { chr: "chr1", start: 0, end: 1, value: -5 },
-  { chr: "chr1", start: 0, end: 1, value: 5 },
+  { kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: -5 },
+  { kind: "value" as const, chromosome: "chr1", start: 0, end: 1, value: 5 },
 ];
 
 describe("BigWig module", () => {

@@ -3,12 +3,15 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
-import { TrackSettingsFieldGrid, TrackSettingsFieldRow } from "../settings/trackSettingsFieldGrid";
-import { TrackSettingsLayout } from "../settings/trackSettingsLayout";
-import { TrackSettingsNumberField } from "../settings/trackSettingsNumberField";
-import { TrackSettingsSection } from "../settings/trackSettingsSection";
-import { TrackSettingsTextField } from "../settings/trackSettingsTextField";
-import { TrackSettingsUrlField } from "../settings/trackSettingsUrlField";
+import {
+  TrackSettingsFieldGrid,
+  TrackSettingsFieldRow,
+} from "../shared/settings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
+import { TrackSettingsNumberField } from "../shared/settings/trackSettingsNumberField";
+import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
+import { TrackSettingsTextField } from "../shared/settings/trackSettingsTextField";
+import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import { useRef, useState } from "react";
 import type { BulkBedConfig, BulkBedDataset, BulkBedRect } from "./types";
 
