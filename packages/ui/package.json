@@ -39,7 +39,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "pnpm typecheck && vite build",
+    "build": "pnpm typecheck && vite build && node scripts/verify-package.mjs",
     "typecheck": "tsc -b",
     "test": "vitest run",
     "lint": "oxlint .",
@@ -47,12 +47,11 @@
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
     "preview": "vite preview",
-    "prepack": "pnpm --filter @weng-lab/genomebrowser build && pnpm build"
+    "prepack": "pnpm --filter @weng-lab/genomebrowser build && pnpm --filter @weng-lab/genomic-reader build && pnpm --filter @weng-lab/genomebrowser-tracks build && pnpm build"
   },
   "dependencies": {
     "@weng-lab/genomebrowser": "workspace:^2.0.0-alpha.0",
     "jiti": "^2.6.2",
-    "react-colorful": "^5.8.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -61,6 +60,7 @@
     "@types/react-dom": "^19.2.3",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.0.2",
+    "@weng-lab/genomebrowser-tracks": "workspace:^2.0.0-alpha.1",
     "jsdom": "^26.1.0",
     "tsx": "^4.22.4",
     "typescript": "npm:@typescript/typescript6@^6.0.2",

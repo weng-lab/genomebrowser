@@ -12,14 +12,9 @@ import {
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
-import {
-  GenomeBrowser,
-  bigBedModule,
-  bigWigModule,
-  createBrowserStore,
-  createTrackStore,
-  hg38,
-} from "@weng-lab/genomebrowser";
+import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
+import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const trackCollections = [
   {

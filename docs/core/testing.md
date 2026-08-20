@@ -1,16 +1,16 @@
 # Testing Guidelines
 
-Run runtime tests from the repository root:
-
-```sh
-pnpm test:core
-```
-
-Run the package command directly, or pass a test file while iterating:
+Run the package command from the repository root, or pass a test file while iterating:
 
 ```sh
 pnpm --filter @weng-lab/genomebrowser test
 pnpm --filter @weng-lab/genomebrowser exec vitest run test/stores/trackStore.test.ts
+```
+
+Run first-party module tests in their owning package:
+
+```sh
+pnpm --filter @weng-lab/genomebrowser-tracks test
 ```
 
 ## Test taxonomy and locations
@@ -21,7 +21,8 @@ Tests live under `packages/core/test` and mirror behavior boundaries rather than
 - `stores`: browser, track, settings, and context-menu state transitions
 - `data`: request selection, signatures, async results, and error handling
 - `browser`: orchestration wiring, viewport calculations, panning, highlights, and track swapping
-- `tracks`: first-party module schemas and track-specific behavior
+
+First-party schema, fetch, rendering, settings, tooltip, and public-export tests live under `packages/tracks/test`. Core tests should cover the generic module and browser contracts without duplicating track-specific cases.
 
 Use pure unit tests for calculations and store transitions. Use React tests only when provider wiring, hooks, effects, or rendered browser behavior is the subject. Prefer asserting public outcomes over implementation details.
 
@@ -32,7 +33,7 @@ Use pure unit tests for calculations and store transitions. Use React tests only
 - Assert both the returned mutation result and unchanged state on rejected store updates.
 - Cover construction throws separately from mutation-result failures.
 - For async request tests, cover stale completion, retained successful data during a later request, and per-track errors where relevant.
-- Keep module tests close to the behavior the module owns; do not make browser tests duplicate every first-party schema case.
+- Keep first-party module tests in `packages/tracks/test`; do not make core browser tests duplicate their schema cases.
 
 ## Manual harness
 

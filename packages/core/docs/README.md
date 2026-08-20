@@ -1,6 +1,6 @@
 # @weng-lab/genomebrowser
 
-`@weng-lab/genomebrowser` is a React runtime for displaying genomic tracks. It provides the browser viewport, validated Zustand stores, first-party track modules, and an extension API for custom track types.
+`@weng-lab/genomebrowser` is a React runtime for displaying genomic tracks. It provides the browser viewport, validated Zustand stores, module infrastructure, and an extension API for custom track types.
 
 Install the package with its React peer dependencies:
 
@@ -20,7 +20,7 @@ Most applications need a small surface:
 
 - `createBrowserStore` for region, dimensions, zoom, and highlights
 - `createTrackStore` for registered modules and validated track instances
-- one or more built-in modules, such as `bigWigModule`
+- one or more registered modules, either application-defined or supplied by a track package
 - `GenomeBrowser` to render those stores
 
 Create the stores once, outside ordinary component render, and pass the same track store to any companion UI. Module authors additionally use `defineTrackModule`, `fetchOnChange`, focused renderer hooks, and exported module types. Internal package paths are not public API.
@@ -30,7 +30,7 @@ Create the stores once, outside ordinary component render, and pass the same tra
 - [Getting started](gettingStarted.md): install, create stable stores, render responsively, and update state.
 - [Core concepts](concepts.md): state ownership, request behavior, and interaction lifetimes.
 - [Recipes](recipes.md): common track, navigation, highlight, sizing, and optional UI tasks.
-- [Tracks](tracks.md): the concise current built-in module inventory.
+- [Tracks](tracks.md): module registration, track creation, and runtime behavior.
 - [Custom track modules](customTrackModules.md): add a validated fetch/render type.
 - [Troubleshooting](troubleshooting.md): diagnose setup, validation, request, and sizing failures.
 

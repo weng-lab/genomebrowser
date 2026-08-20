@@ -12,9 +12,9 @@ import {
   createTrackStore,
   GenomeBrowser,
   hg38,
-  transcriptModule,
   type GenomicRegion,
 } from "@weng-lab/genomebrowser";
+import { transcriptModule } from "@weng-lab/genomebrowser-tracks/transcript";
 
 import { SpanZoomStepper } from "./zoom-prototypes/SpanZoomStepper";
 import {

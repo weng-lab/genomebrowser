@@ -1,0 +1,102 @@
+{
+  "name": "@weng-lab/genomebrowser-tracks",
+  "version": "2.0.0-alpha.1",
+  "description": "First-party track modules for @weng-lab/genomebrowser.",
+  "homepage": "https://github.com/weng-lab/genomebrowser#readme",
+  "bugs": {
+    "url": "https://github.com/weng-lab/genomebrowser/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weng-lab/genomebrowser.git",
+    "directory": "packages/tracks"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "LICENSE"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "module": "dist/genomebrowser-tracks.es.js",
+  "types": "dist/src/lib.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/lib.d.ts",
+      "import": "./dist/genomebrowser-tracks.es.js"
+    },
+    "./bigbed": {
+      "types": "./dist/src/bigbed/index.d.ts",
+      "import": "./dist/bigbed.js"
+    },
+    "./bigwig": {
+      "types": "./dist/src/bigwig/index.d.ts",
+      "import": "./dist/bigwig.js"
+    },
+    "./bulkbed": {
+      "types": "./dist/src/bulkbed/index.d.ts",
+      "import": "./dist/bulkbed.js"
+    },
+    "./cave": {
+      "types": "./dist/src/cave/index.d.ts",
+      "import": "./dist/cave.js"
+    },
+    "./ccre": {
+      "types": "./dist/src/ccre/index.d.ts",
+      "import": "./dist/ccre.js"
+    },
+    "./methylc": {
+      "types": "./dist/src/methylc/index.d.ts",
+      "import": "./dist/methylc.js"
+    },
+    "./transcript": {
+      "types": "./dist/src/transcript/index.d.ts",
+      "import": "./dist/transcript.js"
+    },
+    "./shared": {
+      "types": "./dist/src/shared/index.d.ts",
+      "import": "./dist/shared.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
+  },
+  "scripts": {
+    "build": "pnpm typecheck && vite build && node scripts/verify-package.mjs",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check",
+    "verify:package": "pnpm build",
+    "prepack": "pnpm --filter @weng-lab/genomebrowser build && pnpm --filter @weng-lab/genomic-reader build && pnpm build"
+  },
+  "dependencies": {
+    "@weng-lab/genomic-reader": "workspace:^2.0.0-alpha.1",
+    "react-colorful": "^5.8.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@weng-lab/genomebrowser": "workspace:^2.0.0-alpha.1",
+    "jsdom": "^26.1.0",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "vite": "^8.0.13",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "4.1.7"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.0.0",
+    "@emotion/styled": "^11.0.0",
+    "@mui/material": "^7.0.0",
+    "@weng-lab/genomebrowser": "^2.0.0-alpha.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  }
+}

@@ -18,7 +18,7 @@ In this project, the shape is approximately:
 type GenomeBrowserSession = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
-  setRegion(region: BrowserRegion): void;
+  setRegion(region: GenomicRegion): void;
   dispose(): void;
 };
 ```
@@ -83,11 +83,11 @@ import {
   createBrowserStore,
   createTrackStore,
   type AnyTrackModule,
-  type BrowserRegion,
+  type GenomicRegion,
 } from "@weng-lab/genomebrowser";
 
 type CreateSessionOptions = {
-  initialRegion: BrowserRegion;
+  initialRegion: GenomicRegion;
   modules: readonly AnyTrackModule[];
   fixedTracks: AnyBrowserTrack[];
   attachInteractions?: (stores: {
@@ -140,7 +140,7 @@ function createBrowserSession({
   };
 }
 
-function sameRegion(a: BrowserRegion, b: BrowserRegion) {
+function sameRegion(a: GenomicRegion, b: GenomicRegion) {
   return a.chromosome === b.chromosome && a.start === b.start && a.end === b.end;
 }
 ```
@@ -160,7 +160,7 @@ Use command methods when the command itself has unique meaning. Use subscription
 Portal factories should make product intent obvious and hide construction details.
 
 ```ts
-export function createGenePortalSession(region: BrowserRegion) {
+export function createGenePortalSession(region: GenomicRegion) {
   const gene = createGeneTrack({ id: "gene-portal-transcripts" });
   const manhattan = createManhattanTrack({
     id: "gene-portal-gwas",
@@ -188,7 +188,7 @@ export function createGenePortalSession(region: BrowserRegion) {
 An optional dataset can produce a simpler session without forcing placeholder tracks:
 
 ```ts
-export function createDiseasePortalSession(region: BrowserRegion, summaryStatisticsUrl?: string) {
+export function createDiseasePortalSession(region: GenomicRegion, summaryStatisticsUrl?: string) {
   const gene = createGeneTrack({ id: "disease-transcripts" });
 
   if (!summaryStatisticsUrl) {
@@ -229,7 +229,7 @@ The wrapper is allowed to repeat a little configuration. A clear product boundar
 Do not call the factory directly during rendering. A render is not a lifetime boundary and may happen repeatedly.
 
 ```tsx
-function GeneBrowserPanel({ region }: { region: BrowserRegion }) {
+function GeneBrowserPanel({ region }: { region: GenomicRegion }) {
   const [session] = useState(() => createGenePortalSession(region));
 
   useEffect(() => {
@@ -279,6 +279,10 @@ Use fixed tracks for tracks that the application currently requires and that Tra
 Track Select creates and reconciles collection tracks using the same track store. The store must register every module type present in the collections supplied to that browser.
 
 ```ts
+import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
+import { transcriptModule } from "@weng-lab/genomebrowser-tracks/transcript";
+
 const STANDARD_MODULES = [bigBedModule, bigWigModule, transcriptModule];
 
 const SINGLE_CELL_MODULES = [...STANDARD_MODULES, singleCellGrnModule, singleCellQtlModule];

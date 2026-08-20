@@ -2,14 +2,14 @@
 
 A React runtime for displaying interactive genomic tracks.
 
-Genome Browser v2 provides the browser viewport, validated state stores, built-in track modules, and an extension API for custom track types.
+Genome Browser v2 provides the browser viewport, validated state stores, track-module runtime, and an extension API for custom track types.
 
 > This package is under active development and its public API may change.
 
 ## Install
 
 ```sh
-pnpm add @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2
+pnpm add @weng-lab/genomebrowser@alpha @weng-lab/genomebrowser-tracks@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
 ```
 
 ## Quick start
@@ -17,13 +17,8 @@ pnpm add @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2
 Create the browser and track stores once, outside component rendering, then pass them to `GenomeBrowser`.
 
 ```tsx
-import {
-  GenomeBrowser,
-  bigWigModule,
-  createBrowserStore,
-  createTrackStore,
-  hg38,
-} from "@weng-lab/genomebrowser";
+import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -60,7 +55,7 @@ For a responsive browser that follows its container width, see [Getting started]
 
 - An interactive genomic viewport
 - Validated browser and track stores
-- Built-in genomic track modules
+- Runtime infrastructure for registered track modules
 - Programmatic navigation, highlighting, and track updates
 - Request coordination as regions and track configuration change
 - An extension API for custom fetch-and-render track modules
@@ -71,12 +66,14 @@ Start with this package when you need to render or control a genome browser.
 
 Add `@weng-lab/genomebrowser-ui@alpha` when you also need ready-made application controls such as collection-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
 
+Add `@weng-lab/genomebrowser-tracks@alpha` for the curated BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Transcript modules. Core does not export first-party track implementations.
+
 ## Documentation
 
 - [Getting started](docs/gettingStarted.md) - installation, stable stores, and responsive sizing
 - [Core concepts](docs/concepts.md) - state ownership, requests, and interaction lifetimes
 - [Recipes](docs/recipes.md) - common navigation, track, highlight, and sizing tasks
-- [Built-in tracks](docs/tracks.md) - available first-party track modules
+- [Tracks](docs/tracks.md) - register modules and create track instances
 - [Custom track modules](docs/customTrackModules.md) - create a validated track type
 - [Troubleshooting](docs/troubleshooting.md) - diagnose setup, validation, request, and sizing problems
 

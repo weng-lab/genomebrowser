@@ -14,7 +14,8 @@ Build calm, compact scientific application UI.
 ## Ownership
 
 - `packages/core` owns genome rendering, browser state, and track infrastructure.
-- `packages/ui` owns reusable MUI application controls.
+- `packages/tracks` owns the curated MUI-based first-party track modules and all UI used specifically by tracks, including reusable settings controls and tooltip helpers.
+- `packages/ui` owns larger MUI application controls that interact with the browser system as a whole.
 - `packages/app` owns product composition and application-specific presentation.
 - Do not move behavior across these boundaries solely for visual convenience.
 
@@ -40,7 +41,7 @@ Build calm, compact scientific application UI.
 - The core settings modal owns the shell, title, close behavior, and positioning.
 - `TrackBaseSettings` owns title, color, display, and height controls.
 - A module `settingsComponent` renders only its track-specific config controls.
-- Extend imported core modules directly with `settingsComponent`; do not introduce core helpers solely for UI composition.
+- First-party modules arrive pre-bound to their track-specific settings components. Custom modules bind their own `settingsComponent`; do not introduce core helpers solely for UI composition.
 - Use `TrackSettingsSection` for grouping, `TrackSettingsFieldRow` for fixed peer rows, and `TrackSettingsFieldGrid` for free-flowing peer fields.
 - Every public config option must have an accessible input.
 

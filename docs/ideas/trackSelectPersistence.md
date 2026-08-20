@@ -324,7 +324,7 @@ type GenomeBrowserSession = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
   trackSelection?: TrackSelectionPersistence;
-  setRegion(region: BrowserRegion): void;
+  setRegion(region: GenomicRegion): void;
   dispose(): void;
 };
 ```

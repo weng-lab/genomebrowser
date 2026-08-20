@@ -5,13 +5,8 @@ The key integration rule is to create the runtime stores and collections outside
 ```tsx
 import { useState } from "react";
 import { TrackSelect } from "@weng-lab/genomebrowser-ui";
-import {
-  bigWigModule,
-  createBrowserStore,
-  createTrackStore,
-  GenomeBrowser,
-  hg38,
-} from "@weng-lab/genomebrowser";
+import { createBrowserStore, createTrackStore, GenomeBrowser, hg38 } from "@weng-lab/genomebrowser";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,

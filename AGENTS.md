@@ -5,6 +5,7 @@ pnpm monorepo for an embeddable React genome browser.
 ## Package map
 
 - `packages/core` (`@weng-lab/genomebrowser`) - the browser runtime.
+- `packages/tracks` (`@weng-lab/genomebrowser-tracks`) - curated first-party track modules.
 - `packages/ui` (`@weng-lab/genomebrowser-ui`) - collection and application UI.
 - `packages/app` (`@weng-lab/genomebrowser-app`) - the standalone web app.
 - `packages/reader` (`@weng-lab/genomic-reader`) - a library for reading genomic data from files.

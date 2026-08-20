@@ -1,6 +1,6 @@
 # BulkBed Track
 
-`bulkBedModule` renders multiple BigBed datasets in one track.
+`bulkBedModule`, exported by `@weng-lab/genomebrowser-tracks/bulkbed`, renders multiple BigBed datasets in one track.
 
 ## Config
 
@@ -36,4 +36,4 @@ Defaults:
 
 The module fetches each dataset URL as BigBed data and returns one row array per dataset. Each row is annotated with `datasetName`.
 
-Changing any dataset `url` triggers a refetch. Changing dataset `name`, `gap`, or visual base fields does not refetch data.
+Changing any dataset `url` triggers a refetch. Changing dataset `name`, `gap`, or visual base fields does not refetch data. Because fetched rows are annotated with the dataset name, existing tooltip items can retain the previous name until another request runs.

@@ -44,10 +44,10 @@ Module settings are track-type-specific controls supplied by a track module's `s
 
 The settings store owns the active settings modal state and the browser-level settings UI component overrides. The browser creates it internally by default, but apps can provide one when they need custom settings UI.
 
-## Built-in track
+## First-party track
 
-A built-in track is a track type shipped with v2, such as BigWig, BigBed, or Transcript. Applications register the built-in module and create validated instances from it.
+A first-party track is a curated track type shipped by `@weng-lab/genomebrowser-tracks`, such as BigWig, BigBed, or Transcript. Applications register the module with the core runtime and create validated instances from it.
 
 ## Custom track module
 
-A custom track module is an app-defined module registered with the browser to add a track type with its own validation, fetching, renderers, and optional settings. Reusing parts of a built-in module is supported only when that extension surface is explicitly documented.
+A custom track module is an app-defined module registered with the browser to add a track type with its own validation, fetching, renderers, and optional settings. Reusing parts of a first-party module is supported only when the tracks package explicitly documents that extension surface.

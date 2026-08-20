@@ -1,0 +1,104 @@
+import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
+import { createGenomicXScale } from "../shared/coordinates";
+import { packRows, useRowLayout } from "../shared/layout";
+import {
+  isManeSelectTranscript,
+  mergeTranscripts,
+  renderTranscript,
+  sortedTranscripts,
+} from "./helpers";
+import type { Transcript, TranscriptConfig, TranscriptData, TranscriptRow } from "./types";
+const maximumLabelFontSize = 10;
+export function SquishTranscript(props: TrackRendererProps<TranscriptConfig, TranscriptData>) {
+  const transcripts: Transcript[] = [];
+  for (const transcriptGroup of props.data) {
+    const transcript = mergeTranscripts(transcriptGroup);
+    if (visible(transcript, props.region)) transcripts.push(transcript);
+  }
+  return <Rows {...props} transcripts={transcripts} />;
+}
+export function PackTranscript(props: TrackRendererProps<TranscriptConfig, TranscriptData>) {
+  return (
+    <Rows
+      {...props}
+      transcripts={sortedTranscripts(props.data).filter((transcript) =>
+        visible(transcript, props.region),
+      )}
+    />
+  );
+}
+function Rows({
+  id,
+  config,
+  color,
+  region,
+  width,
+  transcripts,
+}: TrackRendererProps<TranscriptConfig, TranscriptData> & { transcripts: Transcript[] }) {
+  const x = createGenomicXScale(region, width);
+  const labelFontSize = Math.min(maximumLabelFontSize, config.rowHeight);
+  const grouped = packRows(transcripts, (transcript) => ({
+    start: x(transcript.coordinates.start),
+    end: x(transcript.coordinates.end) + labelFontSize * transcript.name.length,
+  }));
+  const { rowHeight, trackHeight } = useRowLayout(id, grouped.length, config);
+  const strokeWidth = Math.min(Math.max(0.5, rowHeight / 16), rowHeight * 0.4);
+  const rows: TranscriptRow[] = grouped.map((group, index) => ({
+    y: index * rowHeight,
+    transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, width)),
+  }));
+  const interaction = useInteraction<Transcript>();
+  const tooltip = useTooltip<Transcript, TranscriptConfig>();
+  return (
+    <g>
+      <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
+      {rows.map((row, rowIndex) => (
+        <g key={rowIndex} transform={`translate(0,${row.y})`}>
+          {row.transcripts.map((rendered, index) => {
+            const transcript = rendered.transcript;
+            const fill = isManeSelectTranscript(transcript.tag)
+              ? config.canonicalColor
+              : config.geneName &&
+                  transcript.name.toLowerCase().includes(config.geneName.toLowerCase())
+                ? config.highlightColor
+                : transcript.color || color;
+            return (
+              <g key={`${transcript.id}-${index}`}>
+                <path
+                  stroke={fill}
+                  fill={fill}
+                  strokeWidth={strokeWidth}
+                  d={rendered.paths.introns + rendered.paths.exons}
+                  style={{ cursor: interaction?.onClick ? "pointer" : "default" }}
+                  onClick={() => interaction?.onClick?.(transcript)}
+                  onMouseEnter={(event) => {
+                    interaction?.onHover?.(transcript);
+                    tooltip.show(transcript, event);
+                  }}
+                  onMouseLeave={() => {
+                    interaction?.onLeave?.(transcript);
+                    tooltip.hide();
+                  }}
+                />
+                <text
+                  fill={fill}
+                  fontSize={labelFontSize}
+                  x={transcript.coordinates.end + 5}
+                  y={rowHeight / 2}
+                  dominantBaseline="middle"
+                  pointerEvents="none"
+                  style={{ userSelect: "none" }}
+                >
+                  {transcript.name}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+      ))}
+    </g>
+  );
+}
+function visible(transcript: Transcript, region: { start: number; end: number }) {
+  return transcript.coordinates.end >= region.start && transcript.coordinates.start <= region.end;
+}

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createFetchSignature, fetchOnChange } from "../../src/modules/fetchOnChange";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
-import { bulkBedModule } from "../../src/tracks/bulkbed/module";
 
 describe("fetchOnChange", () => {
   function Renderer() {
@@ -176,39 +175,6 @@ describe("fetchOnChange", () => {
         config: { datasets: [track.config.datasets[1], track.config.datasets[0]] },
       }),
     ).not.toBe(createFetchSignature(module, track));
-  });
-
-  it("includes bulkbed dataset urls in fetch signatures", () => {
-    const track = bulkBedModule.create({
-      id: "bulk-peaks",
-      title: "Bulk peaks",
-      config: {
-        datasets: [
-          { name: "Dataset A", url: "URL_A" },
-          { name: "Dataset B", url: "URL_B" },
-        ],
-      },
-    });
-
-    expect(createFetchSignature(bulkBedModule, track)).toBeTypeOf("string");
-    expect(
-      createFetchSignature(bulkBedModule, {
-        ...track,
-        config: {
-          ...track.config,
-          datasets: [{ name: "Dataset C", url: "URL_A" }, track.config.datasets[1]],
-        },
-      }),
-    ).toBe(createFetchSignature(bulkBedModule, track));
-    expect(
-      createFetchSignature(bulkBedModule, {
-        ...track,
-        config: {
-          ...track.config,
-          datasets: [{ name: "Dataset A", url: "URL_C" }, track.config.datasets[1]],
-        },
-      }),
-    ).not.toBe(createFetchSignature(bulkBedModule, track));
   });
 
   it("canonicalizes object keys and distinguishes special numbers", () => {

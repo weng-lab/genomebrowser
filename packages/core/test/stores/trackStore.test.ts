@@ -1,11 +1,35 @@
 import { describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 import { createTrackStore } from "../../src/browser/state/trackStore";
-import { bigBedModule } from "../../src/tracks/bigbed/module";
-import { bigWigModule } from "../../src/tracks/bigwig/module";
+import { defineTrackModule } from "../../src/modules/defineTrackModule";
+
+const yRangeSchema = z
+  .object({ min: z.number(), max: z.number() })
+  .refine((range) => range.min < range.max);
+const signalModule = defineTrackModule({
+  type: "signal",
+  defaults: { height: 80, color: "#2266aa" },
+  configSchema: z.object({
+    url: z.string().min(1),
+    yRange: yRangeSchema.optional(),
+    clampIndicatorColor: z
+      .string()
+      .regex(/^#[0-9a-f]{6}$/i, "Expected a six-digit hexadecimal color")
+      .default("#ff0000"),
+  }),
+  fetch: async () => null,
+  render: { full: () => null, dense: () => null },
+});
+const intervalModule = defineTrackModule({
+  type: "interval",
+  configSchema: z.object({ url: z.string().min(1) }),
+  fetch: async () => null,
+  render: { full: () => null },
+});
 
 describe("createTrackStore", () => {
-  function bigWigTrack(id = "signal") {
-    return bigWigModule.create({
+  function signalTrack(id = "signal") {
+    return signalModule.create({
       id,
       title: "Signal",
       config: { url: "YOUR_URL_HERE" },
@@ -13,8 +37,8 @@ describe("createTrackStore", () => {
   }
 
   it("validates initial tracks with their modules", () => {
-    const track = bigWigTrack();
-    const store = createTrackStore({ modules: [bigWigModule], tracks: [track] });
+    const track = signalTrack();
+    const store = createTrackStore({ modules: [signalModule], tracks: [track] });
 
     expect(store.getState().tracks).toEqual([track]);
   });
@@ -22,10 +46,10 @@ describe("createTrackStore", () => {
   it("rejects module-invalid initial tracks", () => {
     expect(() =>
       createTrackStore({
-        modules: [bigWigModule],
+        modules: [signalModule],
         tracks: [
           {
-            type: "bigwig",
+            type: "signal",
             base: {
               id: "signal",
               title: "Signal",
@@ -37,13 +61,13 @@ describe("createTrackStore", () => {
           },
         ],
       }),
-    ).toThrow(/bigwig instance is invalid/);
+    ).toThrow(/signal instance is invalid/);
   });
 
   it("rejects unknown track types", () => {
     expect(() =>
       createTrackStore({
-        modules: [bigWigModule],
+        modules: [signalModule],
         tracks: [
           {
             type: "unknown",
@@ -63,13 +87,13 @@ describe("createTrackStore", () => {
 
   it("rejects duplicate track ids after module validation", () => {
     expect(() =>
-      createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack(), bigWigTrack()] }),
+      createTrackStore({ modules: [signalModule], tracks: [signalTrack(), signalTrack()] }),
     ).toThrow(/Duplicate track id/);
   });
 
   it("validates setTracks replacements", () => {
-    const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
-    const nextTrack = bigWigTrack("next");
+    const store = createTrackStore({ modules: [signalModule], tracks: [signalTrack()] });
+    const nextTrack = signalTrack("next");
 
     expect(store.getState().setTracks([nextTrack])).toEqual({ ok: true });
     expect(store.getState().tracks).toEqual([nextTrack]);
@@ -77,7 +101,7 @@ describe("createTrackStore", () => {
     expect(
       store.getState().setTracks([
         {
-          type: "bigwig",
+          type: "signal",
           base: {
             id: "bad",
             title: "Bad",
@@ -88,13 +112,13 @@ describe("createTrackStore", () => {
           config: {},
         },
       ]),
-    ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig instance is invalid/) });
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/signal instance is invalid/) });
     expect(store.getState().tracks).toEqual([nextTrack]);
   });
 
   it("validates added tracks", () => {
-    const store = createTrackStore({ modules: [bigWigModule], tracks: [] });
-    const track = bigWigTrack();
+    const store = createTrackStore({ modules: [signalModule], tracks: [] });
+    const track = signalTrack();
 
     expect(store.getState().addTrack(track)).toEqual({ ok: true });
     expect(store.getState().tracks).toEqual([track]);
@@ -105,7 +129,7 @@ describe("createTrackStore", () => {
     });
     expect(
       store.getState().addTrack({
-        type: "bigwig",
+        type: "signal",
         base: {
           id: "bad",
           title: "Bad",
@@ -115,12 +139,12 @@ describe("createTrackStore", () => {
         },
         config: {},
       }),
-    ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig instance is invalid/) });
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/signal instance is invalid/) });
   });
 
   it("applies bulk adds and removes in one update", () => {
-    const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
-    const added = bigWigTrack("added");
+    const store = createTrackStore({ modules: [signalModule], tracks: [signalTrack()] });
+    const added = signalTrack("added");
 
     expect(store.getState().applyTrackChanges({ add: [added], remove: ["signal"] })).toEqual({
       ok: true,
@@ -130,8 +154,8 @@ describe("createTrackStore", () => {
   });
 
   it("allows replacing a track id within one bulk change", () => {
-    const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
-    const replacement = bigWigTrack("signal");
+    const store = createTrackStore({ modules: [signalModule], tracks: [signalTrack()] });
+    const replacement = signalTrack("signal");
 
     expect(store.getState().applyTrackChanges({ add: [replacement], remove: ["signal"] })).toEqual({
       ok: true,
@@ -140,11 +164,11 @@ describe("createTrackStore", () => {
   });
 
   it("rejects bulk changes atomically", () => {
-    const initial = bigWigTrack();
-    const store = createTrackStore({ modules: [bigWigModule], tracks: [initial] });
+    const initial = signalTrack();
+    const store = createTrackStore({ modules: [signalModule], tracks: [initial] });
 
     expect(
-      store.getState().applyTrackChanges({ add: [bigWigTrack("next")], remove: ["missing"] }),
+      store.getState().applyTrackChanges({ add: [signalTrack("next")], remove: ["missing"] }),
     ).toMatchObject({ ok: false, error: expect.stringMatching(/No track found/) });
     expect(store.getState().tracks).toEqual([initial]);
 
@@ -152,7 +176,7 @@ describe("createTrackStore", () => {
       store.getState().applyTrackChanges({
         add: [
           {
-            type: "bigwig",
+            type: "signal",
             base: {
               id: "bad",
               title: "Bad",
@@ -165,10 +189,10 @@ describe("createTrackStore", () => {
         ],
         remove: ["signal"],
       }),
-    ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig instance is invalid/) });
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/signal instance is invalid/) });
     expect(store.getState().tracks).toEqual([initial]);
 
-    expect(store.getState().applyTrackChanges({ add: [bigWigTrack()] })).toMatchObject({
+    expect(store.getState().applyTrackChanges({ add: [signalTrack()] })).toMatchObject({
       ok: false,
       error: expect.stringMatching(/Duplicate track id/),
     });
@@ -180,7 +204,7 @@ describe("createTrackStore", () => {
     const onHover = () => undefined;
     const onLeave = () => undefined;
     const nextClick = () => undefined;
-    const initial = bigWigModule.create(
+    const initial = signalModule.create(
       {
         id: "signal",
         title: "Signal",
@@ -188,7 +212,7 @@ describe("createTrackStore", () => {
       },
       { onClick, onHover, onLeave },
     );
-    const store = createTrackStore({ modules: [bigWigModule], tracks: [initial] });
+    const store = createTrackStore({ modules: [signalModule], tracks: [initial] });
 
     expect(store.getState().getTrack("signal")).toMatchObject({
       interaction: {
@@ -198,7 +222,7 @@ describe("createTrackStore", () => {
       },
     });
 
-    const added = bigWigModule.create(
+    const added = signalModule.create(
       {
         id: "added",
         title: "Added",
@@ -229,11 +253,11 @@ describe("createTrackStore", () => {
     function Tooltip() {
       return null;
     }
-    const store = createTrackStore({ modules: [bigWigModule], tracks: [] });
+    const store = createTrackStore({ modules: [signalModule], tracks: [] });
 
     expect(
       store.getState().addTrack({
-        type: "bigwig",
+        type: "signal",
         base: {
           id: "signal",
           title: "Signal",
@@ -246,33 +270,33 @@ describe("createTrackStore", () => {
           tooltip: Tooltip,
         },
       } as never),
-    ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig instance is invalid/) });
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/signal instance is invalid/) });
 
-    store.getState().addTrack(bigWigTrack());
+    store.getState().addTrack(signalTrack());
     expect(
       store.getState().updateTrack("signal", { config: { tooltip: Tooltip } } as never),
     ).toMatchObject({
       ok: false,
-      error: expect.stringMatching(/bigwig instance is invalid/),
+      error: expect.stringMatching(/signal instance is invalid/),
     });
   });
 
   it("rejects invalid interaction updates", () => {
-    const store = createTrackStore({ modules: [bigWigModule], tracks: [bigWigTrack()] });
+    const store = createTrackStore({ modules: [signalModule], tracks: [signalTrack()] });
     const initialTrack = store.getState().getTrack("signal");
 
     expect(
       store
         .getState()
         .updateTrack("signal", { interaction: { onClick: "not a function" as never } }),
-    ).toMatchObject({ ok: false, error: expect.stringMatching(/bigwig instance is invalid/) });
+    ).toMatchObject({ ok: false, error: expect.stringMatching(/signal instance is invalid/) });
     expect(store.getState().getTrack("signal")).toBe(initialTrack);
   });
 
   it("validates base, config, and interaction patches atomically while preserving identity", () => {
     const onHover = () => undefined;
     const nextClick = () => undefined;
-    const signalTrack = bigWigModule.create(
+    const configuredTrack = signalModule.create(
       {
         id: "signal",
         title: "Signal",
@@ -280,12 +304,12 @@ describe("createTrackStore", () => {
       },
       { onHover },
     );
-    const unchangedTrack = bigWigTrack("unchanged");
+    const unchangedTrack = signalTrack("unchanged");
     const store = createTrackStore({
-      modules: [bigWigModule],
-      tracks: [signalTrack, unchangedTrack],
+      modules: [signalModule],
+      tracks: [configuredTrack, unchangedTrack],
     });
-    const validate = vi.spyOn(bigWigModule, "validate");
+    const validate = vi.spyOn(signalModule, "validate");
     const subscriber = vi.fn();
     const unsubscribe = store.subscribe(subscriber);
     const initialOrder = store.getState().order;
@@ -302,7 +326,7 @@ describe("createTrackStore", () => {
     expect(validate).toHaveBeenCalledTimes(1);
     expect(subscriber).toHaveBeenCalledTimes(1);
     expect(store.getState().getTrack("signal")).toMatchObject({
-      type: "bigwig",
+      type: "signal",
       base: { id: "signal", height: 120 },
       config: { url: "YOUR_OTHER_URL_HERE" },
       interaction: { onClick: nextClick, onHover },
@@ -319,7 +343,7 @@ describe("createTrackStore", () => {
       }),
     ).toMatchObject({
       ok: false,
-      error: expect.stringMatching(/bigwig instance is invalid/),
+      error: expect.stringMatching(/signal instance is invalid/),
     });
     expect(store.getState().getTrack("signal")).toBe(accepted);
     expect(store.getState().getTrack("signal")).toMatchObject({
@@ -343,11 +367,11 @@ describe("createTrackStore", () => {
     validate.mockRestore();
   });
 
-  it("persists BigWig yRange from initial config and external updates", () => {
+  it("persists signal yRange from initial config and external updates", () => {
     const store = createTrackStore({
-      modules: [bigWigModule],
+      modules: [signalModule],
       tracks: [
-        bigWigModule.create({
+        signalModule.create({
           id: "signal",
           title: "Signal",
           config: {
@@ -373,7 +397,7 @@ describe("createTrackStore", () => {
       store.getState().updateTrack("signal", { config: { yRange: { min: 20, max: 5 } } }),
     ).toMatchObject({
       ok: false,
-      error: expect.stringMatching(/bigwig instance is invalid/),
+      error: expect.stringMatching(/signal instance is invalid/),
     });
     expect(store.getState().getTrack("signal")).toMatchObject({
       config: { yRange: { min: 5, max: 20 } },
@@ -382,8 +406,8 @@ describe("createTrackStore", () => {
 
   it("exposes updateTrack as the only existing-track update API", () => {
     const store = createTrackStore({
-      modules: [bigWigModule, bigBedModule],
-      tracks: [bigWigTrack()],
+      modules: [signalModule, intervalModule],
+      tracks: [signalTrack()],
     });
 
     expect(store.getState().updateTrack).toBeTypeOf("function");

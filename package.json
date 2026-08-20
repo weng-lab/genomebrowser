@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "core": "pnpm --filter @weng-lab/genomebrowser",
+    "tracks": "pnpm --filter @weng-lab/genomebrowser-tracks",
     "ui": "pnpm --filter @weng-lab/genomebrowser-ui",
     "app": "pnpm --filter @weng-lab/genomebrowser-app",
     "reader": "pnpm --filter @weng-lab/genomic-reader",

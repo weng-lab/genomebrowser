@@ -43,7 +43,6 @@
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "@weng-lab/genomic-reader": "workspace:^2.0.0-alpha.1",
     "zod": "^4.4.3",
     "zustand": "^5.0.13"
   },
@@ -63,5 +62,10 @@
   "peerDependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
+  },
+  "knip": {
+    "entry": [
+      "src/lib.ts"
+    ]
   }
 }

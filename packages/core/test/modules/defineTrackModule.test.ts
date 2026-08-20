@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
-import { bigWigModule } from "../../src/tracks/bigwig/module";
 import type { TrackRendererProps, TrackSettingsProps } from "../../src/modules/types";
 
 describe("defineTrackModule", () => {
@@ -103,6 +102,7 @@ describe("defineTrackModule", () => {
       config: { url: "YOUR_URL_HERE" },
     });
 
+    // eslint-disable-next-line no-constant-condition -- Compile-time-only negative type assertions.
     if (false) {
       module.create({
         id: "signal",
@@ -175,6 +175,7 @@ describe("defineTrackModule", () => {
       return null;
     }
 
+    // eslint-disable-next-line no-constant-condition -- Compile-time-only negative type assertions.
     if (false) {
       defineTrackModule({
         type: "incompatible-settings",
@@ -411,28 +412,6 @@ describe("defineTrackModule", () => {
         },
       }),
     ).toThrow(/default display "dense" is not supported/);
-  });
-
-  it("supports built-in module instance creation", () => {
-    expect(
-      bigWigModule.create({
-        id: "signal",
-        title: "Signal",
-        config: { url: "YOUR_URL_HERE" },
-      }),
-    ).toMatchObject({
-      type: "bigwig",
-      base: {
-        id: "signal",
-        title: "Signal",
-        display: "full",
-        height: 80,
-        color: "#2266aa",
-      },
-      config: {
-        url: "YOUR_URL_HERE",
-      },
-    });
   });
 
   it("types renderer props with module config only", () => {

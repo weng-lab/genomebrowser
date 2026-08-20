@@ -11,39 +11,27 @@ import Typography from "@mui/material/Typography";
 import "./muiLicense";
 
 import {
-  bigBedModule,
-  bigWigModule,
-  bulkBedModule,
-  caveModule,
   createBrowserStore,
   createSettingsStore,
   createTrackStore,
   GenomeBrowser,
   hg38,
-  methylCModule,
   parseRegion,
-  transcriptModule,
   type GenomicRegion,
   type Highlight,
   type TrackRuntimeContext,
 } from "@weng-lab/genomebrowser";
+import { bigBedModule as bigBedUiModule } from "@weng-lab/genomebrowser-tracks/bigbed";
+import { bigWigModule as bigWigUiModule } from "@weng-lab/genomebrowser-tracks/bigwig";
+import { bulkBedModule as bulkBedUiModule } from "@weng-lab/genomebrowser-tracks/bulkbed";
+import { caveModule as caveUiModule } from "@weng-lab/genomebrowser-tracks/cave";
+import { methylCModule as methylCUiModule } from "@weng-lab/genomebrowser-tracks/methylc";
+import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
+import { transcriptModule as transcriptUiModule } from "@weng-lab/genomebrowser-tracks/transcript";
 import {
-  BigBedSettings,
-  BigBedTooltip,
-  BigWigSettings,
-  BigWigTooltip,
   BrowserNavigationButton,
-  BulkBedSettings,
-  BulkBedTooltip,
-  CaveSettings,
-  CaveTooltip,
   Cytobands,
-  MethylCSettings,
-  MethylCTooltip,
-  TrackBaseSettings,
   TrackSelect,
-  TranscriptSettings,
-  TranscriptTooltip,
   withValueMarkers,
   type TrackSelectCollectionContext,
   type TrackSelectInteraction,
@@ -53,42 +41,6 @@ import {
 // collections
 import biosamples from "./collections/human-biosamples.json";
 import psychscreenTracks from "./collections/psychscreen.json";
-
-const bigBedUiModule = {
-  ...bigBedModule,
-  settingsComponent: BigBedSettings,
-  tooltipComponent: BigBedTooltip,
-} satisfies typeof bigBedModule;
-
-const bigWigUiModule = {
-  ...bigWigModule,
-  settingsComponent: BigWigSettings,
-  tooltipComponent: BigWigTooltip,
-} satisfies typeof bigWigModule;
-
-const bulkBedUiModule = {
-  ...bulkBedModule,
-  settingsComponent: BulkBedSettings,
-  tooltipComponent: BulkBedTooltip,
-} satisfies typeof bulkBedModule;
-
-const caveUiModule = {
-  ...caveModule,
-  settingsComponent: CaveSettings,
-  tooltipComponent: CaveTooltip,
-} satisfies typeof caveModule;
-
-const methylCUiModule = {
-  ...methylCModule,
-  settingsComponent: MethylCSettings,
-  tooltipComponent: MethylCTooltip,
-} satisfies typeof methylCModule;
-
-const transcriptUiModule = {
-  ...transcriptModule,
-  settingsComponent: TranscriptSettings,
-  tooltipComponent: TranscriptTooltip,
-} satisfies typeof transcriptModule;
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,

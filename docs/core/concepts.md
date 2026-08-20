@@ -4,7 +4,7 @@ This page orients maintainers to `@weng-lab/genomebrowser`: what the package own
 
 ## Purpose and boundaries
 
-The core package is a React genome-browser runtime. It coordinates a genomic viewport, a validated list of tracks, regional data requests, SVG rendering, and browser-level interactions. It intentionally does not provide the larger collection and application UI; `@weng-lab/genomebrowser-ui` builds those workflows on the runtime track store.
+The core package is a React genome-browser runtime. It coordinates a genomic viewport, a validated list of tracks, regional data requests, SVG rendering, and browser-level interactions. It intentionally does not provide curated track implementations or larger collection and application UI. `@weng-lab/genomebrowser-tracks` supplies the first-party modules, and `@weng-lab/genomebrowser-ui` builds generic UI workflows on the runtime track store.
 
 The browser stays generic. Track modules own behavior specific to one track type: config validation, fetching, renderers, display modes, and optional settings and tooltip components. Stable behavior belongs on a module; values and callbacks that vary per track belong on its instance.
 
@@ -12,7 +12,7 @@ Dependencies should point inward toward narrow contracts:
 
 - `src/modules` owns track contracts, schemas, registry behavior, and module-author utilities. It must not depend on `src/browser`.
 - `src/browser` owns orchestration and browser features. Each feature keeps its providers, stores, hooks, and DOM/SVG details together and exposes a narrow API.
-- `src/tracks` owns first-party modules. They use the same module contract as downstream modules and may use focused browser feature hooks, but not browser orchestration or feature-private files.
+- `packages/tracks` owns first-party modules. They use core's public module contract and focused browser feature hooks, not core implementation paths.
 
 ## State ownership and lifetimes
 
@@ -60,7 +60,7 @@ Put new behavior in the narrowest owner:
 - browser and track state: `src/browser/state`
 - settings and overlays: `src/browser/settings` and `src/browser/overlays`
 - contracts shared by browser and tracks: `src/modules`
-- type-specific data and presentation: `src/tracks/<type>`
+- first-party type-specific data and presentation: `packages/tracks/src/<type>`
 
 Do not give a track access to a broad browser context to solve one feature. Add a focused API to the feature that owns the capability, as `useTooltip` and `useAutoTrackHeight` do.
 
@@ -70,7 +70,7 @@ Start from the symptom:
 
 - invalid creation or mutation: `src/modules/defineTrackModule.ts`, `src/modules/registry.ts`, `src/browser/state/trackStore.ts`, and `test/stores/trackStore.test.ts`
 - unexpected request or no request after config changes: `src/modules/fetchOnChange.ts`, `src/browser/data/useTrackData.ts`, and `test/data/fetchOnChange.test.ts`
-- network or parser failure: the module's `src/tracks/<type>/fetch.ts` and `src/browser/data/fetchTrackData.ts`
+- network or parser failure: `packages/tracks/src/<type>/fetch.ts` for a first-party module and `packages/core/src/browser/data/fetchTrackData.ts` for runtime request handling
 - wrong renderer or settings UI: the module definition plus `src/browser/track-row` or `src/browser/settings`
 - pan offset, stale region, or interaction lock: `src/browser/viewport`, `src/browser/GenomeBrowser.tsx`, and viewport tests
 - tooltip, highlight, or context-menu behavior: the matching feature directory under `src/browser`

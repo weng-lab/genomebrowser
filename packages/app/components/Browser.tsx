@@ -3,26 +3,18 @@
 import Box from "@mui/material/Box";
 import {
   GenomeBrowser,
-  bigBedModule,
-  bigWigModule,
   createBrowserStore,
   createSettingsStore,
   createTrackStore,
   hg38,
-  methylCModule,
-  transcriptModule,
 } from "@weng-lab/genomebrowser";
+import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
+import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
+import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import {
-  BigBedSettings,
-  BigBedTooltip,
-  BigWigSettings,
-  BigWigTooltip,
-  MethylCSettings,
-  MethylCTooltip,
-  TrackBaseSettings,
   TrackSelect,
-  TranscriptSettings,
-  TranscriptTooltip,
+  type TrackSelectInteraction,
+  type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
 import { useLayoutEffect, useState } from "react";
 import { RegionOverview } from "./RegionOverview";
@@ -32,30 +24,6 @@ import { useObservedWidth } from "../hooks/useObservedWidth";
 
 const marginWidth = 50;
 
-const transcriptUiModule = {
-  ...transcriptModule,
-  settingsComponent: TranscriptSettings,
-  tooltipComponent: TranscriptTooltip,
-} satisfies typeof transcriptModule;
-
-const bigBedUiModule = {
-  ...bigBedModule,
-  settingsComponent: BigBedSettings,
-  tooltipComponent: BigBedTooltip,
-} satisfies typeof bigBedModule;
-
-const bigWigUiModule = {
-  ...bigWigModule,
-  settingsComponent: BigWigSettings,
-  tooltipComponent: BigWigTooltip,
-} satisfies typeof bigWigModule;
-
-const methylCUiModule = {
-  ...methylCModule,
-  settingsComponent: MethylCSettings,
-  tooltipComponent: MethylCTooltip,
-};
-
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
   region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
@@ -64,13 +32,22 @@ const useBrowserStore = createBrowserStore({
 });
 
 const useTrackStore = createTrackStore({
-  modules: [transcriptUiModule, bigWigUiModule, bigBedUiModule, methylCUiModule],
+  modules: firstPartyTrackModules,
   tracks: [],
 });
 
 const useSettingsStore = createSettingsStore({
   baseSettingsComponent: TrackBaseSettings,
 });
+
+const ccreInteraction: TrackSelectInteraction<CcreBigBedRow, CcreBigBedConfig> = {
+  onClick: (item) => {
+    console.log("cCRE BigBed row", item);
+  },
+};
+
+const resolveTrackInteraction: TrackSelectInteractionResolver = ({ qualifiedTrackId }) =>
+  qualifiedTrackId === "human-biosamples::ccre-aggregate" ? ccreInteraction : undefined;
 
 export function Browser() {
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
@@ -101,6 +78,7 @@ export function Browser() {
         defaultTrackIds={defaultTrackIds}
         trackCollections={trackCollections}
         useTrackStore={useTrackStore}
+        resolveTrackInteraction={resolveTrackInteraction}
       />
     </main>
   );
