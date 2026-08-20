@@ -19,18 +19,7 @@ export default defineConfig({
       "@weng-lab/genomebrowser-tracks/bulkbed": path.resolve(__dirname, "src/bulkbed/index.ts"),
       "@weng-lab/genomebrowser-tracks/cave": path.resolve(__dirname, "src/cave/index.ts"),
       "@weng-lab/genomebrowser-tracks/methylc": path.resolve(__dirname, "src/methylc/index.ts"),
-      "@weng-lab/genomebrowser-tracks/shared/settings": path.resolve(
-        __dirname,
-        "src/shared/settings/index.ts",
-      ),
-      "@weng-lab/genomebrowser-tracks/shared/signal": path.resolve(
-        __dirname,
-        "src/shared/signal/index.ts",
-      ),
-      "@weng-lab/genomebrowser-tracks/shared/tooltips": path.resolve(
-        __dirname,
-        "src/shared/tooltips/index.ts",
-      ),
+      "@weng-lab/genomebrowser-tracks/shared": path.resolve(__dirname, "src/shared/index.ts"),
       "@weng-lab/genomebrowser-tracks/transcript": path.resolve(
         __dirname,
         "src/transcript/index.ts",
@@ -63,9 +52,7 @@ export default defineConfig({
         cave: path.resolve(__dirname, "src/cave/index.ts"),
         methylc: path.resolve(__dirname, "src/methylc/index.ts"),
         transcript: path.resolve(__dirname, "src/transcript/index.ts"),
-        "shared/settings": path.resolve(__dirname, "src/shared/settings/index.ts"),
-        "shared/signal": path.resolve(__dirname, "src/shared/signal/index.ts"),
-        "shared/tooltips": path.resolve(__dirname, "src/shared/tooltips/index.ts"),
+        shared: path.resolve(__dirname, "src/shared/index.ts"),
       },
       name: "genomebrowser-tracks",
       fileName: (format, entryName) =>

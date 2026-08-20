@@ -73,7 +73,7 @@ The tooltip lists only channels with a non-empty URL. It orders plus CpG/CHG/CHH
 | `MethylCStrandUrls`    | Four channel URL entries for one strand.                                   |
 | `MethylCUrls`          | Plus- and minus-strand URL maps.                                           |
 | `MethylCData`          | Eight genomic-reader `BigWigValueRecord` arrays in renderer channel order. |
-| `SignalPoint` (shared) | Shared rendered pixel signal point; import it from `/shared/signal`.       |
+| `SignalPoint` (shared) | Shared rendered pixel signal point; import it from `/shared`.              |
 | `MethylCShowRows`      | Boolean visibility map for all tooltip rows.                               |
 | `MethylCTooltipItem`   | Rendered values and row visibility supplied to hover behavior.             |
 | `MethylCInteraction`   | Interaction callbacks receiving `MethylCTooltipItem` and `MethylCConfig`.  |

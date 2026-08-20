@@ -15,9 +15,7 @@
       "@weng-lab/genomebrowser-tracks/bulkbed": ["./src/bulkbed/index.ts"],
       "@weng-lab/genomebrowser-tracks/cave": ["./src/cave/index.ts"],
       "@weng-lab/genomebrowser-tracks/methylc": ["./src/methylc/index.ts"],
-      "@weng-lab/genomebrowser-tracks/shared/settings": ["./src/shared/settings/index.ts"],
-      "@weng-lab/genomebrowser-tracks/shared/signal": ["./src/shared/signal/index.ts"],
-      "@weng-lab/genomebrowser-tracks/shared/tooltips": ["./src/shared/tooltips/index.ts"],
+      "@weng-lab/genomebrowser-tracks/shared": ["./src/shared/index.ts"],
       "@weng-lab/genomebrowser-tracks/transcript": ["./src/transcript/index.ts"]
     },
     "allowImportingTsExtensions": true,

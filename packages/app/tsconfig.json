@@ -9,6 +9,9 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "paths": {
+      "@weng-lab/genomebrowser-tracks/shared": ["../tracks/src/shared/index.ts"]
+    },
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",

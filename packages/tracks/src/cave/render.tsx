@@ -1,6 +1,7 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { useRef, useState, type MouseEvent } from "react";
 import { getPointAtMouseX, hasBigWigData } from "../bigwig/helpers";
+import { clientXToTrackX } from "../shared/coordinates";
 import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
 import type { YRange } from "../bigwig/types";
 import type { CaveConfig, CaveData, CaveTooltipItem } from "./types";
@@ -59,7 +60,7 @@ function CaveHoverOverlay({
   const tooltip = useTooltip<CaveTooltipItem, CaveConfig>();
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
-    const mouseX = box.width <= 0 ? 0 : ((event.clientX - box.left) / box.width) * width;
+    const mouseX = clientXToTrackX(event.clientX, box, width);
     const topPixel = getPointAtMouseX(topPoints, mouseX, width);
     const bottomPixel = getPointAtMouseX(bottomPoints, mouseX, width);
     if (!topPixel && !bottomPixel) {

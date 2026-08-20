@@ -1,6 +1,6 @@
 # Export contract
 
-The package has one subpath for each track, plus `/shared/settings`, `/shared/signal`, and `/shared/tooltips`. The root exports only `firstPartyTrackModules`.
+The package has one subpath for each track and one `/shared` subpath for module-author components and helpers. The root exports only `firstPartyTrackModules`.
 
 ## Modules and schemas
 
@@ -26,7 +26,7 @@ Each module implements `TrackModule` from `@weng-lab/genomebrowser`:
 
 The schemas reject unknown object keys. Create input requires non-empty `id` and `title`. If supplied, `height` must be positive and `color` must use six-digit `#RRGGBB` syntax.
 
-Each module includes its settings component, tooltip component, renderer, and fetcher. The package does not export those track-specific parts separately. Import reusable settings controls and `TrackBaseSettings` from `@weng-lab/genomebrowser-tracks/shared/settings`. Import `TrackTooltip` and its formatters from `@weng-lab/genomebrowser-tracks/shared/tooltips`. Import `condenseSignalRecords` and `SignalPoint` from `@weng-lab/genomebrowser-tracks/shared/signal` for shared BigWig-to-pixel signal behavior; see [Signal condensation](signal.md).
+Each module includes its settings component, tooltip component, renderer, and fetcher. The package does not export those track-specific parts separately. Import reusable settings controls, tooltip components, and pure track helpers from `@weng-lab/genomebrowser-tracks/shared`. See [Shared APIs](shared.md) for the full list and [Signal condensation](signal.md) for BigWig-to-pixel behavior.
 
 ## Create-input and config types
 
@@ -53,7 +53,7 @@ const config: BigWigConfig = track.config;
 
 ## Domain and interaction types
 
-Each track subpath also exports that track's domain, data, display, and interaction types where applicable. Rendered signal points are shared: import `SignalPoint` from `/shared/signal`. The track pages list these types. Interaction aliases use `TrackInteraction<Item, Config>` from core. Pass one as the second argument to `module.create`:
+Each track subpath also exports that track's domain, data, display, and interaction types where applicable. Rendered signal points are shared: import `SignalPoint` from `/shared`. The track pages list these types. Interaction aliases use `TrackInteraction<Item, Config>` from core. Pass one as the second argument to `module.create`:
 
 ```ts
 import { bigBedModule, type BigBedInteraction } from "@weng-lab/genomebrowser-tracks/bigbed";

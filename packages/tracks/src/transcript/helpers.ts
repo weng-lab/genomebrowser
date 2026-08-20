@@ -1,5 +1,4 @@
 import type { Exon, GenomicElement, RenderedTranscript, Transcript, TranscriptList } from "./types";
-type Feature<T> = T & { coordinates: { start: number; end: number }; name: string };
 export function isManeSelectTranscript(tag: string | undefined | null) {
   return !!tag?.includes("MANE_Select");
 }
@@ -26,27 +25,6 @@ export function sortedTranscripts(genes: TranscriptList[]) {
       gene.transcripts.map((transcript) => ({ ...transcript, strand: gene.strand })),
     )
     .sort((a, b) => a.coordinates.start - b.coordinates.start);
-}
-export function groupFeatures<T extends Feature<unknown>>(
-  features: T[],
-  x: (value: number) => number,
-  fontSize: number,
-  margin = 10,
-): T[][] {
-  return features.reduce<T[][]>((groups, feature) => {
-    for (const group of groups) {
-      const previous = group[group.length - 1];
-      if (
-        x(previous.coordinates.end) + margin + fontSize * previous.name.length <=
-        x(feature.coordinates.start)
-      ) {
-        group.push(feature);
-        return groups;
-      }
-    }
-    groups.push([feature]);
-    return groups;
-  }, []);
 }
 export function renderTranscript(
   transcript: Transcript,

@@ -1,6 +1,6 @@
 # Author track settings
 
-Use the settings controls from `@weng-lab/genomebrowser-tracks/shared/settings` to build MUI settings for a track module. The shared settings entry does not load any first-party track modules.
+Use the settings controls from `@weng-lab/genomebrowser-tracks/shared` to build MUI settings for a track module. The shared entry does not load any first-party track modules.
 
 ## Ownership
 
@@ -15,15 +15,15 @@ This example replaces the settings component on the first-party BigWig module. I
 ```tsx
 import { type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { bigWigModule, type BigWigConfig } from "@weng-lab/genomebrowser-tracks/bigwig";
-import type { SignalPoint } from "@weng-lab/genomebrowser-tracks/shared/signal";
 import {
+  type SignalPoint,
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
   TrackSettingsLayout,
   TrackSettingsRangeFields,
   TrackSettingsSection,
   TrackSettingsUrlField,
-} from "@weng-lab/genomebrowser-tracks/shared/settings";
+} from "@weng-lab/genomebrowser-tracks/shared";
 
 function SignalSettings({ track, updateTrack }: TrackSettingsProps<BigWigConfig, SignalPoint>) {
   return (
@@ -216,4 +216,4 @@ Range validation is associated with both bound inputs while rendering one shared
 
 ## First-party settings
 
-The first-party modules arrive pre-bound to their track-specific settings panels. Those panels use the controls documented here but are not standalone exports. The `/shared/settings` entry exports `TrackBaseSettings` for shared title, color, display, and height controls. Tooltip authoring is documented separately in [Author track tooltips](trackTooltips.md).
+The first-party modules arrive pre-bound to their track-specific settings panels. Those panels use the controls documented here but are not standalone exports. The `/shared` entry exports `TrackBaseSettings` for shared title, color, display, and height controls. Tooltip authoring is documented separately in [Author track tooltips](trackTooltips.md).

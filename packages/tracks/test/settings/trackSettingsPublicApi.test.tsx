@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import {
+  TrackBaseSettings,
   TrackSettingsColorField,
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
@@ -20,11 +21,12 @@ import {
   type TrackSettingsSectionProps,
   type TrackSettingsTextFieldProps,
   type TrackSettingsUrlFieldProps,
-} from "@weng-lab/genomebrowser-tracks/shared/settings";
+} from "@weng-lab/genomebrowser-tracks/shared";
 
 describe("public track settings authoring API", () => {
   it("exports every authoring component", () => {
     const components = [
+      TrackBaseSettings,
       TrackSettingsColorField,
       TrackSettingsFieldGrid,
       TrackSettingsFieldRow,

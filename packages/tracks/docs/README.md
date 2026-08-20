@@ -14,6 +14,7 @@ Each module combines its fetcher, renderer, MUI settings component, and tooltip 
 
 - [Getting started](gettingStarted.md) shows how to install, create, and register the modules.
 - [Export contract](exports.md) documents the shared module API and Zod schemas.
+- [Shared APIs](shared.md) documents the single shared import path, feature groups, and pure helpers.
 - [Track settings](trackSettings.md) documents the reusable settings controls and `TrackBaseSettings`.
 - [Signal condensation](signal.md) documents the shared BigWig-to-pixel signal API.
 - [Track tooltips](trackTooltips.md) documents `TrackTooltip` and the tooltip formatters.
@@ -25,4 +26,4 @@ Each module combines its fetcher, renderer, MUI settings component, and tooltip 
 - [MethylC](tracks/methylc.md) displays plus- and minus-strand methylation channels.
 - [Transcript](tracks/transcript.md) displays gene and transcript models from a GraphQL endpoint.
 
-These docs cover the package root and its public subpaths. Files under `src` are internal.
+These docs cover the package root and its public subpaths. Files under `src` are internal; use only the documented `/shared` path for shared APIs.

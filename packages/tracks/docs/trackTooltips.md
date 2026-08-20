@@ -1,6 +1,6 @@
 # Author track tooltips
 
-Use `TrackTooltip` from `@weng-lab/genomebrowser-tracks/shared/tooltips` to present compact, theme-aware rows for a track module's hovered item. The shared tooltips entry does not load any first-party track modules.
+Use `TrackTooltip` from `@weng-lab/genomebrowser-tracks/shared` to present compact, theme-aware rows for a track module's hovered item. The shared entry does not load any first-party track modules.
 
 ## Usage
 
@@ -9,8 +9,11 @@ This example replaces the tooltip component on the first-party BigWig module. Th
 ```tsx
 import { type TrackTooltipComponent } from "@weng-lab/genomebrowser";
 import { bigWigModule, type BigWigConfig } from "@weng-lab/genomebrowser-tracks/bigwig";
-import { TrackTooltip, formatSignalValue } from "@weng-lab/genomebrowser-tracks/shared/tooltips";
-import type { SignalPoint } from "@weng-lab/genomebrowser-tracks/shared/signal";
+import {
+  TrackTooltip,
+  formatSignalValue,
+  type SignalPoint,
+} from "@weng-lab/genomebrowser-tracks/shared";
 
 const SignalTooltip: TrackTooltipComponent<SignalPoint, BigWigConfig> = ({ item, context }) => (
   <TrackTooltip
@@ -97,4 +100,4 @@ The component marks its outer SVG group with `role="tooltip"`. Its title, labels
 
 ## First-party tooltips
 
-The first-party modules arrive pre-bound to track-specific tooltip content. Those components compose `TrackTooltip` but are not standalone exports. The `/shared/tooltips` entry exports `TrackTooltip` and its formatters for custom module authors.
+The first-party modules arrive pre-bound to track-specific tooltip content. Those components compose `TrackTooltip` but are not standalone exports. The `/shared` entry exports `TrackTooltip` and its formatters for custom module authors.

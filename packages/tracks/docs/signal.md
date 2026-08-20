@@ -1,15 +1,12 @@
 # Signal condensation
 
-The public `@weng-lab/genomebrowser-tracks/shared/signal` subpath converts genomic-reader BigWig records into fixed-width pixel points. It is useful when a custom track needs the same overlap and aggregation behavior as the built-in signal tracks.
+The `condenseSignalRecords` export from `@weng-lab/genomebrowser-tracks/shared` converts genomic-reader BigWig records into fixed-width pixel points. It is useful when a custom track needs the same overlap and aggregation behavior as the built-in signal tracks.
 
 ## Usage
 
 ```ts
 import type { BigWigValueRecord } from "@weng-lab/genomic-reader";
-import {
-  condenseSignalRecords,
-  type SignalPoint,
-} from "@weng-lab/genomebrowser-tracks/shared/signal";
+import { condenseSignalRecords, type SignalPoint } from "@weng-lab/genomebrowser-tracks/shared";
 
 const records: readonly BigWigValueRecord[] = [
   { kind: "value", chromosome: "chr1", start: 0, end: 10, value: 2 },
@@ -28,7 +25,7 @@ const points: SignalPoint[] = condenseSignalRecords(
 | `condenseSignalRecords` | `(records: readonly (BigWigValueRecord \| BigWigSummaryRecord)[], region: GenomicRegion, width: number) => SignalPoint[]` | Condenses value or summary records into pixel points. |
 | `SignalPoint`           | `{ x: number; min: number \| null; max: number \| null }`                                                                 | One zero-based pixel column.                          |
 
-`BigWigValueRecord` and `BigWigSummaryRecord` are existing public types from `@weng-lab/genomic-reader`; `GenomicRegion` is the existing public type from `@weng-lab/genomebrowser`. The signal subpath does not duplicate them.
+`BigWigValueRecord` and `BigWigSummaryRecord` are existing public types from `@weng-lab/genomic-reader`; `GenomicRegion` is the existing public type from `@weng-lab/genomebrowser`. The shared entry does not duplicate them.
 
 ## Behavior
 

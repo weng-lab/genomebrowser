@@ -31,10 +31,7 @@ import {
   type TranscriptConfig,
   type TranscriptCreateInput,
 } from "@weng-lab/genomebrowser-tracks/transcript";
-import {
-  condenseSignalRecords,
-  type SignalPoint,
-} from "@weng-lab/genomebrowser-tracks/shared/signal";
+import { condenseSignalRecords, type SignalPoint } from "@weng-lab/genomebrowser-tracks/shared";
 
 describe("first-party track package", () => {
   it("exports all six pre-bound modules as a ready-made collection", () => {

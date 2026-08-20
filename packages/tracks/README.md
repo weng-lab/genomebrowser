@@ -24,13 +24,14 @@ const useTrackStore = createTrackStore({
 });
 ```
 
-`@weng-lab/genomebrowser` provides the runtime and module APIs. This package owns the MUI settings and SVG tooltip UI used by first-party tracks. Import reusable settings controls from `/shared/settings`, signal condensation from `/shared/signal`, and tooltip helpers from `/shared/tooltips`.
+`@weng-lab/genomebrowser` provides the runtime and module APIs. This package owns the MUI settings and SVG tooltip UI used by first-party tracks. Import reusable settings controls, tooltip helpers, signal condensation, layout, and coordinate helpers from `/shared`.
 
 ## Documentation
 
 - [Overview](docs/README.md)
 - [Getting started](docs/gettingStarted.md)
 - [Export contract](docs/exports.md)
+- [Shared APIs](docs/shared.md)
 - [Track settings](docs/trackSettings.md)
 - [Signal condensation](docs/signal.md)
 - [Track tooltips](docs/trackTooltips.md)

@@ -2,7 +2,7 @@
 
 import type { TrackMutationResult, TrackUpdate } from "@weng-lab/genomebrowser";
 import { bigWigModule, type BigWigConfig } from "@weng-lab/genomebrowser-tracks/bigwig";
-import type { SignalPoint } from "@weng-lab/genomebrowser-tracks/shared/signal";
+import type { SignalPoint } from "@weng-lab/genomebrowser-tracks/shared";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { condenseSignalRecords } from "@weng-lab/genomebrowser-tracks/shared/signal";
+import { condenseSignalRecords } from "@weng-lab/genomebrowser-tracks/shared";
 
 const region = { chromosome: "chr1", start: 0, end: 100 };
 

@@ -4,9 +4,9 @@ import {
   useTooltip,
   type TrackRendererProps,
 } from "@weng-lab/genomebrowser";
-import { createXScale } from "../shared/scale";
+import { createGenomicXScale } from "../shared/coordinates";
+import { packRows } from "../shared/layout";
 import {
-  groupFeatures,
   isManeSelectTranscript,
   mergeTranscripts,
   renderTranscript,
@@ -41,8 +41,11 @@ function Rows({
   height,
   transcripts,
 }: TrackRendererProps<TranscriptConfig, TranscriptData> & { transcripts: Transcript[] }) {
-  const x = createXScale(region, width);
-  const grouped = groupFeatures(transcripts, x, fontSize);
+  const x = createGenomicXScale(region, width);
+  const grouped = packRows(transcripts, (transcript) => ({
+    start: x(transcript.coordinates.start),
+    end: x(transcript.coordinates.end) + fontSize * transcript.name.length,
+  }));
   const rowHeight = useAutoTrackHeight(id, grouped.length);
   const rows: TranscriptRow[] = grouped.map((group, index) => ({
     y: index * rowHeight,

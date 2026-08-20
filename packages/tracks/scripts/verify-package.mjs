@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const packageDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(resolve(packageDirectory, "package.json"), "utf8"));
+assertEqual(manifest.sideEffects, false, "package sideEffects declaration");
 const trackNames = ["bigbed", "bigwig", "bulkbed", "cave", "methylc", "transcript"];
 const expectedRuntimeExports = new Map([
   ["./bigbed", ["bigBedModule"]],
@@ -13,7 +14,7 @@ const expectedRuntimeExports = new Map([
   ["./methylc", ["methylCModule"]],
   ["./transcript", ["transcriptModule"]],
   [
-    "./shared/settings",
+    "./shared",
     [
       "TrackBaseSettings",
       "TrackSettingsColorField",
@@ -26,12 +27,15 @@ const expectedRuntimeExports = new Map([
       "TrackSettingsSection",
       "TrackSettingsTextField",
       "TrackSettingsUrlField",
+      "TrackTooltip",
+      "clientXToTrackX",
+      "condenseSignalRecords",
+      "createGenomicXScale",
+      "formatGenomicInterval",
+      "formatOptionalBedValue",
+      "formatSignalValue",
+      "packRows",
     ],
-  ],
-  ["./shared/signal", ["condenseSignalRecords"]],
-  [
-    "./shared/tooltips",
-    ["TrackTooltip", "formatGenomicInterval", "formatOptionalBedValue", "formatSignalValue"],
   ],
   [".", ["firstPartyTrackModules"]],
 ]);

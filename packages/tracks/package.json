@@ -18,6 +18,7 @@
     "LICENSE"
   ],
   "type": "module",
+  "sideEffects": false,
   "module": "dist/genomebrowser-tracks.es.js",
   "types": "dist/src/lib.d.ts",
   "exports": {
@@ -49,17 +50,9 @@
       "types": "./dist/src/transcript/index.d.ts",
       "import": "./dist/transcript.js"
     },
-    "./shared/settings": {
-      "types": "./dist/src/shared/settings/index.d.ts",
-      "import": "./dist/shared/settings.js"
-    },
-    "./shared/signal": {
-      "types": "./dist/src/shared/signal/index.d.ts",
-      "import": "./dist/shared/signal.js"
-    },
-    "./shared/tooltips": {
-      "types": "./dist/src/shared/tooltips/index.d.ts",
-      "import": "./dist/shared/tooltips.js"
+    "./shared": {
+      "types": "./dist/src/shared/index.d.ts",
+      "import": "./dist/shared.js"
     }
   },
   "publishConfig": {

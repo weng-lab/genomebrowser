@@ -1,6 +1,5 @@
 import type { BigBedRow, RenderedBigBedRect } from "./types";
-
-type Feature<T> = T & { coordinates: { start: number; end: number }; name: string };
+import { packRows } from "../shared/layout";
 
 export function renderDenseBigBedData<Row extends BigBedRow>(
   rows: Row[],
@@ -30,39 +29,14 @@ export function renderSquishBigBedData<Row extends BigBedRow>(
   rows: Row[],
   x: (value: number) => number,
 ): RenderedBigBedRect<Row>[][] {
-  const features = rows
-    .toSorted((a, b) => a.start - b.start)
-    .map((row) => ({ row, coordinates: { start: row.start, end: row.end }, name: row.name ?? "" }));
-  return groupFeatures(features, x, 0).map((group) =>
-    group.map((feature) => ({
-      row: feature.row,
-      start: Math.max(0, x(feature.coordinates.start)),
-      end: x(feature.coordinates.end),
-      color: feature.row.color,
-      name: feature.row.name,
-      score: feature.row.score,
+  return packRows(rows, (row) => ({ start: x(row.start), end: x(row.end) })).map((group) =>
+    group.map((row) => ({
+      row,
+      start: Math.max(0, x(row.start)),
+      end: x(row.end),
+      color: row.color,
+      name: row.name,
+      score: row.score,
     })),
   );
-}
-
-function groupFeatures<T extends Feature<unknown>>(
-  features: T[],
-  x: (value: number) => number,
-  fontSize: number,
-  margin = 10,
-): T[][] {
-  return features.reduce<T[][]>((groups, feature) => {
-    for (const group of groups) {
-      const previous = group[group.length - 1];
-      if (
-        x(previous.coordinates.end) + margin + fontSize * previous.name.length <=
-        x(feature.coordinates.start)
-      ) {
-        group.push(feature);
-        return groups;
-      }
-    }
-    groups.push([feature]);
-    return groups;
-  }, []);
 }

@@ -1,6 +1,6 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { renderDenseBigBedData } from "../bigbed/helpers";
-import { createXScale } from "../shared/scale";
+import { createGenomicXScale } from "../shared/coordinates";
 import type { BulkBedConfig, BulkBedData, BulkBedRect } from "./types";
 
 export function FullBulkBed({
@@ -11,7 +11,7 @@ export function FullBulkBed({
   width,
   height,
 }: TrackRendererProps<BulkBedConfig, BulkBedData>) {
-  const x = createXScale(region, width);
+  const x = createGenomicXScale(region, width);
   const gap = config.gap ?? 2;
   const rowHeight =
     data.length > 0

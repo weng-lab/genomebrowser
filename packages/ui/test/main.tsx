@@ -26,7 +26,7 @@ import { bigWigModule as bigWigUiModule } from "@weng-lab/genomebrowser-tracks/b
 import { bulkBedModule as bulkBedUiModule } from "@weng-lab/genomebrowser-tracks/bulkbed";
 import { caveModule as caveUiModule } from "@weng-lab/genomebrowser-tracks/cave";
 import { methylCModule as methylCUiModule } from "@weng-lab/genomebrowser-tracks/methylc";
-import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared/settings";
+import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import { transcriptModule as transcriptUiModule } from "@weng-lab/genomebrowser-tracks/transcript";
 import {
   BrowserNavigationButton,

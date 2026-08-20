@@ -4,7 +4,7 @@ import {
   useTooltip,
   type TrackRendererProps,
 } from "@weng-lab/genomebrowser";
-import { createXScale } from "../shared/scale";
+import { createGenomicXScale } from "../shared/coordinates";
 import { renderDenseBigBedData, renderSquishBigBedData } from "./helpers";
 import type { BigBedConfig, BigBedRow } from "./types";
 
@@ -12,7 +12,7 @@ export function DenseBigBed<
   Row extends BigBedRow = BigBedRow,
   Config extends BigBedConfig = BigBedConfig,
 >({ color, data, region, width, height }: TrackRendererProps<Config, Row[]>) {
-  const x = createXScale(region, width);
+  const x = createGenomicXScale(region, width);
   const rects = renderDenseBigBedData(data, x);
   const interaction = useInteraction<Row>();
   const tooltip = useTooltip<Row, Config>();
@@ -47,7 +47,7 @@ export function SquishBigBed<
   Row extends BigBedRow = BigBedRow,
   Config extends BigBedConfig = BigBedConfig,
 >({ id, color, data, region, width, height }: TrackRendererProps<Config, Row[]>) {
-  const rows = renderSquishBigBedData(data, createXScale(region, width));
+  const rows = renderSquishBigBedData(data, createGenomicXScale(region, width));
   const rowHeight = useAutoTrackHeight(id, rows.length);
   const interaction = useInteraction<Row>();
   const tooltip = useTooltip<Row, Config>();

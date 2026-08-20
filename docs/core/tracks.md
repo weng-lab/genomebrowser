@@ -79,7 +79,7 @@ Changing `url` requests new data. Changing `colorScale` re-renders with the curr
 
 ## Display, settings, and interaction
 
-Renderer-map keys are the module's allowed display values. The browser validates `base.display`, chooses the renderer, and supplies browser-level controls. A module's `settingsComponent` receives `TrackSettingsProps`: the current shallow read-only track and an `updateTrack` callback already bound to its ID. The browser separately renders base settings such as title, display, height, and color. Import the reusable MUI settings controls and `TrackBaseSettings` from `@weng-lab/genomebrowser-tracks/shared/settings`.
+Renderer-map keys are the module's allowed display values. The browser validates `base.display`, chooses the renderer, and supplies browser-level controls. A module's `settingsComponent` receives `TrackSettingsProps`: the current shallow read-only track and an `updateTrack` callback already bound to its ID. The browser separately renders base settings such as title, display, height, and color. Import the reusable MUI settings controls and `TrackBaseSettings` from `@weng-lab/genomebrowser-tracks/shared`.
 
 A renderer decides when a semantic interaction happens. It can read item-only callbacks with `useInteraction<Item>()` and use parameterless `useTooltip<Item, Config>()` for browser-positioned module tooltips. The browser binds the current `TrackRuntimeContext<Config>` before an application callback runs. Tooltip components receive `{ item, context }` with the same current `type`, read-only `base`, and read-only parsed `config`. The module's item generic describes the semantic object exposed to callbacks and the tooltip, not necessarily its raw fetch row.
 
@@ -105,7 +105,7 @@ A collection entry is create input, not a runtime instance:
 
 ## Stable extension seams
 
-The recommended core module-author surface is the package root: `defineTrackModule`, `fetchOnChange`, module contract types, `useInteraction`, `useTooltip`, and `useAutoTrackHeight`. Import shared MUI settings controls from `@weng-lab/genomebrowser-tracks/shared/settings` and shared tooltip presentation and formatters from `@weng-lab/genomebrowser-tracks/shared/tooltips`. Do not import files under any package's `src/` directory from downstream modules.
+The recommended core module-author surface is the package root: `defineTrackModule`, `fetchOnChange`, module contract types, `useInteraction`, `useTooltip`, and `useAutoTrackHeight`. Import settings controls, tooltip presentation, and track helper functions from `@weng-lab/genomebrowser-tracks/shared`. Do not import files under any package's `src/` directory from downstream modules.
 
 The BigBed implementation in `packages/tracks` should be treated as a first-party track, not as the documented base for derived modules. Typed BigBed specialization and renderer reuse remain deferred until that support is finalized.
 

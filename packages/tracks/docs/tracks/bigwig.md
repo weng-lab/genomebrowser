@@ -53,7 +53,7 @@ The tooltip shows the rendered pixel's maximum signal value with two decimal pla
 | `BigWigCreateInput`    | Input accepted by `bigWigModule.create`.                          |
 | `BigWigConfig`         | Parsed config after all schema defaults are applied.              |
 | `BigWigDisplay`        | `"full" \| "dense"`.                                              |
-| `SignalPoint` (shared) | Shared rendered pixel position; import it from `/shared/signal`.  |
+| `SignalPoint` (shared) | Shared rendered pixel position; import it from `/shared`.         |
 | `YRange`               | Complete numeric `{ min, max }` range.                            |
 | `YRangeOverride`       | Optional independent minimum and maximum overrides.               |
 | `BigWigInteraction`    | Interaction callbacks receiving `SignalPoint` and `BigWigConfig`. |

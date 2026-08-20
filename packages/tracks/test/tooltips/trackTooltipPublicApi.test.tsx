@@ -6,7 +6,7 @@ import {
   TrackTooltip,
   type TrackTooltipProps,
   type TrackTooltipRow,
-} from "@weng-lab/genomebrowser-tracks/shared/tooltips";
+} from "@weng-lab/genomebrowser-tracks/shared";
 
 describe("public track tooltip authoring API", () => {
   it("exports the shared tooltip component and its package-owned types", () => {

@@ -10,6 +10,7 @@ import {
   lighten,
   resolveBigWigRange,
 } from "./helpers";
+import { clientXToTrackX } from "../shared/coordinates";
 import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
 import type { BigWigConfig, YRange } from "./types";
 
@@ -108,11 +109,7 @@ function BigWigHoverOverlay({
   const tooltip = useTooltip<SignalPoint, BigWigConfig>();
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
-    const point = getPointAtMouseX(
-      points,
-      box.width <= 0 ? 0 : ((event.clientX - box.left) / box.width) * width,
-      width,
-    );
+    const point = getPointAtMouseX(points, clientXToTrackX(event.clientX, box, width), width);
     if (!point) {
       if (!hoveredPointRef.current) return;
       if (interactionPointRef.current) interaction?.onLeave?.(interactionPointRef.current);
