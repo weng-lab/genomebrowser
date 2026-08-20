@@ -1,7 +1,8 @@
 import type { TrackInteraction } from "@weng-lab/genomebrowser";
+import type { RowLayoutConfig } from "../shared/layout";
 
 export type BigBedDisplay = "dense" | "squish";
-export type BigBedConfig = { url: string };
+export type BigBedConfig = RowLayoutConfig & { url: string };
 export type BigBedData = BigBedRow[];
 export type BigBedRow = {
   chromosome: string;

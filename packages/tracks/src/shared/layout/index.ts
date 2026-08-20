@@ -1,5 +1,14 @@
 export type HorizontalBounds = { start: number; end: number };
 
+export {
+  isRowLayoutConfig,
+  rowCountFromTrackHeight,
+  rowHeightFromTrackHeight,
+  trackHeightFromRowCount,
+  useRowLayout,
+} from "./rowLayout";
+export type { RowLayoutConfig } from "./rowLayout";
+
 export function packRows<T>(
   items: readonly T[],
   getBounds: (item: T) => HorizontalBounds,

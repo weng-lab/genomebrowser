@@ -2,6 +2,13 @@ import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import { useRegistry, useSettingsStore, useTrackStore } from "@weng-lab/genomebrowser";
 import { useState } from "react";
+import {
+  isRowLayoutConfig,
+  minimumRowHeight,
+  rowCountFromTrackHeight,
+  rowHeightFromTrackHeight,
+  trackHeightFromRowCount,
+} from "../layout/rowLayout";
 import { TrackSettingsColorField } from "./trackSettingsColorField";
 import { TrackSettingsNumberField } from "./trackSettingsNumberField";
 import { TrackSettingsTextField } from "./trackSettingsTextField";
@@ -11,7 +18,9 @@ import { TrackSettingsSection } from "./trackSettingsSection";
 
 export function TrackBaseSettings() {
   const trackId = useSettingsStore((state) => state.trackId)!;
-  const trackType = useTrackStore((state) => state.getTrack(trackId)?.type);
+  const track = useTrackStore((state) => state.getTrack(trackId));
+  const trackType = track?.type;
+  const hasRowLayout = isRowLayoutConfig(track?.config);
   const registry = useRegistry();
   const displayOptions = trackType ? Object.keys(registry.get(trackType).render) : [];
 
@@ -23,10 +32,23 @@ export function TrackBaseSettings() {
           <ColorField />
         </TrackSettingsFieldRow>
 
-        <TrackSettingsFieldRow>
-          {displayOptions.length > 1 ? <DisplayField displayOptions={displayOptions} /> : null}
-          <HeightField />
-        </TrackSettingsFieldRow>
+        {hasRowLayout ? (
+          <>
+            {displayOptions.length > 1 ? (
+              <TrackSettingsFieldRow>
+                <DisplayField displayOptions={displayOptions} />
+              </TrackSettingsFieldRow>
+            ) : null}
+            <TrackSettingsFieldRow>
+              <RowLayoutFields />
+            </TrackSettingsFieldRow>
+          </>
+        ) : (
+          <TrackSettingsFieldRow>
+            {displayOptions.length > 1 ? <DisplayField displayOptions={displayOptions} /> : null}
+            <HeightField />
+          </TrackSettingsFieldRow>
+        )}
       </TrackSettingsSection>
     </TrackSettingsLayout>
   );
@@ -102,5 +124,56 @@ function HeightField() {
       validate={(nextHeight) => (nextHeight >= 20 ? undefined : "Enter a height of at least 20.")}
       onCommit={(nextHeight) => updateTrack(trackId, { base: { height: nextHeight } })}
     />
+  );
+}
+
+function RowLayoutFields() {
+  const trackId = useSettingsStore((state) => state.trackId)!;
+  const track = useTrackStore((state) => state.getTrack(trackId));
+  const updateTrack = useTrackStore((state) => state.updateTrack);
+  if (!track || !isRowLayoutConfig(track.config)) return null;
+
+  const height = track.base.height;
+  const rowHeight = track.config.rowHeight;
+  const rowCount = rowCountFromTrackHeight(height, rowHeight);
+  const minimumTrackHeight = trackHeightFromRowCount(rowCount, minimumRowHeight);
+
+  return (
+    <>
+      <TrackSettingsNumberField
+        label="Height"
+        min={minimumTrackHeight}
+        required
+        value={height}
+        validate={(nextHeight) =>
+          nextHeight >= minimumTrackHeight
+            ? undefined
+            : `Enter a height of at least ${minimumTrackHeight}.`
+        }
+        onCommit={(nextHeight) =>
+          updateTrack(trackId, {
+            base: { height: nextHeight },
+            config: { rowHeight: rowHeightFromTrackHeight(nextHeight, rowCount) },
+          })
+        }
+      />
+      <TrackSettingsNumberField
+        label="Row height"
+        min={minimumRowHeight}
+        required
+        value={rowHeight}
+        validate={(nextRowHeight) =>
+          nextRowHeight >= minimumRowHeight
+            ? undefined
+            : `Enter a row height of at least ${minimumRowHeight}.`
+        }
+        onCommit={(nextRowHeight) =>
+          updateTrack(trackId, {
+            base: { height: trackHeightFromRowCount(rowCount, nextRowHeight) },
+            config: { rowHeight: nextRowHeight },
+          })
+        }
+      />
+    </>
   );
 }

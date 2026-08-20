@@ -19,6 +19,7 @@ import type { BulkBedConfig, BulkBedDataset, BulkBedRect } from "../../src/bulkb
 
 const initialConfig: BulkBedConfig = {
   datasets: [dataset("Dataset A"), dataset("Dataset B"), dataset("Dataset C")],
+  rowHeight: 12,
 };
 
 type HarnessProps = {

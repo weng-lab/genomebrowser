@@ -60,6 +60,15 @@ describe("first-party track package", () => {
   });
 
   it("preserves validated defaults at the package boundary", () => {
+    expect(bigBedModule.create(input("bigbed", { url: "YOUR_URL_HERE" }))).toMatchObject({
+      base: { height: 12 },
+      config: { rowHeight: 12 },
+    });
+    expect(
+      bulkBedModule.create(
+        input("bulkbed", { datasets: [{ name: "Dataset", url: "YOUR_URL_HERE" }] }),
+      ).config,
+    ).toMatchObject({ rowHeight: 12 });
     expect(bigWigModule.create(input("bigwig", { url: "YOUR_URL_HERE" })).config).toMatchObject({
       fillWithZero: false,
       showClampIndicators: true,
@@ -72,7 +81,7 @@ describe("first-party track package", () => {
     ).toMatchObject({ topColor: "#000000", bottomColor: "#000000" });
     expect(
       transcriptModule.create(input("transcript", { assembly: "GRCh38", version: 40 })).config,
-    ).toMatchObject({ canonicalColor: "#000000", highlightColor: "#000000" });
+    ).toMatchObject({ canonicalColor: "#000000", highlightColor: "#000000", rowHeight: 12 });
   });
 
   it("derives create-input and validated config types from each module", () => {

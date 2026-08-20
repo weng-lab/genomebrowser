@@ -1,6 +1,13 @@
 export { clientXToTrackX, createGenomicXScale } from "./coordinates";
-export { packRows } from "./layout";
-export type { HorizontalBounds } from "./layout";
+export {
+  isRowLayoutConfig,
+  packRows,
+  rowCountFromTrackHeight,
+  rowHeightFromTrackHeight,
+  trackHeightFromRowCount,
+  useRowLayout,
+} from "./layout";
+export type { HorizontalBounds, RowLayoutConfig } from "./layout";
 export { TrackBaseSettings } from "./settings";
 export {
   TrackSettingsColorField,

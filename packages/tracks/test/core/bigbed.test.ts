@@ -30,6 +30,18 @@ describe("BigBed track", () => {
 
     expect(bigBedModule.tooltipComponent).toBeTypeOf("function");
     expect(config).not.toHaveProperty("tooltip");
+    expect(config.base.height).toBe(12);
+    expect(config.config.rowHeight).toBe(12);
+  });
+
+  it("rejects invalid row heights", () => {
+    expect(() =>
+      bigBedModule.create({
+        id: "peaks",
+        title: "Peaks",
+        config: { url: "YOUR_URL_HERE", rowHeight: 0 },
+      }),
+    ).toThrow(/bigbed input/);
   });
 
   it("reads BigBed records with the genomic reader BED3 schema", async () => {

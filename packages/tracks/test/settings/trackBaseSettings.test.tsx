@@ -15,6 +15,10 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { bigBedModule } from "../../src/bigbed";
+import type { BigBedConfig } from "../../src/bigbed/types";
+import { bulkBedModule } from "../../src/bulkbed";
+import type { BulkBedConfig } from "../../src/bulkbed/types";
 import { TrackBaseSettings } from "../../src/shared/settings/trackBaseSettings";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -115,6 +119,56 @@ describe("TrackBaseSettings", () => {
     expect(updateTrack).toHaveBeenLastCalledWith({ base: { height: 100 } });
   });
 
+  it("coordinates BulkBed height and row-height edits in one update", async () => {
+    vi.useFakeTimers();
+    const updateTrack = vi.fn<(update: TrackUpdate<BulkBedConfig>) => TrackMutationResult>(() => ({
+      ok: true,
+    }));
+    await mountBulkBedBaseSettings(updateTrack);
+
+    const height = getInput("Height");
+    const rowHeight = getInput("Row height");
+    expect(getFieldRow(height)).toBe(getFieldRow(rowHeight));
+
+    updateInput(height, "2");
+    act(() => vi.advanceTimersByTime(300));
+    expect(updateTrack).toHaveBeenLastCalledWith({
+      base: { height: 2 },
+      config: { rowHeight: 1 },
+    });
+
+    updateInput(rowHeight, "2");
+    act(() => vi.advanceTimersByTime(300));
+    expect(updateTrack).toHaveBeenLastCalledWith({
+      base: { height: 4 },
+      config: { rowHeight: 2 },
+    });
+    expect(updateTrack).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows matched Height and Row height defaults for BigBed", async () => {
+    const updateTrack = vi.fn<(update: TrackUpdate<BigBedConfig>) => TrackMutationResult>(() => ({
+      ok: true,
+    }));
+    await mountBigBedBaseSettings(updateTrack);
+
+    const height = getInput("Height");
+    const rowHeight = getInput("Row height");
+    expect(height.value).toBe("12");
+    expect(rowHeight.value).toBe("12");
+    expect(getFieldRow(height)).toBe(getFieldRow(rowHeight));
+  });
+
+  it("keeps Height-only behavior for tracks without valid row-layout config", async () => {
+    const updateTrack = vi.fn<(update: TrackUpdate<never>) => TrackMutationResult>(() => ({
+      ok: true,
+    }));
+    await mountSettings(updateTrack, ["full"]);
+
+    expect(getOptionalInput("Row height")).toBeUndefined();
+    expect(getInput("Height").getAttribute("min")).toBe("20");
+  });
+
   it("commits valid colors and surfaces rejected mutations", async () => {
     const updateTrack = vi
       .fn<(update: TrackUpdate<never>) => TrackMutationResult>()
@@ -192,6 +246,75 @@ async function mountSettings(
   }
   const settingsStore = createSettingsStore({ baseSettingsComponent: TrackBaseSettings });
   settingsStore.getState().openSettings(base.id, { x: 0, y: 0 });
+  await mount(
+    <GenomeBrowser
+      browserStore={createBrowserStore({
+        assembly: hg38,
+        region: { chromosome: "chr1", start: 0, end: 10 },
+      })}
+      settingsStore={settingsStore}
+      trackStore={trackStore}
+    />,
+  );
+}
+
+async function mountBulkBedBaseSettings(
+  updateTrack: (update: TrackUpdate<BulkBedConfig>) => TrackMutationResult,
+) {
+  const trackStore = createTrackStore({
+    modules: [bulkBedModule],
+    tracks: [
+      bulkBedModule.create({
+        id: "bulkbed",
+        title: "BulkBed",
+        display: "full",
+        height: 24,
+        color: "#2266aa",
+        config: {
+          datasets: [
+            { name: "Dataset A", url: "YOUR_URL_HERE" },
+            { name: "Dataset B", url: "YOUR_URL_HERE" },
+          ],
+          rowHeight: 12,
+        },
+      }),
+    ],
+  });
+  trackStore.setState({
+    updateTrack: (_id, update) => updateTrack(update as TrackUpdate<BulkBedConfig>),
+  });
+  const settingsStore = createSettingsStore({ baseSettingsComponent: TrackBaseSettings });
+  settingsStore.getState().openSettings("bulkbed", { x: 0, y: 0 });
+  await mount(
+    <GenomeBrowser
+      browserStore={createBrowserStore({
+        assembly: hg38,
+        region: { chromosome: "chr1", start: 0, end: 10 },
+      })}
+      settingsStore={settingsStore}
+      trackStore={trackStore}
+    />,
+  );
+}
+
+async function mountBigBedBaseSettings(
+  updateTrack: (update: TrackUpdate<BigBedConfig>) => TrackMutationResult,
+) {
+  const trackStore = createTrackStore({
+    modules: [bigBedModule],
+    tracks: [
+      bigBedModule.create({
+        id: "bigbed",
+        title: "BigBed",
+        config: { url: "YOUR_URL_HERE" },
+      }),
+    ],
+  });
+  trackStore.setState({
+    updateTrack: (_id, update) => updateTrack(update as TrackUpdate<BigBedConfig>),
+  });
+  const settingsStore = createSettingsStore({ baseSettingsComponent: TrackBaseSettings });
+  settingsStore.getState().openSettings("bigbed", { x: 0, y: 0 });
   await mount(
     <GenomeBrowser
       browserStore={createBrowserStore({

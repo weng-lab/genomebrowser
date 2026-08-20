@@ -84,7 +84,7 @@ describe("track tooltips", () => {
     mount(
       <BigBedTooltip
         item={{ chromosome: "chr1", start: 10, end: 20, fields: [] }}
-        context={context("bigbed", { url: "YOUR_URL_HERE" })}
+        context={context("bigbed", { url: "YOUR_URL_HERE", rowHeight: 12 })}
       />,
     );
 
@@ -103,6 +103,7 @@ describe("track tooltips", () => {
         }}
         context={context("bulkbed", {
           datasets: [{ name: "Sample", url: "YOUR_URL_HERE" }],
+          rowHeight: 12,
         })}
       />,
     );

@@ -18,18 +18,21 @@ const track = bulkBedModule.create({
 
 ## Displays and base defaults
 
-| Field     | Supported or default | Behavior                                                    |
-| --------- | -------------------- | ----------------------------------------------------------- |
-| `display` | `"full"`             | The only display divides the track height between datasets. |
-| `height`  | `80`                 | Initial total height in pixels.                             |
-| `color`   | `"#4b9560"`          | Fallback interval color.                                    |
+| Field     | Supported or default | Behavior                                                                        |
+| --------- | -------------------- | ------------------------------------------------------------------------------- |
+| `display` | `"full"`             | Draws each dataset in one complete vertical row slot.                           |
+| `height`  | `80`                 | Initial height. Rendering replaces it with dataset count times `rowHeight`.     |
+| `color`   | `"#4b9560"`          | Fallback interval color.                                                        |
 
 ## Config
 
-| Option     | Type               | Default                    | Description                                                                                           |
-| ---------- | ------------------ | -------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `datasets` | `BulkBedDataset[]` | Required                   | Non-empty array. Every entry requires a non-empty `name` and `url`; changing a URL requests new data. |
-| `gap`      | `number`           | Omitted; renderer uses `2` | Non-negative pixel gap between dataset bands. It does not affect fetching.                            |
+| Option      | Type               | Default                    | Description                                                                                           |
+| ----------- | ------------------ | -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `datasets`  | `BulkBedDataset[]` | Required                   | Non-empty array. Every entry requires a non-empty `name` and `url`; changing a URL requests new data. |
+| `gap`       | `number`           | Omitted; renderer uses `2` | Non-negative content spacing inside each row slot. It does not increase total track height.           |
+| `rowHeight` | `number`           | `12`                       | Complete vertical slot for one dataset. Must be finite and at least 1.                                |
+
+BulkBed uses the fetched dataset-array length as its runtime row count. Total height is exactly `max(1, rowCount) * rowHeight`. Each dataset starts at its slot origin. The renderer subtracts `gap` from drawable band height and clamps the result to zero, so content never extends the slot or makes total height larger. Changing viewport or data may change row count, but it does not change configured row height.
 
 Changing a dataset name does not request data again. Fetched rows keep the name from their last request. Their tooltip can show the previous name until a region or source change requests new data. Use `bulkBedModule.configSchema` to validate config and `bulkBedModule.createInputSchema` to validate the full create input.
 
@@ -39,7 +42,7 @@ Every dataset URL must point to an absolute public HTTP(S) BigBed file. Each ser
 
 ## Settings and tooltip
 
-The settings panel edits the gap and ordered dataset list. You can add datasets, edit each required name and URL, or remove a dataset as long as one remains. When `gap` is omitted, the renderer uses 2 pixels. The settings field initially shows 0 until you save a value.
+The BulkBed-specific settings panel edits the gap and ordered dataset list. You can add datasets, edit each required name and URL, or remove a dataset as long as one remains. When `gap` is omitted, the renderer uses 2 pixels. The settings field initially shows 0 until you save a value. The shared base panel provides coordinated Height and Row height fields.
 
 An interval tooltip uses the dataset name as its title. It also shows the feature name, genomic location, strand, and score when present. The renderer passes a `BulkBedRect` with `datasetName` to `onClick`, `onHover`, and `onLeave`.
 
@@ -48,7 +51,7 @@ An interval tooltip uses the dataset name as its title. It also shows the featur
 | Export               | Description                                                        |
 | -------------------- | ------------------------------------------------------------------ |
 | `BulkBedCreateInput` | Input accepted by `bulkBedModule.create`.                          |
-| `BulkBedConfig`      | Parsed datasets and optional gap.                                  |
+| `BulkBedConfig`      | Parsed datasets, optional gap, and row height.                      |
 | `BulkBedDisplay`     | `"full"`.                                                          |
 | `BulkBedDataset`     | One `{ name, url }` source entry.                                  |
 | `BulkBedRect`        | `BigBedRow` with an optional dataset name.                         |

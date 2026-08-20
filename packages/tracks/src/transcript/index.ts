@@ -5,6 +5,7 @@ import {
   fetchOnChange,
 } from "@weng-lab/genomebrowser";
 import { z } from "zod";
+import { defaultRowHeight, rowHeightSchema } from "../shared/layout/rowLayout";
 import { hexColorSchema } from "../shared/schemas";
 import { fetchTranscript } from "./fetch";
 import { PackTranscript, SquishTranscript } from "./render";
@@ -19,6 +20,7 @@ const configSchema = z.object({
   geneName: z.string().optional(),
   canonicalColor: hexColorSchema.default("#000000"),
   highlightColor: hexColorSchema.default("#000000"),
+  rowHeight: rowHeightSchema.default(defaultRowHeight),
 });
 
 export const transcriptModule = defineTrackModule<Transcript>()({

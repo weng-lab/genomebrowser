@@ -1,6 +1,7 @@
 import type { ModuleCreateInput, ModuleInstance } from "@weng-lab/genomebrowser";
 import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser";
 import { z } from "zod";
+import { defaultRowHeight, rowHeightSchema } from "../shared/layout/rowLayout";
 import { fetchBulkBed } from "./fetch";
 import { FullBulkBed } from "./render";
 import { BulkBedSettings } from "./settings";
@@ -11,6 +12,7 @@ const datasetSchema = z.object({ name: z.string().min(1), url: fetchOnChange(z.s
 const configSchema = z.object({
   datasets: z.array(datasetSchema).min(1),
   gap: z.number().nonnegative().optional(),
+  rowHeight: rowHeightSchema.default(defaultRowHeight),
 });
 
 export const bulkBedModule = defineTrackModule<BulkBedRect>()({

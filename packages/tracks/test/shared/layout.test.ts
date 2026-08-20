@@ -1,5 +1,13 @@
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
-import { packRows, type HorizontalBounds } from "@weng-lab/genomebrowser-tracks/shared";
+import {
+  isRowLayoutConfig,
+  packRows,
+  rowCountFromTrackHeight,
+  rowHeightFromTrackHeight,
+  trackHeightFromRowCount,
+  type HorizontalBounds,
+  type RowLayoutConfig,
+} from "@weng-lab/genomebrowser-tracks/shared";
 
 type Item = { id: string; start: number; end: number; label?: string };
 
@@ -64,6 +72,32 @@ describe("packRows", () => {
 
     expect(packRows(items, bounds, { gap: 0 })).toEqual([[items[0]], [items[1]], [items[2]]]);
     expectTypeOf<HorizontalBounds>().toEqualTypeOf<{ start: number; end: number }>();
+  });
+});
+
+describe("row layout conversions", () => {
+  it("keeps row count, full row-slot height, and total track height consistent", () => {
+    expect(trackHeightFromRowCount(0, 12)).toBe(12);
+    expect(trackHeightFromRowCount(5, 12)).toBe(60);
+    expect(rowCountFromTrackHeight(60, 12)).toBe(5);
+    expect(rowHeightFromTrackHeight(60, 5)).toBe(12);
+  });
+
+  it("detects only configs with a finite row height of at least one pixel", () => {
+    const config: unknown = { rowHeight: 12, other: true };
+
+    expect(isRowLayoutConfig(config)).toBe(true);
+    if (isRowLayoutConfig(config)) expectTypeOf(config).toMatchTypeOf<RowLayoutConfig>();
+    expect(isRowLayoutConfig({ rowHeight: 0 })).toBe(false);
+    expect(isRowLayoutConfig({ rowHeight: Number.POSITIVE_INFINITY })).toBe(false);
+    expect(isRowLayoutConfig({ rowHeight: "12" })).toBe(false);
+    expect(isRowLayoutConfig(null)).toBe(false);
+  });
+
+  it("rejects invalid row heights instead of clamping them", () => {
+    expect(() => trackHeightFromRowCount(2, 0)).toThrow(/at least 1 pixel/);
+    expect(() => rowCountFromTrackHeight(20, Number.NaN)).toThrow(/at least 1 pixel/);
+    expect(() => rowHeightFromTrackHeight(1, 2)).toThrow(/at least 1 pixel/);
   });
 });
 

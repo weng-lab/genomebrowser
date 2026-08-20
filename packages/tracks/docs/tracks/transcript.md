@@ -22,7 +22,7 @@ const track = transcriptModule.create({
 | Field     | Supported or default           | Behavior                                                                                                                                 |
 | --------- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `display` | `"squish"` (default), `"pack"` | Squish merges each returned gene's transcripts; pack draws individual transcripts. Both pack overlaps into rows and adjust track height. |
-| `height`  | `90`                           | Initial height in pixels.                                                                                                                |
+| `height`  | `90`                           | Initial height in pixels. Rendering replaces it with packed row count times `rowHeight`.                                                 |
 | `color`   | `"#7a4fb3"`                    | Default transcript color when no canonical or text highlight applies.                                                                    |
 
 ## Config
@@ -35,8 +35,11 @@ const track = transcriptModule.create({
 | `geneName`       | `string` | Omitted                 | Case-insensitive substring used to highlight transcript names.                        |
 | `canonicalColor` | `string` | `"#000000"`             | Six-digit hexadecimal color for MANE Select transcripts.                              |
 | `highlightColor` | `string` | `"#000000"`             | Six-digit hexadecimal color for transcripts matching `geneName`.                      |
+| `rowHeight`      | `number` | `12`                    | Complete packed row slot in pixels. Must be finite and at least 1.                    |
 
 Canonical coloring takes precedence over `geneName` highlighting. Highlight and color changes redraw the track without requesting data.
+
+Both displays keep `rowHeight` fixed when viewport or data changes repack transcripts. Total height is `max(1, rowCount) * rowHeight`. Labels and strokes shrink when needed so transcript content fits inside each complete slot, including the valid 1-pixel minimum. The shared base settings coordinate Height and Row height while preserving the currently derived row count.
 
 Use `transcriptModule.configSchema` to validate config and `transcriptModule.createInputSchema` to validate the full create input.
 
@@ -48,7 +51,7 @@ Your application must implement the default same-origin `/api/screen-graphql` ro
 
 ## Settings and tooltip
 
-The settings panel includes endpoint, assembly, positive-integer version, optional gene highlight text, canonical color, and highlight color.
+The transcript-specific settings panel includes endpoint, assembly, positive-integer version, optional gene highlight text, canonical color, and highlight color. The shared base panel provides Height and Row height for both displays.
 
 The tooltip uses the transcript name as its title, or the ID when the name is empty. It also shows a distinct ID, genomic interval, strand, and optional tag. The renderer passes the corresponding `Transcript` to `onClick`, `onHover`, and `onLeave`.
 
@@ -57,7 +60,7 @@ The tooltip uses the transcript name as its title, or the ID when the name is em
 | Export                  | Description                                                                          |
 | ----------------------- | ------------------------------------------------------------------------------------ |
 | `TranscriptCreateInput` | Input accepted by `transcriptModule.create`.                                         |
-| `TranscriptConfig`      | Parsed endpoint, query values, highlight value, and colors.                          |
+| `TranscriptConfig`      | Parsed endpoint, query values, highlight values, colors, and row height.             |
 | `TranscriptDisplay`     | `"squish" \| "pack"`.                                                                |
 | `TranscriptData`        | Array of returned `TranscriptList` gene groups.                                      |
 | `TranscriptList`        | Group of transcripts with strand and optional gene identity.                         |

@@ -1,6 +1,7 @@
 import type { TrackInteraction } from "@weng-lab/genomebrowser";
+import type { RowLayoutConfig } from "../shared/layout";
 export type TranscriptDisplay = "squish" | "pack";
-export type TranscriptConfig = {
+export type TranscriptConfig = RowLayoutConfig & {
   endpoint: string;
   assembly: string;
   version: number;

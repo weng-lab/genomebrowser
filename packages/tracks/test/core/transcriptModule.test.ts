@@ -26,6 +26,7 @@ describe("Transcript module", () => {
     expect(config.config).toMatchObject({
       canonicalColor: "#000000",
       highlightColor: "#000000",
+      rowHeight: 12,
     });
   });
 
@@ -42,6 +43,7 @@ describe("Transcript module", () => {
         version: 40,
         canonicalColor: "#000000",
         highlightColor: "#000000",
+        rowHeight: 12,
       },
       region: { chromosome: "chr6", start: 10, end: 20 },
     });
@@ -118,6 +120,7 @@ describe("Transcript module", () => {
           version: 40,
           canonicalColor: "#000000",
           highlightColor: "#000000",
+          rowHeight: 12,
         },
         region: { chromosome: "chr6", start: 10, end: 20 },
       }),

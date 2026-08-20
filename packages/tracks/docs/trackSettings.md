@@ -67,9 +67,9 @@ Register `signalModule` and `signalTrack` with the track store in the same way a
 
 ## `TrackBaseSettings` API
 
-`TrackBaseSettings` renders the shared title, color, display, and height controls. It takes no props; each field reads the active ID and value from the browser stores and submits `base` patches through the track store. Failed mutations remain visible without replacing accepted values. The display control is omitted when the active module has fewer than two display modes.
+`TrackBaseSettings` renders the shared title, color, display, and height controls. It takes no props; each field reads the active ID and value from the browser stores and submits validated patches through the track store. Failed mutations remain visible without replacing accepted values. The display control is omitted when the active module has fewer than two display modes.
 
-The title, color, display, and height controls have visible labels. Color uses the accessible picker behavior documented below. Height must be at least 20 in this UI, and title cannot be blank.
+The title, color, display, and height controls have visible labels. Color uses the accessible picker behavior documented below, and title cannot be blank. Tracks without valid row-layout config keep the 20-pixel Height minimum. If config contains a finite `rowHeight` of at least 1, the settings add an adjacent Row height field. Either size edit preserves the row count derived from the current height and row height, then submits `base.height` and `config.rowHeight` in one update. See [Shared APIs](shared.md#row-layout) for the row-slot contract.
 
 ## Compose the layout
 

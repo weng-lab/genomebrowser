@@ -1,11 +1,6 @@
-import {
-  useAutoTrackHeight,
-  useInteraction,
-  useTooltip,
-  type TrackRendererProps,
-} from "@weng-lab/genomebrowser";
+import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { createGenomicXScale } from "../shared/coordinates";
-import { packRows } from "../shared/layout";
+import { packRows, useRowLayout } from "../shared/layout";
 import {
   isManeSelectTranscript,
   mergeTranscripts,
@@ -13,7 +8,7 @@ import {
   sortedTranscripts,
 } from "./helpers";
 import type { Transcript, TranscriptConfig, TranscriptData, TranscriptRow } from "./types";
-const fontSize = 10;
+const maximumLabelFontSize = 10;
 export function SquishTranscript(props: TrackRendererProps<TranscriptConfig, TranscriptData>) {
   const transcripts: Transcript[] = [];
   for (const transcriptGroup of props.data) {
@@ -38,15 +33,16 @@ function Rows({
   color,
   region,
   width,
-  height,
   transcripts,
 }: TrackRendererProps<TranscriptConfig, TranscriptData> & { transcripts: Transcript[] }) {
   const x = createGenomicXScale(region, width);
+  const labelFontSize = Math.min(maximumLabelFontSize, config.rowHeight);
   const grouped = packRows(transcripts, (transcript) => ({
     start: x(transcript.coordinates.start),
-    end: x(transcript.coordinates.end) + fontSize * transcript.name.length,
+    end: x(transcript.coordinates.end) + labelFontSize * transcript.name.length,
   }));
-  const rowHeight = useAutoTrackHeight(id, grouped.length);
+  const { rowHeight, trackHeight } = useRowLayout(id, grouped.length, config);
+  const strokeWidth = Math.min(Math.max(0.5, rowHeight / 16), rowHeight * 0.4);
   const rows: TranscriptRow[] = grouped.map((group, index) => ({
     y: index * rowHeight,
     transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, width)),
@@ -55,7 +51,7 @@ function Rows({
   const tooltip = useTooltip<Transcript, TranscriptConfig>();
   return (
     <g>
-      <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
       {rows.map((row, rowIndex) => (
         <g key={rowIndex} transform={`translate(0,${row.y})`}>
           {row.transcripts.map((rendered, index) => {
@@ -71,7 +67,7 @@ function Rows({
                 <path
                   stroke={fill}
                   fill={fill}
-                  strokeWidth={Math.max(0.5, rowHeight / 16)}
+                  strokeWidth={strokeWidth}
                   d={rendered.paths.introns + rendered.paths.exons}
                   style={{ cursor: interaction?.onClick ? "pointer" : "default" }}
                   onClick={() => interaction?.onClick?.(transcript)}
@@ -86,7 +82,7 @@ function Rows({
                 />
                 <text
                   fill={fill}
-                  fontSize={fontSize}
+                  fontSize={labelFontSize}
                   x={transcript.coordinates.end + 5}
                   y={rowHeight / 2}
                   dominantBaseline="middle"

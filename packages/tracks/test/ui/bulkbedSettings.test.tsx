@@ -22,6 +22,7 @@ import { BulkBedSettings } from "../../src/bulkbed/settings";
 
 const initialConfig: BulkBedConfig = {
   gap: 4,
+  rowHeight: 12,
   datasets: [
     { name: "Dataset A", url: "DATASET_A_URL" },
     { name: "Dataset B", url: "DATASET_B_URL" },
@@ -160,6 +161,7 @@ describe("BulkBed settings", () => {
     renderStatefulSettings(
       {
         gap: 4,
+        rowHeight: 12,
         datasets: [
           { name: "Dataset A", url: "DATASET_A_URL" },
           { name: "Dataset B", url: "DATASET_B_URL" },
@@ -235,6 +237,7 @@ describe("BulkBed settings", () => {
 
     rerender({
       gap: 8,
+      rowHeight: 12,
       datasets: [
         { name: "Dataset A", url: "EXTERNAL_A_URL" },
         { name: "Dataset B", url: "DATASET_B_URL" },
@@ -250,6 +253,7 @@ describe("BulkBed settings", () => {
 
     rerender({
       gap: 8,
+      rowHeight: 12,
       datasets: [
         { name: "Dataset A", url: "EXTERNAL_A_URL" },
         { name: "External dataset", url: "EXTERNAL_URL" },

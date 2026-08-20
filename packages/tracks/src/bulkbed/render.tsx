@@ -1,31 +1,30 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { renderDenseBigBedData } from "../bigbed/helpers";
 import { createGenomicXScale } from "../shared/coordinates";
+import { useRowLayout } from "../shared/layout";
 import type { BulkBedConfig, BulkBedData, BulkBedRect } from "./types";
 
 export function FullBulkBed({
+  id,
   config,
   color,
   data,
   region,
   width,
-  height,
 }: TrackRendererProps<BulkBedConfig, BulkBedData>) {
   const x = createGenomicXScale(region, width);
   const gap = config.gap ?? 2;
-  const rowHeight =
-    data.length > 0
-      ? Math.max(1, (height - gap * Math.max(0, data.length - 1)) / data.length)
-      : height;
+  const { rowHeight, trackHeight } = useRowLayout(id, data.length, config);
+  const contentHeight = Math.max(0, rowHeight - gap);
   const interaction = useInteraction<BulkBedRect>();
   const tooltip = useTooltip<BulkBedRect, BulkBedConfig>();
   return (
     <g>
-      <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
       {data.map((datasetRows, datasetIndex) => {
         const datasetName = config.datasets[datasetIndex]?.name || `Dataset ${datasetIndex + 1}`;
         return (
-          <g key={datasetName} transform={`translate(0,${datasetIndex * (rowHeight + gap)})`}>
+          <g key={datasetName} transform={`translate(0,${datasetIndex * rowHeight})`}>
             {renderDenseBigBedData(datasetRows, x).map((rect, rectIndex) => {
               const row: BulkBedRect = {
                 ...rect.row,
@@ -38,7 +37,7 @@ export function FullBulkBed({
                   x={rect.start}
                   y={0}
                   width={Math.max(1, rect.end - rect.start)}
-                  height={rowHeight}
+                  height={contentHeight}
                   fill={rect.color ?? color}
                   style={{ cursor: interaction?.onClick ? "pointer" : "default" }}
                   onClick={() => interaction?.onClick?.(row)}

@@ -25,6 +25,7 @@ const config: TranscriptConfig = {
   geneName: "SOX4",
   canonicalColor: "#d45c2f",
   highlightColor: "#1f77b4",
+  rowHeight: 12,
 };
 
 let container: HTMLDivElement | undefined;

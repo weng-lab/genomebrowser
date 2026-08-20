@@ -28,6 +28,7 @@ describe("BulkBed module", () => {
           { name: "Dataset A", url: "YOUR_URL_HERE" },
           { name: "Dataset B", url: "YOUR_URL_HERE" },
         ],
+        rowHeight: 12,
       },
     });
     expect(bulkBedModule.tooltipComponent).toBeTypeOf("function");
@@ -52,6 +53,19 @@ describe("BulkBed module", () => {
         config: {
           datasets: [{ name: "Dataset A", url: "YOUR_URL_HERE" }],
           gap: -1,
+        },
+      }),
+    ).toThrow(/bulkbed input/);
+  });
+
+  it("rejects invalid row heights", () => {
+    expect(() =>
+      bulkBedModule.create({
+        id: "bulk-peaks",
+        title: "Bulk peaks",
+        config: {
+          datasets: [{ name: "Dataset A", url: "YOUR_URL_HERE" }],
+          rowHeight: 0,
         },
       }),
     ).toThrow(/bulkbed input/);
