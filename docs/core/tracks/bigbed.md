@@ -1,4 +1,4 @@
-# BigBed Track
+# BigBed track
 
 `bigBedModule`, exported by `@weng-lab/genomebrowser-tracks/bigbed`, renders genomic intervals from a BigBed file.
 
@@ -23,10 +23,10 @@ Display modes:
 
 Defaults:
 
-- `height`: `60`
+- `height`: `12`
 - `color`: `#4b9560`
 - `display`: `dense`
 
-## Fetch Behavior
+## Fetch behavior
 
-Changing `url` triggers a refetch. The first-party module currently exposes only its implementation-backed generic interval behavior. Guidance for schema-specific BigBed modules and renderer reuse is deferred until that extension surface is finalized.
+Changing `url` triggers a refetch. The subpath also exports `fetchBigBedRows({ url, region, schema })` for specialized modules that assign names and types to columns after BED3. The schema must follow the source file's column order.

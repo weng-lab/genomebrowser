@@ -38,7 +38,7 @@ export function BrowserPage() {
 }
 ```
 
-Replace `YOUR_URL_HERE` with an absolute public HTTP(S) BigWig URL that permits byte-range requests from the browser. Store factories return Zustand hooks, so keep their results stable and use a `use` prefix in their names.
+Replace `YOUR_URL_HERE` with an absolute public HTTP(S) BigWig URL that permits byte-range requests from the browser. See [Data source troubleshooting](dataSources.md) if the file does not load. Store factories return Zustand hooks, so keep their results stable and use a `use` prefix in their names.
 
 Register every module that initial tracks, later track updates, or collection UIs may use. Register all seven with `firstPartyTrackModules`:
 

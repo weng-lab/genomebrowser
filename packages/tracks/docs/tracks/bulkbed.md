@@ -1,6 +1,6 @@
 # BulkBed
 
-`bulkBedModule` renders several BigBed datasets as bands in one track.
+Use `bulkBedModule` to compare several named BigBed datasets in one track. It expects one browser-accessible BigBed URL per dataset. The example creates one row for a dataset named Sample A.
 
 ## Minimal track
 
@@ -38,7 +38,9 @@ Changing a dataset name does not request data again. Fetched rows keep the name 
 
 ## Source requirements
 
-Every dataset URL must point to an absolute public HTTP(S) BigBed file. Each server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. The module fetches sources concurrently and reads BED3 coordinates. It leaves additional columns in the row's `fields` array.
+Every dataset URL must point to an absolute public HTTP(S) BigBed file. Each server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../dataSources.md) if a file does not load.
+
+The module fetches sources concurrently and reads BED3 coordinates. It leaves additional columns in the row's `fields` array.
 
 ## Settings and tooltip
 

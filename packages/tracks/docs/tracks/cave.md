@@ -1,6 +1,6 @@
 # CAVE
 
-`caveModule` renders paired hmC and OXBS signals selected by neurotransmitter and developmental age.
+Use `caveModule` for the package's paired hmC and OXBS datasets. It reads two package-selected hg38 BigWig sources based on neurotransmitter and developmental age. The example selects the GABA adulthood pair.
 
 ## Minimal track
 

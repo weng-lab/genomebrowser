@@ -2,29 +2,30 @@
 
 `@weng-lab/genomebrowser-tracks` contains seven track modules for the `@weng-lab/genomebrowser` runtime. Use a module when your data matches its source format and you want its built-in MUI settings.
 
-## Package boundaries
+## Get started
 
-- `@weng-lab/genomebrowser` provides the browser runtime, stores, module contracts, schema helpers, and module-author hooks.
-- `@weng-lab/genomebrowser-tracks` provides the BigBed, BigWig, BulkBed, cCRE BigBed, CAVE, MethylC, and Transcript implementations. It also provides the settings and tooltip controls used by track modules.
-- `@weng-lab/genomebrowser-ui` provides application controls that coordinate with the browser system as a whole.
+[Getting started](gettingStarted.md) covers installation, a complete minimal browser, schema validation, and module registration.
 
-Each module combines its fetcher, renderer, MUI settings component, and tooltip component. BigBed also exports its schema-aware row fetch helper for specialized modules; other track-specific parts remain internal.
+## Choose a built-in track
 
-## Start here
+Use the [track catalog](tracks/README.md) to choose among BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, MethylC, and Transcript. The catalog groups tracks by the kind of source they read and links to each track's configuration reference.
 
-- [Getting started](gettingStarted.md) shows how to install, create, and register the modules.
-- [Export contract](exports.md) documents the shared module API and Zod schemas.
-- [Shared APIs](shared.md) documents the single shared import path, feature groups, and pure helpers.
-- [Track settings](trackSettings.md) documents the reusable settings controls and `TrackBaseSettings`.
-- [Signal condensation](signal.md) documents the shared BigWig-to-pixel signal API.
-- [Track tooltips](trackTooltips.md) documents `TrackTooltip` and the tooltip formatters.
-- [Source layout](new-tracks.md) records the directory convention for track entries.
-- [BigBed](tracks/bigbed.md) displays intervals from one BigBed source.
-- [cCRE BigBed](tracks/ccre.md) parses and displays ENCODE cCRE BigBed records.
-- [BigWig](tracks/bigwig.md) displays quantitative signal from one BigWig source.
-- [BulkBed](tracks/bulkbed.md) displays several BigBed datasets in one row.
-- [CAVE](tracks/cave.md) displays paired hmC and OXBS signals from package-selected datasets.
-- [MethylC](tracks/methylc.md) displays plus- and minus-strand methylation channels.
-- [Transcript](tracks/transcript.md) displays gene and transcript models from a GraphQL endpoint.
+## Fix data source problems
 
-These docs cover the package root and its public subpaths. Files under `src` are internal; use only the documented `/shared` path for shared APIs.
+[Data source troubleshooting](dataSources.md) covers browser access, cross-origin resource sharing, byte-range responses, and the Transcript proxy requirement.
+
+## Use the module API
+
+- [Module API](exports.md) lists public package entries, modules, schemas, and types.
+- [Shared APIs](shared.md) covers layout, coordinate, settings, tooltip, and signal helpers from the public `/shared` path.
+- [Signal condensation](signal.md) documents the shared BigWig-to-pixel conversion.
+
+Each track subpath exports one complete module. BigBed also exports its schema-aware row fetch helper for specialized modules. Other track-specific implementation parts are internal.
+
+## Author a custom module
+
+- [Author track settings](trackSettings.md) explains settings ownership, layout, validation, and updates.
+- [Settings component API](trackSettingsApi.md) is the exhaustive settings reference.
+- [Author track tooltips](trackTooltips.md) covers tooltip content, formatting, and accessibility.
+
+`@weng-lab/genomebrowser` owns the runtime, stores, module contracts, and module-author hooks. This package owns the MUI settings controls, tooltip components, and helpers documented here. Files under `src` are internal. Import shared APIs only from `@weng-lab/genomebrowser-tracks/shared`.

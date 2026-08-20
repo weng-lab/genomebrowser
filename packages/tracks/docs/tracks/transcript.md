@@ -1,6 +1,6 @@
 # Transcript
 
-`transcriptModule` renders gene and transcript models from a GraphQL endpoint that the browser can reach.
+Use `transcriptModule` for gene and transcript models returned by the expected GraphQL query. It can call a same-origin endpoint or a cross-origin endpoint that permits browser requests. The example requests GENCODE version 47 for GRCh38 through the default endpoint.
 
 ## Minimal track
 
@@ -47,7 +47,9 @@ Use `transcriptModule.configSchema` to validate config and `transcriptModule.cre
 
 The module sends a JSON GraphQL POST request with chromosome, region start, region end, assembly, and version variables. The endpoint must return the queried gene-group shape, including transcript IDs, names, coordinates, exons, UTRs, and optional tags.
 
-Your application must implement the default same-origin `/api/screen-graphql` route. The module does not add authorization headers or read a service key. To call an authenticated upstream service, send requests through your own server endpoint and add credentials there. Endpoint configuration is not secret and may appear in track collections or saved state.
+Your application must implement the default same-origin `/api/screen-graphql` route. The module does not add authorization headers or read a service key. To call an authenticated upstream service, send requests through your own server endpoint and add credentials there.
+
+Endpoint configuration is not secret and may appear in track collections or saved state. See [Data source troubleshooting](../dataSources.md#transcript-endpoint) for the proxy requirement.
 
 ## Settings and tooltip
 

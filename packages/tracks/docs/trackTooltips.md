@@ -54,7 +54,9 @@ When no helper matches the domain, format the value before passing it to `TrackT
 
 ### Colors
 
-Set `titleColor` when a feature's color is meaningful and the title needs a matching square swatch. Set a row's `color` only when the color already identifies that series or channel in the track. The component adds a tinted label background and a solid leading mark; visible text must still communicate the same information without color. Omit colors for ordinary metadata and interface decoration. Values must be valid CSS color strings, and the host browser determines their rendered contrast.
+Set `titleColor` when a feature's color is meaningful and the title needs a matching square swatch. Set a row's `color` only when the color already identifies that series or channel in the track.
+
+The component adds a tinted label background and a solid leading mark. Visible text must still communicate the same information without color. Omit colors for ordinary metadata and interface decoration. Values must be valid CSS color strings. The host browser determines their rendered contrast.
 
 ## `TrackTooltip` API
 
@@ -84,13 +86,13 @@ All three helpers use the `en-US` locale for deterministic grouping and decimal 
 | `formatOptionalBedValue` | `(value: number \| string \| undefined) => string \| undefined` | Formats finite numbers with at most two decimal places. Trims strings and returns `undefined` for a blank string, `"."`, `undefined`, or a non-finite number. |
 | `formatGenomicInterval`  | `(start: number, end: number, chromosome?: string) => string`   | Groups coordinates with no displayed fractional digits and joins them with an en dash. When supplied, the chromosome is prefixed as `chromosome:start–end`.   |
 
-`formatGenomicInterval` only formats its inputs. It does not validate chromosome names, coordinate bounds, interval direction, or whether your data uses zero-based or one-based coordinates.
+`formatGenomicInterval` only formats its inputs. It does not validate chromosome names, coordinate bounds, or interval direction. It also does not determine whether your data uses zero-based or one-based coordinates.
 
 ## Accessibility
 
 The component marks its outer SVG group with `role="tooltip"`. Its title, labels, and values are SVG text, and row color is redundant with that text. The surface ignores pointer events and cannot contain interactive tooltip controls.
 
-`TrackTooltip` does not create or label a trigger, add `aria-describedby`, manage focus, or add keyboard activation. The first-party track tooltips are shown by pointer hover, so the tooltip content is not guaranteed to be announced to keyboard or screen-reader users. If your track renderer adds another way to expose the same item details, that behavior remains the renderer's responsibility.
+`TrackTooltip` does not create or label a trigger. It does not add `aria-describedby`, manage focus, or provide keyboard activation. First-party track tooltips appear on pointer hover, so keyboard and screen-reader users may not receive their content. A track renderer is responsible for any other way of exposing the same item details.
 
 ## Notes
 

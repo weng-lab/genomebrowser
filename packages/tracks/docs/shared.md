@@ -17,19 +17,19 @@ import {
 } from "@weng-lab/genomebrowser-tracks/shared";
 ```
 
-The shared entry does not load first-party track modules. It uses named ES module exports so bundlers can remove exports that an application does not use. Do not import feature directories such as `/shared/layout` or files under `src`; those are not public package paths.
+The shared entry does not load first-party track modules. It uses named ES module exports, which lets a bundler remove unused exports. Do not import feature directories such as `/shared/layout` or files under `src`. They are not public package paths.
 
 ## Feature groups
 
 The single entry contains five groups:
 
-- `settings` provides the MUI settings components documented in [Author track settings](trackSettings.md).
+- `settings` provides the MUI settings components documented in [Author track settings](trackSettings.md) and the [Settings component API](trackSettingsApi.md).
 - `tooltips` provides `TrackTooltip`, its row types, and formatters documented in [Author track tooltips](trackTooltips.md).
 - `signal` provides `condenseSignalRecords` and `SignalPoint`, documented in [Signal condensation](signal.md).
 - `layout` provides horizontal packing plus row-slot sizing and track-height synchronization.
 - `coordinates` provides linear genomic and pointer-coordinate conversion helpers.
 
-These groups describe how the source is organized. They are not package subpaths.
+These names describe groups of related exports. They are not package subpaths.
 
 ## Horizontal row packing
 
@@ -50,7 +50,9 @@ const rows = packRows<Feature>(
 );
 ```
 
-`packRows` calculates each item's bounds once, then stable-sorts items by `start`. It places each item in the first row whose previous `end + gap` is less than or equal to the new `start`. The default gap is `10`. The function returns new row arrays, preserves item identity, and does not modify the input. Include labels or other horizontal decoration in the bounds when those pixels must not overlap.
+`packRows` calculates each item's bounds once and then stable-sorts the items by `start`. It places an item in the first row where the previous `end + gap` is less than or equal to the new `start`. The default gap is `10`.
+
+The function returns new row arrays. It preserves item identity and does not modify the input. Include labels or other horizontal decoration in the bounds when those pixels must not overlap.
 
 | Export             | Type                                                                                                      | Description                               |
 | ------------------ | --------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
@@ -59,7 +61,9 @@ const rows = packRows<Feature>(
 
 ## Row layout
 
-A track opts into shared row layout when `isRowLayoutConfig(config)` returns true. This public type guard accepts a finite numeric `rowHeight` of at least `1`. A module's config schema should enforce the same rule so invalid values fail when the track is created or updated. Row height is the complete vertical slot for one row. Put margins or gaps inside that slot by drawing shorter content. Do not add those gaps to total track height.
+A track uses the shared row layout when `isRowLayoutConfig(config)` returns true. This public type guard accepts a finite numeric `rowHeight` of at least `1`. A module's config schema should enforce the same rule so track creation and updates reject invalid values.
+
+Track height is the total vertical space in `base.height`. Row height is the complete vertical slot for one row in `config.rowHeight`. Content height is the part of that slot used by the drawing. Put margins or gaps inside the slot by reducing content height. Do not add them to track height.
 
 The invariant is:
 
@@ -67,7 +71,7 @@ The invariant is:
 trackHeightFromRowCount(rowCount, rowHeight) === Math.max(1, rowCount) * rowHeight;
 ```
 
-`rowCount` remains renderer data. Do not add it to track config. When viewport or data changes repack features into a different number of rows, call `useRowLayout` with the new count. The hook keeps `config.rowHeight` unchanged and synchronizes the browser-owned track height.
+`rowCount` belongs to the renderer, not track config. When a viewport or data change packs features into a different number of rows, call `useRowLayout` with the new count. The hook keeps `config.rowHeight` unchanged and updates the browser-owned track height.
 
 ```tsx
 import type { TrackRendererProps } from "@weng-lab/genomebrowser";
@@ -92,9 +96,9 @@ export function RowRenderer({ id, config, data, width }: TrackRendererProps<Conf
 }
 ```
 
-The two-pixel content gap in this example reduces the rectangle height without making it negative at small valid row heights. It does not change `rowHeight` or `trackHeight`. The hook must run inside `GenomeBrowser`. It throws for invalid row height rather than clamping the configured value.
+The two-pixel gap in this example reduces content height without making it negative at small valid row heights. It does not change row height or track height. The hook must run inside `GenomeBrowser`. It throws for invalid row height instead of clamping the configured value.
 
-`TrackBaseSettings` detects the same config shape. Row-layout tracks get adjacent Height and Row height fields. Height edits derive row height, and row-height edits derive total height. Each edit preserves the current derived row count and submits both values in one track update. Other tracks retain the Height-only field and its 20-pixel settings minimum.
+`TrackBaseSettings` detects the same config shape. Row-layout tracks get adjacent Height and Row height fields. A Height edit derives row height. A Row height edit derives total track height. Each edit preserves the current derived row count and submits both values in one update. Other tracks keep one Height field with a 20-pixel minimum.
 
 | Export                     | Type                                                                                                         | Description                                                          |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
@@ -109,9 +113,9 @@ The conversions require a positive finite track height, a non-negative integer r
 
 ## Coordinate conversion
 
-`createGenomicXScale(region, width)` returns an unclamped linear function. It maps `region.start` to `0` and `region.end` to `width`; positions outside the region extrapolate beyond those pixel endpoints.
+`createGenomicXScale(region, width)` returns an unclamped linear function. It maps `region.start` to `0` and `region.end` to `width`. Positions outside the region extrapolate beyond those pixel endpoints.
 
-`clientXToTrackX(clientX, bounds, trackWidth)` converts a viewport client coordinate into track space. It returns `0` when `bounds.width` is zero or negative. Otherwise it applies `((clientX - bounds.left) / bounds.width) * trackWidth` without clamping.
+`clientXToTrackX(clientX, bounds, trackWidth)` converts a viewport client coordinate into track space. It returns `0` when `bounds.width` is zero or negative. Otherwise, it applies `((clientX - bounds.left) / bounds.width) * trackWidth` without clamping.
 
 | Export                | Type                                                                                                 | Description                                        |
 | --------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------- |

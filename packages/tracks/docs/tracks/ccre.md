@@ -1,6 +1,6 @@
 # cCRE BigBed
 
-`ccreBigBedModule` renders ENCODE candidate cis-regulatory elements from a BigBed file whose columns match the aggregate cCRE layout.
+Use `ccreBigBedModule` for ENCODE candidate cis-regulatory elements stored in the aggregate cCRE BigBed layout. It expects a browser-accessible BigBed URL with the cCRE columns described below. The example creates a cCRE track from that source.
 
 ## Minimal track
 
@@ -14,11 +14,17 @@ const track = ccreBigBedModule.create({
 });
 ```
 
-## Parsed columns
+## Inherited BigBed behavior
 
-The module parses the seven columns after BED3 as `name`, numeric `score`, `strand`, numeric `thickStart`, numeric `thickEnd`, RGB `color`, and `ccreClass`. Schema property order is significant because BigBed records store these values positionally. Remaining columns stay in `fields`.
+The cCRE module inherits the generic [BigBed](bigbed.md) renderer, `dense` and `squish` displays, base defaults, `url` and `rowHeight` config, row layout, source requirements, settings panel, and pointer interactions. Follow the BigBed source requirements, including CORS and byte-range support.
 
-The module uses the same `dense` and `squish` displays, config options, defaults, and settings as BigBed. Its tooltip shows the cCRE accession beside a square using the record color, followed by the classification and genomic location. Its type value is `"ccre-bigbed"`, so it can be registered alongside the generic `bigBedModule`.
+The module has its own type value, `"ccre-bigbed"`, so you can register it alongside `bigBedModule`.
+
+## cCRE-specific parsing and tooltip
+
+The module parses the seven columns after BED3 as `name`, numeric `score`, `strand`, numeric `thickStart`, numeric `thickEnd`, RGB `color`, and `ccreClass`. Schema property order matters because BigBed stores these values by position. Remaining columns stay in `fields`.
+
+The cCRE tooltip shows the accession beside a square in the record color. It then shows the classification and genomic location.
 
 ## Exported API
 

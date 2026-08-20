@@ -1,6 +1,6 @@
 # BigWig
 
-`bigWigModule` renders quantitative signal from one BigWig file.
+Use `bigWigModule` for quantitative signal stored in one BigWig file. It expects a browser-accessible BigWig URL. The example creates a signal track with the default full display.
 
 ## Minimal track
 
@@ -38,7 +38,9 @@ Use `bigWigModule.configSchema` to validate config and `bigWigModule.createInput
 
 ## Source requirements
 
-The source must be an absolute public HTTP(S) BigWig URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. The module requests unzoomed `BigWigValueRecord` records from `@weng-lab/genomic-reader` and condenses them into rendered pixels using the shared signal rules.
+The source must be an absolute public HTTP(S) BigWig URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../dataSources.md) if the file does not load.
+
+The module requests unzoomed `BigWigValueRecord` records from `@weng-lab/genomic-reader`. It condenses them into rendered pixels using the shared signal rules.
 
 ## Settings and tooltip
 

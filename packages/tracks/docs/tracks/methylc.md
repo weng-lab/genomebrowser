@@ -1,6 +1,6 @@
 # MethylC
 
-`methylCModule` renders plus- and minus-strand CpG, CHG, CHH, and depth channels from BigWig sources.
+Use `methylCModule` for strand-specific methylation and depth data stored in BigWig files. It accepts eight channel entries and skips channels whose URL is empty. The example enables CpG and depth for both strands.
 
 ## Minimal track
 
@@ -54,7 +54,7 @@ Use `methylCModule.configSchema` to validate config and `methylCModule.createInp
 
 ## Source requirements
 
-Each non-empty channel URL must be an absolute public HTTP(S) BigWig URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. An empty URL produces empty channel data without a request.
+Each non-empty channel URL must be an absolute public HTTP(S) BigWig URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../dataSources.md) if a file does not load. An empty URL produces empty channel data without a request.
 
 ## Settings and tooltip
 

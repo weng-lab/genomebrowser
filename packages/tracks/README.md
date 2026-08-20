@@ -1,43 +1,47 @@
 # @weng-lab/genomebrowser-tracks
 
-MUI-based track modules for `@weng-lab/genomebrowser`.
+First-party track modules for `@weng-lab/genomebrowser`. The package includes BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, MethylC, and Transcript modules. Each one provides its data fetcher, renderer, MUI settings, and SVG tooltip.
 
 The public API may change during the alpha release.
 
-## What it provides
+## Install
 
-The package exports BigBed, BigWig, BulkBed, CAVE, MethylC, and Transcript modules. Each module includes a configuration schema, data fetcher, renderer, settings panel, and tooltip.
+```sh
+npm install @weng-lab/genomebrowser-tracks@alpha @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
+```
 
-```ts
-import { createTrackStore } from "@weng-lab/genomebrowser";
+## Minimal browser
+
+```tsx
+import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
+
+const signalTrack = bigWigModule.create({
+  id: "signal",
+  title: "Signal",
+  config: { url: "YOUR_URL_HERE" },
+});
+
+const useBrowserStore = createBrowserStore({
+  assembly: hg38,
+  region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
+  trackWidth: 900,
+});
 
 const useTrackStore = createTrackStore({
   modules: [bigWigModule],
-  tracks: [
-    bigWigModule.create({
-      id: "signal",
-      title: "Signal",
-      config: { url: "YOUR_URL_HERE" },
-    }),
-  ],
+  tracks: [signalTrack],
 });
+
+export function BrowserPage() {
+  return <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />;
+}
 ```
 
-`@weng-lab/genomebrowser` provides the runtime and module APIs. This package owns the MUI settings and SVG tooltip UI used by first-party tracks. Import reusable settings controls, tooltip helpers, signal condensation, layout, and coordinate helpers from `/shared`.
+Replace `YOUR_URL_HERE` with a browser-accessible BigWig URL that supports byte-range requests. See [Getting started](docs/gettingStarted.md) for schema validation and registering all modules.
 
 ## Documentation
 
-- [Overview](docs/README.md)
-- [Getting started](docs/gettingStarted.md)
-- [Export contract](docs/exports.md)
-- [Shared APIs](docs/shared.md)
-- [Track settings](docs/trackSettings.md)
-- [Signal condensation](docs/signal.md)
-- [Track tooltips](docs/trackTooltips.md)
-- [BigBed](docs/tracks/bigbed.md)
-- [BigWig](docs/tracks/bigwig.md)
-- [BulkBed](docs/tracks/bulkbed.md)
-- [CAVE](docs/tracks/cave.md)
-- [MethylC](docs/tracks/methylc.md)
-- [Transcript](docs/tracks/transcript.md)
+- [Choose a built-in track](docs/tracks/README.md)
+- [Fix data source problems](docs/dataSources.md)
+- [Use the module API or author a module](docs/README.md)
