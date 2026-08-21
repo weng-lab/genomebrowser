@@ -108,7 +108,7 @@ Settings components receive `{ track, updateTrack }`. `track` is the current com
 
 The fetch function receives `{ track, demand }`. `track` contains shallow read-only track ID, module type, selected display, and complete parsed config values. `demand` contains the assembly, requested render region, and its width in SVG coordinate units. Do not mutate either view. The region may be larger than the visible viewport because the browser overscans for panning. A fetcher may return raw records or process them for the supplied display and width. Throwing from fetch produces the browser's error state for that track.
 
-The browser requests the track again when its region, SVG width, assembly, display, or marked config changes. Wrap every config field used by the request or fetch-time processing with `fetchOnChange`. Leave fields used only by the renderer unmarked.
+The browser requests the track again when its region, SVG width, assembly, display, or marked config changes. Width changes settle briefly first so a continuous resize produces a single request; any other change promotes a pending width immediately. Wrap every config field used by the request or fetch-time processing with `fetchOnChange`. Leave fields used only by the renderer unmarked.
 
 Renderer-map keys are allowed display values. If `defaults.display` is absent, the first key is the default. Base defaults belong in `defaults`; config defaults belong in the Zod schema. Base colors use case-insensitive six-digit `#RRGGBB` syntax. Creation uses `"#000000"` when `defaults.color` and the create input both omit color, so validated track instances always have a concrete base color.
 

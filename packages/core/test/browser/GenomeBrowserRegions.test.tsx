@@ -16,6 +16,7 @@ let container: HTMLDivElement | undefined;
 let root: Root | undefined;
 
 afterEach(async () => {
+  vi.useRealTimers();
   if (root) await act(async () => root?.unmount());
   container?.remove();
   container = undefined;
@@ -24,6 +25,7 @@ afterEach(async () => {
 
 describe("GenomeBrowser region windows", () => {
   it("fetches bounded overscan windows at both chromosome boundaries", async () => {
+    vi.useFakeTimers();
     const fetch = vi.fn(async () => null);
     function Renderer({ width }: { width: number }) {
       return <rect data-testid="render-width" width={width} />;
@@ -84,6 +86,9 @@ describe("GenomeBrowser region windows", () => {
       browserStore.getState().setTrackWidth(200);
       await Promise.resolve();
     });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
 
     expect(fetch).toHaveBeenCalledTimes(3);
     expect(fetch).toHaveBeenLastCalledWith({
@@ -112,6 +117,7 @@ describe("GenomeBrowser region windows", () => {
       await Promise.resolve();
     });
 
+    expect(fetch).toHaveBeenCalledTimes(4);
     expect(fetch).toHaveBeenLastCalledWith({
       track: { id: "bounded", type: "bounded-fetch-test", display: "full", config: {} },
       demand: {
@@ -123,6 +129,7 @@ describe("GenomeBrowser region windows", () => {
   });
 
   it("unlocks a clamped pan when the normalized fetch window is unchanged", async () => {
+    vi.useFakeTimers();
     const fetch = vi.fn(async () => null);
     function Renderer({ width }: { width: number }) {
       return <rect data-testid="render-width" width={width} />;
@@ -165,6 +172,9 @@ describe("GenomeBrowser region windows", () => {
       await Promise.resolve();
       await Promise.resolve();
     });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
 
     expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 0, end: 800 });
     expect(fetch).toHaveBeenCalledTimes(2);
@@ -175,6 +185,7 @@ describe("GenomeBrowser region windows", () => {
   });
 
   it("restarts a pending fetch when its render width changes", async () => {
+    vi.useFakeTimers();
     const request = createDeferred<null>();
     const fetch = vi.fn(() => request.promise);
     function Renderer({ width }: { width: number }) {
@@ -203,6 +214,9 @@ describe("GenomeBrowser region windows", () => {
     expect(fetch).toHaveBeenCalledOnce();
 
     await act(async () => browserStore.getState().setTrackWidth(200));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
     expect(fetch).toHaveBeenCalledTimes(2);
 
     await act(async () => request.resolve(null));

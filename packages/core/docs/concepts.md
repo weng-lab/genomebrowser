@@ -41,11 +41,11 @@ When a renderer emits a semantic item, the browser invokes the stored applicatio
 
 On initial mount, the browser requests every track for an overscanned render region around the visible region. A visible-region change targets a new overscanned region and requests every track again.
 
-For a config-only change, the browser requests only that track and only when a field marked by its module with `fetchOnChange` has changed. Region, SVG width, assembly, and display changes also request data. Other base fields, interaction callbacks, and unmarked config fields re-render without requesting data. Custom module authors must mark every config field that affects either the request or fetch-time processing.
+For a config-only change, the browser requests only that track and only when a field marked by its module with `fetchOnChange` has changed. Region, SVG width, assembly, and display changes also request data. Width changes settle briefly first so a continuous container resize collapses into one round of requests, and any other demand change promotes a pending width immediately. Other base fields, interaction callbacks, and unmarked config fields re-render without requesting data. Custom module authors must mark every config field that affects either the request or fetch-time processing.
 
 Each module fetch receives shallow read-only track and render-demand snapshots. It may return raw records or data processed for the requested region, display, and SVG width. The selected renderer turns that result into SVG output.
 
-During panning, existing SVG content moves immediately. Previously successful track data stays visible while a region-only request is in flight. A display, SVG width, assembly, or marked config change clears incompatible data while its replacement loads. The browser settles onto the newest render region only after its track requests finish, and it blocks pointer interactions during mismatched or fetching states. A failed request is shown as a track error; other tracks can still complete.
+During panning, existing SVG content moves immediately. Previously successful track data stays visible while a region-only request is in flight. A display, SVG width, assembly, or marked config change clears incompatible data while its replacement loads; width changes stay visible until their settle delay elapses. The browser settles onto the newest render region only after its track requests finish, and it blocks pointer interactions during mismatched or fetching states. A failed request is shown as a track error; other tracks can still complete.
 
 ## Mutation behavior
 

@@ -39,7 +39,7 @@ For each browser render:
 7. `useTooltip` resolves the current module from that context and gives its tooltip component the semantic item plus the same context.
 8. Browser-owned wrappers provide panning, controls, loading and error states, settings, highlights, interaction gating, and tooltip positioning.
 
-An initial render or change to the render region, SVG width, assembly, or display fetches the affected tracks. A config-only mutation fetches a track only when the value of a field marked by `fetchOnChange` changes. Other base fields, interaction callbacks, and unmarked config fields do not cause a request. Failed requests become per-track error states rather than escaping from the browser render.
+An initial render or change to the render region, SVG width, assembly, or display fetches the affected tracks. SVG width changes settle briefly first so a continuous resize issues one round of requests; any other demand change promotes a pending width immediately. A config-only mutation fetches a track only when the value of a field marked by `fetchOnChange` changes. Other base fields, interaction callbacks, and unmarked config fields do not cause a request. Failed requests become per-track error states rather than escaping from the browser render.
 
 Later validated base or config mutations appear in later callback events and tooltip renders because context is derived at the rendering boundary. It contains only core runtime `type`, `base`, and `config`; TrackSelect collection metadata remains collection-owned and must be combined separately by the UI package or its host.
 

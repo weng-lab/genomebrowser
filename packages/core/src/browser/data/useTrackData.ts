@@ -6,8 +6,11 @@ import type { AnyTrackInstance } from "../../modules/types";
 import type { GenomicRegion } from "../../genome/region";
 import type { TrackStoreInstance } from "../state/trackStore";
 import { getTrackDataState } from "./dataStore";
+import { useDebouncedValue } from "./useDebouncedValue";
 import { fetchTrackData } from "./fetchTrackData";
 import type { DataResult, DataState, DataStoreInstance } from "./types";
+
+const WIDTH_DEBOUNCE_MS = 200;
 
 export function useTrackData({
   useDataStore,
@@ -15,6 +18,7 @@ export function useTrackData({
   assembly,
   region,
   width,
+  widthDebounceMs = WIDTH_DEBOUNCE_MS,
   onSettled,
 }: {
   useDataStore: DataStoreInstance;
@@ -22,6 +26,14 @@ export function useTrackData({
   assembly: AssemblyDefinition;
   region: GenomicRegion;
   width: number;
+  /**
+   * Trailing delay before a width change joins the fetch demand. Width changes
+   * arrive continuously while an embedder's resize observer tracks the
+   * container, so the debounce collapses each resize gesture into one refetch.
+   * Region, assembly, and display changes are never delayed; they promote any
+   * pending width immediately so their fetch carries final values.
+   */
+  widthDebounceMs?: number;
   onSettled?: () => void;
 }) {
   useTrackStore((state) => createTrackDataKey(state.registry, state.tracks));
@@ -41,9 +53,16 @@ export function useTrackData({
     () => ({ chromosome: region.chromosome, end: region.end, start: region.start }),
     [region.chromosome, region.end, region.start],
   );
+  const demandResetKey = useMemo(
+    // Every non-width demand input: a change here promotes a pending width
+    // immediately so the resulting fetch carries final values.
+    () => JSON.stringify({ assembly, region: fetchRegion, keys: currentFetchKeys }),
+    [assembly, currentFetchKeys, fetchRegion],
+  );
+  const demandWidth = useDebouncedValue(width, widthDebounceMs, demandResetKey);
   const demandIdentity = useMemo(
-    () => createDemandIdentity(assembly, fetchRegion, width),
-    [assembly, fetchRegion, width],
+    () => createDemandIdentity(assembly, fetchRegion, demandWidth),
+    [assembly, fetchRegion, demandWidth],
   );
   const incompatibleTrackIds = getIncompatibleTrackIds(
     tracks,
@@ -105,7 +124,7 @@ export function useTrackData({
           track,
           assembly,
           region: fetchRegion,
-          width,
+          width: demandWidth,
         });
         return [track.base.id, result] as const;
       }),
@@ -130,13 +149,13 @@ export function useTrackData({
     assembly,
     currentFetchKeys,
     demandIdentity,
+    demandWidth,
     fetchRegion,
     registry,
     setData,
     setFetchingTrackIds,
     tracks,
     useDataStore,
-    width,
   ]);
 
   const dataStates = createDataStates(

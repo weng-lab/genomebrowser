@@ -18,10 +18,15 @@ let root: Root | undefined;
 const testAssembly = { id: "test", chromosomes: { chr1: 1_000 } };
 
 type HarnessProps = Omit<Parameters<typeof useTrackData>[0], "assembly" | "width"> &
-  Partial<Pick<Parameters<typeof useTrackData>[0], "assembly" | "width">>;
+  Partial<Pick<Parameters<typeof useTrackData>[0], "assembly" | "width" | "widthDebounceMs">>;
 
-function Harness({ assembly = testAssembly, width = 100, ...props }: HarnessProps) {
-  const { dataStates, isFetching } = useTrackData({ ...props, assembly, width });
+function Harness({
+  assembly = testAssembly,
+  width = 100,
+  widthDebounceMs = 0,
+  ...props
+}: HarnessProps) {
+  const { dataStates, isFetching } = useTrackData({ ...props, assembly, width, widthDebounceMs });
   return <output data-fetching={isFetching}>{JSON.stringify(dataStates)}</output>;
 }
 
@@ -255,6 +260,59 @@ describe("useTrackData", () => {
     );
     expect(fetch).toHaveBeenCalledTimes(5);
     expect(fetch.mock.calls.at(-1)?.[0].demand.assembly).toBe(otherAssembly);
+  });
+
+  it("delays width-only refetches until resizing settles", async () => {
+    vi.useFakeTimers();
+    try {
+      const fetch = vi.fn(async ({ demand }: { demand: { width: number } }) => demand.width);
+      const module = defineTrackModule({
+        type: "resize-debounce-test",
+        configSchema: z.object({ label: z.string() }),
+        fetch,
+        render: { full: () => null },
+      });
+      const useDataStore = createDataStore();
+      const useTrackStore = createTrackStore({
+        modules: [module],
+        tracks: [module.create({ id: "signal", title: "Signal", config: { label: "Signal" } })],
+      });
+      const region = { chromosome: "chr1", start: 0, end: 10 };
+
+      container = document.createElement("div");
+      document.body.appendChild(container);
+      root = createRoot(container);
+      const render = (width: number) =>
+        root?.render(
+          <Harness
+            useDataStore={useDataStore}
+            useTrackStore={useTrackStore}
+            region={region}
+            width={width}
+            widthDebounceMs={200}
+          />,
+        );
+
+      await act(async () => render(100));
+      expect(fetch).toHaveBeenCalledTimes(1);
+
+      await act(async () => render(150));
+      expect(fetch).toHaveBeenCalledTimes(1);
+
+      await act(async () => render(175));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(150);
+      });
+      expect(fetch).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch.mock.calls.at(-1)?.[0].demand.width).toBe(175);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("fetches changed regions and new members, then prunes removed results", async () => {
