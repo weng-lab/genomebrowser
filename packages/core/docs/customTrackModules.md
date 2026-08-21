@@ -82,7 +82,9 @@ export const customSignalModule = defineTrackModule<Item>()({
   type: "custom-signal",
   defaults: { height: 80, color: "#2266aa" },
   configSchema,
-  async fetch({ config, region }): Promise<Data> {
+  async fetch({ track, demand }): Promise<Data> {
+    const { config } = track;
+    const { region } = demand;
     const query = new URLSearchParams({
       chromosome: region.chromosome,
       start: String(region.start),
@@ -104,7 +106,35 @@ export const customSignalModule = defineTrackModule<Item>()({
 
 Settings components receive `{ track, updateTrack }`. `track` is the current complete, shallow read-only instance, including its type, base, parsed config, and optional interaction callbacks. The supplied `updateTrack` is already bound to that track's ID and passes through the browser's interaction gate. Return or inspect its `TrackMutationResult` when an edit can fail. Each `base`, `config`, or `interaction` patch is shallow, so replace a complete nested object or array when changing one of its values.
 
-The fetch function receives only parsed config and a genomic region. Return raw regional data; the renderer owns conversion to pixels and display-specific shaping. Throwing from fetch produces the browser's error state for that track.
+The fetch function receives `{ track, demand, resources }`. `track` contains shallow read-only track ID, module type, selected display, and complete parsed config values. `demand` contains the assembly, requested render region, and its width in SVG coordinate units. Do not mutate either view. The region may be larger than the visible viewport because the browser overscans for panning. A fetcher may return raw records or process them for the supplied display and width. Throwing from fetch produces the browser's error state for that track.
+
+## Fetcher resources
+
+`resources` is a small key-value store your fetcher can use to keep values alive between requests:
+
+```ts
+async fetch({ track, demand, resources }): Promise<Data> {
+  let file = resources.get<MyFileReader>("file");
+  if (!file || file.url !== track.config.url) {
+    file = createMyFileReader(track.config.url);
+    resources.set("file", file);
+  }
+  return file.read(demand.region);
+}
+```
+
+The store is scoped to one track in one mounted `GenomeBrowser`. Two tracks never see each other's values, even when they share a module type, and two browser instances are fully independent. Keys are local strings; you choose their meaning. Values may be anything, including file readers, caches, or module-specific state.
+
+Lifecycle rules:
+
+- Values persist across fetches of the same track, across region, width, assembly, display, and unmarked-config changes.
+- Core never inspects or evicts values. When a source-affecting config value changes, your fetcher decides whether to keep, validate, or replace what it stored.
+- Removing the track releases its values. If a track with the same ID is added again, its fetcher starts with an empty store.
+- Unmounting the browser releases all remaining values.
+
+Resources are storage, not a managed cache: there is no eviction policy, sharing between tracks, or cleanup hook. Store only what your fetcher can rebuild on demand.
+
+The browser requests the track again when its region, SVG width, assembly, display, or marked config changes. Width changes settle briefly first so a continuous resize produces a single request; any other change promotes a pending width immediately. Wrap every config field used by the request or fetch-time processing with `fetchOnChange`. Leave fields used only by the renderer unmarked.
 
 Renderer-map keys are allowed display values. If `defaults.display` is absent, the first key is the default. Base defaults belong in `defaults`; config defaults belong in the Zod schema. Base colors use case-insensitive six-digit `#RRGGBB` syntax. Creation uses `"#000000"` when `defaults.color` and the create input both omit color, so validated track instances always have a concrete base color.
 

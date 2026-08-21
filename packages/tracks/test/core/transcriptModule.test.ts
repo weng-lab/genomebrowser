@@ -1,8 +1,25 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { TrackResources } from "@weng-lab/genomebrowser";
 import { defaultScreenGraphQlEndpoint } from "@weng-lab/genomebrowser";
 import { transcriptModule } from "../../src/transcript";
 
 const endpoint = "/api/screen-graphql";
+
+function createTrackResources(): TrackResources {
+  const values = new Map<string, unknown>();
+  return {
+    get: <T>(key: string) => values.get(key) as T | undefined,
+    set: (key, value) => {
+      values.set(key, value);
+    },
+    delete: (key) => {
+      values.delete(key);
+    },
+    clear: () => {
+      values.clear();
+    },
+  };
+}
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -37,15 +54,25 @@ describe("Transcript module", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     const data = await transcriptModule.fetch({
-      config: {
-        endpoint,
-        assembly: "GRCh38",
-        version: 40,
-        canonicalColor: "#000000",
-        highlightColor: "#000000",
-        rowHeight: 12,
+      track: {
+        id: "genes",
+        type: "transcript",
+        display: "full",
+        config: {
+          endpoint,
+          assembly: "GRCh38",
+          version: 40,
+          canonicalColor: "#000000",
+          highlightColor: "#000000",
+          rowHeight: 12,
+        },
       },
-      region: { chromosome: "chr6", start: 10, end: 20 },
+      demand: {
+        assembly: { id: "GRCh38", chromosomes: { chr6: 170_805_979 } },
+        region: { chromosome: "chr6", start: 10, end: 20 },
+        width: 100,
+      },
+      resources: createTrackResources(),
     });
 
     expect(data).toEqual([]);
@@ -114,15 +141,25 @@ describe("Transcript module", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
     await expect(
       transcriptModule.fetch({
-        config: {
-          endpoint,
-          assembly: "GRCh38",
-          version: 40,
-          canonicalColor: "#000000",
-          highlightColor: "#000000",
-          rowHeight: 12,
+        track: {
+          id: "genes",
+          type: "transcript",
+          display: "full",
+          config: {
+            endpoint,
+            assembly: "GRCh38",
+            version: 40,
+            canonicalColor: "#000000",
+            highlightColor: "#000000",
+            rowHeight: 12,
+          },
         },
-        region: { chromosome: "chr6", start: 10, end: 20 },
+        demand: {
+          assembly: { id: "GRCh38", chromosomes: { chr6: 170_805_979 } },
+          region: { chromosome: "chr6", start: 10, end: 20 },
+          width: 100,
+        },
+        resources: createTrackResources(),
       }),
     ).rejects.toThrow(message);
   });

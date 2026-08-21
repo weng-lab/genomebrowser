@@ -26,7 +26,7 @@ describe("MethylC track fetching", () => {
     const region = { chromosome: "chr1", start: 10, end: 20 };
     const config = createConfig((channel) => `https://example.org/${channel}.bw`);
 
-    const result = await fetchMethylC({ config, region });
+    const result = await fetchMethylC(createContext(config, region));
 
     expect(reader.createBigWigFile).toHaveBeenCalledTimes(8);
     expect(reader.createBigWigFile).toHaveBeenNthCalledWith(1, {
@@ -49,9 +49,21 @@ describe("MethylC track fetching", () => {
     const config = createConfig(() => "");
 
     await expect(
-      fetchMethylC({ config, region: { chromosome: "chr1", start: 10, end: 20 } }),
+      fetchMethylC(createContext(config, { chromosome: "chr1", start: 10, end: 20 })),
     ).resolves.toEqual([[], [], [], [], [], [], [], []]);
     expect(reader.createBigWigFile).not.toHaveBeenCalled();
+  });
+
+  it("reuses cached channel readers across fetches of one track", async () => {
+    const config = createConfig((channel) => `https://example.org/${channel}.bw`);
+    const context = createContext(config, { chromosome: "chr1", start: 10, end: 20 });
+
+    await fetchMethylC(context);
+    await fetchMethylC(context);
+    await fetchMethylC(context);
+
+    expect(reader.createBigWigFile).toHaveBeenCalledTimes(8);
+    expect(reader.read).toHaveBeenCalledTimes(24);
   });
 });
 
@@ -76,6 +88,33 @@ function createConfig(urlFor: (channel: string) => string): MethylCConfig {
         chg: { url: urlFor("minus-chg") },
         chh: { url: urlFor("minus-chh") },
         depth: { url: urlFor("minus-depth") },
+      },
+    },
+  };
+}
+
+function createContext(
+  config: MethylCConfig,
+  region: { chromosome: string; start: number; end: number },
+) {
+  const values = new Map<string, unknown>();
+  return {
+    track: { id: "methylc", type: "methylc", display: "full", config },
+    demand: {
+      assembly: { id: "test", chromosomes: { chr1: 1_000 } },
+      region,
+      width: 100,
+    },
+    resources: {
+      get: <T>(key: string) => values.get(key) as T | undefined,
+      set: (key: string, value: unknown) => {
+        values.set(key, value);
+      },
+      delete: (key: string) => {
+        values.delete(key);
+      },
+      clear: () => {
+        values.clear();
       },
     },
   };

@@ -80,6 +80,6 @@ The result does not contain collection metadata. Create through a specific modul
 
 `updateTrack` accepts optional shallow `base`, `config`, and `interaction` patches, validates the complete candidate once, and commits every supplied section or none. Nested objects and arrays are replaced rather than recursively merged. Track ID and type are immutable; replace the instance when either identity must change.
 
-A config-only update requests data only when a field marked by its module with `fetchOnChange` changes. Base fields, interactions, display changes, and unmarked visual config reuse current data.
+A config-only update requests data only when a field marked by its module with `fetchOnChange` changes. Display changes request data because fetchers may return display-specific results. Other base fields, interactions, and unmarked visual config reuse current data.
 
 See [Custom track modules](customTrackModules.md) to define a module and [Recipes](recipes.md) for track-store mutations.

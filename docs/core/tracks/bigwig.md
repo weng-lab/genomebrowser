@@ -39,4 +39,4 @@ The settings panel exposes a **Show clamp indicators** checkbox and a text **Cla
 
 ## Fetch Behavior
 
-The module fetches data with `genomic-reader` and requires the remote file to be BigWig. Changing `url` triggers a refetch. Changing visual fields such as `fillWithZero`, `yRange`, `showClampIndicators`, `clampIndicatorColor`, `color`, `height`, or `display` does not refetch data.
+The module fetches data with `genomic-reader` and requires the remote file to be BigWig. It caches the file reader in the track's fetcher resources for the track's lifetime and replaces it when `url` changes, so file metadata is fetched once per source. Changing `url` triggers a refetch. Changing visual fields such as `fillWithZero`, `yRange`, `showClampIndicators`, `clampIndicatorColor`, `color`, `height`, or `display` does not refetch data.

@@ -1,0 +1,3 @@
+# Fetch functions may process render demand
+
+Track fetch functions receive shallow read-only track and render-demand snapshots containing the assembly, requested region, and SVG width. They may return raw records or data processed for that region, width, and selected display. Core includes display and demand changes in request identity and does not render retained data against a changed processing demand, while modules mark config fields that affect requests or fetch-time processing with `fetchOnChange`. This supersedes ADR 0004 because fetchers can now own demand-specific caching and processing instead of relying on a future Core regional cache.

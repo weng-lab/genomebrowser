@@ -56,6 +56,8 @@ Use `methylCModule.configSchema` to validate config and `methylCModule.createInp
 
 Each non-empty channel URL must be an absolute public HTTP(S) BigWig URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../dataSources.md) if a file does not load. An empty URL produces empty channel data without a request.
 
+The module keeps one file reader per channel URL in the browser's track-scoped fetcher resources, so file metadata is fetched once per source and reused by later pans and zooms. Changing a channel URL creates a fresh reader for that source on the next request.
+
 ## Settings and tooltip
 
 The settings panel has URL fields for all eight strand and channel combinations. It also has four channel color controls, a **Mask CpG by coverage** switch, and min/max range controls.

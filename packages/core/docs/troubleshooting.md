@@ -20,7 +20,7 @@ Chromosome names must exactly match a case-sensitive key in `assembly.chromosome
 
 ## Config changes but data does not refetch
 
-For custom modules, wrap every config schema field that changes the fetched response with `fetchOnChange`. A region change always requests all tracks, but a config-only change requests a track only when its marked-field signature changes.
+For custom modules, wrap every config schema field that changes the request or fetch-time processing with `fetchOnChange`. Region, SVG width, assembly, and display changes request data — width changes after a brief settle delay that collapses continuous resizing into one request — but a config-only change requests a track only when its marked-field signature changes.
 
 Do not mark visual-only fields. They should re-render with existing data. If a first-party module does not refetch after changing a documented data-source field, verify that the mutation succeeded before investigating request behavior in `@weng-lab/genomebrowser-tracks`.
 

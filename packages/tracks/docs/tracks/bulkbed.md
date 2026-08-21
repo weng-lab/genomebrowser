@@ -40,7 +40,7 @@ Changing a dataset name does not request data again. Fetched rows keep the name 
 
 Every dataset URL must point to an absolute public HTTP(S) BigBed file. Each server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../dataSources.md) if a file does not load.
 
-The module fetches sources concurrently and reads BED3 coordinates. It leaves additional columns in the row's `fields` array.
+The module fetches sources concurrently and reads BED3 coordinates. It keeps one cached file reader per dataset URL in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata is fetched once per source. It leaves additional columns in the row's `fields` array.
 
 ## Settings and tooltip
 

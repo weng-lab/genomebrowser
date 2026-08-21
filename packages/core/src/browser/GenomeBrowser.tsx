@@ -10,6 +10,8 @@ import {
 import { useShallow } from "zustand/react/shallow";
 import { createDataStore } from "./data/dataStore";
 import { useTrackData } from "./data/useTrackData";
+import { createTrackResourceStore } from "./data/trackResourceStore";
+import type { TrackResourceStoreInstance } from "./data/trackResourceStore";
 import type { DataStoreInstance } from "./data/types";
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { TooltipProvider } from "./tooltip/TooltipProvider";
@@ -71,6 +73,9 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
   const useDataStore = useMemo(() => createDataStore(), []);
   const contextMenuStore = useMemo(() => createContextMenuStore(), []);
   const internalSettingsStore = useMemo(() => createSettingsStore(), []);
+  // One resource store per mount gives each browser instance a private set of
+  // track-scoped fetcher resources; unmounting releases them (in useTrackData).
+  const resourceStore = useMemo(() => createTrackResourceStore(), []);
 
   const activeSettingsStore = settingsStore ?? internalSettingsStore;
   const browserWidth = marginWidth + trackWidth;
@@ -88,6 +93,7 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
     renderWidth,
     settleData,
     targetRenderRegion,
+    targetRenderWidth,
   } = useRenderWindow({
     assembly,
     region,
@@ -147,7 +153,10 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
               <TrackDataCoordinator
                 useTrackStore={useTrackStore}
                 useDataStore={useDataStore}
+                resourceStore={resourceStore}
+                assembly={assembly}
                 region={targetRenderRegion}
+                width={targetRenderWidth}
                 onSettled={() => handleDataSettled(dataKey)}
                 isPanLocked={isPanLocked}
               >
@@ -182,14 +191,20 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
 function TrackDataCoordinator({
   useTrackStore,
   useDataStore,
+  resourceStore,
+  assembly,
   region,
+  width,
   onSettled,
   isPanLocked,
   children,
 }: {
   useTrackStore: TrackStoreInstance;
   useDataStore: DataStoreInstance;
+  resourceStore: TrackResourceStoreInstance;
+  assembly: BrowserStore["assembly"];
   region: GenomicRegion;
+  width: number;
   onSettled: () => void;
   isPanLocked: boolean;
   children: ReactNode;
@@ -197,7 +212,10 @@ function TrackDataCoordinator({
   const { isFetching } = useTrackData({
     useDataStore,
     useTrackStore,
+    resourceStore,
+    assembly,
     region,
+    width,
     onSettled,
   });
   const isInteractionBlocked = isPanLocked || isFetching;
