@@ -15,8 +15,8 @@ const configSchema = z.object({
 });
 
 async function fetchCcreBigBed({
-  config,
-  region,
+  track: { config },
+  demand: { region },
 }: TrackFetchContext<BigBedConfig>): Promise<CcreBigBedRow[]> {
   return fetchBigBedRows({ url: config.url, region, schema: ccreBigBedSchema });
 }

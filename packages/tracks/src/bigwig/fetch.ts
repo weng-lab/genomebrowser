@@ -4,8 +4,8 @@ import type { BigWigRecord, BigWigValueRecord } from "@weng-lab/genomic-reader";
 import type { BigWigConfig } from "./types";
 
 export async function fetchBigWig({
-  config,
-  region,
+  track: { config },
+  demand: { region },
 }: TrackFetchContext<BigWigConfig>): Promise<BigWigValueRecord[]> {
   return fetchBigWigRaw({ url: config.url, region });
 }

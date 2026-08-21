@@ -4,7 +4,7 @@ Most applications need only `GenomeBrowser`, `createBrowserStore`, `createTrackS
 
 ## Data-dependent requests with `fetchOnChange`
 
-`fetchOnChange` marks config schema fields whose value contributes to a track's request signature. Region changes always request data; config-only changes request data only when a marked value changes.
+`fetchOnChange` marks config schema fields whose value contributes to a track's request signature. Region, SVG width, assembly, and display changes request data. Config-only changes request data only when a marked value changes.
 
 ```ts
 const configSchema = z.object({
@@ -13,7 +13,7 @@ const configSchema = z.object({
 });
 ```
 
-Mark data sources and query inputs. Leave colors, display options, labels, height, and other renderer-only choices unmarked. Nested object and array fields can be marked individually.
+Mark data sources, query inputs, and options used to process the fetch result. Leave colors, labels, height, and other renderer-only choices unmarked. Nested object and array fields can be marked individually.
 
 ## Renderer interactions
 

@@ -37,15 +37,24 @@ describe("Transcript module", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     const data = await transcriptModule.fetch({
-      config: {
-        endpoint,
-        assembly: "GRCh38",
-        version: 40,
-        canonicalColor: "#000000",
-        highlightColor: "#000000",
-        rowHeight: 12,
+      track: {
+        id: "genes",
+        type: "transcript",
+        display: "full",
+        config: {
+          endpoint,
+          assembly: "GRCh38",
+          version: 40,
+          canonicalColor: "#000000",
+          highlightColor: "#000000",
+          rowHeight: 12,
+        },
       },
-      region: { chromosome: "chr6", start: 10, end: 20 },
+      demand: {
+        assembly: { id: "GRCh38", chromosomes: { chr6: 170_805_979 } },
+        region: { chromosome: "chr6", start: 10, end: 20 },
+        width: 100,
+      },
     });
 
     expect(data).toEqual([]);
@@ -114,15 +123,24 @@ describe("Transcript module", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
     await expect(
       transcriptModule.fetch({
-        config: {
-          endpoint,
-          assembly: "GRCh38",
-          version: 40,
-          canonicalColor: "#000000",
-          highlightColor: "#000000",
-          rowHeight: 12,
+        track: {
+          id: "genes",
+          type: "transcript",
+          display: "full",
+          config: {
+            endpoint,
+            assembly: "GRCh38",
+            version: 40,
+            canonicalColor: "#000000",
+            highlightColor: "#000000",
+            rowHeight: 12,
+          },
         },
-        region: { chromosome: "chr6", start: 10, end: 20 },
+        demand: {
+          assembly: { id: "GRCh38", chromosomes: { chr6: 170_805_979 } },
+          region: { chromosome: "chr6", start: 10, end: 20 },
+          width: 100,
+        },
       }),
     ).rejects.toThrow(message);
   });

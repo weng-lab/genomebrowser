@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import type { z } from "zod";
+import type { AssemblyDefinition } from "../genome/assembly";
 import type { GenomicRegion } from "../genome/region";
 
 export type TrackBase = {
@@ -51,10 +52,23 @@ export type TrackInstance<Config, InteractionItem = unknown> = {
   interaction?: TrackInteraction<InteractionItem, Config>;
 };
 
-export type TrackFetchContext<Config> = {
-  config: Config;
-  region: GenomicRegion;
-};
+export type TrackFetchTrack<Config> = Readonly<{
+  id: string;
+  type: string;
+  display: string;
+  config: Config extends object ? Readonly<Config> : Config;
+}>;
+
+export type TrackFetchDemand = Readonly<{
+  assembly: AssemblyDefinition;
+  region: Readonly<GenomicRegion>;
+  width: number;
+}>;
+
+export type TrackFetchContext<Config> = Readonly<{
+  track: TrackFetchTrack<Config>;
+  demand: TrackFetchDemand;
+}>;
 
 export type TrackFetch<Config, Data> = (context: TrackFetchContext<Config>) => Promise<Data>;
 

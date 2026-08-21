@@ -45,15 +45,17 @@ type Config = z.infer<typeof configSchema>;
 type Data = Array<{ start: number; end: number; value: number }>;
 
 function FullTrack(props: TrackRendererProps<Config, Data>) {
-  return <g>{/* Render raw regional data for props.region and props.width. */}</g>;
+  return <g>{/* Render the fetched data for props.region and props.width. */}</g>;
 }
 
 export const exampleModule = defineTrackModule({
   type: "example",
   defaults: { height: 80, color: "#2266aa" },
   configSchema,
-  async fetch({ config, region }): Promise<Data> {
-    // Fetch and return raw data for config.url and region.
+  async fetch({ track, demand }): Promise<Data> {
+    const { config } = track;
+    const { region, width } = demand;
+    // Fetch and process data for config.url, region, and the SVG width when useful.
     return [];
   },
   render: { full: FullTrack },
@@ -62,7 +64,7 @@ export const exampleModule = defineTrackModule({
 
 `defineTrackModule` makes the config schema strict, derives the full create-input and instance schemas, and supplies `create` and `validate`. Zod config defaults belong in `configSchema`. Browser-owned defaults belong in `defaults`: `height` falls back to `80`, `color` falls back to `#000000`, and `display` falls back to the first renderer key. Creation input may omit color, but validated instances always contain a case-insensitive six-digit `#RRGGBB` value. At least one renderer is required, and an explicit default display must name one of them.
 
-Module fetch functions receive only `{ config, region }` and return raw regional data. Renderers receive that data plus config, dimensions, region, ID, and color; they own display- and pixel-specific transformations. The browser owns loading and error presentation, panning, track controls, and renderer selection.
+Module fetch functions receive `{ track, demand }`. `track` contains shallow read-only ID, type, selected display, and complete validated config values. `demand` contains the assembly, requested render region, and the width assigned to that region in SVG coordinate units. Fetchers must not mutate either view. A fetcher may return raw records or data processed for that demand. Renderers receive the result plus config, dimensions, region, ID, and color. The browser owns loading and error presentation, panning, track controls, and renderer selection.
 
 ## Requests and config changes
 
@@ -75,7 +77,7 @@ const configSchema = z.object({
 });
 ```
 
-Changing `url` requests new data. Changing `colorScale` re-renders with the current data. Mark nested URL, dataset, assembly, version, or query fields that affect the response; do not mark visual-only options. Omitting `fetchOnChange` from a data-source field is a common cause of stale data after settings changes.
+Changing `url` requests new data. Changing `colorScale` re-renders with the current data. Mark any config field that affects the fetch result, including source selection, request parameters, or processing. Do not mark renderer-only options. Region, SVG width, assembly, and display changes also request data because they are part of render demand. Omitting `fetchOnChange` from a fetch-dependent field is a common cause of stale data after settings changes.
 
 ## Display, settings, and interaction
 

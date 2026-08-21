@@ -4,8 +4,8 @@ import { fetchBigBedRows } from "../bigbed/fetch";
 import type { BulkBedConfig, BulkBedData } from "./types";
 
 export async function fetchBulkBed({
-  config,
-  region,
+  track: { config },
+  demand: { region },
 }: TrackFetchContext<BulkBedConfig>): Promise<BulkBedData> {
   return Promise.all(
     config.datasets.map(async (dataset, index) =>

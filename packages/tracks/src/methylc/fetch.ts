@@ -3,8 +3,8 @@ import { fetchBigWigRaw } from "../bigwig/fetch";
 import type { BigWigValueRecord } from "@weng-lab/genomic-reader";
 import type { MethylCConfig, MethylCData } from "./types";
 export async function fetchMethylC({
-  config,
-  region,
+  track: { config },
+  demand: { region },
 }: TrackFetchContext<MethylCConfig>): Promise<MethylCData> {
   const plus = config.urls.plusStrand;
   const minus = config.urls.minusStrand;

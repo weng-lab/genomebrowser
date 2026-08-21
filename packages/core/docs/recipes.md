@@ -84,7 +84,7 @@ export function App() {
 }
 ```
 
-The renderer emits only `item`. The browser adds the latest validated context when it invokes the application callback or renders the tooltip. Updating the track's URL or color changes later events and tooltips; it does not make base or interaction changes fetch data, and config requests remain controlled by `fetchOnChange`.
+The renderer emits only `item`. The browser adds the latest validated context when it invokes the application callback or renders the tooltip. Updating the track's URL or color changes later events and tooltips. Display changes request data, while other base and interaction changes do not. Config requests remain controlled by `fetchOnChange`.
 
 ### Keep hover callbacks lightweight
 

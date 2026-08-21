@@ -69,7 +69,7 @@ Do not use a broad fallback such as “anything other than GRCh38 is mm10.” Ex
 
 ## Request ownership
 
-The feature that owns a request also owns its query, response validation, error translation, cancellation, and cache identity. Keep display-only values out of request identity. For regional track modules, continue to follow the raw-data fetch boundary in [Tracks and track modules](tracks.md); renderers remain responsible for pixel geometry.
+The feature that owns a request also owns its query, response validation, error translation, cancellation, and cache identity. For regional track modules, the fetch context supplies the selected display and render demand. Fetchers may use those values when choosing or processing data, while renderers remain responsible for SVG output and interaction geometry.
 
 For SCREEN-backed UI components outside the track runtime:
 

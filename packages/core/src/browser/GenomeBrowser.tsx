@@ -88,6 +88,7 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
     renderWidth,
     settleData,
     targetRenderRegion,
+    targetRenderWidth,
   } = useRenderWindow({
     assembly,
     region,
@@ -147,7 +148,9 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
               <TrackDataCoordinator
                 useTrackStore={useTrackStore}
                 useDataStore={useDataStore}
+                assembly={assembly}
                 region={targetRenderRegion}
+                width={targetRenderWidth}
                 onSettled={() => handleDataSettled(dataKey)}
                 isPanLocked={isPanLocked}
               >
@@ -182,14 +185,18 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
 function TrackDataCoordinator({
   useTrackStore,
   useDataStore,
+  assembly,
   region,
+  width,
   onSettled,
   isPanLocked,
   children,
 }: {
   useTrackStore: TrackStoreInstance;
   useDataStore: DataStoreInstance;
+  assembly: BrowserStore["assembly"];
   region: GenomicRegion;
+  width: number;
   onSettled: () => void;
   isPanLocked: boolean;
   children: ReactNode;
@@ -197,7 +204,9 @@ function TrackDataCoordinator({
   const { isFetching } = useTrackData({
     useDataStore,
     useTrackStore,
+    assembly,
     region,
+    width,
     onSettled,
   });
   const isInteractionBlocked = isPanLocked || isFetching;

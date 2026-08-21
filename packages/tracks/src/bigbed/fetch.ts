@@ -9,8 +9,8 @@ import type { z } from "zod";
 import type { BigBedConfig, BigBedData } from "./types";
 
 export async function fetchBigBed({
-  config,
-  region,
+  track: { config },
+  demand: { region },
 }: TrackFetchContext<BigBedConfig>): Promise<BigBedData> {
   return fetchBigBedRows({ url: config.url, region, schema: bed3Schema });
 }

@@ -26,7 +26,7 @@ describe("MethylC track fetching", () => {
     const region = { chromosome: "chr1", start: 10, end: 20 };
     const config = createConfig((channel) => `https://example.org/${channel}.bw`);
 
-    const result = await fetchMethylC({ config, region });
+    const result = await fetchMethylC(createContext(config, region));
 
     expect(reader.createBigWigFile).toHaveBeenCalledTimes(8);
     expect(reader.createBigWigFile).toHaveBeenNthCalledWith(1, {
@@ -49,7 +49,7 @@ describe("MethylC track fetching", () => {
     const config = createConfig(() => "");
 
     await expect(
-      fetchMethylC({ config, region: { chromosome: "chr1", start: 10, end: 20 } }),
+      fetchMethylC(createContext(config, { chromosome: "chr1", start: 10, end: 20 })),
     ).resolves.toEqual([[], [], [], [], [], [], [], []]);
     expect(reader.createBigWigFile).not.toHaveBeenCalled();
   });
@@ -77,6 +77,20 @@ function createConfig(urlFor: (channel: string) => string): MethylCConfig {
         chh: { url: urlFor("minus-chh") },
         depth: { url: urlFor("minus-depth") },
       },
+    },
+  };
+}
+
+function createContext(
+  config: MethylCConfig,
+  region: { chromosome: string; start: number; end: number },
+) {
+  return {
+    track: { id: "methylc", type: "methylc", display: "full", config },
+    demand: {
+      assembly: { id: "test", chromosomes: { chr1: 1_000 } },
+      region,
+      width: 100,
     },
   };
 }

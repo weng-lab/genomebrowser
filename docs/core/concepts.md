@@ -32,14 +32,14 @@ For each browser render:
 
 1. `GenomeBrowser` reads the visible region and dimensions from the browser store and tracks plus registry from the track store.
 2. `useRenderWindow` expands the visible region to a three-viewport render region and computes the corresponding SVG width.
-3. `useTrackData` resolves each track's registered module and calls its `fetch({ config, region })` when required.
-4. Fetch functions return raw data for that genomic region. Display- and width-specific shaping belongs in renderers.
+3. `useTrackData` resolves each track's registered module and calls its fetch function with a track snapshot and render demand.
+4. Fetch functions may return raw records or data processed for the requested region, display, and SVG width.
 5. `TrackStack` selects `module.render[track.base.display]` and supplies the data, render region, dimensions, color, and config.
 6. `TrackContent` derives a shallow read-only runtime context from the current validated instance. It binds that context to application callbacks while keeping renderer-facing `useInteraction` handlers item-only.
 7. `useTooltip` resolves the current module from that context and gives its tooltip component the semantic item plus the same context.
 8. Browser-owned wrappers provide panning, controls, loading and error states, settings, highlights, interaction gating, and tooltip positioning.
 
-An initial render or render-region change fetches every track. A config-only mutation fetches a track only when the value of a field marked by `fetchOnChange` changes. Base fields, interaction callbacks, and unmarked config fields do not cause a request. Failed requests become per-track error states rather than escaping from the browser render.
+An initial render or change to the render region, SVG width, assembly, or display fetches the affected tracks. A config-only mutation fetches a track only when the value of a field marked by `fetchOnChange` changes. Other base fields, interaction callbacks, and unmarked config fields do not cause a request. Failed requests become per-track error states rather than escaping from the browser render.
 
 Later validated base or config mutations appear in later callback events and tooltip renders because context is derived at the rendering boundary. It contains only core runtime `type`, `base`, and `config`; TrackSelect collection metadata remains collection-owned and must be combined separately by the UI package or its host.
 
@@ -47,7 +47,7 @@ Later validated base or config mutations appear in later callback events and too
 
 Panning separates the visible viewport from the larger render window. During drag, the browser moves existing SVG content directly instead of committing a new visible region for every pointer event. The overscanned data usually covers nearby movement.
 
-When a pan commits, the browser targets a new overscanned region. Previously successful data remains visible while requests are in flight. The displayed render region and content offset update only when data for the latest render signature settles; stale async completion cannot settle a newer target. Panning commits and pointer interactions are blocked while the browser is locked or fetching so callbacks do not run against mismatched visual state.
+When a pan commits, the browser targets a new overscanned region. Previously successful data remains visible during a region-only request. The displayed render region and content offset update only when data for the latest render signature settles; stale async completion cannot settle a newer target. Panning commits and pointer interactions are blocked while the browser is locked or fetching so callbacks do not run against mismatched visual state.
 
 ## Feature ownership
 

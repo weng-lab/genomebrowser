@@ -24,6 +24,8 @@ export type {
   TrackCreateInput,
   TrackFetch,
   TrackFetchContext,
+  TrackFetchDemand,
+  TrackFetchTrack,
   TrackInstance,
   TrackInteraction,
   TrackInteractionCallback,

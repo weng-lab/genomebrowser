@@ -89,7 +89,7 @@ describe("render window", () => {
     },
   );
 
-  it("matches the width-independent data signature", () => {
+  it("creates a settlement signature from the region and track IDs", () => {
     const region = { chromosome: "chr1", start: 0, end: 300 };
     const trackIds = ["signal"];
 
@@ -171,6 +171,7 @@ describe("render window", () => {
 
     const initialDataKey = renderWindow?.dataKey;
     expect(renderWindow?.targetRenderRegion).toEqual(initialTarget);
+    expect(renderWindow?.targetRenderWidth).toBe(500);
     expect(renderWindow?.displayedRenderRegion).toEqual(initialTarget);
     expect(renderWindow?.renderWidth).toBe(500);
     expect(renderWindow?.renderStartOffset).toBe(0);
@@ -190,6 +191,7 @@ describe("render window", () => {
     const nextDataKey = renderWindow?.dataKey;
     expect(nextDataKey).not.toBe(initialDataKey);
     expect(renderWindow?.targetRenderRegion).toEqual(nextTarget);
+    expect(renderWindow?.targetRenderWidth).toBe(750);
     expect(renderWindow?.displayedRenderRegion).toEqual(initialTarget);
     expect(renderWindow?.renderWidth).toBe(250);
     expect(renderWindow?.renderStartOffset).toBe(1_250);
@@ -236,6 +238,7 @@ describe("render window", () => {
     );
 
     expect(renderWindow?.dataKey).toBe(dataKey);
+    expect(renderWindow?.targetRenderWidth).toBe(1_500);
     expect(renderWindow?.displayedRenderRegion).toEqual({ chromosome: "chr1", start: 0, end: 300 });
     expect(renderWindow?.renderWidth).toBe(1_500);
     expect(renderWindow?.renderStartOffset).toBe(500);
@@ -274,6 +277,7 @@ describe("render window", () => {
     );
 
     expect(renderWindow?.targetRenderRegion).toEqual({ chromosome: "chr1", start: 0, end: 160 });
+    expect(renderWindow?.targetRenderWidth).toBe(200);
     expect(renderWindow?.displayedRenderRegion).toEqual({ chromosome: "chr1", start: 0, end: 200 });
     expect(renderWindow?.renderWidth).toBe(250);
     expect(renderWindow?.renderStartOffset).toBe(0);

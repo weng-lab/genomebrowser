@@ -3,8 +3,8 @@ import type { TranscriptConfig, TranscriptData } from "./types";
 const query = `query Gene($chromosome: String, $assembly: String!, $start: Int, $end: Int, $version: Int) { gene(assembly: $assembly, chromosome: $chromosome, start: $start, end: $end, version: $version) { strand name id transcripts { coordinates { start end } name id exons { coordinates { start end } UTRs { coordinates { start end } } } tag } } }`;
 type Response = { data?: { gene?: TranscriptData | null }; errors?: { message?: string }[] };
 export async function fetchTranscript({
-  config,
-  region,
+  track: { config },
+  demand: { region },
 }: TrackFetchContext<TranscriptConfig>): Promise<TranscriptData> {
   const response = await fetch(config.endpoint, {
     method: "POST",
