@@ -65,9 +65,24 @@ export type TrackFetchDemand = Readonly<{
   width: number;
 }>;
 
+/**
+ * Storage for fetcher-owned values that persist across fetches for the
+ * lifetime of one track in one mounted browser. Keys are local to the calling
+ * track; core scopes them by browser instance, track type, and track ID.
+ * Values are never inspected or evicted by core. Removing the track or
+ * unmounting the browser releases every stored value.
+ */
+export type TrackResources = Readonly<{
+  get<T>(key: string): T | undefined;
+  set(key: string, value: unknown): void;
+  delete(key: string): void;
+  clear(): void;
+}>;
+
 export type TrackFetchContext<Config> = Readonly<{
   track: TrackFetchTrack<Config>;
   demand: TrackFetchDemand;
+  resources: TrackResources;
 }>;
 
 export type TrackFetch<Config, Data> = (context: TrackFetchContext<Config>) => Promise<Data>;

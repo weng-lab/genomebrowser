@@ -2,16 +2,19 @@ import type { AssemblyDefinition } from "../../genome/assembly";
 import type { ModuleRegistry } from "../../modules/registry";
 import type { AnyTrackInstance, TrackFetch } from "../../modules/types";
 import type { GenomicRegion } from "../../genome/region";
+import type { TrackResourceStoreInstance } from "./trackResourceStore";
 import type { DataResult } from "./types";
 
 export async function fetchTrackData({
   registry,
+  resourceStore,
   track,
   region,
   width,
   assembly,
 }: {
   registry: ModuleRegistry;
+  resourceStore: TrackResourceStoreInstance;
   track: AnyTrackInstance;
   region: GenomicRegion;
   width: number;
@@ -28,6 +31,7 @@ export async function fetchTrackData({
         config: track.config,
       },
       demand: { assembly, region, width },
+      resources: resourceStore.resourcesFor({ type: track.type, id: track.base.id }),
     });
     return { status: "success", data };
   } catch (error) {

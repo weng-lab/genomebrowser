@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
 
-import { act } from "react";
+import { act, useMemo } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createDataStore } from "../../src/browser/data/dataStore";
 import { useTrackData } from "../../src/browser/data/useTrackData";
+import { createTrackResourceStore } from "../../src/browser/data/trackResourceStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
+import type { GenomicRegion } from "../../src/genome/region";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { fetchOnChange } from "../../src/modules/fetchOnChange";
 
@@ -17,16 +19,32 @@ let container: HTMLDivElement | undefined;
 let root: Root | undefined;
 const testAssembly = { id: "test", chromosomes: { chr1: 1_000 } };
 
-type HarnessProps = Omit<Parameters<typeof useTrackData>[0], "assembly" | "width"> &
-  Partial<Pick<Parameters<typeof useTrackData>[0], "assembly" | "width" | "widthDebounceMs">>;
+type HarnessProps = Omit<
+  Parameters<typeof useTrackData>[0],
+  "assembly" | "width" | "resourceStore"
+> &
+  Partial<
+    Pick<
+      Parameters<typeof useTrackData>[0],
+      "assembly" | "width" | "widthDebounceMs" | "resourceStore"
+    >
+  >;
 
 function Harness({
   assembly = testAssembly,
   width = 100,
   widthDebounceMs = 0,
+  resourceStore,
   ...props
 }: HarnessProps) {
-  const { dataStates, isFetching } = useTrackData({ ...props, assembly, width, widthDebounceMs });
+  const defaultResourceStore = useMemo(() => createTrackResourceStore(), []);
+  const { dataStates, isFetching } = useTrackData({
+    ...props,
+    resourceStore: resourceStore ?? defaultResourceStore,
+    assembly,
+    width,
+    widthDebounceMs,
+  });
   return <output data-fetching={isFetching}>{JSON.stringify(dataStates)}</output>;
 }
 
@@ -186,15 +204,17 @@ describe("useTrackData", () => {
       ),
     );
 
-    expect(fetch).toHaveBeenLastCalledWith({
-      track: {
-        id: "signal",
-        type: "demand-test",
-        display: "full",
-        config: { label: "Signal" },
-      },
-      demand: { assembly: testAssembly, region, width: 100 },
-    });
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        track: {
+          id: "signal",
+          type: "demand-test",
+          display: "full",
+          config: { label: "Signal" },
+        },
+        demand: { assembly: testAssembly, region, width: 100 },
+      }),
+    );
 
     await act(async () => {
       expect(
@@ -368,6 +388,102 @@ describe("useTrackData", () => {
     });
     expect(fetch).toHaveBeenCalledTimes(5);
     expect(useDataStore.getState().data).not.toHaveProperty("genes");
+  });
+
+  it("keeps fetcher resources across refetches and releases them when the track is removed", async () => {
+    const fetch = vi.fn(
+      async ({
+        resources,
+      }: {
+        resources: { get<T>(key: string): T | undefined; set(key: string, value: unknown): void };
+      }) => {
+        const count = resources.get<number>("count") ?? 0;
+        resources.set("count", count + 1);
+        return count + 1;
+      },
+    );
+    const module = defineTrackModule({
+      type: "resource-lifecycle-test",
+      configSchema: z.object({}),
+      fetch,
+      render: { full: () => null },
+    });
+    const createTrack = () => module.create({ id: "signal", title: "Signal", config: {} });
+    const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({ modules: [module], tracks: [createTrack()] });
+    const region = { chromosome: "chr1", start: 0, end: 10 };
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const renderHarness = (nextRegion: GenomicRegion) =>
+      root?.render(
+        <Harness useDataStore={useDataStore} useTrackStore={useTrackStore} region={nextRegion} />,
+      );
+
+    await act(async () => renderHarness(region));
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(useDataStore.getState().data.signal).toEqual({ status: "success", data: 1 });
+
+    await act(async () => renderHarness({ ...region, start: 10, end: 20 }));
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(useDataStore.getState().data.signal).toEqual({ status: "success", data: 2 });
+
+    await act(async () => {
+      expect(useTrackStore.getState().removeTrack("signal")).toEqual({ ok: true });
+    });
+    expect(useDataStore.getState().data).toEqual({});
+
+    await act(async () => {
+      expect(useTrackStore.getState().addTrack(createTrack())).toEqual({ ok: true });
+    });
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(useDataStore.getState().data.signal).toEqual({ status: "success", data: 1 });
+  });
+
+  it("releases stored resources when the hook unmounts", async () => {
+    const fetch = vi.fn(
+      async ({ resources }: { resources: { set(key: string, value: unknown): void } }) => {
+        resources.set("marker", "stored");
+        return null;
+      },
+    );
+    const module = defineTrackModule({
+      type: "resource-unmount-test",
+      configSchema: z.object({}),
+      fetch,
+      render: { full: () => null },
+    });
+    const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({
+      modules: [module],
+      tracks: [module.create({ id: "signal", title: "Signal", config: {} })],
+    });
+    const resourceStore = createTrackResourceStore();
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          useTrackStore={useTrackStore}
+          resourceStore={resourceStore}
+          region={{ chromosome: "chr1", start: 0, end: 10 }}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(
+      resourceStore.resourcesFor({ type: "resource-unmount-test", id: "signal" }).get("marker"),
+    ).toBe("stored");
+
+    await act(async () => root?.unmount());
+    root = undefined;
+    expect(
+      resourceStore.resourcesFor({ type: "resource-unmount-test", id: "signal" }).get("marker"),
+    ).toBeUndefined();
   });
 
   it("refetches a same-ID replacement when its module type changes", async () => {

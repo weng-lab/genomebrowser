@@ -85,12 +85,25 @@ function createContext(
   config: MethylCConfig,
   region: { chromosome: string; start: number; end: number },
 ) {
+  const values = new Map<string, unknown>();
   return {
     track: { id: "methylc", type: "methylc", display: "full", config },
     demand: {
       assembly: { id: "test", chromosomes: { chr1: 1_000 } },
       region,
       width: 100,
+    },
+    resources: {
+      get: <T>(key: string) => values.get(key) as T | undefined,
+      set: (key: string, value: unknown) => {
+        values.set(key, value);
+      },
+      delete: (key: string) => {
+        values.delete(key);
+      },
+      clear: () => {
+        values.clear();
+      },
     },
   };
 }

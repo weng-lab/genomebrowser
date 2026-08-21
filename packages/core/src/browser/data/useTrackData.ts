@@ -8,6 +8,7 @@ import type { TrackStoreInstance } from "../state/trackStore";
 import { getTrackDataState } from "./dataStore";
 import { useDebouncedValue } from "./useDebouncedValue";
 import { fetchTrackData } from "./fetchTrackData";
+import type { TrackResourceStoreInstance } from "./trackResourceStore";
 import type { DataResult, DataState, DataStoreInstance } from "./types";
 
 const WIDTH_DEBOUNCE_MS = 200;
@@ -15,6 +16,7 @@ const WIDTH_DEBOUNCE_MS = 200;
 export function useTrackData({
   useDataStore,
   useTrackStore,
+  resourceStore,
   assembly,
   region,
   width,
@@ -23,6 +25,7 @@ export function useTrackData({
 }: {
   useDataStore: DataStoreInstance;
   useTrackStore: TrackStoreInstance;
+  resourceStore: TrackResourceStoreInstance;
   assembly: AssemblyDefinition;
   region: GenomicRegion;
   width: number;
@@ -73,6 +76,9 @@ export function useTrackData({
   );
 
   useEffect(() => {
+    // Removing a track releases its stored fetcher resources; values for
+    // tracks still present survive every effect run.
+    resourceStore.retain(tracks.map((track) => ({ type: track.type, id: track.base.id })));
     let active = true;
     const currentTrackIds = new Set(tracks.map((track) => track.base.id));
     const currentData = useDataStore.getState().data;
@@ -121,6 +127,7 @@ export function useTrackData({
       tracksToFetch.map(async (track) => {
         const result = await fetchTrackData({
           registry,
+          resourceStore,
           track,
           assembly,
           region: fetchRegion,
@@ -152,11 +159,17 @@ export function useTrackData({
     demandWidth,
     fetchRegion,
     registry,
+    resourceStore,
     setData,
     setFetchingTrackIds,
     tracks,
     useDataStore,
   ]);
+
+  // Unmounting the browser releases every remaining stored value. This is a
+  // separate effect because the fetch effect's cleanup runs on every demand
+  // change, not only on unmount.
+  useEffect(() => () => resourceStore.clear(), [resourceStore]);
 
   const dataStates = createDataStates(
     tracks,

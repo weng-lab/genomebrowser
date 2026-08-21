@@ -1,8 +1,25 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { TrackResources } from "@weng-lab/genomebrowser";
 import { defaultScreenGraphQlEndpoint } from "@weng-lab/genomebrowser";
 import { transcriptModule } from "../../src/transcript";
 
 const endpoint = "/api/screen-graphql";
+
+function createTrackResources(): TrackResources {
+  const values = new Map<string, unknown>();
+  return {
+    get: <T>(key: string) => values.get(key) as T | undefined,
+    set: (key, value) => {
+      values.set(key, value);
+    },
+    delete: (key) => {
+      values.delete(key);
+    },
+    clear: () => {
+      values.clear();
+    },
+  };
+}
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -55,6 +72,7 @@ describe("Transcript module", () => {
         region: { chromosome: "chr6", start: 10, end: 20 },
         width: 100,
       },
+      resources: createTrackResources(),
     });
 
     expect(data).toEqual([]);
@@ -141,6 +159,7 @@ describe("Transcript module", () => {
           region: { chromosome: "chr6", start: 10, end: 20 },
           width: 100,
         },
+        resources: createTrackResources(),
       }),
     ).rejects.toThrow(message);
   });

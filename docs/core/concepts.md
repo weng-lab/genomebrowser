@@ -32,7 +32,7 @@ For each browser render:
 
 1. `GenomeBrowser` reads the visible region and dimensions from the browser store and tracks plus registry from the track store.
 2. `useRenderWindow` expands the visible region to a three-viewport render region and computes the corresponding SVG width.
-3. `useTrackData` resolves each track's registered module and calls its fetch function with a track snapshot and render demand.
+3. `useTrackData` resolves each track's registered module and calls its fetch function with a track snapshot, render demand, and that track's scoped resource store.
 4. Fetch functions may return raw records or data processed for the requested region, display, and SVG width.
 5. `TrackStack` selects `module.render[track.base.display]` and supplies the data, render region, dimensions, color, and config.
 6. `TrackContent` derives a shallow read-only runtime context from the current validated instance. It binds that context to application callbacks while keeping renderer-facing `useInteraction` handlers item-only.
