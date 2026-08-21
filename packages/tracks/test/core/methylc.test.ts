@@ -53,6 +53,18 @@ describe("MethylC track fetching", () => {
     ).resolves.toEqual([[], [], [], [], [], [], [], []]);
     expect(reader.createBigWigFile).not.toHaveBeenCalled();
   });
+
+  it("reuses cached channel readers across fetches of one track", async () => {
+    const config = createConfig((channel) => `https://example.org/${channel}.bw`);
+    const context = createContext(config, { chromosome: "chr1", start: 10, end: 20 });
+
+    await fetchMethylC(context);
+    await fetchMethylC(context);
+    await fetchMethylC(context);
+
+    expect(reader.createBigWigFile).toHaveBeenCalledTimes(8);
+    expect(reader.read).toHaveBeenCalledTimes(24);
+  });
 });
 
 function createConfig(urlFor: (channel: string) => string): MethylCConfig {

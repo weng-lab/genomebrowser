@@ -49,6 +49,6 @@ Defaults:
 
 ## Fetch Behavior
 
-The module fetches each non-empty channel URL as BigWig data. Empty channel URLs return empty data for that channel.
+The module fetches each non-empty channel URL as BigWig data and keeps one cached file reader per channel URL in the track's fetcher resources for the track's lifetime. Empty channel URLs return empty data for that channel.
 
 Changing any channel `url` triggers a refetch. Changing colors, `maskCpgByCoverage`, `range`, height, or display mode does not refetch data.

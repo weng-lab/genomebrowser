@@ -10,7 +10,8 @@ vi.mock("@weng-lab/genomic-reader", () => ({
   createBigWigFile: reader.createBigWigFile,
 }));
 
-import { fetchBigWig, fetchBigWigRaw } from "../../src/bigwig/fetch";
+import { fetchBigWig } from "../../src/bigwig/fetch";
+import { readCachedBigWigValues } from "../../src/shared/cachedFiles";
 
 function createResources(): TrackResources & { map: Map<string, unknown> } {
   const map = new Map<string, unknown>();
@@ -65,15 +66,15 @@ describe("BigWig track fetching", () => {
     reader.createBigWigFile.mockReturnValue({ read: reader.read });
   });
 
-  it("reads unzoomed value records directly from the genomic reader", async () => {
+  it("reads unzoomed value records through the genomic reader", async () => {
     const region = { chromosome: "chr1", start: 10, end: 20 };
     reader.read.mockResolvedValue([
       { kind: "value", chromosome: "chr1", start: 12, end: 18, value: 2.5 },
     ]);
 
-    await expect(fetchBigWigRaw({ url: "https://example.org/data.bw", region })).resolves.toEqual([
-      { kind: "value", chromosome: "chr1", start: 12, end: 18, value: 2.5 },
-    ]);
+    await expect(
+      readCachedBigWigValues(createResources(), "https://example.org/data.bw", region),
+    ).resolves.toEqual([{ kind: "value", chromosome: "chr1", start: 12, end: 18, value: 2.5 }]);
 
     expect(reader.createBigWigFile).toHaveBeenCalledWith({
       url: "https://example.org/data.bw",
@@ -96,7 +97,6 @@ describe("BigWig track fetching", () => {
     expect(reader.createBigWigFile).toHaveBeenCalledOnce();
     expect(firstFile.read).toHaveBeenCalledTimes(2);
     expect(secondFile.read).not.toHaveBeenCalled();
-    expect(context.resources.get<{ url: string }>("file")?.url).toBe("https://example.org/data.bw");
   });
 
   it("replaces the cached file when the source URL changes", async () => {

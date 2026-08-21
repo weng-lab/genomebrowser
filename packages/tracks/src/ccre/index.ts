@@ -1,7 +1,7 @@
 import type { ModuleCreateInput, ModuleInstance, TrackFetchContext } from "@weng-lab/genomebrowser";
 import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser";
 import { z } from "zod";
-import { fetchBigBedRows } from "../bigbed/fetch";
+import { readCachedBigBedRows } from "../shared/cachedFiles";
 import { DenseBigBed, SquishBigBed } from "../bigbed/render";
 import { BigBedSettings } from "../bigbed/settings";
 import type { BigBedConfig } from "../bigbed/types";
@@ -17,8 +17,9 @@ const configSchema = z.object({
 async function fetchCcreBigBed({
   track: { config },
   demand: { region },
+  resources,
 }: TrackFetchContext<BigBedConfig>): Promise<CcreBigBedRow[]> {
-  return fetchBigBedRows({ url: config.url, region, schema: ccreBigBedSchema });
+  return readCachedBigBedRows(resources, config.url, ccreBigBedSchema, region);
 }
 
 export const ccreBigBedModule = defineTrackModule<CcreBigBedRow>()({

@@ -39,7 +39,9 @@ The source must be an absolute public HTTP(S) BigBed URL. The server must return
 
 The fetcher reads BED3 coordinates. It leaves additional columns as strings in `BigBedRow.fields`.
 
-`fetchBigBedRows({ url, region, schema })` is also exported from this subpath. Use it from another track module when that module assigns names and types to the columns after BED3. The schema must follow the source file's column order; it is module code rather than serializable track config.
+The track keeps one cached file reader per URL in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata is fetched once per source. Changing the URL replaces the reader on the next request.
+
+`fetchBigBedRows({ url, region, schema })` is also exported from this subpath. Use it from another track module when that module assigns names and types to the columns after BED3. It is uncached. The schema must follow the source file's column order; it is module code rather than serializable track config.
 
 ## Settings and tooltip
 
