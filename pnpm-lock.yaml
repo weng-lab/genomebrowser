@@ -23,6 +23,9 @@ importers:
       react-doctor:
         specifier: ^0.9.5
         version: 0.9.5(eslint@9.39.2(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)
+      turbo:
+        specifier: 2.10.11
+        version: 2.10.11
 
   benchmarks/reader:
     dependencies:
@@ -219,19 +222,16 @@ importers:
       react:
         specifier: ^19.2.0
         version: 19.2.8
-      react-dom:
-        specifier: ^19.2.0
-        version: 19.2.8(react@19.2.8)
       react-colorful:
         specifier: ^5.8.0
         version: 5.8.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react-dom:
+        specifier: ^19.2.0
+        version: 19.2.8(react@19.2.8)
       zod:
         specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
-      '@weng-lab/genomebrowser':
-        specifier: workspace:^2.0.0-alpha.1
-        version: link:../core
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.17
@@ -244,6 +244,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.0.2
         version: 6.0.2(vite@8.0.13(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+      '@weng-lab/genomebrowser':
+        specifier: workspace:^2.0.0-alpha.1
+        version: link:../core
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0(supports-color@8.1.1)
@@ -2399,6 +2402,36 @@ packages:
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
+  '@turbo/darwin-64@2.10.11':
+    resolution: {integrity: sha512-v3R+1R/Ysozyo+p7Ri8MCIbndOvYt3DgPFrGLhrhQHfvyvbxyH3WyJj+A/2JTNmNleuAlh3JUyCV0iSVHIONTA==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@turbo/darwin-arm64@2.10.11':
+    resolution: {integrity: sha512-R0a0CvGAeYYsBgPIgFNB3agGXh6qukjduNhFlwVVX1Ss2IdBJLXmgjytNGmo084bLKS0B6UdLRwKhXMHKKaObQ==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@turbo/linux-64@2.10.11':
+    resolution: {integrity: sha512-dGlY2vg7jpsLjGS1bf9sD/cw1sGMAYbeHGQKGRFxd5Zaj+Ufbj8cNXl/vIit8ueCU97zhL/znn60ZV5iSfZAxw==}
+    cpu: [x64]
+    os: [android, linux]
+
+  '@turbo/linux-arm64@2.10.11':
+    resolution: {integrity: sha512-eSP9+jjsSCBs2x0QpJZlp49dSD1EIMwXH7PsMIhdWk7w6IThhuKJ+jL95JQ2IW7tRjRmdh8gKcKQtrHLD5R5lA==}
+    cpu: [arm64]
+    os: [android, linux]
+
+  '@turbo/windows-64@2.10.11':
+    resolution: {integrity: sha512-4aD7edogJ8arK8DOyvjTI2KKwmchD5M/WM4BZgidrtFf7aSgn8Ce2rJnDwmriw980c2cKlHnhXtlGy38VtKB8g==}
+    cpu: [x64]
+    os: [win32]
+
+  '@turbo/windows-arm64@2.10.11':
+    resolution: {integrity: sha512-m8tJkIrTrbQ9O1uHxV0GUq623Zg1678xGna8eMsy4KbygUX/wVFgdZDYV/AxyoyaW/U7nyKoBvaDVwm22p9xqA==}
+    cpu: [arm64]
+    os: [win32]
+
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
 
@@ -4224,6 +4257,10 @@ packages:
   tsx@4.22.4:
     resolution: {integrity: sha512-X8EX+XV4QR5xCsrgxaED954zTDfY8KqlDtskKEL0cHhyS/P8b4IFOvGDQpsC9Q1XnLq915wEfwwY/zzskCtmhg==}
     engines: {node: '>=18.0.0'}
+    hasBin: true
+
+  turbo@2.10.11:
+    resolution: {integrity: sha512-yQfwQVoRXwOuyX1LxiJFBFNg6VfuYh+/RyZLd82+isgyLkBXw3S5XRRzvcck1FAjSCG5sVyLd+O1eDMvYa3J7g==}
     hasBin: true
 
   type-check@0.4.0:
@@ -6393,6 +6430,24 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  '@turbo/darwin-64@2.10.11':
+    optional: true
+
+  '@turbo/darwin-arm64@2.10.11':
+    optional: true
+
+  '@turbo/linux-64@2.10.11':
+    optional: true
+
+  '@turbo/linux-arm64@2.10.11':
+    optional: true
+
+  '@turbo/windows-64@2.10.11':
+    optional: true
+
+  '@turbo/windows-arm64@2.10.11':
+    optional: true
+
   '@tybys/wasm-util@0.10.3':
     dependencies:
       tslib: 2.8.1
@@ -8346,6 +8401,15 @@ snapshots:
       esbuild: 0.28.1
     optionalDependencies:
       fsevents: 2.3.3
+
+  turbo@2.10.11:
+    optionalDependencies:
+      '@turbo/darwin-64': 2.10.11
+      '@turbo/darwin-arm64': 2.10.11
+      '@turbo/linux-64': 2.10.11
+      '@turbo/linux-arm64': 2.10.11
+      '@turbo/windows-64': 2.10.11
+      '@turbo/windows-arm64': 2.10.11
 
   type-check@0.4.0:
     dependencies:

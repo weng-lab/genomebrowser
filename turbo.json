@@ -1,0 +1,48 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "cacheDir": ".turbo/cache",
+  "globalPassThroughEnv": ["CI", "NEXT_TELEMETRY_DISABLED"],
+  "tasks": {
+    "transit": {
+      "dependsOn": ["^transit"]
+    },
+    "build": {
+      "dependsOn": ["^build", "typecheck"],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**",
+        "!.next/dev/**",
+        "node_modules/.tmp/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"],
+      "env": ["NEXT_PUBLIC_MUI_X_LICENSE_KEY", "VITE_MUI_X_LICENSE_KEY"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": ["node_modules/.tmp/**", "tsconfig.tsbuildinfo"]
+    },
+    "lint": {
+      "dependsOn": ["transit"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/.oxlintrc.json"]
+    },
+    "lint:fix": {
+      "cache": false
+    },
+    "format": {
+      "cache": false
+    },
+    "format:check": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/.oxfmtrc.json"]
+    },
+    "//#format:root": {
+      "cache": false
+    },
+    "//#format:check:root": {}
+  }
+}

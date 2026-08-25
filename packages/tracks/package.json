@@ -68,15 +68,16 @@
     "tag": "alpha"
   },
   "scripts": {
-    "build": "pnpm typecheck && vite build && node scripts/verify-package.mjs",
+    "build": "vite build && node scripts/verify-package.mjs",
+    "build:checked": "pnpm typecheck && pnpm build",
     "typecheck": "tsc -b",
     "test": "vitest run",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
-    "verify:package": "pnpm build",
-    "prepack": "pnpm --filter @weng-lab/genomebrowser build && pnpm --filter @weng-lab/genomic-reader build && pnpm build"
+    "verify:package": "pnpm build:checked",
+    "prepack": "pnpm --filter @weng-lab/genomebrowser build:checked && pnpm --filter @weng-lab/genomic-reader build:checked && pnpm build:checked"
   },
   "dependencies": {
     "@weng-lab/genomic-reader": "workspace:^2.0.0-alpha.1",
