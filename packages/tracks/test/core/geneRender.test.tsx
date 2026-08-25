@@ -10,6 +10,7 @@ const runtime = vi.hoisted(() => ({
   onLeave: vi.fn(),
   tooltipShow: vi.fn(),
   tooltipHide: vi.fn(),
+  createCompositeGeneGeometry: vi.fn(),
   useRowLayout: vi.fn((_trackId: string, rowCount: number, config: { rowHeight: number }) => ({
     rowHeight: config.rowHeight,
     trackHeight: Math.max(1, rowCount) * config.rowHeight,
@@ -30,6 +31,19 @@ vi.mock("../../src/shared/layout", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../src/shared/layout")>()),
   useRowLayout: runtime.useRowLayout,
 }));
+
+vi.mock("../../src/gene/geometry", async (importOriginal) => {
+  const geometry = await importOriginal<typeof import("../../src/gene/geometry")>();
+  return {
+    ...geometry,
+    createCompositeGeneGeometry: (
+      gene: Parameters<typeof geometry.createCompositeGeneGeometry>[0],
+    ) => {
+      runtime.createCompositeGeneGeometry(gene);
+      return geometry.createCompositeGeneGeometry(gene);
+    },
+  };
+});
 
 import { PackGene, SquishGene } from "../../src/gene/render";
 import type { GeneData, GeneTranscript } from "../../src/gene/types";
@@ -79,6 +93,7 @@ beforeEach(() => {
   runtime.onLeave.mockClear();
   runtime.tooltipShow.mockClear();
   runtime.tooltipHide.mockClear();
+  runtime.createCompositeGeneGeometry.mockClear();
   runtime.useRowLayout.mockClear();
   container = document.createElement("div");
   document.body.append(container);
@@ -131,6 +146,8 @@ describe("Gene rendering", () => {
     expect(hitTarget.getAttribute("x")).toBe("100");
     expect(hitTarget.getAttribute("width")).toBe("80");
     expect(hitTarget.getAttribute("height")).toBe("16");
+    expect(hitTarget.getAttribute("fill")).toBe("#ff1744");
+    expect(hitTarget.getAttribute("fill-opacity")).toBe("0.25");
 
     act(() => part.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     act(() => directionMark.dispatchEvent(new MouseEvent("click", { bubbles: true })));
@@ -147,14 +164,74 @@ describe("Gene rendering", () => {
     expect(runtime.tooltipHide).toHaveBeenCalledOnce();
   });
 
-  it("groups transcripts by gene in squish mode before packing rows", () => {
+  it("renders grouped genes as composite structures in shared rows", () => {
     render(<SquishGene {...props} />);
 
     expect(interactiveRectangles()).toHaveLength(2);
     expect(runtime.useRowLayout).toHaveBeenCalledWith("genes", 1, props.config);
-    const first = interactiveRectangles()[0]!;
-    expect(first.getAttribute("x")).toBe("100");
-    expect(first.getAttribute("width")).toBe("100");
+    expect(container.querySelectorAll('[data-gene-part="intron"]')).toHaveLength(1);
+    expect(container.querySelectorAll('[data-gene-part="utr"]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-gene-part="cds"]')).toHaveLength(4);
+    expect(container.querySelectorAll('[data-gene-part="noncoding-exon"]')).toHaveLength(2);
+    const alternativeExon = container.querySelector(
+      '[data-gene-part="noncoding-exon"][data-contributing-transcript-ids="tx2"]',
+    )!;
+    expect(alternativeExon.getAttribute("x")).toBe("120");
+    expect(alternativeExon.getAttribute("width")).toBe("30");
+    expect(alternativeExon.getAttribute("height")).toBe("6.4");
+    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("height")).toBe("11.2");
+    expect(container.querySelectorAll("[data-intron-direction-mark]")).toHaveLength(1);
+    expect(container.querySelector("[data-intron-direction-mark]")?.getAttribute("points")).toBe(
+      "322,5 325,8 322,11",
+    );
+    expect(container.querySelector("text")).toBeNull();
+  });
+
+  it("uses one gene-level target for composite click, hover, tooltip, and leave behavior", () => {
+    render(<SquishGene {...props} />);
+
+    const piece = container.querySelector(
+      '[data-gene-part="noncoding-exon"][data-contributing-transcript-ids="tx2"]',
+    )!;
+    const hitTarget = container.querySelector<SVGRectElement>("[data-gene-hit-target]")!;
+    expect(container.querySelectorAll("[data-gene-hit-target]")).toHaveLength(2);
+    expect(piece.getAttribute("pointer-events")).toBe("none");
+    expect(hitTarget.getAttribute("x")).toBe("100");
+    expect(hitTarget.getAttribute("width")).toBe("100");
+    expect(hitTarget.getAttribute("height")).toBe("16");
+    expect(hitTarget.getAttribute("fill")).toBe("#ff1744");
+    expect(hitTarget.getAttribute("fill-opacity")).toBe("0.25");
+
+    act(() => piece.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(runtime.onClick).not.toHaveBeenCalled();
+    act(() => hitTarget.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(runtime.onClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: "gene",
+        start: 100,
+        end: 200,
+        transcripts: [firstTranscript, data[1]],
+      }),
+    );
+
+    act(() => hitTarget.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    expect(runtime.onHover).toHaveBeenCalledWith(expect.objectContaining({ kind: "gene" }));
+    expect(runtime.tooltipShow).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "gene" }),
+      expect.anything(),
+    );
+    act(() => hitTarget.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+    expect(runtime.onLeave).toHaveBeenCalledWith(expect.objectContaining({ kind: "gene" }));
+    expect(runtime.tooltipHide).toHaveBeenCalledOnce();
+  });
+
+  it("reuses composite geometry when ordinary rerenders keep the same data", () => {
+    render(<SquishGene {...props} />);
+    expect(runtime.createCompositeGeneGeometry).toHaveBeenCalledTimes(2);
+
+    render(<SquishGene {...props} color="#123456" />);
+    expect(runtime.createCompositeGeneGeometry).toHaveBeenCalledTimes(2);
+    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
   });
 });
 

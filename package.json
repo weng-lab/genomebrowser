@@ -7,6 +7,7 @@
     "ui": "pnpm --filter @weng-lab/genomebrowser-ui",
     "app": "pnpm --filter @weng-lab/genomebrowser-app",
     "reader": "pnpm --filter @weng-lab/genomic-reader",
+    "dev": "pnpm --filter @weng-lab/genomebrowser-app dev",
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
