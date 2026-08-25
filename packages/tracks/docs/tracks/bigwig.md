@@ -42,6 +42,8 @@ The source must be an absolute public HTTP(S) BigWig URL. The server must return
 
 The module requests unzoomed `BigWigValueRecord` records from `@weng-lab/genomic-reader`. It condenses them into rendered pixels using the shared signal rules.
 
+The module keeps one file reader per track in the browser's track-scoped fetcher resources, so file metadata is fetched once and reused by later pans and zooms. Changing the URL replaces the reader on the next request.
+
 ## Settings and tooltip
 
 The settings panel includes the URL, separate Y-axis bounds, a fill-missing-with-zero switch, a clamp-indicator switch, and the clamp color. Turning off clamp indicators disables the color control but keeps its value.

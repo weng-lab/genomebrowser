@@ -29,4 +29,4 @@ Defaults:
 
 ## Fetch behavior
 
-Changing `url` triggers a refetch. The subpath also exports `fetchBigBedRows({ url, region, schema })` for specialized modules that assign names and types to columns after BED3. The schema must follow the source file's column order.
+Changing `url` triggers a refetch. The track keeps one cached BigBed file reader per URL in the track's fetcher resources for the track's lifetime and replaces it when `url` changes, so file metadata is fetched once per source. The subpath also exports `fetchBigBedRows({ url, region, schema })` for specialized modules that assign names and types to columns after BED3; that helper is uncached. The schema must follow the source file's column order.

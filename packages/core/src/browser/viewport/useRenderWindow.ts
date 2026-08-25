@@ -112,6 +112,7 @@ export function useRenderWindow({
 
   return {
     targetRenderRegion: targetRenderWindow.targetRenderRegion,
+    targetRenderWidth: targetRenderWindow.renderWidth,
     displayedRenderRegion: displayedData.region,
     renderWidth: displayedGeometry.renderWidth,
     renderStartOffset: displayedGeometry.renderStartOffset,

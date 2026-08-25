@@ -16,6 +16,7 @@ let container: HTMLDivElement | undefined;
 let root: Root | undefined;
 
 afterEach(async () => {
+  vi.useRealTimers();
   if (root) await act(async () => root?.unmount());
   container?.remove();
   container = undefined;
@@ -24,6 +25,7 @@ afterEach(async () => {
 
 describe("GenomeBrowser region windows", () => {
   it("fetches bounded overscan windows at both chromosome boundaries", async () => {
+    vi.useFakeTimers();
     const fetch = vi.fn(async () => null);
     function Renderer({ width }: { width: number }) {
       return <rect data-testid="render-width" width={width} />;
@@ -51,10 +53,16 @@ describe("GenomeBrowser region windows", () => {
       await Promise.resolve();
     });
 
-    expect(fetch).toHaveBeenLastCalledWith({
-      config: {},
-      region: { chromosome: "chr1", start: 0, end: 200 },
-    });
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        track: { id: "bounded", type: "bounded-fetch-test", display: "full", config: {} },
+        demand: {
+          assembly: browserStore.getState().assembly,
+          region: { chromosome: "chr1", start: 0, end: 200 },
+          width: 200,
+        },
+      }),
+    );
     expect(container?.querySelector('[data-testid="render-width"]')?.getAttribute("width")).toBe(
       "200",
     );
@@ -64,10 +72,16 @@ describe("GenomeBrowser region windows", () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    expect(fetch).toHaveBeenLastCalledWith({
-      config: {},
-      region: { chromosome: "chr1", start: 300, end: 600 },
-    });
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        track: { id: "bounded", type: "bounded-fetch-test", display: "full", config: {} },
+        demand: {
+          assembly: browserStore.getState().assembly,
+          region: { chromosome: "chr1", start: 300, end: 600 },
+          width: 300,
+        },
+      }),
+    );
     expect(container?.querySelector('[data-testid="render-width"]')?.getAttribute("width")).toBe(
       "300",
     );
@@ -76,8 +90,21 @@ describe("GenomeBrowser region windows", () => {
       browserStore.getState().setTrackWidth(200);
       await Promise.resolve();
     });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
 
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        track: { id: "bounded", type: "bounded-fetch-test", display: "full", config: {} },
+        demand: {
+          assembly: browserStore.getState().assembly,
+          region: { chromosome: "chr1", start: 300, end: 600 },
+          width: 600,
+        },
+      }),
+    );
     expect(container?.querySelector('[data-testid="render-width"]')?.getAttribute("width")).toBe(
       "600",
     );
@@ -96,13 +123,21 @@ describe("GenomeBrowser region windows", () => {
       await Promise.resolve();
     });
 
-    expect(fetch).toHaveBeenLastCalledWith({
-      config: {},
-      region: { chromosome: "chr1", start: 800, end: 1_000 },
-    });
+    expect(fetch).toHaveBeenCalledTimes(4);
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        track: { id: "bounded", type: "bounded-fetch-test", display: "full", config: {} },
+        demand: {
+          assembly: browserStore.getState().assembly,
+          region: { chromosome: "chr1", start: 800, end: 1_000 },
+          width: 400,
+        },
+      }),
+    );
   });
 
   it("unlocks a clamped pan when the normalized fetch window is unchanged", async () => {
+    vi.useFakeTimers();
     const fetch = vi.fn(async () => null);
     function Renderer({ width }: { width: number }) {
       return <rect data-testid="render-width" width={width} />;
@@ -145,16 +180,20 @@ describe("GenomeBrowser region windows", () => {
       await Promise.resolve();
       await Promise.resolve();
     });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
 
     expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 0, end: 800 });
-    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledTimes(2);
     expect(container?.querySelector('[role="status"]')).toBeNull();
     expect(container?.querySelector('[data-testid="render-width"]')?.getAttribute("width")).toBe(
       "125",
     );
   });
 
-  it("does not restart an identical pending fetch after a width change", async () => {
+  it("restarts a pending fetch when its render width changes", async () => {
+    vi.useFakeTimers();
     const request = createDeferred<null>();
     const fetch = vi.fn(() => request.promise);
     function Renderer({ width }: { width: number }) {
@@ -183,10 +222,13 @@ describe("GenomeBrowser region windows", () => {
     expect(fetch).toHaveBeenCalledOnce();
 
     await act(async () => browserStore.getState().setTrackWidth(200));
-    expect(fetch).toHaveBeenCalledOnce();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
+    expect(fetch).toHaveBeenCalledTimes(2);
 
     await act(async () => request.resolve(null));
-    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch).toHaveBeenCalledTimes(2);
     expect(container?.querySelector('[data-testid="render-width"]')?.getAttribute("width")).toBe(
       "600",
     );

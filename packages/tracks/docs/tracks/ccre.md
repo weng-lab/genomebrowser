@@ -16,7 +16,7 @@ const track = ccreBigBedModule.create({
 
 ## Inherited BigBed behavior
 
-The cCRE module inherits the generic [BigBed](bigbed.md) renderer, `dense` and `squish` displays, base defaults, `url` and `rowHeight` config, row layout, source requirements, settings panel, and pointer interactions. Follow the BigBed source requirements, including CORS and byte-range support.
+The cCRE module inherits the generic [BigBed](bigbed.md) renderer, `dense` and `squish` displays, base defaults, `url` and `rowHeight` config, row layout, source requirements, settings panel, and pointer interactions. Follow the BigBed source requirements, including CORS and byte-range support. Like BigBed, it caches one file reader per URL in the track's fetcher resources for the track's lifetime.
 
 The module has its own type value, `"ccre-bigbed"`, so you can register it alongside `bigBedModule`.
 

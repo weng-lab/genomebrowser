@@ -34,6 +34,6 @@ Defaults:
 
 ## Fetch Behavior
 
-The module fetches each dataset URL as BigBed data and returns one row array per dataset. Each row is annotated with `datasetName`.
+The module fetches each dataset URL as BigBed data and returns one row array per dataset. Each row is annotated with `datasetName`. One file reader per dataset URL is cached in the track's fetcher resources for the track's lifetime.
 
 Changing any dataset `url` triggers a refetch. Changing dataset `name`, `gap`, or visual base fields does not refetch data. Because fetched rows are annotated with the dataset name, existing tooltip items can retain the previous name until another request runs.

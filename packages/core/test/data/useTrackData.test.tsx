@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
 
-import { act } from "react";
+import { act, useMemo } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createDataStore } from "../../src/browser/data/dataStore";
 import { useTrackData } from "../../src/browser/data/useTrackData";
+import { createTrackResourceStore } from "../../src/browser/data/trackResourceStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
+import type { GenomicRegion } from "../../src/genome/region";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import { fetchOnChange } from "../../src/modules/fetchOnChange";
 
@@ -15,9 +17,34 @@ import { fetchOnChange } from "../../src/modules/fetchOnChange";
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;
+const testAssembly = { id: "test", chromosomes: { chr1: 1_000 } };
 
-function Harness(props: Parameters<typeof useTrackData>[0]) {
-  const { dataStates, isFetching } = useTrackData(props);
+type HarnessProps = Omit<
+  Parameters<typeof useTrackData>[0],
+  "assembly" | "width" | "resourceStore"
+> &
+  Partial<
+    Pick<
+      Parameters<typeof useTrackData>[0],
+      "assembly" | "width" | "widthDebounceMs" | "resourceStore"
+    >
+  >;
+
+function Harness({
+  assembly = testAssembly,
+  width = 100,
+  widthDebounceMs = 0,
+  resourceStore,
+  ...props
+}: HarnessProps) {
+  const defaultResourceStore = useMemo(() => createTrackResourceStore(), []);
+  const { dataStates, isFetching } = useTrackData({
+    ...props,
+    resourceStore: resourceStore ?? defaultResourceStore,
+    assembly,
+    width,
+    widthDebounceMs,
+  });
   return <output data-fetching={isFetching}>{JSON.stringify(dataStates)}</output>;
 }
 
@@ -49,7 +76,8 @@ describe("useTrackData", () => {
   it("ignores presentation fields and refetches only a changed module signature", async () => {
     const changedRequest = createDeferred<unknown>();
     const retryRequest = createDeferred<unknown>();
-    const fetch = vi.fn(({ config }: { config: { url: string; label: string } }) => {
+    const fetch = vi.fn(({ track }: { track: { config: { url: string; label: string } } }) => {
+      const { config } = track;
       if (config.url === "changed") return changedRequest.promise;
       if (config.url === "retry") return retryRequest.promise;
       return Promise.resolve([{ url: config.url }]);
@@ -119,10 +147,10 @@ describe("useTrackData", () => {
       ).toEqual({ ok: true });
     });
     expect(fetch).toHaveBeenCalledTimes(3);
-    expect(fetch.mock.calls.at(-1)?.[0].config.url).toBe("changed");
+    expect(fetch.mock.calls.at(-1)?.[0].track.config.url).toBe("changed");
     expect(getRenderedState()).toEqual({
       dataStates: {
-        signal: { status: "success", data: [{ url: "initial" }] },
+        signal: { status: "loading" },
         genes: { status: "success", data: [{ url: "genes" }] },
       },
       isFetching: true,
@@ -137,7 +165,7 @@ describe("useTrackData", () => {
       });
     });
     expect(fetch).toHaveBeenCalledTimes(4);
-    expect(fetch.mock.calls.at(-1)?.[0].config.url).toBe("retry");
+    expect(fetch.mock.calls.at(-1)?.[0].track.config.url).toBe("retry");
     expect(getRenderedState()).toEqual({
       dataStates: {
         signal: { status: "loading" },
@@ -149,8 +177,168 @@ describe("useTrackData", () => {
     await act(async () => retryRequest.resolve([{ url: "retry" }]));
   });
 
+  it("refetches when display, width, or assembly changes", async () => {
+    const widthRequest = createDeferred<unknown>();
+    const fetch = vi.fn(({ track, demand }) =>
+      demand.width === 200 ? widthRequest.promise : Promise.resolve({ track, demand }),
+    );
+    const module = defineTrackModule({
+      type: "demand-test",
+      configSchema: z.object({ label: z.string() }),
+      fetch,
+      render: { full: () => null, dense: () => null },
+    });
+    const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({
+      modules: [module],
+      tracks: [module.create({ id: "signal", title: "Signal", config: { label: "Signal" } })],
+    });
+    const region = { chromosome: "chr1", start: 0, end: 10 };
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () =>
+      root?.render(
+        <Harness useDataStore={useDataStore} useTrackStore={useTrackStore} region={region} />,
+      ),
+    );
+
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        track: {
+          id: "signal",
+          type: "demand-test",
+          display: "full",
+          config: { label: "Signal" },
+        },
+        demand: { assembly: testAssembly, region, width: 100 },
+      }),
+    );
+
+    await act(async () => {
+      expect(
+        useTrackStore.getState().updateTrack("signal", { base: { display: "dense" } }),
+      ).toEqual({
+        ok: true,
+      });
+    });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch.mock.calls.at(-1)?.[0].track.display).toBe("dense");
+
+    await act(async () => {
+      expect(
+        useTrackStore.getState().updateTrack("signal", { config: { label: "Updated" } }),
+      ).toEqual({ ok: true });
+    });
+    expect(fetch).toHaveBeenCalledTimes(2);
+
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          useTrackStore={useTrackStore}
+          region={region}
+          width={200}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(fetch.mock.calls.at(-1)?.[0].demand.width).toBe(200);
+    expect(fetch.mock.calls.at(-1)?.[0].track.config.label).toBe("Updated");
+    expect(getRenderedState()).toEqual({
+      dataStates: { signal: { status: "loading" } },
+      isFetching: true,
+    });
+
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          useTrackStore={useTrackStore}
+          region={region}
+          width={100}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledTimes(4);
+    expect(fetch.mock.calls.at(-1)?.[0].demand.width).toBe(100);
+
+    await act(async () => widthRequest.resolve({ width: 200 }));
+
+    const otherAssembly = { id: "other", chromosomes: { chr1: 2_000 } };
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          useTrackStore={useTrackStore}
+          assembly={otherAssembly}
+          region={region}
+          width={200}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledTimes(5);
+    expect(fetch.mock.calls.at(-1)?.[0].demand.assembly).toBe(otherAssembly);
+  });
+
+  it("delays width-only refetches until resizing settles", async () => {
+    vi.useFakeTimers();
+    try {
+      const fetch = vi.fn(async ({ demand }: { demand: { width: number } }) => demand.width);
+      const module = defineTrackModule({
+        type: "resize-debounce-test",
+        configSchema: z.object({ label: z.string() }),
+        fetch,
+        render: { full: () => null },
+      });
+      const useDataStore = createDataStore();
+      const useTrackStore = createTrackStore({
+        modules: [module],
+        tracks: [module.create({ id: "signal", title: "Signal", config: { label: "Signal" } })],
+      });
+      const region = { chromosome: "chr1", start: 0, end: 10 };
+
+      container = document.createElement("div");
+      document.body.appendChild(container);
+      root = createRoot(container);
+      const render = (width: number) =>
+        root?.render(
+          <Harness
+            useDataStore={useDataStore}
+            useTrackStore={useTrackStore}
+            region={region}
+            width={width}
+            widthDebounceMs={200}
+          />,
+        );
+
+      await act(async () => render(100));
+      expect(fetch).toHaveBeenCalledTimes(1);
+
+      await act(async () => render(150));
+      expect(fetch).toHaveBeenCalledTimes(1);
+
+      await act(async () => render(175));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(150);
+      });
+      expect(fetch).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch.mock.calls.at(-1)?.[0].demand.width).toBe(175);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("fetches changed regions and new members, then prunes removed results", async () => {
-    const fetch = vi.fn(async ({ config }: { config: { url: string } }) => config.url);
+    const fetch = vi.fn(
+      async ({ track }: { track: { config: { url: string } } }) => track.config.url,
+    );
     const module = defineTrackModule({
       type: "membership-test",
       configSchema: z.object({ url: fetchOnChange(z.string().min(1)) }),
@@ -200,6 +388,102 @@ describe("useTrackData", () => {
     });
     expect(fetch).toHaveBeenCalledTimes(5);
     expect(useDataStore.getState().data).not.toHaveProperty("genes");
+  });
+
+  it("keeps fetcher resources across refetches and releases them when the track is removed", async () => {
+    const fetch = vi.fn(
+      async ({
+        resources,
+      }: {
+        resources: { get<T>(key: string): T | undefined; set(key: string, value: unknown): void };
+      }) => {
+        const count = resources.get<number>("count") ?? 0;
+        resources.set("count", count + 1);
+        return count + 1;
+      },
+    );
+    const module = defineTrackModule({
+      type: "resource-lifecycle-test",
+      configSchema: z.object({}),
+      fetch,
+      render: { full: () => null },
+    });
+    const createTrack = () => module.create({ id: "signal", title: "Signal", config: {} });
+    const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({ modules: [module], tracks: [createTrack()] });
+    const region = { chromosome: "chr1", start: 0, end: 10 };
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const renderHarness = (nextRegion: GenomicRegion) =>
+      root?.render(
+        <Harness useDataStore={useDataStore} useTrackStore={useTrackStore} region={nextRegion} />,
+      );
+
+    await act(async () => renderHarness(region));
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(useDataStore.getState().data.signal).toEqual({ status: "success", data: 1 });
+
+    await act(async () => renderHarness({ ...region, start: 10, end: 20 }));
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(useDataStore.getState().data.signal).toEqual({ status: "success", data: 2 });
+
+    await act(async () => {
+      expect(useTrackStore.getState().removeTrack("signal")).toEqual({ ok: true });
+    });
+    expect(useDataStore.getState().data).toEqual({});
+
+    await act(async () => {
+      expect(useTrackStore.getState().addTrack(createTrack())).toEqual({ ok: true });
+    });
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(useDataStore.getState().data.signal).toEqual({ status: "success", data: 1 });
+  });
+
+  it("releases stored resources when the hook unmounts", async () => {
+    const fetch = vi.fn(
+      async ({ resources }: { resources: { set(key: string, value: unknown): void } }) => {
+        resources.set("marker", "stored");
+        return null;
+      },
+    );
+    const module = defineTrackModule({
+      type: "resource-unmount-test",
+      configSchema: z.object({}),
+      fetch,
+      render: { full: () => null },
+    });
+    const useDataStore = createDataStore();
+    const useTrackStore = createTrackStore({
+      modules: [module],
+      tracks: [module.create({ id: "signal", title: "Signal", config: {} })],
+    });
+    const resourceStore = createTrackResourceStore();
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () =>
+      root?.render(
+        <Harness
+          useDataStore={useDataStore}
+          useTrackStore={useTrackStore}
+          resourceStore={resourceStore}
+          region={{ chromosome: "chr1", start: 0, end: 10 }}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(
+      resourceStore.resourcesFor({ type: "resource-unmount-test", id: "signal" }).get("marker"),
+    ).toBe("stored");
+
+    await act(async () => root?.unmount());
+    root = undefined;
+    expect(
+      resourceStore.resourcesFor({ type: "resource-unmount-test", id: "signal" }).get("marker"),
+    ).toBeUndefined();
   });
 
   it("refetches a same-ID replacement when its module type changes", async () => {
@@ -255,8 +539,9 @@ describe("useTrackData", () => {
   });
 
   it("distinguishes mixed Date and bigint values in a module fetch signature", async () => {
-    const fetch = vi.fn(async ({ config }: { config: { revision: bigint; timestamp: Date } }) =>
-      config.revision.toString(),
+    const fetch = vi.fn(
+      async ({ track }: { track: { config: { revision: bigint; timestamp: Date } } }) =>
+        track.config.revision.toString(),
     );
     const module = defineTrackModule({
       type: "bigint-signature",
@@ -365,7 +650,8 @@ describe("useTrackData", () => {
     const signalRequest = createDeferred<unknown>();
     const initialGenesRequest = createDeferred<unknown>();
     const replacementGenesRequest = createDeferred<unknown>();
-    const fetch = vi.fn(({ config }: { config: { url: string } }) => {
+    const fetch = vi.fn(({ track }: { track: { config: { url: string } } }) => {
+      const { config } = track;
       if (config.url === "signal") return signalRequest.promise;
       return fetch.mock.calls.length === 2
         ? initialGenesRequest.promise

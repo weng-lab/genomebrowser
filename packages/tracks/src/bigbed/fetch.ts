@@ -6,13 +6,15 @@ import {
   type BigBedRecord,
 } from "@weng-lab/genomic-reader";
 import type { z } from "zod";
+import { readCachedBigBedRows } from "../shared/cachedFiles";
 import type { BigBedConfig, BigBedData } from "./types";
 
 export async function fetchBigBed({
-  config,
-  region,
+  track: { config },
+  demand: { region },
+  resources,
 }: TrackFetchContext<BigBedConfig>): Promise<BigBedData> {
-  return fetchBigBedRows({ url: config.url, region, schema: bed3Schema });
+  return readCachedBigBedRows(resources, config.url, bed3Schema, region);
 }
 
 export async function fetchBigBedRows<Schema extends z.ZodObject>({
