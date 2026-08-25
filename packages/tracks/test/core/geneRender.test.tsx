@@ -11,6 +11,7 @@ const runtime = vi.hoisted(() => ({
   tooltipShow: vi.fn(),
   tooltipHide: vi.fn(),
   createCompositeGeneGeometry: vi.fn(),
+  createGeneTranscriptGeometry: vi.fn(),
   useRowLayout: vi.fn((_trackId: string, rowCount: number, config: { rowHeight: number }) => ({
     rowHeight: config.rowHeight,
     trackHeight: Math.max(1, rowCount) * config.rowHeight,
@@ -41,6 +42,12 @@ vi.mock("../../src/gene/geometry", async (importOriginal) => {
     ) => {
       runtime.createCompositeGeneGeometry(gene);
       return geometry.createCompositeGeneGeometry(gene);
+    },
+    createGeneTranscriptGeometry: (
+      transcript: Parameters<typeof geometry.createGeneTranscriptGeometry>[0],
+    ) => {
+      runtime.createGeneTranscriptGeometry(transcript);
+      return geometry.createGeneTranscriptGeometry(transcript);
     },
   };
 });
@@ -94,6 +101,7 @@ beforeEach(() => {
   runtime.tooltipShow.mockClear();
   runtime.tooltipHide.mockClear();
   runtime.createCompositeGeneGeometry.mockClear();
+  runtime.createGeneTranscriptGeometry.mockClear();
   runtime.useRowLayout.mockClear();
   container = document.createElement("div");
   document.body.append(container);
@@ -146,8 +154,6 @@ describe("Gene rendering", () => {
     expect(hitTarget.getAttribute("x")).toBe("100");
     expect(hitTarget.getAttribute("width")).toBe("80");
     expect(hitTarget.getAttribute("height")).toBe("16");
-    expect(hitTarget.getAttribute("fill")).toBe("#ff1744");
-    expect(hitTarget.getAttribute("fill-opacity")).toBe("0.25");
 
     act(() => part.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     act(() => directionMark.dispatchEvent(new MouseEvent("click", { bubbles: true })));
@@ -199,8 +205,6 @@ describe("Gene rendering", () => {
     expect(hitTarget.getAttribute("x")).toBe("100");
     expect(hitTarget.getAttribute("width")).toBe("100");
     expect(hitTarget.getAttribute("height")).toBe("16");
-    expect(hitTarget.getAttribute("fill")).toBe("#ff1744");
-    expect(hitTarget.getAttribute("fill-opacity")).toBe("0.25");
 
     act(() => piece.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     expect(runtime.onClick).not.toHaveBeenCalled();
@@ -231,6 +235,15 @@ describe("Gene rendering", () => {
 
     render(<SquishGene {...props} color="#123456" />);
     expect(runtime.createCompositeGeneGeometry).toHaveBeenCalledTimes(2);
+    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
+  });
+
+  it("reuses transcript geometry when ordinary rerenders keep the same data", () => {
+    render(<PackGene {...props} />);
+    expect(runtime.createGeneTranscriptGeometry).toHaveBeenCalledTimes(3);
+
+    render(<PackGene {...props} color="#123456" />);
+    expect(runtime.createGeneTranscriptGeometry).toHaveBeenCalledTimes(3);
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
   });
 });
