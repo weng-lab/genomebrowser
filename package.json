@@ -7,14 +7,16 @@
     "ui": "pnpm --filter @weng-lab/genomebrowser-ui",
     "app": "pnpm --filter @weng-lab/genomebrowser-app",
     "reader": "pnpm --filter @weng-lab/genomic-reader",
-    "build": "pnpm -r build",
-    "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck",
-    "lint": "pnpm -r lint",
-    "lint:fix": "pnpm -r lint:fix",
-    "format": "oxfmt package.json pnpm-workspace.yaml CONTRIBUTING.md README.md .github && pnpm -r format",
-    "format:check": "oxfmt package.json pnpm-workspace.yaml CONTRIBUTING.md README.md .github --check && pnpm -r format:check",
-    "verify": "pnpm format:check && pnpm lint && pnpm build && pnpm test",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "turbo run format //#format:root",
+    "format:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md CONTRIBUTING.md README.md docs/turborepo.md .github",
+    "format:check": "turbo run format:check //#format:check:root",
+    "format:check:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md CONTRIBUTING.md README.md docs/turborepo.md .github --check",
+    "verify": "turbo run format:check lint build test //#format:check:root",
     "doctor": "pnpm exec react-doctor . --verbose",
     "publish:dry-run": "pnpm publish -r --tag alpha --dry-run --no-git-checks",
     "publish:alpha": "pnpm publish -r --tag alpha"
@@ -22,7 +24,8 @@
   "devDependencies": {
     "oxfmt": "^0.50.0",
     "oxlint": "^1.65.0",
-    "react-doctor": "^0.9.5"
+    "react-doctor": "^0.9.5",
+    "turbo": "2.10.11"
   },
   "packageManager": "pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce"
 }

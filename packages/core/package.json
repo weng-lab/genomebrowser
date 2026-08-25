@@ -32,7 +32,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "pnpm typecheck && vite build",
+    "build": "vite build",
+    "build:checked": "pnpm typecheck && pnpm build",
     "typecheck": "tsc -b",
     "test": "vitest run",
     "lint": "oxlint .",
@@ -40,7 +41,7 @@
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
     "preview": "vite preview",
-    "prepack": "pnpm build"
+    "prepack": "pnpm build:checked"
   },
   "dependencies": {
     "zod": "^4.4.3",

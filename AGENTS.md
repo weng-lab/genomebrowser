@@ -26,6 +26,16 @@ When creating or editing commits, pull requests, or issues, follow
 [`CONTRIBUTING.md`](CONTRIBUTING.md) and the corresponding templates in
 `.github/`.
 
+## Turborepo
+
+Run build, test, typecheck, lint, and formatting tasks through the root pnpm
+scripts so Turborepo can apply the package graph and cache. For a targeted task,
+use `pnpm exec turbo run <task> --filter=<package>` rather than invoking the
+package task with `pnpm --filter`.
+
+Read [`docs/turborepo.md`](docs/turborepo.md) before changing package task
+scripts, `turbo.json`, cache inputs or outputs, or CI task orchestration.
+
 ## Dependency rules
 
 This is NOT the NextJS you know, it has breaking changes - API, conventions and file structure may all differ from your training data. Read up-to-date documentation in `node_modules/next/dist/docs` (`index.md` for starters) before making any NextJS related changes (applies only to app package). Heed deprecation warnings
