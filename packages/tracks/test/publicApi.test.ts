@@ -1,5 +1,9 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import type { BigWigSummaryRecord, BigWigValueRecord } from "@weng-lab/genomic-reader";
+import type {
+  BigWigRecord,
+  BigWigSummaryRecord,
+  BigWigValueRecord,
+} from "@weng-lab/genomic-reader";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import {
   bigBedModule,
@@ -10,6 +14,7 @@ import {
   bigWigModule,
   type BigWigConfig,
   type BigWigCreateInput,
+  type BigWigData,
 } from "@weng-lab/genomebrowser-tracks/bigwig";
 import {
   bulkBedModule,
@@ -20,12 +25,14 @@ import {
   caveModule,
   type CaveConfig,
   type CaveCreateInput,
+  type CaveData,
 } from "@weng-lab/genomebrowser-tracks/cave";
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 import {
   methylCModule,
   type MethylCConfig,
   type MethylCCreateInput,
+  type MethylCData,
 } from "@weng-lab/genomebrowser-tracks/methylc";
 import {
   transcriptModule,
@@ -96,16 +103,19 @@ describe("first-party track package", () => {
     expectTypeOf<BigWigConfig>().toEqualTypeOf<
       ReturnType<typeof bigWigModule.validate>["config"]
     >();
+    expectTypeOf<BigWigData>().toEqualTypeOf<BigWigRecord[]>();
     expectTypeOf<BulkBedCreateInput>().toEqualTypeOf<Parameters<typeof bulkBedModule.create>[0]>();
     expectTypeOf<BulkBedConfig>().toEqualTypeOf<
       ReturnType<typeof bulkBedModule.validate>["config"]
     >();
     expectTypeOf<CaveCreateInput>().toEqualTypeOf<Parameters<typeof caveModule.create>[0]>();
     expectTypeOf<CaveConfig>().toEqualTypeOf<ReturnType<typeof caveModule.validate>["config"]>();
+    expectTypeOf<CaveData>().toEqualTypeOf<{ top: BigWigRecord[]; bottom: BigWigRecord[] }>();
     expectTypeOf<MethylCCreateInput>().toEqualTypeOf<Parameters<typeof methylCModule.create>[0]>();
     expectTypeOf<MethylCConfig>().toEqualTypeOf<
       ReturnType<typeof methylCModule.validate>["config"]
     >();
+    expectTypeOf<MethylCData>().toEqualTypeOf<BigWigRecord[][]>();
     expectTypeOf<TranscriptCreateInput>().toEqualTypeOf<
       Parameters<typeof transcriptModule.create>[0]
     >();

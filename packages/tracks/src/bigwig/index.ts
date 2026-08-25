@@ -34,4 +34,4 @@ export const bigWigModule = defineTrackModule<SignalPoint>()({
 
 export type BigWigCreateInput = ModuleCreateInput<typeof bigWigModule>;
 export type BigWigConfig = ModuleInstance<typeof bigWigModule>["config"];
-export type { BigWigDisplay, BigWigInteraction, YRange, YRangeOverride } from "./types";
+export type { BigWigData, BigWigDisplay, BigWigInteraction, YRange, YRangeOverride } from "./types";
