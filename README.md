@@ -37,16 +37,18 @@ their framework and TypeScript dependencies in their own manifests.
 
 ## Commands
 
-Run commands from the repository root. Recursive commands run in every
-workspace project that defines the corresponding script. Use a package filter
-for a focused check.
+Run commands from the repository root. Turborepo runs each task in the workspace
+projects that define it, follows package dependencies, and reuses results from
+its local cache. See the [Turborepo maintainer guide](docs/turborepo.md) for
+filters, cache behavior, and task configuration.
 
-| Task             | Workspace           | Core                                                 | Tracks                                                      | UI                                                      |
-| ---------------- | ------------------- | ---------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------- |
-| Build            | `pnpm build`        | `pnpm --filter @weng-lab/genomebrowser build`        | `pnpm --filter @weng-lab/genomebrowser-tracks... build`     | `pnpm --filter @weng-lab/genomebrowser-ui build`        |
-| Test             | `pnpm test`         | `pnpm --filter @weng-lab/genomebrowser test`         | `pnpm --filter @weng-lab/genomebrowser-tracks test`         | `pnpm --filter @weng-lab/genomebrowser-ui test`         |
-| Lint             | `pnpm lint`         | `pnpm --filter @weng-lab/genomebrowser lint`         | `pnpm --filter @weng-lab/genomebrowser-tracks lint`         | `pnpm --filter @weng-lab/genomebrowser-ui lint`         |
-| Check formatting | `pnpm format:check` | `pnpm --filter @weng-lab/genomebrowser format:check` | `pnpm --filter @weng-lab/genomebrowser-tracks format:check` | `pnpm --filter @weng-lab/genomebrowser-ui format:check` |
+| Task             | Workspace           | Focused example                                                            |
+| ---------------- | ------------------- | -------------------------------------------------------------------------- |
+| Build            | `pnpm build`        | `pnpm exec turbo run build --filter=@weng-lab/genomebrowser-tracks`        |
+| Test             | `pnpm test`         | `pnpm exec turbo run test --filter=@weng-lab/genomebrowser-tracks`         |
+| Typecheck        | `pnpm typecheck`    | `pnpm exec turbo run typecheck --filter=@weng-lab/genomebrowser-tracks`    |
+| Lint             | `pnpm lint`         | `pnpm exec turbo run lint --filter=@weng-lab/genomebrowser-tracks`         |
+| Check formatting | `pnpm format:check` | `pnpm exec turbo run format:check --filter=@weng-lab/genomebrowser-tracks` |
 
 Human maintainers can use a package's targeted development command to start its project.
 Automation agents must not start the development servers; inspect
@@ -58,7 +60,7 @@ reads the key only in its server-side SCREEN GraphQL proxy; the key is not
 exposed to browser code.
 
 Before submitting a change, run the relevant targeted commands followed by
-the root build, test, lint, and formatting checks. Package publication is a
+`pnpm verify`. Package publication is a
 separate maintainer action; do not publish as part of routine verification.
 `pnpm publish:dry-run` validates the publishable packages without changing npm state. An
 authorized prerelease must use `pnpm publish:alpha`, which passes the `alpha`
