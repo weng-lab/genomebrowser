@@ -5,7 +5,7 @@ import {
   type BigBedFileOptions,
   type BigBedRecord,
   type BigWigFile,
-  type BigWigValueRecord,
+  type BigWigRecord,
 } from "@weng-lab/genomic-reader";
 import type { z } from "zod";
 
@@ -15,17 +15,17 @@ const BIG_WIG_FILES = "bigwig-files";
 const BIG_BED_FILES = "bigbed-files";
 
 /**
- * Reads unzoomed BigWig values for one track request, reusing one file reader
- * per source URL for the lifetime of the track so file metadata (header,
- * chromosome tree, R-tree roots) is fetched once per source instead of once
- * per request. The reader lives in the track's own resources store; changing
- * a config URL simply starts a new entry under the new URL.
+ * Reads BigWig records at a resolution suited to the viewport, reusing one
+ * file reader per source URL for the lifetime of the track. The reader lives
+ * in the track's own resources store; changing a config URL starts a new entry
+ * under the new URL.
  */
-export async function readCachedBigWigValues(
+export async function readCachedBigWigRecords(
   resources: TrackResources,
   url: string,
   region: GenomicRegion,
-): Promise<BigWigValueRecord[]> {
+  width: number,
+): Promise<BigWigRecord[]> {
   const files = cachedFiles<BigWigFile>(resources, BIG_WIG_FILES);
   let file = files.get(url);
   if (!file) {
@@ -33,12 +33,34 @@ export async function readCachedBigWigValues(
     files.set(url, file);
   }
 
+  const reductionLevel = selectZoomLevel(
+    await file.getZoomLevels(),
+    region.end - region.start,
+    width,
+  );
+  if (reductionLevel !== undefined) return file.readZoomLevel(region, reductionLevel);
   return file.read(region);
+}
+
+function selectZoomLevel(
+  zoomLevels: readonly number[],
+  regionWidth: number,
+  viewportWidth: number,
+): number | undefined {
+  const pixelWidth = Math.max(1, Math.floor(viewportWidth));
+  const targetReduction = regionWidth / pixelWidth / 2;
+  let selected: number | undefined;
+  for (const zoomLevel of zoomLevels) {
+    if (zoomLevel <= targetReduction && (selected === undefined || zoomLevel > selected)) {
+      selected = zoomLevel;
+    }
+  }
+  return selected;
 }
 
 /**
  * Reads BigBed rows through a validated column schema with the same per-track
- * reader reuse as {@link readCachedBigWigValues}.
+ * reader reuse as {@link readCachedBigWigRecords}.
  */
 export async function readCachedBigBedRows<Schema extends z.ZodObject>(
   resources: TrackResources,

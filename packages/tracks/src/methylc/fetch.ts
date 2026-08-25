@@ -1,11 +1,11 @@
 import type { GenomicRegion, TrackFetchContext } from "@weng-lab/genomebrowser";
-import type { BigWigValueRecord } from "@weng-lab/genomic-reader";
-import { readCachedBigWigValues } from "../shared/cachedFiles";
+import type { BigWigRecord } from "@weng-lab/genomic-reader";
+import { readCachedBigWigRecords } from "../shared/cachedFiles";
 import type { MethylCConfig, MethylCData } from "./types";
 
 export async function fetchMethylC({
   track: { config },
-  demand: { region },
+  demand: { region, width },
   resources,
 }: TrackFetchContext<MethylCConfig>): Promise<MethylCData> {
   const plus = config.urls.plusStrand;
@@ -20,14 +20,15 @@ export async function fetchMethylC({
       minus.chg.url,
       minus.chh.url,
       minus.depth.url,
-    ].map((url) => fetchChannel(url, region, resources)),
+    ].map((url) => fetchChannel(url, region, width, resources)),
   );
 }
 
 async function fetchChannel(
   url: string,
   region: GenomicRegion,
+  width: number,
   resources: TrackFetchContext<MethylCConfig>["resources"],
-): Promise<BigWigValueRecord[]> {
-  return url ? readCachedBigWigValues(resources, url, region) : [];
+): Promise<BigWigRecord[]> {
+  return url ? readCachedBigWigRecords(resources, url, region, width) : [];
 }

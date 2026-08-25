@@ -1,12 +1,11 @@
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
-import type { BigWigValueRecord } from "@weng-lab/genomic-reader";
-import { readCachedBigWigValues } from "../shared/cachedFiles";
-import type { BigWigConfig } from "./types";
+import { readCachedBigWigRecords } from "../shared/cachedFiles";
+import type { BigWigConfig, BigWigData } from "./types";
 
 export async function fetchBigWig({
   track: { config },
-  demand: { region },
+  demand: { region, width },
   resources,
-}: TrackFetchContext<BigWigConfig>): Promise<BigWigValueRecord[]> {
-  return readCachedBigWigValues(resources, config.url, region);
+}: TrackFetchContext<BigWigConfig>): Promise<BigWigData> {
+  return readCachedBigWigRecords(resources, config.url, region, width);
 }

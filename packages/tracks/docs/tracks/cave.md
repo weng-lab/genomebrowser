@@ -42,7 +42,9 @@ Use `caveModule.configSchema` to validate config and `caveModule.createInputSche
 
 CAVE does not accept source URLs. It builds two public BigWig URLs from `neurotransmitter` and `age`. The files use hg38 and come from a Weng Lab host chosen by the package. This module cannot use another endpoint or assembly.
 
-The two file readers live in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata is fetched once per source pair and reused by later pans and zooms. Changing `neurotransmitter` or `age` selects a different source pair and creates fresh readers on the next request.
+Each source chooses a BigWig zoom level from the visible region and track width. It falls back to unzoomed values when a source has no suitable zoom level, so the two files do not need matching zoom levels.
+
+The two file readers live in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata and zoom levels are fetched once per source pair and reused by later pans and zooms. Changing `neurotransmitter` or `age` selects a different source pair and creates fresh readers on the next request.
 
 ## Settings and tooltip
 

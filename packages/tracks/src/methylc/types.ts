@@ -1,5 +1,5 @@
 import type { TrackInteraction } from "@weng-lab/genomebrowser";
-import type { BigWigValueRecord } from "@weng-lab/genomic-reader";
+import type { BigWigRecord } from "@weng-lab/genomic-reader";
 import type { SignalPoint } from "../shared/signal";
 import type { YRange } from "../bigwig/types";
 export type MethylCDisplay = "split";
@@ -11,7 +11,7 @@ export type MethylCStrandUrls = {
   depth: { url: string };
 };
 export type MethylCUrls = { plusStrand: MethylCStrandUrls; minusStrand: MethylCStrandUrls };
-export type MethylCData = BigWigValueRecord[][];
+export type MethylCData = BigWigRecord[][];
 export type MethylCShowRows = {
   fwdCpg: boolean;
   fwdChg: boolean;

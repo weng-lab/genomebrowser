@@ -1,6 +1,5 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { useRef, useState, type MouseEvent } from "react";
-import type { BigWigValueRecord } from "@weng-lab/genomic-reader";
 import {
   applyFillWithZero,
   createYScale,
@@ -12,7 +11,7 @@ import {
 } from "./helpers";
 import { clientXToTrackX } from "../shared/coordinates";
 import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
-import type { BigWigConfig, YRange } from "./types";
+import type { BigWigConfig, BigWigData, YRange } from "./types";
 
 export function FullBigWig({
   config,
@@ -21,7 +20,7 @@ export function FullBigWig({
   width,
   height,
   region,
-}: TrackRendererProps<BigWigConfig, BigWigValueRecord[]>) {
+}: TrackRendererProps<BigWigConfig, BigWigData>) {
   const points = getRenderedPoints(config, data, region, width);
   const range = resolveBigWigRange(getBigWigRange(points), config.yRange);
   const y = createYScale(range, height);
@@ -67,7 +66,7 @@ export function DenseBigWig({
   width,
   height,
   region,
-}: TrackRendererProps<BigWigConfig, BigWigValueRecord[]>) {
+}: TrackRendererProps<BigWigConfig, BigWigData>) {
   const points = getRenderedPoints(config, data, region, width);
   const range = resolveBigWigRange(getBigWigRange(points), config.yRange);
   return (
@@ -162,8 +161,8 @@ function BigWigHoverOverlay({
 
 function getRenderedPoints(
   config: BigWigConfig,
-  data: BigWigValueRecord[],
-  region: TrackRendererProps<BigWigConfig, BigWigValueRecord[]>["region"],
+  data: BigWigData,
+  region: TrackRendererProps<BigWigConfig, BigWigData>["region"],
   width: number,
 ) {
   const points = condenseSignalRecords(data, region, width);

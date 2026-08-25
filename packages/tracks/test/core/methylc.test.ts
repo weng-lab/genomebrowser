@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const reader = vi.hoisted(() => ({
+  getZoomLevels: vi.fn(),
   read: vi.fn(),
+  readZoomLevel: vi.fn(),
   createBigWigFile: vi.fn(),
 }));
 
@@ -14,9 +16,16 @@ import type { MethylCConfig } from "../../src/methylc/types";
 
 describe("MethylC track fetching", () => {
   beforeEach(() => {
+    reader.getZoomLevels.mockReset();
     reader.read.mockReset();
+    reader.readZoomLevel.mockReset();
     reader.createBigWigFile.mockReset();
-    reader.createBigWigFile.mockReturnValue({ read: reader.read });
+    reader.createBigWigFile.mockReturnValue({
+      getZoomLevels: reader.getZoomLevels,
+      read: reader.read,
+      readZoomLevel: reader.readZoomLevel,
+    });
+    reader.getZoomLevels.mockResolvedValue([]);
     reader.read.mockResolvedValue([
       { kind: "value", chromosome: "chr1", start: 12, end: 18, value: 0.75 },
     ]);
@@ -50,6 +59,19 @@ describe("MethylC track fetching", () => {
       fetchMethylC(createContext(config, { chromosome: "chr1", start: 10, end: 20 })),
     ).resolves.toEqual([[], [], [], [], [], [], [], []]);
     expect(reader.createBigWigFile).not.toHaveBeenCalled();
+  });
+
+  it("uses zoom summaries for every configured channel at wide regions", async () => {
+    const region = { chromosome: "chr1", start: 0, end: 100_000 };
+    const config = createConfig((channel) => `https://example.org/${channel}.bw`);
+    reader.getZoomLevels.mockResolvedValue([100, 400, 1_600]);
+    reader.readZoomLevel.mockResolvedValue([]);
+
+    await fetchMethylC(createContext(config, region));
+
+    expect(reader.readZoomLevel).toHaveBeenCalledTimes(8);
+    expect(reader.readZoomLevel).toHaveBeenCalledWith(region, 400);
+    expect(reader.read).not.toHaveBeenCalled();
   });
 
   it("reuses cached channel readers across fetches of one track", async () => {

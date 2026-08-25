@@ -56,7 +56,9 @@ Use `methylCModule.configSchema` to validate config and `methylCModule.createInp
 
 Each non-empty channel URL must be an absolute public HTTP(S) BigWig URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../dataSources.md) if a file does not load. An empty URL produces empty channel data without a request.
 
-The module keeps one file reader per channel URL in the browser's track-scoped fetcher resources, so file metadata is fetched once per source and reused by later pans and zooms. Changing a channel URL creates a fresh reader for that source on the next request.
+Each enabled channel chooses its own BigWig zoom level from the visible region and track width. It falls back to unzoomed values when that file has no suitable level. Channel files do not need matching zoom levels because the renderer condenses every channel to the same pixel grid.
+
+The module keeps one file reader per channel URL in the browser's track-scoped fetcher resources, so file metadata and zoom levels are fetched once per source and reused by later pans and zooms. Changing a channel URL creates a fresh reader for that source on the next request.
 
 ## Settings and tooltip
 
@@ -66,16 +68,16 @@ The tooltip lists only channels with a non-empty URL. It orders plus CpG/CHG/CHH
 
 ## Exported types
 
-| Export                 | Description                                                                |
-| ---------------------- | -------------------------------------------------------------------------- |
-| `MethylCCreateInput`   | Input accepted by `methylCModule.create`.                                  |
-| `MethylCConfig`        | Parsed URLs, colors, masking flag, and optional range.                     |
-| `MethylCDisplay`       | `"split"`.                                                                 |
-| `MethylCColors`        | CpG, CHG, CHH, and depth color map.                                        |
-| `MethylCStrandUrls`    | Four channel URL entries for one strand.                                   |
-| `MethylCUrls`          | Plus- and minus-strand URL maps.                                           |
-| `MethylCData`          | Eight genomic-reader `BigWigValueRecord` arrays in renderer channel order. |
-| `SignalPoint` (shared) | Shared rendered pixel signal point; import it from `/shared`.              |
-| `MethylCShowRows`      | Boolean visibility map for all tooltip rows.                               |
-| `MethylCTooltipItem`   | Rendered values and row visibility supplied to hover behavior.             |
-| `MethylCInteraction`   | Interaction callbacks receiving `MethylCTooltipItem` and `MethylCConfig`.  |
+| Export                 | Description                                                               |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `MethylCCreateInput`   | Input accepted by `methylCModule.create`.                                 |
+| `MethylCConfig`        | Parsed URLs, colors, masking flag, and optional range.                    |
+| `MethylCDisplay`       | `"split"`.                                                                |
+| `MethylCColors`        | CpG, CHG, CHH, and depth color map.                                       |
+| `MethylCStrandUrls`    | Four channel URL entries for one strand.                                  |
+| `MethylCUrls`          | Plus- and minus-strand URL maps.                                          |
+| `MethylCData`          | Eight genomic-reader `BigWigRecord` arrays in renderer channel order.     |
+| `SignalPoint` (shared) | Shared rendered pixel signal point; import it from `/shared`.             |
+| `MethylCShowRows`      | Boolean visibility map for all tooltip rows.                              |
+| `MethylCTooltipItem`   | Rendered values and row visibility supplied to hover behavior.            |
+| `MethylCInteraction`   | Interaction callbacks receiving `MethylCTooltipItem` and `MethylCConfig`. |

@@ -40,9 +40,9 @@ Use `bigWigModule.configSchema` to validate config and `bigWigModule.createInput
 
 The source must be an absolute public HTTP(S) BigWig URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../dataSources.md) if the file does not load.
 
-The module requests unzoomed `BigWigValueRecord` records from `@weng-lab/genomic-reader`. It condenses them into rendered pixels using the shared signal rules.
+The module chooses a BigWig zoom level from the visible region and track width. It aims for at least two summary records per rendered pixel. If the file has no suitable zoom level, it reads the unzoomed values instead. It condenses both value and summary records into pixels using the shared signal rules.
 
-The module keeps one file reader per track in the browser's track-scoped fetcher resources, so file metadata is fetched once and reused by later pans and zooms. Changing the URL replaces the reader on the next request.
+The module keeps one file reader per source URL in the browser's track-scoped fetcher resources, so file metadata and zoom levels are fetched once and reused by later pans and zooms. Changing the URL creates a reader for the new source on the next request.
 
 ## Settings and tooltip
 
@@ -56,6 +56,7 @@ The tooltip shows the rendered pixel's maximum signal value with two decimal pla
 | ---------------------- | ----------------------------------------------------------------- |
 | `BigWigCreateInput`    | Input accepted by `bigWigModule.create`.                          |
 | `BigWigConfig`         | Parsed config after all schema defaults are applied.              |
+| `BigWigData`           | Genomic-reader `BigWigRecord` values or zoom summaries.           |
 | `BigWigDisplay`        | `"full" \| "dense"`.                                              |
 | `SignalPoint` (shared) | Shared rendered pixel position; import it from `/shared`.         |
 | `YRange`               | Complete numeric `{ min, max }` range.                            |
