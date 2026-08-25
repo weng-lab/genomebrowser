@@ -55,8 +55,9 @@ generated declarations.
 The package manifests define the commands. The root `turbo.json` defines their
 ordering, inputs, and cached outputs.
 
-- `build` runs the package's dependency builds and its own typecheck first. It
-  caches `dist`, `.next`, and TypeScript build information.
+- `build` runs the package's dependency builds and its own typecheck first. The
+  package build scripts only produce and validate artifacts. Turbo caches
+  `dist`, `.next`, and TypeScript build information.
 - `test` and `typecheck` build workspace dependencies first. Several packages
   resolve workspace imports through generated `dist` declarations, so these
   edges make clean checkouts reliable.
@@ -73,9 +74,10 @@ invalidate the corresponding package checks.
 The local cache lives at `.turbo/cache` in each worktree. The directory is
 ignored by Git and can be removed without losing source or build configuration.
 
-Most library build scripts also run their own typecheck. This repeats an
-incremental check when Turbo invokes them, but keeps direct package builds and
-publication hooks safe when they run without the root Turbo command.
+The Next.js app overrides the root build dependency because `next build` already
+runs TypeScript. Publishable libraries provide `build:checked` for lifecycle
+hooks that run without Turbo. It typechecks the package and then builds its
+artifacts.
 
 ## Inspect and bypass the cache
 
@@ -115,8 +117,9 @@ When configuring the task:
 Do not use `--parallel`; it bypasses the dependency graph. Normal build and
 check scripts should not manually build another package. Declare the workspace
 dependency and let a `^build` edge order the work. The existing `prepack`
-scripts are an intentional exception: they rebuild publication dependencies so
-packing a package cannot use stale generated declarations or executables.
+scripts are an intentional exception. They run `build:checked` for publication
+dependencies so packing a package cannot use stale generated declarations or
+executables.
 
 ## Current limits
 
