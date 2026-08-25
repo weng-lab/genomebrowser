@@ -24,8 +24,8 @@ const region = { chromosome: "chr1", start: 100_000, end: 101_000 };
 const records = await file.read(region);
 ```
 
-Omitting `resolution` is equivalent to `{ resolution: { mode: "unzoomed" } }`. The returned
-`BigWigValueRecord` objects contain the source signal values stored by the file:
+`read()` returns `BigWigValueRecord` objects containing the source signal values stored by the
+file:
 
 ```ts
 type BigWigValueRecord = {
@@ -38,46 +38,17 @@ type BigWigValueRecord = {
 ```
 
 Unzoomed reads do not invent summary statistics. They can return large arrays for wide regions, so
-choose a zoom resolution explicitly when displaying a wide view.
+read a zoom level explicitly when displaying a wide view.
 
-## Select a resolution automatically
+## Read a zoom level
 
 A reduction level is a file-declared genomic summary scale measured in bases. Larger levels are
 coarser. Sparse data and summary boundaries mean returned records need not each span exactly the
 level's number of bases or align one-for-one with that width.
 
-For a visual client, calculate bases per pixel from the queried span and viewport width:
-
-```ts
-import { createBigWigFile } from "@weng-lab/genomic-reader";
-
-const file = createBigWigFile({ url: "YOUR_URL_HERE" });
-const region = { chromosome: "chr1", start: 0, end: 1_000_000 };
-const viewportWidth = 1_000;
-
-const records = await file.read(region, {
-  resolution: {
-    mode: "auto",
-    basesPerPixel: (region.end - region.start) / viewportWidth,
-  },
-});
-```
-
-`basesPerPixel` must be a finite number greater than zero. Auto mode chooses the available reduction
-level with the largest value less than or equal to `basesPerPixel`. It reads unzoomed values when no
-level satisfies that rule, and naturally chooses the coarsest available level when the target is
-coarser than every level in the file.
-
-This selection targets a useful source resolution. It is not a hard result-count cap: the reader
-does not aggregate again, force one record per pixel, or promise that the number of records equals
-the viewport width. File-defined summaries may be sparse and need not align with display pixels.
-
-## Discover and select an exact level
-
 `getZoomLevels()` returns every reduction level declared by the file as an ascending readonly array.
-The array is empty when the file has no zoom levels.
-
-Use one of those values when you need a reproducible exact selection:
+The array is empty when the file has no zoom levels. Pass one of those values to `readZoomLevel()`
+when you need summarized records for a wide view:
 
 ```ts
 import { createBigWigFile } from "@weng-lab/genomic-reader";
@@ -88,15 +59,17 @@ const zoomLevels = await file.getZoomLevels();
 const reductionLevel = zoomLevels.at(-1);
 
 if (reductionLevel !== undefined) {
-  const records = await file.read(region, {
-    resolution: { mode: "level", reductionLevel },
-  });
+  const records = await file.readZoomLevel(region, reductionLevel);
 }
 ```
 
 A `reductionLevel` must be a positive integer and must exactly match an available level. An
-unavailable exact level rejects; the reader does not substitute a nearby level or silently use
-unzoomed data. Only auto mode may choose among levels.
+unavailable level rejects; the reader does not substitute a nearby level or silently use unzoomed
+data.
+
+This method targets a useful source resolution for the chosen level. It is not a hard result-count
+cap: the reader does not aggregate again, force one record per pixel, or promise any particular
+record count. File-defined summaries may be sparse and need not align with display pixels.
 
 ## Understand zoom summaries
 
@@ -130,11 +103,11 @@ The summary fields have these meanings:
 | `mean`       | Derived | Convenience value computed as `sum / validCount`; it is not stored in file. |
 
 The reader exposes all five stored statistics as JavaScript numbers without replacing them with a
-single value. `mean` uses ordinary JavaScript division. Use unzoomed mode for work that requires
-source measurements; zoom summaries cannot reconstruct those measurements.
+single value. `mean` uses ordinary JavaScript division. Use `read()` for work that requires source
+measurements; zoom summaries cannot reconstruct those measurements.
 
-`BigWigRecord` is the union `BigWigValueRecord | BigWigSummaryRecord`. Narrow it with `kind` before
-using format-specific fields:
+`BigWigRecord` is the union `BigWigValueRecord | BigWigSummaryRecord`. Code that handles both record
+kinds, such as a display layer fed from either method, can narrow the union with `kind`:
 
 ```ts
 for (const record of records) {
@@ -155,15 +128,14 @@ with zeroes, normalize chromosome names, synthesize intervals, or deduplicate so
 
 The `chromosome` field preserves the exact queried name after that name resolves in the file. Results
 are stably sorted by chromosome, start, and end, and equal-coordinate records retain source decode
-order. An unknown chromosome or a valid region with no overlapping data resolves to `[]` in every
-resolution mode.
+order. An unknown chromosome or a valid region with no overlapping data resolves to `[]`.
 
 Coordinates must be finite nonnegative integers, and `start` must be less than `end`. Invalid
 coordinates reject instead of returning an empty result.
 
 ## Cancel an operation
 
-Pass a native `AbortSignal` to either `read()` or `getZoomLevels()`:
+Pass a native `AbortSignal` in the options of `read()`, `readZoomLevel()`, or `getZoomLevels()`:
 
 ```ts
 import { createBigWigFile } from "@weng-lab/genomic-reader";
@@ -208,17 +180,17 @@ reader to use smaller exact index requests.
 
 `createBigWigFile({ url })` is synchronous and makes no request. It synchronously rejects a
 non-object options value, an invalid URL, or a URL with a scheme other than HTTP(S). File format and
-contents are checked lazily when `read()` or `getZoomLevels()` first needs them.
+contents are checked lazily when `read()`, `readZoomLevel()`, or `getZoomLevels()` first needs them.
 
 Each file object caches only successfully loaded immutable metadata: file and zoom-level metadata,
-chromosome lookups including unknown names, and metadata needed to locate records at each selected
-resolution. Reads and zoom discovery share completed metadata, but not in-flight work tied to one
+chromosome lookups including unknown names, and metadata needed to locate records at each reduction
+level. Reads and zoom discovery share completed metadata, but not in-flight work tied to one
 caller's signal. Failed or aborted metadata work is not cached and can be retried. Data blocks,
 decoded records, and regional results are loaded or computed for every read. Create a new file object
 to refresh a URL whose content has changed.
 
 Ordinary no-data cases return `[]`. Operations asynchronously reject for invalid regions or
-resolutions, unavailable exact levels, wrong file formats, network or HTTP contract failures,
+reduction levels, unavailable reduction levels, wrong file formats, network or HTTP contract failures,
 aborts, binary decode errors, and decompression errors. Failures do not become empty or partial
 results, and the package does not wrap them in a package-specific error hierarchy.
 
@@ -231,16 +203,22 @@ All imports come from `@weng-lab/genomic-reader`; internal package paths are not
 ```ts
 function createBigWigFile(options: BigWigFileOptions): BigWigFile;
 
-interface BigWigFile extends GenomicFile<BigWigRecord> {
-  read(region: GenomicRegion, options?: BigWigReadOptions): Promise<BigWigRecord[]>;
+interface BigWigFile extends GenomicFile<BigWigValueRecord> {
+  read(region: GenomicRegion, options?: ReadOptions): Promise<BigWigValueRecord[]>;
+  readZoomLevel(
+    region: GenomicRegion,
+    reductionLevel: number,
+    options?: ReadOptions,
+  ): Promise<BigWigSummaryRecord[]>;
   getZoomLevels(options?: ReadOptions): Promise<readonly number[]>;
 }
 ```
 
 - `createBigWigFile(options)` synchronously validates `{ url }`, creates an instance-local cache,
   and performs no request.
-- `read(region, options?)` returns overlapping source values or summaries. Omitted `resolution` is
-  unzoomed.
+- `read(region, options?)` returns overlapping source values for the region.
+- `readZoomLevel(region, reductionLevel, options?)` returns overlapping zoom summaries stored at an
+  exact declared reduction level. It rejects when the file does not declare that level.
 - `getZoomLevels(options?)` returns declared reduction levels in ascending order. Its only option is
   the native `AbortSignal` supplied by `ReadOptions`.
 
@@ -250,15 +228,6 @@ interface BigWigFile extends GenomicFile<BigWigRecord> {
 type BigWigFileOptions = {
   url: string;
 };
-
-type BigWigReadOptions = ReadOptions & {
-  resolution?: BigWigResolution;
-};
-
-type BigWigResolution =
-  | { mode: "unzoomed" }
-  | { mode: "auto"; basesPerPixel: number }
-  | { mode: "level"; reductionLevel: number };
 
 type BigWigRecord = BigWigValueRecord | BigWigSummaryRecord;
 type BigWigValueRecord = GenomicRecord & {
@@ -277,8 +246,7 @@ type BigWigSummaryRecord = GenomicRecord & {
 ```
 
 `BigWigFileOptions` accepts an absolute HTTP(S) BigWig URL. `BigWigFile` is structurally compatible
-with `GenomicFile<BigWigRecord>`, while its `read()` method accepts the specialized resolution
-option.
+with `GenomicFile<BigWigValueRecord>`.
 
 The shared public types used by these contracts are:
 

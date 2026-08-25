@@ -5,7 +5,6 @@ import {
   type BigBedFileOptions,
   type BigBedRecord,
   type BigWigFile,
-  type BigWigRecord,
   type BigWigValueRecord,
 } from "@weng-lab/genomic-reader";
 import type { z } from "zod";
@@ -34,9 +33,7 @@ export async function readCachedBigWigValues(
     files.set(url, file);
   }
 
-  const records = await file.read(region, { resolution: { mode: "unzoomed" } });
-  assertValueRecords(records);
-  return records;
+  return file.read(region);
 }
 
 /**
@@ -62,10 +59,4 @@ function cachedFiles<F>(resources: TrackResources, key: string): Map<string, F> 
   const files = resources.get<Map<string, F>>(key) ?? new Map<string, F>();
   resources.set(key, files);
   return files;
-}
-
-function assertValueRecords(records: BigWigRecord[]): asserts records is BigWigValueRecord[] {
-  for (const record of records) {
-    if (record.kind !== "value") throw new Error("Expected unzoomed BigWig value records");
-  }
 }

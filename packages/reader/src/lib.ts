@@ -4,9 +4,7 @@ export { createBigWigFile } from "./bigWig";
 export type {
   BigWigFile,
   BigWigFileOptions,
-  BigWigReadOptions,
   BigWigRecord,
-  BigWigResolution,
   BigWigSummaryRecord,
   BigWigValueRecord,
 } from "./bigWig";

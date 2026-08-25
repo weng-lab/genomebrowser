@@ -79,9 +79,7 @@ describe("BigWig track fetching", () => {
     expect(reader.createBigWigFile).toHaveBeenCalledWith({
       url: "https://example.org/data.bw",
     });
-    expect(reader.read).toHaveBeenCalledWith(region, {
-      resolution: { mode: "unzoomed" },
-    });
+    expect(reader.read).toHaveBeenCalledWith(region);
   });
 
   it("reuses the cached file across fetches of one track", async () => {
