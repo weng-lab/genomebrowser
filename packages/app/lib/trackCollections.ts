@@ -23,7 +23,7 @@ const geneTracks = {
       height: 60,
       color: "#444444",
       config: {
-        url: "http://127.0.0.1:8765/gencode.v40.basic.annotation.bb",
+        url: "https://users.wenglab.org/mezaj/gencode.v40.basic.annotation.bb",
       },
       metadata: {},
     },

@@ -1,6 +1,6 @@
 # Gene
 
-Use `geneModule` for transcript annotations in a standard BigGenePred BigBed file. Pack shows each transcript separately. Squish combines transcripts from the same gene into one interval.
+Use `geneModule` for transcript annotations in a standard BigGenePred BigBed file. Pack shows each transcript's exon structure. Squish combines transcripts from the same gene into one interval.
 
 ## Minimal track
 
@@ -16,13 +16,13 @@ const track = geneModule.create({
 
 ## Displays and base defaults
 
-| Field     | Supported or default           | Behavior                                                                    |
-| --------- | ------------------------------ | --------------------------------------------------------------------------- |
-| `display` | `"pack"` (default), `"squish"` | Pack draws one rectangle per transcript. Squish draws one per grouped gene. |
-| `height`  | `12`                           | The renderer replaces this with packed row count times `rowHeight`.         |
-| `color`   | `"#4b9560"`                    | Fill color for transcript and gene rectangles.                              |
+| Field     | Supported or default           | Behavior                                                                      |
+| --------- | ------------------------------ | ----------------------------------------------------------------------------- |
+| `display` | `"pack"` (default), `"squish"` | Pack draws transcript parts. Squish draws one rectangle per grouped gene.     |
+| `height`  | `12`                           | The renderer replaces this with packed row count times `rowHeight`.           |
+| `color`   | `"#4b9560"`                    | Fill color for exon segments and grouped genes, and stroke color for introns. |
 
-The MVP deliberately renders rectangles without labels. Both displays pack non-overlapping intervals into shared row slots. The default 12-pixel row leaves vertical space around each rectangle.
+Pack draws each intron as a line with chevrons pointing in the transcript's strand direction, and each exon as one or more rectangles. For a coding transcript, intersection with the half-open `thickStart`–`thickEnd` interval produces tall CDS segments; exon sequence outside that interval produces shorter UTR segments classified as 5-prime or 3-prime from the transcript strand. When `thickStart` equals `thickEnd`, every exon is a shorter noncoding-exon segment. Squish remains a simple grouped-gene rectangle. Neither display renders labels. Both displays pack non-overlapping transcript or gene spans into shared row slots.
 
 ## Config
 
@@ -47,7 +47,7 @@ The reader parses numeric fields and comma-separated block arrays. It preserves 
 
 Squish groups records by chromosome, strand, and `geneName`. Some BigGenePred producers repeat the transcript `name` in `geneName`; when that happens or `geneName` is empty, the track falls back to `geneName2`, `name2`, and then the transcript `name`. A grouped interval spans the minimum transcript start through the maximum transcript end. The display name prefers `geneName2`.
 
-Click, hover, and leave callbacks receive a `GeneTranscript` in pack mode and a `GroupedGene` in squish mode. These objects keep genomic coordinates; pixel coordinates are used only to place SVG rectangles. Each transcript also retains its complete parsed BED12+8 record in `source`, including block arrays and any extra trailing fields. The tooltip shows the genomic location, strand, and transcript identifier or transcript count.
+Click, hover, and leave callbacks receive a `GeneTranscript` in pack mode and a `GroupedGene` in squish mode. Pack uses one transparent, full-row hit target across the visible transcript span, so an interaction applies to the whole transcript rather than an individual intron, direction mark, or exon segment. Direction marks and biological parts do not receive pointer events. These objects keep genomic coordinates; pixel coordinates are used only to place SVG elements. Each transcript also retains its complete parsed BED12+8 record in `source`, including block arrays and any extra trailing fields. The tooltip shows the genomic location, strand, and transcript identifier or transcript count.
 
 ## Exported types
 

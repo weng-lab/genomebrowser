@@ -6,6 +6,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const runtime = vi.hoisted(() => ({
   onClick: vi.fn(),
+  onHover: vi.fn(),
+  onLeave: vi.fn(),
+  tooltipShow: vi.fn(),
+  tooltipHide: vi.fn(),
   useRowLayout: vi.fn((_trackId: string, rowCount: number, config: { rowHeight: number }) => ({
     rowHeight: config.rowHeight,
     trackHeight: Math.max(1, rowCount) * config.rowHeight,
@@ -14,8 +18,12 @@ const runtime = vi.hoisted(() => ({
 
 vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
-  useInteraction: () => ({ onClick: runtime.onClick }),
-  useTooltip: () => ({ hide: vi.fn(), show: vi.fn() }),
+  useInteraction: () => ({
+    onClick: runtime.onClick,
+    onHover: runtime.onHover,
+    onLeave: runtime.onLeave,
+  }),
+  useTooltip: () => ({ hide: runtime.tooltipHide, show: runtime.tooltipShow }),
 }));
 
 vi.mock("../../src/shared/layout", async (importOriginal) => ({
@@ -29,11 +37,28 @@ import type { GeneData, GeneTranscript } from "../../src/gene/types";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
-const firstTranscript = transcript("tx1", "gene1", 100, 180);
+const firstTranscript = transcript("tx1", "gene1", 100, 180, {
+  strand: "-",
+  exons: [
+    { start: 100, end: 120, frame: 0 },
+    { start: 150, end: 180, frame: 1 },
+  ],
+  thickStart: 110,
+  thickEnd: 170,
+});
 const data: GeneData = [
   firstTranscript,
-  transcript("tx2", "gene1", 120, 200),
-  transcript("tx3", "gene2", 300, 350),
+  transcript("tx2", "gene1", 120, 200, {
+    strand: "-",
+    thickStart: 120,
+    thickEnd: 120,
+  }),
+  transcript("tx3", "gene2", 300, 350, {
+    exons: [
+      { start: 300, end: 315, frame: 0 },
+      { start: 335, end: 350, frame: 1 },
+    ],
+  }),
 ];
 const props = {
   id: "genes",
@@ -50,6 +75,10 @@ let root: Root;
 
 beforeEach(() => {
   runtime.onClick.mockClear();
+  runtime.onHover.mockClear();
+  runtime.onLeave.mockClear();
+  runtime.tooltipShow.mockClear();
+  runtime.tooltipHide.mockClear();
   runtime.useRowLayout.mockClear();
   container = document.createElement("div");
   document.body.append(container);
@@ -62,15 +91,60 @@ afterEach(() => {
 });
 
 describe("Gene rendering", () => {
-  it("renders one unlabeled rectangle per transcript and preserves genomic interaction data", () => {
+  it("renders distinct transcript parts without labels", () => {
     render(<PackGene {...props} />);
 
-    const rectangles = interactiveRectangles();
-    expect(rectangles).toHaveLength(3);
+    expect(container.querySelectorAll('[data-gene-part="intron"]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-gene-part="utr"]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-gene-part="cds"]')).toHaveLength(4);
+    expect(container.querySelectorAll('[data-gene-part="noncoding-exon"]')).toHaveLength(1);
+    const directionMarks = Array.from(container.querySelectorAll("[data-intron-direction-mark]"));
+    expect(directionMarks).toHaveLength(2);
+    expect(directionMarks.map((mark) => mark.getAttribute("points"))).toEqual([
+      "138,5 135,8 138,11",
+      "322,5 325,8 322,11",
+    ]);
+    expect(directionMarks.every((mark) => mark.getAttribute("pointer-events") === "none")).toBe(
+      true,
+    );
+    expect(directionMarks.every((mark) => !mark.hasAttribute("data-gene-part"))).toBe(true);
+    expect(
+      container
+        .querySelector('[data-gene-part="utr"][data-exon-index="0"]')
+        ?.getAttribute("data-transcription-index"),
+    ).toBe("1");
+    expect(
+      Array.from(container.querySelectorAll('[data-gene-part="utr"]')).map((part) =>
+        part.getAttribute("data-utr-side"),
+      ),
+    ).toEqual(["3-prime", "5-prime"]);
     expect(container.querySelector("text")).toBeNull();
-    act(() => rectangles[0]!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  });
+
+  it("uses one generous transcript hit target for click, hover, tooltip, and leave behavior", () => {
+    render(<PackGene {...props} />);
+
+    const part = container.querySelector('[data-gene-part="cds"]')!;
+    const directionMark = container.querySelector("[data-intron-direction-mark]")!;
+    const hitTarget = container.querySelector<SVGRectElement>("[data-transcript-hit-target]")!;
+    expect(part.getAttribute("pointer-events")).toBe("none");
+    expect(hitTarget.getAttribute("x")).toBe("100");
+    expect(hitTarget.getAttribute("width")).toBe("80");
+    expect(hitTarget.getAttribute("height")).toBe("16");
+
+    act(() => part.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    act(() => directionMark.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(runtime.onClick).not.toHaveBeenCalled();
+    act(() => hitTarget.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     expect(runtime.onClick).toHaveBeenCalledWith(firstTranscript);
     expect(runtime.onClick.mock.calls[0]![0]).toMatchObject({ start: 100, end: 180 });
+
+    act(() => hitTarget.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    expect(runtime.onHover).toHaveBeenCalledWith(firstTranscript);
+    expect(runtime.tooltipShow).toHaveBeenCalledWith(firstTranscript, expect.anything());
+    act(() => hitTarget.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+    expect(runtime.onLeave).toHaveBeenCalledWith(firstTranscript);
+    expect(runtime.tooltipHide).toHaveBeenCalledOnce();
   });
 
   it("groups transcripts by gene in squish mode before packing rows", () => {
@@ -99,34 +173,42 @@ function transcript(
   geneId: string,
   start: number,
   end: number,
+  options: {
+    strand?: "+" | "-";
+    exons?: GeneTranscript["exons"];
+    thickStart?: number;
+    thickEnd?: number;
+  } = {},
 ): GeneTranscript {
+  const strand = options.strand ?? "+";
+  const exons = options.exons ?? [{ start, end, frame: 0 }];
   return {
     kind: "transcript",
     chromosome: "chr1",
     start,
     end,
-    strand: "+",
+    strand,
     transcriptId,
     geneId,
     geneName: geneId,
-    exons: [{ start, end, frame: 0 }],
+    exons,
     source: {
       chromosome: "chr1",
       start,
       end,
       name: transcriptId,
       score: 0,
-      strand: "+",
-      thickStart: start,
-      thickEnd: end,
+      strand,
+      thickStart: options.thickStart ?? start,
+      thickEnd: options.thickEnd ?? end,
       reserved: "0",
-      blockCount: 1,
-      blockSizes: [end - start],
-      chromStarts: [0],
+      blockCount: exons.length,
+      blockSizes: exons.map((exon) => exon.end - exon.start),
+      chromStarts: exons.map((exon) => exon.start - start),
       name2: transcriptId,
       cdsStartStat: "cmpl",
       cdsEndStat: "cmpl",
-      exonFrames: [0],
+      exonFrames: exons.map((exon) => exon.frame),
       type: "coding",
       geneName: geneId,
       geneName2: geneId,

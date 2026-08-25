@@ -50,7 +50,7 @@ const useTrackStore = createTrackStore({
       title: "GENCODE genes",
       color: "#355f75",
       display: "squish",
-      config: { url: "http://127.0.0.1:8765/gencode.v40.basic.annotation.bb" },
+      config: { url: "https://users.wenglab.org/mezaj/gencode.v40.basic.annotation.bb" },
     }),
   ],
 });
