@@ -18,6 +18,7 @@ import { readBbiZoomHeaders, type BbiZoomHeader } from "./internal/bbi/zoomHeade
 import type { ExactRangeMetadata } from "./internal/httpRange";
 import { validateHttpUrl, validateRegion } from "./internal/inputValidation";
 import { RequestRangeReader } from "./internal/requestRangeReader";
+import type { ByteOrder } from "./internal/binaryReader";
 
 export type BigWigFileOptions = {
   url: string;
@@ -40,17 +41,13 @@ export type BigWigSummaryRecord = GenomicRecord & {
 
 export type BigWigRecord = BigWigValueRecord | BigWigSummaryRecord;
 
-export type BigWigResolution =
-  | { mode: "unzoomed" }
-  | { mode: "auto"; basesPerPixel: number }
-  | { mode: "level"; reductionLevel: number };
-
-export type BigWigReadOptions = ReadOptions & {
-  resolution?: BigWigResolution;
-};
-
-export interface BigWigFile extends GenomicFile<BigWigRecord> {
-  read(region: GenomicRegion, options?: BigWigReadOptions): Promise<BigWigRecord[]>;
+export interface BigWigFile extends GenomicFile<BigWigValueRecord> {
+  read(region: GenomicRegion, options?: ReadOptions): Promise<BigWigValueRecord[]>;
+  readZoomLevel(
+    region: GenomicRegion,
+    reductionLevel: number,
+    options?: ReadOptions,
+  ): Promise<BigWigSummaryRecord[]>;
   getZoomLevels(options?: ReadOptions): Promise<readonly number[]>;
 }
 
@@ -64,44 +61,18 @@ type BigWigMetadataCache = {
   rangeMetadata: ExactRangeMetadata;
 };
 
-type SelectedResolution =
-  | { mode: "unzoomed"; indexOffset: bigint }
-  | { mode: "zoom"; indexOffset: bigint };
-
-function validateResolution(resolution: BigWigResolution | undefined): BigWigResolution {
-  if (resolution === undefined) return { mode: "unzoomed" };
-  if (resolution === null || typeof resolution !== "object") {
-    throw new TypeError("BigWig resolution must be an object");
+function validateReductionLevel(reductionLevel: number): number {
+  if (
+    typeof reductionLevel !== "number" ||
+    !Number.isFinite(reductionLevel) ||
+    !Number.isInteger(reductionLevel)
+  ) {
+    throw new TypeError("BigWig reductionLevel must be a finite integer");
   }
-
-  if (resolution.mode === "unzoomed") return resolution;
-  if (resolution.mode === "auto") {
-    if (
-      typeof resolution.basesPerPixel !== "number" ||
-      !Number.isFinite(resolution.basesPerPixel)
-    ) {
-      throw new TypeError("BigWig basesPerPixel must be a finite number");
-    }
-    if (resolution.basesPerPixel <= 0) {
-      throw new RangeError("BigWig basesPerPixel must be greater than zero");
-    }
-    return resolution;
+  if (reductionLevel <= 0) {
+    throw new RangeError("BigWig reductionLevel must be greater than zero");
   }
-  if (resolution.mode === "level") {
-    if (
-      typeof resolution.reductionLevel !== "number" ||
-      !Number.isFinite(resolution.reductionLevel) ||
-      !Number.isInteger(resolution.reductionLevel)
-    ) {
-      throw new TypeError("BigWig reductionLevel must be a finite integer");
-    }
-    if (resolution.reductionLevel <= 0) {
-      throw new RangeError("BigWig reductionLevel must be greater than zero");
-    }
-    return resolution;
-  }
-
-  throw new TypeError("Unsupported BigWig resolution mode");
+  return reductionLevel;
 }
 
 async function loadHeader(
@@ -152,54 +123,25 @@ async function loadZoomHeaders(
   return zoomHeaders;
 }
 
-async function selectResolution(
-  url: string,
-  header: BbiHeader,
-  cache: BigWigMetadataCache,
-  resolution: BigWigResolution,
-  requestReader: RequestRangeReader,
+type BlockDecoder<RecordType extends BigWigRecord> = (
+  bytes: Uint8Array,
+  byteOrder: ByteOrder,
+  chromosomeId: number,
+  chromosome: string,
+  regionStart: number,
+  regionEnd: number,
   signal?: AbortSignal,
-): Promise<SelectedResolution> {
-  if (resolution.mode === "unzoomed") {
-    return { mode: "unzoomed", indexOffset: header.unzoomedIndexOffset };
-  }
+) => RecordType[];
 
-  const zoomHeaders = await loadZoomHeaders(url, header, cache, requestReader, signal);
-  if (resolution.mode === "level") {
-    const selected = zoomHeaders.find(
-      (zoomHeader) => zoomHeader.reductionLevel === resolution.reductionLevel,
-    );
-    if (selected === undefined) {
-      throw new RangeError(
-        `BigWig reduction level ${resolution.reductionLevel} is not available in this file`,
-      );
-    }
-    return { mode: "zoom", indexOffset: selected.indexOffset };
-  }
-
-  let selected: BbiZoomHeader | undefined;
-  for (const zoomHeader of zoomHeaders) {
-    if (
-      zoomHeader.reductionLevel <= resolution.basesPerPixel &&
-      (selected === undefined || zoomHeader.reductionLevel > selected.reductionLevel)
-    ) {
-      selected = zoomHeader;
-    }
-  }
-  return selected === undefined
-    ? { mode: "unzoomed", indexOffset: header.unzoomedIndexOffset }
-    : { mode: "zoom", indexOffset: selected.indexOffset };
-}
-
-async function readBigWig(
+async function readRecords<RecordType extends BigWigRecord>(
   url: string,
   cache: BigWigMetadataCache,
   region: GenomicRegion,
-  options?: BigWigReadOptions,
-): Promise<BigWigRecord[]> {
+  zoom: { reductionLevel: number } | undefined,
+  decodeBlock: BlockDecoder<RecordType>,
+  signal?: AbortSignal,
+): Promise<RecordType[]> {
   validateRegion(region);
-  const resolution = validateResolution(options?.resolution);
-  const signal = options?.signal;
   throwIfAborted(signal);
 
   const rangeOptions = { signal, metadata: cache.rangeMetadata };
@@ -209,7 +151,22 @@ async function readBigWig(
       : new RequestRangeReader(url, rangeOptions);
   throwIfAborted(signal);
   const header = await loadHeader(url, cache, requestReader, signal);
-  const selected = await selectResolution(url, header, cache, resolution, requestReader, signal);
+
+  let indexOffset: bigint;
+  if (zoom === undefined) {
+    indexOffset = header.unzoomedIndexOffset;
+  } else {
+    const zoomHeaders = await loadZoomHeaders(url, header, cache, requestReader, signal);
+    const selected = zoomHeaders.find(
+      (zoomHeader) => zoomHeader.reductionLevel === zoom.reductionLevel,
+    );
+    if (selected === undefined) {
+      throw new RangeError(
+        `BigWig reduction level ${zoom.reductionLevel} is not available in this file`,
+      );
+    }
+    indexOffset = selected.indexOffset;
+  }
   throwIfAborted(signal);
 
   let chromosome: Chromosome | undefined;
@@ -229,28 +186,28 @@ async function readBigWig(
   }
   if (chromosome === undefined) return [];
 
-  let rTreeHeader = cache.rTreeHeaders.get(selected.indexOffset);
-  let rTreeRoot = cache.rTreeRoots.get(selected.indexOffset);
+  let rTreeHeader = cache.rTreeHeaders.get(indexOffset);
+  let rTreeRoot = cache.rTreeRoots.get(indexOffset);
   if (rTreeHeader === undefined) {
     const bootstrap = await bootstrapPrimaryRTree(
       url,
       header,
-      selected.indexOffset,
+      indexOffset,
       rangeOptions,
       requestReader,
     );
     throwIfAborted(signal);
     rTreeHeader = bootstrap.tree;
     rTreeRoot = bootstrap.root;
-    cache.rTreeHeaders.set(selected.indexOffset, rTreeHeader);
-    if (rTreeRoot !== undefined) cache.rTreeRoots.set(selected.indexOffset, rTreeRoot);
+    cache.rTreeHeaders.set(indexOffset, rTreeHeader);
+    if (rTreeRoot !== undefined) cache.rTreeRoots.set(indexOffset, rTreeRoot);
   } else {
     throwIfAborted(signal);
   }
   if (rTreeRoot === undefined && rTreeHeader.itemCount > 0n) {
     rTreeRoot = await readPrimaryRTreeRoot(url, header, rTreeHeader, rangeOptions, requestReader);
     throwIfAborted(signal);
-    cache.rTreeRoots.set(selected.indexOffset, rTreeRoot);
+    cache.rTreeRoots.set(indexOffset, rTreeRoot);
   }
 
   const blocks = await readBbiDataBlocks(
@@ -264,29 +221,19 @@ async function readBigWig(
   );
   throwIfAborted(signal);
 
-  const records: BigWigRecord[] = [];
+  const records: RecordType[] = [];
   for (const block of blocks) {
     throwIfAborted(signal);
     records.push(
-      ...(selected.mode === "unzoomed"
-        ? decodeBigWigValueBlock(
-            block.bytes,
-            header.byteOrder,
-            chromosome.id,
-            region.chromosome,
-            region.start,
-            region.end,
-            signal,
-          )
-        : decodeBigWigZoomBlock(
-            block.bytes,
-            header.byteOrder,
-            chromosome.id,
-            region.chromosome,
-            region.start,
-            region.end,
-            signal,
-          )),
+      ...decodeBlock(
+        block.bytes,
+        header.byteOrder,
+        chromosome.id,
+        region.chromosome,
+        region.start,
+        region.end,
+        signal,
+      ),
     );
     throwIfAborted(signal);
   }
@@ -295,6 +242,27 @@ async function readBigWig(
   const sortedRecords = stableSortBigWigRecords(records);
   throwIfAborted(signal);
   return sortedRecords;
+}
+
+async function readUnzoomedValues(
+  url: string,
+  cache: BigWigMetadataCache,
+  region: GenomicRegion,
+  signal?: AbortSignal,
+): Promise<BigWigValueRecord[]> {
+  return readRecords(url, cache, region, undefined, decodeBigWigValueBlock, signal);
+}
+
+async function readZoomSummaries(
+  url: string,
+  cache: BigWigMetadataCache,
+  region: GenomicRegion,
+  reductionLevel: number,
+  signal?: AbortSignal,
+): Promise<BigWigSummaryRecord[]> {
+  validateRegion(region);
+  validateReductionLevel(reductionLevel);
+  return readRecords(url, cache, region, { reductionLevel }, decodeBigWigZoomBlock, signal);
 }
 
 export function createBigWigFile(options: BigWigFileOptions): BigWigFile {
@@ -311,7 +279,10 @@ export function createBigWigFile(options: BigWigFileOptions): BigWigFile {
 
   return {
     read(region, readOptions) {
-      return readBigWig(url, cache, region, readOptions);
+      return readUnzoomedValues(url, cache, region, readOptions?.signal);
+    },
+    readZoomLevel(region, reductionLevel, readOptions) {
+      return readZoomSummaries(url, cache, region, reductionLevel, readOptions?.signal);
     },
     async getZoomLevels(readOptions) {
       const signal = readOptions?.signal;

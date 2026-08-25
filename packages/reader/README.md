@@ -13,8 +13,7 @@ npm install @weng-lab/genomic-reader@alpha zod
 
 ## Read a BigWig file
 
-Create a file synchronously, then read source signal values for a region. Omitting `resolution`
-requests unzoomed source values:
+Create a file synchronously, then read source signal values for a region:
 
 ```ts
 import { createBigWigFile } from "@weng-lab/genomic-reader";
@@ -30,19 +29,17 @@ const records = await file.read({
 BigWig files can also contain lossy zoom summaries for wider views. A reduction level is a
 file-declared genomic summary scale measured in bases; larger levels are coarser. Sparse data and
 summary boundaries mean records need not each span exactly that many bases. Discover the available
-levels or let the reader select one from the display resolution:
+levels, then read summaries from one of them:
 
 ```ts
 const region = { chromosome: "chr1", start: 0, end: 1_000_000 };
-const viewportWidth = 1_000;
 
 const zoomLevels = await file.getZoomLevels();
-const displayRecords = await file.read(region, {
-  resolution: {
-    mode: "auto",
-    basesPerPixel: (region.end - region.start) / viewportWidth,
-  },
-});
+const coarsestLevel = zoomLevels.at(-1);
+
+if (coarsestLevel !== undefined) {
+  const displayRecords = await file.readZoomLevel(region, coarsestLevel);
+}
 ```
 
 Value and summary records use a `kind` discriminant. Summaries expose every stored statistic plus a
@@ -148,10 +145,10 @@ never returns partial results for these failures.
 ## Public API
 
 - `createBigWigFile({ url })`: synchronously configures a BigWig file without making a request. Its
-  `read()` method returns source values by default and can select stored zoom summaries; its
-  `getZoomLevels()` method discovers the available reduction levels.
-- `BigWigFileOptions`, `BigWigFile`, `BigWigReadOptions`, and `BigWigResolution`: BigWig factory,
-  file, read-option, and resolution contracts.
+  `read()` method returns source values, its `readZoomLevel()` method returns stored zoom summaries
+  for an exact declared reduction level, and its `getZoomLevels()` method discovers the available
+  reduction levels.
+- `BigWigFileOptions` and `BigWigFile`: BigWig factory and file contracts.
 - `BigWigRecord`, `BigWigValueRecord`, and `BigWigSummaryRecord`: the discriminated BigWig result
   types.
 - `createBigBedFile({ url, schema })`: synchronously configures a BigBed file. It performs no network

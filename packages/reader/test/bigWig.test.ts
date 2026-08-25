@@ -4,13 +4,11 @@ import {
   createBigWigFile,
   type BigWigFile,
   type BigWigFileOptions,
-  type BigWigReadOptions,
-  type BigWigRecord,
-  type BigWigResolution,
   type BigWigSummaryRecord,
   type BigWigValueRecord,
   type GenomicFile,
   type GenomicRecord,
+  type GenomicRegion,
   type ReadOptions,
 } from "../src/lib";
 import { parseBbiHeader } from "../src/internal/bbi/commonHeader";
@@ -91,9 +89,16 @@ describe("createBigWigFile", () => {
     const file = createBigWigFile(options);
 
     expectTypeOf(file).toEqualTypeOf<BigWigFile>();
-    expectTypeOf(file).toMatchTypeOf<GenomicFile<BigWigRecord>>();
-    expectTypeOf<BigWigReadOptions>().toEqualTypeOf<
-      ReadOptions & { resolution?: BigWigResolution }
+    expectTypeOf(file).toMatchTypeOf<GenomicFile<BigWigValueRecord>>();
+    expectTypeOf(file.read).toEqualTypeOf<
+      (region: GenomicRegion, options?: ReadOptions) => Promise<BigWigValueRecord[]>
+    >();
+    expectTypeOf(file.readZoomLevel).toEqualTypeOf<
+      (
+        region: Parameters<BigWigFile["read"]>[0],
+        reductionLevel: number,
+        options?: ReadOptions,
+      ) => Promise<BigWigSummaryRecord[]>
     >();
     expectTypeOf<BigWigValueRecord>().toEqualTypeOf<
       GenomicRecord & { kind: "value"; value: number }
@@ -108,11 +113,6 @@ describe("createBigWigFile", () => {
         sumSquares: number;
         mean: number;
       }
-    >();
-    expectTypeOf<BigWigResolution>().toEqualTypeOf<
-      | { mode: "unzoomed" }
-      | { mode: "auto"; basesPerPixel: number }
-      | { mode: "level"; reductionLevel: number }
     >();
     expect(fetchMock).not.toHaveBeenCalled();
 
@@ -134,10 +134,7 @@ describe("createBigWigFile", () => {
       const file = createBigWigFile({ url });
       const observed = [
         ...(await file.read({ chromosome: "chr1", start: 0, end: 12_000 })),
-        ...(await file.read(
-          { chromosome: "chr2", start: 0, end: 9_000 },
-          { resolution: { mode: "unzoomed" } },
-        )),
+        ...(await file.read({ chromosome: "chr2", start: 0, end: 9_000 })),
       ];
       expect(observed).toEqual(sourceRecords);
 
@@ -151,50 +148,29 @@ describe("createBigWigFile", () => {
     }
   });
 
-  it("discovers levels and applies every automatic and exact selection boundary", async () => {
+  it("discovers levels and reads every exact reduction level", async () => {
     installFixtureFetch();
     const file = createBigWigFile({ url });
     const region = { chromosome: "chr1", start: 0, end: 12_000 };
     const levels = [656, 2_624, 10_496, 41_984] as const;
 
     await expect(file.getZoomLevels()).resolves.toEqual(levels);
-    const exact = new Map<number, BigWigRecord[]>();
     for (const reductionLevel of levels) {
-      const records = await file.read(region, {
-        resolution: { mode: "level", reductionLevel },
-      });
+      const records = await file.readZoomLevel(region, reductionLevel);
       expect(records.length).toBeGreaterThan(0);
       expect(records.every((record) => record.kind === "summary")).toBe(true);
-      exact.set(reductionLevel, records);
+      await expect(file.readZoomLevel(region, reductionLevel)).resolves.toEqual(records);
     }
 
-    await expect(
-      file.read(region, { resolution: { mode: "auto", basesPerPixel: 655 } }),
-    ).resolves.toEqual(recordsForRegion("chr1", 0, 12_000));
-    await expect(
-      file.read(region, { resolution: { mode: "auto", basesPerPixel: 656 } }),
-    ).resolves.toEqual(exact.get(656));
-    await expect(
-      file.read(region, { resolution: { mode: "auto", basesPerPixel: 2_000 } }),
-    ).resolves.toEqual(exact.get(656));
-    await expect(
-      file.read(region, { resolution: { mode: "auto", basesPerPixel: 2_624 } }),
-    ).resolves.toEqual(exact.get(2_624));
-    await expect(
-      file.read(region, { resolution: { mode: "auto", basesPerPixel: 100_000 } }),
-    ).resolves.toEqual(exact.get(41_984));
-
-    await expect(
-      file.read(region, { resolution: { mode: "level", reductionLevel: 657 } }),
-    ).rejects.toThrow("is not available");
+    await expect(file.readZoomLevel(region, 657)).rejects.toThrow("is not available");
   });
 
   it("preserves every stored zoom statistic and the exact query chromosome", async () => {
     for (const bytes of [fixture, uncompressedFixture]) {
       installFixtureFetch(bytes);
-      const records = await createBigWigFile({ url }).read(
+      const records = await createBigWigFile({ url }).readZoomLevel(
         { chromosome: "chr1", start: 0, end: 1_969 },
-        { resolution: { mode: "level", reductionLevel: 656 } },
+        656,
       );
 
       expect(records).toEqual([
@@ -254,27 +230,17 @@ describe("createBigWigFile", () => {
       { chromosome: "chr1", start: 2, end: 1 },
     ]) {
       await expect(file.read(region)).rejects.toThrow(RangeError);
-    }
-    for (const basesPerPixel of [NaN, Infinity, "1"]) {
-      await expect(
-        file.read(validRegion, {
-          resolution: { mode: "auto", basesPerPixel: basesPerPixel as never },
-        }),
-      ).rejects.toThrow(TypeError);
+      await expect(file.readZoomLevel(region, 656)).rejects.toThrow(RangeError);
     }
     await expect(
-      file.read(validRegion, { resolution: { mode: "auto", basesPerPixel: 0 } }),
+      file.readZoomLevel({ chromosome: "chr1", start: -1, end: 1 }, "656" as never),
     ).rejects.toThrow(RangeError);
     for (const reductionLevel of [1.5, Infinity, "656"]) {
-      await expect(
-        file.read(validRegion, {
-          resolution: { mode: "level", reductionLevel: reductionLevel as never },
-        }),
-      ).rejects.toThrow(TypeError);
+      await expect(file.readZoomLevel(validRegion, reductionLevel as never)).rejects.toThrow(
+        TypeError,
+      );
     }
-    await expect(
-      file.read(validRegion, { resolution: { mode: "level", reductionLevel: 0 } }),
-    ).rejects.toThrow(RangeError);
+    await expect(file.readZoomLevel(validRegion, 0)).rejects.toThrow(RangeError);
     expect(fetchMock).not.toHaveBeenCalled();
 
     const noZoomFixture = Uint8Array.from(fixture);
@@ -286,12 +252,8 @@ describe("createBigWigFile", () => {
     installFixtureFetch(noZoomFixture);
     const noZoomFile = createBigWigFile({ url });
     await expect(noZoomFile.getZoomLevels()).resolves.toEqual([]);
-    await expect(
-      noZoomFile.read(validRegion, { resolution: { mode: "auto", basesPerPixel: 100_000 } }),
-    ).resolves.toEqual(recordsForRegion("chr1", 0, 100));
-    await expect(
-      noZoomFile.read(validRegion, { resolution: { mode: "level", reductionLevel: 656 } }),
-    ).rejects.toThrow("is not available");
+    await expect(noZoomFile.read(validRegion)).resolves.toEqual(recordsForRegion("chr1", 0, 100));
+    await expect(noZoomFile.readZoomLevel(validRegion, 656)).rejects.toThrow("is not available");
 
     installFixtureFetch(bigBedFixture);
     const wrongFormatFile = createBigWigFile({ url });
@@ -335,14 +297,13 @@ describe("createBigWigFile", () => {
     expect(requestedRanges(fetchMock)).toEqual([...warmUnzoomedRanges, ...warmUnzoomedRanges]);
 
     fetchMock.mockClear();
-    const zoomOptions = { resolution: { mode: "level", reductionLevel: 656 } } as const;
-    const coldZoomResult = await file.read(region, zoomOptions);
+    const coldZoomResult = await file.readZoomLevel(region, 656);
     const firstZoomRanges = requestedRanges(fetchMock);
     expect(firstZoomRanges[0]).toBe(zoomIndexRange);
     const zoomQueryRanges = firstZoomRanges.slice(1);
     expect(zoomQueryRanges.length).toBeGreaterThan(0);
     fetchMock.mockClear();
-    const warmZoomResult = await file.read(region, zoomOptions);
+    const warmZoomResult = await file.readZoomLevel(region, 656);
     const warmZoomRanges = requestedRanges(fetchMock);
     expect(warmZoomResult).toEqual(coldZoomResult);
     expect(warmZoomRanges).toEqual(zoomQueryRanges);
@@ -360,12 +321,12 @@ describe("createBigWigFile", () => {
     await expect(file.read({ chromosome: "missing", start: 0, end: 100 })).resolves.toEqual([]);
     expect(fetchMock).not.toHaveBeenCalled();
 
-    await createBigWigFile({ url }).read(region, zoomOptions);
+    await createBigWigFile({ url }).readZoomLevel(region, 656);
     expect(requestedRanges(fetchMock)).toEqual([prefixRange, ...firstZoomRanges]);
 
     fetchMock.mockClear();
     await expect(
-      createBigWigFile({ url }).read({ chromosome: "missing", start: 0, end: 100 }, zoomOptions),
+      createBigWigFile({ url }).readZoomLevel({ chromosome: "missing", start: 0, end: 100 }, 656),
     ).resolves.toEqual([]);
     expect(requestedRanges(fetchMock)).toEqual([prefixRange]);
   });
@@ -488,6 +449,11 @@ describe("createBigWigFile", () => {
         { chromosome: "chr1", start: 0, end: 100 },
         { signal: preAbortedController.signal },
       ),
+    ).rejects.toBe(preAbortedReason);
+    await expect(
+      concurrentFile.readZoomLevel({ chromosome: "chr1", start: 0, end: 100 }, 656, {
+        signal: preAbortedController.signal,
+      }),
     ).rejects.toBe(preAbortedReason);
     expect(fetchMock).not.toHaveBeenCalled();
   });
