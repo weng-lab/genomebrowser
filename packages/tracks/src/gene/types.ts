@@ -1,0 +1,66 @@
+import type { TrackInteraction } from "@weng-lab/genomebrowser";
+import type { RowLayoutConfig } from "../shared/layout";
+
+export type GeneDisplay = "pack" | "squish";
+export type GeneConfig = RowLayoutConfig & { url: string };
+export type GeneStrand = "+" | "-";
+export type BigGenePredCdsStatus = "none" | "unk" | "incmpl" | "cmpl";
+
+/** The complete standard BED12+8 record from which a transcript was derived. */
+export type BigGenePredSource = {
+  chromosome: string;
+  start: number;
+  end: number;
+  name: string;
+  score: number;
+  strand: GeneStrand;
+  thickStart: number;
+  thickEnd: number;
+  reserved: string;
+  blockCount: number;
+  blockSizes: number[];
+  chromStarts: number[];
+  name2: string;
+  cdsStartStat: BigGenePredCdsStatus;
+  cdsEndStat: BigGenePredCdsStatus;
+  exonFrames: number[];
+  type: string;
+  geneName: string;
+  geneName2: string;
+  geneType: string;
+  fields: string[];
+};
+
+export type GeneExon = {
+  start: number;
+  end: number;
+  frame: -1 | 0 | 1 | 2;
+};
+
+export type GeneTranscript = {
+  kind: "transcript";
+  chromosome: string;
+  start: number;
+  end: number;
+  strand: GeneStrand;
+  transcriptId: string;
+  geneId: string;
+  geneName: string;
+  exons: GeneExon[];
+  source: BigGenePredSource;
+};
+
+export type GroupedGene = {
+  kind: "gene";
+  chromosome: string;
+  start: number;
+  end: number;
+  strand: GeneStrand;
+  geneId: string;
+  geneName: string;
+  transcripts: GeneTranscript[];
+};
+
+export type GeneFeature = GeneTranscript | GroupedGene;
+export type GeneData = GeneTranscript[];
+export type GeneInteraction = TrackInteraction<GeneFeature, GeneConfig>;

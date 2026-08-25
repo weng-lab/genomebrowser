@@ -46,6 +46,10 @@
       "types": "./dist/src/ccre/index.d.ts",
       "import": "./dist/ccre.js"
     },
+    "./gene": {
+      "types": "./dist/src/gene/index.d.ts",
+      "import": "./dist/gene.js"
+    },
     "./methylc": {
       "types": "./dist/src/methylc/index.d.ts",
       "import": "./dist/methylc.js"

@@ -1,6 +1,6 @@
 # @weng-lab/genomebrowser-tracks
 
-First-party track modules for `@weng-lab/genomebrowser`. The package includes BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, MethylC, and Transcript modules. Each one provides its data fetcher, renderer, MUI settings, and SVG tooltip.
+First-party track modules for `@weng-lab/genomebrowser`. The package includes BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, Gene, MethylC, and Transcript modules. Each one provides its data fetcher, renderer, MUI settings, and SVG tooltip.
 
 The public API may change during the alpha release.
 

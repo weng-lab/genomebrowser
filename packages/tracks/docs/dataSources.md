@@ -4,7 +4,7 @@ Use this page when a track accepts its configuration but cannot load data. It co
 
 ## BigBed and BigWig sources
 
-BigBed and BigWig readers request selected byte ranges instead of downloading a whole file. This applies to BigBed, cCRE BigBed, BulkBed, BigWig, and non-empty MethylC channel URLs.
+BigBed and BigWig readers request selected byte ranges instead of downloading a whole file. This applies to BigBed, cCRE BigBed, BulkBed, Gene, BigWig, and non-empty MethylC channel URLs.
 
 Check the failed request in your browser's network panel:
 

@@ -16,16 +16,14 @@ const geneTracks = {
   ],
   tracks: [
     {
-      type: "transcript",
+      type: "gene",
       id: "genes",
       title: "GENCODE genes",
       display: "squish",
       height: 60,
       color: "#444444",
       config: {
-        endpoint: "/api/screen-graphql",
-        assembly: "GRCh38",
-        version: 40,
+        url: "http://127.0.0.1:8765/gencode.v40.basic.annotation.bb",
       },
       metadata: {},
     },
