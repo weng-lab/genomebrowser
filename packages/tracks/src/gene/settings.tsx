@@ -1,4 +1,6 @@
+import TextField from "@mui/material/TextField";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
@@ -18,6 +20,28 @@ export function GeneSettings({ track, updateTrack }: TrackSettingsProps<GeneConf
               required
               value={track.config.url}
               onCommit={(url) => updateTrack({ config: { url } })}
+            />
+          </TrackSettingsFullRow>
+        </TrackSettingsFieldGrid>
+      </TrackSettingsSection>
+      <TrackSettingsSection title="Gene highlighting">
+        <TrackSettingsFieldGrid>
+          <TrackSettingsFullRow>
+            <TextField
+              fullWidth
+              label="Highlight gene"
+              size="small"
+              value={track.config.geneName ?? ""}
+              onChange={(event) =>
+                updateTrack({ config: { geneName: event.target.value || undefined } })
+              }
+            />
+          </TrackSettingsFullRow>
+          <TrackSettingsFullRow>
+            <TrackSettingsColorField
+              label="Highlight color"
+              value={track.config.highlightColor}
+              onCommit={(highlightColor) => updateTrack({ config: { highlightColor } })}
             />
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>

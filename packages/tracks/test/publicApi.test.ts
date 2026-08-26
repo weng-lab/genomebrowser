@@ -97,6 +97,7 @@ describe("first-party track package", () => {
       ).config,
     ).toMatchObject({ topColor: "#000000", bottomColor: "#000000" });
     expect(geneModule.create(input("gene", { url: "YOUR_URL_HERE" })).config).toMatchObject({
+      highlightColor: "#000000",
       rowHeight: 12,
     });
     expect(

@@ -5,10 +5,12 @@ import { packRows, useRowLayout } from "../shared/layout";
 import { createCompositeGeneGeometry, createGeneTranscriptGeometry } from "./geometry";
 import { GeneGlyph } from "./glyph";
 import { groupTranscriptsByGene } from "./helpers";
+import { createGeneLabelLayout, type GeneLabelLayout } from "./labels";
 import type { GeneConfig, GeneData, GeneFeature, GeneTranscript, GroupedGene } from "./types";
 
 const interactionBoundsColor = "#ff1744";
 const interactionBoundsOpacity = 0.25;
+const maximumLabelFontSize = 10;
 
 export function PackGene(props: TrackRendererProps<GeneConfig, GeneData>) {
   return <GeneRows {...props} features={props.data} />;
@@ -31,11 +33,18 @@ function GeneRows({
   const visibleFeatures = features.filter(
     (feature) => feature.end > region.start && feature.start < region.end,
   );
+  const labelFontSize = Math.min(maximumLabelFontSize, config.rowHeight);
+  const items = visibleFeatures.map((feature) => {
+    const start = x(feature.start);
+    const end = x(feature.end);
+    const label = createGeneLabelLayout(featureLabel(feature), start, end, width, labelFontSize);
+    return { feature, label, start, end };
+  });
   const rows = packRows(
-    visibleFeatures,
-    (feature) => ({
-      start: x(feature.start),
-      end: x(feature.end),
+    items,
+    (item) => ({
+      start: Math.min(item.start, item.label?.start ?? item.start),
+      end: Math.max(item.end, item.label?.end ?? item.end),
     }),
     { gap: 4 },
   );
@@ -47,10 +56,13 @@ function GeneRows({
     <g>
       <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
       {rows.map((row, rowIndex) =>
-        row.map((feature) => {
-          const start = Math.max(0, x(feature.start));
-          const end = Math.min(width, x(feature.end));
+        row.map(({ feature, label, start: featureStart, end: featureEnd }) => {
+          const start = Math.max(0, featureStart);
+          const end = Math.min(width, featureEnd);
           const rowTop = rowIndex * rowHeight;
+          const featureColor = highlighted(feature, config.geneName)
+            ? config.highlightColor
+            : color;
           const handleMouseEnter = (event: React.MouseEvent<SVGElement>) => {
             interaction?.onHover?.(feature);
             tooltip.show(feature, event);
@@ -76,7 +88,14 @@ function GeneRows({
                   width={width}
                   rowTop={rowTop}
                   rowHeight={rowHeight}
-                  color={color}
+                  color={featureColor}
+                />
+                <GeneLabel
+                  label={label}
+                  color={featureColor}
+                  fontSize={labelFontSize}
+                  rowTop={rowTop}
+                  rowHeight={rowHeight}
                 />
                 <rect
                   data-transcript-hit-target=""
@@ -103,7 +122,14 @@ function GeneRows({
                 width={width}
                 rowTop={rowTop}
                 rowHeight={rowHeight}
-                color={color}
+                color={featureColor}
+              />
+              <GeneLabel
+                label={label}
+                color={featureColor}
+                fontSize={labelFontSize}
+                rowTop={rowTop}
+                rowHeight={rowHeight}
               />
               <rect
                 data-gene-hit-target=""
@@ -123,6 +149,50 @@ function GeneRows({
         }),
       )}
     </g>
+  );
+}
+
+function GeneLabel({
+  label,
+  color,
+  fontSize,
+  rowTop,
+  rowHeight,
+}: {
+  label: GeneLabelLayout | null;
+  color: string;
+  fontSize: number;
+  rowTop: number;
+  rowHeight: number;
+}) {
+  if (!label) return null;
+  return (
+    <text
+      data-gene-label=""
+      x={label.x}
+      y={rowTop + rowHeight / 2}
+      textAnchor={label.anchor}
+      dominantBaseline="middle"
+      fill={color}
+      fontSize={fontSize}
+      pointerEvents="none"
+      style={{ userSelect: "none" }}
+    >
+      {label.text}
+    </text>
+  );
+}
+
+function featureLabel(feature: GeneFeature): string {
+  return feature.kind === "gene" ? feature.geneName : feature.source.name2 || feature.transcriptId;
+}
+
+function highlighted(feature: GeneFeature, query: string | undefined): boolean {
+  const normalizedQuery = query?.trim().toLowerCase();
+  if (!normalizedQuery) return false;
+  return (
+    feature.geneName.toLowerCase().includes(normalizedQuery) ||
+    feature.geneId.toLowerCase().includes(normalizedQuery)
   );
 }
 

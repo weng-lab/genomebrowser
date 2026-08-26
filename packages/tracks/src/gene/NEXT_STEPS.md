@@ -154,20 +154,9 @@ This topic is complete when every clickable area maps to one unambiguous typed t
 
 ## Labels
 
-Labels remain intentionally absent. The old transcript track always placed text to the right and estimated its width from character count. That caused clipping near viewport edges and wasted horizontal space during row packing.
+Labels use a separate, testable placement calculation. Pack labels transcripts with `name2` or the transcript identifier, while squish labels grouped genes by gene name. Labels prefer the right side, move to the left near the right viewport edge, and hide when neither side fits. Their estimated bounds participate in row packing, and `GeneGlyph` remains unaware of text placement.
 
-Before adding labels, decide:
-
-- Whether pack uses transcript names and squish uses gene names.
-- Whether labels can appear inside a long feature.
-- Whether an outside label prefers the right or left side.
-- When a label should be hidden because neither side has enough room.
-- Whether label width participates in row packing.
-- How labels behave when a feature is clipped by the viewport.
-
-Label placement should be a separate calculation rather than an extra `x` value appended inside `GeneGlyph`.
-
-This topic is complete when label placement and collision rules are explicit and testable.
+The current width estimate uses character count. Revisit it only if visual testing shows that proportional fonts cause meaningful collisions or unnecessary hiding.
 
 ## Temporary interaction overlay
 

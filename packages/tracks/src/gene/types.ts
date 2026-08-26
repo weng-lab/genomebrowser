@@ -2,7 +2,11 @@ import type { TrackInteraction } from "@weng-lab/genomebrowser";
 import type { RowLayoutConfig } from "../shared/layout";
 
 export type GeneDisplay = "pack" | "squish";
-export type GeneConfig = RowLayoutConfig & { url: string };
+export type GeneConfig = RowLayoutConfig & {
+  url: string;
+  geneName?: string;
+  highlightColor: string;
+};
 export type GeneStrand = "+" | "-";
 export type BigGenePredCdsStatus = "none" | "unk" | "incmpl" | "cmpl";
 

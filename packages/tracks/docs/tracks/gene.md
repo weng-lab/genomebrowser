@@ -1,6 +1,6 @@
 # Gene
 
-Use `geneModule` for transcript annotations in a standard BigGenePred BigBed file. Pack shows each transcript's exon structure. Squish combines transcripts from the same gene into one interval.
+Use `geneModule` for transcript annotations in a standard BigGenePred BigBed file. Pack shows each transcript's exon structure. Squish combines transcripts from the same gene into one interval. Both displays label features and can highlight a configured gene.
 
 ## Minimal track
 
@@ -22,16 +22,20 @@ const track = geneModule.create({
 | `height`  | `12`                           | The renderer replaces this with packed row count times `rowHeight`.       |
 | `color`   | `"#4b9560"`                    | Fill color for exon segments and stroke color for introns.                |
 
-Pack draws each intron as a line with chevrons pointing in the transcript's strand direction, and each exon as one or more rectangles. For a coding transcript, intersection with the half-open `thickStart`–`thickEnd` interval produces tall CDS segments; exon sequence outside that interval produces shorter UTR segments classified as 5-prime or 3-prime from the transcript strand. When `thickStart` equals `thickEnd`, every exon is a shorter noncoding-exon segment. Squish uses the same visual parts and heights for a composite gene. Neither display renders labels. Both displays pack non-overlapping transcript or gene spans into shared row slots.
+Pack draws each intron as a line with chevrons pointing in the transcript's strand direction, and each exon as one or more rectangles. For a coding transcript, intersection with the half-open `thickStart`–`thickEnd` interval produces tall CDS segments; exon sequence outside that interval produces shorter UTR segments classified as 5-prime or 3-prime from the transcript strand. When `thickStart` equals `thickEnd`, every exon is a shorter noncoding-exon segment. Squish uses the same visual parts and heights for a composite gene. Both displays pack non-overlapping transcript or gene spans into shared row slots.
+
+Pack labels each feature with `name2`, falling back to its transcript identifier. Squish uses the grouped gene name. A label appears to the right when space permits, otherwise to the left; it is hidden when neither side fits inside the viewport. Label bounds participate in row packing.
 
 ## Config
 
-| Option      | Type     | Default  | Description                                                      |
-| ----------- | -------- | -------- | ---------------------------------------------------------------- |
-| `url`       | `string` | Required | Non-empty BigGenePred BigBed URL. Changing it requests new data. |
-| `rowHeight` | `number` | `12`     | Complete vertical row slot. Must be finite and at least 1 pixel. |
+| Option           | Type     | Default     | Description                                                      |
+| ---------------- | -------- | ----------- | ---------------------------------------------------------------- |
+| `url`            | `string` | Required    | Non-empty BigGenePred BigBed URL. Changing it requests new data. |
+| `geneName`       | `string` | None        | Case-insensitive gene name or identifier substring to highlight. |
+| `highlightColor` | `string` | `"#000000"` | Color used for matching glyphs and labels.                       |
+| `rowHeight`      | `number` | `12`        | Complete vertical row slot. Must be finite and at least 1 pixel. |
 
-The Gene-specific settings panel provides the required URL field. The shared base settings provide display, color, height, and row-height controls.
+The Gene-specific settings panel provides the required URL field and gene highlighting controls. The shared base settings provide display, color, height, and row-height controls.
 
 ## Source requirements
 
@@ -49,14 +53,14 @@ Squish groups records by chromosome, strand, and `geneName`. Some BigGenePred pr
 
 The squish composite is the union of the grouped transcripts' parts. Exon coverage replaces overlapping intron coverage. Conflicting exon categories resolve in this order: CDS, UTR, then noncoding exon. Each resulting metadata atom records the winning parts by transcript ID, category, and UTR side. It separately retains overridden parts with the same information, while displayed contributor IDs and UTR-side sets describe only the winning category. Adjacent atoms merge only when their category and complete winning and overridden metadata are equal. Adjacent intron atoms still form one visual baseline and direction-mark run, so metadata boundaries do not interrupt the strand marks.
 
-Click, hover, and leave callbacks receive a `GeneTranscript` in pack mode and a `GroupedGene` in squish mode. Each item uses one transparent, full-row hit target across its visible span, so an interaction applies to the whole transcript or grouped gene rather than an individual intron, direction mark, or exon segment. Direction marks and biological parts do not receive pointer events. These objects keep genomic coordinates; pixel coordinates are used only to place SVG elements. Each transcript also retains its complete parsed BED12+8 record in `source`, including block arrays and any extra trailing fields. The tooltip shows the genomic location, strand, and transcript identifier or transcript count.
+Click, hover, and leave callbacks receive a `GeneTranscript` in pack mode and a `GroupedGene` in squish mode. Each item uses one full-row hit target across its visible span, so an interaction applies to the whole transcript or grouped gene rather than an individual intron, direction mark, or exon segment. The hit target is currently red and partially opaque to expose its bounds during development. Direction marks and biological parts do not receive pointer events. These objects keep genomic coordinates; pixel coordinates are used only to place SVG elements. Each transcript also retains its complete parsed BED12+8 record in `source`, including block arrays and any extra trailing fields. The tooltip shows the genomic location, strand, and transcript identifier or transcript count.
 
 ## Exported types
 
 | Export                 | Description                                                                 |
 | ---------------------- | --------------------------------------------------------------------------- |
 | `GeneCreateInput`      | Input accepted by `geneModule.create`.                                      |
-| `GeneConfig`           | Parsed config with `url` and `rowHeight`.                                   |
+| `GeneConfig`           | Parsed source, highlighting, and row-layout configuration.                  |
 | `GeneDisplay`          | `"pack" \| "squish"`.                                                       |
 | `GeneData`             | Array of parsed `GeneTranscript` records returned by the fetcher.           |
 | `GeneFeature`          | `GeneTranscript \| GroupedGene`, the interaction and tooltip item type.     |

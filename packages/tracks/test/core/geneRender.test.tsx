@@ -84,7 +84,7 @@ const data: GeneData = [
 const props = {
   id: "genes",
   color: "#4b9560",
-  config: { url: "YOUR_URL_HERE", rowHeight: 16 },
+  config: { url: "YOUR_URL_HERE", highlightColor: "#000000", rowHeight: 16 },
   data,
   region: { chromosome: "chr1", start: 0, end: 500 },
   width: 500,
@@ -114,7 +114,7 @@ afterEach(() => {
 });
 
 describe("Gene rendering", () => {
-  it("renders distinct transcript parts without labels", () => {
+  it("renders distinct transcript parts with transcript labels", () => {
     render(<PackGene {...props} />);
 
     expect(container.querySelectorAll('[data-gene-part="intron"]')).toHaveLength(2);
@@ -141,7 +141,11 @@ describe("Gene rendering", () => {
         part.getAttribute("data-utr-side"),
       ),
     ).toEqual(["3-prime", "5-prime"]);
-    expect(container.querySelector("text")).toBeNull();
+    expect(
+      Array.from(container.querySelectorAll("[data-gene-label]"))
+        .map((label) => label.textContent)
+        .toSorted(),
+    ).toEqual(["tx1", "tx2", "tx3"]);
   });
 
   it("uses one generous transcript hit target for click, hover, tooltip, and leave behavior", () => {
@@ -190,7 +194,30 @@ describe("Gene rendering", () => {
     expect(container.querySelector("[data-intron-direction-mark]")?.getAttribute("points")).toBe(
       "322,5 325,8 322,11",
     );
-    expect(container.querySelector("text")).toBeNull();
+    expect(
+      Array.from(container.querySelectorAll("[data-gene-label]")).map((label) => label.textContent),
+    ).toEqual(["gene1", "gene2"]);
+  });
+
+  it("highlights matching genes and their labels case-insensitively", () => {
+    render(
+      <PackGene
+        {...props}
+        config={{ ...props.config, geneName: "GENE1", highlightColor: "#123456" }}
+      />,
+    );
+
+    const labels = Array.from(container.querySelectorAll<SVGTextElement>("[data-gene-label]"));
+    expect(
+      labels
+        .map((label) => [label.textContent, label.getAttribute("fill")])
+        .toSorted(([left], [right]) => left!.localeCompare(right!)),
+    ).toEqual([
+      ["tx1", "#123456"],
+      ["tx2", "#123456"],
+      ["tx3", props.color],
+    ]);
+    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
   });
 
   it("uses one gene-level target for composite click, hover, tooltip, and leave behavior", () => {

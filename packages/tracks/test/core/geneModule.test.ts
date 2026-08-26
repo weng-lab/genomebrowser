@@ -11,6 +11,7 @@ vi.mock("@weng-lab/genomic-reader", async (importOriginal) => ({
 import { fetchGene, parseBigGenePredRecord } from "../../src/gene/fetch";
 import { geneModule } from "../../src/gene";
 import { bigGenePredSchema } from "../../src/gene/schema";
+import type { GeneConfig } from "../../src/gene/types";
 
 const rawFields = {
   name: "ENST000001",
@@ -57,12 +58,14 @@ function context(
   url: string,
   resources: TrackResources,
   region: GenomicRegion,
-): TrackFetchContext<{
-  url: string;
-  rowHeight: number;
-}> {
+): TrackFetchContext<GeneConfig> {
   return {
-    track: { id: "genes", type: "gene", display: "pack", config: { url, rowHeight: 12 } },
+    track: {
+      id: "genes",
+      type: "gene",
+      display: "pack",
+      config: { url, highlightColor: "#000000", rowHeight: 12 },
+    },
     demand: { assembly: { id: "test", chromosomes: { chr17: 1_000 } }, region, width: 100 },
     resources,
   };
@@ -155,7 +158,7 @@ describe("Gene module", () => {
     expect(track).toMatchObject({
       type: "gene",
       base: { display: "pack", height: 12, color: "#4b9560" },
-      config: { url: "YOUR_URL_HERE", rowHeight: 12 },
+      config: { url: "YOUR_URL_HERE", highlightColor: "#000000", rowHeight: 12 },
     });
     expect(geneModule.settingsComponent).toBeTypeOf("function");
     expect(geneModule.tooltipComponent).toBeTypeOf("function");
