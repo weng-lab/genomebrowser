@@ -25,6 +25,8 @@ export function TrackControls({
   const index = order.indexOf(trackId);
   const canMoveTop = !isInteractionBlocked && index > 0;
   const canMoveBottom = !isInteractionBlocked && index >= 0 && index < order.length - 1;
+  const controlsCenterY = wrapperHeight / 2;
+  const iconY = controlsCenterY - 7.5;
 
   const moveTrack = (target: "top" | "bottom") => {
     const nextOrder = order.filter((id) => id !== trackId);
@@ -49,18 +51,12 @@ export function TrackControls({
       >
         <circle
           cx={marginWidth / 10 + 7.5}
-          cy={wrapperHeight / 2 + 10}
+          cy={controlsCenterY}
           r={7.5}
           strokeWidth={0}
           fill="transparent"
         />
-        <SettingsIcon
-          x={marginWidth / 10}
-          y={wrapperHeight / 2 + 3}
-          height={15}
-          width={15}
-          fill="#000000"
-        />
+        <SettingsIcon x={marginWidth / 10} y={iconY} height={15} width={15} fill="#000000" />
       </g>
       <g
         onClick={canMoveTop ? () => moveTrack("top") : undefined}
@@ -69,14 +65,14 @@ export function TrackControls({
       >
         <circle
           cx={marginWidth / 10 + 22.5}
-          cy={wrapperHeight / 2 + 10}
+          cy={controlsCenterY}
           r={7.5}
           strokeWidth={0}
           fill="transparent"
         />
         <TopIcon
           x={marginWidth / 10 + 15}
-          y={wrapperHeight / 2 + 3}
+          y={iconY}
           height={15}
           width={15}
           fill={canMoveTop ? "#000000" : "#cccccc"}
@@ -89,14 +85,14 @@ export function TrackControls({
       >
         <circle
           cx={marginWidth / 10 + 37.5}
-          cy={wrapperHeight / 2 + 10}
+          cy={controlsCenterY}
           r={7.5}
           strokeWidth={0}
           fill="transparent"
         />
         <BottomIcon
           x={marginWidth / 10 + 30}
-          y={wrapperHeight / 2 + 2}
+          y={iconY}
           height={15}
           width={15}
           fill={canMoveBottom ? "#000000" : "#cccccc"}
