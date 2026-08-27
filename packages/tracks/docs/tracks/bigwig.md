@@ -32,7 +32,7 @@ const track = bigWigModule.create({
 | `showClampIndicators` | `boolean`                        | `true`      | Shows boundary marks for values clipped by the resolved range in full display.                               |
 | `clampIndicatorColor` | `string`                         | `"#ff0000"` | Six-digit hexadecimal color for upper and lower clamp marks.                                                 |
 
-Display settings reuse current data. Only a `url` change requests data again. If one Y-range override conflicts with the automatic range, the renderer uses the full automatic range for that render. Dense display does not draw clamp indicators.
+Display settings reuse current data. Only a `url` change requests data again. The automatic Y-axis range comes from signal in the visible viewport. Signal in the larger overscanned render region remains available for panning and is clipped to that range; full display marks clipped values with clamp indicators. If one Y-range override conflicts with the automatic range, the renderer uses the full automatic range for that render. Dense display does not draw clamp indicators.
 
 Use `bigWigModule.configSchema` to validate config and `bigWigModule.createInputSchema` to validate the full create input.
 

@@ -115,6 +115,73 @@ describe("BigWig module", () => {
     expect(markup).toContain('d="M 0 40 L 0 40 L 0 0 L 1 0 L 1 40"');
   });
 
+  it("derives the automatic range from the viewport and clamps overscan signal", () => {
+    const FullRenderer = bigWigModule.render.full;
+    const markup = renderToStaticMarkup(
+      <FullRenderer
+        id="signal"
+        color="#2266aa"
+        config={{ ...createTrack().config, clampIndicatorColor: "#123456" }}
+        data={[
+          { kind: "value", chromosome: "chr1", start: 0, end: 20, value: 10 },
+          { kind: "value", chromosome: "chr1", start: 40, end: 60, value: 1 },
+        ]}
+        visibleRegion={{ chromosome: "chr1", start: 40, end: 60 }}
+        region={{ chromosome: "chr1", start: 0, end: 100 }}
+        width={5}
+        height={80}
+      />,
+    );
+
+    expect(markup).toContain(
+      '<path d="M 0.5 0 l 0 2 " stroke="#123456" stroke-width="1" fill="none"></path>',
+    );
+    expect(markup).toContain("L 2 0 L 3 0");
+  });
+
+  it("uses the viewport range for dense signal intensity", () => {
+    const DenseRenderer = bigWigModule.render.dense;
+    const markup = renderToStaticMarkup(
+      <DenseRenderer
+        id="signal"
+        color="#2266aa"
+        config={createTrack().config}
+        data={[
+          { kind: "value", chromosome: "chr1", start: 0, end: 20, value: 10 },
+          { kind: "value", chromosome: "chr1", start: 40, end: 60, value: 1 },
+        ]}
+        visibleRegion={{ chromosome: "chr1", start: 40, end: 60 }}
+        region={{ chromosome: "chr1", start: 0, end: 100 }}
+        width={5}
+        height={80}
+      />,
+    );
+
+    expect(markup.match(/fill="#2266aa"/g)).toHaveLength(2);
+  });
+
+  it("includes missing viewport pixels in the range when filling with zero", () => {
+    const FullRenderer = bigWigModule.render.full;
+    const markup = renderToStaticMarkup(
+      <FullRenderer
+        id="signal"
+        color="#2266aa"
+        config={{ ...createTrack().config, fillWithZero: true }}
+        data={[
+          { kind: "value", chromosome: "chr1", start: 40, end: 45, value: 2 },
+          { kind: "value", chromosome: "chr1", start: 55, end: 60, value: 4 },
+        ]}
+        visibleRegion={{ chromosome: "chr1", start: 40, end: 60 }}
+        region={{ chromosome: "chr1", start: 0, end: 100 }}
+        width={50}
+        height={80}
+      />,
+    );
+
+    expect(markup).toContain('<line x1="0" x2="50" y1="80" y2="80"');
+    expect(markup).toContain("L 20 40 L 21 40");
+  });
+
   it("hides both full-mode indicators without changing clipped signal geometry", () => {
     const markup = renderFull({
       ...createTrack().config,
