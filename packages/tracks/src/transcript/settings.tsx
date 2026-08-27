@@ -23,8 +23,8 @@ export function TranscriptSettings({ track, updateTrack }: TranscriptSettingsPro
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
             <EndpointField
+              disabled={track.source === "host"}
               endpoint={config.endpoint}
-              readOnly={track.settingsPolicy === "managed"}
               updateTrack={updateTrack}
             />
           </TrackSettingsFullRow>
@@ -64,19 +64,19 @@ export function TranscriptSettings({ track, updateTrack }: TranscriptSettingsPro
 }
 
 function EndpointField({
+  disabled,
   endpoint,
-  readOnly,
   updateTrack,
 }: {
+  disabled: boolean;
   endpoint: string;
-  readOnly: boolean;
   updateTrack: TranscriptSettingsProps["updateTrack"];
 }) {
   return (
     <TrackSettingsUrlField
       label="Endpoint"
       placeholder={defaultScreenGraphQlEndpoint}
-      readOnly={readOnly}
+      disabled={disabled}
       required
       value={endpoint}
       onCommit={(value) => updateTrack({ config: { endpoint: value.trim() } })}

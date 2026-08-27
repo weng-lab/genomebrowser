@@ -11,7 +11,7 @@ export type TrackBase = {
   color: string;
 };
 
-export type TrackSettingsPolicy = "editable" | "managed";
+export type TrackSource = "host" | "user";
 
 export type TrackRuntimeContext<Config = unknown> = Readonly<{
   type: string;
@@ -44,7 +44,7 @@ export type TrackCreateInput<ConfigInput, Display extends string = string> = {
   display?: Display;
   height?: number;
   color?: string;
-  settingsPolicy?: TrackSettingsPolicy;
+  source?: TrackSource;
   config: ConfigInput;
 };
 
@@ -52,7 +52,7 @@ export type TrackInstance<Config, InteractionItem = unknown> = {
   type: string;
   base: TrackBase;
   config: Config;
-  settingsPolicy: TrackSettingsPolicy;
+  source: TrackSource;
   interaction?: TrackInteraction<InteractionItem, Config>;
 };
 
@@ -117,7 +117,7 @@ export type ReadonlyTrackInstance<Config, InteractionItem = unknown> = Readonly<
   type: string;
   base: Readonly<TrackBase>;
   config: Config extends object ? Readonly<Config> : Config;
-  settingsPolicy: TrackSettingsPolicy;
+  source: TrackSource;
   interaction?: Readonly<TrackInteraction<InteractionItem, Config>>;
 }>;
 
@@ -147,7 +147,7 @@ export type TrackCreateInputSchema<
     display: z.ZodDefault<z.ZodType<Display, Display>>;
     height: z.ZodDefault<z.ZodNumber>;
     color: z.ZodOptional<z.ZodString>;
-    settingsPolicy: z.ZodDefault<z.ZodType<TrackSettingsPolicy, TrackSettingsPolicy>>;
+    source: z.ZodDefault<z.ZodType<TrackSource, TrackSource>>;
     config: ConfigSchema;
   },
   z.core.$strict
@@ -191,7 +191,7 @@ export type AnyTrackInstance = {
   type: string;
   base: TrackBase;
   config: Record<string, unknown>;
-  settingsPolicy: TrackSettingsPolicy;
+  source: TrackSource;
   interaction?: AnyTrackInteraction;
 };
 export type ModuleCreateInput<M extends AnyTrackModule> = z.input<M["createInputSchema"]>;

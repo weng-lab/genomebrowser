@@ -31,7 +31,7 @@ export function getReconciledTracks({
     const entry = collectionTracksById.get(id)!;
     const track = {
       ...(existingTrack ?? createTrackFromEntry(registry, { ...entry.track, id })),
-      settingsPolicy: "managed" as const,
+      source: "host" as const,
     };
     if (!resolveTrackInteraction) return track;
 

@@ -40,8 +40,8 @@ function SignalSettings({ track, updateTrack }: TrackSettingsProps<BigWigConfig,
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
             <TrackSettingsUrlField
+              disabled={track.source === "host"}
               label="BigWig URL"
-              readOnly={track.settingsPolicy === "managed"}
               required
               value={track.config.url}
               onCommit={(url) => updateTrack({ config: { url } })}
@@ -72,7 +72,7 @@ export const signalTrack = signalModule.create({
 });
 ```
 
-Register `signalModule` and `signalTrack` with the track store. Core supplies `TrackSettingsProps`. The `track` value is a current, shallow read-only view of the complete track. Its `settingsPolicy` is `"editable"` for ordinary module-created tracks and can be `"managed"` for tracks whose source belongs to the application. Apply the managed policy only to data-source controls. Keep source values visible with `readOnly` and leave unrelated settings editable. `updateTrack` is already bound to that track's ID.
+Register `signalModule` and `signalTrack` with the track store. Core supplies `TrackSettingsProps`. The `track` value is a current, shallow read-only view of the complete track. Its `source` is `"user"` by default and can be `"host"` when the embedding application controls the data source. Disable only the data-source controls for host-source tracks, and leave unrelated settings enabled. `updateTrack` is already bound to that track's ID.
 
 Send edits through `updateTrack` as the fields accept them. It accepts optional shallow `base`, `config`, and `interaction` patches in one validated mutation. The full mutation succeeds or fails as a unit. Replace a complete nested object or array when changing one of its values.
 
@@ -102,4 +102,4 @@ The shared range and color components include their own error associations, keyb
 
 ## First-party settings
 
-First-party modules already include their track-specific settings panels. Their URL fields honor `track.settingsPolicy`, including modules with several data sources. Track title, display, color, height, and non-source config remain editable for managed tracks. These panels use the controls documented here but are not standalone exports. The `/shared` entry exports `TrackBaseSettings` for shared base fields and all components in the [settings component API](trackSettingsApi.md).
+First-party modules already include their track-specific settings panels. Their URL fields are visibly disabled when `track.source` is `"host"`, including modules with several data sources. Track title, display, color, height, and non-source config remain editable. These panels use the controls documented here but are not standalone exports. The `/shared` entry exports `TrackBaseSettings` for shared base fields and all components in the [settings component API](trackSettingsApi.md).

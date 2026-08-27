@@ -388,7 +388,7 @@ describe("TrackSelect session workflow", () => {
     expect(setup.onClose).toHaveBeenCalledOnce();
   });
 
-  it("reuses an existing reserved track with the managed settings policy", async () => {
+  it("forces a reused reserved track to use the host source", async () => {
     const existingTrack = annotationModule.create({
       id: "alpha::one",
       title: "Unrelated annotation",
@@ -401,9 +401,7 @@ describe("TrackSelect session workflow", () => {
 
     await act(async () => result.current.actions.submitSelection());
 
-    expect(setup.store.getState().tracks).toEqual([
-      { ...existingTrack, settingsPolicy: "managed" },
-    ]);
+    expect(setup.store.getState().tracks).toEqual([{ ...existingTrack, source: "host" }]);
     expect(setup.onClose).toHaveBeenCalledOnce();
   });
 

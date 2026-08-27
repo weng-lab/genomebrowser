@@ -73,6 +73,6 @@ function makeTrack(id: string, height: number): TrackInstance<{}> {
       color: "#000000",
     },
     config: {},
-    settingsPolicy: "editable",
+    source: "user",
   };
 }

@@ -21,7 +21,7 @@ type ParsedCreateInput<ConfigSchema extends TrackConfigSchema, Display extends s
   display: Display;
   height: number;
   color?: string;
-  settingsPolicy: "editable" | "managed";
+  source: "host" | "user";
   config: z.output<ConfigSchema>;
 };
 
@@ -137,7 +137,7 @@ function createTrackModule<
       .positive()
       .default(definition.defaults?.height ?? 80),
     color: hexColorSchema.optional(),
-    settingsPolicy: z.enum(["editable", "managed"]).default("editable"),
+    source: z.enum(["host", "user"]).default("user"),
     config: configSchema,
   }) as TrackCreateInputSchema<ConfigSchema, DisplayKey<Renderers>>;
 
@@ -145,7 +145,7 @@ function createTrackModule<
     type: z.literal(definition.type),
     base: fullBaseSchema,
     config: configSchema,
-    settingsPolicy: z.enum(["editable", "managed"]),
+    source: z.enum(["host", "user"]),
     interaction: interactionSchema.optional(),
   });
   validateModuleDefaults(definition.type, definition.defaults, defaultDisplay, fullBaseSchema);
@@ -178,7 +178,7 @@ function createTrackModule<
           color: parsed.color ?? definition.defaults?.color ?? "#000000",
         },
         config: parsed.config,
-        settingsPolicy: parsed.settingsPolicy,
+        source: parsed.source,
         ...(parsedInteraction ? { interaction: parsedInteraction } : {}),
       };
 

@@ -58,7 +58,6 @@ When config contains a finite `rowHeight` of at least 1, the component shows adj
 | `normalize`    | `(value: string) => string`                       | Identity        | Transforms a locally valid draft before comparison and commit.                |
 | `onCommit`     | `(value: string) => TrackMutationResult`          | Required        | Attempts to persist a validated, normalized value.                            |
 | `placeholder`  | `string`                                          | None            | Example or hint shown when the draft is empty. It does not replace the label. |
-| `readOnly`     | `boolean`                                         | `false`         | Keeps the value focusable and selectable but prevents editing and commits.    |
 | `required`     | `boolean`                                         | `false`         | Marks the field required. Validation remains controlled by `validate`.        |
 | `type`         | `"text" \| "url"`                                 | `"text"`        | Sets the native input type.                                                   |
 | `validate`     | `(value: string) => string \| undefined`          | Required        | Returns an error for an invalid raw draft or `undefined` when it may commit.  |
@@ -84,10 +83,10 @@ This component uses a text input so partial numeric drafts such as `-` and `1.` 
 
 | Prop          | Type                                   | Default  | Description                                          |
 | ------------- | -------------------------------------- | -------- | ---------------------------------------------------- |
+| `disabled`    | `boolean`                              | `false`  | Visibly disables editing and commit interactions.    |
 | `label`       | `string`                               | `"URL"`  | Visible MUI field label and accessible name.         |
 | `onCommit`    | `(url: string) => TrackMutationResult` | Required | Attempts to persist the draft URL string.            |
 | `placeholder` | `string`                               | None     | Example or hint shown when the draft is empty.       |
-| `readOnly`    | `boolean`                              | `false`  | Keeps the URL visible and selectable without edits.  |
 | `required`    | `boolean`                              | `false`  | Rejects a blank or whitespace-only URL when enabled. |
 | `value`       | `string`                               | Required | Current accepted URL string.                         |
 

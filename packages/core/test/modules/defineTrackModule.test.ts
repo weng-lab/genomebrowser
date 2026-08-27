@@ -59,7 +59,7 @@ describe("defineTrackModule", () => {
         url: "YOUR_URL_HERE",
         enabled: true,
       },
-      settingsPolicy: "editable",
+      source: "user",
     });
   });
 
@@ -76,15 +76,15 @@ describe("defineTrackModule", () => {
     ).toBe("#000000");
   });
 
-  it("accepts an explicit managed settings policy", () => {
+  it("accepts an explicit host source", () => {
     const track = module.create({
-      id: "managed-signal",
-      title: "Managed signal",
-      settingsPolicy: "managed",
+      id: "host-signal",
+      title: "Host signal",
+      source: "host",
       config: { url: "YOUR_URL_HERE" },
     });
 
-    expect(track.settingsPolicy).toBe("managed");
+    expect(track.source).toBe("host");
   });
 
   it("rejects non-hexadecimal base colors from input and validated instances", () => {

@@ -64,8 +64,8 @@ function SignalSettings({ track, updateTrack }: TrackSettingsProps<Config, Item>
       <label>
         Data URL
         <input
+          disabled={track.source === "host"}
           type="url"
-          readOnly={track.settingsPolicy === "managed"}
           value={track.config.url}
           onChange={(event) => {
             const result = updateTrack({ config: { url: event.currentTarget.value } });
@@ -116,7 +116,7 @@ export const customSignalModule = defineTrackModule<Item>()({
 });
 ```
 
-Settings components receive `{ track, updateTrack }`. `track` is the current complete, shallow read-only instance, including its type, base, parsed config, settings policy, and optional interaction callbacks. `module.create` gives ordinary and custom tracks the `"editable"` policy unless its input requests `"managed"`. When `settingsPolicy` is `"managed"`, keep application-owned data-source inputs visible and read-only while leaving unrelated settings editable. Core does not identify source fields for a module.
+Settings components receive `{ track, updateTrack }`. `track` is the current complete, shallow read-only instance, including its type, base, parsed config, source, and optional interaction callbacks. `module.create` uses `source: "user"` unless its input requests `"host"`. When `track.source` is `"host"`, disable inputs that change the data source while leaving unrelated settings enabled. Core does not identify source fields for a module.
 
 The supplied `updateTrack` is already bound to that track's ID and passes through the browser's interaction gate. Return or inspect its `TrackMutationResult` when an edit can fail. Each `base`, `config`, or `interaction` patch is shallow, so replace a complete nested object or array when changing one of its values.
 
@@ -181,7 +181,7 @@ The optional second argument contains per-instance callbacks and is not serializ
 
 ## Settings, tooltip, and interactions
 
-Module settings use `TrackSettingsProps<Config, Item>` as their input contract. Read current values and `settingsPolicy` from `track`, then submit live edits through the supplied `updateTrack`. One update may contain optional shallow `base`, `config`, and `interaction` patches; core validates the complete candidate once and commits all supplied sections or none. The browser still renders the standard title, display, color, and height controls separately, so module settings should render only module-specific config controls.
+Module settings use `TrackSettingsProps<Config, Item>` as their input contract. Read current values and `source` from `track`, then submit live edits through the supplied `updateTrack`. One update may contain optional shallow `base`, `config`, and `interaction` patches; core validates the complete candidate once and commits all supplied sections or none. The browser still renders the standard title, display, color, and height controls separately, so module settings should render only module-specific config controls.
 
 The renderer decides what semantic item a click or hover represents. `useInteraction<Item>()` returns item-only handlers because the browser binds the current runtime context. `useTooltip<Item, Config>()` reads that same context and opens the module's browser-positioned `tooltipComponent` with `{ item, context }`. Renderers do not pass a type or config to either hook. Both hooks require the renderer to run inside `GenomeBrowser`.
 

@@ -1,10 +1,6 @@
 // @vitest-environment jsdom
 
-import type {
-  TrackMutationResult,
-  TrackSettingsPolicy,
-  TrackUpdate,
-} from "@weng-lab/genomebrowser";
+import type { TrackMutationResult, TrackSource, TrackUpdate } from "@weng-lab/genomebrowser";
 import { bigWigModule, type BigWigConfig } from "@weng-lab/genomebrowser-tracks/bigwig";
 import type { SignalPoint } from "@weng-lab/genomebrowser-tracks/shared";
 import { act } from "react";
@@ -46,14 +42,13 @@ describe("BigWig settings", () => {
     expect(getInput("Clamp indicator color").value).toBe("#FF0000");
     expect(getInput("Clamp indicator color").required).toBe(true);
     expect(getOptionalButton("Clear Clamp indicator color")).toBeUndefined();
-    expect(getInput("URL").readOnly).toBe(false);
   });
 
-  it("makes a managed source read-only without locking rendering settings", () => {
-    const updateTrack = renderSettings(config, "managed");
+  it("disables a host source without locking rendering settings", () => {
+    const updateTrack = renderSettings(config, "host");
 
-    expect(getInput("URL").readOnly).toBe(true);
-    expect(getInput("Minimum").readOnly).toBe(false);
+    expect(getInput("URL").disabled).toBe(true);
+    expect(getInput("Minimum").disabled).toBe(false);
     expect(getInput("Clamp indicator color").disabled).toBe(false);
 
     clickInput("Fill missing values with zero");
@@ -219,7 +214,7 @@ describe("BigWig settings", () => {
   });
 });
 
-function renderSettings(initialConfig = config, settingsPolicy: TrackSettingsPolicy = "editable") {
+function renderSettings(initialConfig = config, source: TrackSource = "user") {
   const updateTrack = vi.fn<
     (update: TrackUpdate<BigWigConfig, SignalPoint>) => TrackMutationResult
   >(() => ({ ok: true }));
@@ -228,7 +223,7 @@ function renderSettings(initialConfig = config, settingsPolicy: TrackSettingsPol
     title: "Signal",
     height: 80,
     color: "#2266aa",
-    settingsPolicy,
+    source,
     config: initialConfig,
   });
   container = document.createElement("div");

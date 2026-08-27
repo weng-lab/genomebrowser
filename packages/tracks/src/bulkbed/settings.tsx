@@ -46,8 +46,8 @@ export function BulkBedSettings({ track, updateTrack }: BulkBedSettingsProps) {
       <GapSettings gap={track.config.gap} updateTrack={updateTrack} />
       <BulkBedDatasetsEditor
         datasets={track.config.datasets}
+        disableUrls={track.source === "host"}
         id={track.base.id}
-        readOnlyUrls={track.settingsPolicy === "managed"}
         updateTrack={updateTrack}
       />
     </TrackSettingsLayout>
@@ -79,13 +79,13 @@ function GapSettings({
 
 function BulkBedDatasetsEditor({
   datasets,
+  disableUrls,
   id,
-  readOnlyUrls,
   updateTrack,
 }: {
   datasets: BulkBedDataset[];
+  disableUrls: boolean;
   id: string;
-  readOnlyUrls: boolean;
   updateTrack: BulkBedSettingsProps["updateTrack"];
 }) {
   const [editorState, setEditorState] = useState(() => createDatasetEditorState(datasets, id));
@@ -206,8 +206,8 @@ function BulkBedDatasetsEditor({
                 <DatasetFields
                   commitDatasetEdit={commitDatasetEdit}
                   datasets={currentDatasets}
+                  disableUrl={disableUrls}
                   index={index}
-                  readOnlyUrl={readOnlyUrls}
                 />
               </Box>
             );
@@ -231,13 +231,13 @@ function BulkBedDatasetsEditor({
 function DatasetFields({
   commitDatasetEdit,
   datasets,
+  disableUrl,
   index,
-  readOnlyUrl,
 }: {
   commitDatasetEdit: CommitDatasetEdit;
   datasets: BulkBedDataset[];
+  disableUrl: boolean;
   index: number;
-  readOnlyUrl: boolean;
 }) {
   return (
     <TrackSettingsFieldRow>
@@ -245,8 +245,8 @@ function DatasetFields({
       <DatasetUrlField
         commitDatasetEdit={commitDatasetEdit}
         datasets={datasets}
+        disabled={disableUrl}
         index={index}
-        readOnly={readOnlyUrl}
       />
     </TrackSettingsFieldRow>
   );
@@ -275,19 +275,19 @@ function DatasetNameField({
 function DatasetUrlField({
   commitDatasetEdit,
   datasets,
+  disabled,
   index,
-  readOnly,
 }: {
   commitDatasetEdit: CommitDatasetEdit;
   datasets: BulkBedDataset[];
+  disabled: boolean;
   index: number;
-  readOnly: boolean;
 }) {
   return (
     <TrackSettingsUrlField
       label="URL"
       placeholder="YOUR_URL_HERE"
-      readOnly={readOnly}
+      disabled={disabled}
       required
       value={datasets[index]?.url ?? ""}
       onCommit={(value) => updateDatasetField(commitDatasetEdit, index, "url", value)}

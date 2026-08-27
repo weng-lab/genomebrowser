@@ -2,7 +2,7 @@
 
 A track is one validated row in the browser. A registered track module supplies that row's config schema, defaults, fetching, renderers, display modes, and optional settings and tooltip components. Core owns this runtime contract but does not export curated track implementations.
 
-Every `module.create` input has a unique `id`, a `title`, optional `display`, `height`, `color`, and `settingsPolicy`, plus module-specific `config`. Track colors use case-insensitive six-digit `#RRGGBB` syntax. A module supplies a default display and may supply height and color defaults; core falls back to `80` pixels, `"#000000"`, and the `"editable"` settings policy.
+Every `module.create` input has a unique `id`, a `title`, optional `display`, `height`, `color`, and `source`, plus module-specific `config`. Track colors use case-insensitive six-digit `#RRGGBB` syntax. A module supplies a default display and may supply height and color defaults; core falls back to `80` pixels, `"#000000"`, and `source: "user"`.
 
 ## Register a module
 
@@ -50,7 +50,7 @@ const track = bigWigModule.create(
 );
 ```
 
-The resulting instance stores `type`, concrete base values, parsed config, a settings policy, and optional interaction callbacks. `module.create` defaults `settingsPolicy` to `"editable"`. Pass `settingsPolicy: "managed"` when the application owns the source. A managed policy tells settings components to keep data-source controls read-only without locking ordinary display or analysis controls.
+The resulting instance stores `type`, concrete base values, parsed config, a required `source`, and optional interaction callbacks. `module.create` defaults `source` to `"user"`. Pass `source: "host"` when the embedding application controls the track's data source. Settings components can use this field to disable source controls without disabling display or analysis controls. Core does not identify source fields or impose settings behavior.
 
 Use `module.configSchema` to parse only module config or `module.createInputSchema` to parse the complete create input. `module.validate(instance)` validates the nested runtime form.
 

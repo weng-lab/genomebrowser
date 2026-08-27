@@ -2,30 +2,30 @@ import type { TrackMutationResult } from "@weng-lab/genomebrowser";
 import { TrackSettingsTextField } from "./trackSettingsTextField";
 
 export type TrackSettingsUrlFieldProps = {
+  disabled?: boolean;
   label?: string;
   onCommit: (url: string) => TrackMutationResult;
   placeholder?: string;
-  readOnly?: boolean;
   required?: boolean;
   value: string;
 };
 
 /** A URL input for direct track data sources. */
 export function TrackSettingsUrlField({
+  disabled = false,
   label = "URL",
   onCommit,
   placeholder,
-  readOnly = false,
   required = false,
   value,
 }: TrackSettingsUrlFieldProps) {
   return (
     <TrackSettingsTextField
       autoComplete="url"
+      disabled={disabled}
       inputMode="url"
       label={label}
       placeholder={placeholder}
-      readOnly={readOnly}
       required={required}
       type="url"
       value={value}

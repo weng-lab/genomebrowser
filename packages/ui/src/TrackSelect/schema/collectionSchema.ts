@@ -39,7 +39,7 @@ export function createCollectionSchema(registry: ModuleRegistry) {
   }
 
   const entries = registry.modules.map((module) =>
-    module.createInputSchema.omit({ settingsPolicy: true }).extend({
+    module.createInputSchema.omit({ source: true }).extend({
       type: z.literal(module.type),
       metadata: z.record(z.string(), TrackSelectMetadataValueSchema).default({}),
     }),

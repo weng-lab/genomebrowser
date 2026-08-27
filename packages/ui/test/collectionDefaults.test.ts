@@ -116,11 +116,7 @@ describe("TrackSelect default track reconciliation", () => {
       "beta::one",
       "alpha::one",
     ]);
-    expect(nextTracks.map((track) => track.settingsPolicy)).toEqual([
-      "editable",
-      "managed",
-      "managed",
-    ]);
+    expect(nextTracks.map((track) => track.source)).toEqual(["user", "host", "host"]);
     expect(nextTracks[2]).not.toBe(existingDefault);
     expect(nextTracks[2]).toMatchObject({
       type: existingDefault.type,
@@ -254,7 +250,7 @@ describe("TrackSelect default track reconciliation", () => {
       base: existingTrack.base,
       config: existingTrack.config,
     });
-    expect(preserved[1]!.settingsPolicy).toBe("managed");
+    expect(preserved[1]!.source).toBe("host");
     expect(preserved[1]!.interaction).toBe(existingTrack.interaction);
 
     const replacement = { onClick: vi.fn() };
