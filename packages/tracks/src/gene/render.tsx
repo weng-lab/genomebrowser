@@ -12,11 +12,16 @@ const interactionBoundsColor = "#ff1744";
 const interactionBoundsOpacity = 0.25;
 const maximumLabelFontSize = 10;
 
-export function PackGene(props: TrackRendererProps<GeneConfig, GeneData>) {
+export function FullGene(props: TrackRendererProps<GeneConfig, GeneData>) {
   return <GeneRows {...props} features={props.data} />;
 }
 
-export function SquishGene(props: TrackRendererProps<GeneConfig, GeneData>) {
+export function CanonicalGene(props: TrackRendererProps<GeneConfig, GeneData>) {
+  const transcripts = useMemo(() => props.data.filter(isCanonicalTranscript), [props.data]);
+  return <GeneRows {...props} features={transcripts} />;
+}
+
+export function MergedGene(props: TrackRendererProps<GeneConfig, GeneData>) {
   const genes = useMemo(() => groupTranscriptsByGene(props.data), [props.data]);
   return <GeneRows {...props} features={genes} />;
 }
@@ -62,7 +67,9 @@ function GeneRows({
           const rowTop = rowIndex * rowHeight;
           const featureColor = highlighted(feature, config.geneName)
             ? config.highlightColor
-            : color;
+            : feature.kind === "transcript" && isCanonicalTranscript(feature)
+              ? config.canonicalColor
+              : color;
           const handleMouseEnter = (event: React.MouseEvent<SVGElement>) => {
             interaction?.onHover?.(feature);
             tooltip.show(feature, event);
@@ -184,7 +191,11 @@ function GeneLabel({
 }
 
 function featureLabel(feature: GeneFeature): string {
-  return feature.kind === "gene" ? feature.geneName : feature.source.name2 || feature.transcriptId;
+  return feature.kind === "gene" ? feature.geneName : feature.transcriptName;
+}
+
+function isCanonicalTranscript(transcript: GeneTranscript): boolean {
+  return transcript.tags.includes("MANE_Select");
 }
 
 function highlighted(feature: GeneFeature, query: string | undefined): boolean {

@@ -1,21 +1,28 @@
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
 import type { BigBedRecord } from "@weng-lab/genomic-reader";
 import { readCachedBigBedRows } from "../shared/cachedFiles";
-import { bigGenePredSchema } from "./schema";
-import type { BigGenePredSource, GeneConfig, GeneData, GeneExon, GeneTranscript } from "./types";
+import { bigGenePredPlusV1Schema } from "./schema";
+import type {
+  BigGenePredPlusV1Source,
+  GeneAttributes,
+  GeneConfig,
+  GeneData,
+  GeneExon,
+  GeneTranscript,
+} from "./types";
 
-type BigGenePredRecord = BigBedRecord<typeof bigGenePredSchema>;
+type BigGenePredPlusV1Record = BigBedRecord<typeof bigGenePredPlusV1Schema>;
 
 export async function fetchGene({
   track: { config },
   demand: { region },
   resources,
 }: TrackFetchContext<GeneConfig>): Promise<GeneData> {
-  const rows = await readCachedBigBedRows(resources, config.url, bigGenePredSchema, region);
-  return rows.map(parseBigGenePredRecord);
+  const rows = await readCachedBigBedRows(resources, config.url, bigGenePredPlusV1Schema, region);
+  return rows.map(parseBigGenePredPlusV1Record);
 }
 
-export function parseBigGenePredRecord(row: BigGenePredRecord): GeneTranscript {
+export function parseBigGenePredPlusV1Record(row: BigGenePredPlusV1Record): GeneTranscript {
   const label = row.name || "unnamed transcript";
   assertCoordinate(
     Number.isInteger(row.start) && row.start >= 0,
@@ -44,7 +51,7 @@ export function parseBigGenePredRecord(row: BigGenePredRecord): GeneTranscript {
     row.exonFrames.length !== row.blockCount
   ) {
     throw new Error(
-      `Invalid BigGenePred record ${label}: blockCount must match blockSizes, chromStarts, and exonFrames.`,
+      `Invalid BigGenePredPlusV1 record ${label}: blockCount must match blockSizes, chromStarts, and exonFrames.`,
     );
   }
 
@@ -90,7 +97,7 @@ export function parseBigGenePredRecord(row: BigGenePredRecord): GeneTranscript {
     "the last block must end at the transcript end",
   );
 
-  const source: BigGenePredSource = {
+  const source: BigGenePredPlusV1Source = {
     ...row,
     blockSizes: [...row.blockSizes],
     chromStarts: [...row.chromStarts],
@@ -104,16 +111,49 @@ export function parseBigGenePredRecord(row: BigGenePredRecord): GeneTranscript {
     end: row.end,
     strand: row.strand,
     transcriptId: row.name,
-    geneId:
-      row.geneName && row.geneName !== row.name
-        ? row.geneName
-        : row.geneName2 || row.name2 || row.geneName || row.name,
-    geneName: row.geneName2 || row.name2 || row.geneName || row.name,
+    transcriptName: row.name2.trim() || row.name,
+    geneId: row.geneName,
+    geneName: row.geneName2.trim() || row.geneName,
+    tags: [
+      ...new Set(
+        row.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+      ),
+    ],
+    attributes: parseAttributes(row.attributes, label),
     exons,
     source,
   };
 }
 
+function parseAttributes(value: string, label: string): GeneAttributes {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new Error(`Invalid BigGenePredPlusV1 record ${label}: attributes must be valid JSON.`);
+  }
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`Invalid BigGenePredPlusV1 record ${label}: attributes must be a JSON object.`);
+  }
+
+  const attributes: GeneAttributes = {};
+  for (const [key, attribute] of Object.entries(parsed)) {
+    if (
+      typeof attribute !== "string" &&
+      (!Array.isArray(attribute) || attribute.some((entry) => typeof entry !== "string"))
+    ) {
+      throw new Error(
+        `Invalid BigGenePredPlusV1 record ${label}: attribute values must be strings or string arrays.`,
+      );
+    }
+    attributes[key] = Array.isArray(attribute) ? [...attribute] : attribute;
+  }
+  return attributes;
+}
+
 function assertCoordinate(condition: boolean, label: string, message: string): asserts condition {
-  if (!condition) throw new Error(`Invalid BigGenePred record ${label}: ${message}.`);
+  if (!condition) throw new Error(`Invalid BigGenePredPlusV1 record ${label}: ${message}.`);
 }

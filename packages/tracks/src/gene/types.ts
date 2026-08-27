@@ -1,17 +1,20 @@
 import type { TrackInteraction } from "@weng-lab/genomebrowser";
 import type { RowLayoutConfig } from "../shared/layout";
 
-export type GeneDisplay = "pack" | "squish";
+export type GeneDisplay = "full" | "merged" | "canonical";
 export type GeneConfig = RowLayoutConfig & {
   url: string;
   geneName?: string;
+  canonicalColor: string;
   highlightColor: string;
 };
 export type GeneStrand = "+" | "-";
 export type BigGenePredCdsStatus = "none" | "unk" | "incmpl" | "cmpl";
+export type GeneAttributeValue = string | string[];
+export type GeneAttributes = Record<string, GeneAttributeValue>;
 
-/** The complete standard BED12+8 record from which a transcript was derived. */
-export type BigGenePredSource = {
+/** The complete BigGenePredPlusV1 record from which a transcript was derived. */
+export type BigGenePredPlusV1Source = {
   chromosome: string;
   start: number;
   end: number;
@@ -32,6 +35,8 @@ export type BigGenePredSource = {
   geneName: string;
   geneName2: string;
   geneType: string;
+  tags: string;
+  attributes: string;
   fields: string[];
 };
 
@@ -48,10 +53,13 @@ export type GeneTranscript = {
   end: number;
   strand: GeneStrand;
   transcriptId: string;
+  transcriptName: string;
   geneId: string;
   geneName: string;
+  tags: string[];
+  attributes: GeneAttributes;
   exons: GeneExon[];
-  source: BigGenePredSource;
+  source: BigGenePredPlusV1Source;
 };
 
 export type GroupedGene = {

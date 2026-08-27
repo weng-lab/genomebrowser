@@ -8,9 +8,9 @@ vi.mock("@weng-lab/genomic-reader", async (importOriginal) => ({
   createBigBedFile: reader.createBigBedFile,
 }));
 
-import { fetchGene, parseBigGenePredRecord } from "../../src/gene/fetch";
+import { fetchGene, parseBigGenePredPlusV1Record } from "../../src/gene/fetch";
 import { geneModule } from "../../src/gene";
-import { bigGenePredSchema } from "../../src/gene/schema";
+import { bigGenePredPlusV1Schema } from "../../src/gene/schema";
 import type { GeneConfig } from "../../src/gene/types";
 
 const rawFields = {
@@ -31,6 +31,8 @@ const rawFields = {
   geneName: "ENSG000001",
   geneName2: "TP53",
   geneType: "protein_coding",
+  tags: "MANE_Select,Ensembl_canonical,MANE_Select",
+  attributes: '{"havana_transcript":"OTTHUMT000001"}',
 } as const;
 
 function record(overrides: Record<string, unknown> = {}) {
@@ -38,7 +40,7 @@ function record(overrides: Record<string, unknown> = {}) {
     chromosome: "chr17",
     start: 100,
     end: 200,
-    ...bigGenePredSchema.parse(rawFields),
+    ...bigGenePredPlusV1Schema.parse(rawFields),
     fields: [],
     ...overrides,
   };
@@ -63,8 +65,8 @@ function context(
     track: {
       id: "genes",
       type: "gene",
-      display: "pack",
-      config: { url, highlightColor: "#000000", rowHeight: 12 },
+      display: "full",
+      config: { url, canonicalColor: "#000000", highlightColor: "#000000", rowHeight: 12 },
     },
     demand: { assembly: { id: "test", chromosomes: { chr17: 1_000 } }, region, width: 100 },
     resources,
@@ -74,8 +76,8 @@ function context(
 describe("Gene module", () => {
   beforeEach(() => reader.createBigBedFile.mockReset());
 
-  it("parses BED12+8 values into a transcript while retaining the source record", () => {
-    const transcript = parseBigGenePredRecord(record());
+  it("normalizes BigGenePredPlusV1 metadata while retaining the source record", () => {
+    const transcript = parseBigGenePredPlusV1Record(record());
 
     expect(transcript).toMatchObject({
       kind: "transcript",
@@ -83,8 +85,11 @@ describe("Gene module", () => {
       start: 100,
       end: 200,
       transcriptId: "ENST000001",
+      transcriptName: "TP53-201",
       geneId: "ENSG000001",
       geneName: "TP53",
+      tags: ["MANE_Select", "Ensembl_canonical"],
+      attributes: { havana_transcript: "OTTHUMT000001" },
       exons: [
         { start: 100, end: 120, frame: 0 },
         { start: 150, end: 200, frame: 1 },
@@ -96,12 +101,14 @@ describe("Gene module", () => {
         exonFrames: [0, 1],
         reserved: "255,0,0",
         geneType: "protein_coding",
+        tags: "MANE_Select,Ensembl_canonical,MANE_Select",
+        attributes: '{"havana_transcript":"OTTHUMT000001"}',
       },
     });
   });
 
   it("maps transcription-ordered negative-strand frames onto genomic-order exons", () => {
-    const transcript = parseBigGenePredRecord(record({ strand: "-", exonFrames: [2, 0] }));
+    const transcript = parseBigGenePredPlusV1Record(record({ strand: "-", exonFrames: [2, 0] }));
 
     expect(transcript.exons).toEqual([
       { start: 100, end: 120, frame: 0 },
@@ -109,16 +116,39 @@ describe("Gene module", () => {
     ]);
   });
 
-  it("falls back to the gene label when geneName repeats the transcript identifier", () => {
-    const transcript = parseBigGenePredRecord(
-      record({ geneName: "ENST000001", geneName2: "TP53" }),
+  it("normalizes display names and tag whitespace without changing the source fields", () => {
+    const transcript = parseBigGenePredPlusV1Record(
+      record({
+        name2: "  ",
+        geneName2: " TP53 ",
+        tags: " MANE_Select, basic,MANE_Select ",
+        attributes: '{"support":["1","2"]}',
+      }),
     );
 
-    expect(transcript).toMatchObject({ geneId: "TP53", geneName: "TP53" });
+    expect(transcript).toMatchObject({
+      transcriptName: "ENST000001",
+      geneName: "TP53",
+      tags: ["MANE_Select", "basic"],
+      attributes: { support: ["1", "2"] },
+      source: {
+        name2: "  ",
+        geneName2: " TP53 ",
+        tags: " MANE_Select, basic,MANE_Select ",
+      },
+    });
+  });
+
+  it("rejects attributes that are not a string-valued JSON object", () => {
+    expect(() => parseBigGenePredPlusV1Record(record({ attributes: '{"level":2}' }))).toThrow(
+      /attribute values must be strings or string arrays/,
+    );
   });
 
   it("rejects invalid item-RGB source values", () => {
-    expect(() => bigGenePredSchema.parse({ ...rawFields, reserved: "256,0,0" })).toThrow(/R,G,B/);
+    expect(() => bigGenePredPlusV1Schema.parse({ ...rawFields, reserved: "256,0,0" })).toThrow(
+      /R,G,B/,
+    );
   });
 
   it.each([
@@ -127,7 +157,7 @@ describe("Gene module", () => {
     ["an invalid transcript interval", { end: 100 }, /end must be greater than start/],
     ["an invalid coding interval", { thickStart: 99 }, /thickStart must be inside/],
   ])("rejects %s", (_name, overrides, message) => {
-    expect(() => parseBigGenePredRecord(record(overrides))).toThrow(message);
+    expect(() => parseBigGenePredPlusV1Record(record(overrides))).toThrow(message);
   });
 
   it("reuses the cached genomic reader for repeated file reads", async () => {
@@ -142,13 +172,13 @@ describe("Gene module", () => {
     expect(reader.createBigBedFile).toHaveBeenCalledOnce();
     expect(reader.createBigBedFile).toHaveBeenCalledWith({
       url: "https://example.org/genes.bb",
-      schema: bigGenePredSchema,
+      schema: bigGenePredPlusV1Schema,
     });
     expect(read).toHaveBeenCalledTimes(2);
     expect(read).toHaveBeenCalledWith(region);
   });
 
-  it("creates pack tracks with shared row-layout defaults and pre-bound UI", () => {
+  it("creates full tracks with shared row-layout and color defaults", () => {
     const track = geneModule.create({
       id: "genes",
       title: "Genes",
@@ -157,8 +187,13 @@ describe("Gene module", () => {
 
     expect(track).toMatchObject({
       type: "gene",
-      base: { display: "pack", height: 12, color: "#4b9560" },
-      config: { url: "YOUR_URL_HERE", highlightColor: "#000000", rowHeight: 12 },
+      base: { display: "full", height: 12, color: "#4b9560" },
+      config: {
+        url: "YOUR_URL_HERE",
+        canonicalColor: "#000000",
+        highlightColor: "#000000",
+        rowHeight: 12,
+      },
     });
     expect(geneModule.settingsComponent).toBeTypeOf("function");
     expect(geneModule.tooltipComponent).toBeTypeOf("function");

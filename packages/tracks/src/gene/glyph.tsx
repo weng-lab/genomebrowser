@@ -4,12 +4,12 @@ import type {
   GeneExonPart,
   GeneIntronPart,
 } from "./geometry";
-import type { GeneTranscript } from "./types";
+import type { GeneExon, GeneStrand } from "./types";
 
 type GeneGlyphProps = {
   introns: readonly (GeneIntronPart | CompositeGeneIntronRun)[];
   exonParts: readonly (GeneExonPart | CompositeGeneExonPart)[];
-  strand: GeneTranscript["strand"];
+  strand: GeneStrand;
   x: (position: number) => number;
   width: number;
   rowTop: number;
@@ -94,7 +94,7 @@ export function GeneGlyph({
         const height = exonHeights[part.kind];
         let exonIndex: number | undefined;
         let transcriptionIndex: number | undefined;
-        let frame: GeneTranscript["exons"][number]["frame"] | undefined;
+        let frame: GeneExon["frame"] | undefined;
         let utrSide: string | undefined;
         let contributingTranscriptIds: string | undefined;
         let utrSides: string | undefined;
@@ -168,12 +168,7 @@ function directionMarkCenters(
   return Array.from({ length: count }, (_, index) => start + actualSpacing * (index + 1));
 }
 
-function directionMarkPoints(
-  x: number,
-  y: number,
-  halfSize: number,
-  strand: GeneTranscript["strand"],
-): string {
+function directionMarkPoints(x: number, y: number, halfSize: number, strand: GeneStrand): string {
   const outerX = strand === "+" ? x - halfSize : x + halfSize;
   return `${outerX},${y - halfSize} ${x},${y} ${outerX},${y + halfSize}`;
 }

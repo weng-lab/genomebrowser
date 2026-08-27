@@ -49,8 +49,10 @@ const useTrackStore = createTrackStore({
       id: "zoom-prototype-genes",
       title: "GENCODE genes",
       color: "#355f75",
-      display: "squish",
-      config: { url: "https://users.wenglab.org/mezaj/gencode.v40.basic.annotation.bb" },
+      display: "merged",
+      config: {
+        url: "https://users.wenglab.org/mezaj/gencode.v40.comprehensive.bigGenePredPlusV1.bb",
+      },
     }),
   ],
 });

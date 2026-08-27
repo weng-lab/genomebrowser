@@ -19,11 +19,11 @@ const geneTracks = {
       type: "gene",
       id: "genes",
       title: "GENCODE genes",
-      display: "squish",
+      display: "merged",
       height: 60,
       color: "#444444",
       config: {
-        url: "https://users.wenglab.org/mezaj/gencode.v40.basic.annotation.bb",
+        url: "https://users.wenglab.org/mezaj/gencode.v40.comprehensive.bigGenePredPlusV1.bb",
       },
       metadata: {},
     },

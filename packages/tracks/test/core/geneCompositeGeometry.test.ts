@@ -190,8 +190,11 @@ function transcript(
     end,
     strand,
     transcriptId,
+    transcriptName: transcriptId,
     geneId: "gene1",
     geneName: "GENE1",
+    tags: [],
+    attributes: {},
     exons,
     source: {
       chromosome: "chr1",
@@ -214,6 +217,8 @@ function transcript(
       geneName: "gene1",
       geneName2: "GENE1",
       geneType: thickStart < thickEnd ? "protein_coding" : "noncoding",
+      tags: "",
+      attributes: "{}",
       fields: [],
     },
   };

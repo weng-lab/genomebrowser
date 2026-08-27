@@ -1,6 +1,6 @@
 # Gene track next steps
 
-This file records the design questions left open after the first BigGenePred gene track implementation. The track now fetches standard BED12+8 data, renders transcript structure in pack mode, renders a composite gene structure in squish mode, and keeps whole-feature interactions working. The old transcript track remains separate and may be removed later.
+This file records the design questions left open after the first gene track implementation. The track fetches BigGenePredPlusV1 data, renders transcript structure in full and canonical modes, renders a composite gene structure in merged mode, and keeps whole-feature interactions working. The old transcript track remains separate and may be removed later.
 
 The current implementation intentionally favors an independent gene module over shared code with the old transcript module. Revisit the topics below before adding detailed interactions or labels.
 
@@ -43,7 +43,7 @@ This topic is complete when the code names one canonical biological result and t
 
 ## Explicit render model
 
-`GeneGlyph` is now the shared drawing component. `TranscriptGlyph` and `CompositeGeneGlyph` remain explicit variants, which keeps pack and squish preparation separate.
+`GeneGlyph` is now the shared drawing component. `TranscriptGlyph` and `CompositeGeneGlyph` remain explicit variants, which keeps transcript and merged preparation separate.
 
 The glyph still distinguishes transcript metadata from composite metadata by checking object properties:
 
@@ -101,7 +101,7 @@ This topic is complete when each remaining `data-*` attribute has a concrete int
 
 ## Interaction API
 
-The current track module interaction API is difficult to understand and should be reviewed before adding part-level behavior. For now, pack callbacks receive a `GeneTranscript`, while squish callbacks receive a `GroupedGene`. One full-row hit target owns click, hover, leave, and tooltip behavior for each feature.
+The current track module interaction API is difficult to understand and should be reviewed before adding part-level behavior. For now, full and canonical callbacks receive a `GeneTranscript`, while merged callbacks receive a `GroupedGene`. One full-row hit target owns click, hover, leave, and tooltip behavior for each feature.
 
 Do not design the gene interaction API around SVG elements. A possible typed target is:
 
@@ -148,13 +148,13 @@ type GenePartHitRegion = {
 };
 ```
 
-Squish parts require extra care because a visible interval may represent several isoforms with conflicting source parts.
+Merged parts require extra care because a visible interval may represent several isoforms with conflicting source parts.
 
 This topic is complete when every clickable area maps to one unambiguous typed target.
 
 ## Labels
 
-Labels use a separate, testable placement calculation. Pack labels transcripts with `name2` or the transcript identifier, while squish labels grouped genes by gene name. Labels prefer the right side, move to the left near the right viewport edge, and hide when neither side fits. Their estimated bounds participate in row packing, and `GeneGlyph` remains unaware of text placement.
+Labels use a separate, testable placement calculation. Full and canonical label transcripts with `transcriptName`, while merged labels grouped genes by gene name. Labels prefer the right side, move to the left near the right viewport edge, and hide when neither side fits. Their estimated bounds participate in row packing, and `GeneGlyph` remains unaware of text placement.
 
 The current width estimate uses character count. Revisit it only if visual testing shows that proportional fonts cause meaningful collisions or unnecessary hiding.
 

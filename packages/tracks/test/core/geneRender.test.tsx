@@ -52,13 +52,14 @@ vi.mock("../../src/gene/geometry", async (importOriginal) => {
   };
 });
 
-import { PackGene, SquishGene } from "../../src/gene/render";
+import { CanonicalGene, FullGene, MergedGene } from "../../src/gene/render";
 import type { GeneData, GeneTranscript } from "../../src/gene/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
 const firstTranscript = transcript("tx1", "gene1", 100, 180, {
+  tags: ["MANE_Select"],
   strand: "-",
   exons: [
     { start: 100, end: 120, frame: 0 },
@@ -84,7 +85,12 @@ const data: GeneData = [
 const props = {
   id: "genes",
   color: "#4b9560",
-  config: { url: "YOUR_URL_HERE", highlightColor: "#000000", rowHeight: 16 },
+  config: {
+    url: "YOUR_URL_HERE",
+    canonicalColor: "#d45c2f",
+    highlightColor: "#000000",
+    rowHeight: 16,
+  },
   data,
   region: { chromosome: "chr1", start: 0, end: 500 },
   width: 500,
@@ -115,7 +121,7 @@ afterEach(() => {
 
 describe("Gene rendering", () => {
   it("renders distinct transcript parts with transcript labels", () => {
-    render(<PackGene {...props} />);
+    render(<FullGene {...props} />);
 
     expect(container.querySelectorAll('[data-gene-part="intron"]')).toHaveLength(2);
     expect(container.querySelectorAll('[data-gene-part="utr"]')).toHaveLength(2);
@@ -149,7 +155,7 @@ describe("Gene rendering", () => {
   });
 
   it("uses one generous transcript hit target for click, hover, tooltip, and leave behavior", () => {
-    render(<PackGene {...props} />);
+    render(<FullGene {...props} />);
 
     const part = container.querySelector('[data-gene-part="cds"]')!;
     const directionMark = container.querySelector("[data-intron-direction-mark]")!;
@@ -175,7 +181,7 @@ describe("Gene rendering", () => {
   });
 
   it("renders grouped genes as composite structures in shared rows", () => {
-    render(<SquishGene {...props} />);
+    render(<MergedGene {...props} />);
 
     expect(interactiveRectangles()).toHaveLength(2);
     expect(runtime.useRowLayout).toHaveBeenCalledWith("genes", 1, props.config);
@@ -201,7 +207,7 @@ describe("Gene rendering", () => {
 
   it("highlights matching genes and their labels case-insensitively", () => {
     render(
-      <PackGene
+      <FullGene
         {...props}
         config={{ ...props.config, geneName: "GENE1", highlightColor: "#123456" }}
       />,
@@ -221,7 +227,7 @@ describe("Gene rendering", () => {
   });
 
   it("uses one gene-level target for composite click, hover, tooltip, and leave behavior", () => {
-    render(<SquishGene {...props} />);
+    render(<MergedGene {...props} />);
 
     const piece = container.querySelector(
       '[data-gene-part="noncoding-exon"][data-contributing-transcript-ids="tx2"]',
@@ -257,21 +263,35 @@ describe("Gene rendering", () => {
   });
 
   it("reuses composite geometry when ordinary rerenders keep the same data", () => {
-    render(<SquishGene {...props} />);
+    render(<MergedGene {...props} />);
     expect(runtime.createCompositeGeneGeometry).toHaveBeenCalledTimes(2);
 
-    render(<SquishGene {...props} color="#123456" />);
+    render(<MergedGene {...props} color="#123456" />);
     expect(runtime.createCompositeGeneGeometry).toHaveBeenCalledTimes(2);
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
   });
 
   it("reuses transcript geometry when ordinary rerenders keep the same data", () => {
-    render(<PackGene {...props} />);
+    render(<FullGene {...props} />);
     expect(runtime.createGeneTranscriptGeometry).toHaveBeenCalledTimes(3);
 
-    render(<PackGene {...props} color="#123456" />);
+    render(<FullGene {...props} color="#123456" />);
     expect(runtime.createGeneTranscriptGeometry).toHaveBeenCalledTimes(3);
-    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
+    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe(
+      props.config.canonicalColor,
+    );
+  });
+
+  it("renders only exact MANE Select transcripts in canonical display", () => {
+    const nearMatch = transcript("tx4", "gene3", 400, 450, { tags: ["MANE_Select_v2"] });
+    render(<CanonicalGene {...props} data={[...data, nearMatch]} />);
+
+    expect(
+      Array.from(container.querySelectorAll("[data-gene-label]")).map((label) => label.textContent),
+    ).toEqual(["tx1"]);
+    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe(
+      props.config.canonicalColor,
+    );
   });
 });
 
@@ -295,6 +315,7 @@ function transcript(
     exons?: GeneTranscript["exons"];
     thickStart?: number;
     thickEnd?: number;
+    tags?: string[];
   } = {},
 ): GeneTranscript {
   const strand = options.strand ?? "+";
@@ -306,8 +327,11 @@ function transcript(
     end,
     strand,
     transcriptId,
+    transcriptName: transcriptId,
     geneId,
     geneName: geneId,
+    tags: options.tags ?? [],
+    attributes: {},
     exons,
     source: {
       chromosome: "chr1",
@@ -330,6 +354,8 @@ function transcript(
       geneName: geneId,
       geneName2: geneId,
       geneType: "protein_coding",
+      tags: options.tags?.join(",") ?? "",
+      attributes: "{}",
       fields: [],
     },
   };

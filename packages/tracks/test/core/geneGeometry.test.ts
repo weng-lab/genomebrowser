@@ -102,8 +102,11 @@ function transcript({
     end: 230,
     strand,
     transcriptId: "tx1",
+    transcriptName: "tx1",
     geneId: "gene1",
     geneName: "GENE1",
+    tags: [],
+    attributes: {},
     exons,
     source: {
       chromosome: "chr1",
@@ -126,6 +129,8 @@ function transcript({
       geneName: "gene1",
       geneName2: "GENE1",
       geneType: "protein_coding",
+      tags: "",
+      attributes: "{}",
       fields: [],
     },
   };

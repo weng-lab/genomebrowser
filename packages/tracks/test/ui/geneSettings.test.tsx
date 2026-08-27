@@ -38,6 +38,7 @@ describe("Gene settings", () => {
     );
     if (!input) throw new Error("Could not find the Highlight gene input");
     expect(input.value).toBe("TP53");
+    expect(container.textContent).toContain("Canonical transcript color");
     expect(container.textContent).toContain("Highlight color");
 
     const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;

@@ -3,6 +3,7 @@ import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import {
   TrackSettingsFieldGrid,
+  TrackSettingsFieldRow,
   TrackSettingsFullRow,
 } from "../shared/settings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
@@ -38,11 +39,18 @@ export function GeneSettings({ track, updateTrack }: TrackSettingsProps<GeneConf
             />
           </TrackSettingsFullRow>
           <TrackSettingsFullRow>
-            <TrackSettingsColorField
-              label="Highlight color"
-              value={track.config.highlightColor}
-              onCommit={(highlightColor) => updateTrack({ config: { highlightColor } })}
-            />
+            <TrackSettingsFieldRow>
+              <TrackSettingsColorField
+                label="Highlight color"
+                value={track.config.highlightColor}
+                onCommit={(highlightColor) => updateTrack({ config: { highlightColor } })}
+              />
+              <TrackSettingsColorField
+                label="Canonical transcript color"
+                value={track.config.canonicalColor}
+                onCommit={(canonicalColor) => updateTrack({ config: { canonicalColor } })}
+              />
+            </TrackSettingsFieldRow>
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>

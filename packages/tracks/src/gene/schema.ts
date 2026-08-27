@@ -22,8 +22,8 @@ function integerList(item: z.ZodType<number>) {
   });
 }
 
-/** Standard BigGenePred columns after the chromosome, start, and end fields. */
-export const bigGenePredSchema = z.object({
+/** BigGenePredPlusV1 columns after the chromosome, start, and end fields. */
+export const bigGenePredPlusV1Schema = z.object({
   name: z.string().min(1),
   score: z.coerce.number().int().min(0).max(1000),
   strand: z.enum(["+", "-"]),
@@ -41,4 +41,6 @@ export const bigGenePredSchema = z.object({
   geneName: z.string(),
   geneName2: z.string(),
   geneType: z.string(),
+  tags: z.string(),
+  attributes: z.string(),
 });
