@@ -141,6 +141,7 @@ describe("BigWig module", () => {
           clampIndicatorColor: "#123456",
         }}
         data={clampedData}
+        visibleRegion={region}
         region={region}
         width={1}
         height={80}
@@ -156,6 +157,7 @@ describe("BigWig module", () => {
           showClampIndicators: false,
         }}
         data={clampedData}
+        visibleRegion={region}
         region={region}
         width={1}
         height={80}
@@ -184,6 +186,7 @@ function renderFull(config: ReturnType<typeof createTrack>["config"]) {
       color="#2266aa"
       config={config}
       data={clampedData}
+      visibleRegion={region}
       region={region}
       width={1}
       height={80}

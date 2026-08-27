@@ -34,6 +34,7 @@ const commonProps = {
   color: "#4b9560",
   config,
   data,
+  visibleRegion: { chromosome: "chr1", start: 0, end: 100 },
   region: { chromosome: "chr1", start: 0, end: 100 },
   width: 100,
   height: 99,
@@ -52,5 +53,24 @@ describe("BigBed row-layout wiring", () => {
     expect(denseMarkup).toContain('height="4.2"');
     expect(squishMarkup).toContain('height="14"');
     expect(squishMarkup).toContain('transform="translate(0,7)"');
+  });
+
+  it("counts only visible squish rows while rendering overscan rows", () => {
+    const overscannedData: BigBedRow[] = [
+      { chromosome: "chr1", start: 10, end: 30, fields: [] },
+      { chromosome: "chr1", start: 10, end: 30, fields: [] },
+      { chromosome: "chr1", start: 70, end: 80, fields: [] },
+    ];
+
+    const markup = renderToStaticMarkup(
+      <SquishBigBed
+        {...commonProps}
+        data={overscannedData}
+        visibleRegion={{ chromosome: "chr1", start: 60, end: 90 }}
+      />,
+    );
+
+    expect(layout.useRowLayout).toHaveBeenCalledWith("peaks", 1, config);
+    expect(markup).toContain('transform="translate(0,7)"');
   });
 });

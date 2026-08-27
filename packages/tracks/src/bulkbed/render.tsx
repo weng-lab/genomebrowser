@@ -2,6 +2,7 @@ import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/g
 import { renderDenseBigBedData } from "../bigbed/helpers";
 import { createGenomicXScale } from "../shared/coordinates";
 import { useRowLayout } from "../shared/layout";
+import { intersectsVisibleRegion } from "../shared/viewport";
 import type { BulkBedConfig, BulkBedData, BulkBedRect } from "./types";
 
 export function FullBulkBed({
@@ -9,20 +10,31 @@ export function FullBulkBed({
   config,
   color,
   data,
+  visibleRegion,
   region,
   width,
 }: TrackRendererProps<BulkBedConfig, BulkBedData>) {
   const x = createGenomicXScale(region, width);
   const gap = config.gap ?? 2;
-  const { rowHeight, trackHeight } = useRowLayout(id, data.length, config);
+  const datasets = data.map((rows, index) => ({
+    rows,
+    name: config.datasets[index]?.name || `Dataset ${index + 1}`,
+  }));
+  const visibleDatasets = datasets.filter(({ rows }) =>
+    rows.some((row) => intersectsVisibleRegion(row, visibleRegion)),
+  );
+  const overscanDatasets = datasets.filter(({ rows }) =>
+    rows.every((row) => !intersectsVisibleRegion(row, visibleRegion)),
+  );
+  const renderData = [...visibleDatasets, ...overscanDatasets];
+  const { rowHeight, trackHeight } = useRowLayout(id, visibleDatasets.length, config);
   const contentHeight = Math.max(0, rowHeight - gap);
   const interaction = useInteraction<BulkBedRect>();
   const tooltip = useTooltip<BulkBedRect, BulkBedConfig>();
   return (
     <g>
       <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
-      {data.map((datasetRows, datasetIndex) => {
-        const datasetName = config.datasets[datasetIndex]?.name || `Dataset ${datasetIndex + 1}`;
+      {renderData.map(({ rows: datasetRows, name: datasetName }, datasetIndex) => {
         return (
           <g key={datasetName} transform={`translate(0,${datasetIndex * rowHeight})`}>
             {renderDenseBigBedData(datasetRows, x).map((rect, rectIndex) => {

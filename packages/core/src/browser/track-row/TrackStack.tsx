@@ -13,6 +13,7 @@ export function TrackStack({
   trackStore,
   useDataStore,
   trackLayouts,
+  visibleRegion,
   region,
   marginWidth,
   trackWidth,
@@ -26,6 +27,7 @@ export function TrackStack({
   trackStore: TrackStoreInstance;
   useDataStore: DataStoreInstance;
   trackLayouts: TrackLayout[];
+  visibleRegion: GenomicRegion;
   region: GenomicRegion;
   marginWidth: number;
   trackWidth: number;
@@ -50,6 +52,7 @@ export function TrackStack({
       trackStore={useTrackStore}
       useDataStore={useDataStore}
       layout={layout}
+      visibleRegion={visibleRegion}
       region={region}
       marginWidth={marginWidth}
       trackWidth={trackWidth}
@@ -71,6 +74,7 @@ function ConnectedTrackRow({
   trackStore,
   useDataStore,
   layout,
+  visibleRegion,
   region,
   marginWidth,
   trackWidth,
@@ -88,6 +92,7 @@ function ConnectedTrackRow({
   trackStore: TrackStoreInstance;
   useDataStore: DataStoreInstance;
   layout: TrackLayout;
+  visibleRegion: GenomicRegion;
   region: GenomicRegion;
   marginWidth: number;
   trackWidth: number;
@@ -116,6 +121,7 @@ function ConnectedTrackRow({
     <TrackRow
       track={track}
       dataState={dataState}
+      visibleRegion={visibleRegion}
       region={region}
       y={layout.y}
       previewOffsetY={previewOffsetY}

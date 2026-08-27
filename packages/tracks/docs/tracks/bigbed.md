@@ -29,7 +29,7 @@ const track = bigBedModule.create({
 | `url`       | `string` | Required | Non-empty BigBed source URL. Changing it requests new data. |
 | `rowHeight` | `number` | `12`     | Complete vertical row slot. Must be finite and at least 1.  |
 
-Both displays preserve configured `rowHeight`. Dense always passes one row to the shared layout contract, so changing Height or Row height stretches its single slot. Squish uses its current packed row count. Viewport or data changes can repack squish rows and update total height without changing row height. In both displays, the interval rectangle and its vertical margins stay inside each slot.
+Both displays preserve configured `rowHeight`. Dense always passes one row to the shared layout contract, so changing Height or Row height stretches its single slot. Squish derives total height from rows needed by intervals that intersect the visible viewport. It still packs and renders intervals from the larger overscanned region for panning, but those side intervals do not make the track taller. Viewport or data changes can repack squish rows and update total height without changing row height. In both displays, the interval rectangle and its vertical margins stay inside each slot.
 
 Use `bigBedModule.configSchema` to validate config and `bigBedModule.createInputSchema` to validate the full create input.
 

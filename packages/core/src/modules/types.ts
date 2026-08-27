@@ -92,6 +92,7 @@ export type TrackRendererProps<Config, Data> = {
   config: Config;
   color: string;
   data: Data;
+  visibleRegion: GenomicRegion;
   region: GenomicRegion;
   width: number;
   height: number;

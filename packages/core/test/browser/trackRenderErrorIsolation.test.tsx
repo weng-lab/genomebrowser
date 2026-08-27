@@ -172,6 +172,7 @@ function TrackState({ track, dataState }: { track: AnyTrackInstance; dataState: 
       <TrackContent
         track={track}
         dataState={dataState}
+        visibleRegion={{ chromosome: "chr1", start: 0, end: 100 }}
         region={{ chromosome: "chr1", start: 0, end: 100 }}
         width={100}
         height={track.base.height}
