@@ -105,7 +105,7 @@ When both props are supplied, `initialTrackIds` takes precedence during initiali
 
 Initialization runs when the component mounts and when its initialization identity changes: the store, collection/view/track IDs, effective initial IDs, or `maxTracks`. Changing only `defaultTrackIds` while `initialTrackIds` is present changes the Reset target without rewriting the store. Ordinary updates to the same store do not reapply the initial selection, while a remount starts a new initialization lifetime.
 
-TrackSelect preserves non-collection tracks first in their existing order, followed by initialized collection tracks in the supplied ID order.
+TrackSelect preserves non-collection tracks first in their existing order, followed by initialized collection tracks in the supplied ID order. Reconciled collection tracks use the `"managed"` settings policy. First-party settings keep their source URLs visible but read-only while title, display, color, height, and unrelated module settings remain editable. Tracks created directly through a module use the `"editable"` policy.
 
 ### Persist submitted selections
 
@@ -247,7 +247,7 @@ Module defaults are applied when a selected track is created during initializati
 
 The public qualified ID format is `${collectionId}::${trackId}`. Use it in `initialTrackIds`, `defaultTrackIds`, and values received by `onCommittedTrackIds`. Duplicate IDs, unknown IDs, and initialization lists longer than `maxTracks` are rejected.
 
-TrackSelect treats any store track whose ID matches a supplied collection entry as collection-owned. Give fixed or non-collection tracks IDs outside that reserved set. If application code inserts a different track with a reserved ID, initialization or Submit may reuse or remove it during normal reconciliation.
+TrackSelect treats any store track whose ID matches a supplied collection entry as collection-owned. Reconciliation marks both new and reused collection tracks as managed, regardless of their previous policy. Give fixed or non-collection tracks IDs outside that reserved set. If application code inserts a different track with a reserved ID, initialization or Submit may reuse or remove it during normal reconciliation.
 
 ### Column override options
 

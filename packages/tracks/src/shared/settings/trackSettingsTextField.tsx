@@ -10,6 +10,7 @@ export type TrackSettingsTextFieldProps = {
   normalize?: (value: string) => string;
   onCommit: (value: string) => TrackMutationResult;
   placeholder?: string;
+  readOnly?: boolean;
   required?: boolean;
   type?: "text" | "url";
   validate: (value: string) => string | undefined;
@@ -25,6 +26,7 @@ export function TrackSettingsTextField({
   normalize = (nextValue) => nextValue,
   onCommit,
   placeholder,
+  readOnly,
   required,
   type = "text",
   validate,
@@ -52,7 +54,7 @@ export function TrackSettingsTextField({
       placeholder={placeholder}
       required={required}
       size="small"
-      slotProps={{ htmlInput: { inputMode } }}
+      slotProps={{ htmlInput: { inputMode, readOnly } }}
       type={type}
       value={controller.value}
       onBlur={controller.blur}

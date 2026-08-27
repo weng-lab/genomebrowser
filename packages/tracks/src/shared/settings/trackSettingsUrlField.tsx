@@ -5,6 +5,7 @@ export type TrackSettingsUrlFieldProps = {
   label?: string;
   onCommit: (url: string) => TrackMutationResult;
   placeholder?: string;
+  readOnly?: boolean;
   required?: boolean;
   value: string;
 };
@@ -14,6 +15,7 @@ export function TrackSettingsUrlField({
   label = "URL",
   onCommit,
   placeholder,
+  readOnly = false,
   required = false,
   value,
 }: TrackSettingsUrlFieldProps) {
@@ -23,6 +25,7 @@ export function TrackSettingsUrlField({
       inputMode="url"
       label={label}
       placeholder={placeholder}
+      readOnly={readOnly}
       required={required}
       type="url"
       value={value}

@@ -59,6 +59,7 @@ describe("defineTrackModule", () => {
         url: "YOUR_URL_HERE",
         enabled: true,
       },
+      settingsPolicy: "editable",
     });
   });
 
@@ -73,6 +74,17 @@ describe("defineTrackModule", () => {
     expect(
       uncoloredModule.create({ id: "uncolored", title: "Uncolored", config: {} }).base.color,
     ).toBe("#000000");
+  });
+
+  it("accepts an explicit managed settings policy", () => {
+    const track = module.create({
+      id: "managed-signal",
+      title: "Managed signal",
+      settingsPolicy: "managed",
+      config: { url: "YOUR_URL_HERE" },
+    });
+
+    expect(track.settingsPolicy).toBe("managed");
   });
 
   it("rejects non-hexadecimal base colors from input and validated instances", () => {

@@ -74,6 +74,7 @@ describe("fetchTrackData", () => {
             color: "#000000",
           },
           config: {},
+          settingsPolicy: "editable",
         },
         assembly,
         region,

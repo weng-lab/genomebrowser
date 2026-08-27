@@ -24,6 +24,7 @@ export function BigWigSettings({ track, updateTrack }: Props) {
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
             <TrackSettingsUrlField
+              readOnly={track.settingsPolicy === "managed"}
               required
               value={config.url}
               onCommit={(url) => updateTrack({ config: { url } })}

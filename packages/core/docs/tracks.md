@@ -2,7 +2,7 @@
 
 A track is one validated row in the browser. A registered track module supplies that row's config schema, defaults, fetching, renderers, display modes, and optional settings and tooltip components. Core owns this runtime contract but does not export curated track implementations.
 
-Every `module.create` input has a unique `id`, a `title`, optional `display`, `height`, and `color`, plus module-specific `config`. Track colors use case-insensitive six-digit `#RRGGBB` syntax. A module supplies a default display and may supply height and color defaults; core falls back to `80` pixels and `"#000000"`.
+Every `module.create` input has a unique `id`, a `title`, optional `display`, `height`, `color`, and `settingsPolicy`, plus module-specific `config`. Track colors use case-insensitive six-digit `#RRGGBB` syntax. A module supplies a default display and may supply height and color defaults; core falls back to `80` pixels, `"#000000"`, and the `"editable"` settings policy.
 
 ## Register a module
 
@@ -50,7 +50,9 @@ const track = bigWigModule.create(
 );
 ```
 
-The resulting instance stores `type`, concrete base values, parsed config, and optional interaction callbacks. Use `module.configSchema` to parse only module config or `module.createInputSchema` to parse the complete create input. `module.validate(instance)` validates the nested runtime form.
+The resulting instance stores `type`, concrete base values, parsed config, a settings policy, and optional interaction callbacks. `module.create` defaults `settingsPolicy` to `"editable"`. Pass `settingsPolicy: "managed"` when the application owns the source. A managed policy tells settings components to keep data-source controls read-only without locking ordinary display or analysis controls.
+
+Use `module.configSchema` to parse only module config or `module.createInputSchema` to parse the complete create input. `module.validate(instance)` validates the nested runtime form.
 
 Optional interaction callbacks receive `(item, context)`. `context.type`, `context.base`, and `context.config` are the current shallow read-only runtime view, so later validated updates appear in later callbacks and tooltip renders. The item type and emitted callbacks are module-specific.
 

@@ -58,6 +58,7 @@ describe("createTrackStore", () => {
               color: "#000000",
             },
             config: {},
+            settingsPolicy: "editable",
           },
         ],
       }),
@@ -79,6 +80,7 @@ describe("createTrackStore", () => {
               color: "#000000",
             },
             config: {},
+            settingsPolicy: "editable",
           },
         ],
       }),
@@ -110,6 +112,7 @@ describe("createTrackStore", () => {
             color: "#000000",
           },
           config: {},
+          settingsPolicy: "editable",
         },
       ]),
     ).toMatchObject({ ok: false, error: expect.stringMatching(/signal instance is invalid/) });
@@ -138,6 +141,7 @@ describe("createTrackStore", () => {
           color: "#000000",
         },
         config: {},
+        settingsPolicy: "editable",
       }),
     ).toMatchObject({ ok: false, error: expect.stringMatching(/signal instance is invalid/) });
   });
@@ -185,6 +189,7 @@ describe("createTrackStore", () => {
               color: "#000000",
             },
             config: {},
+            settingsPolicy: "editable",
           },
         ],
         remove: ["signal"],

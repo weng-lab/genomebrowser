@@ -83,7 +83,11 @@ export function MethylCSettings({ track, updateTrack }: MethylCSettingsProps) {
 
   return (
     <TrackSettingsLayout>
-      <SourceSettings config={currentConfig} updateConfig={updateConfig} />
+      <SourceSettings
+        config={currentConfig}
+        readOnly={track.settingsPolicy === "managed"}
+        updateConfig={updateConfig}
+      />
       <ColorSettings config={currentConfig} updateConfig={updateConfig} />
       <RenderingSettings config={currentConfig} updateConfig={updateConfig} />
     </TrackSettingsLayout>
@@ -127,9 +131,11 @@ function applyConfigUpdates(
 
 function SourceSettings({
   config,
+  readOnly,
   updateConfig,
 }: {
   config: Readonly<MethylCConfig>;
+  readOnly: boolean;
   updateConfig: UpdateConfig;
 }) {
   return (
@@ -142,6 +148,7 @@ function SourceSettings({
                 key={channel}
                 channel={channel}
                 label={`${labelPrefix} ${label} URL`}
+                readOnly={readOnly}
                 strand={strand}
                 updateConfig={updateConfig}
                 urls={config.urls}
@@ -157,12 +164,14 @@ function SourceSettings({
 function MethylCUrlField({
   channel,
   label,
+  readOnly,
   strand,
   updateConfig,
   urls,
 }: {
   channel: Channel;
   label: string;
+  readOnly: boolean;
   strand: Strand;
   updateConfig: UpdateConfig;
   urls: MethylCConfig["urls"];
@@ -170,6 +179,7 @@ function MethylCUrlField({
   return (
     <TrackSettingsUrlField
       label={label}
+      readOnly={readOnly}
       value={urls[strand][channel].url}
       onCommit={(url) =>
         updateConfig((config) => ({

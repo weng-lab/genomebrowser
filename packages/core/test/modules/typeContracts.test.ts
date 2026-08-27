@@ -50,6 +50,7 @@ describe("track module type contracts", () => {
       display?: "full" | undefined;
       height?: number | undefined;
       color?: string | undefined;
+      settingsPolicy?: "editable" | "managed" | undefined;
       config: {
         url: string;
         scale?: "auto" | "fixed" | undefined;
@@ -62,6 +63,7 @@ describe("track module type contracts", () => {
       display?: "dense" | undefined;
       height?: number | undefined;
       color?: string | undefined;
+      settingsPolicy?: "editable" | "managed" | undefined;
       config: {
         endpoint: string;
         enabled?: boolean | undefined;

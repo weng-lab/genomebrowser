@@ -58,6 +58,7 @@ When config contains a finite `rowHeight` of at least 1, the component shows adj
 | `normalize`    | `(value: string) => string`                       | Identity        | Transforms a locally valid draft before comparison and commit.                |
 | `onCommit`     | `(value: string) => TrackMutationResult`          | Required        | Attempts to persist a validated, normalized value.                            |
 | `placeholder`  | `string`                                          | None            | Example or hint shown when the draft is empty. It does not replace the label. |
+| `readOnly`     | `boolean`                                         | `false`         | Keeps the value focusable and selectable but prevents editing and commits.    |
 | `required`     | `boolean`                                         | `false`         | Marks the field required. Validation remains controlled by `validate`.        |
 | `type`         | `"text" \| "url"`                                 | `"text"`        | Sets the native input type.                                                   |
 | `validate`     | `(value: string) => string \| undefined`          | Required        | Returns an error for an invalid raw draft or `undefined` when it may commit.  |
@@ -86,6 +87,7 @@ This component uses a text input so partial numeric drafts such as `-` and `1.` 
 | `label`       | `string`                               | `"URL"`  | Visible MUI field label and accessible name.         |
 | `onCommit`    | `(url: string) => TrackMutationResult` | Required | Attempts to persist the draft URL string.            |
 | `placeholder` | `string`                               | None     | Example or hint shown when the draft is empty.       |
+| `readOnly`    | `boolean`                              | `false`  | Keeps the URL visible and selectable without edits.  |
 | `required`    | `boolean`                              | `false`  | Rejects a blank or whitespace-only URL when enabled. |
 | `value`       | `string`                               | Required | Current accepted URL string.                         |
 
@@ -135,6 +137,6 @@ The visual picker provides a saturation and brightness area plus a hue slider. P
 
 Core supplies the modal heading, close action, dragging behavior, and modal Escape handling. Every settings field has a visible label. Layout components preserve source order when rows stack.
 
-Range validation is associated with both bound inputs while rendering one shared error message. Color fields expose the hexadecimal text and a swatch. The picker exposes keyboard-operable color and hue sliders inside a labeled group. Opening it moves focus into the popover. Closing it restores focus to the swatch button. Disabled dependent controls remain visible but inoperable.
+Range validation is associated with both bound inputs while rendering one shared error message. Read-only text and URL fields retain their visible labels, focus, and selectable values. Color fields expose the hexadecimal text and a swatch. The picker exposes keyboard-operable color and hue sliders inside a labeled group. Opening it moves focus into the popover. Closing it restores focus to the swatch button. Disabled dependent controls remain visible but inoperable.
 
 Return to [Author track settings](trackSettings.md) for composition and update guidance.
