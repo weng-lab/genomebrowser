@@ -1,5 +1,5 @@
 import type { TrackSelectCollection } from "@weng-lab/genomebrowser-ui";
-import biosampleTracks from "./human-biosamples.json";
+import { humanBiosampleCollection } from "./humanBiosampleCollection";
 
 const geneTracks = {
   id: "reference-annotations",
@@ -70,7 +70,7 @@ const ccreComparisonTracks = {
   ],
 } satisfies TrackSelectCollection;
 
-export const trackCollections = [geneTracks, ccreComparisonTracks, biosampleTracks];
+export const trackCollections = [geneTracks, ccreComparisonTracks, humanBiosampleCollection];
 
 export const defaultTrackIds = [
   "reference-annotations::genes",
