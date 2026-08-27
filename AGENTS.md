@@ -33,6 +33,8 @@ scripts so Turborepo can apply the package graph and cache. For a targeted task,
 use `pnpm exec turbo run <task> --filter=<package>` rather than invoking the
 package task with `pnpm --filter`.
 
+When verifying changes, use `pnpm verify`, which will check and build all packages to ensure the app playground is updated with the changes. (It caches some tasks so its not heavy)
+
 Read [`docs/turborepo.md`](docs/turborepo.md) before changing package task
 scripts, `turbo.json`, cache inputs or outputs, or CI task orchestration.
 
