@@ -49,6 +49,7 @@ describe("track frame hover highlight", () => {
     const settingsControl = requiredElement("circle", margin.parentElement).parentElement;
     if (!settingsControl) throw new Error("Settings control not found");
 
+    expect(title.textContent).toBe("Test track (full)");
     expect(highlight()).toBeNull();
 
     await dispatchMouse(margin, "mouseover");
