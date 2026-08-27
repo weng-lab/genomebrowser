@@ -12,6 +12,10 @@ import type { GeneFeature } from "./types";
 const configSchema = z.object({
   url: fetchOnChange(z.string().min(1)),
   geneName: z.string().optional(),
+  canonicalTranscriptTags: z
+    .array(z.string().trim().min(1))
+    .transform((tags) => [...new Set(tags)])
+    .default(["MANE_Select"]),
   canonicalColor: hexColorSchema.default("#000000"),
   highlightColor: hexColorSchema.default("#000000"),
   rowHeight: rowHeightSchema.default(defaultRowHeight),

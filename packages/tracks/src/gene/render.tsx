@@ -4,7 +4,7 @@ import { createGenomicXScale } from "../shared/coordinates";
 import { packRows, useRowLayout } from "../shared/layout";
 import { createCompositeGeneGeometry, createGeneTranscriptGeometry } from "./geometry";
 import { GeneGlyph } from "./glyph";
-import { groupTranscriptsByGene } from "./helpers";
+import { groupTranscriptsByGene, hasCanonicalTranscriptTag } from "./helpers";
 import { createGeneLabelLayout, type GeneLabelLayout } from "./labels";
 import type { GeneConfig, GeneData, GeneFeature, GeneTranscript, GroupedGene } from "./types";
 
@@ -15,7 +15,13 @@ export function FullGene(props: TrackRendererProps<GeneConfig, GeneData>) {
 }
 
 export function CanonicalGene(props: TrackRendererProps<GeneConfig, GeneData>) {
-  const transcripts = useMemo(() => props.data.filter(isCanonicalTranscript), [props.data]);
+  const transcripts = useMemo(
+    () =>
+      props.data.filter((transcript) =>
+        hasCanonicalTranscriptTag(transcript, props.config.canonicalTranscriptTags),
+      ),
+    [props.config.canonicalTranscriptTags, props.data],
+  );
   return <GeneRows {...props} features={transcripts} />;
 }
 
@@ -65,7 +71,8 @@ function GeneRows({
           const rowTop = rowIndex * rowHeight;
           const featureColor = highlighted(feature, config.geneName)
             ? config.highlightColor
-            : feature.kind === "transcript" && isCanonicalTranscript(feature)
+            : feature.kind === "transcript" &&
+                hasCanonicalTranscriptTag(feature, config.canonicalTranscriptTags)
               ? config.canonicalColor
               : color;
           const handleMouseEnter = (event: React.MouseEvent<SVGElement>) => {
@@ -190,10 +197,6 @@ function GeneLabel({
 
 function featureLabel(feature: GeneFeature): string {
   return feature.kind === "gene" ? feature.geneName : feature.transcriptName;
-}
-
-function isCanonicalTranscript(transcript: GeneTranscript): boolean {
-  return transcript.tags.includes("MANE_Select");
 }
 
 function highlighted(feature: GeneFeature, query: string | undefined): boolean {

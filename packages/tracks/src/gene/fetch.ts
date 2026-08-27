@@ -2,6 +2,7 @@ import type { TrackFetchContext } from "@weng-lab/genomebrowser";
 import type { BigBedRecord } from "@weng-lab/genomic-reader";
 import { readCachedBigBedRows } from "../shared/cachedFiles";
 import { bigGenePredSchema } from "./schema";
+import { publishObservedGeneTags } from "./tagCatalog";
 import type {
   BigGenePredPlusV1Source,
   BigGenePredSource,
@@ -20,7 +21,12 @@ export async function fetchGene({
   resources,
 }: TrackFetchContext<GeneConfig>): Promise<GeneData> {
   const rows = await readCachedBigBedRows(resources, config.url, bigGenePredSchema, region);
-  return rows.map(parseBigGenePredRecord);
+  const transcripts = rows.map(parseBigGenePredRecord);
+  publishObservedGeneTags(
+    config.url,
+    transcripts.flatMap((transcript) => transcript.tags),
+  );
+  return transcripts;
 }
 
 export function parseBigGenePredRecord(row: BigGenePredRecord): GeneTranscript {

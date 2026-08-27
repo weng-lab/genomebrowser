@@ -11,6 +11,7 @@ vi.mock("@weng-lab/genomic-reader", async (importOriginal) => ({
 import { fetchGene, parseBigGenePredRecord } from "../../src/gene/fetch";
 import { geneModule } from "../../src/gene";
 import { bigGenePredPlusV1Schema, bigGenePredSchema } from "../../src/gene/schema";
+import { getObservedGeneTags } from "../../src/gene/tagCatalog";
 import type { GeneConfig } from "../../src/gene/types";
 
 const rawFields = {
@@ -67,7 +68,13 @@ function context(
       id: "genes",
       type: "gene",
       display: "full",
-      config: { url, canonicalColor: "#000000", highlightColor: "#000000", rowHeight: 12 },
+      config: {
+        url,
+        canonicalTranscriptTags: ["MANE_Select"],
+        canonicalColor: "#000000",
+        highlightColor: "#000000",
+        rowHeight: 12,
+      },
     },
     demand: { assembly: { id: "test", chromosomes: { chr17: 1_000 } }, region, width: 100 },
     resources,
@@ -203,6 +210,22 @@ describe("Gene module", () => {
     expect(read).toHaveBeenCalledWith(region);
   });
 
+  it("accumulates tags observed across successful reads of the same source", async () => {
+    const read = vi
+      .fn()
+      .mockResolvedValueOnce([record({ fields: ["MANE_Select", "{}"] })])
+      .mockResolvedValueOnce([record({ fields: ["Ensembl_canonical,basic", "{}"] })]);
+    reader.createBigBedFile.mockReturnValue({ read });
+    const resources = createResources();
+    const region = { chromosome: "chr17", start: 90, end: 210 };
+    const url = "https://example.org/observed-tags.bb";
+
+    await fetchGene(context(url, resources, region));
+    await fetchGene(context(url, resources, region));
+
+    expect(getObservedGeneTags(url)).toEqual(["basic", "Ensembl_canonical", "MANE_Select"]);
+  });
+
   it("creates full tracks with shared row-layout and color defaults", () => {
     const track = geneModule.create({
       id: "genes",
@@ -215,6 +238,7 @@ describe("Gene module", () => {
       base: { display: "full", height: 12, color: "#4b9560" },
       config: {
         url: "YOUR_URL_HERE",
+        canonicalTranscriptTags: ["MANE_Select"],
         canonicalColor: "#000000",
         highlightColor: "#000000",
         rowHeight: 12,
@@ -222,5 +246,18 @@ describe("Gene module", () => {
     });
     expect(geneModule.settingsComponent).toBeTypeOf("function");
     expect(geneModule.tooltipComponent).toBeTypeOf("function");
+  });
+
+  it("normalizes configured canonical transcript tags", () => {
+    const track = geneModule.create({
+      id: "genes",
+      title: "Genes",
+      config: {
+        url: "YOUR_URL_HERE",
+        canonicalTranscriptTags: [" Ensembl_canonical ", "MANE_Select", "Ensembl_canonical"],
+      },
+    });
+
+    expect(track.config.canonicalTranscriptTags).toEqual(["Ensembl_canonical", "MANE_Select"]);
   });
 });

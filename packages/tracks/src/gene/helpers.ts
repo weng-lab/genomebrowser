@@ -1,5 +1,12 @@
 import type { GeneTranscript, GroupedGene } from "./types";
 
+export function hasCanonicalTranscriptTag(
+  transcript: GeneTranscript,
+  canonicalTranscriptTags: readonly string[],
+): boolean {
+  return canonicalTranscriptTags.some((tag) => transcript.tags.includes(tag));
+}
+
 export function groupTranscriptsByGene(transcripts: readonly GeneTranscript[]): GroupedGene[] {
   const groups = new Map<string, GroupedGene>();
   for (const transcript of transcripts) {

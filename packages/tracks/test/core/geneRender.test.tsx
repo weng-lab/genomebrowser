@@ -87,6 +87,7 @@ const props = {
   color: "#4b9560",
   config: {
     url: "YOUR_URL_HERE",
+    canonicalTranscriptTags: ["MANE_Select"],
     canonicalColor: "#d45c2f",
     highlightColor: "#000000",
     rowHeight: 16,
@@ -284,16 +285,32 @@ describe("Gene rendering", () => {
     );
   });
 
-  it("renders only exact MANE Select transcripts in canonical display", () => {
+  it("filters and colors transcripts by any selected exact tag", () => {
     const nearMatch = transcript("tx4", "gene3", 400, 450, { tags: ["MANE_Select_v2"] });
-    render(<CanonicalGene {...props} data={[...data, nearMatch]} />);
+    const ensemblCanonical = transcript("tx5", "gene4", 410, 460, {
+      tags: ["Ensembl_canonical"],
+    });
+    render(
+      <CanonicalGene
+        {...props}
+        config={{ ...props.config, canonicalTranscriptTags: ["Ensembl_canonical", "basic"] }}
+        data={[...data, nearMatch, ensemblCanonical]}
+      />,
+    );
 
     expect(
       Array.from(container.querySelectorAll("[data-gene-label]")).map((label) => label.textContent),
-    ).toEqual(["tx1"]);
+    ).toEqual(["tx5"]);
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe(
       props.config.canonicalColor,
     );
+  });
+
+  it("renders no canonical transcripts when no tags are selected", () => {
+    render(<CanonicalGene {...props} config={{ ...props.config, canonicalTranscriptTags: [] }} />);
+
+    expect(container.querySelectorAll("[data-gene-label]")).toHaveLength(0);
+    expect(container.querySelectorAll("[data-transcript-hit-target]")).toHaveLength(0);
   });
 });
 

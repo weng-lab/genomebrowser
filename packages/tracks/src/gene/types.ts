@@ -5,6 +5,7 @@ export type GeneDisplay = "full" | "merged" | "canonical";
 export type GeneConfig = RowLayoutConfig & {
   url: string;
   geneName?: string;
+  canonicalTranscriptTags: string[];
   canonicalColor: string;
   highlightColor: string;
 };
