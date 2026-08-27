@@ -61,9 +61,10 @@ export function TrackDimensionField({
       <Button
         aria-label={`Apply ${label} to all tracks of this type`}
         disabled={!displayedValue.ok}
+        disableElevation
         size="small"
         sx={{ flex: "0 0 auto", height: 40, whiteSpace: "nowrap" }}
-        variant="outlined"
+        variant="contained"
         onClick={() =>
           controller.submit(controller.value, {
             commitUnchanged: true,
