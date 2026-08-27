@@ -4,7 +4,8 @@ export function findTranscriptTagColor(
   transcript: GeneTranscript,
   tagColors: readonly GeneTagColor[],
 ): string | undefined {
-  return tagColors.find(({ tag }) => transcript.tags.includes(tag))?.color;
+  const transcriptTags = new Set(transcript.tags);
+  return tagColors.find(({ tag }) => transcriptTags.has(tag))?.color;
 }
 
 export function groupTranscriptsByGene(transcripts: readonly GeneTranscript[]): GroupedGene[] {

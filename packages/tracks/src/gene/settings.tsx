@@ -1,10 +1,5 @@
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
@@ -26,6 +21,7 @@ import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import { useObservedGeneTags } from "./tagCatalog";
 import type { GeneInteractionTarget } from "./interactions";
+import { reorderTagColors } from "./settingsHelpers";
 import type { GeneConfig, GeneTagColor } from "./types";
 
 type GeneSettingsProps = TrackSettingsProps<GeneConfig, GeneInteractionTarget>;
@@ -228,17 +224,6 @@ function TagColorRow({
   );
 }
 
-export function reorderTagColors(
-  tagColors: GeneTagColor[],
-  activeTag: string,
-  overTag: string,
-): GeneTagColor[] {
-  const activeIndex = tagColors.findIndex(({ tag }) => tag === activeTag);
-  const overIndex = tagColors.findIndex(({ tag }) => tag === overTag);
-  if (activeIndex < 0 || overIndex < 0 || activeIndex === overIndex) return tagColors;
-  return arrayMove(tagColors, activeIndex, overIndex);
-}
-
 function PendingTagColorRow({
   color,
   options,
@@ -328,7 +313,9 @@ function RemoveIcon(props: ComponentProps<typeof SvgIcon>) {
 }
 
 function normalizeTags(tags: readonly string[]): string[] {
-  return [...new Set(tags.map((tag) => tag.trim()).filter(Boolean))].toSorted((left, right) =>
-    left.localeCompare(right),
-  );
+  const normalizedTags = tags.flatMap((tag) => {
+    const normalizedTag = tag.trim();
+    return normalizedTag ? [normalizedTag] : [];
+  });
+  return [...new Set(normalizedTags)].toSorted((left, right) => left.localeCompare(right));
 }

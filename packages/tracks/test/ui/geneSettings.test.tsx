@@ -4,7 +4,8 @@ import { act } from "react";
 import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GeneSettings, reorderTagColors } from "../../src/gene/settings";
+import { GeneSettings } from "../../src/gene/settings";
+import { reorderTagColors } from "../../src/gene/settingsHelpers";
 import { publishObservedGeneTags } from "../../src/gene/tagCatalog";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
