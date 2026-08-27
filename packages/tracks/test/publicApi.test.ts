@@ -99,8 +99,7 @@ describe("first-party track package", () => {
       ).config,
     ).toMatchObject({ topColor: "#000000", bottomColor: "#000000" });
     expect(geneModule.create(input("gene", { url: "YOUR_URL_HERE" })).config).toMatchObject({
-      canonicalTranscriptTags: ["MANE_Select"],
-      canonicalColor: "#000000",
+      tagColors: [{ tag: "MANE_Select", color: "#000000" }],
       highlightColor: "#000000",
       rowHeight: 12,
     });

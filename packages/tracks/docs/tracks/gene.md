@@ -1,6 +1,6 @@
 # Gene
 
-Use `geneModule` for transcript annotations stored in a standard BigGenePred or expanded BigGenePredPlusV1 BigBed file. The track can draw every transcript, transcripts matching selected tags, or one merged structure per gene.
+Use `geneModule` for transcript annotations stored in a standard BigGenePred or expanded BigGenePredPlusV1 BigBed file. The track can draw every transcript, transcripts matching configured tags, or one merged structure per gene.
 
 ## Minimal track
 
@@ -16,30 +16,29 @@ const track = geneModule.create({
 
 ## Displays and base defaults
 
-| Field     | Supported or default                          | Behavior                                                                                                                                |
-| --------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `display` | `"full"` (default), `"merged"`, `"canonical"` | Full draws all transcripts. Merged draws one grouped union per gene. Canonical draws transcripts matching any configured canonical tag. |
-| `height`  | `12`                                          | The renderer replaces this with packed row count times `rowHeight`.                                                                     |
-| `color`   | `"#4b9560"`                                   | Fill color for exon segments and stroke color for introns.                                                                              |
+| Field     | Supported or default                       | Behavior                                                                                                                         |
+| --------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `display` | `"full"` (default), `"merged"`, `"tagged"` | Full draws all transcripts. Merged draws one grouped union per gene. Tagged draws transcripts matching any configured tag color. |
+| `height`  | `12`                                       | The renderer replaces this with packed row count times `rowHeight`.                                                              |
+| `color`   | `"#4b9560"`                                | Fill and stroke color for transcripts that do not match a configured tag.                                                        |
 
-Full and canonical draw each intron as a line with chevrons pointing in the transcript's strand direction. Exons are rectangles. For a coding transcript, intersection with the half-open `thickStart` to `thickEnd` interval produces tall CDS segments. Exon sequence outside that interval produces shorter UTR segments classified as 5-prime or 3-prime from the transcript strand. When `thickStart` equals `thickEnd`, every exon is a shorter noncoding-exon segment.
+Full and tagged draw each intron as a line with chevrons pointing in the transcript's strand direction. Exons are rectangles. For a coding transcript, intersection with the half-open `thickStart` to `thickEnd` interval produces tall CDS segments. Exon sequence outside that interval produces shorter UTR segments classified as 5-prime or 3-prime from the transcript strand. When `thickStart` equals `thickEnd`, every exon is a shorter noncoding-exon segment.
 
-Canonical compares tags with exact, case-sensitive equality. A transcript matches when any value in `canonicalTranscriptTags` appears in its source tags. The default is `MANE_Select`. There is no fallback when a gene has no matching transcript, and an empty selection matches nothing. Standard BigGenePred does not include tags, so its canonical display is empty and `canonicalColor` has no effect. Merged preserves the grouped union of all source transcripts. Exon coverage replaces overlapping intron coverage, and conflicting exon categories resolve in this order: CDS, UTR, then noncoding exon.
+Tag colors use exact, case-sensitive equality. A transcript uses the color from the first `tagColors` entry matching one of its source tags. Full applies these colors while retaining unmatched transcripts. Tagged omits unmatched transcripts, and an empty list draws no transcripts. Gene-name highlighting overrides tag colors. Standard BigGenePred does not include tags, so its tagged display is empty. Merged preserves the grouped union of all source transcripts and does not apply tag colors. Exon coverage replaces overlapping intron coverage, and conflicting exon categories resolve in this order: CDS, UTR, then noncoding exon.
 
-Full and canonical label each transcript with its normalized `transcriptName`. Merged uses the gene name. A label appears to the right when space permits, otherwise to the left. The renderer hides it when neither side fits inside the viewport. Label bounds participate in row packing.
+Full and tagged label each transcript with its normalized `transcriptName`. Merged uses the gene name. A label appears to the right when space permits, otherwise to the left. The renderer hides it when neither side fits inside the viewport. Label bounds participate in row packing.
 
 ## Config
 
-| Option                    | Type       | Default           | Description                                                                                     |
-| ------------------------- | ---------- | ----------------- | ----------------------------------------------------------------------------------------------- |
-| `url`                     | `string`   | Required          | Non-empty BigGenePred or BigGenePredPlusV1 BigBed URL. Changing it requests new data.           |
-| `geneName`                | `string`   | None              | Case-insensitive gene name or identifier substring to highlight.                                |
-| `canonicalTranscriptTags` | `string[]` | `["MANE_Select"]` | Exact source tags used for canonical filtering and coloring. Any selected tag produces a match. |
-| `canonicalColor`          | `string`   | `"#000000"`       | Color for transcripts matching `canonicalTranscriptTags`.                                       |
-| `highlightColor`          | `string`   | `"#000000"`       | Color for matching glyphs and labels. Gene highlighting overrides canonical color.              |
-| `rowHeight`               | `number`   | `12`              | Complete vertical row slot. Must be finite and at least 1 pixel.                                |
+| Option           | Type             | Default                                      | Description                                                                                         |
+| ---------------- | ---------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `url`            | `string`         | Required                                     | Non-empty BigGenePred or BigGenePredPlusV1 BigBed URL. Changing it requests new data.               |
+| `geneName`       | `string`         | None                                         | Case-insensitive gene name or identifier substring to highlight.                                    |
+| `tagColors`      | `GeneTagColor[]` | `[{ tag: "MANE_Select", color: "#000000" }]` | Ordered exact source tags and colors. The first matching entry supplies the transcript color.       |
+| `highlightColor` | `string`         | `"#000000"`                                  | Six-digit hexadecimal color for matching glyphs and labels. Gene highlighting overrides tag colors. |
+| `rowHeight`      | `number`         | `12`                                         | Complete vertical row slot. Must be finite and at least 1 pixel.                                    |
 
-The Gene settings panel provides the required URL, canonical transcript tags and color, and gene highlighting controls. The tag selector accepts one or more free-entry values. It also suggests tags observed in regions fetched from the current URL during this page session; these suggestions are not a complete catalog of the BigBed file. The shared base settings provide display, color, height, and row-height controls.
+The Gene settings panel provides the required URL, gene highlighting controls, and an ordered list of tag colors. Drag a row's handle with a pointer to change its priority. Tag inputs accept free-entry values and suggest tags observed in regions fetched from the current URL during this page session. These suggestions are not a complete catalog of the BigBed file. The shared base settings provide display, color, height, and row-height controls.
 
 ## Source requirements
 
@@ -59,7 +58,7 @@ The reader rejects malformed coordinates and block arrays, invalid JSON, and uns
 
 Merged groups transcripts by chromosome, strand, and stable gene identifier. A grouped interval spans the minimum transcript start through the maximum transcript end, and its name comes from the normalized gene name.
 
-Click, hover, and leave callbacks receive a `GeneTranscript` in full and canonical displays and a `GroupedGene` in merged display. Each item uses one full-row hit target across its visible span. The target remains red and partially opaque to expose its bounds during development. Direction marks and biological parts do not receive pointer events. The tooltip shows the genomic location, strand, and transcript identifier or transcript count.
+Click, hover, and leave callbacks receive a `GeneTranscript` in full and tagged displays and a `GroupedGene` in merged display. Each item uses one transparent full-row hit target across its visible span. Direction marks and biological parts do not receive pointer events. The tooltip shows the genomic location, strand, and transcript identifier or transcript count.
 
 ## Exported types
 
@@ -67,7 +66,8 @@ Click, hover, and leave callbacks receive a `GeneTranscript` in full and canonic
 | ------------------------- | ----------------------------------------------------------------------- |
 | `GeneCreateInput`         | Input accepted by `geneModule.create`.                                  |
 | `GeneConfig`              | Parsed source, color, highlighting, and row-layout configuration.       |
-| `GeneDisplay`             | `"full" \| "merged" \| "canonical"`.                                    |
+| `GeneDisplay`             | `"full" \| "merged" \| "tagged"`.                                       |
+| `GeneTagColor`            | One exact transcript tag and its six-digit hexadecimal color.           |
 | `GeneData`                | Array of normalized `GeneTranscript` records returned by the fetcher.   |
 | `GeneFeature`             | `GeneTranscript \| GroupedGene`, the interaction and tooltip item type. |
 | `GeneTranscript`          | Transcript coordinates, names, tags, attributes, exons, and source row. |

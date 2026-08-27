@@ -70,8 +70,7 @@ function context(
       display: "full",
       config: {
         url,
-        canonicalTranscriptTags: ["MANE_Select"],
-        canonicalColor: "#000000",
+        tagColors: [{ tag: "MANE_Select", color: "#000000" }],
         highlightColor: "#000000",
         rowHeight: 12,
       },
@@ -115,7 +114,7 @@ describe("Gene module", () => {
     });
   });
 
-  it("accepts standard BigGenePred records without canonical metadata", () => {
+  it("accepts standard BigGenePred records without tag metadata", () => {
     const transcript = parseBigGenePredRecord(record({ fields: [] }));
 
     expect(transcript).toMatchObject({
@@ -238,8 +237,7 @@ describe("Gene module", () => {
       base: { display: "full", height: 12, color: "#4b9560" },
       config: {
         url: "YOUR_URL_HERE",
-        canonicalTranscriptTags: ["MANE_Select"],
-        canonicalColor: "#000000",
+        tagColors: [{ tag: "MANE_Select", color: "#000000" }],
         highlightColor: "#000000",
         rowHeight: 12,
       },
@@ -248,16 +246,36 @@ describe("Gene module", () => {
     expect(geneModule.tooltipComponent).toBeTypeOf("function");
   });
 
-  it("normalizes configured canonical transcript tags", () => {
+  it("normalizes configured tag colors and keeps the first duplicate", () => {
     const track = geneModule.create({
       id: "genes",
       title: "Genes",
       config: {
         url: "YOUR_URL_HERE",
-        canonicalTranscriptTags: [" Ensembl_canonical ", "MANE_Select", "Ensembl_canonical"],
+        tagColors: [
+          { tag: " Ensembl_canonical ", color: "#112233" },
+          { tag: "MANE_Select", color: "#445566" },
+          { tag: "Ensembl_canonical", color: "#778899" },
+        ],
       },
     });
 
-    expect(track.config.canonicalTranscriptTags).toEqual(["Ensembl_canonical", "MANE_Select"]);
+    expect(track.config.tagColors).toEqual([
+      { tag: "Ensembl_canonical", color: "#112233" },
+      { tag: "MANE_Select", color: "#445566" },
+    ]);
+  });
+
+  it.each([
+    ["an empty tag", { tag: " ", color: "#112233" }],
+    ["an invalid color", { tag: "MANE_Select", color: "rebeccapurple" }],
+  ])("rejects %s in tag color configuration", (_name, tagColor) => {
+    expect(() =>
+      geneModule.create({
+        id: "genes",
+        title: "Genes",
+        config: { url: "YOUR_URL_HERE", tagColors: [tagColor] },
+      }),
+    ).toThrow();
   });
 });

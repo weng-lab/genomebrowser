@@ -1,12 +1,15 @@
 import type { TrackInteraction } from "@weng-lab/genomebrowser";
 import type { RowLayoutConfig } from "../shared/layout";
 
-export type GeneDisplay = "full" | "merged" | "canonical";
+export type GeneDisplay = "full" | "merged" | "tagged";
+export type GeneTagColor = {
+  tag: string;
+  color: string;
+};
 export type GeneConfig = RowLayoutConfig & {
   url: string;
   geneName?: string;
-  canonicalTranscriptTags: string[];
-  canonicalColor: string;
+  tagColors: GeneTagColor[];
   highlightColor: string;
 };
 export type GeneStrand = "+" | "-";

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { defaultRowHeight, rowHeightSchema } from "../shared/layout/rowLayout";
 import { hexColorSchema } from "../shared/schemas";
 import { fetchGene } from "./fetch";
-import { CanonicalGene, FullGene, MergedGene } from "./render";
+import { FullGene, MergedGene, TaggedGene } from "./render";
 import { GeneSettings } from "./settings";
 import { GeneTooltip } from "./tooltip";
 import type { GeneFeature } from "./types";
@@ -12,11 +12,22 @@ import type { GeneFeature } from "./types";
 const configSchema = z.object({
   url: fetchOnChange(z.string().min(1)),
   geneName: z.string().optional(),
-  canonicalTranscriptTags: z
-    .array(z.string().trim().min(1))
-    .transform((tags) => [...new Set(tags)])
-    .default(["MANE_Select"]),
-  canonicalColor: hexColorSchema.default("#000000"),
+  tagColors: z
+    .array(
+      z.object({
+        tag: z.string().trim().min(1),
+        color: hexColorSchema,
+      }),
+    )
+    .transform((tagColors) => {
+      const seen = new Set<string>();
+      return tagColors.filter(({ tag }) => {
+        if (seen.has(tag)) return false;
+        seen.add(tag);
+        return true;
+      });
+    })
+    .default([{ tag: "MANE_Select", color: "#000000" }]),
   highlightColor: hexColorSchema.default("#000000"),
   rowHeight: rowHeightSchema.default(defaultRowHeight),
 });
@@ -26,7 +37,7 @@ export const geneModule = defineTrackModule<GeneFeature>()({
   defaults: { height: defaultRowHeight, color: "#4b9560" },
   configSchema,
   fetch: fetchGene,
-  render: { full: FullGene, merged: MergedGene, canonical: CanonicalGene },
+  render: { full: FullGene, merged: MergedGene, tagged: TaggedGene },
   settingsComponent: GeneSettings,
   tooltipComponent: GeneTooltip,
 });
@@ -45,6 +56,7 @@ export type {
   GeneFeature,
   GeneInteraction,
   GeneStrand,
+  GeneTagColor,
   GeneTranscript,
   GroupedGene,
 } from "./types";

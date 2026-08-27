@@ -1,10 +1,10 @@
-import type { GeneTranscript, GroupedGene } from "./types";
+import type { GeneTagColor, GeneTranscript, GroupedGene } from "./types";
 
-export function hasCanonicalTranscriptTag(
+export function findTranscriptTagColor(
   transcript: GeneTranscript,
-  canonicalTranscriptTags: readonly string[],
-): boolean {
-  return canonicalTranscriptTags.some((tag) => transcript.tags.includes(tag));
+  tagColors: readonly GeneTagColor[],
+): string | undefined {
+  return tagColors.find(({ tag }) => transcript.tags.includes(tag))?.color;
 }
 
 export function groupTranscriptsByGene(transcripts: readonly GeneTranscript[]): GroupedGene[] {

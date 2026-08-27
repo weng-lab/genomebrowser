@@ -1,6 +1,6 @@
 # Gene track next steps
 
-This file records the design questions left open after the first gene track implementation. The track fetches standard BigGenePred and BigGenePredPlusV1 data, renders transcript structure in full and canonical modes, renders a composite gene structure in merged mode, and keeps whole-feature interactions working. The old transcript track remains separate and may be removed later.
+This file records the design questions left open after the first gene track implementation. The track fetches standard BigGenePred and BigGenePredPlusV1 data, renders transcript structure in full and tagged modes, renders a composite gene structure in merged mode, and keeps whole-feature interactions working. The old transcript track remains separate and may be removed later.
 
 The current implementation intentionally favors an independent gene module over shared code with the old transcript module. Revisit the topics below before adding detailed interactions or labels.
 
@@ -101,7 +101,7 @@ This topic is complete when each remaining `data-*` attribute has a concrete int
 
 ## Interaction API
 
-The current track module interaction API is difficult to understand and should be reviewed before adding part-level behavior. For now, full and canonical callbacks receive a `GeneTranscript`, while merged callbacks receive a `GroupedGene`. One full-row hit target owns click, hover, leave, and tooltip behavior for each feature.
+The current track module interaction API is difficult to understand and should be reviewed before adding part-level behavior. For now, full and tagged callbacks receive a `GeneTranscript`, while merged callbacks receive a `GroupedGene`. One full-row hit target owns click, hover, leave, and tooltip behavior for each feature.
 
 Do not design the gene interaction API around SVG elements. A possible typed target is:
 
@@ -154,19 +154,13 @@ This topic is complete when every clickable area maps to one unambiguous typed t
 
 ## Labels
 
-Labels use a separate, testable placement calculation. Full and canonical label transcripts with `transcriptName`, while merged labels grouped genes by gene name. Labels prefer the right side, move to the left near the right viewport edge, and hide when neither side fits. Their estimated bounds participate in row packing, and `GeneGlyph` remains unaware of text placement.
+Labels use a separate, testable placement calculation. Full and tagged label transcripts with `transcriptName`, while merged labels grouped genes by gene name. Labels prefer the right side, move to the left near the right viewport edge, and hide when neither side fits. Their estimated bounds participate in row packing, and `GeneGlyph` remains unaware of text placement.
 
 The current width estimate uses character count. Revisit it only if visual testing shows that proportional fonts cause meaningful collisions or unnecessary hiding.
 
-## Temporary interaction overlay
+## Interaction overlay
 
-The transcript and gene hit targets currently use a bright red fill at partial opacity. This is intentional debugging output used to inspect their bounds. Tests should verify target size and behavior, not the temporary color.
-
-Before the track is considered finished:
-
-- Restore a transparent fill while retaining pointer events.
-- Confirm that the hit boxes still cover the intended row area.
-- Update documentation if it currently describes behavior that differs from the debug build.
+The transcript and gene hit targets use transparent fills while retaining pointer events across each feature's full row area. Tests verify their size and behavior.
 
 This topic is complete when the overlay is invisible and interaction coverage has been checked visually.
 

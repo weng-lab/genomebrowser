@@ -52,7 +52,7 @@ vi.mock("../../src/gene/geometry", async (importOriginal) => {
   };
 });
 
-import { CanonicalGene, FullGene, MergedGene } from "../../src/gene/render";
+import { FullGene, MergedGene, TaggedGene } from "../../src/gene/render";
 import type { GeneData, GeneTranscript } from "../../src/gene/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -87,8 +87,7 @@ const props = {
   color: "#4b9560",
   config: {
     url: "YOUR_URL_HERE",
-    canonicalTranscriptTags: ["MANE_Select"],
-    canonicalColor: "#d45c2f",
+    tagColors: [{ tag: "MANE_Select", color: "#d45c2f" }],
     highlightColor: "#000000",
     rowHeight: 16,
   },
@@ -281,19 +280,25 @@ describe("Gene rendering", () => {
     render(<FullGene {...props} color="#123456" />);
     expect(runtime.createGeneTranscriptGeometry).toHaveBeenCalledTimes(3);
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe(
-      props.config.canonicalColor,
+      props.config.tagColors[0]?.color,
     );
   });
 
-  it("filters and colors transcripts by any selected exact tag", () => {
+  it("filters by configured tags and uses the first matching tag color", () => {
     const nearMatch = transcript("tx4", "gene3", 400, 450, { tags: ["MANE_Select_v2"] });
     const ensemblCanonical = transcript("tx5", "gene4", 410, 460, {
-      tags: ["Ensembl_canonical"],
+      tags: ["Ensembl_canonical", "basic"],
     });
     render(
-      <CanonicalGene
+      <TaggedGene
         {...props}
-        config={{ ...props.config, canonicalTranscriptTags: ["Ensembl_canonical", "basic"] }}
+        config={{
+          ...props.config,
+          tagColors: [
+            { tag: "basic", color: "#112233" },
+            { tag: "Ensembl_canonical", color: "#445566" },
+          ],
+        }}
         data={[...data, nearMatch, ensemblCanonical]}
       />,
     );
@@ -301,13 +306,11 @@ describe("Gene rendering", () => {
     expect(
       Array.from(container.querySelectorAll("[data-gene-label]")).map((label) => label.textContent),
     ).toEqual(["tx5"]);
-    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe(
-      props.config.canonicalColor,
-    );
+    expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#112233");
   });
 
-  it("renders no canonical transcripts when no tags are selected", () => {
-    render(<CanonicalGene {...props} config={{ ...props.config, canonicalTranscriptTags: [] }} />);
+  it("renders no tagged transcripts when no tags are configured", () => {
+    render(<TaggedGene {...props} config={{ ...props.config, tagColors: [] }} />);
 
     expect(container.querySelectorAll("[data-gene-label]")).toHaveLength(0);
     expect(container.querySelectorAll("[data-transcript-hit-target]")).toHaveLength(0);

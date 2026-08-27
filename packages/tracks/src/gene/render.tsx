@@ -4,7 +4,7 @@ import { createGenomicXScale } from "../shared/coordinates";
 import { packRows, useRowLayout } from "../shared/layout";
 import { createCompositeGeneGeometry, createGeneTranscriptGeometry } from "./geometry";
 import { GeneGlyph } from "./glyph";
-import { groupTranscriptsByGene, hasCanonicalTranscriptTag } from "./helpers";
+import { findTranscriptTagColor, groupTranscriptsByGene } from "./helpers";
 import { createGeneLabelLayout, type GeneLabelLayout } from "./labels";
 import type { GeneConfig, GeneData, GeneFeature, GeneTranscript, GroupedGene } from "./types";
 
@@ -14,13 +14,11 @@ export function FullGene(props: TrackRendererProps<GeneConfig, GeneData>) {
   return <GeneRows {...props} features={props.data} />;
 }
 
-export function CanonicalGene(props: TrackRendererProps<GeneConfig, GeneData>) {
+export function TaggedGene(props: TrackRendererProps<GeneConfig, GeneData>) {
   const transcripts = useMemo(
     () =>
-      props.data.filter((transcript) =>
-        hasCanonicalTranscriptTag(transcript, props.config.canonicalTranscriptTags),
-      ),
-    [props.config.canonicalTranscriptTags, props.data],
+      props.data.filter((transcript) => findTranscriptTagColor(transcript, props.config.tagColors)),
+    [props.config.tagColors, props.data],
   );
   return <GeneRows {...props} features={transcripts} />;
 }
@@ -71,9 +69,8 @@ function GeneRows({
           const rowTop = rowIndex * rowHeight;
           const featureColor = highlighted(feature, config.geneName)
             ? config.highlightColor
-            : feature.kind === "transcript" &&
-                hasCanonicalTranscriptTag(feature, config.canonicalTranscriptTags)
-              ? config.canonicalColor
+            : feature.kind === "transcript"
+              ? (findTranscriptTagColor(feature, config.tagColors) ?? color)
               : color;
           const handleMouseEnter = (event: React.MouseEvent<SVGElement>) => {
             interaction?.onHover?.(feature);

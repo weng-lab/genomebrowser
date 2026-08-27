@@ -4,7 +4,7 @@ import { act } from "react";
 import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GeneSettings } from "../../src/gene/settings";
+import { GeneSettings, reorderTagColors } from "../../src/gene/settings";
 import { publishObservedGeneTags } from "../../src/gene/tagCatalog";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -39,9 +39,9 @@ describe("Gene settings", () => {
     );
     if (!input) throw new Error("Could not find the Highlight gene input");
     expect(input.value).toBe("TP53");
-    expect(container.textContent).toContain("Canonical transcript tags");
+    expect(container.textContent).toContain("Transcript tag");
     expect(container.textContent).toContain("MANE_Select");
-    expect(container.textContent).toContain("Canonical transcript color");
+    expect(container.textContent).toContain("MANE_Select color");
     expect(container.textContent).toContain("Highlight color");
 
     const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
@@ -54,7 +54,7 @@ describe("Gene settings", () => {
     expect(updateTrack).toHaveBeenCalledWith({ config: { geneName: "BRCA1" } });
   });
 
-  it("offers tags observed for the current source and saves exact selected values", () => {
+  it("adds an observed tag with its own color", () => {
     const updateTrack = vi.fn((): { ok: true } => ({ ok: true }));
     const url = "https://example.org/settings-tags.bb";
     container = document.createElement("div");
@@ -68,11 +68,16 @@ describe("Gene settings", () => {
 
     act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
     act(() => publishObservedGeneTags(url, ["Ensembl_canonical", "MANE_Select"]));
+    const addButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "Add tag",
+    );
+    if (!addButton) throw new Error("Could not find the add tag button");
+    act(() => addButton.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 
     const selectorInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
-      (candidate) => candidate.labels?.[0]?.textContent === "Canonical transcript tags",
+      (candidate) => candidate.labels?.[0]?.textContent === "Transcript tag" && !candidate.value,
     );
-    if (!selectorInput) throw new Error("Could not find the canonical tag selector input");
+    if (!selectorInput) throw new Error("Could not find the new tag selector input");
     act(() =>
       selectorInput.dispatchEvent(
         new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
@@ -86,7 +91,40 @@ describe("Gene settings", () => {
     act(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 
     expect(updateTrack).toHaveBeenCalledWith({
-      config: { canonicalTranscriptTags: ["Ensembl_canonical", "MANE_Select"] },
+      config: {
+        tagColors: [
+          { tag: "MANE_Select", color: "#000000" },
+          { tag: "Ensembl_canonical", color: "#000000" },
+        ],
+      },
     });
+  });
+
+  it("renders pointer drag handles and reorders tag color priority", () => {
+    const updateTrack = vi.fn((): { ok: true } => ({ ok: true }));
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const track = geneModule.create({
+      id: "genes",
+      title: "Genes",
+      config: {
+        url: "YOUR_URL_HERE",
+        tagColors: [
+          { tag: "MANE_Select", color: "#112233" },
+          { tag: "basic", color: "#445566" },
+        ],
+      },
+    });
+
+    act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
+    const firstHandle = container.querySelector('[data-tag-drag-handle="MANE_Select"]');
+    const secondHandle = container.querySelector('[data-tag-drag-handle="basic"]');
+    if (!firstHandle || !secondHandle) throw new Error("Could not find tag drag handles");
+    expect(firstHandle.hasAttribute("draggable")).toBe(false);
+    expect(reorderTagColors(track.config.tagColors, "MANE_Select", "basic")).toEqual([
+      { tag: "basic", color: "#445566" },
+      { tag: "MANE_Select", color: "#112233" },
+    ]);
   });
 });
