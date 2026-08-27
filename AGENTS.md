@@ -51,3 +51,4 @@ This is NOT the NextJS you know, it has breaking changes - API, conventions and 
 - Do NOT suggest compatibility layers, aliases, temporary exports, to support
   older versions of any package.
 - When committing changes to git, if there are any changes not made by you in this session, ask if they should also be added to the commit.
+- Changes to packages/core must be track-agnostic. A track may motivate a new core capability, but core must not contain track-specific behavior, types, imports, or exceptions; keep those concerns in packages/tracks.
