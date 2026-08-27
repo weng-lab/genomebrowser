@@ -8,8 +8,6 @@ import { groupTranscriptsByGene } from "./helpers";
 import { createGeneLabelLayout, type GeneLabelLayout } from "./labels";
 import type { GeneConfig, GeneData, GeneFeature, GeneTranscript, GroupedGene } from "./types";
 
-const interactionBoundsColor = "#ff1744";
-const interactionBoundsOpacity = 0.25;
 const maximumLabelFontSize = 10;
 
 export function FullGene(props: TrackRendererProps<GeneConfig, GeneData>) {
@@ -110,8 +108,8 @@ function GeneRows({
                   y={rowTop}
                   width={Math.max(2, end - start)}
                   height={rowHeight}
-                  fill={interactionBoundsColor}
-                  fillOpacity={interactionBoundsOpacity}
+                  fill="transparent"
+                  pointerEvents="all"
                   style={interactionProps.style}
                   onClick={interactionProps.onClick}
                   onMouseEnter={interactionProps.onMouseEnter}
@@ -144,8 +142,8 @@ function GeneRows({
                 y={rowTop}
                 width={Math.max(2, end - start)}
                 height={rowHeight}
-                fill={interactionBoundsColor}
-                fillOpacity={interactionBoundsOpacity}
+                fill="transparent"
+                pointerEvents="all"
                 style={interactionProps.style}
                 onClick={interactionProps.onClick}
                 onMouseEnter={interactionProps.onMouseEnter}

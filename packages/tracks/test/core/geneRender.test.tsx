@@ -164,6 +164,7 @@ describe("Gene rendering", () => {
     expect(hitTarget.getAttribute("x")).toBe("100");
     expect(hitTarget.getAttribute("width")).toBe("80");
     expect(hitTarget.getAttribute("height")).toBe("16");
+    expect(hitTarget.getAttribute("fill")).toBe("transparent");
 
     act(() => part.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     act(() => directionMark.dispatchEvent(new MouseEvent("click", { bubbles: true })));
@@ -238,6 +239,7 @@ describe("Gene rendering", () => {
     expect(hitTarget.getAttribute("x")).toBe("100");
     expect(hitTarget.getAttribute("width")).toBe("100");
     expect(hitTarget.getAttribute("height")).toBe("16");
+    expect(hitTarget.getAttribute("fill")).toBe("transparent");
 
     act(() => piece.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     expect(runtime.onClick).not.toHaveBeenCalled();
