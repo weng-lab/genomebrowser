@@ -7,10 +7,6 @@ onlyBuiltDependencies:
   - "@mui/x-telemetry"
   - esbuild
   - sharp
-patchedDependencies:
-  genomic-reader@1.4.10: patches/genomic-reader@1.4.10.patch
-overrides:
-  genomic-reader>axios: 0.33.0
 allowBuilds:
   "@mui/x-telemetry": true
   esbuild: true

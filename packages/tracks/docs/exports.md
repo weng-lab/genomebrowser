@@ -13,6 +13,7 @@ Each track subpath exports one module object:
 | BulkBed     | `/bulkbed`    | `bulkBedModule`    | `"bulkbed"`     |
 | CAVE        | `/cave`       | `caveModule`       | `"cave"`        |
 | cCRE BigBed | `/ccre`       | `ccreBigBedModule` | `"ccre-bigbed"` |
+| Gene        | `/gene`       | `geneModule`       | `"gene"`        |
 | MethylC     | `/methylc`    | `methylCModule`    | `"methylc"`     |
 | Transcript  | `/transcript` | `transcriptModule` | `"transcript"`  |
 
@@ -79,7 +80,7 @@ Renderers do not all emit the same callbacks. Check the track page for supported
 
 ## Register the complete set
 
-`firstPartyTrackModules` is a readonly tuple with the seven modules in this order: BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, Transcript.
+`firstPartyTrackModules` is a readonly tuple with the eight modules in this order: BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, Gene, MethylC, Transcript.
 
 ```ts
 import { createModuleRegistry } from "@weng-lab/genomebrowser";
@@ -88,4 +89,4 @@ import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 const registry = createModuleRegistry(firstPartyTrackModules);
 ```
 
-Register individual modules if your application supports only some track types. Importing one track subpath does not load the other tracks. The registry then rejects other types and produces narrower collection schemas. Importing the package root loads all seven modules because it constructs `firstPartyTrackModules`.
+Register individual modules if your application supports only some track types. Importing one track subpath does not load the other tracks. The registry then rejects other types and produces narrower collection schemas. Importing the package root loads all eight modules because it constructs `firstPartyTrackModules`.

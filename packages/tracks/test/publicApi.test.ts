@@ -1,4 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
+import type { TrackInteraction } from "@weng-lab/genomebrowser";
 import type {
   BigWigRecord,
   BigWigSummaryRecord,
@@ -29,6 +30,16 @@ import {
 } from "@weng-lab/genomebrowser-tracks/cave";
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 import {
+  type BigGenePredPlusV1Source,
+  type BigGenePredSource,
+  geneModule,
+  type GeneConfig,
+  type GeneCreateInput,
+  type GeneInteraction,
+  type GeneInteractionTarget,
+  type GenePart,
+} from "@weng-lab/genomebrowser-tracks/gene";
+import {
   methylCModule,
   type MethylCConfig,
   type MethylCCreateInput,
@@ -42,13 +53,14 @@ import {
 import { condenseSignalRecords, type SignalPoint } from "@weng-lab/genomebrowser-tracks/shared";
 
 describe("first-party track package", () => {
-  it("exports all seven pre-bound modules as a ready-made collection", () => {
+  it("exports all eight pre-bound modules as a ready-made collection", () => {
     expect(firstPartyTrackModules).toEqual([
       bigBedModule,
       bigWigModule,
       bulkBedModule,
       caveModule,
       ccreBigBedModule,
+      geneModule,
       methylCModule,
       transcriptModule,
     ]);
@@ -58,6 +70,7 @@ describe("first-party track package", () => {
       "bulkbed",
       "cave",
       "ccre-bigbed",
+      "gene",
       "methylc",
       "transcript",
     ]);
@@ -89,6 +102,11 @@ describe("first-party track package", () => {
         input("cave", { neurotransmitter: "GABA" as const, age: "Adulthood" as const }),
       ).config,
     ).toMatchObject({ topColor: "#000000", bottomColor: "#000000" });
+    expect(geneModule.create(input("gene", { url: "YOUR_URL_HERE" })).config).toMatchObject({
+      tagColors: [{ tag: "MANE_Select", color: "#000000" }],
+      highlightColor: "#000000",
+      rowHeight: 12,
+    });
     expect(
       transcriptModule.create(input("transcript", { assembly: "GRCh38", version: 40 })).config,
     ).toMatchObject({ canonicalColor: "#000000", highlightColor: "#000000", rowHeight: 12 });
@@ -110,7 +128,17 @@ describe("first-party track package", () => {
     >();
     expectTypeOf<CaveCreateInput>().toEqualTypeOf<Parameters<typeof caveModule.create>[0]>();
     expectTypeOf<CaveConfig>().toEqualTypeOf<ReturnType<typeof caveModule.validate>["config"]>();
+    expectTypeOf<BigGenePredSource["geneType"]>().toEqualTypeOf<string>();
+    expectTypeOf<BigGenePredPlusV1Source["tags"]>().toEqualTypeOf<string>();
     expectTypeOf<CaveData>().toEqualTypeOf<{ top: BigWigRecord[]; bottom: BigWigRecord[] }>();
+    expectTypeOf<GeneCreateInput>().toEqualTypeOf<Parameters<typeof geneModule.create>[0]>();
+    expectTypeOf<GeneConfig>().toEqualTypeOf<ReturnType<typeof geneModule.validate>["config"]>();
+    expectTypeOf<GeneInteraction>().toEqualTypeOf<
+      TrackInteraction<GeneInteractionTarget, GeneConfig>
+    >();
+    expectTypeOf<
+      Extract<GeneInteractionTarget, { kind: "part" }>["part"]
+    >().toEqualTypeOf<GenePart>();
     expectTypeOf<MethylCCreateInput>().toEqualTypeOf<Parameters<typeof methylCModule.create>[0]>();
     expectTypeOf<MethylCConfig>().toEqualTypeOf<
       ReturnType<typeof methylCModule.validate>["config"]

@@ -16,16 +16,14 @@ const geneTracks = {
   ],
   tracks: [
     {
-      type: "transcript",
+      type: "gene",
       id: "genes",
       title: "GENCODE genes",
-      display: "squish",
+      display: "merged",
       height: 60,
       color: "#444444",
       config: {
-        endpoint: "/api/screen-graphql",
-        assembly: "GRCh38",
-        version: 40,
+        url: "https://users.wenglab.org/mezaj/gencode.v40.comprehensive.bigGenePredPlusV1.bb",
       },
       metadata: {},
     },

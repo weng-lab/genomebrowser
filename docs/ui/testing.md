@@ -34,9 +34,9 @@ Collection fixtures live in `test/collections/`. Prefer a small fixture that iso
 
 The schema artifacts and scripts have distinct roles:
 
-- `trackselect schema` writes `trackSelectCollection.schema.json` by default; `schema.outFile` can select another project-relative path.
+- `trackselect schema --from <module[#export]>` writes `trackSelectCollection.schema.json` by default; `--out` can select another project-relative path.
 - `test/schemas/trackSelectCollection.schema.json` is the schema referenced by collection fixtures.
-- The public `trackselect schema` command exercises the installed-package workflow through `trackselect.config.ts`.
+- The package build verifies that the public command can load a TypeScript module array, write a schema, and check that the generated file is current.
 
 Generated schemas should be checked by regenerating them only when schema or module inputs change. Review generated diffs rather than editing schema output by hand.
 

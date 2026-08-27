@@ -7,6 +7,7 @@
     "ui": "pnpm --filter @weng-lab/genomebrowser-ui",
     "app": "pnpm --filter @weng-lab/genomebrowser-app",
     "reader": "pnpm --filter @weng-lab/genomic-reader",
+    "dev": "pnpm --filter @weng-lab/genomebrowser-app dev",
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
@@ -27,5 +28,5 @@
     "react-doctor": "^0.9.5",
     "turbo": "2.10.11"
   },
-  "packageManager": "pnpm@11.19.0+sha512.7881f3ed590d472c4a955e2b88b2121791116066dcc88cbca3849ec9b60f1bbaa6d2ccb221fa91da4e1c65bef2bcbe379365aea7ac539c7bf86dedc3a1b22dce"
+  "packageManager": "pnpm@11.24.0"
 }

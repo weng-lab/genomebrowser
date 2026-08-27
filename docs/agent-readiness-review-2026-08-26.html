@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agent-readiness review: genomebrowser</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    </script>
+    <style>
+      body { text-rendering: optimizeLegibility; }
+      .deep { background: linear-gradient(135deg, #0f172a, #1e293b); }
+      .seam { border-style: dashed; }
+      code { overflow-wrap: anywhere; }
+      .citation { color: #475569; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .78rem; }
+      @media print { .break-before { break-before: page; } }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-6xl mx-auto px-6 py-12 space-y-14">
+      <header class="space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-[.2em] text-emerald-700">Agent-readiness review</p>
+            <h1 class="mt-1 text-4xl font-semibold tracking-tight">genomebrowser</h1>
+          </div>
+          <p class="text-sm text-slate-500">26 August 2026</p>
+        </div>
+        <div class="grid md:grid-cols-4 gap-3">
+          <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold">88</p><p class="text-sm text-slate-500">test files</p></div>
+          <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold">710</p><p class="text-sm text-slate-500">passing test cases</p></div>
+          <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold text-red-700">0</p><p class="text-sm text-slate-500">app test files</p></div>
+          <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold">28/28</p><p class="text-sm text-slate-500">verify tasks passed</p></div>
+        </div>
+        <div class="rounded-2xl border-l-4 border-amber-500 bg-amber-50 p-6">
+          <p class="text-xl font-semibold">This repo catches domain logic regressions. It does not reliably catch broken product behavior.</p>
+          <p class="mt-2 text-slate-700">A capable agent can make a plausible app or UI change, run the required command, and get a clean result. Tests are strongest where the right answer is mechanical. They are weakest where an agent must judge whether the product still works.</p>
+        </div>
+        <p class="text-sm text-slate-600">Evidence came from five independent read-only reviews, direct source inspection, <code>pnpm verify</code>, a full React Doctor scan, and repository test counts.</p>
+      </header>
+
+      <section class="space-y-5">
+        <h2 class="text-2xl font-semibold">Where feedback stops</h2>
+        <div class="rounded-2xl border bg-white p-5 overflow-x-auto">
+          <pre class="mermaid">
+flowchart LR
+  A[Agent reads task] --> B[AGENTS + DESIGN + package docs]
+  B --> C[Typed interfaces and schemas]
+  C --> D[Unit and integration tests]
+  D --> E[pnpm verify]
+  E --> F[Rendered product behavior]
+  B:::good
+  C:::good
+  D:::mixed
+  E:::mixed
+  F:::bad
+  classDef good fill:#d1fae5,stroke:#047857,color:#064e3b
+  classDef mixed fill:#fef3c7,stroke:#d97706,color:#78350f
+  classDef bad fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
+          </pre>
+        </div>
+        <p class="text-slate-700">The repo explains intent and tests domain mechanics well. Feedback stops before the final product. The standalone app, browser behavior, accessibility, responsive layout, and complete package integration remain largely unchecked.</p>
+      </section>
+
+      <section class="space-y-6">
+        <h2 class="text-2xl font-semibold">What works well</h2>
+        <div class="grid md:grid-cols-2 gap-5">
+          <article class="rounded-2xl border bg-white p-6 space-y-3">
+            <h3 class="text-lg font-semibold">Ownership has one named source</h3>
+            <p><code>AGENTS.md</code> and <code>DESIGN.md</code> assign runtime, first-party tracks, collection UI, and product composition to named packages. An agent has a concrete reason not to put behavior in whichever package happens to be nearby.</p>
+            <p class="citation">AGENTS.md:5-17 · DESIGN.md:14-20</p>
+          </article>
+          <article class="rounded-2xl border bg-white p-6 space-y-3">
+            <h3 class="text-lg font-semibold">Core hides real complexity</h3>
+            <p><code>defineTrackModule</code> turns one definition into validation, defaults, schemas, creation, rendering, fetching, settings, and tooltips. The track store and data coordination modules also keep high-risk rules in one place.</p>
+            <p class="citation">packages/core/src/modules/defineTrackModule.ts:108-190 · docs/core/adr/0006...:1-5</p>
+          </article>
+          <article class="rounded-2xl border bg-white p-6 space-y-3">
+            <h3 class="text-lg font-semibold">Reader fixtures can be checked independently</h3>
+            <p>Committed binaries include generation commands, tool versions, hashes, UCSC output, compression variants, edge intervals, and a separate inspector. An agent can compare exact results without calling a live server or trusting the code under test.</p>
+            <p class="citation">packages/reader/test/fixtures/bigwig/README.md:1-189</p>
+          </article>
+          <article class="rounded-2xl border bg-white p-6 space-y-3">
+            <h3 class="text-lg font-semibold">Tests cover failures that types cannot catch</h3>
+            <p>The suite checks stale async completion, rejected updates without partial state, cancellation, malformed ranges, renderer isolation, data privacy, cache lifetime, and fetch invalidation. These tests catch bugs that a valid type signature would miss.</p>
+            <p class="citation">packages/core/test/data/useTrackData.test.tsx · packages/reader/test/httpRange.test.ts · packages/core/test/browser/trackRenderErrorIsolation.test.tsx</p>
+          </article>
+          <article class="rounded-2xl border bg-white p-6 space-y-3">
+            <h3 class="text-lg font-semibold">Reader and tracks test the built packages</h3>
+            <p>After Vite builds, reader and tracks check ESM output, declarations, exports, source maps, subpaths, and loaded implementation graphs. Source tests alone would not catch these packaging failures.</p>
+            <p class="citation">packages/reader/scripts/verify-package.mjs · packages/tracks/scripts/verify-package.mjs</p>
+          </article>
+          <article class="rounded-2xl border bg-white p-6 space-y-3">
+            <h3 class="text-lg font-semibold">ADRs explain the constraints</h3>
+            <p>The core ADRs explain state validation, panning settlement, deep browser modules, configuration ownership, and authenticated transport. An agent can reject a locally convenient change because the repo records why the constraint exists.</p>
+            <p class="citation">docs/core/adr/0001-0010 · docs/ui/adr/0001</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="space-y-6 break-before">
+        <h2 class="text-2xl font-semibold">Where agents get false confidence</h2>
+        <div class="space-y-4">
+          <article class="rounded-2xl border-l-4 border-red-600 bg-white p-6">
+            <div class="flex items-center gap-3"><span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">Critical</span><h3 class="text-lg font-semibold">The app has no tests</h3></div>
+            <p class="mt-3">The app owns the final product, but <code>packages/app/package.json</code> defines no test script and the package contains zero test files. Turbo treats the missing task as acceptable. Broken toolbar wiring, TrackSelect opening, clipboard behavior, or GraphQL proxy semantics can pass <code>pnpm verify</code>.</p>
+            <p class="citation mt-2">packages/app/package.json:5-13 · packages/app/components/Browser.tsx · packages/app/app/api/screen-graphql/route.ts</p>
+          </article>
+          <article class="rounded-2xl border-l-4 border-red-600 bg-white p-6">
+            <div class="flex items-center gap-3"><span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">Critical</span><h3 class="text-lg font-semibold">The TrackSelect workflow test does not render TrackSelect</h3></div>
+            <p class="mt-3"><code>trackSelectWorkflow.test.tsx</code> replaces <code>TrackSelectContent</code> with a hook probe that returns <code>null</code>. Its 28 tests check state semantics. They cannot show that Submit calls the action, failures appear on screen, the dialog stays open, or controls have accessible names.</p>
+            <p class="citation mt-2">packages/ui/test/trackSelectWorkflow.test.tsx:26-39,217-869 · docs/ui/testing.md:43-54</p>
+          </article>
+          <article class="rounded-2xl border-l-4 border-red-600 bg-white p-6">
+            <div class="flex items-center gap-3"><span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">Critical</span><h3 class="text-lg font-semibold">Agents cannot run the documented UI checks</h3></div>
+            <p class="mt-3"><code>DESIGN.md</code> requires checks at narrow widths, keyboard operation, accessible inputs, disabled and error states, and long content. The repo assigns those checks to a manual app that agents may not start. It also does not require agents to report them as unverified.</p>
+            <p class="citation mt-2">DESIGN.md:39-63 · docs/ui/testing.md:25-33 · AGENTS.md:45-48</p>
+          </article>
+          <article class="rounded-2xl border-l-4 border-amber-500 bg-white p-6">
+            <div class="flex items-center gap-3"><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">High</span><h3 class="text-lg font-semibold">No test covers reader → track → browser</h3></div>
+            <p class="mt-3">Reader tests use real files. Track tests mock the reader. Cross-package fetch tests mock each fetcher. No test mounts a first-party track, reads a committed binary fixture, and renders it through <code>GenomeBrowser</code>.</p>
+            <p class="citation mt-2">packages/tracks/test/core/bigwig.test.ts:4-13 · packages/tracks/test/core/fetchOnChange.integration.test.tsx:31-41</p>
+          </article>
+          <article class="rounded-2xl border-l-4 border-amber-500 bg-white p-6">
+            <div class="flex items-center gap-3"><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">High</span><h3 class="text-lg font-semibold"><code>pnpm verify</code> skips named checks</h3></div>
+            <p class="mt-3"><code>pnpm verify</code> does not explicitly run the root typecheck task, React Doctor, Rust checks, browser tests, coverage, or release validation. The Next build currently typechecks the app, but the task graph does not require the app's separate typecheck command. CI runs React Doctor without letting findings fail the job.</p>
+            <p class="citation mt-2">package.json:11-23 · turbo.json:9-29 · packages/app/turbo.json:1-8 · .github/workflows/react-doctor.yml:33-38</p>
+          </article>
+          <article class="rounded-2xl border-l-4 border-amber-500 bg-white p-6">
+            <div class="flex items-center gap-3"><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">High</span><h3 class="text-lg font-semibold"><code>test.md</code> is stale but looks authoritative</h3></div>
+            <p class="mt-3"><code>packages/reader/test.md</code> tells an agent to design an interface from a missing spec and an external checkout. Its claims about uncached reads and sorting conflict with current docs. A search-driven agent has no clear reason to ignore it.</p>
+            <p class="citation mt-2">packages/reader/test.md:1-32 · packages/reader/README.md:135-143</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="space-y-6">
+        <h2 class="text-2xl font-semibold">Verification defects that matter to agents</h2>
+        <div class="overflow-x-auto rounded-2xl border bg-white">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-100 text-left"><tr><th class="p-4">Signal</th><th class="p-4">What it proves</th><th class="p-4">What an agent may wrongly infer</th></tr></thead>
+            <tbody class="divide-y">
+              <tr><td class="p-4 font-mono">pnpm test</td><td class="p-4">Vitest passes in four packages</td><td class="p-4">Every package has tests; compile-time assertions were checked</td></tr>
+              <tr><td class="p-4 font-mono">pnpm verify</td><td class="p-4">28 configured tasks pass</td><td class="p-4">Rendered app behavior and all tools were verified</td></tr>
+              <tr><td class="p-4 font-mono">next build</td><td class="p-4">Current Next config compiles and runs TypeScript</td><td class="p-4">The explicit app typecheck task is guaranteed by the graph</td></tr>
+              <tr><td class="p-4 font-mono">React Doctor</td><td class="p-4">No static diagnostics in 231 files</td><td class="p-4">Accessibility and workflow behavior are correct</td></tr>
+              <tr><td class="p-4 font-mono">UI workflow tests</td><td class="p-4">Session and store transitions work</td><td class="p-4">The visible dialog is wired to those transitions</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="grid md:grid-cols-2 gap-4 text-sm">
+          <li class="rounded-xl border bg-white p-4"><strong>Cache input gap.</strong> <code>NEXT_PUBLIC_MUI_X_LICENSE_KEY</code> affects the app build but is not a build hash input in <code>turbo.json</code>.</li>
+          <li class="rounded-xl border bg-white p-4"><strong>Rust checks are separate.</strong> The converter has useful integration tests, but neither pnpm nor CI runs Cargo.</li>
+          <li class="rounded-xl border bg-white p-4"><strong>Version skew.</strong> Root and app/benchmark use different Oxlint and Oxfmt versions despite root docs claiming one installation.</li>
+          <li class="rounded-xl border bg-white p-4"><strong>Warnings pass.</strong> UI tests emit React <code>act</code> and MUI license warnings while the task remains green.</li>
+          <li class="rounded-xl border bg-white p-4"><strong>Package checks differ.</strong> Core lacks the built-export verification used by reader and tracks. UI only verifies its CLI workflow.</li>
+          <li class="rounded-xl border bg-white p-4"><strong>Wall-clock coupling.</strong> One Data Grid test waits a fixed 200 ms, binding correctness to current scheduler timing.</li>
+        </ul>
+      </section>
+
+      <section id="candidates" class="space-y-10 break-before">
+        <div>
+          <h2 class="text-2xl font-semibold">Architecture deepening candidates</h2>
+          <p class="mt-2 text-slate-600">Solid box = module · dashed line = seam · red = leaked knowledge · dark box = deep module</p>
+        </div>
+
+        <article id="reader-orchestration" class="rounded-2xl border bg-white p-6 space-y-5">
+          <div class="flex flex-wrap gap-2"><span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Strong</span><span class="rounded-full bg-slate-100 px-3 py-1 text-xs">internal adapters</span></div>
+          <h3 class="text-xl font-semibold">Concentrate the BBI regional-read lifecycle</h3>
+          <p class="citation">packages/reader/src/bigBed.ts:101-211 · packages/reader/src/bigWig.ts:136-245</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-xl border p-4"><p class="text-xs uppercase tracking-wider text-slate-500">Before</p><pre class="mermaid">flowchart TD
+BB[BigBed module] --> V1[validate]
+BB --> R1[range bootstrap]
+BB --> C1[chrom cache]
+BB --> T1[R-tree]
+BB --> D1[decode]
+BW[BigWig module] --> V2[validate]
+BW --> R2[range bootstrap]
+BW --> C2[chrom cache]
+BW --> T2[R-tree]
+BW --> D2[decode]</pre></div>
+            <div class="rounded-xl border p-4"><p class="text-xs uppercase tracking-wider text-slate-500">After</p><pre class="mermaid">flowchart TD
+BB[BigBed adapter] --> Q[BBI regional query]
+BW[BigWig adapter] --> Q
+Q --> I[validate · cache · abort · blocks]
+BB --> BD[BigBed decode]
+BW --> WD[BigWig index + decode]
+classDef deep fill:#1e293b,color:#fff,stroke:#0f172a
+class Q deep</pre></div>
+          </div>
+          <p><strong>Problem.</strong> Two deep public modules repeat the same validation, range, cache, cancellation, R-tree, and block-loading implementation.</p>
+          <p><strong>Solution.</strong> Keep both public interfaces, but put their common query lifecycle behind one internal interface with format-specific adapters.</p>
+          <ul class="grid sm:grid-cols-3 gap-2 text-sm"><li>locality: one abort policy</li><li>leverage: two formats</li><li>tests hit public interfaces</li></ul>
+        </article>
+
+        <article id="signal" class="rounded-2xl border bg-white p-6 space-y-5">
+          <div class="flex flex-wrap gap-2"><span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Strong</span><span class="rounded-full bg-slate-100 px-3 py-1 text-xs">in-process</span></div>
+          <h3 class="text-xl font-semibold">Move generic signal behavior out of BigWig</h3>
+          <p class="citation">packages/tracks/src/bigwig/helpers.ts:1-66 · packages/tracks/src/shared/signal/index.ts:1-50 · packages/tracks/src/cave/render.tsx</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-xl border p-4"><p class="text-xs uppercase tracking-wider text-slate-500">Before</p><pre class="mermaid">flowchart LR
+S[shared signal] --> BW[BigWig helpers]
+C[CAVE] -. imports generic behavior .-> BW
+M[MethylC] -. imports generic behavior .-> BW
+classDef leak stroke:#dc2626,stroke-width:3px
+class C,M,BW leak</pre></div>
+            <div class="rounded-xl border p-4"><p class="text-xs uppercase tracking-wider text-slate-500">After</p><pre class="mermaid">flowchart LR
+S[shared signal module] --> BW[BigWig policy]
+S --> C[CAVE policy]
+S --> M[MethylC policy]
+classDef deep fill:#1e293b,color:#fff,stroke:#0f172a
+class S deep</pre></div>
+          </div>
+          <p><strong>Problem.</strong> Pixel lookup, data presence, scales, ranges, and color behavior live behind a BigWig-named interface used by sibling tracks.</p>
+          <p><strong>Solution.</strong> Deepen the shared signal module with generic geometry and value behavior. Keep fill, overrides, tooltip, and rendering policy in each track.</p>
+          <ul class="grid sm:grid-cols-3 gap-2 text-sm"><li>locality: signal invariants</li><li>leverage: three tracks</li><li>no sibling knowledge</li></ul>
+        </article>
+
+        <article id="app-assembly" class="rounded-2xl border bg-white p-6 space-y-5">
+          <div class="flex flex-wrap gap-2"><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Worth exploring</span><span class="rounded-full bg-slate-100 px-3 py-1 text-xs">app composition</span></div>
+          <h3 class="text-xl font-semibold">Make assembly identity one app-owned decision</h3>
+          <p class="citation">packages/app/components/Browser.tsx · Toolbars.tsx · RegionOverview.tsx · packages/ui/src/cytobands/cytobandData.ts</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-xl border p-4"><p class="text-xs uppercase tracking-wider text-slate-500">Before</p><div class="mt-5 grid grid-cols-3 gap-3 text-center text-sm"><div class="rounded border-red-300 border p-4"><code>hg38</code><br><span class="text-xs">browser</span></div><div class="rounded border-red-300 border p-4"><code>GRCh38</code><br><span class="text-xs">search</span></div><div class="rounded border-red-300 border p-4"><code>GRCh38</code><br><span class="text-xs">cytobands</span></div></div></div>
+            <div class="rounded-xl border p-4"><p class="text-xs uppercase tracking-wider text-slate-500">After</p><div class="deep mt-5 rounded-xl p-5 text-white text-center"><p class="text-xs uppercase tracking-wider text-slate-300">App assembly module</p><p class="mt-2"><code>runtime: hg38</code> · <code>SCREEN: GRCh38</code></p></div></div>
+          </div>
+          <p><strong>Problem.</strong> Product assembly identity is a cross-file invariant with unrelated literals and implicit alias normalization.</p>
+          <p><strong>Solution.</strong> Let app composition own one assembly decision and pass the required identifier to each caller. Do not build a generalized registry.</p>
+          <ul class="grid sm:grid-cols-3 gap-2 text-sm"><li>locality: one decision</li><li>leverage: all app callers</li><li>difference stays explicit</li></ul>
+        </article>
+
+        <article id="context-menu" class="rounded-2xl border bg-white p-6 space-y-5">
+          <div class="flex flex-wrap gap-2"><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Worth exploring</span><span class="rounded-full bg-slate-100 px-3 py-1 text-xs">hypothetical seam</span></div>
+          <h3 class="text-xl font-semibold">Remove or complete the context-menu override seam</h3>
+          <p class="citation">packages/core/src/lib.ts:55,81-85 · packages/core/src/browser/GenomeBrowser.tsx:49-80</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="rounded-xl border p-4"><p class="text-xs uppercase tracking-wider text-slate-500">Before</p><pre class="mermaid">flowchart LR
+X[public factory] -. no insertion point .-> G[GenomeBrowser]
+G --> I[internal store]
+classDef leak stroke:#dc2626,stroke-width:3px
+class X leak</pre></div>
+            <div class="rounded-xl border p-4"><p class="text-xs uppercase tracking-wider text-slate-500">After</p><pre class="mermaid">flowchart LR
+G[GenomeBrowser] --> I[internal store]
+T[tracks] --> H[focused hook]
+H --> I
+classDef deep fill:#1e293b,color:#fff,stroke:#0f172a
+class G deep</pre></div>
+          </div>
+          <p><strong>Problem.</strong> Core publicly exports a store factory that consumers cannot inject into <code>GenomeBrowser</code>. One adapter makes this a hypothetical seam.</p>
+          <p><strong>Solution.</strong> Keep the store internal until a real second adapter exists, or complete the override interface when a consumer needs it.</p>
+          <ul class="grid sm:grid-cols-3 gap-2 text-sm"><li>interface loses dead choice</li><li>locality stays internal</li><li>ADR remains intact</li></ul>
+          <div class="rounded-lg bg-amber-50 p-3 text-sm">Touches ADR 0003, but does not contradict it: the ADR requires overrides when consumers need customization.</div>
+        </article>
+      </section>
+
+      <section class="space-y-5">
+        <h2 class="text-2xl font-semibold">Documentation and skill friction</h2>
+        <div class="grid md:grid-cols-2 gap-4 text-sm">
+          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">Targeted commands conflict</h3><p class="mt-2">Root guidance requires Turbo filters. Package testing docs and the first-party track skill use direct <code>pnpm --filter</code> commands.</p><p class="citation mt-2">AGENTS.md:31-34 · docs/core/testing.md:3-13 · docs/ui/testing.md:3-12</p></div>
+          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">The track list is stale</h3><p class="mt-2">Root and core-facing docs omit the Gene track even though the package exports and tests include it.</p><p class="citation mt-2">README.md:10-20 · packages/tracks/src/lib.ts:6-18</p></div>
+          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">The app README can lead agents into a forbidden command</h3><p class="mt-2">Agents may not run dev servers, but the app README presents <code>pnpm dev</code> without marking it as a command for humans.</p><p class="citation mt-2">AGENTS.md:45-48 · packages/app/README.md:9-14</p></div>
+          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">The Next docs path is wrong</h3><p class="mt-2">The root instruction points to root <code>node_modules/next</code>. The installed docs are under the app package.</p><p class="citation mt-2">AGENTS.md:41-43 · packages/app/node_modules/next/dist/docs/index.md</p></div>
+          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">The <code>index.ts</code> rule needs an exception</h3><p class="mt-2"><code>docs/conventions.md</code> bans every <code>index.ts</code>, while track authoring requires public subpath entry files with that name.</p><p class="citation mt-2">docs/conventions.md:13-17 · docs/core/tracks/sourceLayout.md:3-9</p></div>
+          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">Idea docs do not share a status convention</h3><p class="mt-2">Some idea docs identify themselves as proposals. Others describe behavior that does not exist without saying whether the text is current, planned, or abandoned.</p><p class="citation mt-2">docs/ideas/browserSessions.md · docs/ideas/trackPrimitives.md:1-5</p></div>
+        </div>
+      </section>
+
+      <section class="space-y-5">
+        <h2 class="text-2xl font-semibold">Recommended order</h2>
+        <ol class="space-y-3">
+          <li class="rounded-xl border bg-white p-5"><strong>1. Test the app.</strong> Add an app test task with smoke tests for shell composition, toolbar actions, TrackSelect opening, and the GraphQL route.</li>
+          <li class="rounded-xl border bg-white p-5"><strong>2. Test one complete visible TrackSelect failure path.</strong> Keep the strong state tests, but render the real content and assert an actionable error, open dialog, and unchanged store.</li>
+          <li class="rounded-xl border bg-white p-5"><strong>3. Add one vertical integration test.</strong> Use a committed reader fixture through a first-party track and <code>GenomeBrowser</code>. This is more valuable than broad coverage targets.</li>
+          <li class="rounded-xl border bg-white p-5"><strong>4. Make <code>verify</code> say exactly what it checks.</strong> Include typecheck directly, hash the app's build-time environment, run Rust checks when tool files change, and fail when a package lacks a required task.</li>
+          <li class="rounded-xl border bg-white p-5"><strong>5. Remove misleading authority.</strong> Delete or relocate <code>packages/reader/test.md</code>, reconcile command guidance, mark human-only dev commands, and correct stale inventories and paths.</li>
+          <li class="rounded-xl border bg-white p-5"><strong>6. Deepen the two strongest architecture candidates.</strong> Concentrate the BBI query lifecycle and generic signal behavior after the verification gaps are closed.</li>
+        </ol>
+      </section>
+
+      <section id="top-recommendation" class="rounded-2xl deep p-8 text-white">
+        <p class="text-xs uppercase tracking-[.2em] text-emerald-300">Top recommendation</p>
+        <h2 class="mt-2 text-2xl font-semibold">Close the app and rendered-workflow verification gap first.</h2>
+        <p class="mt-3 text-slate-300">Domain code already has strong deterministic feedback. App tests and one real visible workflow would prevent more wrong-but-plausible changes than another set of isolated unit tests.</p>
+      </section>
+
+      <footer class="border-t pt-6 text-sm text-slate-500">
+        <p><code>pnpm verify</code> passed 28 of 28 tasks, all from cache. React Doctor scanned 231 files and reported no diagnostics. Those results are included as evidence, not treated as proof of product correctness.</p>
+      </footer>
+    </main>
+  </body>
+</html>

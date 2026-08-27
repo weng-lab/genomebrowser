@@ -1,0 +1,21 @@
+[package]
+name = "gtf-to-big-gene-pred-plus"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+anyhow = "1.0"
+bigtools = { version = "=0.5.8", default-features = false, features = ["read", "write"] }
+clap = { version = "4.5", features = ["derive"] }
+flate2 = "1.1"
+noodles-gtf = "=0.57.0"
+noodles-gff = "=0.62.0"
+serde_json = { version = "1.0", features = ["preserve_order"] }
+tokio = { version = "1.47", features = ["rt-multi-thread"] }
+
+[dev-dependencies]
+tempfile = "3.20"
+
+[lints.rust]
+unsafe_code = "forbid"

@@ -1,6 +1,6 @@
 # First-party track modules
 
-`@weng-lab/genomebrowser-tracks` contains seven track modules for the `@weng-lab/genomebrowser` runtime. Use a module when your data matches its source format and you want its built-in MUI settings.
+`@weng-lab/genomebrowser-tracks` contains eight track modules for the `@weng-lab/genomebrowser` runtime. Use a module when your data matches its source format and you want its built-in MUI settings.
 
 ## Get started
 
@@ -8,7 +8,7 @@
 
 ## Choose a built-in track
 
-Use the [track catalog](tracks/README.md) to choose among BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, MethylC, and Transcript. The catalog groups tracks by the kind of source they read and links to each track's configuration reference.
+Use the [track catalog](tracks/README.md) to choose among BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, Gene, MethylC, and Transcript. The catalog groups tracks by the kind of source they read and links to each track's configuration reference.
 
 ## Fix data source problems
 

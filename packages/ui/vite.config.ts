@@ -54,7 +54,6 @@ export default defineConfig(({ command, isPreview, mode }) => {
       lib: {
         entry: {
           "genomebrowser-ui": path.resolve(__dirname, "src/lib.ts"),
-          cli: path.resolve(__dirname, "src/cli.ts"),
           trackselect: path.resolve(__dirname, "src/trackselect.ts"),
         },
         name: "genomebrowser-ui",

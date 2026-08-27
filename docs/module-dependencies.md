@@ -235,7 +235,7 @@ Paths are relative to `packages/ui/src`.
 ```mermaid
 flowchart TB
   API["Public API<br/>lib.ts"]
-  CLI["CLI surfaces<br/>cli.ts and trackselect.ts"]
+  CLI["TrackSelect CLI<br/>trackselect.ts"]
   CORE["core package"]
 
   NAV["Browser navigation control<br/>BrowserNavigationButton/*"]

@@ -4,12 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  genomic-reader>axios: 0.33.0
-
-patchedDependencies:
-  genomic-reader@1.4.10: 1453f81a506195eea22d8494a2960311cd830e2496af1cc4f96d6dc14a99c9db
-
 importers:
 
   .:
@@ -40,7 +34,7 @@ importers:
         version: 6.0.3
       genomic-reader:
         specifier: 1.4.10
-        version: 1.4.10(patch_hash=1453f81a506195eea22d8494a2960311cd830e2496af1cc4f96d6dc14a99c9db)(debug@4.4.3(supports-color@8.1.1))
+        version: 1.4.10(debug@4.4.3(supports-color@8.1.1))
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -175,7 +169,7 @@ importers:
         version: 8.0.13(@types/node@24.10.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
       vite-plugin-dts:
         specifier: ^4.5.4
-        version: 4.5.4(@types/node@24.10.4)(@typescript/typescript6@6.0.2)(rollup@4.54.0)(supports-color@8.1.1)(vite@8.0.13(@types/node@24.10.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 4.5.4(@types/node@26.1.2)(@typescript/typescript6@6.0.2)(rollup@4.54.0)(supports-color@8.1.1)(vite@8.0.13(@types/node@24.10.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
       vitest:
         specifier: 4.1.7
         version: 4.1.7(@opentelemetry/api@1.9.1)(@types/node@24.10.4)(jsdom@26.1.0(supports-color@8.1.1))(vite@8.0.13(@types/node@24.10.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
@@ -207,6 +201,15 @@ importers:
 
   packages/tracks:
     dependencies:
+      '@dnd-kit/core':
+        specifier: ^6.3.1
+        version: 6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@dnd-kit/sortable':
+        specifier: ^10.0.0
+        version: 10.0.0(@dnd-kit/core@6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
+      '@dnd-kit/utilities':
+        specifier: ^3.2.2
+        version: 3.2.2(react@19.2.8)
       '@emotion/react':
         specifier: ^11.0.0
         version: 11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1)
@@ -460,6 +463,28 @@ packages:
   '@csstools/css-tokenizer@3.0.4':
     resolution: {integrity: sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw==}
     engines: {node: '>=18'}
+
+  '@dnd-kit/accessibility@3.1.1':
+    resolution: {integrity: sha512-2P+YgaXF+gRsIihwwY1gCsQSYnu9Zyj2py8kY5fFvUM1qm2WA2u639R6YNVfU4GWr+ZM5mqEsfHZZLoRONbemw==}
+    peerDependencies:
+      react: '>=16.8.0'
+
+  '@dnd-kit/core@6.3.1':
+    resolution: {integrity: sha512-xkGBRQQab4RLwgXxoqETICr6S5JlogafbhNsidmrkVv2YRs5MLwpjoF2qpiGjQt8S9AoxtIV603s0GIUpY5eYQ==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
+  '@dnd-kit/sortable@10.0.0':
+    resolution: {integrity: sha512-+xqhmIIzvAYMGfBYYnbKuNicfSsk4RksY2XdmJhT+HAC01nix6fHCztU68jooFiMUB01Ky3F0FyOvhG/BZrWkg==}
+    peerDependencies:
+      '@dnd-kit/core': ^6.3.0
+      react: '>=16.8.0'
+
+  '@dnd-kit/utilities@3.2.2':
+    resolution: {integrity: sha512-+MKAJEOfaBe5SmV6t34p80MMKhjvUz0vRrvVJbPT0WElzaOJ/1xs+D+KDv+tD/NE5ujfrChEcshd4fLn0wpiqg==}
+    peerDependencies:
+      react: '>=16.8.0'
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -2821,6 +2846,9 @@ packages:
   atomically@2.1.0:
     resolution: {integrity: sha512-+gDffFXRW6sl/HCwbta7zK4uNqbPjv4YJEAdz7Vu+FLQHe77eZ4bvbJGi4hE0QPeJlMYMA3piXEr1UL3dAwx7Q==}
 
+  axios@0.21.4:
+    resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
+
   axios@0.33.0:
     resolution: {integrity: sha512-juz19g7B3UWT9r3+tgRFQf2Bdy6IKDVroiyuVOUrkILVKHpqHL++K1l8ybvfdEP9B/VE72vk8vllbnedVCm/og==}
 
@@ -3147,6 +3175,7 @@ packages:
   eslint@9.39.2:
     resolution: {integrity: sha512-LEyamqS7W5HB3ujJyvi0HQK/dtVINZvd5mAAp9eT5S/ujByGjiZLCzPcHVzuXbpJDJF/cxwHlfceVUDZ2lnSTw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -4709,6 +4738,31 @@ snapshots:
       '@csstools/css-tokenizer': 3.0.4
 
   '@csstools/css-tokenizer@3.0.4': {}
+
+  '@dnd-kit/accessibility@3.1.1(react@19.2.8)':
+    dependencies:
+      react: 19.2.8
+      tslib: 2.8.1
+
+  '@dnd-kit/core@6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@dnd-kit/accessibility': 3.1.1(react@19.2.8)
+      '@dnd-kit/utilities': 3.2.2(react@19.2.8)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+      tslib: 2.8.1
+
+  '@dnd-kit/sortable@10.0.0(@dnd-kit/core@6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@dnd-kit/core': 6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@dnd-kit/utilities': 3.2.2(react@19.2.8)
+      react: 19.2.8
+      tslib: 2.8.1
+
+  '@dnd-kit/utilities@3.2.2(react@19.2.8)':
+    dependencies:
+      react: 19.2.8
+      tslib: 2.8.1
 
   '@emnapi/core@1.10.0':
     dependencies:
@@ -6814,6 +6868,12 @@ snapshots:
       stubborn-fs: 2.0.0
       when-exit: 2.1.5
 
+  axios@0.21.4(debug@4.4.3(supports-color@8.1.1)):
+    dependencies:
+      follow-redirects: 1.16.0(debug@4.4.3(supports-color@8.1.1))
+    transitivePeerDependencies:
+      - debug
+
   axios@0.33.0(debug@4.4.3(supports-color@8.1.1)):
     dependencies:
       follow-redirects: 1.16.0(debug@4.4.3(supports-color@8.1.1))
@@ -7311,9 +7371,9 @@ snapshots:
 
   function-bind@1.1.2: {}
 
-  genomic-reader@1.4.10(patch_hash=1453f81a506195eea22d8494a2960311cd830e2496af1cc4f96d6dc14a99c9db)(debug@4.4.3(supports-color@8.1.1)):
+  genomic-reader@1.4.10(debug@4.4.3(supports-color@8.1.1)):
     dependencies:
-      axios: 0.33.0(debug@4.4.3(supports-color@8.1.1))
+      axios: 0.21.4(debug@4.4.3(supports-color@8.1.1))
       pako: 1.0.11
     transitivePeerDependencies:
       - debug
@@ -8491,6 +8551,25 @@ snapshots:
   vite-plugin-dts@4.5.4(@types/node@24.10.4)(@typescript/typescript6@6.0.2)(rollup@4.54.0)(supports-color@8.1.1)(vite@8.0.13(@types/node@24.10.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)):
     dependencies:
       '@microsoft/api-extractor': 7.55.2(@types/node@24.10.4)
+      '@rollup/pluginutils': 5.3.0(rollup@4.54.0)
+      '@volar/typescript': 2.4.27(@typescript/typescript6@6.0.2)
+      '@vue/language-core': 2.2.0(@typescript/typescript6@6.0.2)
+      compare-versions: 6.1.1
+      debug: 4.4.3(supports-color@8.1.1)
+      kolorist: 1.8.0
+      local-pkg: 1.1.2
+      magic-string: 0.30.21
+      typescript: '@typescript/typescript6@6.0.2'
+    optionalDependencies:
+      vite: 8.0.13(@types/node@24.10.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
+    transitivePeerDependencies:
+      - '@types/node'
+      - rollup
+      - supports-color
+
+  vite-plugin-dts@4.5.4(@types/node@26.1.2)(@typescript/typescript6@6.0.2)(rollup@4.54.0)(supports-color@8.1.1)(vite@8.0.13(@types/node@24.10.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)):
+    dependencies:
+      '@microsoft/api-extractor': 7.55.2(@types/node@26.1.2)
       '@rollup/pluginutils': 5.3.0(rollup@4.54.0)
       '@volar/typescript': 2.4.27(@typescript/typescript6@6.0.2)
       '@vue/language-core': 2.2.0(@typescript/typescript6@6.0.2)

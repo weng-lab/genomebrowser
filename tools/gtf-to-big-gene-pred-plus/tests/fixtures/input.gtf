@@ -1,0 +1,17 @@
+##description deterministic converter fixture
+chr1	fixture	gene	101	400	.	+	.	gene_id "GENE1";
+chr1	fixture	transcript	101	400	.	+	.	gene_id "GENE1"; transcript_id "TXPLUS"; gene_name "Plus Gene"; transcript_name "Plus transcript"; gene_type "protein_coding"; transcript_type "protein_coding"; level "2"; note "first"; note "second"; tag "basic"; tag "canonical";
+chr1	fixture	exon	101	180	.	+	.	gene_id "GENE1"; transcript_id "TXPLUS";
+chr1	fixture	CDS	121	180	.	+	0	gene_id "GENE1"; transcript_id "TXPLUS";
+chr1	fixture	exon	301	400	.	+	.	gene_id "GENE1"; transcript_id "TXPLUS";
+chr1	fixture	CDS	301	380	.	+	1	gene_id "GENE1"; transcript_id "TXPLUS";
+chr1	fixture	Selenocysteine	350	352	.	+	.	gene_id "GENE1"; transcript_id "TXPLUS";
+chr1	fixture	stop_codon	381	383	.	+	0	gene_id "GENE1"; transcript_id "TXPLUS";
+chr1	fixture	transcript	501	800	.	-	.	gene_id "GENE2"; transcript_id "TXMINUS"; gene_name "Minus Gene"; transcript_name "Minus transcript"; gene_biotype "protein_coding"; transcript_biotype "protein_coding"; source_note "kept";
+chr1	fixture	exon	501	600	.	-	.	gene_id "GENE2"; transcript_id "TXMINUS";
+chr1	fixture	CDS	524	600	.	-	2	gene_id "GENE2"; transcript_id "TXMINUS";
+chr1	fixture	exon	701	800	.	-	.	gene_id "GENE2"; transcript_id "TXMINUS";
+chr1	fixture	CDS	701	777	.	-	0	gene_id "GENE2"; transcript_id "TXMINUS";
+chr1	fixture	start_codon	778	780	.	-	0	gene_id "GENE2"; transcript_id "TXMINUS";
+chr2	fixture	transcript	51	150	.	+	.	gene_id "GENE3"; transcript_id "TXNONCODING"; transcript_type "lncRNA"; custom "yes";
+chr2	fixture	exon	51	150	.	+	.	gene_id "GENE3"; transcript_id "TXNONCODING";

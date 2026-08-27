@@ -11,19 +11,21 @@ const temporaryDirectory = await mkdtemp(resolve(appDirectory, ".verify-tracksel
 
 try {
   await writeFile(
-    resolve(temporaryDirectory, "trackselect.config.ts"),
-    `import { defineTrackSelectConfig } from "@weng-lab/genomebrowser-ui/cli";
-import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
-
-export default defineTrackSelectConfig({
-  modules: firstPartyTrackModules,
-  schema: { outFile: "trackSelectCollection.schema.json" },
-});
+    resolve(temporaryDirectory, "trackModules.ts"),
+    `export { firstPartyTrackModules as trackModules } from "@weng-lab/genomebrowser-tracks";
 `,
   );
 
   const trackselectPath = resolve(packageDirectory, manifest.bin.trackselect);
-  const result = spawnSync(process.execPath, [trackselectPath, "schema"], {
+  const schemaArguments = [
+    trackselectPath,
+    "schema",
+    "--from",
+    "./trackModules.ts#trackModules",
+    "--out",
+    "trackSelectCollection.schema.json",
+  ];
+  const result = spawnSync(process.execPath, schemaArguments, {
     cwd: temporaryDirectory,
     encoding: "utf8",
   });
@@ -39,11 +41,20 @@ export default defineTrackSelectConfig({
     schema?.properties?.tracks?.items?.oneOf?.length === firstPartyTrackModules.length,
     "trackselect schema must include all first-party modules",
   );
+
+  const checkResult = spawnSync(process.execPath, [...schemaArguments, "--check"], {
+    cwd: temporaryDirectory,
+    encoding: "utf8",
+  });
+  assert(
+    checkResult.status === 0,
+    `trackselect schema --check smoke test failed:\n${checkResult.stderr || checkResult.stdout}`,
+  );
 } finally {
   await rm(temporaryDirectory, { recursive: true, force: true });
 }
 
-console.log("Verified the built TrackSelect CLI and Jiti config workflow.");
+console.log("Verified the built TrackSelect CLI module-loading workflow.");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);

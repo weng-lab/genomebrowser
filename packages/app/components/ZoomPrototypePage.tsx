@@ -14,7 +14,7 @@ import {
   hg38,
   type GenomicRegion,
 } from "@weng-lab/genomebrowser";
-import { transcriptModule } from "@weng-lab/genomebrowser-tracks/transcript";
+import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
 
 import { SpanZoomStepper } from "./zoom-prototypes/SpanZoomStepper";
 import {
@@ -43,14 +43,16 @@ const useBrowserStore = createBrowserStore({
 });
 
 const useTrackStore = createTrackStore({
-  modules: [transcriptModule],
+  modules: [geneModule],
   tracks: [
-    transcriptModule.create({
-      id: "zoom-prototype-transcripts",
+    geneModule.create({
+      id: "zoom-prototype-genes",
       title: "GENCODE genes",
       color: "#355f75",
-      display: "squish",
-      config: { assembly: "GRCh38", version: 40 },
+      display: "merged",
+      config: {
+        url: "https://users.wenglab.org/mezaj/gencode.v40.comprehensive.bigGenePredPlusV1.bb",
+      },
     }),
   ],
 });

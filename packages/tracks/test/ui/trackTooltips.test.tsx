@@ -3,6 +3,11 @@
 import type { TrackRuntimeContext } from "@weng-lab/genomebrowser";
 import type { CaveConfig } from "@weng-lab/genomebrowser-tracks/cave";
 import type {
+  GeneConfig,
+  GeneInteractionTarget,
+  GeneTranscript,
+} from "@weng-lab/genomebrowser-tracks/gene";
+import type {
   MethylCConfig,
   MethylCShowRows,
   MethylCTooltipItem,
@@ -14,6 +19,7 @@ import { BigBedTooltip } from "../../src/bigbed/tooltip";
 import { BigWigTooltip } from "../../src/bigwig/tooltip";
 import { BulkBedTooltip } from "../../src/bulkbed/tooltip";
 import { CaveTooltip } from "../../src/cave/tooltip";
+import { GeneTooltip } from "../../src/gene/tooltip";
 import { MethylCTooltip } from "../../src/methylc/tooltip";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -109,6 +115,102 @@ describe("track tooltips", () => {
     );
 
     expect(tooltipText()).toEqual(["Sample", "Location", "chr2:30–40"]);
+  });
+
+  it("shows compact typed gene-part details", () => {
+    const feature = geneTranscript();
+    const item: GeneInteractionTarget = {
+      kind: "part",
+      feature,
+      part: {
+        kind: "intron",
+        start: 120,
+        end: 150,
+        metadata: { intronIndex: 0, transcriptionIndex: 0 },
+        source: "transcript",
+      },
+    };
+    mount(
+      <GeneTooltip
+        item={item}
+        context={context<GeneConfig>("gene", {
+          url: "YOUR_URL_HERE",
+          tagColors: [],
+          highlightColor: "#000000",
+          rowHeight: 12,
+        })}
+      />,
+    );
+
+    expect(tooltipText()).toEqual([
+      "GENE1",
+      "Part",
+      "Intron",
+      "Location",
+      "chr1:120–150",
+      "Length",
+      "30 bp",
+      "Transcript",
+      "tx1",
+      "Intron",
+      "1 of 1",
+    ]);
+  });
+
+  it("summarizes support and conflicts for a merged gene part", () => {
+    const transcript = geneTranscript();
+    const item: GeneInteractionTarget = {
+      kind: "part",
+      feature: {
+        kind: "gene",
+        chromosome: transcript.chromosome,
+        start: transcript.start,
+        end: transcript.end,
+        strand: transcript.strand,
+        geneId: transcript.geneId,
+        geneName: transcript.geneName,
+        transcripts: [transcript],
+      },
+      part: {
+        kind: "cds",
+        start: 100,
+        end: 120,
+        source: "merged",
+        metadata: {
+          winningContributions: [
+            { transcriptId: "tx1", kind: "cds", utrSide: null },
+            { transcriptId: "tx2", kind: "cds", utrSide: null },
+          ],
+          overriddenContributions: [{ transcriptId: "tx3", kind: "utr", utrSide: "5-prime" }],
+          utrSides: [],
+        },
+      },
+    };
+    mount(
+      <GeneTooltip
+        item={item}
+        context={context<GeneConfig>("gene", {
+          url: "YOUR_URL_HERE",
+          tagColors: [],
+          highlightColor: "#000000",
+          rowHeight: 12,
+        })}
+      />,
+    );
+
+    expect(tooltipText()).toEqual([
+      "GENE1",
+      "Part",
+      "CDS",
+      "Location",
+      "chr1:100–120",
+      "Length",
+      "20 bp",
+      "Supported by",
+      "tx1, tx2",
+      "Also called",
+      "UTR",
+    ]);
   });
 
   it("always renders exactly one BigWig signal row from item.max", () => {
@@ -222,6 +324,49 @@ function methylCItem(values: (number | null)[]): MethylCTooltipItem {
   return {
     showRows: methylCShowRows,
     tooltipValues: values.map((max, x) => ({ x, min: max, max })),
+  };
+}
+
+function geneTranscript(): GeneTranscript {
+  return {
+    kind: "transcript",
+    chromosome: "chr1",
+    start: 100,
+    end: 180,
+    strand: "+",
+    transcriptId: "tx1",
+    transcriptName: "tx1",
+    geneId: "gene1",
+    geneName: "GENE1",
+    tags: [],
+    attributes: {},
+    exons: [
+      { start: 100, end: 120, frame: 0 },
+      { start: 150, end: 180, frame: 1 },
+    ],
+    source: {
+      chromosome: "chr1",
+      start: 100,
+      end: 180,
+      name: "tx1",
+      score: 0,
+      strand: "+",
+      thickStart: 100,
+      thickEnd: 180,
+      reserved: "0",
+      blockCount: 2,
+      blockSizes: [20, 30],
+      chromStarts: [0, 50],
+      name2: "tx1",
+      cdsStartStat: "cmpl",
+      cdsEndStat: "cmpl",
+      exonFrames: [0, 1],
+      type: "coding",
+      geneName: "gene1",
+      geneName2: "GENE1",
+      geneType: "protein_coding",
+      fields: [],
+    },
   };
 }
 

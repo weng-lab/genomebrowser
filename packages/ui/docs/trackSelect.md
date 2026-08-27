@@ -303,50 +303,64 @@ Generate JSON Schema from the same track modules used by your application. Edito
 This workflow creates the following files:
 
 ```text
-trackselect.config.ts
+src/
+  trackModules.ts
 collections/
   signals.json
 schemas/
   trackSelectCollection.schema.json
 ```
 
-#### 1. Configure the generator
+#### 1. Export the application modules
 
-Create `trackselect.config.ts` in the directory where you will run the command:
+Export the same module array that the application passes to `createTrackStore`:
 
 ```ts
-import { defineTrackSelectConfig } from "@weng-lab/genomebrowser-ui/cli";
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
-export default defineTrackSelectConfig({
-  modules: [bigWigModule, bigBedModule],
-  schema: {
-    outFile: "schemas/trackSelectCollection.schema.json",
-  },
-});
+export const trackModules = [bigWigModule, bigBedModule];
 ```
 
-The configuration has these public options:
-
-| Option           | Type                        | Default                               | Description                                                                                                     |
-| ---------------- | --------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `modules`        | `readonly AnyTrackModule[]` | Required                              | Supplies at least one module. Use the same module set and versions registered in the application's track store. |
-| `schema`         | `object`                    | `undefined`                           | Groups optional JSON Schema output settings.                                                                    |
-| `schema.outFile` | `string`                    | `"trackSelectCollection.schema.json"` | Sets the output path relative to the directory where you run the command. Missing directories are created.      |
-| `schema.id`      | `string`                    | `undefined`                           | Adds a non-empty supplied value as the generated schema's `$id`.                                                |
-
-The CLI looks only for `./trackselect.config.ts` in its current working directory; it does not search parent directories.
+The source may export one track module or a non-empty array. Add `#exportName` to select a named export. Without an export name, the CLI uses a valid default export or the only valid track-module export. It reports an error when several exports are possible.
 
 #### 2. Generate the schema
 
-Run the package binary from the directory containing `trackselect.config.ts`:
+Run the package binary from the project root:
 
 ```sh
-pnpm exec trackselect schema
+pnpm exec trackselect schema \
+  --from ./src/trackModules.ts#trackModules \
+  --out schemas/trackSelectCollection.schema.json
 ```
 
-Use your package manager's equivalent when you do not use pnpm. The command prints the absolute path it wrote. Run it again whenever you add or remove a track module, update a module version, or change a module's config schema.
+`--from` is repeatable, so one-off generation can combine package and local modules without creating another module array:
+
+```sh
+pnpm exec trackselect schema \
+  --from @weng-lab/genomebrowser-tracks/bigwig#bigWigModule \
+  --from ./src/customTrack.ts#customTrackModule
+```
+
+The command has these options:
+
+| Option             | Default                               | Description                                                                                                            |
+| ------------------ | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `--from <source>`  | Required                              | Loads a track module or module array. Repeat it to combine exports. Relative paths resolve from the current directory. |
+| `-o, --out <file>` | `"trackSelectCollection.schema.json"` | Writes the schema relative to the current directory. Use `-` for stdout. Missing directories are created.              |
+| `--id <uri>`       | `undefined`                           | Adds the supplied value as the generated schema's `$id`.                                                               |
+| `--check`          | `false`                               | Exits with an error when the output file is missing or differs from the generated schema.                              |
+
+Use `--check` in CI after committing the generated schema:
+
+```sh
+pnpm exec trackselect schema \
+  --from ./src/trackModules.ts#trackModules \
+  --out schemas/trackSelectCollection.schema.json \
+  --check
+```
+
+When writing a file, the command prints the loaded track types and output path. With `--out -`, it writes only JSON to stdout and reports loaded types on stderr so the output can be piped safely. Run the command again whenever you add or remove a track module, update a module version, or change a module's config schema.
 
 Consider committing the generated schema so editor support and validation do not depend on every contributor running the generator first.
 
@@ -380,7 +394,7 @@ Set `$schema` in each collection JSON file to a path relative to that collection
 }
 ```
 
-Your editor resolves that path from the JSON file, not from `trackselect.config.ts`. If the editor cannot load the schema, first check that the generated file exists and that the relative path is correct.
+Your editor resolves that path from the JSON file. If the editor cannot load the schema, first check that the generated file exists and that the relative path is correct.
 
 The generated file provides JSON-aware completion and validation; it does not turn a JSON import into a TypeScript value with a static `TrackSelectCollection` type. Runtime parsing remains necessary.
 
@@ -389,7 +403,7 @@ The generated file provides JSON-aware completion and validation; it does not tu
 The generator builds module-specific collection entries from each module's `createInputSchema`. Use the same module set for:
 
 - `createTrackStore({ modules })`
-- `trackselect.config.ts`
+- the module array loaded by `trackselect schema --from`
 - any programmatic `generateTrackCollectionJsonSchema` or `validateJson` calls
 
 The generated schema validates JSON structure, allowed track types and displays, and the parts of module-specific track config represented in JSON Schema. Custom Zod refinements may remain runtime-only after conversion. `TrackSelect` also performs runtime validation for cross-field and multi-collection rules, including metadata fields referenced across views, duplicate qualified track IDs across supplied collections, and selection IDs checked against the complete collection list. Treat editor feedback as an early check, not a replacement for runtime parsing.

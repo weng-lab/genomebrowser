@@ -33,6 +33,8 @@ scripts so Turborepo can apply the package graph and cache. For a targeted task,
 use `pnpm exec turbo run <task> --filter=<package>` rather than invoking the
 package task with `pnpm --filter`.
 
+When verifying changes, use `pnpm verify`, which will check and build all packages to ensure the app playground is updated with the changes. (It caches some tasks so its not heavy)
+
 Read [`docs/turborepo.md`](docs/turborepo.md) before changing package task
 scripts, `turbo.json`, cache inputs or outputs, or CI task orchestration.
 
@@ -49,3 +51,4 @@ This is NOT the NextJS you know, it has breaking changes - API, conventions and 
 - Do NOT suggest compatibility layers, aliases, temporary exports, to support
   older versions of any package.
 - When committing changes to git, if there are any changes not made by you in this session, ask if they should also be added to the commit.
+- Changes to packages/core must be track-agnostic. A track may motivate a new core capability, but core must not contain track-specific behavior, types, imports, or exceptions; keep those concerns in packages/tracks.

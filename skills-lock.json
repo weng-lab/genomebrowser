@@ -1,6 +1,13 @@
 {
   "version": 1,
   "skills": {
+    "create-verification-skill": {
+      "source": "cursor/plugins",
+      "ref": "main",
+      "sourceType": "github",
+      "skillPath": "pstack/skills/create-verification-skill/SKILL.md",
+      "computedHash": "a2e50d21892772174225073b3e4864f853883ae2bc13b33eca64c3b67fe06be5"
+    },
     "vercel-composition-patterns": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
