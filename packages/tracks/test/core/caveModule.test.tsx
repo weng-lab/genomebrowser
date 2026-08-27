@@ -43,15 +43,15 @@ describe("CAVE module", () => {
     expect(configuredMarkup).toContain('fill="#445566"');
   });
 
-  it("distinguishes the top signal with partial opacity", () => {
+  it("does not alter configured colors with opacity", () => {
     const markup = renderFull(
       createTrack({ topColor: "#112233", bottomColor: "#445566" }).config,
       "#123456",
     );
 
-    expect(markup).toContain('fill="#112233" fill-opacity="0.65"');
+    expect(markup).toContain('fill="#112233"');
     expect(markup).toContain('fill="#445566"');
-    expect(markup).not.toContain('fill="#445566" fill-opacity');
+    expect(markup).not.toContain("fill-opacity");
   });
 
   it("rejects non-hexadecimal signal colors", () => {
