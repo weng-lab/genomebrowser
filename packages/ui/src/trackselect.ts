@@ -80,21 +80,21 @@ async function loadTrackModules(sources: string[], cwd: string): Promise<AnyTrac
   const jiti = createJiti(resolve(cwd, ".trackselect-loader.mjs"), {
     interopDefault: false,
   });
-  const modules: AnyTrackModule[] = [];
+  const modulesBySource = await Promise.all(
+    sources.map(async (source) => {
+      const reference = parseSourceReference(source);
+      const specifier = resolveSpecifier(reference.specifier, cwd);
+      let imported: unknown;
+      try {
+        imported = await jiti.import(specifier);
+      } catch (error) {
+        throw new Error(`Could not import track modules from "${source}": ${errorMessage(error)}`);
+      }
+      return selectTrackModules(imported, reference.exportName, source);
+    }),
+  );
 
-  for (const source of sources) {
-    const reference = parseSourceReference(source);
-    const specifier = resolveSpecifier(reference.specifier, cwd);
-    let imported: unknown;
-    try {
-      imported = await jiti.import(specifier);
-    } catch (error) {
-      throw new Error(`Could not import track modules from "${source}": ${errorMessage(error)}`);
-    }
-    modules.push(...selectTrackModules(imported, reference.exportName, source));
-  }
-
-  return modules;
+  return modulesBySource.flat();
 }
 
 function parseSourceReference(source: string) {
