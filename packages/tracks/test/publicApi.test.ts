@@ -29,6 +29,8 @@ import {
 } from "@weng-lab/genomebrowser-tracks/cave";
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 import {
+  type BigGenePredPlusV1Source,
+  type BigGenePredSource,
   geneModule,
   type GeneConfig,
   type GeneCreateInput,
@@ -122,6 +124,8 @@ describe("first-party track package", () => {
     >();
     expectTypeOf<CaveCreateInput>().toEqualTypeOf<Parameters<typeof caveModule.create>[0]>();
     expectTypeOf<CaveConfig>().toEqualTypeOf<ReturnType<typeof caveModule.validate>["config"]>();
+    expectTypeOf<BigGenePredSource["geneType"]>().toEqualTypeOf<string>();
+    expectTypeOf<BigGenePredPlusV1Source["tags"]>().toEqualTypeOf<string>();
     expectTypeOf<CaveData>().toEqualTypeOf<{ top: BigWigRecord[]; bottom: BigWigRecord[] }>();
     expectTypeOf<GeneCreateInput>().toEqualTypeOf<Parameters<typeof geneModule.create>[0]>();
     expectTypeOf<GeneConfig>().toEqualTypeOf<ReturnType<typeof geneModule.validate>["config"]>();

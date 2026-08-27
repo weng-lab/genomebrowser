@@ -1,6 +1,6 @@
 # Gene track next steps
 
-This file records the design questions left open after the first gene track implementation. The track fetches BigGenePredPlusV1 data, renders transcript structure in full and canonical modes, renders a composite gene structure in merged mode, and keeps whole-feature interactions working. The old transcript track remains separate and may be removed later.
+This file records the design questions left open after the first gene track implementation. The track fetches standard BigGenePred and BigGenePredPlusV1 data, renders transcript structure in full and canonical modes, renders a composite gene structure in merged mode, and keeps whole-feature interactions working. The old transcript track remains separate and may be removed later.
 
 The current implementation intentionally favors an independent gene module over shared code with the old transcript module. Revisit the topics below before adding detailed interactions or labels.
 

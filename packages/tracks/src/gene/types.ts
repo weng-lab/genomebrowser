@@ -13,8 +13,8 @@ export type BigGenePredCdsStatus = "none" | "unk" | "incmpl" | "cmpl";
 export type GeneAttributeValue = string | string[];
 export type GeneAttributes = Record<string, GeneAttributeValue>;
 
-/** The complete BigGenePredPlusV1 record from which a transcript was derived. */
-export type BigGenePredPlusV1Source = {
+/** The complete standard BigGenePred record from which a transcript was derived. */
+export type BigGenePredSource = {
   chromosome: string;
   start: number;
   end: number;
@@ -35,9 +35,13 @@ export type BigGenePredPlusV1Source = {
   geneName: string;
   geneName2: string;
   geneType: string;
+  fields: string[];
+};
+
+/** The complete BigGenePredPlusV1 record from which a transcript was derived. */
+export type BigGenePredPlusV1Source = BigGenePredSource & {
   tags: string;
   attributes: string;
-  fields: string[];
 };
 
 export type GeneExon = {
@@ -59,7 +63,7 @@ export type GeneTranscript = {
   tags: string[];
   attributes: GeneAttributes;
   exons: GeneExon[];
-  source: BigGenePredPlusV1Source;
+  source: BigGenePredSource | BigGenePredPlusV1Source;
 };
 
 export type GroupedGene = {

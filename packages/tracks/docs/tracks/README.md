@@ -7,7 +7,7 @@ Choose a track by the source you already have. Each module includes a renderer, 
 - [BigBed](bigbed.md) reads one general BigBed file. Use it for genomic intervals and BED-like metadata.
 - [cCRE BigBed](ccre.md) reads an ENCODE aggregate cCRE BigBed file. Use it when the columns match the cCRE schema and you want cCRE classification in the tooltip.
 - [BulkBed](bulkbed.md) reads several BigBed files. Use it to place one named dataset in each row of a single track.
-- [Gene](gene.md) reads BigGenePredPlusV1 records. Use it to show every transcript, MANE Select transcripts, or a merged gene structure.
+- [Gene](gene.md) reads standard BigGenePred and BigGenePredPlusV1 records. Use it to show every transcript, MANE Select transcripts when tags are available, or a merged gene structure.
 
 These files must be available to the browser and support byte-range requests.
 

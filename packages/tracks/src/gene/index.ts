@@ -32,6 +32,7 @@ export type GeneConfig = ModuleInstance<typeof geneModule>["config"];
 export type {
   BigGenePredCdsStatus,
   BigGenePredPlusV1Source,
+  BigGenePredSource,
   GeneAttributes,
   GeneAttributeValue,
   GeneData,

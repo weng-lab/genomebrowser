@@ -8,9 +8,9 @@ vi.mock("@weng-lab/genomic-reader", async (importOriginal) => ({
   createBigBedFile: reader.createBigBedFile,
 }));
 
-import { fetchGene, parseBigGenePredPlusV1Record } from "../../src/gene/fetch";
+import { fetchGene, parseBigGenePredRecord } from "../../src/gene/fetch";
 import { geneModule } from "../../src/gene";
-import { bigGenePredPlusV1Schema } from "../../src/gene/schema";
+import { bigGenePredPlusV1Schema, bigGenePredSchema } from "../../src/gene/schema";
 import type { GeneConfig } from "../../src/gene/types";
 
 const rawFields = {
@@ -36,12 +36,13 @@ const rawFields = {
 } as const;
 
 function record(overrides: Record<string, unknown> = {}) {
+  const { tags, attributes, ...standardFields } = rawFields;
   return {
     chromosome: "chr17",
     start: 100,
     end: 200,
-    ...bigGenePredPlusV1Schema.parse(rawFields),
-    fields: [],
+    ...bigGenePredSchema.parse(standardFields),
+    fields: [tags, attributes],
     ...overrides,
   };
 }
@@ -77,7 +78,7 @@ describe("Gene module", () => {
   beforeEach(() => reader.createBigBedFile.mockReset());
 
   it("normalizes BigGenePredPlusV1 metadata while retaining the source record", () => {
-    const transcript = parseBigGenePredPlusV1Record(record());
+    const transcript = parseBigGenePredRecord(record());
 
     expect(transcript).toMatchObject({
       kind: "transcript",
@@ -107,8 +108,27 @@ describe("Gene module", () => {
     });
   });
 
+  it("accepts standard BigGenePred records without canonical metadata", () => {
+    const transcript = parseBigGenePredRecord(record({ fields: [] }));
+
+    expect(transcript).toMatchObject({
+      transcriptId: "ENST000001",
+      transcriptName: "TP53-201",
+      geneId: "ENSG000001",
+      geneName: "TP53",
+      tags: [],
+      attributes: {},
+      source: {
+        geneType: "protein_coding",
+        fields: [],
+      },
+    });
+    expect(transcript.source).not.toHaveProperty("tags");
+    expect(transcript.source).not.toHaveProperty("attributes");
+  });
+
   it("maps transcription-ordered negative-strand frames onto genomic-order exons", () => {
-    const transcript = parseBigGenePredPlusV1Record(record({ strand: "-", exonFrames: [2, 0] }));
+    const transcript = parseBigGenePredRecord(record({ strand: "-", exonFrames: [2, 0] }));
 
     expect(transcript.exons).toEqual([
       { start: 100, end: 120, frame: 0 },
@@ -117,12 +137,11 @@ describe("Gene module", () => {
   });
 
   it("normalizes display names and tag whitespace without changing the source fields", () => {
-    const transcript = parseBigGenePredPlusV1Record(
+    const transcript = parseBigGenePredRecord(
       record({
         name2: "  ",
         geneName2: " TP53 ",
-        tags: " MANE_Select, basic,MANE_Select ",
-        attributes: '{"support":["1","2"]}',
+        fields: [" MANE_Select, basic,MANE_Select ", '{"support":["1","2"]}'],
       }),
     );
 
@@ -140,8 +159,14 @@ describe("Gene module", () => {
   });
 
   it("rejects attributes that are not a string-valued JSON object", () => {
-    expect(() => parseBigGenePredPlusV1Record(record({ attributes: '{"level":2}' }))).toThrow(
+    expect(() => parseBigGenePredRecord(record({ fields: ["", '{"level":2}'] }))).toThrow(
       /attribute values must be strings or string arrays/,
+    );
+  });
+
+  it("rejects incomplete expanded metadata", () => {
+    expect(() => parseBigGenePredRecord(record({ fields: ["MANE_Select"] }))).toThrow(
+      /standard fields or the tags and attributes extension/,
     );
   });
 
@@ -157,7 +182,7 @@ describe("Gene module", () => {
     ["an invalid transcript interval", { end: 100 }, /end must be greater than start/],
     ["an invalid coding interval", { thickStart: 99 }, /thickStart must be inside/],
   ])("rejects %s", (_name, overrides, message) => {
-    expect(() => parseBigGenePredPlusV1Record(record(overrides))).toThrow(message);
+    expect(() => parseBigGenePredRecord(record(overrides))).toThrow(message);
   });
 
   it("reuses the cached genomic reader for repeated file reads", async () => {
@@ -172,7 +197,7 @@ describe("Gene module", () => {
     expect(reader.createBigBedFile).toHaveBeenCalledOnce();
     expect(reader.createBigBedFile).toHaveBeenCalledWith({
       url: "https://example.org/genes.bb",
-      schema: bigGenePredPlusV1Schema,
+      schema: bigGenePredSchema,
     });
     expect(read).toHaveBeenCalledTimes(2);
     expect(read).toHaveBeenCalledWith(region);
