@@ -2,11 +2,16 @@ import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/g
 import { useMemo } from "react";
 import { createGenomicXScale } from "../shared/coordinates";
 import { packRows, useRowLayout } from "../shared/layout";
-import { createCompositeGeneGeometry, createGeneTranscriptGeometry } from "./geometry";
 import { GeneGlyph } from "./glyph";
 import { findTranscriptTagColor, groupTranscriptsByGene } from "./helpers";
+import type { GeneInteractionTarget } from "./interactions";
 import { createGeneLabelLayout, type GeneLabelLayout } from "./labels";
-import type { GeneConfig, GeneData, GeneFeature, GeneTranscript, GroupedGene } from "./types";
+import {
+  prepareGeneTranscriptGlyph,
+  prepareMergedGeneGlyph,
+  type PreparedGeneGlyph,
+} from "./preparation";
+import type { GeneConfig, GeneData, GeneFeature } from "./types";
 
 const maximumLabelFontSize = 10;
 
@@ -37,6 +42,18 @@ function GeneRows({
   features,
 }: TrackRendererProps<GeneConfig, GeneData> & { features: readonly GeneFeature[] }) {
   const x = createGenomicXScale(region, width);
+  const preparedFeatures = useMemo(
+    () =>
+      new Map(
+        features.map((feature) => [
+          feature,
+          feature.kind === "transcript"
+            ? prepareGeneTranscriptGlyph(feature)
+            : prepareMergedGeneGlyph(feature),
+        ]),
+      ),
+    [features],
+  );
   const visibleFeatures = features.filter(
     (feature) => feature.end > region.start && feature.start < region.end,
   );
@@ -45,7 +62,7 @@ function GeneRows({
     const start = x(feature.start);
     const end = x(feature.end);
     const label = createGeneLabelLayout(featureLabel(feature), start, end, width, labelFontSize);
-    return { feature, label, start, end };
+    return { feature, label, prepared: preparedFeatures.get(feature)!, start, end };
   });
   const rows = packRows(
     items,
@@ -56,14 +73,14 @@ function GeneRows({
     { gap: 4 },
   );
   const { rowHeight, trackHeight } = useRowLayout(id, rows.length, config);
-  const interaction = useInteraction<GeneFeature>();
-  const tooltip = useTooltip<GeneFeature, GeneConfig>();
+  const interaction = useInteraction<GeneInteractionTarget>();
+  const tooltip = useTooltip<GeneInteractionTarget, GeneConfig>();
 
   return (
     <g>
       <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
       {rows.map((row, rowIndex) =>
-        row.map(({ feature, label, start: featureStart, end: featureEnd }) => {
+        row.map(({ feature, label, prepared, start: featureStart, end: featureEnd }) => {
           const start = Math.max(0, featureStart);
           const end = Math.min(width, featureEnd);
           const rowTop = rowIndex * rowHeight;
@@ -72,61 +89,45 @@ function GeneRows({
             : feature.kind === "transcript"
               ? (findTranscriptTagColor(feature, config.tagColors) ?? color)
               : color;
-          const handleMouseEnter = (event: React.MouseEvent<SVGElement>) => {
-            interaction?.onHover?.(feature);
-            tooltip.show(feature, event);
-          };
-          const handleMouseLeave = () => {
-            interaction?.onLeave?.(feature);
-            tooltip.hide();
-          };
-          const interactionProps = {
+          const interactionProps = (target: GeneInteractionTarget) => ({
             style: { cursor: interaction?.onClick ? "pointer" : "default" },
-            onClick: () => interaction?.onClick?.(feature),
-            onMouseEnter: handleMouseEnter,
-            onMouseLeave: handleMouseLeave,
-          };
+            onClick: () => interaction?.onClick?.(target),
+            onMouseEnter: (event: React.MouseEvent<SVGElement>) => {
+              interaction?.onHover?.(target);
+              tooltip.show(target, event);
+            },
+            onMouseLeave: () => {
+              interaction?.onLeave?.(target);
+              tooltip.hide();
+            },
+          });
+          const featureTarget: GeneInteractionTarget =
+            feature.kind === "transcript"
+              ? { kind: "transcript", feature }
+              : { kind: "gene", feature };
+          const featureInteractionProps = interactionProps(featureTarget);
           const key = `${feature.kind}-${feature.chromosome}-${feature.start}-${feature.end}-${feature.kind === "gene" ? feature.geneId : feature.transcriptId}`;
-
-          if (feature.kind === "transcript") {
-            return (
-              <g key={key}>
-                <TranscriptGlyph
-                  transcript={feature}
-                  x={x}
-                  width={width}
-                  rowTop={rowTop}
-                  rowHeight={rowHeight}
-                  color={featureColor}
-                />
-                <GeneLabel
-                  label={label}
-                  color={featureColor}
-                  fontSize={labelFontSize}
-                  rowTop={rowTop}
-                  rowHeight={rowHeight}
-                />
-                <rect
-                  data-transcript-hit-target=""
-                  x={start}
-                  y={rowTop}
-                  width={Math.max(2, end - start)}
-                  height={rowHeight}
-                  fill="transparent"
-                  pointerEvents="all"
-                  style={interactionProps.style}
-                  onClick={interactionProps.onClick}
-                  onMouseEnter={interactionProps.onMouseEnter}
-                  onMouseLeave={interactionProps.onMouseLeave}
-                />
-              </g>
-            );
-          }
 
           return (
             <g key={key}>
-              <CompositeGeneGlyph
-                gene={feature}
+              <rect
+                {...(feature.kind === "transcript"
+                  ? { "data-transcript-hit-target": "" }
+                  : { "data-gene-hit-target": "" })}
+                x={start}
+                y={rowTop}
+                width={Math.max(2, end - start)}
+                height={rowHeight}
+                fill="transparent"
+                pointerEvents="all"
+                style={featureInteractionProps.style}
+                onClick={featureInteractionProps.onClick}
+                onMouseEnter={featureInteractionProps.onMouseEnter}
+                onMouseLeave={featureInteractionProps.onMouseLeave}
+              />
+              <GeneGlyph
+                geometry={prepared.geometry}
+                strand={feature.strand}
                 x={x}
                 width={width}
                 rowTop={rowTop}
@@ -140,18 +141,13 @@ function GeneRows({
                 rowTop={rowTop}
                 rowHeight={rowHeight}
               />
-              <rect
-                data-gene-hit-target=""
-                x={start}
-                y={rowTop}
-                width={Math.max(2, end - start)}
-                height={rowHeight}
-                fill="transparent"
-                pointerEvents="all"
-                style={interactionProps.style}
-                onClick={interactionProps.onClick}
-                onMouseEnter={interactionProps.onMouseEnter}
-                onMouseLeave={interactionProps.onMouseLeave}
+              <GenePartHitTargets
+                prepared={prepared}
+                x={x}
+                width={width}
+                rowTop={rowTop}
+                rowHeight={rowHeight}
+                interactionProps={interactionProps}
               />
             </g>
           );
@@ -159,6 +155,53 @@ function GeneRows({
       )}
     </g>
   );
+}
+
+function GenePartHitTargets({
+  prepared,
+  x,
+  width,
+  rowTop,
+  rowHeight,
+  interactionProps,
+}: {
+  prepared: PreparedGeneGlyph;
+  x: (position: number) => number;
+  width: number;
+  rowTop: number;
+  rowHeight: number;
+  interactionProps: (target: GeneInteractionTarget) => {
+    style: { cursor: string };
+    onClick: () => void;
+    onMouseEnter: (event: React.MouseEvent<SVGElement>) => void;
+    onMouseLeave: () => void;
+  };
+}) {
+  return [...prepared.geometry.introns, ...prepared.geometry.exonParts].map((part) => {
+    const start = Math.max(0, x(part.start));
+    const end = Math.min(width, x(part.end));
+    if (end <= 0 || start >= width || end <= start) return null;
+    const target = prepared.targets.get(part.id);
+    if (!target) return null;
+    const handlers = interactionProps(target);
+    return (
+      <rect
+        key={part.id}
+        data-gene-part-hit-target=""
+        data-gene-part-id={part.id}
+        x={start}
+        y={rowTop}
+        width={Math.max(1, end - start)}
+        height={rowHeight}
+        fill="transparent"
+        pointerEvents="all"
+        style={handlers.style}
+        onClick={handlers.onClick}
+        onMouseEnter={handlers.onMouseEnter}
+        onMouseLeave={handlers.onMouseLeave}
+      />
+    );
+  });
 }
 
 function GeneLabel({
@@ -202,65 +245,5 @@ function highlighted(feature: GeneFeature, query: string | undefined): boolean {
   return (
     feature.geneName.toLowerCase().includes(normalizedQuery) ||
     feature.geneId.toLowerCase().includes(normalizedQuery)
-  );
-}
-
-function TranscriptGlyph({
-  transcript,
-  x,
-  width,
-  rowTop,
-  rowHeight,
-  color,
-}: {
-  transcript: GeneTranscript;
-  x: (position: number) => number;
-  width: number;
-  rowTop: number;
-  rowHeight: number;
-  color: string;
-}) {
-  const geometry = useMemo(() => createGeneTranscriptGeometry(transcript), [transcript]);
-  return (
-    <GeneGlyph
-      introns={geometry.introns}
-      exonParts={geometry.exonParts}
-      strand={transcript.strand}
-      x={x}
-      width={width}
-      rowTop={rowTop}
-      rowHeight={rowHeight}
-      color={color}
-    />
-  );
-}
-
-function CompositeGeneGlyph({
-  gene,
-  x,
-  width,
-  rowTop,
-  rowHeight,
-  color,
-}: {
-  gene: GroupedGene;
-  x: (position: number) => number;
-  width: number;
-  rowTop: number;
-  rowHeight: number;
-  color: string;
-}) {
-  const geometry = useMemo(() => createCompositeGeneGeometry(gene), [gene]);
-  return (
-    <GeneGlyph
-      introns={geometry.intronRuns}
-      exonParts={geometry.exonParts}
-      strand={gene.strand}
-      x={x}
-      width={width}
-      rowTop={rowTop}
-      rowHeight={rowHeight}
-      color={color}
-    />
   );
 }

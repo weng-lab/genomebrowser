@@ -1,109 +1,40 @@
 # Gene track next steps
 
-This file records the design questions left open after the first gene track implementation. The track fetches standard BigGenePred and BigGenePredPlusV1 data, renders transcript structure in full and tagged modes, renders a composite gene structure in merged mode, and keeps whole-feature interactions working. The old transcript track remains separate and may be removed later.
+This file records design decisions and remaining questions after the gene track implementation. The track fetches standard BigGenePred and BigGenePredPlusV1 data, renders transcript structure in full and tagged modes, renders a composite gene structure in merged mode, and supports typed feature and part interactions. The old transcript track remains separate and may be removed later.
 
-The current implementation intentionally favors an independent gene module over shared code with the old transcript module. Revisit the topics below before adding detailed interactions or labels.
+The implementation intentionally favors an independent gene module over shared code with the old transcript module.
 
 ## Geometry contract
 
-`geometry.ts` currently produces several views of composite gene geometry:
+`geometry.ts` keeps transcript and merged biological geometry separate. Composite geometry provides these related views:
 
 - `atoms` contains every resolved interval with its winning and overridden transcript contributions.
 - `introns` filters intron atoms from `atoms`.
-- `intronRuns` joins adjacent intron atoms for stable SVG lines and direction marks.
+- `intronRuns` joins adjacent intron atoms for stable SVG lines and direction marks while retaining the detailed atoms in `segments`.
 - `exonParts` filters CDS, UTR, and noncoding exon atoms from `atoms`.
 
-These views are internally consistent today, but the return type does not state which one is canonical. A future caller could choose the wrong view or assume that every array has independent meaning.
-
-One possible split is a biological composite model followed by a drawing model:
-
-```ts
-type CompositeGeneModel = {
-  parts: CompositeGenePart[];
-};
-
-type GeneGlyphGeometry = {
-  introns: VisualIntron[];
-  exons: VisualExon[];
-};
-
-function createCompositeGeneModel(gene: GroupedGene): CompositeGeneModel;
-
-function createGeneGlyphGeometry(model: CompositeGeneModel): GeneGlyphGeometry;
-```
+`atoms` is the canonical merged biological result. The filtered arrays and intron runs are derived views. `preparation.ts` converts either biological model into source-neutral `GeneGlyphGeometry`. Each preparation function returns drawing geometry plus a map from stable glyph part IDs to typed interaction targets.
 
 Keep the current composite precedence unless the product behavior changes:
 
 1. Exon coverage wins over overlapping intron coverage.
 2. CDS wins over UTR.
 3. UTR wins over noncoding exon.
-4. Winning and overridden transcript contributions remain available for later interactions.
+4. Winning and overridden transcript contributions remain available on merged part targets.
 
-This topic is complete when the code names one canonical biological result and the renderer receives only the geometry it needs to draw.
+This topic is complete.
 
 ## Explicit render model
 
-`GeneGlyph` is now the shared drawing component. `TranscriptGlyph` and `CompositeGeneGlyph` remain explicit variants, which keeps transcript and merged preparation separate.
-
-The glyph still distinguishes transcript metadata from composite metadata by checking object properties:
-
-```ts
-if ("winningContributions" in part.metadata) {
-  // Composite gene part
-} else {
-  // Transcript part
-}
-```
-
-This works, but the meaning is indirect. Once the geometry contract is settled, use either an explicit source discriminator or a source-neutral drawing model.
-
-```ts
-type GenePartSource =
-  | {
-      kind: "transcript";
-      exonIndex: number;
-      transcriptionIndex: number;
-      frame: -1 | 0 | 1 | 2;
-    }
-  | {
-      kind: "composite";
-      winners: CompositeGeneContribution[];
-      conflicts: CompositeGeneContribution[];
-    };
-```
-
-The preferred direction is to keep `GeneGlyph` unaware of grouping and isoform conflict rules. It should receive ready-to-draw introns and exons. Do not introduce a mode boolean such as `isComposite` when explicit transcript and composite wrappers can prepare the correct input.
-
-This topic is complete when the compiler can narrow every render case without testing for incidental property names.
+`GeneGlyph` receives only source-neutral intron and exon intervals carrying stable IDs. Transcript and merged preparation remain explicit functions, so the glyph is unaware of grouping, transcript metadata, and isoform conflict rules. This topic is complete.
 
 ## DOM metadata
 
-The SVG currently includes attributes such as:
-
-- `data-gene-part`
-- `data-exon-index`
-- `data-transcription-index`
-- `data-frame`
-- `data-utr-side`
-- `data-contributing-transcript-ids`
-- hit-target markers used by tests
-
-These attributes help with DOM inspection and targeted renderer tests. They should not become a second biological data model. Future interaction code should receive typed objects directly instead of reconstructing them from strings on SVG elements.
-
-A likely cleanup is:
-
-- Keep a small number of stable internal selectors, such as `data-gene-part` and the hit-target markers.
-- Test detailed biological metadata through the pure geometry functions.
-- Remove DOM attributes that duplicate typed fields without serving rendering or debugging.
-- Do not document these attributes as public API unless downstream consumers are expected to use them.
-
-This topic is complete when each remaining `data-*` attribute has a concrete internal or public purpose.
+The SVG keeps internal selectors for visible part kinds, direction marks, feature hit targets, part hit targets, and stable part IDs. Biological metadata is tested through pure geometry and preparation functions rather than duplicated in SVG strings. Interaction handlers receive typed targets directly. These attributes are not public API. This topic is complete.
 
 ## Interaction API
 
-The current track module interaction API is difficult to understand and should be reviewed before adding part-level behavior. For now, full and tagged callbacks receive a `GeneTranscript`, while merged callbacks receive a `GroupedGene`. One full-row hit target owns click, hover, leave, and tooltip behavior for each feature.
-
-Do not design the gene interaction API around SVG elements. A possible typed target is:
+The module exports this interaction target:
 
 ```ts
 type GeneInteractionTarget =
@@ -116,53 +47,19 @@ type GeneInteractionTarget =
     };
 ```
 
-Questions to answer:
-
-- Should the core interaction API change, or should the gene module adapt to it?
-- Should hover and click receive the same target type?
-- How should composite parts report winning and overridden isoforms?
-- Does a strand-direction mark resolve to its parent intron?
-- Which interaction behavior belongs to the module and which belongs to the host application?
-
-This topic is complete when a user can understand the callback payload without reading renderer internals.
+The gene module adapts this target to the existing core interaction API. Click, hover, leave, and tooltips use the same target type. Merged exon parts report winning and overridden contributions. Merged intron runs retain detailed segments, and strand marks remain non-interactive decoration. Host applications decide what callbacks do. This topic is complete.
 
 ## Piece-level hit geometry
 
-The biological pieces are already distinct geometry objects and SVG elements, but they do not own pointer events. This was deliberate. Whole-feature hit targets preserve the existing behavior while the interaction API remains unsettled.
+Every CDS, UTR, noncoding exon, and intron run has a separate typed target. Visible geometry does not receive pointer events. Transparent part hit regions cover each interval and the complete row height; there is no competing exon-level region around CDS and UTR segments. Whole-feature targets remain behind part regions so gaps resolve to the transcript or gene. Strand marks remain intron decoration.
 
-When part interactions are added:
-
-- Give CDS, UTR, noncoding exon, and intron intervals separate typed targets.
-- Keep visible geometry separate from hit geometry.
-- Give thin introns a taller invisible hit region constrained to the intron interval.
-- Avoid overlapping exon-level and CDS or UTR hit regions that compete for the same event.
-- Treat strand marks as intron decoration, not a separate biological part.
-
-```ts
-type GenePartHitRegion = {
-  target: GeneInteractionTarget;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-```
-
-Merged parts require extra care because a visible interval may represent several isoforms with conflicting source parts.
-
-This topic is complete when every clickable area maps to one unambiguous typed target.
+Merged exon targets retain winning and overridden contributions. Merged intron run targets retain all detailed intron segments. This topic is complete.
 
 ## Labels
 
 Labels use a separate, testable placement calculation. Full and tagged label transcripts with `transcriptName`, while merged labels grouped genes by gene name. Labels prefer the right side, move to the left near the right viewport edge, and hide when neither side fits. Their estimated bounds participate in row packing, and `GeneGlyph` remains unaware of text placement.
 
 The current width estimate uses character count. Revisit it only if visual testing shows that proportional fonts cause meaningful collisions or unnecessary hiding.
-
-## Interaction overlay
-
-The transcript and gene hit targets use transparent fills while retaining pointer events across each feature's full row area. Tests verify their size and behavior.
-
-This topic is complete when the overlay is invisible and interaction coverage has been checked visually.
 
 ## Accessibility
 

@@ -67,6 +67,7 @@ export type CompositeGeneIntronRun = {
   kind: "intron";
   start: number;
   end: number;
+  segments: CompositeGeneIntronPart[];
 };
 
 export type CompositeGeneGeometry = {
@@ -269,8 +270,12 @@ export function createCompositeIntronRuns(
   const runs: CompositeGeneIntronRun[] = [];
   for (const intron of introns) {
     const previous = runs.at(-1);
-    if (previous?.end === intron.start) previous.end = intron.end;
-    else runs.push({ kind: "intron", start: intron.start, end: intron.end });
+    if (previous?.end === intron.start) {
+      previous.end = intron.end;
+      previous.segments.push(intron);
+    } else {
+      runs.push({ kind: "intron", start: intron.start, end: intron.end, segments: [intron] });
+    }
   }
   return runs;
 }

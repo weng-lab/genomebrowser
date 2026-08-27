@@ -1,4 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
+import type { TrackInteraction } from "@weng-lab/genomebrowser";
 import type {
   BigWigRecord,
   BigWigSummaryRecord,
@@ -34,6 +35,9 @@ import {
   geneModule,
   type GeneConfig,
   type GeneCreateInput,
+  type GeneInteraction,
+  type GeneInteractionTarget,
+  type GenePart,
 } from "@weng-lab/genomebrowser-tracks/gene";
 import {
   methylCModule,
@@ -129,6 +133,12 @@ describe("first-party track package", () => {
     expectTypeOf<CaveData>().toEqualTypeOf<{ top: BigWigRecord[]; bottom: BigWigRecord[] }>();
     expectTypeOf<GeneCreateInput>().toEqualTypeOf<Parameters<typeof geneModule.create>[0]>();
     expectTypeOf<GeneConfig>().toEqualTypeOf<ReturnType<typeof geneModule.validate>["config"]>();
+    expectTypeOf<GeneInteraction>().toEqualTypeOf<
+      TrackInteraction<GeneInteractionTarget, GeneConfig>
+    >();
+    expectTypeOf<
+      Extract<GeneInteractionTarget, { kind: "part" }>["part"]
+    >().toEqualTypeOf<GenePart>();
     expectTypeOf<MethylCCreateInput>().toEqualTypeOf<Parameters<typeof methylCModule.create>[0]>();
     expectTypeOf<MethylCConfig>().toEqualTypeOf<
       ReturnType<typeof methylCModule.validate>["config"]

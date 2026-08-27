@@ -104,7 +104,9 @@ describe("Composite gene geometry", () => {
       ]),
     ];
 
-    expect(createCompositeIntronRuns(atoms)).toEqual([{ kind: "intron", start: 120, end: 180 }]);
+    expect(createCompositeIntronRuns(atoms)).toEqual([
+      { kind: "intron", start: 120, end: 180, segments: atoms },
+    ]);
   });
 
   it("merges adjacent equivalent parts but keeps contributor boundaries", () => {

@@ -58,7 +58,32 @@ The reader rejects malformed coordinates and block arrays, invalid JSON, and uns
 
 Merged groups transcripts by chromosome, strand, and stable gene identifier. A grouped interval spans the minimum transcript start through the maximum transcript end, and its name comes from the normalized gene name.
 
-Click, hover, and leave callbacks receive a `GeneTranscript` in full and tagged displays and a `GroupedGene` in merged display. Each item uses one transparent full-row hit target across its visible span. Direction marks and biological parts do not receive pointer events. The tooltip shows the genomic location, strand, and transcript identifier or transcript count.
+Click, hover, and leave callbacks receive a `GeneInteractionTarget`. A whole transcript or gene uses a `"transcript"` or `"gene"` target. Every visible CDS, UTR, noncoding exon, and intron run has its own `"part"` target. Part hit regions span the complete row height, so thin introns remain easy to point at. Strand marks are decoration and resolve through their parent intron rather than becoming separate targets.
+
+```ts
+import { geneModule, type GeneInteraction } from "@weng-lab/genomebrowser-tracks/gene";
+
+const interaction: GeneInteraction = {
+  onClick(target) {
+    if (target.kind === "part") {
+      console.info(target.part.kind, target.part.start, target.part.end);
+    }
+  },
+};
+
+const track = geneModule.create(
+  {
+    id: "genes",
+    title: "Genes",
+    config: { url: "YOUR_URL_HERE" },
+  },
+  interaction,
+);
+```
+
+`GenePart.source` distinguishes transcript geometry from merged geometry. Transcript parts retain exon, intron, frame, and transcription-order metadata. Merged exon parts retain winning and overridden transcript contributions. A merged intron part represents one drawable run and exposes its detailed contribution intervals through `segments`.
+
+Part tooltips show the type, interval, and length. Transcript parts also show their transcript, exon or intron number, UTR side, or coding frame when relevant. Merged exons show the supporting transcripts and any lower-priority classifications at the same interval. Merged intron runs list contributors across the run because support can vary between their stored segments. Whole transcript and gene targets show the feature interval, strand, and transcript identifier or transcript count.
 
 ## Exported types
 
@@ -69,7 +94,7 @@ Click, hover, and leave callbacks receive a `GeneTranscript` in full and tagged 
 | `GeneDisplay`             | `"full" \| "merged" \| "tagged"`.                                       |
 | `GeneTagColor`            | One exact transcript tag and its six-digit hexadecimal color.           |
 | `GeneData`                | Array of normalized `GeneTranscript` records returned by the fetcher.   |
-| `GeneFeature`             | `GeneTranscript \| GroupedGene`, the interaction and tooltip item type. |
+| `GeneFeature`             | `GeneTranscript \| GroupedGene`, the rendered biological feature type.  |
 | `GeneTranscript`          | Transcript coordinates, names, tags, attributes, exons, and source row. |
 | `GroupedGene`             | Gene interval and its original transcript objects.                      |
 | `GeneExon`                | Validated exon coordinates and frame.                                   |
@@ -79,4 +104,8 @@ Click, hover, and leave callbacks receive a `GeneTranscript` in full and tagged 
 | `BigGenePredPlusV1Source` | Parsed BigGenePredPlusV1 source fields.                                 |
 | `BigGenePredCdsStatus`    | Standard coding status values.                                          |
 | `GeneStrand`              | `"+" \| "-"`.                                                           |
-| `GeneInteraction`         | Callbacks receiving a `GeneFeature` and `GeneConfig`.                   |
+| `GenePart`                | Transcript or merged exon/intron payload used by a part target.         |
+| `GeneTranscriptPart`      | Transcript part with `source: "transcript"`.                            |
+| `MergedGenePart`          | Merged part with `source: "merged"`; intron runs retain `segments`.     |
+| `GeneInteractionTarget`   | Typed gene, transcript, or part callback and tooltip payload.           |
+| `GeneInteraction`         | Callbacks receiving a `GeneInteractionTarget` and `GeneConfig`.         |

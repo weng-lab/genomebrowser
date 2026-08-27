@@ -7,7 +7,7 @@ import { fetchGene } from "./fetch";
 import { FullGene, MergedGene, TaggedGene } from "./render";
 import { GeneSettings } from "./settings";
 import { GeneTooltip } from "./tooltip";
-import type { GeneFeature } from "./types";
+import type { GeneInteractionTarget } from "./interactions";
 
 const configSchema = z.object({
   url: fetchOnChange(z.string().min(1)),
@@ -32,7 +32,7 @@ const configSchema = z.object({
   rowHeight: rowHeightSchema.default(defaultRowHeight),
 });
 
-export const geneModule = defineTrackModule<GeneFeature>()({
+export const geneModule = defineTrackModule<GeneInteractionTarget>()({
   type: "gene",
   defaults: { height: defaultRowHeight, color: "#4b9560" },
   configSchema,
@@ -54,9 +54,15 @@ export type {
   GeneDisplay,
   GeneExon,
   GeneFeature,
-  GeneInteraction,
   GeneStrand,
   GeneTagColor,
   GeneTranscript,
   GroupedGene,
 } from "./types";
+export type {
+  GeneInteraction,
+  GeneInteractionTarget,
+  GenePart,
+  GeneTranscriptPart,
+  MergedGenePart,
+} from "./interactions";

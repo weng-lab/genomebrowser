@@ -127,6 +127,7 @@ describe("Gene rendering", () => {
     expect(container.querySelectorAll('[data-gene-part="utr"]')).toHaveLength(2);
     expect(container.querySelectorAll('[data-gene-part="cds"]')).toHaveLength(4);
     expect(container.querySelectorAll('[data-gene-part="noncoding-exon"]')).toHaveLength(1);
+    expect(container.querySelectorAll("[data-gene-part-hit-target]")).toHaveLength(9);
     const directionMarks = Array.from(container.querySelectorAll("[data-intron-direction-mark]"));
     expect(directionMarks).toHaveLength(2);
     expect(directionMarks.map((mark) => mark.getAttribute("points"))).toEqual([
@@ -138,15 +139,13 @@ describe("Gene rendering", () => {
     );
     expect(directionMarks.every((mark) => !mark.hasAttribute("data-gene-part"))).toBe(true);
     expect(
-      container
-        .querySelector('[data-gene-part="utr"][data-exon-index="0"]')
-        ?.getAttribute("data-transcription-index"),
-    ).toBe("1");
-    expect(
-      Array.from(container.querySelectorAll('[data-gene-part="utr"]')).map((part) =>
-        part.getAttribute("data-utr-side"),
+      Array.from(container.querySelectorAll("[data-gene-part]")).every(
+        (part) =>
+          !part.hasAttribute("data-exon-index") &&
+          !part.hasAttribute("data-transcription-index") &&
+          !part.hasAttribute("data-frame"),
       ),
-    ).toEqual(["3-prime", "5-prime"]);
+    ).toBe(true);
     expect(
       Array.from(container.querySelectorAll("[data-gene-label]"))
         .map((label) => label.textContent)
@@ -154,12 +153,15 @@ describe("Gene rendering", () => {
     ).toEqual(["tx1", "tx2", "tx3"]);
   });
 
-  it("uses one generous transcript hit target for click, hover, tooltip, and leave behavior", () => {
+  it("uses separate generous transcript part targets for click, hover, tooltip, and leave", () => {
     render(<FullGene {...props} />);
 
     const part = container.querySelector('[data-gene-part="cds"]')!;
     const directionMark = container.querySelector("[data-intron-direction-mark]")!;
     const hitTarget = container.querySelector<SVGRectElement>("[data-transcript-hit-target]")!;
+    const partHitTarget = container.querySelector<SVGRectElement>(
+      '[data-gene-part-hit-target][data-gene-part-id="cds-0-110-120"]',
+    )!;
     expect(part.getAttribute("pointer-events")).toBe("none");
     expect(hitTarget.getAttribute("x")).toBe("100");
     expect(hitTarget.getAttribute("width")).toBe("80");
@@ -169,30 +171,47 @@ describe("Gene rendering", () => {
     act(() => part.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     act(() => directionMark.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     expect(runtime.onClick).not.toHaveBeenCalled();
-    act(() => hitTarget.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-    expect(runtime.onClick).toHaveBeenCalledWith(firstTranscript);
-    expect(runtime.onClick.mock.calls[0]![0]).toMatchObject({ start: 100, end: 180 });
+    expect(partHitTarget.getAttribute("x")).toBe("110");
+    expect(partHitTarget.getAttribute("width")).toBe("10");
+    expect(partHitTarget.getAttribute("height")).toBe("16");
+    act(() => partHitTarget.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(runtime.onClick).toHaveBeenCalledWith({
+      kind: "part",
+      feature: firstTranscript,
+      part: expect.objectContaining({
+        kind: "cds",
+        start: 110,
+        end: 120,
+        source: "transcript",
+      }),
+    });
 
-    act(() => hitTarget.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
-    expect(runtime.onHover).toHaveBeenCalledWith(firstTranscript);
-    expect(runtime.tooltipShow).toHaveBeenCalledWith(firstTranscript, expect.anything());
-    act(() => hitTarget.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
-    expect(runtime.onLeave).toHaveBeenCalledWith(firstTranscript);
+    act(() => partHitTarget.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+    expect(runtime.onHover).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "part", feature: firstTranscript }),
+    );
+    expect(runtime.tooltipShow).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "part", feature: firstTranscript }),
+      expect.anything(),
+    );
+    act(() => partHitTarget.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+    expect(runtime.onLeave).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "part", feature: firstTranscript }),
+    );
     expect(runtime.tooltipHide).toHaveBeenCalledOnce();
   });
 
   it("renders grouped genes as composite structures in shared rows", () => {
     render(<MergedGene {...props} />);
 
-    expect(interactiveRectangles()).toHaveLength(2);
+    expect(container.querySelectorAll("[data-gene-hit-target]")).toHaveLength(2);
     expect(runtime.useRowLayout).toHaveBeenCalledWith("genes", 1, props.config);
     expect(container.querySelectorAll('[data-gene-part="intron"]')).toHaveLength(1);
     expect(container.querySelectorAll('[data-gene-part="utr"]')).toHaveLength(2);
     expect(container.querySelectorAll('[data-gene-part="cds"]')).toHaveLength(4);
     expect(container.querySelectorAll('[data-gene-part="noncoding-exon"]')).toHaveLength(2);
-    const alternativeExon = container.querySelector(
-      '[data-gene-part="noncoding-exon"][data-contributing-transcript-ids="tx2"]',
-    )!;
+    expect(container.querySelectorAll("[data-gene-part-hit-target]")).toHaveLength(9);
+    const alternativeExon = container.querySelector('[data-gene-part="noncoding-exon"]')!;
     expect(alternativeExon.getAttribute("x")).toBe("120");
     expect(alternativeExon.getAttribute("width")).toBe("30");
     expect(alternativeExon.getAttribute("height")).toBe("6.4");
@@ -227,12 +246,10 @@ describe("Gene rendering", () => {
     expect(container.querySelector('[data-gene-part="cds"]')?.getAttribute("fill")).toBe("#123456");
   });
 
-  it("uses one gene-level target for composite click, hover, tooltip, and leave behavior", () => {
+  it("uses typed merged part targets while retaining a gene-level target for gaps", () => {
     render(<MergedGene {...props} />);
 
-    const piece = container.querySelector(
-      '[data-gene-part="noncoding-exon"][data-contributing-transcript-ids="tx2"]',
-    )!;
+    const piece = container.querySelector('[data-gene-part="noncoding-exon"]')!;
     const hitTarget = container.querySelector<SVGRectElement>("[data-gene-hit-target]")!;
     expect(container.querySelectorAll("[data-gene-hit-target]")).toHaveLength(2);
     expect(piece.getAttribute("pointer-events")).toBe("none");
@@ -247,20 +264,27 @@ describe("Gene rendering", () => {
     expect(runtime.onClick).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: "gene",
-        start: 100,
-        end: 200,
-        transcripts: [firstTranscript, data[1]],
+        feature: expect.objectContaining({
+          kind: "gene",
+          start: 100,
+          end: 200,
+          transcripts: [firstTranscript, data[1]],
+        }),
       }),
     );
 
     act(() => hitTarget.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
-    expect(runtime.onHover).toHaveBeenCalledWith(expect.objectContaining({ kind: "gene" }));
+    expect(runtime.onHover).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "gene", feature: expect.objectContaining({ kind: "gene" }) }),
+    );
     expect(runtime.tooltipShow).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: "gene" }),
+      expect.objectContaining({ kind: "gene", feature: expect.objectContaining({ kind: "gene" }) }),
       expect.anything(),
     );
     act(() => hitTarget.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
-    expect(runtime.onLeave).toHaveBeenCalledWith(expect.objectContaining({ kind: "gene" }));
+    expect(runtime.onLeave).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "gene", feature: expect.objectContaining({ kind: "gene" }) }),
+    );
     expect(runtime.tooltipHide).toHaveBeenCalledOnce();
   });
 
@@ -319,12 +343,6 @@ describe("Gene rendering", () => {
 
 function render(node: ReactNode) {
   act(() => root.render(<svg>{node}</svg>));
-}
-
-function interactiveRectangles() {
-  return Array.from(container.querySelectorAll("rect")).filter(
-    (rectangle) => rectangle.getAttribute("pointer-events") !== "none",
-  );
 }
 
 function transcript(

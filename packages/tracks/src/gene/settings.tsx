@@ -25,9 +25,10 @@ import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import { useObservedGeneTags } from "./tagCatalog";
-import type { GeneConfig, GeneFeature, GeneTagColor } from "./types";
+import type { GeneInteractionTarget } from "./interactions";
+import type { GeneConfig, GeneTagColor } from "./types";
 
-type GeneSettingsProps = TrackSettingsProps<GeneConfig, GeneFeature>;
+type GeneSettingsProps = TrackSettingsProps<GeneConfig, GeneInteractionTarget>;
 
 export function GeneSettings({ track, updateTrack }: GeneSettingsProps) {
   const observedTags = useObservedGeneTags(track.config.url);

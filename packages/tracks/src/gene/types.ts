@@ -1,4 +1,3 @@
-import type { TrackInteraction } from "@weng-lab/genomebrowser";
 import type { RowLayoutConfig } from "../shared/layout";
 
 export type GeneDisplay = "full" | "merged" | "tagged";
@@ -83,4 +82,3 @@ export type GroupedGene = {
 
 export type GeneFeature = GeneTranscript | GroupedGene;
 export type GeneData = GeneTranscript[];
-export type GeneInteraction = TrackInteraction<GeneFeature, GeneConfig>;
