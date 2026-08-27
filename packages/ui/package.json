@@ -27,10 +27,6 @@
     ".": {
       "types": "./dist/src/lib.d.ts",
       "import": "./dist/genomebrowser-ui.es.js"
-    },
-    "./cli": {
-      "types": "./dist/src/cli.d.ts",
-      "import": "./dist/cli.js"
     }
   },
   "publishConfig": {

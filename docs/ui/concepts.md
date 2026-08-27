@@ -74,8 +74,7 @@ Collection JSON should contain portable data, not React or MUI behavior. Host-on
 The package keeps TrackSelect as a deep subsystem with a narrow public surface:
 
 - `src/lib.ts` is the browser-facing public entry point. Keep component exports and the few supported collection helpers here.
-- `src/cli.ts` is the public configuration entry point for schema generation.
-- `src/trackselect.ts` implements the `trackselect` executable and should remain a thin adapter over public configuration and schema behavior.
+- `src/trackselect.ts` implements the `trackselect` executable, including command parsing, module loading, and schema output.
 - `src/TrackSelect/schema` owns registry-derived runtime validation and JSON Schema generation.
 - `src/TrackSelect/collection` owns rows, IDs, views, grouping, ordering, columns, selection operations, and store reconciliation.
 - `src/TrackSelect/session` owns the open-session state machine and store submission boundary.
