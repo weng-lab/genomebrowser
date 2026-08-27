@@ -6,11 +6,11 @@ All `onCommit` callbacks return `TrackMutationResult` from `@weng-lab/genomebrow
 
 ## `TrackBaseSettings`
 
-`TrackBaseSettings` takes no props. It reads the active track from the browser stores and renders shared title, color, display, and height controls. It submits validated patches through the track store. Failed mutations remain visible without replacing accepted values.
+`TrackBaseSettings` takes no props. It reads the active track from the browser stores and renders shared title, color, display, and height controls. It submits validated patches through the track store. Failed mutations remain visible without replacing accepted values. The action beside each dimension field applies the valid displayed value to every track with the exact same type, including the active track.
 
 The display control appears only when the active module has at least two display modes. Title cannot be blank. A track without valid row-layout config has one Height field with a 20-pixel minimum.
 
-When config contains a finite `rowHeight` of at least 1, the component shows adjacent Height and Row height fields. Track height is the total vertical space. Row height is the complete slot for one row. Either edit preserves the row count derived from the current values, then submits `base.height` and `config.rowHeight` in one update. See [Row layout](shared.md#row-layout).
+When config contains a finite `rowHeight` of at least 1, the component shows adjacent Height and Row height fields. Track height is the total vertical space. Row height is the complete slot for one row. Either edit preserves the row count derived from the current values, then submits `base.height` and `config.rowHeight` in one update. Applying Row height to the type recalculates each matching track's total height from its own current row count. See [Row layout](shared.md#row-layout).
 
 ## Layout components
 

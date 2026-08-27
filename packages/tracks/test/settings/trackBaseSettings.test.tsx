@@ -9,6 +9,7 @@ import {
   hg38,
   type TrackBase,
   type TrackMutationResult,
+  type TrackStoreInstance,
   type TrackUpdate,
 } from "@weng-lab/genomebrowser";
 import { act } from "react";
@@ -37,6 +38,13 @@ const signalModule = defineTrackModule({
   configSchema: z.object({}),
   fetch: async () => null,
   render: { full: () => null, dense: () => null },
+});
+
+const intervalModule = defineTrackModule({
+  type: "interval",
+  configSchema: z.object({}),
+  fetch: async () => null,
+  render: { full: () => null },
 });
 
 let container: HTMLDivElement | undefined;
@@ -88,10 +96,11 @@ describe("TrackBaseSettings", () => {
     expect(getOptionalSelect("Display mode")).toBeUndefined();
     const height = getInput("Height");
     expect(getFieldRow(height).querySelectorAll(".MuiFormControl-root")).toHaveLength(1);
-    const heightField = height.closest<HTMLElement>(".MuiFormControl-root");
-    expect(heightField).toBeTruthy();
-    expect(getComputedStyle(heightField as HTMLElement).flex).toBe("1 1 0px");
-    expect(getComputedStyle(heightField as HTMLElement).width).toBe("100%");
+    const heightField = getFieldItem(height);
+    expect(getComputedStyle(heightField).flex).toBe("1 1 0px");
+    expect(
+      getComputedStyle(height.closest<HTMLElement>(".MuiFormControl-root") as HTMLElement).width,
+    ).toBe("100%");
   });
 
   it("keeps required title and height drafts visible before valid debounced updates", async () => {
@@ -167,6 +176,103 @@ describe("TrackBaseSettings", () => {
 
     expect(getOptionalInput("Row height")).toBeUndefined();
     expect(getInput("Height").getAttribute("min")).toBe("20");
+  });
+
+  it("applies the displayed Height to every track of the exact same type", async () => {
+    vi.useFakeTimers();
+    const trackStore = createTrackStore({
+      modules: [signalModule, intervalModule],
+      tracks: [
+        signalModule.create({
+          id: "signal-a",
+          title: "Signal A",
+          display: "full",
+          height: 80,
+          color: "#2266aa",
+          config: {},
+        }),
+        signalModule.create({
+          id: "signal-b",
+          title: "Signal B",
+          display: "full",
+          height: 60,
+          color: "#2266aa",
+          config: {},
+        }),
+        intervalModule.create({
+          id: "interval",
+          title: "Interval",
+          height: 40,
+          config: {},
+        }),
+      ],
+    });
+    await mountBaseSettings(trackStore, "signal-a");
+
+    updateInput(getInput("Height"), "100");
+    act(() => vi.advanceTimersByTime(300));
+    expect(trackStore.getState().getTrack("signal-a")?.base.height).toBe(100);
+    expect(trackStore.getState().getTrack("signal-b")?.base.height).toBe(60);
+
+    clickButton("Apply Height to all tracks of this type");
+
+    expect(trackStore.getState().getTrack("signal-a")?.base.height).toBe(100);
+    expect(trackStore.getState().getTrack("signal-b")?.base.height).toBe(100);
+    expect(trackStore.getState().getTrack("interval")?.base.height).toBe(40);
+
+    updateInput(getInput("Height"), "10");
+    expect(getButton("Apply Height to all tracks of this type").disabled).toBe(true);
+    expect(trackStore.getState().getTrack("signal-b")?.base.height).toBe(100);
+  });
+
+  it("applies Row height while preserving each matching track's row count", async () => {
+    vi.useFakeTimers();
+    const trackStore = createTrackStore({
+      modules: [bulkBedModule, bigBedModule],
+      tracks: [
+        bulkBedModule.create({
+          id: "bulkbed-a",
+          title: "BulkBed A",
+          height: 24,
+          config: {
+            datasets: [{ name: "Dataset A", url: "YOUR_URL_HERE" }],
+            rowHeight: 12,
+          },
+        }),
+        bulkBedModule.create({
+          id: "bulkbed-b",
+          title: "BulkBed B",
+          height: 36,
+          config: {
+            datasets: [{ name: "Dataset B", url: "YOUR_URL_HERE" }],
+            rowHeight: 12,
+          },
+        }),
+        bigBedModule.create({
+          id: "bigbed",
+          title: "BigBed",
+          height: 12,
+          config: { url: "YOUR_URL_HERE", rowHeight: 12 },
+        }),
+      ],
+    });
+    await mountBaseSettings(trackStore, "bulkbed-a");
+
+    updateInput(getInput("Row height"), "10");
+    clickButton("Apply Row height to all tracks of this type");
+
+    expect(trackStore.getState().getTrack("bulkbed-a")).toMatchObject({
+      base: { height: 20 },
+      config: { rowHeight: 10 },
+    });
+    expect(trackStore.getState().getTrack("bulkbed-b")).toMatchObject({
+      base: { height: 30 },
+      config: { rowHeight: 10 },
+    });
+    expect(trackStore.getState().getTrack("bigbed")).toMatchObject({
+      base: { height: 12 },
+      config: { rowHeight: 12 },
+    });
   });
 
   it("commits valid colors and surfaces rejected mutations", async () => {
@@ -246,6 +352,21 @@ async function mountSettings(
   }
   const settingsStore = createSettingsStore({ baseSettingsComponent: TrackBaseSettings });
   settingsStore.getState().openSettings(base.id, { x: 0, y: 0 });
+  await mount(
+    <GenomeBrowser
+      browserStore={createBrowserStore({
+        assembly: hg38,
+        region: { chromosome: "chr1", start: 0, end: 10 },
+      })}
+      settingsStore={settingsStore}
+      trackStore={trackStore}
+    />,
+  );
+}
+
+async function mountBaseSettings(trackStore: TrackStoreInstance, trackId: string) {
+  const settingsStore = createSettingsStore({ baseSettingsComponent: TrackBaseSettings });
+  settingsStore.getState().openSettings(trackId, { x: 0, y: 0 });
   await mount(
     <GenomeBrowser
       browserStore={createBrowserStore({
@@ -365,11 +486,33 @@ function getSelectInput() {
   return input;
 }
 
+function getButton(label: string) {
+  const button = Array.from(container?.querySelectorAll<HTMLButtonElement>("button") ?? []).find(
+    (candidate) => candidate.getAttribute("aria-label") === label,
+  );
+  if (!button) throw new Error(`Could not find button labeled ${label}`);
+  return button;
+}
+
+function clickButton(label: string) {
+  act(() => getButton(label).click());
+}
+
 function getFieldRow(control: Element) {
-  const field = control.closest(".MuiFormControl-root");
-  const row = field?.parentElement;
+  const item = getFieldItem(control);
+  const row = item.parentElement;
   if (!row) throw new Error("Could not find field row");
   return row;
+}
+
+function getFieldItem(control: Element) {
+  const field = control.closest(".MuiFormControl-root");
+  if (!field) throw new Error("Could not find field");
+  const parent = field.parentElement;
+  const hasDimensionAction = Array.from(parent?.children ?? []).some((child) =>
+    child.matches('button[aria-label^="Apply "]'),
+  );
+  return hasDimensionAction && parent ? parent : field;
 }
 
 function updateInput(input: HTMLInputElement, value: string) {

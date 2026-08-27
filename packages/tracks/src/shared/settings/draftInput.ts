@@ -16,13 +16,20 @@ export type DraftControllerOptions<Raw, Value> = {
   debounceMs?: number | false;
 };
 
-export type DraftController<Raw> = {
+export type DraftController<Raw, Value> = {
   value: Raw;
   error: string | undefined;
   change: (value: Raw) => void;
   blur: () => void;
   keyDown: (event: KeyboardEvent<HTMLElement>) => void;
-  submit: (value: Raw, options?: { retainRejectedDraft?: boolean }) => TrackMutationResult;
+  submit: (
+    value: Raw,
+    options?: {
+      commitUnchanged?: boolean;
+      onCommit?: (value: Value) => TrackMutationResult;
+      retainRejectedDraft?: boolean;
+    },
+  ) => TrackMutationResult;
 };
 
 type DraftState<Raw, Value> = {
@@ -38,7 +45,7 @@ type DraftState<Raw, Value> = {
 /** Owns raw editable text until a validated update is accepted or cancelled. */
 export function useDraftController<Raw, Value>(
   options: DraftControllerOptions<Raw, Value>,
-): DraftController<Raw> {
+): DraftController<Raw, Value> {
   const [draft, setDraft] = useState<DraftState<Raw, Value>>();
 
   const currentBaseline = (currentDraft: DraftState<Raw, Value> | undefined) => {
@@ -66,7 +73,14 @@ export function useDraftController<Raw, Value>(
     } satisfies DraftState<Raw, Value>;
   };
 
-  const attemptCommit = (currentDraft: DraftState<Raw, Value>, retainRejectedDraft = true) => {
+  const attemptCommit = (
+    currentDraft: DraftState<Raw, Value>,
+    submitOptions?: {
+      commitUnchanged?: boolean;
+      onCommit?: (value: Value) => TrackMutationResult;
+      retainRejectedDraft?: boolean;
+    },
+  ) => {
     const validation = options.validate(currentDraft.raw);
     if (!validation.ok) {
       setDraft({ ...currentDraft, error: validation.error, pendingRevision: undefined });
@@ -74,7 +88,7 @@ export function useDraftController<Raw, Value>(
     }
 
     const baseline = currentBaseline(currentDraft);
-    if (options.isEqual(validation.value, baseline)) {
+    if (options.isEqual(validation.value, baseline) && !submitOptions?.commitUnchanged) {
       if (options.isEqual(baseline, options.value)) {
         setDraft(undefined);
       } else {
@@ -89,10 +103,10 @@ export function useDraftController<Raw, Value>(
       return { ok: true } satisfies TrackMutationResult;
     }
 
-    const result = options.onCommit(validation.value);
+    const result = (submitOptions?.onCommit ?? options.onCommit)(validation.value);
     if (!result.ok) {
       setDraft(
-        retainRejectedDraft
+        (submitOptions?.retainRejectedDraft ?? true)
           ? { ...currentDraft, error: result.error, pendingRevision: undefined }
           : {
               raw: options.toRaw(baseline),
@@ -135,10 +149,17 @@ export function useDraftController<Raw, Value>(
     if (draft?.dirty) attemptCommit(draft);
   };
 
-  const submit = (raw: Raw, submitOptions?: { retainRejectedDraft?: boolean }) => {
+  const submit = (
+    raw: Raw,
+    submitOptions?: {
+      commitUnchanged?: boolean;
+      onCommit?: (value: Value) => TrackMutationResult;
+      retainRejectedDraft?: boolean;
+    },
+  ) => {
     const nextDraft = makeDraft(raw);
     setDraft(nextDraft);
-    return attemptCommit(nextDraft, submitOptions?.retainRejectedDraft);
+    return attemptCommit(nextDraft, submitOptions);
   };
 
   const cancel = () => {

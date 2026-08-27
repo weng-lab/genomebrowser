@@ -10,7 +10,7 @@ import {
   trackHeightFromRowCount,
 } from "../layout/rowLayout";
 import { TrackSettingsColorField } from "./trackSettingsColorField";
-import { TrackSettingsNumberField } from "./trackSettingsNumberField";
+import { TrackDimensionField } from "./trackDimensionField";
 import { TrackSettingsTextField } from "./trackSettingsTextField";
 import { TrackSettingsFieldRow } from "./trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "./trackSettingsLayout";
@@ -113,23 +113,36 @@ function DisplayField({ displayOptions }: { displayOptions: readonly string[] })
 
 function HeightField() {
   const trackId = useSettingsStore((state) => state.trackId)!;
-  const height = useTrackStore((state) => state.getTrack(trackId)?.base.height ?? 20);
+  const tracks = useTrackStore((state) => state.tracks);
+  const track = tracks.find((candidate) => candidate.base.id === trackId);
+  const height = track?.base.height ?? 20;
+  const setTracks = useTrackStore((state) => state.setTracks);
   const updateTrack = useTrackStore((state) => state.updateTrack);
   return (
-    <TrackSettingsNumberField
+    <TrackDimensionField
       label="Height"
       min={20}
-      required
       value={height}
       validate={(nextHeight) => (nextHeight >= 20 ? undefined : "Enter a height of at least 20.")}
       onCommit={(nextHeight) => updateTrack(trackId, { base: { height: nextHeight } })}
+      onApplyToAll={(nextHeight) =>
+        setTracks(
+          tracks.map((candidate) =>
+            candidate.type === track?.type
+              ? { ...candidate, base: { ...candidate.base, height: nextHeight } }
+              : candidate,
+          ),
+        )
+      }
     />
   );
 }
 
 function RowLayoutFields() {
   const trackId = useSettingsStore((state) => state.trackId)!;
-  const track = useTrackStore((state) => state.getTrack(trackId));
+  const tracks = useTrackStore((state) => state.tracks);
+  const track = tracks.find((candidate) => candidate.base.id === trackId);
+  const setTracks = useTrackStore((state) => state.setTracks);
   const updateTrack = useTrackStore((state) => state.updateTrack);
   if (!track || !isRowLayoutConfig(track.config)) return null;
 
@@ -140,10 +153,9 @@ function RowLayoutFields() {
 
   return (
     <>
-      <TrackSettingsNumberField
+      <TrackDimensionField
         label="Height"
         min={minimumTrackHeight}
-        required
         value={height}
         validate={(nextHeight) =>
           nextHeight >= minimumTrackHeight
@@ -156,11 +168,31 @@ function RowLayoutFields() {
             config: { rowHeight: rowHeightFromTrackHeight(nextHeight, rowCount) },
           })
         }
+        onApplyToAll={(nextHeight) =>
+          setTracks(
+            tracks.map((candidate) => {
+              if (candidate.type !== track.type || !isRowLayoutConfig(candidate.config)) {
+                return candidate;
+              }
+              const candidateRowCount = rowCountFromTrackHeight(
+                candidate.base.height,
+                candidate.config.rowHeight,
+              );
+              return {
+                ...candidate,
+                base: { ...candidate.base, height: nextHeight },
+                config: {
+                  ...candidate.config,
+                  rowHeight: nextHeight / candidateRowCount,
+                },
+              };
+            }),
+          )
+        }
       />
-      <TrackSettingsNumberField
+      <TrackDimensionField
         label="Row height"
         min={minimumRowHeight}
-        required
         value={rowHeight}
         validate={(nextRowHeight) =>
           nextRowHeight >= minimumRowHeight
@@ -172,6 +204,27 @@ function RowLayoutFields() {
             base: { height: trackHeightFromRowCount(rowCount, nextRowHeight) },
             config: { rowHeight: nextRowHeight },
           })
+        }
+        onApplyToAll={(nextRowHeight) =>
+          setTracks(
+            tracks.map((candidate) => {
+              if (candidate.type !== track.type || !isRowLayoutConfig(candidate.config)) {
+                return candidate;
+              }
+              const candidateRowCount = rowCountFromTrackHeight(
+                candidate.base.height,
+                candidate.config.rowHeight,
+              );
+              return {
+                ...candidate,
+                base: {
+                  ...candidate.base,
+                  height: trackHeightFromRowCount(candidateRowCount, nextRowHeight),
+                },
+                config: { ...candidate.config, rowHeight: nextRowHeight },
+              };
+            }),
+          )
         }
       />
     </>
