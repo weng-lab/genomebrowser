@@ -92,3 +92,20 @@ fn rejects_coordinates_outside_required_chromosome_sizes() {
     .unwrap_err();
     assert!(error.to_string().contains("exceed chromosome size 10"));
 }
+
+#[test]
+fn accepts_chromosomes_with_or_without_chr_prefix() {
+    let input = b"1\ttest\ttranscript\t1\t10\t.\t+\t.\tgene_id \"g1\"; transcript_id \"t1\";\n\
+1\ttest\texon\t1\t10\t.\t+\t.\tgene_id \"g1\"; transcript_id \"t1\";\n\
+chr2\ttest\ttranscript\t1\t10\t.\t+\t.\tgene_id \"g2\"; transcript_id \"t2\";\n\
+chr2\ttest\texon\t1\t10\t.\t+\t.\tgene_id \"g2\"; transcript_id \"t2\";\n";
+    let records = convert_gtf(
+        BufReader::new(&input[..]),
+        &HashMap::from([("chr1".into(), 100), ("chr2".into(), 100)]),
+    )
+    .unwrap();
+
+    assert_eq!(records.len(), 2);
+    assert_eq!(records[0].chrom, "chr1");
+    assert_eq!(records[1].chrom, "chr2");
+}
