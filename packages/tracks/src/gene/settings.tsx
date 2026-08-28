@@ -176,9 +176,7 @@ function HostGeneDatasetField({ url, onChange }: { url: string; onChange: (url: 
   const variants = [...new Set(datasets.map((dataset) => dataset.variant))];
   const selectedVariant = selectedDataset?.variant ?? null;
   const versions = selectedVariant
-    ? datasets
-        .filter((dataset) => dataset.variant === selectedVariant)
-        .map((dataset) => dataset.version)
+    ? datasets.flatMap((dataset) => (dataset.variant === selectedVariant ? [dataset.version] : []))
     : [];
 
   return (
