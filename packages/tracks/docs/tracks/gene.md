@@ -28,6 +28,8 @@ Tag colors use exact, case-sensitive equality. A transcript uses the color from 
 
 Full and tagged label each transcript with its normalized `transcriptName`. Merged uses the gene name. A label appears to the right when space permits, otherwise to the left. The renderer hides it when neither side fits inside the viewport. Label bounds participate in row packing.
 
+All displays derive total height from rows needed by features that intersect the visible viewport. Features fetched on either side remain packed and rendered for panning, but they do not make the track taller. Panning into denser or sparser annotations changes total height while preserving `rowHeight`.
+
 ## Config
 
 | Option           | Type             | Default                                      | Description                                                                                         |

@@ -65,6 +65,7 @@ function renderFull(config: ReturnType<typeof createTrack>["config"], color: str
       config={config}
       color={color}
       data={data}
+      visibleRegion={region}
       region={region}
       width={1}
       height={35}

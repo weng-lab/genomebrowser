@@ -1,6 +1,7 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { createGenomicXScale } from "../shared/coordinates";
 import { useRowLayout } from "../shared/layout";
+import { intersectsVisibleRegion } from "../shared/viewport";
 import { renderDenseBigBedData, renderSquishBigBedData } from "./helpers";
 import type { BigBedConfig, BigBedRow } from "./types";
 
@@ -43,15 +44,17 @@ export function DenseBigBed<
 export function SquishBigBed<
   Row extends BigBedRow = BigBedRow,
   Config extends BigBedConfig = BigBedConfig,
->({ id, config, color, data, region, width }: TrackRendererProps<Config, Row[]>) {
-  const rows = renderSquishBigBedData(data, createGenomicXScale(region, width));
-  const { rowHeight, trackHeight } = useRowLayout(id, rows.length, config);
+>({ id, config, color, data, visibleRegion, region, width }: TrackRendererProps<Config, Row[]>) {
+  const packed = renderSquishBigBedData(data, createGenomicXScale(region, width), (row) =>
+    intersectsVisibleRegion(row, visibleRegion),
+  );
+  const { rowHeight, trackHeight } = useRowLayout(id, packed.visibleRowCount, config);
   const interaction = useInteraction<Row>();
   const tooltip = useTooltip<Row, Config>();
   return (
     <g>
       <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
-      {rows.map((row, rowIndex) => (
+      {packed.rows.map((row, rowIndex) => (
         <g key={rowIndex} transform={`translate(0,${rowIndex * rowHeight})`}>
           {row.map((rect, rectIndex) => (
             <rect

@@ -19,10 +19,11 @@ export function FullBigWig({
   data,
   width,
   height,
+  visibleRegion,
   region,
 }: TrackRendererProps<BigWigConfig, BigWigData>) {
   const points = getRenderedPoints(config, data, region, width);
-  const range = resolveBigWigRange(getBigWigRange(points), config.yRange);
+  const range = getViewportRange(config, data, visibleRegion, region, width);
   const y = createYScale(range, height);
   const paths = createSignalPaths(points, range, height);
   return (
@@ -65,10 +66,11 @@ export function DenseBigWig({
   data,
   width,
   height,
+  visibleRegion,
   region,
 }: TrackRendererProps<BigWigConfig, BigWigData>) {
   const points = getRenderedPoints(config, data, region, width);
-  const range = resolveBigWigRange(getBigWigRange(points), config.yRange);
+  const range = getViewportRange(config, data, visibleRegion, region, width);
   return (
     <g>
       <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
@@ -169,6 +171,21 @@ function getRenderedPoints(
   if (config.fillWithZero) applyFillWithZero(points);
   return points;
 }
+
+function getViewportRange(
+  config: BigWigConfig,
+  data: BigWigData,
+  visibleRegion: TrackRendererProps<BigWigConfig, BigWigData>["visibleRegion"],
+  region: TrackRendererProps<BigWigConfig, BigWigData>["region"],
+  width: number,
+) {
+  const regionSpan = region.end - region.start;
+  const visibleSpan = visibleRegion.end - visibleRegion.start;
+  const visibleWidth = regionSpan > 0 ? width * (visibleSpan / regionSpan) : width;
+  const points = getRenderedPoints(config, data, visibleRegion, visibleWidth);
+  return resolveBigWigRange(getBigWigRange(points), config.yRange);
+}
+
 function createSignalPaths(points: SignalPoint[], range: YRange, height: number) {
   const y = createYScale(range, height);
   const zeroY = y(clamp(0, range));

@@ -39,7 +39,7 @@ const track = transcriptModule.create({
 
 Canonical coloring takes precedence over `geneName` highlighting. Highlight and color changes redraw the track without requesting data.
 
-Both displays keep `rowHeight` fixed when viewport or data changes repack transcripts. Total height is `max(1, rowCount) * rowHeight`. Labels and strokes shrink when needed so transcript content fits inside each complete slot, including the valid 1-pixel minimum. The shared base settings coordinate Height and Row height while preserving the currently derived row count.
+Both displays keep `rowHeight` fixed when viewport or data changes repack transcripts. The row count includes only transcripts that intersect the visible viewport. Transcripts from the overscanned side regions remain packed and rendered for panning without increasing total height. Total height is `max(1, rowCount) * rowHeight`. Labels and strokes shrink when needed so transcript content fits inside each complete slot, including the valid 1-pixel minimum. The shared base settings coordinate Height and Row height while preserving the currently derived row count.
 
 Use `transcriptModule.configSchema` to validate config and `transcriptModule.createInputSchema` to validate the full create input.
 

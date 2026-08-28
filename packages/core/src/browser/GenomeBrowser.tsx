@@ -283,6 +283,7 @@ function BrowserView({
               trackStore={useTrackStore}
               useDataStore={useDataStore}
               trackLayouts={trackLayouts}
+              visibleRegion={region}
               region={displayedRenderRegion}
               marginWidth={marginWidth}
               trackWidth={trackWidth}

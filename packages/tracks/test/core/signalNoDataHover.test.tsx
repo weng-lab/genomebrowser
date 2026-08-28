@@ -58,6 +58,7 @@ describe("signal renderer no-data hover", () => {
               clampIndicatorColor: "#ff0000",
             }}
             data={[]}
+            visibleRegion={region}
             region={region}
             width={4}
             height={40}
@@ -89,6 +90,7 @@ describe("signal renderer no-data hover", () => {
               bottomColor: "#000000",
             }}
             data={{ top: [], bottom: [] }}
+            visibleRegion={region}
             region={region}
             width={4}
             height={40}
