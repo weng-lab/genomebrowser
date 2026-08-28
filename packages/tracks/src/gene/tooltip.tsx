@@ -7,7 +7,7 @@ import type {
   GeneTranscriptPart,
   MergedGenePart,
 } from "./interactions";
-import type { GeneConfig } from "./types";
+import type { GeneConfig, GeneTranscript } from "./types";
 
 export const GeneTooltip: TrackTooltipComponent<GeneInteractionTarget, GeneConfig> = ({ item }) => {
   const feature = item.feature;
@@ -21,9 +21,16 @@ export const GeneTooltip: TrackTooltipComponent<GeneInteractionTarget, GeneConfi
       { label: "Length", value: `${item.part.end - item.part.start} bp` },
     ];
     if (item.part.source === "transcript" && feature.kind === "transcript") {
-      rows.push(...transcriptPartRows(item.part, feature.transcriptName, feature.exons.length));
-    } else if (item.part.source === "merged") {
-      rows.push(...mergedPartRows(item.part));
+      rows.push(
+        ...transcriptPartRows(
+          item.part,
+          feature.transcriptName,
+          feature.transcriptId,
+          feature.exons.length,
+        ),
+      );
+    } else if (item.part.source === "merged" && feature.kind === "gene") {
+      rows.push(...mergedPartRows(item.part, feature.transcripts));
     }
     return <TrackTooltip title={feature.geneName || feature.geneId} rows={rows} />;
   }
@@ -36,7 +43,10 @@ export const GeneTooltip: TrackTooltipComponent<GeneInteractionTarget, GeneConfi
     { label: "Strand", value: feature.strand },
   ];
   if (feature.kind === "transcript") {
-    rows.push({ label: "Transcript", value: feature.transcriptId });
+    rows.push(
+      { label: "Transcript Name", value: feature.transcriptName },
+      { label: "Transcript ID", value: feature.transcriptId },
+    );
   } else {
     rows.push({ label: "Transcripts", value: String(feature.transcripts.length) });
   }
@@ -46,9 +56,13 @@ export const GeneTooltip: TrackTooltipComponent<GeneInteractionTarget, GeneConfi
 function transcriptPartRows(
   part: GeneTranscriptPart,
   transcriptName: string,
+  transcriptId: string,
   exonCount: number,
 ): TrackTooltipRow[] {
-  const rows: TrackTooltipRow[] = [{ label: "Transcript", value: transcriptName }];
+  const rows: TrackTooltipRow[] = [
+    { label: "Transcript Name", value: transcriptName },
+    { label: "Transcript ID", value: transcriptId },
+  ];
   const index = part.metadata.transcriptionIndex + 1;
   rows.push({
     label: part.kind === "intron" ? "Intron" : "Exon",
@@ -65,7 +79,10 @@ function transcriptPartRows(
   return rows;
 }
 
-function mergedPartRows(part: MergedGenePart): TrackTooltipRow[] {
+function mergedPartRows(
+  part: MergedGenePart,
+  transcripts: readonly GeneTranscript[],
+): TrackTooltipRow[] {
   const metadata =
     part.kind === "intron" ? part.segments.map((segment) => segment.metadata) : [part.metadata];
   const supportingTranscripts = uniqueValues(
@@ -78,10 +95,17 @@ function mergedPartRows(part: MergedGenePart): TrackTooltipRow[] {
       overriddenContributions.map(({ kind }) => partLabel({ kind })),
     ),
   );
+  const transcriptNames = new Map(
+    transcripts.map((transcript) => [transcript.transcriptId, transcript.transcriptName]),
+  );
   const rows: TrackTooltipRow[] = [
     {
-      label: part.kind === "intron" ? "Contributors" : "Supported by",
-      value: compactList(supportingTranscripts),
+      label: "Supporting Transcripts",
+      value: compactList(
+        supportingTranscripts.map(
+          (transcriptId) => transcriptNames.get(transcriptId) ?? transcriptId,
+        ),
+      ),
     },
   ];
   if (part.kind === "utr" && part.metadata.utrSides.length > 0) {

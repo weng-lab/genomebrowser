@@ -117,6 +117,33 @@ describe("track tooltips", () => {
     expect(tooltipText()).toEqual(["Sample", "Location", "chr2:30–40"]);
   });
 
+  it("shows both the transcript name and identifier", () => {
+    const feature = geneTranscript();
+    mount(
+      <GeneTooltip
+        item={{ kind: "transcript", feature }}
+        context={context<GeneConfig>("gene", {
+          url: "YOUR_URL_HERE",
+          tagColors: [],
+          highlightColor: "#000000",
+          rowHeight: 12,
+        })}
+      />,
+    );
+
+    expect(tooltipText()).toEqual([
+      "GENE1",
+      "Location",
+      "chr1:100–180",
+      "Strand",
+      "+",
+      "Transcript Name",
+      "Isoform 1",
+      "Transcript ID",
+      "tx1",
+    ]);
+  });
+
   it("shows compact typed gene-part details", () => {
     const feature = geneTranscript();
     const item: GeneInteractionTarget = {
@@ -150,7 +177,9 @@ describe("track tooltips", () => {
       "chr1:120–150",
       "Length",
       "30 bp",
-      "Transcript",
+      "Transcript Name",
+      "Isoform 1",
+      "Transcript ID",
       "tx1",
       "Intron",
       "1 of 1",
@@ -159,6 +188,11 @@ describe("track tooltips", () => {
 
   it("summarizes support and conflicts for a merged gene part", () => {
     const transcript = geneTranscript();
+    const secondTranscript = {
+      ...transcript,
+      transcriptId: "tx2",
+      transcriptName: "Isoform 2",
+    };
     const item: GeneInteractionTarget = {
       kind: "part",
       feature: {
@@ -169,7 +203,7 @@ describe("track tooltips", () => {
         strand: transcript.strand,
         geneId: transcript.geneId,
         geneName: transcript.geneName,
-        transcripts: [transcript],
+        transcripts: [transcript, secondTranscript],
       },
       part: {
         kind: "cds",
@@ -206,8 +240,8 @@ describe("track tooltips", () => {
       "chr1:100–120",
       "Length",
       "20 bp",
-      "Supported by",
-      "tx1, tx2",
+      "Supporting Transcripts",
+      "Isoform 1, Isoform 2",
       "Also called",
       "UTR",
     ]);
@@ -335,7 +369,7 @@ function geneTranscript(): GeneTranscript {
     end: 180,
     strand: "+",
     transcriptId: "tx1",
-    transcriptName: "tx1",
+    transcriptName: "Isoform 1",
     geneId: "gene1",
     geneName: "GENE1",
     tags: [],

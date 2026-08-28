@@ -85,7 +85,7 @@ const track = geneModule.create(
 
 `GenePart.source` distinguishes transcript geometry from merged geometry. Transcript parts retain exon, intron, frame, and transcription-order metadata. Merged exon parts retain winning and overridden transcript contributions. A merged intron part represents one drawable run and exposes its detailed contribution intervals through `segments`.
 
-Part tooltips show the type, interval, and length. Transcript parts also show their transcript, exon or intron number, UTR side, or coding frame when relevant. Merged exons show the supporting transcripts and any lower-priority classifications at the same interval. Merged intron runs list contributors across the run because support can vary between their stored segments. Whole transcript and gene targets show the feature interval, strand, and transcript identifier or transcript count.
+Part tooltips show the type, interval, and length. Transcript parts also show both the transcript name and identifier, exon or intron number, UTR side, or coding frame when relevant. Merged parts show supporting transcript names and any lower-priority classifications at the same interval. For merged intron runs, support is collected across the run because it can vary between stored segments. Whole transcript targets show both the transcript name and identifier; whole gene targets show the transcript count.
 
 ## Exported types
 
