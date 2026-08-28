@@ -8,6 +8,7 @@ import {
   type HorizontalBounds,
   type RowLayoutConfig,
 } from "@weng-lab/genomebrowser-tracks/shared";
+import { packViewportRows } from "../../src/shared/layout/viewportRows";
 
 type Item = { id: string; start: number; end: number; label?: string };
 
@@ -72,6 +73,29 @@ describe("packRows", () => {
 
     expect(packRows(items, bounds, { gap: 0 })).toEqual([[items[0]], [items[1]], [items[2]]]);
     expectTypeOf<HorizontalBounds>().toEqualTypeOf<{ start: number; end: number }>();
+  });
+});
+
+describe("packViewportRows", () => {
+  it("keeps overscan items renderable without adding their rows to the visible count", () => {
+    const items: Item[] = [
+      { id: "offscreen-a", start: -20, end: -5 },
+      { id: "offscreen-b", start: -20, end: -5 },
+      { id: "offscreen-c", start: -20, end: -5 },
+      { id: "visible-a", start: 10, end: 30 },
+      { id: "visible-b", start: 15, end: 25 },
+    ];
+
+    const packed = packViewportRows(items, bounds, (item) => item.id.startsWith("visible"), {
+      gap: 0,
+    });
+
+    expect(packed.visibleRowCount).toBe(2);
+    expect(packed.rows).toHaveLength(3);
+    const renderedIds = packed.rows.flatMap((row) => row.map((item) => item.id)).toSorted();
+    expect(renderedIds).toEqual(items.map((item) => item.id).toSorted());
+    const visibleItems = packed.rows.slice(0, packed.visibleRowCount).flat();
+    expect(visibleItems).toEqual(expect.arrayContaining([items[3], items[4]]));
   });
 });
 

@@ -15,6 +15,7 @@ const trackRenderErrorPrefix = "[genomebrowser] Track render error";
 export function TrackRow({
   track,
   dataState,
+  visibleRegion,
   region,
   y,
   previewOffsetY,
@@ -32,6 +33,7 @@ export function TrackRow({
 }: {
   track: AnyTrackInstance;
   dataState: DataState | undefined;
+  visibleRegion: GenomicRegion;
   region: GenomicRegion;
   y: number;
   previewOffsetY: number;
@@ -86,6 +88,7 @@ export function TrackRow({
             <TrackContent
               track={track}
               dataState={dataState ?? { status: "loading" }}
+              visibleRegion={visibleRegion}
               region={region}
               width={contentWidth ?? trackWidth}
               height={track.base.height}

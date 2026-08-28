@@ -18,11 +18,11 @@ const track = bulkBedModule.create({
 
 ## Displays and base defaults
 
-| Field     | Supported or default | Behavior                                                                    |
-| --------- | -------------------- | --------------------------------------------------------------------------- |
-| `display` | `"full"`             | Draws each dataset in one complete vertical row slot.                       |
-| `height`  | `80`                 | Initial height. Rendering replaces it with dataset count times `rowHeight`. |
-| `color`   | `"#4b9560"`          | Fallback interval color.                                                    |
+| Field     | Supported or default | Behavior                                              |
+| --------- | -------------------- | ----------------------------------------------------- |
+| `display` | `"full"`             | Draws each dataset in one complete vertical row slot. |
+| `height`  | `80`                 | Initial height before row-derived rendering.          |
+| `color`   | `"#4b9560"`          | Fallback interval color.                              |
 
 ## Config
 
@@ -32,7 +32,7 @@ const track = bulkBedModule.create({
 | `gap`       | `number`           | Omitted; renderer uses `2` | Non-negative content spacing inside each row slot. It does not increase total track height.           |
 | `rowHeight` | `number`           | `12`                       | Complete vertical slot for one dataset. Must be finite and at least 1.                                |
 
-BulkBed uses the fetched dataset-array length as its runtime row count. Total height is exactly `max(1, rowCount) * rowHeight`. Each dataset starts at its slot origin. The renderer subtracts `gap` from drawable band height and clamps the result to zero, so content never extends the slot or makes total height larger. Changing viewport or data may change row count, but it does not change configured row height.
+BulkBed counts datasets that have at least one interval intersecting the visible viewport. Total height is exactly `max(1, rowCount) * rowHeight`. Visible datasets occupy the top row slots. Datasets with only overscanned side data remain rendered in later slots for panning, but they do not make the track taller. The renderer subtracts `gap` from drawable band height and clamps the result to zero, so content never extends the slot or makes total height larger. Changing viewport or data may change row count, but it does not change configured row height.
 
 Changing a dataset name does not request data again. Fetched rows keep the name from their last request. Their tooltip can show the previous name until a region or source change requests new data. Use `bulkBedModule.configSchema` to validate config and `bulkBedModule.createInputSchema` to validate the full create input.
 

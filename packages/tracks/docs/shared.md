@@ -71,7 +71,7 @@ The invariant is:
 trackHeightFromRowCount(rowCount, rowHeight) === Math.max(1, rowCount) * rowHeight;
 ```
 
-`rowCount` belongs to the renderer, not track config. When a viewport or data change packs features into a different number of rows, call `useRowLayout` with the new count. The hook keeps `config.rowHeight` unchanged and updates the browser-owned track height.
+`rowCount` belongs to the renderer, not track config. When genomic features determine the count, calculate it from features that intersect `TrackRendererProps.visibleRegion`. Keep using `TrackRendererProps.region` and `width` to lay out all overscanned data for rendering. Call `useRowLayout` with the visible count. The hook keeps `config.rowHeight` unchanged and updates the browser-owned track height.
 
 ```tsx
 import type { TrackRendererProps } from "@weng-lab/genomebrowser";

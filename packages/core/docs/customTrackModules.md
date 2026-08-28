@@ -108,6 +108,8 @@ Settings components receive `{ track, updateTrack }`. `track` is the current com
 
 The fetch function receives `{ track, demand, resources }`. `track` contains shallow read-only track ID, module type, selected display, and complete parsed config values. `demand` contains the assembly, requested render region, and its width in SVG coordinate units. Do not mutate either view. The region may be larger than the visible viewport because the browser overscans for panning. A fetcher may return raw records or process them for the supplied display and width. Throwing from fetch produces the browser's error state for that track.
 
+A renderer receives both genomic windows. `region` spans the complete overscanned render width, so use it with `width` for horizontal coordinates and keep its side data available for panning. `visibleRegion` is the genomic viewport the user can see. Use `visibleRegion` when visible features determine a track's row count, total height, or another viewport-only measurement. While a request settles, `region` may still describe the previous displayed data. Compare chromosomes before treating a record as visible.
+
 ## Fetcher resources
 
 `resources` is a small key-value store your fetcher can use to keep values alive between requests:

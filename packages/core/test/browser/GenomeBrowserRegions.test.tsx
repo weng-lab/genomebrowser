@@ -27,8 +27,23 @@ describe("GenomeBrowser region windows", () => {
   it("fetches bounded overscan windows at both chromosome boundaries", async () => {
     vi.useFakeTimers();
     const fetch = vi.fn(async () => null);
-    function Renderer({ width }: { width: number }) {
-      return <rect data-testid="render-width" width={width} />;
+    function Renderer({
+      width,
+      region,
+      visibleRegion,
+    }: {
+      width: number;
+      region: { start: number; end: number };
+      visibleRegion: { start: number; end: number };
+    }) {
+      return (
+        <rect
+          data-testid="render-width"
+          data-render-region={`${region.start}-${region.end}`}
+          data-visible-region={`${visibleRegion.start}-${visibleRegion.end}`}
+          width={width}
+        />
+      );
     }
     const module = defineTrackModule({
       type: "bounded-fetch-test",
@@ -63,9 +78,10 @@ describe("GenomeBrowser region windows", () => {
         },
       }),
     );
-    expect(container?.querySelector('[data-testid="render-width"]')?.getAttribute("width")).toBe(
-      "200",
-    );
+    const renderedTrack = container?.querySelector('[data-testid="render-width"]');
+    expect(renderedTrack?.getAttribute("width")).toBe("200");
+    expect(renderedTrack?.getAttribute("data-render-region")).toBe("0-200");
+    expect(renderedTrack?.getAttribute("data-visible-region")).toBe("0-100");
 
     await act(async () => {
       browserStore.getState().setRegion({ chromosome: "chr1", start: 400, end: 500 });
