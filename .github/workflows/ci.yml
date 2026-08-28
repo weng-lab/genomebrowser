@@ -27,6 +27,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v5
 
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Test Rust tools
+        run: cargo test --manifest-path tools/gtf-to-big-gene-pred-plus/Cargo.toml --locked
+
       - name: Install pnpm
         uses: pnpm/action-setup@v5
         with:
