@@ -35,11 +35,11 @@ Use pure unit tests for calculations and store transitions. Use React tests only
 - For async request tests, cover stale completion, retained successful data during a later request, and per-track errors where relevant.
 - Keep first-party module tests in `packages/tracks/test`; do not make core browser tests duplicate their schema cases.
 
-## Manual harness
+## Playground example
 
-The v2 manual test harness uses the conventional `/api/screen-graphql` route for its Transcript track. The v2 Vite development server proxies that route to SCREEN, rewrites it to `/graphql`, and adds `SCREEN_API_KEY` from the server process or local Vite environment. The key remains server-only and is not exposed through `import.meta.env` or included in the browser bundle.
+The former package-level Vite harness is preserved at `apps/playground/examples/core`. It imports the public workspace package specifier, which the playground maps directly to `packages/core/src/lib.ts`. The example is intentionally not connected to an App Router route.
 
-Set `SCREEN_API_KEY` before starting the development server; without it, SCREEN will reject authenticated requests. You own starting and managing the development server. Automated checks and agents must not start it.
+Wire the example into a playground route only for an active manual investigation. You own starting and managing the development server. Automated checks and agents must not start it.
 
 ## Debugging failures
 

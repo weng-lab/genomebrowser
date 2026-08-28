@@ -24,18 +24,18 @@ Current automated coverage includes:
 
 Keep MUI Data Grid gestures and dialog presentation in the manual harness unless a regression requires a focused component test. Workflow tests should exercise the session hook and store boundary rather than reproduce third-party component behavior.
 
-## Harness and fixtures
+## Playground example and fixtures
 
-`test/main.tsx` is the manual integration harness. It creates one browser store and one track store, then passes that same track store to `GenomeBrowser` and `TrackSelect`. Use it to inspect dialog layout, collection navigation, MUI grid behavior, grouping, markers, and the effect of Submit on the rendered browser.
+`apps/playground/examples/ui/App.tsx` preserves the former package-level manual integration harness. It creates one browser store and one track store, then passes that same track store to `GenomeBrowser` and `TrackSelect`. The example is intentionally not connected to an App Router route. Wire it into the playground only while inspecting dialog layout, collection navigation, MUI grid behavior, grouping, markers, or the effect of Submit on the rendered browser.
 
-The harness uses the packages' default `/api/screen-graphql` endpoint for Cytobands and Transcript. The UI package's Vite server proxies that route to SCREEN and adds `SCREEN_API_KEY` from the server process or local Vite environment. The key is not exposed through `import.meta.env` or included in the browser bundle. Set the key before starting the user-managed development server; without it, SCREEN will reject authenticated requests.
+The example's Cytobands and Transcript modules use the conventional `/api/screen-graphql` endpoint. A temporary route that wires this example must also provide that server-side proxy and keep `SCREEN_API_KEY` out of browser code.
 
-Collection fixtures live in `test/collections/`. Prefer a small fixture that isolates the behavior under test; use the larger biosample and PsychSCREEN fixtures for realistic manual checks. Keep fixture entries aligned with modules registered by the harness. Use `YOUR_URL_HERE` for new illustrative URLs unless an existing repository fixture URL is intentionally reused.
+The former manual fixtures live with the example in `apps/playground/examples/ui/collections/`. Automated tests define their smaller inputs beside the test that uses them. Prefer a small fixture that isolates automated behavior; use the playground fixtures for realistic manual checks. Keep fixture entries aligned with modules registered by the example. Use `YOUR_URL_HERE` for new illustrative URLs unless an existing repository fixture URL is intentionally reused.
 
 The schema artifacts and scripts have distinct roles:
 
 - `trackselect schema --from <module[#export]>` writes `trackSelectCollection.schema.json` by default; `--out` can select another project-relative path.
-- `test/schemas/trackSelectCollection.schema.json` is the schema referenced by collection fixtures.
+- `apps/playground/examples/ui/schemas/trackSelectCollection.schema.json` is the schema referenced by the preserved collection fixtures.
 - The package build verifies that the public command can load a TypeScript module array, write a schema, and check that the generated file is current.
 
 Generated schemas should be checked by regenerating them only when schema or module inputs change. Review generated diffs rather than editing schema output by hand.

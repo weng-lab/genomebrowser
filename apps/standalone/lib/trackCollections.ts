@@ -71,18 +71,18 @@ const ccreComparisonTracks = {
 } satisfies TrackSelectCollection;
 
 const caveAges = [
-  { value: "Infancy", label: "Infancy", color: "#FBE4C5", topColor: "#B99768" },
+  { value: "Infancy", label: "Infancy", color: "#B99768", topColor: "#EEC085" },
   {
     value: "Early_Childhood",
     label: "Early Childhood",
-    color: "#F4A154",
-    topColor: "#B86B3A",
+    color: "#B86B3A",
+    topColor: "#FACB9E",
   },
   {
     value: "Late_Childhood",
     label: "Late Childhood",
-    color: "#F7BF9F",
-    topColor: "#B35C2C",
+    color: "#B35C2C",
+    topColor: "#FCC18A",
   },
   { value: "Adolescence", label: "Adolescence", color: "#D2614D", topColor: "#F5C5BD" },
   {

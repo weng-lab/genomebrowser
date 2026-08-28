@@ -33,7 +33,8 @@ dependency ordering and caching in effect.
 
 ```sh
 pnpm exec turbo run test --filter=@weng-lab/genomebrowser-tracks
-pnpm exec turbo run build --filter=@weng-lab/genomebrowser-app
+pnpm exec turbo run build --filter=@weng-lab/genomebrowser-standalone
+pnpm exec turbo run build --filter=@weng-lab/genomebrowser-playground
 pnpm exec turbo run typecheck --filter=@weng-lab/genomebrowser-ui
 ```
 
@@ -74,8 +75,10 @@ invalidate the corresponding package checks.
 The local cache lives at `.turbo/cache` in each worktree. The directory is
 ignored by Git and can be removed without losing source or build configuration.
 
-The Next.js app overrides the root build dependency because `next build` already
-runs TypeScript. Publishable libraries provide `build:checked` for lifecycle
+The Next.js apps override the root build dependency because `next build` already
+runs TypeScript. The standalone app consumes built workspace package entries;
+the playground maps public package specifiers to source while retaining package
+dependency edges for complete repository checks. Publishable libraries provide `build:checked` for lifecycle
 hooks that run without Turbo. It typechecks the package and then builds its
 artifacts.
 
