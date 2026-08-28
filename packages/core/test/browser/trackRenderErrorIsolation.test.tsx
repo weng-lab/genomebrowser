@@ -84,19 +84,19 @@ describe("track render error isolation", () => {
 
     const svg = requiredElement<SVGSVGElement>("#browserSVG");
     const fallbackText = requiredText("Track unavailable: Broken track");
-    const brokenTitle = requiredText("Broken track");
+    const brokenTitle = requiredText("Broken track (full)");
     const brokenFrame = brokenTitle.parentElement;
     if (!brokenFrame) throw new Error("Broken track frame not found");
 
     expect(container?.textContent).not.toContain(renderError.message);
     expect(requiredElement('[data-testid="healthy-renderer"]')).toBeTruthy();
-    expect(requiredText("Healthy track")).toBeTruthy();
+    expect(requiredText("Healthy track (full)")).toBeTruthy();
     expect(brokenFrame.getAttribute("transform")).toBe("translate(0,80)");
     expect(brokenFrame.querySelector('rect[x="120"][y="0"][height="81"]')).toBeTruthy();
     expect(brokenFrame.querySelectorAll('svg[viewBox="0 0 24 24"]')).toHaveLength(3);
     expect(brokenFrame.querySelector("g[clip-path]")?.contains(fallbackText)).toBe(true);
     expect(fallbackText.parentElement?.parentElement?.firstElementChild?.tagName).toBe("rect");
-    expect(requiredText("Healthy track").parentElement?.getAttribute("transform")).toBe(
+    expect(requiredText("Healthy track (full)").parentElement?.getAttribute("transform")).toBe(
       "translate(0,161)",
     );
     expect(svg.getAttribute("viewBox")).toBe("0 0 620 226");

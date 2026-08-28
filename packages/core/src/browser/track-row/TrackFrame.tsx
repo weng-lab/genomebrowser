@@ -96,7 +96,7 @@ export function TrackFrame({
         textAnchor="middle"
         alignmentBaseline="baseline"
       >
-        {track.base.title}
+        {`${track.base.title} (${track.base.display})`}
       </text>
       <g
         onMouseEnter={() => {
