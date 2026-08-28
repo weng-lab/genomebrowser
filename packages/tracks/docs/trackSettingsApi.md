@@ -83,6 +83,7 @@ This component uses a text input so partial numeric drafts such as `-` and `1.` 
 
 | Prop          | Type                                   | Default  | Description                                          |
 | ------------- | -------------------------------------- | -------- | ---------------------------------------------------- |
+| `disabled`    | `boolean`                              | `false`  | Visibly disables editing and commit interactions.    |
 | `label`       | `string`                               | `"URL"`  | Visible MUI field label and accessible name.         |
 | `onCommit`    | `(url: string) => TrackMutationResult` | Required | Attempts to persist the draft URL string.            |
 | `placeholder` | `string`                               | None     | Example or hint shown when the draft is empty.       |
@@ -135,6 +136,6 @@ The visual picker provides a saturation and brightness area plus a hue slider. P
 
 Core supplies the modal heading, close action, dragging behavior, and modal Escape handling. Every settings field has a visible label. Layout components preserve source order when rows stack.
 
-Range validation is associated with both bound inputs while rendering one shared error message. Color fields expose the hexadecimal text and a swatch. The picker exposes keyboard-operable color and hue sliders inside a labeled group. Opening it moves focus into the popover. Closing it restores focus to the swatch button. Disabled dependent controls remain visible but inoperable.
+Range validation is associated with both bound inputs while rendering one shared error message. Read-only text and URL fields retain their visible labels, focus, and selectable values. Color fields expose the hexadecimal text and a swatch. The picker exposes keyboard-operable color and hue sliders inside a labeled group. Opening it moves focus into the popover. Closing it restores focus to the swatch button. Disabled dependent controls remain visible but inoperable.
 
 Return to [Author track settings](trackSettings.md) for composition and update guidance.

@@ -9,6 +9,7 @@ import {
   hg38,
 } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
 import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import {
@@ -33,7 +34,16 @@ const useBrowserStore = createBrowserStore({
 
 const useTrackStore = createTrackStore({
   modules: firstPartyTrackModules,
-  tracks: [],
+  tracks: [
+    bigWigModule.create({
+      id: "user-source-example",
+      title: "User-sourced BigWig",
+      source: "user",
+      config: {
+        url: "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw",
+      },
+    }),
+  ],
 });
 
 const useSettingsStore = createSettingsStore({

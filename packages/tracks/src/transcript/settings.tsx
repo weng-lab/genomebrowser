@@ -10,6 +10,7 @@ import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsNumberField } from "../shared/settings/trackSettingsNumberField";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsTextField } from "../shared/settings/trackSettingsTextField";
+import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import type { Transcript, TranscriptConfig } from "./types";
 
 type TranscriptSettingsProps = TrackSettingsProps<TranscriptConfig, Transcript>;
@@ -21,7 +22,11 @@ export function TranscriptSettings({ track, updateTrack }: TranscriptSettingsPro
       <TrackSettingsSection title="Transcript source">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
-            <EndpointField endpoint={config.endpoint} updateTrack={updateTrack} />
+            <EndpointField
+              disabled={track.source === "host"}
+              endpoint={config.endpoint}
+              updateTrack={updateTrack}
+            />
           </TrackSettingsFullRow>
           <TrackSettingsFullRow>
             <TrackSettingsFieldRow>
@@ -59,21 +64,22 @@ export function TranscriptSettings({ track, updateTrack }: TranscriptSettingsPro
 }
 
 function EndpointField({
+  disabled,
   endpoint,
   updateTrack,
 }: {
+  disabled: boolean;
   endpoint: string;
   updateTrack: TranscriptSettingsProps["updateTrack"];
 }) {
   return (
-    <TrackSettingsTextField
+    <TrackSettingsUrlField
       label="Endpoint"
-      normalize={(value) => value.trim()}
       placeholder={defaultScreenGraphQlEndpoint}
+      disabled={disabled}
       required
       value={endpoint}
-      validate={(value) => (value.trim() === "" ? "Enter an endpoint." : undefined)}
-      onCommit={(value) => updateTrack({ config: { endpoint: value } })}
+      onCommit={(value) => updateTrack({ config: { endpoint: value.trim() } })}
     />
   );
 }

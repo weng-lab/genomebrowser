@@ -31,6 +31,7 @@ A registered module holds stable behavior for one type: schemas, defaults, fetch
 - `type` chooses the module.
 - `base` contains ID, title, display, height, and a concrete color.
 - `config` contains module-specific values such as URLs and visual options.
+- `source` is `"user"` when the user controls the track's data source and `"host"` when the embedding application controls it.
 - `interaction` optionally contains app callbacks for that instance.
 
 Create tracks through `module.create(...)`, then register that same module in the track store. Track IDs and module types must be unique in their respective collections.

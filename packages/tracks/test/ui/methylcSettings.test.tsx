@@ -4,6 +4,7 @@ import {
   createTrackStore,
   type TrackInstance,
   type TrackMutationResult,
+  type TrackSource,
   type TrackStoreInstance,
   type TrackUpdate,
 } from "@weng-lab/genomebrowser";
@@ -103,6 +104,27 @@ describe("methylC settings", () => {
     expect(getFieldContainer("Mask CpG by coverage").parentElement).not.toBe(
       getFieldContainer("Minimum").parentElement,
     );
+  });
+
+  it("disables every host source while keeping visual settings editable", () => {
+    const { updateTrack } = renderSettings(config, "host");
+    const urlLabels = [
+      "Plus-strand CpG URL",
+      "Plus-strand CHG URL",
+      "Plus-strand CHH URL",
+      "Plus-strand Depth URL",
+      "Minus-strand CpG URL",
+      "Minus-strand CHG URL",
+      "Minus-strand CHH URL",
+      "Minus-strand Depth URL",
+    ];
+
+    expect(urlLabels.every((label) => getInput(label).disabled)).toBe(true);
+    expect(getInput("CpG color").disabled).toBe(false);
+    expect(getInput("Minimum").disabled).toBe(false);
+
+    clickInput("Mask CpG by coverage");
+    expect(updateTrack).toHaveBeenCalledWith({ config: { maskCpgByCoverage: false } });
   });
 
   it("updates nested values while preserving their siblings", () => {
@@ -223,13 +245,13 @@ describe("methylC settings", () => {
   });
 });
 
-function renderSettings(initialConfig = config) {
+function renderSettings(initialConfig = config, source: TrackSource = "user") {
   const updateTrack = vi.fn<
     (update: TrackUpdate<MethylCConfig, MethylCTooltipItem>) => TrackMutationResult
   >(() => ({ ok: true }));
   const trackStore = createTrackStore({
     modules: [methylCModule],
-    tracks: [createMethylCTrack(initialConfig)],
+    tracks: [createMethylCTrack(initialConfig, "methylc", source)],
   });
   const applyUpdate = trackStore.getState().updateTrack;
   container = document.createElement("div");
@@ -257,12 +279,17 @@ function renderSettings(initialConfig = config) {
   return { rerender, trackStore, updateTrack };
 }
 
-function createMethylCTrack(initialConfig: MethylCConfig, id = "methylc") {
+function createMethylCTrack(
+  initialConfig: MethylCConfig,
+  id = "methylc",
+  source: TrackSource = "user",
+) {
   return methylCModule.create({
     id,
     title: "MethylC",
     height: 80,
     color: "#000000",
+    source,
     config: initialConfig,
   });
 }

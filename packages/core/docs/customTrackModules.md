@@ -62,6 +62,18 @@ function SignalSettings({ track, updateTrack }: TrackSettingsProps<Config, Item>
   return (
     <SettingsSection title="Signal">
       <label>
+        Data URL
+        <input
+          disabled={track.source === "host"}
+          type="url"
+          value={track.config.url}
+          onChange={(event) => {
+            const result = updateTrack({ config: { url: event.currentTarget.value } });
+            if (!result.ok) console.error(result.error);
+          }}
+        />
+      </label>
+      <label>
         Threshold
         <input
           type="number"
@@ -104,7 +116,9 @@ export const customSignalModule = defineTrackModule<Item>()({
 });
 ```
 
-Settings components receive `{ track, updateTrack }`. `track` is the current complete, shallow read-only instance, including its type, base, parsed config, and optional interaction callbacks. The supplied `updateTrack` is already bound to that track's ID and passes through the browser's interaction gate. Return or inspect its `TrackMutationResult` when an edit can fail. Each `base`, `config`, or `interaction` patch is shallow, so replace a complete nested object or array when changing one of its values.
+Settings components receive `{ track, updateTrack }`. `track` is the current complete, shallow read-only instance, including its type, base, parsed config, source, and optional interaction callbacks. `module.create` uses `source: "user"` unless its input requests `"host"`. When `track.source` is `"host"`, disable inputs that change the data source while leaving unrelated settings enabled. Core does not identify source fields for a module.
+
+The supplied `updateTrack` is already bound to that track's ID and passes through the browser's interaction gate. Return or inspect its `TrackMutationResult` when an edit can fail. Each `base`, `config`, or `interaction` patch is shallow, so replace a complete nested object or array when changing one of its values.
 
 The fetch function receives `{ track, demand, resources }`. `track` contains shallow read-only track ID, module type, selected display, and complete parsed config values. `demand` contains the assembly, requested render region, and its width in SVG coordinate units. Do not mutate either view. The region may be larger than the visible viewport because the browser overscans for panning. A fetcher may return raw records or process them for the supplied display and width. Throwing from fetch produces the browser's error state for that track.
 
@@ -169,7 +183,7 @@ The optional second argument contains per-instance callbacks and is not serializ
 
 ## Settings, tooltip, and interactions
 
-Module settings use `TrackSettingsProps<Config, Item>` as their input contract. Read current values from `track` and submit live edits through the supplied `updateTrack`. One update may contain optional shallow `base`, `config`, and `interaction` patches; core validates the complete candidate once and commits all supplied sections or none. The browser still renders the standard title, display, color, and height controls separately, so module settings should render only module-specific config controls.
+Module settings use `TrackSettingsProps<Config, Item>` as their input contract. Read current values and `source` from `track`, then submit live edits through the supplied `updateTrack`. One update may contain optional shallow `base`, `config`, and `interaction` patches; core validates the complete candidate once and commits all supplied sections or none. The browser still renders the standard title, display, color, and height controls separately, so module settings should render only module-specific config controls.
 
 The renderer decides what semantic item a click or hover represents. `useInteraction<Item>()` returns item-only handlers because the browser binds the current runtime context. `useTooltip<Item, Config>()` reads that same context and opens the module's browser-positioned `tooltipComponent` with `{ item, context }`. Renderers do not pass a type or config to either hook. Both hooks require the renderer to run inside `GenomeBrowser`.
 
