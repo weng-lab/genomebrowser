@@ -14,7 +14,7 @@ cargo build --release
   --output annotation.bb
 ```
 
-The GTF input may be plain text or gzip-compressed with a `.gz` suffix. The chromosome sizes file is required and must contain exactly two whitespace-separated columns per line: chromosome name and positive length. Chromosome names must exactly match the GTF, including prefixes and alternate-locus naming. The converter rejects every GTF feature on an unknown chromosome or outside the declared length.
+The GTF input may be plain text or gzip-compressed with a `.gz` suffix. The chromosome sizes file is required and must contain exactly two whitespace-separated columns per line: chromosome name and positive length. The converter first tries an exact chromosome-name match. When a GTF name does not start with `chr` and has no exact match, it also tries the name with a `chr` prefix. For example, GTF chromosome `1` matches a `chr1` sizes entry and is written to the BigBed as `chr1`. Other naming differences, including Ensembl-to-UCSC alternate-locus names, still require matching names in the chromosome sizes file. The converter rejects every GTF feature on an unknown chromosome or outside the declared length.
 
 ## Input contract
 

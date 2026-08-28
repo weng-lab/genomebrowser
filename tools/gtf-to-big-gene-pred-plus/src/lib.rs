@@ -172,10 +172,8 @@ pub fn convert_gtf<R: BufRead>(
             continue;
         };
         let record = record_result.with_context(|| format!("invalid GTF line {line_number}"))?;
-        let chrom = text(record.reference_sequence_name(), line_number, "chromosome")?;
-        let chrom_size = *chrom_sizes
-            .get(&chrom)
-            .ok_or_else(|| anyhow!("unknown chromosome {chrom:?} at GTF line {line_number}"))?;
+        let input_chrom = text(record.reference_sequence_name(), line_number, "chromosome")?;
+        let (chrom, chrom_size) = resolve_chromosome(input_chrom, chrom_sizes, line_number)?;
         let start = usize::from(
             record
                 .start()
@@ -293,6 +291,25 @@ pub fn convert_gtf<R: BufRead>(
             .then(a.rest.cmp(&b.rest))
     });
     Ok(records)
+}
+
+fn resolve_chromosome(
+    input_chrom: String,
+    chrom_sizes: &HashMap<String, u32>,
+    line_number: usize,
+) -> Result<(String, u32)> {
+    if let Some(&size) = chrom_sizes.get(&input_chrom) {
+        return Ok((input_chrom, size));
+    }
+
+    if !input_chrom.starts_with("chr") {
+        let prefixed = format!("chr{input_chrom}");
+        if let Some(&size) = chrom_sizes.get(&prefixed) {
+            return Ok((prefixed, size));
+        }
+    }
+
+    bail!("unknown chromosome {input_chrom:?} at GTF line {line_number}")
 }
 
 type Attributes = Vec<(String, Vec<String>)>;
