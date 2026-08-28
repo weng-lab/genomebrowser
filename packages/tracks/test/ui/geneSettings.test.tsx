@@ -8,6 +8,15 @@ import { GeneSettings } from "../../src/gene/settings";
 import { reorderTagColors } from "../../src/gene/settingsHelpers";
 import { publishObservedGeneTags } from "../../src/gene/tagCatalog";
 
+vi.mock("@weng-lab/genomebrowser", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@weng-lab/genomebrowser")>();
+  return {
+    ...actual,
+    useBrowserStore: <T,>(selector: (state: { assembly: { id: string } }) => T): T =>
+      selector({ assembly: { id: "hg38" } }),
+  };
+});
+
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
@@ -44,6 +53,7 @@ describe("Gene settings", () => {
     expect(container.textContent).toContain("MANE_Select");
     expect(container.textContent).toContain("MANE_Select color");
     expect(container.textContent).toContain("Highlight color");
+    expect(container.textContent).not.toContain("Annotation dataset");
 
     const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
     if (!valueSetter) throw new Error("Could not set the Highlight gene input value");
@@ -53,6 +63,83 @@ describe("Gene settings", () => {
     });
 
     expect(updateTrack).toHaveBeenCalledWith({ config: { geneName: "BRCA1" } });
+  });
+
+  it("selects an assembly-compatible dataset for a host-owned track", () => {
+    const updateTrack = vi.fn((): { ok: true } => ({ ok: true }));
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const track = geneModule.create({
+      id: "genes",
+      title: "Genes",
+      source: "host",
+      config: { url: "https://example.org/uncataloged.bb" },
+    });
+
+    act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
+
+    const datasetInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
+      (candidate) => candidate.labels?.[0]?.textContent === "Annotation dataset",
+    );
+    const urlInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
+      (candidate) => candidate.labels?.[0]?.textContent?.startsWith("URL"),
+    );
+    if (!datasetInput || !urlInput) throw new Error("Could not find host dataset controls");
+    expect(urlInput.disabled).toBe(true);
+
+    act(() =>
+      datasetInput.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })),
+    );
+    const option = Array.from(document.querySelectorAll<HTMLElement>('[role="option"]')).find(
+      (candidate) => candidate.textContent === "GENCODE comprehensive",
+    );
+    if (!option) throw new Error("Could not find the GENCODE comprehensive option");
+    act(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+
+    expect(updateTrack).toHaveBeenCalledWith({
+      config: {
+        url: "https://users.wenglab.org/niship/gencodefiles/human.gencode.v49.comprehensive.annotation.bb",
+      },
+    });
+  });
+
+  it("changes the version within the selected GENCODE variant", () => {
+    const updateTrack = vi.fn((): { ok: true } => ({ ok: true }));
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const track = geneModule.create({
+      id: "genes",
+      title: "Genes",
+      source: "host",
+      config: {
+        url: "https://users.wenglab.org/niship/gencodefiles/human.gencode.v40.basic.annotation.bb",
+      },
+    });
+
+    act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
+
+    const versionInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
+      (candidate) => candidate.labels?.[0]?.textContent === "Version",
+    );
+    if (!versionInput) throw new Error("Could not find the GENCODE version control");
+    expect(versionInput.value).toBe("40");
+
+    act(() =>
+      versionInput.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })),
+    );
+    const option = Array.from(document.querySelectorAll<HTMLElement>('[role="option"]')).find(
+      (candidate) => candidate.textContent === "46",
+    );
+    if (!option) throw new Error("Could not find GENCODE version 46");
+    act(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+
+    expect(updateTrack).toHaveBeenCalledWith({
+      config: {
+        url: "https://users.wenglab.org/niship/gencodefiles/human.gencode.v46.basic.annotation.bb",
+      },
+    });
   });
 
   it("adds an observed tag with its own color", () => {

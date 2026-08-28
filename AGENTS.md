@@ -29,12 +29,7 @@ When creating or editing commits, pull requests, or issues, follow
 
 ## Turborepo
 
-Run build, test, typecheck, lint, and formatting tasks through the root pnpm
-scripts so Turborepo can apply the package graph and cache. For a targeted task,
-use `pnpm exec turbo run <task> --filter=<package>` rather than invoking the
-package task with `pnpm --filter`.
-
-When verifying changes, use `pnpm verify`, which checks and builds all packages and applications. Turborepo caches unchanged tasks.
+When verifying changes, use `pnpm verify`, which leverages turborepo by checking and building all packages and applications. Turborepo caches unchanged tasks so it is quick.
 
 Read [`docs/turborepo.md`](docs/turborepo.md) before changing package task
 scripts, `turbo.json`, cache inputs or outputs, or CI task orchestration.

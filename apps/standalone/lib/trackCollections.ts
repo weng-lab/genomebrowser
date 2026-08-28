@@ -23,7 +23,7 @@ const geneTracks = {
       height: 60,
       color: "#444444",
       config: {
-        url: "https://users.wenglab.org/mezaj/gencode.v40.comprehensive.bigGenePredPlusV1.bb",
+        url: "https://users.wenglab.org/niship/gencodefiles/human.gencode.v40.comprehensive.annotation.bb",
       },
       metadata: {},
     },
