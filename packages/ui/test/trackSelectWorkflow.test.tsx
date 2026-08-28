@@ -388,7 +388,7 @@ describe("TrackSelect session workflow", () => {
     expect(setup.onClose).toHaveBeenCalledOnce();
   });
 
-  it("reuses an existing track whose ID is reserved by the collection", async () => {
+  it("forces a reused reserved track to use the host source", async () => {
     const existingTrack = annotationModule.create({
       id: "alpha::one",
       title: "Unrelated annotation",
@@ -401,7 +401,7 @@ describe("TrackSelect session workflow", () => {
 
     await act(async () => result.current.actions.submitSelection());
 
-    expect(setup.store.getState().tracks).toEqual([existingTrack]);
+    expect(setup.store.getState().tracks).toEqual([{ ...existingTrack, source: "host" }]);
     expect(setup.onClose).toHaveBeenCalledOnce();
   });
 

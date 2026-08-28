@@ -62,6 +62,7 @@ describe("Transcript rendering", () => {
           rowHeight: 12,
         }}
         data={data}
+        visibleRegion={{ chromosome: "chr1", start: 0, end: 100 }}
         region={{ chromosome: "chr1", start: 0, end: 100 }}
         width={100}
         height={24}
@@ -106,6 +107,7 @@ describe("Transcript rendering", () => {
           rowHeight: 1,
         }}
         data={data}
+        visibleRegion={{ chromosome: "chr1", start: 0, end: 100 }}
         region={{ chromosome: "chr1", start: 0, end: 100 }}
         width={100}
         height={24}
@@ -115,5 +117,62 @@ describe("Transcript rendering", () => {
     expect(markup).toContain('font-size="1"');
     expect(markup).toContain('stroke-width="0.4"');
     expect(markup).toContain('height="1"');
+  });
+
+  it("counts visible transcripts without dropping overscan transcripts", () => {
+    const data: TranscriptData = [
+      {
+        strand: "+",
+        transcripts: [
+          {
+            id: "offscreen-1",
+            name: "Offscreen 1",
+            coordinates: { start: 10, end: 30 },
+            strand: "+",
+          },
+          {
+            id: "offscreen-2",
+            name: "Offscreen 2",
+            coordinates: { start: 10, end: 30 },
+            strand: "+",
+          },
+          {
+            id: "visible",
+            name: "Visible",
+            coordinates: { start: 70, end: 80 },
+            strand: "+",
+          },
+        ],
+      },
+    ];
+
+    const markup = renderToStaticMarkup(
+      <PackTranscript
+        id="genes"
+        color="#abcdef"
+        config={{
+          endpoint: "YOUR_URL_HERE",
+          assembly: "GRCh38",
+          version: 47,
+          canonicalColor: "#112233",
+          highlightColor: "#445566",
+          rowHeight: 12,
+        }}
+        data={data}
+        visibleRegion={{ chromosome: "chr1", start: 60, end: 90 }}
+        region={{ chromosome: "chr1", start: 0, end: 100 }}
+        width={100}
+        height={24}
+      />,
+    );
+
+    expect(layout.useRowLayout).toHaveBeenCalledWith(
+      "genes",
+      1,
+      expect.objectContaining({ rowHeight: 12 }),
+    );
+    expect(markup).toContain("Offscreen 1");
+    expect(markup).toContain("Offscreen 2");
+    expect(markup).toContain("Visible");
   });
 });

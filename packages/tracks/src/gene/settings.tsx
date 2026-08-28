@@ -61,6 +61,7 @@ export function GeneSettings({ track, updateTrack }: GeneSettingsProps) {
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
             <TrackSettingsUrlField
+              disabled={track.source === "host"}
               required
               value={track.config.url}
               onCommit={(url) => updateTrack({ config: { url } })}

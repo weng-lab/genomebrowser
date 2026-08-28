@@ -11,12 +11,14 @@ import { LoadingState } from "./LoadingState";
 export const TrackContent = memo(function TrackContent({
   track,
   dataState,
+  visibleRegion,
   region,
   width,
   height,
 }: {
   track: AnyTrackInstance;
   dataState: DataState;
+  visibleRegion: GenomicRegion;
   region: GenomicRegion;
   width: number;
   height: number;
@@ -59,6 +61,7 @@ export const TrackContent = memo(function TrackContent({
           config={track.config}
           color={track.base.color}
           data={dataState.data}
+          visibleRegion={visibleRegion}
           region={region}
           width={width}
           height={height}

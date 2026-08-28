@@ -29,13 +29,13 @@ export function getReconciledTracks({
   const selectedTracks = selectedTrackIds.map((id) => {
     const existingTrack = existingTracksById.get(id);
     const entry = collectionTracksById.get(id)!;
-    if (!resolveTrackInteraction) {
-      if (existingTrack) return existingTrack;
-      return createTrackFromEntry(registry, { ...entry.track, id });
-    }
+    const track = {
+      ...(existingTrack ?? createTrackFromEntry(registry, { ...entry.track, id })),
+      source: "host" as const,
+    };
+    if (!resolveTrackInteraction) return track;
 
     const resolvedInteraction = resolveTrackInteraction(entry);
-    const track = existingTrack ?? createTrackFromEntry(registry, { ...entry.track, id });
     const { interaction: _interaction, ...trackWithoutInteraction } = track;
     if (resolvedInteraction === undefined) return trackWithoutInteraction;
 

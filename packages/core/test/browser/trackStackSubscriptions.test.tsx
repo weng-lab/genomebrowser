@@ -170,7 +170,7 @@ function rowRenderer(id: string) {
 
 function trackRow(id: string) {
   const title = Array.from(container?.querySelectorAll("text") ?? []).find(
-    (element) => element.textContent === id,
+    (element) => element.textContent === `${id} (full)`,
   );
   if (!title?.parentElement) throw new Error(`Track row not found: ${id}`);
   return title.parentElement;

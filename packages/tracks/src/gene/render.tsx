@@ -1,7 +1,9 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { useMemo } from "react";
 import { createGenomicXScale } from "../shared/coordinates";
-import { packRows, useRowLayout } from "../shared/layout";
+import { useRowLayout } from "../shared/layout";
+import { packViewportRows } from "../shared/layout/viewportRows";
+import { intersectsVisibleRegion } from "../shared/viewport";
 import { GeneGlyph } from "./glyph";
 import { findTranscriptTagColor, groupTranscriptsByGene } from "./helpers";
 import type { GeneInteractionTarget } from "./interactions";
@@ -37,6 +39,7 @@ function GeneRows({
   id,
   config,
   color,
+  visibleRegion,
   region,
   width,
   features,
@@ -54,32 +57,33 @@ function GeneRows({
       ),
     [features],
   );
-  const visibleFeatures = features.filter(
+  const renderFeatures = features.filter(
     (feature) => feature.end > region.start && feature.start < region.end,
   );
   const labelFontSize = Math.min(maximumLabelFontSize, config.rowHeight);
-  const items = visibleFeatures.map((feature) => {
+  const items = renderFeatures.map((feature) => {
     const start = x(feature.start);
     const end = x(feature.end);
     const label = createGeneLabelLayout(featureLabel(feature), start, end, width, labelFontSize);
     return { feature, label, prepared: preparedFeatures.get(feature)!, start, end };
   });
-  const rows = packRows(
+  const packed = packViewportRows(
     items,
     (item) => ({
       start: Math.min(item.start, item.label?.start ?? item.start),
       end: Math.max(item.end, item.label?.end ?? item.end),
     }),
+    (item) => intersectsVisibleRegion(item.feature, visibleRegion),
     { gap: 4 },
   );
-  const { rowHeight, trackHeight } = useRowLayout(id, rows.length, config);
+  const { rowHeight, trackHeight } = useRowLayout(id, packed.visibleRowCount, config);
   const interaction = useInteraction<GeneInteractionTarget>();
   const tooltip = useTooltip<GeneInteractionTarget, GeneConfig>();
 
   return (
     <g>
       <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
-      {rows.map((row, rowIndex) =>
+      {packed.rows.map((row, rowIndex) =>
         row.map(({ feature, label, prepared, start: featureStart, end: featureEnd }) => {
           const start = Math.max(0, featureStart);
           const end = Math.min(width, featureEnd);

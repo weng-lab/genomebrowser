@@ -92,6 +92,7 @@ const props = {
     rowHeight: 16,
   },
   data,
+  visibleRegion: { chromosome: "chr1", start: 0, end: 500 },
   region: { chromosome: "chr1", start: 0, end: 500 },
   width: 500,
   height: 16,
@@ -223,6 +224,13 @@ describe("Gene rendering", () => {
     expect(
       Array.from(container.querySelectorAll("[data-gene-label]")).map((label) => label.textContent),
     ).toEqual(["gene1", "gene2"]);
+  });
+
+  it("derives row count from visible genes while retaining render-window genes", () => {
+    render(<FullGene {...props} visibleRegion={{ chromosome: "chr1", start: 250, end: 400 }} />);
+
+    expect(runtime.useRowLayout).toHaveBeenCalledWith("genes", 1, props.config);
+    expect(container.querySelectorAll("[data-gene-label]")).toHaveLength(3);
   });
 
   it("highlights matching genes and their labels case-insensitively", () => {

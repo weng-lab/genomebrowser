@@ -59,6 +59,7 @@ describe("defineTrackModule", () => {
         url: "YOUR_URL_HERE",
         enabled: true,
       },
+      source: "user",
     });
   });
 
@@ -73,6 +74,17 @@ describe("defineTrackModule", () => {
     expect(
       uncoloredModule.create({ id: "uncolored", title: "Uncolored", config: {} }).base.color,
     ).toBe("#000000");
+  });
+
+  it("accepts an explicit host source", () => {
+    const track = module.create({
+      id: "host-signal",
+      title: "Host signal",
+      source: "host",
+      config: { url: "YOUR_URL_HERE" },
+    });
+
+    expect(track.source).toBe("host");
   });
 
   it("rejects non-hexadecimal base colors from input and validated instances", () => {

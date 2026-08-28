@@ -87,6 +87,18 @@ describe("BulkBed settings", () => {
     expect(getComputedStyle(firstDatasetFieldRow).flexWrap).toBe("nowrap");
   });
 
+  it("disables every dataset URL for a host source", () => {
+    renderControlledSettings({ ...createBulkBedTrack(initialConfig), source: "host" }, () => ({
+      ok: true,
+    }));
+
+    for (const row of datasetRows()) {
+      expect(rowInput(row, "URL").disabled).toBe(true);
+      expect(rowInput(row, "Name").disabled).toBe(false);
+    }
+    expect(gapInput().disabled).toBe(false);
+  });
+
   it("updates gap and dataset fields without losing unaffected draft values", () => {
     vi.useFakeTimers();
     const { updateTrack } = renderSettings();

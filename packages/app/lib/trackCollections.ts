@@ -70,15 +70,70 @@ const ccreComparisonTracks = {
   ],
 } satisfies TrackSelectCollection;
 
-export const trackCollections = [geneTracks, ccreComparisonTracks, biosampleTracks];
+const caveAges = [
+  { value: "Infancy", label: "Infancy", color: "#FBE4C5", topColor: "#B99768" },
+  {
+    value: "Early_Childhood",
+    label: "Early Childhood",
+    color: "#F4A154",
+    topColor: "#B86B3A",
+  },
+  {
+    value: "Late_Childhood",
+    label: "Late Childhood",
+    color: "#F7BF9F",
+    topColor: "#B35C2C",
+  },
+  { value: "Adolescence", label: "Adolescence", color: "#D2614D", topColor: "#F5C5BD" },
+  {
+    value: "Early_Adulthood",
+    label: "Early Adulthood",
+    color: "#9D4255",
+    topColor: "#D9A1AD",
+  },
+  { value: "Adulthood", label: "Adulthood", color: "#593135", topColor: "#BBA0A3" },
+] as const;
+
+const caveTracks = {
+  id: "cave-development",
+  label: "CAVE developmental methylation",
+  description: "GABA hmC and OXBS tracks across six developmental ages.",
+  views: [
+    {
+      id: "default",
+      label: "Developmental age",
+      columns: [{ field: "developmentalAge", label: "Developmental age" }],
+      grouping: [],
+      leaf: "developmentalAge",
+    },
+  ],
+  tracks: caveAges.map((age) => ({
+    type: "cave" as const,
+    id: `gaba-${age.value.toLowerCase()}`,
+    title: `CAVE GABA ${age.label}`,
+    color: age.color,
+    config: {
+      neurotransmitter: "GABA" as const,
+      age: age.value,
+      topColor: age.topColor,
+      bottomColor: age.color,
+    },
+    metadata: {
+      developmentalAge: age.label,
+    },
+  })),
+} satisfies TrackSelectCollection;
+
+export const trackCollections = [geneTracks, ccreComparisonTracks, caveTracks, biosampleTracks];
 
 export const defaultTrackIds = [
   "reference-annotations::genes",
   "ccre-comparisons::aggregate-and-adipose-ccres",
   "human-biosamples::ccre-aggregate",
-  "human-biosamples::dnase-aggregate",
-  "human-biosamples::h3k4me3-aggregate",
-  "human-biosamples::h3k27ac-aggregate",
-  "human-biosamples::ctcf-aggregate",
-  "human-biosamples::atac-aggregate",
+  "cave-development::gaba-infancy",
+  "cave-development::gaba-early_childhood",
+  "cave-development::gaba-late_childhood",
+  "cave-development::gaba-adolescence",
+  "cave-development::gaba-early_adulthood",
+  "cave-development::gaba-adulthood",
 ] as const;

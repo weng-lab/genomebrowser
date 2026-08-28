@@ -83,6 +83,25 @@ describe("TrackSelect collection schemas", () => {
     ).toThrow(/TrackSelect collection is invalid/);
   });
 
+  it("does not allow collection authors to set the runtime track source", () => {
+    expect(() =>
+      validateJson(
+        {
+          ...validCollection,
+          tracks: [{ ...validCollection.tracks[0], source: "user" }],
+        },
+        registry,
+      ),
+    ).toThrow(/TrackSelect collection is invalid/);
+
+    const schema = generateTrackCollectionJsonSchema(registry) as {
+      properties?: {
+        tracks?: { items?: { oneOf?: Array<{ properties?: Record<string, unknown> }> } };
+      };
+    };
+    expect(schema.properties?.tracks?.items?.oneOf?.[0]?.properties).not.toHaveProperty("source");
+  });
+
   it("generates display enum values in JSON schema", () => {
     const schema = generateTrackCollectionJsonSchema(registry);
 

@@ -43,6 +43,17 @@ describe("CAVE module", () => {
     expect(configuredMarkup).toContain('fill="#445566"');
   });
 
+  it("does not alter configured colors with opacity", () => {
+    const markup = renderFull(
+      createTrack({ topColor: "#112233", bottomColor: "#445566" }).config,
+      "#123456",
+    );
+
+    expect(markup).toContain('fill="#112233"');
+    expect(markup).toContain('fill="#445566"');
+    expect(markup).not.toContain("fill-opacity");
+  });
+
   it("rejects non-hexadecimal signal colors", () => {
     expect(() => createTrack({ topColor: "rebeccapurple" })).toThrow(/six-digit hexadecimal color/);
     expect(() => createTrack({ bottomColor: "#abc" })).toThrow(/six-digit hexadecimal color/);
@@ -65,6 +76,7 @@ function renderFull(config: ReturnType<typeof createTrack>["config"], color: str
       config={config}
       color={color}
       data={data}
+      visibleRegion={region}
       region={region}
       width={1}
       height={35}

@@ -1,6 +1,7 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { createGenomicXScale } from "../shared/coordinates";
-import { packRows, useRowLayout } from "../shared/layout";
+import { useRowLayout } from "../shared/layout";
+import { packViewportRows } from "../shared/layout/viewportRows";
 import {
   isManeSelectTranscript,
   mergeTranscripts,
@@ -31,19 +32,25 @@ function Rows({
   id,
   config,
   color,
+  visibleRegion,
   region,
   width,
   transcripts,
 }: TrackRendererProps<TranscriptConfig, TranscriptData> & { transcripts: Transcript[] }) {
   const x = createGenomicXScale(region, width);
   const labelFontSize = Math.min(maximumLabelFontSize, config.rowHeight);
-  const grouped = packRows(transcripts, (transcript) => ({
-    start: x(transcript.coordinates.start),
-    end: x(transcript.coordinates.end) + labelFontSize * transcript.name.length,
-  }));
-  const { rowHeight, trackHeight } = useRowLayout(id, grouped.length, config);
+  const grouped = packViewportRows(
+    transcripts,
+    (transcript) => ({
+      start: x(transcript.coordinates.start),
+      end: x(transcript.coordinates.end) + labelFontSize * transcript.name.length,
+    }),
+    (transcript) =>
+      region.chromosome === visibleRegion.chromosome && visible(transcript, visibleRegion),
+  );
+  const { rowHeight, trackHeight } = useRowLayout(id, grouped.visibleRowCount, config);
   const strokeWidth = Math.min(Math.max(0.5, rowHeight / 16), rowHeight * 0.4);
-  const rows: TranscriptRow[] = grouped.map((group, index) => ({
+  const rows: TranscriptRow[] = grouped.rows.map((group, index) => ({
     y: index * rowHeight,
     transcripts: group.map((transcript) => renderTranscript(transcript, x, rowHeight, width)),
   }));
@@ -100,5 +107,5 @@ function Rows({
   );
 }
 function visible(transcript: Transcript, region: { start: number; end: number }) {
-  return transcript.coordinates.end >= region.start && transcript.coordinates.start <= region.end;
+  return transcript.coordinates.end > region.start && transcript.coordinates.start < region.end;
 }

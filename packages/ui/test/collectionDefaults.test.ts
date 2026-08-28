@@ -116,7 +116,13 @@ describe("TrackSelect default track reconciliation", () => {
       "beta::one",
       "alpha::one",
     ]);
-    expect(nextTracks[2]).toBe(existingDefault);
+    expect(nextTracks.map((track) => track.source)).toEqual(["user", "host", "host"]);
+    expect(nextTracks[2]).not.toBe(existingDefault);
+    expect(nextTracks[2]).toMatchObject({
+      type: existingDefault.type,
+      base: existingDefault.base,
+      config: existingDefault.config,
+    });
     expect(nextTracks).not.toContain(unselectedCollectionTrack);
   });
 
@@ -237,7 +243,14 @@ describe("TrackSelect default track reconciliation", () => {
       registry,
       maxTracks: 10,
     });
-    expect(preserved).toEqual([unmanagedTrack, existingTrack]);
+    expect(preserved[0]).toBe(unmanagedTrack);
+    expect(preserved[1]).not.toBe(existingTrack);
+    expect(preserved[1]).toMatchObject({
+      type: existingTrack.type,
+      base: existingTrack.base,
+      config: existingTrack.config,
+    });
+    expect(preserved[1]!.source).toBe("host");
     expect(preserved[1]!.interaction).toBe(existingTrack.interaction);
 
     const replacement = { onClick: vi.fn() };

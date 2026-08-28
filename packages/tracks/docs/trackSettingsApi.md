@@ -6,11 +6,11 @@ All `onCommit` callbacks return `TrackMutationResult` from `@weng-lab/genomebrow
 
 ## `TrackBaseSettings`
 
-`TrackBaseSettings` takes no props. It reads the active track from the browser stores and renders shared title, color, display, and height controls. It submits validated patches through the track store. Failed mutations remain visible without replacing accepted values.
+`TrackBaseSettings` takes no props. It reads the active track from the browser stores and renders shared title, color, display, and height controls. It submits validated patches through the track store. Failed mutations remain visible without replacing accepted values. The action beside each dimension field applies the valid displayed value to every track with the exact same type, including the active track.
 
 The display control appears only when the active module has at least two display modes. Title cannot be blank. A track without valid row-layout config has one Height field with a 20-pixel minimum.
 
-When config contains a finite `rowHeight` of at least 1, the component shows adjacent Height and Row height fields. Track height is the total vertical space. Row height is the complete slot for one row. Either edit preserves the row count derived from the current values, then submits `base.height` and `config.rowHeight` in one update. See [Row layout](shared.md#row-layout).
+When config contains a finite `rowHeight` of at least 1, the component shows adjacent Height and Row height fields. Track height is the total vertical space. Row height is the complete slot for one row. Either edit preserves the row count derived from the current values, then submits `base.height` and `config.rowHeight` in one update. Applying Row height to the type recalculates each matching track's total height from its own current row count. See [Row layout](shared.md#row-layout).
 
 ## Layout components
 
@@ -83,6 +83,7 @@ This component uses a text input so partial numeric drafts such as `-` and `1.` 
 
 | Prop          | Type                                   | Default  | Description                                          |
 | ------------- | -------------------------------------- | -------- | ---------------------------------------------------- |
+| `disabled`    | `boolean`                              | `false`  | Visibly disables editing and commit interactions.    |
 | `label`       | `string`                               | `"URL"`  | Visible MUI field label and accessible name.         |
 | `onCommit`    | `(url: string) => TrackMutationResult` | Required | Attempts to persist the draft URL string.            |
 | `placeholder` | `string`                               | None     | Example or hint shown when the draft is empty.       |
@@ -135,6 +136,6 @@ The visual picker provides a saturation and brightness area plus a hue slider. P
 
 Core supplies the modal heading, close action, dragging behavior, and modal Escape handling. Every settings field has a visible label. Layout components preserve source order when rows stack.
 
-Range validation is associated with both bound inputs while rendering one shared error message. Color fields expose the hexadecimal text and a swatch. The picker exposes keyboard-operable color and hue sliders inside a labeled group. Opening it moves focus into the popover. Closing it restores focus to the swatch button. Disabled dependent controls remain visible but inoperable.
+Range validation is associated with both bound inputs while rendering one shared error message. Read-only text and URL fields retain their visible labels, focus, and selectable values. Color fields expose the hexadecimal text and a swatch. The picker exposes keyboard-operable color and hue sliders inside a labeled group. Opening it moves focus into the popover. Closing it restores focus to the swatch button. Disabled dependent controls remain visible but inoperable.
 
 Return to [Author track settings](trackSettings.md) for composition and update guidance.

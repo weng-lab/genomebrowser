@@ -18,6 +18,7 @@ export function BigBedSettings<Row extends BigBedRow = BigBedRow>({
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
             <TrackSettingsUrlField
+              disabled={track.source === "host"}
               required
               value={track.config.url}
               onCommit={(url) => updateTrack({ config: { url } })}

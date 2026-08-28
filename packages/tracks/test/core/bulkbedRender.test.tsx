@@ -28,6 +28,7 @@ const data: BulkBedData = [
   [{ chromosome: "chr1", start: 0, end: 20, fields: [], datasetName: "Dataset A" }],
   [{ chromosome: "chr1", start: 30, end: 50, fields: [], datasetName: "Dataset B" }],
 ];
+const fullRegion = { chromosome: "chr1", start: 0, end: 100 };
 
 beforeEach(() => layout.useRowLayout.mockClear());
 
@@ -50,6 +51,15 @@ describe("BulkBed row rendering", () => {
     expect(markup).toContain('height="0"');
     expect(markup).toContain('transform="translate(0,1)"');
   });
+
+  it("counts datasets with visible features while rendering overscan datasets", () => {
+    const config = bulkBedConfig({ rowHeight: 10, gap: 3 });
+    const markup = render(config, { chromosome: "chr1", start: 25, end: 60 });
+
+    expect(layout.useRowLayout).toHaveBeenCalledWith("bulk-peaks", 1, config);
+    expect(markup).toContain('height="10"');
+    expect(markup).toContain('transform="translate(0,10)"');
+  });
 });
 
 function bulkBedConfig(options: { rowHeight: number; gap: number }): BulkBedConfig {
@@ -62,13 +72,14 @@ function bulkBedConfig(options: { rowHeight: number; gap: number }): BulkBedConf
   };
 }
 
-function render(config: BulkBedConfig) {
+function render(config: BulkBedConfig, visibleRegion = fullRegion) {
   return renderToStaticMarkup(
     <FullBulkBed
       id="bulk-peaks"
       color="#4b9560"
       config={config}
       data={data}
+      visibleRegion={visibleRegion}
       region={{ chromosome: "chr1", start: 0, end: 100 }}
       width={100}
       height={80}

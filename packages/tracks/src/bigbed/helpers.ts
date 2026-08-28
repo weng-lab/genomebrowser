@@ -1,5 +1,5 @@
 import type { BigBedRow, RenderedBigBedRect } from "./types";
-import { packRows } from "../shared/layout";
+import { packViewportRows } from "../shared/layout/viewportRows";
 
 export function renderDenseBigBedData<Row extends BigBedRow>(
   rows: Row[],
@@ -28,15 +28,24 @@ export function renderDenseBigBedData<Row extends BigBedRow>(
 export function renderSquishBigBedData<Row extends BigBedRow>(
   rows: Row[],
   x: (value: number) => number,
-): RenderedBigBedRect<Row>[][] {
-  return packRows(rows, (row) => ({ start: x(row.start), end: x(row.end) })).map((group) =>
-    group.map((row) => ({
-      row,
-      start: Math.max(0, x(row.start)),
-      end: x(row.end),
-      color: row.color,
-      name: row.name,
-      score: row.score,
-    })),
+  intersectsViewport: (row: Row) => boolean,
+): { rows: RenderedBigBedRect<Row>[][]; visibleRowCount: number } {
+  const packed = packViewportRows(
+    rows,
+    (row) => ({ start: x(row.start), end: x(row.end) }),
+    intersectsViewport,
   );
+  return {
+    rows: packed.rows.map((group) =>
+      group.map((row) => ({
+        row,
+        start: Math.max(0, x(row.start)),
+        end: x(row.end),
+        color: row.color,
+        name: row.name,
+        score: row.score,
+      })),
+    ),
+    visibleRowCount: packed.visibleRowCount,
+  };
 }

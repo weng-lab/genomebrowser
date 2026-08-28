@@ -24,6 +24,7 @@ export function BigWigSettings({ track, updateTrack }: Props) {
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
             <TrackSettingsUrlField
+              disabled={track.source === "host"}
               required
               value={config.url}
               onCommit={(url) => updateTrack({ config: { url } })}

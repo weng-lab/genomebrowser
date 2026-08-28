@@ -43,6 +43,7 @@ describe("browser module wiring", () => {
         <TrackContent
           track={track}
           dataState={{ status: "error", error: "Failed to load" }}
+          visibleRegion={region}
           region={region}
           width={100}
           height={track.base.height}
@@ -74,6 +75,7 @@ describe("browser module wiring", () => {
         <TrackContent
           track={track}
           dataState={{ status: "error", error: "Failed to load" }}
+          visibleRegion={region}
           region={region}
           width={100}
           height={track.base.height}
@@ -124,6 +126,7 @@ describe("browser module wiring", () => {
           <TrackContent
             track={trackStore.getState().getTrack("interactive")!}
             dataState={{ status: "success", data: null }}
+            visibleRegion={region}
             region={region}
             width={100}
             height={80}
@@ -208,6 +211,7 @@ describe("browser module wiring", () => {
               <TrackContent
                 track={trackStore.getState().getTrack("tooltip")!}
                 dataState={{ status: "success", data: null }}
+                visibleRegion={region}
                 region={region}
                 width={100}
                 height={80}

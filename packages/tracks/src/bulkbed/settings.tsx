@@ -46,6 +46,7 @@ export function BulkBedSettings({ track, updateTrack }: BulkBedSettingsProps) {
       <GapSettings gap={track.config.gap} updateTrack={updateTrack} />
       <BulkBedDatasetsEditor
         datasets={track.config.datasets}
+        disableUrls={track.source === "host"}
         id={track.base.id}
         updateTrack={updateTrack}
       />
@@ -78,10 +79,12 @@ function GapSettings({
 
 function BulkBedDatasetsEditor({
   datasets,
+  disableUrls,
   id,
   updateTrack,
 }: {
   datasets: BulkBedDataset[];
+  disableUrls: boolean;
   id: string;
   updateTrack: BulkBedSettingsProps["updateTrack"];
 }) {
@@ -203,6 +206,7 @@ function BulkBedDatasetsEditor({
                 <DatasetFields
                   commitDatasetEdit={commitDatasetEdit}
                   datasets={currentDatasets}
+                  disableUrl={disableUrls}
                   index={index}
                 />
               </Box>
@@ -227,16 +231,23 @@ function BulkBedDatasetsEditor({
 function DatasetFields({
   commitDatasetEdit,
   datasets,
+  disableUrl,
   index,
 }: {
   commitDatasetEdit: CommitDatasetEdit;
   datasets: BulkBedDataset[];
+  disableUrl: boolean;
   index: number;
 }) {
   return (
     <TrackSettingsFieldRow>
       <DatasetNameField commitDatasetEdit={commitDatasetEdit} datasets={datasets} index={index} />
-      <DatasetUrlField commitDatasetEdit={commitDatasetEdit} datasets={datasets} index={index} />
+      <DatasetUrlField
+        commitDatasetEdit={commitDatasetEdit}
+        datasets={datasets}
+        disabled={disableUrl}
+        index={index}
+      />
     </TrackSettingsFieldRow>
   );
 }
@@ -264,16 +275,19 @@ function DatasetNameField({
 function DatasetUrlField({
   commitDatasetEdit,
   datasets,
+  disabled,
   index,
 }: {
   commitDatasetEdit: CommitDatasetEdit;
   datasets: BulkBedDataset[];
+  disabled: boolean;
   index: number;
 }) {
   return (
     <TrackSettingsUrlField
       label="URL"
       placeholder="YOUR_URL_HERE"
+      disabled={disabled}
       required
       value={datasets[index]?.url ?? ""}
       onCommit={(value) => updateDatasetField(commitDatasetEdit, index, "url", value)}
