@@ -15,7 +15,8 @@ from package diagrams unless they define an important boundary.
 
 ```mermaid
 flowchart LR
-  APP["app<br/>standalone Next.js application"]
+  STANDALONE["standalone<br/>deployed Next.js application"]
+  PLAYGROUND["playground<br/>experiments and custom setups"]
   UI["ui<br/>application controls and TrackSelect"]
   TRACKS["tracks<br/>first-party track implementations"]
   CORE["core<br/>browser runtime and extension contracts"]
@@ -24,15 +25,19 @@ flowchart LR
   SCREEN(["SCREEN GraphQL service"])
   FILES(["Remote genomic files<br/>HTTP byte ranges"])
 
-  APP -->|composes| CORE
-  APP -->|registers| TRACKS
-  APP -->|renders controls| UI
+  STANDALONE -->|composes| CORE
+  STANDALONE -->|registers| TRACKS
+  STANDALONE -->|renders controls| UI
+  PLAYGROUND -->|source-mapped imports| CORE
+  PLAYGROUND -->|source-mapped imports| TRACKS
+  PLAYGROUND -->|source-mapped imports| UI
+  PLAYGROUND -. "source-mapped transitive imports" .-> READER
   UI -->|stores, registry, genomic types| CORE
   TRACKS -->|track contracts and runtime hooks| CORE
   TRACKS -->|regional file reads| READER
   UI -. "tests and package verification only" .-> TRACKS
 
-  APP -. "server proxy" .-> SCREEN
+  STANDALONE -. "server proxy" .-> SCREEN
   UI -. "cytoband queries" .-> SCREEN
   TRACKS -. "transcript queries" .-> SCREEN
   READER -->|range fetch| FILES
@@ -40,7 +45,8 @@ flowchart LR
 
 The production package graph is acyclic. `core` and `reader` are independent
 foundations. `tracks` implements the extension contracts from `core` and uses
-`reader`; `ui` controls `core`; `app` is the composition root.
+`reader`; `ui` controls `core`; the standalone app is the deployed composition
+root, while the playground consumes source entries for experiments.
 
 ## Core package
 
@@ -304,19 +310,17 @@ There are two source-level, type-only cycles inside grouped nodes:
 `highlightLayer.tsx` ↔ `highlightTooltip.tsx` and `collectionColumns.ts` ↔
 `CollectionCells.tsx`. Neither is a runtime cycle.
 
-## App package
+## Applications
 
-Paths are relative to `packages/app`.
+Standalone paths are relative to `apps/standalone`; playground paths are
+relative to `apps/playground`.
 
 ```mermaid
 flowchart TB
-  ROOT["Root layout<br/>app/layout.tsx"]
-  HOME["Home route<br/>app/page.tsx"]
-  ZOOM_ROUTE["Zoom prototype route<br/>app/zoom-prototypes/page.tsx"]
+  ROOT["Standalone root layout<br/>app/layout.tsx"]
+  HOME["Standalone home route<br/>app/page.tsx"]
   API["SCREEN proxy<br/>app/api/screen-graphql/route.ts"]
 
-  NAV_BOUNDARY["Navbar client boundary<br/>components/AppNavbarRoute.tsx"]
-  NAV["Navbar<br/>components/AppNavbar.tsx"]
   LICENSE["MUI X license setup<br/>components/MuiXLicenseProvider.tsx"]
 
   BROWSER["Browser composition<br/>components/Browser.tsx"]
@@ -325,21 +329,13 @@ flowchart TB
   WIDTH["Observed-width hook<br/>hooks/useObservedWidth.ts"]
   COLLECTIONS["Track collections<br/>lib/trackCollections.ts<br/>lib/human-biosamples.json"]
 
-  ZOOM_BOUNDARY["Prototype client boundary<br/>components/ZoomPrototypeRoute.tsx"]
-  ZOOM_PAGE["Prototype composition<br/>components/ZoomPrototypePage.tsx"]
-  ZOOM_CONTROLS["Prototype controls<br/>components/zoom-prototypes/*"]
-
   CORE["core package"]
   TRACKS["tracks package"]
   UI["ui package"]
   SCREEN(["SCREEN GraphQL service"])
 
-  ROOT --> NAV_BOUNDARY
   ROOT --> LICENSE
-  NAV_BOUNDARY -. "dynamic import" .-> NAV
   HOME --> BROWSER
-  ZOOM_ROUTE --> ZOOM_BOUNDARY
-  ZOOM_BOUNDARY -. "dynamic import" .-> ZOOM_PAGE
 
   BROWSER --> TOOLBARS
   BROWSER --> OVERVIEW
@@ -354,19 +350,50 @@ flowchart TB
   OVERVIEW --> UI
   COLLECTIONS -. "types" .-> UI
 
-  ZOOM_PAGE --> ZOOM_CONTROLS
-  ZOOM_PAGE --> CORE
-  ZOOM_PAGE --> TRACKS
-
   TOOLBARS -. "GraphQL URL" .-> API
   COLLECTIONS -. "transcript endpoint" .-> API
   API --> SCREEN
 ```
 
-The app-local graph is acyclic. Route modules point toward client boundaries and
-composition components; compositions point toward leaf controls and workspace
-packages. The API route is server-only and is connected to client code by URL,
-not by a source import.
+The standalone graph is acyclic. Route modules point toward composition
+components; compositions point toward leaf controls and workspace packages. The
+API route is server-only and is connected to client code by URL, not by a source
+import.
+
+```mermaid
+flowchart TB
+  ROOT["Playground root layout<br/>app/layout.tsx"]
+  HOME["Playground home route<br/>app/page.tsx"]
+  ZOOM_ROUTE["Zoom prototype route<br/>app/zoom-prototypes/page.tsx"]
+  NAV_BOUNDARY["Navbar client boundary<br/>components/AppNavbarRoute.tsx"]
+  NAV["Navbar<br/>components/AppNavbar.tsx"]
+  ZOOM_BOUNDARY["Prototype client boundary<br/>components/ZoomPrototypeRoute.tsx"]
+  ZOOM_PAGE["Prototype composition<br/>components/ZoomPrototypePage.tsx"]
+  ZOOM_CONTROLS["Prototype controls<br/>components/zoom-prototypes/*"]
+  EXAMPLES["Unwired examples<br/>examples/core/*<br/>examples/ui/*"]
+  CORE["core source entry"]
+  TRACKS["tracks source entries"]
+  UI["ui source entry"]
+  READER["reader source entry"]
+
+  ROOT --> NAV_BOUNDARY
+  NAV_BOUNDARY -. "dynamic import" .-> NAV
+  ROOT --> HOME
+  ZOOM_ROUTE --> ZOOM_BOUNDARY
+  ZOOM_BOUNDARY -. "dynamic import" .-> ZOOM_PAGE
+  ZOOM_PAGE --> ZOOM_CONTROLS
+  ZOOM_PAGE --> CORE
+  ZOOM_PAGE --> TRACKS
+  EXAMPLES -. "not routed" .-> CORE
+  EXAMPLES -. "not routed" .-> TRACKS
+  EXAMPLES -. "not routed" .-> UI
+  TRACKS --> READER
+```
+
+The playground's Turbopack aliases and TypeScript paths map every public
+workspace package entry, including track subpaths and the reader, to source.
+The examples remain outside the route graph until a maintainer explicitly wires
+one for an investigation.
 
 ## Reader package
 

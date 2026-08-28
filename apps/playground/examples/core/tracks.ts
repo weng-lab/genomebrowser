@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { defineTrackModule } from "../../src/lib";
+import { defineTrackModule } from "@weng-lab/genomebrowser";
 
 function TestRenderer() {
   return null;

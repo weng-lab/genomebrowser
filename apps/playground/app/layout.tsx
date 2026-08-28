@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AppNavbarRoute } from "../components/AppNavbarRoute";
-import { MuiXLicenseProvider } from "../components/MuiXLicenseProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Genome Browser Framework Comparison",
+  title: {
+    default: "Genome browser playground",
+    template: "%s | Genome browser playground",
+  },
 };
 
 type RootLayoutProps = Readonly<{
@@ -16,10 +18,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body>
-        <MuiXLicenseProvider>
-          <AppNavbarRoute />
-          {children}
-        </MuiXLicenseProvider>
+        <AppNavbarRoute />
+        {children}
       </body>
     </html>
   );

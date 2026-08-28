@@ -1,6 +1,6 @@
 # Application design
 
-This document is the design authority for `packages/ui` and `packages/app`. Prefer product requirements first, this document second, and nearby code as implementation evidence rather than automatic precedent.
+This document is the design authority for `packages/ui`, `apps/standalone`, and `apps/playground`. Prefer product requirements first, this document second, and nearby code as implementation evidence rather than automatic precedent.
 
 ## Product character
 
@@ -16,7 +16,8 @@ Build calm, compact scientific application UI.
 - `packages/core` owns genome rendering, browser state, and track infrastructure.
 - `packages/tracks` owns the curated MUI-based first-party track modules and all UI used specifically by tracks, including reusable settings controls and tooltip helpers.
 - `packages/ui` owns larger MUI application controls that interact with the browser system as a whole.
-- `packages/app` owns product composition and application-specific presentation.
+- `apps/standalone` owns deployed product composition and application-specific presentation.
+- `apps/playground` owns experimental routes and custom browser compositions. Examples may remain unwired until a maintainer needs them.
 - Do not move behavior across these boundaries solely for visual convenience.
 
 ## MUI and theming

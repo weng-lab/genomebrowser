@@ -1,4 +1,5 @@
-import { createRoot } from "react-dom/client";
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 
 import Button from "@mui/material/Button";
@@ -7,8 +8,6 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-
-import "./muiLicense";
 
 import {
   createBrowserStore,
@@ -36,7 +35,7 @@ import {
   type TrackSelectCollectionContext,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
-} from "../src/lib";
+} from "@weng-lab/genomebrowser-ui";
 
 // collections
 import biosamples from "./collections/human-biosamples.json";
@@ -585,7 +584,7 @@ function TrackSettingsExamples() {
   );
 }
 
-function Main() {
+export default function App() {
   return (
     <Stack>
       <TrackSettingsExamples />
@@ -598,5 +597,3 @@ function Main() {
     </Stack>
   );
 }
-
-createRoot(document.getElementById("root")!).render(<Main />);

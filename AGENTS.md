@@ -7,8 +7,9 @@ pnpm monorepo for an embeddable React genome browser.
 - `packages/core` (`@weng-lab/genomebrowser`) - the browser runtime.
 - `packages/tracks` (`@weng-lab/genomebrowser-tracks`) - curated first-party track modules.
 - `packages/ui` (`@weng-lab/genomebrowser-ui`) - collection and application UI.
-- `packages/app` (`@weng-lab/genomebrowser-app`) - the standalone web app.
 - `packages/reader` (`@weng-lab/genomic-reader`) - a library for reading genomic data from files.
+- `apps/standalone` (`@weng-lab/genomebrowser-standalone`) - the deployed standalone web app.
+- `apps/playground` (`@weng-lab/genomebrowser-playground`) - experiments and custom browser setups.
 
 ## Documentation
 
@@ -18,7 +19,7 @@ Root `docs/` is maintainer documentation. Things like design decisions and ADRs 
 
 ## Application design
 
-Before designing, implementing, or reviewing application UI in `packages/ui` or `packages/app`, read and follow [`DESIGN.md`](DESIGN.md).
+Before designing, implementing, or reviewing application UI in `packages/ui` or `apps/*`, read and follow [`DESIGN.md`](DESIGN.md).
 
 ## Contributing
 
@@ -33,14 +34,14 @@ scripts so Turborepo can apply the package graph and cache. For a targeted task,
 use `pnpm exec turbo run <task> --filter=<package>` rather than invoking the
 package task with `pnpm --filter`.
 
-When verifying changes, use `pnpm verify`, which will check and build all packages to ensure the app playground is updated with the changes. (It caches some tasks so its not heavy)
+When verifying changes, use `pnpm verify`, which checks and builds all packages and applications. Turborepo caches unchanged tasks.
 
 Read [`docs/turborepo.md`](docs/turborepo.md) before changing package task
 scripts, `turbo.json`, cache inputs or outputs, or CI task orchestration.
 
 ## Dependency rules
 
-This is NOT the NextJS you know, it has breaking changes - API, conventions and file structure may all differ from your training data. Read up-to-date documentation in `node_modules/next/dist/docs` (`index.md` for starters) before making any NextJS related changes (applies only to app package). Heed deprecation warnings
+This is not the Next.js you know from training data. API, conventions, and file structure may have changed. Before changing either app, read the installed documentation in the app's `node_modules/next/dist/docs`, starting with `index.md`, and heed deprecation warnings.
 
 ## Hard rules
 

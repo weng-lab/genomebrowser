@@ -1,5 +1,8 @@
-import { createBrowserStore, createTrackStore, GenomeBrowser, hg38 } from "../../src/lib";
+"use client";
+
+import { createBrowserStore, createTrackStore, GenomeBrowser, hg38 } from "@weng-lab/genomebrowser";
 import { testTrack, testTrackModule } from "./tracks";
+import "./styles.css";
 
 const browserStore = createBrowserStore({
   assembly: hg38,

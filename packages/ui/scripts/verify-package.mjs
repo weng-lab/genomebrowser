@@ -5,9 +5,10 @@ import { spawnSync } from "node:child_process";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 
 const packageDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const appDirectory = resolve(packageDirectory, "../app");
 const manifest = JSON.parse(await readFile(resolve(packageDirectory, "package.json"), "utf8"));
-const temporaryDirectory = await mkdtemp(resolve(appDirectory, ".verify-trackselect-"));
+const temporaryDirectory = await mkdtemp(
+  resolve(packageDirectory, "node_modules/.verify-trackselect-"),
+);
 
 try {
   await writeFile(

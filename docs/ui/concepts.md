@@ -79,7 +79,7 @@ The package keeps TrackSelect as a deep subsystem with a narrow public surface:
 - `src/TrackSelect/collection` owns rows, IDs, views, grouping, ordering, columns, selection operations, and store reconciliation.
 - `src/TrackSelect/session` owns the open-session state machine and store submission boundary.
 - `src/TrackSelect/layout`, `collectionList`, `selectedTracksTree`, and `dialogs` own component composition and presentation.
-- `test/main.tsx` is the manual integration harness; `test/collections` contains its fixtures.
+- `apps/playground/examples/ui` preserves the unwired manual integration example and its realistic fixtures; `test/collections` contains focused automated fixtures.
 - `scripts` contains repository maintenance scripts for checked-in schemas, not additional package APIs.
 
 Extend the schema layer when changing portable collection data, the collection layer for deterministic data transformations, and the session layer for user workflow. Keep MUI components out of schema and store logic. New public exports should be added only when an application needs a stable capability that cannot be expressed through collections, the existing TrackSelect props, or the runtime store and module APIs.

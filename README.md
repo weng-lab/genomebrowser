@@ -15,9 +15,13 @@ replace an npm `latest` release. Any publication must retain the configured
 - `packages/ui` (`@weng-lab/genomebrowser-ui`) provides optional, higher-level
   application controls that depend on the runtime. Applications that only need
   the browser do not need this package.
-- `packages/app` (`@weng-lab/genomebrowser-app`) is the standalone web application.
 - `packages/reader` (`@weng-lab/genomic-reader`) provides format-independent
   TypeScript contracts for reading genomic data by region.
+
+Private applications live under `apps/`:
+
+- `apps/standalone` (`@weng-lab/genomebrowser-standalone`) is the deployed web application.
+- `apps/playground` (`@weng-lab/genomebrowser-playground`) contains experiments and custom browser setups. It resolves workspace package imports directly to source; preserved package demos under `examples/` are intentionally not routed.
 
 User-facing documentation is shipped from each package's `docs/` directory.
 Repository decisions and contributor guidance live in the root `docs/`
@@ -50,12 +54,12 @@ filters, cache behavior, and task configuration.
 | Lint             | `pnpm lint`         | `pnpm exec turbo run lint --filter=@weng-lab/genomebrowser-tracks`         |
 | Check formatting | `pnpm format:check` | `pnpm exec turbo run format:check --filter=@weng-lab/genomebrowser-tracks` |
 
-Human maintainers can use a package's targeted development command to start its project.
+Human maintainers can run `pnpm dev` or `pnpm playground dev` for the playground and `pnpm standalone dev` for the standalone product.
 Automation agents must not start the development servers; inspect
 `.devserve/out.log` and `.devserve/err.log` when diagnosing a server already
 started by a user.
 
-Set `SCREEN_API_KEY` in the app's local environment for transcript data. The app
+Set `SCREEN_API_KEY` in the standalone app's local environment for transcript data. The app
 reads the key only in its server-side SCREEN GraphQL proxy; the key is not
 exposed to browser code.
 

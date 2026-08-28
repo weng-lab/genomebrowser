@@ -73,7 +73,65 @@ importers:
         specifier: 8.0.13
         version: 8.0.13(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
 
-  packages/app:
+  apps/playground:
+    dependencies:
+      '@emotion/react':
+        specifier: 11.14.0
+        version: 11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1)
+      '@emotion/styled':
+        specifier: 11.14.1
+        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1)
+      '@mui/icons-material':
+        specifier: 7.3.6
+        version: 7.3.6(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@types/react@19.2.17)(react@19.2.8)
+      '@mui/material':
+        specifier: 7.3.11
+        version: 7.3.11(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@weng-lab/genomebrowser':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@weng-lab/genomebrowser-tracks':
+        specifier: workspace:*
+        version: link:../../packages/tracks
+      '@weng-lab/genomebrowser-ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@weng-lab/genomic-reader':
+        specifier: workspace:*
+        version: link:../../packages/reader
+      next:
+        specifier: 16.2.12
+        version: 16.2.12(@babel/core@7.28.5(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(babel-plugin-macros@3.1.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@types/node':
+        specifier: 26.1.2
+        version: 26.1.2
+      '@types/react':
+        specifier: 19.2.17
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.17)
+      oxfmt:
+        specifier: 0.61.0
+        version: 0.61.0
+      oxlint:
+        specifier: 1.76.0
+        version: 1.76.0
+      typescript:
+        specifier: npm:@typescript/typescript6@6.0.2
+        version: '@typescript/typescript6@6.0.2'
+
+  apps/standalone:
     dependencies:
       '@emotion/react':
         specifier: 11.14.0
@@ -92,13 +150,13 @@ importers:
         version: 8.29.2(@types/react@19.2.17)(react@19.2.8)
       '@weng-lab/genomebrowser':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../packages/core
       '@weng-lab/genomebrowser-tracks':
         specifier: workspace:*
-        version: link:../tracks
+        version: link:../../packages/tracks
       '@weng-lab/genomebrowser-ui':
         specifier: workspace:*
-        version: link:../ui
+        version: link:../../packages/ui
       '@weng-lab/ui-components':
         specifier: 3.1.4
         version: 3.1.4(f51084f5cda39288785cc9d401aef85e)
