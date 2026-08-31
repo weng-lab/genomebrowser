@@ -130,10 +130,6 @@ export const defaultTrackIds = [
   "reference-annotations::genes",
   "ccre-comparisons::aggregate-and-adipose-ccres",
   "human-biosamples::ccre-aggregate",
-  "cave-development::gaba-infancy",
-  "cave-development::gaba-early_childhood",
-  "cave-development::gaba-late_childhood",
-  "cave-development::gaba-adolescence",
-  "cave-development::gaba-early_adulthood",
+  "human-biosamples::wgbs-ENCSR539UBP",
   "cave-development::gaba-adulthood",
 ] as const;
