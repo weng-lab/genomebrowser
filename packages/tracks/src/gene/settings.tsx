@@ -8,7 +8,7 @@ import IconButton from "@mui/material/IconButton";
 import SvgIcon from "@mui/material/SvgIcon";
 import TextField from "@mui/material/TextField";
 import type { TextFieldProps } from "@mui/material/TextField";
-import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { useBrowserStore, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { useState, type ComponentProps } from "react";
 import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import {
@@ -20,6 +20,7 @@ import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import { useObservedGeneTags } from "./tagCatalog";
+import { getGeneDatasetsForAssembly, type GeneDataset } from "./datasets";
 import type { GeneInteractionTarget } from "./interactions";
 import { reorderTagColors } from "./settingsHelpers";
 import type { GeneConfig, GeneTagColor } from "./types";
@@ -59,6 +60,14 @@ export function GeneSettings({ track, updateTrack }: GeneSettingsProps) {
     <TrackSettingsLayout>
       <TrackSettingsSection title="BigGenePred">
         <TrackSettingsFieldGrid>
+          {track.source === "host" ? (
+            <TrackSettingsFullRow>
+              <HostGeneDatasetField
+                url={track.config.url}
+                onChange={(url) => updateTrack({ config: { url } })}
+              />
+            </TrackSettingsFullRow>
+          ) : null}
           <TrackSettingsFullRow>
             <TrackSettingsUrlField
               disabled={track.source === "host"}
@@ -157,6 +166,68 @@ export function GeneSettings({ track, updateTrack }: GeneSettingsProps) {
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
     </TrackSettingsLayout>
+  );
+}
+
+function HostGeneDatasetField({ url, onChange }: { url: string; onChange: (url: string) => void }) {
+  const assembly = useBrowserStore((state) => state.assembly.id);
+  const datasets = getGeneDatasetsForAssembly(assembly);
+  const selectedDataset = datasets.find((dataset) => dataset.url === url) ?? null;
+  const variants = [...new Set(datasets.map((dataset) => dataset.variant))];
+  const selectedVariant = selectedDataset?.variant ?? null;
+  const versions = selectedVariant
+    ? datasets.flatMap((dataset) => (dataset.variant === selectedVariant ? [dataset.version] : []))
+    : [];
+
+  return (
+    <TrackSettingsFieldRow>
+      <Autocomplete
+        disableClearable={selectedVariant !== null}
+        disabled={variants.length === 0}
+        getOptionLabel={(variant) => `GENCODE ${variant}`}
+        noOptionsText={`No datasets available for ${assembly}`}
+        options={variants}
+        size="small"
+        sx={{ flex: "3 1 0" }}
+        value={selectedVariant}
+        onChange={(_event, variant: GeneDataset["variant"] | null) => {
+          if (!variant) return;
+          const variantDatasets = datasets.filter((dataset) => dataset.variant === variant);
+          const nextDataset =
+            variantDatasets.find((dataset) => dataset.version === selectedDataset?.version) ??
+            variantDatasets.at(-1);
+          if (nextDataset) onChange(nextDataset.url);
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...(params as unknown as TextFieldProps)}
+            helperText={
+              variants.length === 0 ? `No datasets available for ${assembly}.` : undefined
+            }
+            label="Annotation dataset"
+          />
+        )}
+      />
+      {selectedVariant ? (
+        <Autocomplete
+          disableClearable={selectedDataset !== null}
+          getOptionLabel={String}
+          options={versions}
+          size="small"
+          sx={{ flex: "1 1 0" }}
+          value={selectedDataset?.version ?? null}
+          onChange={(_event, version: number | null) => {
+            const nextDataset = datasets.find(
+              (dataset) => dataset.variant === selectedVariant && dataset.version === version,
+            );
+            if (nextDataset) onChange(nextDataset.url);
+          }}
+          renderInput={(params) => (
+            <TextField {...(params as unknown as TextFieldProps)} label="Version" />
+          )}
+        />
+      ) : null}
+    </TrackSettingsFieldRow>
   );
 }
 

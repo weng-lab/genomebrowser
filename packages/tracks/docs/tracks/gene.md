@@ -40,7 +40,7 @@ All displays derive total height from rows needed by features that intersect the
 | `highlightColor` | `string`         | `"#000000"`                                  | Six-digit hexadecimal color for matching glyphs and labels. Gene highlighting overrides tag colors. |
 | `rowHeight`      | `number`         | `12`                                         | Complete vertical row slot. Must be finite and at least 1 pixel.                                    |
 
-The Gene settings panel provides the required URL, gene highlighting controls, and an ordered list of tag colors. Drag a row's handle with a pointer to change its priority. Tag inputs accept free-entry values and suggest tags observed in regions fetched from the current URL during this page session. These suggestions are not a complete catalog of the BigBed file. The shared base settings provide display, color, height, and row-height controls.
+The Gene settings panel provides the required URL, gene highlighting controls, and an ordered list of tag colors. For a host-owned track, inline annotation dataset and version controls list the host datasets available for the browser's current assembly. Selecting either value changes the URL, while the URL field remains disabled. User-owned tracks omit these selectors and keep the URL editable. Drag a tag row's handle with a pointer to change its priority. Tag inputs accept free-entry values and suggest tags observed in regions fetched from the current URL during this page session. These suggestions are not a complete catalog of the BigBed file. The shared base settings provide display, color, height, and row-height controls.
 
 ## Source requirements
 
@@ -85,7 +85,7 @@ const track = geneModule.create(
 
 `GenePart.source` distinguishes transcript geometry from merged geometry. Transcript parts retain exon, intron, frame, and transcription-order metadata. Merged exon parts retain winning and overridden transcript contributions. A merged intron part represents one drawable run and exposes its detailed contribution intervals through `segments`.
 
-Part tooltips show the type, interval, and length. Transcript parts also show their transcript, exon or intron number, UTR side, or coding frame when relevant. Merged exons show the supporting transcripts and any lower-priority classifications at the same interval. Merged intron runs list contributors across the run because support can vary between their stored segments. Whole transcript and gene targets show the feature interval, strand, and transcript identifier or transcript count.
+Part tooltips show the type, interval, and length. Transcript parts also show both the transcript name and identifier, exon or intron number, UTR side, or coding frame when relevant. Merged parts show supporting transcript names and any lower-priority classifications at the same interval. For merged intron runs, support is collected across the run because it can vary between stored segments. Whole transcript targets show both the transcript name and identifier; whole gene targets show the transcript count.
 
 ## Exported types
 
