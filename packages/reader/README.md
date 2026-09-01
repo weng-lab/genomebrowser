@@ -1,6 +1,7 @@
 # @weng-lab/genomic-reader
 
-Read chromosome-size definitions, BigWig signal values, and BigBed records in browser applications.
+Read chromosome-size definitions, UCSC cytobands, BigWig signal values, and BigBed records in
+browser applications.
 
 ## Install
 
@@ -23,6 +24,20 @@ const chromosomes = await readChromSizes({ url: "YOUR_URL_HERE" });
 Every valid row is retained, including mitochondrial, alternate, patch, decoy, and unplaced
 sequences. The reader does not infer biological meaning from sequence names. See
 [`docs/chrom-sizes.md`](docs/chrom-sizes.md) for parsing rules, cancellation, and errors.
+
+## Read UCSC cytobands
+
+Read a plain UTF-8 or gzip-compressed UCSC cytoband file into immutable records:
+
+```ts
+import { readCytobands } from "@weng-lab/genomic-reader";
+
+const cytobands = await readCytobands({ url: "YOUR_URL_HERE" });
+```
+
+The reader detects gzip from the response bytes and preserves each source stain string and record
+order. See [`docs/cytobands.md`](docs/cytobands.md) for the five-field format, coordinates,
+cancellation, and errors.
 
 ## Read a BigWig file
 
@@ -161,6 +176,12 @@ never returns partial results for these failures.
 - `parseChromSizes(text)`: parses `chrom.sizes` text without fetching it.
 - `ChromSizes`: an immutable map from sequence names to positive integer lengths.
 - `ReadChromSizesOptions`: the URL and optional abort signal accepted by `readChromSizes`.
+- `readCytobands({ url, signal? })`: fetches and parses plain UTF-8 or gzip-compressed UCSC cytoband
+  data.
+- `parseCytobands(text)`: parses five-field UCSC cytoband text without fetching it.
+- `Cytoband`: an immutable band record containing chromosome, zero-based half-open coordinates,
+  band name, and unchanged stain string.
+- `ReadCytobandsOptions`: the URL and optional abort signal accepted by `readCytobands`.
 - `createBigWigFile({ url })`: synchronously configures a BigWig file without making a request. Its
   `read()` method returns source values, its `readZoomLevel()` method returns stored zoom summaries
   for an exact declared reduction level, and its `getZoomLevels()` method discovers the available

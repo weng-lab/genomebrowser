@@ -56,7 +56,15 @@ assertSourceMap(declaration, declarationMapText, declarationPath);
 const declarationExports = collectDeclarationExports(declaration);
 assertJsonEqual(
   declarationExports.valueNames,
-  ["bed3Schema", "createBigBedFile", "createBigWigFile", "parseChromSizes", "readChromSizes"],
+  [
+    "bed3Schema",
+    "createBigBedFile",
+    "createBigWigFile",
+    "parseChromSizes",
+    "parseCytobands",
+    "readChromSizes",
+    "readCytobands",
+  ],
   "declaration root value exports",
 );
 assertJsonEqual(
@@ -70,17 +78,19 @@ assertJsonEqual(
     "BigWigSummaryRecord",
     "BigWigValueRecord",
     "ChromSizes",
+    "Cytoband",
     "GenomicFile",
     "GenomicRecord",
     "GenomicRegion",
     "ReadChromSizesOptions",
+    "ReadCytobandsOptions",
     "ReadOptions",
   ],
   "declaration root type exports",
 );
 assertJsonEqual(
   declarationExports.moduleSpecifiers,
-  ["./bigBed", "./bigWig", "./chromSizes", "./genomicFile"],
+  ["./bigBed", "./bigWig", "./chromSizes", "./cytobands", "./genomicFile"],
   "declaration root module boundaries",
 );
 assert(!/\bexport\s*\*/.test(declaration), "declaration root must not use wildcard exports");
@@ -154,7 +164,15 @@ for (const dependencyName of Object.keys(manifest.dependencies ?? {})) {
 const runtimeModule = await import(`${pathToFileURL(javascriptPath).href}?verify-package`);
 assertJsonEqual(
   Object.keys(runtimeModule).sort(),
-  ["bed3Schema", "createBigBedFile", "createBigWigFile", "parseChromSizes", "readChromSizes"],
+  [
+    "bed3Schema",
+    "createBigBedFile",
+    "createBigWigFile",
+    "parseChromSizes",
+    "parseCytobands",
+    "readChromSizes",
+    "readCytobands",
+  ],
   "runtime root exports",
 );
 

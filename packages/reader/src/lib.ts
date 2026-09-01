@@ -10,4 +10,6 @@ export type {
 } from "./bigWig";
 export { parseChromSizes, readChromSizes } from "./chromSizes";
 export type { ChromSizes, ReadChromSizesOptions } from "./chromSizes";
+export { parseCytobands, readCytobands } from "./cytobands";
+export type { Cytoband, ReadCytobandsOptions } from "./cytobands";
 export type { GenomicFile, GenomicRecord, GenomicRegion, ReadOptions } from "./genomicFile";
