@@ -240,7 +240,7 @@ describe("track tooltips", () => {
       "chr1:100–120",
       "Length",
       "20 bp",
-      "Supporting Transcripts",
+      "Supported by",
       "Isoform 1, Isoform 2",
       "Also called",
       "UTR",

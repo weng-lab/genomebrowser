@@ -100,7 +100,7 @@ function mergedPartRows(
   );
   const rows: TrackTooltipRow[] = [
     {
-      label: "Supporting Transcripts",
+      label: "Supported by",
       value: compactList(
         supportingTranscripts.map(
           (transcriptId) => transcriptNames.get(transcriptId) ?? transcriptId,
