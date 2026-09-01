@@ -1,18 +1,28 @@
-import type { cytoband, cytobandData } from "./cytobandData";
+import type { Cytoband } from "@weng-lab/genomic-reader";
 import type { CytobandColors } from "./cytobandsTypes";
 
 type cytobandSvgProps = {
-  data: cytobandData;
+  chromosome: string;
+  chromosomeLength: number;
+  bands: readonly Cytoband[];
   width: number;
   height: number;
   colors: CytobandColors;
   clipId: string;
 };
 
-export function cytobandSvg({ data, width, height, colors, clipId }: cytobandSvgProps) {
+export function cytobandSvg({
+  chromosome,
+  chromosomeLength,
+  bands,
+  width,
+  height,
+  colors,
+  clipId,
+}: cytobandSvgProps) {
   const bandY = height * 0.1;
   const bandHeight = height * 0.8;
-  const span = data.extent.end - data.extent.start;
+  const renderedBands = getRenderedBands(bands, chromosome, chromosomeLength);
   let centromereIndex = 0;
 
   return (
@@ -23,14 +33,9 @@ export function cytobandSvg({ data, width, height, colors, clipId }: cytobandSvg
         </clipPath>
       </defs>
       <g clipPath={`url(#${clipId})`} data-testid="cytobands">
-        {data.bands.map((band, index) => {
-          const start = Math.max(
-            data.extent.start,
-            Math.min(data.extent.end, band.coordinates.start),
-          );
-          const end = Math.max(start, Math.min(data.extent.end, band.coordinates.end));
-          const x = ((start - data.extent.start) / span) * width;
-          const bandWidth = ((end - start) / span) * width;
+        {renderedBands.map(({ band, start, end }, index) => {
+          const x = (start / chromosomeLength) * width;
+          const bandWidth = ((end - start) / chromosomeLength) * width;
           if (band.stain === "acen") {
             const opening = centromereIndex++ === 0;
             const d = opening
@@ -76,6 +81,36 @@ function getBandAppearance(stain: string, colors: CytobandColors) {
   return { fill: colors.unknown, opacity: 1 };
 }
 
-function getBandKey(band: cytoband, index: number) {
-  return `${band.coordinates.start}:${band.coordinates.end}:${band.stain}:${index}`;
+function getRenderedBands(
+  bands: readonly Cytoband[],
+  chromosome: string,
+  chromosomeLength: number,
+) {
+  if (chromosomeLength <= 0) return [];
+
+  return bands
+    .flatMap((band) => {
+      if (
+        band.chromosome !== chromosome ||
+        !Number.isSafeInteger(band.start) ||
+        !Number.isSafeInteger(band.end) ||
+        band.start >= band.end ||
+        band.end <= 0 ||
+        band.start >= chromosomeLength
+      ) {
+        return [];
+      }
+      return [{ band, start: Math.max(0, band.start), end: Math.min(chromosomeLength, band.end) }];
+    })
+    .sort(
+      (left, right) =>
+        left.start - right.start ||
+        left.end - right.end ||
+        left.band.stain.localeCompare(right.band.stain) ||
+        left.band.name.localeCompare(right.band.name),
+    );
+}
+
+function getBandKey(band: Cytoband, index: number) {
+  return `${band.chromosome}:${band.start}:${band.end}:${band.name}:${band.stain}:${index}`;
 }
