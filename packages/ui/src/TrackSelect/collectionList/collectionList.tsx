@@ -1,12 +1,12 @@
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import type { TrackSelectCollection } from "../schema/collectionSchema";
+import type { TrackSelectCollectionRecord } from "../collection/collectionCompilation";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { TrackSelectEmptyPanel } from "../trackSelectEmptyPanel";
 import { CollectionCard } from "./collectionCard";
 
 type CollectionListProps = {
-  collections: TrackSelectCollection[];
+  collections: TrackSelectCollectionRecord[];
   onCollectionSelect: (collectionId: string) => void;
 };
 

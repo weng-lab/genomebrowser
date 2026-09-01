@@ -4,15 +4,15 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { SimpleTreeView } from "@mui/x-tree-view/SimpleTreeView";
 import { useMemo } from "react";
+import type { TrackSelectCollectionRecord } from "../collection/collectionCompilation";
 import type { SelectedByCollection } from "../collection/collectionSelection";
 import { getActiveView } from "../collection/collectionViews";
-import type { TrackSelectCollection } from "../schema/collectionSchema";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { buildSelectedTree } from "./buildSelectedTree";
 import { SelectedTreeItem } from "./selectedTreeItem";
 
 type SelectedTracksTreeProps = {
-  trackCollections: TrackSelectCollection[];
+  collections: TrackSelectCollectionRecord[];
   selectedByCollection: SelectedByCollection;
   activeViewIdByCollection: Map<string, string>;
   selectedCount: number;
@@ -20,7 +20,7 @@ type SelectedTracksTreeProps = {
 };
 
 export function SelectedTracksTree({
-  trackCollections,
+  collections,
   selectedByCollection,
   activeViewIdByCollection,
   selectedCount,
@@ -28,13 +28,13 @@ export function SelectedTracksTree({
 }: SelectedTracksTreeProps) {
   const trees = useMemo(
     () =>
-      trackCollections.flatMap((collection) => {
+      collections.flatMap((collection) => {
         const selectedIds = selectedByCollection.get(collection.id) ?? new Set<string>();
         const view = getActiveView(collection, activeViewIdByCollection);
         const tree = buildSelectedTree({ collection, view, selectedIds });
         return tree ? [tree] : [];
       }),
-    [activeViewIdByCollection, selectedByCollection, trackCollections],
+    [activeViewIdByCollection, collections, selectedByCollection],
   );
   return (
     <Paper

@@ -1,11 +1,11 @@
-import type { TrackSelectCollection } from "../schema/collectionSchema";
+import type { TrackSelectCollectionRecord } from "./collectionCompilation";
 
-export function getInitialViewIds(trackCollections: TrackSelectCollection[]) {
+export function getInitialViewIds(trackCollections: TrackSelectCollectionRecord[]) {
   return new Map(trackCollections.map((collection) => [collection.id, collection.views[0].id]));
 }
 
 export function getActiveView(
-  collection: TrackSelectCollection,
+  collection: TrackSelectCollectionRecord,
   activeViewIdByCollection: Map<string, string>,
 ) {
   return (

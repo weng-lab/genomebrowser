@@ -1,10 +1,10 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import type { TrackSelectColumnOverrides } from "../collection/collectionColumns";
+import type { TrackSelectCollectionRecord } from "../collection/collectionCompilation";
 import type { SelectedByCollection } from "../collection/collectionSelection";
 import { CollectionGrid } from "../collection/collectionGrid";
 import { CollectionList } from "../collectionList/collectionList";
-import type { TrackSelectCollection } from "../schema/collectionSchema";
 import { SelectedTracksTree } from "../selectedTracksTree/selectedTracksTree";
 import { useTrackSelect } from "../session/trackSelectContext";
 
@@ -15,7 +15,7 @@ export function TrackSelectBody({
 }) {
   const { state, actions } = useTrackSelect();
   const {
-    trackCollections,
+    collections,
     screen,
     activeCollection,
     activeView,
@@ -34,10 +34,7 @@ export function TrackSelectBody({
         }}
       >
         {screen === "collection-list" ? (
-          <CollectionList
-            collections={trackCollections}
-            onCollectionSelect={actions.selectCollection}
-          />
+          <CollectionList collections={collections} onCollectionSelect={actions.selectCollection} />
         ) : (
           <CollectionGrid
             collection={activeCollection}
@@ -56,7 +53,7 @@ export function TrackSelectBody({
         }}
       >
         <SelectedTracksTree
-          trackCollections={trackCollections}
+          collections={collections}
           selectedByCollection={selectedByCollection}
           activeViewIdByCollection={activeViewIdByCollection}
           selectedCount={selectedTrackCount}
@@ -68,7 +65,7 @@ export function TrackSelectBody({
 }
 
 function getActiveCollectionSelection(
-  activeCollection: TrackSelectCollection | undefined,
+  activeCollection: TrackSelectCollectionRecord | undefined,
   selectedByCollection: SelectedByCollection,
 ) {
   if (!activeCollection) return new Set<string>();

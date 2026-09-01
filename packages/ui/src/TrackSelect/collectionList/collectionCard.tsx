@@ -1,10 +1,10 @@
 import CardActionArea from "@mui/material/CardActionArea";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import type { TrackSelectCollection } from "../schema/collectionSchema";
+import type { TrackSelectCollectionRecord } from "../collection/collectionCompilation";
 
 type CollectionCardProps = {
-  collection: TrackSelectCollection;
+  collection: TrackSelectCollectionRecord;
   onClick: () => void;
 };
 

@@ -7,14 +7,14 @@ import {
   useGridApiRef,
 } from "@mui/x-data-grid-premium";
 import { useEffect, useMemo, useState } from "react";
-import { getCollectionRows, getCollectionTrackIds, type CollectionGridRow } from "./collectionRows";
+import type { CollectionGridRow, TrackSelectCollectionRecord } from "./collectionCompilation";
 import { getCollectionColumns, type TrackSelectColumnOverrides } from "./collectionColumns";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { TrackSelectEmptyPanel } from "../trackSelectEmptyPanel";
-import type { TrackSelectCollection, TrackSelectView } from "../schema/collectionSchema";
+import type { TrackSelectView } from "../schema/collectionSchema";
 
 type CollectionGridProps = {
-  collection: TrackSelectCollection | undefined;
+  collection: TrackSelectCollectionRecord | undefined;
   view: TrackSelectView | undefined;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
@@ -22,7 +22,7 @@ type CollectionGridProps = {
 };
 
 type CollectionDataGridProps = {
-  collection: TrackSelectCollection;
+  collection: TrackSelectCollectionRecord;
   view: TrackSelectView;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
@@ -59,8 +59,6 @@ function CollectionDataGrid({
   onSelectionChange,
   columnOverrides,
 }: CollectionDataGridProps) {
-  const rows = useMemo(() => getCollectionRows(collection), [collection]);
-  const validLeafIds = useMemo(() => getCollectionTrackIds(collection), [collection]);
   const columns = useMemo(
     () => getCollectionColumns(collection.id, view, columnOverrides),
     [collection.id, columnOverrides, view],
@@ -94,7 +92,7 @@ function CollectionDataGrid({
       <Box sx={{ height: trackSelectPanelHeight, width: "100%", overflow: "auto" }}>
         <DataGridPremium
           apiRef={apiRef}
-          rows={rows}
+          rows={collection.rows}
           columns={columns}
           getRowId={getRowId}
           rowGroupingModel={view.grouping}
@@ -120,7 +118,7 @@ function CollectionDataGrid({
             const emittedIds = (selection as { ids?: Set<unknown> }).ids ?? new Set();
             const nextSelectedIds = new Set<string>();
             for (const id of emittedIds) {
-              if (typeof id === "string" && validLeafIds.has(id)) {
+              if (typeof id === "string" && collection.trackIds.has(id)) {
                 nextSelectedIds.add(id);
               }
             }

@@ -6,7 +6,7 @@ import { useTrackSelect } from "../session/trackSelectContext";
 
 export function TrackSelectToolbar() {
   const { state, actions } = useTrackSelect();
-  const { trackCollections, screen, activeCollection, activeView } = state;
+  const { collections, screen, activeCollection, activeView } = state;
 
   function handleViewChange(event: SelectChangeEvent) {
     actions.selectView(event.target.value);
@@ -14,7 +14,7 @@ export function TrackSelectToolbar() {
 
   return (
     <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-      {screen === "collection-detail" && trackCollections.length > 1 ? (
+      {screen === "collection-detail" && collections.length > 1 ? (
         <Button size="small" onClick={actions.backToCollections}>
           Back to Collections
         </Button>

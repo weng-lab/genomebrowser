@@ -3,6 +3,7 @@
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
 import { CollectionGrid } from "../src/TrackSelect/collection/collectionGrid";
 import type { TrackSelectCollection } from "../src/TrackSelect/schema/collectionSchema";
 
@@ -47,6 +48,7 @@ const collection: TrackSelectCollection = {
 };
 
 const view = collection.views[0]!;
+const collectionRecord = compileTrackCollections([collection]).records[0]!;
 const groupALeafIds = ["catalog::one", "catalog::two"];
 
 let container: HTMLDivElement | undefined;
@@ -69,7 +71,7 @@ function renderGrid(initialIds: string[] = [], acceptSelection = true) {
 
     return (
       <CollectionGrid
-        collection={collection}
+        collection={collectionRecord}
         view={view}
         selectedIds={selectedIds}
         onSelectionChange={(nextSelectedIds) => {
