@@ -1,7 +1,7 @@
 {
   "name": "@weng-lab/genomic-reader",
   "version": "2.0.0-alpha.1",
-  "description": "TypeScript contracts for reading genomic data by region.",
+  "description": "Read genomic files and chromosome-size definitions in browser applications.",
   "homepage": "https://github.com/weng-lab/genomebrowser#readme",
   "bugs": {
     "url": "https://github.com/weng-lab/genomebrowser/issues"

@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@weng-lab/genomebrowser": "workspace:^2.0.0-alpha.0",
+    "@weng-lab/genomic-reader": "workspace:^2.0.0-alpha.1",
     "jiti": "^2.6.2",
     "zod": "^4.4.3"
   },

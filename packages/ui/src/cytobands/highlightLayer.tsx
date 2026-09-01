@@ -1,11 +1,5 @@
 import type { Highlight } from "@weng-lab/genomebrowser";
-import {
-  useState,
-  type FocusEvent,
-  type KeyboardEvent,
-  type MouseEvent,
-  type PointerEvent,
-} from "react";
+import { useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import type { CytobandsProps } from "./cytobandsTypes";
 import {
   formatHighlightCoordinates,
@@ -43,22 +37,12 @@ type highlightLayerProps = {
 
 export function highlightLayer(props: highlightLayerProps) {
   const renderedHighlights = getRenderedHighlights(props);
-  const renderedHighlightIds = JSON.stringify(
-    renderedHighlights.map(({ highlight }) => highlight.id),
-  );
 
-  return (
-    <HighlightInteractions
-      key={`${props.chromosome}:${renderedHighlightIds}`}
-      {...props}
-      renderedHighlights={renderedHighlights}
-    />
-  );
+  return <HighlightInteractions {...props} renderedHighlights={renderedHighlights} />;
 }
 
 function HighlightInteractions({
   renderedHighlights,
-  width,
   height,
   clipId,
   renderHighlightTooltip,
@@ -66,15 +50,19 @@ function HighlightInteractions({
   onHighlightPointerEnter,
   onHighlightPointerLeave,
 }: highlightLayerProps & { renderedHighlights: renderedHighlight[] }) {
-  const [hoveredId, setHoveredId] = useState<string>();
-  const hoveredHighlight = renderedHighlights.find(({ highlight }) => highlight.id === hoveredId);
+  const [activeTooltip, setActiveTooltip] = useState<{
+    highlightId: string;
+    anchor: { x: number; y: number };
+  }>();
+  const hoveredHighlight = renderedHighlights.find(
+    ({ highlight }) => highlight.id === activeTooltip?.highlightId,
+  );
 
   return (
     <>
       <g clipPath={`url(#${clipId})`} data-testid="highlights">
         {renderedHighlights.map((rendered) => {
           const handleClick = (event: MouseEvent<SVGGElement>) => {
-            setHoveredId((current) => (current === rendered.highlight.id ? undefined : current));
             onHighlightClick?.(rendered.highlight, event);
           };
           const handleKeyDown = (event: KeyboardEvent<SVGGElement>) => {
@@ -86,18 +74,22 @@ function HighlightInteractions({
               return;
             }
             event.preventDefault();
-            setHoveredId((current) => (current === rendered.highlight.id ? undefined : current));
             onHighlightClick(rendered.highlight, event);
           };
-          const handleFocus = () => {
-            setHoveredId(undefined);
-          };
           const handlePointerEnter = (event: PointerEvent<SVGGElement>) => {
-            setHoveredId(rendered.highlight.id);
+            setActiveTooltip({
+              highlightId: rendered.highlight.id,
+              anchor: {
+                x: finiteOrZero(event.clientX),
+                y: finiteOrZero(event.clientY),
+              },
+            });
             onHighlightPointerEnter?.(rendered.highlight, event);
           };
           const handlePointerLeave = (event: PointerEvent<SVGGElement>) => {
-            setHoveredId((current) => (current === rendered.highlight.id ? undefined : current));
+            setActiveTooltip((current) =>
+              current?.highlightId === rendered.highlight.id ? undefined : current,
+            );
             onHighlightPointerLeave?.(rendered.highlight, event);
           };
 
@@ -106,7 +98,6 @@ function HighlightInteractions({
               clickable={onHighlightClick !== undefined}
               key={rendered.highlight.id}
               onClick={handleClick}
-              onFocus={handleFocus}
               onKeyDown={handleKeyDown}
               onPointerEnter={handlePointerEnter}
               onPointerLeave={handlePointerLeave}
@@ -116,13 +107,12 @@ function HighlightInteractions({
           );
         })}
       </g>
-      {hoveredHighlight ? (
+      {hoveredHighlight && activeTooltip ? (
         <HighlightTooltip
-          height={height}
+          anchor={activeTooltip.anchor}
           key={hoveredHighlight.highlight.id}
           rendered={hoveredHighlight}
           renderHighlightTooltip={renderHighlightTooltip}
-          width={width}
         />
       ) : null}
     </>
@@ -136,7 +126,6 @@ function HighlightGlyph({
   onPointerEnter,
   onPointerLeave,
   onClick,
-  onFocus,
   onKeyDown,
 }: {
   rendered: renderedHighlight;
@@ -145,7 +134,6 @@ function HighlightGlyph({
   onPointerEnter: (event: PointerEvent<SVGGElement>) => void;
   onPointerLeave: (event: PointerEvent<SVGGElement>) => void;
   onClick: (event: MouseEvent<SVGGElement>) => void;
-  onFocus: (event: FocusEvent<SVGGElement>) => void;
   onKeyDown: (event: KeyboardEvent<SVGGElement>) => void;
 }) {
   const { highlight } = rendered;
@@ -163,7 +151,6 @@ function HighlightGlyph({
       data-highlight-id={highlight.id}
       data-highlight-shape={rendered.narrow ? "marker" : "interval"}
       onClick={onClick}
-      onFocus={onFocus}
       onKeyDown={onKeyDown}
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
@@ -204,6 +191,10 @@ function HighlightGlyph({
       )}
     </g>
   );
+}
+
+function finiteOrZero(value: number) {
+  return Number.isFinite(value) ? value : 0;
 }
 
 function getRenderedHighlights({

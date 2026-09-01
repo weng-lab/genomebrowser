@@ -1,6 +1,8 @@
-# SCREEN GraphQL Data Fetching
+# SCREEN GraphQL data fetching
 
 This page records the maintainer contract for features that fetch from the SCREEN GraphQL API. Read it before adding a SCREEN-backed track, browser feature, or UI component.
+
+Components that render application-provided data are outside this request boundary. For example, `Cytobands` receives records loaded by application code (often with `readCytobands`), which owns its loading, error, and cancellation states.
 
 ## Endpoint and authentication
 
@@ -9,9 +11,9 @@ The host application owns GraphQL endpoint routing and authentication. Genomebro
 First-party products use this flow:
 
 ```text
-Apollo application queries --\
-Genomebrowser requests -------> /api/screen-graphql -> authenticated SCREEN API
-Other browser components ----/
+  Apollo application queries ----\
+  Genomebrowser SCREEN requests --> /api/screen-graphql -> authenticated SCREEN API
+  Other application queries -----/
 ```
 
 The product's server route adds `SCREEN_API_KEY` when forwarding to `https://screen.api.wenglab.org/graphql`. The key remains server-only. Apollo may use the same route for product queries, but genomebrowser uses native `fetch` and does not require an Apollo provider.
@@ -20,7 +22,6 @@ Pass infrastructure at the narrow public boundary:
 
 ```tsx
 import { transcriptModule } from "@weng-lab/genomebrowser-tracks/transcript";
-import { Cytobands } from "@weng-lab/genomebrowser-ui";
 
 const transcriptTrack = transcriptModule.create({
   id: "genes",
@@ -30,11 +31,9 @@ const transcriptTrack = transcriptModule.create({
     version: 47,
   },
 });
-
-<Cytobands assembly="GRCh38" chromosome="chr6" width={720} height={28} />;
 ```
 
-When a host does not use the conventional route, set `config.endpoint` on Transcript tracks and `endpoint` on Cytobands. Endpoint overrides are ordinary, non-secret data-source configuration and may appear in collections or saved browser state; credentials must not.
+When a host does not use the conventional route, set `config.endpoint` on Transcript tracks. Endpoint overrides are ordinary, non-secret data-source configuration and may appear in collections or saved browser state; credentials must not.
 
 ## CORS errors usually indicate authentication failure
 
@@ -57,11 +56,11 @@ Use this order when diagnosing a request:
 
 ## Assembly names are resolver-specific
 
-Sharing one GraphQL endpoint does not guarantee that every resolver accepts the same assembly vocabulary. Public browser state and track configuration use canonical names such as `GRCh38`, while the cytoband resolver expects `hg38`.
+Sharing one GraphQL endpoint does not guarantee that every resolver accepts the same assembly vocabulary. Public browser state and track configuration use canonical names such as `GRCh38`; each SCREEN resolver's accepted vocabulary must be verified at its request boundary.
 
 Normalize aliases at the request boundary rather than changing browser state:
 
-- `GRCh38`, `GRCH38`, and `hg38` become `hg38` for a cytoband request.
+- Normalize an assembly only according to the SCREEN resolver's documented contract.
 - Unknown assembly values pass through unchanged unless the resolver has a documented mapping.
 - Cache identity should retain the caller's original assembly input so request behavior remains predictable.
 

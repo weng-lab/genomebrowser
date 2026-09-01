@@ -26,9 +26,11 @@ Keep MUI Data Grid gestures and dialog presentation in the manual harness unless
 
 ## Playground example and fixtures
 
-`apps/playground/examples/ui/App.tsx` preserves the former package-level manual integration harness. It creates one browser store and one track store, then passes that same track store to `GenomeBrowser` and `TrackSelect`. The example is intentionally not connected to an App Router route. Wire it into the playground only while inspecting dialog layout, collection navigation, MUI grid behavior, grouping, markers, or the effect of Submit on the rendered browser.
+`apps/playground/examples/ui/App.tsx` preserves the former package-level manual integration harness. It creates one browser store and one track store, then passes that same track store to `GenomeBrowser` and `TrackSelect`. The example is intentionally not connected to an App Router route. Wire it into the playground only while inspecting dialog layout, collection navigation, MUI grid behavior, grouping, markers, browser navigation, cytoband rendering, or the effect of Submit on the rendered browser.
 
-The example's Cytobands and Transcript modules use the conventional `/api/screen-graphql` endpoint. A temporary route that wires this example must also provide that server-side proxy and keep `SCREEN_API_KEY` out of browser code.
+The example loads Cytoband records in application code with `readCytobands` and passes the ready records to `Cytobands`; its source file is under the playground's public data directory.
+
+The Transcript module and genome search use the conventional `/api/screen-graphql` endpoint. A temporary route that wires this example must provide that server-side proxy for SCREEN requests and keep `SCREEN_API_KEY` out of browser code.
 
 The former manual fixtures live with the example in `apps/playground/examples/ui/collections/`. Automated tests define their smaller inputs beside the test that uses them. Prefer a small fixture that isolates automated behavior; use the playground fixtures for realistic manual checks. Keep fixture entries aligned with modules registered by the example. Use `YOUR_URL_HERE` for new illustrative URLs unless an existing repository fixture URL is intentionally reused.
 

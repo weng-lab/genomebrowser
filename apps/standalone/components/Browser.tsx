@@ -73,7 +73,7 @@ export function Browser() {
     <main ref={containerRef}>
       <BrowserHeader onSelectTracks={() => setTrackSelectOpen(true)} />
       <NavigationControls browserStore={useBrowserStore} />
-      <RegionOverview region={region} />
+      <RegionOverview chromosomeLength={hg38.chromosomes[region.chromosome] ?? 0} region={region} />
       <Box sx={{ width: "100%", overflowX: "auto" }}>
         <GenomeBrowser
           browserStore={useBrowserStore}

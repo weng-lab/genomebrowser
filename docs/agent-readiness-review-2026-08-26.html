@@ -26,19 +26,19 @@
             <p class="text-xs uppercase tracking-[.2em] text-emerald-700">Agent-readiness review</p>
             <h1 class="mt-1 text-4xl font-semibold tracking-tight">genomebrowser</h1>
           </div>
-          <p class="text-sm text-slate-500">26 August 2026</p>
+          <p class="text-sm text-slate-500">Originally 26 August 2026 · updated 31 August 2026</p>
         </div>
         <div class="grid md:grid-cols-4 gap-3">
-          <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold">88</p><p class="text-sm text-slate-500">test files</p></div>
-          <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold">710</p><p class="text-sm text-slate-500">passing test cases</p></div>
+          <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold">92</p><p class="text-sm text-slate-500">test files</p></div>
+          <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold">758</p><p class="text-sm text-slate-500">passing test cases</p></div>
           <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold text-red-700">0</p><p class="text-sm text-slate-500">app test files</p></div>
-          <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold">28/28</p><p class="text-sm text-slate-500">verify tasks passed</p></div>
+          <div class="rounded-xl bg-white border p-4"><p class="text-3xl font-semibold">31/31</p><p class="text-sm text-slate-500">verify tasks passed</p></div>
         </div>
         <div class="rounded-2xl border-l-4 border-amber-500 bg-amber-50 p-6">
           <p class="text-xl font-semibold">This repo catches domain logic regressions. It does not reliably catch broken product behavior.</p>
           <p class="mt-2 text-slate-700">A capable agent can make a plausible app or UI change, run the required command, and get a clean result. Tests are strongest where the right answer is mechanical. They are weakest where an agent must judge whether the product still works.</p>
         </div>
-        <p class="text-sm text-slate-600">Evidence came from five independent read-only reviews, direct source inspection, <code>pnpm verify</code>, a full React Doctor scan, and repository test counts.</p>
+        <p class="text-sm text-slate-600">The original evidence came from five independent read-only reviews, direct source inspection, <code>pnpm verify</code>, a full React Doctor scan, and repository test counts. The 31 August update rechecked every finding against the current repository and removed resolved items.</p>
       </header>
 
       <section class="space-y-5">
@@ -61,7 +61,7 @@ flowchart LR
   classDef bad fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
           </pre>
         </div>
-        <p class="text-slate-700">The repo explains intent and tests domain mechanics well. Feedback stops before the final product. The standalone app, browser behavior, accessibility, responsive layout, and complete package integration remain largely unchecked.</p>
+        <p class="text-slate-700">The repo explains intent and tests domain mechanics well. Feedback stops before the final product. The deployed standalone app, browser behavior, accessibility, responsive layout, and complete package integration remain largely unchecked.</p>
       </section>
 
       <section class="space-y-6">
@@ -75,7 +75,7 @@ flowchart LR
           <article class="rounded-2xl border bg-white p-6 space-y-3">
             <h3 class="text-lg font-semibold">Core hides real complexity</h3>
             <p><code>defineTrackModule</code> turns one definition into validation, defaults, schemas, creation, rendering, fetching, settings, and tooltips. The track store and data coordination modules also keep high-risk rules in one place.</p>
-            <p class="citation">packages/core/src/modules/defineTrackModule.ts:108-190 · docs/core/adr/0006...:1-5</p>
+            <p class="citation">packages/core/src/modules/defineTrackModule.ts:108-194 · docs/core/adr/0006-browser-features-are-deep-modules-with-narrow-apis.md</p>
           </article>
           <article class="rounded-2xl border bg-white p-6 space-y-3">
             <h3 class="text-lg font-semibold">Reader fixtures can be checked independently</h3>
@@ -89,7 +89,7 @@ flowchart LR
           </article>
           <article class="rounded-2xl border bg-white p-6 space-y-3">
             <h3 class="text-lg font-semibold">Reader and tracks test the built packages</h3>
-            <p>After Vite builds, reader and tracks check ESM output, declarations, exports, source maps, subpaths, and loaded implementation graphs. Source tests alone would not catch these packaging failures.</p>
+            <p>After Vite builds, reader checks its root export and declaration boundaries, while tracks checks its public subpaths and isolated implementation graphs. Both also check ESM output and source maps. Source tests alone would not catch these packaging failures.</p>
             <p class="citation">packages/reader/scripts/verify-package.mjs · packages/tracks/scripts/verify-package.mjs</p>
           </article>
           <article class="rounded-2xl border bg-white p-6 space-y-3">
@@ -104,19 +104,19 @@ flowchart LR
         <h2 class="text-2xl font-semibold">Where agents get false confidence</h2>
         <div class="space-y-4">
           <article class="rounded-2xl border-l-4 border-red-600 bg-white p-6">
-            <div class="flex items-center gap-3"><span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">Critical</span><h3 class="text-lg font-semibold">The app has no tests</h3></div>
-            <p class="mt-3">The app owns the final product, but <code>packages/app/package.json</code> defines no test script and the package contains zero test files. Turbo treats the missing task as acceptable. Broken toolbar wiring, TrackSelect opening, clipboard behavior, or GraphQL proxy semantics can pass <code>pnpm verify</code>.</p>
-            <p class="citation mt-2">packages/app/package.json:5-13 · packages/app/components/Browser.tsx · packages/app/app/api/screen-graphql/route.ts</p>
+            <div class="flex items-center gap-3"><span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">Critical</span><h3 class="text-lg font-semibold">The deployed app has no tests</h3></div>
+            <p class="mt-3"><code>apps/standalone</code> owns the deployed product, but its package defines no test script and contains zero test files. Turbo treats the missing task as acceptable. Broken toolbar wiring, TrackSelect opening, clipboard behavior, or GraphQL proxy semantics can pass <code>pnpm verify</code>. The experimental playground has no tests either.</p>
+            <p class="citation mt-2">apps/standalone/package.json:5-14 · apps/standalone/components/Browser.tsx · apps/standalone/app/api/screen-graphql/route.ts</p>
           </article>
           <article class="rounded-2xl border-l-4 border-red-600 bg-white p-6">
-            <div class="flex items-center gap-3"><span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">Critical</span><h3 class="text-lg font-semibold">The TrackSelect workflow test does not render TrackSelect</h3></div>
-            <p class="mt-3"><code>trackSelectWorkflow.test.tsx</code> replaces <code>TrackSelectContent</code> with a hook probe that returns <code>null</code>. Its 28 tests check state semantics. They cannot show that Submit calls the action, failures appear on screen, the dialog stays open, or controls have accessible names.</p>
+            <div class="flex items-center gap-3"><span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">Critical</span><h3 class="text-lg font-semibold">The TrackSelect workflow test does not render its visible content</h3></div>
+            <p class="mt-3"><code>trackSelectWorkflow.test.tsx</code> sometimes renders the <code>TrackSelect</code> wrapper, but replaces <code>TrackSelectContent</code> with a hook probe that returns <code>null</code>. Its 28 tests check state semantics. They cannot show that Submit calls the action, failures appear on screen, the dialog stays open, or controls have accessible names.</p>
             <p class="citation mt-2">packages/ui/test/trackSelectWorkflow.test.tsx:26-39,217-869 · docs/ui/testing.md:43-54</p>
           </article>
           <article class="rounded-2xl border-l-4 border-red-600 bg-white p-6">
             <div class="flex items-center gap-3"><span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800">Critical</span><h3 class="text-lg font-semibold">Agents cannot run the documented UI checks</h3></div>
-            <p class="mt-3"><code>DESIGN.md</code> requires checks at narrow widths, keyboard operation, accessible inputs, disabled and error states, and long content. The repo assigns those checks to a manual app that agents may not start. It also does not require agents to report them as unverified.</p>
-            <p class="citation mt-2">DESIGN.md:39-63 · docs/ui/testing.md:25-33 · AGENTS.md:45-48</p>
+            <p class="mt-3"><code>DESIGN.md</code> requires checks at narrow widths, keyboard operation, accessible inputs, disabled and error states, and long content. The repo assigns those checks to an intentionally unrouted playground example, while agents may not start the development server. It also does not require agents to report those checks as unverified.</p>
+            <p class="citation mt-2">DESIGN.md:39-64 · docs/ui/testing.md:25-33 · apps/playground/examples/ui/App.tsx · apps/playground/README.md:9-15</p>
           </article>
           <article class="rounded-2xl border-l-4 border-amber-500 bg-white p-6">
             <div class="flex items-center gap-3"><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">High</span><h3 class="text-lg font-semibold">No test covers reader → track → browser</h3></div>
@@ -125,8 +125,8 @@ flowchart LR
           </article>
           <article class="rounded-2xl border-l-4 border-amber-500 bg-white p-6">
             <div class="flex items-center gap-3"><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">High</span><h3 class="text-lg font-semibold"><code>pnpm verify</code> skips named checks</h3></div>
-            <p class="mt-3"><code>pnpm verify</code> does not explicitly run the root typecheck task, React Doctor, Rust checks, browser tests, coverage, or release validation. The Next build currently typechecks the app, but the task graph does not require the app's separate typecheck command. CI runs React Doctor without letting findings fail the job.</p>
-            <p class="citation mt-2">package.json:11-23 · turbo.json:9-29 · packages/app/turbo.json:1-8 · .github/workflows/react-doctor.yml:33-38</p>
+            <p class="mt-3"><code>pnpm verify</code> does not explicitly run the root typecheck task, React Doctor, browser tests, coverage, Rust checks, or release validation. Library builds depend on typecheck, and both Next builds currently run TypeScript, but each app overrides the root build dependency and does not require its separate typecheck command. CI now runs Rust tests separately. React Doctor remains non-blocking.</p>
+            <p class="citation mt-2">package.json:12-23 · turbo.json:9-29 · apps/standalone/turbo.json:1-8 · .github/workflows/ci.yml:30-34 · .github/workflows/react-doctor.yml:33-38</p>
           </article>
           <article class="rounded-2xl border-l-4 border-amber-500 bg-white p-6">
             <div class="flex items-center gap-3"><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">High</span><h3 class="text-lg font-semibold"><code>test.md</code> is stale but looks authoritative</h3></div>
@@ -143,17 +143,16 @@ flowchart LR
             <thead class="bg-slate-100 text-left"><tr><th class="p-4">Signal</th><th class="p-4">What it proves</th><th class="p-4">What an agent may wrongly infer</th></tr></thead>
             <tbody class="divide-y">
               <tr><td class="p-4 font-mono">pnpm test</td><td class="p-4">Vitest passes in four packages</td><td class="p-4">Every package has tests; compile-time assertions were checked</td></tr>
-              <tr><td class="p-4 font-mono">pnpm verify</td><td class="p-4">28 configured tasks pass</td><td class="p-4">Rendered app behavior and all tools were verified</td></tr>
-              <tr><td class="p-4 font-mono">next build</td><td class="p-4">Current Next config compiles and runs TypeScript</td><td class="p-4">The explicit app typecheck task is guaranteed by the graph</td></tr>
-              <tr><td class="p-4 font-mono">React Doctor</td><td class="p-4">No static diagnostics in 231 files</td><td class="p-4">Accessibility and workflow behavior are correct</td></tr>
+              <tr><td class="p-4 font-mono">pnpm verify</td><td class="p-4">31 configured tasks pass</td><td class="p-4">Rendered app behavior and all tools were verified</td></tr>
+              <tr><td class="p-4 font-mono">next build</td><td class="p-4">Both current Next apps compile and run TypeScript</td><td class="p-4">Each app's explicit typecheck task is guaranteed by the graph</td></tr>
+              <tr><td class="p-4 font-mono">React Doctor</td><td class="p-4">No static diagnostics in 233 files selected by CI</td><td class="p-4">Accessibility and workflow behavior are correct</td></tr>
               <tr><td class="p-4 font-mono">UI workflow tests</td><td class="p-4">Session and store transitions work</td><td class="p-4">The visible dialog is wired to those transitions</td></tr>
             </tbody>
           </table>
         </div>
         <ul class="grid md:grid-cols-2 gap-4 text-sm">
-          <li class="rounded-xl border bg-white p-4"><strong>Cache input gap.</strong> <code>NEXT_PUBLIC_MUI_X_LICENSE_KEY</code> affects the app build but is not a build hash input in <code>turbo.json</code>.</li>
-          <li class="rounded-xl border bg-white p-4"><strong>Rust checks are separate.</strong> The converter has useful integration tests, but neither pnpm nor CI runs Cargo.</li>
-          <li class="rounded-xl border bg-white p-4"><strong>Version skew.</strong> Root and app/benchmark use different Oxlint and Oxfmt versions despite root docs claiming one installation.</li>
+          <li class="rounded-xl border bg-white p-4"><strong>Rust checks are separate.</strong> CI now runs the converter's Cargo tests, but <code>pnpm verify</code> does not.</li>
+          <li class="rounded-xl border bg-white p-4"><strong>Version skew.</strong> Root uses older Oxlint and Oxfmt versions than both apps and <code>benchmarks/reader</code>, despite root docs claiming one installation.</li>
           <li class="rounded-xl border bg-white p-4"><strong>Warnings pass.</strong> UI tests emit React <code>act</code> and MUI license warnings while the task remains green.</li>
           <li class="rounded-xl border bg-white p-4"><strong>Package checks differ.</strong> Core lacks the built-export verification used by reader and tracks. UI only verifies its CLI workflow.</li>
           <li class="rounded-xl border bg-white p-4"><strong>Wall-clock coupling.</strong> One Data Grid test waits a fixed 200 ms, binding correctness to current scheduler timing.</li>
@@ -222,7 +221,7 @@ class S deep</pre></div>
         <article id="app-assembly" class="rounded-2xl border bg-white p-6 space-y-5">
           <div class="flex flex-wrap gap-2"><span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Worth exploring</span><span class="rounded-full bg-slate-100 px-3 py-1 text-xs">app composition</span></div>
           <h3 class="text-xl font-semibold">Make assembly identity one app-owned decision</h3>
-          <p class="citation">packages/app/components/Browser.tsx · Toolbars.tsx · RegionOverview.tsx · packages/ui/src/cytobands/cytobandData.ts</p>
+          <p class="citation">apps/standalone/components/Browser.tsx · Toolbars.tsx · RegionOverview.tsx · packages/ui/src/cytobands/cytobandData.ts</p>
           <div class="grid md:grid-cols-2 gap-4">
             <div class="rounded-xl border p-4"><p class="text-xs uppercase tracking-wider text-slate-500">Before</p><div class="mt-5 grid grid-cols-3 gap-3 text-center text-sm"><div class="rounded border-red-300 border p-4"><code>hg38</code><br><span class="text-xs">browser</span></div><div class="rounded border-red-300 border p-4"><code>GRCh38</code><br><span class="text-xs">search</span></div><div class="rounded border-red-300 border p-4"><code>GRCh38</code><br><span class="text-xs">cytobands</span></div></div></div>
             <div class="rounded-xl border p-4"><p class="text-xs uppercase tracking-wider text-slate-500">After</p><div class="deep mt-5 rounded-xl p-5 text-white text-center"><p class="text-xs uppercase tracking-wider text-slate-300">App assembly module</p><p class="mt-2"><code>runtime: hg38</code> · <code>SCREEN: GRCh38</code></p></div></div>
@@ -259,10 +258,8 @@ class G deep</pre></div>
       <section class="space-y-5">
         <h2 class="text-2xl font-semibold">Documentation and skill friction</h2>
         <div class="grid md:grid-cols-2 gap-4 text-sm">
-          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">Targeted commands conflict</h3><p class="mt-2">Root guidance requires Turbo filters. Package testing docs and the first-party track skill use direct <code>pnpm --filter</code> commands.</p><p class="citation mt-2">AGENTS.md:31-34 · docs/core/testing.md:3-13 · docs/ui/testing.md:3-12</p></div>
-          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">The track list is stale</h3><p class="mt-2">Root and core-facing docs omit the Gene track even though the package exports and tests include it.</p><p class="citation mt-2">README.md:10-20 · packages/tracks/src/lib.ts:6-18</p></div>
-          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">The app README can lead agents into a forbidden command</h3><p class="mt-2">Agents may not run dev servers, but the app README presents <code>pnpm dev</code> without marking it as a command for humans.</p><p class="citation mt-2">AGENTS.md:45-48 · packages/app/README.md:9-14</p></div>
-          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">The Next docs path is wrong</h3><p class="mt-2">The root instruction points to root <code>node_modules/next</code>. The installed docs are under the app package.</p><p class="citation mt-2">AGENTS.md:41-43 · packages/app/node_modules/next/dist/docs/index.md</p></div>
+          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">Targeted commands conflict</h3><p class="mt-2">Root guidance requires Turbo filters. Package testing docs and the first-party track skill use direct <code>pnpm --filter</code> commands.</p><p class="citation mt-2">docs/turborepo.md:29-39 · docs/core/testing.md:3-13 · docs/ui/testing.md:3-12</p></div>
+          <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">One track list is stale</h3><p class="mt-2">The root README and package docs now include Gene, but the core-facing track inventory still omits it.</p><p class="citation mt-2">docs/core/tracks/README.md:7-13 · packages/tracks/src/lib.ts:10-19</p></div>
           <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">The <code>index.ts</code> rule needs an exception</h3><p class="mt-2"><code>docs/conventions.md</code> bans every <code>index.ts</code>, while track authoring requires public subpath entry files with that name.</p><p class="citation mt-2">docs/conventions.md:13-17 · docs/core/tracks/sourceLayout.md:3-9</p></div>
           <div class="rounded-xl border bg-white p-5"><h3 class="font-semibold">Idea docs do not share a status convention</h3><p class="mt-2">Some idea docs identify themselves as proposals. Others describe behavior that does not exist without saying whether the text is current, planned, or abandoned.</p><p class="citation mt-2">docs/ideas/browserSessions.md · docs/ideas/trackPrimitives.md:1-5</p></div>
         </div>
@@ -271,11 +268,11 @@ class G deep</pre></div>
       <section class="space-y-5">
         <h2 class="text-2xl font-semibold">Recommended order</h2>
         <ol class="space-y-3">
-          <li class="rounded-xl border bg-white p-5"><strong>1. Test the app.</strong> Add an app test task with smoke tests for shell composition, toolbar actions, TrackSelect opening, and the GraphQL route.</li>
+          <li class="rounded-xl border bg-white p-5"><strong>1. Test the deployed app.</strong> Add an <code>apps/standalone</code> test task with smoke tests for shell composition, toolbar actions, TrackSelect opening, and the GraphQL route.</li>
           <li class="rounded-xl border bg-white p-5"><strong>2. Test one complete visible TrackSelect failure path.</strong> Keep the strong state tests, but render the real content and assert an actionable error, open dialog, and unchanged store.</li>
           <li class="rounded-xl border bg-white p-5"><strong>3. Add one vertical integration test.</strong> Use a committed reader fixture through a first-party track and <code>GenomeBrowser</code>. This is more valuable than broad coverage targets.</li>
-          <li class="rounded-xl border bg-white p-5"><strong>4. Make <code>verify</code> say exactly what it checks.</strong> Include typecheck directly, hash the app's build-time environment, run Rust checks when tool files change, and fail when a package lacks a required task.</li>
-          <li class="rounded-xl border bg-white p-5"><strong>5. Remove misleading authority.</strong> Delete or relocate <code>packages/reader/test.md</code>, reconcile command guidance, mark human-only dev commands, and correct stale inventories and paths.</li>
+          <li class="rounded-xl border bg-white p-5"><strong>4. Make <code>verify</code> say exactly what it checks.</strong> Include app typecheck directly, decide which browser and React Doctor checks should block changes, and fail when a package lacks a required task.</li>
+          <li class="rounded-xl border bg-white p-5"><strong>5. Remove misleading authority.</strong> Delete or relocate <code>packages/reader/test.md</code>, reconcile targeted-command guidance, and correct the remaining stale track inventory.</li>
           <li class="rounded-xl border bg-white p-5"><strong>6. Deepen the two strongest architecture candidates.</strong> Concentrate the BBI query lifecycle and generic signal behavior after the verification gaps are closed.</li>
         </ol>
       </section>
@@ -287,7 +284,7 @@ class G deep</pre></div>
       </section>
 
       <footer class="border-t pt-6 text-sm text-slate-500">
-        <p><code>pnpm verify</code> passed 28 of 28 tasks, all from cache. React Doctor scanned 231 files and reported no diagnostics. Those results are included as evidence, not treated as proof of product correctness.</p>
+        <p><code>pnpm verify</code> passed 31 of 31 tasks. React Doctor's CI project selection scanned 233 files and reported no diagnostics. Those results are included as evidence, not treated as proof of product correctness.</p>
       </footer>
     </main>
   </body>

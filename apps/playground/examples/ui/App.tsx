@@ -27,6 +27,7 @@ import { caveModule as caveUiModule } from "@weng-lab/genomebrowser-tracks/cave"
 import { methylCModule as methylCUiModule } from "@weng-lab/genomebrowser-tracks/methylc";
 import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import { transcriptModule as transcriptUiModule } from "@weng-lab/genomebrowser-tracks/transcript";
+import { readCytobands, type Cytoband } from "@weng-lab/genomic-reader";
 import {
   BrowserNavigationButton,
   Cytobands,
@@ -84,6 +85,33 @@ const cytobandHighlights: readonly Highlight[] = [
     opacity: 0.8,
   },
 ];
+
+type CytobandState =
+  | { status: "loading" }
+  | { status: "ready"; bands: readonly Cytoband[] }
+  | { status: "error"; message: string };
+
+function useHg38Cytobands(): CytobandState {
+  const [state, setState] = useState<CytobandState>({ status: "loading" });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const url = new URL("/data/hg38.cytoBand.txt", window.location.href).href;
+    void readCytobands({ url, signal: controller.signal }).then(
+      (bands) => setState({ status: "ready", bands }),
+      (error: unknown) => {
+        if (controller.signal.aborted) return;
+        setState({
+          status: "error",
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      },
+    );
+    return () => controller.abort();
+  }, []);
+
+  return state;
+}
 
 const locusDescriptions: Readonly<Record<string, string>> = {
   "chr6-risk-locus-46m": "MHC-associated locus",
@@ -298,6 +326,7 @@ function InteractionShowcase() {
   const [open, setOpen] = useState(true);
   const region = useBrowserStore((state) => state.region);
   const setRegion = useBrowserStore((state) => state.setRegion);
+  const cytobands = useHg38Cytobands();
   const panelRef = useRef<HTMLDivElement>(null);
   const actionRef = useRef<HTMLElement>(null);
   const itemRef = useRef<HTMLElement>(null);
@@ -350,23 +379,32 @@ function InteractionShowcase() {
             <Button sx={{ width: 96 }} variant="contained" onClick={() => setOpen(true)}>
               Open
             </Button>
-            <Cytobands
-              assembly="GRCh38"
-              chromosome={region.chromosome}
-              currentRegion={region}
-              height={28}
-              highlights={cytobandHighlights}
-              onHighlightClick={(highlight) => {
-                const nextRegion: GenomicRegion = {
-                  chromosome: highlight.region.chromosome ?? region.chromosome,
-                  start: highlight.region.start,
-                  end: highlight.region.end,
-                };
-                setRegion(nextRegion);
-              }}
-              renderHighlightTooltip={(highlight) => <LocusTooltip highlight={highlight} />}
-              width={720}
-            />
+            {cytobands.status === "ready" ? (
+              <Cytobands
+                bands={cytobands.bands}
+                chromosome={region.chromosome}
+                chromosomeLength={hg38.chromosomes[region.chromosome] ?? 0}
+                currentRegion={region}
+                height={28}
+                highlights={cytobandHighlights}
+                onHighlightClick={(highlight) => {
+                  const nextRegion: GenomicRegion = {
+                    chromosome: highlight.region.chromosome ?? region.chromosome,
+                    start: highlight.region.start,
+                    end: highlight.region.end,
+                  };
+                  setRegion(nextRegion);
+                }}
+                renderHighlightTooltip={(highlight) => <LocusTooltip highlight={highlight} />}
+                width={720}
+              />
+            ) : (
+              <Typography color={cytobands.status === "error" ? "error" : "text.secondary"}>
+                {cytobands.status === "error"
+                  ? `Unable to load cytobands: ${cytobands.message}`
+                  : "Loading cytobands…"}
+              </Typography>
+            )}
           </Stack>
         </Stack>
       </Paper>

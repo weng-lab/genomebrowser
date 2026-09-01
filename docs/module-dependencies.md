@@ -20,10 +20,10 @@ flowchart LR
   UI["ui<br/>application controls and TrackSelect"]
   TRACKS["tracks<br/>first-party track implementations"]
   CORE["core<br/>browser runtime and extension contracts"]
-  READER["reader<br/>BigBed and BigWig range reader"]
+  READER["reader<br/>BigBed, BigWig, and cytoband reader"]
 
   SCREEN(["SCREEN GraphQL service"])
-  FILES(["Remote genomic files<br/>HTTP byte ranges"])
+  FILES(["Remote genomic files<br/>HTTP fetch and byte ranges"])
 
   STANDALONE -->|composes| CORE
   STANDALONE -->|registers| TRACKS
@@ -33,20 +33,21 @@ flowchart LR
   PLAYGROUND -->|source-mapped imports| UI
   PLAYGROUND -. "source-mapped transitive imports" .-> READER
   UI -->|stores, registry, genomic types| CORE
+  UI -. "cytoband record types" .-> READER
   TRACKS -->|track contracts and runtime hooks| CORE
   TRACKS -->|regional file reads| READER
   UI -. "tests and package verification only" .-> TRACKS
 
   STANDALONE -. "server proxy" .-> SCREEN
-  UI -. "cytoband queries" .-> SCREEN
   TRACKS -. "transcript queries" .-> SCREEN
-  READER -->|range fetch| FILES
+  READER -->|full-file and range fetches| FILES
 ```
 
 The production package graph is acyclic. `core` and `reader` are independent
 foundations. `tracks` implements the extension contracts from `core` and uses
-`reader`; `ui` controls `core`; the standalone app is the deployed composition
-root, while the playground consumes source entries for experiments.
+`reader`; `ui` controls `core` and uses `reader`'s cytoband record types; the
+standalone app is the deployed composition root, while the playground consumes
+source entries for experiments.
 
 ## Core package
 
@@ -243,10 +244,10 @@ flowchart TB
   API["Public API<br/>lib.ts"]
   CLI["TrackSelect CLI<br/>trackselect.ts"]
   CORE["core package"]
+  READER["reader package"]
 
   NAV["Browser navigation control<br/>BrowserNavigationButton/*"]
   CYTO["Cytobands orchestrator<br/>cytobands/cytobands.tsx"]
-  CYTO_DATA["Cytoband acquisition<br/>cytobands/cytobandData.ts"]
   CYTO_SVG["Cytoband rendering<br/>cytobands/cytobandSvg.tsx<br/>currentRegionBracket.tsx"]
   HIGHLIGHTS["Highlight interaction<br/>cytobands/highlightLayer.tsx<br/>highlightTooltip.tsx"]
 
@@ -270,11 +271,10 @@ flowchart TB
   CLI --> CORE
 
   NAV --> CORE
-  CYTO --> CYTO_DATA
   CYTO --> CYTO_SVG
   CYTO --> HIGHLIGHTS
   CYTO --> CORE
-  CYTO_DATA -. "genomic types" .-> CORE
+  CYTO -. "cytoband record types" .-> READER
   CYTO_SVG -. "genomic types" .-> CORE
   HIGHLIGHTS -. "genomic types" .-> CORE
 
@@ -332,6 +332,7 @@ flowchart TB
   CORE["core package"]
   TRACKS["tracks package"]
   UI["ui package"]
+  READER["reader package"]
   SCREEN(["SCREEN GraphQL service"])
 
   ROOT --> LICENSE
@@ -342,6 +343,7 @@ flowchart TB
   BROWSER --> WIDTH
   BROWSER --> COLLECTIONS
   OVERVIEW --> WIDTH
+  OVERVIEW -->|loads cytoband files| READER
 
   BROWSER --> CORE
   BROWSER --> TRACKS
@@ -358,7 +360,8 @@ flowchart TB
 The standalone graph is acyclic. Route modules point toward composition
 components; compositions point toward leaf controls and workspace packages. The
 API route is server-only and is connected to client code by URL, not by a source
-import.
+import. `RegionOverview` owns the cytoband file read and passes ready records to
+the UI renderer; the API route remains the server boundary for SCREEN requests.
 
 ```mermaid
 flowchart TB
@@ -404,6 +407,7 @@ flowchart TB
   API["Public API<br/>lib.ts"]
   BIGWIG["BigWig facade<br/>bigWig.ts"]
   BIGBED["BigBed facade<br/>bigBed.ts"]
+  CYTO["Cytoband parser and reader<br/>cytobands.ts"]
   CONTRACTS["Shared contracts<br/>genomicFile.ts"]
 
   VALIDATION["Input validation<br/>internal/inputValidation.ts"]
@@ -423,6 +427,7 @@ flowchart TB
 
   API -. "exports" .-> BIGWIG
   API -. "exports" .-> BIGBED
+  API -. "exports" .-> CYTO
   API -. "types" .-> CONTRACTS
 
   BIGWIG -. "types" .-> CONTRACTS
@@ -447,6 +452,9 @@ flowchart TB
   BIGBED --> BLOCKS
   BIGBED --> BB_DECODER
   BIGBED -. "types" .-> HTTP
+
+  CYTO --> VALIDATION
+  CYTO --> ABORT
 
   VALIDATION -. "types" .-> CONTRACTS
   REQUESTS --> ABORT

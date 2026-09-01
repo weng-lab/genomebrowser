@@ -1,4 +1,5 @@
 import type { GenomicRegion, Highlight } from "@weng-lab/genomebrowser";
+import type { Cytoband } from "@weng-lab/genomic-reader";
 import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
@@ -16,11 +17,11 @@ export type CytobandColors = {
 };
 
 export type CytobandsProps = {
-  assembly: string;
   chromosome: string;
+  chromosomeLength: number;
+  bands: readonly Cytoband[];
   width: number;
   height: number;
-  endpoint?: string;
   colors?: Partial<CytobandColors>;
   highlights?: readonly Highlight[];
   currentRegion?: GenomicRegion;

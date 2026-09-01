@@ -21,6 +21,7 @@
     "@weng-lab/genomebrowser": "workspace:*",
     "@weng-lab/genomebrowser-tracks": "workspace:*",
     "@weng-lab/genomebrowser-ui": "workspace:*",
+    "@weng-lab/genomic-reader": "workspace:*",
     "@weng-lab/ui-components": "3.1.4",
     "next": "16.2.12",
     "react": "19.2.8",
