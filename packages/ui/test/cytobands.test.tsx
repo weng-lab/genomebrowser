@@ -223,20 +223,20 @@ describe("Cytobands highlights", () => {
       height: 20,
     };
 
-    render({ ...base, highlights: [beta, alpha] });
+    render({ ...base, highlights: [alpha] });
     const alphaElement = getHighlight("alpha");
-    expect(renderedHighlightIds()).toEqual(["alpha", "beta"]);
     expect(highlightOpacity("alpha")).toBe("0.2");
-    expect(highlightOpacity("beta")).toBe("0");
 
     render({ ...base, highlights: [alpha, beta] });
+    expect(renderedHighlightIds()).toEqual(["alpha", "beta"]);
     expect(getHighlight("alpha")).toBe(alphaElement);
+    expect(highlightOpacity("beta")).toBe("0");
   });
 
   it.each([
     ["interval", highlight("interactive-wide", 10, 30)],
     ["marker", highlight("interactive-narrow", 50, 51)],
-  ] as const)("gives the %s equivalent pointer and keyboard behavior", (_, item) => {
+  ] as const)("gives the %s hover tooltips and keyboard activation", (_, item) => {
     const chromosome = `chrInteraction${item.id}`;
     const onPointerEnter = vi.fn();
     const onPointerLeave = vi.fn();
@@ -266,35 +266,21 @@ describe("Cytobands highlights", () => {
     expect(getTooltip().namespaceURI).toBe("http://www.w3.org/2000/svg");
     const tooltipId = getTooltip().id;
     expect(tooltipId).toMatch(/^cytobands-highlight-tooltip-/);
-    expect(element.getAttribute("aria-describedby")).toBe(tooltipId);
     expect(getTooltipPortal().parentElement).toBe(document.body);
     expect(container?.querySelector('[role="tooltip"]')).toBeNull();
     expect(container?.querySelector("foreignObject")).toBeNull();
     dispatchPointer(element, "pointerout");
     expect(onPointerLeave.mock.calls[0]?.[0]).toBe(item);
     expect(document.body.querySelector('[role="tooltip"]')).toBeNull();
-    expect(element.hasAttribute("aria-describedby")).toBe(false);
 
     dispatch(element, "focusin");
-    expect(getTooltip().id).toBe(tooltipId);
-    expect(element.getAttribute("aria-describedby")).toBe(tooltipId);
-    dispatchKey(element, "Escape");
     expect(document.body.querySelector('[role="tooltip"]')).toBeNull();
-    expect(element.hasAttribute("aria-describedby")).toBe(false);
-    dispatch(element, "focusout");
-
-    dispatch(element, "focusin");
-    expect(getTooltip().id).toBe(tooltipId);
-    dispatch(element, "focusout");
-    expect(document.body.querySelector('[role="tooltip"]')).toBeNull();
-
-    dispatch(element, "focusin");
     dispatchKey(element, "Enter");
     dispatchKey(element, " ");
     dispatchKey(element, "Enter", true);
     dispatchPointer(element, "pointerover");
     dispatch(element, "click");
-    expect(document.body.querySelector('[role="tooltip"]')).toBeNull();
+    expect(getTooltip().id).toMatch(/^cytobands-highlight-tooltip-/);
     expect(onClick).toHaveBeenCalledTimes(3);
     expect(onClick.mock.calls.map(([, event]) => event.type)).toEqual([
       "keydown",

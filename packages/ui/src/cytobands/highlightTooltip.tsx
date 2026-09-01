@@ -1,6 +1,6 @@
 import type { Highlight } from "@weng-lab/genomebrowser";
 import { useTheme } from "@mui/material/styles";
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { renderedHighlight } from "./highlightLayer";
 
@@ -15,7 +15,6 @@ type tooltipBounds = { x: number; y: number; width: number; height: number };
 type viewportSize = { width: number; height: number };
 
 type highlightTooltipProps = {
-  id: string;
   rendered: renderedHighlight;
   anchor: { x: number; y: number };
   renderHighlightTooltip?: (highlight: Highlight) => ReactNode;
@@ -25,8 +24,9 @@ export function highlightTooltip(props: highlightTooltipProps) {
   return <HighlightTooltip {...props} />;
 }
 
-function HighlightTooltip({ id, rendered, anchor, renderHighlightTooltip }: highlightTooltipProps) {
+function HighlightTooltip({ rendered, anchor, renderHighlightTooltip }: highlightTooltipProps) {
   const theme = useTheme();
+  const id = `cytobands-highlight-tooltip-${useId().replaceAll(":", "")}`;
   const contentRef = useRef<SVGGElement>(null);
   const [viewport, setViewport] = useState<viewportSize>(getViewportSize);
   const [contentBounds, setContentBounds] = useState<tooltipBounds>({

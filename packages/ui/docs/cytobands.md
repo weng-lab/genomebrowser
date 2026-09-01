@@ -150,9 +150,9 @@ genomic position.
 
 ## Application-owned tooltip data
 
-Rendered highlights show a coordinate tooltip on pointer hover. Clickable
-highlights also show it on keyboard focus. Use `renderHighlightTooltip` to
-replace it with SVG-compatible content. The application owns any lookup,
+Rendered highlights show a coordinate tooltip on pointer hover. Use
+`renderHighlightTooltip` to replace it with SVG-compatible content. The
+application owns any lookup,
 caching, loading, error, authentication, and cleanup logic for
 application-specific tooltip data:
 
@@ -209,9 +209,8 @@ The tooltip is SVG-only: return SVG-compatible content such as `<text>` or
 content and updates the tooltip size when that content changes.
 
 The active tooltip renders in a fixed, viewport-sized SVG portal under
-`document.body`, rather than inside the ideogram SVG. Pointer tooltips start
-beside the position from the pointer-enter event. Keyboard tooltips use the
-focused highlight's viewport bounds. Near the right or bottom viewport edge,
+`document.body`, rather than inside the ideogram SVG. Tooltips start beside the
+position from the pointer-enter event. Near the right or bottom viewport edge,
 the tooltip flips to the other side of its anchor, then clamps to the viewport
 margin. Content that is wider or taller than the available viewport area is
 clipped inside the bounded shell rather than extending beyond that margin.
@@ -222,11 +221,11 @@ active MUI theme's CSS-variable-aware palette tokens when available. Caption
 typography, shape, and the tooltip z-index also come from the active theme.
 
 Tooltip content is mounted only for the active highlight, so a request in the
-tooltip component runs only while that highlight is active. Pointer leave
-closes a pointer-owned tooltip. Blur or Escape closes a keyboard-owned
-tooltip, and click or keyboard activation also dismisses it. Switching
-highlights, removing the active highlight, and unmounting `Cytobands` remove
-the portal content and its observers.
+tooltip component runs only while that highlight is hovered. Pointer leave
+closes the tooltip. Switching highlights, removing the active highlight, and
+unmounting `Cytobands` remove the portal content and its observers. Keyboard
+focus does not open a tooltip; clickable highlights remain keyboard-activatable
+with Enter or Space and expose their coordinates through their accessible name.
 
 ## Data and rendering
 
@@ -260,7 +259,7 @@ the rendered SVG synchronously; `Cytobands` makes no network request.
 | `colors`                  | `Partial<CytobandColors>`                                                                                | `undefined`        | Overrides one or more stain colors.                                                                                                      |
 | `highlights`              | `readonly Highlight[]`                                                                                   | `[]`               | Application loci to overlay. Missing opacity renders as `0.2`.                                                                           |
 | `currentRegion`           | `GenomicRegion`                                                                                          | `undefined`        | Browser viewport rendered as a separate, non-interactive blue bracket.                                                                   |
-| `renderHighlightTooltip`  | `(highlight: Highlight) => ReactNode`                                                                    | Coordinate tooltip | Returns SVG-compatible content for the fixed viewport tooltip shown for the active pointer-hovered or keyboard-focused highlight.        |
+| `renderHighlightTooltip`  | `(highlight: Highlight) => ReactNode`                                                                    | Coordinate tooltip | Returns SVG-compatible content for the fixed viewport tooltip shown for the pointer-hovered highlight.                                   |
 | `onHighlightClick`        | `(highlight: Highlight, event: ReactMouseEvent<SVGGElement> \| ReactKeyboardEvent<SVGGElement>) => void` | `undefined`        | Runs for a pointer click or non-repeated Enter/Space activation. Supplying it gives valid highlights `role="button"` and keyboard focus. |
 | `onHighlightPointerEnter` | `(highlight: Highlight, event: ReactPointerEvent<SVGGElement>) => void`                                  | `undefined`        | Runs when the pointer enters a rendered highlight group.                                                                                 |
 | `onHighlightPointerLeave` | `(highlight: Highlight, event: ReactPointerEvent<SVGGElement>) => void`                                  | `undefined`        | Runs when the pointer leaves a rendered highlight group.                                                                                 |
@@ -292,13 +291,10 @@ an accessible coordinate name, and `tabIndex={0}`. Enter and Space call the
 same callback as pointer activation; repeated keydown events are ignored.
 Without `onHighlightClick`, highlights are not keyboard-focusable buttons.
 
-Pointer hover opens a tooltip for any rendered highlight. Keyboard focus opens
-one only when `onHighlightClick` makes the highlight interactive. While the
-tooltip is visible, the active highlight references its stable tooltip ID with
-`aria-describedby`. Blur, Escape, click, and keyboard activation dismiss a
-keyboard tooltip. Pointer leave dismisses a pointer tooltip. Tooltip content
-and its viewport portal ignore pointer events; each highlight's coordinate
-label remains its accessible name.
+Pointer hover opens a tooltip for any rendered highlight, and pointer leave
+dismisses it. Keyboard focus and activation do not open or dismiss tooltips.
+Tooltip content and its viewport portal ignore pointer events; each highlight's
+coordinate label remains its accessible name.
 
 ## Notes
 
