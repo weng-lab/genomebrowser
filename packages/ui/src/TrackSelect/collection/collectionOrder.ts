@@ -1,13 +1,13 @@
-import { getCollectionRows, type CollectionGridRow } from "./collectionRows";
-import type { TrackSelectCollection, TrackSelectView } from "../schema/collectionSchema";
+import type { TrackSelectView } from "../schema/collectionSchema";
+import type { CollectionGridRow, TrackSelectCollectionRecord } from "./collectionCompilation";
 import { groupRowsByField } from "./collectionGrouping";
 
 export function getOrderedSelectedRows(
-  collection: TrackSelectCollection,
+  collection: TrackSelectCollectionRecord,
   view: TrackSelectView,
   selectedIds: Set<string>,
 ) {
-  const selectedRows = getCollectionRows(collection).filter((row) => selectedIds.has(row.id));
+  const selectedRows = collection.rows.filter((row) => selectedIds.has(row.id));
   return flattenRowsByGrouping(selectedRows, view.grouping);
 }
 

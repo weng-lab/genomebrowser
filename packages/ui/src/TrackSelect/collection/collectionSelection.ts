@@ -1,38 +1,35 @@
-import type { TrackSelectCollection, TrackSelectView } from "../schema/collectionSchema";
+import type { TrackSelectView } from "../schema/collectionSchema";
 import { getOrderedSelectedRows } from "./collectionOrder";
-import { getCollectionTrackId, getCollectionTrackIds } from "./collectionRows";
+import type {
+  CompiledTrackCollections,
+  TrackSelectCollectionRecord,
+} from "./collectionCompilation";
 import type { CollectionStoreTrack } from "./collectionTypes";
 
 export type SelectedByCollection = Map<string, Set<string>>;
 
-function createEmptySelection(trackCollections: TrackSelectCollection[]) {
-  return new Map(trackCollections.map((collection) => [collection.id, new Set<string>()]));
+function createEmptySelection(collections: TrackSelectCollectionRecord[]) {
+  return new Map(collections.map((collection) => [collection.id, new Set<string>()]));
 }
 
 export function createOrderedSelectionFromTracks(
-  trackCollections: TrackSelectCollection[],
+  compiledCollections: CompiledTrackCollections,
   tracks: CollectionStoreTrack[],
 ) {
-  const collectionTrackIds = new Set(
-    trackCollections.flatMap((collection) =>
-      collection.tracks.map((track) => getCollectionTrackId(collection.id, track.id)),
-    ),
+  return tracks.flatMap((track) =>
+    compiledCollections.tracksById.has(track.base.id) ? [track.base.id] : [],
   );
-  return tracks.flatMap((track) => (collectionTrackIds.has(track.base.id) ? [track.base.id] : []));
 }
 
 export function createSelectionByCollection(
-  trackCollections: TrackSelectCollection[],
+  compiledCollections: CompiledTrackCollections,
   selectedTrackIds: readonly string[],
 ) {
-  const selectedByCollection = createEmptySelection(trackCollections);
+  const selectedByCollection = createEmptySelection(compiledCollections.records);
 
-  for (const collection of trackCollections) {
-    const collectionTrackIds = getCollectionTrackIds(collection);
-    const selectedIds = selectedByCollection.get(collection.id)!;
-    for (const id of selectedTrackIds) {
-      if (collectionTrackIds.has(id)) selectedIds.add(id);
-    }
+  for (const id of selectedTrackIds) {
+    const entry = compiledCollections.tracksById.get(id);
+    if (entry) selectedByCollection.get(entry.collectionId)!.add(id);
   }
 
   return selectedByCollection;
@@ -45,12 +42,11 @@ export function setOrderedCollectionSelection({
   selectedIds,
 }: {
   selectedTrackIds: readonly string[];
-  collection: TrackSelectCollection;
+  collection: TrackSelectCollectionRecord;
   view: TrackSelectView;
   selectedIds: Set<string>;
 }) {
-  const collectionTrackIds = getCollectionTrackIds(collection);
-  const next = selectedTrackIds.filter((id) => !collectionTrackIds.has(id) || selectedIds.has(id));
+  const next = selectedTrackIds.filter((id) => !collection.trackIds.has(id) || selectedIds.has(id));
   const retainedIds = new Set(next);
   const additions: string[] = [];
   for (const row of getOrderedSelectedRows(collection, view, selectedIds)) {
@@ -62,11 +58,10 @@ export function setOrderedCollectionSelection({
 
 export function clearOrderedSelection(
   selectedTrackIds: readonly string[],
-  collection?: TrackSelectCollection,
+  collection?: TrackSelectCollectionRecord,
 ) {
   if (!collection) return [];
-  const collectionTrackIds = getCollectionTrackIds(collection);
-  return selectedTrackIds.filter((id) => !collectionTrackIds.has(id));
+  return selectedTrackIds.filter((id) => !collection.trackIds.has(id));
 }
 
 export function removeOrderedTrackIds(

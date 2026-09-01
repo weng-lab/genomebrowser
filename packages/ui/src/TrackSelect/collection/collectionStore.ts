@@ -3,25 +3,24 @@ import {
   adaptTrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "./collectionInteraction";
-import type { TrackSelectCollection } from "../schema/collectionSchema";
-import { getCollectionTrackById } from "./collectionRows";
+import type { CompiledTrackCollections } from "./collectionCompilation";
 
 export function getReconciledTracks({
-  trackCollections,
+  compiledCollections,
   tracks,
   selectedTrackIds,
   registry,
   maxTracks,
   resolveTrackInteraction,
 }: {
-  trackCollections: TrackSelectCollection[];
+  compiledCollections: CompiledTrackCollections;
   tracks: TrackStore["tracks"];
   selectedTrackIds: readonly string[];
   registry: TrackStore["registry"];
   maxTracks: number;
   resolveTrackInteraction?: TrackSelectInteractionResolver;
 }): TrackStore["tracks"] {
-  const collectionTracksById = getCollectionTrackById(trackCollections);
+  const collectionTracksById = compiledCollections.tracksById;
   assertValidSelectedTrackIds(selectedTrackIds, collectionTracksById, maxTracks);
 
   const existingTracksById = new Map(tracks.map((track) => [track.base.id, track]));
@@ -53,15 +52,11 @@ export function getReconciledTracks({
 }
 
 export function assertValidCollectionTrackIds(
-  trackCollections: TrackSelectCollection[],
+  compiledCollections: CompiledTrackCollections,
   selectedTrackIds: readonly string[],
   maxTracks: number,
 ) {
-  assertValidSelectedTrackIds(
-    selectedTrackIds,
-    getCollectionTrackById(trackCollections),
-    maxTracks,
-  );
+  assertValidSelectedTrackIds(selectedTrackIds, compiledCollections.tracksById, maxTracks);
 }
 
 function assertValidSelectedTrackIds(

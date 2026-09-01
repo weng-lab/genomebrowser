@@ -11,6 +11,7 @@ import type {
   TrackSelectInteraction,
   TrackSelectInteractionResolver,
 } from "../src/lib";
+import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
 import {
   clearOrderedSelection,
   createOrderedSelectionFromTracks,
@@ -84,6 +85,7 @@ const collections: TrackSelectCollection[] = [
     ],
   },
 ];
+const compiledCollections = compileTrackCollections(collections);
 
 describe("TrackSelect default track reconciliation", () => {
   it("preserves non-collection tracks and applies the exact cross-collection order", () => {
@@ -104,7 +106,7 @@ describe("TrackSelect default track reconciliation", () => {
     });
 
     const nextTracks = getReconciledTracks({
-      trackCollections: collections,
+      compiledCollections,
       tracks: [existingDefault, unmanagedTrack, unselectedCollectionTrack],
       selectedTrackIds: ["beta::one", "alpha::one"],
       registry,
@@ -139,7 +141,7 @@ describe("TrackSelect default track reconciliation", () => {
     });
 
     const nextTracks = getReconciledTracks({
-      trackCollections: collections,
+      compiledCollections,
       tracks: [collectionTrack, unmanagedTrack],
       selectedTrackIds: [],
       registry,
@@ -151,7 +153,7 @@ describe("TrackSelect default track reconciliation", () => {
 
   it("rejects duplicate, unknown, and over-limit defaults", () => {
     const options = {
-      trackCollections: collections,
+      compiledCollections,
       tracks: [],
       registry,
       maxTracks: 2,
@@ -192,7 +194,7 @@ describe("TrackSelect default track reconciliation", () => {
     const resolveTrackInteraction: TrackSelectInteractionResolver = vi.fn(() => interaction);
 
     const [track] = getReconciledTracks({
-      trackCollections: collections,
+      compiledCollections,
       tracks: [],
       selectedTrackIds: ["beta::one"],
       registry,
@@ -237,7 +239,7 @@ describe("TrackSelect default track reconciliation", () => {
     );
 
     const preserved = getReconciledTracks({
-      trackCollections: collections,
+      compiledCollections,
       tracks: [unmanagedTrack, existingTrack],
       selectedTrackIds: ["alpha::one"],
       registry,
@@ -255,7 +257,7 @@ describe("TrackSelect default track reconciliation", () => {
 
     const replacement = { onClick: vi.fn() };
     const replaced = getReconciledTracks({
-      trackCollections: collections,
+      compiledCollections,
       tracks: [unmanagedTrack, existingTrack],
       selectedTrackIds: ["alpha::one"],
       registry,
@@ -270,7 +272,7 @@ describe("TrackSelect default track reconciliation", () => {
     expect(replaced[1]!.interaction).not.toHaveProperty("onLeave");
 
     const cleared = getReconciledTracks({
-      trackCollections: collections,
+      compiledCollections,
       tracks: [unmanagedTrack, existingTrack],
       selectedTrackIds: ["alpha::one"],
       registry,
@@ -284,7 +286,7 @@ describe("TrackSelect default track reconciliation", () => {
   it("rejects invalid resolver output before returning reconciled tracks", () => {
     expect(() =>
       getReconciledTracks({
-        trackCollections: collections,
+        compiledCollections,
         tracks: [],
         selectedTrackIds: ["alpha::one"],
         registry,
@@ -298,7 +300,7 @@ describe("TrackSelect default track reconciliation", () => {
   it.each([null, false])("rejects falsy non-undefined resolver output: %s", (invalidValue) => {
     expect(() =>
       getReconciledTracks({
-        trackCollections: collections,
+        compiledCollections,
         tracks: [],
         selectedTrackIds: ["alpha::one"],
         registry,
@@ -315,12 +317,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 describe("TrackSelect ordered draft selection", () => {
   it("derives collection selections without losing store order", () => {
-    const orderedIds = createOrderedSelectionFromTracks(collections, [
+    const orderedIds = createOrderedSelectionFromTracks(compiledCollections, [
       { base: { id: "beta::one" } },
       { base: { id: "unmanaged" } },
       { base: { id: "alpha::one" } },
     ]);
-    const selectedByCollection = createSelectionByCollection(collections, orderedIds);
+    const selectedByCollection = createSelectionByCollection(compiledCollections, orderedIds);
 
     expect(orderedIds).toEqual(["beta::one", "alpha::one"]);
     expect(Array.from(selectedByCollection.get("alpha") ?? [])).toEqual(["alpha::one"]);
@@ -330,7 +332,7 @@ describe("TrackSelect ordered draft selection", () => {
   it("preserves surviving tracks and appends additions in active-view order", () => {
     const next = setOrderedCollectionSelection({
       selectedTrackIds: ["beta::one", "alpha::one"],
-      collection: collections[0],
+      collection: compiledCollections.records[0]!,
       view: defaultView,
       selectedIds: new Set(["alpha::two", "alpha::one"]),
     });
@@ -341,7 +343,9 @@ describe("TrackSelect ordered draft selection", () => {
   it("clears and removes tracks without disturbing remaining order", () => {
     const selectedIds = ["alpha::one", "beta::one", "alpha::two"];
 
-    expect(clearOrderedSelection(selectedIds, collections[0])).toEqual(["beta::one"]);
+    expect(clearOrderedSelection(selectedIds, compiledCollections.records[0])).toEqual([
+      "beta::one",
+    ]);
     expect(clearOrderedSelection(selectedIds)).toEqual([]);
     expect(removeOrderedTrackIds(selectedIds, ["beta::one"])).toEqual(["alpha::one", "alpha::two"]);
   });

@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
 import { DataGridCellValue, ValueMarkerCell } from "./CollectionCells";
-import type { CollectionGridRow } from "./collectionRows";
+import type { CollectionGridRow } from "./collectionCompilation";
 import type { TrackSelectColumn, TrackSelectView } from "../schema/collectionSchema";
 
 export type TrackSelectColumnOverride = Omit<Partial<GridColDef>, "field">;

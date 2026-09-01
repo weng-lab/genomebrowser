@@ -1,5 +1,6 @@
 import type { TrackStore } from "@weng-lab/genomebrowser";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import type { CompiledTrackCollections } from "../collection/collectionCompilation";
 import {
   clearOrderedSelection,
   createOrderedSelectionFromTracks,
@@ -10,12 +11,11 @@ import {
 import type { TrackSelectInteractionResolver } from "../collection/collectionInteraction";
 import { getReconciledTracks } from "../collection/collectionStore";
 import { getActiveView, getInitialViewIds } from "../collection/collectionViews";
-import type { TrackSelectCollection } from "../schema/collectionSchema";
 
 type TrackSelectScreen = "collection-list" | "collection-detail";
 
 type TrackSelectStateOptions = {
-  trackCollections: TrackSelectCollection[];
+  compiledCollections: CompiledTrackCollections;
   tracks: TrackStore["tracks"];
   registry: TrackStore["registry"];
   setTracks: TrackStore["setTracks"];
@@ -29,7 +29,7 @@ type TrackSelectStateOptions = {
 export type TrackSelectState = ReturnType<typeof useTrackSelectState>;
 
 export function useTrackSelectState({
-  trackCollections,
+  compiledCollections,
   tracks,
   registry,
   setTracks,
@@ -39,27 +39,30 @@ export function useTrackSelectState({
   onClose,
   resolveTrackInteraction,
 }: TrackSelectStateOptions) {
+  const collections = compiledCollections.records;
   const [screen, setScreen] = useState<TrackSelectScreen>(() =>
-    trackCollections.length === 1 ? "collection-detail" : "collection-list",
+    collections.length === 1 ? "collection-detail" : "collection-list",
   );
-  const [activeCollectionId, setActiveCollectionId] = useState(() => trackCollections[0]?.id ?? "");
+  const [activeCollectionId, setActiveCollectionId] = useState(() => collections[0]?.id ?? "");
   const [activeViewIdByCollection, setActiveViewIdByCollection] = useState(() =>
-    getInitialViewIds(trackCollections),
+    getInitialViewIds(collections),
   );
   const [selectedTrackIds, setSelectedTrackIds] = useState(() =>
-    createOrderedSelectionFromTracks(trackCollections, tracks),
+    createOrderedSelectionFromTracks(compiledCollections, tracks),
   );
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string>();
 
-  const currentScreen = getCurrentScreen(screen, trackCollections.length);
+  const currentScreen = getCurrentScreen(screen, collections.length);
   const activeCollection =
-    trackCollections.find((collection) => collection.id === activeCollectionId) ??
-    trackCollections[0];
+    compiledCollections.recordsById.get(activeCollectionId) ?? collections[0];
   const activeView = activeCollection
     ? getActiveView(activeCollection, activeViewIdByCollection)
     : undefined;
-  const selectedByCollection = createSelectionByCollection(trackCollections, selectedTrackIds);
+  const selectedByCollection = useMemo(
+    () => createSelectionByCollection(compiledCollections, selectedTrackIds),
+    [compiledCollections, selectedTrackIds],
+  );
   const selectedTrackCount = selectedTrackIds.length;
 
   function selectCollection(collectionId: string) {
@@ -125,7 +128,7 @@ export function useTrackSelectState({
     let nextTracks: TrackStore["tracks"];
     try {
       nextTracks = getReconciledTracks({
-        trackCollections,
+        compiledCollections,
         tracks,
         selectedTrackIds,
         registry,
@@ -152,7 +155,7 @@ export function useTrackSelectState({
 
   return {
     state: {
-      trackCollections,
+      collections,
       screen: currentScreen,
       activeCollection,
       activeView,

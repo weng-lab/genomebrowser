@@ -13,6 +13,7 @@ import {
 } from "@weng-lab/genomebrowser";
 import type { TrackSelectInteraction, TrackSelectInteractionResolver } from "../src/lib";
 import TrackSelect from "../src/TrackSelect/TrackSelect";
+import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
 import type {
   TrackSelectCollection,
   TrackSelectTrack,
@@ -190,7 +191,7 @@ function createStateOptions({
     onCommittedTrackIds,
     setTracks: commitTracks,
     options: {
-      trackCollections,
+      compiledCollections: compileTrackCollections(trackCollections),
       tracks: store.getState().tracks,
       registry: store.getState().registry,
       setTracks: commitTracks,
