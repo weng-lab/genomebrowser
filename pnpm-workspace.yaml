@@ -2,6 +2,7 @@ packages:
   - apps/*
   - benchmarks/*
   - packages/*
+  - packages/create/template
 
 onlyBuiltDependencies:
   - "@mui/x-telemetry"

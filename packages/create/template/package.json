@@ -1,0 +1,41 @@
+{
+  "name": "genomebrowser-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "schema": "trackselect schema --from ./src/stores.ts#myModules --out schemas/trackSelectCollection.schema.json",
+    "schema:check": "trackselect schema --from ./src/stores.ts#myModules --out schemas/trackSelectCollection.schema.json --check",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^7.3.0",
+    "@mui/material": "^7.3.0",
+    "@mui/x-data-grid-premium": "^8.0.0",
+    "@mui/x-license": "^8.0.0",
+    "@mui/x-tree-view": "^8.0.0",
+    "@weng-lab/genomebrowser": "workspace:^2.0.0-alpha.1",
+    "@weng-lab/genomebrowser-tracks": "workspace:^2.0.0-alpha.1",
+    "@weng-lab/genomebrowser-ui": "workspace:^2.0.0-alpha.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "oxfmt": "^0.61.0",
+    "oxlint": "^1.76.0",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.13"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "$schema": "../schemas/trackSelectCollection.schema.json",
+  "id": "default-tracks",
+  "label": "Default tracks",
+  "description": "Reference genes and aggregate ENCODE signals included with this project.",
+  "views": [
+    {
+      "id": "default",
+      "label": "Tracks",
+      "columns": [
+        {
+          "field": "title",
+          "label": "Track"
+        }
+      ],
+      "grouping": [],
+      "leaf": "title"
+    }
+  ],
+  "tracks": [
+    {
+      "type": "gene",
+      "id": "genes",
+      "title": "GENCODE genes",
+      "display": "merged",
+      "height": 60,
+      "color": "#444444",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v40.comprehensive.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "type": "ccre-bigbed",
+      "id": "ccre-aggregate",
+      "title": "Aggregate cCRE, all ENCODE biosamples",
+      "display": "dense",
+      "height": 20,
+      "color": "#000000",
+      "config": {
+        "url": "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed"
+      },
+      "metadata": {}
+    },
+    {
+      "type": "bigwig",
+      "id": "dnase-aggregate",
+      "title": "Aggregate DNase, all ENCODE biosamples",
+      "display": "full",
+      "height": 50,
+      "color": "#06da93",
+      "config": {
+        "url": "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw"
+      },
+      "metadata": {}
+    },
+    {
+      "type": "bigwig",
+      "id": "h3k4me3-aggregate",
+      "title": "Aggregate H3K4me3, all ENCODE biosamples",
+      "display": "full",
+      "height": 50,
+      "color": "#ff0000",
+      "config": {
+        "url": "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw"
+      },
+      "metadata": {}
+    },
+    {
+      "type": "bigwig",
+      "id": "h3k27ac-aggregate",
+      "title": "Aggregate H3K27ac, all ENCODE biosamples",
+      "display": "full",
+      "height": 50,
+      "color": "#ffcd00",
+      "config": {
+        "url": "https://downloads.wenglab.org/H3K27ac_All_ENCODE_MAR20_2024_merged.bw"
+      },
+      "metadata": {}
+    },
+    {
+      "type": "bigwig",
+      "id": "ctcf-aggregate",
+      "title": "Aggregate CTCF, all ENCODE biosamples",
+      "display": "full",
+      "height": 50,
+      "color": "#00b0d0",
+      "config": {
+        "url": "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw"
+      },
+      "metadata": {}
+    },
+    {
+      "type": "bigwig",
+      "id": "atac-aggregate",
+      "title": "Aggregate ATAC, all ENCODE biosamples",
+      "display": "full",
+      "height": 50,
+      "color": "#02c7b9",
+      "config": {
+        "url": "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw"
+      },
+      "metadata": {}
+    }
+  ]
+}
