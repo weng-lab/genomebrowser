@@ -15,6 +15,7 @@
     "template/CLAUDE.md",
     "template/README.md",
     "template/_gitignore",
+    "template/.env.example",
     "template/.oxfmtrc.json",
     "template/.oxlintrc.json",
     "template/index.html",

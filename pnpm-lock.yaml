@@ -279,6 +279,9 @@ importers:
       '@weng-lab/genomebrowser-ui':
         specifier: workspace:^2.0.0-alpha.1
         version: link:../../ui
+      '@weng-lab/ui-components':
+        specifier: ^3.1.4
+        version: 3.1.4(f51084f5cda39288785cc9d401aef85e)
       react:
         specifier: ^19.2.8
         version: 19.2.8

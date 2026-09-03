@@ -8,6 +8,7 @@ const paths = new Set(pack.files.map((file) => file.path));
 
 for (const requiredPath of [
   "dist/create.js",
+  "template/.env.example",
   "template/_gitignore",
   "template/CLAUDE.md",
   "template/package.json",
