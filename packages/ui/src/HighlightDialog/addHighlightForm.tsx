@@ -9,12 +9,43 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
-import { useState, type SyntheticEvent } from "react";
+import { useReducer, type SyntheticEvent } from "react";
 import { formatRegion, parseHighlightRegion } from "./highlightRegion";
 
 const defaultColor = "#3366cc";
 
 type FormErrors = Partial<Record<"name" | "region" | "opacity", string>>;
+
+type FormValues = { name: string; region: string; color: string; opacity: string };
+type FormState = FormValues & { errors: FormErrors };
+type FormAction =
+  | { type: "fieldChanged"; field: keyof FormValues; value: string }
+  | { type: "validationFailed"; errors: FormErrors }
+  | { type: "submitted" };
+
+const initialFormState: FormState = {
+  name: "",
+  region: "",
+  color: defaultColor,
+  opacity: "20",
+  errors: {},
+};
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case "fieldChanged":
+      return {
+        ...state,
+        [action.field]: action.value,
+        errors:
+          action.field === "color" ? state.errors : { ...state.errors, [action.field]: undefined },
+      };
+    case "validationFailed":
+      return { ...state, errors: action.errors };
+    case "submitted":
+      return initialFormState;
+  }
+}
 
 export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreInstance }) {
   const useBrowserStore = browserStore;
@@ -22,15 +53,11 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
   const currentRegion = useBrowserStore((state) => state.region);
   const highlights = useBrowserStore((state) => state.highlights);
   const addHighlight = useBrowserStore((state) => state.addHighlight);
-  const [name, setName] = useState("");
-  const [regionInput, setRegionInput] = useState("");
-  const [color, setColor] = useState(defaultColor);
-  const [opacityInput, setOpacityInput] = useState("20");
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [{ name, region: regionInput, color, opacity: opacityInput, errors }, dispatch] =
+    useReducer(formReducer, initialFormState);
 
   function handleUseCurrentRegion() {
-    setRegionInput(formatRegion(currentRegion));
-    setErrors((current) => ({ ...current, region: undefined }));
+    dispatch({ type: "fieldChanged", field: "region", value: formatRegion(currentRegion) });
   }
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {
@@ -52,14 +79,13 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
       nextErrors.opacity = "Enter a number from 0 to 100.";
     }
 
-    setErrors(nextErrors);
-    if (!trimmedName || !regionResult.ok || Object.keys(nextErrors).length > 0) return;
+    if (!trimmedName || !regionResult.ok || Object.keys(nextErrors).length > 0) {
+      dispatch({ type: "validationFailed", errors: nextErrors });
+      return;
+    }
 
     addHighlight({ id: trimmedName, region: regionResult.region, color, opacity: opacity / 100 });
-    setName("");
-    setRegionInput("");
-    setColor(defaultColor);
-    setOpacityInput("20");
+    dispatch({ type: "submitted" });
   }
 
   return (
@@ -89,10 +115,9 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
               fullWidth
               helperText={errors.region}
               label="Region"
-              onChange={(event) => {
-                setRegionInput(event.target.value);
-                setErrors((current) => ({ ...current, region: undefined }));
-              }}
+              onChange={(event) =>
+                dispatch({ type: "fieldChanged", field: "region", value: event.target.value })
+              }
               placeholder="chr12:53,372,922-53,423,700"
               required
               size="small"
@@ -104,10 +129,9 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
               fullWidth
               helperText={errors.name}
               label="ID"
-              onChange={(event) => {
-                setName(event.target.value);
-                setErrors((current) => ({ ...current, name: undefined }));
-              }}
+              onChange={(event) =>
+                dispatch({ type: "fieldChanged", field: "name", value: event.target.value })
+              }
               placeholder="Create an ID for the highlight"
               required
               size="small"
@@ -117,7 +141,9 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
               <TextField
                 fullWidth
                 label="Color"
-                onChange={(event) => setColor(event.target.value)}
+                onChange={(event) =>
+                  dispatch({ type: "fieldChanged", field: "color", value: event.target.value })
+                }
                 size="small"
                 slotProps={{ htmlInput: { "aria-label": "Highlight color" } }}
                 sx={{
@@ -132,10 +158,9 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
                 fullWidth
                 helperText={errors.opacity}
                 label="Opacity (%)"
-                onChange={(event) => {
-                  setOpacityInput(event.target.value);
-                  setErrors((current) => ({ ...current, opacity: undefined }));
-                }}
+                onChange={(event) =>
+                  dispatch({ type: "fieldChanged", field: "opacity", value: event.target.value })
+                }
                 required
                 size="small"
                 slotProps={{ htmlInput: { min: 0, max: 100, step: "any" } }}
