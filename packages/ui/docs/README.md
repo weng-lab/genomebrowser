@@ -29,5 +29,6 @@ Keep this setup in the host application's entry point or another module imported
 - [Getting started](gettingStarted.md) shows a browser and TrackSelect sharing one stable track store.
 - [Cytobands](cytobands.md) documents chromosome ideograms, browser-region brackets, and interactive loci.
 - [Browser navigation button](browserNavigationButton.md) documents store-bound pan and zoom composition.
+- [Highlight dialog](highlightDialog.md) documents store-bound highlight management.
 - [TrackSelect](trackSelect.md) explains collections, the selection lifecycle, customization, schema tooling, and troubleshooting.
 - [Track interactions](recipes/trackInteractions.md) shows one shared runtime-aware callback dispatcher across a heterogeneous collection.

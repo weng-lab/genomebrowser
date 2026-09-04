@@ -5,6 +5,10 @@ export type {
   BrowserNavigationButtonProps,
 } from "./BrowserNavigationButton/browserNavigationButton";
 
+// Highlight Dialog
+export { HighlightDialog } from "./HighlightDialog/HighlightDialog";
+export type { HighlightDialogProps } from "./HighlightDialog/HighlightDialog";
+
 // Cytoband
 export { Cytobands } from "./cytobands/cytobands";
 export type { CytobandColors, CytobandsProps } from "./cytobands/cytobands";

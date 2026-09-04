@@ -1,0 +1,45 @@
+{
+  "name": "@weng-lab/create-genomebrowser",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Create an editable genome browser application.",
+  "bin": {
+    "create-genomebrowser": "dist/create.js"
+  },
+  "files": [
+    "dist",
+    "template/collections",
+    "template/docs",
+    "template/schemas",
+    "template/src",
+    "template/AGENTS.md",
+    "template/CLAUDE.md",
+    "template/README.md",
+    "template/_gitignore",
+    "template/.env.example",
+    "template/.oxfmtrc.json",
+    "template/.oxlintrc.json",
+    "template/index.html",
+    "template/package.json",
+    "template/tsconfig*.json",
+    "template/vite.config.ts",
+    "LICENSE",
+    "README.md"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/create.js && node scripts/verify-package.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "vitest": "4.1.7"
+  }
+}
