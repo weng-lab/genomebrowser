@@ -29,6 +29,7 @@ describe("HighlightDialog", () => {
     clickButton("Add New Highlight");
     setTextInput("ID", "Focus region");
     setTextInput("Region", "chr2:1,200-1,500");
+    setTextInput("Opacity (%)", "65");
     clickButton("Add Highlight");
 
     expect(browserStore.getState().highlights).toEqual([
@@ -36,9 +37,11 @@ describe("HighlightDialog", () => {
         id: "Focus region",
         region: { chromosome: "chr2", start: 1_200, end: 1_500 },
         color: "#3366cc",
+        opacity: 0.65,
       },
     ]);
     expect(document.body.textContent).toContain("chr2:1,200-1,500");
+    expect(getInput("Opacity (%)").value).toBe("20");
   });
 
   it("shows a field error instead of adding an invalid region", () => {

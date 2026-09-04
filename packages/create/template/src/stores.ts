@@ -8,7 +8,7 @@ import {
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 
-// Both stores are React hooks and MUST include "use" at the start
+// Store names begin with "use" because components also use them as React hooks.
 
 // Default initialization for the browser region, assembly and dimensions.
 // Track width will change as you resize the application as well.
@@ -24,6 +24,7 @@ export const useBrowserStore = createBrowserStore({
 export const myModules = [...firstPartyTrackModules];
 export const useTrackStore = createTrackStore({
   modules: myModules,
+  // TrackPicker loads the startup tracks from src/collections.ts.
   tracks: [],
 });
 

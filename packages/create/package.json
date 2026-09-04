@@ -9,6 +9,7 @@
   "files": [
     "dist",
     "template/collections",
+    "template/docs",
     "template/schemas",
     "template/src",
     "template/AGENTS.md",

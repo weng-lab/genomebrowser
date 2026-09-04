@@ -26,3 +26,10 @@ main {
 h1 {
   margin: 0;
 }
+
+.browser-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}

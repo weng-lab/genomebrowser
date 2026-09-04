@@ -11,6 +11,10 @@ for (const requiredPath of [
   "template/.env.example",
   "template/_gitignore",
   "template/CLAUDE.md",
+  "template/AGENTS.md",
+  "template/docs/architecture.md",
+  "template/docs/customization.md",
+  "template/docs/deployment.md",
   "template/package.json",
   "template/src/App.tsx",
 ]) {

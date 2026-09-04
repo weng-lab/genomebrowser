@@ -1,43 +1,35 @@
-# Genome Browser
+# Your genome browser
 
-This is an editable React application built with the Weng Lab genome browser packages and Vite.
+An editable React and TypeScript application built with the Weng Lab genome browser packages. It starts with hg38 and reference tracks, ready to adapt to your datasets and workflows.
 
-TrackSelect uses MUI X Premium. If your use requires a license, set `VITE_MUI_X_LICENSE_KEY` in your environment.
+## Run locally
 
-Gene, SNP, and cCRE search uses the SCREEN GraphQL API. Copy `.env.example` to `.env.local`, then set `SCREEN_API_KEY` before starting Vite. The included development proxy keeps that key out of browser code. Coordinate search works without an API key.
-
-## Run the app
+With Node.js 22.12+ or 24+ installed:
 
 ```sh
 npm install
 npm run dev
 ```
 
-Create a production build with `npm run build`. The same scripts work through pnpm, Yarn, or Bun.
+Open the address printed by Vite. Source changes usually appear automatically.
 
-## Change the browser
+For gene, SNP, and cCRE search, copy `.env.example` to `.env.local`, set `SCREEN_API_KEY`, and restart the server. Keys are available from <https://console.wenglab.org/>. Coordinate search works without a key.
 
-- Edit `src/App.tsx` to change the page and choose which collection tracks load by default.
-- Edit `src/stores.ts` to change the assembly or initial region. Add first-party or custom track modules to the exported `myModules` array.
-- Edit `src/components/RegionNavigation.tsx` to change the available genome search result types.
-- Edit `collections/default-tracks.json` to add, remove, or configure tracks. Its JSON Schema provides editor completion and validation.
+## Customize and deploy
 
-Both the track store and the schema generator use `myModules`. Run `npm run schema` after changing that array. This regenerates `schemas/trackSelectCollection.schema.json`. You do not need to regenerate the schema after changing only collection entries.
+- [Customization](docs/customization.md): datasets, startup selection, assemblies, and interface changes.
+- [Architecture](docs/architecture.md): shared state and track initialization.
+- [Deployment](docs/deployment.md): hosting the website, data, and search endpoint.
 
-The installed package guides are available in `node_modules/@weng-lab/genomebrowser/docs`, `node_modules/@weng-lab/genomebrowser-tracks/docs`, and `node_modules/@weng-lab/genomebrowser-ui/docs`.
+For agent-assisted changes, provide the intended behavior, assembly, dataset URLs, and a representative region. [AGENTS.md](AGENTS.md) provides package documentation locations and verification commands.
 
-The Vite proxy is for local development only. In production, provide a same-origin `POST /api/screen-graphql` endpoint that forwards requests to `https://screen.api.wenglab.org/graphql` and adds `Authorization: Bearer <SCREEN_API_KEY>` on the server. Never expose the API key through a `VITE_` environment variable.
+## Current limitations
 
-## Host genomic files
-
-This project does not serve genomic data files. Track URLs must use HTTP or HTTPS. The file server must support byte-range requests and return uncompressed partial responses. If the files use another origin, that server must also allow cross-origin browser requests.
+- Search supports hg38/GRCh38 and mm10. Other assemblies show a notice instead of search; pan and zoom remain available.
+- Tracks and highlights are held in memory. Reloading restores the configured startup tracks and region.
+- The track selector uses MUI X Premium and may display its license watermark. The grid remains functional; this template does not configure a license key.
+- Production gene, SNP, and cCRE search requires a server endpoint; the local development proxy is not included in the build.
 
 ## Check your changes
 
-```sh
-npm run format:check
-npm run lint
-npm run typecheck
-npm run schema:check
-npm run build
-```
+Run the [verification commands](AGENTS.md#verification) and check the affected browser workflow. Agents should complete these checks and report the results with their changes.

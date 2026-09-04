@@ -33,6 +33,8 @@ export function BrowserWithHighlights() {
 
 The region field accepts the formats supported by `parseRegion`, including `chr12:53,372,922-53,423,700` and `chr12 53372922 53423700`. Coordinates are zero-based and half-open, so the start is included and the end is excluded. The region must fit within the browser store's assembly. Highlight IDs must be unique in that store.
 
+New highlights have a color and an opacity percentage from 0–100 (default: 20%). An opacity of 0 is fully transparent; 100 is fully opaque.
+
 Selecting a highlight's arrow action sets the browser viewport to that highlight's exact region.
 
 ## API

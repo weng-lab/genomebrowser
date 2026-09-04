@@ -14,7 +14,7 @@ import { formatRegion, parseHighlightRegion } from "./highlightRegion";
 
 const defaultColor = "#3366cc";
 
-type FormErrors = Partial<Record<"name" | "region", string>>;
+type FormErrors = Partial<Record<"name" | "region" | "opacity", string>>;
 
 export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreInstance }) {
   const useBrowserStore = browserStore;
@@ -25,6 +25,7 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
   const [name, setName] = useState("");
   const [regionInput, setRegionInput] = useState("");
   const [color, setColor] = useState(defaultColor);
+  const [opacityInput, setOpacityInput] = useState("20");
   const [errors, setErrors] = useState<FormErrors>({});
 
   function handleUseCurrentRegion() {
@@ -46,13 +47,19 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
     const regionResult = parseHighlightRegion(regionInput, assembly);
     if (!regionResult.ok) nextErrors.region = regionResult.error;
 
+    const opacity = Number(opacityInput);
+    if (!opacityInput.trim() || !Number.isFinite(opacity) || opacity < 0 || opacity > 100) {
+      nextErrors.opacity = "Enter a number from 0 to 100.";
+    }
+
     setErrors(nextErrors);
     if (!trimmedName || !regionResult.ok || Object.keys(nextErrors).length > 0) return;
 
-    addHighlight({ id: trimmedName, region: regionResult.region, color });
+    addHighlight({ id: trimmedName, region: regionResult.region, color, opacity: opacity / 100 });
     setName("");
     setRegionInput("");
     setColor(defaultColor);
+    setOpacityInput("20");
   }
 
   return (
@@ -91,33 +98,50 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
               size="small"
               value={regionInput}
             />
+            <TextField
+              autoComplete="off"
+              error={Boolean(errors.name)}
+              fullWidth
+              helperText={errors.name}
+              label="ID"
+              onChange={(event) => {
+                setName(event.target.value);
+                setErrors((current) => ({ ...current, name: undefined }));
+              }}
+              placeholder="Create an ID for the highlight"
+              required
+              size="small"
+              value={name}
+            />
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
               <TextField
-                autoComplete="off"
-                error={Boolean(errors.name)}
                 fullWidth
-                helperText={errors.name}
-                label="ID"
-                onChange={(event) => {
-                  setName(event.target.value);
-                  setErrors((current) => ({ ...current, name: undefined }));
-                }}
-                placeholder="Create an ID for the highlight"
-                required
-                size="small"
-                value={name}
-              />
-              <TextField
                 label="Color"
                 onChange={(event) => setColor(event.target.value)}
                 size="small"
                 slotProps={{ htmlInput: { "aria-label": "Highlight color" } }}
                 sx={{
-                  flex: { sm: "0 0 11rem" },
+                  flex: 1,
                   "& input[type='color']": { cursor: "pointer", minHeight: 32, p: 0.5 },
                 }}
                 type="color"
                 value={color}
+              />
+              <TextField
+                error={Boolean(errors.opacity)}
+                fullWidth
+                helperText={errors.opacity}
+                label="Opacity (%)"
+                onChange={(event) => {
+                  setOpacityInput(event.target.value);
+                  setErrors((current) => ({ ...current, opacity: undefined }));
+                }}
+                required
+                size="small"
+                slotProps={{ htmlInput: { min: 0, max: 100, step: "any" } }}
+                sx={{ flex: 1 }}
+                type="number"
+                value={opacityInput}
               />
             </Stack>
             <Stack direction={{ xs: "column", sm: "row" }} justifyContent="center" spacing={0.75}>
