@@ -3,7 +3,7 @@
 Create a small Vite and React genome browser application that you can edit directly.
 
 ```sh
-npm create @weng-lab/genomebrowser my-browser
+npm create @weng-lab/genomebrowser@beta my-browser
 cd my-browser
 npm install
 npm run dev

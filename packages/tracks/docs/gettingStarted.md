@@ -3,7 +3,7 @@
 Install the track modules with the matching runtime prerelease and their React and MUI peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-tracks@alpha @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
+pnpm add @weng-lab/genomebrowser-tracks@beta @weng-lab/genomebrowser@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
 ```
 
 The settings panels use your application's MUI theme. This package does not install a global theme or stylesheet.

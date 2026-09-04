@@ -2,12 +2,12 @@
 
 First-party track modules for `@weng-lab/genomebrowser`. The package includes BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, Gene, MethylC, and Transcript modules. Each one provides its data fetcher, renderer, MUI settings, and SVG tooltip.
 
-The public API may change during the alpha release.
+The public API may change during the beta release.
 
 ## Install
 
 ```sh
-npm install @weng-lab/genomebrowser-tracks@alpha @weng-lab/genomebrowser@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
+npm install @weng-lab/genomebrowser-tracks@beta @weng-lab/genomebrowser@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
 ```
 
 ## Minimal browser

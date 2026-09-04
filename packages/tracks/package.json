@@ -1,6 +1,6 @@
 {
   "name": "@weng-lab/genomebrowser-tracks",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-beta.1",
   "description": "First-party track modules for @weng-lab/genomebrowser.",
   "homepage": "https://github.com/weng-lab/genomebrowser#readme",
   "bugs": {
@@ -65,7 +65,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "tag": "alpha"
+    "tag": "beta"
   },
   "scripts": {
     "build": "vite build && node scripts/verify-package.mjs",
@@ -83,7 +83,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@weng-lab/genomic-reader": "workspace:^2.0.0-alpha.1",
+    "@weng-lab/genomic-reader": "workspace:^2.0.0-beta.1",
     "react-colorful": "^5.8.0",
     "zod": "^4.4.3"
   },
@@ -92,7 +92,7 @@
     "@types/react-dom": "^19.2.3",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.0.2",
-    "@weng-lab/genomebrowser": "workspace:^2.0.0-alpha.1",
+    "@weng-lab/genomebrowser": "workspace:^2.0.0-beta.1",
     "jsdom": "^26.1.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vite": "^8.0.13",
@@ -103,7 +103,7 @@
     "@emotion/react": "^11.0.0",
     "@emotion/styled": "^11.0.0",
     "@mui/material": "^7.0.0",
-    "@weng-lab/genomebrowser": "^2.0.0-alpha.1",
+    "@weng-lab/genomebrowser": "^2.0.0-beta.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   }

@@ -1,6 +1,6 @@
 {
   "name": "@weng-lab/genomebrowser",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-beta.1",
   "description": "An extensible React runtime for displaying genomic tracks.",
   "homepage": "https://github.com/weng-lab/genomebrowser#readme",
   "bugs": {
@@ -28,7 +28,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "tag": "alpha"
+    "tag": "beta"
   },
   "scripts": {
     "build": "vite build",

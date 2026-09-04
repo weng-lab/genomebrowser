@@ -8,7 +8,7 @@ browser applications.
 Install the package and its Zod 4 peer dependency:
 
 ```sh
-npm install @weng-lab/genomic-reader@alpha zod
+npm install @weng-lab/genomic-reader@beta zod
 ```
 
 ## Read chromosome sizes

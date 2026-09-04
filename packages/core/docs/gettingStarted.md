@@ -3,7 +3,7 @@
 Install the runtime, the first-party tracks used in this example, and their React and MUI dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser@alpha @weng-lab/genomebrowser-tracks@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
+pnpm add @weng-lab/genomebrowser@beta @weng-lab/genomebrowser-tracks@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
 ```
 
 The browser needs one stable browser store, one stable track store, and at least one registered module. The application is responsible for measuring the available track width.

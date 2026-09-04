@@ -2,6 +2,8 @@
 
 Deployment has three parts: the built website, accessible genomic files, and a search endpoint. Provide the target host, site address, audience, and access constraints so an agent can configure and verify the deployment.
 
+To run the app or test a build over SSH first, see [Run, build, and access remotely](running.md).
+
 ## Build the website
 
 Run the [verification commands](../AGENTS.md#verification). `npm run build` produces `dist/`; deploy its contents through the host's publishing workflow.
@@ -12,7 +14,7 @@ The template assumes a website root. Deploying under a path such as `/my-project
 
 Coordinate search runs in the browser. Gene, SNP, and cCRE search requires `POST /api/screen-graphql` on the same website.
 
-Vite supplies a local development proxy, but it is not included in `dist/`. The production host needs a server function or a route to a server implementing this contract:
+Vite supplies a proxy during development and built previews, but it is not included in `dist/`. The production host needs a server function or a route to a server implementing this contract:
 
 | Request or setting | Behavior                                                        |
 | ------------------ | --------------------------------------------------------------- |

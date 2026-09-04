@@ -20,8 +20,8 @@
     "format:check:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md CONTRIBUTING.md README.md docs/turborepo.md .github --check",
     "verify": "turbo run format:check lint build test //#format:check:root",
     "doctor": "pnpm exec react-doctor . --verbose",
-    "publish:dry-run": "pnpm publish -r --tag alpha --dry-run --no-git-checks",
-    "publish:alpha": "pnpm publish -r --tag alpha"
+    "publish:dry-run": "pnpm publish -r --tag beta --dry-run --no-git-checks",
+    "publish:beta": "pnpm publish -r --tag beta"
   },
   "devDependencies": {
     "oxfmt": "^0.50.0",

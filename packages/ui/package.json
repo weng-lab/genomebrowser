@@ -1,6 +1,6 @@
 {
   "name": "@weng-lab/genomebrowser-ui",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-beta.1",
   "description": "Optional React application controls for @weng-lab/genomebrowser.",
   "homepage": "https://github.com/weng-lab/genomebrowser#readme",
   "bugs": {
@@ -31,7 +31,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "tag": "alpha"
+    "tag": "beta"
   },
   "scripts": {
     "build": "vite build && node scripts/verify-package.mjs",
@@ -45,8 +45,8 @@
     "prepack": "pnpm --filter @weng-lab/genomebrowser build:checked && pnpm --filter @weng-lab/genomic-reader build:checked && pnpm --filter @weng-lab/genomebrowser-tracks build:checked && pnpm build:checked"
   },
   "dependencies": {
-    "@weng-lab/genomebrowser": "workspace:^2.0.0-alpha.0",
-    "@weng-lab/genomic-reader": "workspace:^2.0.0-alpha.1",
+    "@weng-lab/genomebrowser": "workspace:^2.0.0-beta.1",
+    "@weng-lab/genomic-reader": "workspace:^2.0.0-beta.1",
     "jiti": "^2.6.2",
     "zod": "^4.4.3"
   },
@@ -56,7 +56,7 @@
     "@types/react-dom": "^19.2.3",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.0.2",
-    "@weng-lab/genomebrowser-tracks": "workspace:^2.0.0-alpha.1",
+    "@weng-lab/genomebrowser-tracks": "workspace:^2.0.0-beta.1",
     "jsdom": "^26.1.0",
     "tsx": "^4.22.4",
     "typescript": "npm:@typescript/typescript6@^6.0.2",

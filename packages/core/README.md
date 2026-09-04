@@ -9,7 +9,7 @@ Genome Browser v2 provides the browser viewport, validated state stores, track-m
 ## Install
 
 ```sh
-pnpm add @weng-lab/genomebrowser@alpha @weng-lab/genomebrowser-tracks@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
+pnpm add @weng-lab/genomebrowser@beta @weng-lab/genomebrowser-tracks@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
 ```
 
 ## Quick start
@@ -64,9 +64,9 @@ For a responsive browser that follows its container width, see [Getting started]
 
 Start with this package when you need to render or control a genome browser.
 
-Add `@weng-lab/genomebrowser-ui@alpha` when you also need ready-made application controls such as collection-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
+Add `@weng-lab/genomebrowser-ui@beta` when you also need ready-made application controls such as collection-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
 
-Add `@weng-lab/genomebrowser-tracks@alpha` for the curated BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Transcript modules. Core does not export first-party track implementations.
+Add `@weng-lab/genomebrowser-tracks@beta` for the curated BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Transcript modules. Core does not export first-party track implementations.
 
 ## Documentation
 

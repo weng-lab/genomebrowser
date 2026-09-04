@@ -13,6 +13,8 @@ npm run dev
 
 Open the address printed by Vite. Source changes usually appear automatically.
 
+See [Run, build, and access remotely](docs/running.md) for built previews and SSH access from your laptop to an app running on a lab server.
+
 For gene, SNP, and cCRE search, copy `.env.example` to `.env.local`, set `SCREEN_API_KEY`, and restart the server. Keys are available from <https://console.wenglab.org/>. Coordinate search works without a key.
 
 ## Customize and deploy
