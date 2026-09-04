@@ -112,13 +112,32 @@ export function NavigationControls({ browserStore }: { browserStore: BrowserStor
   );
 }
 
-export function BrowserHeader({ onSelectTracks }: { onSelectTracks: () => void }) {
+export function BrowserHeader({
+  onManageHighlights,
+  onSelectTracks,
+}: {
+  onManageHighlights: () => void;
+  onSelectTracks: () => void;
+}) {
   return (
-    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+    <Box
+      sx={{
+        alignItems: "center",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 2,
+        justifyContent: "space-between",
+      }}
+    >
       <Typography variant="h4">UMass Chan Genome Browser</Typography>
-      <Button variant="contained" onClick={onSelectTracks}>
-        Select tracks
-      </Button>
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+        <Button variant="outlined" onClick={onManageHighlights}>
+          Highlights
+        </Button>
+        <Button variant="contained" onClick={onSelectTracks}>
+          Select tracks
+        </Button>
+      </Box>
     </Box>
   );
 }

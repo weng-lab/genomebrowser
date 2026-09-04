@@ -13,6 +13,7 @@ import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
 import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import {
+  HighlightDialog,
   TrackSelect,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
@@ -60,6 +61,7 @@ const resolveTrackInteraction: TrackSelectInteractionResolver = ({ qualifiedTrac
   qualifiedTrackId === "human-biosamples::ccre-aggregate" ? ccreInteraction : undefined;
 
 export function Browser() {
+  const [highlightDialogOpen, setHighlightDialogOpen] = useState(false);
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
   const [containerRef, containerWidth] = useObservedWidth<HTMLElement>();
   const region = useBrowserStore((state) => state.region);
@@ -71,7 +73,10 @@ export function Browser() {
 
   return (
     <main ref={containerRef}>
-      <BrowserHeader onSelectTracks={() => setTrackSelectOpen(true)} />
+      <BrowserHeader
+        onManageHighlights={() => setHighlightDialogOpen(true)}
+        onSelectTracks={() => setTrackSelectOpen(true)}
+      />
       <NavigationControls browserStore={useBrowserStore} />
       <RegionOverview chromosomeLength={hg38.chromosomes[region.chromosome] ?? 0} region={region} />
       <Box sx={{ width: "100%", overflowX: "auto" }}>
@@ -89,6 +94,11 @@ export function Browser() {
         trackCollections={trackCollections}
         useTrackStore={useTrackStore}
         resolveTrackInteraction={resolveTrackInteraction}
+      />
+      <HighlightDialog
+        browserStore={useBrowserStore}
+        open={highlightDialogOpen}
+        onClose={() => setHighlightDialogOpen(false)}
       />
     </main>
   );

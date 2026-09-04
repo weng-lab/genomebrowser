@@ -2,7 +2,7 @@
 
 Ready-made React controls for applications built with `@weng-lab/genomebrowser`.
 
-The UI package provides higher-level interfaces such as collection-backed track selection, browser navigation controls, and a data-only cytoband renderer. Track selection and navigation controls can share runtime stores with `GenomeBrowser`; `Cytobands` receives cytoband data and application state from its caller.
+The UI package provides higher-level interfaces such as collection-backed track selection, browser navigation controls, highlight management, and a data-only cytoband renderer. Track selection, navigation controls, and highlight management can share runtime stores with `GenomeBrowser`; `Cytobands` receives cytoband data and application state from its caller.
 
 > This package is under active development and its public API may change.
 
@@ -108,4 +108,5 @@ Use `@weng-lab/genomebrowser` by itself when you only need the runtime and appli
 - [TrackSelect](docs/trackSelect.md) - collections, selection behavior, customization, and schema tooling
 - [Cytobands](docs/cytobands.md) - chromosome ideograms, region brackets, and interactive loci
 - [Browser navigation button](docs/browserNavigationButton.md) - compose store-bound pan and zoom controls
+- [Highlight dialog](docs/highlightDialog.md) - add and remove browser highlights
 - [Track interactions](docs/recipes/trackInteractions.md) - connect collection tracks to host callbacks
