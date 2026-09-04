@@ -11,7 +11,7 @@ The UI package provides higher-level interfaces such as collection-backed track 
 Install the UI package, the browser runtime, and the required peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui@alpha @weng-lab/genomebrowser@alpha @weng-lab/genomebrowser-tracks@alpha @weng-lab/genomic-reader@alpha react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
+pnpm add @weng-lab/genomebrowser-ui@beta @weng-lab/genomebrowser@beta @weng-lab/genomebrowser-tracks@beta @weng-lab/genomic-reader@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
 ```
 
 The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. The UI package participates in your application's normal MUI theme and does not require a package-specific stylesheet or provider.

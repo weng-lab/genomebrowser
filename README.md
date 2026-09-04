@@ -1,9 +1,9 @@
 # Weng Lab Genome Browser
 
-This pnpm monorepo contains the coordinated `2.0.0-alpha` generation of the
+This pnpm monorepo contains the coordinated `2.0.0-beta.1` generation of the
 Weng Lab Genome Browser. The packages are prereleases and are not intended to
 replace an npm `latest` release. Any publication must retain the configured
-`alpha` dist-tag.
+`beta` dist-tag.
 
 ## Package map
 
@@ -17,6 +17,8 @@ replace an npm `latest` release. Any publication must retain the configured
   the browser do not need this package.
 - `packages/reader` (`@weng-lab/genomic-reader`) provides format-independent
   TypeScript contracts for reading genomic data by region.
+- `packages/create` (`@weng-lab/create-genomebrowser`) scaffolds an editable
+  browser application with the beta packages.
 
 Private applications live under `apps/`:
 
@@ -67,7 +69,7 @@ Before submitting a change, run the relevant targeted commands followed by
 `pnpm verify`. Package publication is a
 separate maintainer action; do not publish as part of routine verification.
 `pnpm publish:dry-run` validates the publishable packages without changing npm state. An
-authorized prerelease must use `pnpm publish:alpha`, which passes the `alpha`
+authorized prerelease must use `pnpm publish:beta`, which passes the `beta`
 tag explicitly rather than relying on a registry's current default tag. Both
 paths rebuild the packages before packing; package safeguards build required
 workspace dependencies first so declarations and executable output cannot be stale or missing.

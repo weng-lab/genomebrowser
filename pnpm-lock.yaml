@@ -271,13 +271,13 @@ importers:
         specifier: ^8.0.0
         version: 8.22.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(@mui/system@7.3.11(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.8))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@weng-lab/genomebrowser':
-        specifier: workspace:^2.0.0-alpha.1
+        specifier: workspace:^2.0.0-beta.1
         version: link:../../core
       '@weng-lab/genomebrowser-tracks':
-        specifier: workspace:^2.0.0-alpha.1
+        specifier: workspace:^2.0.0-beta.1
         version: link:../../tracks
       '@weng-lab/genomebrowser-ui':
-        specifier: workspace:^2.0.0-alpha.1
+        specifier: workspace:^2.0.0-beta.1
         version: link:../../ui
       '@weng-lab/ui-components':
         specifier: ^3.1.4
@@ -360,7 +360,7 @@ importers:
         specifier: ^7.0.0
         version: 7.3.11(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.8)(supports-color@8.1.1))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@weng-lab/genomic-reader':
-        specifier: workspace:^2.0.0-alpha.1
+        specifier: workspace:^2.0.0-beta.1
         version: link:../reader
       react:
         specifier: ^19.2.0
@@ -388,7 +388,7 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2(vite@8.0.13(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
       '@weng-lab/genomebrowser':
-        specifier: workspace:^2.0.0-alpha.1
+        specifier: workspace:^2.0.0-beta.1
         version: link:../core
       jsdom:
         specifier: ^26.1.0
@@ -430,10 +430,10 @@ importers:
         specifier: ^8.0.0
         version: 8.22.0(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6)(supports-color@8.1.1))(@types/react@19.2.14)(react@19.2.6)(supports-color@8.1.1))(@mui/material@7.3.6(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6)(supports-color@8.1.1))(@types/react@19.2.14)(react@19.2.6)(supports-color@8.1.1))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@mui/system@7.3.11(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.6)(supports-color@8.1.1))(@types/react@19.2.14)(react@19.2.6)(supports-color@8.1.1))(@types/react@19.2.14)(react@19.2.6))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@weng-lab/genomebrowser':
-        specifier: workspace:^2.0.0-alpha.0
+        specifier: workspace:^2.0.0-beta.1
         version: link:../core
       '@weng-lab/genomic-reader':
-        specifier: workspace:^2.0.0-alpha.1
+        specifier: workspace:^2.0.0-beta.1
         version: link:../reader
       jiti:
         specifier: ^2.6.2
@@ -464,7 +464,7 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2(vite@8.0.13(@types/node@24.10.4)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
       '@weng-lab/genomebrowser-tracks':
-        specifier: workspace:^2.0.0-alpha.1
+        specifier: workspace:^2.0.0-beta.1
         version: link:../tracks
       jsdom:
         specifier: ^26.1.0
