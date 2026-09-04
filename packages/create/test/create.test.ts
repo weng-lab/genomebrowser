@@ -1,16 +1,49 @@
-import { cp, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { cp, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 import { afterEach, describe, expect, test } from "vitest";
 import { createProject } from "../src/create.js";
 
 const temporaryDirectories: string[] = [];
+const execute = promisify(execFile);
 
 afterEach(async () => {
   await Promise.all(
     temporaryDirectories
       .splice(0)
       .map((directory) => rm(directory, { force: true, recursive: true })),
+  );
+});
+
+describe("CLI", () => {
+  test.each([false, true])(
+    "creates a project through the executable (symlink: %s)",
+    async (linked) => {
+      const root = await temporaryDirectory();
+      const sourceDirectory = path.join(root, "src");
+      await mkdir(sourceDirectory);
+      const source = path.join(sourceDirectory, "create.ts");
+      await cp(path.resolve(import.meta.dirname, "../src/create.ts"), source);
+      await cp(fixtureTemplate(), path.join(root, "template"), { recursive: true });
+      const executable = linked ? path.join(root, "create-genomebrowser") : source;
+      if (linked) await symlink(source, executable);
+
+      const { stdout, stderr } = await execute(process.execPath, [executable, "my-browser"], {
+        cwd: root,
+      });
+
+      expect(stdout).toContain("Created a genome browser app in my-browser");
+      expect(stderr).toBe("");
+      const manifest = JSON.parse(
+        await readFile(path.join(root, "my-browser/package.json"), "utf8"),
+      );
+      expect(manifest.name).toBe("my-browser");
+      expect(await readFile(path.join(root, "my-browser/.gitignore"), "utf8")).toContain(
+        "node_modules",
+      );
+    },
   );
 });
 

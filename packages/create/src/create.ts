@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { cp, mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
+import { realpathSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -111,7 +112,7 @@ async function main(args: string[]): Promise<void> {
 }
 
 const invokedPath = process.argv[1];
-if (invokedPath && import.meta.url === pathToFileURL(invokedPath).href) {
+if (invokedPath && import.meta.url === pathToFileURL(realpathSync(invokedPath)).href) {
   main(process.argv.slice(2)).catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : error);
     process.exitCode = 1;
