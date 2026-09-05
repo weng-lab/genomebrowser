@@ -43,16 +43,16 @@
   },
   "dependencies": {
     "zod": "^4.4.3",
-    "zustand": "^5.0.13"
+    "zustand": "catalog:"
   },
   "devDependencies": {
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.0.2",
     "jsdom": "^26.1.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vite": "^8.0.13",
     "vite-plugin-dts": "^4.5.4",

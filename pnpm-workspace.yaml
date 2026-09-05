@@ -4,6 +4,20 @@ packages:
   - packages/*
   - packages/create/template
 
+catalog:
+  "react": "19.2.8"
+  "react-dom": "19.2.8"
+  "@types/react": "19.2.17"
+  "@types/react-dom": "19.2.3"
+  "zustand": "5.0.13"
+  "@emotion/react": "11.14.0"
+  "@emotion/styled": "11.14.1"
+  "@mui/icons-material": "7.3.6"
+  "@mui/material": "7.3.11"
+  "@mui/x-data-grid-premium": "8.22.1"
+  "@mui/x-license": "8.29.2"
+  "@mui/x-tree-view": "8.22.0"
+
 onlyBuiltDependencies:
   - "@mui/x-telemetry"
   - esbuild
