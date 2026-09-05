@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import {
   useContextMenuStore,
   useTrackMutationGate,
@@ -18,6 +18,22 @@ export function ContextMenuController() {
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const menuRef = useRef<HTMLDivElement>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    if (!open || !menu) return;
+
+    const updatePosition = () => {
+      const { width, height } = menu.getBoundingClientRect();
+      const viewport = document.documentElement;
+      menu.style.left = `${Math.max(0, Math.min(position.x, viewport.clientWidth - width))}px`;
+      menu.style.top = `${Math.max(0, Math.min(position.y, viewport.clientHeight - height))}px`;
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
+  }, [open, position, track]);
 
   useEffect(() => {
     if (!open) return;
@@ -56,11 +72,7 @@ export function ContextMenuController() {
   };
 
   return (
-    <div
-      ref={menuRef}
-      style={{ ...menuStyle, left: position.x, top: position.y }}
-      onContextMenu={(event) => event.preventDefault()}
-    >
+    <div ref={menuRef} style={menuStyle} onContextMenu={(event) => event.preventDefault()}>
       {displayOptions.map((display) => (
         <MenuButton
           key={display}
@@ -124,6 +136,9 @@ function MenuButton({
 
 const menuStyle = {
   position: "fixed",
+  maxWidth: "100vw",
+  maxHeight: "100vh",
+  overflow: "auto",
   background: "#ffffff",
   boxShadow: "0 0 5px 0 rgba(0, 0, 0, 0.5)",
   zIndex: 20,

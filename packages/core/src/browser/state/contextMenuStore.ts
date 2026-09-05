@@ -1,7 +1,9 @@
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 
 export type ContextMenuPosition = {
+  /** Horizontal viewport coordinate in CSS pixels (MouseEvent.clientX). */
   x: number;
+  /** Vertical viewport coordinate in CSS pixels (MouseEvent.clientY). */
   y: number;
 };
 
