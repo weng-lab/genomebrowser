@@ -56,7 +56,7 @@ export function TrackFrame({
 
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
-    openContextMenu(track.base.id, { x: event.pageX, y: event.pageY });
+    openContextMenu(track.base.id, { x: event.clientX, y: event.clientY });
   };
 
   return (
