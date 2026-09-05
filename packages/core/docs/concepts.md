@@ -28,6 +28,8 @@ Hovering the left track margin, including its color strip and track controls, hi
 
 Right-click a track's data area to choose its display mode or remove it. The menu opens at the pointer and shifts inward near viewport edges so its actions remain visible after page scrolling or browser zoom. Menus taller than the viewport scroll internally.
 
+Scrolling outside the menu dismisses it, including scrolling the page or a containing panel. Scrolling within the menu keeps it open.
+
 `ContextMenuPosition` uses viewport coordinates in CSS pixels (`MouseEvent.clientX` and `MouseEvent.clientY`).
 
 ## Modules define track types

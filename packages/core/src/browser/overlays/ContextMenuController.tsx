@@ -45,12 +45,18 @@ export function ContextMenuController() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") closeContextMenu();
     };
+    const handleScroll = (event: Event) => {
+      if (event.target instanceof Node && menuRef.current?.contains(event.target)) return;
+      closeContextMenu();
+    };
 
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("scroll", handleScroll, true);
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("scroll", handleScroll, true);
     };
   }, [closeContextMenu, open]);
 

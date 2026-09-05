@@ -109,6 +109,28 @@ describe("track context menu positioning", () => {
     await act(async () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })));
     expect(container.querySelector("button")).toBeNull();
   });
+
+  it.each(["window", "document", "containing panel"])(
+    "dismisses when the %s scrolls and can reopen afterward",
+    async (source) => {
+      await openMenu(250, 150);
+      const target = source === "window" ? window : source === "document" ? document : container;
+      await act(async () => target.dispatchEvent(new Event("scroll")));
+      expect(container.querySelector("button")).toBeNull();
+
+      await openMenu(100, 100);
+      expect(menu().style.left).toBe("100px");
+      await act(async () => target.dispatchEvent(new Event("scroll")));
+      expect(container.querySelector("button")).toBeNull();
+    },
+  );
+
+  it("keeps the menu open when its own contents scroll", async () => {
+    await openMenu(250, 150);
+    const openMenuElement = menu();
+    await act(async () => openMenuElement.dispatchEvent(new Event("scroll")));
+    expect(menu()).toBe(openMenuElement);
+  });
 });
 
 function menu() {
