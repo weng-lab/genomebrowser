@@ -6,6 +6,8 @@ import {
   highlightTooltip as HighlightTooltip,
 } from "./highlightTooltip";
 
+import { HighlightInterval } from "./HighlightInterval";
+
 const minimumHighlightTargetWidth = 12;
 const narrowHighlightWidth = 2;
 
@@ -137,8 +139,7 @@ function HighlightGlyph({
   onKeyDown: (event: KeyboardEvent<SVGGElement>) => void;
 }) {
   const { highlight } = rendered;
-  const outlined = highlight.type === "outlined";
-  const opacity = highlight.opacity ?? (outlined ? 1 : 0.2);
+  const opacity = highlight.opacity ?? (highlight.type === "outlined" ? 1 : 0.2);
   const hitX = Math.max(
     0,
     Math.min(
@@ -181,20 +182,7 @@ function HighlightGlyph({
           />
         </>
       ) : (
-        <rect
-          data-testid="highlight-visual"
-          fill={outlined ? "none" : highlight.color}
-          fillOpacity={opacity}
-          stroke={outlined ? highlight.color : undefined}
-          strokeOpacity={opacity}
-          strokeWidth={outlined ? 2 : undefined}
-          vectorEffect="non-scaling-stroke"
-          pointerEvents="all"
-          height={outlined ? Math.max(0, height - 2) : height}
-          width={rendered.width}
-          x={rendered.x}
-          y={outlined ? 1 : 0}
-        />
+        <HighlightInterval rendered={rendered} height={height} opacity={opacity} />
       )}
     </g>
   );
