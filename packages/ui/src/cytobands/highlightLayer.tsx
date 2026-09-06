@@ -137,6 +137,8 @@ function HighlightGlyph({
   onKeyDown: (event: KeyboardEvent<SVGGElement>) => void;
 }) {
   const { highlight } = rendered;
+  const outlined = highlight.type === "outlined";
+  const opacity = highlight.opacity ?? (outlined ? 1 : 0.2);
   const hitX = Math.max(
     0,
     Math.min(
@@ -170,7 +172,7 @@ function HighlightGlyph({
           <rect
             data-testid="highlight-visual"
             fill={highlight.color}
-            fillOpacity={highlight.opacity ?? 0.2}
+            fillOpacity={opacity}
             height={height}
             pointerEvents="none"
             width={narrowHighlightWidth}
@@ -181,12 +183,17 @@ function HighlightGlyph({
       ) : (
         <rect
           data-testid="highlight-visual"
-          fill={highlight.color}
-          fillOpacity={highlight.opacity ?? 0.2}
-          height={height}
+          fill={outlined ? "none" : highlight.color}
+          fillOpacity={opacity}
+          stroke={outlined ? highlight.color : undefined}
+          strokeOpacity={opacity}
+          strokeWidth={outlined ? 2 : undefined}
+          vectorEffect="non-scaling-stroke"
+          pointerEvents="all"
+          height={outlined ? Math.max(0, height - 2) : height}
           width={rendered.width}
           x={rendered.x}
-          y={0}
+          y={outlined ? 1 : 0}
         />
       )}
     </g>

@@ -8,6 +8,7 @@ export type HighlightRect = {
   width: number;
   color: string;
   opacity: number;
+  type: "filled" | "outlined";
 };
 
 export function getHighlightRects({
@@ -33,7 +34,8 @@ export function getHighlightRects({
         x: start,
         width: end - start,
         color: highlight.color,
-        opacity: highlight.opacity ?? 0.2,
+        opacity: highlight.opacity ?? (highlight.type === "outlined" ? 1 : 0.2),
+        type: highlight.type ?? "filled",
       },
     ];
   });

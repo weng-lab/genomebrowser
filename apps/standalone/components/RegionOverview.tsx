@@ -1,5 +1,5 @@
 import { Box, ButtonBase, Typography } from "@mui/material";
-import { GenomicRegion } from "@weng-lab/genomebrowser";
+import type { GenomicRegion, Highlight } from "@weng-lab/genomebrowser";
 import { Cytobands } from "@weng-lab/genomebrowser-ui";
 import { readCytobands, type Cytoband } from "@weng-lab/genomic-reader";
 import { useEffect, useState } from "react";
@@ -13,9 +13,11 @@ type CytobandState =
 export function RegionOverview({
   region,
   chromosomeLength,
+  highlights,
 }: {
   region: GenomicRegion;
   chromosomeLength: number;
+  highlights: readonly Highlight[];
 }) {
   const [cytobandContainerRef, cytobandWidth] = useObservedWidth<HTMLDivElement>();
   const cytobands = useHg38Cytobands();
@@ -55,6 +57,7 @@ export function RegionOverview({
             chromosomeLength={chromosomeLength}
             colors={{ negative: "#e0e0e0" }}
             currentRegion={region}
+            highlights={highlights}
             height={18}
             width={cytobandWidth}
           />

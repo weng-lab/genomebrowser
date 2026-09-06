@@ -289,6 +289,28 @@ describe("createBrowserStore", () => {
     ]);
   });
 
+  it("accepts outlined highlights and rejects unknown types at both input boundaries", () => {
+    const highlight = {
+      id: "outline",
+      region: { start: 20, end: 30 },
+      color: "blue",
+      type: "outlined" as const,
+    };
+    const input = {
+      assembly: testAssembly,
+      region: { chromosome: "chr1", start: 20, end: 40 },
+      highlights: [highlight],
+    };
+    expect(createBrowserStore(input).getState().highlights).toEqual([highlight]);
+    const store = createTestStore();
+    store.getState().addHighlight(highlight);
+    expect(store.getState().highlights).toEqual([highlight]);
+    const invalid = { ...highlight, type: "unknown" as "outlined" };
+    expect(() => createBrowserStore({ ...input, highlights: [invalid] })).toThrow();
+    expect(() => store.getState().addHighlight(invalid)).toThrow();
+    expect(store.getState().highlights).toEqual([highlight]);
+  });
+
   it("still rejects invalid highlight regions", () => {
     expect(() =>
       createBrowserStore({

@@ -65,6 +65,7 @@ export function Browser() {
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
   const [containerRef, containerWidth] = useObservedWidth<HTMLElement>();
   const region = useBrowserStore((state) => state.region);
+  const highlights = useBrowserStore((state) => state.highlights);
 
   useLayoutEffect(() => {
     if (containerWidth === 0) return;
@@ -78,7 +79,11 @@ export function Browser() {
         onSelectTracks={() => setTrackSelectOpen(true)}
       />
       <NavigationControls browserStore={useBrowserStore} />
-      <RegionOverview chromosomeLength={hg38.chromosomes[region.chromosome] ?? 0} region={region} />
+      <RegionOverview
+        chromosomeLength={hg38.chromosomes[region.chromosome] ?? 0}
+        region={region}
+        highlights={highlights}
+      />
       <Box sx={{ width: "100%", overflowX: "auto" }}>
         <GenomeBrowser
           browserStore={useBrowserStore}
