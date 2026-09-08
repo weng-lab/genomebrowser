@@ -13,23 +13,23 @@
     "format:check": "oxfmt . --check"
   },
   "dependencies": {
-    "@emotion/react": "11.14.0",
-    "@emotion/styled": "11.14.1",
-    "@mui/icons-material": "7.3.6",
-    "@mui/material": "7.3.11",
+    "@emotion/react": "catalog:",
+    "@emotion/styled": "catalog:",
+    "@mui/icons-material": "catalog:",
+    "@mui/material": "catalog:",
     "@weng-lab/genomebrowser": "workspace:*",
     "@weng-lab/genomebrowser-tracks": "workspace:*",
     "@weng-lab/genomebrowser-ui": "workspace:*",
     "@weng-lab/genomic-reader": "workspace:*",
     "next": "16.2.12",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "zod": "4.4.3"
   },
   "devDependencies": {
     "@types/node": "26.1.2",
-    "@types/react": "19.2.17",
-    "@types/react-dom": "19.2.3",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
     "typescript": "npm:@typescript/typescript6@6.0.2"
