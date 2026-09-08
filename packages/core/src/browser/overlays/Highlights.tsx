@@ -45,10 +45,14 @@ export function Highlights({
             <rect
               key={rect.id}
               x={rect.x}
-              y={0}
+              y={rect.type === "outlined" ? 1 : 0}
               width={rect.width}
-              height={totalHeight}
-              fill={rect.color}
+              height={rect.type === "outlined" ? Math.max(0, totalHeight - 2) : totalHeight}
+              fill={rect.type === "outlined" ? "none" : rect.color}
+              stroke={rect.type === "outlined" ? rect.color : undefined}
+              strokeWidth={rect.type === "outlined" ? 2 : undefined}
+              strokeOpacity={rect.opacity}
+              vectorEffect="non-scaling-stroke"
               fillOpacity={rect.opacity}
             />
           ))}

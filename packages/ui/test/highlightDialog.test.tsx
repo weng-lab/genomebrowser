@@ -38,10 +38,30 @@ describe("HighlightDialog", () => {
         region: { chromosome: "chr2", start: 1_200, end: 1_500 },
         color: "#3366cc",
         opacity: 0.65,
+        type: "filled",
       },
     ]);
     expect(document.body.textContent).toContain("chr2:1,200-1,500");
     expect(getInput("Opacity (%)").value).toBe("20");
+  });
+
+  it("adds an outlined highlight with a visible border opacity and resets the type", () => {
+    const browserStore = createTestStore();
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+    clickButton("Add New Highlight");
+    setTextInput("ID", "Outlined region");
+    clickButton("Use Current Region");
+    const select = document.body.querySelector('[role="combobox"]')!;
+    act(() => select.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })));
+    const option = Array.from(document.body.querySelectorAll<HTMLElement>('[role="option"]')).find(
+      (el) => el.textContent === "Outlined",
+    )!;
+    act(() => option.click());
+    expect(getInput("Opacity (%)").value).toBe("100");
+    clickButton("Add Highlight");
+    expect(browserStore.getState().highlights[0]).toMatchObject({ type: "outlined", opacity: 1 });
+    expect(document.body.textContent).toContain("· Outlined");
+    expect(document.body.querySelector('[role="combobox"]')?.textContent).toBe("Filled");
   });
 
   it("shows a field error instead of adding an invalid region", () => {

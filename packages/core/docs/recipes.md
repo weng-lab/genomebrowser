@@ -239,6 +239,19 @@ useBrowserStore.getState().addHighlight({
 useBrowserStore.getState().removeHighlight("candidate");
 ```
 
+Set `type: "outlined"` for a transparent region with a 2-pixel border in the highlight color:
+
+```ts
+useBrowserStore.getState().addHighlight({
+  id: "outlined candidate",
+  region: { chromosome: "chr2", start: 2_020_000, end: 2_030_000 },
+  color: "#3366cc",
+  type: "outlined",
+});
+```
+
+`type` accepts `"filled"` (the default) or `"outlined"`. `opacity` ranges from 0 to 1 and applies to the fill or border respectively; it defaults to 0.2 for filled highlights and 1 for outlined highlights. Both types follow the genomic region during pan and zoom and are clipped to the track area.
+
 Omit `chromosome` to display the same coordinate range on any current chromosome. Adding an existing highlight ID is a no-op. Invalid highlight input throws.
 
 ## Keep track width responsive

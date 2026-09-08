@@ -5,10 +5,11 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import type { BrowserStoreInstance, Highlight } from "@weng-lab/genomebrowser";
 import { useReducer, type SyntheticEvent } from "react";
 import { formatRegion, parseHighlightRegion } from "./highlightRegion";
 
@@ -16,10 +17,17 @@ const defaultColor = "#3366cc";
 
 type FormErrors = Partial<Record<"name" | "region" | "opacity", string>>;
 
-type FormValues = { name: string; region: string; color: string; opacity: string };
+type FormValues = {
+  name: string;
+  region: string;
+  color: string;
+  opacity: string;
+  highlightType: NonNullable<Highlight["type"]>;
+};
 type FormState = FormValues & { errors: FormErrors };
 type FormAction =
-  | { type: "fieldChanged"; field: keyof FormValues; value: string }
+  | { type: "fieldChanged"; field: Exclude<keyof FormValues, "highlightType">; value: string }
+  | { type: "typeChanged"; value: NonNullable<Highlight["type"]> }
   | { type: "validationFailed"; errors: FormErrors }
   | { type: "submitted" };
 
@@ -28,6 +36,7 @@ const initialFormState: FormState = {
   region: "",
   color: defaultColor,
   opacity: "20",
+  highlightType: "filled",
   errors: {},
 };
 
@@ -39,6 +48,12 @@ function formReducer(state: FormState, action: FormAction): FormState {
         [action.field]: action.value,
         errors:
           action.field === "color" ? state.errors : { ...state.errors, [action.field]: undefined },
+      };
+    case "typeChanged":
+      return {
+        ...state,
+        highlightType: action.value,
+        opacity: action.value === "outlined" ? "100" : "20",
       };
     case "validationFailed":
       return { ...state, errors: action.errors };
@@ -53,8 +68,10 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
   const currentRegion = useBrowserStore((state) => state.region);
   const highlights = useBrowserStore((state) => state.highlights);
   const addHighlight = useBrowserStore((state) => state.addHighlight);
-  const [{ name, region: regionInput, color, opacity: opacityInput, errors }, dispatch] =
-    useReducer(formReducer, initialFormState);
+  const [
+    { name, region: regionInput, color, opacity: opacityInput, highlightType, errors },
+    dispatch,
+  ] = useReducer(formReducer, initialFormState);
 
   function handleUseCurrentRegion() {
     dispatch({ type: "fieldChanged", field: "region", value: formatRegion(currentRegion) });
@@ -84,7 +101,13 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
       return;
     }
 
-    addHighlight({ id: trimmedName, region: regionResult.region, color, opacity: opacity / 100 });
+    addHighlight({
+      id: trimmedName,
+      region: regionResult.region,
+      color,
+      opacity: opacity / 100,
+      type: highlightType,
+    });
     dispatch({ type: "submitted" });
   }
 
@@ -137,6 +160,21 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
               size="small"
               value={name}
             />
+            <TextField
+              select
+              fullWidth
+              label="Type"
+              size="small"
+              value={highlightType}
+              onChange={(event) => {
+                const value = event.target.value;
+                if (value === "filled" || value === "outlined")
+                  dispatch({ type: "typeChanged", value });
+              }}
+            >
+              <MenuItem value="filled">Filled</MenuItem>
+              <MenuItem value="outlined">Outlined</MenuItem>
+            </TextField>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
               <TextField
                 fullWidth

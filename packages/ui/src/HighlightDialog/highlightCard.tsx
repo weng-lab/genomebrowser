@@ -38,7 +38,7 @@ export function HighlightCard({ highlight, region, onNavigate, onRemove }: Highl
           {highlight.id}
         </Typography>
         <Typography color="text.secondary" variant="caption">
-          {formatRegion(region)}
+          {formatRegion(region)} · {highlight.type === "outlined" ? "Outlined" : "Filled"}
         </Typography>
       </Box>
       <Box sx={{ alignItems: "center", display: "flex", flex: "0 0 auto", gap: 0.25 }}>

@@ -143,6 +143,8 @@ not render. Valid intervals are clipped to the extent. Narrow loci receive a
 visible marker and a wider pointer target; wider loci render as interval
 overlays. Overlapping loci use deterministic coordinate and ID ordering.
 
+`type: "outlined"` draws intervals with a 2-pixel border and no fill, preserving the bands underneath. Its opacity defaults to 1; filled highlights default to 0.2. Explicit opacity applies to the border or fill. Regions narrower than the minimum interaction width retain the 2-pixel marker for either type, using the same opacity defaults. Outlined interiors remain hoverable and clickable.
+
 The current-region bracket is non-interactive and renders after highlights. It
 appears only for a valid region on the displayed chromosome, clips partial
 overlap, and gives very small regions a minimum visible width centered on their
@@ -257,7 +259,7 @@ the rendered SVG synchronously; `Cytobands` makes no network request.
 | `width`                   | `number`                                                                                                 | Required           | SVG width and horizontal coordinate space. Non-finite or negative values render as `0`.                                                  |
 | `height`                  | `number`                                                                                                 | Required           | SVG height. Non-finite or negative values render as `0`.                                                                                 |
 | `colors`                  | `Partial<CytobandColors>`                                                                                | `undefined`        | Overrides one or more stain colors.                                                                                                      |
-| `highlights`              | `readonly Highlight[]`                                                                                   | `[]`               | Application loci to overlay. Missing opacity renders as `0.2`.                                                                           |
+| `highlights`              | `readonly Highlight[]`                                                                                   | `[]`               | Application loci to overlay. Filled opacity defaults to `0.2`; outlined opacity defaults to `1`.                                         |
 | `currentRegion`           | `GenomicRegion`                                                                                          | `undefined`        | Browser viewport rendered as a separate, non-interactive blue bracket.                                                                   |
 | `renderHighlightTooltip`  | `(highlight: Highlight) => ReactNode`                                                                    | Coordinate tooltip | Returns SVG-compatible content for the fixed viewport tooltip shown for the pointer-hovered highlight.                                   |
 | `onHighlightClick`        | `(highlight: Highlight, event: ReactMouseEvent<SVGGElement> \| ReactKeyboardEvent<SVGGElement>) => void` | `undefined`        | Runs for a pointer click or non-repeated Enter/Space activation. Supplying it gives valid highlights `role="button"` and keyboard focus. |

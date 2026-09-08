@@ -164,6 +164,43 @@ describe("Cytobands rendering", () => {
 });
 
 describe("Cytobands highlights", () => {
+  it.each([undefined, 0, 0.5, 1])(
+    "renders outlined intervals and narrow markers with opacity %s",
+    (opacity) => {
+      const chromosome = "chrOutline";
+      render({
+        chromosome,
+        chromosomeLength: 100,
+        bands: cytobands(chromosome),
+        width: 200,
+        height: 20,
+        highlights: [
+          { ...highlight("wide", 10, 30, chromosome, "blue", opacity), type: "outlined" },
+          { ...highlight("narrow", 50, 51, chromosome, "blue", opacity), type: "outlined" },
+        ],
+      });
+      const interval = getHighlight("wide").querySelector('[data-testid="highlight-visual"]');
+      expectGeometryWithin(interval, {
+        fill: "none",
+        stroke: "blue",
+        "stroke-width": "2",
+        "stroke-opacity": String(opacity ?? 1),
+        "pointer-events": "all",
+        y: "1",
+        height: "18",
+      });
+      const marker = getHighlight("narrow").querySelector('[data-testid="highlight-visual"]');
+      expectGeometryWithin(marker, {
+        fill: "blue",
+        width: "2",
+        "fill-opacity": String(opacity ?? 1),
+      });
+      expect(
+        getHighlight("narrow").querySelector('[data-testid="highlight-hit-target"]'),
+      ).not.toBeNull();
+    },
+  );
+
   it("filters and clips highlights against the full chromosome extent", () => {
     const chromosome = "chrHighlightGeometry";
     const highlights: readonly Highlight[] = [
@@ -236,6 +273,8 @@ describe("Cytobands highlights", () => {
   it.each([
     ["interval", highlight("interactive-wide", 10, 30)],
     ["marker", highlight("interactive-narrow", 50, 51)],
+    ["outlined interval", { ...highlight("interactive-outline", 10, 30), type: "outlined" }],
+    ["outlined marker", { ...highlight("interactive-outline-marker", 50, 51), type: "outlined" }],
   ] as const)("gives the %s hover tooltips and keyboard activation", (_, item) => {
     const chromosome = `chrInteraction${item.id}`;
     const onPointerEnter = vi.fn();

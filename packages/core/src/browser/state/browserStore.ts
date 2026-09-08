@@ -13,6 +13,7 @@ export type Highlight = {
   };
   color: string;
   opacity?: number;
+  type?: "filled" | "outlined";
 };
 
 export type BrowserStoreInput = {
@@ -69,6 +70,7 @@ const highlightSchema = z.object({
     }),
   color: z.string().min(1),
   opacity: z.number().min(0).max(1).optional(),
+  type: z.enum(["filled", "outlined"]).optional(),
 });
 
 const browserStoreInputSchema = z.object({
