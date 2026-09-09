@@ -41,7 +41,13 @@ export function Ruler({
   return (
     <g aria-label="Genomic ruler" pointerEvents="none" style={{ userSelect: "none" }}>
       <line x1={0} x2={width} y1={axisY} y2={axisY} stroke={color} opacity={0.35} />
-      <RulerTicks region={region} width={width} color={color} axisY={axisY} />
+      <RulerTicks
+        visibleRegion={visibleRegion}
+        region={region}
+        width={width}
+        color={color}
+        axisY={axisY}
+      />
       {showSequence
         ? data.records.flatMap((record) =>
             Array.from(
@@ -94,11 +100,13 @@ export function Ruler({
   );
 }
 function RulerTicks({
+  visibleRegion,
   region,
   width,
   color,
   axisY,
 }: {
+  visibleRegion: TrackRendererProps<RulerConfig, RulerData>["visibleRegion"];
   region: TrackRendererProps<RulerConfig, RulerData>["region"];
   width: number;
   color: string;
@@ -107,8 +115,13 @@ function RulerTicks({
   const span = region.end - region.start;
   const x = (base: number) => ((base - region.start) * width) / span;
   const step = tickStep(span, width);
+  // Retained data can span a huge region during zoom. Keep one viewport of
+  // ticks on each side without generating offscreen ticks across that old region.
+  const visibleSpan = visibleRegion.end - visibleRegion.start;
+  const start = Math.max(region.start, visibleRegion.start - visibleSpan);
+  const end = Math.min(region.end, visibleRegion.end + visibleSpan);
   const ticks = [];
-  for (let base = Math.ceil(region.start / step) * step; base < region.end; base += step) {
+  for (let base = Math.ceil(start / step) * step; base < end; base += step) {
     ticks.push(
       <g key={base}>
         <line x1={x(base)} x2={x(base)} y1={axisY - 6} y2={axisY} stroke={color} />
@@ -120,7 +133,7 @@ function RulerTicks({
     if (step >= 5)
       for (let i = 1; i < 5; i++) {
         const minor = base + (step * i) / 5;
-        if (Number.isInteger(minor) && minor < region.end)
+        if (Number.isInteger(minor) && minor < end)
           ticks.push(
             <line
               key={minor}

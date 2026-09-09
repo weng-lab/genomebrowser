@@ -47,3 +47,5 @@ See [Data source troubleshooting](../dataSources.md) for range and CORS requirem
 ## Exports
 
 The `@weng-lab/genomebrowser-tracks/ruler` subpath exports `rulerModule`, `RulerCreateInput`, `RulerConfig`, and `RulerData`. `RulerData` contains reference `records` and an optional sequence-fetch `error` string.
+
+During zoom transitions, ruler ticks cover the current viewport and up to one viewport on each side, clipped to the retained render region. Tick generation stays bounded while reference sequence loads, even after a chromosome-wide view.
