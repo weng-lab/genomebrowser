@@ -27,7 +27,7 @@ export function AddHighlightForm({ browserStore }: { browserStore: BrowserStoreI
           <Typography fontWeight={700}>Add New Highlight</Typography>
         </Box>
       </AccordionSummary>
-      <AccordionDetails sx={{ bgcolor: "background.paper", p: 1.5 }}>
+      <AccordionDetails sx={{ p: 1.5 }}>
         <HighlightForm browserStore={browserStore} />
       </AccordionDetails>
     </Accordion>
