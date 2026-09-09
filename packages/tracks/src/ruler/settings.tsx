@@ -1,3 +1,5 @@
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import Typography from "@mui/material/Typography";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
@@ -26,10 +28,19 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
           }
           onCommit={(value) => updateTrack({ config: { sequenceMinPixelsPerBase: value } })}
         />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={track.config.distinguishMaskedBases}
+              onChange={(_, checked) =>
+                updateTrack({ config: { distinguishMaskedBases: checked } })
+              }
+            />
+          }
+          label="Distinguish masked bases"
+        />
         <Typography variant="body2" color="text.secondary">
-          Bases appear when each has at least this much horizontal space. At 5 pixels per base, a
-          1,000-pixel track shows sequence across 200 bp; a 2,000-pixel track across 400 bp. Lower
-          values show sequence sooner; higher values require more zoom.
+          Show soft-masked regions, often repetitive sequence, in lowercase.
         </Typography>
       </TrackSettingsSection>
     </TrackSettingsLayout>

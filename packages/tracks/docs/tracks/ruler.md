@@ -26,16 +26,17 @@ Replace the placeholder with a valid HTTP(S) 2bit URL for your assembly. For coo
 | `height`    | `22`        | Automatically sized: 22 SVG pixels for coordinates, 48 when reference bases render.  |
 | `color`     | `"#475569"` | Coordinate ticks and axis. Bases use conventional A/C/G/T colors plus their letters. |
 
-| Config                     | Type     | Default | Behavior                                                                            |
-| -------------------------- | -------- | ------- | ----------------------------------------------------------------------------------- |
-| `sequenceUrl`              | `string` | Unset   | HTTP(S) UCSC version-0 2bit file. Must use the assembly's exact chromosome names.   |
-| `sequenceMinPixelsPerBase` | `number` | `5`     | Minimum SVG pixels per base for fetching and drawing sequence; allowed range 1–100. |
+| Config                     | Type      | Default | Behavior                                                                                                                                     |
+| -------------------------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sequenceUrl`              | `string`  | Unset   | HTTP(S) UCSC version-0 2bit file. Must use the assembly's exact chromosome names.                                                            |
+| `sequenceMinPixelsPerBase` | `number`  | `5`     | Minimum SVG pixels per base for fetching and drawing sequence; allowed range 1–100.                                                          |
+| `distinguishMaskedBases`   | `boolean` | `false` | Show soft-masked bases in lowercase when enabled; otherwise display all bases uppercase. Rendering only; toggling does not refetch sequence. |
 
-Ticks adapt to region span and width. Tick labels use zero-based genomic coordinates; each letter is centered in its half-open base interval. Bases appear when each base has at least 5 horizontal SVG pixels by default. For example, a 1,000-pixel track can show 200 bp and a 2,000-pixel track can show 400 bp. Letter size adapts to the available space. Fetching and rendering use the same pixels-per-base threshold; overscan preserves this ratio so panning stays aligned. Metadata is reused for the lifetime of the mounted track. Changing either config option invalidates the track's fetch.
+Ticks adapt to region span and width. Tick labels use zero-based genomic coordinates; each letter is centered in its half-open base interval. Bases appear when each base has at least 5 horizontal SVG pixels by default. For example, a 1,000-pixel track can show 200 bp and a 2,000-pixel track can show 400 bp. Letter size adapts to the available space. Fetching and rendering use the same pixels-per-base threshold; overscan preserves this ratio so panning stays aligned. Metadata is reused for the lifetime of the mounted track. Changing the sequence URL or resolution threshold invalidates the track's fetch.
 
-Unknown bases appear as `N`; masked bases are displayed uppercase for consistent lettering. The 2bit reader preserves lowercase masking information in the returned records. Coordinates stay compact when sequence is missing or unavailable; errors are included in the SVG title. Changing the source or navigating requests again. No sequence request occurs when the URL is absent or the view is too broad.
+Unknown bases appear as `N`; masked bases are displayed uppercase by default. Enable `distinguishMaskedBases` to display them lowercase while keeping unmasked bases uppercase. The 2bit reader preserves lowercase masking information in the returned records. Coordinates stay compact when sequence is missing or unavailable; errors are included in the SVG title. Changing the source or navigating requests again. No sequence request occurs when the URL is absent or the view is too broad.
 
-The settings panel provides the 2bit URL and minimum pixels per base. Lower thresholds show sequence sooner; higher thresholds require more zoom. A host-owned track disables URL editing. Shared base settings control title and coordinate color. Content height is automatic. There is no zoom hint or status row below the coordinates. There are no per-base callbacks or tooltips.
+The settings panel provides the 2bit URL, minimum pixels per base, and a “Distinguish masked bases” checkbox. Lower thresholds show sequence sooner; higher thresholds require more zoom. A host-owned track disables URL editing. Shared base settings control title and coordinate color. Content height is automatic. There is no zoom hint or status row below the coordinates. There are no per-base callbacks or tooltips.
 
 ## Selecting regions
 

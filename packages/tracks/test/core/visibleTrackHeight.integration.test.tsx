@@ -29,9 +29,9 @@ describe("visible row-derived track height", () => {
   it("keeps the ruler compact until visible reference sequence is available", async () => {
     const module = {
       ...rulerModule,
-      fetch: async () => ({
+      fetch: vi.fn(async () => ({
         records: [{ chromosome: "chr1", start: 0, end: 1000, sequence: "a".repeat(1000) }],
-      }),
+      })),
     };
     const trackStore = createTrackStore({
       modules: [module],
@@ -59,6 +59,17 @@ describe("visible row-derived track height", () => {
     await panTo(browserStore, { chromosome: "chr1", start: 100, end: 300 });
     expect(trackStore.getState().getTrack("ruler")?.base.height).toBe(48);
     expect(container.querySelector('[aria-label="chr1:100 A"]')).not.toBeNull();
+    const fetchCount = module.fetch.mock.calls.length;
+    await settle(() =>
+      trackStore.getState().updateTrack("ruler", { config: { distinguishMaskedBases: true } }),
+    );
+    expect(container.querySelector('[aria-label="chr1:100 a"]')).not.toBeNull();
+    expect(module.fetch).toHaveBeenCalledTimes(fetchCount);
+    await settle(() =>
+      trackStore.getState().updateTrack("ruler", { config: { distinguishMaskedBases: false } }),
+    );
+    expect(container.querySelector('[aria-label="chr1:100 A"]')).not.toBeNull();
+    expect(module.fetch).toHaveBeenCalledTimes(fetchCount);
     await panTo(browserStore, { chromosome: "chr1", start: 100, end: 301 });
     expect(trackStore.getState().getTrack("ruler")?.base.height).toBe(22);
   });

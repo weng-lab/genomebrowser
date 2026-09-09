@@ -42,37 +42,40 @@ export function Ruler({
       <RulerTicks region={region} width={width} color={color} axisY={axisY} />
       {showSequence
         ? data.records.flatMap((record) =>
-            Array.from(record.sequence.toUpperCase(), (base, index) => {
-              const position = record.start + index;
-              const baseColor = BASE_COLORS[base] ?? BASE_COLORS.N;
-              return (
-                <g key={position} aria-label={`${region.chromosome}:${position} ${base}`}>
-                  <rect
-                    x={x(position) + 0.5}
-                    y={axisY + 4}
-                    width={Math.max(0, pixelsPerBase - 1)}
-                    height={sequenceHeight}
-                    fill={baseColor}
-                    fillOpacity={0.1}
-                  />
-                  <text
-                    x={x(position + 0.5)}
-                    y={axisY + 4 + sequenceHeight / 2}
-                    dominantBaseline="central"
-                    textAnchor="middle"
-                    fill={baseColor}
-                    fontFamily="monospace"
-                    fontSize={Math.max(
-                      1,
-                      Math.min(16, (pixelsPerBase - 1) / 0.6, sequenceHeight - 2),
-                    )}
-                    fontWeight={600}
-                  >
-                    {base}
-                  </text>
-                </g>
-              );
-            }),
+            Array.from(
+              config.distinguishMaskedBases ? record.sequence : record.sequence.toUpperCase(),
+              (base, index) => {
+                const position = record.start + index;
+                const baseColor = BASE_COLORS[base.toUpperCase()] ?? BASE_COLORS.N;
+                return (
+                  <g key={position} aria-label={`${region.chromosome}:${position} ${base}`}>
+                    <rect
+                      x={x(position) + 0.5}
+                      y={axisY + 4}
+                      width={Math.max(0, pixelsPerBase - 1)}
+                      height={sequenceHeight}
+                      fill={baseColor}
+                      fillOpacity={0.1}
+                    />
+                    <text
+                      x={x(position + 0.5)}
+                      y={axisY + 4 + sequenceHeight / 2}
+                      dominantBaseline="central"
+                      textAnchor="middle"
+                      fill={baseColor}
+                      fontFamily="monospace"
+                      fontSize={Math.max(
+                        1,
+                        Math.min(16, (pixelsPerBase - 1) / 0.6, sequenceHeight - 2),
+                      )}
+                      fontWeight={600}
+                    >
+                      {base}
+                    </text>
+                  </g>
+                );
+              },
+            ),
           )
         : null}
       {data.error && <title>{`Reference sequence unavailable: ${data.error}`}</title>}

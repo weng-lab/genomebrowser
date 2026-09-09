@@ -28,8 +28,12 @@ function render(
   data: RulerData,
   sequenceUrl: string | null = url,
   viewportSpan = 10,
+  distinguishMaskedBases = false,
 ) {
-  const track = rulerModule.create({ ...input, config: { sequenceUrl: sequenceUrl ?? undefined } });
+  const track = rulerModule.create({
+    ...input,
+    config: { sequenceUrl: sequenceUrl ?? undefined, distinguishMaskedBases },
+  });
   const Renderer = rulerModule.render.full;
   return renderToStaticMarkup(
     <TrackHeightContext value={{ getTrackHeight: () => 22, updateHeight: () => ({ ok: true }) }}>
@@ -50,6 +54,7 @@ describe("ruler module", () => {
   it("creates, validates and mutates a normal track", () => {
     const track = rulerModule.create(input);
     expect(track.base.height).toBe(22);
+    expect(track.config.distinguishMaskedBases).toBe(false);
     expect(track.config.sequenceMinPixelsPerBase).toBe(5);
     expect(() =>
       rulerModule.create({ ...input, config: { sequenceMinPixelsPerBase: 0 } }),
@@ -74,6 +79,10 @@ describe("ruler module", () => {
     const data = { records: [{ ...region, sequence: "ACGTNacgtn" }] };
     expect(render(120, data)).toContain('aria-label="chr1:100 A"');
     expect(render(120, data)).toContain('aria-label="chr1:105 A"');
+    const masked = render(120, data, url, 10, true);
+    expect(masked).toContain('aria-label="chr1:105 a"');
+    expect(masked).toContain('aria-label="chr1:100 A"');
+    expect(masked).toContain('fill="#15803d"');
     expect(render(1000, data, url, 200)).toContain('aria-label="chr1:100 A"');
     expect(render(2000, data, url, 400)).toContain('aria-label="chr1:100 A"');
     expect(render(999, data, url, 200)).not.toContain('aria-label="chr1:100 A"');
@@ -92,7 +101,7 @@ describe("ruler module", () => {
           id: "ruler",
           type: "ruler",
           display: "full",
-          config: { sequenceUrl, sequenceMinPixelsPerBase: 5 },
+          config: { sequenceUrl, sequenceMinPixelsPerBase: 5, distinguishMaskedBases: false },
         },
         demand: { region: { ...region, end: region.start + viewportSpan }, width, assembly: hg38 },
         resources: cached,

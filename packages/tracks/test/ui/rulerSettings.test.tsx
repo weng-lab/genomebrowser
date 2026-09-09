@@ -6,7 +6,7 @@ import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 import { RulerSettings } from "../../src/ruler/settings";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
-it("exposes both config fields and preserves host ownership", () => {
+it("exposes config fields and preserves host ownership", () => {
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
@@ -25,6 +25,11 @@ it("exposes both config fields and preserves host ownership", () => {
         `[id="${labels.find((item) => item.textContent === label)?.htmlFor}"]`,
       )!;
     expect(input("2bit URL").disabled).toBe(true);
+    const checkbox = container.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+    expect(checkbox.checked).toBe(false);
+    act(() => checkbox.click());
+    expect(updateTrack).toHaveBeenLastCalledWith({ config: { distinguishMaskedBases: true } });
+    expect(container.textContent).not.toContain("Bases appear when each");
     expect(input("Minimum pixels per base").value).toBe("5");
     expect(input("Minimum pixels per base").disabled).toBe(false);
     act(() =>
