@@ -1,3 +1,8 @@
+import {
+  getGeneDatasetsForAssembly,
+  getGeneDatasetTitle,
+} from "@weng-lab/genomebrowser-tracks/gene";
+import { browserAssembly } from "./assembly";
 import type { TrackSelectCollection } from "@weng-lab/genomebrowser-ui";
 import biosampleTracks from "./human-biosamples.json";
 
@@ -14,20 +19,16 @@ const geneTracks = {
       leaf: "title",
     },
   ],
-  tracks: [
-    {
-      type: "gene",
-      id: "genes",
-      title: "GENCODE genes",
-      display: "merged",
-      height: 60,
-      color: "#444444",
-      config: {
-        url: "https://users.wenglab.org/niship/gencodefiles/human.gencode.v40.comprehensive.annotation.bb",
-      },
-      metadata: {},
-    },
-  ],
+  tracks: getGeneDatasetsForAssembly(browserAssembly.id).map((dataset) => ({
+    type: "gene" as const,
+    id: dataset.id,
+    title: getGeneDatasetTitle(dataset),
+    display: "merged",
+    height: 60,
+    color: "#444444",
+    config: { url: dataset.url },
+    metadata: {},
+  })),
 } satisfies TrackSelectCollection;
 
 const ccreComparisonTracks = {
@@ -127,7 +128,7 @@ const caveTracks = {
 export const trackCollections = [geneTracks, ccreComparisonTracks, caveTracks, biosampleTracks];
 
 export const defaultTrackIds = [
-  "reference-annotations::genes",
+  "reference-annotations::gencode-v40-comprehensive",
   "ccre-comparisons::aggregate-and-adipose-ccres",
   "human-biosamples::ccre-aggregate",
   "human-biosamples::wgbs-ENCSR539UBP",

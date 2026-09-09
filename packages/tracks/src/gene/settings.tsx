@@ -20,7 +20,7 @@ import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import { useObservedGeneTags } from "./tagCatalog";
-import { getGeneDatasetsForAssembly, type GeneDataset } from "./datasets";
+import { getGeneDatasetsForAssembly, getGeneDatasetTitle, type GeneDataset } from "./datasets";
 import type { GeneInteractionTarget } from "./interactions";
 import { reorderTagColors } from "./settingsHelpers";
 import type { GeneConfig, GeneTagColor } from "./types";
@@ -64,7 +64,17 @@ export function GeneSettings({ track, updateTrack }: GeneSettingsProps) {
             <TrackSettingsFullRow>
               <HostGeneDatasetField
                 url={track.config.url}
-                onChange={(url) => updateTrack({ config: { url } })}
+                onChange={(dataset) => {
+                  const previous = getGeneDatasetsForAssembly(dataset.assembly).find(
+                    (candidate) => candidate.url === track.config.url,
+                  );
+                  const generatedTitle =
+                    previous && track.base.title === getGeneDatasetTitle(previous);
+                  return updateTrack({
+                    config: { url: dataset.url },
+                    ...(generatedTitle ? { base: { title: getGeneDatasetTitle(dataset) } } : {}),
+                  });
+                }}
               />
             </TrackSettingsFullRow>
           ) : null}
@@ -169,7 +179,13 @@ export function GeneSettings({ track, updateTrack }: GeneSettingsProps) {
   );
 }
 
-function HostGeneDatasetField({ url, onChange }: { url: string; onChange: (url: string) => void }) {
+function HostGeneDatasetField({
+  url,
+  onChange,
+}: {
+  url: string;
+  onChange: (dataset: GeneDataset) => void;
+}) {
   const assembly = useBrowserStore((state) => state.assembly.id);
   const datasets = getGeneDatasetsForAssembly(assembly);
   const selectedDataset = datasets.find((dataset) => dataset.url === url) ?? null;
@@ -196,7 +212,7 @@ function HostGeneDatasetField({ url, onChange }: { url: string; onChange: (url: 
           const nextDataset =
             variantDatasets.find((dataset) => dataset.version === selectedDataset?.version) ??
             variantDatasets.at(-1);
-          if (nextDataset) onChange(nextDataset.url);
+          if (nextDataset) onChange(nextDataset);
         }}
         renderInput={(params) => (
           <TextField
@@ -211,7 +227,9 @@ function HostGeneDatasetField({ url, onChange }: { url: string; onChange: (url: 
       {selectedVariant ? (
         <Autocomplete
           disableClearable={selectedDataset !== null}
-          getOptionLabel={String}
+          getOptionLabel={(version) =>
+            datasets.find((dataset) => dataset.version === version)?.release ?? String(version)
+          }
           options={versions}
           size="small"
           sx={{ flex: "1 1 0" }}
@@ -220,7 +238,7 @@ function HostGeneDatasetField({ url, onChange }: { url: string; onChange: (url: 
             const nextDataset = datasets.find(
               (dataset) => dataset.variant === selectedVariant && dataset.version === version,
             );
-            if (nextDataset) onChange(nextDataset.url);
+            if (nextDataset) onChange(nextDataset);
           }}
           renderInput={(params) => (
             <TextField {...(params as unknown as TextFieldProps)} label="Version" />
