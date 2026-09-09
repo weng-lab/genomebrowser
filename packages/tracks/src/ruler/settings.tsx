@@ -1,3 +1,4 @@
+import Typography from "@mui/material/Typography";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
@@ -18,12 +19,18 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
         <TrackSettingsNumberField
           label="Minimum pixels per base"
           value={track.config.sequenceMinPixelsPerBase}
-          min={6}
+          min={1}
+          step="any"
           validate={(value) =>
-            value >= 6 && value <= 100 ? undefined : "Enter a value from 6 to 100."
+            value >= 1 && value <= 100 ? undefined : "Enter a value from 1 to 100."
           }
           onCommit={(value) => updateTrack({ config: { sequenceMinPixelsPerBase: value } })}
         />
+        <Typography variant="body2" color="text.secondary">
+          Bases appear when each has at least this much horizontal space. At 5 pixels per base, a
+          1,000-pixel track shows sequence across 200 bp; a 2,000-pixel track across 400 bp. Lower
+          values show sequence sooner; higher values require more zoom.
+        </Typography>
       </TrackSettingsSection>
     </TrackSettingsLayout>
   );

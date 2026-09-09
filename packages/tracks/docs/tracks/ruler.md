@@ -20,22 +20,22 @@ const useTrackStore = createTrackStore({
 
 Replace the placeholder with a valid HTTP(S) 2bit URL for your assembly. For coordinates alone, use `config: {}`. `firstPartyTrackModules` includes the ruler module, but registering a module does not create a track.
 
-| Base option | Default     | Behavior                                                                                          |
-| ----------- | ----------- | ------------------------------------------------------------------------------------------------- |
-| `display`   | `"full"`    | The only display.                                                                                 |
-| `height`    | `64`        | Track content height in SVG pixels; use at least 45 for the sequence and status row.              |
-| `color`     | `"#475569"` | Coordinate ticks, axis and status text. Bases use conventional A/C/G/T colors plus their letters. |
+| Base option | Default     | Behavior                                                                             |
+| ----------- | ----------- | ------------------------------------------------------------------------------------ |
+| `display`   | `"full"`    | The only display.                                                                    |
+| `height`    | `22`        | Automatically sized: 22 SVG pixels for coordinates, 48 when reference bases render.  |
+| `color`     | `"#475569"` | Coordinate ticks and axis. Bases use conventional A/C/G/T colors plus their letters. |
 
 | Config                     | Type     | Default | Behavior                                                                            |
 | -------------------------- | -------- | ------- | ----------------------------------------------------------------------------------- |
 | `sequenceUrl`              | `string` | Unset   | HTTP(S) UCSC version-0 2bit file. Must use the assembly's exact chromosome names.   |
-| `sequenceMinPixelsPerBase` | `number` | `12`    | Minimum SVG pixels per base for fetching and drawing sequence; allowed range 6–100. |
+| `sequenceMinPixelsPerBase` | `number` | `5`     | Minimum SVG pixels per base for fetching and drawing sequence; allowed range 1–100. |
 
-Ticks adapt to region span and width. Tick labels use zero-based genomic coordinates; each letter is centered in its half-open base interval. Bases appear only when sufficiently separated. The sequence fetch threshold includes the browser's overscan, so panning preserves alignment without triggering chromosome-sized DNA reads. Metadata is reused for the lifetime of the mounted track. Changing either config option invalidates the track's fetch.
+Ticks adapt to region span and width. Tick labels use zero-based genomic coordinates; each letter is centered in its half-open base interval. Bases appear when each base has at least 5 horizontal SVG pixels by default. For example, a 1,000-pixel track can show 200 bp and a 2,000-pixel track can show 400 bp. Letter size adapts to the available space. Fetching and rendering use the same pixels-per-base threshold; overscan preserves this ratio so panning stays aligned. Metadata is reused for the lifetime of the mounted track. Changing either config option invalidates the track's fetch.
 
-Unknown bases appear as `N`; masked bases remain lowercase. Sequence errors leave coordinates visible and show an unavailable message. Missing sequence shows a separate empty message. Changing the source or navigating requests again. No sequence request occurs when the URL is absent or the view is too broad.
+Unknown bases appear as `N`; masked bases are displayed uppercase for consistent lettering. The 2bit reader preserves lowercase masking information in the returned records. Coordinates stay compact when sequence is missing or unavailable; errors are included in the SVG title. Changing the source or navigating requests again. No sequence request occurs when the URL is absent or the view is too broad.
 
-The settings panel provides the 2bit URL and minimum pixels per base. A host-owned track disables URL editing. Shared base settings control title, height and coordinate color. There are no per-base callbacks or tooltips.
+The settings panel provides the 2bit URL and minimum pixels per base. Lower thresholds show sequence sooner; higher thresholds require more zoom. A host-owned track disables URL editing. Shared base settings control title and coordinate color. Content height is automatic. There is no zoom hint or status row below the coordinates. There are no per-base callbacks or tooltips.
 
 ## Selecting regions
 

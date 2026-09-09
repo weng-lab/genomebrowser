@@ -25,7 +25,7 @@ it("exposes both config fields and preserves host ownership", () => {
         `[id="${labels.find((item) => item.textContent === label)?.htmlFor}"]`,
       )!;
     expect(input("2bit URL").disabled).toBe(true);
-    expect(input("Minimum pixels per base").value).toBe("12");
+    expect(input("Minimum pixels per base").value).toBe("5");
     expect(input("Minimum pixels per base").disabled).toBe(false);
     act(() =>
       root.render(<RulerSettings track={{ ...track, source: "user" }} updateTrack={updateTrack} />),

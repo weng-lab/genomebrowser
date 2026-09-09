@@ -9,6 +9,7 @@ import {
   type GenomicRegion,
 } from "@weng-lab/genomebrowser";
 import { bigBedModule, type BigBedRow } from "@weng-lab/genomebrowser-tracks/bigbed";
+import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -25,6 +26,43 @@ afterEach(async () => {
 });
 
 describe("visible row-derived track height", () => {
+  it("keeps the ruler compact until visible reference sequence is available", async () => {
+    const module = {
+      ...rulerModule,
+      fetch: async () => ({
+        records: [{ chromosome: "chr1", start: 0, end: 1000, sequence: "a".repeat(1000) }],
+      }),
+    };
+    const trackStore = createTrackStore({
+      modules: [module],
+      tracks: [
+        rulerModule.create({
+          id: "ruler",
+          title: "Reference",
+          config: { sequenceUrl: "https://example.test/ref.2bit" },
+        }),
+      ],
+    });
+    const browserStore = createBrowserStore({
+      assembly: { id: "test", chromosomes: { chr1: 1000 } },
+      region: { chromosome: "chr1", start: 100, end: 301 },
+      trackWidth: 1000,
+    });
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await settle(() =>
+      root?.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />),
+    );
+    expect(trackStore.getState().getTrack("ruler")?.base.height).toBe(22);
+    expect(container.textContent).not.toContain("Zoom in");
+    await panTo(browserStore, { chromosome: "chr1", start: 100, end: 300 });
+    expect(trackStore.getState().getTrack("ruler")?.base.height).toBe(48);
+    expect(container.querySelector('[aria-label="chr1:100 A"]')).not.toBeNull();
+    await panTo(browserStore, { chromosome: "chr1", start: 100, end: 301 });
+    expect(trackStore.getState().getTrack("ruler")?.base.height).toBe(22);
+  });
+
   it("ignores denser overscan rows, then grows and shrinks after panning in both directions", async () => {
     const allRows = [
       row("left-1", 290, 310),
