@@ -8,7 +8,6 @@ import {
   createBrowserStore,
   createSettingsStore,
   createTrackStore,
-  hg38,
 } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
@@ -23,13 +22,14 @@ import {
 import { useLayoutEffect, useState } from "react";
 import { RegionOverview } from "./RegionOverview";
 import { BrowserHeader, NavigationControls } from "./Toolbars";
+import { browserAssembly } from "../lib/assembly";
 import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
 import { useObservedWidth } from "../hooks/useObservedWidth";
 
 const marginWidth = 50;
 
 const useBrowserStore = createBrowserStore({
-  assembly: hg38,
+  assembly: browserAssembly,
   region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
   marginWidth,
   trackWidth: 1350,
@@ -87,7 +87,7 @@ export function Browser() {
       />
       <NavigationControls browserStore={useBrowserStore} />
       <RegionOverview
-        chromosomeLength={hg38.chromosomes[region.chromosome] ?? 0}
+        chromosomeLength={browserAssembly.chromosomes[region.chromosome] ?? 0}
         region={region}
         highlights={highlights}
       />

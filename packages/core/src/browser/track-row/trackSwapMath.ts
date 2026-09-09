@@ -15,9 +15,11 @@ export function getSwapPreview(
   tracks: AnyTrackInstance[],
   titleSize: number,
   deltaY: number,
+  pinnedTrackIds: readonly string[] = [],
 ): SwapPreview | null {
   const currentIndex = tracks.findIndex((track) => track.base.id === id);
-  if (currentIndex < 0) return null;
+  if (currentIndex < 0 || pinnedTrackIds.includes(id)) return null;
+  const pinned = new Set(pinnedTrackIds);
 
   const heights = tracks.map((track) => getTrackWrapperHeight(track, titleSize));
   const distances = heights.map((_, index) => {
@@ -30,10 +32,11 @@ export function getSwapPreview(
     return 0;
   });
   const targetIndex = distances.reduce((bestIndex, distance, index) => {
+    if (pinned.has(tracks[index].base.id)) return bestIndex;
     return Math.abs(distance - deltaY) < Math.abs(distances[bestIndex] - deltaY)
       ? index
       : bestIndex;
-  }, 0);
+  }, currentIndex);
 
   return { draggedId: id, currentIndex, targetIndex };
 }
@@ -64,8 +67,9 @@ export function getSwapOrder(
   tracks: AnyTrackInstance[],
   titleSize: number,
   deltaY: number,
+  pinnedTrackIds: readonly string[] = [],
 ) {
-  const preview = getSwapPreview(id, tracks, titleSize, deltaY);
+  const preview = getSwapPreview(id, tracks, titleSize, deltaY, pinnedTrackIds);
   if (!preview) return null;
 
   const { currentIndex, targetIndex } = preview;

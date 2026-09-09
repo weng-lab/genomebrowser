@@ -51,6 +51,65 @@ afterEach(async () => {
 });
 
 describe("TrackStack subscriptions", () => {
+  it("renders updated pin order and disables dragging only for pinned rows", async () => {
+    const useTrackStore = createStore();
+    useTrackStore.getState().setPinnedTrackIds(["second"]);
+    await renderBrowser(useTrackStore);
+    expect(renderedIds()).toEqual(["second", "first"]);
+    expect(trackRow("second").getAttribute("transform")).toBe("translate(0,80)");
+    expect(trackRow("second").querySelector('rect[style*="cursor: default"]')).not.toBeNull();
+    expect(trackRow("first").querySelector('rect[style*="cursor: grab"]')).not.toBeNull();
+
+    await mutate(() => {
+      useTrackStore.getState().setPinnedTrackIds(["first", "second"]);
+    });
+    expect(renderedIds()).toEqual(["first", "second"]);
+    await mutate(() => {
+      useTrackStore.getState().reorderTracks(["second", "first"]);
+    });
+    expect(renderedIds()).toEqual(["first", "second"]);
+    await mutate(() => {
+      useTrackStore.getState().setPinnedTrackIds([]);
+    });
+    expect(trackRow("first").querySelector('rect[style*="cursor: grab"]')).not.toBeNull();
+    expect(trackRow("second").querySelector('rect[style*="cursor: grab"]')).not.toBeNull();
+  });
+
+  it("keeps drag previews and drops below pins and ignores a stale drag after pin changes", async () => {
+    const useTrackStore = createStore();
+    useTrackStore.getState().addTrack(createTrack("third", 20));
+    useTrackStore.getState().setPinnedTrackIds(["first"]);
+    await renderBrowser(useTrackStore);
+    const point = { x: 0, y: 0, matrixTransform: () => ({ x: point.x, y: point.y }) };
+    Object.assign(browserSvg(), {
+      createSVGPoint: () => point,
+      getScreenCTM: () => ({ inverse: () => ({}) }),
+    });
+    const startDrag = async (id: string) => {
+      const handle = trackRow(id).querySelector('rect[style*="cursor: grab"]');
+      if (!handle) throw new Error("Drag handle not found");
+      await mutate(() => {
+        handle.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientY: 200 }));
+      });
+    };
+    const move = () => document.dispatchEvent(new MouseEvent("mousemove", { clientY: -200 }));
+    const drop = () => document.dispatchEvent(new MouseEvent("mouseup", { clientY: -200 }));
+    await startDrag("third");
+    await mutate(move);
+    expect(trackRow("first").getAttribute("transform")).toBe("translate(0,80)");
+    await mutate(drop);
+    expect(useTrackStore.getState().order).toEqual(["first", "third", "second"]);
+
+    await startDrag("second");
+    await mutate(move);
+    await mutate(() => {
+      useTrackStore.getState().setPinnedTrackIds(["second", "first"]);
+    });
+    await mutate(drop);
+    expect(useTrackStore.getState().order).toEqual(["second", "first", "third"]);
+    expect(renderedIds()).toEqual(["second", "first", "third"]);
+  });
+
   it("rerenders only the addressed production row when its presentation changes", async () => {
     const useTrackStore = createStore();
     await renderBrowser(useTrackStore);

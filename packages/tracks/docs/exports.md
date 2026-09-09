@@ -30,6 +30,8 @@ The schemas reject unknown object keys. Create input requires non-empty `id` and
 
 Each module includes its settings component, tooltip component, renderer, and fetcher. The BigBed subpath also exports `fetchBigBedRows` for modules that reuse BigBed reading with a different Zod schema. Import other reusable settings controls, tooltip components, and pure track helpers from `@weng-lab/genomebrowser-tracks/shared`. See [Shared APIs](shared.md) for the full list and [Signal condensation](signal.md) for BigWig-to-pixel behavior.
 
+The `/gene` subpath also exports `getGeneDatasetsForAssembly`, `getGeneDatasetTitle`, and the `GeneDataset` type for building assembly-specific reference collections. See [Gene reference datasets](tracks/gene.md#reference-datasets).
+
 ## Create-input and config types
 
 Each track subpath exports `FooCreateInput` and `FooConfig`:

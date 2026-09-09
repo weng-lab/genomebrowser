@@ -2,6 +2,8 @@
 
 pnpm monorepo for an embeddable React genome browser.
 
+All packages in this monorepo are in beta. Making changes to the public API that aren't additions is heavily discouraged. Explain your reasoning for wanting to change public API if you feel it will be the simplest path to a solution. Internal APIs may change as necessary.
+
 ## Package map
 
 - `packages/core` (`@weng-lab/genomebrowser`) - the browser runtime.

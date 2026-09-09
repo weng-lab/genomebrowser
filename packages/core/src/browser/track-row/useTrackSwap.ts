@@ -4,6 +4,7 @@ import type { AnyTrackInstance } from "../../modules/types";
 import { svgPoint } from "../../modules/utils/svg";
 import { useTrackMutationGate, useTrackStoreApi } from "../state/browserContextState";
 import { useBrowserSvg } from "../svg/browserSvgState";
+import { getTrackWrapperHeight } from "./trackLayout";
 import { getSwapOrder, getSwapPreview, isSameSwapPreview } from "./trackSwapMath";
 import type { SwapPreview, TrackFrameSwapProps } from "./swapTypes";
 
@@ -31,6 +32,7 @@ export function useTrackSwap({
   const svg = useBrowserSvg();
   const useTrackStore = useTrackStoreApi();
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
+  const isPinned = useTrackStore((state) => state.pinnedTrackIds.includes(track.base.id));
   const [dragSession, setDragSession] = useState<DragSession | null>(null);
   const isSwapping = dragSession !== null;
   const previewRef = useRef<SwapPreview | null>(null);
@@ -47,8 +49,8 @@ export function useTrackSwap({
   }, [dragSession, onPreviewEnd]);
 
   const handleSwapMouseDown = (event: MouseEvent<SVGRectElement>) => {
-    if (disabled || isInteractionBlocked || event.button !== 0) return;
-    const { tracks, reorderTracks } = useTrackStore.getState();
+    if (disabled || isPinned || isInteractionBlocked || event.button !== 0) return;
+    const { tracks, pinnedTrackIds, reorderTracks } = useTrackStore.getState();
     if (!svg || tracks.length < 2) return;
     const startPoint = svgPoint(svg, event.clientX, event.clientY);
     if (!startPoint) return;
@@ -56,12 +58,22 @@ export function useTrackSwap({
     event.preventDefault();
     event.stopPropagation();
 
+    const currentIndex = tracks.findIndex((candidate) => candidate.base.id === track.base.id);
+    const pinned = new Set(pinnedTrackIds);
+    const minDeltaY = -tracks
+      .slice(0, currentIndex)
+      .filter((candidate) => !pinned.has(candidate.base.id))
+      .reduce((height, candidate) => height + getTrackWrapperHeight(candidate, titleSize), 0);
+    const isCurrent = () => {
+      const state = useTrackStore.getState();
+      return state.tracks === tracks && state.pinnedTrackIds === pinnedTrackIds;
+    };
     const startY = startPoint.y;
     let latestDeltaY = 0;
     let isEnded = false;
 
     const updatePreview = (deltaY: number) => {
-      const preview = getSwapPreview(track.base.id, tracks, titleSize, deltaY);
+      const preview = getSwapPreview(track.base.id, tracks, titleSize, deltaY, pinnedTrackIds);
       if (!preview || isSameSwapPreview(previewRef.current, preview)) return;
       previewRef.current = preview;
       onPreviewChange(preview);
@@ -75,15 +87,22 @@ export function useTrackSwap({
       event.preventDefault();
       const point = svgPoint(svg, event.clientX, event.clientY);
       if (!point) return;
-      latestDeltaY = point.y - startY;
+      if (!isCurrent()) return;
+      latestDeltaY = Math.max(minDeltaY, point.y - startY);
       moveClone(latestDeltaY);
       updatePreview(latestDeltaY);
     };
 
     const handleUp = (event: globalThis.MouseEvent) => {
       event.preventDefault();
-      if (Math.abs(latestDeltaY) > 5) {
-        const nextOrder = getSwapOrder(track.base.id, tracks, titleSize, latestDeltaY);
+      if (isCurrent() && Math.abs(latestDeltaY) > 5) {
+        const nextOrder = getSwapOrder(
+          track.base.id,
+          tracks,
+          titleSize,
+          latestDeltaY,
+          pinnedTrackIds,
+        );
         if (nextOrder) runTrackMutation(() => reorderTracks(nextOrder));
       }
 
@@ -102,7 +121,8 @@ export function useTrackSwap({
     updatePreview(0);
   };
 
-  const onSwapMouseDown = disabled || isInteractionBlocked ? undefined : handleSwapMouseDown;
+  const onSwapMouseDown =
+    disabled || isPinned || isInteractionBlocked ? undefined : handleSwapMouseDown;
   const swapProps: TrackFrameSwapProps = {
     onSwapMouseDown,
     swapping: isSwapping,
