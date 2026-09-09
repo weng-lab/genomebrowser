@@ -19,12 +19,16 @@ export function TrackControls({
   const settingsButtonRef = useRef<SVGGElement>(null);
   const openSettings = useSettingsStore((state) => state.openSettings);
   const order = useTrackStore((state) => state.order);
+  const pinnedTrackIds = useTrackStore((state) => state.pinnedTrackIds);
   const reorderTracks = useTrackStore((state) => state.reorderTracks);
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const trackId = track.base.id;
   const index = order.indexOf(trackId);
-  const canMoveTop = !isInteractionBlocked && index > 0;
-  const canMoveBottom = !isInteractionBlocked && index >= 0 && index < order.length - 1;
+  const pinned = new Set(pinnedTrackIds);
+  const canMove = !isInteractionBlocked && !pinned.has(trackId);
+  const firstUnpinnedIndex = order.findIndex((id) => !pinned.has(id));
+  const canMoveTop = canMove && index > firstUnpinnedIndex;
+  const canMoveBottom = canMove && index >= 0 && index < order.length - 1;
   const controlsCenterY = wrapperHeight / 2;
   const iconY = controlsCenterY - 7.5;
 

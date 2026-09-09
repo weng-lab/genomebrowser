@@ -129,7 +129,7 @@ useTrackStore.getState().setPinnedTrackIds([]); // Unpin every track.
 - IDs may be configured before their tracks are added. Missing tracks occupy no space; adding them later places them in the configured order.
 - Removing or replacing tracks, including through `setTracks` or `applyTrackChanges`, retains the pin list. Re-adding an ID restores its pinned placement.
 - `reorderTracks` still requires every current track ID exactly once. It honors the requested relative order of unpinned tracks, then places pinned tracks first in their configured order. `addTrack` insertion indexes likewise cannot place a track above the pinned stack.
-- Pinned rows cannot be dragged. Other rows can be dragged below the pinned stack. Use `setPinnedTrackIds` to reorder pinned rows.
+- Pinned rows cannot be dragged, and their move-to-top/bottom controls are disabled. Other rows can be dragged or moved below the pinned stack. Use `setPinnedTrackIds` to reorder pinned rows.
 - Unpinning keeps the current visible order; it does not restore an earlier order. Tracks remain removable, editable, and interactive while pinned.
 
 Pinning fixes row order, not scroll position. The built-in coordinate ruler remains above the track stack; it is not currently a track instance. Once a ruler is supplied as a registered module, its instance ID can be pinned through this same API.
