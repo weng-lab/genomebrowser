@@ -38,66 +38,70 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
         />
       </TrackSettingsSection>
       <TrackSettingsSection title="Sequence display">
-        <Box sx={{ display: "flex", alignItems: "flex-start", flexWrap: "wrap", gap: 1 }}>
-          <Box sx={{ flex: "1 1 180px", minWidth: 0 }}>
-            <Typography variant="body2">When to show DNA letters</Typography>
-            <Slider
-              aria-label="When to show DNA letters"
-              min={5}
-              max={25}
-              step={1}
-              value={visibility.value}
-              onChange={(_, value) => {
-                if (typeof value === "number") visibility.change(value);
-              }}
-              onChangeCommitted={(_, value) => {
-                if (typeof value === "number") visibility.submit(value);
-              }}
-              getAriaValueText={(value) =>
-                `Sequence appears at ${Math.floor(trackWidth / value)} base pairs or less`
-              }
-              sx={{ py: 1 }}
-            />
-            <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                Zoomed farther out
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Zoomed closer in
-              </Typography>
-            </Box>
-          </Box>
-          <Button
-            size="small"
-            variant="outlined"
-            sx={{ minHeight: 40, flexShrink: 0 }}
-            disabled={!track.config.sequenceUrl || sequenceSpan < 1 || currentSpan <= sequenceSpan}
-            onClick={() => zoom(sequenceSpan / currentSpan)}
+        <Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "baseline",
+              gap: 2,
+            }}
           >
-            Zoom in to sequence
-          </Button>
+            <Typography variant="body2">Show DNA letters below</Typography>
+            <Typography variant="body2" color="primary" aria-live="polite">
+              {sequenceSpan.toLocaleString("en-US")} bp
+            </Typography>
+          </Box>
+          <Slider
+            aria-label="When to show DNA letters"
+            min={5}
+            max={25}
+            step={1}
+            value={visibility.value}
+            onChange={(_, value) => {
+              if (typeof value === "number") visibility.change(value);
+            }}
+            onChangeCommitted={(_, value) => {
+              if (typeof value === "number") visibility.submit(value);
+            }}
+            getAriaValueText={(value) =>
+              `Sequence appears at ${Math.floor(trackWidth / value)} base pairs or less`
+            }
+            sx={{ py: 1 }}
+          />
+          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1 }}>
+            <Typography variant="caption" color="text.secondary">
+              Farther out
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Closer in
+            </Typography>
+          </Box>
         </Box>
-        <Typography variant="body2" color="text.secondary" aria-live="polite">
-          {sequenceSpan >= 1
-            ? `Sequence appears at ${sequenceSpan.toLocaleString("en-US")} bp or less.`
-            : "Increase track width to show reference bases."}
-        </Typography>
         {visibility.error && (
           <Typography color="error" variant="caption">
             {visibility.error}
           </Typography>
         )}
-        <TrackSettingsColorField
-          label="Sequence highlight color"
-          value={track.config.sequenceHighlightColor}
-          onCommit={(value) => updateTrack({ config: { sequenceHighlightColor: value } })}
-        />
+        <Box
+          sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}
+        >
+          <Typography variant="body2">Highlight color</Typography>
+          <Box sx={{ width: 180, maxWidth: "55%" }}>
+            <TrackSettingsColorField
+              label="Sequence highlight color"
+              value={track.config.sequenceHighlightColor}
+              onCommit={(value) => updateTrack({ config: { sequenceHighlightColor: value } })}
+            />
+          </Box>
+        </Box>
         <FormControlLabel
-          sx={{ m: 0, alignItems: "flex-start" }}
+          labelPlacement="start"
+          sx={{ m: 0, justifyContent: "space-between", alignItems: "flex-start", gap: 2 }}
           control={
             <Checkbox
               size="small"
-              sx={{ p: 0, mr: 1, mt: 0.25 }}
+              sx={{ p: 0, mt: 0.25 }}
               checked={track.config.distinguishMaskedBases}
               onChange={(_, checked) =>
                 updateTrack({ config: { distinguishMaskedBases: checked } })
@@ -113,6 +117,33 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
             </Box>
           }
         />
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
+          <Typography variant="caption" color="text.secondary">
+            {!track.config.sequenceUrl
+              ? "Add a reference source to show DNA letters."
+              : sequenceSpan < 1
+                ? "Increase track width to show reference bases."
+                : currentSpan > sequenceSpan
+                  ? "Currently too far out to render letters."
+                  : "Current view is within the sequence threshold."}
+          </Typography>
+          <Button
+            size="small"
+            sx={{ flexShrink: 0 }}
+            disabled={!track.config.sequenceUrl || sequenceSpan < 1 || currentSpan <= sequenceSpan}
+            onClick={() => zoom(sequenceSpan / currentSpan)}
+          >
+            Zoom in to sequence
+          </Button>
+        </Box>
       </TrackSettingsSection>
     </TrackSettingsLayout>
   );
