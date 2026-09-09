@@ -50,8 +50,12 @@ it("exposes config fields and preserves host ownership", () => {
     act(() => checkbox.click());
     expect(updateTrack).toHaveBeenLastCalledWith({ config: { distinguishMaskedBases: true } });
     expect(container.textContent).not.toContain("Bases appear when each");
-    expect(input("Minimum pixels per base").value).toBe("15");
-    expect(input("Minimum pixels per base").disabled).toBe(false);
+    const slider = container.querySelector<HTMLInputElement>('input[type="range"]')!;
+    expect(slider.getAttribute("aria-label")).toBe("When to show DNA letters");
+    expect(slider.min).toBe("5");
+    expect(slider.max).toBe("25");
+    expect(slider.value).toBe("15");
+    expect(slider.disabled).toBe(false);
     const zoomButton = container.querySelector<HTMLButtonElement>("button")!;
     expect(container.textContent).toContain("Sequence appears at 66 bp or less.");
     expect(zoomButton.disabled).toBe(true);

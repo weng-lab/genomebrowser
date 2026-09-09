@@ -2,19 +2,28 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import Slider from "@mui/material/Slider";
 import Typography from "@mui/material/Typography";
 import { useBrowserStore, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
-import { TrackSettingsNumberField } from "../shared/settings/trackSettingsNumberField";
+import { useDraftController } from "../shared/settings/draftInput";
 import type { RulerConfig } from "./schema";
 
 export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerConfig>) {
   const trackWidth = useBrowserStore((state) => state.trackWidth);
   const region = useBrowserStore((state) => state.region);
   const zoom = useBrowserStore((state) => state.zoom);
-  const sequenceSpan = Math.floor(trackWidth / track.config.sequenceMinPixelsPerBase);
+  const visibility = useDraftController<number, number>({
+    value: track.config.sequenceMinPixelsPerBase,
+    toRaw: (value) => value,
+    validate: (value) => ({ ok: true, value }),
+    isEqual: Object.is,
+    debounceMs: false,
+    onCommit: (value) => updateTrack({ config: { sequenceMinPixelsPerBase: value } }),
+  });
+  const sequenceSpan = Math.floor(trackWidth / visibility.value);
   const currentSpan = region.end - region.start;
 
   return (
@@ -30,16 +39,32 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
       <TrackSettingsSection title="Sequence display">
         <Box sx={{ display: "flex", alignItems: "flex-start", flexWrap: "wrap", gap: 1 }}>
           <Box sx={{ flex: "1 1 180px", minWidth: 0 }}>
-            <TrackSettingsNumberField
-              label="Minimum pixels per base"
-              value={track.config.sequenceMinPixelsPerBase}
-              min={1}
-              step="any"
-              validate={(value) =>
-                value >= 1 && value <= 100 ? undefined : "Enter a value from 1 to 100."
+            <Typography variant="body2">When to show DNA letters</Typography>
+            <Slider
+              aria-label="When to show DNA letters"
+              min={5}
+              max={25}
+              step={1}
+              value={visibility.value}
+              onChange={(_, value) => {
+                if (typeof value === "number") visibility.change(value);
+              }}
+              onChangeCommitted={(_, value) => {
+                if (typeof value === "number") visibility.submit(value);
+              }}
+              getAriaValueText={(value) =>
+                `Sequence appears at ${Math.floor(trackWidth / value)} base pairs or less`
               }
-              onCommit={(value) => updateTrack({ config: { sequenceMinPixelsPerBase: value } })}
+              sx={{ py: 1 }}
             />
+            <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                Zoomed farther out
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Zoomed closer in
+              </Typography>
+            </Box>
           </Box>
           <Button
             size="small"
@@ -56,6 +81,11 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
             ? `Sequence appears at ${sequenceSpan.toLocaleString("en-US")} bp or less.`
             : "Increase track width to show reference bases."}
         </Typography>
+        {visibility.error && (
+          <Typography color="error" variant="caption">
+            {visibility.error}
+          </Typography>
+        )}
         <FormControlLabel
           sx={{ m: 0, alignItems: "flex-start" }}
           control={
