@@ -24,7 +24,7 @@ type FormAction =
   | { type: "fieldChanged"; field: Exclude<keyof FormValues, "highlightType">; value: string }
   | { type: "typeChanged"; value: NonNullable<Highlight["type"]> }
   | { type: "validationFailed"; errors: FormErrors }
-  | { type: "submitted" };
+  | { type: "reset" };
 
 const initialFormState: FormState = {
   name: "",
@@ -52,7 +52,7 @@ function formReducer(state: FormState, action: FormAction): FormState {
       };
     case "validationFailed":
       return { ...state, errors: action.errors };
-    case "submitted":
+    case "reset":
       return initialFormState;
   }
 }
@@ -142,7 +142,7 @@ export function HighlightForm({
       onSaved?.();
     } else {
       addHighlight(nextHighlight);
-      dispatch({ type: "submitted" });
+      dispatch({ type: "reset" });
     }
   }
 
@@ -238,6 +238,9 @@ export function HighlightForm({
         </Stack>
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="center" spacing={0.75}>
           {onCancel ? <Button onClick={onCancel}>Cancel</Button> : null}
+          {!initialHighlight ? (
+            <Button onClick={() => dispatch({ type: "reset" })}>Clear</Button>
+          ) : null}
           <Button
             startIcon={initialHighlight ? undefined : <AddIcon />}
             type="submit"
