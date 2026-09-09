@@ -56,7 +56,7 @@ describe("TrackStack subscriptions", () => {
     useTrackStore.getState().setPinnedTrackIds(["second"]);
     await renderBrowser(useTrackStore);
     expect(renderedIds()).toEqual(["second", "first"]);
-    expect(trackRow("second").getAttribute("transform")).toBe("translate(0,80)");
+    expect(trackRow("second").getAttribute("transform")).toBe("translate(0,0)");
     expect(trackRow("second").querySelector('rect[style*="cursor: default"]')).not.toBeNull();
     expect(trackRow("first").querySelector('rect[style*="cursor: grab"]')).not.toBeNull();
 
@@ -96,7 +96,7 @@ describe("TrackStack subscriptions", () => {
     const drop = () => document.dispatchEvent(new MouseEvent("mouseup", { clientY: -200 }));
     await startDrag("third");
     await mutate(move);
-    expect(trackRow("first").getAttribute("transform")).toBe("translate(0,80)");
+    expect(trackRow("first").getAttribute("transform")).toBe("translate(0,0)");
     await mutate(drop);
     expect(useTrackStore.getState().order).toEqual(["first", "third", "second"]);
 
