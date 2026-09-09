@@ -1,7 +1,8 @@
+import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Typography from "@mui/material/Typography";
-import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { useBrowserStore, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
@@ -9,6 +10,12 @@ import { TrackSettingsNumberField } from "../shared/settings/trackSettingsNumber
 import type { RulerConfig } from "./schema";
 
 export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerConfig>) {
+  const trackWidth = useBrowserStore((state) => state.trackWidth);
+  const region = useBrowserStore((state) => state.region);
+  const zoom = useBrowserStore((state) => state.zoom);
+  const sequenceSpan = Math.floor(trackWidth / track.config.sequenceMinPixelsPerBase);
+  const currentSpan = region.end - region.start;
+
   return (
     <TrackSettingsLayout>
       <TrackSettingsSection title="Reference sequence">
@@ -28,6 +35,19 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
           }
           onCommit={(value) => updateTrack({ config: { sequenceMinPixelsPerBase: value } })}
         />
+        <Typography variant="body2" color="text.secondary" aria-live="polite">
+          {sequenceSpan >= 1
+            ? `Sequence appears at ${sequenceSpan.toLocaleString("en-US")} bp or less.`
+            : "Increase track width to show reference bases."}
+        </Typography>
+        <Button
+          size="small"
+          variant="outlined"
+          disabled={!track.config.sequenceUrl || sequenceSpan < 1 || currentSpan <= sequenceSpan}
+          onClick={() => zoom(sequenceSpan / currentSpan)}
+        >
+          Zoom to sequence
+        </Button>
         <FormControlLabel
           control={
             <Checkbox
