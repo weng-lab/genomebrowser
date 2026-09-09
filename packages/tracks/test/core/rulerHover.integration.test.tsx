@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act } from "react";
+import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { createBrowserStore, createTrackStore, GenomeBrowser } from "@weng-lab/genomebrowser";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
@@ -77,6 +78,21 @@ it("owns hover highlights and clears them without removing user or other ruler h
     expect(browserStore.getState().selectionMode).toBe("zoom");
     await move(50);
     expect(browserStore.getState().selectionMode).toBe("pan");
+    await move(110);
+    await act(async () => {
+      document.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
+    });
+    expect(browserStore.getState().selectionMode).toBe("pan");
+    await move(50);
+    await act(async () => {
+      browserStore.getState().setSelectionMode("zoom");
+    });
+    await move(110);
+    await act(async () => {
+      document.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
+    });
+    expect(browserStore.getState().selectionMode).toBe("zoom");
+    await move(50);
     await act(async () => {
       browserStore.getState().setSelectionMode("highlight");
     });
@@ -120,6 +136,21 @@ it("owns hover highlights and clears them without removing user or other ruler h
     });
     expect(highlights()).toEqual([saved]);
     await point(0, 102);
+    vi.spyOn(
+      container.querySelector("[data-ruler-zoom-area]")!,
+      "getBoundingClientRect",
+    ).mockReturnValue(new DOMRect(100, 100, 1000, 48));
+    await move(50);
+    await move(110);
+    expect(browserStore.getState().selectionMode).toBe("zoom");
+    // Simulate core replacing the ruler with loading content during pointer-up.
+    document.addEventListener("pointerup", () => flushSync(() => root.render(null)), {
+      once: true,
+    });
+    await act(async () => {
+      document.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
+    });
+    expect(browserStore.getState().selectionMode).toBe("pan");
   } finally {
     await act(async () => root.unmount());
     container.remove();

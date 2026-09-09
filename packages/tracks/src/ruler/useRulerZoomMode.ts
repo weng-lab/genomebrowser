@@ -31,9 +31,22 @@ export function useRulerZoomMode(onMove: (event: PointerEvent, bounds: DOMRect |
         switchedFromPan.current = false;
       }
     };
+    const finish = () => {
+      if (!switchedFromPan.current || mode !== "zoom") return;
+      switchedFromPan.current = false;
+      // Let core finish its pointer-up selection before changing the mode.
+      // This also survives the ruler unmounting for the resulting data load.
+      queueMicrotask(() => setMode("pan"));
+    };
     // Zoom's selection overlay covers tracks, so use bounds instead of hit-target events.
     document.addEventListener("pointermove", move);
-    return () => document.removeEventListener("pointermove", move);
+    document.addEventListener("pointerup", finish);
+    document.addEventListener("pointercancel", finish);
+    return () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", finish);
+      document.removeEventListener("pointercancel", finish);
+    };
   }, [mode, setMode]);
 
   return areaRef;
