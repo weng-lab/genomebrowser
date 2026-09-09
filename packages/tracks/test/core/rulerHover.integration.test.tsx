@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserStore, createTrackStore, GenomeBrowser } from "@weng-lab/genomebrowser";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -48,13 +48,45 @@ it("owns hover highlights and clears them without removing user or other ruler h
     const base = container.querySelectorAll(`[aria-label="chr1:${position} A"]`)[ruler];
     expect(base).toBeDefined();
     await act(async () => {
-      base!.dispatchEvent(new MouseEvent(type, { bubbles: true, buttons }));
+      base!.dispatchEvent(
+        new MouseEvent(type, {
+          bubbles: true,
+          buttons,
+          clientX: 100 + (position - 100) * 10 + 5,
+          clientY: 125 + ruler * 100,
+        }),
+      );
     });
   };
   try {
     await act(async () => {
       root.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />);
     });
+    const zoomArea = container.querySelector("[data-ruler-zoom-area]")!;
+    vi.spyOn(zoomArea, "getBoundingClientRect").mockReturnValue(new DOMRect(100, 100, 1000, 48));
+    const move = async (x: number, buttons = 0) => {
+      await act(async () => {
+        document.dispatchEvent(
+          new MouseEvent("pointermove", { bubbles: true, clientX: x, clientY: 110, buttons }),
+        );
+      });
+    };
+    await move(110);
+    expect(browserStore.getState().selectionMode).toBe("zoom");
+    await move(50, 1);
+    expect(browserStore.getState().selectionMode).toBe("zoom");
+    await move(50);
+    expect(browserStore.getState().selectionMode).toBe("pan");
+    await act(async () => {
+      browserStore.getState().setSelectionMode("highlight");
+    });
+    await move(110);
+    await move(50);
+    expect(browserStore.getState().selectionMode).toBe("highlight");
+    await act(async () => {
+      browserStore.getState().setSelectionMode("pan");
+    });
+    await move(110);
     await point(0, 100);
     expect(highlights()).toHaveLength(2);
     expect(highlights()[1]?.color).toBe("#ff8800");
