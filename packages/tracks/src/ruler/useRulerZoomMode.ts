@@ -34,9 +34,10 @@ export function useRulerZoomMode(onMove: (event: PointerEvent, bounds: DOMRect |
     const finish = () => {
       if (!switchedFromPan.current || mode !== "zoom") return;
       switchedFromPan.current = false;
-      // Let core finish its pointer-up selection before changing the mode.
-      // This also survives the ruler unmounting for the resulting data load.
-      queueMicrotask(() => setMode("pan"));
+      // Wait for the entire event dispatch: microtasks can run between native
+      // listeners and cancel core's selection before its pointer-up handler.
+      // Keep this reset even if the resulting data load unmounts the ruler.
+      setTimeout(() => setMode("pan"), 0);
     };
     // Zoom's selection overlay covers tracks, so use bounds instead of hit-target events.
     document.addEventListener("pointermove", move);
