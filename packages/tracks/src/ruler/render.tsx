@@ -23,35 +23,7 @@ export function Ruler({
   const span = region.end - region.start;
   const pixelsPerBase = width / span;
   const x = (base: number) => (base - region.start) * pixelsPerBase;
-  const step = tickStep(span, width);
-  const ticks = [];
   const axisY = Math.min(28, height * 0.45);
-  for (let base = Math.ceil(region.start / step) * step; base < region.end; base += step) {
-    ticks.push(
-      <g key={base}>
-        <line x1={x(base)} x2={x(base)} y1={axisY - 6} y2={axisY} stroke={color} />
-        <text x={x(base)} y={axisY - 11} textAnchor="middle" fill={color} fontSize={11}>
-          {base.toLocaleString("en-US")}
-        </text>
-      </g>,
-    );
-    if (step >= 5)
-      for (let i = 1; i < 5; i++) {
-        const minor = base + (step * i) / 5;
-        if (Number.isInteger(minor) && minor < region.end)
-          ticks.push(
-            <line
-              key={minor}
-              x1={x(minor)}
-              x2={x(minor)}
-              y1={axisY - 3}
-              y2={axisY}
-              stroke={color}
-              opacity={0.45}
-            />,
-          );
-      }
-  }
   const showSequence =
     Boolean(config.sequenceUrl) && pixelsPerBase >= config.sequenceMinPixelsPerBase;
   const sequenceHeight = Math.max(1, Math.min(25, height - axisY - 6));
@@ -59,7 +31,7 @@ export function Ruler({
   return (
     <g aria-label="Genomic ruler" pointerEvents="none" style={{ userSelect: "none" }}>
       <line x1={0} x2={width} y1={axisY} y2={axisY} stroke={color} opacity={0.35} />
-      {ticks}
+      <RulerTicks region={region} width={width} color={color} axisY={axisY} />
       {showSequence
         ? data.records.flatMap((record) =>
             Array.from(record.sequence, (base, index) => {
@@ -110,4 +82,48 @@ function formatSpan(span: number): string {
     : span >= 1e3
       ? `${+(span / 1e3).toPrecision(3)} kb`
       : `${span} bp`;
+}
+
+function RulerTicks({
+  region,
+  width,
+  color,
+  axisY,
+}: {
+  region: TrackRendererProps<RulerConfig, RulerData>["region"];
+  width: number;
+  color: string;
+  axisY: number;
+}) {
+  const span = region.end - region.start;
+  const x = (base: number) => ((base - region.start) * width) / span;
+  const step = tickStep(span, width);
+  const ticks = [];
+  for (let base = Math.ceil(region.start / step) * step; base < region.end; base += step) {
+    ticks.push(
+      <g key={base}>
+        <line x1={x(base)} x2={x(base)} y1={axisY - 6} y2={axisY} stroke={color} />
+        <text x={x(base)} y={axisY - 11} textAnchor="middle" fill={color} fontSize={11}>
+          {base.toLocaleString("en-US")}
+        </text>
+      </g>,
+    );
+    if (step >= 5)
+      for (let i = 1; i < 5; i++) {
+        const minor = base + (step * i) / 5;
+        if (Number.isInteger(minor) && minor < region.end)
+          ticks.push(
+            <line
+              key={minor}
+              x1={x(minor)}
+              x2={x(minor)}
+              y1={axisY - 3}
+              y2={axisY}
+              stroke={color}
+              opacity={0.45}
+            />,
+          );
+      }
+  }
+  return <>{ticks}</>;
 }

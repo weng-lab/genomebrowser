@@ -64,64 +64,72 @@ assertEqual(
   "public package subpaths",
 );
 
-for (const [subpath, expectedExports] of expectedRuntimeExports) {
-  const conditions = manifest.exports[subpath];
-  assert(isObject(conditions), `${subpath} must use export conditions`);
-  assert(typeof conditions.import === "string", `${subpath} import condition is missing`);
-  assert(typeof conditions.types === "string", `${subpath} types condition is missing`);
-  const expectedDeclaration =
-    subpath === "." ? "./dist/src/lib.d.ts" : `./dist/src/${subpath.slice(2)}/index.d.ts`;
-  assertEqual(conditions.types, expectedDeclaration, `${subpath} declaration entry`);
+await Promise.all(
+  [...expectedRuntimeExports].map(async ([subpath, expectedExports]) => {
+    const conditions = manifest.exports[subpath];
+    assert(isObject(conditions), `${subpath} must use export conditions`);
+    assert(typeof conditions.import === "string", `${subpath} import condition is missing`);
+    assert(typeof conditions.types === "string", `${subpath} types condition is missing`);
+    const expectedDeclaration =
+      subpath === "." ? "./dist/src/lib.d.ts" : `./dist/src/${subpath.slice(2)}/index.d.ts`;
+    assertEqual(conditions.types, expectedDeclaration, `${subpath} declaration entry`);
 
-  const javascriptPath = resolveExport(conditions.import);
-  const declarationPath = resolveExport(conditions.types);
-  await Promise.all([access(javascriptPath), access(declarationPath)]);
+    const javascriptPath = resolveExport(conditions.import);
+    const declarationPath = resolveExport(conditions.types);
+    await Promise.all([access(javascriptPath), access(declarationPath)]);
 
-  const runtimeModule = await import(`${pathToFileURL(javascriptPath).href}?verify-package`);
-  assertEqual(
-    JSON.stringify(Object.keys(runtimeModule).sort()),
-    JSON.stringify([...expectedExports].sort()),
-    `${subpath} runtime exports`,
-  );
-
-  const sources = await collectReachableSources(javascriptPath);
-  const loadedTrackModules = trackNames.filter((trackName) =>
-    sources.some((source) =>
-      new RegExp(`(?:^|/)src/${trackName}/index\\.[cm]?[jt]sx?$`).test(source),
-    ),
-  );
-  const expectedTracks =
-    subpath === "." ? trackNames : trackNames.filter((name) => subpath === `./${name}`);
-  assertEqual(
-    JSON.stringify(loadedTrackModules),
-    JSON.stringify(expectedTracks),
-    `${subpath} loaded track implementations`,
-  );
-
-  for (const javascript of await collectReachableJavaScript(javascriptPath)) {
-    const source = await readFile(javascript, "utf8");
-    assert(
-      !source.includes("@weng-lab/genomebrowser-ui"),
-      `${subpath} imports @weng-lab/genomebrowser-ui`,
+    const runtimeModule = await import(`${pathToFileURL(javascriptPath).href}?verify-package`);
+    assertEqual(
+      JSON.stringify(Object.keys(runtimeModule).sort()),
+      JSON.stringify([...expectedExports].sort()),
+      `${subpath} runtime exports`,
     );
-  }
-}
+
+    const sources = await collectReachableSources(javascriptPath);
+    const loadedTrackModules = trackNames.filter((trackName) =>
+      sources.some((source) =>
+        new RegExp(`(?:^|/)src/${trackName}/index\\.[cm]?[jt]sx?$`).test(source),
+      ),
+    );
+    const expectedTracks =
+      subpath === "." ? trackNames : trackNames.filter((name) => subpath === `./${name}`);
+    assertEqual(
+      JSON.stringify(loadedTrackModules),
+      JSON.stringify(expectedTracks),
+      `${subpath} loaded track implementations`,
+    );
+
+    const javascriptFiles = await collectReachableJavaScript(javascriptPath);
+    const sourceContents = await Promise.all(
+      [...javascriptFiles].map((file) => readFile(file, "utf8")),
+    );
+    for (const source of sourceContents) {
+      assert(
+        !source.includes("@weng-lab/genomebrowser-ui"),
+        `${subpath} imports @weng-lab/genomebrowser-ui`,
+      );
+    }
+  }),
+);
 
 console.log(
   "Verified all built tracks subpaths, declarations, exports, and isolated entry graphs.",
 );
 
 async function collectReachableSources(entryPath) {
-  const sources = [];
-  for (const javascriptPath of await collectReachableJavaScript(entryPath)) {
-    try {
-      const sourceMap = JSON.parse(await readFile(`${javascriptPath}.map`, "utf8"));
-      sources.push(...sourceMap.sources);
-    } catch (error) {
-      if (!isMissingFileError(error)) throw error;
-    }
-  }
-  return sources;
+  const javascriptFiles = await collectReachableJavaScript(entryPath);
+  const sourceLists = await Promise.all(
+    [...javascriptFiles].map(async (javascriptPath) => {
+      try {
+        const sourceMap = JSON.parse(await readFile(`${javascriptPath}.map`, "utf8"));
+        return sourceMap.sources;
+      } catch (error) {
+        if (!isMissingFileError(error)) throw error;
+        return [];
+      }
+    }),
+  );
+  return sourceLists.flat();
 }
 
 async function collectReachableJavaScript(entryPath) {
