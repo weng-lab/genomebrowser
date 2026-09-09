@@ -12,7 +12,7 @@ const expectedRuntimeExports = new Map([
   ["./bulkbed", ["bulkBedModule"]],
   ["./cave", ["caveModule"]],
   ["./ccre", ["ccreBigBedModule", "ccreBigBedSchema"]],
-  ["./gene", ["geneModule"]],
+  ["./gene", ["geneModule", "getGeneDatasetsForAssembly", "getGeneDatasetTitle"]],
   ["./methylc", ["methylCModule"]],
   ["./transcript", ["transcriptModule"]],
   [

@@ -66,3 +66,6 @@ export type {
   GeneTranscriptPart,
   MergedGenePart,
 } from "./interactions";
+
+export { getGeneDatasetsForAssembly, getGeneDatasetTitle } from "./datasets";
+export type { GeneDataset } from "./datasets";

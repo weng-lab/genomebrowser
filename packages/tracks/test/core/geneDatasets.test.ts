@@ -1,7 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { getGeneDatasetsForAssembly } from "../../src/gene/datasets";
+import {
+  geneModule,
+  getGeneDatasetsForAssembly,
+  getGeneDatasetTitle,
+} from "@weng-lab/genomebrowser-tracks/gene";
+import { createTrackStore } from "@weng-lab/genomebrowser";
 
 describe("gene datasets", () => {
+  it("offers only M25 basic and comprehensive for mm10, with distinct tracks for comparison", () => {
+    const datasets = getGeneDatasetsForAssembly("mm10");
+    expect(
+      datasets.map(({ assembly, release, variant }) => ({ assembly, release, variant })),
+    ).toEqual([
+      { assembly: "mm10", release: "M25", variant: "basic" },
+      { assembly: "mm10", release: "M25", variant: "comprehensive" },
+    ]);
+    const useTrackStore = createTrackStore({
+      modules: [geneModule],
+      tracks: datasets.map((dataset) =>
+        geneModule.create({
+          id: dataset.id,
+          title: getGeneDatasetTitle(dataset),
+          source: "host",
+          config: { url: dataset.url },
+        }),
+      ),
+    });
+    expect(useTrackStore.getState().tracks.map(({ base }) => base.title)).toEqual([
+      "GENCODE M25 basic",
+      "GENCODE M25 comprehensive",
+    ]);
+    expect(getGeneDatasetsForAssembly("mm39")).toEqual([]);
+    expect(getGeneDatasetsForAssembly("GRCm38")).toEqual([]);
+  });
+
   it("returns only datasets configured for the requested assembly", () => {
     const hg38Datasets = getGeneDatasetsForAssembly("hg38");
     expect(hg38Datasets).toHaveLength(13);

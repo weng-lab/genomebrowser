@@ -42,6 +42,36 @@ All displays derive total height from rows needed by features that intersect the
 
 The Gene settings panel provides the required URL, gene highlighting controls, and an ordered list of tag colors. For a host-owned track, inline annotation dataset and version controls list the host datasets available for the browser's current assembly. Selecting either value changes the URL, while the URL field remains disabled. User-owned tracks omit these selectors and keep the URL editable. Drag a tag row's handle with a pointer to change its priority. Tag inputs accept free-entry values and suggest tags observed in regions fetched from the current URL during this page session. These suggestions are not a complete catalog of the BigBed file. The shared base settings provide display, color, height, and row-height controls.
 
+## Reference datasets
+
+Import `getGeneDatasetsForAssembly` and `getGeneDatasetTitle` from `@weng-lab/genomebrowser-tracks/gene` to build collections from the same catalog used by Gene settings:
+
+```ts
+import { mm10 } from "@weng-lab/genomebrowser";
+import {
+  geneModule,
+  getGeneDatasetsForAssembly,
+  getGeneDatasetTitle,
+} from "@weng-lab/genomebrowser-tracks/gene";
+
+const tracks = getGeneDatasetsForAssembly(mm10.id).map((dataset) =>
+  geneModule.create({
+    id: dataset.id,
+    title: getGeneDatasetTitle(dataset),
+    source: "host",
+    config: { url: dataset.url },
+  }),
+);
+```
+
+The mm10 catalog contains GENCODE M25 basic and comprehensive annotations for GRCm38. The hg38 catalog contains human releases 29, 40, 46–49 in both variants and release 50 basic. Newer mouse releases on GRCm39/mm39 are not included. Unknown assembly IDs, including mm39, return an empty array; host settings display an unavailable-datasets message. IDs match exactly: use `mm10`, not `GRCm38`.
+
+`getGeneDatasetsForAssembly(assembly: string)` returns `readonly GeneDataset[]`. Each dataset has `id`, `assembly`, `variant` (`"basic" | "comprehensive"`), numeric `version`, display `release` (for example, `"M25"`), and `url`. `getGeneDatasetTitle(dataset)` returns a title such as `GENCODE M25 basic`.
+
+Each catalog entry can create an independent track for comparison. Settings change the existing track's URL, preserving its display configuration. Titles matching `getGeneDatasetTitle` for the previous dataset follow the selection; other titles remain unchanged. Save the resulting track configuration and base fields together when persisting tracks.
+
+Catalog filtering selects declared compatible sources; it does not infer or validate the assembly of an arbitrary URL. Applications remain responsible for matching custom files to their browser assembly.
+
 ## Source requirements
 
 The source must be an absolute public HTTP or HTTPS BigBed URL. Standard BigGenePred has these columns in order:
