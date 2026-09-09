@@ -13,11 +13,15 @@ export type TrackStoreOptions<
 > = {
   modules: Modules;
   tracks?: Track[];
+  /** Track IDs pinned at the top, in order. Missing IDs are reserved for later additions. */
+  pinnedTrackIds?: readonly string[];
 };
 
 export type TrackStore = {
   tracks: AnyTrackInstance[];
   order: string[];
+  pinnedTrackIds: readonly string[];
+  setPinnedTrackIds: (ids: readonly string[]) => TrackMutationResult;
   registry: ModuleRegistry;
   setTracks: <Track extends AnyTrackInstance>(tracks: Track[]) => TrackMutationResult;
   addTrack: <Track extends AnyTrackInstance>(track: Track, index?: number) => TrackMutationResult;
@@ -44,9 +48,16 @@ export function createTrackStore<
   const initialTracks = validateTracks(options.tracks ?? [], registry);
   assertUniqueTrackIds(initialTracks);
 
+  const pinnedTrackIds = [...new Set(options.pinnedTrackIds)];
+
   return create<TrackStore>((set, get) => ({
-    tracks: initialTracks,
-    order: initialTracks.map(getTrackId),
+    ...getOrderedTracks(initialTracks, pinnedTrackIds),
+    pinnedTrackIds,
+    setPinnedTrackIds: (ids) => {
+      const pinnedTrackIds = [...new Set(ids)];
+      set({ ...getOrderedTracks(get().tracks, pinnedTrackIds), pinnedTrackIds });
+      return mutationOk;
+    },
     registry,
     setTracks: (tracks) => {
       const result = getValidatedTracks(tracks, registry);
@@ -54,7 +65,7 @@ export function createTrackStore<
       const duplicateResult = getUniqueTrackIdsResult(result.tracks);
       if (!duplicateResult.ok) return duplicateResult;
       const validatedTracks = result.tracks;
-      set({ tracks: validatedTracks, order: validatedTracks.map(getTrackId) });
+      set(getOrderedTracks(validatedTracks, get().pinnedTrackIds));
       return mutationOk;
     },
     addTrack: (track, index) => {
@@ -67,7 +78,7 @@ export function createTrackStore<
         return mutationError(`Duplicate track id: ${trackId}`);
       }
       tracks.splice(index ?? tracks.length, 0, validatedTrack);
-      set({ tracks, order: tracks.map(getTrackId) });
+      set(getOrderedTracks(tracks, get().pinnedTrackIds));
       return mutationOk;
     },
     removeTrack: (id) => {
@@ -75,7 +86,7 @@ export function createTrackStore<
         return mutationError(`No track found for id: ${id}`);
       }
       const tracks = get().tracks.filter((track) => getTrackId(track) !== id);
-      set({ tracks, order: tracks.map(getTrackId) });
+      set(getOrderedTracks(tracks, get().pinnedTrackIds));
       return mutationOk;
     },
     applyTrackChanges: (changes) => {
@@ -94,17 +105,19 @@ export function createTrackStore<
       ];
       const duplicateResult = getUniqueTrackIdsResult(tracks);
       if (!duplicateResult.ok) return duplicateResult;
-      set({ tracks, order: tracks.map(getTrackId) });
+      set(getOrderedTracks(tracks, get().pinnedTrackIds));
       return mutationOk;
     },
     reorderTracks: (ids) => {
       const tracksById = new Map(get().tracks.map((track) => [getTrackId(track), track]));
       const result = getValidOrderResult(ids, tracksById);
       if (!result.ok) return result;
-      set({
-        tracks: ids.map((id) => tracksById.get(id)!),
-        order: ids,
-      });
+      set(
+        getOrderedTracks(
+          ids.map((id) => tracksById.get(id)!),
+          get().pinnedTrackIds,
+        ),
+      );
       return mutationOk;
     },
     updateTrack: (id, update) => {
@@ -139,6 +152,20 @@ export function createTrackStore<
     },
     getTrack: (id) => get().tracks.find((track) => getTrackId(track) === id),
   }));
+}
+
+function getOrderedTracks(tracks: AnyTrackInstance[], pinnedTrackIds: readonly string[]) {
+  const remaining = new Map(tracks.map((track) => [getTrackId(track), track]));
+  const ordered: AnyTrackInstance[] = [];
+  for (const id of pinnedTrackIds) {
+    const track = remaining.get(id);
+    if (track) {
+      ordered.push(track);
+      remaining.delete(id);
+    }
+  }
+  ordered.push(...remaining.values());
+  return { tracks: ordered, order: ordered.map(getTrackId) };
 }
 
 type ValidatedTrackResult = { ok: true; track: AnyTrackInstance } | { ok: false; error: string };
