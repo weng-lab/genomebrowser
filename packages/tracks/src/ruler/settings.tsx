@@ -48,7 +48,7 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
             gap: 1,
           }}
         >
-          <Typography variant="body2">When to show DNA letters</Typography>
+          <Typography variant="body2">Sequence resolution</Typography>
           <svg
             width={8 * visibility.value}
             height={22}
@@ -70,7 +70,7 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
         </Box>
         <Box sx={{ px: 1 }}>
           <Slider
-            aria-label="When to show DNA letters"
+            aria-label="Sequence resolution"
             min={5}
             max={25}
             step={1}

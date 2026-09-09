@@ -62,7 +62,7 @@ it("exposes config fields and preserves host ownership", () => {
     expect(updateTrack).toHaveBeenLastCalledWith({ config: { distinguishMaskedBases: true } });
     expect(container.textContent).not.toContain("Bases appear when each");
     const slider = container.querySelector<HTMLInputElement>('input[type="range"]')!;
-    expect(slider.getAttribute("aria-label")).toBe("When to show DNA letters");
+    expect(slider.getAttribute("aria-label")).toBe("Sequence resolution");
     expect(slider.min).toBe("5");
     expect(slider.max).toBe("25");
     expect(slider.value).toBe("15");
