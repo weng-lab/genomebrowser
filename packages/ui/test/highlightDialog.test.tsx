@@ -22,6 +22,79 @@ afterEach(() => {
 });
 
 describe("HighlightDialog", () => {
+  it("edits all highlight fields in place without changing other highlights", () => {
+    const browserStore = createTestStore();
+    browserStore
+      .getState()
+      .addHighlight({ id: "Original", region: { start: 100, end: 200 }, color: "#3366cc" });
+    browserStore
+      .getState()
+      .addHighlight({ id: "Other", region: { start: 400, end: 500 }, color: "#ff0000" });
+    const other = browserStore.getState().highlights[1];
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+
+    clickButton("Edit Original");
+    expect(getInput("ID").value).toBe("Original");
+    expect(getInput("Region").value).toBe("chr1:100-200");
+    expect(getInput("Opacity (%)").value).toBe("20");
+    setTextInput("ID", "Renamed");
+    setTextInput("Region", "chr2:300-450");
+    setTextInput("Color", "#00aa66");
+    const select = document.body.querySelector('[role="combobox"]')!;
+    act(() => select.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })));
+    const option = Array.from(document.body.querySelectorAll<HTMLElement>('[role="option"]')).find(
+      (el) => el.textContent === "Outlined",
+    )!;
+    act(() => option.click());
+    setTextInput("Opacity (%)", "75");
+    expect(browserStore.getState().highlights[0].id).toBe("Original");
+    clickButton("Save changes");
+
+    expect(browserStore.getState().highlights).toEqual([
+      {
+        id: "Renamed",
+        region: { chromosome: "chr2", start: 300, end: 450 },
+        color: "#00aa66",
+        opacity: 0.75,
+        type: "outlined",
+      },
+      other,
+    ]);
+    expect(browserStore.getState().highlights[1]).toBe(other);
+    clickButton("Edit Renamed");
+    expect(getInput("Opacity (%)").value).toBe("75");
+    clickButton("Save changes");
+    expect(browserStore.getState().highlights).toHaveLength(2);
+    clickButton("Go to Renamed");
+    expect(browserStore.getState().region).toEqual({ chromosome: "chr2", start: 300, end: 450 });
+  });
+
+  it("retains invalid edits and cancels without modifying the highlight", () => {
+    const browserStore = createTestStore();
+    for (const id of ["Original", "Other"])
+      browserStore
+        .getState()
+        .addHighlight({ id, region: { start: 100, end: 200 }, color: "#3366cc", type: "outlined" });
+    const original = browserStore.getState().highlights;
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+    clickButton("Edit Original");
+    expect(getInput("Opacity (%)").value).toBe("100");
+    setTextInput("ID", "Other");
+    setTextInput("Region", "chr2:2000-3000");
+    clickButton("Save changes");
+    expect(document.body.textContent).toContain("Highlight IDs must be unique.");
+    expect(document.body.textContent).toContain("Region does not overlap chromosome");
+    expect(getInput("ID").value).toBe("Other");
+    expect(browserStore.getState().highlights).toBe(original);
+    clickButton("Cancel");
+    clickButton("Edit Original");
+    expect(getInput("ID").value).toBe("Original");
+    expect(getInput("Region").value).toBe("chr1:100-200");
+    clickButton("Cancel");
+    clickButton("Edit Other");
+    expect(getInput("ID").value).toBe("Other");
+  });
+
   it("adds a highlight from one parsed region field", () => {
     const browserStore = createTestStore();
     mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
