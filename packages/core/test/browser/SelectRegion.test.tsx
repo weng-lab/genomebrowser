@@ -23,7 +23,6 @@ type SelectionTestProps = Pick<Parameters<typeof SelectRegion>[0], "region" | "s
       | "mode"
       | "highlightStyle"
       | "onHighlight"
-      | "setMode"
     >
   >;
 
@@ -35,49 +34,38 @@ afterEach(async () => {
 });
 
 describe("SelectRegion", () => {
-  it("handles temporary modifiers without changing stored mode and scopes hotkeys to the SVG", async () => {
+  it("leaves keyboard events and modifier drags to the application", async () => {
     const setRegion = vi.fn();
-    const setMode = vi.fn();
     const onHighlight = vi.fn();
     await renderSelection({
       region: { chromosome: "chr1", start: 0, end: 100 },
       setRegion,
       mode: "pan",
-      setMode,
       onHighlight,
     });
-    const hitArea = svg!.querySelector("rect")!;
-    await act(async () => {
-      hitArea.dispatchEvent(
-        new MouseEvent("pointerdown", { bubbles: true, button: 0, clientX: 30, shiftKey: true }),
-      );
-      document.dispatchEvent(new MouseEvent("pointerup", { clientX: 80 }));
-    });
-    expect(setRegion).toHaveBeenCalledWith({ chromosome: "chr1", start: 10, end: 60 });
-    expect(setMode).not.toHaveBeenCalled();
-    await act(async () => {
-      hitArea.dispatchEvent(
-        new MouseEvent("pointerdown", {
-          bubbles: true,
-          button: 0,
-          clientX: 30,
-          shiftKey: true,
-          altKey: true,
-        }),
-      );
-      document.dispatchEvent(new MouseEvent("pointerup", { clientX: 80 }));
-      document.dispatchEvent(new KeyboardEvent("keydown", { key: "h", bubbles: true }));
-    });
-    expect(onHighlight).toHaveBeenCalledOnce();
-    expect(setMode).not.toHaveBeenCalled();
-    await act(async () =>
-      svg!.dispatchEvent(new KeyboardEvent("keydown", { key: "h", bubbles: true })),
-    );
-    expect(setMode).toHaveBeenCalledWith("highlight");
-    await act(async () =>
-      svg!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
-    );
-    expect(setMode).toHaveBeenLastCalledWith("pan");
+    for (const key of ["p", "z", "h", "Escape"]) {
+      const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
+      await act(async () => {
+        svg!.dispatchEvent(event);
+      });
+      expect(event.defaultPrevented).toBe(false);
+    }
+    for (const altKey of [false, true]) {
+      await act(async () => {
+        svg!.querySelector("rect")!.dispatchEvent(
+          new MouseEvent("pointerdown", {
+            bubbles: true,
+            button: 0,
+            clientX: 30,
+            shiftKey: true,
+            altKey,
+          }),
+        );
+        document.dispatchEvent(new MouseEvent("pointerup", { clientX: 80 }));
+      });
+    }
+    expect(setRegion).not.toHaveBeenCalled();
+    expect(onHighlight).not.toHaveBeenCalled();
   });
 
   it("creates chromosome-scoped highlights with the configured style without zooming", async () => {
@@ -100,14 +88,12 @@ describe("SelectRegion", () => {
       type: "outlined",
     });
   });
-  it.each(["pointercancel", "Escape", "blur"])("cancels on %s", async (action) => {
+  it.each(["pointercancel", "blur"])("cancels on %s", async (action) => {
     const setRegion = vi.fn();
     await renderSelection({ region: { chromosome: "chr1", start: 100, end: 200 }, setRegion });
     await startSelection(30, 80);
     await act(async () => {
-      if (action === "Escape")
-        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-      else if (action === "blur") window.dispatchEvent(new Event("blur"));
+      if (action === "blur") window.dispatchEvent(new Event("blur"));
       else document.dispatchEvent(new MouseEvent(action));
       document.dispatchEvent(new MouseEvent("pointerup", { clientX: 80 }));
     });

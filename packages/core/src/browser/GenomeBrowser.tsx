@@ -270,7 +270,6 @@ function BrowserView({
   const { isInteractionBlocked } = useTrackMutationGate();
   const selectionMode = useBrowserStore((state) => state.selectionMode);
   const selectionHighlight = useBrowserStore((state) => state.selectionHighlight);
-  const setSelectionMode = useBrowserStore((state) => state.setSelectionMode);
   const addHighlight = useBrowserStore((state) => state.addHighlight);
 
   return (
@@ -287,7 +286,6 @@ function BrowserView({
           mode={selectionMode}
           highlightStyle={selectionHighlight}
           onHighlight={addHighlight}
-          setMode={setSelectionMode}
         >
           <g>
             <TrackStack

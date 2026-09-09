@@ -45,7 +45,7 @@ The settings panel separates the 2bit URL under “Reference source” from “S
 
 Moving the pointer onto the ruler content temporarily switches Pan mode to Zoom; moving away or finishing/canceling the pointer gesture restores Pan if the ruler made that switch. Gesture completion restores Pan even when zooming replaces the ruler with a loading placeholder. Explicit Zoom and Highlight modes are preserved on entry. Mode changes are reflected in the toolbar. Dragging does not switch modes mid-gesture. Removing the hovered ruler does not restore the previous mode; use the toolbar to choose another mode.
 
-Selection belongs to the browser and works with any tracks, even after removing the ruler. Set `useBrowserStore.getState().setSelectionMode("zoom")` or `"highlight"` and drag across the data area. Use `"pan"` for normal panning. The UI package offers `BrowserSelectionControls` for these modes. Focus the browser and press P, Z or H; Escape cancels and returns to pan. Shift-drag temporarily selects zoom; Alt-Shift-drag temporarily creates a highlight.
+Selection belongs to the browser and works with any tracks, even after removing the ruler. Set `useBrowserStore.getState().setSelectionMode("zoom")` or `"highlight"` and drag across the data area. Use `"pan"` for normal panning. The UI package offers `BrowserSelectionControls` for these modes. Keyboard bindings belong to the host application; the browser SVG does not take focus or register shortcuts.
 
 See [Data source troubleshooting](../dataSources.md) for range and CORS requirements. Ordinary BigWig signal values cannot provide reference bases without a separate encoding contract.
 

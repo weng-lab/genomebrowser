@@ -21,7 +21,6 @@ export function InteractionShield({
       role="status"
       aria-live="polite"
       aria-label="Genome browser is updating track data"
-      tabIndex={0}
       onClick={handleBlockedEvent}
       onContextMenu={handleBlockedEvent}
       onMouseDown={handleBlockedEvent}
