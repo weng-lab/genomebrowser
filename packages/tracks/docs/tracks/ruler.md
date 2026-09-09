@@ -20,11 +20,11 @@ const useTrackStore = createTrackStore({
 
 Replace the placeholder with a valid HTTP(S) 2bit URL for your assembly. For coordinates alone, use `config: {}`. `firstPartyTrackModules` includes the ruler module, but registering a module does not create a track.
 
-| Base option | Default     | Behavior                                                                             |
-| ----------- | ----------- | ------------------------------------------------------------------------------------ |
-| `display`   | `"full"`    | The only display.                                                                    |
-| `height`    | `22`        | Automatically sized: 22 SVG pixels for coordinates, 48 when reference bases render.  |
-| `color`     | `"#475569"` | Coordinate ticks and axis. Bases use conventional A/C/G/T colors plus their letters. |
+| Base option | Default     | Behavior                                                                                                                    |
+| ----------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `display`   | `"full"`    | The only display.                                                                                                           |
+| `height`    | `22`        | Automatically sized: 22 SVG pixels for coordinates, 48 when reference bases render.                                         |
+| `color`     | `"#475569"` | Coordinate ticks and axis. Bases use A: `#228b22`, C: blue, G: orange, T: red, and N: `#64748b`, regardless of letter case. |
 
 | Config                     | Type      | Default | Behavior                                                                                                                                     |
 | -------------------------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |

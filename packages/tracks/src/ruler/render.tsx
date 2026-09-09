@@ -5,10 +5,10 @@ import type { RulerConfig } from "./schema";
 import type { RulerData } from "./fetch";
 
 const BASE_COLORS: Record<string, string> = {
-  A: "#15803d",
-  C: "#2563eb",
-  G: "#a16207",
-  T: "#dc2626",
+  A: "#228b22",
+  C: "blue",
+  G: "orange",
+  T: "red",
   N: "#64748b",
 };
 
