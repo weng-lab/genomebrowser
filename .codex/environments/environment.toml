@@ -5,8 +5,7 @@ name = "genomebrowser"
 [setup]
 script = '''
 cd "$CODEX_WORKTREE_PATH"
-pnpm install
-pnpm verify'''
+pnpm install'''
 
 [[actions]]
 name = "Run"
