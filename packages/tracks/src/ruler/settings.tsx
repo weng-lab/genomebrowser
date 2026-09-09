@@ -5,6 +5,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Slider from "@mui/material/Slider";
 import Typography from "@mui/material/Typography";
 import { useBrowserStore, type TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
@@ -86,6 +87,11 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
             {visibility.error}
           </Typography>
         )}
+        <TrackSettingsColorField
+          label="Sequence highlight color"
+          value={track.config.sequenceHighlightColor}
+          onCommit={(value) => updateTrack({ config: { sequenceHighlightColor: value } })}
+        />
         <FormControlLabel
           sx={{ m: 0, alignItems: "flex-start" }}
           control={

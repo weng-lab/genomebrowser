@@ -21,7 +21,11 @@ it("owns hover highlights and clears them without removing user or other ruler h
       rulerModule.create({
         id,
         title: id,
-        config: { sequenceUrl: "https://example.test/ref.2bit", sequenceMinPixelsPerBase: 5 },
+        config: {
+          sequenceUrl: "https://example.test/ref.2bit",
+          sequenceMinPixelsPerBase: 5,
+          sequenceHighlightColor: id === "one" ? "#ff8800" : "#0088ff",
+        },
       }),
     ),
   });
@@ -53,12 +57,20 @@ it("owns hover highlights and clears them without removing user or other ruler h
     });
     await point(0, 100);
     expect(highlights()).toHaveLength(2);
+    expect(highlights()[1]?.color).toBe("#ff8800");
     expect(highlights()[1]?.region).toEqual({ chromosome: "chr1", start: 100, end: 101 });
+    await act(async () => {
+      trackStore.getState().updateTrack("one", { config: { sequenceHighlightColor: "#00aa88" } });
+    });
+    expect(highlights()).toEqual([saved]);
+    await point(0, 100);
+    expect(highlights()[1]?.color).toBe("#00aa88");
     await point(0, 101, "pointermove");
     expect(highlights()).toHaveLength(2);
     expect(highlights()[1]?.region.start).toBe(101);
     await point(1, 102);
     expect(highlights()).toHaveLength(3);
+    expect(highlights()[2]?.color).toBe("#0088ff");
     expect(new Set(highlights().map(({ id }) => id)).size).toBe(3);
     await point(0, 101, "pointerout");
     expect(highlights()).toHaveLength(2);

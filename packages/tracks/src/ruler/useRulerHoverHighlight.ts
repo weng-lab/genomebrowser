@@ -5,6 +5,7 @@ export function useRulerHoverHighlight(
   visibleRegion: GenomicRegion,
   width: number,
   enabled: boolean,
+  color: string,
 ) {
   const owner = useId();
   const highlightId = `ruler-hover-${owner}`;
@@ -21,7 +22,7 @@ export function useRulerHoverHighlight(
   }, [highlightId, removeHighlight]);
 
   // A hover belongs to this view and mounted ruler, never to the next region.
-  useEffect(() => clear, [clear, chromosome, start, end, width, enabled, selectionMode]);
+  useEffect(() => clear, [clear, chromosome, start, end, width, enabled, selectionMode, color]);
   useEffect(() => {
     window.addEventListener("blur", clear);
     return () => window.removeEventListener("blur", clear);
@@ -38,7 +39,7 @@ export function useRulerHoverHighlight(
     addHighlight({
       id: highlightId,
       region: { chromosome, start: position, end: position + 1 },
-      color: "#64748b",
+      color,
       opacity: 0.2,
       type: "filled",
     });

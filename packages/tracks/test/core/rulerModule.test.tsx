@@ -60,6 +60,10 @@ function render(
 describe("ruler module", () => {
   it("creates, validates and mutates a normal track", () => {
     const track = rulerModule.create(input);
+    expect(track.config.sequenceHighlightColor).toBe("#64748b");
+    expect(() =>
+      rulerModule.create({ ...input, config: { sequenceHighlightColor: "invalid" } }),
+    ).toThrow();
     expect(track.base.height).toBe(22);
     expect(track.config.distinguishMaskedBases).toBe(false);
     expect(track.config.sequenceMinPixelsPerBase).toBe(15);
@@ -108,7 +112,7 @@ describe("ruler module", () => {
           id: "ruler",
           type: "ruler",
           display: "full",
-          config: { sequenceUrl, sequenceMinPixelsPerBase: 5, distinguishMaskedBases: false },
+          config: { ...rulerModule.create(input).config, sequenceUrl, sequenceMinPixelsPerBase: 5 },
         },
         demand: { region: { ...region, end: region.start + viewportSpan }, width, assembly: hg38 },
         resources: cached,

@@ -42,9 +42,20 @@ it("exposes config fields and preserves host ownership", () => {
     const labels = Array.from(container.querySelectorAll("label"));
     const input = (label: string) =>
       container.querySelector<HTMLInputElement>(
-        `[id="${labels.find((item) => item.textContent === label)?.htmlFor}"]`,
+        `[id="${labels.find((item) => item.textContent?.startsWith(label))?.htmlFor}"]`,
       )!;
     expect(input("2bit URL").disabled).toBe(true);
+    const color = input("Sequence highlight color");
+    expect(color.value.toLowerCase()).toBe("#64748b");
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(
+        color,
+        "#ff8800",
+      );
+      color.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    act(() => color.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+    expect(updateTrack).toHaveBeenLastCalledWith({ config: { sequenceHighlightColor: "#FF8800" } });
     const checkbox = container.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
     expect(checkbox.checked).toBe(false);
     act(() => checkbox.click());

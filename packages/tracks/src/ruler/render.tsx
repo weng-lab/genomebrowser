@@ -36,7 +36,12 @@ export function Ruler({
         record.start + record.sequence.length > visibleRegion.start,
     );
   useAutoTrackHeight(id, 1, { rowHeight: showSequence ? 48 : 22, minHeight: 22 });
-  const hoverHighlight = useRulerHoverHighlight(visibleRegion, width, showSequence);
+  const hoverHighlight = useRulerHoverHighlight(
+    visibleRegion,
+    width,
+    showSequence,
+    config.sequenceHighlightColor,
+  );
   const sequenceHeight = Math.max(1, Math.min(25, height - axisY - 6));
   return (
     <g aria-label="Genomic ruler" pointerEvents="none" style={{ userSelect: "none" }}>
