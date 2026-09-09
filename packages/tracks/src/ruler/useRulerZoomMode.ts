@@ -9,6 +9,8 @@ export function useRulerZoomMode(onMove: (event: PointerEvent, bounds: DOMRect |
   const mode = useBrowserStore((state) => state.selectionMode);
   const setMode = useBrowserStore((state) => state.setSelectionMode);
 
+  // The deferred pan reset must survive ruler unmount after selection.
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup
   useEffect(() => {
     const move = (event: PointerEvent) => {
       if (!areaRef.current) return;
