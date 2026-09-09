@@ -1,6 +1,6 @@
 # Weng Lab Genome Browser
 
-This pnpm monorepo contains the coordinated `2.0.0-beta.1` generation of the
+This pnpm monorepo contains independently versioned `2.0.0-beta` packages for the
 Weng Lab Genome Browser. The packages are prereleases and are not intended to
 replace an npm `latest` release. Any publication must retain the configured
 `beta` dist-tag.
