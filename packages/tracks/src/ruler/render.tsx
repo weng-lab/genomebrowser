@@ -1,3 +1,4 @@
+import { useRulerHoverHighlight } from "./useRulerHoverHighlight";
 import { tickStep } from "./helpers";
 import { useAutoTrackHeight, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import type { RulerConfig } from "./schema";
@@ -35,6 +36,7 @@ export function Ruler({
         record.start + record.sequence.length > visibleRegion.start,
     );
   useAutoTrackHeight(id, 1, { rowHeight: showSequence ? 48 : 22, minHeight: 22 });
+  const hoverHighlight = useRulerHoverHighlight(visibleRegion, width, showSequence);
   const sequenceHeight = Math.max(1, Math.min(25, height - axisY - 6));
   return (
     <g aria-label="Genomic ruler" pointerEvents="none" style={{ userSelect: "none" }}>
@@ -48,7 +50,16 @@ export function Ruler({
                 const position = record.start + index;
                 const baseColor = BASE_COLORS[base.toUpperCase()] ?? BASE_COLORS.N;
                 return (
-                  <g key={position} aria-label={`${region.chromosome}:${position} ${base}`}>
+                  <g
+                    key={position}
+                    aria-label={`${region.chromosome}:${position} ${base}`}
+                    pointerEvents="all"
+                    onPointerEnter={(event) => hoverHighlight.hover(position, event.buttons)}
+                    onPointerMove={(event) => hoverHighlight.hover(position, event.buttons)}
+                    onPointerLeave={hoverHighlight.clear}
+                    onPointerDown={hoverHighlight.clear}
+                    onPointerCancel={hoverHighlight.clear}
+                  >
                     <rect
                       x={x(position) + 0.5}
                       y={axisY + 4}

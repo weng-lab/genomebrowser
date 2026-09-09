@@ -5,6 +5,9 @@ import { rulerModule, type RulerData } from "@weng-lab/genomebrowser-tracks/rule
 import { TrackHeightContext } from "../../../core/src/browser/track-row/trackHeightContext";
 import { tickStep } from "../../src/ruler/helpers";
 const { read, createFile } = vi.hoisted(() => ({ read: vi.fn(), createFile: vi.fn() }));
+vi.mock("../../src/ruler/useRulerHoverHighlight", () => ({
+  useRulerHoverHighlight: () => ({ hover: () => {}, clear: () => {} }),
+}));
 vi.mock("@weng-lab/genomic-reader", () => ({ createTwoBitFile: createFile }));
 const region = { chromosome: "chr1", start: 100, end: 110 };
 const input = { id: "ruler", title: "Reference", config: {} };
