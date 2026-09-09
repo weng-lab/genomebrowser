@@ -50,13 +50,13 @@ it("exposes config fields and preserves host ownership", () => {
     act(() => checkbox.click());
     expect(updateTrack).toHaveBeenLastCalledWith({ config: { distinguishMaskedBases: true } });
     expect(container.textContent).not.toContain("Bases appear when each");
-    expect(input("Minimum pixels per base").value).toBe("5");
+    expect(input("Minimum pixels per base").value).toBe("15");
     expect(input("Minimum pixels per base").disabled).toBe(false);
     const zoomButton = container.querySelector<HTMLButtonElement>("button")!;
-    expect(container.textContent).toContain("Sequence appears at 200 bp or less.");
+    expect(container.textContent).toContain("Sequence appears at 66 bp or less.");
     expect(zoomButton.disabled).toBe(true);
     act(() => useBrowserStore.getState().setTrackWidth(2000));
-    expect(container.textContent).toContain("Sequence appears at 400 bp or less.");
+    expect(container.textContent).toContain("Sequence appears at 133 bp or less.");
     act(() =>
       render(
         <RulerSettings

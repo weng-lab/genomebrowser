@@ -39,7 +39,7 @@ describe("visible row-derived track height", () => {
         rulerModule.create({
           id: "ruler",
           title: "Reference",
-          config: { sequenceUrl: "https://example.test/ref.2bit" },
+          config: { sequenceUrl: "https://example.test/ref.2bit", sequenceMinPixelsPerBase: 5 },
         }),
       ],
     });

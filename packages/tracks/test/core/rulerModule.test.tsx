@@ -35,7 +35,11 @@ function render(
 ) {
   const track = rulerModule.create({
     ...input,
-    config: { sequenceUrl: sequenceUrl ?? undefined, distinguishMaskedBases },
+    config: {
+      sequenceUrl: sequenceUrl ?? undefined,
+      sequenceMinPixelsPerBase: 5,
+      distinguishMaskedBases,
+    },
   });
   const Renderer = rulerModule.render.full;
   return renderToStaticMarkup(
@@ -58,7 +62,7 @@ describe("ruler module", () => {
     const track = rulerModule.create(input);
     expect(track.base.height).toBe(22);
     expect(track.config.distinguishMaskedBases).toBe(false);
-    expect(track.config.sequenceMinPixelsPerBase).toBe(5);
+    expect(track.config.sequenceMinPixelsPerBase).toBe(15);
     expect(() =>
       rulerModule.create({ ...input, config: { sequenceMinPixelsPerBase: 0 } }),
     ).toThrow();

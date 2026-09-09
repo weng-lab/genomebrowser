@@ -21,7 +21,7 @@ it("owns hover highlights and clears them without removing user or other ruler h
       rulerModule.create({
         id,
         title: id,
-        config: { sequenceUrl: "https://example.test/ref.2bit" },
+        config: { sequenceUrl: "https://example.test/ref.2bit", sequenceMinPixelsPerBase: 5 },
       }),
     ),
   });
