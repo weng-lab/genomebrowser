@@ -47,6 +47,12 @@ it.each([
       browserStore.getState().setRegion(next);
     });
     expect(fetch).toHaveBeenCalledTimes(1);
+    // Old wide-window data is hidden immediately until the zoom request settles.
+    expect(tickPositions()).toEqual([]);
+    expect(container.querySelectorAll("svg *").length).toBeLessThan(250);
+    await act(async () => {
+      pending.forEach((reject) => reject(new Error("Sequence unavailable")));
+    });
     const ticks = tickPositions();
     expect(ticks.length).toBeGreaterThan(0);
     expect(ticks.length).toBeLessThan(30);
@@ -55,11 +61,6 @@ it.each([
     expect(Math.min(...ticks)).toBeLessThan(next.start);
     expect(Math.max(...ticks)).toBeGreaterThan(next.end);
     expect(Math.max(...ticks)).toBeLessThan(next.end + 50);
-    // Failed or slow reference data must not change the tick positions.
-    await act(async () => {
-      pending.forEach((reject) => reject(new Error("Sequence unavailable")));
-    });
-    expect(tickPositions()).toEqual(ticks);
   } finally {
     await act(async () => root.unmount());
     container.remove();

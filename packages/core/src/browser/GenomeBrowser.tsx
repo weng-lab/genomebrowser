@@ -96,6 +96,7 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
     settleData,
     targetRenderRegion,
     targetRenderWidth,
+    isDisplayDataCompatible,
   } = useRenderWindow({
     assembly,
     region,
@@ -163,6 +164,7 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
                 isPanLocked={isPanLocked}
               >
                 <BrowserView
+                  isDisplayDataCompatible={isDisplayDataCompatible}
                   useTrackStore={useTrackStore}
                   useDataStore={useDataStore}
                   svg={svg}
@@ -227,6 +229,7 @@ function TrackDataCoordinator({
 }
 
 function BrowserView({
+  isDisplayDataCompatible,
   useTrackStore,
   useDataStore,
   svg,
@@ -245,6 +248,7 @@ function BrowserView({
   titleSize,
   trackLayouts,
 }: {
+  isDisplayDataCompatible: boolean;
   useTrackStore: TrackStoreInstance;
   useDataStore: DataStoreInstance;
   svg: SVGSVGElement | null;
@@ -287,6 +291,7 @@ function BrowserView({
         >
           <g>
             <TrackStack
+              isDisplayDataCompatible={isDisplayDataCompatible}
               trackStore={useTrackStore}
               useDataStore={useDataStore}
               trackLayouts={trackLayouts}

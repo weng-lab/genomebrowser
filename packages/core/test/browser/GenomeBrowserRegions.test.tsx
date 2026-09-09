@@ -24,6 +24,53 @@ afterEach(async () => {
 });
 
 describe("GenomeBrowser region windows", () => {
+  it("does not render the old window at an enormous width during a large zoom", async () => {
+    let resolveZoom!: (value: null) => void;
+    const pendingZoom = new Promise<null>((resolve) => {
+      resolveZoom = resolve;
+    });
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(null)
+      .mockImplementation(() => pendingZoom);
+    const widths: number[] = [];
+    const module = defineTrackModule({
+      type: "zoom-render-test",
+      configSchema: z.object({}),
+      fetch,
+      render: {
+        full: ({ width }: { width: number }) => {
+          widths.push(width);
+          return <rect data-testid="zoom-data" width={width} />;
+        },
+      },
+    });
+    const browserStore = createBrowserStore({
+      assembly: { id: "test", chromosomes: { chr1: 2000000 } },
+      region: { chromosome: "chr1", start: 500000, end: 600000 },
+      trackWidth: 1000,
+    });
+    const trackStore = createTrackStore({
+      modules: [module],
+      tracks: [module.create({ id: "track", title: "Track", config: {} })],
+    });
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () =>
+      root?.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />),
+    );
+    expect(container.querySelector('[data-testid="zoom-data"]')).not.toBeNull();
+    const initialRenders = widths.length;
+    await act(async () => {
+      browserStore.getState().zoom(0.001);
+    });
+    expect(container.querySelector('[data-testid="zoom-data"]')).toBeNull();
+    expect(widths).toHaveLength(initialRenders);
+    await act(async () => resolveZoom(null));
+    expect(container.querySelector('[data-testid="zoom-data"]')).not.toBeNull();
+    expect(widths.every((width) => width <= 3000)).toBe(true);
+  });
   it("fetches bounded overscan windows at both chromosome boundaries", async () => {
     vi.useFakeTimers();
     const fetch = vi.fn(async () => null);
