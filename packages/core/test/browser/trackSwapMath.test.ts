@@ -9,6 +9,19 @@ import type { TrackInstance } from "../../src/modules/types";
 const tracks = [makeTrack("a", 10), makeTrack("b", 10), makeTrack("c", 10)];
 
 describe("track swap math", () => {
+  it("prevents dragging pinned tracks or previewing a move above them", () => {
+    const pins = ["missing", "a"];
+    expect(getSwapPreview("a", tracks, 0, 100, pins)).toBeNull();
+    expect(getSwapOrder("a", tracks, 0, 100, pins)).toBeNull();
+    const preview = getSwapPreview("c", tracks, 0, -100, pins);
+    expect(preview).toEqual({ draggedId: "c", currentIndex: 2, targetIndex: 1 });
+    expect(getSwapPreviewOffsetY(0, "a", tracks, 0, preview)).toBe(0);
+    expect(getSwapOrder("c", tracks, 0, -100, pins)).toEqual(["a", "c", "b"]);
+    expect(getSwapOrder("b", tracks, 0, 100, pins)).toEqual(["a", "c", "b"]);
+    expect(getSwapOrder("b", tracks, 0, -100, pins)).toBeNull();
+    expect(getSwapPreview("c", tracks, 0, 100, ["a", "b", "c"])).toBeNull();
+  });
+
   it("keeps the preview target on the current track when deltaY is 0", () => {
     expect(getSwapPreview("b", tracks, 0, 0)).toEqual({
       draggedId: "b",
