@@ -188,22 +188,23 @@ export function HighlightForm({
           size="small"
           value={name}
         />
-        <TextField
-          select
-          fullWidth
-          label="Type"
-          size="small"
-          value={highlightType}
-          onChange={(event) => {
-            const value = event.target.value;
-            if (value === "filled" || value === "outlined")
-              dispatch({ type: "typeChanged", value });
-          }}
-        >
-          <MenuItem value="filled">Filled</MenuItem>
-          <MenuItem value="outlined">Outlined</MenuItem>
-        </TextField>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+          <TextField
+            select
+            fullWidth
+            label="Type"
+            sx={{ flex: 1 }}
+            size="small"
+            value={highlightType}
+            onChange={(event) => {
+              const value = event.target.value;
+              if (value === "filled" || value === "outlined")
+                dispatch({ type: "typeChanged", value });
+            }}
+          >
+            <MenuItem value="filled">Filled</MenuItem>
+            <MenuItem value="outlined">Outlined</MenuItem>
+          </TextField>
           <TextField
             fullWidth
             label="Color"
