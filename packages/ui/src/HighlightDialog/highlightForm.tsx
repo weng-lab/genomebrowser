@@ -149,21 +149,31 @@ export function HighlightForm({
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <Stack spacing={1.25}>
-        <TextField
-          autoFocus={Boolean(initialHighlight)}
-          autoComplete="off"
-          error={Boolean(errors.region)}
-          fullWidth
-          helperText={errors.region}
-          label="Region"
-          onChange={(event) =>
-            dispatch({ type: "fieldChanged", field: "region", value: event.target.value })
-          }
-          placeholder="chr12:53,372,922-53,423,700"
-          required
-          size="small"
-          value={regionInput}
-        />
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="flex-start">
+          <TextField
+            autoFocus={Boolean(initialHighlight)}
+            autoComplete="off"
+            error={Boolean(errors.region)}
+            fullWidth
+            helperText={errors.region}
+            label="Region"
+            onChange={(event) =>
+              dispatch({ type: "fieldChanged", field: "region", value: event.target.value })
+            }
+            placeholder="chr12:53,372,922-53,423,700"
+            required
+            size="small"
+            value={regionInput}
+          />
+          <Button
+            onClick={handleUseCurrentRegion}
+            variant="outlined"
+            size="small"
+            sx={{ flexShrink: 0, minHeight: 40, whiteSpace: "nowrap" }}
+          >
+            Use Current Region
+          </Button>
+        </Stack>
         <TextField
           autoComplete="off"
           error={Boolean(errors.name)}
@@ -226,9 +236,6 @@ export function HighlightForm({
           />
         </Stack>
         <Stack direction={{ xs: "column", sm: "row" }} justifyContent="center" spacing={0.75}>
-          <Button onClick={handleUseCurrentRegion} variant="outlined">
-            Use Current Region
-          </Button>
           {onCancel ? <Button onClick={onCancel}>Cancel</Button> : null}
           <Button
             startIcon={initialHighlight ? undefined : <AddIcon />}

@@ -1,3 +1,6 @@
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import Box from "@mui/material/Box";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
@@ -41,9 +44,24 @@ function HighlightDialogContent({ browserStore }: { browserStore: BrowserStoreIn
 
   return highlight ? (
     <Box sx={{ pt: 1 }}>
-      <Typography component="h3" variant="subtitle1" sx={{ mb: 1.5, overflowWrap: "anywhere" }}>
-        Edit highlight: {highlight.id}
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1.5 }}>
+        <Tooltip title="Back to highlights">
+          <IconButton
+            aria-label="Back to highlights"
+            onClick={() => setEditingId(null)}
+            size="small"
+          >
+            <ArrowBackIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Typography
+          component="h3"
+          variant="subtitle1"
+          sx={{ minWidth: 0, overflowWrap: "anywhere" }}
+        >
+          Edit highlight: {highlight.id}
+        </Typography>
+      </Box>
       <HighlightForm
         key={highlight.id}
         browserStore={browserStore}
