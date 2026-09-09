@@ -1,19 +1,28 @@
 // @vitest-environment jsdom
 
 import { act } from "react";
-import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
+import { createTrackStore, type TrackUpdate } from "@weng-lab/genomebrowser";
+import {
+  geneModule,
+  getGeneDatasetsForAssembly,
+  getGeneDatasetTitle,
+  type GeneConfig,
+  type GeneInteractionTarget,
+} from "@weng-lab/genomebrowser-tracks/gene";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GeneSettings } from "../../src/gene/settings";
 import { reorderTagColors } from "../../src/gene/settingsHelpers";
 import { publishObservedGeneTags } from "../../src/gene/tagCatalog";
 
+const browser = vi.hoisted(() => ({ assemblyId: "hg38" }));
+
 vi.mock("@weng-lab/genomebrowser", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@weng-lab/genomebrowser")>();
   return {
     ...actual,
     useBrowserStore: <T,>(selector: (state: { assembly: { id: string } }) => T): T =>
-      selector({ assembly: { id: "hg38" } }),
+      selector({ assembly: { id: browser.assemblyId } }),
   };
 });
 
@@ -24,6 +33,7 @@ let container: HTMLDivElement | undefined;
 let root: Root | undefined;
 
 afterEach(() => {
+  browser.assemblyId = "hg38";
   act(() => root?.unmount());
   container?.remove();
   container = undefined;
@@ -140,6 +150,93 @@ describe("Gene settings", () => {
         url: "https://users.wenglab.org/niship/gencodefiles/human.gencode.v46.basic.annotation.bb",
       },
     });
+  });
+
+  it.each([false, true])(
+    "switches M25 variants and preserves settings (custom title: %s)",
+    (customTitle) => {
+      browser.assemblyId = "mm10";
+      const [basic, comprehensive] = getGeneDatasetsForAssembly("mm10");
+      const track = geneModule.create({
+        id: "mouse-genes",
+        source: "host",
+        title: customTitle ? "My mouse genes" : getGeneDatasetTitle(basic),
+        display: "merged",
+        color: "#123456",
+        height: 72,
+        config: {
+          url: basic.url,
+          geneName: "Xkr4",
+          rowHeight: 18,
+          tagColors: [{ tag: "basic", color: "#abcdef" }],
+        },
+      });
+      const useTrackStore = createTrackStore({ modules: [geneModule], tracks: [track] });
+      const updateTrack = (update: TrackUpdate<GeneConfig, GeneInteractionTarget>) =>
+        useTrackStore.getState().updateTrack(track.base.id, update);
+      container = document.createElement("div");
+      document.body.appendChild(container);
+      root = createRoot(container);
+      const renderSettings = () =>
+        root?.render(
+          <GeneSettings
+            track={geneModule.validate(useTrackStore.getState().getTrack(track.base.id))}
+            updateTrack={updateTrack}
+          />,
+        );
+      act(renderSettings);
+      const inputs = Array.from(container.querySelectorAll<HTMLInputElement>("input"));
+      expect(inputs.find((input) => input.labels?.[0]?.textContent === "Version")?.value).toBe(
+        "M25",
+      );
+      const datasetInput = inputs.find(
+        (input) => input.labels?.[0]?.textContent === "Annotation dataset",
+      )!;
+      act(() =>
+        datasetInput.dispatchEvent(
+          new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+        ),
+      );
+      const option = Array.from(document.querySelectorAll<HTMLElement>('[role="option"]')).find(
+        (candidate) => candidate.textContent === "GENCODE comprehensive",
+      )!;
+      act(() => option.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+      act(renderSettings);
+      const updated = useTrackStore.getState().getTrack(track.base.id)!;
+      expect(updated.config).toEqual({ ...track.config, url: comprehensive.url });
+      expect(updated.base).toEqual({
+        ...track.base,
+        title: customTitle ? track.base.title : getGeneDatasetTitle(comprehensive),
+      });
+      const restored = geneModule.validate(JSON.parse(JSON.stringify(updated)));
+      expect(restored).toEqual(updated);
+      expect(
+        Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
+          (input) => input.labels?.[0]?.textContent === "Annotation dataset",
+        )?.value,
+      ).toBe("GENCODE comprehensive");
+    },
+  );
+
+  it("shows an empty state for an unsupported assembly", () => {
+    browser.assemblyId = "mm39";
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const updateTrack = vi.fn((): { ok: true } => ({ ok: true }));
+    const track = geneModule.create({
+      id: "genes",
+      title: "Genes",
+      source: "host",
+      config: { url: "YOUR_URL_HERE" },
+    });
+    act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
+    expect(container.textContent).toContain("No datasets available for mm39.");
+    const input = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
+      (candidate) => candidate.labels?.[0]?.textContent === "Annotation dataset",
+    )!;
+    expect(input.disabled).toBe(true);
+    expect(updateTrack).not.toHaveBeenCalled();
   });
 
   it("adds an observed tag with its own color", () => {
