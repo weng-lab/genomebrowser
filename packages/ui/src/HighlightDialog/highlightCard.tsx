@@ -1,4 +1,5 @@
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
@@ -13,9 +14,16 @@ type HighlightCardProps = {
   region: GenomicRegion;
   onNavigate: () => void;
   onRemove: () => void;
+  onEdit: () => void;
 };
 
-export function HighlightCard({ highlight, region, onNavigate, onRemove }: HighlightCardProps) {
+export function HighlightCard({
+  highlight,
+  region,
+  onNavigate,
+  onRemove,
+  onEdit,
+}: HighlightCardProps) {
   return (
     <Paper
       elevation={0}
@@ -45,6 +53,11 @@ export function HighlightCard({ highlight, region, onNavigate, onRemove }: Highl
         <Tooltip title="Go to highlight">
           <IconButton aria-label={`Go to ${highlight.id}`} onClick={onNavigate} size="small">
             <ArrowForwardIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Edit highlight">
+          <IconButton aria-label={`Edit ${highlight.id}`} onClick={onEdit} size="small">
+            <EditOutlinedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Remove highlight">
