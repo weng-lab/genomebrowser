@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
+import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Slider from "@mui/material/Slider";
 import Typography from "@mui/material/Typography";
@@ -37,21 +37,9 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
           onCommit={(value) => updateTrack({ config: { sequenceUrl: value || undefined } })}
         />
       </TrackSettingsSection>
-      <TrackSettingsSection title="Sequence display">
-        <Box>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "baseline",
-              gap: 2,
-            }}
-          >
-            <Typography variant="body2">Show DNA letters below</Typography>
-            <Typography variant="body2" color="primary" aria-live="polite">
-              {sequenceSpan.toLocaleString("en-US")} bp
-            </Typography>
-          </Box>
+      <TrackSettingsSection title="Sequence visibility">
+        <Typography variant="body2">When to show DNA letters</Typography>
+        <Box sx={{ px: 1 }}>
           <Slider
             aria-label="When to show DNA letters"
             min={5}
@@ -78,71 +66,48 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
             </Typography>
           </Box>
         </Box>
+        <Typography variant="body2" color="text.secondary" aria-live="polite">
+          {sequenceSpan >= 1
+            ? `Sequence appears at ${sequenceSpan.toLocaleString("en-US")} bp or less.`
+            : "Increase track width to show reference bases."}
+        </Typography>
         {visibility.error && (
           <Typography color="error" variant="caption">
             {visibility.error}
           </Typography>
         )}
-        <Box
-          sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}
+        <Button
+          size="small"
+          sx={{ justifySelf: "start" }}
+          disabled={!track.config.sequenceUrl || sequenceSpan < 1 || currentSpan <= sequenceSpan}
+          onClick={() => zoom(sequenceSpan / currentSpan)}
         >
-          <Typography variant="body2">Highlight color</Typography>
-          <Box sx={{ width: 180, maxWidth: "55%" }}>
-            <TrackSettingsColorField
-              label="Sequence highlight color"
-              value={track.config.sequenceHighlightColor}
-              onCommit={(value) => updateTrack({ config: { sequenceHighlightColor: value } })}
-            />
-          </Box>
-        </Box>
-        <FormControlLabel
-          labelPlacement="start"
-          sx={{ m: 0, justifyContent: "space-between", alignItems: "flex-start", gap: 2 }}
-          control={
-            <Checkbox
-              size="small"
-              sx={{ p: 0, mt: 0.25 }}
-              checked={track.config.distinguishMaskedBases}
-              onChange={(_, checked) =>
-                updateTrack({ config: { distinguishMaskedBases: checked } })
-              }
-            />
-          }
-          label={
-            <Box>
-              <Typography variant="body2">Distinguish masked bases</Typography>
-              <Typography variant="caption" color="text.secondary">
-                Show soft-masked regions in lowercase.
-              </Typography>
-            </Box>
-          }
+          Zoom in to sequence
+        </Button>
+      </TrackSettingsSection>
+      <TrackSettingsSection title="Sequence appearance">
+        <TrackSettingsColorField
+          label="Sequence highlight color"
+          value={track.config.sequenceHighlightColor}
+          onCommit={(value) => updateTrack({ config: { sequenceHighlightColor: value } })}
         />
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 1,
-          }}
-        >
-          <Typography variant="caption" color="text.secondary">
-            {!track.config.sequenceUrl
-              ? "Add a reference source to show DNA letters."
-              : sequenceSpan < 1
-                ? "Increase track width to show reference bases."
-                : currentSpan > sequenceSpan
-                  ? "Currently too far out to render letters."
-                  : "Current view is within the sequence threshold."}
+        <Box>
+          <FormControlLabel
+            sx={{ m: 0, minWidth: 0 }}
+            control={
+              <Switch
+                size="small"
+                checked={track.config.distinguishMaskedBases}
+                onChange={(_, checked) =>
+                  updateTrack({ config: { distinguishMaskedBases: checked } })
+                }
+              />
+            }
+            label="Distinguish masked bases"
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", ml: 1 }}>
+            Show soft-masked regions in lowercase.
           </Typography>
-          <Button
-            size="small"
-            sx={{ flexShrink: 0 }}
-            disabled={!track.config.sequenceUrl || sequenceSpan < 1 || currentSpan <= sequenceSpan}
-            onClick={() => zoom(sequenceSpan / currentSpan)}
-          >
-            Zoom in to sequence
-          </Button>
         </Box>
       </TrackSettingsSection>
     </TrackSettingsLayout>
