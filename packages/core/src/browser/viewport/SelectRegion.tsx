@@ -33,7 +33,6 @@ export function SelectRegion({
   mode = "zoom",
   highlightStyle = DEFAULT_HIGHLIGHT,
   onHighlight,
-  setMode,
   children,
 }: {
   svg: SVGSVGElement | null;
@@ -46,7 +45,6 @@ export function SelectRegion({
   mode?: BrowserSelectionMode;
   highlightStyle?: SelectionHighlightStyle;
   onHighlight?: (highlight: Highlight) => void;
-  setMode?: (mode: BrowserSelectionMode) => void;
   children?: ReactNode;
 }) {
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -67,34 +65,12 @@ export function SelectRegion({
     () => cancel,
     [cancel, disabled, mode, highlightStyle, marginWidth, trackWidth, totalHeight, region, svg],
   );
-  useEffect(() => {
-    if (!svg) return;
-    const keydown = (event: KeyboardEvent) => {
-      if (event.target !== svg || event.ctrlKey || event.metaKey || event.altKey) return;
-      if (event.key === "Escape") {
-        cancel();
-        setMode?.("pan");
-        event.preventDefault();
-      } else if (!disabled) {
-        const next = ({ p: "pan", z: "zoom", h: "highlight" } as const)[
-          event.key.toLowerCase() as "p" | "z" | "h"
-        ];
-        if (next) {
-          setMode?.(next);
-          event.preventDefault();
-        }
-      }
-    };
-    svg.addEventListener("keydown", keydown);
-    return () => svg.removeEventListener("keydown", keydown);
-  }, [cancel, disabled, setMode, svg]);
 
   const startSelection = (event: ReactPointerEvent<SVGGElement>) => {
     suppressClick.current = false;
     if (disabled || !hasValidDimensions || !svg || event.button !== 0 || event.isPrimary === false)
       return;
-    const effectiveMode = event.shiftKey ? (event.altKey ? "highlight" : "zoom") : mode;
-    if (effectiveMode === "pan") return;
+    if (mode === "pan") return;
     const point = svgPoint(svg, event.clientX, event.clientY);
     if (
       !point ||
@@ -105,11 +81,10 @@ export function SelectRegion({
       return;
     event.preventDefault();
     event.stopPropagation();
-    svg.focus({ preventScroll: true });
     cancel();
     suppressClick.current = true;
     const start = point.x;
-    session.current = { start, end: start, mode: effectiveMode, pointerId: event.pointerId };
+    session.current = { start, end: start, mode, pointerId: event.pointerId };
     setSelection(session.current);
     const move = (event: PointerEvent) => {
       if (!session.current || session.current.pointerId !== event.pointerId) return;
@@ -131,22 +106,17 @@ export function SelectRegion({
       if (current.mode === "zoom") setRegion(selectedRegion);
       else onHighlight?.({ ...highlightStyle, id: crypto.randomUUID(), region: selectedRegion });
     };
-    const keydown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") cancel();
-    };
     const pointerCancel = (event: PointerEvent) => {
       if (session.current?.pointerId === event.pointerId) cancel();
     };
     document.addEventListener("pointermove", move);
     document.addEventListener("pointerup", up);
     document.addEventListener("pointercancel", pointerCancel);
-    document.addEventListener("keydown", keydown);
     window.addEventListener("blur", cancel);
     cleanup.current = () => {
       document.removeEventListener("pointermove", move);
       document.removeEventListener("pointerup", up);
       document.removeEventListener("pointercancel", pointerCancel);
-      document.removeEventListener("keydown", keydown);
       window.removeEventListener("blur", cancel);
     };
   };

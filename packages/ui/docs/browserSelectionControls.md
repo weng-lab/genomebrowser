@@ -18,7 +18,7 @@ export function SelectionToolbar() {
 }
 ```
 
-Pass the same browser store to `GenomeBrowser`. The control reflects store changes, including keyboard mode changes. Clicking the selected button leaves that mode active. Selecting a region keeps the chosen mode active for repeated actions.
+Pass the same browser store to `GenomeBrowser`. The control reflects store changes, including changes made by application controls. Clicking the selected button leaves that mode active. Selecting a region keeps the chosen mode active for repeated actions.
 
 ## API
 
@@ -31,10 +31,10 @@ The package exports `BrowserSelectionControls` and `BrowserSelectionControlsProp
 
 ## Accessibility
 
-The MUI toggle group has the name **Region interaction**. Each button has a visible label and exposes its selected state. Buttons work with Tab, Enter and Space. The genome browser itself accepts P (pan), Z (select zoom), H (highlight), and Escape (cancel and pan) when its SVG has focus. These shortcuts do not intercept text inputs or other browser instances.
+The MUI toggle group has the name **Region interaction**. Each button has a visible label and exposes its selected state. Buttons work with Tab, Enter and Space. The genome browser SVG does not take focus or register keyboard shortcuts; applications can implement bindings using the browser store.
 
 ## Notes
 
-Shift-drag temporarily selects zoom and Alt-Shift-drag temporarily selects highlight. Drags use the data area, leaving track controls in the left margin accessible. A drag under four SVG pixels has no selection effect; selections round outward to whole bases. Escape, pointer cancellation, window blur, geometry changes and mode changes discard unfinished selections.
+Drags use the data area, leaving track controls in the left margin accessible. A drag under four SVG pixels has no selection effect; selections round outward to whole bases. Pointer cancellation, window blur, geometry changes and mode changes discard unfinished selections.
 
 New highlights use `selectionHighlight` from the browser store, defaulting to filled amber (`#f59e0b`) at opacity 0.25. Use `setSelectionHighlight({ color, opacity, type })` to configure subsequent selections, including `type: "outlined"`. They have unique IDs and retain their chromosome. Manage them using `HighlightDialog` or the store's highlight methods.
