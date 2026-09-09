@@ -90,30 +90,46 @@ export function useRenderWindow({
   const [displayedData, setDisplayedData] = useState(() => ({
     region: targetRenderWindow.targetRenderRegion,
     key: dataKey,
+    visibleSpan: region.end - region.start,
   }));
+  // Retain data for panning, but never magnify an old window across a zoom.
+  const isDisplayDataCompatible =
+    displayedData.key === dataKey ||
+    (displayedData.region.chromosome === region.chromosome &&
+      displayedData.visibleSpan === region.end - region.start);
+  const displayedRenderRegion = isDisplayDataCompatible
+    ? displayedData.region
+    : targetRenderWindow.targetRenderRegion;
   const displayedGeometry = useMemo(
     () =>
-      getRenderGeometry(displayedData.region, region, trackWidth) ?? {
+      getRenderGeometry(displayedRenderRegion, region, trackWidth) ?? {
         renderWidth: Number.isFinite(trackWidth) && trackWidth > 0 ? trackWidth : 0,
         renderStartOffset: 0,
       },
-    [displayedData.region, region, trackWidth],
+    [displayedRenderRegion, region, trackWidth],
   );
   const settleData = useCallback(
     (key: string) => {
       if (key !== dataKey) return false;
       setDisplayedData((current) =>
-        current.key === key ? current : { region: targetRenderWindow.targetRenderRegion, key },
+        current.key === key
+          ? current
+          : {
+              region: targetRenderWindow.targetRenderRegion,
+              key,
+              visibleSpan: region.end - region.start,
+            },
       );
       return true;
     },
-    [dataKey, targetRenderWindow],
+    [dataKey, targetRenderWindow, region.end, region.start],
   );
 
   return {
     targetRenderRegion: targetRenderWindow.targetRenderRegion,
     targetRenderWidth: targetRenderWindow.renderWidth,
-    displayedRenderRegion: displayedData.region,
+    displayedRenderRegion,
+    isDisplayDataCompatible,
     renderWidth: displayedGeometry.renderWidth,
     renderStartOffset: displayedGeometry.renderStartOffset,
     isDataSettled: displayedData.key === dataKey,

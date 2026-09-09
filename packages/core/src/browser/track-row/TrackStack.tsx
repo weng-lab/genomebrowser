@@ -12,6 +12,7 @@ import type { TrackLayout } from "./trackLayout";
 export function TrackStack({
   trackStore,
   useDataStore,
+  isDisplayDataCompatible = true,
   trackLayouts,
   visibleRegion,
   region,
@@ -26,6 +27,7 @@ export function TrackStack({
 }: {
   trackStore: TrackStoreInstance;
   useDataStore: DataStoreInstance;
+  isDisplayDataCompatible?: boolean;
   trackLayouts: TrackLayout[];
   visibleRegion: GenomicRegion;
   region: GenomicRegion;
@@ -51,6 +53,7 @@ export function TrackStack({
       key={layout.id}
       trackStore={useTrackStore}
       useDataStore={useDataStore}
+      isDisplayDataCompatible={isDisplayDataCompatible}
       layout={layout}
       visibleRegion={visibleRegion}
       region={region}
@@ -73,6 +76,7 @@ export function TrackStack({
 function ConnectedTrackRow({
   trackStore,
   useDataStore,
+  isDisplayDataCompatible = true,
   layout,
   visibleRegion,
   region,
@@ -91,6 +95,7 @@ function ConnectedTrackRow({
 }: {
   trackStore: TrackStoreInstance;
   useDataStore: DataStoreInstance;
+  isDisplayDataCompatible?: boolean;
   layout: TrackLayout;
   visibleRegion: GenomicRegion;
   region: GenomicRegion;
@@ -120,7 +125,7 @@ function ConnectedTrackRow({
   return (
     <TrackRow
       track={track}
-      dataState={dataState}
+      dataState={isDisplayDataCompatible ? dataState : { status: "loading" }}
       visibleRegion={visibleRegion}
       region={region}
       y={layout.y}

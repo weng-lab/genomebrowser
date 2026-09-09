@@ -92,3 +92,7 @@ const registry = createModuleRegistry(firstPartyTrackModules);
 ```
 
 Register individual modules if your application supports only some track types. Importing one track subpath does not load the other tracks. The registry then rejects other types and produces narrower collection schemas. Importing the package root loads all eight modules because it constructs `firstPartyTrackModules`.
+
+## Ruler
+
+`@weng-lab/genomebrowser-tracks/ruler` exports `rulerModule`, `RulerCreateInput`, `RulerConfig`, and `RulerData`. See [Ruler](tracks/ruler.md).

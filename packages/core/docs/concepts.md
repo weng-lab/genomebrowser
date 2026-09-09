@@ -54,7 +54,7 @@ For a config-only change, the browser requests only that track and only when a f
 
 Each module fetch receives shallow read-only track and render-demand snapshots. It may return raw records or data processed for the requested region, display, and SVG width. The selected renderer turns that result into SVG output.
 
-During panning, existing SVG content moves immediately. Previously successful track data stays visible while a region-only request is in flight. A display, SVG width, assembly, or marked config change clears incompatible data while its replacement loads; width changes stay visible until their settle delay elapses. The browser settles onto the newest render region only after its track requests finish, and it blocks pointer interactions during mismatched or fetching states. A failed request is shown as a track error; other tracks can still complete.
+During panning, existing SVG content moves immediately. Previously successful track data stays visible while a same-scale pan request is in flight. Zooming replaces incompatible old data with loading placeholders immediately, keeping render dimensions bounded while the new region loads. A display, SVG width, assembly, or marked config change clears incompatible data while its replacement loads; width changes stay visible until their settle delay elapses. The browser settles onto the newest render region only after its track requests finish, and it blocks pointer interactions during mismatched or fetching states. A failed request is shown as a track error; other tracks can still complete.
 
 ## Mutation behavior
 
@@ -69,3 +69,15 @@ Interaction callbacks are functions and are therefore not part of serializable c
 ## Public boundary
 
 Application code should use runtime exports from `@weng-lab/genomebrowser`. The ordinary path is `GenomeBrowser`, store factories, and modules registered from another package or application code. The custom-module path adds `defineTrackModule`, `fetchOnChange`, focused hooks, and module contract types. The curated modules are exported by `@weng-lab/genomebrowser-tracks`, not core. Files inside either package's `src` tree are implementation details.
+
+## Region selection and ruler tracks
+
+The browser renders only the tracks supplied to its track store. Coordinates and optional reference DNA come from a registered and explicitly added ruler module in the tracks package; core contains no ruler-specific behavior. Removing the ruler does not remove selection interactions.
+
+`BrowserStoreInput` accepts `selectionMode?: BrowserSelectionMode` and `selectionHighlight?: SelectionHighlightStyle`. The store exposes both current values plus `setSelectionMode(mode)` and `setSelectionHighlight(style)`. Mode defaults to `"pan"`; the other modes are `"zoom"` and `"highlight"`. Style defaults to `{ color: "#f59e0b", opacity: 0.25, type: "filled" }`. `SelectionHighlightStyle` has required `color` and optional `opacity` and `type`, with the same validation as highlights. Style setters replace the whole style and invalid input throws before changing state.
+
+Drag the data area in zoom mode to navigate, or in highlight mode to create a chromosome-scoped highlight without moving the region. Mode persists after selection. Dragging in pan mode retains ordinary track interactions. Track margin controls remain accessible. Shift-drag temporarily zooms; Alt-Shift-drag temporarily highlights, without changing the stored mode.
+
+The browser SVG is focusable and accepts P, Z and H for these modes. Escape cancels the selection and returns to pan when the SVG has focus. Text inputs and other browser instances do not receive these shortcuts. The optional UI package supplies `BrowserSelectionControls`; host buttons can also call the store setters directly.
+
+Selections require a four-pixel drag in SVG coordinates and round outward to whole bases. Escape, pointer cancellation, window blur, geometry changes, mode changes, or blocked interactions discard an active selection. During loading, the existing interaction shield prevents new drags. Highlights use unique IDs and the configured style, including filled or outlined type.

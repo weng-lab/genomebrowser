@@ -64,6 +64,8 @@ export {
 export { createSettingsStore } from "./browser/state/settingsStore";
 export { createTrackStore } from "./browser/state/trackStore";
 export type {
+  BrowserSelectionMode,
+  SelectionHighlightStyle,
   BrowserRegionMutationErrorCode,
   BrowserRegionMutationResult,
   BrowserStore,

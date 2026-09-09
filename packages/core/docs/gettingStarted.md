@@ -90,3 +90,5 @@ if (!result.ok) {
 Changing the region requests all tracks for the new render region. BigWig marks its URL as data-dependent, so changing that URL requests the track again. Invalid runtime updates leave existing state unchanged. Browser-store construction instead throws when its required assembly, initial region, or dimensions are invalid.
 
 Next, read [Core concepts](concepts.md) for lifecycle and request semantics, then use [Recipes](recipes.md) for common mutations and navigation.
+
+The browser has no implicit ruler header. Register and add `rulerModule` from `@weng-lab/genomebrowser-tracks/ruler` when you want coordinates or reference sequence. Region selection works independently; see [Region selection](concepts.md#region-selection-and-ruler-tracks).

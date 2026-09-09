@@ -29,3 +29,5 @@ Each track subpath exports one complete module. BigBed also exports its schema-a
 - [Author track tooltips](trackTooltips.md) covers tooltip content, formatting, and accessibility.
 
 `@weng-lab/genomebrowser` owns the runtime, stores, module contracts, and module-author hooks. This package owns the MUI settings controls, tooltip components, and helpers documented here. Files under `src` are internal. Import shared APIs only from `@weng-lab/genomebrowser-tracks/shared`.
+
+- [Ruler and reference sequence](tracks/ruler.md)

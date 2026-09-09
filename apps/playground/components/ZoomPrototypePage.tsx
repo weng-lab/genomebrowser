@@ -1,5 +1,7 @@
 "use client";
 
+import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
+
 // THROWAWAY_UI: deployed comparison page for disposable zoom-control prototypes.
 
 import Box from "@mui/material/Box";
@@ -43,8 +45,9 @@ const useBrowserStore = createBrowserStore({
 });
 
 const useTrackStore = createTrackStore({
-  modules: [geneModule],
+  modules: [rulerModule, geneModule],
   tracks: [
+    rulerModule.create({ id: "reference-ruler", title: "Coordinates", config: {} }),
     geneModule.create({
       id: "zoom-prototype-genes",
       title: "GENCODE genes",

@@ -110,3 +110,5 @@ Use `@weng-lab/genomebrowser` by itself when you only need the runtime and appli
 - [Browser navigation button](docs/browserNavigationButton.md) - compose store-bound pan and zoom controls
 - [Highlight dialog](docs/highlightDialog.md) - add and remove browser highlights
 - [Track interactions](docs/recipes/trackInteractions.md) - connect collection tracks to host callbacks
+
+- [BrowserSelectionControls](docs/browserSelectionControls.md) chooses pan, region zoom, or highlight selection.

@@ -5,6 +5,7 @@ import type {
   BigWigSummaryRecord,
   BigWigValueRecord,
 } from "@weng-lab/genomic-reader";
+import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import {
   bigBedModule,
@@ -53,8 +54,9 @@ import {
 import { condenseSignalRecords, type SignalPoint } from "@weng-lab/genomebrowser-tracks/shared";
 
 describe("first-party track package", () => {
-  it("exports all eight pre-bound modules as a ready-made collection", () => {
+  it("exports all nine pre-bound modules as a ready-made collection", () => {
     expect(firstPartyTrackModules).toEqual([
+      rulerModule,
       bigBedModule,
       bigWigModule,
       bulkBedModule,
@@ -65,6 +67,7 @@ describe("first-party track package", () => {
       transcriptModule,
     ]);
     expect(firstPartyTrackModules.map((module) => module.type)).toEqual([
+      "ruler",
       "bigbed",
       "bigwig",
       "bulkbed",
@@ -78,7 +81,7 @@ describe("first-party track package", () => {
       expect(module.configSchema).toBeDefined();
       expect(module.createInputSchema).toBeDefined();
       expect(module.settingsComponent).toBeTypeOf("function");
-      expect(module.tooltipComponent).toBeTypeOf("function");
+      if (module !== rulerModule) expect(module.tooltipComponent).toBeTypeOf("function");
     }
   });
 

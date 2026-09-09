@@ -60,6 +60,7 @@ assertJsonEqual(
     "bed3Schema",
     "createBigBedFile",
     "createBigWigFile",
+    "createTwoBitFile",
     "parseChromSizes",
     "parseCytobands",
     "readChromSizes",
@@ -85,12 +86,15 @@ assertJsonEqual(
     "ReadChromSizesOptions",
     "ReadCytobandsOptions",
     "ReadOptions",
+    "TwoBitFile",
+    "TwoBitFileOptions",
+    "TwoBitRecord",
   ],
   "declaration root type exports",
 );
 assertJsonEqual(
   declarationExports.moduleSpecifiers,
-  ["./bigBed", "./bigWig", "./chromSizes", "./cytobands", "./genomicFile"],
+  ["./bigBed", "./bigWig", "./chromSizes", "./cytobands", "./genomicFile", "./twoBit"],
   "declaration root module boundaries",
 );
 assert(!/\bexport\s*\*/.test(declaration), "declaration root must not use wildcard exports");
@@ -168,6 +172,7 @@ assertJsonEqual(
     "bed3Schema",
     "createBigBedFile",
     "createBigWigFile",
+    "createTwoBitFile",
     "parseChromSizes",
     "parseCytobands",
     "readChromSizes",

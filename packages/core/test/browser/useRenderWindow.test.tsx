@@ -192,14 +192,17 @@ describe("render window", () => {
     expect(nextDataKey).not.toBe(initialDataKey);
     expect(renderWindow?.targetRenderRegion).toEqual(nextTarget);
     expect(renderWindow?.targetRenderWidth).toBe(750);
-    expect(renderWindow?.displayedRenderRegion).toEqual(initialTarget);
-    expect(renderWindow?.renderWidth).toBe(250);
-    expect(renderWindow?.renderStartOffset).toBe(1_250);
+    expect(renderWindow?.isDisplayDataCompatible).toBe(false);
+    expect(renderWindow?.displayedRenderRegion).toEqual(nextTarget);
+    expect(renderWindow?.renderWidth).toBe(750);
+    expect(renderWindow?.renderStartOffset).toBe(250);
 
     expect(renderWindow?.settleData(initialDataKey!)).toBe(false);
-    expect(renderWindow?.displayedRenderRegion).toEqual(initialTarget);
+    expect(renderWindow?.displayedRenderRegion).toEqual(nextTarget);
+    expect(renderWindow?.isDisplayDataCompatible).toBe(false);
 
     await act(async () => expect(renderWindow?.settleData(nextDataKey!)).toBe(true));
+    expect(renderWindow?.isDisplayDataCompatible).toBe(true);
     expect(renderWindow?.displayedRenderRegion).toEqual(nextTarget);
     expect(renderWindow?.renderWidth).toBe(750);
     expect(renderWindow?.renderStartOffset).toBe(250);
@@ -244,7 +247,7 @@ describe("render window", () => {
     expect(renderWindow?.renderStartOffset).toBe(500);
   });
 
-  it("aligns old displayed data to a clamped visible region before settlement", async () => {
+  it("uses bounded loading geometry when a clamped region changes zoom", async () => {
     const initialRegion = { chromosome: "chr1", start: 0, end: 100 };
     const clampedRegion = { chromosome: "chr1", start: 0, end: 80 };
     const trackIds: Parameters<typeof useRenderWindow>[0]["trackIds"] = [];
@@ -278,8 +281,9 @@ describe("render window", () => {
 
     expect(renderWindow?.targetRenderRegion).toEqual({ chromosome: "chr1", start: 0, end: 160 });
     expect(renderWindow?.targetRenderWidth).toBe(200);
-    expect(renderWindow?.displayedRenderRegion).toEqual({ chromosome: "chr1", start: 0, end: 200 });
-    expect(renderWindow?.renderWidth).toBe(250);
+    expect(renderWindow?.isDisplayDataCompatible).toBe(false);
+    expect(renderWindow?.displayedRenderRegion).toEqual({ chromosome: "chr1", start: 0, end: 160 });
+    expect(renderWindow?.renderWidth).toBe(200);
     expect(renderWindow?.renderStartOffset).toBe(0);
   });
 });

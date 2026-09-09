@@ -1,3 +1,4 @@
+import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 import {
   createBrowserStore,
   createSettingsStore,
@@ -25,7 +26,7 @@ export const myModules = [...firstPartyTrackModules];
 export const useTrackStore = createTrackStore({
   modules: myModules,
   // TrackPicker loads the startup tracks from src/collections.ts.
-  tracks: [],
+  tracks: [rulerModule.create({ id: "reference-ruler", title: "Coordinates", config: {} })],
 });
 
 export const useSettingsStore = createSettingsStore({

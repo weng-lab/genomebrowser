@@ -14,6 +14,7 @@ export default defineConfig({
       "@emotion/styled": path.join(packageNodeModules, "@emotion/styled"),
       "@mui/material": path.join(packageNodeModules, "@mui/material"),
       "@weng-lab/genomebrowser": path.resolve(__dirname, "../core/src/lib.ts"),
+      "@weng-lab/genomebrowser-tracks/ruler": path.resolve(__dirname, "src/ruler/index.ts"),
       "@weng-lab/genomebrowser-tracks/bigbed": path.resolve(__dirname, "src/bigbed/index.ts"),
       "@weng-lab/genomebrowser-tracks/bigwig": path.resolve(__dirname, "src/bigwig/index.ts"),
       "@weng-lab/genomebrowser-tracks/bulkbed": path.resolve(__dirname, "src/bulkbed/index.ts"),
@@ -48,6 +49,7 @@ export default defineConfig({
     lib: {
       entry: {
         "genomebrowser-tracks": path.resolve(__dirname, "src/lib.ts"),
+        ruler: path.resolve(__dirname, "src/ruler/index.ts"),
         bigbed: path.resolve(__dirname, "src/bigbed/index.ts"),
         bigwig: path.resolve(__dirname, "src/bigwig/index.ts"),
         bulkbed: path.resolve(__dirname, "src/bulkbed/index.ts"),

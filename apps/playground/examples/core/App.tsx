@@ -1,10 +1,11 @@
 "use client";
 
 import { createBrowserStore, createTrackStore, GenomeBrowser, hg38 } from "@weng-lab/genomebrowser";
+import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 import { testTrack, testTrackModule } from "./tracks";
 import "./styles.css";
 
-const browserStore = createBrowserStore({
+const useBrowserStore = createBrowserStore({
   assembly: hg38,
   region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
   marginWidth: 60,
@@ -18,11 +19,11 @@ const browserStore = createBrowserStore({
   ],
 });
 
-const trackStore = createTrackStore({
-  modules: [testTrackModule],
-  tracks: [testTrack],
+const useTrackStore = createTrackStore({
+  modules: [rulerModule, testTrackModule],
+  tracks: [rulerModule.create({ id: "ruler", title: "Coordinates", config: {} }), testTrack],
 });
 
 export default function App() {
-  return <GenomeBrowser browserStore={browserStore} trackStore={trackStore} />;
+  return <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />;
 }

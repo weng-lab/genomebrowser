@@ -82,3 +82,5 @@ Add `@weng-lab/genomebrowser-tracks@beta` for the curated BigBed, BigWig, BulkBe
 Genome Browser v2 is intended for client-side React 19.2+ applications. It uses browser APIs including SVG, pointer events, remote data requests, and, when implementing responsive sizing, `ResizeObserver`.
 
 It is not a server-rendered visualization runtime.
+
+Coordinate rulers are regular tracks supplied by `@weng-lab/genomebrowser-tracks/ruler`. Add one explicitly if needed. [Region selection modes](docs/concepts.md#region-selection-and-ruler-tracks) work across the browser independently of the ruler.

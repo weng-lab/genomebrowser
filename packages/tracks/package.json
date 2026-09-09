@@ -61,6 +61,10 @@
     "./shared": {
       "types": "./dist/src/shared/index.d.ts",
       "import": "./dist/shared.js"
+    },
+    "./ruler": {
+      "types": "./dist/src/ruler/index.d.ts",
+      "import": "./dist/ruler.js"
     }
   },
   "publishConfig": {

@@ -21,6 +21,9 @@ export function SvgShell({
   return (
     <svg
       id="browserSVG"
+      tabIndex={0}
+      role="group"
+      aria-label="Genome browser. P to pan, Z to select zoom, H to highlight, Escape to cancel. Shift-drag to zoom; Alt-Shift-drag to highlight."
       ref={svgRef}
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
