@@ -5,7 +5,13 @@ import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
 import { HighlightCard } from "./highlightCard";
 import { resolveHighlightRegion } from "./highlightRegion";
 
-export function HighlightList({ browserStore }: { browserStore: BrowserStoreInstance }) {
+export function HighlightList({
+  browserStore,
+  onEdit,
+}: {
+  browserStore: BrowserStoreInstance;
+  onEdit: (id: string) => void;
+}) {
   const useBrowserStore = browserStore;
   const currentChromosome = useBrowserStore((state) => state.region.chromosome);
   const highlights = useBrowserStore((state) => state.highlights);
@@ -30,6 +36,7 @@ export function HighlightList({ browserStore }: { browserStore: BrowserStoreInst
           <HighlightCard
             highlight={highlight}
             key={highlight.id}
+            onEdit={() => onEdit(highlight.id)}
             onNavigate={() => setRegion(region)}
             onRemove={() => removeHighlight(highlight.id)}
             region={region}
