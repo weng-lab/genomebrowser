@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     resolveAlias: {
       "@weng-lab/genomebrowser": "../../packages/core/src/lib.ts",
       "@weng-lab/genomebrowser-tracks": "../../packages/tracks/src/lib.ts",
+      "@weng-lab/genomebrowser-tracks/ruler": "../../packages/tracks/src/ruler/index.ts",
       "@weng-lab/genomebrowser-tracks/bigbed": "../../packages/tracks/src/bigbed/index.ts",
       "@weng-lab/genomebrowser-tracks/bigwig": "../../packages/tracks/src/bigwig/index.ts",
       "@weng-lab/genomebrowser-tracks/bulkbed": "../../packages/tracks/src/bulkbed/index.ts",

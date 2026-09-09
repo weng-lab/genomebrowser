@@ -17,6 +17,25 @@ function createTestStore(region: GenomicRegion = { chromosome: "chr1", start: 20
 }
 
 describe("createBrowserStore", () => {
+  it("owns validated selection modes and highlight style independently per browser", () => {
+    const useFirst = createTestStore();
+    const useSecond = createTestStore();
+    expect(useFirst.getState().selectionMode).toBe("pan");
+    expect(useFirst.getState().selectionHighlight).toEqual({
+      color: "#f59e0b",
+      opacity: 0.25,
+      type: "filled",
+    });
+    useFirst.getState().setSelectionMode("highlight");
+    useFirst.getState().setSelectionHighlight({ color: "#123456", opacity: 0.8, type: "outlined" });
+    expect(useSecond.getState().selectionMode).toBe("pan");
+    const before = useFirst.getState();
+    expect(() => useFirst.getState().setSelectionHighlight({ color: "red", opacity: 2 })).toThrow();
+    expect(useFirst.getState()).toBe(before);
+    expect(useFirst.getState().highlights).toEqual([]);
+    expect(useFirst.getState().region).toEqual({ chromosome: "chr1", start: 20, end: 40 });
+  });
+
   it("requires object regions and an assembly and exposes no assembly setter", () => {
     expectTypeOf<BrowserStoreInput["assembly"]>().toEqualTypeOf<AssemblyDefinition>();
     expectTypeOf<BrowserStoreInput["region"]>().toEqualTypeOf<GenomicRegion>();

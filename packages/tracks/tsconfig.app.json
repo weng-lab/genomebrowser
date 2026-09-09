@@ -11,6 +11,7 @@
     "paths": {
       "@weng-lab/genomebrowser-tracks": ["./src/lib.ts"],
       "@weng-lab/genomebrowser-tracks/bigbed": ["./src/bigbed/index.ts"],
+      "@weng-lab/genomebrowser-tracks/ruler": ["./src/ruler/index.ts"],
       "@weng-lab/genomebrowser-tracks/bigwig": ["./src/bigwig/index.ts"],
       "@weng-lab/genomebrowser-tracks/bulkbed": ["./src/bulkbed/index.ts"],
       "@weng-lab/genomebrowser-tracks/cave": ["./src/cave/index.ts"],

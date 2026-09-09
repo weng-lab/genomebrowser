@@ -1,5 +1,7 @@
 "use client";
 
+import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
+
 import { useEffect, useRef, useState } from "react";
 
 import Button from "@mui/material/Button";
@@ -161,6 +163,7 @@ const modules = [
 const useTrackStore = createTrackStore({
   modules,
   tracks: [
+    rulerModule.create({ id: "reference-ruler", title: "Coordinates", config: {} }),
     bigWigUiModule.create({
       id: "bigwig-settings-example",
       title: "BigWig settings: DNase aggregate",

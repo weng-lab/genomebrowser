@@ -1,6 +1,6 @@
 # Track catalog
 
-Choose a track by the source you already have. Each module includes a renderer, settings panel, tooltip, and configuration schema.
+Choose a track by the source you already have. Each module includes a renderer, settings panel, and configuration schema. Data tracks also provide tooltips.
 
 ## BigBed files
 
@@ -22,3 +22,7 @@ These files must be available to the browser and support byte-range requests.
 - [Transcript](transcript.md) reads gene and transcript models from a GraphQL endpoint. Use it when an endpoint provides the expected query and permits requests from your application.
 
 For URL-backed files and Transcript endpoints, see [Data source troubleshooting](../dataSources.md) when a source does not load. CAVE uses package-owned URLs and cannot be pointed at another host.
+
+## Coordinates and reference DNA
+
+- [Ruler](ruler.md) draws genomic coordinates and optional 2bit reference bases at close zoom.

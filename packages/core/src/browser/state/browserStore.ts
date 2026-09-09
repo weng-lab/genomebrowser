@@ -16,6 +16,9 @@ export type Highlight = {
   type?: "filled" | "outlined";
 };
 
+export type BrowserSelectionMode = "pan" | "zoom" | "highlight";
+export type SelectionHighlightStyle = Pick<Highlight, "color" | "opacity" | "type">;
+
 export type BrowserStoreInput = {
   assembly: AssemblyDefinition;
   region: GenomicRegion;
@@ -24,6 +27,8 @@ export type BrowserStoreInput = {
   fontSize?: number;
   titleSize?: number;
   highlights?: Highlight[];
+  selectionMode?: BrowserSelectionMode;
+  selectionHighlight?: SelectionHighlightStyle;
 };
 
 export type BrowserRegionMutationErrorCode =
@@ -47,6 +52,10 @@ export type BrowserStore = {
   fontSize: number;
   titleSize: number;
   highlights: Highlight[];
+  selectionMode: BrowserSelectionMode;
+  selectionHighlight: SelectionHighlightStyle;
+  setSelectionMode: (mode: BrowserSelectionMode) => void;
+  setSelectionHighlight: (style: SelectionHighlightStyle) => void;
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
   setTrackWidth: (trackWidth: number) => BrowserViewportMutationResult;
   zoom: (factor: number, centerBase?: number) => BrowserRegionMutationResult;
@@ -73,6 +82,9 @@ const highlightSchema = z.object({
   type: z.enum(["filled", "outlined"]).optional(),
 });
 
+const selectionModeSchema = z.enum(["pan", "zoom", "highlight"]);
+const selectionHighlightSchema = highlightSchema.pick({ color: true, opacity: true, type: true });
+
 const browserStoreInputSchema = z.object({
   assembly: z.unknown().optional(),
   region: z.unknown().optional(),
@@ -81,6 +93,8 @@ const browserStoreInputSchema = z.object({
   fontSize: z.number().positive().optional(),
   titleSize: z.number().positive().optional(),
   highlights: z.array(highlightSchema).optional(),
+  selectionMode: selectionModeSchema.optional(),
+  selectionHighlight: selectionHighlightSchema.optional(),
 });
 
 export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstance {
@@ -109,6 +123,23 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
       fontSize: parsedInput.fontSize ?? 10,
       titleSize: parsedInput.titleSize ?? 12,
       highlights: parsedInput.highlights ?? [],
+
+      selectionMode: parsedInput.selectionMode ?? "pan",
+      selectionHighlight: parsedInput.selectionHighlight ?? {
+        color: "#f59e0b",
+        opacity: 0.25,
+        type: "filled",
+      },
+      setSelectionMode: (mode) =>
+        set({ selectionMode: parsePublicInput(selectionModeSchema, mode, "Selection mode") }),
+      setSelectionHighlight: (style) =>
+        set({
+          selectionHighlight: parsePublicInput(
+            selectionHighlightSchema,
+            style,
+            "Selection highlight",
+          ),
+        }),
 
       setRegion: commitRegion,
       setTrackWidth: (trackWidth) => {

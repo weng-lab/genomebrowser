@@ -307,3 +307,21 @@ import { TrackSelect } from "@weng-lab/genomebrowser-ui";
 ```
 
 Register every module referenced by the collections in that shared store. See the UI package's own shipped docs for collection shape and additional peer dependencies.
+
+## Select zoom and highlights
+
+Use the same browser store passed to `GenomeBrowser`:
+
+```ts
+useBrowserStore.getState().setSelectionMode("zoom");
+// Drag the data area to zoom.
+useBrowserStore.getState().setSelectionHighlight({
+  color: "#2563eb",
+  opacity: 0.8,
+  type: "outlined",
+});
+useBrowserStore.getState().setSelectionMode("highlight");
+// Drag to add highlights. Restore ordinary dragging with "pan".
+```
+
+Both selection modes remain active for repeated actions. Manage the resulting entries with `removeHighlight(id)` or a host highlight editor.

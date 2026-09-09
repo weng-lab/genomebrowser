@@ -202,3 +202,7 @@ never returns partial results for these failures.
 
 Only the package root is public. Internal byte-range, BBI, index, and decoder modules are not
 exported.
+
+## Reference DNA
+
+Use `createTwoBitFile({ url })` for range-based reference sequence reads, including unknown and soft-masked bases. See [2bit reference sequence](docs/twobit.md).

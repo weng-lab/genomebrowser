@@ -1,14 +1,26 @@
-import { useCallback, useEffect, useReducer, useRef, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import type { GenomicRegion } from "../../genome/region";
-import { createReverseXScale } from "../../modules/utils/scale";
 import { svgPoint } from "../../modules/utils/svg";
-import type { BrowserRegionMutationResult } from "../state/browserStore";
+import type {
+  BrowserRegionMutationResult,
+  BrowserSelectionMode,
+  Highlight,
+  SelectionHighlightStyle,
+} from "../state/browserStore";
 
-type Selection = { start: number; end: number } | null;
-type SelectionAction =
-  | { type: "start"; x: number }
-  | { type: "move"; x: number }
-  | { type: "clear" };
+type Selection = { start: number; end: number; mode: "zoom" | "highlight"; pointerId: number };
+const DEFAULT_HIGHLIGHT: SelectionHighlightStyle = {
+  color: "#f59e0b",
+  opacity: 0.25,
+  type: "filled",
+};
 
 export function SelectRegion({
   svg,
@@ -18,6 +30,10 @@ export function SelectRegion({
   region,
   setRegion,
   disabled = false,
+  mode = "zoom",
+  highlightStyle = DEFAULT_HIGHLIGHT,
+  onHighlight,
+  setMode,
   children,
 }: {
   svg: SVGSVGElement | null;
@@ -27,135 +43,201 @@ export function SelectRegion({
   region: GenomicRegion;
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
   disabled?: boolean;
+  mode?: BrowserSelectionMode;
+  highlightStyle?: SelectionHighlightStyle;
+  onHighlight?: (highlight: Highlight) => void;
+  setMode?: (mode: BrowserSelectionMode) => void;
   children?: ReactNode;
 }) {
-  const [selection, dispatchSelection] = useReducer(selectionReducer, null);
-  const dragSessionRef = useRef<Selection>(null);
-  const cleanupListenersRef = useRef<(() => void) | null>(null);
-  const hasValidDimensions =
-    Number.isFinite(marginWidth) &&
-    marginWidth > 0 &&
-    Number.isFinite(trackWidth) &&
-    trackWidth > 0 &&
-    Number.isFinite(totalHeight) &&
-    totalHeight > 0;
-
-  const cancelDragSession = useCallback(() => {
-    cleanupListenersRef.current?.();
-    cleanupListenersRef.current = null;
-    dragSessionRef.current = null;
-    dispatchSelection({ type: "clear" });
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const session = useRef<Selection | null>(null);
+  const cleanup = useRef<(() => void) | null>(null);
+  const suppressClick = useRef(false);
+  const hasValidDimensions = [marginWidth, trackWidth, totalHeight].every(
+    (value) => Number.isFinite(value) && value > 0,
+  );
+  const cancel = useCallback(() => {
+    cleanup.current?.();
+    cleanup.current = null;
+    session.current = null;
+    setSelection(null);
   }, []);
 
   useEffect(
-    () => cancelDragSession,
-    [
-      cancelDragSession,
-      disabled,
-      marginWidth,
-      region.chromosome,
-      region.end,
-      region.start,
-      svg,
-      totalHeight,
-      trackWidth,
-    ],
+    () => cancel,
+    [cancel, disabled, mode, highlightStyle, marginWidth, trackWidth, totalHeight, region, svg],
   );
-
-  const startListening = () => {
+  useEffect(() => {
     if (!svg) return;
-
-    const handleMove = (event: MouseEvent) => {
-      const current = dragSessionRef.current;
-      if (!current) return;
-      const point = svgPoint(svg, event.clientX, event.clientY);
-      if (!point || !Number.isFinite(point.x)) return;
-      const end = Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x));
-      dragSessionRef.current = { ...current, end };
-      dispatchSelection({ type: "move", x: end });
-    };
-
-    const handleUp = () => {
-      const current = dragSessionRef.current;
-      cancelDragSession();
-      if (!current) return;
-      const start = Math.min(current.start, current.end);
-      const end = Math.max(current.start, current.end);
-      if (hasValidDimensions && end - start >= 10) {
-        const reverseX = createReverseXScale(region, trackWidth);
-        const result = setRegion({
-          chromosome: region.chromosome,
-          start: reverseX(start - marginWidth),
-          end: reverseX(end - marginWidth),
-        });
-        if (!result.ok) return;
+    const keydown = (event: KeyboardEvent) => {
+      if (event.target !== svg || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.key === "Escape") {
+        cancel();
+        setMode?.("pan");
+        event.preventDefault();
+      } else if (!disabled) {
+        const next = ({ p: "pan", z: "zoom", h: "highlight" } as const)[
+          event.key.toLowerCase() as "p" | "z" | "h"
+        ];
+        if (next) {
+          setMode?.(next);
+          event.preventDefault();
+        }
       }
     };
+    svg.addEventListener("keydown", keydown);
+    return () => svg.removeEventListener("keydown", keydown);
+  }, [cancel, disabled, setMode, svg]);
 
-    cleanupListenersRef.current = listenForDocumentMouseEvents(handleMove, handleUp);
-  };
-
-  const handleMouseDown = (event: React.MouseEvent<SVGRectElement>) => {
-    if (disabled || !hasValidDimensions) return;
-    if (!svg) return;
+  const startSelection = (event: ReactPointerEvent<SVGGElement>) => {
+    suppressClick.current = false;
+    if (disabled || !hasValidDimensions || !svg || event.button !== 0 || event.isPrimary === false)
+      return;
+    const effectiveMode = event.shiftKey ? (event.altKey ? "highlight" : "zoom") : mode;
+    if (effectiveMode === "pan") return;
     const point = svgPoint(svg, event.clientX, event.clientY);
-    if (!point || !Number.isFinite(point.x)) return;
-    const start = Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x));
-    cancelDragSession();
-    dragSessionRef.current = { start, end: start };
-    dispatchSelection({ type: "start", x: start });
-    startListening();
+    if (
+      !point ||
+      !Number.isFinite(point.x) ||
+      point.x < marginWidth ||
+      point.x > marginWidth + trackWidth
+    )
+      return;
+    event.preventDefault();
+    event.stopPropagation();
+    svg.focus({ preventScroll: true });
+    cancel();
+    suppressClick.current = true;
+    const start = point.x;
+    session.current = { start, end: start, mode: effectiveMode, pointerId: event.pointerId };
+    setSelection(session.current);
+    const move = (event: PointerEvent) => {
+      if (!session.current || session.current.pointerId !== event.pointerId) return;
+      const point = svgPoint(svg, event.clientX, event.clientY);
+      if (!point || !Number.isFinite(point.x)) return;
+      session.current = {
+        ...session.current,
+        end: Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x)),
+      };
+      setSelection(session.current);
+    };
+    const up = (event: PointerEvent) => {
+      if (session.current?.pointerId !== event.pointerId) return;
+      move(event);
+      const current = session.current;
+      cancel();
+      if (!current || Math.abs(current.end - current.start) < 4) return;
+      const selectedRegion = getSelectedRegion(current, region, marginWidth, trackWidth);
+      if (current.mode === "zoom") setRegion(selectedRegion);
+      else onHighlight?.({ ...highlightStyle, id: crypto.randomUUID(), region: selectedRegion });
+    };
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") cancel();
+    };
+    const pointerCancel = (event: PointerEvent) => {
+      if (session.current?.pointerId === event.pointerId) cancel();
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+    document.addEventListener("pointercancel", pointerCancel);
+    document.addEventListener("keydown", keydown);
+    window.addEventListener("blur", cancel);
+    cleanup.current = () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      document.removeEventListener("pointercancel", pointerCancel);
+      document.removeEventListener("keydown", keydown);
+      window.removeEventListener("blur", cancel);
+    };
   };
+
+  const selectedRegion = selection
+    ? getSelectedRegion(selection, region, marginWidth, trackWidth)
+    : null;
 
   return (
-    <>
+    <g
+      onPointerDownCapture={startSelection}
+      onClickCapture={(event) => {
+        if (suppressClick.current) {
+          suppressClick.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
+      style={{
+        cursor: mode === "pan" ? undefined : "crosshair",
+        touchAction: "none",
+        userSelect: "none",
+      }}
+    >
       <rect
-        fill="#ffffff"
+        fill="transparent"
+        pointerEvents="all"
         width={hasValidDimensions ? trackWidth : 0}
-        height={80}
+        height={hasValidDimensions ? totalHeight : 0}
         x={hasValidDimensions ? marginWidth : 0}
-        y={0}
-        onMouseDown={handleMouseDown}
       />
       {children}
-      {selection && (
+      {mode !== "pan" && (
         <rect
-          id="selectRegion"
-          fill="#6666aaaa"
-          stroke="#000000"
-          strokeWidth={0.5}
-          strokeDasharray="5 5"
-          x={Math.min(selection.start, selection.end)}
-          y={0}
-          width={Math.abs(selection.end - selection.start)}
-          height={totalHeight}
-          style={{ pointerEvents: "none" }}
+          fill="transparent"
+          pointerEvents="all"
+          x={hasValidDimensions ? marginWidth : 0}
+          width={hasValidDimensions ? trackWidth : 0}
+          height={hasValidDimensions ? totalHeight : 0}
         />
       )}
-    </>
+      {selection && (
+        <g pointerEvents="none">
+          <rect
+            data-region-selection=""
+            fill={selection.mode === "highlight" ? highlightStyle.color : "#2563eb"}
+            fillOpacity={0.18}
+            stroke={selection.mode === "highlight" ? highlightStyle.color : "#2563eb"}
+            strokeDasharray="4 3"
+            x={Math.min(selection.start, selection.end)}
+            y={0}
+            width={Math.abs(selection.end - selection.start)}
+            height={totalHeight}
+          />
+          <text
+            x={Math.min(selection.start, selection.end) + 6}
+            y={16}
+            fontSize={12}
+            fill="#172554"
+          >
+            {selection.mode === "zoom" ? "Zoom" : "Highlight"} ·{" "}
+            {selectedRegion ? (selectedRegion.end - selectedRegion.start).toLocaleString() : 0} bp
+          </text>
+        </g>
+      )}
+    </g>
   );
 }
 
-function listenForDocumentMouseEvents(
-  handleMove: (event: MouseEvent) => void,
-  handleUp: () => void,
-) {
-  document.addEventListener("mousemove", handleMove);
-  document.addEventListener("mouseup", handleUp);
-
-  return () => {
-    document.removeEventListener("mousemove", handleMove);
-    document.removeEventListener("mouseup", handleUp);
-  };
-}
-
-function selectionReducer(selection: Selection, action: SelectionAction): Selection {
-  switch (action.type) {
-    case "start":
-      return { start: action.x, end: action.x };
-    case "move":
-      return selection ? { ...selection, end: action.x } : selection;
-    case "clear":
-      return null;
-  }
+function getSelectedRegion(
+  selection: Selection,
+  region: GenomicRegion,
+  marginWidth: number,
+  trackWidth: number,
+): GenomicRegion {
+  const span = region.end - region.start;
+  const start = Math.max(
+    region.start,
+    Math.floor(
+      region.start + ((Math.min(selection.start, selection.end) - marginWidth) / trackWidth) * span,
+    ),
+  );
+  const end = Math.min(
+    region.end,
+    Math.max(
+      start + 1,
+      Math.ceil(
+        region.start +
+          ((Math.max(selection.start, selection.end) - marginWidth) / trackWidth) * span,
+      ),
+    ),
+  );
+  return { chromosome: region.chromosome, start, end };
 }

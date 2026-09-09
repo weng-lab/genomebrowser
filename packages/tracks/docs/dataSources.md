@@ -23,3 +23,7 @@ Transcript defaults to `/api/screen-graphql`. Your application must implement th
 If the upstream GraphQL service requires credentials, proxy the request through your server. Add credentials on the server, then configure the track's `endpoint` with your proxy route. Do not put secrets in track configuration because endpoint values may appear in collections or saved state.
 
 See [Transcript](tracks/transcript.md#source-requirements) for the request and response requirements.
+
+## Reference sequence
+
+The [ruler](tracks/ruler.md) accepts HTTP(S) version-0 2bit files with byte-range support and browser CORS. Expose `Content-Range` to the browser. Sequence names must match the assembly exactly. A missing chromosome returns no sequence; request failures leave the coordinate axis visible. BigWig numeric values are not reference bases.

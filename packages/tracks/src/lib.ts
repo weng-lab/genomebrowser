@@ -1,3 +1,4 @@
+import { rulerModule } from "./ruler";
 import { bigBedModule } from "./bigbed";
 import { bigWigModule } from "./bigwig";
 import { bulkBedModule } from "./bulkbed";
@@ -8,6 +9,7 @@ import { methylCModule } from "./methylc";
 import { transcriptModule } from "./transcript";
 
 export const firstPartyTrackModules = [
+  rulerModule,
   bigBedModule,
   bigWigModule,
   bulkBedModule,

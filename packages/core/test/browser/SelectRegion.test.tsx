@@ -16,7 +16,14 @@ type SelectionTestProps = Pick<Parameters<typeof SelectRegion>[0], "region" | "s
   Partial<
     Pick<
       Parameters<typeof SelectRegion>[0],
-      "disabled" | "trackWidth" | "marginWidth" | "totalHeight"
+      | "disabled"
+      | "trackWidth"
+      | "marginWidth"
+      | "totalHeight"
+      | "mode"
+      | "highlightStyle"
+      | "onHighlight"
+      | "setMode"
     >
   >;
 
@@ -28,6 +35,98 @@ afterEach(async () => {
 });
 
 describe("SelectRegion", () => {
+  it("handles temporary modifiers without changing stored mode and scopes hotkeys to the SVG", async () => {
+    const setRegion = vi.fn();
+    const setMode = vi.fn();
+    const onHighlight = vi.fn();
+    await renderSelection({
+      region: { chromosome: "chr1", start: 0, end: 100 },
+      setRegion,
+      mode: "pan",
+      setMode,
+      onHighlight,
+    });
+    const hitArea = svg!.querySelector("rect")!;
+    await act(async () => {
+      hitArea.dispatchEvent(
+        new MouseEvent("pointerdown", { bubbles: true, button: 0, clientX: 30, shiftKey: true }),
+      );
+      document.dispatchEvent(new MouseEvent("pointerup", { clientX: 80 }));
+    });
+    expect(setRegion).toHaveBeenCalledWith({ chromosome: "chr1", start: 10, end: 60 });
+    expect(setMode).not.toHaveBeenCalled();
+    await act(async () => {
+      hitArea.dispatchEvent(
+        new MouseEvent("pointerdown", {
+          bubbles: true,
+          button: 0,
+          clientX: 30,
+          shiftKey: true,
+          altKey: true,
+        }),
+      );
+      document.dispatchEvent(new MouseEvent("pointerup", { clientX: 80 }));
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "h", bubbles: true }));
+    });
+    expect(onHighlight).toHaveBeenCalledOnce();
+    expect(setMode).not.toHaveBeenCalled();
+    await act(async () =>
+      svg!.dispatchEvent(new KeyboardEvent("keydown", { key: "h", bubbles: true })),
+    );
+    expect(setMode).toHaveBeenCalledWith("highlight");
+    await act(async () =>
+      svg!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })),
+    );
+    expect(setMode).toHaveBeenLastCalledWith("pan");
+  });
+
+  it("creates chromosome-scoped highlights with the configured style without zooming", async () => {
+    const setRegion = vi.fn();
+    const onHighlight = vi.fn();
+    await renderSelection({
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      setRegion,
+      mode: "highlight",
+      onHighlight,
+      highlightStyle: { color: "#ff0000", opacity: 0.7, type: "outlined" },
+    });
+    await dragSelection(95, 45);
+    expect(setRegion).not.toHaveBeenCalled();
+    expect(onHighlight).toHaveBeenCalledWith({
+      id: expect.any(String),
+      region: { chromosome: "chr1", start: 125, end: 175 },
+      color: "#ff0000",
+      opacity: 0.7,
+      type: "outlined",
+    });
+  });
+  it.each(["pointercancel", "Escape", "blur"])("cancels on %s", async (action) => {
+    const setRegion = vi.fn();
+    await renderSelection({ region: { chromosome: "chr1", start: 100, end: 200 }, setRegion });
+    await startSelection(30, 80);
+    await act(async () => {
+      if (action === "Escape")
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+      else if (action === "blur") window.dispatchEvent(new Event("blur"));
+      else document.dispatchEvent(new MouseEvent(action));
+      document.dispatchEvent(new MouseEvent("pointerup", { clientX: 80 }));
+    });
+    expect(setRegion).not.toHaveBeenCalled();
+  });
+  it("leaves plain drags to pan mode and rejects margin and right-button starts", async () => {
+    const setRegion = vi.fn();
+    await renderSelection({
+      region: { chromosome: "chr1", start: 0, end: 100 },
+      setRegion,
+      mode: "pan",
+    });
+    await dragSelection(30, 80);
+    expect(setRegion).not.toHaveBeenCalled();
+    await rerenderSelection({ region: { chromosome: "chr1", start: 0, end: 100 }, setRegion });
+    await dragSelection(10, 80);
+    expect(setRegion).not.toHaveBeenCalled();
+  });
+
   it("preserves ordinary selection behavior away from chromosome boundaries", async () => {
     const region = { chromosome: "chr1", start: 100, end: 200 };
     const store = createBrowserStore({
@@ -42,7 +141,7 @@ describe("SelectRegion", () => {
   });
 
   it.each([
-    ["lower", -20, 70, { chromosome: "chr1", start: 0, end: 50 }],
+    ["lower", 20, 70, { chromosome: "chr1", start: 0, end: 50 }],
     ["upper", 70, 150, { chromosome: "chr1", start: 50, end: 100 }],
   ] as const)(
     "commits a selection clamped to the %s viewport and chromosome boundary",
@@ -60,7 +159,7 @@ describe("SelectRegion", () => {
     },
   );
 
-  it("preserves the committed region when selection normalization rejects the candidate", async () => {
+  it("keeps a selection at base resolution nonempty", async () => {
     const region = { chromosome: "chr1", start: 0, end: 1 };
     const store = createBrowserStore({
       assembly: { id: "test", chromosomes: { chr1: 100 } },
@@ -71,9 +170,9 @@ describe("SelectRegion", () => {
 
     await dragSelection(20, 30);
 
-    expect(store.getState()).toBe(before);
+    expect(store.getState().region).toEqual(before.region);
     expect(store.getState().region).toEqual(region);
-    expect(svg?.querySelector("#selectRegion")).toBeNull();
+    expect(svg?.querySelector("[data-region-selection]")).toBeNull();
   });
 
   it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
@@ -93,7 +192,7 @@ describe("SelectRegion", () => {
       await dragSelection(20, 80);
 
       expect(setRegion).not.toHaveBeenCalled();
-      expect(svg?.querySelector("#selectRegion")).toBeNull();
+      expect(svg?.querySelector("[data-region-selection]")).toBeNull();
     },
   );
 
@@ -137,13 +236,13 @@ describe("SelectRegion", () => {
     };
     await renderSelection(initialProps);
     await startSelection(30, 80);
-    expect(svg?.querySelector("#selectRegion")).not.toBeNull();
+    expect(svg?.querySelector("[data-region-selection]")).not.toBeNull();
 
     await rerenderSelection({ ...initialProps, ...changedProps });
-    await act(async () => document.dispatchEvent(new MouseEvent("mouseup")));
+    await act(async () => document.dispatchEvent(new MouseEvent("pointerup", { clientX: 95 })));
 
     expect(setRegion).not.toHaveBeenCalled();
-    expect(svg?.querySelector("#selectRegion")).toBeNull();
+    expect(svg?.querySelector("[data-region-selection]")).toBeNull();
   });
 });
 
@@ -170,10 +269,12 @@ async function rerenderSelection({
   marginWidth = 20,
   totalHeight = 100,
   disabled = false,
+  ...options
 }: SelectionTestProps) {
   await act(async () =>
     root?.render(
       <SelectRegion
+        {...options}
         svg={svg!}
         marginWidth={marginWidth}
         trackWidth={trackWidth}
@@ -192,13 +293,13 @@ async function startSelection(startX: number, endX: number) {
 
   await act(async () => {
     hitArea.dispatchEvent(
-      new MouseEvent("mousedown", { bubbles: true, button: 0, clientX: startX, clientY: 0 }),
+      new MouseEvent("pointerdown", { bubbles: true, button: 0, clientX: startX, clientY: 0 }),
     );
-    document.dispatchEvent(new MouseEvent("mousemove", { clientX: endX, clientY: 0 }));
+    document.dispatchEvent(new MouseEvent("pointermove", { clientX: endX, clientY: 0 }));
   });
 }
 
 async function dragSelection(startX: number, endX: number) {
   await startSelection(startX, endX);
-  await act(async () => document.dispatchEvent(new MouseEvent("mouseup")));
+  await act(async () => document.dispatchEvent(new MouseEvent("pointerup", { clientX: endX })));
 }

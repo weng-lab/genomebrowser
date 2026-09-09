@@ -20,7 +20,7 @@ import { TrackHeightProvider } from "./track-row/TrackHeightProvider";
 import { createSettingsStore, type SettingsStoreInstance } from "./state/settingsStore";
 import { BrowserProvider, InteractionGateProvider } from "./state/BrowserContext";
 import type { BrowserStore, BrowserStoreInstance } from "./state/browserStore";
-import { useTrackMutationGate } from "./state/browserContextState";
+import { useBrowserStore, useTrackMutationGate } from "./state/browserContextState";
 import { createContextMenuStore } from "./state/contextMenuStore";
 import type { TrackStoreInstance } from "./state/trackStore";
 import { InteractionShield } from "./overlays/InteractionShield";
@@ -36,7 +36,6 @@ import {
 } from "./track-row/trackLayout";
 import { TrackStack } from "./track-row/TrackStack";
 import type { AnyTrackTooltipComponent } from "../modules/types";
-import { RULER_HEIGHT, Ruler } from "./viewport/Ruler";
 import { SelectRegion } from "./viewport/SelectRegion";
 import { useContentTransform } from "./viewport/useContentTransform";
 import { usePanController } from "./viewport/usePanController";
@@ -80,10 +79,13 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
   const activeSettingsStore = settingsStore ?? internalSettingsStore;
   const browserWidth = marginWidth + trackWidth;
   const trackLayouts = useMemo(
-    () => createTrackLayouts(trackIds, wrapperHeights, RULER_HEIGHT),
+    () => createTrackLayouts(trackIds, wrapperHeights, 0),
     [trackIds, wrapperHeights],
   );
-  const totalHeight = RULER_HEIGHT + wrapperHeights.reduce((total, height) => total + height, 0);
+  const totalHeight = Math.max(
+    1,
+    wrapperHeights.reduce((total, height) => total + height, 0),
+  );
 
   const {
     dataKey,
@@ -262,6 +264,10 @@ function BrowserView({
   trackLayouts: TrackLayout[];
 }) {
   const { isInteractionBlocked } = useTrackMutationGate();
+  const selectionMode = useBrowserStore((state) => state.selectionMode);
+  const selectionHighlight = useBrowserStore((state) => state.selectionHighlight);
+  const setSelectionMode = useBrowserStore((state) => state.setSelectionMode);
+  const addHighlight = useBrowserStore((state) => state.addHighlight);
 
   return (
     <>
@@ -274,10 +280,11 @@ function BrowserView({
           region={region}
           setRegion={setRegion}
           disabled={isInteractionBlocked}
+          mode={selectionMode}
+          highlightStyle={selectionHighlight}
+          onHighlight={addHighlight}
+          setMode={setSelectionMode}
         >
-          <g transform={`translate(${marginWidth},0)`}>
-            <Ruler region={region} width={trackWidth} />
-          </g>
           <g>
             <TrackStack
               trackStore={useTrackStore}

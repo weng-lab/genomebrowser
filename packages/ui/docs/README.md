@@ -32,3 +32,5 @@ Keep this setup in the host application's entry point or another module imported
 - [Highlight dialog](highlightDialog.md) documents store-bound highlight management.
 - [TrackSelect](trackSelect.md) explains collections, the selection lifecycle, customization, schema tooling, and troubleshooting.
 - [Track interactions](recipes/trackInteractions.md) shows one shared runtime-aware callback dispatcher across a heterogeneous collection.
+
+- [BrowserSelectionControls](browserSelectionControls.md)

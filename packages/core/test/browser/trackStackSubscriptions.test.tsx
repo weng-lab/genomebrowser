@@ -75,16 +75,16 @@ describe("TrackStack subscriptions", () => {
     const useTrackStore = createStore();
     await renderBrowser(useTrackStore);
 
-    expect(browserSvg().getAttribute("viewBox")).toBe("0 0 1100 160");
-    expect(trackRow("second").getAttribute("transform")).toBe("translate(0,115)");
+    expect(browserSvg().getAttribute("viewBox")).toBe("0 0 1100 80");
+    expect(trackRow("second").getAttribute("transform")).toBe("translate(0,35)");
 
     await mutate(() =>
       expect(useTrackStore.getState().updateTrack("first", { base: { height: 35 } })).toEqual({
         ok: true,
       }),
     );
-    expect(browserSvg().getAttribute("viewBox")).toBe("0 0 1100 175");
-    expect(trackRow("second").getAttribute("transform")).toBe("translate(0,130)");
+    expect(browserSvg().getAttribute("viewBox")).toBe("0 0 1100 95");
+    expect(trackRow("second").getAttribute("transform")).toBe("translate(0,50)");
 
     await mutate(() =>
       expect(useTrackStore.getState().addTrack(createTrack("third", 15))).toEqual({ ok: true }),
@@ -111,8 +111,8 @@ describe("TrackStack subscriptions", () => {
       }),
     );
     expect(renderedIds()).toEqual(["third", "replacement"]);
-    expect(trackRow("third").getAttribute("transform")).toBe("translate(0,80)");
-    expect(trackRow("replacement").getAttribute("transform")).toBe("translate(0,110)");
+    expect(trackRow("third").getAttribute("transform")).toBe("translate(0,0)");
+    expect(trackRow("replacement").getAttribute("transform")).toBe("translate(0,30)");
   });
 });
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
+
 import Box from "@mui/material/Box";
 import {
   GenomeBrowser,
@@ -36,6 +38,11 @@ const useBrowserStore = createBrowserStore({
 const useTrackStore = createTrackStore({
   modules: firstPartyTrackModules,
   tracks: [
+    rulerModule.create({
+      id: "reference-ruler",
+      title: "Reference · hg38",
+      config: { sequenceUrl: "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.2bit" },
+    }),
     bigWigModule.create({
       id: "user-source-example",
       title: "User-sourced BigWig",

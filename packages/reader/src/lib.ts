@@ -13,3 +13,6 @@ export type { ChromSizes, ReadChromSizesOptions } from "./chromSizes";
 export { parseCytobands, readCytobands } from "./cytobands";
 export type { Cytoband, ReadCytobandsOptions } from "./cytobands";
 export type { GenomicFile, GenomicRecord, GenomicRegion, ReadOptions } from "./genomicFile";
+
+export { createTwoBitFile } from "./twoBit";
+export type { TwoBitFile, TwoBitFileOptions, TwoBitRecord } from "./twoBit";

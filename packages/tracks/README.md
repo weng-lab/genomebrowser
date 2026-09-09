@@ -45,3 +45,5 @@ Replace `YOUR_URL_HERE` with a browser-accessible BigWig URL that supports byte-
 - [Choose a built-in track](docs/tracks/README.md)
 - [Fix data source problems](docs/dataSources.md)
 - [Use the module API or author a module](docs/README.md)
+
+See [Ruler and reference sequence](docs/tracks/ruler.md) for coordinate tracks with optional 2bit DNA.
