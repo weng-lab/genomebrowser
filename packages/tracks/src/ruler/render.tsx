@@ -1,16 +1,9 @@
+import { SequenceBase } from "./SequenceBase";
 import { useRulerHoverHighlight } from "./useRulerHoverHighlight";
 import { tickStep } from "./helpers";
 import { useAutoTrackHeight, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import type { RulerConfig } from "./schema";
 import type { RulerData } from "./fetch";
-
-const BASE_COLORS: Record<string, string> = {
-  A: "#228b22",
-  C: "blue",
-  G: "orange",
-  T: "red",
-  N: "#64748b",
-};
 
 export function Ruler({
   id,
@@ -59,7 +52,6 @@ export function Ruler({
               config.distinguishMaskedBases ? record.sequence : record.sequence.toUpperCase(),
               (base, index) => {
                 const position = record.start + index;
-                const baseColor = BASE_COLORS[base.toUpperCase()] ?? BASE_COLORS.N;
                 return (
                   <g
                     key={position}
@@ -71,29 +63,13 @@ export function Ruler({
                     onPointerDown={hoverHighlight.clear}
                     onPointerCancel={hoverHighlight.clear}
                   >
-                    <rect
-                      x={x(position) + 0.5}
+                    <SequenceBase
+                      base={base}
+                      x={x(position)}
                       y={axisY + 4}
-                      width={Math.max(0, pixelsPerBase - 1)}
+                      width={pixelsPerBase}
                       height={sequenceHeight}
-                      fill={baseColor}
-                      fillOpacity={0.1}
                     />
-                    <text
-                      x={x(position + 0.5)}
-                      y={axisY + 4 + sequenceHeight / 2}
-                      dominantBaseline="central"
-                      textAnchor="middle"
-                      fill={baseColor}
-                      fontFamily="monospace"
-                      fontSize={Math.max(
-                        1,
-                        Math.min(16, (pixelsPerBase - 1) / 0.6, sequenceHeight - 2),
-                      )}
-                      fontWeight={600}
-                    >
-                      {base}
-                    </text>
                   </g>
                 );
               },

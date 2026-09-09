@@ -66,6 +66,9 @@ it("exposes config fields and preserves host ownership", () => {
     expect(slider.min).toBe("5");
     expect(slider.max).toBe("25");
     expect(slider.value).toBe("15");
+    const preview = container.querySelector('svg[role="img"]')!;
+    expect(preview.getAttribute("width")).toBe("120");
+    expect(preview.querySelectorAll("text")).toHaveLength(8);
     expect(slider.disabled).toBe(false);
     const zoomButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
       (button) => button.textContent === "Zoom in to sequence",
@@ -90,6 +93,7 @@ it("exposes config fields and preserves host ownership", () => {
       ),
     );
     expect(container.textContent).toContain("200 bp");
+    expect(container.querySelector('svg[role="img"]')?.getAttribute("width")).toBe("80");
     expect(zoomButton.disabled).toBe(false);
     act(() => zoomButton.click());
     expect(useBrowserStore.getState().region).toEqual({

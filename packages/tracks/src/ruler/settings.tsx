@@ -10,6 +10,7 @@ import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import { useDraftController } from "../shared/settings/draftInput";
+import { SequenceBase } from "./SequenceBase";
 import type { RulerConfig } from "./schema";
 
 export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerConfig>) {
@@ -38,7 +39,35 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
         />
       </TrackSettingsSection>
       <TrackSettingsSection title="Sequence visibility">
-        <Typography variant="body2">When to show DNA letters</Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
+          <Typography variant="body2">When to show DNA letters</Typography>
+          <svg
+            width={8 * visibility.value}
+            height={22}
+            role="img"
+            aria-label={`DNA spacing preview: ${visibility.value} pixels per base`}
+            style={{ flexShrink: 0, display: "block" }}
+          >
+            {Array.from("ACGTACGT", (base, index) => (
+              <SequenceBase
+                key={index}
+                base={base}
+                x={index * visibility.value}
+                y={0}
+                width={visibility.value}
+                height={22}
+              />
+            ))}
+          </svg>
+        </Box>
         <Box sx={{ px: 1 }}>
           <Slider
             aria-label="When to show DNA letters"
@@ -66,24 +95,34 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
             </Typography>
           </Box>
         </Box>
-        <Typography variant="body2" color="text.secondary" aria-live="polite">
-          {sequenceSpan >= 1
-            ? `Sequence appears at ${sequenceSpan.toLocaleString("en-US")} bp or less.`
-            : "Increase track width to show reference bases."}
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
+          <Typography variant="body2" color="text.secondary" aria-live="polite">
+            {sequenceSpan >= 1
+              ? `Sequence appears at ${sequenceSpan.toLocaleString("en-US")} bp or less.`
+              : "Increase track width to show reference bases."}
+          </Typography>
+          <Button
+            size="small"
+            sx={{ flexShrink: 0 }}
+            disabled={!track.config.sequenceUrl || sequenceSpan < 1 || currentSpan <= sequenceSpan}
+            onClick={() => zoom(sequenceSpan / currentSpan)}
+          >
+            Zoom in to sequence
+          </Button>
+        </Box>
         {visibility.error && (
           <Typography color="error" variant="caption">
             {visibility.error}
           </Typography>
         )}
-        <Button
-          size="small"
-          sx={{ justifySelf: "start" }}
-          disabled={!track.config.sequenceUrl || sequenceSpan < 1 || currentSpan <= sequenceSpan}
-          onClick={() => zoom(sequenceSpan / currentSpan)}
-        >
-          Zoom in to sequence
-        </Button>
       </TrackSettingsSection>
       <TrackSettingsSection title="Sequence appearance">
         <TrackSettingsColorField
