@@ -3,6 +3,7 @@
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 
 import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import {
   GenomeBrowser,
   createBrowserStore,
@@ -20,13 +21,12 @@ import {
   type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
 import { useLayoutEffect, useState } from "react";
-import { RegionOverview } from "./RegionOverview";
-import { BrowserHeader, NavigationControls } from "./Toolbars";
+import { BrowserToolbar } from "./Toolbars";
 import { browserAssembly } from "../lib/assembly";
 import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
 import { useObservedWidth } from "../hooks/useObservedWidth";
 
-const marginWidth = 50;
+const marginWidth = 100;
 
 const useBrowserStore = createBrowserStore({
   assembly: browserAssembly,
@@ -71,8 +71,6 @@ export function Browser() {
   const [highlightDialogOpen, setHighlightDialogOpen] = useState(false);
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
   const [containerRef, containerWidth] = useObservedWidth<HTMLElement>();
-  const region = useBrowserStore((state) => state.region);
-  const highlights = useBrowserStore((state) => state.highlights);
 
   useLayoutEffect(() => {
     if (containerWidth === 0) return;
@@ -81,22 +79,22 @@ export function Browser() {
 
   return (
     <main ref={containerRef}>
-      <BrowserHeader
+      <Typography variant="h4" component="h1">
+        UMass Chan Genome Browser
+      </Typography>
+      <BrowserToolbar
+        browserStore={useBrowserStore}
         onManageHighlights={() => setHighlightDialogOpen(true)}
         onSelectTracks={() => setTrackSelectOpen(true)}
       />
-      <NavigationControls browserStore={useBrowserStore} />
-      <RegionOverview
-        chromosomeLength={browserAssembly.chromosomes[region.chromosome] ?? 0}
-        region={region}
-        highlights={highlights}
-      />
-      <Box sx={{ width: "100%", overflowX: "auto" }}>
-        <GenomeBrowser
-          browserStore={useBrowserStore}
-          settingsStore={useSettingsStore}
-          trackStore={useTrackStore}
-        />
+      <Box>
+        <Box sx={{ width: "100%", overflowX: "auto" }}>
+          <GenomeBrowser
+            browserStore={useBrowserStore}
+            settingsStore={useSettingsStore}
+            trackStore={useTrackStore}
+          />
+        </Box>
       </Box>
       <TrackSelect
         open={trackSelectOpen}

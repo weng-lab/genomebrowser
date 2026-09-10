@@ -1,148 +1,310 @@
-import { Box, Button, Tooltip, Typography } from "@mui/material";
-import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import { useRef, useState, type ReactNode } from "react";
 import {
-  BrowserSelectionControls,
-  BrowserNavigationButton,
-  type BrowserNavigationAction,
-} from "@weng-lab/genomebrowser-ui";
-import { Result, GenomeSearch } from "@weng-lab/ui-components";
+  Box,
+  Button,
+  ButtonBase,
+  ClickAwayListener,
+  IconButton,
+  MenuItem,
+  Select,
+  Snackbar,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CloseIcon from "@mui/icons-material/Close";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import HighlightIcon from "@mui/icons-material/Highlight";
+import LayersIcon from "@mui/icons-material/Layers";
+import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import { BrowserNavigationButton, BrowserSelectionControls } from "@weng-lab/genomebrowser-ui";
+import { type Result, GenomeSearch } from "@weng-lab/ui-components";
 
-type NavigationButtonDefinition = {
-  action: BrowserNavigationAction;
-  label: string;
-  name: string;
-};
-
-const panButtons: readonly NavigationButtonDefinition[] = [
-  { action: { type: "pan", fraction: -1 }, label: "← 1", name: "Pan left by one viewport" },
-  { action: { type: "pan", fraction: -0.5 }, label: "← ½", name: "Pan left by half a viewport" },
-  {
-    action: { type: "pan", fraction: -0.25 },
-    label: "← ¼",
-    name: "Pan left by a quarter viewport",
-  },
-  {
-    action: { type: "pan", fraction: 0.25 },
-    label: "¼ →",
-    name: "Pan right by a quarter viewport",
-  },
-  { action: { type: "pan", fraction: 0.5 }, label: "½ →", name: "Pan right by half a viewport" },
-  { action: { type: "pan", fraction: 1 }, label: "1 →", name: "Pan right by one viewport" },
-];
-
-const zoomButtons: readonly NavigationButtonDefinition[] = [
-  { action: { type: "zoom", factor: 10 }, label: "− 10×", name: "Zoom out 10×" },
-  { action: { type: "zoom", factor: 3 }, label: "− 3×", name: "Zoom out 3×" },
-  { action: { type: "zoom", factor: 1.5 }, label: "− 1.5×", name: "Zoom out 1.5×" },
-  { action: { type: "zoom", factor: 1 / 1.5 }, label: "+ 1.5×", name: "Zoom in 1.5×" },
-  { action: { type: "zoom", factor: 1 / 3 }, label: "+ 3×", name: "Zoom in 3×" },
-  { action: { type: "zoom", factor: 0.1 }, label: "+ 10×", name: "Zoom in 10×" },
-];
-
-export function NavigationControls({ browserStore }: { browserStore: BrowserStoreInstance }) {
-  const useBrowserStore = browserStore;
-
-  function handleSearchSubmit(result: Result) {
-    if (result.domain) useBrowserStore.getState().setRegion(result.domain);
-  }
-
+function Section({
+  title,
+  children,
+  grow = false,
+}: {
+  title: string;
+  children: ReactNode;
+  grow?: boolean;
+}) {
   return (
     <Box
+      component="fieldset"
       sx={{
-        alignItems: { xs: "stretch", md: "center" },
-        display: "flex",
-        flexDirection: { xs: "column", md: "row" },
-        gap: 2,
-        justifyContent: "space-between",
+        m: 0,
+        minWidth: 0,
+        px: 1.25,
+        pb: 1,
+        pt: 0.5,
+        border: 1,
+        borderColor: "divider",
+        borderRadius: 1,
+        flex: grow ? "1 1 340px" : "0 1 auto",
       }}
     >
-      <GenomeSearch
-        assembly={"GRCh38"}
-        graphqlUrl="/api/screen-graphql"
-        onSearchSubmit={handleSearchSubmit}
-        queries={["Gene", "SNP", "cCRE", "Coordinate"]}
-        size="small"
-        sx={{ width: { xs: "100%", md: "33.333%" } }}
-      />
-      <Box
-        aria-label="Browser navigation"
-        role="toolbar"
-        sx={{
-          alignItems: "center",
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 2,
-          justifyContent: { xs: "flex-start", md: "flex-end" },
-        }}
-      >
-        <BrowserSelectionControls browserStore={useBrowserStore} />
-        <Box aria-label="Pan" role="group" sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-          {panButtons.map(({ action, label, name }) => (
-            <Tooltip key={name} title={name}>
-              <Box component="span" sx={{ display: "inline-flex" }}>
-                <BrowserNavigationButton
-                  action={action}
-                  aria-label={name}
-                  browserStore={useBrowserStore}
-                  size="small"
-                  sx={{ minHeight: 40, minWidth: 44 }}
-                  variant="outlined"
-                >
-                  {label}
-                </BrowserNavigationButton>
-              </Box>
-            </Tooltip>
-          ))}
-        </Box>
-        <Box aria-label="Zoom" role="group" sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-          {zoomButtons.map(({ action, label, name }) => (
-            <Tooltip key={name} title={name}>
-              <Box component="span" sx={{ display: "inline-flex" }}>
-                <BrowserNavigationButton
-                  action={action}
-                  aria-label={name}
-                  browserStore={useBrowserStore}
-                  size="small"
-                  sx={{ minHeight: 40, minWidth: 56 }}
-                  variant="outlined"
-                >
-                  {label}
-                </BrowserNavigationButton>
-              </Box>
-            </Tooltip>
-          ))}
-        </Box>
-      </Box>
+      <Typography component="legend" variant="caption" color="text.secondary" sx={{ px: 0.5 }}>
+        {title}
+      </Typography>
+      {children}
     </Box>
   );
 }
 
-export function BrowserHeader({
+function RegionControl({ browserStore: useBrowserStore }: { browserStore: BrowserStoreInstance }) {
+  const region = useBrowserStore((s) => s.region);
+  const [editing, setEditing] = useState(false);
+  const [message, setMessage] = useState("");
+  const displayRef = useRef<HTMLButtonElement>(null);
+  const coordinates = `${region.chromosome}:${region.start.toLocaleString("en-US")}-${region.end.toLocaleString("en-US")}`;
+  const span = `${(region.end - region.start).toLocaleString("en-US")} bp`;
+  function closeEditor(restoreFocus: boolean) {
+    setEditing(false);
+    if (restoreFocus) requestAnimationFrame(() => displayRef.current?.focus());
+  }
+  function submit(result: Result) {
+    if (!result.domain) return;
+    useBrowserStore.getState().setRegion(result.domain);
+    closeEditor(true);
+  }
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(`${region.chromosome}:${region.start}-${region.end}`);
+      setMessage("Region copied");
+    } catch {
+      setMessage("Could not copy. Click the region to edit or select coordinates.");
+    }
+  }
+  return (
+    <ClickAwayListener onClickAway={() => closeEditor(false)}>
+      <Box
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.stopPropagation();
+            closeEditor(true);
+          }
+        }}
+      >
+        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ height: 32 }}>
+          {editing ? (
+            <GenomeSearch
+              assembly="GRCh38"
+              graphqlUrl="/api/screen-graphql"
+              queries={["Gene", "SNP", "cCRE", "Coordinate"]}
+              onSearchSubmit={submit}
+              size="small"
+              sx={{ width: "100%", minWidth: 0 }}
+              slots={{ button: IconButton }}
+              slotProps={{
+                input: {
+                  autoFocus: true,
+                  label: `${coordinates} · ${span}`,
+                  placeholder: "Region, gene, SNP or cCRE",
+                  slotProps: { inputLabel: { shrink: true } },
+                  sx: { "& .MuiInputBase-root": { height: 32 } },
+                },
+                button: {
+                  "aria-label": "Go to search result",
+                  children: <SearchIcon fontSize="small" />,
+                },
+              }}
+            />
+          ) : (
+            <ButtonBase
+              ref={displayRef}
+              onClick={() => setEditing(true)}
+              aria-label={`Edit region ${coordinates}`}
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                justifyContent: "flex-start",
+                borderRadius: 0.5,
+                px: 0.5,
+                py: 0.25,
+                "&:hover": { bgcolor: "action.hover" },
+                "&.Mui-focusVisible": { outline: "2px solid", outlineColor: "primary.main" },
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  flexWrap: "nowrap",
+                  columnGap: 1,
+                  textAlign: "left",
+                  minWidth: 0,
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    fontVariantNumeric: "tabular-nums",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {coordinates}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
+                  {span}
+                </Typography>
+              </Box>
+              <SearchIcon fontSize="small" sx={{ ml: "auto", pl: 0.5, color: "text.secondary" }} />
+            </ButtonBase>
+          )}
+          {editing ? (
+            <IconButton
+              size="small"
+              aria-label="Cancel region search"
+              onClick={() => closeEditor(true)}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          ) : null}
+          <Tooltip title="Copy current region">
+            <IconButton size="small" aria-label="Copy current region" onClick={() => void copy()}>
+              <ContentCopyIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+        <Snackbar
+          open={Boolean(message)}
+          message={message}
+          autoHideDuration={3000}
+          onClose={() => setMessage("")}
+        />
+      </Box>
+    </ClickAwayListener>
+  );
+}
+
+function Navigation({ browserStore }: { browserStore: BrowserStoreInstance }) {
+  const [pan, setPan] = useState(0.25);
+  const [zoom, setZoom] = useState(3);
+  const groupSx = {
+    display: "flex",
+    alignItems: "center",
+    "& button": { minWidth: 32, px: 0.5, height: 32 },
+    "& .MuiInputBase-root": { height: 32, fontSize: "0.8125rem" },
+  };
+  return (
+    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+      <Box role="group" aria-label="Pan controls" sx={groupSx}>
+        <BrowserNavigationButton
+          browserStore={browserStore}
+          action={{ type: "pan", fraction: -pan }}
+          aria-label="Pan left"
+          size="small"
+        >
+          <ArrowBackIcon fontSize="small" />
+        </BrowserNavigationButton>
+        <Select
+          value={pan}
+          onChange={(e) => setPan(Number(e.target.value))}
+          inputProps={{ "aria-label": "Pan magnitude" }}
+          size="small"
+        >
+          <MenuItem value={0.25}>¼ viewport</MenuItem>
+          <MenuItem value={0.5}>½ viewport</MenuItem>
+          <MenuItem value={1}>1 viewport</MenuItem>
+        </Select>
+        <BrowserNavigationButton
+          browserStore={browserStore}
+          action={{ type: "pan", fraction: pan }}
+          aria-label="Pan right"
+          size="small"
+        >
+          <ArrowForwardIcon fontSize="small" />
+        </BrowserNavigationButton>
+      </Box>
+      <Box role="group" aria-label="Zoom controls" sx={groupSx}>
+        <BrowserNavigationButton
+          browserStore={browserStore}
+          action={{ type: "zoom", factor: zoom }}
+          aria-label="Zoom out"
+          size="small"
+        >
+          <RemoveIcon fontSize="small" />
+        </BrowserNavigationButton>
+        <Select
+          value={zoom}
+          onChange={(e) => setZoom(Number(e.target.value))}
+          inputProps={{ "aria-label": "Zoom magnitude" }}
+          size="small"
+        >
+          {[1.5, 3, 10].map((value) => (
+            <MenuItem key={value} value={value}>
+              {value}×
+            </MenuItem>
+          ))}
+        </Select>
+        <BrowserNavigationButton
+          browserStore={browserStore}
+          action={{ type: "zoom", factor: 1 / zoom }}
+          aria-label="Zoom in"
+          size="small"
+        >
+          <AddIcon fontSize="small" />
+        </BrowserNavigationButton>
+      </Box>
+    </Stack>
+  );
+}
+
+export function BrowserToolbar({
+  browserStore,
   onManageHighlights,
   onSelectTracks,
 }: {
+  browserStore: BrowserStoreInstance;
   onManageHighlights: () => void;
   onSelectTracks: () => void;
 }) {
   return (
     <Box
+      aria-label="Genome browser controls"
+      role="group"
       sx={{
-        alignItems: "center",
         display: "flex",
         flexWrap: "wrap",
-        gap: 2,
-        justifyContent: "space-between",
+        alignItems: "flex-start",
+        gap: 1,
+        "& button": { textTransform: "none" },
       }}
     >
-      <Typography variant="h4">UMass Chan Genome Browser</Typography>
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-        <Button variant="outlined" onClick={onManageHighlights}>
-          Highlights
-        </Button>
-        <Button variant="contained" onClick={onSelectTracks}>
-          Select tracks
-        </Button>
-      </Box>
+      <Section title="Region" grow>
+        <RegionControl browserStore={browserStore} />
+      </Section>
+      <Section title="Navigate">
+        <Navigation browserStore={browserStore} />
+      </Section>
+      <Section title="Interaction">
+        <Box sx={{ "& .MuiToggleButton-root": { height: 32, px: 1 } }}>
+          <BrowserSelectionControls browserStore={browserStore} />
+        </Box>
+      </Section>
+      <Section title="Manage">
+        <Stack direction="row" spacing={0.5}>
+          <Button
+            size="small"
+            startIcon={<HighlightIcon fontSize="small" />}
+            onClick={onManageHighlights}
+          >
+            Highlights
+          </Button>
+          <Button size="small" startIcon={<LayersIcon fontSize="small" />} onClick={onSelectTracks}>
+            Tracks
+          </Button>
+        </Stack>
+      </Section>
     </Box>
   );
 }
