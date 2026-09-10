@@ -96,3 +96,7 @@ Register individual modules if your application supports only some track types. 
 ## Ruler
 
 `@weng-lab/genomebrowser-tracks/ruler` exports `rulerModule`, `RulerCreateInput`, `RulerConfig`, and `RulerData`. See [Ruler](tracks/ruler.md).
+
+## BED schemas
+
+The `/shared` subpath exports `bedSchemas`, `bedSchemaKeys`, `bedSchemaKeySchema`, and the `BedSchemaKey` type. Use a key in BigBed or BulkBed config, or pass `bedSchemas[key]` directly to a genomic reader. See [BED schemas](bedSchemas.md).

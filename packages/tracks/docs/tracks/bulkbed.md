@@ -30,6 +30,7 @@ const track = bulkBedModule.create({
 | ----------- | ------------------ | -------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `datasets`  | `BulkBedDataset[]` | Required                   | Non-empty array. Every entry requires a non-empty `name` and `url`; changing a URL requests new data. |
 | `gap`       | `number`           | Omitted; renderer uses `2` | Non-negative content spacing inside each row slot. It does not increase total track height.           |
+| `bedSchema` | `BedSchemaKey`     | `"bed3"`                   | Selects the positional column parser. Changing it requests new data.                                  |
 | `rowHeight` | `number`           | `12`                       | Complete vertical slot for one dataset. Must be finite and at least 1.                                |
 
 BulkBed counts datasets that have at least one interval intersecting the visible viewport. Total height is exactly `max(1, rowCount) * rowHeight`. Visible datasets occupy the top row slots. Datasets with only overscanned side data remain rendered in later slots for panning, but they do not make the track taller. The renderer subtracts `gap` from drawable band height and clamps the result to zero, so content never extends the slot or makes total height larger. Changing viewport or data may change row count, but it does not change configured row height.
@@ -59,3 +60,5 @@ An interval tooltip uses the dataset name as its title. It also shows the featur
 | `BulkBedRect`        | `BigBedRow` with an optional dataset name.                         |
 | `BulkBedData`        | One `BulkBedRect[]` result per dataset.                            |
 | `BulkBedInteraction` | Interaction callbacks receiving `BulkBedRect` and `BulkBedConfig`. |
+
+See [BED schemas and colored tracks](../bedSchemas.md) for the shared schema exports and examples. Schema selection is configured through the track API or collection JSON; the settings panel does not edit it.

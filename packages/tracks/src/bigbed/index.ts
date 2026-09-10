@@ -1,3 +1,4 @@
+import { bedSchemaKeySchema } from "../shared/bedSchemas";
 import type { ModuleCreateInput, ModuleInstance } from "@weng-lab/genomebrowser";
 import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser";
 import { z } from "zod";
@@ -9,6 +10,7 @@ import { BigBedTooltip } from "./tooltip";
 import type { BigBedRow } from "./types";
 
 const configSchema = z.object({
+  bedSchema: fetchOnChange(bedSchemaKeySchema.optional()),
   url: fetchOnChange(z.string().min(1)),
   rowHeight: rowHeightSchema.default(defaultRowHeight),
 });

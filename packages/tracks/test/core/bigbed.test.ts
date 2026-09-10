@@ -5,8 +5,8 @@ const reader = vi.hoisted(() => ({
   createBigBedFile: vi.fn(),
 }));
 
-vi.mock("@weng-lab/genomic-reader", () => ({
-  bed3Schema: { schema: "bed3" },
+vi.mock("@weng-lab/genomic-reader", async (original) => ({
+  ...(await original<typeof import("@weng-lab/genomic-reader")>()),
   createBigBedFile: reader.createBigBedFile,
 }));
 

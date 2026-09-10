@@ -24,10 +24,11 @@ const track = bigBedModule.create({
 
 ## Config
 
-| Option      | Type     | Default  | Description                                                 |
-| ----------- | -------- | -------- | ----------------------------------------------------------- |
-| `url`       | `string` | Required | Non-empty BigBed source URL. Changing it requests new data. |
-| `rowHeight` | `number` | `12`     | Complete vertical row slot. Must be finite and at least 1.  |
+| Option      | Type           | Default  | Description                                                          |
+| ----------- | -------------- | -------- | -------------------------------------------------------------------- |
+| `url`       | `string`       | Required | Non-empty BigBed source URL. Changing it requests new data.          |
+| `bedSchema` | `BedSchemaKey` | `"bed3"` | Selects the positional column parser. Changing it requests new data. |
+| `rowHeight` | `number`       | `12`     | Complete vertical row slot. Must be finite and at least 1.           |
 
 Both displays preserve configured `rowHeight`. Dense always passes one row to the shared layout contract, so changing Height or Row height stretches its single slot. Squish derives total height from rows needed by intervals that intersect the visible viewport. It still packs and renders intervals from the larger overscanned region for panning, but those side intervals do not make the track taller. Viewport or data changes can repack squish rows and update total height without changing row height. In both displays, the interval rectangle and its vertical margins stay inside each slot.
 
@@ -37,9 +38,9 @@ Use `bigBedModule.configSchema` to validate config and `bigBedModule.createInput
 
 The source must be an absolute public HTTP(S) BigBed URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../dataSources.md) if the file does not load.
 
-The fetcher reads BED3 coordinates. It leaves additional columns as strings in `BigBedRow.fields`.
+The fetcher uses `config.bedSchema` to parse columns after BED3. Omit it to read only coordinates; additional columns remain in `BigBedRow.fields`. See [BED schemas and colored tracks](../bedSchemas.md) for available keys and ChromHMM/cCRE examples.
 
-The track keeps one cached file reader per URL in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata is fetched once per source. Changing the URL replaces the reader on the next request.
+The track keeps one cached file reader per URL and schema in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata is fetched once per source. Changing the URL replaces the reader on the next request.
 
 `fetchBigBedRows({ url, region, schema })` is also exported from this subpath. Use it from another track module when that module assigns names and types to the columns after BED3. It is uncached. The schema must follow the source file's column order; it is module code rather than serializable track config.
 
@@ -61,3 +62,5 @@ When available, the interval name becomes the tooltip title. The tooltip also sh
 | `RenderedBigBedRect<Row>` | Row plus rendered interval bounds and optional presentation metadata. |
 | `BigBedInteraction`       | Interaction callbacks receiving `BigBedRow` and `BigBedConfig`.       |
 | `fetchBigBedRows`         | Generic BigBed reader for a module-supplied Zod object schema.        |
+
+See [BED schemas and colored tracks](../bedSchemas.md) for the shared schema exports and examples. Schema selection is configured through the track API or collection JSON; the settings panel does not edit it.

@@ -1,6 +1,6 @@
+import { bedSchemas } from "../shared/bedSchemas";
 import type { GenomicRegion, TrackFetchContext } from "@weng-lab/genomebrowser";
 import {
-  bed3Schema,
   createBigBedFile,
   type BigBedFileOptions,
   type BigBedRecord,
@@ -14,7 +14,12 @@ export async function fetchBigBed({
   demand: { region },
   resources,
 }: TrackFetchContext<BigBedConfig>): Promise<BigBedData> {
-  return readCachedBigBedRows(resources, config.url, bed3Schema, region);
+  return readCachedBigBedRows(
+    resources,
+    config.url,
+    bedSchemas[config.bedSchema ?? "bed3"],
+    region,
+  );
 }
 
 export async function fetchBigBedRows<Schema extends z.ZodObject>({
