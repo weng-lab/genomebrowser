@@ -15,6 +15,7 @@
   "files": [
     "dist",
     "docs",
+    "schemas",
     "LICENSE"
   ],
   "type": "module",
@@ -65,7 +66,8 @@
     "./ruler": {
       "types": "./dist/src/ruler/index.d.ts",
       "import": "./dist/ruler.js"
-    }
+    },
+    "./trackSelectCollection.schema.json": "./schemas/trackSelectCollection.schema.json"
   },
   "publishConfig": {
     "access": "public",
