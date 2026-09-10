@@ -1,3 +1,4 @@
+import { deepStrictEqual } from "node:assert";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -41,6 +42,20 @@ try {
   assert(
     schema?.properties?.tracks?.items?.oneOf?.length === firstPartyTrackModules.length,
     "trackselect schema must include all first-party modules",
+  );
+
+  const shippedSchema = JSON.parse(
+    await readFile(
+      new URL(
+        import.meta.resolve("@weng-lab/genomebrowser-tracks/trackSelectCollection.schema.json"),
+      ),
+      "utf8",
+    ),
+  );
+  deepStrictEqual(
+    shippedSchema,
+    schema,
+    "Shipped first-party collection schema is stale; regenerate it with the TrackSelect CLI.",
   );
 
   const checkResult = spawnSync(process.execPath, [...schemaArguments, "--check"], {

@@ -5,11 +5,12 @@ const reader = vi.hoisted(() => ({
   createBigBedFile: vi.fn(),
 }));
 
-vi.mock("@weng-lab/genomic-reader", () => ({
-  bed3Schema: { schema: "bed3" },
+vi.mock("@weng-lab/genomic-reader", async (original) => ({
+  ...(await original<typeof import("@weng-lab/genomic-reader")>()),
   createBigBedFile: reader.createBigBedFile,
 }));
 
+import { bedSchemas } from "../../src/shared/bedSchemas";
 import { bed3Schema } from "@weng-lab/genomic-reader";
 import type { GenomicRegion, TrackFetchContext, TrackResources } from "@weng-lab/genomebrowser";
 import { fetchBigBed, fetchBigBedRows } from "../../src/bigbed/fetch";
@@ -103,7 +104,7 @@ describe("BigBed track", () => {
     expect(reader.createBigBedFile).toHaveBeenCalledTimes(2);
     expect(reader.createBigBedFile).toHaveBeenNthCalledWith(1, {
       url: "https://example.org/first.bb",
-      schema: bed3Schema,
+      schema: bedSchemas.bed9,
     });
     expect(firstFile.read).toHaveBeenCalledTimes(2);
     expect(secondFile.read).toHaveBeenCalledOnce();

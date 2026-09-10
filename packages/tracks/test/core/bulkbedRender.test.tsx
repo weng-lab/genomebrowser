@@ -44,6 +44,20 @@ describe("BulkBed row rendering", () => {
     expect(markup).toContain('transform="translate(0,10)"');
   });
 
+  it("renders each interval color and uses the track color for uncolored intervals", () => {
+    const rows = [
+      [
+        { chromosome: "chr1", start: 0, end: 10, fields: [], color: "rgb(255,0,0)" },
+        { chromosome: "chr1", start: 10, end: 20, fields: [], color: "rgb(0,255,0)" },
+        { chromosome: "chr1", start: 20, end: 30, fields: [] },
+      ],
+    ];
+    const markup = render(bulkBedConfig({ rowHeight: 10, gap: 2 }), fullRegion, rows);
+    expect(markup).toContain('fill="rgb(255,0,0)"');
+    expect(markup).toContain('fill="rgb(0,255,0)"');
+    expect(markup).toContain('fill="#4b9560"');
+  });
+
   it("keeps content height non-negative when gap exceeds a small row slot", () => {
     const markup = render(bulkBedConfig({ rowHeight: 1, gap: 2 }));
 
@@ -72,13 +86,13 @@ function bulkBedConfig(options: { rowHeight: number; gap: number }): BulkBedConf
   };
 }
 
-function render(config: BulkBedConfig, visibleRegion = fullRegion) {
+function render(config: BulkBedConfig, visibleRegion = fullRegion, rows = data) {
   return renderToStaticMarkup(
     <FullBulkBed
       id="bulk-peaks"
       color="#4b9560"
       config={config}
-      data={data}
+      data={rows}
       visibleRegion={visibleRegion}
       region={{ chromosome: "chr1", start: 0, end: 100 }}
       width={100}

@@ -41,6 +41,9 @@ const expectedRuntimeExports = new Map([
       "TrackSettingsTextField",
       "TrackSettingsUrlField",
       "TrackTooltip",
+      "bedSchemas",
+      "bedSchemaKeys",
+      "bedSchemaKeySchema",
       "clientXToTrackX",
       "condenseSignalRecords",
       "createGenomicXScale",
@@ -60,8 +63,23 @@ const expectedRuntimeExports = new Map([
 
 assertEqual(
   JSON.stringify(Object.keys(manifest.exports).sort()),
-  JSON.stringify([...expectedRuntimeExports.keys()].sort()),
+  JSON.stringify([...expectedRuntimeExports.keys(), "./trackSelectCollection.schema.json"].sort()),
   "public package subpaths",
+);
+
+assertEqual(
+  manifest.exports["./trackSelectCollection.schema.json"],
+  "./schemas/trackSelectCollection.schema.json",
+  "collection schema export",
+);
+assert(manifest.files.includes("schemas"), "collection schema must ship in the package");
+const collectionSchema = JSON.parse(
+  await readFile(resolveExport(manifest.exports["./trackSelectCollection.schema.json"]), "utf8"),
+);
+assertEqual(
+  collectionSchema.properties.tracks.items.oneOf.length,
+  trackNames.length,
+  "collection schema track count",
 );
 
 await Promise.all(

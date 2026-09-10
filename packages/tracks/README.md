@@ -47,3 +47,5 @@ Replace `YOUR_URL_HERE` with a browser-accessible BigWig URL that supports byte-
 - [Use the module API or author a module](docs/README.md)
 
 See [Ruler and reference sequence](docs/tracks/ruler.md) for coordinate tracks with optional 2bit DNA.
+
+The package also ships a [collection JSON schema](docs/exports.md#collection-json-schema) for all first-party tracks, exported as `@weng-lab/genomebrowser-tracks/trackSelectCollection.schema.json`.

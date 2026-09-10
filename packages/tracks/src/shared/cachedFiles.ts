@@ -68,11 +68,19 @@ export async function readCachedBigBedRows<Schema extends z.ZodObject>(
   schema: BigBedFileOptions<Schema>["schema"],
   region: GenomicRegion,
 ): Promise<BigBedRecord<Schema>[]> {
-  const files = cachedFiles<ReturnType<typeof createBigBedFile<Schema>>>(resources, BIG_BED_FILES);
-  let file = files.get(url);
+  const sources = cachedFiles<Map<z.ZodObject, ReturnType<typeof createBigBedFile<Schema>>>>(
+    resources,
+    BIG_BED_FILES,
+  );
+  let files = sources.get(url);
+  if (!files) {
+    files = new Map();
+    sources.set(url, files);
+  }
+  let file = files.get(schema);
   if (!file) {
     file = createBigBedFile({ url, schema });
-    files.set(url, file);
+    files.set(schema, file);
   }
   return file.read(region);
 }
