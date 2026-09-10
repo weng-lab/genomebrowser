@@ -42,3 +42,6 @@ export {
   TrackTooltip,
 } from "./tooltips";
 export type { TrackTooltipProps, TrackTooltipRow } from "./tooltips";
+
+export { bedSchemas, bedSchemaKeys, bedSchemaKeySchema } from "./bedSchemas";
+export type { BedSchemaKey } from "./bedSchemas";

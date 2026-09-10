@@ -1,3 +1,4 @@
+import chromHmmTracks from "./chromhmm-comparison.json";
 import {
   getGeneDatasetsForAssembly,
   getGeneDatasetTitle,
@@ -125,9 +126,16 @@ const caveTracks = {
   })),
 } satisfies TrackSelectCollection;
 
-export const trackCollections = [geneTracks, ccreComparisonTracks, caveTracks, biosampleTracks];
+export const trackCollections = [
+  geneTracks,
+  chromHmmTracks,
+  ccreComparisonTracks,
+  caveTracks,
+  biosampleTracks,
+];
 
 export const defaultTrackIds = [
+  "chromhmm-comparison::tissue-states",
   "reference-annotations::gencode-v40-comprehensive",
   "ccre-comparisons::aggregate-and-adipose-ccres",
   "human-biosamples::ccre-aggregate",
