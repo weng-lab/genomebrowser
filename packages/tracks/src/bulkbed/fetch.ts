@@ -14,7 +14,7 @@ export async function fetchBulkBed({
         await readCachedBigBedRows(
           resources,
           dataset.url,
-          bedSchemas[config.bedSchema ?? "bed3"],
+          bedSchemas[config.bedSchema ?? "bed9"],
           region,
         )
       ).map((row) => ({

@@ -1,6 +1,8 @@
 # BED schemas and colored tracks
 
-BigBed and BulkBed accept a serializable `config.bedSchema` key. Omission means `"bed3"`.
+BigBed and BulkBed accept a serializable `config.bedSchema` key. Omission means `"bed9"`. BulkBed applies the same schema to every dataset.
+
+Parsing is strict: missing required columns or values that fail the selected schema cause a fetch error. There is no automatic detection or fallback. Set `bedSchema` to match your files, such as `"bed3"` for coordinate-only data.
 Changing the key requests data again using the selected schema. BulkBed applies one schema to every dataset in the track; group datasets with different column layouts into separate tracks.
 
 | Key    | Parsed columns after chromosome, start, and end      |

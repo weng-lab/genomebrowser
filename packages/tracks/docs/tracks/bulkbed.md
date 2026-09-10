@@ -30,7 +30,7 @@ const track = bulkBedModule.create({
 | ----------- | ------------------ | -------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `datasets`  | `BulkBedDataset[]` | Required                   | Non-empty array. Every entry requires a non-empty `name` and `url`; changing a URL requests new data. |
 | `gap`       | `number`           | Omitted; renderer uses `2` | Non-negative content spacing inside each row slot. It does not increase total track height.           |
-| `bedSchema` | `BedSchemaKey`     | `"bed3"`                   | Selects the positional column parser. Changing it requests new data.                                  |
+| `bedSchema` | `BedSchemaKey`     | `"bed9"`                   | Selects the positional column parser. Changing it requests new data.                                  |
 | `rowHeight` | `number`           | `12`                       | Complete vertical slot for one dataset. Must be finite and at least 1.                                |
 
 BulkBed counts datasets that have at least one interval intersecting the visible viewport. Total height is exactly `max(1, rowCount) * rowHeight`. Visible datasets occupy the top row slots. Datasets with only overscanned side data remain rendered in later slots for panning, but they do not make the track taller. The renderer subtracts `gap` from drawable band height and clamps the result to zero, so content never extends the slot or makes total height larger. Changing viewport or data may change row count, but it does not change configured row height.
@@ -41,7 +41,7 @@ Changing a dataset name does not request data again. Fetched rows keep the name 
 
 Every dataset URL must point to an absolute public HTTP(S) BigBed file. Each server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../dataSources.md) if a file does not load.
 
-The module fetches sources concurrently and reads BED3 coordinates. It keeps one cached file reader per dataset URL in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata is fetched once per source. It leaves additional columns in the row's `fields` array.
+The module fetches sources concurrently and uses BED9 by default. The track’s `bedSchema` applies to every dataset; all sources are assumed to use the same schema. It keeps one cached file reader per dataset URL in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata is fetched once per source. It leaves columns beyond the selected schema in the row's `fields` array.
 
 ## Settings and tooltip
 

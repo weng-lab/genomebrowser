@@ -63,70 +63,71 @@ describe("BED schema selection", () => {
     }
   });
 
-  it("selects the configured parser in both fetchers and retains BulkBed dataset names", async () => {
-    reader.create.mockReset();
-    reader.create.mockImplementation(({ schema }) => ({
-      read: async () => [
-        {
-          chromosome: "chr1",
-          start: 100,
-          end: 200,
-          fields: [],
-          ...schema.parse(fields),
+  it.each([undefined, "bed3", "bed9", "ccre"] as const)(
+    "uses schema %s in both fetchers, defaulting to BED9",
+    async (bedSchema) => {
+      reader.create.mockReset();
+      reader.create.mockImplementation(({ schema }) => ({
+        read: async () => [
+          {
+            chromosome: "chr1",
+            start: 100,
+            end: 200,
+            fields: [],
+            ...schema.parse(fields),
+          },
+        ],
+      }));
+      const values = new Map<string, unknown>();
+      const resources = {
+        get: <T>(key: string) => values.get(key) as T | undefined,
+        set: (key: string, value: unknown) => {
+          values.set(key, value);
         },
-      ],
-    }));
-    const values = new Map<string, unknown>();
-    const resources = {
-      get: <T>(key: string) => values.get(key) as T | undefined,
-      set: (key: string, value: unknown) => {
-        values.set(key, value);
-      },
-      delete: (key: string) => {
-        values.delete(key);
-      },
-      clear: () => values.clear(),
-    };
-    const demand = {
-      assembly: { id: "test", chromosomes: { chr1: 1000 } },
-      region: { chromosome: "chr1", start: 100, end: 200 },
-      width: 100,
-    };
-    const big = await fetchBigBed({
-      resources,
-      demand,
-      track: {
-        id: "big",
-        type: "bigbed",
-        display: "dense",
-        config: { url: "YOUR_URL_HERE", bedSchema: "bed9", rowHeight: 12 },
-      },
-    });
-    expect(big[0]).toMatchObject({ name: "Enhancer", color: "rgb(255,205,0)" });
-    const bulk = await fetchBulkBed({
-      resources,
-      demand,
-      track: {
-        id: "bulk",
-        type: "bulkbed",
-        display: "full",
-        config: {
-          datasets: [{ name: "Sample", url: "YOUR_URL_HERE" }],
-          bedSchema: "ccre",
-          rowHeight: 12,
+        delete: (key: string) => {
+          values.delete(key);
         },
-      },
-    });
-    expect(bulk[0]?.[0]).toMatchObject({
-      datasetName: "Sample",
-      ccreClass: "dELS",
-      color: "rgb(255,205,0)",
-    });
-    expect(reader.create.mock.calls.map(([options]) => options.schema)).toEqual([
-      bedSchemas.bed9,
-      bedSchemas.ccre,
-    ]);
-  });
+        clear: () => values.clear(),
+      };
+      const demand = {
+        assembly: { id: "test", chromosomes: { chr1: 1000 } },
+        region: { chromosome: "chr1", start: 100, end: 200 },
+        width: 100,
+      };
+      const big = await fetchBigBed({
+        resources,
+        demand,
+        track: {
+          id: "big",
+          type: "bigbed",
+          display: "dense",
+          config: { url: "YOUR_URL_HERE", bedSchema, rowHeight: 12 },
+        },
+      });
+      expect(big[0]).toMatchObject(bedSchemas[bedSchema ?? "bed9"].parse(fields));
+      const bulk = await fetchBulkBed({
+        resources,
+        demand,
+        track: {
+          id: "bulk",
+          type: "bulkbed",
+          display: "full",
+          config: {
+            datasets: [{ name: "Sample", url: "YOUR_URL_HERE" }],
+            bedSchema,
+            rowHeight: 12,
+          },
+        },
+      });
+      expect(bulk[0]?.[0]).toMatchObject({
+        datasetName: "Sample",
+        ...bedSchemas[bedSchema ?? "bed9"].parse(fields),
+      });
+      expect(reader.create.mock.calls.map(([options]) => options.schema)).toEqual([
+        bedSchemas[bedSchema ?? "bed9"],
+      ]);
+    },
+  );
 
   it("uses a new reader when the schema changes and reuses each URL/schema pair", async () => {
     reader.create.mockReset();

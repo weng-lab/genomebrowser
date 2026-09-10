@@ -17,7 +17,7 @@ export async function fetchBigBed({
   return readCachedBigBedRows(
     resources,
     config.url,
-    bedSchemas[config.bedSchema ?? "bed3"],
+    bedSchemas[config.bedSchema ?? "bed9"],
     region,
   );
 }
