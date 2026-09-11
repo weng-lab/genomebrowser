@@ -2,6 +2,8 @@
 
 Choose a track by the source you already have. Each module includes a renderer, settings panel, and configuration schema. Data tracks also provide tooltips.
 
+Track backgrounds are transparent. The browser supplies the white background, allowing genomic highlights to remain visible behind the rendered data without changing its colors.
+
 ## BigBed files
 
 - [BigBed](bigbed.md) reads one general BigBed file. Use it for genomic intervals and BED-like metadata.

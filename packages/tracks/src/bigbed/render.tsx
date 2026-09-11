@@ -16,7 +16,7 @@ export function DenseBigBed<
   const tooltip = useTooltip<Row, Config>();
   return (
     <g>
-      <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={trackHeight} fill="transparent" pointerEvents="none" />
       {rects.map((rect, index) => (
         <rect
           key={`${rect.row.start}-${rect.row.end}-${index}`}
@@ -53,7 +53,7 @@ export function SquishBigBed<
   const tooltip = useTooltip<Row, Config>();
   return (
     <g>
-      <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={trackHeight} fill="transparent" pointerEvents="none" />
       {packed.rows.map((row, rowIndex) => (
         <g key={rowIndex} transform={`translate(0,${rowIndex * rowHeight})`}>
           {row.map((rect, rectIndex) => (
