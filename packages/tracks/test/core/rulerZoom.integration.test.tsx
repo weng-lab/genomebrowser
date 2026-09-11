@@ -102,7 +102,7 @@ it.each(["pointerup", "pointercancel"])(
         getScreenCTM: () => ({ inverse: () => ({}) }),
       });
       await act(async () => {
-        area.ownerSVGElement!.dispatchEvent(
+        area.dispatchEvent(
           new MouseEvent("pointermove", { bubbles: true, clientX: 200, clientY: 10 }),
         );
       });

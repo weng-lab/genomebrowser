@@ -154,15 +154,6 @@ export function SelectRegion({
         x={hasValidDimensions ? marginWidth : 0}
       />
       {children}
-      {mode !== "pan" && (
-        <rect
-          fill="transparent"
-          pointerEvents="all"
-          x={hasValidDimensions ? marginWidth : 0}
-          width={hasValidDimensions ? trackWidth : 0}
-          height={hasValidDimensions ? totalHeight : 0}
-        />
-      )}
       {selection && (
         <g pointerEvents="none">
           <rect
