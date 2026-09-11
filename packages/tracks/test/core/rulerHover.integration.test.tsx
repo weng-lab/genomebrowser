@@ -64,14 +64,58 @@ it("owns hover highlights and clears them without removing user or other ruler h
       root.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />);
     });
     const zoomArea = container.querySelector("[data-ruler-zoom-area]")!;
-    vi.spyOn(zoomArea, "getBoundingClientRect").mockReturnValue(new DOMRect(100, 100, 1000, 48));
+    vi.spyOn(zoomArea, "getBoundingClientRect").mockReturnValue(new DOMRect(100, 100, 1000, 22));
     const move = async (x: number, buttons = 0) => {
       await act(async () => {
-        document.dispatchEvent(
-          new MouseEvent("pointermove", { bubbles: true, clientX: x, clientY: 110, buttons }),
+        container.querySelector("[data-ruler-zoom-area]")!.dispatchEvent(
+          new MouseEvent(x >= 100 ? "pointermove" : "pointerout", {
+            bubbles: true,
+            clientX: x,
+            clientY: 110,
+            buttons,
+          }),
         );
       });
     };
+    // Dialog content/backdrops and another browser can overlap the ruler's bounds.
+    for (const target of [
+      document.createElement("div"),
+      document.createElementNS("http://www.w3.org/2000/svg", "svg"),
+    ]) {
+      document.body.appendChild(target);
+      try {
+        const moveOverOverlay = async () => {
+          await act(async () => {
+            target.dispatchEvent(
+              new MouseEvent("pointermove", {
+                bubbles: true,
+                clientX: 115,
+                clientY: 125,
+              }),
+            );
+          });
+        };
+        await moveOverOverlay();
+        expect(browserStore.getState().selectionMode).toBe("pan");
+        expect(highlights()).toEqual([saved]);
+        await move(110);
+        await point(0, 100);
+        expect(highlights()).toHaveLength(2);
+        await move(50);
+        await point(0, 100, "pointerout");
+        await moveOverOverlay();
+        expect(browserStore.getState().selectionMode).toBe("pan");
+        expect(highlights()).toEqual([saved]);
+      } finally {
+        target.remove();
+      }
+    }
+    expect(zoomArea.getAttribute("height")).toBe("22");
+    expect(zoomArea.getAttribute("pointer-events")).toBe("all");
+    await point(0, 100);
+    expect(browserStore.getState().selectionMode).toBe("pan");
+    expect(highlights()).toHaveLength(2);
+    await point(0, 100, "pointerout");
     await move(110);
     expect(browserStore.getState().selectionMode).toBe("zoom");
     await move(50, 1);
@@ -141,7 +185,7 @@ it("owns hover highlights and clears them without removing user or other ruler h
     vi.spyOn(
       container.querySelector("[data-ruler-zoom-area]")!,
       "getBoundingClientRect",
-    ).mockReturnValue(new DOMRect(100, 100, 1000, 48));
+    ).mockReturnValue(new DOMRect(100, 100, 1000, 22));
     await move(50);
     await move(110);
     expect(browserStore.getState().selectionMode).toBe("zoom");

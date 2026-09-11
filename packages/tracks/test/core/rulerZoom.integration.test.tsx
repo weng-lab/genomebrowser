@@ -102,7 +102,9 @@ it.each(["pointerup", "pointercancel"])(
         getScreenCTM: () => ({ inverse: () => ({}) }),
       });
       await act(async () => {
-        document.dispatchEvent(new MouseEvent("pointermove", { clientX: 200, clientY: 10 }));
+        area.dispatchEvent(
+          new MouseEvent("pointermove", { bubbles: true, clientX: 200, clientY: 10 }),
+        );
       });
       expect(browserStore.getState().selectionMode).toBe("zoom");
       await act(async () => {

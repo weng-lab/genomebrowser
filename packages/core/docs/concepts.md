@@ -76,7 +76,7 @@ The browser renders only the tracks supplied to its track store. Coordinates and
 
 `BrowserStoreInput` accepts `selectionMode?: BrowserSelectionMode` and `selectionHighlight?: SelectionHighlightStyle`. The store exposes both current values plus `setSelectionMode(mode)` and `setSelectionHighlight(style)`. Mode defaults to `"pan"`; the other modes are `"zoom"` and `"highlight"`. Style defaults to `{ color: "#f59e0b", opacity: 0.25, type: "filled" }`. `SelectionHighlightStyle` has required `color` and optional `opacity` and `type`, with the same validation as highlights. Style setters replace the whole style and invalid input throws before changing state.
 
-Drag the data area in zoom mode to navigate, or in highlight mode to create a chromosome-scoped highlight without moving the region. Mode persists after selection. Dragging in pan mode retains ordinary track interactions. Track margin controls remain accessible.
+Drag the data area in zoom mode to navigate, or in highlight mode to create a chromosome-scoped highlight without moving the region. Mode persists after selection. Dragging in pan mode retains ordinary track interactions. Track margin controls remain accessible. Selection captures pointer-down events on track content without covering its hover targets; track hover interactions remain available in Zoom and Highlight modes.
 
 The browser SVG does not take focus or register navigation shortcuts or modifier-drag bindings. Escape is handled only while a region selection is active. Applications own keyboard navigation and mode controls. The optional UI package supplies `BrowserSelectionControls`; host controls can also call the store setters directly.
 
