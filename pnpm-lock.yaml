@@ -499,6 +499,9 @@ importers:
       '@weng-lab/genomebrowser-tracks':
         specifier: workspace:^2.0.0-beta.2
         version: link:../tracks
+      '@weng-lab/ui-components':
+        specifier: 3.1.4
+        version: 3.1.4(f51084f5cda39288785cc9d401aef85e)
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0(supports-color@8.1.1)

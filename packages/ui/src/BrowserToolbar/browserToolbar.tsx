@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ComponentProps, type ReactNode } from "react";
 import {
   Box,
   Button,
@@ -22,8 +22,16 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import HighlightIcon from "@mui/icons-material/Highlight";
 import LayersIcon from "@mui/icons-material/Layers";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
-import { BrowserNavigationButton, BrowserSelectionControls } from "@weng-lab/genomebrowser-ui";
+import { BrowserNavigationButton } from "../BrowserNavigationButton/browserNavigationButton";
+import { BrowserSelectionControls } from "../BrowserSelectionControls/browserSelectionControls";
 import { type Result, GenomeSearch } from "@weng-lab/ui-components";
+
+export type BrowserToolbarProps = {
+  browserStore: BrowserStoreInstance;
+  search: Pick<ComponentProps<typeof GenomeSearch>, "assembly" | "graphqlUrl" | "queries">;
+  onManageHighlights?: () => void;
+  onSelectTracks?: () => void;
+};
 
 function Section({
   title,
@@ -57,7 +65,10 @@ function Section({
   );
 }
 
-function RegionControl({ browserStore: useBrowserStore }: { browserStore: BrowserStoreInstance }) {
+function RegionControl({
+  browserStore: useBrowserStore,
+  search,
+}: Pick<BrowserToolbarProps, "browserStore" | "search">) {
   const region = useBrowserStore((s) => s.region);
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState("");
@@ -94,9 +105,7 @@ function RegionControl({ browserStore: useBrowserStore }: { browserStore: Browse
         <Stack direction="row" alignItems="center" spacing={0.5} sx={{ height: 32 }}>
           {editing ? (
             <GenomeSearch
-              assembly="GRCh38"
-              graphqlUrl="/api/screen-graphql"
-              queries={["Gene", "SNP", "cCRE", "Coordinate"]}
+              {...search}
               onSearchSubmit={submit}
               size="small"
               sx={{ width: "100%", minWidth: 0 }}
@@ -261,13 +270,10 @@ function Navigation({ browserStore }: { browserStore: BrowserStoreInstance }) {
 
 export function BrowserToolbar({
   browserStore,
+  search,
   onManageHighlights,
   onSelectTracks,
-}: {
-  browserStore: BrowserStoreInstance;
-  onManageHighlights: () => void;
-  onSelectTracks: () => void;
-}) {
+}: BrowserToolbarProps) {
   return (
     <Box
       aria-label="Genome browser controls"
@@ -281,7 +287,7 @@ export function BrowserToolbar({
       }}
     >
       <Section title="Region" grow>
-        <RegionControl browserStore={browserStore} />
+        <RegionControl browserStore={browserStore} search={search} />
       </Section>
       <Section title="Navigate">
         <Navigation browserStore={browserStore} />
@@ -291,20 +297,30 @@ export function BrowserToolbar({
           <BrowserSelectionControls browserStore={browserStore} />
         </Box>
       </Section>
-      <Section title="Manage">
-        <Stack direction="row" spacing={0.5}>
-          <Button
-            size="small"
-            startIcon={<HighlightIcon fontSize="small" />}
-            onClick={onManageHighlights}
-          >
-            Highlights
-          </Button>
-          <Button size="small" startIcon={<LayersIcon fontSize="small" />} onClick={onSelectTracks}>
-            Tracks
-          </Button>
-        </Stack>
-      </Section>
+      {onManageHighlights || onSelectTracks ? (
+        <Section title="Manage">
+          <Stack direction="row" spacing={0.5}>
+            {onManageHighlights ? (
+              <Button
+                size="small"
+                startIcon={<HighlightIcon fontSize="small" />}
+                onClick={onManageHighlights}
+              >
+                Highlights
+              </Button>
+            ) : null}
+            {onSelectTracks ? (
+              <Button
+                size="small"
+                startIcon={<LayersIcon fontSize="small" />}
+                onClick={onSelectTracks}
+              >
+                Tracks
+              </Button>
+            ) : null}
+          </Stack>
+        </Section>
+      ) : null}
     </Box>
   );
 }

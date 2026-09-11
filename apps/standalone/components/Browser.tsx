@@ -16,12 +16,12 @@ import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tr
 import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import {
   HighlightDialog,
+  BrowserToolbar,
   TrackSelect,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
 import { useLayoutEffect, useState } from "react";
-import { BrowserToolbar } from "./Toolbars";
 import { browserAssembly } from "../lib/assembly";
 import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
 import { useObservedWidth } from "../hooks/useObservedWidth";
@@ -84,6 +84,11 @@ export function Browser() {
       </Typography>
       <BrowserToolbar
         browserStore={useBrowserStore}
+        search={{
+          assembly: "GRCh38",
+          graphqlUrl: "/api/screen-graphql",
+          queries: ["Gene", "SNP", "cCRE", "Coordinate"],
+        }}
         onManageHighlights={() => setHighlightDialogOpen(true)}
         onSelectTracks={() => setTrackSelectOpen(true)}
       />
