@@ -187,6 +187,8 @@ Module settings use `TrackSettingsProps<Config, Item>` as their input contract. 
 
 The renderer decides what semantic item a click or hover represents. `useInteraction<Item>()` returns item-only handlers because the browser binds the current runtime context. `useTooltip<Item, Config>()` reads that same context and opens the module's browser-positioned `tooltipComponent` with `{ item, context }`. Renderers do not pass a type or config to either hook. Both hooks require the renderer to run inside `GenomeBrowser`.
 
+Tooltips anchor a corner of their SVG bounding box 10 browser-coordinate units from the pointer on each axis. The browser switches corners near its edges to keep the content inside its bounds. If content is too large to fit on either side of the pointer, it uses the side with more space while preserving the gap; oversized content may extend beyond the browser. Tooltip content does not intercept pointer events.
+
 `context.type`, `context.base`, and `context.config` reflect the current validated instance. Later base or config mutations therefore reach later interactions and tooltip renders without changing fetch behavior: only `fetchOnChange` fields control config-triggered requests. The core context does not include metadata owned by a collection UI.
 
 Use only package-root exports for module authoring. BigBed-specific renderer reuse is not currently a recommended extension path.
