@@ -271,6 +271,7 @@ function BrowserView({
   const selectionMode = useBrowserStore((state) => state.selectionMode);
   const selectionHighlight = useBrowserStore((state) => state.selectionHighlight);
   const addHighlight = useBrowserStore((state) => state.addHighlight);
+  const highlights = useBrowserStore((state) => state.highlights);
 
   return (
     <>
@@ -286,6 +287,7 @@ function BrowserView({
           mode={selectionMode}
           highlightStyle={selectionHighlight}
           onHighlight={addHighlight}
+          highlights={highlights}
         >
           <Highlights
             type="filled"

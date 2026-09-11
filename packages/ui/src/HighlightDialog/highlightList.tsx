@@ -30,7 +30,10 @@ export function HighlightList({
 
   return (
     <Stack spacing={0.75}>
-      {highlights.map((highlight) => {
+      <Typography color="text.secondary" variant="caption">
+        Newest first
+      </Typography>
+      {highlights.toReversed().map((highlight) => {
         const region = resolveHighlightRegion(highlight, currentChromosome);
         return (
           <HighlightCard

@@ -22,6 +22,26 @@ afterEach(() => {
 });
 
 describe("HighlightDialog", () => {
+  it("shows newest highlights first without reordering the store", () => {
+    const browserStore = createTestStore();
+    for (const id of ["First", "Second", "Third"]) {
+      browserStore
+        .getState()
+        .addHighlight({ id, region: { start: 100, end: 200 }, color: "#3366cc" });
+    }
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+    expect(document.body.textContent).toContain("Newest first");
+    const ids = Array.from(document.body.querySelectorAll('[aria-label^="Go to "]')).map((button) =>
+      button.getAttribute("aria-label"),
+    );
+    expect(ids).toEqual(["Go to Third", "Go to Second", "Go to First"]);
+    expect(browserStore.getState().highlights.map((highlight) => highlight.id)).toEqual([
+      "First",
+      "Second",
+      "Third",
+    ]);
+  });
+
   it("edits all highlight fields in place without changing other highlights", () => {
     const browserStore = createTestStore();
     browserStore

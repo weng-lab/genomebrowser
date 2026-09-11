@@ -15,6 +15,8 @@ import type {
   SelectionHighlightStyle,
 } from "../state/browserStore";
 
+import { createHighlightId } from "./createHighlightId";
+
 type Selection = { start: number; end: number; mode: "zoom" | "highlight"; pointerId: number };
 const DEFAULT_HIGHLIGHT: SelectionHighlightStyle = {
   color: "#f59e0b",
@@ -33,6 +35,7 @@ export function SelectRegion({
   mode = "zoom",
   highlightStyle = DEFAULT_HIGHLIGHT,
   onHighlight,
+  highlights = [],
   children,
 }: {
   svg: SVGSVGElement | null;
@@ -45,6 +48,7 @@ export function SelectRegion({
   mode?: BrowserSelectionMode;
   highlightStyle?: SelectionHighlightStyle;
   onHighlight?: (highlight: Highlight) => void;
+  highlights?: readonly Highlight[];
   children?: ReactNode;
 }) {
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -104,7 +108,12 @@ export function SelectRegion({
       if (!current || Math.abs(current.end - current.start) < 4) return;
       const selectedRegion = getSelectedRegion(current, region, marginWidth, trackWidth);
       if (current.mode === "zoom") setRegion(selectedRegion);
-      else onHighlight?.({ ...highlightStyle, id: crypto.randomUUID(), region: selectedRegion });
+      else
+        onHighlight?.({
+          ...highlightStyle,
+          id: createHighlightId(selectedRegion, highlights),
+          region: selectedRegion,
+        });
     };
     const pointerCancel = (event: PointerEvent) => {
       if (session.current?.pointerId === event.pointerId) cancel();
