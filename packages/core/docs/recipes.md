@@ -250,7 +250,7 @@ useBrowserStore.getState().addHighlight({
 });
 ```
 
-`type` accepts `"filled"` (the default) or `"outlined"`. `opacity` ranges from 0 to 1 and applies to the fill or border respectively; it defaults to 0.2 for filled highlights and 1 for outlined highlights. Highlights render behind track data, so even an opaque fill preserves the colors of track marks. Both types follow the genomic region during pan and zoom and are clipped to the track area.
+`type` accepts `"filled"` (the default) or `"outlined"`. `opacity` ranges from 0 to 1 and applies to the fill or border respectively; it defaults to 0.2 for filled highlights and 1 for outlined highlights. Filled highlights render behind track data, so even an opaque fill preserves the colors of track marks. Outlined highlights render above track data to keep their borders visible. Both types follow the genomic region during pan and zoom and are clipped to the track area.
 
 Omit `chromosome` to display the same coordinate range on any current chromosome. Adding an existing highlight ID is a no-op. Invalid highlight input throws.
 

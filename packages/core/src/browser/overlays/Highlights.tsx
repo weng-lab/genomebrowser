@@ -4,6 +4,7 @@ import { useBrowserStore } from "../state/browserContextState";
 import { getHighlightRects } from "./highlightRects";
 
 export function Highlights({
+  type,
   region,
   marginWidth,
   renderWidth,
@@ -12,6 +13,7 @@ export function Highlights({
   totalHeight,
   registerContentGroup,
 }: {
+  type: "filled" | "outlined";
   region: GenomicRegion;
   marginWidth: number;
   renderWidth: number;
@@ -23,7 +25,9 @@ export function Highlights({
   const highlights = useBrowserStore((state) => state.highlights);
   const clipId = useId();
   const contentGroupRef = useRef<SVGGElement>(null);
-  const rects = getHighlightRects({ highlights, region, width: renderWidth });
+  const rects = getHighlightRects({ highlights, region, width: renderWidth }).filter(
+    (rect) => rect.type === type,
+  );
 
   useEffect(() => {
     if (!registerContentGroup || !contentGroupRef.current) return;

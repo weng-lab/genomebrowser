@@ -2,7 +2,7 @@
 
 Choose a track by the source you already have. Each module includes a renderer, settings panel, and configuration schema. Data tracks also provide tooltips.
 
-Track backgrounds are transparent. The browser supplies the white background, allowing genomic highlights to remain visible behind the rendered data without changing its colors.
+Track backgrounds are transparent. The browser supplies the white background, allowing filled genomic highlights to remain visible behind the rendered data without changing its colors.
 
 ## BigBed files
 

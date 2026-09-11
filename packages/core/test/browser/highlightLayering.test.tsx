@@ -34,7 +34,10 @@ it("paints an opaque genomic highlight behind track marks and keeps row backgrou
     region: { chromosome: "chr1", start: 100, end: 200 },
     marginWidth: 100,
     trackWidth: 500,
-    highlights: [{ id: "opaque", region: { start: 120, end: 180 }, color: "#ffff00", opacity: 1 }],
+    highlights: [
+      { id: "opaque", region: { start: 120, end: 180 }, color: "#ffff00", opacity: 1 },
+      { id: "outline", region: { start: 125, end: 150 }, color: "#ff00ff", type: "outlined" },
+    ],
   });
   const trackStore = createTrackStore({
     modules: [module],
@@ -52,6 +55,11 @@ it("paints an opaque genomic highlight behind track marks and keeps row backgrou
     expect(highlight.getAttribute("fill-opacity")).toBe("1");
     expect(highlight.compareDocumentPosition(mark) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(highlight.closest('[pointer-events="none"]')).not.toBeNull();
+    const outline = container.querySelector('rect[stroke="#ff00ff"]')!;
+    expect(mark.compareDocumentPosition(outline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(outline.getAttribute("fill")).toBe("none");
+    expect(container.querySelectorAll('rect[stroke="#ff00ff"]')).toHaveLength(1);
+    expect(container.querySelectorAll('rect[fill="#ffff00"]')).toHaveLength(1);
     const title = Array.from(container.querySelectorAll("text")).find((text) =>
       text.textContent?.startsWith("Marks"),
     )!;

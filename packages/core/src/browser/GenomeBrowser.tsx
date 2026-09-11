@@ -288,6 +288,7 @@ function BrowserView({
           onHighlight={addHighlight}
         >
           <Highlights
+            type="filled"
             region={displayedRenderRegion}
             marginWidth={marginWidth}
             renderWidth={renderWidth}
@@ -314,6 +315,16 @@ function BrowserView({
               titleSize={titleSize}
             />
           </g>
+          <Highlights
+            type="outlined"
+            region={displayedRenderRegion}
+            marginWidth={marginWidth}
+            renderWidth={renderWidth}
+            contentX={baseContentX}
+            browserWidth={browserWidth}
+            totalHeight={totalHeight}
+            registerContentGroup={registerContentGroup}
+          />
         </SelectRegion>
         <TooltipOverlay width={browserWidth} height={totalHeight} />
         <InteractionShield
