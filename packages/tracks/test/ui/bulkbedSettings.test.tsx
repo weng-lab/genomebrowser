@@ -428,7 +428,7 @@ function rowInput(row: HTMLElement, label: string) {
 function fieldContainer(input: HTMLInputElement) {
   const field = input.closest<HTMLElement>(".MuiFormControl-root");
   if (!field) throw new Error("Could not find field container");
-  return field;
+  return input.type === "url" ? field.parentElement! : field;
 }
 
 function datasetNames() {

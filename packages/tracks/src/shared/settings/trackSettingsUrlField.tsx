@@ -1,5 +1,5 @@
 import Button from "@mui/material/Button";
-import InputAdornment from "@mui/material/InputAdornment";
+import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import type { TrackMutationResult } from "@weng-lab/genomebrowser";
 import { useDraftController } from "./draftInput";
@@ -35,41 +35,38 @@ export function TrackSettingsUrlField({
   });
 
   return (
-    <TextField
-      autoComplete="url"
-      disabled={disabled}
-      error={controller.error !== undefined}
-      fullWidth
-      helperText={controller.error}
-      label={label}
-      placeholder={placeholder}
-      required={required}
-      size="small"
-      slotProps={{
-        htmlInput: { inputMode: "url" },
-        input: {
-          endAdornment: (
-            <InputAdornment position="end">
-              <Button
-                aria-label={`Set ${label}`}
-                disabled={disabled}
-                size="small"
-                onClick={() => controller.submit(controller.value)}
-              >
-                Set
-              </Button>
-            </InputAdornment>
-          ),
-        },
-      }}
-      type="url"
-      value={controller.value}
-      onChange={(event) => controller.change(event.target.value)}
-      onKeyDown={(event) => {
-        if (!(event.target instanceof HTMLInputElement)) return;
-        if (event.key === "Enter") event.preventDefault();
-        if (event.key === "Escape") controller.keyDown(event);
-      }}
-    />
+    <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, minWidth: 0 }}>
+      <TextField
+        autoComplete="url"
+        disabled={disabled}
+        error={controller.error !== undefined}
+        fullWidth
+        helperText={controller.error}
+        label={label}
+        placeholder={placeholder}
+        required={required}
+        size="small"
+        sx={{ minWidth: 0 }}
+        slotProps={{ htmlInput: { inputMode: "url" } }}
+        type="url"
+        value={controller.value}
+        onChange={(event) => controller.change(event.target.value)}
+        onKeyDown={(event) => {
+          if (!(event.target instanceof HTMLInputElement)) return;
+          if (event.key === "Enter") event.preventDefault();
+          if (event.key === "Escape") controller.keyDown(event);
+        }}
+      />
+      <Button
+        aria-label={`Set ${label}`}
+        disabled={disabled}
+        size="small"
+        variant="outlined"
+        sx={{ height: 40, flexShrink: 0 }}
+        onClick={() => controller.submit(controller.value)}
+      >
+        Set
+      </Button>
+    </Box>
   );
 }
