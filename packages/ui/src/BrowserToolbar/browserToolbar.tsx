@@ -195,15 +195,16 @@ function RegionControl({
   );
 }
 
+const groupSx = {
+  display: "flex",
+  alignItems: "center",
+  "& button": { minWidth: 32, px: 0.5, height: 32 },
+  "& .MuiInputBase-root": { height: 32, fontSize: "0.8125rem" },
+};
+
 function Navigation({ browserStore }: { browserStore: BrowserStoreInstance }) {
   const [pan, setPan] = useState(0.25);
   const [zoom, setZoom] = useState(3);
-  const groupSx = {
-    display: "flex",
-    alignItems: "center",
-    "& button": { minWidth: 32, px: 0.5, height: 32 },
-    "& .MuiInputBase-root": { height: 32, fontSize: "0.8125rem" },
-  };
   return (
     <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
       <Box role="group" aria-label="Pan controls" sx={groupSx}>
