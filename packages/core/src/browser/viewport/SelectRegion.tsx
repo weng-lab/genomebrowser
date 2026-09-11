@@ -109,14 +109,19 @@ export function SelectRegion({
     const pointerCancel = (event: PointerEvent) => {
       if (session.current?.pointerId === event.pointerId) cancel();
     };
+    const keyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") cancel();
+    };
     document.addEventListener("pointermove", move);
     document.addEventListener("pointerup", up);
     document.addEventListener("pointercancel", pointerCancel);
+    document.addEventListener("keydown", keyDown);
     window.addEventListener("blur", cancel);
     cleanup.current = () => {
       document.removeEventListener("pointermove", move);
       document.removeEventListener("pointerup", up);
       document.removeEventListener("pointercancel", pointerCancel);
+      document.removeEventListener("keydown", keyDown);
       window.removeEventListener("blur", cancel);
     };
   };

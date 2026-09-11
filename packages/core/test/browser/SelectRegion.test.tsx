@@ -34,6 +34,57 @@ afterEach(async () => {
 });
 
 describe("SelectRegion", () => {
+  it.each(["zoom", "highlight"] as const)(
+    "cancels %s with Escape without committing and allows the next selection",
+    async (mode) => {
+      const region = { chromosome: "chr1", start: 100, end: 200 };
+      const store = createBrowserStore({
+        assembly: { id: "test", chromosomes: { chr1: 1_000 } },
+        region,
+        selectionMode: mode,
+        highlights: [{ id: "existing", region, color: "#ff0000" }],
+      });
+      const before = store.getState();
+      const onHighlight = vi.fn();
+      await renderSelection({ region, setRegion: before.setRegion, mode, onHighlight });
+
+      await startSelection(30, 80);
+      expect(svg?.querySelector("[data-region-selection]")).not.toBeNull();
+      await act(async () => {
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+      });
+      expect(svg?.querySelector("[data-region-selection]")).toBeNull();
+      await act(async () => {
+        document.dispatchEvent(new MouseEvent("pointermove", { clientX: 95 }));
+        document.dispatchEvent(new MouseEvent("pointerup", { clientX: 95 }));
+      });
+      expect(store.getState()).toBe(before);
+      expect(onHighlight).not.toHaveBeenCalled();
+
+      const idleEscape = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
+      await act(async () => document.dispatchEvent(idleEscape));
+      expect(idleEscape.defaultPrevented).toBe(false);
+      expect(store.getState()).toBe(before);
+
+      await dragSelection(45, 95);
+      if (mode === "zoom") {
+        expect(store.getState().region).toEqual({ chromosome: "chr1", start: 125, end: 175 });
+        expect(onHighlight).not.toHaveBeenCalled();
+      } else {
+        expect(store.getState().region).toBe(before.region);
+        expect(onHighlight).toHaveBeenCalledOnce();
+        expect(onHighlight).toHaveBeenCalledWith(
+          expect.objectContaining({
+            region: { chromosome: "chr1", start: 125, end: 175 },
+          }),
+        );
+      }
+      expect(store.getState().selectionMode).toBe(mode);
+      expect(store.getState().highlights).toBe(before.highlights);
+      expect(svg?.querySelector("[data-region-selection]")).toBeNull();
+    },
+  );
+
   it("leaves keyboard events and modifier drags to the application", async () => {
     const setRegion = vi.fn();
     const onHighlight = vi.fn();
