@@ -24,6 +24,7 @@ type SelectionTestProps = Pick<Parameters<typeof SelectRegion>[0], "region" | "s
       | "highlightStyle"
       | "onHighlight"
       | "children"
+      | "highlights"
     >
   >;
 
@@ -187,13 +188,31 @@ describe("SelectRegion", () => {
     await dragSelection(95, 45);
     expect(setRegion).not.toHaveBeenCalled();
     expect(onHighlight).toHaveBeenCalledWith({
-      id: expect.any(String),
+      id: "chr1:125-175",
       region: { chromosome: "chr1", start: 125, end: 175 },
       color: "#ff0000",
       opacity: 0.7,
       type: "outlined",
     });
   });
+  it("keeps repeated selections distinct from existing region IDs", async () => {
+    const onHighlight = vi.fn();
+    const region = { chromosome: "chr1", start: 100, end: 200 };
+    await renderSelection({
+      region,
+      setRegion: vi.fn(),
+      mode: "highlight",
+      onHighlight,
+      highlights: ["chr1:125-175", "chr1:125-175 (2)"].map((id) => ({
+        id,
+        region,
+        color: "#ff0000",
+      })),
+    });
+    await dragSelection(45, 95);
+    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ id: "chr1:125-175 (3)" }));
+  });
+
   it.each(["pointercancel", "blur"])("cancels on %s", async (action) => {
     const setRegion = vi.fn();
     await renderSelection({ region: { chromosome: "chr1", start: 100, end: 200 }, setRegion });

@@ -39,6 +39,8 @@ New highlights have a Type selector (Filled or Outlined), a color, and an opacit
 
 Select a highlight's pencil action to edit its ID, region, type, color, and opacity inside the dialog. The form starts with the existing values. **Save changes** updates that highlight in place. The back arrow, **Cancel**, or closing the dialog discard unsaved edits. IDs must remain unique, but keeping the highlight's current ID is allowed. Invalid input stays in the form for correction.
 
+Highlights appear newest first, using the reverse of their order in the browser store. Editing a highlight keeps its position; initial highlights follow the order supplied by the application. Drag-created highlights have region-based IDs, with numeric suffixes when needed to keep IDs unique.
+
 Selecting a highlight's arrow action sets the browser viewport to that highlight's exact region.
 
 ## API
