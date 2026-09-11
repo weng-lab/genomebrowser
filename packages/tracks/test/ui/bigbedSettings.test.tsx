@@ -50,7 +50,7 @@ describe("BigBed settings", () => {
     expect(input.inputMode).toBe("url");
     const field = input.closest<HTMLElement>(".MuiFormControl-root");
     if (!field?.parentElement) throw new Error("Could not find the BigBed URL field row");
-    expect(getComputedStyle(field.parentElement).gridColumn).toBe("1/-1");
+    expect(getComputedStyle(field.parentElement.parentElement!).gridColumn).toBe("1/-1");
 
     const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
     if (!valueSetter) throw new Error("Could not set the BigBed URL input value");
@@ -61,6 +61,8 @@ describe("BigBed settings", () => {
 
     expect(updateTrack).not.toHaveBeenCalled();
     act(() => vi.advanceTimersByTime(300));
+    expect(updateTrack).not.toHaveBeenCalled();
+    act(() => container?.querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')?.click());
     expect(updateTrack).toHaveBeenCalledWith({ config: { url: "UPDATED_URL" } });
   });
 });

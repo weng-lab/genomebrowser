@@ -124,6 +124,11 @@ describe("methylC settings", () => {
     expect(getInput("Minimum").disabled).toBe(false);
 
     clickInput("Mask CpG by coverage");
+    expect(
+      Array.from(
+        container!.querySelectorAll<HTMLButtonElement>('button[aria-label^="Set "]'),
+      ).every((button) => button.disabled),
+    ).toBe(true);
     expect(updateTrack).toHaveBeenCalledWith({ config: { maskCpgByCoverage: false } });
   });
 
@@ -138,6 +143,16 @@ describe("methylC settings", () => {
     updateInput("CHH color", "#112233");
     blurInput("CHH color");
     clickInput("Mask CpG by coverage");
+    act(() =>
+      container
+        ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CpG URL"]')
+        ?.click(),
+    );
+    act(() =>
+      container
+        ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CHG URL"]')
+        ?.click(),
+    );
     act(() => vi.advanceTimersByTime(300));
 
     expect(updateTrack.mock.calls).toEqual([
@@ -190,10 +205,20 @@ describe("methylC settings", () => {
 
     renderControlledSettings(baselineTrack, updateTrack);
     updateInput("Plus-strand CpG URL", "ACCEPTED_PLUS_CPG_URL");
+    act(() =>
+      container
+        ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CpG URL"]')
+        ?.click(),
+    );
     act(() => vi.advanceTimersByTime(300));
     renderControlledSettings(advancedTrack, updateTrack);
     renderControlledSettings(baselineTrack, updateTrack);
     updateInput("Plus-strand CHG URL", "RESTORED_C0_CHG_URL");
+    act(() =>
+      container
+        ?.querySelector<HTMLButtonElement>('button[aria-label="Set Plus-strand CHG URL"]')
+        ?.click(),
+    );
     act(() => vi.advanceTimersByTime(300));
 
     expect(updateTrack).toHaveBeenLastCalledWith({
@@ -335,7 +360,7 @@ function getFieldContainer(label: string) {
   const input = getInput(label);
   const field = input.closest<HTMLElement>(".MuiFormControl-root, .MuiFormControlLabel-root");
   if (!field) throw new Error(`Could not find field container for ${label}`);
-  return field;
+  return input.type === "url" ? field.parentElement! : field;
 }
 
 function updateInput(label: string, value: string) {
