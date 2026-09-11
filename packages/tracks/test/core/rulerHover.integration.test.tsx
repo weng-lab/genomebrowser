@@ -13,7 +13,7 @@ it("owns hover highlights and clears them without removing user or other ruler h
   const module = {
     ...rulerModule,
     fetch: async () => ({
-      records: [{ chromosome: "chr1", start: 0, end: 1000, sequence: "A".repeat(1000) }],
+      records: [{ chromosome: "chr1", start: 100, end: 110, sequence: "A".repeat(10) }],
     }),
   };
   const trackStore = createTrackStore({
