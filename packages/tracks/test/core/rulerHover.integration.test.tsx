@@ -67,11 +67,44 @@ it("owns hover highlights and clears them without removing user or other ruler h
     vi.spyOn(zoomArea, "getBoundingClientRect").mockReturnValue(new DOMRect(100, 100, 1000, 48));
     const move = async (x: number, buttons = 0) => {
       await act(async () => {
-        document.dispatchEvent(
-          new MouseEvent("pointermove", { bubbles: true, clientX: x, clientY: 110, buttons }),
-        );
+        container
+          .querySelector("svg")!
+          .dispatchEvent(
+            new MouseEvent("pointermove", { bubbles: true, clientX: x, clientY: 110, buttons }),
+          );
       });
     };
+    // Dialog content/backdrops and another browser can overlap the ruler's bounds.
+    for (const target of [
+      document.createElement("div"),
+      document.createElementNS("http://www.w3.org/2000/svg", "svg"),
+    ]) {
+      document.body.appendChild(target);
+      try {
+        const moveOverOverlay = async () => {
+          await act(async () => {
+            target.dispatchEvent(
+              new MouseEvent("pointermove", {
+                bubbles: true,
+                clientX: 115,
+                clientY: 125,
+              }),
+            );
+          });
+        };
+        await moveOverOverlay();
+        expect(browserStore.getState().selectionMode).toBe("pan");
+        expect(highlights()).toEqual([saved]);
+        await move(110);
+        await point(0, 100);
+        expect(highlights()).toHaveLength(2);
+        await moveOverOverlay();
+        expect(browserStore.getState().selectionMode).toBe("pan");
+        expect(highlights()).toEqual([saved]);
+      } finally {
+        target.remove();
+      }
+    }
     await move(110);
     expect(browserStore.getState().selectionMode).toBe("zoom");
     await move(50, 1);
