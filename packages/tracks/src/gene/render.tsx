@@ -82,7 +82,7 @@ function GeneRows({
 
   return (
     <g>
-      <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={trackHeight} fill="transparent" pointerEvents="none" />
       {packed.rows.map((row, rowIndex) =>
         row.map(({ feature, label, prepared, start: featureStart, end: featureEnd }) => {
           const start = Math.max(0, featureStart);

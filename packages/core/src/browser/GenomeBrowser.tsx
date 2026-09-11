@@ -287,6 +287,16 @@ function BrowserView({
           highlightStyle={selectionHighlight}
           onHighlight={addHighlight}
         >
+          <Highlights
+            type="filled"
+            region={displayedRenderRegion}
+            marginWidth={marginWidth}
+            renderWidth={renderWidth}
+            contentX={baseContentX}
+            browserWidth={browserWidth}
+            totalHeight={totalHeight}
+            registerContentGroup={registerContentGroup}
+          />
           <g>
             <TrackStack
               isDisplayDataCompatible={isDisplayDataCompatible}
@@ -306,6 +316,7 @@ function BrowserView({
             />
           </g>
           <Highlights
+            type="outlined"
             region={displayedRenderRegion}
             marginWidth={marginWidth}
             renderWidth={renderWidth}

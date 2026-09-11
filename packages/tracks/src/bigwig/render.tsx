@@ -28,7 +28,7 @@ export function FullBigWig({
   const paths = createSignalPaths(points, range, height);
   return (
     <g>
-      <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={height} fill="transparent" pointerEvents="none" />
       <line
         x1={0}
         x2={width}
@@ -73,7 +73,7 @@ export function DenseBigWig({
   const range = getViewportRange(config, data, visibleRegion, region, width);
   return (
     <g>
-      <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={height} fill="transparent" pointerEvents="none" />
       {points.map((point) => {
         const value = point.max ?? point.min;
         const intensity =

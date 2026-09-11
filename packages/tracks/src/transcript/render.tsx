@@ -58,7 +58,7 @@ function Rows({
   const tooltip = useTooltip<Transcript, TranscriptConfig>();
   return (
     <g>
-      <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={trackHeight} fill="transparent" pointerEvents="none" />
       {rows.map((row, rowIndex) => (
         <g key={rowIndex} transform={`translate(0,${row.y})`}>
           {row.transcripts.map((rendered, index) => {

@@ -18,7 +18,7 @@ export function FullCave({
   const bottomPoints = condenseSignalRecords(data.bottom, region, width);
   return (
     <g>
-      <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={height} fill="transparent" pointerEvents="none" />
       <line x1={0} x2={width} y1={height / 2} y2={height / 2} stroke="#dddddd" strokeWidth={1} />
       <path d={createCavePath(topPoints, height, "top")} fill={config.topColor} />
       <path d={createCavePath(bottomPoints, height, "bottom")} fill={config.bottomColor} />
