@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState, type ErrorInfo } from "react";
+import { useLayoutEffect, useRef, useState, type ErrorInfo } from "react";
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
 import { useInternalTooltipStore } from "./tooltipContextState";
 
@@ -11,35 +11,38 @@ export function TooltipOverlay({ width, height }: { width: number; height: numbe
   const anchor = useInternalTooltipStore((state) => state.anchor);
   const owner = useInternalTooltipStore((state) => state.owner);
   const ref = useRef<SVGGElement>(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  const calculatePosition = useCallback(() => {
-    if (!ref.current) return;
-    const box = ref.current.getBBox();
-    let nextX = anchor.x + TOOLTIP_OFFSET;
-    let nextY = anchor.y + TOOLTIP_OFFSET;
-
-    if (nextX + box.width > width) nextX = anchor.x - box.width - TOOLTIP_OFFSET;
-    if (nextY + box.height > height) nextY = anchor.y - box.height - TOOLTIP_OFFSET;
-    if (nextX < 0) nextX = Math.max(0, width - box.width);
-    if (nextY < 0) nextY = Math.max(0, height - box.height);
-
-    setPosition({ x: nextX, y: nextY });
-  }, [anchor.x, anchor.y, height, width]);
+  const [box, setBox] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   useLayoutEffect(() => {
-    if (!isVisible || !content) return;
-    calculatePosition();
-  }, [calculatePosition, content, isVisible]);
+    if (!isVisible || !content || !ref.current) return;
+    const { x, y, width: boxWidth, height: boxHeight } = ref.current.getBBox();
+    setBox((previous) =>
+      previous.x === x &&
+      previous.y === y &&
+      previous.width === boxWidth &&
+      previous.height === boxHeight
+        ? previous
+        : { x, y, width: boxWidth, height: boxHeight },
+    );
+  }, [content, isVisible]);
+
+  // Prefer the top-left corner. Flip each axis when the opposite side fits,
+  // or offers more room if the tooltip cannot fit on either side.
+  const roomRight = width - anchor.x - TOOLTIP_OFFSET;
+  const roomLeft = anchor.x - TOOLTIP_OFFSET;
+  const roomBelow = height - anchor.y - TOOLTIP_OFFSET;
+  const roomAbove = anchor.y - TOOLTIP_OFFSET;
+  const useRightCorner = box.width > roomRight && roomLeft > roomRight;
+  const useBottomCorner = box.height > roomBelow && roomAbove > roomBelow;
+  const cornerX = box.x + (useRightCorner ? box.width : 0);
+  const cornerY = box.y + (useBottomCorner ? box.height : 0);
+  const x = anchor.x + (useRightCorner ? -TOOLTIP_OFFSET : TOOLTIP_OFFSET) - cornerX;
+  const y = anchor.y + (useBottomCorner ? -TOOLTIP_OFFSET : TOOLTIP_OFFSET) - cornerY;
 
   if (!isVisible || !content) return null;
 
   return (
-    <g
-      ref={ref}
-      transform={`translate(${position.x},${position.y})`}
-      style={{ pointerEvents: "none" }}
-    >
+    <g ref={ref} transform={`translate(${x},${y})`} style={{ pointerEvents: "none" }}>
       <RenderErrorBoundary
         key={owner}
         fallback={<TooltipErrorFallback />}

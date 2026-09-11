@@ -90,6 +90,7 @@ describe("BigWig settings", () => {
     clickInput("Show clamp indicators");
     updateInput("Minimum", "-1.5");
     updateInput("Maximum", "12");
+    act(() => getOptionalButton("Set URL")?.click());
     act(() => vi.advanceTimersByTime(300));
 
     expect(updateTrack.mock.calls).toEqual([
@@ -250,7 +251,7 @@ function getFieldContainer(label: string) {
   const input = getInput(label);
   const field = input.closest<HTMLElement>(".MuiFormControl-root, .MuiFormControlLabel-root");
   if (!field) throw new Error(`Could not find field container for ${label}`);
-  return field;
+  return input.type === "url" ? field.parentElement! : field;
 }
 
 function updateInput(label: string, value: string) {

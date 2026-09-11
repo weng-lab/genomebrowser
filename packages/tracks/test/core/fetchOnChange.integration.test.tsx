@@ -151,6 +151,10 @@ describe("first-party fetch-on-change behavior", () => {
       );
     });
     expectFetchCounts([bigWigFetch, bulkBedFetch, caveFetch, methylCFetch], [2, 2, 3, 2]);
+    await settle(() => {
+      expectOk(useTrackStore.getState().updateTrack("bulkbed", { config: { bedSchema: "bed9" } }));
+    });
+    expectFetchCounts([bigWigFetch, bulkBedFetch, caveFetch, methylCFetch], [2, 3, 3, 2]);
   });
 });
 

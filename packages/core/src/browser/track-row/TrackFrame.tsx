@@ -71,7 +71,7 @@ export function TrackFrame({
         y={0}
         width={trackWidth}
         height={wrapperHeight}
-        fill="#ffffff"
+        fill={isDragClone ? "#ffffff" : "transparent"}
         onContextMenu={handleContextMenu}
       />
       <g clipPath={`url(#${contentClipId})`} onContextMenu={handleContextMenu}>

@@ -1,0 +1,46 @@
+{
+  "id": "chromhmm-comparison",
+  "label": "ChromHMM comparison",
+  "views": [
+    {
+      "id": "default",
+      "label": "Tracks",
+      "columns": [
+        {
+          "field": "title",
+          "label": "Track"
+        }
+      ],
+      "grouping": [],
+      "leaf": "title"
+    }
+  ],
+  "tracks": [
+    {
+      "type": "bulkbed",
+      "id": "tissue-states",
+      "title": "ChromHMM \u00b7 adipose and adrenal gland",
+      "display": "full",
+      "height": 100,
+      "config": {
+        "datasets": [
+          {
+            "name": "Subcutaneous abdominal adipose tissue, female adult (49 years) nuclear fraction",
+            "url": "https://downloads.wenglab.org/ChIP_ENCSR605NNZ-ENCSR011MGQ-ENCSR664RRY-ENCSR989POD-ENCSR731XOV-ENCSR286WUR.bigBed"
+          },
+          {
+            "name": "Adrenal gland, female adult (41 years)",
+            "url": "https://downloads.wenglab.org/ChIP_ENCSR775NSL-ENCSR837CSL-ENCSR038KST-ENCSR404HTG-ENCSR086QZD-ENCSR886FKD.bigBed"
+          },
+          {
+            "name": "Adrenal gland, male adult (34 years)",
+            "url": "https://downloads.wenglab.org/ChIP_ENCSR234YIU-ENCSR405ESP-ENCSR511GOF-ENCSR942XCE-ENCSR181JFC-ENCSR992VZG.bigBed"
+          }
+        ],
+        "rowHeight": 28,
+        "gap": 4
+      },
+      "metadata": {}
+    }
+  ]
+}

@@ -133,6 +133,9 @@ describe("BulkBed settings", () => {
     await renderControlledSettings(advancedTrack, updateTrack);
     await renderControlledSettings(baselineTrack, updateTrack);
     await updateTextInput(textInputs()[1], "RESTORED_C0_URL");
+    await act(async () =>
+      container?.querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')?.click(),
+    );
 
     expect(updateTrack).toHaveBeenLastCalledWith({
       config: {

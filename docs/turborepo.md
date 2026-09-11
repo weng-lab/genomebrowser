@@ -130,3 +130,19 @@ CI uses the same root commands and receives local cache benefits only within one
 job. Remote caching and affected-only CI are not configured. Turbo also does not
 yet coordinate the package development servers, so use the existing package
 development commands when a human needs one.
+
+## Refresh the first-party collection schema
+
+The tracks package ships `schemas/trackSelectCollection.schema.json`. The UI package build verifies that it matches the collection generator and all current first-party modules. After changing a module's create-input schema or the collection format, build the dependencies and regenerate it:
+
+```sh
+pnpm exec turbo run build --filter=@weng-lab/genomebrowser-tracks
+cd packages/ui
+pnpm exec vite build
+node dist/trackselect.js schema --from '@weng-lab/genomebrowser-tracks#firstPartyTrackModules' --out ../tracks/schemas/trackSelectCollection.schema.json
+cd ../..
+pnpm exec oxfmt packages/tracks/schemas/trackSelectCollection.schema.json
+pnpm verify
+```
+
+The direct UI Vite build refreshes the generator before its package verification checks the updated artifact. Commit the generated JSON with the schema changes.

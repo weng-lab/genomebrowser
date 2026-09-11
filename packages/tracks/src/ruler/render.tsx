@@ -37,12 +37,17 @@ export function Ruler({
     config.sequenceHighlightColor,
   );
   const zoomAreaRef = useRulerZoomMode((event, bounds) => {
-    if (!showSequence || !bounds || event.clientY < bounds.top + axisY + 4) {
+    if (
+      !showSequence ||
+      !bounds ||
+      event.clientY < bounds.top + ((axisY + 4) / height) * bounds.height
+    ) {
       hoverHighlight.clear();
       return;
     }
     const position = Math.floor(
-      visibleRegion.start + (event.clientX - bounds.left) / pixelsPerBase,
+      visibleRegion.start +
+        ((event.clientX - bounds.left) / bounds.width) * (visibleRegion.end - visibleRegion.start),
     );
     if (
       data.records.some(

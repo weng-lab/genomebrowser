@@ -180,6 +180,8 @@ describe("pre-bound module UI", () => {
       input.dispatchEvent(new Event("input", { bubbles: true }));
       vi.advanceTimersByTime(300);
     });
+    expect(updateTrack).not.toHaveBeenCalled();
+    act(() => container?.querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')?.click());
     expect(updateTrack).toHaveBeenCalledWith({ config: { url: "UPDATED_URL" } });
   });
 });

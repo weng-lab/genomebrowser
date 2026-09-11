@@ -33,7 +33,7 @@ export function FullBulkBed({
   const tooltip = useTooltip<BulkBedRect, BulkBedConfig>();
   return (
     <g>
-      <rect width={width} height={trackHeight} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={trackHeight} fill="transparent" pointerEvents="none" />
       {renderData.map(({ rows: datasetRows, name: datasetName }, datasetIndex) => {
         return (
           <g key={datasetName} transform={`translate(0,${datasetIndex * rowHeight})`}>

@@ -1,3 +1,4 @@
+import { bedSchemaKeySchema } from "../shared/bedSchemas";
 import type { ModuleCreateInput, ModuleInstance } from "@weng-lab/genomebrowser";
 import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser";
 import { z } from "zod";
@@ -10,6 +11,7 @@ import type { BulkBedRect } from "./types";
 
 const datasetSchema = z.object({ name: z.string().min(1), url: fetchOnChange(z.string().min(1)) });
 const configSchema = z.object({
+  bedSchema: fetchOnChange(bedSchemaKeySchema.optional()),
   datasets: z.array(datasetSchema).min(1),
   gap: z.number().nonnegative().optional(),
   rowHeight: rowHeightSchema.default(defaultRowHeight),

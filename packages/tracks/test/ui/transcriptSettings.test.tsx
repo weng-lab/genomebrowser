@@ -132,7 +132,7 @@ function getInput(label: string) {
 function getFieldContainer(label: string) {
   const field = getInput(label).closest<HTMLElement>(".MuiFormControl-root");
   if (!field) throw new Error(`Could not find field container for ${label}`);
-  return field;
+  return getInput(label).type === "url" ? field.parentElement! : field;
 }
 
 function updateInput(label: string, value: string) {

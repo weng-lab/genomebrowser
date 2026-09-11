@@ -81,14 +81,16 @@ This component uses a text input so partial numeric drafts such as `-` and `1.` 
 
 ### `TrackSettingsUrlField`
 
-| Prop          | Type                                   | Default  | Description                                          |
-| ------------- | -------------------------------------- | -------- | ---------------------------------------------------- |
-| `disabled`    | `boolean`                              | `false`  | Visibly disables editing and commit interactions.    |
-| `label`       | `string`                               | `"URL"`  | Visible MUI field label and accessible name.         |
-| `onCommit`    | `(url: string) => TrackMutationResult` | Required | Attempts to persist the draft URL string.            |
-| `placeholder` | `string`                               | None     | Example or hint shown when the draft is empty.       |
-| `required`    | `boolean`                              | `false`  | Rejects a blank or whitespace-only URL when enabled. |
-| `value`       | `string`                               | Required | Current accepted URL string.                         |
+| Prop          | Type                                   | Default  | Description                                                     |
+| ------------- | -------------------------------------- | -------- | --------------------------------------------------------------- |
+| `disabled`    | `boolean`                              | `false`  | Visibly disables editing and commit interactions.               |
+| `label`       | `string`                               | `"URL"`  | Visible MUI field label and accessible name.                    |
+| `onCommit`    | `(url: string) => TrackMutationResult` | Required | Attempts to persist the draft URL string when Set is activated. |
+| `placeholder` | `string`                               | None     | Example or hint shown when the draft is empty.                  |
+| `required`    | `boolean`                              | `false`  | Rejects a blank or whitespace-only URL when enabled.            |
+| `value`       | `string`                               | Required | Current accepted URL string.                                    |
+
+Activate **Set** to apply a changed URL. Typing, blur, and Enter in the input do not commit. Escape cancels the draft. The Set button has the accessible name `Set ${label}` and supports standard button keyboard activation. `disabled` disables both controls.
 
 The component supplies URL input, autocomplete, and virtual-keyboard hints. It does not test data availability. Apart from rejecting a blank required value, it does not validate the URL format.
 

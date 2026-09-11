@@ -81,7 +81,7 @@ export function SplitMethylC({
   );
   return (
     <g>
-      <rect width={width} height={height} fill="#ffffff" pointerEvents="none" />
+      <rect width={width} height={height} fill="transparent" pointerEvents="none" />
       <g id={`${id}-plusStrand`}>
         {signals.chhPlus?.indicator}
         {signals.chgPlus?.indicator}
