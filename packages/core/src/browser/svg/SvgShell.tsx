@@ -27,7 +27,7 @@ export function SvgShell({
       viewBox={`0 0 ${width} ${height}`}
       width="100%"
       height="auto"
-      style={{ border: "1px solid #ccc", background: "#ffffff" }}
+      style={{ border: "1px solid #ccc", background: "#ffffff", outline: "none" }}
     >
       {children}
     </svg>
