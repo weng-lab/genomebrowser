@@ -6,6 +6,7 @@ import { z } from "zod";
 import { GenomeBrowser } from "../../src/browser/GenomeBrowser";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
+import type { TrackRendererProps } from "../../src/modules/types";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -17,7 +18,7 @@ it("paints an opaque genomic highlight behind track marks and keeps row backgrou
     configSchema: z.object({}),
     fetch: async () => null,
     render: {
-      full: ({ region, width }) => (
+      full: ({ region, width }: TrackRendererProps<Record<string, never>, null>) => (
         <rect
           data-testid="mark"
           x={((125 - region.start) / (region.end - region.start)) * width}
