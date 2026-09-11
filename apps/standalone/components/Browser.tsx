@@ -26,13 +26,9 @@ import { browserAssembly } from "../lib/assembly";
 import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
 import { useObservedWidth } from "../hooks/useObservedWidth";
 
-const marginWidth = 100;
-
 const useBrowserStore = createBrowserStore({
   assembly: browserAssembly,
   region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
-  marginWidth,
-  trackWidth: 1350,
 });
 
 const useTrackStore = createTrackStore({
@@ -74,7 +70,8 @@ export function Browser() {
 
   useLayoutEffect(() => {
     if (containerWidth === 0) return;
-    useBrowserStore.getState().setTrackWidth(Math.max(1, containerWidth - marginWidth));
+    const { marginWidth, setTrackWidth } = useBrowserStore.getState();
+    setTrackWidth(Math.max(1, containerWidth - marginWidth));
   }, [containerWidth]);
 
   return (

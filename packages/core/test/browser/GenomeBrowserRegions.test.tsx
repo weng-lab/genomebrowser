@@ -172,7 +172,7 @@ describe("GenomeBrowser region windows", () => {
       "600",
     );
     const positionedGroups = container?.querySelectorAll<SVGGElement>(
-      'g[transform="translate(-80,0)"]',
+      'g[transform="translate(-150,0)"]',
     );
     expect(
       Array.from(positionedGroups ?? []).some((group) =>

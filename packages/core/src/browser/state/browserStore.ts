@@ -118,7 +118,7 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
     return {
       assembly,
       region: initialRegionResult.region,
-      marginWidth: parsedInput.marginWidth ?? 120,
+      marginWidth: parsedInput.marginWidth ?? 50,
       trackWidth: parsedInput.trackWidth ?? 1000,
       fontSize: parsedInput.fontSize ?? 10,
       titleSize: parsedInput.titleSize ?? 12,
