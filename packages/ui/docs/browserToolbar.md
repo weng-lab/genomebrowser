@@ -48,11 +48,11 @@ Add `onManageHighlights={() => setHighlightsOpen(true)}` and `onSelectTracks={()
 | `onManageHighlights` | `() => void`                                  | Omitted  | Runs when Highlights is clicked.                                                        |
 | `onSelectTracks`     | `() => void`                                  | Omitted  | Runs when Tracks is clicked.                                                            |
 
-Pan magnitude starts at ¼ viewport, with ½ and 1 viewport options. Zoom magnitude starts at 3×, with 1.5× and 10× options. Magnitudes and search editing state belong to each toolbar instance. Navigation uses the bounds and behavior of [BrowserNavigationButton](browserNavigationButton.md); interaction selection uses [BrowserSelectionControls](browserSelectionControls.md).
+Pan magnitude starts at ¼ viewport, with ½ and 1 viewport options. The selector and dropdown options display these as 25%, 50%, and 100%. Zoom magnitude starts at 3×, with 1.5× and 10× options. Magnitudes and search editing state belong to each toolbar instance. Navigation uses the bounds and behavior of [BrowserNavigationButton](browserNavigationButton.md); interaction selection uses [BrowserSelectionControls](browserSelectionControls.md).
 
 ## Accessibility
 
-The controls form a named group with fieldset legends. Icon actions have accessible names. Clicking the region opens an autofocus search input; Escape or Cancel closes it and restores focus to the region button. A successful search also restores focus; clicking outside closes search without moving focus back. Groups wrap on narrow screens.
+The controls form a named group with fieldset legends. Icon actions have accessible names. Clicking the region opens an autofocus search input; Escape or Cancel closes it and restores focus to the region button. A successful search also restores focus; clicking outside closes search without moving focus back. Pan and zoom each place their magnitude selector between two outlined action buttons. The region field grows up to 440px and contracts before groups wrap on narrow screens; long coordinates truncate in the display and remain available by opening search.
 
 ## Notes
 

@@ -54,7 +54,9 @@ function Section({
         border: 1,
         borderColor: "divider",
         borderRadius: 1,
-        flex: grow ? "1 1 340px" : "0 1 auto",
+        flex: grow ? "1 1 240px" : "0 1 auto",
+        maxWidth: grow ? 440 : "100%",
+        boxSizing: "border-box",
       }}
     >
       <Typography component="legend" variant="caption" color="text.secondary" sx={{ px: 0.5 }}>
@@ -108,7 +110,12 @@ function RegionControl({
               {...search}
               onSearchSubmit={submit}
               size="small"
-              sx={{ width: "100%", minWidth: 0 }}
+              sx={{
+                flex: "1 1 0",
+                width: "100%",
+                minWidth: 0,
+                "& .MuiAutocomplete-root": { minWidth: 0, width: "100%" },
+              }}
               slots={{ button: IconButton }}
               slotProps={{
                 input: {
@@ -116,7 +123,7 @@ function RegionControl({
                   label: `${coordinates} · ${span}`,
                   placeholder: "Region, gene, SNP or cCRE",
                   slotProps: { inputLabel: { shrink: true } },
-                  sx: { "& .MuiInputBase-root": { height: 32 } },
+                  sx: { minWidth: 0, "& .MuiInputBase-root": { height: 32 } },
                 },
                 button: {
                   "aria-label": "Go to search result",
@@ -131,6 +138,7 @@ function RegionControl({
               aria-label={`Edit region ${coordinates}`}
               sx={{
                 flex: 1,
+                overflow: "hidden",
                 minWidth: 0,
                 justifyContent: "flex-start",
                 borderRadius: 0.5,
@@ -162,11 +170,18 @@ function RegionControl({
                 >
                   {coordinates}
                 </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
+                >
                   {span}
                 </Typography>
               </Box>
-              <SearchIcon fontSize="small" sx={{ ml: "auto", pl: 0.5, color: "text.secondary" }} />
+              <SearchIcon
+                fontSize="small"
+                sx={{ ml: "auto", pl: 0.5, flexShrink: 0, color: "text.secondary" }}
+              />
             </ButtonBase>
           )}
           {editing ? (
@@ -198,6 +213,7 @@ function RegionControl({
 const groupSx = {
   display: "flex",
   alignItems: "center",
+  gap: 0.5,
   "& button": { minWidth: 32, px: 0.5, height: 32 },
   "& .MuiInputBase-root": { height: 32, fontSize: "0.8125rem" },
 };
@@ -212,24 +228,28 @@ function Navigation({ browserStore }: { browserStore: BrowserStoreInstance }) {
           browserStore={browserStore}
           action={{ type: "pan", fraction: -pan }}
           aria-label="Pan left"
+          variant="outlined"
           size="small"
         >
           <ArrowBackIcon fontSize="small" />
         </BrowserNavigationButton>
         <Select
           value={pan}
+          renderValue={(value) => `${value * 100}%`}
           onChange={(e) => setPan(Number(e.target.value))}
           inputProps={{ "aria-label": "Pan magnitude" }}
           size="small"
         >
-          <MenuItem value={0.25}>¼ viewport</MenuItem>
-          <MenuItem value={0.5}>½ viewport</MenuItem>
-          <MenuItem value={1}>1 viewport</MenuItem>
+          <MenuItem value={0.25}>25%</MenuItem>
+          <MenuItem value={0.5}>50%</MenuItem>
+          <MenuItem value={1}>100%</MenuItem>
         </Select>
+
         <BrowserNavigationButton
           browserStore={browserStore}
           action={{ type: "pan", fraction: pan }}
           aria-label="Pan right"
+          variant="outlined"
           size="small"
         >
           <ArrowForwardIcon fontSize="small" />
@@ -240,6 +260,7 @@ function Navigation({ browserStore }: { browserStore: BrowserStoreInstance }) {
           browserStore={browserStore}
           action={{ type: "zoom", factor: zoom }}
           aria-label="Zoom out"
+          variant="outlined"
           size="small"
         >
           <RemoveIcon fontSize="small" />
@@ -256,10 +277,12 @@ function Navigation({ browserStore }: { browserStore: BrowserStoreInstance }) {
             </MenuItem>
           ))}
         </Select>
+
         <BrowserNavigationButton
           browserStore={browserStore}
           action={{ type: "zoom", factor: 1 / zoom }}
           aria-label="Zoom in"
+          variant="outlined"
           size="small"
         >
           <AddIcon fontSize="small" />
