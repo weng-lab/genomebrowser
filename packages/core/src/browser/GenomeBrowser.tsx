@@ -287,6 +287,15 @@ function BrowserView({
           highlightStyle={selectionHighlight}
           onHighlight={addHighlight}
         >
+          <Highlights
+            region={displayedRenderRegion}
+            marginWidth={marginWidth}
+            renderWidth={renderWidth}
+            contentX={baseContentX}
+            browserWidth={browserWidth}
+            totalHeight={totalHeight}
+            registerContentGroup={registerContentGroup}
+          />
           <g>
             <TrackStack
               isDisplayDataCompatible={isDisplayDataCompatible}
@@ -305,15 +314,6 @@ function BrowserView({
               titleSize={titleSize}
             />
           </g>
-          <Highlights
-            region={displayedRenderRegion}
-            marginWidth={marginWidth}
-            renderWidth={renderWidth}
-            contentX={baseContentX}
-            browserWidth={browserWidth}
-            totalHeight={totalHeight}
-            registerContentGroup={registerContentGroup}
-          />
         </SelectRegion>
         <TooltipOverlay width={browserWidth} height={totalHeight} />
         <InteractionShield
