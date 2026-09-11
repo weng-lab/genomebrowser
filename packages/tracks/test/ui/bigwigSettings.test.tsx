@@ -90,6 +90,7 @@ describe("BigWig settings", () => {
     clickInput("Show clamp indicators");
     updateInput("Minimum", "-1.5");
     updateInput("Maximum", "12");
+    act(() => getOptionalButton("Set URL")?.click());
     act(() => vi.advanceTimersByTime(300));
 
     expect(updateTrack.mock.calls).toEqual([

@@ -107,6 +107,9 @@ describe("BulkBed settings", () => {
     updateInput(rowInput(datasetRows()[1], "Name"), "Dataset B updated");
     updateInput(rowInput(datasetRows()[0], "URL"), "DATASET_A_UPDATED_URL");
     act(() => vi.advanceTimersByTime(300));
+    act(() =>
+      datasetRows()[0].querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')?.click(),
+    );
 
     expect(updateTrack.mock.calls).toEqual([
       [{ config: { gap: 6.5 } }],
@@ -156,6 +159,9 @@ describe("BulkBed settings", () => {
     renderControlledSettings(advancedTrack, updateTrack);
     renderControlledSettings(baselineTrack, updateTrack);
     updateInput(rowInput(datasetRows()[0], "URL"), "RESTORED_C0_URL");
+    act(() =>
+      datasetRows()[0].querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')?.click(),
+    );
     act(() => vi.advanceTimersByTime(300));
 
     expect(updateTrack).toHaveBeenLastCalledWith({

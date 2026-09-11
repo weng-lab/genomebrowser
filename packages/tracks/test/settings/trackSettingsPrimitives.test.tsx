@@ -217,7 +217,34 @@ describe("track settings fields", () => {
 
     updateInput(input, "YOUR_OTHER_URL_HERE");
     act(() => vi.advanceTimersByTime(300));
+    blur(input);
+    keyDown(input, "Enter");
+    expect(onCommit).not.toHaveBeenCalled();
+    act(() =>
+      container?.querySelector<HTMLButtonElement>('button[aria-label="Set Signal URL"]')?.click(),
+    );
     expect(onCommit).toHaveBeenCalledWith("YOUR_OTHER_URL_HERE");
+  });
+
+  it("retains a rejected URL for retry and cancels a later draft with Escape", () => {
+    const onCommit = vi
+      .fn()
+      .mockReturnValueOnce({ ok: false, error: "Source rejected" })
+      .mockReturnValue({ ok: true });
+    mount(<TrackSettingsUrlField value="YOUR_URL_HERE" onCommit={onCommit} />);
+    const input = getInput("URL");
+    const button = container!.querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')!;
+    updateInput(input, "YOUR_OTHER_URL_HERE");
+    act(() => button.click());
+    expect(input.value).toBe("YOUR_OTHER_URL_HERE");
+    expect(container?.textContent).toContain("Source rejected");
+    act(() => button.click());
+    expect(onCommit).toHaveBeenCalledTimes(2);
+    expect(container?.textContent).not.toContain("Source rejected");
+    updateInput(input, "unfinished");
+    keyDown(input, "Escape");
+    expect(input.value).toBe("YOUR_OTHER_URL_HERE");
+    expect(onCommit).toHaveBeenCalledTimes(2);
   });
 });
 
