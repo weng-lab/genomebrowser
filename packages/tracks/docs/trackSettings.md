@@ -4,7 +4,7 @@ Use the settings controls from `@weng-lab/genomebrowser-tracks/shared` to build 
 
 ## Understand settings ownership
 
-The core browser owns the settings modal. It provides the title, close behavior, position, and width. It renders the active module's `settingsComponent` as the complete form. Settings state is internal to the browser.
+The core browser owns the settings modal. It provides the title, close behavior, position, and width. The shared shell is 550 px wide with a maximum total height equal to its width, further constrained by the viewport. Short forms use their natural height; longer forms scroll internally beneath the header. It renders the active module's `settingsComponent` as the complete form. Settings state is internal to the browser.
 
 Your module chooses and composes all controls, including base options. Reuse `TrackBaseSettings` for title, color, and display. Add `TrackHeightSettings` for fixed height or `TrackRowLayoutSettings` for modules with row-layout config. Do not add another modal, dialog title, close button, or fixed width. Modules without a settings component have no settings button.
 

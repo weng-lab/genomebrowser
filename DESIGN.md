@@ -39,7 +39,7 @@ Build calm, compact scientific application UI.
 
 ### Track settings
 
-- The core settings modal owns the shell, title, close behavior, and positioning.
+- The core settings modal owns the shell, title, close behavior, and positioning. Use a consistent 550 px width and cap total height at that width, constrained by the viewport. Keep the header visible while the content scrolls internally.
 - A module `settingsComponent` owns its complete form, including base options.
 - `TrackBaseSettings` provides reusable title, color, and display controls. Modules compose `TrackHeightSettings` or `TrackRowLayoutSettings` explicitly.
 - Settings controls receive current values and mutation callbacks through props. Browser settings state is internal; do not register form components in a store.
