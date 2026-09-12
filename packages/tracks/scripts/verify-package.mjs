@@ -30,6 +30,8 @@ const expectedRuntimeExports = new Map([
     "./shared",
     [
       "TrackBaseSettings",
+      "TrackHeightSettings",
+      "TrackRowLayoutSettings",
       "TrackSettingsColorField",
       "TrackSettingsFieldGrid",
       "TrackSettingsFieldRow",

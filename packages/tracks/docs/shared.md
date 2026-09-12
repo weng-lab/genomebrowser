@@ -98,7 +98,7 @@ export function RowRenderer({ id, config, data, width }: TrackRendererProps<Conf
 
 The two-pixel gap in this example reduces content height without making it negative at small valid row heights. It does not change row height or track height. The hook must run inside `GenomeBrowser`. It throws for invalid row height instead of clamping the configured value.
 
-`TrackBaseSettings` detects the same config shape. Row-layout tracks get adjacent Height and Row height fields. A Height edit derives row height. A Row height edit derives total track height. Each edit preserves the current derived row count and submits both values in one update. Other tracks keep one Height field with a 20-pixel minimum.
+Modules explicitly compose `TrackRowLayoutSettings` for adjacent Height and Row height fields. A Height edit derives row height. A Row height edit derives total track height. Each edit preserves the current derived row count and submits both values in one update. Other modules compose `TrackHeightSettings` for one Height field with a 20-pixel minimum.
 
 | Export                     | Type                                                                                                         | Description                                                          |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |

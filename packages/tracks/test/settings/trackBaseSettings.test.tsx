@@ -2,7 +2,6 @@
 
 import {
   createBrowserStore,
-  createSettingsStore,
   createTrackStore,
   defineTrackModule,
   GenomeBrowser,
@@ -20,6 +19,7 @@ import { bigBedModule } from "../../src/bigbed";
 import type { BigBedConfig } from "../../src/bigbed/types";
 import { bulkBedModule } from "../../src/bulkbed";
 import type { BulkBedConfig } from "../../src/bulkbed/types";
+import { TrackHeightSettings } from "../../src/shared/settings/trackHeightSettings";
 import { TrackBaseSettings } from "../../src/shared/settings/trackBaseSettings";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -34,6 +34,11 @@ const base: TrackBase = {
 };
 
 const signalModule = defineTrackModule({
+  settingsComponent: (props) => (
+    <TrackBaseSettings {...props}>
+      <TrackHeightSettings {...props} />
+    </TrackBaseSettings>
+  ),
   type: "signal",
   configSchema: z.object({}),
   fetch: async () => null,
@@ -59,7 +64,7 @@ afterEach(async () => {
 });
 
 describe("TrackBaseSettings", () => {
-  it("groups base fields into two semantic rows in source order", async () => {
+  it("groups base and composed dimension fields in source order", async () => {
     const updateTrack = vi.fn<(update: TrackUpdate<never>) => TrackMutationResult>(() => ({
       ok: true,
     }));
@@ -75,7 +80,7 @@ describe("TrackBaseSettings", () => {
 
     expect(controls).toEqual([title, color, display, height]);
     expect(getFieldRow(title)).toBe(getFieldRow(color));
-    expect(getFieldRow(display)).toBe(getFieldRow(height));
+    expect(getFieldRow(display)).not.toBe(getFieldRow(height));
     expect(getFieldRow(title)).not.toBe(getFieldRow(display));
     expect(getComputedStyle(getFieldRow(title)).display).toBe("flex");
     expect(getComputedStyle(getFieldRow(title)).flexWrap).toBe("nowrap");
@@ -350,8 +355,7 @@ async function mountSettings(
       updateTrack: (_id, update) => updateTrack(update as TrackUpdate<never>),
     });
   }
-  const settingsStore = createSettingsStore({ baseSettingsComponent: TrackBaseSettings });
-  settingsStore.getState().openSettings(base.id, { x: 0, y: 0 });
+  const settingsTrackId = base.id;
   await mount(
     <GenomeBrowser
       sizing="fixed"
@@ -359,15 +363,19 @@ async function mountSettings(
         assembly: hg38,
         region: { chromosome: "chr1", start: 0, end: 10 },
       })}
-      settingsStore={settingsStore}
       trackStore={trackStore}
     />,
   );
+  await act(async () => {
+    const track = trackStore.getState().getTrack(settingsTrackId)!;
+    container
+      ?.querySelector(`[aria-label="Settings for ${track.base.title}"]`)
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
 }
 
 async function mountBaseSettings(trackStore: TrackStoreInstance, trackId: string) {
-  const settingsStore = createSettingsStore({ baseSettingsComponent: TrackBaseSettings });
-  settingsStore.getState().openSettings(trackId, { x: 0, y: 0 });
+  const settingsTrackId = trackId;
   await mount(
     <GenomeBrowser
       sizing="fixed"
@@ -375,10 +383,15 @@ async function mountBaseSettings(trackStore: TrackStoreInstance, trackId: string
         assembly: hg38,
         region: { chromosome: "chr1", start: 0, end: 10 },
       })}
-      settingsStore={settingsStore}
       trackStore={trackStore}
     />,
   );
+  await act(async () => {
+    const track = trackStore.getState().getTrack(settingsTrackId)!;
+    container
+      ?.querySelector(`[aria-label="Settings for ${track.base.title}"]`)
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
 }
 
 async function mountBulkBedBaseSettings(
@@ -406,8 +419,7 @@ async function mountBulkBedBaseSettings(
   trackStore.setState({
     updateTrack: (_id, update) => updateTrack(update as TrackUpdate<BulkBedConfig>),
   });
-  const settingsStore = createSettingsStore({ baseSettingsComponent: TrackBaseSettings });
-  settingsStore.getState().openSettings("bulkbed", { x: 0, y: 0 });
+  const settingsTrackId = "bulkbed";
   await mount(
     <GenomeBrowser
       sizing="fixed"
@@ -415,10 +427,15 @@ async function mountBulkBedBaseSettings(
         assembly: hg38,
         region: { chromosome: "chr1", start: 0, end: 10 },
       })}
-      settingsStore={settingsStore}
       trackStore={trackStore}
     />,
   );
+  await act(async () => {
+    const track = trackStore.getState().getTrack(settingsTrackId)!;
+    container
+      ?.querySelector(`[aria-label="Settings for ${track.base.title}"]`)
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
 }
 
 async function mountBigBedBaseSettings(
@@ -437,8 +454,7 @@ async function mountBigBedBaseSettings(
   trackStore.setState({
     updateTrack: (_id, update) => updateTrack(update as TrackUpdate<BigBedConfig>),
   });
-  const settingsStore = createSettingsStore({ baseSettingsComponent: TrackBaseSettings });
-  settingsStore.getState().openSettings("bigbed", { x: 0, y: 0 });
+  const settingsTrackId = "bigbed";
   await mount(
     <GenomeBrowser
       sizing="fixed"
@@ -446,10 +462,15 @@ async function mountBigBedBaseSettings(
         assembly: hg38,
         region: { chromosome: "chr1", start: 0, end: 10 },
       })}
-      settingsStore={settingsStore}
       trackStore={trackStore}
     />,
   );
+  await act(async () => {
+    const track = trackStore.getState().getTrack(settingsTrackId)!;
+    container
+      ?.querySelector(`[aria-label="Settings for ${track.base.title}"]`)
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
 }
 
 function getInput(label: string) {

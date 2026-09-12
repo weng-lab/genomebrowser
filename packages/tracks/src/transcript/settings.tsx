@@ -1,3 +1,5 @@
+import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
+import { TrackRowLayoutSettings } from "../shared/settings/trackRowLayoutSettings";
 import TextField from "@mui/material/TextField";
 import { defaultScreenGraphQlEndpoint, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
@@ -15,10 +17,17 @@ import type { Transcript, TranscriptConfig } from "./types";
 
 type TranscriptSettingsProps = TrackSettingsProps<TranscriptConfig, Transcript>;
 
-export function TranscriptSettings({ track, updateTrack }: TranscriptSettingsProps) {
+export function TranscriptSettings({ track, updateTrack, ...settings }: TranscriptSettingsProps) {
   const { config } = track;
   return (
     <TrackSettingsLayout>
+      <TrackBaseSettings
+        track={track}
+        updateTrack={updateTrack}
+        displayOptions={settings.displayOptions}
+      >
+        <TrackRowLayoutSettings track={track} updateTrack={updateTrack} {...settings} />
+      </TrackBaseSettings>
       <TrackSettingsSection title="Transcript source">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>

@@ -1,3 +1,5 @@
+import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
+import { TrackRowLayoutSettings } from "../shared/settings/trackRowLayoutSettings";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
 import {
   TrackSettingsFieldGrid,
@@ -11,9 +13,17 @@ import type { BigBedConfig, BigBedRow } from "./types";
 export function BigBedSettings<Row extends BigBedRow = BigBedRow>({
   track,
   updateTrack,
+  ...settings
 }: TrackSettingsProps<BigBedConfig, Row>) {
   return (
     <TrackSettingsLayout>
+      <TrackBaseSettings
+        track={track}
+        updateTrack={updateTrack}
+        displayOptions={settings.displayOptions}
+      >
+        <TrackRowLayoutSettings track={track} updateTrack={updateTrack} {...settings} />
+      </TrackBaseSettings>
       <TrackSettingsSection title="BigBed">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>

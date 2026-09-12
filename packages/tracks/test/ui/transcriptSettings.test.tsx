@@ -113,7 +113,14 @@ function renderSettings(initialConfig = config) {
   document.body.append(container);
   root = createRoot(container);
   act(() => {
-    root?.render(<TranscriptSettings track={track} updateTrack={updateTrack} />);
+    root?.render(
+      <TranscriptSettings
+        displayOptions={["full"]}
+        updateTracksOfType={() => ({ ok: true })}
+        track={track}
+        updateTrack={updateTrack}
+      />,
+    );
   });
   return updateTrack;
 }

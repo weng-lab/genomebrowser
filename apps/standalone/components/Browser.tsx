@@ -3,16 +3,10 @@
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 
 import Box from "@mui/material/Box";
-import {
-  GenomeBrowser,
-  createBrowserStore,
-  createSettingsStore,
-  createTrackStore,
-} from "@weng-lab/genomebrowser";
+import { GenomeBrowser, createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
-import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import {
   HighlightDialog,
   TrackSelect,
@@ -50,10 +44,6 @@ const useTrackStore = createTrackStore({
   ],
 });
 
-const useSettingsStore = createSettingsStore({
-  baseSettingsComponent: TrackBaseSettings,
-});
-
 const ccreInteraction: TrackSelectInteraction<CcreBigBedRow, CcreBigBedConfig> = {
   onClick: (item) => {
     console.log("cCRE BigBed row", item);
@@ -82,11 +72,7 @@ export function Browser() {
         highlights={highlights}
       />
       <Box sx={{ width: "100%", overflowX: "auto" }}>
-        <GenomeBrowser
-          browserStore={useBrowserStore}
-          settingsStore={useSettingsStore}
-          trackStore={useTrackStore}
-        />
+        <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
       </Box>
       <TrackSelect
         open={trackSelectOpen}

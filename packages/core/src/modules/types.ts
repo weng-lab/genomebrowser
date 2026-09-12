@@ -124,6 +124,12 @@ export type ReadonlyTrackInstance<Config, InteractionItem = unknown> = Readonly<
 
 export type TrackSettingsProps<Config, InteractionItem = unknown> = {
   track: ReadonlyTrackInstance<Config, InteractionItem>;
+  displayOptions: readonly string[];
+  updateTracksOfType: (
+    createUpdate: (
+      track: ReadonlyTrackInstance<Config, InteractionItem>,
+    ) => TrackUpdate<Config, InteractionItem>,
+  ) => TrackMutationResult;
   updateTrack: (update: TrackUpdate<Config, InteractionItem>) => TrackMutationResult;
 };
 

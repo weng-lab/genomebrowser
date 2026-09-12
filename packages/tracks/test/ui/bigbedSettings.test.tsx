@@ -37,7 +37,14 @@ describe("BigBed settings", () => {
       config: { url: "YOUR_URL_HERE" },
     });
     act(() => {
-      root?.render(<BigBedSettings track={track} updateTrack={updateTrack} />);
+      root?.render(
+        <BigBedSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
+          track={track}
+          updateTrack={updateTrack}
+        />,
+      );
     });
 
     const input = container.querySelector<HTMLInputElement>('input[type="url"]');

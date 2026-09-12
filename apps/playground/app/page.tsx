@@ -3,19 +3,12 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import {
-  createBrowserStore,
-  createSettingsStore,
-  createTrackStore,
-  GenomeBrowser,
-  mm10,
-} from "@weng-lab/genomebrowser";
+import { createBrowserStore, createTrackStore, GenomeBrowser, mm10 } from "@weng-lab/genomebrowser";
 import {
   geneModule,
   getGeneDatasetsForAssembly,
   getGeneDatasetTitle,
 } from "@weng-lab/genomebrowser-tracks/gene";
-import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import { BrowserNavigationButton } from "@weng-lab/genomebrowser-ui";
 import { useEffect, useRef } from "react";
 
@@ -42,7 +35,6 @@ const useTrackStore = createTrackStore({
     }),
   ],
 });
-const useSettingsStore = createSettingsStore({ baseSettingsComponent: TrackBaseSettings });
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -90,11 +82,7 @@ export default function Home() {
         </Typography>
       </Stack>
       <Box ref={containerRef} sx={{ width: "100%", overflowX: "auto" }}>
-        <GenomeBrowser
-          browserStore={useBrowserStore}
-          trackStore={useTrackStore}
-          settingsStore={useSettingsStore}
-        />
+        <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
       </Box>
     </main>
   );

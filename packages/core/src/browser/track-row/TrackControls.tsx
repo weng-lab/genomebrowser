@@ -16,6 +16,8 @@ export function TrackControls({
   marginWidth: number;
   wrapperHeight: number;
 }) {
+  const registry = useTrackStore((state) => state.registry);
+  const hasSettings = registry.get(track.type).settingsComponent !== undefined;
   const settingsButtonRef = useRef<SVGGElement>(null);
   const openSettings = useSettingsStore((state) => state.openSettings);
   const order = useTrackStore((state) => state.order);
@@ -47,21 +49,32 @@ export function TrackControls({
 
   return (
     <g>
-      <g
-        ref={settingsButtonRef}
-        onClick={handleOpenSettings}
-        onMouseDown={(event) => event.stopPropagation()}
-        style={{ cursor: "pointer" }}
-      >
-        <circle
-          cx={marginWidth / 10 + 7.5}
-          cy={controlsCenterY}
-          r={7.5}
-          strokeWidth={0}
-          fill="transparent"
-        />
-        <SettingsIcon x={marginWidth / 10} y={iconY} height={15} width={15} fill="#000000" />
-      </g>
+      {hasSettings && (
+        <g
+          role="button"
+          aria-label={`Settings for ${track.base.title}`}
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              openSettings(trackId, { x: 0, y: 0 });
+            }
+          }}
+          ref={settingsButtonRef}
+          onClick={handleOpenSettings}
+          onMouseDown={(event) => event.stopPropagation()}
+          style={{ cursor: "pointer" }}
+        >
+          <circle
+            cx={marginWidth / 10 + 7.5}
+            cy={controlsCenterY}
+            r={7.5}
+            strokeWidth={0}
+            fill="transparent"
+          />
+          <SettingsIcon x={marginWidth / 10} y={iconY} height={15} width={15} fill="#000000" />
+        </g>
+      )}
       <g
         onClick={canMoveTop ? () => moveTrack("top") : undefined}
         onMouseDown={(event) => event.stopPropagation()}

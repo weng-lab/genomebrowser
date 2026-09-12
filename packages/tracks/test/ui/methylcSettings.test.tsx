@@ -328,7 +328,16 @@ function renderControlledSettings(
     document.body.append(container);
     root = createRoot(container);
   }
-  act(() => root?.render(<MethylCSettings track={track} updateTrack={updateTrack} />));
+  act(() =>
+    root?.render(
+      <MethylCSettings
+        displayOptions={["full"]}
+        updateTracksOfType={() => ({ ok: true })}
+        track={track}
+        updateTrack={updateTrack}
+      />,
+    ),
+  );
 }
 
 function MethylCSettingsHarness({
@@ -342,7 +351,14 @@ function MethylCSettingsHarness({
     | TrackInstance<MethylCConfig, MethylCTooltipItem>
     | undefined;
   if (!track) throw new Error("MethylC track not found");
-  return <MethylCSettings track={track} updateTrack={updateTrack} />;
+  return (
+    <MethylCSettings
+      displayOptions={["full"]}
+      updateTracksOfType={() => ({ ok: true })}
+      track={track}
+      updateTrack={updateTrack}
+    />
+  );
 }
 
 function getInput(label: string) {

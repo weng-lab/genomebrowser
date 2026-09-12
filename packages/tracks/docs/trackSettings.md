@@ -4,9 +4,9 @@ Use the settings controls from `@weng-lab/genomebrowser-tracks/shared` to build 
 
 ## Understand settings ownership
 
-The core browser owns the settings modal. It provides the title, close behavior, position, and width. It renders the configured base-settings component, followed by the active module's `settingsComponent`.
+The core browser owns the settings modal. It provides the title, close behavior, position, and width. It renders the active module's `settingsComponent` as the complete form. Settings state is internal to the browser.
 
-Your module component should render only controls for module-specific config. Do not add another modal, title, close button, or fixed width. Do not repeat the shared title, color, display, or height fields supplied by `TrackBaseSettings`.
+Your module chooses and composes all controls, including base options. Reuse `TrackBaseSettings` for title, color, and display. Add `TrackHeightSettings` for fixed height or `TrackRowLayoutSettings` for modules with row-layout config. Do not add another modal, dialog title, close button, or fixed width. Modules without a settings component have no settings button.
 
 The tracks package owns the MUI controls described here. Core remains independent of MUI. Tooltip content follows a separate module contract. See [Author track tooltips](trackTooltips.md).
 
@@ -25,6 +25,8 @@ import { type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { bigWigModule, type BigWigConfig } from "@weng-lab/genomebrowser-tracks/bigwig";
 import {
   type SignalPoint,
+  TrackBaseSettings,
+  TrackHeightSettings,
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
   TrackSettingsLayout,
@@ -33,9 +35,13 @@ import {
   TrackSettingsUrlField,
 } from "@weng-lab/genomebrowser-tracks/shared";
 
-function SignalSettings({ track, updateTrack }: TrackSettingsProps<BigWigConfig, SignalPoint>) {
+function SignalSettings(props: TrackSettingsProps<BigWigConfig, SignalPoint>) {
+  const { track, updateTrack } = props;
   return (
     <TrackSettingsLayout>
+      <TrackBaseSettings {...props}>
+        <TrackHeightSettings {...props} />
+      </TrackBaseSettings>
       <TrackSettingsSection title="Signal source and range">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
@@ -76,6 +82,12 @@ Register `signalModule` and `signalTrack` with the track store. Core supplies `T
 
 Send edits through `updateTrack` as the fields accept them. It accepts optional shallow `base`, `config`, and `interaction` patches in one validated mutation. The full mutation succeeds or fails as a unit. Replace a complete nested object or array when changing one of its values.
 
+`displayOptions` lists the registered module's display names. `updateTracksOfType(createUpdate)` applies a shallow patch to every track with the exact same type, including the active track. The callback receives each current track so it can preserve per-track values. The complete batch is validated before any changes are stored. Both mutation callbacks return validation errors and reject changes while browser interactions are blocked.
+
+```tsx
+updateTracksOfType((track) => ({ base: { height: track.base.height + 10 } }));
+```
+
 ## Compose the form
 
 Start with `TrackSettingsLayout`, then divide controls into `TrackSettingsSection` groups.
@@ -104,4 +116,4 @@ The shared range and color components include their own error associations, keyb
 
 ## First-party settings
 
-First-party modules already include their track-specific settings panels. Their URL fields are visibly disabled when `track.source` is `"host"`, including modules with several data sources. Track title, display, color, height, and non-source config remain editable. These panels use the controls documented here but are not standalone exports. The `/shared` entry exports `TrackBaseSettings` for shared base fields and all components in the [settings component API](trackSettingsApi.md).
+First-party modules already include their complete settings panels. Their URL fields are visibly disabled when `track.source` is `"host"`, including modules with several data sources. Track title, display, color, height, and non-source config remain editable. These panels use the controls documented here but are not standalone exports. The `/shared` entry exports `TrackBaseSettings` for shared base fields and all components in the [settings component API](trackSettingsApi.md).

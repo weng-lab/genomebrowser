@@ -52,7 +52,16 @@ describe("Gene settings", () => {
       config: { url: "YOUR_URL_HERE", geneName: "TP53", highlightColor: "#123456" },
     });
 
-    act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
+    act(() =>
+      root?.render(
+        <GeneSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
+          track={track}
+          updateTrack={updateTrack}
+        />,
+      ),
+    );
 
     const input = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
       (candidate) => candidate.labels?.[0]?.textContent === "Highlight gene",
@@ -87,7 +96,16 @@ describe("Gene settings", () => {
       config: { url: "https://example.org/uncataloged.bb" },
     });
 
-    act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
+    act(() =>
+      root?.render(
+        <GeneSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
+          track={track}
+          updateTrack={updateTrack}
+        />,
+      ),
+    );
 
     const datasetInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
       (candidate) => candidate.labels?.[0]?.textContent === "Annotation dataset",
@@ -128,7 +146,16 @@ describe("Gene settings", () => {
       },
     });
 
-    act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
+    act(() =>
+      root?.render(
+        <GeneSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
+          track={track}
+          updateTrack={updateTrack}
+        />,
+      ),
+    );
 
     const versionInput = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
       (candidate) => candidate.labels?.[0]?.textContent === "Version",
@@ -180,6 +207,8 @@ describe("Gene settings", () => {
       const renderSettings = () =>
         root?.render(
           <GeneSettings
+            displayOptions={["full"]}
+            updateTracksOfType={() => ({ ok: true })}
             track={geneModule.validate(useTrackStore.getState().getTrack(track.base.id))}
             updateTrack={updateTrack}
           />,
@@ -230,7 +259,16 @@ describe("Gene settings", () => {
       source: "host",
       config: { url: "YOUR_URL_HERE" },
     });
-    act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
+    act(() =>
+      root?.render(
+        <GeneSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
+          track={track}
+          updateTrack={updateTrack}
+        />,
+      ),
+    );
     expect(container.textContent).toContain("No datasets available for mm39.");
     const input = Array.from(container.querySelectorAll<HTMLInputElement>("input")).find(
       (candidate) => candidate.labels?.[0]?.textContent === "Annotation dataset",
@@ -251,7 +289,16 @@ describe("Gene settings", () => {
       config: { url },
     });
 
-    act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
+    act(() =>
+      root?.render(
+        <GeneSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
+          track={track}
+          updateTrack={updateTrack}
+        />,
+      ),
+    );
     act(() => publishObservedGeneTags(url, ["Ensembl_canonical", "MANE_Select"]));
     const addButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent === "Add tag",
@@ -302,7 +349,16 @@ describe("Gene settings", () => {
       },
     });
 
-    act(() => root?.render(<GeneSettings track={track} updateTrack={updateTrack} />));
+    act(() =>
+      root?.render(
+        <GeneSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
+          track={track}
+          updateTrack={updateTrack}
+        />,
+      ),
+    );
     const firstHandle = container.querySelector('[data-tag-drag-handle="MANE_Select"]');
     const secondHandle = container.querySelector('[data-tag-drag-handle="basic"]');
     if (!firstHandle || !secondHandle) throw new Error("Could not find tag drag handles");

@@ -26,7 +26,7 @@ A display mode is a named rendering style for a track, such as `full`, `dense`, 
 
 ## Settings modal
 
-The settings modal is the browser-owned UI surface opened from a track's settings button. It renders the modal component (`modalComponent`), then the base settings component (`baseSettingsComponent`), then the active track module's settings component (`settingsComponent`).
+The settings modal is the browser-owned UI surface opened from a track's settings button. It renders a shared shell containing the active track module's complete settings component (`settingsComponent`).
 
 ## Modal component
 
@@ -34,11 +34,11 @@ The modal component owns the settings modal shell, including layout, styling, he
 
 ## Base settings
 
-Base settings are the shared settings controls that apply to all tracks, such as title, color, height, and display mode. Apps can replace the base settings component through the settings store's `baseSettingsComponent` override.
+Base settings are the shared settings controls that apply to all tracks, such as title, color, height, and display mode. Modules compose reusable base controls alongside their config controls.
 
 ## Module settings
 
-Module settings are track-type-specific controls supplied by a track module's `settingsComponent`. They are rendered inside the settings modal after base settings.
+Module settings are track-type-specific controls supplied by a track module's `settingsComponent`. They compose the complete form inside the settings modal, including base options.
 
 ## Settings store
 

@@ -17,7 +17,7 @@ import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { TooltipProvider } from "./tooltip/TooltipProvider";
 import { BrowserSvgProvider } from "./svg/BrowserSvgContext";
 import { TrackHeightProvider } from "./track-row/TrackHeightProvider";
-import { createSettingsStore, type SettingsStoreInstance } from "./state/settingsStore";
+import { createSettingsStore } from "./state/settingsStore";
 import { BrowserProvider, InteractionGateProvider } from "./state/BrowserContext";
 import type { BrowserStore, BrowserStoreInstance } from "./state/browserStore";
 import { useBrowserStore, useTrackMutationGate } from "./state/browserContextState";
@@ -50,7 +50,6 @@ const PAN_OVERSCAN_MULTIPLIER = 3;
 export type GenomeBrowserProps = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
-  settingsStore?: SettingsStoreInstance;
   /** Follow the container by default, or use the store's configured track width. */
   sizing?: "responsive" | "fixed";
   /** Magnification of the entire SVG. Must be finite and positive. */
@@ -60,7 +59,6 @@ export type GenomeBrowserProps = {
 export function GenomeBrowser({
   browserStore,
   trackStore,
-  settingsStore,
   sizing = "responsive",
   scale = 1,
 }: GenomeBrowserProps) {
@@ -97,7 +95,6 @@ export function GenomeBrowser({
         <GenomeBrowserRuntime
           browserStore={browserStore}
           trackStore={trackStore}
-          settingsStore={settingsStore}
           trackWidth={trackWidth}
           scale={scale}
         />
@@ -109,7 +106,6 @@ export function GenomeBrowser({
 function GenomeBrowserRuntime({
   browserStore,
   trackStore,
-  settingsStore,
   trackWidth,
   scale,
 }: GenomeBrowserProps & { trackWidth: number; scale: number }) {
@@ -136,7 +132,6 @@ function GenomeBrowserRuntime({
   // track-scoped fetcher resources; unmounting releases them (in useTrackData).
   const resourceStore = useMemo(() => createTrackResourceStore(), []);
 
-  const activeSettingsStore = settingsStore ?? internalSettingsStore;
   const browserWidth = marginWidth + trackWidth;
   const trackLayouts = useMemo(
     () => createTrackLayouts(trackIds, wrapperHeights, 0),
@@ -197,9 +192,9 @@ function GenomeBrowserRuntime({
       browserStore,
       trackStore,
       contextMenuStore,
-      settingsStore: activeSettingsStore,
+      settingsStore: internalSettingsStore,
     }),
-    [activeSettingsStore, browserStore, contextMenuStore, trackStore],
+    [internalSettingsStore, browserStore, contextMenuStore, trackStore],
   );
 
   return (

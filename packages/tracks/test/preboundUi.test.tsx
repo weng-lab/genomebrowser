@@ -163,6 +163,8 @@ describe("pre-bound module UI", () => {
     const updateTrack = vi.fn(() => ({ ok: true as const }));
     mount(
       <Settings
+        displayOptions={Object.keys(bigBedModule.render)}
+        updateTracksOfType={() => ({ ok: true })}
         track={bigBedModule.create({
           id: "peaks",
           title: "Peaks",

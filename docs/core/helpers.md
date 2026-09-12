@@ -79,13 +79,13 @@ function ExampleSettings({ track, updateTrack }: TrackSettingsProps<Config, unkn
 }
 ```
 
-Settings updates are shallow, so replace a complete nested object or array when changing one of its values. The browser owns the modal shell. MUI settings controls, `TrackBaseSettings`, and first-party track-specific settings belong to `@weng-lab/genomebrowser-tracks`. Apps can replace browser-owned settings pieces with `createSettingsStore`; `useDraggableSettingsModal` is only for implementing a custom modal shell.
+Settings updates are shallow, so replace a complete nested object or array when changing one of its values. The browser owns the modal shell. MUI settings controls, `TrackBaseSettings`, and first-party track-specific settings belong to `@weng-lab/genomebrowser-tracks`. Each module owns its complete settings form; the modal shell and its state are internal to the browser.
 
 A custom modal component receives the stable active `trackId`, position, close callback, and settings children. Subscribe to only the track values its shell renders with `useTrackStore`; the default modal isolates its title and color subscriptions in its header.
 
 ## Store hooks
 
-The package exports `useBrowserStore`, `useTrackStore`, `useTrackStoreApi`, `useSettingsStore`, and `useContextMenuStore` to access the stores provided by the nearest `GenomeBrowser`. Runtime extensions may use them when they need context beyond the props supplied by their contract. Applications outside the browser tree already hold the stable store hook returned by the corresponding factory and can read it directly.
+The package exports `useBrowserStore`, `useTrackStore`, `useTrackStoreApi`, and `useContextMenuStore` to access the stores provided by the nearest `GenomeBrowser`. Runtime extensions may use them when they need context beyond the props supplied by their contract. Applications outside the browser tree already hold the stable store hook returned by the corresponding factory and can read it directly.
 
 ## Application store factories
 

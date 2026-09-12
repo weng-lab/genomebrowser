@@ -13,7 +13,6 @@ import Typography from "@mui/material/Typography";
 
 import {
   createBrowserStore,
-  createSettingsStore,
   createTrackStore,
   GenomeBrowser,
   hg38,
@@ -27,7 +26,6 @@ import { bigWigModule as bigWigUiModule } from "@weng-lab/genomebrowser-tracks/b
 import { bulkBedModule as bulkBedUiModule } from "@weng-lab/genomebrowser-tracks/bulkbed";
 import { caveModule as caveUiModule } from "@weng-lab/genomebrowser-tracks/cave";
 import { methylCModule as methylCUiModule } from "@weng-lab/genomebrowser-tracks/methylc";
-import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import { transcriptModule as transcriptUiModule } from "@weng-lab/genomebrowser-tracks/transcript";
 import { readCytobands, type Cytoband } from "@weng-lab/genomic-reader";
 import {
@@ -49,10 +47,6 @@ const useBrowserStore = createBrowserStore({
   region: parseRegion("chr6:21,592,778-21,599,592"),
   marginWidth: 55,
   trackWidth: 1445,
-});
-
-const useSettingsStore = createSettingsStore({
-  baseSettingsComponent: TrackBaseSettings,
 });
 
 const cytobandHighlights: readonly Highlight[] = [
@@ -240,15 +234,6 @@ const useTrackStore = createTrackStore({
     }),
   ],
 });
-
-const settingsExamples = [
-  { id: "bigwig-settings-example", label: "Open BigWig settings" },
-  { id: "bigbed-settings-example", label: "Open BigBed settings" },
-  { id: "bulkbed-settings-example", label: "Open BulkBed settings" },
-  { id: "transcript-settings-example", label: "Open transcript settings" },
-  { id: "cave-settings-example", label: "Open CAVE settings" },
-  { id: "methylc-settings-example", label: "Open MethylC settings" },
-] as const;
 
 const assayColors = {
   DNase: "#06da93",
@@ -597,44 +582,11 @@ function BrowserNavigationCompositions() {
   );
 }
 
-function TrackSettingsExamples() {
-  const openSettings = useSettingsStore((state) => state.openSettings);
-
-  return (
-    <Paper variant="outlined" sx={{ mb: 1, p: 1.5 }}>
-      <Stack spacing={1}>
-        <Typography variant="subtitle1">Track UI examples</Typography>
-        <Typography variant="body2">
-          Open a prepared track to review its MUI settings dialog. Hover data in any matching
-          browser track to review its tooltip.
-        </Typography>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} useFlexGap flexWrap="wrap">
-          {settingsExamples.map((example) => (
-            <Button
-              key={example.id}
-              size="small"
-              variant="outlined"
-              onClick={() => openSettings(example.id, { x: 0, y: 0 })}
-            >
-              {example.label}
-            </Button>
-          ))}
-        </Stack>
-      </Stack>
-    </Paper>
-  );
-}
-
 export default function App() {
   return (
     <Stack>
-      <TrackSettingsExamples />
       <InteractionShowcase />
-      <GenomeBrowser
-        browserStore={useBrowserStore}
-        settingsStore={useSettingsStore}
-        trackStore={useTrackStore}
-      />
+      <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
     </Stack>
   );
 }

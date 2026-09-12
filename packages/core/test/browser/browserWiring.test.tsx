@@ -5,11 +5,11 @@ import { z } from "zod";
 import { SettingsModalController } from "../../src/browser/overlays/SettingsModalController";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { BrowserProvider, InteractionGateProvider } from "../../src/browser/state/BrowserContext";
-import { useSettingsStore, useTrackStore } from "../../src/browser/state/browserContextState";
+import type { TrackSettingsProps } from "../../src/modules/types";
 import { createContextMenuStore } from "../../src/browser/state/contextMenuStore";
 import { RegistryProvider } from "../../src/browser/state/RegistryContext";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
-import { createTrackStore, type TrackStore } from "../../src/browser/state/trackStore";
+import { createTrackStore } from "../../src/browser/state/trackStore";
 import { BrowserSvgProvider } from "../../src/browser/svg/BrowserSvgContext";
 import { TrackContent } from "../../src/browser/track-row/TrackContent";
 import { TooltipContextProvider } from "../../src/browser/tooltip/TooltipContext";
@@ -269,27 +269,12 @@ describe("browser module wiring", () => {
     let baseTitle: string | undefined;
     let configUrl: string | undefined;
     let interactionOnClick: unknown;
-    let updateBase: TrackStore["updateTrack"] | undefined;
-    let updateModule: typeof updateBase;
-
-    function Modal({ children }: { children: React.ReactNode }) {
-      return <>{children}</>;
-    }
-
-    function BaseSettings() {
-      const trackId = useSettingsStore((state) => state.trackId)!;
-      baseTitle = useTrackStore((state) => state.getTrack(trackId)?.base.title);
-      updateBase = useTrackStore((state) => state.updateTrack);
-      return null;
-    }
-
-    function ModuleSettings() {
-      const trackId = useSettingsStore((state) => state.trackId)!;
-      configUrl = useTrackStore(
-        (state) => (state.getTrack(trackId)?.config as { url: string } | undefined)?.url,
-      );
-      interactionOnClick = useTrackStore((state) => state.getTrack(trackId)?.interaction?.onClick);
-      updateModule = useTrackStore((state) => state.updateTrack);
+    let updateModule: TrackSettingsProps<{ url: string }>["updateTrack"] | undefined;
+    function ModuleSettings({ track, updateTrack }: TrackSettingsProps<{ url: string }>) {
+      baseTitle = track.base.title;
+      configUrl = track.config.url;
+      interactionOnClick = track.interaction?.onClick;
+      updateModule = updateTrack;
       return null;
     }
 
@@ -315,10 +300,7 @@ describe("browser module wiring", () => {
     );
     const browserStore = createBrowserStore({ assembly: hg38, region });
     const contextMenuStore = createContextMenuStore();
-    const settingsStore = createSettingsStore({
-      modalComponent: Modal,
-      baseSettingsComponent: BaseSettings,
-    });
+    const settingsStore = createSettingsStore();
     const trackStore = createTrackStore({ modules: [module], tracks: [track] });
     settingsStore.getState().openSettings("settings", { x: 0, y: 0 });
     Object.assign(settingsStore.getInitialState(), settingsStore.getState());
@@ -337,9 +319,9 @@ describe("browser module wiring", () => {
     expect(configUrl).toBe(track.config.url);
     expect(interactionOnClick).toBe(onClick);
 
-    expect(updateBase?.("settings", { base: { title: "Updated" } })).toEqual({ ok: true });
+    expect(updateModule?.({ base: { title: "Updated" } })).toEqual({ ok: true });
     expect(
-      updateModule?.("settings", {
+      updateModule?.({
         base: { height: 100 },
         config: { url: "YOUR_OTHER_URL_HERE" },
       }),

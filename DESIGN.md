@@ -40,8 +40,9 @@ Build calm, compact scientific application UI.
 ### Track settings
 
 - The core settings modal owns the shell, title, close behavior, and positioning.
-- `TrackBaseSettings` owns title, color, display, and height controls.
-- A module `settingsComponent` renders only its track-specific config controls.
+- A module `settingsComponent` owns its complete form, including base options.
+- `TrackBaseSettings` provides reusable title, color, and display controls. Modules compose `TrackHeightSettings` or `TrackRowLayoutSettings` explicitly.
+- Settings controls receive current values and mutation callbacks through props. Browser settings state is internal; do not register form components in a store.
 - First-party modules arrive pre-bound to their track-specific settings components. Custom modules bind their own `settingsComponent`; do not introduce core helpers solely for UI composition.
 - Use `TrackSettingsSection` for grouping, `TrackSettingsFieldRow` for fixed peer rows, and `TrackSettingsFieldGrid` for free-flowing peer fields.
 - Every public config option must have an accessible input.

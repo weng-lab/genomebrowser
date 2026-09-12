@@ -1,3 +1,5 @@
+import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
+import { TrackRowLayoutSettings } from "../shared/settings/trackRowLayoutSettings";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -27,7 +29,7 @@ import type { GeneConfig, GeneTagColor } from "./types";
 
 type GeneSettingsProps = TrackSettingsProps<GeneConfig, GeneInteractionTarget>;
 
-export function GeneSettings({ track, updateTrack }: GeneSettingsProps) {
+export function GeneSettings({ track, updateTrack, ...settings }: GeneSettingsProps) {
   const observedTags = useObservedGeneTags(track.config.url);
   const tagColors = track.config.tagColors;
   const tagOptions = normalizeTags([...tagColors.map(({ tag }) => tag), ...observedTags]);
@@ -58,6 +60,13 @@ export function GeneSettings({ track, updateTrack }: GeneSettingsProps) {
 
   return (
     <TrackSettingsLayout>
+      <TrackBaseSettings
+        track={track}
+        updateTrack={updateTrack}
+        displayOptions={settings.displayOptions}
+      >
+        <TrackRowLayoutSettings track={track} updateTrack={updateTrack} {...settings} />
+      </TrackBaseSettings>
       <TrackSettingsSection title="BigGenePred">
         <TrackSettingsFieldGrid>
           {track.source === "host" ? (

@@ -139,13 +139,7 @@ flowchart TB
   ROOT -. "types" .-> CONTRACTS
 ```
 
-There is one source-level cycle around the default settings components:
-`browser/state/settingsStore.ts` →
-`browser/settings/DefaultBaseSettings.tsx` →
-`browser/state/browserContextState.ts` →
-`browser/state/settingsStore.ts`. The final edge is type-only, so the emitted
-runtime graph remains acyclic. The notable coupling is that the state layer
-chooses concrete default UI components.
+Settings state stores only the selected track and modal position. The overlay controller owns the shell; modules own the complete form. The state layer does not select UI components.
 
 ## Tracks package
 

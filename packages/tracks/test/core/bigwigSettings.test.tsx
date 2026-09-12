@@ -74,7 +74,14 @@ describe("BigWig settings", () => {
         ...acceptedTrack,
         config: { ...acceptedTrack.config, clampIndicatorColor: "#AABBCC" },
       });
-      root?.render(<BigWigSettings track={acceptedTrack} updateTrack={updateTrack} />);
+      root?.render(
+        <BigWigSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
+          track={acceptedTrack}
+          updateTrack={updateTrack}
+        />,
+      );
     });
     expect(input("Clamp indicator color").value).toBe("#abcdef");
     expect(input("Clamp indicator color").getAttribute("aria-invalid")).toBe("true");
@@ -107,14 +114,28 @@ async function renderHarness() {
       ...acceptedTrack,
       config: { ...acceptedTrack.config, ...update.config },
     });
-    root?.render(<BigWigSettings track={acceptedTrack} updateTrack={updateTrack} />);
+    root?.render(
+      <BigWigSettings
+        displayOptions={["full"]}
+        updateTracksOfType={() => ({ ok: true })}
+        track={acceptedTrack}
+        updateTrack={updateTrack}
+      />,
+    );
     return { ok: true };
   };
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () =>
-    root?.render(<BigWigSettings track={acceptedTrack} updateTrack={updateTrack} />),
+    root?.render(
+      <BigWigSettings
+        displayOptions={["full"]}
+        updateTracksOfType={() => ({ ok: true })}
+        track={acceptedTrack}
+        updateTrack={updateTrack}
+      />,
+    ),
   );
   return updateTrack;
 }

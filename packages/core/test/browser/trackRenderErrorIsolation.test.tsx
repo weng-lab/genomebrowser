@@ -33,6 +33,7 @@ const throwingModule = defineTrackModule({
   configSchema: z.object({ secret: z.string() }),
   fetch: async () => ({ privateData: "private fetched data" }),
   render: { full: ThrowingRenderer },
+  settingsComponent: () => null,
 });
 
 const healthyModule = defineTrackModule({

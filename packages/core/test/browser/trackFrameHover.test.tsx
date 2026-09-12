@@ -22,6 +22,7 @@ const module = defineTrackModule({
   type: "frame-hover-test",
   configSchema: z.object({}),
   fetch: async () => null,
+  settingsComponent: () => null,
   render: { full: () => null },
 });
 const track = module.create({ id: "test", title: "Test track", config: {} });
@@ -73,7 +74,7 @@ describe("track frame hover highlight", () => {
     await dispatchMouse(settingsControl, "mousedown");
     await dispatchMouse(settingsControl, "click");
     expect(onSwapMouseDown).toHaveBeenCalledOnce();
-    expect(settingsStore.getState()).toMatchObject({ open: true, trackId: track.base.id });
+    expect(settingsStore.getState()).toMatchObject({ trackId: track.base.id });
   });
 
   it("keeps the margin highlight disabled for swap previews", async () => {

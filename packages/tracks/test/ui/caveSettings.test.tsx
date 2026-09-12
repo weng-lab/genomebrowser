@@ -91,7 +91,14 @@ function renderSettings(initialConfig = config) {
   document.body.append(container);
   root = createRoot(container);
   act(() => {
-    root?.render(<CaveSettings track={track} updateTrack={updateTrack} />);
+    root?.render(
+      <CaveSettings
+        displayOptions={["full"]}
+        updateTracksOfType={() => ({ ok: true })}
+        track={track}
+        updateTrack={updateTrack}
+      />,
+    );
   });
   return updateTrack;
 }
