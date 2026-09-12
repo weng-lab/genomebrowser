@@ -23,6 +23,7 @@ export type BrowserStoreInput = {
   assembly: AssemblyDefinition;
   region: GenomicRegion;
   marginWidth?: number;
+  /** Logical track width used by fixed sizing; excludes the margin. Defaults to 1000. */
   trackWidth?: number;
   fontSize?: number;
   titleSize?: number;
@@ -57,6 +58,7 @@ export type BrowserStore = {
   setSelectionMode: (mode: BrowserSelectionMode) => void;
   setSelectionHighlight: (style: SelectionHighlightStyle) => void;
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
+  /** Set the configured logical width for fixed views; responsive views measure themselves. */
   setTrackWidth: (trackWidth: number) => BrowserViewportMutationResult;
   zoom: (factor: number, centerBase?: number) => BrowserRegionMutationResult;
   addHighlight: (highlight: Highlight) => void;

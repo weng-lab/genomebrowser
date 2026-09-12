@@ -31,7 +31,7 @@ export function useTrackData({
   width: number;
   /**
    * Trailing delay before a width change joins the fetch demand. Width changes
-   * arrive continuously while an embedder's resize observer tracks the
+   * arrive continuously while the browser's resize observer tracks the
    * container, so the debounce collapses each resize gesture into one refetch.
    * Region, assembly, and display changes are never delayed; they promote any
    * pending width immediately so their fetch carries final values.

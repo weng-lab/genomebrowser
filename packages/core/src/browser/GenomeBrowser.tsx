@@ -39,9 +39,11 @@ import type { AnyTrackTooltipComponent } from "../modules/types";
 import { SelectRegion } from "./viewport/SelectRegion";
 import { useContentTransform } from "./viewport/useContentTransform";
 import { usePanController } from "./viewport/usePanController";
+import { usePanWheel } from "./viewport/usePanWheel";
 import { useRenderWindow } from "./viewport/useRenderWindow";
 import type { GenomicRegion } from "../genome/region";
 import type { PanDragHandlers } from "./viewport/usePanDrag";
+import { useContainerWidth } from "./viewport/useContainerWidth";
 
 const PAN_OVERSCAN_MULTIPLIER = 3;
 
@@ -49,9 +51,68 @@ export type GenomeBrowserProps = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
   settingsStore?: SettingsStoreInstance;
+  /** Follow the container by default, or use the store's configured track width. */
+  sizing?: "responsive" | "fixed";
+  /** Magnification of the entire SVG. Must be finite and positive. */
+  scale?: number;
 };
 
-export function GenomeBrowser({ browserStore, trackStore, settingsStore }: GenomeBrowserProps) {
+export function GenomeBrowser({
+  browserStore,
+  trackStore,
+  settingsStore,
+  sizing = "responsive",
+  scale = 1,
+}: GenomeBrowserProps) {
+  const useBrowserStore = browserStore;
+  const marginWidth = useBrowserStore((state) => state.marginWidth);
+  const configuredTrackWidth = useBrowserStore((state) => state.trackWidth);
+  const { containerRef, width } = useContainerWidth(sizing === "responsive");
+
+  if (!Number.isFinite(scale) || scale <= 0) {
+    throw new RangeError("GenomeBrowser scale must be a finite positive number.");
+  }
+
+  const trackWidth =
+    sizing === "fixed"
+      ? configuredTrackWidth
+      : width === null
+        ? null
+        : Math.max(1, width / scale - marginWidth);
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        width: sizing === "fixed" ? (marginWidth + configuredTrackWidth) * scale + 2 : "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+        padding: 0,
+        boxSizing: "border-box",
+        border: "1px solid #ccc",
+        overflowX: "auto",
+      }}
+    >
+      {trackWidth !== null && (
+        <GenomeBrowserRuntime
+          browserStore={browserStore}
+          trackStore={trackStore}
+          settingsStore={settingsStore}
+          trackWidth={trackWidth}
+          scale={scale}
+        />
+      )}
+    </div>
+  );
+}
+
+function GenomeBrowserRuntime({
+  browserStore,
+  trackStore,
+  settingsStore,
+  trackWidth,
+  scale,
+}: GenomeBrowserProps & { trackWidth: number; scale: number }) {
   const useBrowserStore = browserStore;
   const useTrackStore = trackStore;
   const [svg, setSvg] = useState<SVGSVGElement | null>(null);
@@ -59,7 +120,6 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
   const region = useBrowserStore((state) => state.region);
   const assembly = useBrowserStore((state) => state.assembly);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
-  const trackWidth = useBrowserStore((state) => state.trackWidth);
   const titleSize = useBrowserStore((state) => state.titleSize);
   const setRegion = useBrowserStore((state) => state.setRegion);
 
@@ -109,7 +169,7 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
   const { getContentOffset, registerContentGroup, setContentOffset } =
     useContentTransform(baseContentX);
 
-  const { isPanLocked, panDrag, unlockPan } = usePanController({
+  const { isPanLocked, commitPan, panDrag, unlockPan } = usePanController({
     svg,
     region,
     trackWidth,
@@ -170,6 +230,7 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
                   svg={svg}
                   setSvg={setSvg}
                   browserWidth={browserWidth}
+                  scale={scale}
                   totalHeight={totalHeight}
                   marginWidth={marginWidth}
                   trackWidth={trackWidth}
@@ -179,6 +240,8 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
                   baseContentX={baseContentX}
                   renderWidth={renderWidth}
                   registerContentGroup={registerContentGroup}
+                  onPanCommit={commitPan}
+                  setContentOffset={setContentOffset}
                   panDrag={panDrag}
                   titleSize={titleSize}
                   trackLayouts={trackLayouts}
@@ -235,6 +298,7 @@ function BrowserView({
   svg,
   setSvg,
   browserWidth,
+  scale,
   totalHeight,
   marginWidth,
   trackWidth,
@@ -245,6 +309,8 @@ function BrowserView({
   renderWidth,
   registerContentGroup,
   panDrag,
+  onPanCommit,
+  setContentOffset,
   titleSize,
   trackLayouts,
 }: {
@@ -254,6 +320,7 @@ function BrowserView({
   svg: SVGSVGElement | null;
   setSvg: Dispatch<SetStateAction<SVGSVGElement | null>>;
   browserWidth: number;
+  scale: number;
   totalHeight: number;
   marginWidth: number;
   trackWidth: number;
@@ -264,6 +331,8 @@ function BrowserView({
   renderWidth: number;
   registerContentGroup: (node: SVGGElement) => () => void;
   panDrag: PanDragHandlers;
+  onPanCommit: (deltaPx: number) => void;
+  setContentOffset: (deltaPx: number) => void;
   titleSize: number;
   trackLayouts: TrackLayout[];
 }) {
@@ -271,10 +340,20 @@ function BrowserView({
   const selectionMode = useBrowserStore((state) => state.selectionMode);
   const selectionHighlight = useBrowserStore((state) => state.selectionHighlight);
   const addHighlight = useBrowserStore((state) => state.addHighlight);
+  const highlights = useBrowserStore((state) => state.highlights);
+
+  usePanWheel({
+    svg,
+    disabled: isInteractionBlocked || selectionMode !== "pan",
+    trackWidth,
+    isDragging: panDrag.isDragging,
+    setContentOffset,
+    onCommit: onPanCommit,
+  });
 
   return (
     <>
-      <SvgShell width={browserWidth} height={totalHeight} setSvg={setSvg}>
+      <SvgShell width={browserWidth} height={totalHeight} scale={scale} setSvg={setSvg}>
         <SelectRegion
           svg={svg}
           marginWidth={marginWidth}
@@ -286,6 +365,7 @@ function BrowserView({
           mode={selectionMode}
           highlightStyle={selectionHighlight}
           onHighlight={addHighlight}
+          highlights={highlights}
         >
           <Highlights
             type="filled"

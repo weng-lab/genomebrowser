@@ -66,14 +66,8 @@ export function usePanController({
     setIsPanLocked(false);
   }, []);
 
-  const panDrag = usePanDrag({
-    disabled: isPanLocked || !hasValidTrackWidth,
-    svg,
-    getCurrentDelta: getContentOffset,
-    setDelta: setContentOffset,
-    onCancel: () => setContentOffset(0),
-    onStart: onPanStart,
-    onCommit: (committedDeltaPx) => {
+  const commitPan = useCallback(
+    (committedDeltaPx: number) => {
       const candidate = getPanCommitRegion(region, trackWidth, committedDeltaPx);
       if (!candidate) {
         setContentOffset(0);
@@ -87,10 +81,22 @@ export function usePanController({
       setContentOffset(0);
       setIsPanLocked(true);
     },
+    [region, trackWidth, setRegion, setContentOffset],
+  );
+
+  const panDrag = usePanDrag({
+    disabled: isPanLocked || !hasValidTrackWidth,
+    svg,
+    getCurrentDelta: getContentOffset,
+    setDelta: setContentOffset,
+    onCancel: () => setContentOffset(0),
+    onStart: onPanStart,
+    onCommit: commitPan,
   });
 
   return {
     isPanLocked,
+    commitPan,
     panDrag,
     unlockPan,
   };

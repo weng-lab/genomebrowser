@@ -40,7 +40,9 @@ it.each([
   const next = { chromosome: "chr12", start: 53_375_000, end: 53_375_050 };
   try {
     await act(async () =>
-      root.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />),
+      root.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      ),
     );
     expect(fetch).not.toHaveBeenCalled();
     await act(async () => {
@@ -92,7 +94,9 @@ it.each(["pointerup", "pointercancel"])(
     const root = createRoot(container);
     try {
       await act(async () => {
-        root.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />);
+        root.render(
+          <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+        );
       });
       const area = container.querySelector<SVGRectElement>("[data-ruler-zoom-area]")!;
       vi.spyOn(area, "getBoundingClientRect").mockReturnValue(new DOMRect(100, 0, 1000, 22));
@@ -102,7 +106,9 @@ it.each(["pointerup", "pointercancel"])(
         getScreenCTM: () => ({ inverse: () => ({}) }),
       });
       await act(async () => {
-        document.dispatchEvent(new MouseEvent("pointermove", { clientX: 200, clientY: 10 }));
+        area.dispatchEvent(
+          new MouseEvent("pointermove", { bubbles: true, clientX: 200, clientY: 10 }),
+        );
       });
       expect(browserStore.getState().selectionMode).toBe("zoom");
       await act(async () => {

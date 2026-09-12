@@ -23,6 +23,8 @@ type SelectionTestProps = Pick<Parameters<typeof SelectRegion>[0], "region" | "s
       | "mode"
       | "highlightStyle"
       | "onHighlight"
+      | "children"
+      | "highlights"
     >
   >;
 
@@ -34,6 +36,60 @@ afterEach(async () => {
 });
 
 describe("SelectRegion", () => {
+  it.each(["zoom", "highlight"] as const)(
+    "captures %s selections on track content without covering its hover targets",
+    async (mode) => {
+      const region = { chromosome: "chr1", start: 100, end: 200 };
+      const setRegion = vi.fn();
+      const onHighlight = vi.fn();
+      const onHover = vi.fn();
+      const onPointerDown = vi.fn();
+      const onClick = vi.fn();
+      await renderSelection({
+        region,
+        setRegion,
+        mode,
+        onHighlight,
+        children: (
+          <rect
+            data-track-content=""
+            onPointerMove={onHover}
+            onPointerDown={onPointerDown}
+            onClick={onClick}
+          />
+        ),
+      });
+      const target = svg!.querySelector("[data-track-content]")!;
+      expect(target.nextElementSibling).toBeNull();
+      await act(async () => {
+        target.dispatchEvent(new MouseEvent("pointermove", { bubbles: true }));
+        target.dispatchEvent(
+          new MouseEvent("pointerdown", {
+            bubbles: true,
+            clientX: 30,
+            button: 0,
+          }),
+        );
+        document.dispatchEvent(new MouseEvent("pointerup", { clientX: 80 }));
+        target.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      });
+      expect(onHover).toHaveBeenCalledOnce();
+      expect(onPointerDown).not.toHaveBeenCalled();
+      expect(onClick).not.toHaveBeenCalled();
+      if (mode === "zoom") {
+        expect(setRegion).toHaveBeenCalledWith({ chromosome: "chr1", start: 110, end: 160 });
+        expect(onHighlight).not.toHaveBeenCalled();
+      } else {
+        expect(onHighlight).toHaveBeenCalledWith(
+          expect.objectContaining({
+            region: { chromosome: "chr1", start: 110, end: 160 },
+          }),
+        );
+        expect(setRegion).not.toHaveBeenCalled();
+      }
+    },
+  );
+
   it.each(["zoom", "highlight"] as const)(
     "cancels %s with Escape without committing and allows the next selection",
     async (mode) => {
@@ -132,13 +188,31 @@ describe("SelectRegion", () => {
     await dragSelection(95, 45);
     expect(setRegion).not.toHaveBeenCalled();
     expect(onHighlight).toHaveBeenCalledWith({
-      id: expect.any(String),
+      id: "chr1:125-175",
       region: { chromosome: "chr1", start: 125, end: 175 },
       color: "#ff0000",
       opacity: 0.7,
       type: "outlined",
     });
   });
+  it("keeps repeated selections distinct from existing region IDs", async () => {
+    const onHighlight = vi.fn();
+    const region = { chromosome: "chr1", start: 100, end: 200 };
+    await renderSelection({
+      region,
+      setRegion: vi.fn(),
+      mode: "highlight",
+      onHighlight,
+      highlights: ["chr1:125-175", "chr1:125-175 (2)"].map((id) => ({
+        id,
+        region,
+        color: "#ff0000",
+      })),
+    });
+    await dragSelection(45, 95);
+    expect(onHighlight).toHaveBeenCalledWith(expect.objectContaining({ id: "chr1:125-175 (3)" }));
+  });
+
   it.each(["pointercancel", "blur"])("cancels on %s", async (action) => {
     const setRegion = vi.fn();
     await renderSelection({ region: { chromosome: "chr1", start: 100, end: 200 }, setRegion });

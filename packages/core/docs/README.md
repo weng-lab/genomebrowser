@@ -8,7 +8,7 @@ Install the package with its React peer dependencies:
 pnpm add @weng-lab/genomebrowser@beta react@^19.2 react-dom@^19.2
 ```
 
-The package is intended for client-side React 19.2+ applications. Its browser uses SVG, pointer events, `ResizeObserver` in responsive integrations, and remote data requests. It is not a server-rendered visualization runtime.
+The package is intended for client-side React 19.2+ applications. Its browser uses SVG, pointer events, `ResizeObserver` for default responsive sizing, and remote data requests. It is not a server-rendered visualization runtime.
 
 ## Runtime and optional UI
 
@@ -28,6 +28,7 @@ Create the stores once, outside ordinary component render, and pass the same tra
 ## Learning path
 
 - [Getting started](gettingStarted.md): install, create stable stores, render responsively, and update state.
+- [GenomeBrowser](GenomeBrowser.md): component API, responsive and fixed sizing, and whole-browser magnification.
 - [Core concepts](concepts.md): state ownership, request behavior, and interaction lifetimes.
 - [Recipes](recipes.md): common track, navigation, highlight, sizing, and optional UI tasks.
 - [Tracks](tracks.md): module registration, track creation, and runtime behavior.
@@ -35,3 +36,6 @@ Create the stores once, outside ordinary component render, and pass the same tra
 - [Troubleshooting](troubleshooting.md): diagnose setup, validation, request, and sizing failures.
 
 These docs ship with the package and are self-contained.
+
+- [TrackOverlay](TrackOverlay.md): fixed SVG annotations within a track.
+- [TrackLabel](TrackLabel.md): fixed text labels at plot edges and scale positions.

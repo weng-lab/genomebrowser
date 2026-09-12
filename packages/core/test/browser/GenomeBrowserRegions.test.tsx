@@ -58,7 +58,9 @@ describe("GenomeBrowser region windows", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     await act(async () =>
-      root?.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />),
+      root?.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      ),
     );
     expect(container.querySelector('[data-testid="zoom-data"]')).not.toBeNull();
     const initialRenders = widths.length;
@@ -110,7 +112,9 @@ describe("GenomeBrowser region windows", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     await act(async () => {
-      root?.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />);
+      root?.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      );
       await Promise.resolve();
       await Promise.resolve();
     });
@@ -223,7 +227,9 @@ describe("GenomeBrowser region windows", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     await act(async () => {
-      root?.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />);
+      root?.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      );
       await Promise.resolve();
       await Promise.resolve();
     });
@@ -280,7 +286,9 @@ describe("GenomeBrowser region windows", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     await act(async () =>
-      root?.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />),
+      root?.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      ),
     );
     expect(fetch).toHaveBeenCalledOnce();
 

@@ -36,39 +36,19 @@ export function Ruler({
     showSequence,
     config.sequenceHighlightColor,
   );
-  const zoomAreaRef = useRulerZoomMode((event, bounds) => {
-    if (
-      !showSequence ||
-      !bounds ||
-      event.clientY < bounds.top + ((axisY + 4) / height) * bounds.height
-    ) {
-      hoverHighlight.clear();
-      return;
-    }
-    const position = Math.floor(
-      visibleRegion.start +
-        ((event.clientX - bounds.left) / bounds.width) * (visibleRegion.end - visibleRegion.start),
-    );
-    if (
-      data.records.some(
-        (record) => record.start <= position && position < record.start + record.sequence.length,
-      )
-    ) {
-      hoverHighlight.hover(position, event.buttons);
-    } else {
-      hoverHighlight.clear();
-    }
-  });
+  const zoomHandlers = useRulerZoomMode();
   const sequenceHeight = Math.max(1, Math.min(25, height - axisY - 6));
   return (
     <g aria-label="Genomic ruler" pointerEvents="none" style={{ userSelect: "none" }}>
       <rect
-        ref={zoomAreaRef}
+        {...zoomHandlers}
         data-ruler-zoom-area=""
         x={x(visibleRegion.start)}
         y={0}
         width={(visibleRegion.end - visibleRegion.start) * pixelsPerBase}
-        height={height}
+        height={Math.min(height, axisY + 2)}
+        pointerEvents="all"
+        style={{ cursor: "crosshair" }}
         fill="transparent"
       />
       <line x1={0} x2={width} y1={axisY} y2={axisY} stroke={color} opacity={0.35} />

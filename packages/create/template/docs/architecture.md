@@ -12,6 +12,10 @@ The app creates one set of stores outside React rendering:
 
 Controls and the genome display use the same stores. A second independent browser needs its own store instances and controls connected to them. Reloading the page recreates the stores; persistence is not configured.
 
+## Browser sizing
+
+`GenomeBrowser` follows its container automatically. Set `scale={1.25}` on it to enlarge the complete SVG while keeping the same genomic region. For a fixed width, use `sizing="fixed"` and configure `trackWidth` in the browser store. No application resize observer is needed.
+
 ## Modules and collections
 
 A **module** provides reading and rendering behavior for a track type. A **collection** lists datasets and their configuration. Adding another BigWig dataset requires a collection entry, not another module.

@@ -48,7 +48,9 @@ it("paints an opaque genomic highlight behind track marks and keeps row backgrou
   const root = createRoot(container);
   try {
     await act(async () => {
-      root.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />);
+      root.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      );
     });
     const highlight = container.querySelector('rect[fill="#ffff00"]')!;
     const mark = container.querySelector('[data-testid="mark"]')!;

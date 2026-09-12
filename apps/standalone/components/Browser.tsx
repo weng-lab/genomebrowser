@@ -21,10 +21,9 @@ import {
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
-import { useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import { browserAssembly } from "../lib/assembly";
 import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
-import { useObservedWidth } from "../hooks/useObservedWidth";
 
 const useBrowserStore = createBrowserStore({
   assembly: browserAssembly,
@@ -66,16 +65,9 @@ const resolveTrackInteraction: TrackSelectInteractionResolver = ({ qualifiedTrac
 export function Browser() {
   const [highlightDialogOpen, setHighlightDialogOpen] = useState(false);
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
-  const [containerRef, containerWidth] = useObservedWidth<HTMLElement>();
-
-  useLayoutEffect(() => {
-    if (containerWidth === 0) return;
-    const { marginWidth, setTrackWidth } = useBrowserStore.getState();
-    setTrackWidth(Math.max(1, containerWidth - marginWidth));
-  }, [containerWidth]);
 
   return (
-    <main ref={containerRef}>
+    <main>
       <Typography variant="h4" component="h1">
         UMass Chan Genome Browser
       </Typography>
