@@ -196,7 +196,7 @@ async function render(children: React.ReactNode) {
 }
 
 function requiredText(content: string) {
-  const element = Array.from(container?.querySelectorAll("text, button") ?? []).find(
+  const element = Array.from(container?.querySelectorAll('text, [role="region"]') ?? []).find(
     (candidate) => candidate.textContent === content,
   );
   if (!element) throw new Error(`Text not found: ${content}`);

@@ -28,7 +28,7 @@ import type {
 describe("browser module wiring", () => {
   const region = { chromosome: "chr1", start: 0, end: 10 };
 
-  it("constrains fetch errors to the lane and exposes a details button", () => {
+  it("constrains fetch errors to a scrollable track region", () => {
     const module = defineTrackModule({
       type: "error-alignment-test",
       configSchema: z.object({}),
@@ -52,12 +52,12 @@ describe("browser module wiring", () => {
     );
 
     expect(markup).toContain('<foreignObject x="0" y="0" width="100" height="60"');
-    expect(markup).toContain("Show error details:");
-    expect(markup).toContain("text-overflow:ellipsis");
+    expect(markup).toContain("Track error");
+    expect(markup).toContain("overflow:auto");
     expect(markup).toContain("Failed to load");
   });
 
-  it("keeps the details button within short tracks", () => {
+  it("keeps error text within short tracks", () => {
     const module = defineTrackModule({
       type: "short-error-test",
       configSchema: z.object({}),
