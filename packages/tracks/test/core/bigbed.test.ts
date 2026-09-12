@@ -121,3 +121,42 @@ describe("BigBed track", () => {
     expect(reader.createBigBedFile).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("BigBed parse guidance", () => {
+  it.each([undefined, "bed9"] as const)("explains the selected preset %s", async (preset) => {
+    const { BigBedParseError } = await import("@weng-lab/genomic-reader");
+    const result = bedSchemas.bed9.shape.color.safeParse("61.1871");
+    if (result.success) throw new Error("Expected an invalid color");
+    const error = new BigBedParseError(result.error, {
+      region: { chromosome: "chr12", start: 53379407, end: 53380249 },
+      column: 9,
+      field: "color",
+      value: "61.1871",
+      expectedColumns: 9,
+      actualColumns: 10,
+    });
+    reader.createBigBedFile.mockReturnValue({ read: vi.fn().mockRejectedValue(error) });
+    const context = createContext("https://example.org/data.bb", error.context.region);
+    const failure = await fetchBigBed({
+      ...context,
+      track: { ...context.track, config: { ...context.track.config, bedSchema: preset } },
+    }).catch((error) => error);
+    expect(failure.message).toContain('Column 9 (color): received "61.1871"');
+    expect(failure.message).toContain("Expected itemRgb as 0 or R,G,B");
+    expect(failure.message).toContain(
+      `Selected schema: bed9${preset === undefined ? " (default)" : ""}.`,
+    );
+    expect(failure.message).toContain("config.bedSchema");
+    expect(failure.cause).toBe(error);
+  });
+
+  it("does not mislabel network failures as schema failures", async () => {
+    const error = new Error("Network unavailable");
+    reader.createBigBedFile.mockReturnValue({ read: vi.fn().mockRejectedValue(error) });
+    await expect(
+      fetchBigBed(
+        createContext("https://example.org/data.bb", { chromosome: "chr1", start: 0, end: 100 }),
+      ),
+    ).rejects.toBe(error);
+  });
+});

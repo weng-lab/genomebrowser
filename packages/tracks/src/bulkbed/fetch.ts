@@ -1,6 +1,5 @@
-import { bedSchemas } from "../shared/bedSchemas";
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
-import { readCachedBigBedRows } from "../shared/cachedFiles";
+import { readBedPreset } from "../shared/readBedPreset";
 import type { BulkBedConfig, BulkBedData } from "./types";
 
 export async function fetchBulkBed({
@@ -10,14 +9,7 @@ export async function fetchBulkBed({
 }: TrackFetchContext<BulkBedConfig>): Promise<BulkBedData> {
   return Promise.all(
     config.datasets.map(async (dataset, index) =>
-      (
-        await readCachedBigBedRows(
-          resources,
-          dataset.url,
-          bedSchemas[config.bedSchema ?? "bed9"],
-          region,
-        )
-      ).map((row) => ({
+      (await readBedPreset(resources, dataset.url, config.bedSchema, region)).map((row) => ({
         ...row,
         datasetName: dataset.name || `Dataset ${index + 1}`,
       })),

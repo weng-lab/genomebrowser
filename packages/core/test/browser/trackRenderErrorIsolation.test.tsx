@@ -85,7 +85,7 @@ describe("track render error isolation", () => {
     );
 
     const svg = requiredElement<SVGSVGElement>("#browserSVG");
-    const fallbackText = requiredText("Track unavailable: Broken track");
+    const fallbackText = requiredText("Error — Track unavailable: Broken track");
     const brokenTitle = requiredText("Broken track (full)");
     const brokenFrame = brokenTitle.parentElement;
     if (!brokenFrame) throw new Error("Broken track frame not found");
@@ -97,7 +97,7 @@ describe("track render error isolation", () => {
     expect(brokenFrame.querySelector('rect[x="120"][y="0"][height="81"]')).toBeTruthy();
     expect(brokenFrame.querySelectorAll('svg[viewBox="0 0 24 24"]')).toHaveLength(3);
     expect(brokenFrame.querySelector("g[clip-path]")?.contains(fallbackText)).toBe(true);
-    expect(fallbackText.parentElement?.parentElement?.firstElementChild?.tagName).toBe("rect");
+    expect(fallbackText.closest("foreignObject")).toBeTruthy();
     expect(requiredText("Healthy track (full)").parentElement?.getAttribute("transform")).toBe(
       "translate(0,81)",
     );
@@ -108,7 +108,7 @@ describe("track render error isolation", () => {
     expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 251, end: 751 });
     expect(requiredElement("#browserSVG")).toBe(svg);
     expect(requiredElement('[data-testid="healthy-renderer"]')).toBeTruthy();
-    expect(requiredText("Track unavailable: Broken track")).toBeTruthy();
+    expect(requiredText("Error — Track unavailable: Broken track")).toBeTruthy();
 
     const customLog = consoleError.mock.calls.find(
       ([message]) => message === trackRenderErrorPrefix,
@@ -157,9 +157,9 @@ describe("track render error isolation", () => {
     );
 
     expect(requiredElement("animateTransform")).toBeTruthy();
-    expect(requiredText("Expected fetch failure")).toBeTruthy();
+    expect(requiredText('Error — Track "Expected states": Expected fetch failure')).toBeTruthy();
     expect(
-      requiredText('Display "missing" is not supported by "expected-state-test"'),
+      requiredText('Error — Display "missing" is not supported by "expected-state-test"'),
     ).toBeTruthy();
     expect(renderer).not.toHaveBeenCalled();
     expect(consoleError.mock.calls.some(([message]) => message === trackRenderErrorPrefix)).toBe(
@@ -196,7 +196,7 @@ async function render(children: React.ReactNode) {
 }
 
 function requiredText(content: string) {
-  const element = Array.from(container?.querySelectorAll("text") ?? []).find(
+  const element = Array.from(container?.querySelectorAll("text, button") ?? []).find(
     (candidate) => candidate.textContent === content,
   );
   if (!element) throw new Error(`Text not found: ${content}`);

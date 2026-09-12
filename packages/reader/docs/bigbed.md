@@ -182,4 +182,12 @@ file object to refresh metadata if the content at a URL changes.
 Ordinary no-data cases return `[]`. Once a file exists, `read()` asynchronously rejects for invalid
 regions, network and HTTP contract failures, aborts, incompatible files, binary decode errors,
 decompression errors, and Zod parsing failures. These failures never become empty or partial
-results. The package does not wrap them in a package-specific error class.
+results. Column validation failures throw `BigBedParseError`, a subclass of `z.ZodError`.
+Its readable `message` identifies the record, one-based BED column number, schema field, and
+raw value (or expected and actual column counts for a short record). `context` exposes
+`region`, `column`, `field`, `value`, `expectedColumns`, and `actualColumns`; the counts include
+BED3, and `value` is absent for a missing column. Zod `issues` include the schema field in
+`path`, and `cause` preserves the original Zod error. Other failures propagate unchanged.
+
+Schemas are explicit: the reader neither chooses a schema from column count nor falls back
+when validation fails.

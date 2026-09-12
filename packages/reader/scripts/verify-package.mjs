@@ -57,6 +57,7 @@ const declarationExports = collectDeclarationExports(declaration);
 assertJsonEqual(
   declarationExports.valueNames,
   [
+    "BigBedParseError",
     "bed3Schema",
     "createBigBedFile",
     "createBigWigFile",
@@ -72,6 +73,7 @@ assertJsonEqual(
   declarationExports.typeNames,
   [
     "BigBedFileOptions",
+    "BigBedParseContext",
     "BigBedRecord",
     "BigWigFile",
     "BigWigFileOptions",
@@ -94,7 +96,15 @@ assertJsonEqual(
 );
 assertJsonEqual(
   declarationExports.moduleSpecifiers,
-  ["./bigBed", "./bigWig", "./chromSizes", "./cytobands", "./genomicFile", "./twoBit"],
+  [
+    "./bigBed",
+    "./bigBedParseError",
+    "./bigWig",
+    "./chromSizes",
+    "./cytobands",
+    "./genomicFile",
+    "./twoBit",
+  ],
   "declaration root module boundaries",
 );
 assert(!/\bexport\s*\*/.test(declaration), "declaration root must not use wildcard exports");
@@ -169,6 +179,7 @@ const runtimeModule = await import(`${pathToFileURL(javascriptPath).href}?verify
 assertJsonEqual(
   Object.keys(runtimeModule).sort(),
   [
+    "BigBedParseError",
     "bed3Schema",
     "createBigBedFile",
     "createBigWigFile",

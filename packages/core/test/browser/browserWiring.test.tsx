@@ -28,7 +28,7 @@ import type {
 describe("browser module wiring", () => {
   const region = { chromosome: "chr1", start: 0, end: 10 };
 
-  it("positions fetch errors at the top of the track content", () => {
+  it("constrains fetch errors to the lane and exposes a details button", () => {
     const module = defineTrackModule({
       type: "error-alignment-test",
       configSchema: z.object({}),
@@ -51,11 +51,13 @@ describe("browser module wiring", () => {
       </RegistryProvider>,
     );
 
-    expect(markup).toContain('transform="translate(40,0)"');
+    expect(markup).toContain('<foreignObject x="0" y="0" width="100" height="60"');
+    expect(markup).toContain("Show error details:");
+    expect(markup).toContain("text-overflow:ellipsis");
     expect(markup).toContain("Failed to load");
   });
 
-  it("hides the error icon and scales the message for short tracks", () => {
+  it("keeps the details button within short tracks", () => {
     const module = defineTrackModule({
       type: "short-error-test",
       configSchema: z.object({}),
@@ -84,8 +86,8 @@ describe("browser module wiring", () => {
     );
 
     expect(markup).not.toContain("<svg");
-    expect(markup).toContain('font-size="10px"');
-    expect(markup).toContain('transform="translate(50,0)"');
+    expect(markup).toContain("font:10px sans-serif");
+    expect(markup).toContain('height="10"');
   });
 
   it("binds current runtime context while keeping renderer callbacks item-only", () => {
