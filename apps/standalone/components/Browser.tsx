@@ -24,6 +24,7 @@ import {
 import { useState } from "react";
 import { browserAssembly } from "../lib/assembly";
 import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
+import { AppBar } from "@mui/material";
 
 const useBrowserStore = createBrowserStore({
   assembly: browserAssembly,
@@ -67,10 +68,7 @@ export function Browser() {
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
 
   return (
-    <main>
-      <Typography variant="h4" component="h1">
-        UMass Chan Genome Browser
-      </Typography>
+    <Box sx={{ p: 1 }}>
       <BrowserToolbar
         browserStore={useBrowserStore}
         search={{
@@ -81,14 +79,12 @@ export function Browser() {
         onManageHighlights={() => setHighlightDialogOpen(true)}
         onSelectTracks={() => setTrackSelectOpen(true)}
       />
-      <Box>
-        <Box sx={{ width: "100%", overflowX: "auto" }}>
-          <GenomeBrowser
-            browserStore={useBrowserStore}
-            settingsStore={useSettingsStore}
-            trackStore={useTrackStore}
-          />
-        </Box>
+      <Box sx={{ pt: 1, width: "100%", overflowX: "auto" }}>
+        <GenomeBrowser
+          browserStore={useBrowserStore}
+          settingsStore={useSettingsStore}
+          trackStore={useTrackStore}
+        />
       </Box>
       <TrackSelect
         open={trackSelectOpen}
@@ -104,6 +100,6 @@ export function Browser() {
         open={highlightDialogOpen}
         onClose={() => setHighlightDialogOpen(false)}
       />
-    </main>
+    </Box>
   );
 }
