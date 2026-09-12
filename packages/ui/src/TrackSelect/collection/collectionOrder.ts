@@ -1,4 +1,4 @@
-import type { TrackCollectionView } from "../../collections/collectionSchema";
+import type { TrackCollectionView } from "@weng-lab/genomebrowser";
 import type { CollectionGridRow, TrackSelectCollectionRecord } from "./collectionCompilation";
 import { groupRowsByField } from "./collectionGrouping";
 

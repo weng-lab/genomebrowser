@@ -1,5 +1,6 @@
 import { z } from "zod";
-import type { AnyTrackModule, TrackCollectionEntry } from "@weng-lab/genomebrowser";
+import type { AnyTrackModule } from "../modules/types";
+import type { TrackCollectionEntry } from "../modules/registry";
 
 export const TrackMetadataValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 

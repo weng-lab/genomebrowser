@@ -92,3 +92,18 @@ export { TrackOverlay } from "./browser/track-overlay/TrackOverlay";
 export type { TrackOverlayProps } from "./browser/track-overlay/TrackOverlay";
 export { TrackLabel } from "./browser/track-overlay/TrackLabel";
 export type { TrackLabelProps } from "./browser/track-overlay/TrackLabel";
+
+export type {
+  TrackCollection,
+  TrackCollectionView,
+  TrackCollectionColumn,
+  TrackMetadata,
+  TrackCollectionTrack,
+} from "./collections/collectionSchema";
+export { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
+export { validateJson } from "./collections/validateJson";
+
+export {
+  createTrackCollectionSchema,
+  TrackCollectionViewSchema,
+} from "./collections/collectionSchema";

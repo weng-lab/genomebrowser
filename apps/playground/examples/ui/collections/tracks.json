@@ -1,6 +1,6 @@
 {
   "assembly": "hg38",
-  "$schema": "../schemas/trackSelectCollection.schema.json",
+  "$schema": "../schemas/trackCollection.schema.json",
   "id": "test-tracks",
   "label": "Test Tracks",
   "description": "Small test collection for Track Select JSON loading.",

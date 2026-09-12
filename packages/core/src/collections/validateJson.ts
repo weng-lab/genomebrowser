@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { AnyTrackModule } from "@weng-lab/genomebrowser";
+import type { AnyTrackModule } from "../modules/types";
 import { createTrackCollectionSchema, type TrackCollection } from "./collectionSchema";
 
 const builtInFields = new Set(["id", "title", "type"]);

@@ -3,7 +3,7 @@ import type {
   TrackInteraction,
   TrackRuntimeContext,
 } from "@weng-lab/genomebrowser";
-import type { TrackMetadata, TrackCollectionTrack } from "../../collections/collectionSchema";
+import type { TrackMetadata, TrackCollectionTrack } from "@weng-lab/genomebrowser";
 
 export type TrackSelectCollectionContext = Readonly<{
   collectionId: string;

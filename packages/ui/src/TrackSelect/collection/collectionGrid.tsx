@@ -11,7 +11,7 @@ import type { CollectionGridRow, TrackSelectCollectionRecord } from "./collectio
 import { getCollectionColumns, type TrackSelectColumnOverrides } from "./collectionColumns";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { TrackSelectEmptyPanel } from "../trackSelectEmptyPanel";
-import type { TrackCollectionView } from "../../collections/collectionSchema";
+import type { TrackCollectionView } from "@weng-lab/genomebrowser";
 
 type CollectionGridProps = {
   collection: TrackSelectCollectionRecord | undefined;

@@ -1,5 +1,7 @@
 # Track collections
 
+The collection types, validation functions, and `genomebrowser schema` CLI are exported by `@weng-lab/genomebrowser`.
+
 A track collection is a reusable list of configured tracks for one assembly. Publish it as JSON, generate it from application data, or construct it in TypeScript. You can load tracks directly or offer them through TrackSelect.
 
 ## Minimal collection
@@ -33,12 +35,12 @@ Tracks use the same `type`, `base`, and `config` structure as runtime track inst
 
 The collection does not define chromosome sizes or browser state such as the current region, highlights, or active selection. Its array provides authored track order; using a collection does not imply activating every track. TrackSelect can use views to organize selection and insertion order.
 
-## Load tracks without TrackSelect
+## Load a collection into a browser
 
 ```ts
 import { createTrackStore, type AnyTrackModule } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-import { validateJson } from "@weng-lab/genomebrowser-ui";
+import { validateJson } from "@weng-lab/genomebrowser";
 
 const modules: AnyTrackModule[] = [bigWigModule];
 const useTrackStore = createTrackStore({ modules });
@@ -65,7 +67,7 @@ const tracks = collection.tracks.map(({ type, base, config }) => {
 useTrackStore.getState().setTracks(tracks);
 ```
 
-`validateJson` validates module configuration, duplicate track/view IDs, and references to metadata fields. It preserves authored track settings so module creation applies defaults and transformations. It does not add picker views, labels, or metadata to a minimal collection. `createTrackCollectionSchema(modules)` exposes the Zod shape, including module defaults; `generateTrackCollectionJsonSchema(modules)` generates its JSON input schema. See [schema generation](trackSelect.md#generate-a-schema-for-collection-json) for editor integration and CLI usage.
+`validateJson` validates module configuration, duplicate track/view IDs, and references to metadata fields. It preserves authored track settings so module creation applies defaults and transformations. It does not add picker views, labels, or metadata to a minimal collection. `TrackCollectionViewSchema` validates an individual view and resolves its grouping and leaf defaults. `createTrackCollectionSchema(modules)` exposes the Zod shape, including module defaults; `generateTrackCollectionJsonSchema(modules)` generates its JSON input schema. See [schema generation](#generate-a-schema-for-collection-json) for editor integration and CLI usage.
 
 Direct creation uses authored track IDs. When combining collections, your application must ensure runtime IDs are unique. TrackSelect uses its documented `${collectionId}::${trackId}` IDs.
 
@@ -81,7 +83,7 @@ Each collection describes configured tracks for one assembly. Views and track me
 
 | Option        | Type                       | Default     | Description                                                                                                        |
 | ------------- | -------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
-| `$schema`     | `string`                   | `undefined` | Points JSON editors to a generated TrackSelect collection schema.                                                  |
+| `$schema`     | `string`                   | `undefined` | Points JSON editors to a generated track collection schema.                                                        |
 | `assembly`    | `string`                   | Required    | Non-empty assembly identifier, preserved exactly. The application defines matching rules.                          |
 | `id`          | `string`                   | Required    | Uniquely identifies the collection within `trackCollections` and forms the first part of every qualified track ID. |
 | `label`       | `string`                   | `undefined` | Optional display name. TrackSelect falls back to `id`.                                                             |
@@ -134,3 +136,137 @@ The built-in fields are `id`, `title`, and `type`. Every other field used by `co
 Module defaults are applied when a selected track is created during initialization or Submit, not retained as authored collection data during collection validation.
 
 Collection authors cannot set `source`. TrackSelect assigns `source: "host"` when it reconciles a collection entry into the runtime track store.
+
+## Generate a schema for collection JSON
+
+Generate JSON Schema from the same track modules used by your application. Editors that support the standard JSON `$schema` property can then autocomplete collection fields, list allowed track types and displays, and report many invalid module-specific `config` values before runtime.
+
+This workflow creates the following files:
+
+```text
+src/
+  trackModules.ts
+collections/
+  signals.json
+schemas/
+  trackCollection.schema.json
+```
+
+### 1. Export the application modules
+
+Export the same module array that the application passes to `createTrackStore`:
+
+```ts
+import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
+
+export const trackModules = [bigWigModule, bigBedModule];
+```
+
+The source may export one track module or a non-empty array. Add `#exportName` to select a named export. Without an export name, the CLI uses a valid default export or the only valid track-module export. It reports an error when several exports are possible.
+
+### 2. Generate the schema
+
+Run the package binary from the project root:
+
+```sh
+pnpm exec genomebrowser schema \
+  --from ./src/trackModules.ts#trackModules \
+  --out schemas/trackCollection.schema.json
+```
+
+`--from` is repeatable, so one-off generation can combine package and local modules without creating another module array:
+
+```sh
+pnpm exec genomebrowser schema \
+  --from @weng-lab/genomebrowser-tracks/bigwig#bigWigModule \
+  --from ./src/customTrack.ts#customTrackModule
+```
+
+The command has these options:
+
+| Option             | Default                         | Description                                                                                                            |
+| ------------------ | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `--from <source>`  | Required                        | Loads a track module or module array. Repeat it to combine exports. Relative paths resolve from the current directory. |
+| `-o, --out <file>` | `"trackCollection.schema.json"` | Writes the schema relative to the current directory. Use `-` for stdout. Missing directories are created.              |
+| `--id <uri>`       | `undefined`                     | Adds the supplied value as the generated schema's `$id`.                                                               |
+| `--check`          | `false`                         | Exits with an error when the output file is missing or differs from the generated schema.                              |
+
+Use `--check` in CI after committing the generated schema:
+
+```sh
+pnpm exec genomebrowser schema \
+  --from ./src/trackModules.ts#trackModules \
+  --out schemas/trackCollection.schema.json \
+  --check
+```
+
+When writing a file, the command prints the loaded track types and output path. With `--out -`, it writes only JSON to stdout and reports loaded types on stderr so the output can be piped safely. Run the command again whenever you add or remove a track module, update a module version, or change a module's config schema.
+
+Consider committing the generated schema so editor support and validation do not depend on every contributor running the generator first.
+
+### 3. Connect a collection to the schema
+
+Set `$schema` in each collection JSON file to a path relative to that collection. For the file layout above, `collections/signals.json` starts with:
+
+```json
+{
+  "assembly": "hg38",
+  "$schema": "../schemas/trackCollection.schema.json",
+  "id": "signals",
+  "label": "Signal tracks",
+  "views": [
+    {
+      "id": "all-signals",
+      "label": "All signals",
+      "columns": [
+        {
+          "field": "title",
+          "label": "Track"
+        }
+      ],
+      "grouping": [],
+      "leaf": "title"
+    }
+  ],
+  "tracks": [
+    {
+      "base": {
+        "id": "example-signal",
+        "title": "Example signal"
+      },
+      "type": "bigwig",
+      "config": {
+        "url": "YOUR_URL_HERE"
+      },
+      "metadata": {}
+    }
+  ]
+}
+```
+
+Your editor resolves that path from the JSON file. If the editor cannot load the schema, first check that the generated file exists and that the relative path is correct.
+
+The generated file provides JSON-aware completion and validation; it does not turn a JSON import into a TypeScript value with a static `TrackCollection` type. Runtime parsing remains necessary.
+
+### 4. Keep runtime and editor validation aligned
+
+The generator builds module-specific collection entries from each module's `createInputSchema`. Use the same module set for:
+
+- `createTrackStore({ modules })`
+- the module array loaded by `genomebrowser schema --from`
+- any programmatic `generateTrackCollectionJsonSchema` or `validateJson` calls
+
+The generated schema validates JSON structure, allowed track types and displays, and the parts of module-specific track config represented in JSON Schema. Custom Zod refinements may remain runtime-only after conversion. `TrackSelect` also performs runtime validation for cross-field and multi-collection rules, including metadata fields referenced across views, duplicate qualified track IDs across supplied collections, and selection IDs checked against the complete collection list. Treat editor feedback as an early check, not a replacement for runtime parsing.
+
+For build tooling that already owns a module list, generate the same schema programmatically:
+
+```ts
+import { generateTrackCollectionJsonSchema } from "@weng-lab/genomebrowser";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
+
+const modules = [bigWigModule];
+const schema = generateTrackCollectionJsonSchema(modules);
+```
+
+Use `validateJson(rawCollection, modules)` when non-React code also needs the runtime parser. `TrackSelect` already calls it for every supplied collection, so normal component integrations do not need to validate a second time.

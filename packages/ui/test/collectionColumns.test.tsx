@@ -5,7 +5,7 @@ import {
   getCollectionColumns,
   withValueMarkers,
 } from "../src/TrackSelect/collection/collectionColumns";
-import type { TrackCollectionView } from "../src/collections/collectionSchema";
+import type { TrackCollectionView } from "@weng-lab/genomebrowser";
 
 const defaultView: TrackCollectionView = {
   id: "default",

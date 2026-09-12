@@ -1,6 +1,6 @@
 {
   "assembly": "hg38",
-  "$schema": "../schemas/trackSelectCollection.schema.json",
+  "$schema": "../schemas/trackCollection.schema.json",
   "id": "secondary-test-tracks",
   "label": "Secondary Test Tracks",
   "description": "Second test collection for checking Track Select collection navigation.",

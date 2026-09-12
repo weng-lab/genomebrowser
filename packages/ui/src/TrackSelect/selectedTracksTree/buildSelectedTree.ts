@@ -1,7 +1,7 @@
 import { getOrderedSelectedRows } from "../collection/collectionOrder";
 import { formatCollectionValue, groupRowsByField } from "../collection/collectionGrouping";
 import type { TrackSelectCollectionRecord } from "../collection/collectionCompilation";
-import type { TrackCollectionView } from "../../collections/collectionSchema";
+import type { TrackCollectionView } from "@weng-lab/genomebrowser";
 
 export type SelectedTreeNode = {
   id: string;

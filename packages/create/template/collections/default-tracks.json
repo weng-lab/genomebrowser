@@ -1,6 +1,6 @@
 {
   "assembly": "hg38",
-  "$schema": "../schemas/trackSelectCollection.schema.json",
+  "$schema": "../schemas/trackCollection.schema.json",
   "id": "default-tracks",
   "label": "Default tracks",
   "description": "Reference genes and aggregate ENCODE signals included with this project.",

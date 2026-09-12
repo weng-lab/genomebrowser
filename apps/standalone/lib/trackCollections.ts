@@ -4,7 +4,7 @@ import {
   getGeneDatasetTitle,
 } from "@weng-lab/genomebrowser-tracks/gene";
 import { browserAssembly } from "./assembly";
-import type { TrackCollection } from "@weng-lab/genomebrowser-ui";
+import type { TrackCollection } from "@weng-lab/genomebrowser";
 import biosampleTracks from "./human-biosamples.json";
 
 const geneTracks = {

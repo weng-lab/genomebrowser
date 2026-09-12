@@ -18,7 +18,7 @@ import type {
   TrackCollection,
   TrackCollectionTrack,
   TrackCollectionView,
-} from "../src/collections/collectionSchema";
+} from "@weng-lab/genomebrowser";
 import {
   type TrackSelectState,
   useTrackSelectState,

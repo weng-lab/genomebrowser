@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
-import type { TrackCollection } from "../src/collections/collectionSchema";
+import type { TrackCollection } from "@weng-lab/genomebrowser";
 
 const collection: TrackCollection = {
   assembly: "hg38",

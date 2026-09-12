@@ -3,11 +3,11 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, dirname, resolve } from "node:path";
 import process from "node:process";
 import { parseArgs } from "node:util";
-import { type AnyTrackModule } from "@weng-lab/genomebrowser";
+import { type AnyTrackModule } from "./modules/types";
 import { createJiti } from "jiti";
 import { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
 
-const defaultSchemaOutFile = "trackSelectCollection.schema.json";
+const defaultSchemaOutFile = "trackCollection.schema.json";
 
 type SchemaCommand = {
   sources: string[];
@@ -49,7 +49,7 @@ function parseCommand(args: string[]): SchemaCommand | undefined {
     return undefined;
   }
   if (name !== "schema") {
-    throw new Error(`Unknown command "${name}". Run trackselect --help for usage.`);
+    throw new Error(`Unknown command "${name}". Run genomebrowser --help for usage.`);
   }
   if (unexpected.length > 0) {
     throw new Error(`Unexpected argument "${unexpected[0]}". Module sources use --from.`);
@@ -76,7 +76,7 @@ function parseCommand(args: string[]): SchemaCommand | undefined {
 }
 
 async function loadTrackModules(sources: string[], cwd: string): Promise<AnyTrackModule[]> {
-  const jiti = createJiti(resolve(cwd, ".trackselect-loader.mjs"), {
+  const jiti = createJiti(resolve(cwd, ".genomebrowser-loader.mjs"), {
     interopDefault: false,
   });
   const modulesBySource = await Promise.all(
@@ -175,7 +175,7 @@ function writeSchema(contents: string, command: SchemaCommand, cwd: string) {
       throw new Error(`Schema is missing or unreadable: ${outPath}`);
     }
     if (existing !== contents) {
-      throw new Error(`Schema is stale: ${outPath}. Run trackselect schema without --check.`);
+      throw new Error(`Schema is stale: ${outPath}. Run genomebrowser schema without --check.`);
     }
     console.log(`Schema is up to date: ${outPath}`);
     return;
@@ -201,9 +201,9 @@ function errorMessage(error: unknown) {
 }
 
 function printHelp() {
-  console.log(`Usage: trackselect schema --from <module[#export]> [options]
+  console.log(`Usage: genomebrowser schema --from <module[#export]> [options]
 
-Generate TrackSelect JSON Schema from application track modules.
+Generate track collection JSON Schema from application track modules.
 
 Options:
   --from <source>  Module exporting one track module or an array; repeatable
@@ -214,6 +214,6 @@ Options:
 }
 
 main().catch((error: unknown) => {
-  console.error(`trackselect: ${errorMessage(error)}`);
+  console.error(`genomebrowser: ${errorMessage(error)}`);
   process.exitCode = 1;
 });

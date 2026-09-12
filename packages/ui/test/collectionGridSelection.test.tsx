@@ -5,7 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
 import { CollectionGrid } from "../src/TrackSelect/collection/collectionGrid";
-import type { TrackCollection } from "../src/collections/collectionSchema";
+import type { TrackCollection } from "@weng-lab/genomebrowser";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;

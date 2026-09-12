@@ -6,26 +6,28 @@ import { spawnSync } from "node:child_process";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 
 const packageDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const manifest = JSON.parse(await readFile(resolve(packageDirectory, "package.json"), "utf8"));
+const manifest = JSON.parse(
+  await readFile(resolve(packageDirectory, "../core/package.json"), "utf8"),
+);
 const temporaryDirectory = await mkdtemp(
-  resolve(packageDirectory, "node_modules/.verify-trackselect-"),
+  resolve(packageDirectory, "node_modules/.verify-genomebrowser-"),
 );
 
 try {
   await writeFile(
     resolve(temporaryDirectory, "trackModules.ts"),
-    `export { firstPartyTrackModules as trackModules } from "@weng-lab/genomebrowser-tracks";
+    `export { firstPartyTrackModules as trackModules } from "../../dist/genomebrowser-tracks.es.js";
 `,
   );
 
-  const trackselectPath = resolve(packageDirectory, manifest.bin.trackselect);
+  const genomebrowserPath = resolve(packageDirectory, "../core", manifest.bin.genomebrowser);
   const schemaArguments = [
-    trackselectPath,
+    genomebrowserPath,
     "schema",
     "--from",
     "./trackModules.ts#trackModules",
     "--out",
-    "trackSelectCollection.schema.json",
+    "trackCollection.schema.json",
   ];
   const result = spawnSync(process.execPath, schemaArguments, {
     cwd: temporaryDirectory,
@@ -33,29 +35,27 @@ try {
   });
   assert(
     result.status === 0,
-    `trackselect schema smoke test failed:\n${result.stderr || result.stdout}`,
+    `genomebrowser schema smoke test failed:\n${result.stderr || result.stdout}`,
   );
 
   const schema = JSON.parse(
-    await readFile(resolve(temporaryDirectory, "trackSelectCollection.schema.json"), "utf8"),
+    await readFile(resolve(temporaryDirectory, "trackCollection.schema.json"), "utf8"),
   );
   assert(
     schema?.properties?.tracks?.items?.oneOf?.length === firstPartyTrackModules.length,
-    "trackselect schema must include all first-party modules",
+    "genomebrowser schema must include all first-party modules",
   );
 
   const shippedSchema = JSON.parse(
     await readFile(
-      new URL(
-        import.meta.resolve("@weng-lab/genomebrowser-tracks/trackSelectCollection.schema.json"),
-      ),
+      new URL(import.meta.resolve("@weng-lab/genomebrowser-tracks/trackCollection.schema.json")),
       "utf8",
     ),
   );
   deepStrictEqual(
     shippedSchema,
     schema,
-    "Shipped first-party collection schema is stale; regenerate it with the TrackSelect CLI.",
+    "Shipped first-party collection schema is stale; regenerate it with the collection CLI.",
   );
 
   const checkResult = spawnSync(process.execPath, [...schemaArguments, "--check"], {
@@ -64,13 +64,13 @@ try {
   });
   assert(
     checkResult.status === 0,
-    `trackselect schema --check smoke test failed:\n${checkResult.stderr || checkResult.stdout}`,
+    `genomebrowser schema --check smoke test failed:\n${checkResult.stderr || checkResult.stdout}`,
   );
 } finally {
   await rm(temporaryDirectory, { recursive: true, force: true });
 }
 
-console.log("Verified the built TrackSelect CLI module-loading workflow.");
+console.log("Verified the built collection CLI module-loading workflow.");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);

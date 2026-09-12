@@ -1,6 +1,6 @@
 {
   "assembly": "hg38",
-  "$schema": "../schemas/trackSelectCollection.schema.json",
+  "$schema": "../schemas/trackCollection.schema.json",
   "id": "human-biosamples",
   "label": "Human Biosamples",
   "description": "Epigenomic data from human tissue samples, primary cells, cell lines, and organoids.",

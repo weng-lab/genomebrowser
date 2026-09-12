@@ -8,11 +8,16 @@ This example uses one shared callback implementation across a heterogeneous coll
 import { useState } from "react";
 import {
   TrackSelect,
-  type TrackCollection,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
-import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
+import {
+  type TrackCollection,
+  GenomeBrowser,
+  createBrowserStore,
+  createTrackStore,
+  hg38,
+} from "@weng-lab/genomebrowser";
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 

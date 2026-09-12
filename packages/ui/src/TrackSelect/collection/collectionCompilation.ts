@@ -3,7 +3,7 @@ import {
   type TrackCollectionView,
   type TrackCollection,
   type TrackCollectionTrack,
-} from "../../collections/collectionSchema";
+} from "@weng-lab/genomebrowser";
 
 export type CollectionGridRow = {
   id: string;

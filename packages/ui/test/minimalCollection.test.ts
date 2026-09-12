@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createTrackStore, defineTrackModule } from "@weng-lab/genomebrowser";
-import { validateJson, generateTrackCollectionJsonSchema, type TrackCollection } from "../src/lib";
+import {
+  validateJson,
+  generateTrackCollectionJsonSchema,
+  type TrackCollection,
+} from "@weng-lab/genomebrowser";
 import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
 import { getReconciledTracks } from "../src/TrackSelect/collection/collectionStore";
 

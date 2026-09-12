@@ -242,7 +242,6 @@ Paths are relative to `packages/ui/src`.
 ```mermaid
 flowchart TB
   API["Public API<br/>lib.ts"]
-  CLI["TrackSelect CLI<br/>trackselect.ts"]
   CORE["core package"]
   READER["reader package"]
 
@@ -252,7 +251,7 @@ flowchart TB
   HIGHLIGHTS["Highlight interaction<br/>cytobands/highlightLayer.tsx<br/>highlightTooltip.tsx"]
 
   SELECT["TrackSelect facade<br/>TrackSelect/TrackSelect.tsx"]
-  SCHEMA["Collection schema boundary<br/>TrackSelect/schema/*"]
+  SCHEMA["Core collection types and validation"]
   MODEL["Collection transforms<br/>collectionRows, grouping, order,<br/>views, selection, and types"]
   RECONCILE["Core-track reconciliation<br/>collectionStore.ts<br/>collectionInteraction.ts"]
   SESSION["Draft session and context<br/>TrackSelect/session/*"]
@@ -264,11 +263,8 @@ flowchart TB
   API -. "exports" .-> NAV
   API -. "exports" .-> CYTO
   API -. "exports" .-> SELECT
-  API -. "exports" .-> SCHEMA
   API -. "exports" .-> GRID
   API -. "exports" .-> RECONCILE
-  CLI --> SCHEMA
-  CLI --> CORE
 
   NAV --> CORE
   CYTO --> CYTO_SVG

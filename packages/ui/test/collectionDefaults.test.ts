@@ -20,7 +20,7 @@ import {
   setOrderedCollectionSelection,
 } from "../src/TrackSelect/collection/collectionSelection";
 import { getReconciledTracks } from "../src/TrackSelect/collection/collectionStore";
-import type { TrackCollection, TrackCollectionView } from "../src/collections/collectionSchema";
+import type { TrackCollection, TrackCollectionView } from "@weng-lab/genomebrowser";
 
 function Renderer() {
   return null;

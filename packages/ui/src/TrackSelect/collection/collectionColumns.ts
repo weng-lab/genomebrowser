@@ -2,10 +2,7 @@ import { createElement } from "react";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
 import { DataGridCellValue, ValueMarkerCell } from "./CollectionCells";
 import type { CollectionGridRow } from "./collectionCompilation";
-import type {
-  TrackCollectionColumn,
-  TrackCollectionView,
-} from "../../collections/collectionSchema";
+import type { TrackCollectionColumn, TrackCollectionView } from "@weng-lab/genomebrowser";
 
 export type TrackSelectColumnOverride = Omit<Partial<GridColDef>, "field">;
 

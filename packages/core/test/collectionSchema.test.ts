@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createTrackStore, defineTrackModule } from "@weng-lab/genomebrowser";
-import { createTrackCollectionSchema } from "../src/collections/collectionSchema";
-import { generateTrackCollectionJsonSchema } from "../src/collections/generateJsonSchema";
-import { validateJson } from "../src/collections/validateJson";
+import { createTrackStore, defineTrackModule } from "../src/lib";
+import { createTrackCollectionSchema } from "../src/lib";
+import { generateTrackCollectionJsonSchema } from "../src/lib";
+import { validateJson } from "../src/lib";
 
 describe("TrackSelect collection schemas", () => {
   function Renderer() {
