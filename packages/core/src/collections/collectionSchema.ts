@@ -35,6 +35,14 @@ export function createTrackCollectionSchema(modules: readonly AnyTrackModule[]) 
     throw new Error("At least one track module is required to generate a track collection schema");
   }
 
+  const types = new Set<string>();
+  for (const module of modules) {
+    if (types.has(module.type)) {
+      throw new Error(`Duplicate track module type: ${module.type}`);
+    }
+    types.add(module.type);
+  }
+
   const entries = modules.map((module) =>
     module.createInputSchema.omit({ source: true }).extend({
       type: z.literal(module.type),

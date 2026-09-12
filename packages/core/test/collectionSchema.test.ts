@@ -192,6 +192,15 @@ describe("TrackSelect collection schemas", () => {
     expect(configRequired).not.toContain("url");
   });
 
+  it("rejects duplicate module types before building or using a collection schema", () => {
+    const modules = [signalModule, { ...signalModule }];
+    const error = "Duplicate track module type: signal";
+
+    expect(() => createTrackCollectionSchema(modules)).toThrow(error);
+    expect(() => generateTrackCollectionJsonSchema(modules)).toThrow(error);
+    expect(() => validateJson(validCollection, modules)).toThrow(error);
+  });
+
   it("rejects empty registries", () => {
     expect(() => createTrackCollectionSchema([])).toThrow(/At least one track module is required/);
   });
