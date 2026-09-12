@@ -36,8 +36,65 @@ afterEach(async () => {
 });
 
 describe("SelectRegion", () => {
+  it("tracks the guide only on the overlay and removes it in Pan or while blocked", async () => {
+    const props = { region: { chromosome: "chr1", start: 0, end: 100 }, setRegion: vi.fn() };
+    await renderSelection(props);
+    const overlay = svg!.querySelector("[data-selection-overlay]")!;
+    const guide = svg!.querySelector<SVGLineElement>("[data-cursor-guide]")!;
+    expect(guide.style.visibility).toBe("hidden");
+    await act(async () =>
+      overlay.dispatchEvent(new MouseEvent("pointermove", { bubbles: true, clientX: 55 })),
+    );
+    expect(guide.getAttribute("x1")).toBe("55");
+    expect(guide.style.visibility).toBe("visible");
+    await act(async () => overlay.dispatchEvent(new MouseEvent("pointerout", { bubbles: true })));
+    expect(guide.style.visibility).toBe("hidden");
+    await act(async () => document.dispatchEvent(new MouseEvent("pointermove", { clientX: 80 })));
+    expect(guide.style.visibility).toBe("hidden");
+    for (const change of [{ mode: "pan" as const }, { disabled: true }]) {
+      await rerenderSelection({ ...props, ...change });
+      expect(svg!.querySelector("[data-selection-overlay]")).toBeNull();
+      expect(svg!.querySelector("[data-cursor-guide]")).toBeNull();
+    }
+  });
+
+  it("preserves margin controls and restores track interactions in Pan", async () => {
+    const onTrack = vi.fn();
+    const onMargin = vi.fn();
+    const props = {
+      region: { chromosome: "chr1", start: 0, end: 100 },
+      setRegion: vi.fn(),
+      children: (
+        <g>
+          <rect data-margin="" onClick={onMargin} />
+          <rect data-track="" onPointerMove={onTrack} />
+        </g>
+      ),
+    };
+    await renderSelection(props);
+    await act(async () =>
+      svg!
+        .querySelector("[data-margin]")!
+        .dispatchEvent(new MouseEvent("click", { bubbles: true })),
+    );
+    expect(onMargin).toHaveBeenCalledOnce();
+    const contextMenu = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    await act(async () =>
+      svg!.querySelector("[data-selection-overlay]")!.dispatchEvent(contextMenu),
+    );
+    expect(contextMenu.defaultPrevented).toBe(true);
+    await rerenderSelection({ ...props, mode: "pan" });
+    expect(svg!.querySelector("[data-selection-overlay]")).toBeNull();
+    await act(async () =>
+      svg!
+        .querySelector("[data-track]")!
+        .dispatchEvent(new MouseEvent("pointermove", { bubbles: true })),
+    );
+    expect(onTrack).toHaveBeenCalledOnce();
+  });
+
   it.each(["zoom", "highlight"] as const)(
-    "captures %s selections on track content without covering its hover targets",
+    "covers track content and handles %s selections without invoking tracks",
     async (mode) => {
       const region = { chromosome: "chr1", start: 100, end: 200 };
       const setRegion = vi.fn();
@@ -59,8 +116,14 @@ describe("SelectRegion", () => {
           />
         ),
       });
-      const target = svg!.querySelector("[data-track-content]")!;
-      expect(target.nextElementSibling).toBeNull();
+      const content = svg!.querySelector("[data-track-content]")!;
+      const target = svg!.querySelector("[data-selection-overlay]")!;
+      expect(
+        content.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(target.getAttribute("x")).toBe("20");
+      expect(target.getAttribute("width")).toBe("100");
+      expect((target as SVGElement).style.cursor).toBe("crosshair");
       await act(async () => {
         target.dispatchEvent(new MouseEvent("pointermove", { bubbles: true }));
         target.dispatchEvent(
@@ -73,7 +136,7 @@ describe("SelectRegion", () => {
         document.dispatchEvent(new MouseEvent("pointerup", { clientX: 80 }));
         target.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       });
-      expect(onHover).toHaveBeenCalledOnce();
+      expect(onHover).not.toHaveBeenCalled();
       expect(onPointerDown).not.toHaveBeenCalled();
       expect(onClick).not.toHaveBeenCalled();
       if (mode === "zoom") {
@@ -399,7 +462,7 @@ async function rerenderSelection({
 }
 
 async function startSelection(startX: number, endX: number) {
-  const hitArea = svg?.querySelector("rect");
+  const hitArea = svg?.querySelector("[data-selection-overlay]") ?? svg?.querySelector("rect");
   if (!hitArea) throw new Error("Expected selection hit area");
 
   await act(async () => {

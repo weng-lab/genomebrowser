@@ -119,9 +119,9 @@ it("owns hover highlights and clears them without removing user or other ruler h
     expect(highlights()).toHaveLength(2);
     await point(0, 100, "pointerout");
     await move(110);
-    expect(browserStore.getState().selectionMode).toBe("zoom");
+    expect(browserStore.getState().selectionMode).toBe("pan");
     await move(50, 1);
-    expect(browserStore.getState().selectionMode).toBe("zoom");
+    expect(browserStore.getState().selectionMode).toBe("pan");
     await move(50);
     expect(browserStore.getState().selectionMode).toBe("pan");
     await move(110);
@@ -190,7 +190,7 @@ it("owns hover highlights and clears them without removing user or other ruler h
     ).mockReturnValue(new DOMRect(100, 100, 1000, 22));
     await move(50);
     await move(110);
-    expect(browserStore.getState().selectionMode).toBe("zoom");
+    expect(browserStore.getState().selectionMode).toBe("pan");
     // Simulate core replacing the ruler with loading content during pointer-up.
     document.addEventListener("pointerup", () => flushSync(() => root.render(null)), {
       once: true,
