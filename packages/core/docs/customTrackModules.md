@@ -192,3 +192,7 @@ Tooltips anchor a corner of their SVG bounding box 10 browser-coordinate units f
 `context.type`, `context.base`, and `context.config` reflect the current validated instance. Later base or config mutations therefore reach later interactions and tooltip renders without changing fetch behavior: only `fetchOnChange` fields control config-triggered requests. The core context does not include metadata owned by a collection UI.
 
 Use only package-root exports for module authoring. BigBed-specific renderer reuse is not currently a recommended extension path.
+
+## Fixed annotations
+
+Use [TrackOverlay](TrackOverlay.md) for SVG content anchored to the visible plot during panning, or [TrackLabel](TrackLabel.md) for styled fixed text. Tracks own annotation values and scale calculations; core supplies positioning independent of the panning content.

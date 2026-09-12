@@ -64,3 +64,7 @@ The tooltip always lists **hmC** before **OXBS**. Each row uses its signal color
 | `CaveData`             | Paired top and bottom BigWig record arrays.                         |
 | `CaveTooltipItem`      | Rendered X position and optional top and bottom signal points.      |
 | `CaveInteraction`      | Interaction callbacks receiving `CaveTooltipItem` and `CaveConfig`. |
+
+## Value labels
+
+Full display labels the opposing 0–1 scales inside the plot: “Top” at the left increases downward, and “Bottom” at the right increases upward. A 0.5 label appears when there is room. Labels use monospace text on translucent white backgrounds and do not intercept pointer interactions. They stay fixed at the visible plot edges during panning and update with the rendered scale. Labels that would overlap vertically are omitted, and tracks shorter than 14 pixels omit labels.

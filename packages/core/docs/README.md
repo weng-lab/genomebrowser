@@ -36,3 +36,6 @@ Create the stores once, outside ordinary component render, and pass the same tra
 - [Troubleshooting](troubleshooting.md): diagnose setup, validation, request, and sizing failures.
 
 These docs ship with the package and are self-contained.
+
+- [TrackOverlay](TrackOverlay.md): fixed SVG annotations within a track.
+- [TrackLabel](TrackLabel.md): fixed text labels at plot edges and scale positions.

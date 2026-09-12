@@ -6,6 +6,7 @@ import {
   generateSignal2,
   getMethylCRange,
 } from "./helpers";
+import { MirroredValueLabels } from "./MirroredValueLabels";
 import { clientXToTrackX } from "../shared/coordinates";
 import type { SignalPoint } from "../shared/signal";
 import type { MethylCConfig, MethylCData, MethylCShowRows, MethylCTooltipItem } from "./types";
@@ -100,6 +101,20 @@ export function SplitMethylC({
         {signals.cpgMinus?.values}
         {signals.depthMinus}
       </g>
+      <MirroredValueLabels
+        height={height}
+        range={effectiveRange}
+        plus={[showRows.fwdCpg, showRows.fwdChg, showRows.fwdChh].some(Boolean)}
+        minus={[showRows.revCpg, showRows.revChg, showRows.revChh].some(Boolean)}
+      />
+      <MirroredValueLabels
+        height={height}
+        range={depthRange}
+        plus={showRows.fwdDepth}
+        minus={showRows.revDepth}
+        align="right"
+        prefix="Depth "
+      />
       <MethylCHoverOverlay data={rendered} showRows={showRows} width={width} height={height} />
     </g>
   );

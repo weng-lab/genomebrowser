@@ -62,3 +62,7 @@ The tooltip shows the rendered pixel's maximum signal value with two decimal pla
 | `YRange`               | Complete numeric `{ min, max }` range.                            |
 | `YRangeOverride`       | Optional independent minimum and maximum overrides.               |
 | `BigWigInteraction`    | Interaction callbacks receiving `SignalPoint` and `BigWigConfig`. |
+
+## Value labels
+
+Full display shows the resolved minimum and maximum as small labels inside the plot, with a zero label when the range crosses zero and there is room. Dense display has no vertical value labels because it encodes values as color intensity. Labels use monospace text on translucent white backgrounds and do not intercept pointer interactions. They stay fixed at the visible plot edges during panning and update with the rendered scale. Labels that would overlap vertically are omitted, and tracks shorter than 14 pixels omit labels.

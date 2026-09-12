@@ -1,6 +1,7 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { useRef, useState, type MouseEvent } from "react";
 import { getPointAtMouseX, hasBigWigData } from "../bigwig/helpers";
+import { ValueLabels } from "../shared/ValueLabels";
 import { clientXToTrackX } from "../shared/coordinates";
 import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
 import type { YRange } from "../bigwig/types";
@@ -22,6 +23,23 @@ export function FullCave({
       <line x1={0} x2={width} y1={height / 2} y2={height / 2} stroke="#dddddd" strokeWidth={1} />
       <path d={createCavePath(topPoints, height, "top")} fill={config.topColor} />
       <path d={createCavePath(bottomPoints, height, "bottom")} fill={config.bottomColor} />
+      <ValueLabels
+        height={height}
+        ticks={[
+          { value: 0, y: 0, prefix: "Top " },
+          { value: 1, y: height, prefix: "Top " },
+          { value: 0.5, y: height / 2, prefix: "Top " },
+        ]}
+      />
+      <ValueLabels
+        height={height}
+        align="right"
+        ticks={[
+          { value: 1, y: 0, prefix: "Bottom " },
+          { value: 0, y: height, prefix: "Bottom " },
+          { value: 0.5, y: height / 2, prefix: "Bottom " },
+        ]}
+      />
       <CaveHoverOverlay
         topPoints={topPoints}
         bottomPoints={bottomPoints}
