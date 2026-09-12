@@ -31,7 +31,12 @@ export function TrackSelectToolbar() {
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ mx: 2, flex: 1, minWidth: 0, overflowWrap: "anywhere" }}
+          sx={{
+            mx: { xs: 0, sm: 2 },
+            flex: { xs: "1 1 100%", sm: 1 },
+            minWidth: 0,
+            overflowWrap: "anywhere",
+          }}
         >
           {activeCollection.label} · {activeCollection.assembly}
         </Typography>
