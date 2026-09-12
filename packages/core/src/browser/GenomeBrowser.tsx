@@ -39,6 +39,7 @@ import type { AnyTrackTooltipComponent } from "../modules/types";
 import { SelectRegion } from "./viewport/SelectRegion";
 import { useContentTransform } from "./viewport/useContentTransform";
 import { usePanController } from "./viewport/usePanController";
+import { usePanWheel } from "./viewport/usePanWheel";
 import { useRenderWindow } from "./viewport/useRenderWindow";
 import type { GenomicRegion } from "../genome/region";
 import type { PanDragHandlers } from "./viewport/usePanDrag";
@@ -109,7 +110,7 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
   const { getContentOffset, registerContentGroup, setContentOffset } =
     useContentTransform(baseContentX);
 
-  const { isPanLocked, panDrag, unlockPan } = usePanController({
+  const { isPanLocked, commitPan, panDrag, unlockPan } = usePanController({
     svg,
     region,
     trackWidth,
@@ -179,6 +180,8 @@ export function GenomeBrowser({ browserStore, trackStore, settingsStore }: Genom
                   baseContentX={baseContentX}
                   renderWidth={renderWidth}
                   registerContentGroup={registerContentGroup}
+                  onPanCommit={commitPan}
+                  setContentOffset={setContentOffset}
                   panDrag={panDrag}
                   titleSize={titleSize}
                   trackLayouts={trackLayouts}
@@ -245,6 +248,8 @@ function BrowserView({
   renderWidth,
   registerContentGroup,
   panDrag,
+  onPanCommit,
+  setContentOffset,
   titleSize,
   trackLayouts,
 }: {
@@ -264,6 +269,8 @@ function BrowserView({
   renderWidth: number;
   registerContentGroup: (node: SVGGElement) => () => void;
   panDrag: PanDragHandlers;
+  onPanCommit: (deltaPx: number) => void;
+  setContentOffset: (deltaPx: number) => void;
   titleSize: number;
   trackLayouts: TrackLayout[];
 }) {
@@ -272,6 +279,15 @@ function BrowserView({
   const selectionHighlight = useBrowserStore((state) => state.selectionHighlight);
   const addHighlight = useBrowserStore((state) => state.addHighlight);
   const highlights = useBrowserStore((state) => state.highlights);
+
+  usePanWheel({
+    svg,
+    disabled: isInteractionBlocked || selectionMode !== "pan",
+    trackWidth,
+    isDragging: panDrag.isDragging,
+    setContentOffset,
+    onCommit: onPanCommit,
+  });
 
   return (
     <>
