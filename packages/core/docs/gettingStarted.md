@@ -6,24 +6,19 @@ Install the runtime, the first-party tracks used in this example, and their Reac
 pnpm add @weng-lab/genomebrowser@beta @weng-lab/genomebrowser-tracks@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
 ```
 
-The browser needs one stable browser store, one stable track store, and at least one registered module. The application is responsible for measuring the available track width.
+The browser needs one stable browser store, one stable track store, and at least one registered module. The browser follows its container automatically.
 
 ## Minimal responsive browser
 
 This example registers the first-party BigWig module from `@weng-lab/genomebrowser-tracks`, creates one track, and keeps the SVG track area matched to its container. Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser.
 
 ```tsx
-import { useEffect, useRef } from "react";
 import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-
-const marginWidth = 120;
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
   region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
-  marginWidth,
-  trackWidth: 880,
 });
 
 const useTrackStore = createTrackStore({
@@ -38,23 +33,8 @@ const useTrackStore = createTrackStore({
 });
 
 export function BrowserPage() {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const element = containerRef.current;
-    if (!element) return;
-
-    const observer = new ResizeObserver(([entry]) => {
-      const trackWidth = Math.max(1, entry.contentRect.width - marginWidth);
-      useBrowserStore.getState().setTrackWidth(trackWidth);
-    });
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div ref={containerRef} style={{ width: "100%", overflowX: "auto" }}>
+    <div style={{ width: "100%", minWidth: 0 }}>
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
     </div>
   );
@@ -62,6 +42,8 @@ export function BrowserPage() {
 ```
 
 Store factory results are Zustand hooks, so local names should begin with `use`. Define them outside the component as above, or create them once in another stable initialization boundary. Recreating either store during render resets browser state and request coordination.
+
+For fixed dimensions or whole-browser magnification, see [GenomeBrowser](GenomeBrowser.md). You do not need a container ref, a resize observer, or calls to `setTrackWidth` for responsive sizing.
 
 ## Updating the browser
 

@@ -75,7 +75,9 @@ describe("first-party fetch-on-change behavior", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     await settle(async () => {
-      root?.render(<GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />);
+      root?.render(
+        <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />,
+      );
     });
 
     expectFetchCounts([bigWigFetch, bulkBedFetch, caveFetch, methylCFetch], [1, 1, 1, 1]);

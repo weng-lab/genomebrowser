@@ -38,9 +38,11 @@ Inspect the original error and React component stack in the browser console. Con
 
 ## Browser is blank, clipped, or too wide
 
-The browser does not measure its parent. Set `trackWidth` to a positive value and update it from a `ResizeObserver` when the container changes. The complete SVG width is `marginWidth + trackWidth`, so subtract the margin from the measured host width if the browser should fit exactly.
+The browser measures its own container by default. Ensure the host has a real layout width; use `min-width: 0` on flex/grid items that need to shrink. A responsive browser waits for its first positive measurement before rendering tracks and preserves its last usable width while hidden.
 
-Also ensure the host has a real layout width and decide whether narrow containers should resize the browser or allow horizontal scrolling.
+Use `sizing="fixed"` to render the configured `marginWidth + trackWidth`, multiplied by `scale`. The wrapper scrolls horizontally when that width exceeds the available space. `setTrackWidth` only controls fixed sizing; remove application resize observers when using the default responsive mode.
+
+`scale` must be finite and greater than zero. Large scales enlarge the gutter too; containers narrower than the scaled gutter plus one logical track unit scroll rather than producing a zero or negative track width. See [GenomeBrowser](GenomeBrowser.md).
 
 ## State resets on React renders
 
@@ -54,4 +56,4 @@ After browser-store construction, `setRegion`, `zoom`, and `setTrackWidth` use r
 
 ## Client-runtime requirements
 
-Use the package in a React 19.2+ client environment with `react` and `react-dom` installed. Rendering and interaction depend on browser SVG/DOM APIs, pointer events, and network access. Responsive examples additionally use `ResizeObserver`. In SSR frameworks, render the browser from a client-only boundary rather than expecting server-side SVG output.
+Use the package in a React 19.2+ client environment with `react` and `react-dom` installed. Rendering and interaction depend on browser SVG/DOM APIs, pointer events, and network access. Default responsive sizing also requires `ResizeObserver`. In SSR frameworks, render the browser from a client-only boundary rather than expecting server-side SVG output.

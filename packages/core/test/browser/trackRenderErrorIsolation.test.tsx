@@ -80,7 +80,9 @@ describe("track render error isolation", () => {
       tracks: [brokenTrack, healthyTrack],
     });
 
-    await render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />);
+    await render(
+      <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+    );
 
     const svg = requiredElement<SVGSVGElement>("#browserSVG");
     const fallbackText = requiredText("Track unavailable: Broken track");
