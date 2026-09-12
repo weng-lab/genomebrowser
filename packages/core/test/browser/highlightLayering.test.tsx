@@ -41,7 +41,7 @@ it("paints an opaque genomic highlight behind track marks and keeps row backgrou
   });
   const trackStore = createTrackStore({
     modules: [module],
-    tracks: [module.create({ id: "marks", title: "Marks", config: {} })],
+    tracks: [module.create({ base: { id: "marks", title: "Marks" }, config: {} })],
   });
   const container = document.createElement("div");
   document.body.append(container);

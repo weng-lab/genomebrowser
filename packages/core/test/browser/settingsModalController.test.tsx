@@ -121,8 +121,10 @@ describe("SettingsModalController", () => {
 
     const module = { ...signalModule, settingsComponent: ModuleSettings };
     const track = module.create({
-      id: "track",
-      title: "Track",
+      base: {
+        id: "track",
+        title: "Track",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
     const trackStore = createTrackStore({ modules: [module], tracks: [track] });
@@ -188,15 +190,19 @@ describe("SettingsModalController", () => {
       settingsComponent: ModuleSettings,
     });
     const first = module.create({
-      id: "first",
-      title: "First",
+      base: {
+        id: "first",
+        title: "First",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
     const onClick = () => undefined;
     const active = module.create(
       {
-        id: "active",
-        title: "Active",
+        base: {
+          id: "active",
+          title: "Active",
+        },
         config: { url: "YOUR_OTHER_URL_HERE" },
       },
       { onClick },
@@ -262,13 +268,17 @@ describe("SettingsModalController", () => {
     }
 
     const first = signalModule.create({
-      id: "first",
-      title: "First",
+      base: {
+        id: "first",
+        title: "First",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
     const second = signalModule.create({
-      id: "second",
-      title: "Second",
+      base: {
+        id: "second",
+        title: "Second",
+      },
       config: { url: "YOUR_OTHER_URL_HERE" },
     });
     const trackStore = createTrackStore({ modules: [signalModule], tracks: [first, second] });

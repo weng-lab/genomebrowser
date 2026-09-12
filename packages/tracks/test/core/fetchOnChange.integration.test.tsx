@@ -44,23 +44,31 @@ describe("first-party fetch-on-change behavior", () => {
       modules,
       tracks: [
         bigWigModule.create({
-          id: "bigwig",
-          title: "BigWig",
+          base: {
+            id: "bigwig",
+            title: "BigWig",
+          },
           config: { url: "BIGWIG_A" },
         }),
         bulkBedModule.create({
-          id: "bulkbed",
-          title: "BulkBed",
+          base: {
+            id: "bulkbed",
+            title: "BulkBed",
+          },
           config: { datasets: [{ name: "Dataset A", url: "BULKBED_A" }] },
         }),
         caveModule.create({
-          id: "cave",
-          title: "CAVE",
+          base: {
+            id: "cave",
+            title: "CAVE",
+          },
           config: { neurotransmitter: "GABA", age: "Adulthood" },
         }),
         methylCModule.create({
-          id: "methylc",
-          title: "MethylC",
+          base: {
+            id: "methylc",
+            title: "MethylC",
+          },
           config: { urls },
         }),
       ],

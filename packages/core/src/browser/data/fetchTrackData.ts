@@ -25,9 +25,8 @@ export async function fetchTrackData({
     const fetchTrack = module.fetch as TrackFetch<unknown, unknown>;
     const data = await fetchTrack({
       track: {
-        id: track.base.id,
+        base: { id: track.base.id, display: track.base.display },
         type: track.type,
-        display: track.base.display,
         config: track.config,
       },
       demand: { assembly, region, width },

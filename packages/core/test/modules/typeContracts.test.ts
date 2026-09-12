@@ -45,11 +45,13 @@ describe("track module type contracts", () => {
 
   it("derives create input from each module config schema", () => {
     expectTypeOf<ModuleCreateInput<typeof moduleA>>().toEqualTypeOf<{
-      id: string;
-      title: string;
-      display?: "full" | undefined;
-      height?: number | undefined;
-      color?: string | undefined;
+      base: {
+        id: string;
+        title: string;
+        display?: "full" | undefined;
+        height?: number | undefined;
+        color?: string | undefined;
+      };
       source?: "host" | "user" | undefined;
       config: {
         url: string;
@@ -58,11 +60,13 @@ describe("track module type contracts", () => {
     }>();
 
     expectTypeOf<ModuleCreateInput<typeof moduleB>>().toEqualTypeOf<{
-      id: string;
-      title: string;
-      display?: "dense" | undefined;
-      height?: number | undefined;
-      color?: string | undefined;
+      base: {
+        id: string;
+        title: string;
+        display?: "dense" | undefined;
+        height?: number | undefined;
+        color?: string | undefined;
+      };
       source?: "host" | "user" | undefined;
       config: {
         endpoint: string;
@@ -79,20 +83,22 @@ describe("track module type contracts", () => {
       render: { full: Renderer, dense: Renderer },
     });
 
-    expectTypeOf<ModuleCreateInput<typeof moduleA>["display"]>().toEqualTypeOf<
+    expectTypeOf<ModuleCreateInput<typeof moduleA>["base"]["display"]>().toEqualTypeOf<
       "full" | undefined
     >();
-    expectTypeOf<ModuleCreateInput<typeof multiDisplayModule>["display"]>().toEqualTypeOf<
+    expectTypeOf<ModuleCreateInput<typeof multiDisplayModule>["base"]["display"]>().toEqualTypeOf<
       "full" | "dense" | undefined
     >();
 
     // eslint-disable-next-line no-constant-condition -- Compile-time-only negative type assertions.
     if (false) {
       moduleA.create({
-        id: "track-a",
-        title: "Track A",
-        // @ts-expect-error display must be one of the module's renderer keys.
-        display: "dense",
+        base: {
+          id: "track-a",
+          title: "Track A",
+          // @ts-expect-error display must be one of the module's renderer keys.
+          display: "dense",
+        },
         config: { url: "YOUR_URL_HERE" },
       });
 
@@ -137,9 +143,11 @@ describe("track module type contracts", () => {
 
   it("creates entries as the precise registry instance union", () => {
     const track = createTrackFromEntry(registry, {
+      base: {
+        id: "track-a",
+        title: "Track A",
+      },
       type: "a",
-      id: "track-a",
-      title: "Track A",
       config: { url: "YOUR_URL_HERE" },
     });
 
@@ -172,8 +180,10 @@ describe("track module type contracts", () => {
 
     const track = moduleA.create(
       {
-        id: "track-a",
-        title: "Track A",
+        base: {
+          id: "track-a",
+          title: "Track A",
+        },
         config: { url: "YOUR_URL_HERE" },
       },
       interaction,
@@ -244,9 +254,11 @@ describe("track module type contracts", () => {
   it("creates collection entries through the runtime validation boundary", () => {
     expect(
       createTrackFromEntry(registry, {
+        base: {
+          id: "track-a",
+          title: "Track A",
+        },
         type: "a",
-        id: "track-a",
-        title: "Track A",
         metadata: { assay: "signal" },
         config: { url: "YOUR_URL_HERE" },
       }),
@@ -264,18 +276,22 @@ describe("track module type contracts", () => {
 
     expect(() =>
       createTrackFromEntry(registry, {
+        base: {
+          id: "track-missing",
+          title: "Track Missing",
+        },
         type: "missing",
-        id: "track-missing",
-        title: "Track Missing",
         config: {},
       }),
     ).toThrow(/No track module registered for type: missing/);
 
     expect(() =>
       createTrackFromEntry(registry, {
+        base: {
+          id: "track-a",
+          title: "Track A",
+        },
         type: "a",
-        id: "track-a",
-        title: "Track A",
         config: {},
       }),
     ).toThrow(/a input is invalid/);

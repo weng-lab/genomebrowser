@@ -163,28 +163,34 @@ const modules = [
 const useTrackStore = createTrackStore({
   modules,
   tracks: [
-    rulerModule.create({ id: "reference-ruler", title: "Coordinates", config: {} }),
+    rulerModule.create({ base: { id: "reference-ruler", title: "Coordinates" }, config: {} }),
     bigWigUiModule.create({
-      id: "bigwig-settings-example",
-      title: "BigWig settings: DNase aggregate",
-      color: "#1B2021",
+      base: {
+        id: "bigwig-settings-example",
+        title: "BigWig settings: DNase aggregate",
+        color: "#1B2021",
+      },
       config: {
         url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
       },
     }),
     bigBedUiModule.create({
-      id: "bigbed-settings-example",
-      title: "BigBed settings: ENCODE cCREs",
-      color: "#4b9560",
-      display: "dense",
+      base: {
+        id: "bigbed-settings-example",
+        title: "BigBed settings: ENCODE cCREs",
+        color: "#4b9560",
+        display: "dense",
+      },
       config: {
         url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed",
       },
     }),
     bulkBedUiModule.create({
-      id: "bulkbed-settings-example",
-      title: "BulkBed settings: ENCODE datasets",
-      color: "#4b9560",
+      base: {
+        id: "bulkbed-settings-example",
+        title: "BulkBed settings: ENCODE datasets",
+        color: "#4b9560",
+      },
       config: {
         gap: 4,
         datasets: [
@@ -196,26 +202,32 @@ const useTrackStore = createTrackStore({
       },
     }),
     transcriptUiModule.create({
-      id: "transcript-settings-example",
-      title: "Transcript settings: GENCODE genes",
-      display: "squish",
-      color: "#444444",
+      base: {
+        id: "transcript-settings-example",
+        title: "Transcript settings: GENCODE genes",
+        display: "squish",
+        color: "#444444",
+      },
       config: {
         assembly: "GRCh38",
         version: 40,
       },
     }),
     caveUiModule.create({
-      id: "cave-settings-example",
-      title: "CAVE settings: adult GABA",
+      base: {
+        id: "cave-settings-example",
+        title: "CAVE settings: adult GABA",
+      },
       config: {
         neurotransmitter: "GABA",
         age: "Adulthood",
       },
     }),
     methylCUiModule.create({
-      id: "methylc-settings-example",
-      title: "MethylC settings: EB100001",
+      base: {
+        id: "methylc-settings-example",
+        title: "MethylC settings: EB100001",
+      },
       config: {
         range: { min: 0, max: 1 },
         urls: {

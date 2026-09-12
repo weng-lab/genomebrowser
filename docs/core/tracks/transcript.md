@@ -5,15 +5,14 @@
 ## Config
 
 ```ts
-const track = transcriptModule.create({
+const track = transcriptModule.create({ base: {
   id: "genes",
-  title: "Genes",
+  title: "Genes"},
   config: {
     endpoint: "/api/screen-graphql",
     assembly: "GRCh38",
     version: 47,
-  },
-});
+  }});
 ```
 
 Fields:

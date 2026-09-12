@@ -12,7 +12,7 @@ export type ModuleRegistry<Modules extends readonly AnyTrackModule[] = readonly 
     get(type: string): Modules[number];
   };
 
-export type TrackCollectionEntry = TrackCreateInput<unknown> & {
+export type TrackCollectionEntry = TrackCreateInput<Record<string, unknown>> & {
   type: string;
   metadata?: Record<string, string | number | boolean | null>;
 };

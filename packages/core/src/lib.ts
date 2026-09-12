@@ -20,6 +20,7 @@ export type {
   ModuleInstance,
   ReadonlyTrackInstance,
   TrackBase,
+  TrackBaseInput,
   TrackBaseUpdate,
   TrackCreateInput,
   TrackFetch,

@@ -32,9 +32,13 @@ export type {
   TrackSelectInteractionResolver,
 } from "./TrackSelect/collection/collectionInteraction";
 export type {
-  TrackSelectCollection,
-  TrackSelectMetadata,
-  TrackSelectTrack,
-} from "./TrackSelect/schema/collectionSchema";
-export { generateTrackCollectionJsonSchema } from "./TrackSelect/schema/generateJsonSchema";
-export { validateJson } from "./TrackSelect/schema/validateJson";
+  TrackCollection,
+  TrackCollectionView,
+  TrackCollectionColumn,
+  TrackMetadata,
+  TrackCollectionTrack,
+} from "./collections/collectionSchema";
+export { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
+export { validateJson } from "./collections/validateJson";
+
+export { createTrackCollectionSchema } from "./collections/collectionSchema";

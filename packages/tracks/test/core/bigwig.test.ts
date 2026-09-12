@@ -46,9 +46,11 @@ function createContext(
 ): TrackFetchContext<TestBigWigConfig> {
   return {
     track: {
-      id: "signal",
+      base: {
+        id: "signal",
+        display: "full",
+      },
       type: "bigwig",
-      display: "full",
       config: {
         url,
         fillWithZero: false,

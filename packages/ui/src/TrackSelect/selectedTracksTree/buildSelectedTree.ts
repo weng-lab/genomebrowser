@@ -1,7 +1,7 @@
 import { getOrderedSelectedRows } from "../collection/collectionOrder";
 import { formatCollectionValue, groupRowsByField } from "../collection/collectionGrouping";
 import type { TrackSelectCollectionRecord } from "../collection/collectionCompilation";
-import type { TrackSelectView } from "../schema/collectionSchema";
+import type { TrackCollectionView } from "../../collections/collectionSchema";
 
 export type SelectedTreeNode = {
   id: string;
@@ -17,7 +17,7 @@ export function buildSelectedTree({
   selectedIds,
 }: {
   collection: TrackSelectCollectionRecord;
-  view: TrackSelectView;
+  view: TrackCollectionView;
   selectedIds: Set<string>;
 }): SelectedTreeNode | undefined {
   const rows = getOrderedSelectedRows(collection, view, selectedIds);

@@ -3,12 +3,12 @@ import type {
   TrackInteraction,
   TrackRuntimeContext,
 } from "@weng-lab/genomebrowser";
-import type { TrackSelectMetadata, TrackSelectTrack } from "../schema/collectionSchema";
+import type { TrackMetadata, TrackCollectionTrack } from "../../collections/collectionSchema";
 
 export type TrackSelectCollectionContext = Readonly<{
   collectionId: string;
   authoredTrackId: string;
-  metadata: Readonly<TrackSelectMetadata>;
+  metadata: Readonly<TrackMetadata>;
 }>;
 
 type TrackSelectInteractionCallback<Item, Config> = (
@@ -29,7 +29,7 @@ export type TrackSelectInteractionResolver = (
   entry: Readonly<{
     collectionId: string;
     qualifiedTrackId: string;
-    track: TrackSelectTrack;
+    track: TrackCollectionTrack;
   }>,
 ) => AnyTrackSelectInteraction | undefined;
 

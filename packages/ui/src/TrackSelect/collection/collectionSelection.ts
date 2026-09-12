@@ -1,4 +1,4 @@
-import type { TrackSelectView } from "../schema/collectionSchema";
+import type { TrackCollectionView } from "../../collections/collectionSchema";
 import { getOrderedSelectedRows } from "./collectionOrder";
 import type {
   CompiledTrackCollections,
@@ -43,7 +43,7 @@ export function setOrderedCollectionSelection({
 }: {
   selectedTrackIds: readonly string[];
   collection: TrackSelectCollectionRecord;
-  view: TrackSelectView;
+  view: TrackCollectionView;
   selectedIds: Set<string>;
 }) {
   const next = selectedTrackIds.filter((id) => !collection.trackIds.has(id) || selectedIds.has(id));

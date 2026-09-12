@@ -103,10 +103,12 @@ function renderSettings(initialConfig = config) {
     (update: TrackUpdate<TranscriptConfig, Transcript>) => TrackMutationResult
   >(() => ({ ok: true }));
   const track = transcriptModule.create({
-    id: "genes",
-    title: "Genes",
-    height: 90,
-    color: "#7a4fb3",
+    base: {
+      id: "genes",
+      title: "Genes",
+      height: 90,
+      color: "#7a4fb3",
+    },
     config: initialConfig,
   });
   container = document.createElement("div");

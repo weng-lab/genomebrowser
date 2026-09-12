@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
-import type { TrackSelectCollection } from "../src/TrackSelect/schema/collectionSchema";
+import type { TrackCollection } from "../src/collections/collectionSchema";
 
-const collection: TrackSelectCollection = {
+const collection: TrackCollection = {
+  assembly: "hg38",
   id: "catalog",
   label: "Catalog",
   views: [
@@ -16,9 +17,11 @@ const collection: TrackSelectCollection = {
   ],
   tracks: [
     {
+      base: {
+        id: "one",
+        title: "Track one",
+      },
       type: "signal",
-      id: "one",
-      title: "Track one",
       config: { url: "one" },
       metadata: { assay: "RNA", id: "metadata-id" },
     },
@@ -62,12 +65,20 @@ describe("TrackSelect collection compilation", () => {
 
   it("creates distinct keys when IDs contain key delimiters", () => {
     const combinedId = compileTrackCollections([
-      { ...collection, tracks: [{ ...collection.tracks[0]!, id: "one,two" }] },
+      {
+        ...collection,
+        tracks: [
+          { ...collection.tracks[0]!, base: { ...collection.tracks[0]!.base, id: "one,two" } },
+        ],
+      },
     ]);
     const separateIds = compileTrackCollections([
       {
         ...collection,
-        tracks: [collection.tracks[0]!, { ...collection.tracks[0]!, id: "two" }],
+        tracks: [
+          collection.tracks[0]!,
+          { ...collection.tracks[0]!, base: { ...collection.tracks[0]!.base, id: "two" } },
+        ],
       },
     ]);
 

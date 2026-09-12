@@ -29,11 +29,13 @@ describe("BigBed settings", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     const track = bigBedModule.create({
-      id: "bigbed",
-      title: "BigBed",
-      display: "dense",
-      height: 60,
-      color: "#4b9560",
+      base: {
+        id: "bigbed",
+        title: "BigBed",
+        display: "dense",
+        height: 60,
+        color: "#4b9560",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
     act(() => {

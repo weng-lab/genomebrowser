@@ -37,8 +37,8 @@ export default function SizingHarness() {
     createTrackStore({
       modules: [rulerModule, exampleModule],
       tracks: [
-        rulerModule.create({ id: "ruler", title: "Coordinates", config: {} }),
-        exampleModule.create({ id: "features", title: "Example features", config: {} }),
+        rulerModule.create({ base: { id: "ruler", title: "Coordinates" }, config: {} }),
+        exampleModule.create({ base: { id: "features", title: "Example features" }, config: {} }),
       ],
     }),
   );

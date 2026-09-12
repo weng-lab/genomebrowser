@@ -22,7 +22,7 @@ Each module implements `TrackModule` from `@weng-lab/genomebrowser`:
 - `module.create(input, interaction?)` parses the input, applies defaults, and returns a runtime track instance.
 - `module.validate(instance)` validates an existing runtime instance.
 - `module.configSchema` is a strict Zod schema for module-specific config.
-- `module.createInputSchema` is a strict Zod schema for `id`, `title`, optional `display`, `height`, and `color`, plus module-specific `config`.
+- `module.createInputSchema` is a strict Zod schema for `base` (required `id` and `title`, optional `display`, `height`, and `color`), optional `source`, and module-specific `config`.
 - `module.displays` lists supported display modes.
 - `module.fetch`, `module.render`, `module.settingsComponent`, and `module.tooltipComponent` are ready for the runtime to call.
 
@@ -44,8 +44,10 @@ import {
 } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const input: BigWigCreateInput = {
-  id: "signal",
-  title: "Signal",
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 };
 
@@ -70,8 +72,10 @@ const interaction: BigBedInteraction = {
 
 const track = bigBedModule.create(
   {
-    id: "regions",
-    title: "Regions",
+    base: {
+      id: "regions",
+      title: "Regions",
+    },
     config: { url: "YOUR_URL_HERE" },
   },
   interaction,

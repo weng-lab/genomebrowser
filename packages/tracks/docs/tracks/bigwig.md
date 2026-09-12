@@ -8,8 +8,10 @@ Use `bigWigModule` for quantitative signal stored in one BigWig file. It expects
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const track = bigWigModule.create({
-  id: "signal",
-  title: "Signal",
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 ```

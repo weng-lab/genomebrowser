@@ -36,8 +36,10 @@ export default function BedSchemaHarness() {
       tracks: [
         bigBedModule.create(
           {
-            id: "chromhmm",
-            title: "ChromHMM · single",
+            base: {
+              id: "chromhmm",
+              title: "ChromHMM · single",
+            },
             config: {
               url: chromHmmSources[0].url,
               bedSchema: "bed9",
@@ -48,8 +50,10 @@ export default function BedSchemaHarness() {
         ),
         bulkBedModule.create(
           {
-            id: "bulk-chromhmm",
-            title: "ChromHMM · bulk",
+            base: {
+              id: "bulk-chromhmm",
+              title: "ChromHMM · bulk",
+            },
             config: {
               datasets: chromHmmSources,
               bedSchema: "bed9",
@@ -61,8 +65,10 @@ export default function BedSchemaHarness() {
         ),
         bigBedModule.create(
           {
-            id: "ccres",
-            title: "cCREs · single",
+            base: {
+              id: "ccres",
+              title: "cCREs · single",
+            },
             config: {
               url: ccreSources[0].url,
               bedSchema: "ccre",
@@ -73,8 +79,10 @@ export default function BedSchemaHarness() {
         ),
         bulkBedModule.create(
           {
-            id: "bulk-ccres",
-            title: "cCREs · bulk",
+            base: {
+              id: "bulk-ccres",
+              title: "cCREs · bulk",
+            },
             config: {
               datasets: ccreSources,
               bedSchema: "ccre",

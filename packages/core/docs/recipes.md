@@ -59,8 +59,10 @@ const runtimeModule = defineTrackModule<Item>()({
 
 const runtimeTrack = runtimeModule.create(
   {
-    id: "runtime-example",
-    title: "Runtime example",
+    base: {
+      id: "runtime-example",
+      title: "Runtime example",
+    },
     config: { url: "YOUR_URL_HERE" },
   },
   {
@@ -107,8 +109,10 @@ Create a track through its module, then check the store mutation result:
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const nextTrack = bigWigModule.create({
-  id: "signal-2",
-  title: "Second signal",
+  base: {
+    id: "signal-2",
+    title: "Second signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 
@@ -140,8 +144,10 @@ Use `applyTrackChanges` when adds and removals must succeed together. This also 
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const replacement = bigWigModule.create({
-  id: "signal",
-  title: "Replacement signal",
+  base: {
+    id: "signal",
+    title: "Replacement signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 

@@ -24,7 +24,7 @@ const module = defineTrackModule({
   fetch: async () => null,
   render: { full: () => null },
 });
-const track = module.create({ id: "test", title: "Test track", config: {} });
+const track = module.create({ base: { id: "test", title: "Test track" }, config: {} });
 let container: HTMLDivElement;
 let root: Root;
 

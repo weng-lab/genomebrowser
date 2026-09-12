@@ -4,8 +4,10 @@ import { ccreBigBedModule, ccreBigBedSchema } from "../../src/ccre";
 describe("cCRE BigBed track", () => {
   it("defines a distinct module type", () => {
     const track = ccreBigBedModule.create({
-      id: "ccres",
-      title: "cCREs",
+      base: {
+        id: "ccres",
+        title: "cCREs",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
 

@@ -29,7 +29,8 @@ export function getReconciledTracks({
     const existingTrack = existingTracksById.get(id);
     const entry = collectionTracksById.get(id)!;
     const track = {
-      ...(existingTrack ?? createTrackFromEntry(registry, { ...entry.track, id })),
+      ...(existingTrack ??
+        createTrackFromEntry(registry, { ...entry.track, base: { ...entry.track.base, id } })),
       source: "host" as const,
     };
     if (!resolveTrackInteraction) return track;
@@ -42,8 +43,8 @@ export function getReconciledTracks({
       ...trackWithoutInteraction,
       interaction: adaptTrackSelectInteraction(resolvedInteraction, {
         collectionId: entry.collectionId,
-        authoredTrackId: entry.track.id,
-        metadata: entry.track.metadata,
+        authoredTrackId: entry.track.base.id,
+        metadata: entry.track.metadata ?? {},
       }),
     };
   });

@@ -13,7 +13,7 @@ vi.mock("../../src/ruler/useRulerHoverHighlight", () => ({
 }));
 vi.mock("@weng-lab/genomic-reader", () => ({ createTwoBitFile: createFile }));
 const region = { chromosome: "chr1", start: 100, end: 110 };
-const input = { id: "ruler", title: "Reference", config: {} };
+const input = { base: { id: "ruler", title: "Reference" }, config: {} };
 const url = "https://example.test/reference.2bit";
 afterEach(() => vi.resetAllMocks());
 function resources(): TrackResources {
@@ -112,9 +112,11 @@ describe("ruler module", () => {
     const fetch = (width: number, sequenceUrl?: string, viewportSpan = 10) =>
       rulerModule.fetch({
         track: {
-          id: "ruler",
+          base: {
+            id: "ruler",
+            display: "full",
+          },
           type: "ruler",
-          display: "full",
           config: { ...rulerModule.create(input).config, sequenceUrl, sequenceMinPixelsPerBase: 5 },
         },
         demand: { region: { ...region, end: region.start + viewportSpan }, width, assembly: hg38 },

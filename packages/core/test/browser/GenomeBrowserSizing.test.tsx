@@ -69,7 +69,7 @@ function fixture() {
   });
   const useTrackStore = createTrackStore({
     modules: [module],
-    tracks: [module.create({ id: "track", title: "Track", height: 20, config: {} })],
+    tracks: [module.create({ base: { id: "track", title: "Track", height: 20 }, config: {} })],
   });
   return {
     useBrowserStore,

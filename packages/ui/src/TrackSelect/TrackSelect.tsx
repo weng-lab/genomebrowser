@@ -6,7 +6,7 @@ import type { TrackSelectInteractionResolver } from "./collection/collectionInte
 import { assertValidCollectionTrackIds, getReconciledTracks } from "./collection/collectionStore";
 import { TrackSelectContent } from "./layout/trackSelectContent";
 import { TrackSelectDialog } from "./layout/trackSelectDialog";
-import { validateJson } from "./schema/validateJson";
+import { validateJson } from "../collections/validateJson";
 
 export type TrackSelectProps = {
   open: boolean;

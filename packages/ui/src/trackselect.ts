@@ -5,7 +5,7 @@ import process from "node:process";
 import { parseArgs } from "node:util";
 import { createModuleRegistry, type AnyTrackModule } from "@weng-lab/genomebrowser";
 import { createJiti } from "jiti";
-import { generateTrackCollectionJsonSchema } from "./TrackSelect/schema/generateJsonSchema";
+import { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
 
 const defaultSchemaOutFile = "trackSelectCollection.schema.json";
 

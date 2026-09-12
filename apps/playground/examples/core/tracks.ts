@@ -13,7 +13,9 @@ export const testTrackModule = defineTrackModule({
 });
 
 export const testTrack = testTrackModule.create({
-  id: "test-track",
-  title: "Test track",
+  base: {
+    id: "test-track",
+    title: "Test track",
+  },
   config: { label: "Local fixture" },
 });

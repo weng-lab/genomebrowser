@@ -32,8 +32,10 @@ export default function HumanCcreHarness() {
       tracks: [
         bigBedModule.create(
           {
-            id: "ccres",
-            title: "cCREs · single",
+            base: {
+              id: "ccres",
+              title: "cCREs · single",
+            },
             config: {
               url: ccreSources[0].url,
               bedSchema: "ccre",
@@ -44,8 +46,10 @@ export default function HumanCcreHarness() {
         ),
         bulkBedModule.create(
           {
-            id: "bulk-ccres",
-            title: "cCREs · bulk",
+            base: {
+              id: "bulk-ccres",
+              title: "cCREs · bulk",
+            },
             config: {
               datasets: ccreSources,
               bedSchema: "ccre",

@@ -25,8 +25,10 @@ const useTrackStore = createTrackStore({
   modules: [bigWigModule],
   tracks: [
     bigWigModule.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     }),
   ],

@@ -17,8 +17,10 @@ import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const signalTrack = bigWigModule.create({
-  id: "signal",
-  title: "Signal",
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 

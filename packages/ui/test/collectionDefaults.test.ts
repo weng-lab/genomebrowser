@@ -20,10 +20,7 @@ import {
   setOrderedCollectionSelection,
 } from "../src/TrackSelect/collection/collectionSelection";
 import { getReconciledTracks } from "../src/TrackSelect/collection/collectionStore";
-import type {
-  TrackSelectCollection,
-  TrackSelectView,
-} from "../src/TrackSelect/schema/collectionSchema";
+import type { TrackCollection, TrackCollectionView } from "../src/collections/collectionSchema";
 
 function Renderer() {
   return null;
@@ -40,7 +37,7 @@ const signalModule = defineTrackModule<SignalItem>()({
 });
 const registry = createModuleRegistry([signalModule]);
 
-const defaultView: TrackSelectView = {
+const defaultView: TrackCollectionView = {
   id: "default",
   label: "Default",
   columns: [{ field: "title" }],
@@ -48,37 +45,45 @@ const defaultView: TrackSelectView = {
   leaf: "title",
 };
 
-const collections: TrackSelectCollection[] = [
+const collections: TrackCollection[] = [
   {
+    assembly: "hg38",
     id: "alpha",
     label: "Alpha",
     views: [defaultView],
     tracks: [
       {
+        base: {
+          id: "one",
+          title: "Alpha one",
+        },
         type: "signal",
-        id: "one",
-        title: "Alpha one",
         config: { url: "alpha-one" },
         metadata: {},
       },
       {
+        base: {
+          id: "two",
+          title: "Alpha two",
+        },
         type: "signal",
-        id: "two",
-        title: "Alpha two",
         config: { url: "alpha-two" },
         metadata: {},
       },
     ],
   },
   {
+    assembly: "hg38",
     id: "beta",
     label: "Beta",
     views: [defaultView],
     tracks: [
       {
+        base: {
+          id: "one",
+          title: "Beta one",
+        },
         type: "signal",
-        id: "one",
-        title: "Beta one",
         config: { url: "beta-one" },
         metadata: {},
       },
@@ -90,18 +95,24 @@ const compiledCollections = compileTrackCollections(collections);
 describe("TrackSelect default track reconciliation", () => {
   it("preserves non-collection tracks and applies the exact cross-collection order", () => {
     const unmanagedTrack = signalModule.create({
-      id: "unmanaged",
-      title: "Unmanaged",
+      base: {
+        id: "unmanaged",
+        title: "Unmanaged",
+      },
       config: { url: "unmanaged" },
     });
     const existingDefault = signalModule.create({
-      id: "alpha::one",
-      title: "Existing alpha one",
+      base: {
+        id: "alpha::one",
+        title: "Existing alpha one",
+      },
       config: { url: "existing" },
     });
     const unselectedCollectionTrack = signalModule.create({
-      id: "alpha::two",
-      title: "Unselected alpha two",
+      base: {
+        id: "alpha::two",
+        title: "Unselected alpha two",
+      },
       config: { url: "unselected" },
     });
 
@@ -130,13 +141,17 @@ describe("TrackSelect default track reconciliation", () => {
 
   it("treats an empty default list as an authoritative collection clear", () => {
     const unmanagedTrack = signalModule.create({
-      id: "unmanaged",
-      title: "Unmanaged",
+      base: {
+        id: "unmanaged",
+        title: "Unmanaged",
+      },
       config: { url: "unmanaged" },
     });
     const collectionTrack = signalModule.create({
-      id: "alpha::one",
-      title: "Alpha one",
+      base: {
+        id: "alpha::one",
+        title: "Alpha one",
+      },
       config: { url: "alpha-one" },
     });
 
@@ -230,11 +245,11 @@ describe("TrackSelect default track reconciliation", () => {
     const unmanagedInteraction = { onClick: vi.fn() };
     const existingInteraction = { onHover: vi.fn(), onLeave: vi.fn() };
     const unmanagedTrack = signalModule.create(
-      { id: "unmanaged", title: "Unmanaged", config: { url: "unmanaged" } },
+      { base: { id: "unmanaged", title: "Unmanaged" }, config: { url: "unmanaged" } },
       unmanagedInteraction,
     );
     const existingTrack = signalModule.create(
-      { id: "alpha::one", title: "Existing", config: { url: "existing" } },
+      { base: { id: "alpha::one", title: "Existing" }, config: { url: "existing" } },
       existingInteraction,
     );
 

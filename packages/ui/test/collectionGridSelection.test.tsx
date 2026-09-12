@@ -5,12 +5,13 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
 import { CollectionGrid } from "../src/TrackSelect/collection/collectionGrid";
-import type { TrackSelectCollection } from "../src/TrackSelect/schema/collectionSchema";
+import type { TrackCollection } from "../src/collections/collectionSchema";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
-const collection: TrackSelectCollection = {
+const collection: TrackCollection = {
+  assembly: "hg38",
   id: "catalog",
   label: "Collection",
   views: [
@@ -24,31 +25,37 @@ const collection: TrackSelectCollection = {
   ],
   tracks: [
     {
-      id: "one",
+      base: {
+        id: "one",
+        title: "Track one",
+      },
       type: "signal",
-      title: "Track one",
       config: { url: "one" },
       metadata: { category: "Group A", subgroup: "Nested A" },
     },
     {
-      id: "two",
+      base: {
+        id: "two",
+        title: "Track two",
+      },
       type: "signal",
-      title: "Track two",
       config: { url: "two" },
       metadata: { category: "Group A", subgroup: "Nested A" },
     },
     {
-      id: "three",
+      base: {
+        id: "three",
+        title: "Track three",
+      },
       type: "signal",
-      title: "Track three",
       config: { url: "three" },
       metadata: { category: "Group B", subgroup: "Nested B" },
     },
   ],
 };
 
-const view = collection.views[0]!;
 const collectionRecord = compileTrackCollections([collection]).records[0]!;
+const view = collectionRecord.views[0]!;
 const groupALeafIds = ["catalog::one", "catalog::two"];
 
 let container: HTMLDivElement | undefined;

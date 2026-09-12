@@ -21,7 +21,7 @@ describe("fetchTrackData", () => {
       fetch: async ({ track, demand }) => [
         {
           url: track.config.url,
-          trackId: track.id,
+          trackId: track.base.id,
           assembly: demand.assembly.id,
           width: demand.width,
         },
@@ -35,8 +35,10 @@ describe("fetchTrackData", () => {
         registry,
         resourceStore: createTrackResourceStore(),
         track: module.create({
-          id: "signal",
-          title: "Signal",
+          base: {
+            id: "signal",
+            title: "Signal",
+          },
           config: { url: "YOUR_URL_HERE" },
         }),
         assembly,
@@ -90,8 +92,10 @@ describe("fetchTrackData", () => {
         registry,
         resourceStore: createTrackResourceStore(),
         track: module.create({
-          id: "signal",
-          title: "Signal",
+          base: {
+            id: "signal",
+            title: "Signal",
+          },
           config: { url: "YOUR_URL_HERE" },
         }),
         assembly,
@@ -114,7 +118,7 @@ describe("fetchTrackData", () => {
     });
     const registry = createModuleRegistry([module]);
     const resourceStore = createTrackResourceStore();
-    const track = module.create({ id: "signal", title: "Signal", config: {} });
+    const track = module.create({ base: { id: "signal", title: "Signal" }, config: {} });
 
     await expect(
       fetchTrackData({ registry, resourceStore, track, assembly, region, width }),
@@ -134,7 +138,7 @@ describe("fetchTrackData", () => {
       fetch: async ({ track, resources }) => {
         if (resources.get("seen")) return "reused";
         resources.set("seen", true);
-        return `first-${track.id}`;
+        return `first-${track.base.id}`;
       },
       render: { full: Renderer },
     });
@@ -145,7 +149,7 @@ describe("fetchTrackData", () => {
       fetchTrackData({
         registry,
         resourceStore,
-        track: module.create({ id: "signal", title: "Signal", config: { url: "a" } }),
+        track: module.create({ base: { id: "signal", title: "Signal" }, config: { url: "a" } }),
         assembly,
         region,
         width,
@@ -156,7 +160,7 @@ describe("fetchTrackData", () => {
       fetchTrackData({
         registry,
         resourceStore,
-        track: module.create({ id: "genes", title: "Genes", config: { url: "b" } }),
+        track: module.create({ base: { id: "genes", title: "Genes" }, config: { url: "b" } }),
         assembly,
         region,
         width,
@@ -167,7 +171,7 @@ describe("fetchTrackData", () => {
       fetchTrackData({
         registry,
         resourceStore,
-        track: module.create({ id: "signal", title: "Signal", config: { url: "a" } }),
+        track: module.create({ base: { id: "signal", title: "Signal" }, config: { url: "a" } }),
         assembly,
         region,
         width,

@@ -37,8 +37,10 @@ describe("visible row-derived track height", () => {
       modules: [module],
       tracks: [
         rulerModule.create({
-          id: "ruler",
-          title: "Reference",
+          base: {
+            id: "ruler",
+            title: "Reference",
+          },
           config: { sequenceUrl: "https://example.test/ref.2bit", sequenceMinPixelsPerBase: 5 },
         }),
       ],
@@ -92,9 +94,11 @@ describe("visible row-derived track height", () => {
     );
     const module = { ...bigBedModule, fetch };
     const track = bigBedModule.create({
-      id: "peaks",
-      title: "Peaks",
-      display: "squish",
+      base: {
+        id: "peaks",
+        title: "Peaks",
+        display: "squish",
+      },
       config: { url: "YOUR_URL_HERE", rowHeight: 12 },
     });
     const trackStore = createTrackStore({ modules: [module], tracks: [track] });

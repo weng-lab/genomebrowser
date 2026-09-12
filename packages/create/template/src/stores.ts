@@ -25,7 +25,9 @@ export const myModules = [...firstPartyTrackModules];
 export const useTrackStore = createTrackStore({
   modules: myModules,
   // TrackPicker loads the startup tracks from src/collections.ts.
-  tracks: [rulerModule.create({ id: "reference-ruler", title: "Coordinates", config: {} })],
+  tracks: [
+    rulerModule.create({ base: { id: "reference-ruler", title: "Coordinates" }, config: {} }),
+  ],
 });
 
 export const useSettingsStore = createSettingsStore({

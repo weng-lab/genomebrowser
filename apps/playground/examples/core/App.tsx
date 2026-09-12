@@ -21,7 +21,10 @@ const useBrowserStore = createBrowserStore({
 
 const useTrackStore = createTrackStore({
   modules: [rulerModule, testTrackModule],
-  tracks: [rulerModule.create({ id: "ruler", title: "Coordinates", config: {} }), testTrack],
+  tracks: [
+    rulerModule.create({ base: { id: "ruler", title: "Coordinates" }, config: {} }),
+    testTrack,
+  ],
 });
 
 export default function App() {

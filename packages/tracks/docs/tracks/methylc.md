@@ -10,8 +10,10 @@ The `urls` object requires all eight channel entries. Set a channel URL to an em
 import { methylCModule } from "@weng-lab/genomebrowser-tracks/methylc";
 
 const track = methylCModule.create({
-  id: "methylation",
-  title: "Methylation",
+  base: {
+    id: "methylation",
+    title: "Methylation",
+  },
   config: {
     urls: {
       plusStrand: {
