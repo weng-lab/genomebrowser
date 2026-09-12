@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ModuleRegistry, TrackCollectionEntry } from "@weng-lab/genomebrowser";
+import type { AnyTrackModule, TrackCollectionEntry } from "@weng-lab/genomebrowser";
 
 export const TrackMetadataValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 
@@ -29,12 +29,12 @@ export const TrackCollectionBaseSchema = z.strictObject({
   views: z.array(TrackCollectionViewSchema).min(1).optional(),
 });
 
-export function createTrackCollectionSchema(registry: ModuleRegistry) {
-  if (registry.modules.length === 0) {
+export function createTrackCollectionSchema(modules: readonly AnyTrackModule[]) {
+  if (modules.length === 0) {
     throw new Error("At least one track module is required to generate a track collection schema");
   }
 
-  const entries = registry.modules.map((module) =>
+  const entries = modules.map((module) =>
     module.createInputSchema.omit({ source: true }).extend({
       type: z.literal(module.type),
       metadata: z.record(z.string(), TrackMetadataValueSchema).optional(),

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import {
-  createModuleRegistry,
+  createTrackStore,
   defineTrackModule,
   type TrackInteraction,
   type TrackRuntimeContext,
@@ -35,7 +35,7 @@ const signalModule = defineTrackModule<SignalItem>()({
   fetch: async () => null,
   render: { full: Renderer },
 });
-const registry = createModuleRegistry([signalModule]);
+const registry = createTrackStore({ modules: [signalModule] }).getState().registry;
 
 const defaultView: TrackCollectionView = {
   id: "default",

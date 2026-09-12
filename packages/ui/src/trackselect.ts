@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, dirname, resolve } from "node:path";
 import process from "node:process";
 import { parseArgs } from "node:util";
-import { createModuleRegistry, type AnyTrackModule } from "@weng-lab/genomebrowser";
+import { type AnyTrackModule } from "@weng-lab/genomebrowser";
 import { createJiti } from "jiti";
 import { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
 
@@ -21,8 +21,7 @@ async function main() {
   if (!command) return;
 
   const modules = await loadTrackModules(command.sources, process.cwd());
-  const registry = createModuleRegistry(modules);
-  const generatedSchema = generateTrackCollectionJsonSchema(registry);
+  const generatedSchema = generateTrackCollectionJsonSchema(modules);
   const schema = command.id ? { $id: command.id, ...generatedSchema } : generatedSchema;
   const contents = `${JSON.stringify(schema, null, 2)}\n`;
 

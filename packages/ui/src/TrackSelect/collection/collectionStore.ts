@@ -1,4 +1,4 @@
-import { createTrackFromEntry, type TrackStore } from "@weng-lab/genomebrowser";
+import type { TrackStore } from "@weng-lab/genomebrowser";
 import {
   adaptTrackSelectInteraction,
   type TrackSelectInteractionResolver,
@@ -30,7 +30,10 @@ export function getReconciledTracks({
     const entry = collectionTracksById.get(id)!;
     const track = {
       ...(existingTrack ??
-        createTrackFromEntry(registry, { ...entry.track, base: { ...entry.track.base, id } })),
+        registry.get(entry.track.type).create({
+          base: { ...entry.track.base, id },
+          config: entry.track.config,
+        })),
       source: "host" as const,
     };
     if (!resolveTrackInteraction) return track;

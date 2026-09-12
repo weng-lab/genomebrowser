@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
-import { createModuleRegistry, createTrackFromEntry } from "../../src/modules/registry";
+import { createModuleRegistry } from "../../src/modules/registry";
 import type {
   ModuleCreateInput,
   ModuleInstance,
@@ -141,31 +141,6 @@ describe("track module type contracts", () => {
     expect(() => snapshotRegistry.get("b")).toThrow(/No track module registered for type: b/);
   });
 
-  it("creates entries as the precise registry instance union", () => {
-    const track = createTrackFromEntry(registry, {
-      base: {
-        id: "track-a",
-        title: "Track A",
-      },
-      type: "a",
-      config: { url: "YOUR_URL_HERE" },
-    });
-
-    expectTypeOf(track).toEqualTypeOf<
-      ModuleInstance<typeof moduleA> | ModuleInstance<typeof moduleB>
-    >();
-    expectTypeOf(track.type).toEqualTypeOf<"a" | "b">();
-
-    expectTypeOf<Extract<typeof track, { type: "a" }>["config"]>().toEqualTypeOf<{
-      url: string;
-      scale: "auto" | "fixed";
-    }>();
-    expectTypeOf<Extract<typeof track, { type: "b" }>["config"]>().toEqualTypeOf<{
-      endpoint: string;
-      enabled?: boolean | undefined;
-    }>();
-  });
-
   it("ties interaction item and parsed config types to the selected module", () => {
     const oneArgumentCallback = (_item: ItemA) => undefined;
     const interaction: TrackInteraction<ItemA, ModuleInstance<typeof moduleA>["config"]> = {
@@ -249,51 +224,5 @@ describe("track module type contracts", () => {
         settingsComponent: IncompatibleSettings,
       } satisfies typeof moduleA);
     }
-  });
-
-  it("creates collection entries through the runtime validation boundary", () => {
-    expect(
-      createTrackFromEntry(registry, {
-        base: {
-          id: "track-a",
-          title: "Track A",
-        },
-        type: "a",
-        metadata: { assay: "signal" },
-        config: { url: "YOUR_URL_HERE" },
-      }),
-    ).toMatchObject({
-      type: "a",
-      base: {
-        id: "track-a",
-        title: "Track A",
-      },
-      config: {
-        url: "YOUR_URL_HERE",
-        scale: "auto",
-      },
-    });
-
-    expect(() =>
-      createTrackFromEntry(registry, {
-        base: {
-          id: "track-missing",
-          title: "Track Missing",
-        },
-        type: "missing",
-        config: {},
-      }),
-    ).toThrow(/No track module registered for type: missing/);
-
-    expect(() =>
-      createTrackFromEntry(registry, {
-        base: {
-          id: "track-a",
-          title: "Track A",
-        },
-        type: "a",
-        config: {},
-      }),
-    ).toThrow(/a input is invalid/);
   });
 });

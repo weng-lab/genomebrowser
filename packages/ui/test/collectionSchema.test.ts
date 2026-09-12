@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createModuleRegistry, defineTrackModule } from "@weng-lab/genomebrowser";
+import { createTrackStore, defineTrackModule } from "@weng-lab/genomebrowser";
 import { createTrackCollectionSchema } from "../src/collections/collectionSchema";
 import { generateTrackCollectionJsonSchema } from "../src/collections/generateJsonSchema";
 import { validateJson } from "../src/collections/validateJson";
@@ -23,7 +23,7 @@ describe("TrackSelect collection schemas", () => {
     },
   });
 
-  const registry = createModuleRegistry([signalModule]);
+  const registry = createTrackStore({ modules: [signalModule] }).getState().registry;
 
   const validCollection = {
     assembly: "hg38",
@@ -52,7 +52,7 @@ describe("TrackSelect collection schemas", () => {
   };
 
   it("validates registry-derived collection entries", () => {
-    expect(validateJson(validCollection, registry).tracks[0]).toEqual({
+    expect(validateJson(validCollection, registry.modules).tracks[0]).toEqual({
       base: {
         id: "signal-1",
         title: "Signal 1",
@@ -73,7 +73,7 @@ describe("TrackSelect collection schemas", () => {
           ...validCollection,
           tracks: [{ ...validCollection.tracks[0], type: "missing" }],
         },
-        registry,
+        registry.modules,
       ),
     ).toThrow(/Track collection is invalid/);
 
@@ -83,7 +83,7 @@ describe("TrackSelect collection schemas", () => {
           ...validCollection,
           tracks: [{ ...validCollection.tracks[0], config: {} }],
         },
-        registry,
+        registry.modules,
       ),
     ).toThrow(/Track collection is invalid/);
   });
@@ -95,11 +95,11 @@ describe("TrackSelect collection schemas", () => {
           ...validCollection,
           tracks: [{ ...validCollection.tracks[0], source: "user" }],
         },
-        registry,
+        registry.modules,
       ),
     ).toThrow(/Track collection is invalid/);
 
-    const schema = generateTrackCollectionJsonSchema(registry) as {
+    const schema = generateTrackCollectionJsonSchema(registry.modules) as {
       properties?: {
         tracks?: { items?: { oneOf?: Array<{ properties?: Record<string, unknown> }> } };
       };
@@ -108,7 +108,7 @@ describe("TrackSelect collection schemas", () => {
   });
 
   it("generates display enum values in JSON schema", () => {
-    const schema = generateTrackCollectionJsonSchema(registry);
+    const schema = generateTrackCollectionJsonSchema(registry.modules);
 
     expect(schema).toMatchObject({
       properties: {
@@ -138,7 +138,7 @@ describe("TrackSelect collection schemas", () => {
       fetch: async () => null,
       render: { full: Renderer },
     });
-    const defaultedRegistry = createModuleRegistry([defaultedModule]);
+    const defaultedRegistry = createTrackStore({ modules: [defaultedModule] }).getState().registry;
     const collection = {
       ...validCollection,
       tracks: [
@@ -154,7 +154,7 @@ describe("TrackSelect collection schemas", () => {
       ],
     };
 
-    expect(validateJson(collection, defaultedRegistry).tracks[0]).toEqual({
+    expect(validateJson(collection, defaultedRegistry.modules).tracks[0]).toEqual({
       base: {
         id: "signal-1",
         title: "Signal 1",
@@ -169,11 +169,11 @@ describe("TrackSelect collection schemas", () => {
           ...collection,
           tracks: [{ ...collection.tracks[0], config: {} }],
         },
-        defaultedRegistry,
+        defaultedRegistry.modules,
       ),
     ).toThrow(/Track collection is invalid/);
 
-    const schema = generateTrackCollectionJsonSchema(defaultedRegistry) as {
+    const schema = generateTrackCollectionJsonSchema(defaultedRegistry.modules) as {
       properties?: {
         tracks?: {
           items?: {
@@ -193,8 +193,6 @@ describe("TrackSelect collection schemas", () => {
   });
 
   it("rejects empty registries", () => {
-    expect(() => createTrackCollectionSchema(createModuleRegistry([]))).toThrow(
-      /At least one track module is required/,
-    );
+    expect(() => createTrackCollectionSchema([])).toThrow(/At least one track module is required/);
   });
 });

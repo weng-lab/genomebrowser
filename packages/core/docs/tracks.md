@@ -62,13 +62,11 @@ Optional interaction callbacks receive `(item, context)`. `context.type`, `conte
 
 ## Collection entries
 
-A collection entry is create input plus a module `type` and optional collection metadata. `createTrackFromEntry(registry, entry)` removes `type` and `metadata`, then delegates to the selected module's `create`:
+A collection entry is create input plus a module `type` and optional collection metadata. Select the module matching the entry's `type` and pass its `base` and `config` to `create`:
 
 ```ts
-import { createModuleRegistry, createTrackFromEntry } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
-const registry = createModuleRegistry([bigWigModule]);
 const entry = {
   base: {
     id: "signal",
@@ -79,7 +77,7 @@ const entry = {
   metadata: { assay: "ATAC-seq" },
 };
 
-const track = createTrackFromEntry(registry, entry);
+const track = bigWigModule.create({ base: entry.base, config: entry.config });
 ```
 
 The result does not contain collection metadata. Create through a specific module when attaching typed interaction callbacks.

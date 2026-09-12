@@ -89,13 +89,13 @@ Renderers do not all emit the same callbacks. Check the track page for supported
 `firstPartyTrackModules` is a readonly tuple with the eight modules in this order: BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, Gene, MethylC, Transcript.
 
 ```ts
-import { createModuleRegistry } from "@weng-lab/genomebrowser";
+import { createTrackStore } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 
-const registry = createModuleRegistry(firstPartyTrackModules);
+const useTrackStore = createTrackStore({ modules: firstPartyTrackModules });
 ```
 
-Register individual modules if your application supports only some track types. Importing one track subpath does not load the other tracks. The registry then rejects other types and produces narrower collection schemas. Importing the package root loads all eight modules because it constructs `firstPartyTrackModules`.
+Register individual modules if your application supports only some track types. Importing one track subpath does not load the other tracks. The store then rejects other types. Use the same module list to generate narrower collection schemas. Importing the package root loads all eight modules because it constructs `firstPartyTrackModules`.
 
 ## Ruler
 

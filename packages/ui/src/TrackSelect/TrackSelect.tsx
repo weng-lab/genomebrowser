@@ -48,7 +48,7 @@ export default function TrackSelect({
   const setTracks = useTrackStore((state) => state.setTracks);
   const compiledCollections = useMemo(() => {
     const parsedCollections = trackCollections.map((collection) =>
-      validateJson(collection, registry),
+      validateJson(collection, registry.modules),
     );
     return compileTrackCollections(parsedCollections);
   }, [trackCollections, registry]);

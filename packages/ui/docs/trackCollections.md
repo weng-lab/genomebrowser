@@ -36,15 +36,12 @@ The collection does not define chromosome sizes or browser state such as the cur
 ## Load tracks without TrackSelect
 
 ```ts
-import {
-  createModuleRegistry,
-  createTrackFromEntry,
-  createTrackStore,
-} from "@weng-lab/genomebrowser";
+import { createTrackStore, type AnyTrackModule } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import { validateJson } from "@weng-lab/genomebrowser-ui";
 
-const registry = createModuleRegistry([bigWigModule]);
+const modules: AnyTrackModule[] = [bigWigModule];
+const useTrackStore = createTrackStore({ modules });
 const collection = validateJson(
   {
     assembly: "hg38",
@@ -57,16 +54,18 @@ const collection = validateJson(
       },
     ],
   },
-  registry,
+  modules,
 );
 
-const useTrackStore = createTrackStore({
-  modules: registry.modules,
-  tracks: collection.tracks.map((track) => createTrackFromEntry(registry, track)),
+const tracks = collection.tracks.map(({ type, base, config }) => {
+  const module = modules.find((module) => module.type === type);
+  if (!module) throw new Error(`Unsupported track type: ${type}`);
+  return module.create({ base, config });
 });
+useTrackStore.getState().setTracks(tracks);
 ```
 
-`validateJson` validates module configuration, duplicate track/view IDs, and references to metadata fields. It preserves authored track settings so module creation applies defaults and transformations. It does not add picker views, labels, or metadata to a minimal collection. `createTrackCollectionSchema(registry)` exposes the Zod shape, including module defaults; `generateTrackCollectionJsonSchema(registry)` generates its JSON input schema. See [schema generation](trackSelect.md#generate-a-schema-for-collection-json) for editor integration and CLI usage.
+`validateJson` validates module configuration, duplicate track/view IDs, and references to metadata fields. It preserves authored track settings so module creation applies defaults and transformations. It does not add picker views, labels, or metadata to a minimal collection. `createTrackCollectionSchema(modules)` exposes the Zod shape, including module defaults; `generateTrackCollectionJsonSchema(modules)` generates its JSON input schema. See [schema generation](trackSelect.md#generate-a-schema-for-collection-json) for editor integration and CLI usage.
 
 Direct creation uses authored track IDs. When combining collections, your application must ensure runtime IDs are unique. TrackSelect uses its documented `${collectionId}::${trackId}` IDs.
 

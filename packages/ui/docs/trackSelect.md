@@ -244,11 +244,11 @@ The runtime context comes from v2 when the event occurs, so later base or config
 
 ### Related exports
 
-| Export                              | Signature                                                       | Description                                                                                         |
-| ----------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `withValueMarkers`                  | `(markers: ValueMarkerMap) => TrackSelectColumnOverride`        | Creates a column override that adds square color markers to configured formatted values.            |
-| `generateTrackCollectionJsonSchema` | `(registry: ModuleRegistry) => object`                          | Generates JSON Schema for collections using the registry's module-specific create schemas.          |
-| `validateJson`                      | `(input: unknown, registry: ModuleRegistry) => TrackCollection` | Validates and parses one collection against a module registry. `TrackSelect` calls this internally. |
+| Export                              | Signature                                                                 | Description                                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `withValueMarkers`                  | `(markers: ValueMarkerMap) => TrackSelectColumnOverride`                  | Creates a column override that adds square color markers to configured formatted values.        |
+| `generateTrackCollectionJsonSchema` | `(modules: readonly AnyTrackModule[]) => object`                          | Generates JSON Schema for collections using the supplied modules’ create schemas.               |
+| `validateJson`                      | `(input: unknown, modules: readonly AnyTrackModule[]) => TrackCollection` | Validates and parses one collection against a module list. `TrackSelect` calls this internally. |
 
 ### Generate a schema for collection JSON
 
@@ -372,15 +372,14 @@ The generator builds module-specific collection entries from each module's `crea
 
 The generated schema validates JSON structure, allowed track types and displays, and the parts of module-specific track config represented in JSON Schema. Custom Zod refinements may remain runtime-only after conversion. `TrackSelect` also performs runtime validation for cross-field and multi-collection rules, including metadata fields referenced across views, duplicate qualified track IDs across supplied collections, and selection IDs checked against the complete collection list. Treat editor feedback as an early check, not a replacement for runtime parsing.
 
-For build tooling that already owns a registry, generate the same schema programmatically:
+For build tooling that already owns a module list, generate the same schema programmatically:
 
 ```ts
 import { generateTrackCollectionJsonSchema } from "@weng-lab/genomebrowser-ui";
-import { createModuleRegistry } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
-const registry = createModuleRegistry([bigWigModule]);
-const schema = generateTrackCollectionJsonSchema(registry);
+const modules = [bigWigModule];
+const schema = generateTrackCollectionJsonSchema(modules);
 ```
 
 Use `validateJson(rawCollection, registry)` when non-React code also needs the runtime parser. `TrackSelect` already calls it for every supplied collection, so normal component integrations do not need to validate a second time.

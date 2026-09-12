@@ -1,4 +1,4 @@
-import type { AnyTrackModule, ModuleCreateInput, ModuleInstance, TrackCreateInput } from "./types";
+import type { AnyTrackModule, TrackCreateInput } from "./types";
 
 type ModuleForType<Modules extends readonly AnyTrackModule[], Type extends string> =
   Extract<Modules[number], { type: Type }> extends never
@@ -41,18 +41,4 @@ export function createModuleRegistry<const Modules extends readonly AnyTrackModu
   }
 
   return { modules: moduleSnapshot, get };
-}
-
-export function createTrackFromEntry<Modules extends readonly AnyTrackModule[]>(
-  registry: ModuleRegistry<Modules>,
-  entry: TrackCollectionEntry,
-): ModuleInstance<Modules[number]> {
-  const module = registry.get(entry.type);
-  const { type: _type, metadata: _metadata, ...input } = entry;
-
-  // create() re-validates input against createInputSchema at runtime; that parse is
-  // the proof this cast cannot smuggle a bad config past the type system.
-  return module.create(input as ModuleCreateInput<typeof module>) as ModuleInstance<
-    Modules[number]
-  >;
 }
