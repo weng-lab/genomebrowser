@@ -9,6 +9,7 @@ import {
   lighten,
   resolveBigWigRange,
 } from "./helpers";
+import { ValueLabels } from "../shared/ValueLabels";
 import { clientXToTrackX } from "../shared/coordinates";
 import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
 import type { BigWigConfig, BigWigData, YRange } from "./types";
@@ -55,6 +56,14 @@ export function FullBigWig({
           />
         </>
       )}
+      <ValueLabels
+        height={height}
+        ticks={[
+          { value: range.max, y: 0 },
+          { value: range.min, y: height },
+          ...(range.min < 0 && range.max > 0 ? [{ value: 0, y: y(0) }] : []),
+        ]}
+      />
       <BigWigHoverOverlay points={points} width={width} height={height} />
     </g>
   );

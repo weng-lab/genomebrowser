@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { trackOverlayContext } from "../track-overlay/context";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
 import { useContextMenuStore } from "../state/browserContextState";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
@@ -41,6 +42,11 @@ export function TrackFrame({
   titleSize: number;
   children: React.ReactNode;
 }) {
+  const [overlayTarget, setOverlayTarget] = useState<SVGGElement | null>(null);
+  const overlayContext = useMemo(
+    () => ({ target: overlayTarget, width: trackWidth, height: track.base.height }),
+    [overlayTarget, trackWidth, track.base.height],
+  );
   const [hover, setHover] = useState(false);
   const contentGroupRef = useRef<SVGGElement>(null);
   const wrapperHeight = getTrackWrapperHeight(track, titleSize);
@@ -83,10 +89,17 @@ export function TrackFrame({
               width={contentWidth}
               height={track.base.height}
             >
-              {children}
+              <trackOverlayContext.Provider value={overlayContext}>
+                {children}
+              </trackOverlayContext.Provider>
             </PanTrack>
           </g>
         </g>
+        <g
+          ref={setOverlayTarget}
+          transform={`translate(${marginWidth},${titleMargin})`}
+          pointerEvents="none"
+        />
       </g>
       <text
         fill="#000000"

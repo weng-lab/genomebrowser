@@ -6,6 +6,7 @@ import {
   generateSignal2,
   getMethylCRange,
 } from "./helpers";
+import { ValueLabels } from "../shared/ValueLabels";
 import { clientXToTrackX } from "../shared/coordinates";
 import type { SignalPoint } from "../shared/signal";
 import type { MethylCConfig, MethylCData, MethylCShowRows, MethylCTooltipItem } from "./types";
@@ -100,6 +101,36 @@ export function SplitMethylC({
         {signals.cpgMinus?.values}
         {signals.depthMinus}
       </g>
+      {(showRows.fwdCpg ||
+        showRows.fwdChg ||
+        showRows.fwdChh ||
+        showRows.revCpg ||
+        showRows.revChg ||
+        showRows.revChh) && (
+        <ValueLabels
+          height={height}
+          ticks={[
+            ...(showRows.fwdCpg || showRows.fwdChg || showRows.fwdChh
+              ? [{ value: effectiveRange.max, y: 0 }]
+              : []),
+            ...(showRows.revCpg || showRows.revChg || showRows.revChh
+              ? [{ value: effectiveRange.max, y: height }]
+              : []),
+            { value: effectiveRange.min, y: half },
+          ]}
+        />
+      )}
+      {(showRows.fwdDepth || showRows.revDepth) && (
+        <ValueLabels
+          height={height}
+          align="right"
+          ticks={[
+            ...(showRows.fwdDepth ? [{ value: depthRange.max, y: 0, prefix: "Depth " }] : []),
+            ...(showRows.revDepth ? [{ value: depthRange.max, y: height, prefix: "Depth " }] : []),
+            { value: depthRange.min, y: half, prefix: "Depth " },
+          ]}
+        />
+      )}
       <MethylCHoverOverlay data={rendered} showRows={showRows} width={width} height={height} />
     </g>
   );

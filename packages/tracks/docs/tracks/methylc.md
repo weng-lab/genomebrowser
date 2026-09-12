@@ -81,3 +81,7 @@ The tooltip lists only channels with a non-empty URL. It orders plus CpG/CHG/CHH
 | `MethylCShowRows`      | Boolean visibility map for all tooltip rows.                              |
 | `MethylCTooltipItem`   | Rendered values and row visibility supplied to hover behavior.            |
 | `MethylCInteraction`   | Interaction callbacks receiving `MethylCTooltipItem` and `MethylCConfig`. |
+
+## Value labels
+
+Split display labels the mirrored methylation scale at the left of the plot and the depth scale at the right. Depth labels include a “Depth” prefix. Only configured channel groups receive labels. Labels use monospace text on translucent white backgrounds and do not intercept pointer interactions. They stay fixed at the visible plot edges during panning and update with the rendered scale. Labels that would overlap vertically are omitted, and tracks shorter than 14 pixels omit labels.

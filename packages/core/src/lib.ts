@@ -87,3 +87,8 @@ export type {
   ContextMenuStoreInstance,
 } from "./browser/state/contextMenuStore";
 export type { TrackStore, TrackStoreInstance, TrackStoreOptions } from "./browser/state/trackStore";
+
+export { TrackOverlay } from "./browser/track-overlay/TrackOverlay";
+export type { TrackOverlayProps } from "./browser/track-overlay/TrackOverlay";
+export { TrackLabel } from "./browser/track-overlay/TrackLabel";
+export type { TrackLabelProps } from "./browser/track-overlay/TrackLabel";

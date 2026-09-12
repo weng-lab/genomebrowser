@@ -51,7 +51,9 @@ describe("CAVE module", () => {
 
     expect(markup).toContain('fill="#112233"');
     expect(markup).toContain('fill="#445566"');
-    expect(markup).not.toContain("fill-opacity");
+    expect(markup.match(/<path[^>]*>/g)?.every((path) => !path.includes("fill-opacity"))).toBe(
+      true,
+    );
   });
 
   it("rejects non-hexadecimal signal colors", () => {
