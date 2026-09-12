@@ -52,7 +52,9 @@ describe("visible row-derived track height", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     await settle(() =>
-      root?.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />),
+      root?.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      ),
     );
     expect(trackStore.getState().getTrack("ruler")?.base.height).toBe(22);
     expect(container.textContent).not.toContain("Zoom in");
@@ -106,7 +108,9 @@ describe("visible row-derived track height", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     await settle(() =>
-      root?.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />),
+      root?.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      ),
     );
 
     expect(fetch).toHaveBeenLastCalledWith(

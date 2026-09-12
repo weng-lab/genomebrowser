@@ -17,7 +17,6 @@ export const useBrowserStore = createBrowserStore({
   assembly: hg38,
   region: parseRegion("chr12:53,372,922-53,423,700"),
   marginWidth: 50,
-  trackWidth: 1450,
 });
 
 // The track store is defaulted to allow any first party track modules.

@@ -254,39 +254,23 @@ useBrowserStore.getState().addHighlight({
 
 Omit `chromosome` to display the same coordinate range on any current chromosome. Adding an existing highlight ID is a no-op. Invalid highlight input throws.
 
-## Keep track width responsive
+## Size and magnify the browser
 
-`GenomeBrowser` renders at the width stored in the browser store. Observe the host element and subtract the configured margin:
+`GenomeBrowser` follows its container by default. Use CSS to set the available space; core measures it and accounts for the margin automatically:
 
 ```tsx
-function ResponsiveBrowser() {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    const observer = new ResizeObserver(([entry]) => {
-      const marginWidth = useBrowserStore.getState().marginWidth;
-      const result = useBrowserStore
-        .getState()
-        .setTrackWidth(Math.max(1, entry.contentRect.width - marginWidth));
-      if (!result.ok) console.error(result.error);
-    });
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={ref} style={{ width: "100%", overflowX: "auto" }}>
-      <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
-    </div>
-  );
-}
+<div style={{ width: "100%", maxWidth: 1000, minWidth: 0 }}>
+  <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} scale={1.25} />
+</div>
 ```
 
-`setTrackWidth` returns `{ ok: true, trackWidth }` after committing a finite positive width. Invalid runtime widths return `{ ok: false, code, error }` and preserve the existing width.
+`scale={1.25}` enlarges the complete SVG, including text, controls, tooltips, and track heights, while keeping the same genomic region and fitting the available width. Use `scale={0.75}` to make everything smaller. Scale does not change the region in the store.
+
+For fixed dimensions, pass `sizing="fixed"`. The SVG's displayed width is `(marginWidth + trackWidth) * scale`; the surrounding border adds two CSS pixels. Narrow containers scroll horizontally instead of shrinking the drawing.
+
+`setTrackWidth` changes the configured logical track width for fixed browsers. It returns `{ ok: true, trackWidth }` after committing a finite positive width. Invalid runtime widths return `{ ok: false, code, error }` and preserve the existing width. Responsive browsers use their own measured widths and never write them into the store.
+
+See [GenomeBrowser](GenomeBrowser.md) for the full API, defaults, and sizing examples.
 
 ## Share the track store with the UI package
 

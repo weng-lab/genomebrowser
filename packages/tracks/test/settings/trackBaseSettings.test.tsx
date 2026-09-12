@@ -354,6 +354,7 @@ async function mountSettings(
   settingsStore.getState().openSettings(base.id, { x: 0, y: 0 });
   await mount(
     <GenomeBrowser
+      sizing="fixed"
       browserStore={createBrowserStore({
         assembly: hg38,
         region: { chromosome: "chr1", start: 0, end: 10 },
@@ -369,6 +370,7 @@ async function mountBaseSettings(trackStore: TrackStoreInstance, trackId: string
   settingsStore.getState().openSettings(trackId, { x: 0, y: 0 });
   await mount(
     <GenomeBrowser
+      sizing="fixed"
       browserStore={createBrowserStore({
         assembly: hg38,
         region: { chromosome: "chr1", start: 0, end: 10 },
@@ -408,6 +410,7 @@ async function mountBulkBedBaseSettings(
   settingsStore.getState().openSettings("bulkbed", { x: 0, y: 0 });
   await mount(
     <GenomeBrowser
+      sizing="fixed"
       browserStore={createBrowserStore({
         assembly: hg38,
         region: { chromosome: "chr1", start: 0, end: 10 },
@@ -438,6 +441,7 @@ async function mountBigBedBaseSettings(
   settingsStore.getState().openSettings("bigbed", { x: 0, y: 0 });
   await mount(
     <GenomeBrowser
+      sizing="fixed"
       browserStore={createBrowserStore({
         assembly: hg38,
         region: { chromosome: "chr1", start: 0, end: 10 },

@@ -61,7 +61,9 @@ it("owns hover highlights and clears them without removing user or other ruler h
   };
   try {
     await act(async () => {
-      root.render(<GenomeBrowser browserStore={browserStore} trackStore={trackStore} />);
+      root.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      );
     });
     const zoomArea = container.querySelector("[data-ruler-zoom-area]")!;
     vi.spyOn(zoomArea, "getBoundingClientRect").mockReturnValue(new DOMRect(100, 100, 1000, 22));

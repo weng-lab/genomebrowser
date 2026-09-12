@@ -36,6 +36,7 @@ it("keeps URL drafts out of the active source and fetcher until Set is clicked",
     await act(async () =>
       root.render(
         <GenomeBrowser
+          sizing="fixed"
           browserStore={useBrowserStore}
           trackStore={useTrackStore}
           settingsStore={useSettingsStore}

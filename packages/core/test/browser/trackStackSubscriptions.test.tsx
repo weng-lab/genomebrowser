@@ -198,7 +198,9 @@ async function renderBrowser(useTrackStore: ReturnType<typeof createStore>) {
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () => {
-    root?.render(<GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />);
+    root?.render(
+      <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />,
+    );
     await flushEffects();
   });
 }
