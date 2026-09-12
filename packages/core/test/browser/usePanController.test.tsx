@@ -8,6 +8,7 @@ import {
   getPanCommitRegion,
   usePanController,
 } from "../../src/browser/viewport/usePanController";
+import { usePanWheel } from "../../src/browser/viewport/usePanWheel";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -17,13 +18,24 @@ let container: HTMLDivElement | undefined;
 let root: Root | undefined;
 let controller: ReturnType<typeof usePanController> | undefined;
 
-function Harness(props: Parameters<typeof usePanController>[0]) {
+type HarnessProps = Parameters<typeof usePanController>[0] & { wheelEnabled?: boolean };
+
+function Harness(props: HarnessProps) {
   controller = usePanController(props);
+  usePanWheel({
+    svg: props.svg,
+    disabled: !props.wheelEnabled || controller.isPanLocked,
+    trackWidth: props.trackWidth,
+    isDragging: controller.panDrag.isDragging,
+    setContentOffset: props.setContentOffset,
+    onCommit: controller.commitPan,
+  });
   return null;
 }
 
 afterEach(async () => {
   if (root) await act(async () => root?.unmount());
+  vi.useRealTimers();
   container?.remove();
   container = undefined;
   controller = undefined;
@@ -340,9 +352,150 @@ function createPanInteraction() {
   };
 }
 
-async function renderController(props: Parameters<typeof usePanController>[0]) {
+async function renderController(props: HarnessProps) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () => root?.render(<Harness {...props} />));
 }
+
+describe("horizontal wheel panning", () => {
+  it.each([
+    [25, 0, 125, 225],
+    [-25, 0, 75, 175],
+    [1, 1, 116, 216],
+    [1, 2, 200, 300],
+  ])(
+    "pans delta %s in mode %s after the gesture settles",
+    async (deltaX, deltaMode, start, end) => {
+      const { svg, getContentOffset, setContentOffset } = createPanInteraction();
+      const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
+      vi.useFakeTimers();
+      await renderController({
+        svg,
+        region: { chromosome: "chr1", start: 100, end: 200 },
+        trackWidth: 100,
+        getContentOffset,
+        setContentOffset,
+        setRegion,
+        onPanStart: vi.fn(),
+        wheelEnabled: true,
+      });
+      const event = new WheelEvent("wheel", { deltaX, deltaMode, cancelable: true });
+      svg.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+      expect(getContentOffset()).toBe(100 - start);
+      expect(setRegion).not.toHaveBeenCalled();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(120);
+      });
+      expect(setRegion).toHaveBeenCalledExactlyOnceWith({ chromosome: "chr1", start, end });
+      expect(getContentOffset()).toBe(0);
+      expect(controller?.isPanLocked).toBe(true);
+    },
+  );
+
+  it("accumulates small wheel events and restarts the settle delay", async () => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
+    vi.useFakeTimers();
+    await renderController({
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 110 },
+      trackWidth: 100,
+      setRegion,
+      onPanStart: vi.fn(),
+      wheelEnabled: true,
+    });
+    for (let i = 0; i < 10; i++) {
+      interaction.svg.dispatchEvent(new WheelEvent("wheel", { deltaX: 1.5, cancelable: true }));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(20);
+      });
+    }
+    expect(interaction.getContentOffset()).toBe(-15);
+    expect(setRegion).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(120);
+    });
+    expect(setRegion).toHaveBeenCalledExactlyOnceWith({ chromosome: "chr1", start: 101, end: 111 });
+  });
+
+  it.each([
+    { deltaX: 0, deltaY: 50 },
+    { deltaX: 3, deltaY: 50 },
+    { deltaX: 50, ctrlKey: true },
+    { deltaX: 50, metaKey: true },
+    { deltaX: 50, altKey: true },
+  ])("leaves scrolling and modified gestures untouched: %o", async (init) => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn();
+    vi.useFakeTimers();
+    await renderController({
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+      onPanStart: vi.fn(),
+      wheelEnabled: true,
+    });
+    const event = new WheelEvent("wheel", { ...init, cancelable: true });
+    interaction.svg.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
+    expect(setRegion).not.toHaveBeenCalled();
+    expect(interaction.getContentOffset()).toBe(0);
+  });
+
+  it("clears a pending gesture on unmount without committing", async () => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn();
+    vi.useFakeTimers();
+    await renderController({
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+      onPanStart: vi.fn(),
+      wheelEnabled: true,
+    });
+    interaction.svg.dispatchEvent(new WheelEvent("wheel", { deltaX: 25 }));
+    expect(vi.getTimerCount()).toBe(1);
+    await act(async () => root?.unmount());
+    root = undefined;
+    expect(vi.getTimerCount()).toBe(0);
+    expect(interaction.getContentOffset()).toBe(0);
+    const event = new WheelEvent("wheel", { deltaX: 25, cancelable: true });
+    interaction.svg.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(setRegion).not.toHaveBeenCalled();
+  });
+
+  it("cancels an unfinished gesture when wheel panning becomes disabled", async () => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn();
+    const props = {
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+      onPanStart: vi.fn(),
+      wheelEnabled: true,
+    };
+    vi.useFakeTimers();
+    await renderController(props);
+    interaction.svg.dispatchEvent(new WheelEvent("wheel", { deltaX: 25 }));
+    expect(interaction.getContentOffset()).toBe(-25);
+    await act(async () => root?.render(<Harness {...props} wheelEnabled={false} />));
+    const event = new WheelEvent("wheel", { deltaX: 25, cancelable: true });
+    interaction.svg.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
+    expect(setRegion).not.toHaveBeenCalled();
+    expect(interaction.getContentOffset()).toBe(0);
+  });
+});
