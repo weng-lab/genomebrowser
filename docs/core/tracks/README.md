@@ -7,9 +7,9 @@ See [First-party track source layout](sourceLayout.md) for package entries, sour
 - [BigWig](bigwig.md): signal data from one BigWig URL
 - [BigBed](bigbed.md): genomic intervals from one BigBed URL
 - [BulkBed](bulkbed.md): multiple BigBed datasets in one track
-- [cCRE BigBed](../../../packages/tracks/docs/tracks/ccre.md): ENCODE cCRE intervals from BigBed
-- [Gene](../../../packages/tracks/docs/tracks/gene.md): gene and transcript models from BigBed files
+- [cCRE BigBed](../../../packages/tracks/docs/reference/trackModules/ccre.md): ENCODE cCRE intervals from BigBed
+- [Gene](../../../packages/tracks/docs/reference/trackModules/gene.md): gene and transcript models from BigBed files
 - [MethylC](methylc.md): split-strand methylation signal from BigWig channels
-- [CAVE](../../../packages/tracks/docs/tracks/cave.md): paired methylation signal selected by neurotransmitter and age
+- [CAVE](../../../packages/tracks/docs/reference/trackModules/cave.md): paired methylation signal selected by neurotransmitter and age
 
 All first-party modules support the shared base fields `id`, `title`, `display`, `height`, and `color` at the top level of create input. Module-specific fields live under `config`, and optional interaction callbacks are passed as the second `create` argument.

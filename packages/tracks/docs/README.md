@@ -1,35 +1,15 @@
-# First-party track modules
+# Tracks documentation
 
-`@weng-lab/genomebrowser-tracks` contains eight track modules for the `@weng-lab/genomebrowser` runtime. Use a module when your data matches its source format and you want its built-in MUI settings.
+`@weng-lab/genomebrowser-tracks` provides eight complete track modules and reusable primitives for custom module authors.
 
-## Get started
+Start with the [API reference](reference/README.md). Each [track module](reference/trackModules/README.md) has one page covering its configuration, displays, data, settings behavior, and interactions. Shared features have their own references:
 
-[Getting started](gettingStarted.md) covers installation, a complete minimal browser, schema validation, and module registration.
+- [Collections and schemas](reference/collectionsAndSchemas/README.md)
+- [Data primitives](reference/dataPrimitives/README.md)
+- [Coordinates and layout](reference/coordinatesAndLayout/README.md)
+- [Settings components](reference/settingsComponents/README.md)
+- [Tooltips](reference/tooltips/README.md)
 
-## Choose a built-in track
+The [legacy folder](legacy/README.md) retains getting-started and authoring guides, source troubleshooting, and release history. Their useful API material has been merged into the reference.
 
-Use the [track catalog](tracks/README.md) to choose among BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, Gene, and MethylC. The catalog groups tracks by the kind of source they read and links to each track's configuration reference.
-
-## Fix data source problems
-
-[Data source troubleshooting](dataSources.md) covers browser access, cross-origin resource sharing, byte-range responses, and reference sequence requirements.
-
-## Use the module API
-
-- [Module API](exports.md) lists public package entries, modules, schemas, and types.
-- [Shared APIs](shared.md) covers layout, coordinate, settings, tooltip, and signal helpers from the public `/shared` path.
-- [Signal condensation](signal.md) documents the shared BigWig-to-pixel conversion.
-
-Each track subpath exports one complete module. BigBed also exports its schema-aware row fetch helper for specialized modules. Other track-specific implementation parts are internal.
-
-## Author a custom module
-
-- [Author track settings](trackSettings.md) explains settings ownership, layout, validation, and updates.
-- [Settings component API](trackSettingsApi.md) is the exhaustive settings reference.
-- [Author track tooltips](trackTooltips.md) covers tooltip content, formatting, and accessibility.
-
-`@weng-lab/genomebrowser` owns the runtime, stores, module contracts, and module-author hooks. This package owns the MUI settings controls, tooltip components, and helpers documented here. Files under `src` are internal. Import shared APIs only from `@weng-lab/genomebrowser-tracks/shared`.
-
-- [Ruler and reference sequence](tracks/ruler.md)
-
-See [release notes](releaseNotes.md) for breaking changes and migration guidance.
+Core owns browser stores, module contracts, and renderer hooks. Tracks owns the first-party modules and shared MUI settings and SVG tooltip components documented here.

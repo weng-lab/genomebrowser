@@ -1,6 +1,6 @@
 # @weng-lab/genomebrowser-tracks
 
-First-party track modules for `@weng-lab/genomebrowser`. The package includes BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, Gene, and MethylC modules. Each one provides its data fetcher, renderer, MUI settings, and SVG tooltip.
+First-party track modules for `@weng-lab/genomebrowser`. The package includes Ruler, BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, Gene, and MethylC modules. Each one provides its data fetcher, renderer, and MUI settings. Data tracks also provide SVG tooltip content.
 
 The public API may change during the beta release.
 
@@ -40,14 +40,16 @@ export function BrowserPage() {
 }
 ```
 
-Replace `YOUR_URL_HERE` with a browser-accessible BigWig URL that supports byte-range requests. See [Getting started](docs/gettingStarted.md) for schema validation and registering all modules.
+Replace `YOUR_URL_HERE` with a browser-accessible BigWig URL that supports byte-range requests. See [Getting started](docs/legacy/gettingStarted.md) for schema validation and registering all modules.
 
 ## Documentation
 
-- [Choose a built-in track](docs/tracks/README.md)
-- [Fix data source problems](docs/dataSources.md)
+- [API reference and public export index](docs/reference/README.md)
+
+- [Choose a built-in track](docs/reference/trackModules/README.md)
+- [Fix data source problems](docs/legacy/dataSources.md)
 - [Use the module API or author a module](docs/README.md)
 
-See [Ruler and reference sequence](docs/tracks/ruler.md) for coordinate tracks with optional 2bit DNA.
+See [Ruler and reference sequence](docs/reference/trackModules/ruler.md) for coordinate tracks with optional 2bit DNA.
 
-The package also ships a [collection JSON schema](docs/exports.md#collection-json-schema) for all first-party tracks, exported as `@weng-lab/genomebrowser-tracks/trackCollection.schema.json`.
+The package also ships a [collection JSON schema](docs/reference/collectionsAndSchemas/trackCollectionSchema.md) for all first-party tracks, exported as `@weng-lab/genomebrowser-tracks/trackCollection.schema.json`.

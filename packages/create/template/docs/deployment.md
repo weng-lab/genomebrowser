@@ -30,7 +30,7 @@ Keep the key out of browser code and `VITE_` variables. The local `.env.local` f
 
 Collection entries require HTTP or HTTPS URLs reachable by the intended audience. The lab's suggested directory is `/zata/public_html/users/YOUR_USER`; establish its corresponding public URL before configuring tracks.
 
-BigWig and BigBed access requires byte-range requests with uncompressed partial responses. A different data origin must allow cross-origin requests (CORS). See `node_modules/@weng-lab/genomebrowser-tracks/docs/dataSources.md` for diagnostics.
+BigWig and BigBed access requires byte-range requests with uncompressed partial responses. A different data origin must allow cross-origin requests (CORS). See `node_modules/@weng-lab/genomebrowser-tracks/docs/legacy/dataSources.md` for diagnostics.
 
 ## Verify deployment
 
