@@ -88,3 +88,7 @@ type ReadCytobandsOptions = {
 function parseCytobands(text: string): readonly Cytoband[];
 function readCytobands(options: ReadCytobandsOptions): Promise<readonly Cytoband[]>;
 ```
+
+## Related reference
+
+[Shared regional contract](../regionalReading/genomicFile.md) · [Cytobands index](README.md) · [All reader APIs](../README.md)

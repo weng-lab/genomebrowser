@@ -248,22 +248,6 @@ type BigWigSummaryRecord = GenomicRecord & {
 `BigWigFileOptions` accepts an absolute HTTP(S) BigWig URL. `BigWigFile` is structurally compatible
 with `GenomicFile<BigWigValueRecord>`.
 
-The shared public types used by these contracts are:
+## Related reference
 
-```ts
-type GenomicRegion = {
-  chromosome: string;
-  start: number;
-  end: number;
-};
-
-type GenomicRecord = {
-  chromosome: string;
-  start: number;
-  end: number;
-};
-
-type ReadOptions = {
-  signal?: AbortSignal;
-};
-```
+[Shared regional contract](../regionalReading/genomicFile.md) · [BigWig signal index](README.md) · [All reader APIs](../README.md)

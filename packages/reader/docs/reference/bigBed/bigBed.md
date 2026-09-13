@@ -8,7 +8,7 @@ the whole file. The factory uses a Zod schema to name and parse positional colum
 Zod 4 is required to define what fields to parse after BED3 fields.
 
 ```sh
-npm install zod@latest
+npm install @weng-lab/genomic-reader@beta zod
 ```
 
 ## Start with BED3
@@ -191,3 +191,66 @@ BED3, and `value` is absent for a missing column. Zod `issues` include the schem
 
 Schemas are explicit: the reader neither chooses a schema from column count nor falls back
 when validation fails.
+
+## Factory and file types
+
+All exports on this page are imported from `@weng-lab/genomic-reader`.
+
+### createBigBedFile
+
+```ts
+function createBigBedFile<Schema extends z.ZodObject>(
+  options: BigBedFileOptions<Schema>,
+): BigBedFile<Schema>;
+```
+
+### BigBedFileOptions
+
+| Option   | Type                                        | Default  | Description                                                                                             |
+| -------- | ------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
+| `url`    | `string`                                    | Required | Absolute HTTP(S) URL of the BigBed file.                                                                |
+| `schema` | `Schema` with positional-schema constraints | Required | Zod object whose properties consume post-BED3 columns in declaration order. See the schema rules above. |
+
+The option type excludes protected property names, symbol keys, and incompatible unknown-key policies. Factory validation also checks restrictions that TypeScript cannot fully express, including object-level refinements and integer-index-like property names.
+
+### BigBedFile
+
+```ts
+type BigBedFile<Schema extends z.ZodObject> = GenomicFile<BigBedRecord<Schema>>;
+```
+
+Its `read(region, options?)` returns `Promise<BigBedRecord<Schema>[]>`. Use `BigBedFile<typeof schema>` to name a configured reader in application APIs.
+
+### BigBedRecord
+
+Each record combines `GenomicRecord`, the awaited output of each declared schema property, and `fields: string[]`. Property transforms determine the returned field types. `fields` contains the remaining unconsumed columns.
+
+### bed3Schema
+
+A Zod object with an empty shape (`z.object({})`). It consumes no post-BED3 columns, leaving them all in `fields`.
+
+### BigBedParseError
+
+```ts
+class BigBedParseError extends z.ZodError {
+  readonly context: BigBedParseContext;
+  constructor(cause: z.ZodError, context: BigBedParseContext);
+}
+```
+
+Catch this class to inspect positional column failures. It preserves Zod issues, prefixes their paths with the schema field, and sets `cause` to the original Zod error. Its message includes the record coordinates and offending column. Other read failures are not converted into this class.
+
+### BigBedParseContext
+
+| Field             | Type               | Meaning                                                                 |
+| ----------------- | ------------------ | ----------------------------------------------------------------------- |
+| `region`          | `GenomicRegion`    | Coordinates of the failing record, rather than the requested interval.  |
+| `column`          | `number`           | One-based BED column number, including the three coordinate columns.    |
+| `field`           | `string`           | Schema property that failed validation.                                 |
+| `value`           | `string`, optional | Raw source value; absent when the column is missing.                    |
+| `expectedColumns` | `number`           | Three coordinate columns plus the number of declared schema properties. |
+| `actualColumns`   | `number`           | Total source column count, including the three coordinate columns.      |
+
+## Related reference
+
+[Shared regional contract](../regionalReading/genomicFile.md) · [BigBed annotations index](README.md) · [All reader APIs](../README.md)

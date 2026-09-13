@@ -81,3 +81,7 @@ type ReadChromSizesOptions = {
 function parseChromSizes(text: string): ChromSizes;
 function readChromSizes(options: ReadChromSizesOptions): Promise<ChromSizes>;
 ```
+
+## Related reference
+
+[Shared regional contract](../regionalReading/genomicFile.md) · [Chromosome sizes index](README.md) · [All reader APIs](../README.md)

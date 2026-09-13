@@ -109,7 +109,7 @@ Use `@weng-lab/genomebrowser` by itself when you only need the runtime and appli
 
 - [Getting started](docs/gettingStarted.md) - connect `TrackSelect` to a browser
 - [TrackSelect](docs/trackSelect.md) - collections, selection behavior, customization, and schema tooling
-- [Cytobands](docs/cytobands.md) - chromosome ideograms, region brackets, and interactive loci
+- [Cytobands](docs/reference/cytobands/cytobands.md) - chromosome ideograms, region brackets, and interactive loci
 - [Browser navigation button](docs/browserNavigationButton.md) - compose store-bound pan and zoom controls
 - [Highlight dialog](docs/highlightDialog.md) - add and remove browser highlights
 - [Track interactions](docs/recipes/trackInteractions.md) - connect collection tracks to host callbacks
