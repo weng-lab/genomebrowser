@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import {
   useContextMenuStore,
   useTrackMutationGate,
-  useTrackStore,
+  useGenomeBrowser,
 } from "../state/browserContextState";
 import { useRegistry } from "../state/useRegistry";
 
@@ -12,6 +12,7 @@ export function ContextMenuController() {
   const trackId = useContextMenuStore((state) => state.trackId);
   const position = useContextMenuStore((state) => state.position);
   const closeContextMenu = useContextMenuStore((state) => state.closeContextMenu);
+  const { useTrackStore } = useGenomeBrowser();
   const track = useTrackStore((state) => (trackId ? state.getTrack(trackId) : undefined));
   const updateTrack = useTrackStore((state) => state.updateTrack);
   const removeTrack = useTrackStore((state) => state.removeTrack);

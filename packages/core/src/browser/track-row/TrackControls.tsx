@@ -3,7 +3,7 @@ import type { AnyTrackInstance } from "../../modules/types";
 import {
   useSettingsStore,
   useTrackMutationGate,
-  useTrackStore,
+  useGenomeBrowser,
 } from "../state/browserContextState";
 import { BottomIcon, SettingsIcon, TopIcon } from "./icons";
 
@@ -16,6 +16,7 @@ export function TrackControls({
   marginWidth: number;
   wrapperHeight: number;
 }) {
+  const { useTrackStore } = useGenomeBrowser();
   const registry = useTrackStore((state) => state.registry);
   const hasSettings = registry.get(track.type).settingsComponent !== undefined;
   const settingsButtonRef = useRef<SVGGElement>(null);

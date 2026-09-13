@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from "react";
 import type { GenomicRegion } from "../../genome/region";
-import { useBrowserStore } from "../state/browserContextState";
+import { useGenomeBrowser } from "../state/browserContextState";
 import { getHighlightRects } from "./highlightRects";
 
 export function Highlights({
@@ -22,6 +22,7 @@ export function Highlights({
   totalHeight: number;
   registerContentGroup?: (node: SVGGElement) => () => void;
 }) {
+  const { useBrowserStore } = useGenomeBrowser();
   const highlights = useBrowserStore((state) => state.highlights);
   const clipId = useId();
   const contentGroupRef = useRef<SVGGElement>(null);

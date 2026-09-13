@@ -52,12 +52,8 @@ export { useRegistry } from "./browser/state/useRegistry";
 export { SettingsSection } from "./modules/runtime/SettingsSection";
 export { createBrowserStore } from "./browser/state/browserStore";
 export { createContextMenuStore } from "./browser/state/contextMenuStore";
-export {
-  useContextMenuStore,
-  useBrowserStore,
-  useTrackStore,
-  useTrackStoreApi,
-} from "./browser/state/browserContextState";
+export { useContextMenuStore, useGenomeBrowser } from "./browser/state/browserContextState";
+export type { GenomeBrowserStores } from "./browser/state/browserContextState";
 export { createTrackStore } from "./browser/state/trackStore";
 export type {
   BrowserSelectionMode,

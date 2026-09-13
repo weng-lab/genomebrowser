@@ -3,8 +3,7 @@ import type { ReadonlyTrackInstance, TrackSettingsComponent } from "../../module
 import {
   useSettingsStore,
   useTrackMutationGate,
-  useTrackStore,
-  useTrackStoreApi,
+  useGenomeBrowser,
 } from "../state/browserContextState";
 import { useRegistry } from "../state/useRegistry";
 
@@ -12,6 +11,7 @@ export function SettingsModalController() {
   const trackId = useSettingsStore((state) => state.trackId);
   const position = useSettingsStore((state) => state.position);
   const closeSettings = useSettingsStore((state) => state.closeSettings);
+  const { useTrackStore } = useGenomeBrowser();
   const trackType = useTrackStore((state) => (trackId ? state.getTrack(trackId)?.type : undefined));
   const registry = useRegistry();
   const { isInteractionBlocked } = useTrackMutationGate();
@@ -59,7 +59,7 @@ function BoundModuleSettings({
   component: unknown;
   displayOptions: readonly string[];
 }) {
-  const useStore = useTrackStoreApi();
+  const { useTrackStore } = useGenomeBrowser();
   const track = useTrackStore((state) => state.getTrack(trackId));
   const updateStoredTrack = useTrackStore((state) => state.updateTrack);
   const { runTrackMutation } = useTrackMutationGate();
@@ -78,7 +78,7 @@ function BoundModuleSettings({
       displayOptions={displayOptions}
       updateTracksOfType={(createUpdate) =>
         runTrackMutation(() => {
-          const state = useStore.getState();
+          const state = useTrackStore.getState();
           return state.setTracks(
             state.tracks.map((candidate) => {
               if (candidate.type !== track.type) return candidate;

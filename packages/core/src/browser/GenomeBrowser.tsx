@@ -20,7 +20,7 @@ import { TrackHeightProvider } from "./track-row/TrackHeightProvider";
 import { createSettingsStore } from "./state/settingsStore";
 import { BrowserProvider, InteractionGateProvider } from "./state/BrowserContext";
 import type { BrowserStore, BrowserStoreInstance } from "./state/browserStore";
-import { useBrowserStore, useTrackMutationGate } from "./state/browserContextState";
+import { useGenomeBrowser, useTrackMutationGate } from "./state/browserContextState";
 import { createContextMenuStore } from "./state/contextMenuStore";
 import type { TrackStoreInstance } from "./state/trackStore";
 import { InteractionShield } from "./overlays/InteractionShield";
@@ -332,6 +332,7 @@ function BrowserView({
   trackLayouts: TrackLayout[];
 }) {
   const { isInteractionBlocked } = useTrackMutationGate();
+  const { useBrowserStore } = useGenomeBrowser();
   const selectionMode = useBrowserStore((state) => state.selectionMode);
   const selectionHighlight = useBrowserStore((state) => state.selectionHighlight);
   const addHighlight = useBrowserStore((state) => state.addHighlight);

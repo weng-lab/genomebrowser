@@ -6,7 +6,7 @@ import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Slider from "@mui/material/Slider";
 import Typography from "@mui/material/Typography";
-import { useBrowserStore, type TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { useGenomeBrowser, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
@@ -20,6 +20,7 @@ export function RulerSettings({
   updateTrack,
   ...settings
 }: TrackSettingsProps<RulerConfig>) {
+  const { useBrowserStore } = useGenomeBrowser();
   const trackWidth = useBrowserStore((state) => state.trackWidth);
   const region = useBrowserStore((state) => state.region);
   const zoom = useBrowserStore((state) => state.zoom);
