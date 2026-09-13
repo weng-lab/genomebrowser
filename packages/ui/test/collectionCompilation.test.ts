@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
 import type { TrackCollection } from "@weng-lab/genomebrowser";
 
-const collection: TrackCollection = {
+const collection = {
   assembly: "hg38",
   id: "catalog",
   label: "Catalog",
@@ -26,7 +26,7 @@ const collection: TrackCollection = {
       metadata: { assay: "RNA", id: "metadata-id" },
     },
   ],
-};
+} satisfies TrackCollection;
 
 describe("TrackSelect collection compilation", () => {
   it("prebuilds collection records and global identity indexes", () => {

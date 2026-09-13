@@ -1,6 +1,10 @@
 import { z } from "zod";
 import type { AnyTrackModule } from "../modules/types";
-import { createTrackCollectionSchema, type TrackCollection } from "./collectionSchema";
+import {
+  createTrackCollectionSchema,
+  type TrackCollection,
+  type TrackCollectionView,
+} from "./collectionSchema";
 
 const builtInFields = new Set(["id", "title", "type"]);
 
@@ -10,16 +14,19 @@ function formatZodError(error: z.ZodError) {
     .join("; ");
 }
 
-function parseTrackCollection(input: unknown, modules: readonly AnyTrackModule[]): TrackCollection {
+function parseTrackCollection<Modules extends readonly AnyTrackModule[]>(
+  input: unknown,
+  modules: Modules,
+) {
   const result = createTrackCollectionSchema(modules).safeParse(input);
 
   if (!result.success) {
     throw new Error(`Track collection is invalid: ${formatZodError(result.error)}`);
   }
 
-  // Validation applies module defaults to prove the input is valid. Keep authored
-  // track values so creation applies defaults and config transforms exactly once.
-  return { ...result.data, tracks: (input as TrackCollection).tracks };
+  // Execute module schemas to validate, but discard their track output so creation
+  // transforms authored values rather than transforming already-parsed values.
+  return { ...result.data, tracks: (input as TrackCollection<Modules>).tracks };
 }
 
 function validateViewField(
@@ -47,10 +54,10 @@ function validateLeafField(
   validateViewField(collection, view.leaf ?? "title", `views.${view.id}.leaf`, errors);
 }
 
-export function validateTrackCollection(
+export function validateTrackCollection<const Modules extends readonly AnyTrackModule[]>(
   input: unknown,
-  modules: readonly AnyTrackModule[],
-): TrackCollection {
+  modules: Modules,
+): Omit<TrackCollection<Modules>, "views"> & { views?: TrackCollectionView[] } {
   const collection = parseTrackCollection(input, modules);
   const errors: string[] = [];
 

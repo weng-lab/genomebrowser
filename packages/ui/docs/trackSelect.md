@@ -219,11 +219,11 @@ TrackSelect treats any store track whose ID matches a supplied collection entry 
 
 `TrackSelectInteractionResolver` receives one object:
 
-| Field              | Type                   | Description                                           |
-| ------------------ | ---------------------- | ----------------------------------------------------- |
-| `collectionId`     | `string`               | Identifies the owning collection.                     |
-| `qualifiedTrackId` | `string`               | Provides the public `${collectionId}::${trackId}` ID. |
-| `track`            | `TrackCollectionTrack` | Provides the parsed authored collection track.        |
+| Field              | Type                                | Description                                           |
+| ------------------ | ----------------------------------- | ----------------------------------------------------- |
+| `collectionId`     | `string`                            | Identifies the owning collection.                     |
+| `qualifiedTrackId` | `string`                            | Provides the public `${collectionId}::${trackId}` ID. |
+| `track`            | `TrackCollection["tracks"][number]` | Provides the parsed authored collection track.        |
 
 It returns `TrackSelectInteraction` or `undefined`. When supplied, resolver output is authoritative: `undefined` removes an existing interaction from a reused collection track, and a returned object replaces all callbacks rather than merging them.
 

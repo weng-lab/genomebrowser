@@ -4,48 +4,108 @@ A collection describes configured tracks for one assembly. Use it to load tracks
 
 ## Usage
 
-Validate parsed JSON or a JavaScript object against the modules your application supports:
+Choose the modules your application supports and use the same list for editor tooling, validation, and the track store:
 
 ```ts
-import { validateTrackCollection } from "@weng-lab/genomebrowser";
+// trackModules.ts
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
-const modules = [bigWigModule];
-const collection = validateTrackCollection(
-  {
-    assembly: "hg38",
-    id: "signals",
-    tracks: [
-      {
-        type: "bigwig",
-        base: { id: "signal", title: "Signal" },
-        config: { url: "YOUR_URL_HERE" },
-      },
-    ],
-  },
-  modules,
-);
+export const trackModules = [bigWigModule] as const;
 ```
 
-This does not add tracks to a browser. Convert entries through their modules' `create` methods, then use a [track-store action](trackStore.md). Collection entries contain creation input, so defaults and config transformations must be applied when creating instances.
+### Author JSON
+
+Generate an editor schema from those modules:
+
+```sh
+pnpm exec genomebrowser schema --from ./trackModules.ts#trackModules --out ./trackCollection.schema.json
+```
+
+Reference it in a collection file for module-aware completion and structural checks:
+
+```json
+{
+  "$schema": "./trackCollection.schema.json",
+  "assembly": "hg38",
+  "id": "signals",
+  "tracks": [
+    {
+      "type": "bigwig",
+      "base": { "id": "signal", "title": "Signal" },
+      "config": { "url": "YOUR_URL_HERE" }
+    }
+  ]
+}
+```
+
+### Author TypeScript
+
+Use `satisfies TrackCollection<typeof trackModules>` to check each track's type, display, and config against its module's creation input. Config defaults remain optional and transformations use their input types. Keep the module list specific, for example with `as const`, rather than annotating it as `AnyTrackModule[]`.
+
+```ts
+import type { TrackCollection } from "@weng-lab/genomebrowser";
+import { trackModules } from "./trackModules";
+
+const datasets = [{ id: "signal", title: "Signal", url: "YOUR_URL_HERE" }];
+
+export const authoredCollection = {
+  assembly: "hg38",
+  id: "signals",
+  tracks: datasets.map(({ id, title, url }) => ({
+    type: "bigwig" as const,
+    base: { id, title },
+    config: { url },
+  })),
+} satisfies TrackCollection<typeof trackModules>;
+```
+
+You can also write the `tracks` array directly for a small collection. TypeScript checks types; runtime validation additionally checks constraints such as non-empty strings, duplicate IDs, and metadata references.
+
+### Validate and create tracks
+
+Both authoring routes use the same runtime path. Here, `input` is an imported collection object, the result of `JSON.parse`, or an authored TypeScript object:
+
+```ts
+import { createTrackStore, validateTrackCollection } from "@weng-lab/genomebrowser";
+import { trackModules } from "./trackModules";
+
+const useTrackStore = createTrackStore({ modules: trackModules });
+const { registry } = useTrackStore.getState();
+const collection = validateTrackCollection(input, registry.modules);
+const tracks = collection.tracks.map(({ type, base, config }) =>
+  registry.get(type).create({ base, config }),
+);
+const result = useTrackStore.getState().setTracks(tracks);
+if (!result.ok) throw new Error(result.error);
+```
+
+Validation does not add tracks to a browser. Create all entries or only those your application selects, then use a [track-store action](trackStore.md). With multiple module types, narrow an entry by its `type` before calling a specific module when TypeScript needs to preserve the relationship between that module and its config. TrackSelect handles validation and selected-track creation for its supplied collections.
 
 ## TrackCollection
 
-| Field         | Type                     | Default  | Description                                                                                                                      |
-| ------------- | ------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `$schema`     | `string`                 | Omitted  | Non-empty schema reference for JSON editors. Core preserves it without fetching the schema.                                      |
-| `assembly`    | `string`                 | Required | Non-empty assembly identifier. Core preserves its exact spelling; the application decides whether it matches the active browser. |
-| `id`          | `string`                 | Required | Non-empty collection identifier. Applications combining collections must ensure unique IDs.                                      |
-| `label`       | `string`                 | Omitted  | Optional non-empty display name.                                                                                                 |
-| `description` | `string`                 | Omitted  | Optional non-empty descriptive text.                                                                                             |
-| `views`       | Array of view inputs     | Omitted  | If supplied, at least one view. View input may omit `grouping` and `leaf`.                                                       |
-| `tracks`      | `TrackCollectionTrack[]` | Required | Authored entries in collection order. May be empty; track IDs must be unique within a validated collection.                      |
+`TrackCollection<Modules>` describes authored input. `Modules` defaults to `readonly AnyTrackModule[]` for general collection handling. Supply `typeof trackModules` to derive a union of entries from specific modules. Views may omit defaults; validated views have `grouping` and `leaf` resolved.
+
+| Field         | Type                  | Default  | Description                                                                                                                      |
+| ------------- | --------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `$schema`     | `string`              | Omitted  | Non-empty schema reference for JSON editors. Core preserves it without fetching the schema.                                      |
+| `assembly`    | `string`              | Required | Non-empty assembly identifier. Core preserves its exact spelling; the application decides whether it matches the active browser. |
+| `id`          | `string`              | Required | Non-empty collection identifier. Applications combining collections must ensure unique IDs.                                      |
+| `label`       | `string`              | Omitted  | Optional non-empty display name.                                                                                                 |
+| `description` | `string`              | Omitted  | Optional non-empty descriptive text.                                                                                             |
+| `views`       | Array of view inputs  | Omitted  | If supplied, at least one view. View input may omit `grouping` and `leaf`.                                                       |
+| `tracks`      | Array of track inputs | Required | Authored entries in collection order. May be empty; track IDs must be unique within a validated collection.                      |
 
 A collection does not contain chromosome lengths, viewport state, highlights, or selection mode. Its assembly ID does not perform preset lookup or alias matching. Use separate collections for different assemblies. Objects reject unknown collection-level fields.
 
-## TrackCollectionTrack and TrackCollectionEntry
+### Track inputs
 
-`TrackCollectionTrack` describes an authored entry. It is `Omit<TrackCollectionEntry, "source">`.
+An entry is an authored recipe, not a runtime `TrackInstance`. Derive its type from the collection when needed:
+
+```ts
+type CollectionTrack = TrackCollection<typeof trackModules>["tracks"][number];
+```
+
+Its config and display are correlated with its module type. Without a module parameter, config is `Record<string, unknown>` and the module type is `string`.
 
 | Field      | Type                      | Default  | Description                                                                                                                                 |
 | ---------- | ------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -54,9 +114,9 @@ A collection does not contain chromosome lengths, viewport state, highlights, or
 | `config`   | `Record<string, unknown>` | Required | Input validated by the selected module's config schema.                                                                                     |
 | `metadata` | `TrackMetadata`           | Omitted  | Scalar attributes used to describe and organize tracks.                                                                                     |
 
-`TrackCollectionEntry` is the broader exported type `TrackCreateInput<Record<string, unknown>> & { type: string; metadata?: TrackMetadata }`. It can describe an optional runtime source policy. Portable collection schemas deliberately omit that `source` field and reject it in collection JSON. Collection entries also reject interaction callbacks; attach those in application code during module creation.
+Collection entries reject `source` and interaction callbacks. Supply runtime ownership and interactions in application code during module creation. Metadata stays with the collection rather than becoming part of the runtime instance.
 
-To serialize runtime tracks as a collection, select `type`, `base`, and serializable `config` values. Keep desired metadata separately. Resolved values preserve the current settings on a later load; do not include runtime callbacks or source ownership policy.
+When serializing runtime tracks, config must still satisfy the module's creation input. A transformed runtime config is not necessarily valid collection input; preserve authored values or explicitly convert them back to input form.
 
 ### TrackMetadata
 
@@ -68,9 +128,9 @@ The built-in view fields are `id`, `title`, and `type`. All other referenced fie
 
 Views describe ways a collection UI can organize tracks. Core validates their structure and field references; rendering and selection behavior belong to the UI consuming them.
 
-### TrackCollectionView and TrackCollectionViewSchema
+### TrackCollectionView
 
-`TrackCollectionViewSchema` is an exported strict Zod schema for one view. Its parsed output type is `TrackCollectionView`.
+`TrackCollectionView` describes a validated view with defaults resolved. For authoring, use the view input type within `TrackCollection["views"]`.
 
 | Field         | Type                      | Default   | Description                                                  |
 | ------------- | ------------------------- | --------- | ------------------------------------------------------------ |
@@ -81,7 +141,7 @@ Views describe ways a collection UI can organize tracks. Core validates their st
 | `grouping`    | `string[]`                | `[]`      | Non-empty field names in outermost-to-innermost group order. |
 | `leaf`        | `string`                  | `"title"` | Non-empty field name used to label a final track item.       |
 
-Parsing a view alone applies defaults and checks structure. It cannot check ID uniqueness across views or whether a metadata field exists on collection tracks. Use `validateTrackCollection` for those checks.
+`validateTrackCollection` checks view structure, ID uniqueness, and references to track metadata, and applies these defaults. View objects reject unknown fields.
 
 ### TrackCollectionColumn
 
@@ -97,29 +157,15 @@ These are schema defaults. Label fallbacks, column sizing, and visibility behavi
 
 ## validateTrackCollection
 
-`validateTrackCollection(input: unknown, modules: readonly AnyTrackModule[]): TrackCollection` accepts an object, not a JSON string. If loading a string, parse it with `JSON.parse` first and handle parsing failures separately.
+`validateTrackCollection(input, modules)` accepts an `unknown` object and a readonly module list, not a JSON string. If loading a string, parse it with `JSON.parse` first and handle parsing failures separately.
 
 Validation checks the collection structure, each module's creation schema, duplicate track and view IDs, and every field referenced by columns, grouping, and leaf labels. It throws an `Error` containing validation details on failure. An empty module list or duplicate module types also throws.
 
-The result applies collection/view defaults but retains the original authored track entries. This ensures module creation applies track defaults and transformations once. Those entries are not detached copies; treat validated input as data and create instances before use. `validateTrackCollection` does not add views or infer assembly compatibility.
-
-## createTrackCollectionSchema
-
-`createTrackCollectionSchema(modules: readonly AnyTrackModule[])` returns a Zod collection schema with a discriminated union of entries selected by `type`. Each entry uses its module's creation schema, omits source ownership, and adds metadata. Empty module lists and duplicate types throw.
-
-```ts
-import { createTrackCollectionSchema } from "@weng-lab/genomebrowser";
-
-const schema = createTrackCollectionSchema(modules);
-const parsed = schema.safeParse(collection);
-if (!parsed.success) console.error(parsed.error.issues);
-```
-
-Unlike `validateTrackCollection`, parsing this schema returns parsed track values with module defaults and transformations applied. It checks shape, not duplicate IDs or references between views and metadata. Do not pass already-transformed config through creation again unless the schema supports doing so.
+The return type infers the supplied modules and contains their authored track inputs plus normalized `TrackCollectionView[]` when views exist. Validation executes module defaults and transformations to check validity, then discards the parsed track output. Creation parses the original input again, so transformations do not compound. Transform callbacks should be pure; they are not guaranteed a single invocation. Those entries are not detached copies; treat validated input as data and create instances before use. `validateTrackCollection` does not add views or infer assembly compatibility.
 
 ## generateTrackCollectionJsonSchema
 
-`generateTrackCollectionJsonSchema(modules: readonly AnyTrackModule[])` returns the JSON Schema object for collection **input**, using Zod's JSON Schema conversion. It accepts the same module list as the Zod factory and can throw for unsupported schema conversions.
+`generateTrackCollectionJsonSchema(modules: readonly AnyTrackModule[])` returns the JSON Schema object for collection **input**, using Zod's JSON Schema conversion. An empty module list or duplicate module types throws. Unsupported schema conversions can also throw.
 
 ```ts
 import { generateTrackCollectionJsonSchema } from "@weng-lab/genomebrowser";

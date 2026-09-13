@@ -1,15 +1,14 @@
 import {
-  TrackCollectionViewSchema,
+  type validateTrackCollection,
   type TrackCollectionView,
   type TrackCollection,
-  type TrackCollectionTrack,
 } from "@weng-lab/genomebrowser";
 
 export type CollectionGridRow = {
   id: string;
   title: string;
   type: string;
-  track: TrackCollectionTrack;
+  track: TrackCollection["tracks"][number];
   // Metadata defines dynamic grid columns, so rows need a string index signature.
   [field: string]: unknown;
 };
@@ -17,7 +16,7 @@ export type CollectionGridRow = {
 export type CollectionTrackEntry = Readonly<{
   collectionId: string;
   qualifiedTrackId: string;
-  track: TrackCollectionTrack;
+  track: TrackCollection["tracks"][number];
 }>;
 
 export type TrackSelectCollectionRecord = Readonly<
@@ -37,7 +36,7 @@ export type CompiledTrackCollections = Readonly<{
 }>;
 
 export function compileTrackCollections(
-  trackCollections: TrackCollection[],
+  trackCollections: ReturnType<typeof validateTrackCollection>[],
 ): CompiledTrackCollections {
   const records: TrackSelectCollectionRecord[] = [];
   const recordsById = new Map<string, TrackSelectCollectionRecord>();
@@ -75,7 +74,7 @@ export function compileTrackCollections(
       });
     }
 
-    const views = collection.views?.map((view) => TrackCollectionViewSchema.parse(view)) ?? [
+    const views: TrackCollectionView[] = collection.views ?? [
       {
         id: "default",
         label: "Tracks",

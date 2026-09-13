@@ -68,15 +68,13 @@ Import the APIs below from `@weng-lab/genomebrowser`. Related types are document
 
 ## Collections and schemas
 
-| Exports                                            | Reference                                                                                                             |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `TrackCollection`                                  | [TrackCollection](collections.md#trackcollection)                                                                     |
-| `TrackCollectionTrack`, `TrackCollectionEntry`     | [TrackCollectionTrack and TrackCollectionEntry](collections.md#trackcollectiontrack-and-trackcollectionentry)         |
-| `TrackMetadata`                                    | [TrackMetadata](collections.md#trackmetadata)                                                                         |
-| `TrackCollectionView`, `TrackCollectionViewSchema` | [TrackCollectionView and TrackCollectionViewSchema](collections.md#trackcollectionview-and-trackcollectionviewschema) |
-| `TrackCollectionColumn`                            | [TrackCollectionColumn](collections.md#trackcollectioncolumn)                                                         |
-| `validateTrackCollection`                          | [validateTrackCollection](collections.md#validatetrackcollection)                                                     |
-| `createTrackCollectionSchema`                      | [createTrackCollectionSchema](collections.md#createtrackcollectionschema)                                             |
-| `generateTrackCollectionJsonSchema`                | [generateTrackCollectionJsonSchema](collections.md#generatetrackcollectionjsonschema)                                 |
+| Exports                             | Reference                                                                             |
+| ----------------------------------- | ------------------------------------------------------------------------------------- |
+| `TrackCollection`                   | [TrackCollection](collections.md#trackcollection)                                     |
+| `TrackMetadata`                     | [TrackMetadata](collections.md#trackmetadata)                                         |
+| `TrackCollectionView`               | [TrackCollectionView](collections.md#trackcollectionview)                             |
+| `TrackCollectionColumn`             | [TrackCollectionColumn](collections.md#trackcollectioncolumn)                         |
+| `validateTrackCollection`           | [validateTrackCollection](collections.md#validatetrackcollection)                     |
+| `generateTrackCollectionJsonSchema` | [generateTrackCollectionJsonSchema](collections.md#generatetrackcollectionjsonschema) |
 
 The [schema CLI](collections.md#schema-cli) documents the `genomebrowser schema` command.

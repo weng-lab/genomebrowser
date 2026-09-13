@@ -27,8 +27,6 @@ Follow-up notes:
 |                             | `TrackLabel`                            | Place a styled text annotation at a plot edge or corner.                                                            |
 | **Context menus**           | `useContextMenuStore`                   | Read, open, or close the hosting browser’s built-in track menu.                                                     |
 | **Collections and schemas** | `validateTrackCollection`               | Validate collection input, including duplicate IDs and metadata references, while preserving authored track inputs. |
-|                             | `createTrackCollectionSchema`           | Build a Zod schema for structural parsing using your modules’ creation schemas.                                     |
-|                             | `TrackCollectionViewSchema`             | Parse an individual collection view definition.                                                                     |
 |                             | `generateTrackCollectionJsonSchema`     | Generate JSON Schema for collection authoring and editor tooling.                                                   |
 | **Integration constant**    | `defaultScreenGraphQlEndpoint`          | Access the default SCREEN GraphQL endpoint.                                                                         |
 

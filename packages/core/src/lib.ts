@@ -75,15 +75,10 @@ export type { TrackLabelProps } from "./browser/track-overlay/TrackLabel";
 
 // Collections and schemas
 export { validateTrackCollection } from "./collections/validateTrackCollection";
-export {
-  createTrackCollectionSchema,
-  TrackCollectionViewSchema,
-} from "./collections/collectionSchema";
 export { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
 export type {
   TrackCollection,
   TrackCollectionView,
   TrackCollectionColumn,
   TrackMetadata,
-  TrackCollectionTrack,
 } from "./collections/collectionSchema";
