@@ -6,7 +6,7 @@ Components that render application-provided data are outside this request bounda
 
 ## Endpoint and authentication
 
-The host application owns GraphQL endpoint routing and authentication. Genomebrowser packages never read build-time API keys, accept credentials through component or track configuration, or add authorization headers. SCREEN-backed features default to the same-origin route `/api/screen-graphql`; hosts may override that non-secret endpoint when their route differs.
+The host application owns GraphQL endpoint routing and authentication. Genomebrowser packages never read build-time API keys, accept credentials through component or track configuration, or add authorization headers. First-party applications configure GenomeSearch with the same-origin route `/api/screen-graphql`; hosts may override that non-secret endpoint when their route differs.
 
 First-party products use this flow:
 
@@ -18,21 +18,7 @@ First-party products use this flow:
 
 The product's server route adds `SCREEN_API_KEY` when forwarding to `https://screen.api.wenglab.org/graphql`. The key remains server-only. Apollo may use the same route for product queries, but genomebrowser uses native `fetch` and does not require an Apollo provider.
 
-Pass infrastructure at the narrow public boundary:
-
-```tsx
-import { transcriptModule } from "@weng-lab/genomebrowser-tracks/transcript";
-
-const transcriptTrack = transcriptModule.create({ base: {
-  id: "genes",
-  title: "Genes"},
-  config: {
-    assembly: "GRCh38",
-    version: 47,
-  }});
-```
-
-When a host does not use the conventional route, set `config.endpoint` on Transcript tracks. Endpoint overrides are ordinary, non-secret data-source configuration and may appear in collections or saved browser state; credentials must not.
+GenomeSearch receives its endpoint through `graphqlUrl`. Applications pass `/api/screen-graphql` or their own non-secret proxy route. Keep credentials server-side. Core defines no SCREEN endpoint constant, and the first-party Gene track reads BigBed files independently of search.
 
 ## CORS errors usually indicate authentication failure
 

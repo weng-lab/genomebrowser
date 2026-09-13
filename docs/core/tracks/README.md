@@ -8,7 +8,7 @@ See [First-party track source layout](sourceLayout.md) for package entries, sour
 - [BigBed](bigbed.md): genomic intervals from one BigBed URL
 - [BulkBed](bulkbed.md): multiple BigBed datasets in one track
 - [cCRE BigBed](../../../packages/tracks/docs/tracks/ccre.md): ENCODE cCRE intervals from BigBed
-- [Transcript](transcript.md): gene and transcript models from the SCREEN GraphQL API
+- [Gene](../../../packages/tracks/docs/tracks/gene.md): gene and transcript models from BigBed files
 - [MethylC](methylc.md): split-strand methylation signal from BigWig channels
 - [CAVE](../../../packages/tracks/docs/tracks/cave.md): paired methylation signal selected by neurotransmitter and age
 

@@ -6,7 +6,6 @@ import { caveModule } from "./cave";
 import { ccreBigBedModule } from "./ccre";
 import { geneModule } from "./gene";
 import { methylCModule } from "./methylc";
-import { transcriptModule } from "./transcript";
 
 export const firstPartyTrackModules = [
   rulerModule,
@@ -17,5 +16,4 @@ export const firstPartyTrackModules = [
   ccreBigBedModule,
   geneModule,
   methylCModule,
-  transcriptModule,
 ] as const;

@@ -1,6 +1,5 @@
 export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
-export { defaultScreenGraphQlEndpoint } from "./screen";
 
 export { createAssemblyDefinition } from "./genome/assembly";
 export type { AssemblyDefinition } from "./genome/assembly";

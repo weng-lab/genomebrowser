@@ -8,11 +8,11 @@
 
 ## Choose a built-in track
 
-Use the [track catalog](tracks/README.md) to choose among BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, Gene, MethylC, and Transcript. The catalog groups tracks by the kind of source they read and links to each track's configuration reference.
+Use the [track catalog](tracks/README.md) to choose among BigBed, cCRE BigBed, BigWig, BulkBed, CAVE, Gene, and MethylC. The catalog groups tracks by the kind of source they read and links to each track's configuration reference.
 
 ## Fix data source problems
 
-[Data source troubleshooting](dataSources.md) covers browser access, cross-origin resource sharing, byte-range responses, and the Transcript proxy requirement.
+[Data source troubleshooting](dataSources.md) covers browser access, cross-origin resource sharing, byte-range responses, and reference sequence requirements.
 
 ## Use the module API
 
@@ -31,3 +31,5 @@ Each track subpath exports one complete module. BigBed also exports its schema-a
 `@weng-lab/genomebrowser` owns the runtime, stores, module contracts, and module-author hooks. This package owns the MUI settings controls, tooltip components, and helpers documented here. Files under `src` are internal. Import shared APIs only from `@weng-lab/genomebrowser-tracks/shared`.
 
 - [Ruler and reference sequence](tracks/ruler.md)
+
+See [release notes](releaseNotes.md) for breaking changes and migration guidance.
