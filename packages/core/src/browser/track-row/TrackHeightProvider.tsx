@@ -1,8 +1,9 @@
 import { useMemo, type ReactNode } from "react";
-import { useTrackStore } from "../state/browserContextState";
+import { useGenomeBrowser } from "../state/browserContextState";
 import { TrackHeightContext, type TrackHeightContextValue } from "./trackHeightContext";
 
 export function TrackHeightProvider({ children }: { children: ReactNode }) {
+  const { useTrackStore } = useGenomeBrowser();
   const getTrack = useTrackStore((state) => state.getTrack);
   const updateTrack = useTrackStore((state) => state.updateTrack);
   const value = useMemo<TrackHeightContextValue>(

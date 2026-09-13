@@ -21,8 +21,10 @@ vi.mock("@weng-lab/genomebrowser", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@weng-lab/genomebrowser")>();
   return {
     ...actual,
-    useBrowserStore: <T,>(selector: (state: { assembly: { id: string } }) => T): T =>
-      selector({ assembly: { id: browser.assemblyId } }),
+    useGenomeBrowser: () => ({
+      useBrowserStore: <T,>(selector: (state: { assembly: { id: string } }) => T): T =>
+        selector({ assembly: { id: browser.assemblyId } }),
+    }),
   };
 });
 

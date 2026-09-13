@@ -156,3 +156,7 @@ The optional second argument contains per-instance callbacks and is not serializ
 ## Fixed annotations
 
 Use [TrackOverlay](../reference/TrackOverlay.md) for fixed SVG content or [TrackLabel](../reference/TrackLabel.md) for text annotations.
+
+## Hosting browser stores
+
+Renderers, settings, and tooltip components use `useGenomeBrowser()` to resolve their hosting browser's bound stores. See [useGenomeBrowser](../reference/browserStore.md#usegenomebrowser) for selectors and imperative access. Fetchers and module-definition code cannot call React hooks.

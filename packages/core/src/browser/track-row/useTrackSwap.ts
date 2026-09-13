@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { MouseEvent, RefObject } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
 import { svgPoint } from "../../modules/utils/svg";
-import { useTrackMutationGate, useTrackStoreApi } from "../state/browserContextState";
+import { useTrackMutationGate, useGenomeBrowser } from "../state/browserContextState";
 import { useBrowserSvg } from "../svg/browserSvgState";
 import { getTrackWrapperHeight } from "./trackLayout";
 import { getSwapOrder, getSwapPreview, isSameSwapPreview } from "./trackSwapMath";
@@ -30,7 +30,7 @@ export function useTrackSwap({
   cloneRef: RefObject<SVGGElement | null>;
 }) {
   const svg = useBrowserSvg();
-  const useTrackStore = useTrackStoreApi();
+  const { useTrackStore } = useGenomeBrowser();
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const isPinned = useTrackStore((state) => state.pinnedTrackIds.includes(track.base.id));
   const [dragSession, setDragSession] = useState<DragSession | null>(null);

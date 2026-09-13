@@ -50,11 +50,18 @@ Responsive views measure their own width and do not write that measurement into 
 
 `BrowserStoreInstance` is `UseBoundStore<StoreApi<BrowserStore>>`, the Zustand hook plus its imperative store API.
 
-### useBrowserStore
+### useGenomeBrowser
 
-The exported `useBrowserStore<T>(selector: (state: BrowserStore) => T): T` subscribes to the store passed to the surrounding `GenomeBrowser`. Use it in components rendered inside the browser, such as a track’s settings component, when they need browser state or actions without receiving a store prop. It throws if called outside that browser context.
+`useGenomeBrowser(): GenomeBrowserStores` resolves the nearest hosting `GenomeBrowser`'s bound Zustand stores. Use it in hosted renderers, settings, and tooltips. It throws `useGenomeBrowser must be used within a GenomeBrowser` outside that context.
 
-The local `useBrowserStore` variable in the Usage example is instead the result of `createBrowserStore`. You choose that variable’s name, and it always accesses the particular store you created, including from application controls outside the browser. The exported hook chooses its store from React context and has no imperative `getState()` API.
+```tsx
+const { useBrowserStore, useTrackStore } = useGenomeBrowser();
+const region = useBrowserStore((state) => state.region);
+```
+
+Import `useGenomeBrowser` from `@weng-lab/genomebrowser`. The exported `GenomeBrowserStores` type contains `useBrowserStore: BrowserStoreInstance` and `useTrackStore: TrackStoreInstance`. These are the supplied bound hooks, retaining their identities and Zustand APIs such as `.getState()` and `.subscribe()`. Resolving context does not subscribe to store state; calling a returned hook with a selector subscribes to that selection. Ordinary parent renders can still render the consumer.
+
+Independent browsers resolve their own stores; supplying the same stores shares state. Application controls outside the browser use their application-owned factory results directly. `GenomeBrowser` does not accept arbitrary children.
 
 ## Navigation
 

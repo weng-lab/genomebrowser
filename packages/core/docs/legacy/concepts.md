@@ -12,6 +12,74 @@ The browser store owns the visible genomic region, configured fixed track-area w
 
 `GenomeBrowser` creates short-lived internal state for the mounted browser, including its measured container width, request results, and default settings/context-menu state. Responsive width belongs to each mounted view and never overwrites the browser store. Two views may share region and track stores while using different sizes and scales. See [GenomeBrowser](../reference/GenomeBrowser.md) for sizing and magnification. Unmounting it discards that internal state, but does not discard the application-owned browser or track stores.
 
+## Access the hosting browser
+
+Applications own the hooks returned by the store factories. Name them for their
+purpose and pass them to `GenomeBrowser`:
+
+```tsx
+import { createBrowserStore, createTrackStore, GenomeBrowser, hg38 } from "@weng-lab/genomebrowser";
+
+const useMyBrowserStore = createBrowserStore({
+  assembly: hg38,
+  region: { chromosome: "chr1", start: 0, end: 1000 },
+});
+const useMyTrackStore = createTrackStore({ modules: [] });
+
+function Browser() {
+  return <GenomeBrowser browserStore={useMyBrowserStore} trackStore={useMyTrackStore} />;
+}
+```
+
+Reusable renderers, settings, and tooltips resolve their hosting browser through
+`useGenomeBrowser()` instead of importing an application's store:
+
+```tsx
+import { useGenomeBrowser } from "@weng-lab/genomebrowser";
+
+function RegionLabel() {
+  const { useBrowserStore } = useGenomeBrowser();
+  const region = useBrowserStore((state) => state.region);
+  return (
+    <text x={0} y={12}>
+      {region.chromosome}:{region.start}-{region.end}
+    </text>
+  );
+}
+```
+
+Use `RegionLabel` within a module renderer. `GenomeBrowser` does not accept
+arbitrary children. A component outside its provider uses the host-owned hook
+directly; calling `useGenomeBrowser()` there throws
+`useGenomeBrowser must be used within a GenomeBrowser`.
+
+The exported `GenomeBrowserStores` return type contains exactly two properties:
+
+| Property          | Type                   | Purpose                                            |
+| ----------------- | ---------------------- | -------------------------------------------------- |
+| `useBrowserStore` | `BrowserStoreInstance` | Region, navigation, selection, and highlights.     |
+| `useTrackStore`   | `TrackStoreInstance`   | Registry, tracks, ordering, and validated updates. |
+
+These are the supplied bound Zustand hooks, with stable identities for each
+supplied instance. Resolving context does not subscribe to store state; calling
+a returned hook with a selector subscribes to that selection. Ordinary parent
+renders can still render the consumer. The stores retain `.getState()`,
+`.subscribe()`, and their other Zustand APIs. For example, an event handler can
+call `useTrackStore.getState().updateTrack(trackId, update)`.
+
+Independent browsers resolve their own stores. Supplying the same stores to
+multiple browsers deliberately shares state. `useTooltip`, `useInteraction`,
+`useAutoTrackHeight`, and other independent hooks remain separate.
+
+### Migrating direct context hooks
+
+The standalone context exports `useBrowserStore`, `useTrackStore`, and
+`useTrackStoreApi` have been removed. Replace those imports with
+`useGenomeBrowser`, then destructure the needed bound store inside your component
+or custom hook. Replace `const useStore = useTrackStoreApi()` with
+`const { useTrackStore } = useGenomeBrowser()` and use `useTrackStore.getState()`
+for imperative access. Host-created hooks and store factories are unchanged.
+
 ## Assemblies bound every browser region
 
 Each browser store owns an immutable assembly and a visible genomic interval. Coordinates are zero-based and half-open, and sequence names must match the assembly exactly. See [assemblies and regions](../reference/assembliesAndRegions.md) for presets, custom definitions, parsing, and normalization; see [browser-store navigation](../reference/browserStore.md#navigation) to commit viewport changes.

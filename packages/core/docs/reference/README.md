@@ -13,7 +13,7 @@ Import the APIs below from `@weng-lab/genomebrowser`. Related types are document
 | `BrowserViewportMutationResult`                                 | [Fixed width](browserStore.md#fixed-width)                                                           |
 | `BrowserSelectionMode`, `SelectionHighlightStyle`               | [Selection](browserStore.md#selection)                                                               |
 | `Highlight`                                                     | [Highlights](browserStore.md#highlights)                                                             |
-| `useBrowserStore`                                               | [Browser context hook](browserStore.md#usebrowserstore)                                              |
+| `useGenomeBrowser`, `GenomeBrowserStores`                       | [Hosting browser stores](browserStore.md#usegenomebrowser)                                           |
 
 ## Assemblies and regions
 
@@ -28,14 +28,14 @@ Import the APIs below from `@weng-lab/genomebrowser`. Related types are document
 
 ## Track store
 
-| Exports                                            | Reference                                                                   |
-| -------------------------------------------------- | --------------------------------------------------------------------------- |
-| `createTrackStore`, `TrackStoreOptions`            | [Store creation](trackStore.md#createtrackstore-and-trackstoreoptions)      |
-| `TrackStore`, `TrackStoreInstance`                 | [State and store instance](trackStore.md#trackstore-and-trackstoreinstance) |
-| `ModuleRegistry`                                   | [Module registry](trackStore.md#moduleregistry)                             |
-| `TrackMutationResult`                              | [Mutation results](trackStore.md#mutation-results)                          |
-| `TrackUpdate`, `TrackBaseUpdate`                   | [Update patches](trackStore.md#trackupdate-and-trackbaseupdate)             |
-| `useTrackStore`, `useTrackStoreApi`, `useRegistry` | [Context hooks](trackStore.md#context-hooks)                                |
+| Exports                                 | Reference                                                                   |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| `createTrackStore`, `TrackStoreOptions` | [Store creation](trackStore.md#createtrackstore-and-trackstoreoptions)      |
+| `TrackStore`, `TrackStoreInstance`      | [State and store instance](trackStore.md#trackstore-and-trackstoreinstance) |
+| `ModuleRegistry`                        | [Module registry](trackStore.md#moduleregistry)                             |
+| `TrackMutationResult`                   | [Mutation results](trackStore.md#mutation-results)                          |
+| `TrackUpdate`, `TrackBaseUpdate`        | [Update patches](trackStore.md#trackupdate-and-trackbaseupdate)             |
+| `useRegistry`                           | [Context hooks](trackStore.md#context-hooks)                                |
 
 ## Track modules
 

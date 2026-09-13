@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
-import { useBrowserStore } from "@weng-lab/genomebrowser";
+import { useGenomeBrowser } from "@weng-lab/genomebrowser";
 
 export function useRulerZoomSelection() {
+  const { useBrowserStore } = useGenomeBrowser();
   const mode = useBrowserStore((state) => state.selectionMode);
   const region = useBrowserStore((state) => state.region);
   const setRegion = useBrowserStore((state) => state.setRegion);

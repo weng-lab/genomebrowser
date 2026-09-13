@@ -190,12 +190,6 @@ Removing, replacing, or clearing tracks does not clear pins. Unpinning keeps the
 
 ## Context hooks
 
-Components rendered inside `GenomeBrowser` can access its track store without receiving it through props:
+Components rendered inside `GenomeBrowser` use [useGenomeBrowser](browserStore.md#usegenomebrowser) to resolve `useTrackStore`. Call it with a selector to subscribe, or use `useTrackStore.getState()` for imperative actions.
 
-| Hook                                                   | Returns              | Use                                                                     |
-| ------------------------------------------------------ | -------------------- | ----------------------------------------------------------------------- |
-| `useTrackStore<T>(selector: (state: TrackStore) => T)` | `T`                  | Subscribe to selected state from the surrounding browser's track store. |
-| `useTrackStoreApi()`                                   | `TrackStoreInstance` | Access that store's imperative API and actions.                         |
-| `useRegistry()`                                        | `ModuleRegistry`     | Access the module registry supplied by the browser.                     |
-
-Each hook requires its browser-provided context and throws outside it. These are exported hooks, not the locally named `useTrackStore` variable in Usage. The local factory result selects from a particular application-owned store and can be used outside a mounted browser.
+`useRegistry(): ModuleRegistry` accesses the module registry supplied by the browser and throws outside its browser-provided context. The local factory result in Usage accesses a particular application-owned store and can be used outside a mounted browser.

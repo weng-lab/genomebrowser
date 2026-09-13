@@ -25,3 +25,5 @@ For initial setup, the existing [getting-started page](legacy/gettingStarted.md)
 ## Package boundaries
 
 Core owns the runtime and public extension contracts. First-party modules come from `@weng-lab/genomebrowser-tracks`. Optional application controls, including TrackSelect, come from `@weng-lab/genomebrowser-ui`; they can share the runtime's stores. Package internals are not public import paths.
+
+Hosted renderers, settings, and tooltips use [useGenomeBrowser](reference/browserStore.md#usegenomebrowser) to access their browser and track stores.

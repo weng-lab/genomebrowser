@@ -10,7 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import SvgIcon from "@mui/material/SvgIcon";
 import TextField from "@mui/material/TextField";
 import type { TextFieldProps } from "@mui/material/TextField";
-import { useBrowserStore, type TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { useGenomeBrowser, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { useState, type ComponentProps } from "react";
 import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import {
@@ -195,6 +195,7 @@ function HostGeneDatasetField({
   url: string;
   onChange: (dataset: GeneDataset) => void;
 }) {
+  const { useBrowserStore } = useGenomeBrowser();
   const assembly = useBrowserStore((state) => state.assembly.id);
   const datasets = getGeneDatasetsForAssembly(assembly);
   const selectedDataset = datasets.find((dataset) => dataset.url === url) ?? null;
