@@ -45,6 +45,8 @@ Selecting a highlight's arrow action sets the browser viewport to that highlight
 
 ## API
 
+### HighlightDialogProps
+
 | Prop           | Type                   | Default  | Description                                                                     |
 | -------------- | ---------------------- | -------- | ------------------------------------------------------------------------------- |
 | `browserStore` | `BrowserStoreInstance` | Required | Browser store whose current region and highlights the dialog reads and updates. |
@@ -54,3 +56,7 @@ Selecting a highlight's arrow action sets the browser viewport to that highlight
 ## Accessibility
 
 The dialog uses MUI's modal focus and keyboard behavior. The close, edit, navigate, and remove icon buttons have accessible names, and every form field has a visible label. Validation messages remain attached to their fields.
+
+## Related reference
+
+[Back to highlights](README.md) · [UI API reference](../README.md)

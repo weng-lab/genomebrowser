@@ -306,3 +306,7 @@ coordinate label remains its accessible name.
 - Cytoband bands, highlights, and the current-region bracket are clipped to the supplied chromosome extent. The tooltip portal is independent of the ideogram bounds and stacking context.
 - The active tooltip requires a browser document. Server rendering emits the ideogram without tooltip portal content.
 - Overlapping pointer targets follow deterministic SVG paint order; the later rendered target receives pointer input where targets overlap.
+
+## Related reference
+
+[Back to chromosome overview](README.md) · [UI API reference](../README.md)

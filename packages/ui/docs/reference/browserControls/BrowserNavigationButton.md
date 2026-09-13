@@ -92,6 +92,8 @@ These checks do not preview the exact rounded result. A valid zoom factor close 
 
 The component also accepts ordinary MUI `ButtonProps`, including `children`, icons, `variant`, `size`, `sx`, and accessibility attributes. Its navigation `action` replaces MUI Button's similarly named action-ref prop, and it does not accept `onClick`; navigation activation is owned by the component. The standard MUI `disabled` prop defaults to `false` and combines with navigation availability.
 
+### BrowserNavigationAction
+
 ```ts
 type BrowserNavigationAction = { type: "pan"; fraction: number } | { type: "zoom"; factor: number };
 ```
@@ -103,3 +105,7 @@ Pan fractions must be finite and nonzero. Zoom factors must be finite, positive,
 The component renders a MUI `Button` and preserves its native button keyboard and focus behavior. It generates a concise accessible name from the action direction: `Pan left`, `Pan right`, `Zoom in`, or `Zoom out`.
 
 Set `aria-label` when the name should include application-specific detail such as magnitude. You can instead use `aria-labelledby` to reference visible text; either explicit naming method takes precedence over the generated name. Icon-only children still receive the generated name. Tooltips are optional and remain the application's responsibility.
+
+## Related reference
+
+[Back to browser controls](README.md) · [UI API reference](../README.md)

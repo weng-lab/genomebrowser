@@ -22,6 +22,8 @@ Pass the same browser store to `GenomeBrowser`. The control reflects store chang
 
 ## API
 
+### BrowserSelectionControlsProps
+
 | Prop           | Type                   | Default  | Description                                              |
 | -------------- | ---------------------- | -------- | -------------------------------------------------------- |
 | `browserStore` | `BrowserStoreInstance` | Required | Owns the selected mode and the displayed browser region. |
@@ -38,3 +40,7 @@ The MUI toggle group has the name **Region interaction**. Each button has a visi
 Drags use the data area, leaving track controls in the left margin accessible. A drag under four SVG pixels has no selection effect; selections round outward to whole bases. Pointer cancellation, window blur, geometry changes and mode changes discard unfinished selections.
 
 New highlights use `selectionHighlight` from the browser store, defaulting to filled amber (`#f59e0b`) at opacity 0.25. Use `setSelectionHighlight({ color, opacity, type })` to configure subsequent selections, including `type: "outlined"`. They have unique IDs and retain their chromosome. Manage them using `HighlightDialog` or the store's highlight methods.
+
+## Related reference
+
+[Back to browser controls](README.md) · [UI API reference](../README.md)

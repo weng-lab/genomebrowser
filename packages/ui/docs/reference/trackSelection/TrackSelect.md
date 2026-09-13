@@ -67,7 +67,7 @@ export function TrackPicker() {
 
 The host controls the dialog through `open` and `onClose`. Browsing and selection changes remain a draft until the user submits them.
 
-See [Getting started](gettingStarted.md) for a complete example in which `TrackSelect` and `GenomeBrowser` share the store.
+See [Getting started](../../gettingStarted.md) for a complete example in which `TrackSelect` and `GenomeBrowser` share the store.
 
 ### Choose JSON or TypeScript collections
 
@@ -109,7 +109,7 @@ Use collection-qualified IDs in the form `${collectionId}::${trackId}`. `initial
 
 When both props are supplied, `initialTrackIds` takes precedence during initialization. Reset still targets `defaultTrackIds`. Passing an explicit empty array removes all tracks represented by the supplied collections; leaving both props `undefined` preserves the initial store.
 
-Initialization runs when the component mounts and when its initialization identity changes: the store, collection/view/track IDs, effective initial IDs, or `maxTracks`. Changing only `defaultTrackIds` while `initialTrackIds` is present changes the Reset target without rewriting the store. Ordinary updates to the same store do not reapply the initial selection, while a remount starts a new initialization lifetime.
+Initialization runs even when `open` is `false`. It runs when the component mounts and when its initialization identity changes: the store, collection/view/track IDs, effective initial IDs, or `maxTracks`. Changing only `defaultTrackIds` while `initialTrackIds` is present changes the Reset target without rewriting the store. Ordinary updates to the same store do not reapply the initial selection, while a remount starts a new initialization lifetime.
 
 TrackSelect preserves non-collection tracks first in their existing order, followed by initialized collection tracks in the supplied ID order. Reconciled collection tracks always use `source: "host"`. First-party settings visibly disable their data-source URL inputs while title, display, color, height, and unrelated module settings remain editable. Tracks created directly through a module use `source: "user"` unless the caller supplies another source.
 
@@ -155,19 +155,19 @@ import { TrackSelect, withValueMarkers } from "@weng-lab/genomebrowser-ui";
 />;
 ```
 
-Overrides are shallowly merged into the generated MUI `GridColDef`. Setting `width` disables the generated flexible width unless the override also supplies `flex`. Setting `renderCell` replaces the default truncating, tooltip-enabled renderer. Unknown collection IDs and fields are ignored.
+See [Column customization](columnCustomization.md) for override merging and the marker helper contract.
 
 ### Attach track interactions
 
 Pass `resolveTrackInteraction` when collection-created tracks need host callbacks. The resolver receives the owning collection ID, qualified track ID, and parsed authored track during initialization and successful Submit reconciliation. It is not called while users browse or edit the draft.
 
-The returned callbacks later receive the renderer item, current v2 runtime context, and collection context. Keep collection JSON data-only and use the resolver to attach application behavior. See [Track interactions](recipes/trackInteractions.md) for a complete typed example.
+The returned callbacks later receive the renderer item, current runtime context, and collection context. Keep collection JSON data-only and use the resolver to attach application behavior. See [Track interactions](../../recipes/trackInteractions.md) for a complete typed example.
 
-Without a resolver, TrackSelect preserves an existing interaction on a reused collection track. When a resolver is supplied, its result is authoritative. Changing only the resolver identity does not reinitialize or rewrite tracks.
+See [Track interactions](trackInteractions.md) for resolver timing, callback types, and replacement semantics.
 
 ## API
 
-### TrackSelect props
+### TrackSelectProps
 
 | Prop                      | Type                                    | Default          | Description                                                                                                                                                       |
 | ------------------------- | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -185,16 +185,18 @@ Without a resolver, TrackSelect preserves an existing interaction on a reused co
 
 ### Dialog actions
 
+Clear and Reset change only the draft; Submit applies it to the store.
+
 - **Clear** confirms before clearing the active collection on a detail screen or all collections on the collection-list screen.
 - **Reset** confirms before restoring `defaultTrackIds` in their supplied order. Without defaults, it clears collection tracks. It never changes tracks outside the collections.
 - **Cancel**, the close button, and normal dialog dismissal discard the current draft and call `onClose`.
-- **Submit** creates additions through the track-store registry and applies collection additions and removals as one store update. A successful Submit calls `onCommittedTrackIds`, then `onClose`.
+- **Submit** creates additions through the track-store registry and applies collection additions and removals as one store update. A successful Submit calls `onCommittedTrackIds`, then `onClose`. If the commit callback throws, `onClose` still runs; the accepted store update is not rolled back.
 
 If track creation, interaction validation, or the store update fails, the store remains unchanged and the dialog stays open with an error.
 
 ### Collections
 
-See the `@weng-lab/genomebrowser` package’s `docs/legacy/trackCollections.md` for the portable JSON format, assembly identifiers, track configuration, and optional views and metadata.
+Collections use the `TrackCollection` format exported by `@weng-lab/genomebrowser`. Each supplies an assembly identifier, an ID, and tracks with module types, base options, and config. Optional metadata and views describe grid columns and grouping. `validateTrackCollection` and `generateTrackCollectionJsonSchema` from core use the registered modules to validate this data and generate editor schemas.
 
 TrackSelect displays each collection's assembly identifier. It uses `label ?? id` as the collection name and an ungrouped title view when `views` is omitted. The view selector appears only when there are multiple views. Assembly matching and filtering are application responsibilities; TrackSelect does not select or change the browser assembly.
 
@@ -203,51 +205,6 @@ TrackSelect displays each collection's assembly identifier. It uses `label ?? id
 The public qualified ID format is `${collectionId}::${trackId}`. Use it in `initialTrackIds`, `defaultTrackIds`, and values received by `onCommittedTrackIds`. Duplicate IDs, unknown IDs, and initialization lists longer than `maxTracks` are rejected.
 
 TrackSelect treats any store track whose ID matches a supplied collection entry as collection-owned. Reconciliation sets both new and reused collection tracks to `source: "host"`, regardless of their previous source. Give fixed or non-collection tracks IDs outside that reserved set. If application code inserts a different track with a reserved ID, initialization or Submit may reuse or remove it during normal reconciliation.
-
-### Column override options
-
-`TrackSelectColumnOverrides` is a read-only map shaped as `collectionId -> field -> TrackSelectColumnOverride`. A `TrackSelectColumnOverride` accepts every partial MUI `GridColDef` option except `field`, which always comes from the collection view.
-
-`withValueMarkers` accepts a read-only value map:
-
-| Value        | Type                            | Description                                                                                           |
-| ------------ | ------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Marker key   | `string`                        | Matches the string form of a cell's formatted value, or its raw value when no formatted value exists. |
-| Marker value | `string` or `{ color: string }` | Sets the square marker color. Values without a configured marker keep the normal cell renderer.       |
-
-### Interaction options
-
-`TrackSelectInteractionResolver` receives one object:
-
-| Field              | Type                                | Description                                           |
-| ------------------ | ----------------------------------- | ----------------------------------------------------- |
-| `collectionId`     | `string`                            | Identifies the owning collection.                     |
-| `qualifiedTrackId` | `string`                            | Provides the public `${collectionId}::${trackId}` ID. |
-| `track`            | `TrackCollection["tracks"][number]` | Provides the parsed authored collection track.        |
-
-It returns `TrackSelectInteraction` or `undefined`. When supplied, resolver output is authoritative: `undefined` removes an existing interaction from a reused collection track, and a returned object replaces all callbacks rather than merging them.
-
-| Callback  | Signature                             | Description                                       |
-| --------- | ------------------------------------- | ------------------------------------------------- |
-| `onClick` | `(item, runtime, collection) => void` | Runs when the renderer emits a click interaction. |
-| `onHover` | `(item, runtime, collection) => void` | Runs when the renderer emits a hover interaction. |
-| `onLeave` | `(item, runtime, collection) => void` | Runs when the renderer emits a leave interaction. |
-
-The callback's `collection` argument is a `TrackSelectCollectionContext`:
-
-| Field             | Type                      | Description                                                                       |
-| ----------------- | ------------------------- | --------------------------------------------------------------------------------- |
-| `collectionId`    | `string`                  | Identifies the owning collection.                                                 |
-| `authoredTrackId` | `string`                  | Provides the unqualified track ID authored in the collection.                     |
-| `metadata`        | `Readonly<TrackMetadata>` | Provides the collection-owned metadata without copying it into the runtime track. |
-
-The runtime context comes from v2 when the event occurs, so later base or config changes are visible without rerunning the resolver.
-
-### Related exports
-
-| Export             | Signature                                                | Description                                                                              |
-| ------------------ | -------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `withValueMarkers` | `(markers: ValueMarkerMap) => TrackSelectColumnOverride` | Creates a column override that adds square color markers to configured formatted values. |
 
 ## Accessibility
 
@@ -281,3 +238,7 @@ TrackSelect uses the host application's MUI theme and needs no package-specific 
 **Submit shows an error:** Confirm that schema tooling and the application use the same modules and versions. Check that selected tracks still satisfy their modules and that the interaction resolver returns only supported callback functions.
 
 **Submit order is unexpected:** Check the active view. Its grouping fields and the collection's source order determine newly added track order; existing tracks retain their relative order.
+
+## Related reference
+
+[Back to track selection](README.md) · [UI API reference](../README.md)

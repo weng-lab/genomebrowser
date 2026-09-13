@@ -85,4 +85,4 @@ When restoring a saved selection, pass it as `initialTrackIds` and keep the page
 
 Use `resolveTrackInteraction` when collection-created tracks need host callbacks. The resolver receives the owning collection ID, qualified ID, and authored track entry during initialization and successful Submit reconciliation. Its callbacks later receive the semantic item, current core runtime context, and separate collection metadata. Collection JSON and persisted selection IDs remain data-only.
 
-See [TrackSelect](trackSelect.md) for collection rules, action semantics, limits, customization, and schema generation. See [Track interactions](recipes/trackInteractions.md) for a complete resolver integration.
+See [TrackSelect](reference/trackSelection/TrackSelect.md) for collection rules, action semantics, limits, customization, and schema generation. See [Track interactions](recipes/trackInteractions.md) for a complete resolver integration.
