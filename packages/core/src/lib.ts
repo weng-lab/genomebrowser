@@ -9,7 +9,6 @@ export { normalizeRegion, parseRegion } from "./genome/region";
 export type { GenomicRegion, RegionErrorCode, RegionResult } from "./genome/region";
 
 export { defineTrackModule } from "./modules/defineTrackModule";
-export { createModuleRegistry, createTrackFromEntry } from "./modules/registry";
 export { TrackInteractionProvider, useInteraction } from "./modules/interaction";
 export type {
   AnyTrackInstance,
@@ -20,6 +19,7 @@ export type {
   ModuleInstance,
   ReadonlyTrackInstance,
   TrackBase,
+  TrackBaseInput,
   TrackBaseUpdate,
   TrackCreateInput,
   TrackFetch,
@@ -92,3 +92,18 @@ export { TrackOverlay } from "./browser/track-overlay/TrackOverlay";
 export type { TrackOverlayProps } from "./browser/track-overlay/TrackOverlay";
 export { TrackLabel } from "./browser/track-overlay/TrackLabel";
 export type { TrackLabelProps } from "./browser/track-overlay/TrackLabel";
+
+export type {
+  TrackCollection,
+  TrackCollectionView,
+  TrackCollectionColumn,
+  TrackMetadata,
+  TrackCollectionTrack,
+} from "./collections/collectionSchema";
+export { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
+export { validateJson } from "./collections/validateJson";
+
+export {
+  createTrackCollectionSchema,
+  TrackCollectionViewSchema,
+} from "./collections/collectionSchema";

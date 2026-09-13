@@ -8,8 +8,10 @@ Use `bigBedModule` for genomic intervals stored in one general BigBed file. It e
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
 
 const track = bigBedModule.create({
-  id: "peaks",
-  title: "Peaks",
+  base: {
+    id: "peaks",
+    title: "Peaks",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 ```

@@ -22,7 +22,7 @@ Each module implements `TrackModule` from `@weng-lab/genomebrowser`:
 - `module.create(input, interaction?)` parses the input, applies defaults, and returns a runtime track instance.
 - `module.validate(instance)` validates an existing runtime instance.
 - `module.configSchema` is a strict Zod schema for module-specific config.
-- `module.createInputSchema` is a strict Zod schema for `id`, `title`, optional `display`, `height`, and `color`, plus module-specific `config`.
+- `module.createInputSchema` is a strict Zod schema for `base` (required `id` and `title`, optional `display`, `height`, and `color`), optional `source`, and module-specific `config`.
 - `module.displays` lists supported display modes.
 - `module.fetch`, `module.render`, `module.settingsComponent`, and `module.tooltipComponent` are ready for the runtime to call.
 
@@ -44,8 +44,10 @@ import {
 } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const input: BigWigCreateInput = {
-  id: "signal",
-  title: "Signal",
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 };
 
@@ -70,8 +72,10 @@ const interaction: BigBedInteraction = {
 
 const track = bigBedModule.create(
   {
-    id: "regions",
-    title: "Regions",
+    base: {
+      id: "regions",
+      title: "Regions",
+    },
     config: { url: "YOUR_URL_HERE" },
   },
   interaction,
@@ -85,13 +89,13 @@ Renderers do not all emit the same callbacks. Check the track page for supported
 `firstPartyTrackModules` is a readonly tuple with the eight modules in this order: BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, Gene, MethylC, Transcript.
 
 ```ts
-import { createModuleRegistry } from "@weng-lab/genomebrowser";
+import { createTrackStore } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 
-const registry = createModuleRegistry(firstPartyTrackModules);
+const useTrackStore = createTrackStore({ modules: firstPartyTrackModules });
 ```
 
-Register individual modules if your application supports only some track types. Importing one track subpath does not load the other tracks. The registry then rejects other types and produces narrower collection schemas. Importing the package root loads all eight modules because it constructs `firstPartyTrackModules`.
+Register individual modules if your application supports only some track types. Importing one track subpath does not load the other tracks. The store then rejects other types. Use the same module list to generate narrower collection schemas. Importing the package root loads all eight modules because it constructs `firstPartyTrackModules`.
 
 ## Ruler
 
@@ -103,14 +107,14 @@ The `/shared` subpath exports `bedSchemas`, `bedSchemaKeys`, `bedSchemaKeySchema
 
 ## Collection JSON schema
 
-The package ships `@weng-lab/genomebrowser-tracks/trackSelectCollection.schema.json`, generated from all modules in `firstPartyTrackModules`. It describes TrackSelect collections and each track's create-input config, including the supported `bedSchema` keys.
+The package ships `@weng-lab/genomebrowser-tracks/trackCollection.schema.json`, generated from all modules in `firstPartyTrackModules`. It describes track collections and each track's create-input config, including the supported `bedSchema` keys.
 
 For a collection JSON file in your project root, enable editor validation and completion with:
 
 ```json
 {
-  "$schema": "./node_modules/@weng-lab/genomebrowser-tracks/schemas/trackSelectCollection.schema.json"
+  "$schema": "./node_modules/@weng-lab/genomebrowser-tracks/schemas/trackCollection.schema.json"
 }
 ```
 
-This snippet shows the schema reference only; your collection still needs its required fields. Adjust the relative path for nested collection files. Tooling can resolve the public package subpath directly. Custom modules require a schema generated from your own module registry using the `trackselect` CLI from `@weng-lab/genomebrowser-ui`.
+This snippet shows the schema reference only; your collection still needs its required fields. Adjust the relative path for nested collection files. Tooling can resolve the public package subpath directly. Custom modules require a schema generated from your own module list using the `genomebrowser schema` CLI from `@weng-lab/genomebrowser`.

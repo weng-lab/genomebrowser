@@ -1,5 +1,6 @@
 {
-  "$schema": "../schemas/trackSelectCollection.schema.json",
+  "assembly": "hg38",
+  "$schema": "../schemas/trackCollection.schema.json",
   "id": "default-tracks",
   "label": "Default tracks",
   "description": "Reference genes and aggregate ENCODE signals included with this project.",
@@ -20,11 +21,13 @@
   "tracks": [
     {
       "type": "gene",
-      "id": "genes",
-      "title": "GENCODE genes",
-      "display": "merged",
-      "height": 60,
-      "color": "#444444",
+      "base": {
+        "id": "genes",
+        "title": "GENCODE genes",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
       "config": {
         "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v40.comprehensive.annotation.bb"
       },
@@ -32,11 +35,13 @@
     },
     {
       "type": "ccre-bigbed",
-      "id": "ccre-aggregate",
-      "title": "Aggregate cCRE, all ENCODE biosamples",
-      "display": "dense",
-      "height": 20,
-      "color": "#000000",
+      "base": {
+        "id": "ccre-aggregate",
+        "title": "Aggregate cCRE, all ENCODE biosamples",
+        "display": "dense",
+        "height": 20,
+        "color": "#000000"
+      },
       "config": {
         "url": "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed"
       },
@@ -44,11 +49,13 @@
     },
     {
       "type": "bigwig",
-      "id": "dnase-aggregate",
-      "title": "Aggregate DNase, all ENCODE biosamples",
-      "display": "full",
-      "height": 50,
-      "color": "#06da93",
+      "base": {
+        "id": "dnase-aggregate",
+        "title": "Aggregate DNase, all ENCODE biosamples",
+        "display": "full",
+        "height": 50,
+        "color": "#06da93"
+      },
       "config": {
         "url": "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw"
       },
@@ -56,11 +63,13 @@
     },
     {
       "type": "bigwig",
-      "id": "h3k4me3-aggregate",
-      "title": "Aggregate H3K4me3, all ENCODE biosamples",
-      "display": "full",
-      "height": 50,
-      "color": "#ff0000",
+      "base": {
+        "id": "h3k4me3-aggregate",
+        "title": "Aggregate H3K4me3, all ENCODE biosamples",
+        "display": "full",
+        "height": 50,
+        "color": "#ff0000"
+      },
       "config": {
         "url": "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw"
       },
@@ -68,11 +77,13 @@
     },
     {
       "type": "bigwig",
-      "id": "h3k27ac-aggregate",
-      "title": "Aggregate H3K27ac, all ENCODE biosamples",
-      "display": "full",
-      "height": 50,
-      "color": "#ffcd00",
+      "base": {
+        "id": "h3k27ac-aggregate",
+        "title": "Aggregate H3K27ac, all ENCODE biosamples",
+        "display": "full",
+        "height": 50,
+        "color": "#ffcd00"
+      },
       "config": {
         "url": "https://downloads.wenglab.org/H3K27ac_All_ENCODE_MAR20_2024_merged.bw"
       },
@@ -80,11 +91,13 @@
     },
     {
       "type": "bigwig",
-      "id": "ctcf-aggregate",
-      "title": "Aggregate CTCF, all ENCODE biosamples",
-      "display": "full",
-      "height": 50,
-      "color": "#00b0d0",
+      "base": {
+        "id": "ctcf-aggregate",
+        "title": "Aggregate CTCF, all ENCODE biosamples",
+        "display": "full",
+        "height": 50,
+        "color": "#00b0d0"
+      },
       "config": {
         "url": "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw"
       },
@@ -92,11 +105,13 @@
     },
     {
       "type": "bigwig",
-      "id": "atac-aggregate",
-      "title": "Aggregate ATAC, all ENCODE biosamples",
-      "display": "full",
-      "height": 50,
-      "color": "#02c7b9",
+      "base": {
+        "id": "atac-aggregate",
+        "title": "Aggregate ATAC, all ENCODE biosamples",
+        "display": "full",
+        "height": 50,
+        "color": "#02c7b9"
+      },
       "config": {
         "url": "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw"
       },

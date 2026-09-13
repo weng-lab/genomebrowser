@@ -2,7 +2,7 @@
 
 A track is one validated row in the browser. A registered track module supplies that row's config schema, defaults, fetching, renderers, display modes, and optional settings and tooltip components. Core owns this runtime contract but does not export curated track implementations.
 
-Every `module.create` input has a unique `id`, a `title`, optional `display`, `height`, `color`, and `source`, plus module-specific `config`. Track colors use case-insensitive six-digit `#RRGGBB` syntax. A module supplies a default display and may supply height and color defaults; core falls back to `80` pixels, `"#000000"`, and `source: "user"`.
+Every `module.create` input uses `{ base, config, source? }`. `base` contains a unique `id`, a `title`, and optional `display`, `height`, and `color`; `config` holds module-specific settings. Creation, runtime instances, and serialized collection entries keep these fields in the same places. The module supplies `type` during creation. Track colors use case-insensitive six-digit `#RRGGBB` syntax. A module supplies a default display and may supply height and color defaults; core falls back to `80` pixels, `"#000000"`, and `source: "user"`.
 
 ## Register a module
 
@@ -13,8 +13,10 @@ import { createTrackStore } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const signalTrack = bigWigModule.create({
-  id: "signal",
-  title: "Signal",
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 
@@ -35,11 +37,13 @@ The tracks package also exports `firstPartyTrackModules` when an application sup
 ```ts
 const track = bigWigModule.create(
   {
-    id: "signal",
-    title: "Signal",
-    display: "dense",
-    height: 60,
-    color: "#2266aa",
+    base: {
+      id: "signal",
+      title: "Signal",
+      display: "dense",
+      height: 60,
+      color: "#2266aa",
+    },
     config: { url: "YOUR_URL_HERE" },
   },
   {
@@ -52,28 +56,28 @@ const track = bigWigModule.create(
 
 The resulting instance stores `type`, concrete base values, parsed config, a required `source`, and optional interaction callbacks. `module.create` defaults `source` to `"user"`. Pass `source: "host"` when the embedding application controls the track's data source. Settings components can use this field to disable source controls without disabling display or analysis controls. Core does not identify source fields or impose settings behavior.
 
-Use `module.configSchema` to parse only module config or `module.createInputSchema` to parse the complete create input. `module.validate(instance)` validates the nested runtime form.
+Use `module.configSchema` to parse only module config or `module.createInputSchema` to parse the complete create input. `module.validate(instance)` validates a fully resolved runtime instance.
 
 Optional interaction callbacks receive `(item, context)`. `context.type`, `context.base`, and `context.config` are the current shallow read-only runtime view, so later validated updates appear in later callbacks and tooltip renders. The item type and emitted callbacks are module-specific.
 
 ## Collection entries
 
-A collection entry is create input plus a module `type` and optional collection metadata. `createTrackFromEntry(registry, entry)` removes `type` and `metadata`, then delegates to the selected module's `create`:
+A collection entry is create input plus a module `type` and optional collection metadata. Select the module matching the entry's `type` and pass its `base` and `config` to `create`:
 
 ```ts
-import { createModuleRegistry, createTrackFromEntry } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
-const registry = createModuleRegistry([bigWigModule]);
 const entry = {
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
   type: "bigwig",
-  id: "signal",
-  title: "Signal",
   config: { url: "YOUR_URL_HERE" },
   metadata: { assay: "ATAC-seq" },
 };
 
-const track = createTrackFromEntry(registry, entry);
+const track = bigWigModule.create({ base: entry.base, config: entry.config });
 ```
 
 The result does not contain collection metadata. Create through a specific module when attaching typed interaction callbacks.
@@ -99,13 +103,17 @@ const useTrackStore = createTrackStore({
   modules: [bigWigModule, geneModule],
   tracks: [
     bigWigModule.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     }),
     geneModule.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       config: { url: "YOUR_URL_HERE" },
     }),
   ],

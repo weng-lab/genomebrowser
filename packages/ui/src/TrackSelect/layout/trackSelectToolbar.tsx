@@ -1,3 +1,4 @@
+import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
@@ -13,7 +14,12 @@ export function TrackSelectToolbar() {
   }
 
   return (
-    <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+    <Box
+      display="flex"
+      justifyContent="space-between"
+      alignItems="center"
+      sx={{ mb: 2, gap: 1, flexWrap: "wrap" }}
+    >
       {screen === "collection-detail" && collections.length > 1 ? (
         <Button size="small" onClick={actions.backToCollections}>
           Back to Collections
@@ -21,9 +27,27 @@ export function TrackSelectToolbar() {
       ) : (
         <Box />
       )}
-      {screen === "collection-detail" && activeCollection && activeView ? (
+      {screen === "collection-detail" && activeCollection ? (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            mx: { xs: 0, sm: 2 },
+            flex: { xs: "1 1 100%", sm: 1 },
+            minWidth: 0,
+            overflowWrap: "anywhere",
+          }}
+        >
+          {activeCollection.label} · {activeCollection.assembly}
+        </Typography>
+      ) : null}
+      {screen === "collection-detail" &&
+      activeCollection &&
+      activeView &&
+      activeCollection.views.length > 1 ? (
         <Select
           size="small"
+          inputProps={{ "aria-label": "Collection view" }}
           value={activeView.id}
           onChange={handleViewChange}
           sx={{ minWidth: 180 }}

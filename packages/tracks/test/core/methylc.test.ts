@@ -119,7 +119,7 @@ function createContext(
 ) {
   const values = new Map<string, unknown>();
   return {
-    track: { id: "methylc", type: "methylc", display: "full", config },
+    track: { base: { id: "methylc", display: "full" }, type: "methylc", config },
     demand: {
       assembly: { id: "test", chromosomes: { chr1: 1_000 } },
       region,

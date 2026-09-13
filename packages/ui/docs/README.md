@@ -34,6 +34,7 @@ Keep this setup in the host application's entry point or another module imported
 - [Cytobands](cytobands.md) documents chromosome ideograms, browser-region brackets, and interactive loci.
 - [Browser navigation button](browserNavigationButton.md) documents store-bound pan and zoom composition.
 - [Highlight dialog](highlightDialog.md) documents store-bound highlight management.
+- The core package’s `docs/trackCollections.md` describes the shared collection format and schema CLI.
 - [TrackSelect](trackSelect.md) explains collections, the selection lifecycle, customization, schema tooling, and troubleshooting.
 - [Track interactions](recipes/trackInteractions.md) shows one shared runtime-aware callback dispatcher across a heterogeneous collection.
 

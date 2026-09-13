@@ -47,12 +47,14 @@ const useBrowserStore = createBrowserStore({
 const useTrackStore = createTrackStore({
   modules: [rulerModule, geneModule],
   tracks: [
-    rulerModule.create({ id: "reference-ruler", title: "Coordinates", config: {} }),
+    rulerModule.create({ base: { id: "reference-ruler", title: "Coordinates" }, config: {} }),
     geneModule.create({
-      id: "zoom-prototype-genes",
-      title: "GENCODE genes",
-      color: "#355f75",
-      display: "merged",
+      base: {
+        id: "zoom-prototype-genes",
+        title: "GENCODE genes",
+        color: "#355f75",
+        display: "merged",
+      },
       config: {
         url: "https://users.wenglab.org/mezaj/gencode.v40.comprehensive.bigGenePredPlusV1.bb",
       },

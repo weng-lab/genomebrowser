@@ -133,16 +133,16 @@ development commands when a human needs one.
 
 ## Refresh the first-party collection schema
 
-The tracks package ships `schemas/trackSelectCollection.schema.json`. The UI package build verifies that it matches the collection generator and all current first-party modules. After changing a module's create-input schema or the collection format, build the dependencies and regenerate it:
+The tracks package ships `schemas/trackCollection.schema.json`. The tracks package build verifies that it matches the collection generator and all current first-party modules. After changing a module's create-input schema or the collection format, build the dependencies and regenerate it:
 
 ```sh
-pnpm exec turbo run build --filter=@weng-lab/genomebrowser-tracks
-cd packages/ui
+pnpm exec turbo run build --filter=@weng-lab/genomebrowser
+cd packages/tracks
 pnpm exec vite build
-node dist/trackselect.js schema --from '@weng-lab/genomebrowser-tracks#firstPartyTrackModules' --out ../tracks/schemas/trackSelectCollection.schema.json
+node ../core/dist/cli.js schema --from './dist/genomebrowser-tracks.es.js#firstPartyTrackModules' --out schemas/trackCollection.schema.json
 cd ../..
-pnpm exec oxfmt packages/tracks/schemas/trackSelectCollection.schema.json
+pnpm exec oxfmt packages/tracks/schemas/trackCollection.schema.json
 pnpm verify
 ```
 
-The direct UI Vite build refreshes the generator before its package verification checks the updated artifact. Commit the generated JSON with the schema changes.
+The direct tracks Vite build refreshes the modules before package verification checks the updated artifact. Commit the generated JSON with the schema changes.

@@ -1,5 +1,4 @@
 import react from "@vitejs/plugin-react";
-import { chmodSync } from "node:fs";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import dts from "vite-plugin-dts";
@@ -19,18 +18,11 @@ export default defineConfig({
     dts({
       tsconfigPath: "./tsconfig.app.json",
     }),
-    {
-      name: "make-trackselect-executable",
-      writeBundle() {
-        chmodSync(path.resolve(__dirname, "dist/trackselect.js"), 0o755);
-      },
-    },
   ],
   build: {
     lib: {
       entry: {
         "genomebrowser-ui": path.resolve(__dirname, "src/lib.ts"),
-        trackselect: path.resolve(__dirname, "src/trackselect.ts"),
       },
       name: "genomebrowser-ui",
       fileName: (format, entryName) =>
@@ -44,7 +36,6 @@ export default defineConfig({
         "react/jsx-runtime",
         "@weng-lab/genomebrowser",
         "@weng-lab/ui-components",
-        "jiti",
         "zod",
         /^node:.*/,
         /^@mui\/.*/,

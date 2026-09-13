@@ -55,6 +55,6 @@ Track IDs are unique within a store. Duplicate IDs are rejected during construct
 
 ## Collection input is not an instance
 
-Collection JSON uses top-level base fields plus `type`, `config`, and optional `metadata`. `createTrackFromEntry(registry, entry)` chooses the module and calls its `create` method. The resulting runtime instance nests parsed base fields under `base`, keeps module values under `config`, omits collection metadata, and includes applied defaults.
+Collection JSON uses `type`, `base`, `config`, and optional `metadata`. Select the module matching `type` and call `module.create({ base, config })`. The resulting runtime instance uses the same nested structure with validated configuration and applied defaults, and omits collection metadata.
 
 Keep schema validation at these boundaries rather than repeatedly parsing values inside hooks and renderers.

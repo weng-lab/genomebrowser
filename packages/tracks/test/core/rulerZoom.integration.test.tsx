@@ -24,8 +24,10 @@ it.each([
     modules: [rulerModule],
     tracks: [
       rulerModule.create({
-        id: "ruler",
-        title: "Ruler",
+        base: {
+          id: "ruler",
+          title: "Ruler",
+        },
         config: { sequenceUrl: "https://example.test/ref.2bit" },
       }),
     ],
@@ -87,7 +89,7 @@ it.each(["pointerup", "pointercancel"])(
       .mockImplementation(() => new Promise(() => {}));
     const trackStore = createTrackStore({
       modules: [{ ...rulerModule, fetch }],
-      tracks: [rulerModule.create({ id: "ruler", title: "Ruler", config: {} })],
+      tracks: [rulerModule.create({ base: { id: "ruler", title: "Ruler" }, config: {} })],
     });
     const container = document.createElement("div");
     document.body.appendChild(container);

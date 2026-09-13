@@ -30,8 +30,10 @@ describe("fetchOnChange", () => {
       render: { full: Renderer },
     });
     const track = module.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: {
         url: "YOUR_URL_HERE",
         colorBy: "score",
@@ -61,8 +63,10 @@ describe("fetchOnChange", () => {
       render: { full: Renderer },
     });
     const track = module.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
 
@@ -83,8 +87,10 @@ describe("fetchOnChange", () => {
       render: { full: Renderer },
     });
     const track = module.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
 
@@ -107,8 +113,10 @@ describe("fetchOnChange", () => {
       render: { full: Renderer },
     });
     const track = module.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { source: { url: "YOUR_URL_HERE", label: "Signal A" } },
     });
 
@@ -142,8 +150,10 @@ describe("fetchOnChange", () => {
       render: { full: Renderer },
     });
     const track = module.create({
-      id: "bulk-signal",
-      title: "Bulk signal",
+      base: {
+        id: "bulk-signal",
+        title: "Bulk signal",
+      },
       config: {
         datasets: [
           { name: "Dataset A", url: "URL_A" },

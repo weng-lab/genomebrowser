@@ -38,7 +38,11 @@ function createContext(
   resources: TrackResources = createResources(),
 ): TrackFetchContext<{ url: string; rowHeight: number }> {
   return {
-    track: { id: "peaks", type: "bigbed", display: "full", config: { url, rowHeight: 12 } },
+    track: {
+      base: { id: "peaks", display: "full" },
+      type: "bigbed",
+      config: { url, rowHeight: 12 },
+    },
     demand: { assembly: { id: "test", chromosomes: { chr1: 1_000 } }, region, width: 100 },
     resources,
   };
@@ -53,8 +57,10 @@ describe("BigBed track", () => {
 
   it("defines tooltip UI on the module", () => {
     const config = bigBedModule.create({
-      id: "peaks",
-      title: "Peaks",
+      base: {
+        id: "peaks",
+        title: "Peaks",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
 
@@ -67,8 +73,10 @@ describe("BigBed track", () => {
   it("rejects invalid row heights", () => {
     expect(() =>
       bigBedModule.create({
-        id: "peaks",
-        title: "Peaks",
+        base: {
+          id: "peaks",
+          title: "Peaks",
+        },
         config: { url: "YOUR_URL_HERE", rowHeight: 0 },
       }),
     ).toThrow(/bigbed input/);

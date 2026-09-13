@@ -85,6 +85,7 @@ const data: GeneData = [
 const props = {
   id: "genes",
   color: "#4b9560",
+  height: 16,
   config: {
     url: "YOUR_URL_HERE",
     tagColors: [{ tag: "MANE_Select", color: "#d45c2f" }],
@@ -95,7 +96,6 @@ const props = {
   visibleRegion: { chromosome: "chr1", start: 0, end: 500 },
   region: { chromosome: "chr1", start: 0, end: 500 },
   width: 500,
-  height: 16,
 };
 
 let container: HTMLDivElement;

@@ -17,8 +17,10 @@ describe("BigWig interaction helpers", () => {
 
   it("defines tooltip UI on the module", () => {
     const config = bigWigModule.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
 

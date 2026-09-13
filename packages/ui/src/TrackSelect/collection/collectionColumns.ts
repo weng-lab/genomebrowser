@@ -2,7 +2,7 @@ import { createElement } from "react";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium";
 import { DataGridCellValue, ValueMarkerCell } from "./CollectionCells";
 import type { CollectionGridRow } from "./collectionCompilation";
-import type { TrackSelectColumn, TrackSelectView } from "../schema/collectionSchema";
+import type { TrackCollectionColumn, TrackCollectionView } from "@weng-lab/genomebrowser";
 
 export type TrackSelectColumnOverride = Omit<Partial<GridColDef>, "field">;
 
@@ -24,7 +24,7 @@ const builtInLabels: Record<string, string> = {
 
 export function getCollectionColumns(
   collectionId: string,
-  view: TrackSelectView,
+  view: TrackCollectionView,
   columnOverrides?: TrackSelectColumnOverrides,
 ): GridColDef<CollectionGridRow>[] {
   const viewColumnsByField = new Map(view.columns.map((column) => [column.field, column]));
@@ -63,7 +63,7 @@ export function withValueMarkers(markers: ValueMarkerMap): TrackSelectColumnOver
 
 function getColumn(
   field: string,
-  column: TrackSelectColumn | undefined,
+  column: TrackCollectionColumn | undefined,
 ): GridColDef<CollectionGridRow> {
   return {
     field,
@@ -80,7 +80,7 @@ function renderDefaultCell(params: GridRenderCellParams<CollectionGridRow>) {
   return createElement(DataGridCellValue, { value: params.formattedValue ?? params.value });
 }
 
-function getViewFields(view: TrackSelectView) {
+function getViewFields(view: TrackCollectionView) {
   return [
     ...new Set(["id", ...view.columns.map((column) => column.field), ...view.grouping, view.leaf]),
   ];

@@ -96,14 +96,13 @@ A collection entry is create input, not a runtime instance:
 ```json
 {
   "type": "bigwig",
-  "id": "signal",
-  "title": "Signal",
+  "base": { "id": "signal", "title": "Signal" },
   "config": { "url": "YOUR_URL_HERE" },
   "metadata": { "assay": "signal" }
 }
 ```
 
-`createTrackFromEntry(registry, entry)` removes collection-only `type` and `metadata`, then delegates to the selected module's `create`. The result is typed as the registry's instance union and has the nested runtime shape with applied defaults. Keep this data-only boundary explicit when loading JSON; attach typed interactions through the selected module's `create` API.
+Select the module by the entry's `type`, then call `module.create({ base, config })`. Creation validates the input and applies defaults; collection metadata stays out of the runtime instance. Attach typed interactions through the selected module's `create` API.
 
 ## Stable extension seams
 

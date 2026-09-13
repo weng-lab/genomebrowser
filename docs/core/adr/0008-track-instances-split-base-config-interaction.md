@@ -4,12 +4,11 @@ v2 track runtime state is stored as `TrackInstance = { type, base, config, inter
 
 ```ts
 module.create(
-  {
+  { base: {
     id: "signal",
     title: "Signal",
-    height: 80,
-    config: { url: "YOUR_URL_HERE" },
-  },
+    height: 80},
+    config: { url: "YOUR_URL_HERE" }},
   {
     onClick: (item, context) => {
       console.log(item, context.config.url, context.base.color);

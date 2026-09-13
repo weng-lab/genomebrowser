@@ -57,15 +57,19 @@ describe("track render error isolation", () => {
   it("contains a throwing renderer within its track frame and logs safe context", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const brokenTrack = throwingModule.create({
-      id: "broken-track",
-      title: "Broken track",
-      height: 64,
+      base: {
+        id: "broken-track",
+        title: "Broken track",
+        height: 64,
+      },
       config: { secret: "private track config" },
     });
     const healthyTrack = healthyModule.create({
-      id: "healthy-track",
-      title: "Healthy track",
-      height: 48,
+      base: {
+        id: "healthy-track",
+        title: "Healthy track",
+        height: 48,
+      },
       config: {},
     });
     const browserStore = createBrowserStore({
@@ -136,7 +140,7 @@ describe("track render error isolation", () => {
       fetch: async () => null,
       render: { full: renderer },
     });
-    const track = module.create({ id: "expected", title: "Expected states", config: {} });
+    const track = module.create({ base: { id: "expected", title: "Expected states" }, config: {} });
     const unsupportedTrack: AnyTrackInstance = {
       ...track,
       base: { ...track.base, id: "unsupported", display: "missing" },

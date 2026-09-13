@@ -10,8 +10,10 @@ const useTrackStore = createTrackStore({
   modules: [rulerModule],
   tracks: [
     rulerModule.create({
-      id: "reference",
-      title: "Reference",
+      base: {
+        id: "reference",
+        title: "Reference",
+      },
       config: { sequenceUrl: "YOUR_URL_HERE" },
     }),
   ],

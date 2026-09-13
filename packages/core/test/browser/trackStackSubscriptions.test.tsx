@@ -183,7 +183,7 @@ function createStore() {
 }
 
 function createTrack(id: string, height: number) {
-  return module.create({ id, title: id, height, config: {} });
+  return module.create({ base: { id, title: id, height }, config: {} });
 }
 
 async function renderBrowser(useTrackStore: ReturnType<typeof createStore>) {

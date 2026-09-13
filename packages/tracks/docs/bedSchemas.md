@@ -32,20 +32,26 @@ const ccreAggregate = "https://downloads.wenglab.org/mm10-cCREs.DCC.bigBed";
 const ccreAdipose = "https://downloads.wenglab.org/Registry-V4/ENCFF409WOB_ENCFF476CKA.bigBed";
 
 const chromHmm = bigBedModule.create({
-  id: "mouse-chromhmm",
-  title: "Mouse forebrain ChromHMM",
+  base: {
+    id: "mouse-chromhmm",
+    title: "Mouse forebrain ChromHMM",
+  },
   config: { url: chromHmmForebrain, bedSchema: "bed9" },
 });
 
 const ccres = bigBedModule.create({
-  id: "mouse-ccres",
-  title: "Mouse aggregate cCREs",
+  base: {
+    id: "mouse-ccres",
+    title: "Mouse aggregate cCREs",
+  },
   config: { url: ccreAggregate, bedSchema: "ccre" },
 });
 
 const bulkChromHmm = bulkBedModule.create({
-  id: "mouse-chromhmm-comparison",
-  title: "Mouse forebrain ChromHMM comparison",
+  base: {
+    id: "mouse-chromhmm-comparison",
+    title: "Mouse forebrain ChromHMM comparison",
+  },
   config: {
     bedSchema: "bed9",
     datasets: [
@@ -56,8 +62,10 @@ const bulkChromHmm = bulkBedModule.create({
 });
 
 const bulkCcres = bulkBedModule.create({
-  id: "mouse-ccre-comparison",
-  title: "Mouse cCRE comparison",
+  base: {
+    id: "mouse-ccre-comparison",
+    title: "Mouse cCRE comparison",
+  },
   config: {
     bedSchema: "ccre",
     datasets: [
