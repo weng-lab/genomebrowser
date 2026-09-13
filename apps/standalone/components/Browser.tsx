@@ -3,6 +3,7 @@
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 
 import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import {
   GenomeBrowser,
   createBrowserStore,
@@ -15,20 +16,19 @@ import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tr
 import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import {
   HighlightDialog,
+  BrowserToolbar,
   TrackSelect,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
 import { useState } from "react";
-import { RegionOverview } from "./RegionOverview";
-import { BrowserHeader, NavigationControls } from "./Toolbars";
 import { browserAssembly } from "../lib/assembly";
 import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
+import { AppBar } from "@mui/material";
 
 const useBrowserStore = createBrowserStore({
   assembly: browserAssembly,
   region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
-  marginWidth: 50,
 });
 
 const useTrackStore = createTrackStore({
@@ -70,22 +70,20 @@ const resolveTrackInteraction: TrackSelectInteractionResolver = ({ qualifiedTrac
 export function Browser() {
   const [highlightDialogOpen, setHighlightDialogOpen] = useState(false);
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
-  const region = useBrowserStore((state) => state.region);
-  const highlights = useBrowserStore((state) => state.highlights);
 
   return (
-    <main>
-      <BrowserHeader
+    <Box sx={{ p: 1 }}>
+      <BrowserToolbar
+        browserStore={useBrowserStore}
+        search={{
+          assembly: "GRCh38",
+          graphqlUrl: "/api/screen-graphql",
+          queries: ["Gene", "SNP", "cCRE", "Coordinate"],
+        }}
         onManageHighlights={() => setHighlightDialogOpen(true)}
         onSelectTracks={() => setTrackSelectOpen(true)}
       />
-      <NavigationControls browserStore={useBrowserStore} />
-      <RegionOverview
-        chromosomeLength={browserAssembly.chromosomes[region.chromosome] ?? 0}
-        region={region}
-        highlights={highlights}
-      />
-      <Box sx={{ width: "100%", overflowX: "auto" }}>
+      <Box sx={{ pt: 1, width: "100%", overflowX: "auto" }}>
         <GenomeBrowser
           browserStore={useBrowserStore}
           settingsStore={useSettingsStore}
@@ -106,6 +104,6 @@ export function Browser() {
         open={highlightDialogOpen}
         onClose={() => setHighlightDialogOpen(false)}
       />
-    </main>
+    </Box>
   );
 }

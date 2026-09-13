@@ -8,6 +8,8 @@ pnpm add @weng-lab/genomebrowser@beta @weng-lab/genomebrowser-tracks@beta react@
 
 The browser needs one stable browser store, one stable track store, and at least one registered module. The browser follows its container automatically.
 
+The browser store's `marginWidth` option is optional and defaults to 50 pixels.
+
 ## Minimal responsive browser
 
 This example registers the first-party BigWig module from `@weng-lab/genomebrowser-tracks`, creates one track, and keeps the SVG track area matched to its container. Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser.

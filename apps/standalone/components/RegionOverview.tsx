@@ -22,7 +22,6 @@ export function RegionOverview({
   const [cytobandContainerRef, cytobandWidth] = useObservedWidth<HTMLDivElement>();
   const cytobands = useHg38Cytobands();
   const regionLabel = formatRegion(region);
-  const regionWidthLabel = `${(region.end - region.start).toLocaleString("en-US")} bp`;
 
   function copyRegion() {
     if (navigator.clipboard) void navigator.clipboard.writeText(regionLabel);
@@ -31,34 +30,35 @@ export function RegionOverview({
   return (
     <Box
       sx={{
-        display: "grid",
-        gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-        gap: 2,
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        maxWidth: 450,
+        minWidth: 0,
         alignItems: "center",
       }}
     >
       <ButtonBase
         aria-label="Copy current region to clipboard"
         onClick={copyRegion}
-        sx={{ gap: 1, justifySelf: "start", whiteSpace: "nowrap" }}
+        sx={{ maxWidth: "100%", overflowWrap: "anywhere" }}
       >
-        <Typography component="span" variant="subtitle2">
+        <Typography component="span" variant="body1">
           {regionLabel}
         </Typography>
-        <Typography component="span" variant="caption" color="text.secondary">
-          {regionWidthLabel}
-        </Typography>
       </ButtonBase>
-      <Box ref={cytobandContainerRef} sx={{ height: 18, lineHeight: 0, minWidth: 0 }}>
+      <Box
+        ref={cytobandContainerRef}
+        sx={{ minHeight: 20, width: "100%", lineHeight: 0, minWidth: 0 }}
+      >
         {cytobandWidth > 0 && cytobands.status === "ready" ? (
           <Cytobands
             bands={cytobands.bands}
             chromosome={region.chromosome}
             chromosomeLength={chromosomeLength}
-            colors={{ negative: "#e0e0e0" }}
             currentRegion={region}
             highlights={highlights}
-            height={18}
+            height={20}
             width={cytobandWidth}
           />
         ) : cytobands.status === "error" ? (

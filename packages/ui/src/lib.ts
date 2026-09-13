@@ -1,6 +1,8 @@
 export { BrowserSelectionControls } from "./BrowserSelectionControls/browserSelectionControls";
 export type { BrowserSelectionControlsProps } from "./BrowserSelectionControls/browserSelectionControls";
 // Browser Controls
+export { BrowserToolbar } from "./BrowserToolbar/browserToolbar";
+export type { BrowserToolbarProps } from "./BrowserToolbar/browserToolbar";
 export { BrowserNavigationButton } from "./BrowserNavigationButton/browserNavigationButton";
 export type {
   BrowserNavigationAction,

@@ -60,6 +60,7 @@
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.0.2",
     "@weng-lab/genomebrowser-tracks": "workspace:^2.0.0-beta.2",
+    "@weng-lab/ui-components": "3.1.4",
     "jsdom": "^26.1.0",
     "react": "catalog:",
     "react-dom": "catalog:",
@@ -77,6 +78,7 @@
     "@mui/x-data-grid-premium": "^8.0.0",
     "@mui/x-license": "^8.0.0",
     "@mui/x-tree-view": "^8.0.0",
+    "@weng-lab/ui-components": "^3.1.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   }

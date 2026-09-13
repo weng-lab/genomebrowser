@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { MuiXLicenseProvider } from "../components/MuiXLicenseProvider";
 import "./globals.css";
+import { AppBar, Typography } from "@mui/material";
 
 export const metadata: Metadata = {
   title: "UMass Chan Genome Browser",

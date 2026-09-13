@@ -1,0 +1,26 @@
+# Roadmap
+
+- [ ] Host 2bit files.
+- [ ] Clean up the 2bit reader and improve performance where possible.
+- [ ] Clean up the toolbar.
+- [ ] Adjust the highlights modal styling.
+- [ ] Add buttons for interaction modes (pan, zoom, select, highlight, etc.).
+- [ ] Improve the mouse cursor and vertical guide when highlighting and zooming.
+- [ ] Use Escape to cancel highlighting and zooming.
+- [ ] Improve highlight ID names.
+- [x] Merge/update bulk BED cCRE coloring.
+- [ ] Refine Psychscreen LD and Manhattan plots: labels, opacity for low-value SNPs, and clicking a Manhattan SNP to pin it in the LD plot.
+- [ ] Make the Psychscreen browser use the full screen width.
+- [ ] Consider horizontal scrolling to pan the browser.
+- [ ] Make standalone the premier implementation of all browser features.
+- [ ] Add hotkeys and a hotkey guide to standalone.
+- [ ] Enhance the assembly system: store assembly-specific data in the browser and let other UI elements access it as needed.
+- [ ] Improve the naming and organization of Psychscreen tracks.
+- [ ] Clean up track settings customization: have each modal implement its own base settings component instead of using a global store.
+- [ ] Add Ctrl-click and Shift-click multi-selection, and display mixed values in the settings component.
+- [ ] Allow selected tracks to be combined into an aggregate or stack.
+- [ ] Add SVG and raw data downloads.
+- [ ] Port track hub support.
+- [ ] Clarify 1-based and 0-based coordinate handling.
+- [ ] Support local files.
+- [ ] Improve range ticks.

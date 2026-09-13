@@ -14,7 +14,13 @@ Install the UI package, the browser runtime, and the required peer dependencies:
 pnpm add @weng-lab/genomebrowser-ui@beta @weng-lab/genomebrowser@beta @weng-lab/genomebrowser-tracks@beta @weng-lab/genomic-reader@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
 ```
 
-The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. The UI package participates in your application's normal MUI theme and does not require a package-specific stylesheet or provider.
+Also install the Weng Lab UI components peer used by the toolbar:
+
+```sh
+pnpm add @weng-lab/ui-components@^3.1.4
+```
+
+The supported peer versions are React 19.2+, Emotion 11, MUI 7, MUI X 8, and Weng Lab UI components 3.1.4+. The UI package participates in your application's normal MUI theme and does not require a package-specific stylesheet or provider.
 
 ## MUI X license
 
@@ -106,6 +112,8 @@ Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser. Collectio
 Use `@weng-lab/genomebrowser` by itself when you only need the runtime and application-defined modules. Add `@weng-lab/genomebrowser-tracks` for curated first-party modules. Add `@weng-lab/genomebrowser-ui` when you need generic application controls and can provide the required MUI dependencies and licensing.
 
 ## Documentation
+
+- [BrowserToolbar](docs/browserToolbar.md) - complete region search, navigation, and management controls
 
 - [Getting started](docs/gettingStarted.md) - connect `TrackSelect` to a browser
 - [TrackSelect](docs/trackSelect.md) - collections, selection behavior, customization, and schema tooling

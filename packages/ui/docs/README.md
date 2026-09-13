@@ -10,7 +10,9 @@ Install the coordinated UI and runtime prereleases with the UI package's peer de
 pnpm add @weng-lab/genomebrowser-ui@beta @weng-lab/genomebrowser@beta @weng-lab/genomebrowser-tracks@beta @weng-lab/genomic-reader@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
 ```
 
-The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. Use your package manager's peer-dependency output to keep the installed versions compatible with the release you select.
+Also install the toolbar's peer dependency with `pnpm add @weng-lab/ui-components@^3.1.4`.
+
+The supported peer versions are React 19.2+, Emotion 11, MUI 7, MUI X 8, and Weng Lab UI components 3.1.4+. Use your package manager's peer-dependency output to keep the installed versions compatible with the release you select.
 
 The UI package participates in the host application's normal MUI setup and theme. It does not require a package-specific stylesheet or provider.
 
@@ -25,6 +27,8 @@ LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_X_LICENSE_KEY);
 Keep this setup in the host application's entry point or another module imported before `TrackSelect`. The environment variable name is host-defined; the UI package does not read it or include a license key in the distributed package.
 
 ## Start here
+
+- [BrowserToolbar](browserToolbar.md) provides the complete region and navigation toolbar.
 
 - [Getting started](gettingStarted.md) shows a browser and TrackSelect sharing one stable track store.
 - [Cytobands](cytobands.md) documents chromosome ideograms, browser-region brackets, and interactive loci.
