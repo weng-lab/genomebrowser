@@ -4,6 +4,14 @@ export const hexColorSchema = z
   .string()
   .regex(/^#[0-9a-f]{6}$/i, "Expected a six-digit hexadecimal color in #RRGGBB format");
 
+export const trackBaseSchema = z.strictObject({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  display: z.string().min(1),
+  height: z.number().positive(),
+  color: hexColorSchema,
+});
+
 function formatZodError(error: z.ZodError) {
   return error.issues
     .map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`)

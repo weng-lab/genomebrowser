@@ -172,5 +172,5 @@ describe("first-party track package", () => {
 });
 
 function input<Type extends string, Config>(type: Type, config: Config) {
-  return { id: type, title: type, config };
+  return { base: { id: type, title: type }, config };
 }

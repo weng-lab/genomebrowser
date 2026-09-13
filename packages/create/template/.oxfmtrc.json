@@ -1,4 +1,4 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": ["schemas/trackSelectCollection.schema.json"]
+  "ignorePatterns": ["schemas/trackCollection.schema.json"]
 }

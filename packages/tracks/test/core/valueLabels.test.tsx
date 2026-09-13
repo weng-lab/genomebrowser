@@ -15,13 +15,15 @@ const region = { chromosome: "chr1", start: 0, end: 300 };
 const props = {
   id: "signal",
   color: "#2266aa",
+  height: 100,
   region,
   visibleRegion: { ...region, start: 100, end: 200 },
   width: 900,
-  height: 100,
   config: bigWigModule.create({
-    id: "signal",
-    title: "Signal",
+    base: {
+      id: "signal",
+      title: "Signal",
+    },
     config: { url: "YOUR_URL_HERE", yRange: { min: -2 } },
   }).config,
   data: [

@@ -1,5 +1,6 @@
 {
-  "$schema": "../schemas/trackSelectCollection.schema.json",
+  "assembly": "hg38",
+  "$schema": "../schemas/trackCollection.schema.json",
   "id": "secondary-test-tracks",
   "label": "Secondary Test Tracks",
   "description": "Second test collection for checking Track Select collection navigation.",
@@ -41,10 +42,12 @@
   "tracks": [
     {
       "type": "bigwig",
-      "id": "secondary-odnasd",
-      "title": "Secondary DNase aggregate",
-      "color": "#1B2021",
-      "height": 50,
+      "base": {
+        "id": "secondary-odnasd",
+        "title": "Secondary DNase aggregate",
+        "height": 50,
+        "color": "#1B2021"
+      },
       "config": {
         "url": "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw"
       },
@@ -55,10 +58,12 @@
     },
     {
       "type": "bigbed",
-      "id": "secondary-example-bigbed",
-      "title": "Secondary Example BigBed",
-      "color": "#4b9560",
-      "height": 60,
+      "base": {
+        "id": "secondary-example-bigbed",
+        "title": "Secondary Example BigBed",
+        "height": 60,
+        "color": "#4b9560"
+      },
       "config": {
         "url": "YOUR_URL_HERE"
       },

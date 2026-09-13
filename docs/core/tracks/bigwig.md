@@ -5,11 +5,10 @@
 ## Config
 
 ```ts
-const track = bigWigModule.create({
+const track = bigWigModule.create({ base: {
   id: "signal",
-  title: "Signal",
-  config: { url: "YOUR_URL_HERE" },
-});
+  title: "Signal"},
+  config: { url: "YOUR_URL_HERE" }});
 ```
 
 Fields:

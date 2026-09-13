@@ -16,8 +16,10 @@ let container: HTMLDivElement | undefined;
 let root: Root | undefined;
 let rejectNextUpdate = false;
 let acceptedTrack = bigWigModule.create({
-  id: "signal",
-  title: "Signal",
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 
@@ -94,8 +96,10 @@ describe("BigWig settings", () => {
 
 async function renderHarness() {
   acceptedTrack = bigWigModule.create({
-    id: "signal",
-    title: "Signal",
+    base: {
+      id: "signal",
+      title: "Signal",
+    },
     config: { url: "YOUR_URL_HERE" },
   });
   const updateTrack = (update: TrackUpdate<BigWigConfig, SignalPoint>): TrackMutationResult => {

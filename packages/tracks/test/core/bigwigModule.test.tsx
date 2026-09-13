@@ -23,8 +23,10 @@ describe("BigWig module", () => {
     ["both valid bounds", { min: -1, max: 1 }],
   ])("accepts yRange with %s", (_label, yRange) => {
     const track = bigWigModule.create({
-      id: "configured-signal",
-      title: "Configured signal",
+      base: {
+        id: "configured-signal",
+        title: "Configured signal",
+      },
       config: { url: "YOUR_URL_HERE", yRange },
     });
 
@@ -37,8 +39,10 @@ describe("BigWig module", () => {
   ])("rejects an explicitly invalid yRange pair: %j", (yRange) => {
     expect(() =>
       bigWigModule.create({
-        id: "configured-signal",
-        title: "Configured signal",
+        base: {
+          id: "configured-signal",
+          title: "Configured signal",
+        },
         config: { url: "YOUR_URL_HERE", yRange },
       }),
     ).toThrow(/min must be less than max/);
@@ -75,8 +79,10 @@ describe("BigWig module", () => {
   it("parses clamp indicator defaults and explicit hexadecimal values", () => {
     const defaultTrack = createTrack();
     const configuredTrack = bigWigModule.create({
-      id: "configured-signal",
-      title: "Configured signal",
+      base: {
+        id: "configured-signal",
+        title: "Configured signal",
+      },
       config: {
         url: "YOUR_URL_HERE",
         showClampIndicators: false,
@@ -90,8 +96,10 @@ describe("BigWig module", () => {
     expect(configuredTrack.config.clampIndicatorColor).toBe("#663399");
     expect(() =>
       bigWigModule.create({
-        id: "invalid-color",
-        title: "Invalid color",
+        base: {
+          id: "invalid-color",
+          title: "Invalid color",
+        },
         config: { url: "YOUR_URL_HERE", clampIndicatorColor: "rebeccapurple" },
       }),
     ).toThrow(/six-digit hexadecimal color/);
@@ -239,8 +247,10 @@ describe("BigWig module", () => {
 
 function createTrack() {
   return bigWigModule.create({
-    id: "signal",
-    title: "Signal",
+    base: {
+      id: "signal",
+      title: "Signal",
+    },
     config: { url: "YOUR_URL_HERE" },
   });
 }

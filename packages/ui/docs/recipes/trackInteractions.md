@@ -8,16 +8,22 @@ This example uses one shared callback implementation across a heterogeneous coll
 import { useState } from "react";
 import {
   TrackSelect,
-  type TrackSelectCollection,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
-import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
+import {
+  type TrackCollection,
+  GenomeBrowser,
+  createBrowserStore,
+  createTrackStore,
+  hg38,
+} from "@weng-lab/genomebrowser";
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const trackCollections = [
   {
+    assembly: "hg38",
     id: "signals",
     label: "Signals and regions",
     views: [
@@ -34,9 +40,11 @@ const trackCollections = [
     ],
     tracks: [
       {
+        base: {
+          id: "accessibility",
+          title: "Accessibility signal",
+        },
         type: "bigwig",
-        id: "accessibility",
-        title: "Accessibility signal",
         config: { url: "YOUR_URL_HERE" },
         metadata: {
           assay: "ATAC-seq",
@@ -45,9 +53,11 @@ const trackCollections = [
         },
       },
       {
+        base: {
+          id: "peaks",
+          title: "Accessibility peaks",
+        },
         type: "bigbed",
-        id: "peaks",
-        title: "Accessibility peaks",
         config: { url: "YOUR_URL_HERE" },
         metadata: {
           assay: "ATAC-seq",
@@ -57,7 +67,7 @@ const trackCollections = [
       },
     ],
   },
-] satisfies TrackSelectCollection[];
+] satisfies TrackCollection[];
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -125,7 +135,7 @@ const sharedInteraction: TrackSelectInteraction<unknown, unknown> = {
 };
 
 const resolveTrackInteraction: TrackSelectInteractionResolver = ({ track }) =>
-  track.metadata.interaction === "signal" || track.metadata.interaction === "region"
+  track.metadata?.interaction === "signal" || track.metadata?.interaction === "region"
     ? sharedInteraction
     : undefined;
 

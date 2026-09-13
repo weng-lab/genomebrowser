@@ -50,6 +50,7 @@ const useTrackStore = createTrackStore({
 
 const trackCollections = [
   {
+    assembly: "hg38",
     id: "signals",
     label: "Signal tracks",
     views: [
@@ -63,9 +64,11 @@ const trackCollections = [
     ],
     tracks: [
       {
+        base: {
+          id: "example-signal",
+          title: "Example signal",
+        },
         type: "bigwig",
-        id: "example-signal",
-        title: "Example signal",
         config: { url: "YOUR_URL_HERE" },
         metadata: { assay: "ATAC-seq" },
       },

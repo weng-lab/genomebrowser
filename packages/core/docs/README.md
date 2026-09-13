@@ -39,3 +39,5 @@ These docs ship with the package and are self-contained.
 
 - [TrackOverlay](TrackOverlay.md): fixed SVG annotations within a track.
 - [TrackLabel](TrackLabel.md): fixed text labels at plot edges and scale positions.
+
+[Track collections](trackCollections.md) describes the shared JSON format, validation, and `genomebrowser schema` CLI.

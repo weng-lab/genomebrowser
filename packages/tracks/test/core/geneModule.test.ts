@@ -65,9 +65,11 @@ function context(
 ): TrackFetchContext<GeneConfig> {
   return {
     track: {
-      id: "genes",
+      base: {
+        id: "genes",
+        display: "full",
+      },
       type: "gene",
-      display: "full",
       config: {
         url,
         tagColors: [{ tag: "MANE_Select", color: "#000000" }],
@@ -227,8 +229,10 @@ describe("Gene module", () => {
 
   it("creates full tracks with shared row-layout and color defaults", () => {
     const track = geneModule.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
 
@@ -248,8 +252,10 @@ describe("Gene module", () => {
 
   it("normalizes configured tag colors and keeps the first duplicate", () => {
     const track = geneModule.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       config: {
         url: "YOUR_URL_HERE",
         tagColors: [
@@ -272,8 +278,10 @@ describe("Gene module", () => {
   ])("rejects %s in tag color configuration", (_name, tagColor) => {
     expect(() =>
       geneModule.create({
-        id: "genes",
-        title: "Genes",
+        base: {
+          id: "genes",
+          title: "Genes",
+        },
         config: { url: "YOUR_URL_HERE", tagColors: [tagColor] },
       }),
     ).toThrow();

@@ -47,8 +47,10 @@ describe("Gene settings", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     const track = geneModule.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       config: { url: "YOUR_URL_HERE", geneName: "TP53", highlightColor: "#123456" },
     });
 
@@ -81,8 +83,10 @@ describe("Gene settings", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     const track = geneModule.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       source: "host",
       config: { url: "https://example.org/uncataloged.bb" },
     });
@@ -120,8 +124,10 @@ describe("Gene settings", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     const track = geneModule.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       source: "host",
       config: {
         url: "https://users.wenglab.org/niship/gencodefiles/human.gencode.v40.basic.annotation.bb",
@@ -158,12 +164,14 @@ describe("Gene settings", () => {
       browser.assemblyId = "mm10";
       const [basic, comprehensive] = getGeneDatasetsForAssembly("mm10");
       const track = geneModule.create({
-        id: "mouse-genes",
+        base: {
+          id: "mouse-genes",
+          title: customTitle ? "My mouse genes" : getGeneDatasetTitle(basic),
+          display: "merged",
+          color: "#123456",
+          height: 72,
+        },
         source: "host",
-        title: customTitle ? "My mouse genes" : getGeneDatasetTitle(basic),
-        display: "merged",
-        color: "#123456",
-        height: 72,
         config: {
           url: basic.url,
           geneName: "Xkr4",
@@ -225,8 +233,10 @@ describe("Gene settings", () => {
     root = createRoot(container);
     const updateTrack = vi.fn((): { ok: true } => ({ ok: true }));
     const track = geneModule.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       source: "host",
       config: { url: "YOUR_URL_HERE" },
     });
@@ -246,8 +256,10 @@ describe("Gene settings", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     const track = geneModule.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       config: { url },
     });
 
@@ -291,8 +303,10 @@ describe("Gene settings", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     const track = geneModule.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       config: {
         url: "YOUR_URL_HERE",
         tagColors: [

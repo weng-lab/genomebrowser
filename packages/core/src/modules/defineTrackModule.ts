@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { hexColorSchema, parsePublicInput } from "./schemas";
+import { trackBaseSchema, parsePublicInput } from "./schemas";
 import type {
   TrackFetch,
+  TrackBase,
   TrackCreateInput,
   TrackCreateInputSchema,
   TrackInteraction,
@@ -16,11 +17,7 @@ type TrackConfigSchema = z.ZodObject;
 type FetchData<Fetch> = Fetch extends TrackFetch<infer _Config, infer Data> ? Data : never;
 type DisplayKey<Renderers> = Extract<keyof Renderers, string>;
 type ParsedCreateInput<ConfigSchema extends TrackConfigSchema, Display extends string> = {
-  id: string;
-  title: string;
-  display: Display;
-  height: number;
-  color?: string;
+  base: TrackBase & { display: Display };
   source: "host" | "user";
   config: z.output<ConfigSchema>;
 };
@@ -55,14 +52,6 @@ type TrackModuleDefinition<
   settingsComponent?: TrackSettingsComponent<z.output<ConfigSchema>, Item>;
   tooltipComponent?: TrackTooltipComponent<Item, z.output<ConfigSchema>>;
 } & ValidateRenderers<z.output<ConfigSchema>, FetchData<Fetch>, Renderers>;
-
-const instanceBaseSchema = z.strictObject({
-  id: z.string().min(1),
-  title: z.string().min(1),
-  display: z.string().min(1),
-  height: z.number().positive(),
-  color: hexColorSchema,
-});
 
 const interactionCallbackSchema = z.custom<TrackInteractionCallback<unknown, unknown>>(
   (value) => typeof value === "function",
@@ -127,16 +116,13 @@ function createTrackModule<
   const displaySchema = z.enum(
     displays as [DisplayKey<Renderers>, ...Array<DisplayKey<Renderers>>],
   );
-  const fullBaseSchema = instanceBaseSchema.extend({ display: displaySchema }).strict();
+  const fullBaseSchema = trackBaseSchema.extend({ display: displaySchema }).strict();
   const createInputSchema = z.strictObject({
-    id: z.string().min(1),
-    title: z.string().min(1),
-    display: displaySchema.default(defaultDisplay),
-    height: z
-      .number()
-      .positive()
-      .default(definition.defaults?.height ?? 80),
-    color: hexColorSchema.optional(),
+    base: fullBaseSchema.extend({
+      display: displaySchema.default(defaultDisplay),
+      height: trackBaseSchema.shape.height.default(definition.defaults?.height ?? 80),
+      color: trackBaseSchema.shape.color.default(definition.defaults?.color ?? "#000000"),
+    }),
     source: z.enum(["host", "user"]).default("user"),
     config: configSchema,
   }) as TrackCreateInputSchema<ConfigSchema, DisplayKey<Renderers>>;
@@ -170,15 +156,7 @@ function createTrackModule<
           : undefined;
       const instance = {
         type: definition.type,
-        base: {
-          id: parsed.id,
-          title: parsed.title,
-          display: parsed.display,
-          height: parsed.height,
-          color: parsed.color ?? definition.defaults?.color ?? "#000000",
-        },
-        config: parsed.config,
-        source: parsed.source,
+        ...parsed,
         ...(parsedInteraction ? { interaction: parsedInteraction } : {}),
       };
 

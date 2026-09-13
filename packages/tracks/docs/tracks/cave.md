@@ -8,8 +8,10 @@ Use `caveModule` for the package's paired hmC and OXBS datasets. It reads two pa
 import { caveModule } from "@weng-lab/genomebrowser-tracks/cave";
 
 const track = caveModule.create({
-  id: "cave",
-  title: "CAVE",
+  base: {
+    id: "cave",
+    title: "CAVE",
+  },
   config: {
     neurotransmitter: "GABA",
     age: "Adulthood",

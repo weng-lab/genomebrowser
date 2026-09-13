@@ -12,6 +12,9 @@
     "url": "git+https://github.com/weng-lab/genomebrowser.git",
     "directory": "packages/core"
   },
+  "bin": {
+    "genomebrowser": "dist/cli.js"
+  },
   "files": [
     "dist",
     "docs",
@@ -42,10 +45,12 @@
     "prepack": "pnpm build:checked"
   },
   "dependencies": {
+    "jiti": "^2.6.2",
     "zod": "^4.4.3",
     "zustand": "catalog:"
   },
   "devDependencies": {
+    "@types/node": "^24.3.1",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@typescript/native": "npm:typescript@^7.0.2",

@@ -17,8 +17,10 @@ import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const signalTrack = bigWigModule.create({
-  id: "signal",
-  title: "Signal",
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 
@@ -48,4 +50,4 @@ Replace `YOUR_URL_HERE` with a browser-accessible BigWig URL that supports byte-
 
 See [Ruler and reference sequence](docs/tracks/ruler.md) for coordinate tracks with optional 2bit DNA.
 
-The package also ships a [collection JSON schema](docs/exports.md#collection-json-schema) for all first-party tracks, exported as `@weng-lab/genomebrowser-tracks/trackSelectCollection.schema.json`.
+The package also ships a [collection JSON schema](docs/exports.md#collection-json-schema) for all first-party tracks, exported as `@weng-lab/genomebrowser-tracks/trackCollection.schema.json`.

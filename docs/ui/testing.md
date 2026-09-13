@@ -36,8 +36,8 @@ The former manual fixtures live with the example in `apps/playground/examples/ui
 
 The schema artifacts and scripts have distinct roles:
 
-- `trackselect schema --from <module[#export]>` writes `trackSelectCollection.schema.json` by default; `--out` can select another project-relative path.
-- `apps/playground/examples/ui/schemas/trackSelectCollection.schema.json` is the schema referenced by the preserved collection fixtures.
+- `genomebrowser schema --from <module[#export]>` writes `trackCollection.schema.json` by default; `--out` can select another project-relative path.
+- `apps/playground/examples/ui/schemas/trackCollection.schema.json` is the schema referenced by the preserved collection fixtures.
 - The package build verifies that the public command can load a TypeScript module array, write a schema, and check that the generated file is current.
 
 Generated schemas should be checked by regenerating them only when schema or module inputs change. Review generated diffs rather than editing schema output by hand.
@@ -59,7 +59,7 @@ Reset coverage should target the public contract: after arbitrary draft edits, R
 
 Start failures at the boundary where they occur:
 
-- Collection errors: call `validateJson` with the track store's registry and inspect the field path in the error. Confirm collection track types and nested config match registered modules.
+- Collection errors: call `validateJson` with the application's module list and inspect the field path in the error. Confirm collection track types and nested config match registered modules.
 - Grid or grouping errors: reduce the collection to one view and inspect `columns`, `grouping`, `leaf`, and required metadata. Built-in fields are `id`, `title`, and `type`.
 - Selection errors: compare collection-qualified IDs in rows, the draft map, and store track `base.id` values.
 - Ordering errors: inspect the active view and the collection's source row order before examining the diff.

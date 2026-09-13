@@ -32,12 +32,12 @@ const data: BigBedRow[] = [
 const commonProps = {
   id: "peaks",
   color: "#4b9560",
+  height: 99,
   config,
   data,
   visibleRegion: { chromosome: "chr1", start: 0, end: 100 },
   region: { chromosome: "chr1", start: 0, end: 100 },
   width: 100,
-  height: 99,
 };
 
 beforeEach(() => layout.useRowLayout.mockClear());

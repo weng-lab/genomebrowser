@@ -35,9 +35,11 @@ describe("CAVE track fetching", () => {
     await expect(
       fetchCave({
         track: {
-          id: "cave",
+          base: {
+            id: "cave",
+            display: "full",
+          },
           type: "cave",
-          display: "full",
           config: {
             neurotransmitter: "GABA",
             age: "Adulthood",

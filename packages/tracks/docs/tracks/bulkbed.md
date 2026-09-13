@@ -8,8 +8,10 @@ Use `bulkBedModule` to compare several named BigBed datasets in one track. It ex
 import { bulkBedModule } from "@weng-lab/genomebrowser-tracks/bulkbed";
 
 const track = bulkBedModule.create({
-  id: "bulk-peaks",
-  title: "Bulk peaks",
+  base: {
+    id: "bulk-peaks",
+    title: "Bulk peaks",
+  },
   config: {
     datasets: [{ name: "Sample A", url: "YOUR_URL_HERE" }],
   },

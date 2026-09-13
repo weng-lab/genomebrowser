@@ -19,8 +19,10 @@ const testModule = defineTrackModule({
   render: { full: () => null },
 });
 const track = testModule.create({
-  id: "test",
-  title: "Test track",
+  base: {
+    id: "test",
+    title: "Test track",
+  },
   config: {},
 });
 const trackStore = createTrackStore({ modules: [testModule], tracks: [track] });

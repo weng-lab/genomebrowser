@@ -5,9 +5,9 @@
 ## Config
 
 ```ts
-const track = methylCModule.create({
+const track = methylCModule.create({ base: {
   id: "methylation",
-  title: "Methylation",
+  title: "Methylation"},
   config: {
     urls: {
       plusStrand: {
@@ -23,8 +23,7 @@ const track = methylCModule.create({
         depth: { url: "YOUR_URL_HERE" },
       },
     },
-  },
-});
+  }});
 ```
 
 Fields:

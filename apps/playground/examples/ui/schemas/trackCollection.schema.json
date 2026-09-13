@@ -1,9 +1,12 @@
 {
-  "$id": "https://weng-lab.github.io/genomebrowser/schemas/trackSelectCollection.example.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
     "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assembly": {
       "type": "string",
       "minLength": 1
     },
@@ -92,26 +95,35 @@
           {
             "type": "object",
             "properties": {
-              "id": {
-                "type": "string",
-                "minLength": 1
-              },
-              "title": {
-                "type": "string",
-                "minLength": 1
-              },
-              "display": {
-                "default": "full",
-                "type": "string",
-                "enum": ["full", "dense"]
-              },
-              "height": {
-                "default": 80,
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "color": {
-                "type": "string"
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "full",
+                    "type": "string",
+                    "enum": ["full", "dense"]
+                  },
+                  "height": {
+                    "default": 80,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#2266aa",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": ["id", "title"],
+                "additionalProperties": false
               },
               "config": {
                 "type": "object",
@@ -133,8 +145,16 @@
                       "max": {
                         "type": "number"
                       }
-                    },
-                    "required": ["min", "max"]
+                    }
+                  },
+                  "showClampIndicators": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "clampIndicatorColor": {
+                    "default": "#ff0000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
                   }
                 },
                 "required": ["url"],
@@ -145,7 +165,6 @@
                 "const": "bigwig"
               },
               "metadata": {
-                "default": {},
                 "type": "object",
                 "propertyNames": {
                   "type": "string"
@@ -168,39 +187,57 @@
                 }
               }
             },
-            "required": ["id", "title", "config", "type"],
+            "required": ["base", "config", "type"],
             "additionalProperties": false
           },
           {
             "type": "object",
             "properties": {
-              "id": {
-                "type": "string",
-                "minLength": 1
-              },
-              "title": {
-                "type": "string",
-                "minLength": 1
-              },
-              "display": {
-                "default": "dense",
-                "type": "string",
-                "enum": ["dense", "squish"]
-              },
-              "height": {
-                "default": 60,
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "color": {
-                "type": "string"
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "dense",
+                    "type": "string",
+                    "enum": ["dense", "squish"]
+                  },
+                  "height": {
+                    "default": 12,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#4b9560",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": ["id", "title"],
+                "additionalProperties": false
               },
               "config": {
                 "type": "object",
                 "properties": {
+                  "bedSchema": {
+                    "type": "string",
+                    "enum": ["bed3", "bed4", "bed5", "bed6", "bed9", "ccre"]
+                  },
                   "url": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "rowHeight": {
+                    "default": 12,
+                    "type": "number",
+                    "minimum": 1
                   }
                 },
                 "required": ["url"],
@@ -211,7 +248,6 @@
                 "const": "bigbed"
               },
               "metadata": {
-                "default": {},
                 "type": "object",
                 "propertyNames": {
                   "type": "string"
@@ -234,32 +270,41 @@
                 }
               }
             },
-            "required": ["id", "title", "config", "type"],
+            "required": ["base", "config", "type"],
             "additionalProperties": false
           },
           {
             "type": "object",
             "properties": {
-              "id": {
-                "type": "string",
-                "minLength": 1
-              },
-              "title": {
-                "type": "string",
-                "minLength": 1
-              },
-              "display": {
-                "default": "split",
-                "type": "string",
-                "enum": ["split"]
-              },
-              "height": {
-                "default": 100,
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "color": {
-                "type": "string"
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "split",
+                    "type": "string",
+                    "enum": ["split"]
+                  },
+                  "height": {
+                    "default": 100,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#000000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": ["id", "title"],
+                "additionalProperties": false
               },
               "config": {
                 "type": "object",
@@ -365,19 +410,23 @@
                     "properties": {
                       "cpg": {
                         "default": "#648bd8",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
                       },
                       "chg": {
                         "default": "#ff944d",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
                       },
                       "chh": {
                         "default": "#ff00ff",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
                       },
                       "depth": {
                         "default": "#525252",
-                        "type": "string"
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
                       }
                     }
                   },
@@ -406,7 +455,6 @@
                 "const": "methylc"
               },
               "metadata": {
-                "default": {},
                 "type": "object",
                 "propertyNames": {
                   "type": "string"
@@ -429,36 +477,50 @@
                 }
               }
             },
-            "required": ["id", "title", "config", "type"],
+            "required": ["base", "config", "type"],
             "additionalProperties": false
           },
           {
             "type": "object",
             "properties": {
-              "id": {
-                "type": "string",
-                "minLength": 1
-              },
-              "title": {
-                "type": "string",
-                "minLength": 1
-              },
-              "display": {
-                "default": "squish",
-                "type": "string",
-                "enum": ["squish", "pack"]
-              },
-              "height": {
-                "default": 90,
-                "type": "number",
-                "exclusiveMinimum": 0
-              },
-              "color": {
-                "type": "string"
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "squish",
+                    "type": "string",
+                    "enum": ["squish", "pack"]
+                  },
+                  "height": {
+                    "default": 90,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#7a4fb3",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": ["id", "title"],
+                "additionalProperties": false
               },
               "config": {
                 "type": "object",
                 "properties": {
+                  "endpoint": {
+                    "default": "/api/screen-graphql",
+                    "type": "string",
+                    "minLength": 1
+                  },
                   "assembly": {
                     "type": "string",
                     "minLength": 1
@@ -472,10 +534,19 @@
                     "type": "string"
                   },
                   "canonicalColor": {
-                    "type": "string"
+                    "default": "#000000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
                   },
                   "highlightColor": {
-                    "type": "string"
+                    "default": "#000000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  },
+                  "rowHeight": {
+                    "default": 12,
+                    "type": "number",
+                    "minimum": 1
                   }
                 },
                 "required": ["assembly", "version"],
@@ -486,7 +557,6 @@
                 "const": "transcript"
               },
               "metadata": {
-                "default": {},
                 "type": "object",
                 "propertyNames": {
                   "type": "string"
@@ -509,13 +579,13 @@
                 }
               }
             },
-            "required": ["id", "title", "config", "type"],
+            "required": ["base", "config", "type"],
             "additionalProperties": false
           }
         ]
       }
     }
   },
-  "required": ["id", "label", "views", "tracks"],
+  "required": ["assembly", "id", "tracks"],
   "additionalProperties": false
 }

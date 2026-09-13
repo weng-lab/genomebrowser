@@ -42,8 +42,10 @@ describe("defineTrackModule", () => {
   it("creates nested track instances from public input", () => {
     expect(
       module.create({
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+        },
         config: { url: "YOUR_URL_HERE" },
       }),
     ).toEqual({
@@ -72,14 +74,17 @@ describe("defineTrackModule", () => {
     });
 
     expect(
-      uncoloredModule.create({ id: "uncolored", title: "Uncolored", config: {} }).base.color,
+      uncoloredModule.create({ base: { id: "uncolored", title: "Uncolored" }, config: {} }).base
+        .color,
     ).toBe("#000000");
   });
 
   it("accepts an explicit host source", () => {
     const track = module.create({
-      id: "host-signal",
-      title: "Host signal",
+      base: {
+        id: "host-signal",
+        title: "Host signal",
+      },
       source: "host",
       config: { url: "YOUR_URL_HERE" },
     });
@@ -90,16 +95,20 @@ describe("defineTrackModule", () => {
   it("rejects non-hexadecimal base colors from input and validated instances", () => {
     expect(() =>
       module.create({
-        id: "signal",
-        title: "Signal",
-        color: "rebeccapurple",
+        base: {
+          id: "signal",
+          title: "Signal",
+          color: "rebeccapurple",
+        },
         config: { url: "YOUR_URL_HERE" },
       }),
     ).toThrow(/six-digit hexadecimal color/);
 
     const track = module.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
     expect(() => module.validate({ ...track, base: { ...track.base, color: "#abc" } })).toThrow(
@@ -109,16 +118,20 @@ describe("defineTrackModule", () => {
 
   it("types create input from required and defaulted config schema fields", () => {
     module.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
 
     // eslint-disable-next-line no-constant-condition -- Compile-time-only negative type assertions.
     if (false) {
       module.create({
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+        },
         // @ts-expect-error url is required by the config schema.
         config: {},
       });
@@ -127,8 +140,10 @@ describe("defineTrackModule", () => {
 
   it("validates full nested runtime instances", () => {
     const track = module.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
 
@@ -143,8 +158,10 @@ describe("defineTrackModule", () => {
 
   it("returns create output that passes validate", () => {
     const track = module.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
 
@@ -203,10 +220,12 @@ describe("defineTrackModule", () => {
   it("rejects invalid display modes", () => {
     expect(() =>
       module.create({
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+          display: "expanded" as never,
+        },
         config: { url: "YOUR_URL_HERE" },
-        display: "expanded" as never,
       }),
     ).toThrow(/example input is invalid/);
   });
@@ -214,8 +233,10 @@ describe("defineTrackModule", () => {
   it("rejects unknown input keys", () => {
     expect(() =>
       module.create({
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+        },
         config: { url: "YOUR_URL_HERE" },
         typo: true,
       } as never),
@@ -241,8 +262,10 @@ describe("defineTrackModule", () => {
 
     expect(() =>
       rangeModule.create({
-        id: "range",
-        title: "Range",
+        base: {
+          id: "range",
+          title: "Range",
+        },
         config: { min: 10, max: 5 },
       }),
     ).toThrow(/min must be less than max/);
@@ -267,15 +290,19 @@ describe("defineTrackModule", () => {
 
     expect(
       rangeModule.create({
-        id: "range",
-        title: "Range",
+        base: {
+          id: "range",
+          title: "Range",
+        },
         config: { max: 10 },
       }).config,
     ).toEqual({ min: 0, max: 10 });
     expect(() =>
       rangeModule.create({
-        id: "range",
-        title: "Range",
+        base: {
+          id: "range",
+          title: "Range",
+        },
         config: { max: -1 },
       }),
     ).toThrow(/min must be less than max/);
@@ -287,8 +314,10 @@ describe("defineTrackModule", () => {
     const onLeave = () => undefined;
     const track = module.create(
       {
-        id: "interactive",
-        title: "Interactive",
+        base: {
+          id: "interactive",
+          title: "Interactive",
+        },
         config: { url: "YOUR_URL_HERE" },
       },
       { onClick, onHover, onLeave },
@@ -302,8 +331,10 @@ describe("defineTrackModule", () => {
     expect(() =>
       module.create(
         {
-          id: "signal",
-          title: "Signal",
+          base: {
+            id: "signal",
+            title: "Signal",
+          },
           config: { url: "YOUR_URL_HERE" },
         },
         { onClick: "not a function" as never },
@@ -315,8 +346,10 @@ describe("defineTrackModule", () => {
     expect(() =>
       module.create(
         {
-          id: "signal",
-          title: "Signal",
+          base: {
+            id: "signal",
+            title: "Signal",
+          },
           config: { url: "YOUR_URL_HERE" },
         },
         null as never,
@@ -338,15 +371,19 @@ describe("defineTrackModule", () => {
 
     expect(
       defaultedModule.create({
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+        },
         config: { assembly: "hg38" },
       }).config,
     ).toEqual({ url: "YOUR_URL_HERE", assembly: "hg38", enabled: true });
     expect(() =>
       defaultedModule.create({
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+        },
         config: {},
       } as never),
     ).toThrow(/defaulted input is invalid/);
@@ -371,8 +408,10 @@ describe("defineTrackModule", () => {
 
     expect(() =>
       module.create({
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+        },
         config: null,
       } as never),
     ).toThrow(/example input is invalid/);
@@ -381,9 +420,7 @@ describe("defineTrackModule", () => {
   it("emits display options into JSON schema", () => {
     expect(z.toJSONSchema(module.createInputSchema, { io: "input" })).toMatchObject({
       properties: {
-        display: {
-          enum: ["full", "dense"],
-        },
+        base: { properties: { display: { enum: ["full", "dense"] } } },
       },
     });
   });
@@ -391,8 +428,10 @@ describe("defineTrackModule", () => {
   it("rejects tooltip on create input", () => {
     expect(() =>
       module.create({
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+        },
         config: { url: "YOUR_URL_HERE" },
         tooltip: TooltipComponent,
       } as never),
@@ -463,8 +502,10 @@ describe("defineTrackModule", () => {
 
     peaksModule.create(
       {
-        id: "peaks",
-        title: "Peaks",
+        base: {
+          id: "peaks",
+          title: "Peaks",
+        },
         config: { url: "YOUR_URL_HERE" },
       },
       {

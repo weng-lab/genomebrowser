@@ -8,8 +8,10 @@ Use `transcriptModule` for gene and transcript models returned by the expected G
 import { transcriptModule } from "@weng-lab/genomebrowser-tracks/transcript";
 
 const track = transcriptModule.create({
-  id: "genes",
-  title: "Genes",
+  base: {
+    id: "genes",
+    title: "Genes",
+  },
   config: {
     assembly: "GRCh38",
     version: 47,

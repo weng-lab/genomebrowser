@@ -6,7 +6,7 @@ import type { TrackSelectInteractionResolver } from "./collection/collectionInte
 import { assertValidCollectionTrackIds, getReconciledTracks } from "./collection/collectionStore";
 import { TrackSelectContent } from "./layout/trackSelectContent";
 import { TrackSelectDialog } from "./layout/trackSelectDialog";
-import { validateJson } from "./schema/validateJson";
+import { validateJson } from "@weng-lab/genomebrowser";
 
 export type TrackSelectProps = {
   open: boolean;
@@ -48,7 +48,7 @@ export default function TrackSelect({
   const setTracks = useTrackStore((state) => state.setTracks);
   const compiledCollections = useMemo(() => {
     const parsedCollections = trackCollections.map((collection) =>
-      validateJson(collection, registry),
+      validateJson(collection, registry.modules),
     );
     return compileTrackCollections(parsedCollections);
   }, [trackCollections, registry]);
