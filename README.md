@@ -10,7 +10,7 @@ replace an npm `latest` release. Any publication must retain the configured
 - `packages/core` (`@weng-lab/genomebrowser`) is the embeddable React runtime.
   It renders genomic tracks and owns the browser state and extension APIs.
 - `packages/tracks` (`@weng-lab/genomebrowser-tracks`) provides the curated,
-  MUI-based BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Transcript
+  MUI-based BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Gene
   modules.
 - `packages/ui` (`@weng-lab/genomebrowser-ui`) provides optional, higher-level
   application controls that depend on the runtime. Applications that only need

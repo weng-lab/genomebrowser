@@ -46,7 +46,7 @@ The settings store owns the active settings modal state and the browser-level se
 
 ## First-party track
 
-A first-party track is a curated track type shipped by `@weng-lab/genomebrowser-tracks`, such as BigWig, BigBed, or Transcript. Applications register the module with the core runtime and create validated instances from it.
+A first-party track is a curated track type shipped by `@weng-lab/genomebrowser-tracks`, such as BigWig, BigBed, or Gene. Applications register the module with the core runtime and create validated instances from it.
 
 ## Custom track module
 

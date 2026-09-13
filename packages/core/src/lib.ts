@@ -87,6 +87,3 @@ export type {
   TrackCollectionTrack,
 } from "./collections/collectionSchema";
 export type { TrackCollectionEntry } from "./modules/registry";
-
-// Integration constant
-export { defaultScreenGraphQlEndpoint } from "./screen";

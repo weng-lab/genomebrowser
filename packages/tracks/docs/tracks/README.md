@@ -19,11 +19,7 @@ These files must be available to the browser and support byte-range requests.
 - [MethylC](methylc.md) reads up to eight BigWig files for plus- and minus-strand CpG, CHG, CHH, and depth channels.
 - [CAVE](cave.md) reads a package-selected pair of hg38 BigWig files for hmC and OXBS. Use it only for the built-in neurotransmitter and age combinations. It does not accept source URLs.
 
-## GraphQL
-
-- [Transcript](transcript.md) reads gene and transcript models from a GraphQL endpoint. Use it when an endpoint provides the expected query and permits requests from your application.
-
-For URL-backed files and Transcript endpoints, see [Data source troubleshooting](../dataSources.md) when a source does not load. CAVE uses package-owned URLs and cannot be pointed at another host.
+For URL-backed files, see [Data source troubleshooting](../dataSources.md) when a source does not load. CAVE uses package-owned URLs and cannot be pointed at another host.
 
 ## Coordinates and reference DNA
 

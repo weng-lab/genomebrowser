@@ -4,7 +4,7 @@ Snapshot from the API review on September 13, 2026, excluding types. Use these c
 
 Follow-up notes:
 
-- The SCREEN GraphQL endpoint is being removed separately.
+- The SCREEN GraphQL endpoint was removed in #230; omit the snapshot's integration-constant category from the future public API organization.
 - Context-menu access is internal. The `useContextMenuStore`, `ContextMenuStore`, and `ContextMenuPosition` public exports have been removed; omit the snapshot's context-menu category from the future public API organization.
 - Preserve the grouping below when reorganizing the documentation.
 

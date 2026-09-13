@@ -55,10 +55,6 @@
       "types": "./dist/src/methylc/index.d.ts",
       "import": "./dist/methylc.js"
     },
-    "./transcript": {
-      "types": "./dist/src/transcript/index.d.ts",
-      "import": "./dist/transcript.js"
-    },
     "./shared": {
       "types": "./dist/src/shared/index.d.ts",
       "import": "./dist/shared.js"

@@ -207,9 +207,3 @@ A module without `settingsComponent` has no settings button. Use native form ele
 Renderers choose the semantic item and invoke [useInteraction](runtimeHelpers.md#useinteraction) handlers. The browser binds the runtime context, so `TrackRendererInteraction<Item>` exposes those same optional callback names with item-only signatures `(item: Item) => void`. Callback frequency and which events are emitted depend on the renderer; keep frequent hover handlers lightweight.
 
 `TrackTooltipComponent<Item, Config>` receives required `item: Item` and `context: TrackRuntimeContext<Config>`. Return SVG content; [useTooltip](runtimeHelpers.md#usetooltip) positions it within the browser. Later validated changes appear in later callback invocations and tooltip shows. Renderers and tooltip content own meaningful labels and any supported keyboard behavior; the module contract does not add it automatically.
-
-## defaultScreenGraphQlEndpoint
-
-`defaultScreenGraphQlEndpoint` is the string `"/api/screen-graphql"`. SCREEN-backed features such as the Transcript module use it as their default endpoint. It identifies a same-origin host route; exporting the constant does not create that route or configure authentication.
-
-The host application implements the proxy and adds credentials on its server. Endpoint overrides belong to the feature's configuration and must not contain credentials. Ordinary file-backed tracks do not need this endpoint.

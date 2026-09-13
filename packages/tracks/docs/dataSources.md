@@ -16,14 +16,6 @@ Opening the file URL in a browser tab does not prove that CORS is configured. A 
 
 If the server ignores the `Range` request header or cannot return `206 Partial Content`, move the file to a host that supports byte-range requests.
 
-## Transcript endpoint
-
-Transcript defaults to `/api/screen-graphql`. Your application must implement that same-origin route or configure another endpoint that permits browser requests. The module sends a JSON GraphQL POST request but does not add authorization headers or read a service key.
-
-If the upstream GraphQL service requires credentials, proxy the request through your server. Add credentials on the server, then configure the track's `endpoint` with your proxy route. Do not put secrets in track configuration because endpoint values may appear in collections or saved state.
-
-See [Transcript](tracks/transcript.md#source-requirements) for the request and response requirements.
-
 ## Reference sequence
 
 The [ruler](tracks/ruler.md) accepts HTTP(S) version-0 2bit files with byte-range support and browser CORS. Expose `Content-Range` to the browser. Sequence names must match the assembly exactly. A missing chromosome returns no sequence; request failures leave the coordinate axis visible. BigWig numeric values are not reference bases.

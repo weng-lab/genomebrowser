@@ -18,8 +18,7 @@
       "@weng-lab/genomebrowser-tracks/ccre": ["./src/ccre/index.ts"],
       "@weng-lab/genomebrowser-tracks/gene": ["./src/gene/index.ts"],
       "@weng-lab/genomebrowser-tracks/methylc": ["./src/methylc/index.ts"],
-      "@weng-lab/genomebrowser-tracks/shared": ["./src/shared/index.ts"],
-      "@weng-lab/genomebrowser-tracks/transcript": ["./src/transcript/index.ts"]
+      "@weng-lab/genomebrowser-tracks/shared": ["./src/shared/index.ts"]
     },
     "allowImportingTsExtensions": true,
     "isolatedModules": true,

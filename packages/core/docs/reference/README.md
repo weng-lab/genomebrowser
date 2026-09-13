@@ -49,7 +49,6 @@ Import the APIs below from `@weng-lab/genomebrowser`. Related types are document
 | `TrackRenderer`, `TrackRendererProps`                                                                                                         | [Rendering](trackModules.md#rendering)                                                     |
 | `TrackSettingsComponent`, `TrackSettingsProps`                                                                                                | [Settings](trackModules.md#settings)                                                       |
 | `TrackInteraction`, `TrackInteractionCallback`, `TrackRuntimeContext`, `TrackRendererInteraction`, `TrackTooltipComponent`                    | [Interactions and tooltips](trackModules.md#interactions-and-tooltips)                     |
-| `defaultScreenGraphQlEndpoint`                                                                                                                | [defaultScreenGraphQlEndpoint](trackModules.md#defaultscreengraphqlendpoint)               |
 
 ## Runtime helpers
 

@@ -30,8 +30,6 @@ Do not mark visual-only fields. They should re-render with existing data. If a f
 
 Fetch failures appear in the affected track's error state. Check browser network tools for status, CORS, authentication, and response-shape errors. Confirm the URL points to the format expected by the selected module; `YOUR_URL_HERE` in examples is only a placeholder.
 
-For Transcript failures, confirm the host implements the default `/api/screen-graphql` route or that the track's `config.endpoint` names the intended alternative. The module does not construct an authorization header. If the upstream service requires a credential, point the track at an application-owned server proxy and verify that the proxy adds the credential server-side.
-
 ## Custom renderer or tooltip failure
 
 An unexpected error while React renders a custom track renderer is contained to that track's content area. An error from custom tooltip content is replaced by `Tooltip unavailable`; hide the tooltip or show one from another track to clear that fallback. Other tracks and browser controls remain available in both cases.

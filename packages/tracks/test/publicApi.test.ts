@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import type { TrackInteraction } from "@weng-lab/genomebrowser";
+import { validateTrackCollection, type TrackInteraction } from "@weng-lab/genomebrowser";
 import type {
   BigWigRecord,
   BigWigSummaryRecord,
@@ -46,15 +46,10 @@ import {
   type MethylCCreateInput,
   type MethylCData,
 } from "@weng-lab/genomebrowser-tracks/methylc";
-import {
-  transcriptModule,
-  type TranscriptConfig,
-  type TranscriptCreateInput,
-} from "@weng-lab/genomebrowser-tracks/transcript";
 import { condenseSignalRecords, type SignalPoint } from "@weng-lab/genomebrowser-tracks/shared";
 
 describe("first-party track package", () => {
-  it("exports all nine pre-bound modules as a ready-made collection", () => {
+  it("exports all eight pre-bound modules as a ready-made collection", () => {
     expect(firstPartyTrackModules).toEqual([
       rulerModule,
       bigBedModule,
@@ -64,7 +59,6 @@ describe("first-party track package", () => {
       ccreBigBedModule,
       geneModule,
       methylCModule,
-      transcriptModule,
     ]);
     expect(firstPartyTrackModules.map((module) => module.type)).toEqual([
       "ruler",
@@ -75,7 +69,6 @@ describe("first-party track package", () => {
       "ccre-bigbed",
       "gene",
       "methylc",
-      "transcript",
     ]);
     for (const module of firstPartyTrackModules) {
       expect(module.configSchema).toBeDefined();
@@ -83,6 +76,34 @@ describe("first-party track package", () => {
       expect(module.settingsComponent).toBeTypeOf("function");
       if (module !== rulerModule) expect(module.tooltipComponent).toBeTypeOf("function");
     }
+  });
+
+  it("requires a BigBed source when migrating GraphQL collections to Gene", () => {
+    const collection = {
+      id: "genes",
+      assembly: "GRCh38",
+      tracks: [
+        {
+          type: "transcript",
+          base: { id: "genes", title: "Genes" },
+          config: { assembly: "GRCh38", version: 40 },
+        },
+      ],
+    };
+    expect(() => validateTrackCollection(collection, firstPartyTrackModules)).toThrow();
+    collection.tracks[0]!.type = "gene";
+    expect(() => validateTrackCollection(collection, firstPartyTrackModules)).toThrow();
+    expect(
+      validateTrackCollection(
+        {
+          ...collection,
+          tracks: [
+            { type: "gene", base: collection.tracks[0]!.base, config: { url: "YOUR_URL_HERE" } },
+          ],
+        },
+        firstPartyTrackModules,
+      ).tracks[0]!.type,
+    ).toBe("gene");
   });
 
   it("preserves validated defaults at the package boundary", () => {
@@ -110,9 +131,6 @@ describe("first-party track package", () => {
       highlightColor: "#000000",
       rowHeight: 12,
     });
-    expect(
-      transcriptModule.create(input("transcript", { assembly: "GRCh38", version: 40 })).config,
-    ).toMatchObject({ canonicalColor: "#000000", highlightColor: "#000000", rowHeight: 12 });
   });
 
   it("derives create-input and validated config types from each module", () => {
@@ -147,12 +165,6 @@ describe("first-party track package", () => {
       ReturnType<typeof methylCModule.validate>["config"]
     >();
     expectTypeOf<MethylCData>().toEqualTypeOf<BigWigRecord[][]>();
-    expectTypeOf<TranscriptCreateInput>().toEqualTypeOf<
-      Parameters<typeof transcriptModule.create>[0]
-    >();
-    expectTypeOf<TranscriptConfig>().toEqualTypeOf<
-      ReturnType<typeof transcriptModule.validate>["config"]
-    >();
   });
 
   it("exposes the shared signal condensation API", () => {

@@ -281,9 +281,9 @@ Track Select creates and reconciles collection tracks using the same track store
 ```ts
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-import { transcriptModule } from "@weng-lab/genomebrowser-tracks/transcript";
+import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
 
-const STANDARD_MODULES = [bigBedModule, bigWigModule, transcriptModule];
+const STANDARD_MODULES = [bigBedModule, bigWigModule, geneModule];
 
 const SINGLE_CELL_MODULES = [...STANDARD_MODULES, singleCellGrnModule, singleCellQtlModule];
 ```

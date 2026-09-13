@@ -18,7 +18,6 @@ const nextConfig: NextConfig = {
       "@weng-lab/genomebrowser-tracks/gene": "../../packages/tracks/src/gene/index.ts",
       "@weng-lab/genomebrowser-tracks/methylc": "../../packages/tracks/src/methylc/index.ts",
       "@weng-lab/genomebrowser-tracks/shared": "../../packages/tracks/src/shared/index.ts",
-      "@weng-lab/genomebrowser-tracks/transcript": "../../packages/tracks/src/transcript/index.ts",
       "@weng-lab/genomebrowser-ui": "../../packages/ui/src/lib.ts",
       "@weng-lab/genomic-reader": "../../packages/reader/src/lib.ts",
     },

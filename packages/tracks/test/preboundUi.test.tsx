@@ -6,7 +6,6 @@ import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import { bulkBedModule } from "@weng-lab/genomebrowser-tracks/bulkbed";
 import { caveModule } from "@weng-lab/genomebrowser-tracks/cave";
 import { methylCModule } from "@weng-lab/genomebrowser-tracks/methylc";
-import { transcriptModule } from "@weng-lab/genomebrowser-tracks/transcript";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -54,10 +53,9 @@ describe("pre-bound module UI", () => {
     expect(text()).toEqual(["Location", "chr1:10–20", "Score", "2.5"]);
   });
 
-  it("uses the formatted signal and transcript tooltips", () => {
+  it("uses the formatted signal tooltip", () => {
     const SignalTooltip = bigWigModule.tooltipComponent as ComponentType<any>;
-    const TranscriptTooltip = transcriptModule.tooltipComponent as ComponentType<any>;
-    const rerender = mount(
+    mount(
       <svg>
         <SignalTooltip
           item={{ x: 0, min: null, max: null }}
@@ -70,21 +68,6 @@ describe("pre-bound module UI", () => {
       </svg>,
     );
     expect(text()).toEqual(["Signal", "No data"]);
-
-    rerender(
-      <svg>
-        <TranscriptTooltip
-          item={{
-            id: "ENST1",
-            name: "GENE1",
-            coordinates: { start: 1000, end: 2000 },
-            strand: "+",
-          }}
-          context={{}}
-        />
-      </svg>,
-    );
-    expect(text()).toEqual(["GENE1", "ID", "ENST1", "Interval", "1,000–2,000", "Strand", "+"]);
   });
 
   it("uses the formatted BulkBed, CAVE, and MethylC tooltips", () => {

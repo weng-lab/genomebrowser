@@ -8,6 +8,7 @@ Each track subpath exports one module object:
 
 | Track       | Package entry | Module export      | Type value      |
 | ----------- | ------------- | ------------------ | --------------- |
+| Ruler       | `/ruler`      | `rulerModule`      | `"ruler"`       |
 | BigBed      | `/bigbed`     | `bigBedModule`     | `"bigbed"`      |
 | BigWig      | `/bigwig`     | `bigWigModule`     | `"bigwig"`      |
 | BulkBed     | `/bulkbed`    | `bulkBedModule`    | `"bulkbed"`     |
@@ -15,7 +16,6 @@ Each track subpath exports one module object:
 | cCRE BigBed | `/ccre`       | `ccreBigBedModule` | `"ccre-bigbed"` |
 | Gene        | `/gene`       | `geneModule`       | `"gene"`        |
 | MethylC     | `/methylc`    | `methylCModule`    | `"methylc"`     |
-| Transcript  | `/transcript` | `transcriptModule` | `"transcript"`  |
 
 Each module implements `TrackModule` from `@weng-lab/genomebrowser`:
 
@@ -86,7 +86,7 @@ Renderers do not all emit the same callbacks. Check the track page for supported
 
 ## Register the complete set
 
-`firstPartyTrackModules` is a readonly tuple with the eight modules in this order: BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, Gene, MethylC, Transcript.
+`firstPartyTrackModules` is a readonly tuple with the eight modules in this order: Ruler, BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, Gene, MethylC.
 
 ```ts
 import { createTrackStore } from "@weng-lab/genomebrowser";
