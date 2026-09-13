@@ -90,4 +90,6 @@ const key: BedSchemaKey = "bed9";
 const file = createBigBedFile({ url: "YOUR_URL_HERE", schema: bedSchemas[key] });
 ```
 
+`bedSchemas.ccre` is also the schema used by `ccreBigBedModule`; both paths validate the same columns and colors.
+
 `bedSchemaKeys` lists supported keys, and `bedSchemaKeySchema` is their Zod enum for validating configuration. Custom Zod schemas can still be used in custom module fetchers; they are not accepted as keys in these first-party tracks.

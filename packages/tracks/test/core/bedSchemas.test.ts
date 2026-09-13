@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { bedSchemas, bedSchemaKeys } from "@weng-lab/genomebrowser-tracks/shared";
+import { ccreBigBedModule } from "../../src/ccre";
 import { bigBedModule } from "../../src/bigbed";
 import { bulkBedModule } from "../../src/bulkbed";
 import { fetchBigBed } from "../../src/bigbed/fetch";
@@ -40,6 +41,55 @@ describe("BED schema selection", () => {
       color: "rgb(255,205,0)",
     });
     expect(bedSchemas.bed9.safeParse({ ...fields, color: "256,0,0" }).success).toBe(false);
+  });
+
+  it.each([
+    ["0", "rgb(0,0,0)"],
+    ["255,205,0", "rgb(255,205,0)"],
+    ["256,0,0", null],
+    ["61.1871", null],
+  ])("uses the shared cCRE schema to parse module colors: %s", async (color, expected) => {
+    reader.create.mockReset();
+    reader.create.mockImplementation(({ schema }) => ({
+      read: async () => [
+        {
+          chromosome: "chr1",
+          start: 100,
+          end: 200,
+          fields: [],
+          ...schema.parse({ ...fields, color }),
+        },
+      ],
+    }));
+    const values = new Map<string, unknown>();
+    const result = ccreBigBedModule.fetch({
+      resources: {
+        get: <T>(key: string) => values.get(key) as T | undefined,
+        set: (key, value) => {
+          values.set(key, value);
+        },
+        delete: (key) => {
+          values.delete(key);
+        },
+        clear: () => values.clear(),
+      },
+      demand: {
+        assembly: { id: "test", chromosomes: { chr1: 1000 } },
+        region: { chromosome: "chr1", start: 100, end: 200 },
+        width: 100,
+      },
+      track: {
+        base: { id: "ccres", display: "dense" },
+        type: "ccre-bigbed",
+        config: { url: "YOUR_URL_HERE", rowHeight: 12 },
+      },
+    });
+    if (expected === null) {
+      await expect(result).rejects.toThrow();
+    } else {
+      await expect(result).resolves.toMatchObject([{ color: expected, ccreClass: "dELS" }]);
+    }
+    expect(reader.create).toHaveBeenCalledWith({ url: "YOUR_URL_HERE", schema: bedSchemas.ccre });
   });
 
   it("validates serializable keys on both track types", () => {

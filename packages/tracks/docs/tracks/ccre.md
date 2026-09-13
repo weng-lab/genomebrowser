@@ -24,6 +24,8 @@ The module has its own type value, `"ccre-bigbed"`, so you can register it along
 
 ## cCRE-specific parsing and tooltip
 
+The module uses `bedSchemas.ccre`, available from `@weng-lab/genomebrowser-tracks/shared`. See [BED schemas](../bedSchemas.md#reuse-the-schemas) for direct reader usage. Colors must be `"0"` (normalized to `rgb(0,0,0)`) or three comma-separated integer channels from 0 through 255; invalid colors are rejected.
+
 The module parses the seven columns after BED3 as `name`, numeric `score`, `strand`, numeric `thickStart`, numeric `thickEnd`, RGB `color`, and `ccreClass`. Schema property order matters because BigBed stores these values by position. Remaining columns stay in `fields`.
 
 The cCRE tooltip shows the accession beside a square in the record color. It then shows the classification and genomic location.
@@ -33,7 +35,6 @@ The cCRE tooltip shows the accession beside a square in the record color. It the
 | Export                  | Description                                                  |
 | ----------------------- | ------------------------------------------------------------ |
 | `ccreBigBedModule`      | Ready-to-register cCRE module.                               |
-| `ccreBigBedSchema`      | Ordered Zod schema used for columns after BED3.              |
 | `CcreBigBedCreateInput` | Input accepted by `ccreBigBedModule.create`.                 |
 | `CcreBigBedConfig`      | Parsed config containing `url` and `rowHeight`.              |
 | `CcreBigBedRow`         | BigBed coordinates plus the parsed cCRE fields listed above. |

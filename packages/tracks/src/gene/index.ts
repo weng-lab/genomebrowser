@@ -44,28 +44,8 @@ export const geneModule = defineTrackModule<GeneInteractionTarget>()({
 
 export type GeneCreateInput = ModuleCreateInput<typeof geneModule>;
 export type GeneConfig = ModuleInstance<typeof geneModule>["config"];
-export type {
-  BigGenePredCdsStatus,
-  BigGenePredPlusV1Source,
-  BigGenePredSource,
-  GeneAttributes,
-  GeneAttributeValue,
-  GeneData,
-  GeneDisplay,
-  GeneExon,
-  GeneFeature,
-  GeneStrand,
-  GeneTagColor,
-  GeneTranscript,
-  GroupedGene,
-} from "./types";
-export type {
-  GeneInteraction,
-  GeneInteractionTarget,
-  GenePart,
-  GeneTranscriptPart,
-  MergedGenePart,
-} from "./interactions";
+export type { GeneData, GeneDisplay, GeneTagColor, GeneTranscript, GroupedGene } from "./types";
+export type { GeneInteraction, GeneInteractionTarget } from "./interactions";
 
 export { getGeneDatasetsForAssembly, getGeneDatasetTitle } from "./datasets";
 export type { GeneDataset } from "./datasets";

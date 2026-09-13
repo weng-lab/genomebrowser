@@ -44,26 +44,24 @@ The fetcher uses `config.bedSchema` to parse columns after BED3. Omitting it use
 
 The track keeps one cached file reader per URL and schema in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata is fetched once per source. Changing the URL replaces the reader on the next request.
 
-`fetchBigBedRows({ url, region, schema })` is also exported from this subpath. Use it from another track module when that module assigns names and types to the columns after BED3. It is uncached. The schema must follow the source file's column order; it is module code rather than serializable track config.
-
 ## Settings and tooltip
 
 The BigBed-specific settings panel has one required URL field. It applies a change after the field passes validation. The shared base panel provides coordinated Height and Row height fields for both displays.
 
 When available, the interval name becomes the tooltip title. The tooltip also shows the genomic location and any strand or score value. The renderer passes the corresponding `BigBedRow` to supplied `onClick`, `onHover`, and `onLeave` callbacks.
 
+For custom BigBed reading, use `createBigBedFile({ url, schema })` from `@weng-lab/genomic-reader` and call `file.read(region)`. See [BED schemas](../bedSchemas.md#reuse-the-schemas) for shared presets.
+
 ## Exported types
 
-| Export                    | Description                                                           |
-| ------------------------- | --------------------------------------------------------------------- |
-| `BigBedCreateInput`       | Input accepted by `bigBedModule.create`.                              |
-| `BigBedConfig`            | Parsed config with `url` and row height.                              |
-| `BigBedDisplay`           | `"dense" \| "squish"`.                                                |
-| `BigBedData`              | Array of `BigBedRow` records.                                         |
-| `BigBedRow`               | Coordinates, raw extra fields, and optional BED-like metadata.        |
-| `RenderedBigBedRect<Row>` | Row plus rendered interval bounds and optional presentation metadata. |
-| `BigBedInteraction`       | Interaction callbacks receiving `BigBedRow` and `BigBedConfig`.       |
-| `fetchBigBedRows`         | Generic BigBed reader for a module-supplied Zod object schema.        |
+| Export              | Description                                                     |
+| ------------------- | --------------------------------------------------------------- |
+| `BigBedCreateInput` | Input accepted by `bigBedModule.create`.                        |
+| `BigBedConfig`      | Parsed config with `url` and row height.                        |
+| `BigBedDisplay`     | `"dense" \| "squish"`.                                          |
+| `BigBedData`        | Array of `BigBedRow` records.                                   |
+| `BigBedRow`         | Coordinates, raw extra fields, and optional BED-like metadata.  |
+| `BigBedInteraction` | Interaction callbacks receiving `BigBedRow` and `BigBedConfig`. |
 
 See [BED schemas and colored tracks](../bedSchemas.md) for the shared schema exports and examples. Schema selection is configured through the track API or collection JSON; the settings panel does not edit it.
 

@@ -119,31 +119,20 @@ const track = geneModule.create(
 );
 ```
 
-`GenePart.source` distinguishes transcript geometry from merged geometry. Transcript parts retain exon, intron, frame, and transcription-order metadata. Merged exon parts retain winning and overridden transcript contributions. A merged intron part represents one drawable run and exposes its detailed contribution intervals through `segments`.
+For a `"part"` target, `target.part.source` distinguishes transcript geometry from merged geometry. Transcript parts retain exon, intron, frame, and transcription-order metadata. Merged exon parts retain winning and overridden transcript contributions. A merged intron part represents one drawable run and exposes its detailed contribution intervals through `segments`.
 
 Part tooltips show the type, interval, and length. Transcript parts also show both the transcript name and identifier, exon or intron number, UTR side, or coding frame when relevant. Merged parts show supporting transcript names and any lower-priority classifications at the same interval. For merged intron runs, support is collected across the run because it can vary between stored segments. Whole transcript targets show both the transcript name and identifier; whole gene targets show the transcript count.
 
 ## Exported types
 
-| Export                    | Description                                                             |
-| ------------------------- | ----------------------------------------------------------------------- |
-| `GeneCreateInput`         | Input accepted by `geneModule.create`.                                  |
-| `GeneConfig`              | Parsed source, color, highlighting, and row-layout configuration.       |
-| `GeneDisplay`             | `"full" \| "merged" \| "tagged"`.                                       |
-| `GeneTagColor`            | One exact transcript tag and its six-digit hexadecimal color.           |
-| `GeneData`                | Array of normalized `GeneTranscript` records returned by the fetcher.   |
-| `GeneFeature`             | `GeneTranscript \| GroupedGene`, the rendered biological feature type.  |
-| `GeneTranscript`          | Transcript coordinates, names, tags, attributes, exons, and source row. |
-| `GroupedGene`             | Gene interval and its original transcript objects.                      |
-| `GeneExon`                | Validated exon coordinates and frame.                                   |
-| `GeneAttributes`          | Parsed attribute object with string or string-array values.             |
-| `GeneAttributeValue`      | `string \| string[]`.                                                   |
-| `BigGenePredSource`       | Parsed standard BigGenePred source fields.                              |
-| `BigGenePredPlusV1Source` | Parsed BigGenePredPlusV1 source fields.                                 |
-| `BigGenePredCdsStatus`    | Standard coding status values.                                          |
-| `GeneStrand`              | `"+" \| "-"`.                                                           |
-| `GenePart`                | Transcript or merged exon/intron payload used by a part target.         |
-| `GeneTranscriptPart`      | Transcript part with `source: "transcript"`.                            |
-| `MergedGenePart`          | Merged part with `source: "merged"`; intron runs retain `segments`.     |
-| `GeneInteractionTarget`   | Typed gene, transcript, or part callback and tooltip payload.           |
-| `GeneInteraction`         | Callbacks receiving a `GeneInteractionTarget` and `GeneConfig`.         |
+| Export                  | Description                                                             |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `GeneCreateInput`       | Input accepted by `geneModule.create`.                                  |
+| `GeneConfig`            | Parsed source, color, highlighting, and row-layout configuration.       |
+| `GeneDisplay`           | `"full" \| "merged" \| "tagged"`.                                       |
+| `GeneTagColor`          | One exact transcript tag and its six-digit hexadecimal color.           |
+| `GeneData`              | Array of normalized `GeneTranscript` records returned by the fetcher.   |
+| `GeneTranscript`        | Transcript coordinates, names, tags, attributes, exons, and source row. |
+| `GroupedGene`           | Gene interval and its original transcript objects.                      |
+| `GeneInteractionTarget` | Typed gene, transcript, or part callback and tooltip payload.           |
+| `GeneInteraction`       | Callbacks receiving a `GeneInteractionTarget` and `GeneConfig`.         |
