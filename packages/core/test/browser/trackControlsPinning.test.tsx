@@ -32,7 +32,9 @@ it("disables pinned move controls and moves other tracks only within the unpinne
     settingsComponent: () => null,
     render: { full: () => null },
   });
-  const tracks = ["a", "b", "c", "d"].map((id) => module.create({ id, title: id, config: {} }));
+  const tracks = ["a", "b", "c", "d"].map((id) =>
+    module.create({ base: { id, title: id }, config: {} }),
+  );
   const useTrackStore = createTrackStore({
     modules: [module],
     tracks,

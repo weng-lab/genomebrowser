@@ -65,18 +65,18 @@ const expectedRuntimeExports = new Map([
 
 assertEqual(
   JSON.stringify(Object.keys(manifest.exports).sort()),
-  JSON.stringify([...expectedRuntimeExports.keys(), "./trackSelectCollection.schema.json"].sort()),
+  JSON.stringify([...expectedRuntimeExports.keys(), "./trackCollection.schema.json"].sort()),
   "public package subpaths",
 );
 
 assertEqual(
-  manifest.exports["./trackSelectCollection.schema.json"],
-  "./schemas/trackSelectCollection.schema.json",
+  manifest.exports["./trackCollection.schema.json"],
+  "./schemas/trackCollection.schema.json",
   "collection schema export",
 );
 assert(manifest.files.includes("schemas"), "collection schema must ship in the package");
 const collectionSchema = JSON.parse(
-  await readFile(resolveExport(manifest.exports["./trackSelectCollection.schema.json"]), "utf8"),
+  await readFile(resolveExport(manifest.exports["./trackCollection.schema.json"]), "utf8"),
 );
 assertEqual(
   collectionSchema.properties.tracks.items.oneOf.length,
@@ -200,3 +200,5 @@ function assertEqual(actual, expected, label) {
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
+
+await import("./verify-collections.mjs");

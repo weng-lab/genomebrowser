@@ -29,8 +29,10 @@ afterEach(() => {
 describe("Transcript module", () => {
   it("defines tooltip UI on the module", () => {
     const config = transcriptModule.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       config: {
         assembly: "GRCh38",
         version: 40,
@@ -55,9 +57,11 @@ describe("Transcript module", () => {
     vi.stubGlobal("fetch", fetchMock);
     const data = await transcriptModule.fetch({
       track: {
-        id: "genes",
+        base: {
+          id: "genes",
+          display: "full",
+        },
         type: "transcript",
-        display: "full",
         config: {
           endpoint,
           assembly: "GRCh38",
@@ -94,8 +98,10 @@ describe("Transcript module", () => {
   it("rejects an empty endpoint", () => {
     expect(() =>
       transcriptModule.create({
-        id: "genes",
-        title: "Genes",
+        base: {
+          id: "genes",
+          title: "Genes",
+        },
         config: { endpoint: " ", assembly: "GRCh38", version: 40 },
       }),
     ).toThrow();
@@ -104,8 +110,10 @@ describe("Transcript module", () => {
   it("rejects non-hexadecimal transcript colors", () => {
     expect(() =>
       transcriptModule.create({
-        id: "genes",
-        title: "Genes",
+        base: {
+          id: "genes",
+          title: "Genes",
+        },
         config: {
           assembly: "GRCh38",
           version: 40,
@@ -115,8 +123,10 @@ describe("Transcript module", () => {
     ).toThrow(/six-digit hexadecimal color/);
     expect(() =>
       transcriptModule.create({
-        id: "genes",
-        title: "Genes",
+        base: {
+          id: "genes",
+          title: "Genes",
+        },
         config: {
           assembly: "GRCh38",
           version: 40,
@@ -142,9 +152,11 @@ describe("Transcript module", () => {
     await expect(
       transcriptModule.fetch({
         track: {
-          id: "genes",
+          base: {
+            id: "genes",
+            display: "full",
+          },
           type: "transcript",
-          display: "full",
           config: {
             endpoint,
             assembly: "GRCh38",

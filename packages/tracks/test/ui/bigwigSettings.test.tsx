@@ -178,8 +178,10 @@ describe("BigWig settings", () => {
 
   it("renders the required clamp default materialized by the core module", () => {
     const normalizedConfig = bigWigModule.create({
-      id: "normalized-signal",
-      title: "Normalized signal",
+      base: {
+        id: "normalized-signal",
+        title: "Normalized signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     }).config;
     const updateTrack = renderSettings(normalizedConfig);
@@ -220,10 +222,12 @@ function renderSettings(initialConfig = config, source: TrackSource = "user") {
     (update: TrackUpdate<BigWigConfig, SignalPoint>) => TrackMutationResult
   >(() => ({ ok: true }));
   const track = bigWigModule.create({
-    id: "signal",
-    title: "Signal",
-    height: 80,
-    color: "#2266aa",
+    base: {
+      id: "signal",
+      title: "Signal",
+      height: 80,
+      color: "#2266aa",
+    },
     source,
     config: initialConfig,
   });

@@ -5,16 +5,15 @@
 ## Config
 
 ```ts
-const track = bulkBedModule.create({
+const track = bulkBedModule.create({ base: {
   id: "bulk-peaks",
-  title: "Bulk peaks",
+  title: "Bulk peaks"},
   config: {
     datasets: [
       { name: "Sample A", url: "YOUR_URL_HERE" },
       { name: "Sample B", url: "YOUR_URL_HERE" },
     ],
-  },
-});
+  }});
 ```
 
 Fields:

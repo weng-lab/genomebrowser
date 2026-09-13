@@ -19,8 +19,10 @@ describe("gene datasets", () => {
       modules: [geneModule],
       tracks: datasets.map((dataset) =>
         geneModule.create({
-          id: dataset.id,
-          title: getGeneDatasetTitle(dataset),
+          base: {
+            id: dataset.id,
+            title: getGeneDatasetTitle(dataset),
+          },
           source: "host",
           config: { url: dataset.url },
         }),

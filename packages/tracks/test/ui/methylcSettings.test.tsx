@@ -310,10 +310,12 @@ function createMethylCTrack(
   source: TrackSource = "user",
 ) {
   return methylCModule.create({
-    id,
-    title: "MethylC",
-    height: 80,
-    color: "#000000",
+    base: {
+      id,
+      title: "MethylC",
+      height: 80,
+      color: "#000000",
+    },
     source,
     config: initialConfig,
   });

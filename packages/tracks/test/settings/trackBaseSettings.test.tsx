@@ -189,25 +189,31 @@ describe("TrackBaseSettings", () => {
       modules: [signalModule, intervalModule],
       tracks: [
         signalModule.create({
-          id: "signal-a",
-          title: "Signal A",
-          display: "full",
-          height: 80,
-          color: "#2266aa",
+          base: {
+            id: "signal-a",
+            title: "Signal A",
+            display: "full",
+            height: 80,
+            color: "#2266aa",
+          },
           config: {},
         }),
         signalModule.create({
-          id: "signal-b",
-          title: "Signal B",
-          display: "full",
-          height: 60,
-          color: "#2266aa",
+          base: {
+            id: "signal-b",
+            title: "Signal B",
+            display: "full",
+            height: 60,
+            color: "#2266aa",
+          },
           config: {},
         }),
         intervalModule.create({
-          id: "interval",
-          title: "Interval",
-          height: 40,
+          base: {
+            id: "interval",
+            title: "Interval",
+            height: 40,
+          },
           config: {},
         }),
       ],
@@ -236,27 +242,33 @@ describe("TrackBaseSettings", () => {
       modules: [bulkBedModule, bigBedModule],
       tracks: [
         bulkBedModule.create({
-          id: "bulkbed-a",
-          title: "BulkBed A",
-          height: 24,
+          base: {
+            id: "bulkbed-a",
+            title: "BulkBed A",
+            height: 24,
+          },
           config: {
             datasets: [{ name: "Dataset A", url: "YOUR_URL_HERE" }],
             rowHeight: 12,
           },
         }),
         bulkBedModule.create({
-          id: "bulkbed-b",
-          title: "BulkBed B",
-          height: 36,
+          base: {
+            id: "bulkbed-b",
+            title: "BulkBed B",
+            height: 36,
+          },
           config: {
             datasets: [{ name: "Dataset B", url: "YOUR_URL_HERE" }],
             rowHeight: 12,
           },
         }),
         bigBedModule.create({
-          id: "bigbed",
-          title: "BigBed",
-          height: 12,
+          base: {
+            id: "bigbed",
+            title: "BigBed",
+            height: 12,
+          },
           config: { url: "YOUR_URL_HERE", rowHeight: 12 },
         }),
       ],
@@ -341,11 +353,13 @@ async function mountSettings(
     modules: [module],
     tracks: [
       module.create({
-        id: base.id,
-        title: base.title,
-        display: base.display as "full" | "dense",
-        height: base.height,
-        color: base.color,
+        base: {
+          id: base.id,
+          title: base.title,
+          display: base.display as "full" | "dense",
+          height: base.height,
+          color: base.color,
+        },
         config: {},
       }),
     ],
@@ -401,11 +415,13 @@ async function mountBulkBedBaseSettings(
     modules: [bulkBedModule],
     tracks: [
       bulkBedModule.create({
-        id: "bulkbed",
-        title: "BulkBed",
-        display: "full",
-        height: 24,
-        color: "#2266aa",
+        base: {
+          id: "bulkbed",
+          title: "BulkBed",
+          display: "full",
+          height: 24,
+          color: "#2266aa",
+        },
         config: {
           datasets: [
             { name: "Dataset A", url: "YOUR_URL_HERE" },
@@ -445,8 +461,10 @@ async function mountBigBedBaseSettings(
     modules: [bigBedModule],
     tracks: [
       bigBedModule.create({
-        id: "bigbed",
-        title: "BigBed",
+        base: {
+          id: "bigbed",
+          title: "BigBed",
+        },
         config: { url: "YOUR_URL_HERE" },
       }),
     ],

@@ -30,8 +30,10 @@ const intervalModule = defineTrackModule({
 describe("createTrackStore", () => {
   function signalTrack(id = "signal") {
     return signalModule.create({
-      id,
-      title: "Signal",
+      base: {
+        id,
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
   }
@@ -44,8 +46,10 @@ describe("createTrackStore", () => {
         signalTrack("a"),
         signalTrack("b"),
         intervalModule.create({
-          id: "interval",
-          title: "Intervals",
+          base: {
+            id: "interval",
+            title: "Intervals",
+          },
           config: { url: "YOUR_URL_HERE" },
         }),
       ],
@@ -293,8 +297,10 @@ describe("createTrackStore", () => {
     const nextClick = () => undefined;
     const initial = signalModule.create(
       {
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+        },
         config: { url: "YOUR_URL_HERE" },
       },
       { onClick, onHover, onLeave },
@@ -311,8 +317,10 @@ describe("createTrackStore", () => {
 
     const added = signalModule.create(
       {
-        id: "added",
-        title: "Added",
+        base: {
+          id: "added",
+          title: "Added",
+        },
         config: { url: "YOUR_URL_HERE" },
       },
       { onClick: nextClick },
@@ -385,8 +393,10 @@ describe("createTrackStore", () => {
     const nextClick = () => undefined;
     const configuredTrack = signalModule.create(
       {
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+        },
         config: { url: "YOUR_URL_HERE" },
       },
       { onHover },
@@ -459,8 +469,10 @@ describe("createTrackStore", () => {
       modules: [signalModule],
       tracks: [
         signalModule.create({
-          id: "signal",
-          title: "Signal",
+          base: {
+            id: "signal",
+            title: "Signal",
+          },
           config: {
             url: "YOUR_URL_HERE",
             yRange: { min: 0, max: 10 },

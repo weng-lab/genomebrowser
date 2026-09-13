@@ -166,8 +166,10 @@ describe("pre-bound module UI", () => {
         displayOptions={Object.keys(bigBedModule.render)}
         updateTracksOfType={() => ({ ok: true })}
         track={bigBedModule.create({
-          id: "peaks",
-          title: "Peaks",
+          base: {
+            id: "peaks",
+            title: "Peaks",
+          },
           config: { url: "YOUR_URL_HERE" },
         })}
         updateTrack={updateTrack}

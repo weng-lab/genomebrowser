@@ -25,7 +25,7 @@ const module = defineTrackModule({
   settingsComponent: () => null,
   render: { full: () => null },
 });
-const track = module.create({ id: "test", title: "Test track", config: {} });
+const track = module.create({ base: { id: "test", title: "Test track" }, config: {} });
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;

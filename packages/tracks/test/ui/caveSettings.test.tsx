@@ -81,10 +81,12 @@ function renderSettings(initialConfig = config) {
     (update: TrackUpdate<CaveConfig, CaveTooltipItem>) => TrackMutationResult
   >(() => ({ ok: true }));
   const track = caveModule.create({
-    id: "cave",
-    title: "CAVE",
-    height: 35,
-    color: "#3333ff",
+    base: {
+      id: "cave",
+      title: "CAVE",
+      height: 35,
+      color: "#3333ff",
+    },
     config: initialConfig,
   });
   container = document.createElement("div");

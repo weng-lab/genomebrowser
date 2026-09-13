@@ -92,14 +92,18 @@ describe("useTrackData", () => {
       render: { full: () => null },
     });
     const track = module.create({
-      id: "signal",
-      title: "Signal",
-      color: "#000000",
+      base: {
+        id: "signal",
+        title: "Signal",
+        color: "#000000",
+      },
       config: { url: "initial", label: "Initial" },
     });
     const otherTrack = module.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       config: { url: "genes", label: "Genes" },
     });
     const useDataStore = createDataStore();
@@ -191,7 +195,9 @@ describe("useTrackData", () => {
     const useDataStore = createDataStore();
     const useTrackStore = createTrackStore({
       modules: [module],
-      tracks: [module.create({ id: "signal", title: "Signal", config: { label: "Signal" } })],
+      tracks: [
+        module.create({ base: { id: "signal", title: "Signal" }, config: { label: "Signal" } }),
+      ],
     });
     const region = { chromosome: "chr1", start: 0, end: 10 };
 
@@ -207,9 +213,11 @@ describe("useTrackData", () => {
     expect(fetch).toHaveBeenLastCalledWith(
       expect.objectContaining({
         track: {
-          id: "signal",
+          base: {
+            id: "signal",
+            display: "full",
+          },
           type: "demand-test",
-          display: "full",
           config: { label: "Signal" },
         },
         demand: { assembly: testAssembly, region, width: 100 },
@@ -224,7 +232,7 @@ describe("useTrackData", () => {
       });
     });
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(fetch.mock.calls.at(-1)?.[0].track.display).toBe("dense");
+    expect(fetch.mock.calls.at(-1)?.[0].track.base.display).toBe("dense");
 
     await act(async () => {
       expect(
@@ -295,7 +303,9 @@ describe("useTrackData", () => {
       const useDataStore = createDataStore();
       const useTrackStore = createTrackStore({
         modules: [module],
-        tracks: [module.create({ id: "signal", title: "Signal", config: { label: "Signal" } })],
+        tracks: [
+          module.create({ base: { id: "signal", title: "Signal" }, config: { label: "Signal" } }),
+        ],
       });
       const region = { chromosome: "chr1", start: 0, end: 10 };
 
@@ -345,7 +355,8 @@ describe("useTrackData", () => {
       fetch,
       render: { full: () => null },
     });
-    const createTrack = (id: string) => module.create({ id, title: id, config: { url: id } });
+    const createTrack = (id: string) =>
+      module.create({ base: { id, title: id }, config: { url: id } });
     const useDataStore = createDataStore();
     const useTrackStore = createTrackStore({
       modules: [module],
@@ -408,7 +419,8 @@ describe("useTrackData", () => {
       fetch,
       render: { full: () => null },
     });
-    const createTrack = () => module.create({ id: "signal", title: "Signal", config: {} });
+    const createTrack = () =>
+      module.create({ base: { id: "signal", title: "Signal" }, config: {} });
     const useDataStore = createDataStore();
     const useTrackStore = createTrackStore({ modules: [module], tracks: [createTrack()] });
     const region = { chromosome: "chr1", start: 0, end: 10 };
@@ -457,7 +469,7 @@ describe("useTrackData", () => {
     const useDataStore = createDataStore();
     const useTrackStore = createTrackStore({
       modules: [module],
-      tracks: [module.create({ id: "signal", title: "Signal", config: {} })],
+      tracks: [module.create({ base: { id: "signal", title: "Signal" }, config: {} })],
     });
     const resourceStore = createTrackResourceStore();
 
@@ -504,7 +516,7 @@ describe("useTrackData", () => {
     const useDataStore = createDataStore();
     const useTrackStore = createTrackStore({
       modules: [firstModule, secondModule],
-      tracks: [firstModule.create({ id: "signal", title: "Signal", config: {} })],
+      tracks: [firstModule.create({ base: { id: "signal", title: "Signal" }, config: {} })],
     });
 
     container = document.createElement("div");
@@ -526,7 +538,9 @@ describe("useTrackData", () => {
       expect(
         useTrackStore
           .getState()
-          .setTracks([secondModule.create({ id: "signal", title: "Signal", config: {} })]),
+          .setTracks([
+            secondModule.create({ base: { id: "signal", title: "Signal" }, config: {} }),
+          ]),
       ).toEqual({ ok: true });
     });
 
@@ -557,8 +571,10 @@ describe("useTrackData", () => {
       modules: [module],
       tracks: [
         module.create({
-          id: "signal",
-          title: "Signal",
+          base: {
+            id: "signal",
+            title: "Signal",
+          },
           config: { revision: 1n, timestamp: new Date("2026-01-01T00:00:00Z") },
         }),
       ],
@@ -598,8 +614,10 @@ describe("useTrackData", () => {
       render: { full: () => null },
     });
     const track = module.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
     const region = { chromosome: "chr1", start: 0, end: 10 };
@@ -664,13 +682,17 @@ describe("useTrackData", () => {
       render: { full: () => null },
     });
     const signal = module.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: { url: "signal" },
     });
     const genes = module.create({
-      id: "genes",
-      title: "Genes",
+      base: {
+        id: "genes",
+        title: "Genes",
+      },
       config: { url: "genes" },
     });
     const region = { chromosome: "chr1", start: 0, end: 10 };
@@ -774,7 +796,7 @@ describe("useTrackData", () => {
       fetch,
       render: { full: () => null },
     });
-    const tracks = [module.create({ id: "signal", title: "Signal", config: {} })];
+    const tracks = [module.create({ base: { id: "signal", title: "Signal" }, config: {} })];
     const useDataStore = createDataStore();
     const useTrackStore = createTrackStore({ modules: [module], tracks });
     const onSettled = vi.fn();
@@ -832,8 +854,10 @@ describe("useTrackData", () => {
     });
     const tracks = [
       module.create({
-        id: "signal",
-        title: "Signal",
+        base: {
+          id: "signal",
+          title: "Signal",
+        },
         config: { url: "YOUR_URL_HERE" },
       }),
     ];

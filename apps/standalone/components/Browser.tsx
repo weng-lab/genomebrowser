@@ -29,13 +29,17 @@ const useTrackStore = createTrackStore({
   modules: firstPartyTrackModules,
   tracks: [
     rulerModule.create({
-      id: "reference-ruler",
-      title: "Reference · hg38",
+      base: {
+        id: "reference-ruler",
+        title: "Reference · hg38",
+      },
       config: { sequenceUrl: "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.2bit" },
     }),
     bigWigModule.create({
-      id: "user-source-example",
-      title: "User-sourced BigWig",
+      base: {
+        id: "user-source-example",
+        title: "User-sourced BigWig",
+      },
       source: "user",
       config: {
         url: "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw",

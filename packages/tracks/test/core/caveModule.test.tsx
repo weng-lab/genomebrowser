@@ -64,8 +64,10 @@ describe("CAVE module", () => {
 
 function createTrack(colors: { topColor?: string; bottomColor?: string } = {}) {
   return caveModule.create({
-    id: "cave",
-    title: "CAVE",
+    base: {
+      id: "cave",
+      title: "CAVE",
+    },
     config: { neurotransmitter: "GABA", age: "Adulthood", ...colors },
   });
 }

@@ -8,7 +8,8 @@ Create the track store and collection outside React rendering. In a browser inte
 
 ```tsx
 import { useState } from "react";
-import { TrackSelect, type TrackSelectCollection } from "@weng-lab/genomebrowser-ui";
+import { TrackSelect } from "@weng-lab/genomebrowser-ui";
+import type { TrackCollection } from "@weng-lab/genomebrowser";
 import { createTrackStore } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
@@ -18,6 +19,7 @@ const useTrackStore = createTrackStore({
 
 const trackCollections = [
   {
+    assembly: "hg38",
     id: "signals",
     label: "Signal tracks",
     views: [
@@ -31,15 +33,17 @@ const trackCollections = [
     ],
     tracks: [
       {
+        base: {
+          id: "example-signal",
+          title: "Example signal",
+        },
         type: "bigwig",
-        id: "example-signal",
-        title: "Example signal",
         config: { url: "YOUR_URL_HERE" },
         metadata: {},
       },
     ],
   },
-] satisfies TrackSelectCollection[];
+] satisfies TrackCollection[];
 
 export function TrackPicker() {
   const [open, setOpen] = useState(false);
@@ -73,13 +77,15 @@ Use JSON for static, data-owned collections that benefit from schema-backed edit
 const generatedCollection = {
   ...trackCollections[0],
   tracks: datasets.map((dataset) => ({
+    base: {
+      id: dataset.id,
+      title: dataset.label,
+    },
     type: "bigwig",
-    id: dataset.id,
-    title: dataset.label,
     config: { url: dataset.url },
     metadata: {},
   })),
-} satisfies TrackSelectCollection;
+} satisfies TrackCollection;
 ```
 
 The `satisfies` check catches structural TypeScript errors without changing the inferred value type. `TrackSelect` validates both JSON and TypeScript collection values against the track-store registry at runtime.
@@ -186,64 +192,11 @@ Without a resolver, TrackSelect preserves an existing interaction on a reused co
 
 If track creation, interaction validation, or the store update fails, the store remains unchanged and the dialog stays open with an error.
 
-### Collection options
+### Collections
 
-Each collection describes available tracks and one or more ways to view them.
+See the `@weng-lab/genomebrowser` package’s `docs/trackCollections.md` for the portable JSON format, assembly identifiers, track configuration, and optional views and metadata.
 
-| Option        | Type                             | Default     | Description                                                                                                        |
-| ------------- | -------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
-| `$schema`     | `string`                         | `undefined` | Points JSON editors to a generated TrackSelect collection schema.                                                  |
-| `id`          | `string`                         | Required    | Uniquely identifies the collection within `trackCollections` and forms the first part of every qualified track ID. |
-| `label`       | `string`                         | Required    | Names the collection in the collection list and selection tree.                                                    |
-| `description` | `string`                         | `undefined` | Adds supporting collection text in the selection UI.                                                               |
-| `views`       | `TrackSelectCollection["views"]` | Required    | Defines one or more table layouts over the same tracks. At least one view is required.                             |
-| `tracks`      | `TrackSelectTrack[]`             | Required    | Defines the collection tracks. Track IDs must be unique within the collection.                                     |
-
-With one collection, TrackSelect opens directly on its detail screen. With multiple collections, it opens on the collection list.
-
-### View options
-
-| Option        | Type                                                | Default     | Description                                                                                    |
-| ------------- | --------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------- |
-| `id`          | `string`                                            | Required    | Uniquely identifies the view within its collection.                                            |
-| `label`       | `string`                                            | Required    | Names the view in the view selector.                                                           |
-| `description` | `string`                                            | `undefined` | Stores descriptive view text. The current component accepts this value but does not render it. |
-| `columns`     | `TrackSelectCollection["views"][number]["columns"]` | Required    | Defines at least one visible or available data field.                                          |
-| `grouping`    | `string[]`                                          | `[]`        | Lists built-in or metadata fields from the outermost to innermost row group.                   |
-| `leaf`        | `string`                                            | `"title"`   | Selects the field used to label the final track item.                                          |
-
-The active view determines the order of newly added tracks. Groups follow their first appearance in collection order, nested groups follow `grouping`, and tracks within the final group retain collection order. Switching views can therefore change insertion order on Submit.
-
-In a grouped view, each group checkbox summarizes all selectable descendant tracks, including tracks in nested groups. An unchecked or partially selected group can select all of its descendants, and a fully selected group can deselect them. Groups are grid interactions rather than tracks: TrackSelect keeps only collection-qualified leaf track IDs in the draft, runtime store, and `onCommittedTrackIds` callback.
-
-### Column options
-
-| Option        | Type      | Default                      | Description                                                                                                                            |
-| ------------- | --------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `field`       | `string`  | Required                     | Selects a built-in field or a metadata key from every collection track.                                                                |
-| `label`       | `string`  | Built-in label or field name | Sets the column header. Built-in labels are `ID`, `Title`, and `Type`.                                                                 |
-| `description` | `string`  | `undefined`                  | Sets the MUI Data Grid column description.                                                                                             |
-| `width`       | `number`  | Flexible width               | Sets a positive fixed width in pixels. Without it, the generated column uses `flex: 1` and `minWidth: 120`.                            |
-| `hidden`      | `boolean` | `false`                      | Hides the column initially. Grouping fields, the ID field, and a grouped leaf field are also hidden by the generated visibility model. |
-
-The built-in fields are `id`, `title`, and `type`. Every other field used by `columns`, `grouping`, or `leaf` must exist in every track's `metadata`. Do not use metadata keys named `id`, `title`, or `type`; built-in values take precedence.
-
-### Track options
-
-| Option     | Type                                                  | Default                | Description                                                                                                                           |
-| ---------- | ----------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`     | `string`                                              | Required               | Selects a track module registered in `useTrackStore`.                                                                                 |
-| `id`       | `string`                                              | Required               | Uniquely identifies the track within its collection and forms the second part of its qualified ID.                                    |
-| `title`    | `string`                                              | Required               | Sets the track title and the default leaf label.                                                                                      |
-| `display`  | `string`                                              | Module default         | Selects a display supported by the registered module. The module's first display is the fallback when it defines no explicit default. |
-| `height`   | `number`                                              | Module default or `80` | Sets the positive initial track height.                                                                                               |
-| `color`    | `string`                                              | `undefined`            | Sets the initial track color when supported by its renderer. It must use six-digit `#RRGGBB` syntax.                                  |
-| `config`   | `Record<string, unknown>`                             | Required               | Supplies create configuration validated by the selected module's schema.                                                              |
-| `metadata` | `Record<string, string or number or boolean or null>` | `{}`                   | Supplies collection-only values for columns, grouping, labels, and interaction context. It is not copied into the runtime track.      |
-
-Module defaults are applied when a selected track is created during initialization or Submit, not retained as authored collection data during collection validation.
-
-Collection authors cannot set `source`. TrackSelect assigns `source: "host"` when it reconciles a collection entry into the runtime track store.
+TrackSelect displays each collection's assembly identifier. It uses `label ?? id` as the collection name and an ungrouped title view when `views` is omitted. The view selector appears only when there are multiple views. Assembly matching and filtering are application responsibilities; TrackSelect does not select or change the browser assembly.
 
 ### Qualified track IDs and ownership
 
@@ -266,11 +219,11 @@ TrackSelect treats any store track whose ID matches a supplied collection entry 
 
 `TrackSelectInteractionResolver` receives one object:
 
-| Field              | Type               | Description                                           |
-| ------------------ | ------------------ | ----------------------------------------------------- |
-| `collectionId`     | `string`           | Identifies the owning collection.                     |
-| `qualifiedTrackId` | `string`           | Provides the public `${collectionId}::${trackId}` ID. |
-| `track`            | `TrackSelectTrack` | Provides the parsed authored collection track.        |
+| Field              | Type                   | Description                                           |
+| ------------------ | ---------------------- | ----------------------------------------------------- |
+| `collectionId`     | `string`               | Identifies the owning collection.                     |
+| `qualifiedTrackId` | `string`               | Provides the public `${collectionId}::${trackId}` ID. |
+| `track`            | `TrackCollectionTrack` | Provides the parsed authored collection track.        |
 
 It returns `TrackSelectInteraction` or `undefined`. When supplied, resolver output is authoritative: `undefined` removes an existing interaction from a reused collection track, and a returned object replaces all callbacks rather than merging them.
 
@@ -282,146 +235,19 @@ It returns `TrackSelectInteraction` or `undefined`. When supplied, resolver outp
 
 The callback's `collection` argument is a `TrackSelectCollectionContext`:
 
-| Field             | Type                            | Description                                                                       |
-| ----------------- | ------------------------------- | --------------------------------------------------------------------------------- |
-| `collectionId`    | `string`                        | Identifies the owning collection.                                                 |
-| `authoredTrackId` | `string`                        | Provides the unqualified track ID authored in the collection.                     |
-| `metadata`        | `Readonly<TrackSelectMetadata>` | Provides the collection-owned metadata without copying it into the runtime track. |
+| Field             | Type                      | Description                                                                       |
+| ----------------- | ------------------------- | --------------------------------------------------------------------------------- |
+| `collectionId`    | `string`                  | Identifies the owning collection.                                                 |
+| `authoredTrackId` | `string`                  | Provides the unqualified track ID authored in the collection.                     |
+| `metadata`        | `Readonly<TrackMetadata>` | Provides the collection-owned metadata without copying it into the runtime track. |
 
 The runtime context comes from v2 when the event occurs, so later base or config changes are visible without rerunning the resolver.
 
 ### Related exports
 
-| Export                              | Signature                                                             | Description                                                                                         |
-| ----------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `withValueMarkers`                  | `(markers: ValueMarkerMap) => TrackSelectColumnOverride`              | Creates a column override that adds square color markers to configured formatted values.            |
-| `generateTrackCollectionJsonSchema` | `(registry: ModuleRegistry) => object`                                | Generates JSON Schema for collections using the registry's module-specific create schemas.          |
-| `validateJson`                      | `(input: unknown, registry: ModuleRegistry) => TrackSelectCollection` | Validates and parses one collection against a module registry. `TrackSelect` calls this internally. |
-
-### Generate a schema for collection JSON
-
-Generate JSON Schema from the same track modules used by your application. Editors that support the standard JSON `$schema` property can then autocomplete collection fields, list allowed track types and displays, and report many invalid module-specific `config` values before runtime.
-
-This workflow creates the following files:
-
-```text
-src/
-  trackModules.ts
-collections/
-  signals.json
-schemas/
-  trackSelectCollection.schema.json
-```
-
-#### 1. Export the application modules
-
-Export the same module array that the application passes to `createTrackStore`:
-
-```ts
-import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
-import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-
-export const trackModules = [bigWigModule, bigBedModule];
-```
-
-The source may export one track module or a non-empty array. Add `#exportName` to select a named export. Without an export name, the CLI uses a valid default export or the only valid track-module export. It reports an error when several exports are possible.
-
-#### 2. Generate the schema
-
-Run the package binary from the project root:
-
-```sh
-pnpm exec trackselect schema \
-  --from ./src/trackModules.ts#trackModules \
-  --out schemas/trackSelectCollection.schema.json
-```
-
-`--from` is repeatable, so one-off generation can combine package and local modules without creating another module array:
-
-```sh
-pnpm exec trackselect schema \
-  --from @weng-lab/genomebrowser-tracks/bigwig#bigWigModule \
-  --from ./src/customTrack.ts#customTrackModule
-```
-
-The command has these options:
-
-| Option             | Default                               | Description                                                                                                            |
-| ------------------ | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `--from <source>`  | Required                              | Loads a track module or module array. Repeat it to combine exports. Relative paths resolve from the current directory. |
-| `-o, --out <file>` | `"trackSelectCollection.schema.json"` | Writes the schema relative to the current directory. Use `-` for stdout. Missing directories are created.              |
-| `--id <uri>`       | `undefined`                           | Adds the supplied value as the generated schema's `$id`.                                                               |
-| `--check`          | `false`                               | Exits with an error when the output file is missing or differs from the generated schema.                              |
-
-Use `--check` in CI after committing the generated schema:
-
-```sh
-pnpm exec trackselect schema \
-  --from ./src/trackModules.ts#trackModules \
-  --out schemas/trackSelectCollection.schema.json \
-  --check
-```
-
-When writing a file, the command prints the loaded track types and output path. With `--out -`, it writes only JSON to stdout and reports loaded types on stderr so the output can be piped safely. Run the command again whenever you add or remove a track module, update a module version, or change a module's config schema.
-
-Consider committing the generated schema so editor support and validation do not depend on every contributor running the generator first.
-
-#### 3. Connect a collection to the schema
-
-Set `$schema` in each collection JSON file to a path relative to that collection. For the file layout above, `collections/signals.json` starts with:
-
-```json
-{
-  "$schema": "../schemas/trackSelectCollection.schema.json",
-  "id": "signals",
-  "label": "Signal tracks",
-  "views": [
-    {
-      "id": "all-signals",
-      "label": "All signals",
-      "columns": [{ "field": "title", "label": "Track" }],
-      "grouping": [],
-      "leaf": "title"
-    }
-  ],
-  "tracks": [
-    {
-      "type": "bigwig",
-      "id": "example-signal",
-      "title": "Example signal",
-      "config": { "url": "YOUR_URL_HERE" },
-      "metadata": {}
-    }
-  ]
-}
-```
-
-Your editor resolves that path from the JSON file. If the editor cannot load the schema, first check that the generated file exists and that the relative path is correct.
-
-The generated file provides JSON-aware completion and validation; it does not turn a JSON import into a TypeScript value with a static `TrackSelectCollection` type. Runtime parsing remains necessary.
-
-#### 4. Keep runtime and editor validation aligned
-
-The generator builds module-specific collection entries from each module's `createInputSchema`. Use the same module set for:
-
-- `createTrackStore({ modules })`
-- the module array loaded by `trackselect schema --from`
-- any programmatic `generateTrackCollectionJsonSchema` or `validateJson` calls
-
-The generated schema validates JSON structure, allowed track types and displays, and the parts of module-specific track config represented in JSON Schema. Custom Zod refinements may remain runtime-only after conversion. `TrackSelect` also performs runtime validation for cross-field and multi-collection rules, including metadata fields referenced across views, duplicate qualified track IDs across supplied collections, and selection IDs checked against the complete collection list. Treat editor feedback as an early check, not a replacement for runtime parsing.
-
-For build tooling that already owns a registry, generate the same schema programmatically:
-
-```ts
-import { generateTrackCollectionJsonSchema } from "@weng-lab/genomebrowser-ui";
-import { createModuleRegistry } from "@weng-lab/genomebrowser";
-import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-
-const registry = createModuleRegistry([bigWigModule]);
-const schema = generateTrackCollectionJsonSchema(registry);
-```
-
-Use `validateJson(rawCollection, registry)` when non-React code also needs the runtime parser. `TrackSelect` already calls it for every supplied collection, so normal component integrations do not need to validate a second time.
+| Export             | Signature                                                | Description                                                                              |
+| ------------------ | -------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `withValueMarkers` | `(markers: ValueMarkerMap) => TrackSelectColumnOverride` | Creates a column override that adds square color markers to configured formatted values. |
 
 ## Accessibility
 
@@ -448,7 +274,7 @@ TrackSelect uses the host application's MUI theme and needs no package-specific 
 
 ### Troubleshooting
 
-**The collection fails to open:** Read the `TrackSelect collection is invalid` error. Confirm that every `type` is registered, every `config` matches its module, view fields exist in each track's metadata, and the collection has no unsupported properties.
+**The collection fails to open:** Read the `Track collection is invalid` error. Confirm that every `type` is registered, every `config` matches its module, view fields exist in each track's metadata, and the collection has no unsupported properties.
 
 **A track cannot be selected:** Check the total collection selection against `maxTracks`. The limit applies across collections, and a blocked increase opens the track-limit dialog.
 

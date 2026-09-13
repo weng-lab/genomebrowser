@@ -81,15 +81,19 @@ describe("SettingsModalController", () => {
       settingsComponent: ModuleSettings,
     });
     const first = module.create({
-      id: "first",
-      title: "First",
+      base: {
+        id: "first",
+        title: "First",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
     const onClick = () => undefined;
     const active = module.create(
       {
-        id: "active",
-        title: "Active",
+        base: {
+          id: "active",
+          title: "Active",
+        },
         config: { url: "YOUR_OTHER_URL_HERE" },
       },
       { onClick },
@@ -165,15 +169,11 @@ describe("SettingsModalController", () => {
       render: { full: () => null },
     });
     const first = module.create({
-      id: "first",
-      title: "First",
-      height: 30,
+      base: { id: "first", title: "First", height: 30 },
       config: { url: "YOUR_URL_HERE" },
     });
     const second = module.create({
-      id: "second",
-      title: "Second",
-      height: 50,
+      base: { id: "second", title: "Second", height: 50 },
       config: { url: "YOUR_URL_HERE" },
     });
     const other = { ...first, type: "other", base: { ...first.base, id: "other" } };
@@ -209,7 +209,10 @@ describe("SettingsModalController", () => {
 
   it("does not open an empty dialog for a module without settings", async () => {
     const module = { ...signalModule, settingsComponent: undefined };
-    const track = module.create({ id: "plain", title: "Plain", config: { url: "YOUR_URL_HERE" } });
+    const track = module.create({
+      base: { id: "plain", title: "Plain" },
+      config: { url: "YOUR_URL_HERE" },
+    });
     const useTrackStore = createTrackStore({ modules: [module], tracks: [track] });
     const useSettingsStore = createSettingsStore();
     useSettingsStore.getState().openSettings("plain", { x: 0, y: 0 });
@@ -219,13 +222,17 @@ describe("SettingsModalController", () => {
 
   it("does not carry a draft into another same-type track with the same accepted color", async () => {
     const first = signalModule.create({
-      id: "first",
-      title: "First",
+      base: {
+        id: "first",
+        title: "First",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
     const second = signalModule.create({
-      id: "second",
-      title: "Second",
+      base: {
+        id: "second",
+        title: "Second",
+      },
       config: { url: "YOUR_OTHER_URL_HERE" },
     });
     const trackStore = createTrackStore({ modules: [signalModule], tracks: [first, second] });

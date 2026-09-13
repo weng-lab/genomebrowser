@@ -4,10 +4,11 @@ import {
   getGeneDatasetTitle,
 } from "@weng-lab/genomebrowser-tracks/gene";
 import { browserAssembly } from "./assembly";
-import type { TrackSelectCollection } from "@weng-lab/genomebrowser-ui";
+import type { TrackCollection } from "@weng-lab/genomebrowser";
 import biosampleTracks from "./human-biosamples.json";
 
 const geneTracks = {
+  assembly: browserAssembly.id,
   id: "reference-annotations",
   label: "Reference annotations",
   description: "Reference gene annotations for the current genome assembly.",
@@ -21,18 +22,21 @@ const geneTracks = {
     },
   ],
   tracks: getGeneDatasetsForAssembly(browserAssembly.id).map((dataset) => ({
+    base: {
+      id: dataset.id,
+      title: getGeneDatasetTitle(dataset),
+      display: "merged",
+      height: 60,
+      color: "#444444",
+    },
     type: "gene" as const,
-    id: dataset.id,
-    title: getGeneDatasetTitle(dataset),
-    display: "merged",
-    height: 60,
-    color: "#444444",
     config: { url: dataset.url },
     metadata: {},
   })),
-} satisfies TrackSelectCollection;
+} satisfies TrackCollection;
 
 const ccreComparisonTracks = {
+  assembly: "hg38",
   id: "ccre-comparisons",
   label: "cCRE comparisons",
   description: "Compare aggregate and tissue-specific candidate cis-regulatory elements.",
@@ -47,12 +51,14 @@ const ccreComparisonTracks = {
   ],
   tracks: [
     {
+      base: {
+        id: "aggregate-and-adipose-ccres",
+        title: "Aggregate and adipose cCREs",
+        display: "full",
+        height: 36,
+        color: "#4b9560",
+      },
       type: "bulkbed",
-      id: "aggregate-and-adipose-ccres",
-      title: "Aggregate and adipose cCREs",
-      display: "full",
-      height: 36,
-      color: "#4b9560",
       config: {
         datasets: [
           {
@@ -70,7 +76,7 @@ const ccreComparisonTracks = {
       metadata: {},
     },
   ],
-} satisfies TrackSelectCollection;
+} satisfies TrackCollection;
 
 const caveAges = [
   { value: "Infancy", label: "Infancy", color: "#B99768", topColor: "#EEC085" },
@@ -97,6 +103,7 @@ const caveAges = [
 ] as const;
 
 const caveTracks = {
+  assembly: "hg38",
   id: "cave-development",
   label: "CAVE developmental methylation",
   description: "GABA hmC and OXBS tracks across six developmental ages.",
@@ -110,10 +117,12 @@ const caveTracks = {
     },
   ],
   tracks: caveAges.map((age) => ({
+    base: {
+      id: `gaba-${age.value.toLowerCase()}`,
+      title: `CAVE GABA ${age.label}`,
+      color: age.color,
+    },
     type: "cave" as const,
-    id: `gaba-${age.value.toLowerCase()}`,
-    title: `CAVE GABA ${age.label}`,
-    color: age.color,
     config: {
       neurotransmitter: "GABA" as const,
       age: age.value,
@@ -124,7 +133,7 @@ const caveTracks = {
       developmentalAge: age.label,
     },
   })),
-} satisfies TrackSelectCollection;
+} satisfies TrackCollection;
 
 export const trackCollections = [
   geneTracks,

@@ -366,10 +366,12 @@ function createBulkBedStore(config: BulkBedConfig) {
 
 function createBulkBedTrack(config: BulkBedConfig, id = "bulkbed") {
   return bulkBedModule.create({
-    id,
-    title: "BulkBed",
-    height: 80,
-    color: "#4b9560",
+    base: {
+      id,
+      title: "BulkBed",
+      height: 80,
+      color: "#4b9560",
+    },
     config,
   });
 }

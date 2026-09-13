@@ -52,7 +52,7 @@ describe("GenomeBrowser region windows", () => {
     });
     const trackStore = createTrackStore({
       modules: [module],
-      tracks: [module.create({ id: "track", title: "Track", config: {} })],
+      tracks: [module.create({ base: { id: "track", title: "Track" }, config: {} })],
     });
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -100,7 +100,7 @@ describe("GenomeBrowser region windows", () => {
       fetch,
       render: { full: Renderer },
     });
-    const track = module.create({ id: "bounded", title: "Bounded", config: {} });
+    const track = module.create({ base: { id: "bounded", title: "Bounded" }, config: {} });
     const browserStore = createBrowserStore({
       assembly: { id: "test", chromosomes: { chr1: 1_000 } },
       region: { chromosome: "chr1", start: 0, end: 100 },
@@ -121,7 +121,7 @@ describe("GenomeBrowser region windows", () => {
 
     expect(fetch).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        track: { id: "bounded", type: "bounded-fetch-test", display: "full", config: {} },
+        track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
           assembly: browserStore.getState().assembly,
           region: { chromosome: "chr1", start: 0, end: 200 },
@@ -141,7 +141,7 @@ describe("GenomeBrowser region windows", () => {
     });
     expect(fetch).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        track: { id: "bounded", type: "bounded-fetch-test", display: "full", config: {} },
+        track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
           assembly: browserStore.getState().assembly,
           region: { chromosome: "chr1", start: 300, end: 600 },
@@ -164,7 +164,7 @@ describe("GenomeBrowser region windows", () => {
     expect(fetch).toHaveBeenCalledTimes(3);
     expect(fetch).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        track: { id: "bounded", type: "bounded-fetch-test", display: "full", config: {} },
+        track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
           assembly: browserStore.getState().assembly,
           region: { chromosome: "chr1", start: 300, end: 600 },
@@ -193,7 +193,7 @@ describe("GenomeBrowser region windows", () => {
     expect(fetch).toHaveBeenCalledTimes(4);
     expect(fetch).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        track: { id: "bounded", type: "bounded-fetch-test", display: "full", config: {} },
+        track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
           assembly: browserStore.getState().assembly,
           region: { chromosome: "chr1", start: 800, end: 1_000 },
@@ -215,7 +215,7 @@ describe("GenomeBrowser region windows", () => {
       fetch,
       render: { full: Renderer },
     });
-    const track = module.create({ id: "unchanged", title: "Unchanged", config: {} });
+    const track = module.create({ base: { id: "unchanged", title: "Unchanged" }, config: {} });
     const browserStore = createBrowserStore({
       assembly: { id: "test", chromosomes: { chr1: 1_000 } },
       region: { chromosome: "chr1", start: 0, end: 1_000 },
@@ -274,7 +274,7 @@ describe("GenomeBrowser region windows", () => {
       fetch,
       render: { full: Renderer },
     });
-    const track = module.create({ id: "pending", title: "Pending", config: {} });
+    const track = module.create({ base: { id: "pending", title: "Pending" }, config: {} });
     const browserStore = createBrowserStore({
       assembly: { id: "test", chromosomes: { chr1: 1_000 } },
       region: { chromosome: "chr1", start: 100, end: 200 },

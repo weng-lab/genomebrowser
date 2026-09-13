@@ -15,10 +15,10 @@ import type { TrackSelectInteraction, TrackSelectInteractionResolver } from "../
 import TrackSelect from "../src/TrackSelect/TrackSelect";
 import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
 import type {
-  TrackSelectCollection,
-  TrackSelectTrack,
-  TrackSelectView,
-} from "../src/TrackSelect/schema/collectionSchema";
+  TrackCollection,
+  TrackCollectionTrack,
+  TrackCollectionView,
+} from "@weng-lab/genomebrowser";
 import {
   type TrackSelectState,
   useTrackSelectState,
@@ -63,7 +63,7 @@ const annotationModule = defineTrackModule({
   render: { full: Renderer },
 });
 
-const defaultView: TrackSelectView = {
+const defaultView: TrackCollectionView = {
   id: "default",
   label: "Default",
   columns: [{ field: "title" }],
@@ -71,7 +71,7 @@ const defaultView: TrackSelectView = {
   leaf: "title",
 };
 
-const groupedView: TrackSelectView = {
+const groupedView: TrackCollectionView = {
   ...defaultView,
   id: "grouped",
   label: "Grouped",
@@ -79,18 +79,21 @@ const groupedView: TrackSelectView = {
   grouping: ["group"],
 };
 
-function collectionTrack(id: string, group: string): TrackSelectTrack {
+function collectionTrack(id: string, group: string): TrackCollectionTrack {
   return {
+    base: {
+      id,
+      title: id,
+    },
     type: "signal",
-    id,
-    title: id,
     config: { url: id },
     metadata: { group },
   };
 }
 
-const collections: TrackSelectCollection[] = [
+const collections: TrackCollection[] = [
   {
+    assembly: "hg38",
     id: "alpha",
     label: "Alpha",
     views: [defaultView, groupedView],
@@ -101,6 +104,7 @@ const collections: TrackSelectCollection[] = [
     ],
   },
   {
+    assembly: "hg38",
     id: "beta",
     label: "Beta",
     views: [defaultView],
@@ -124,7 +128,7 @@ afterEach(async () => {
 });
 
 function createTrack(id: string) {
-  return signalModule.create({ id, title: id, config: { url: id } });
+  return signalModule.create({ base: { id, title: id }, config: { url: id } });
 }
 
 function createStore(trackIds: string[] = [], tracks?: TrackStore["tracks"]) {
@@ -178,7 +182,7 @@ function createStateOptions({
   setTracks?: TrackStore["setTracks"];
   tracks?: TrackStore["tracks"];
   onCommittedTrackIds?: (trackIds: readonly string[]) => void;
-  trackCollections?: TrackSelectCollection[];
+  trackCollections?: TrackCollection[];
   resolveTrackInteraction?: TrackSelectInteractionResolver;
 } = {}) {
   const store = createStore(trackIds, tracks);
@@ -391,8 +395,10 @@ describe("TrackSelect session workflow", () => {
 
   it("forces a reused reserved track to use the host source", async () => {
     const existingTrack = annotationModule.create({
-      id: "alpha::one",
-      title: "Unrelated annotation",
+      base: {
+        id: "alpha::one",
+        title: "Unrelated annotation",
+      },
       config: { url: "annotation" },
     });
     const setup = createStateOptions({ tracks: [existingTrack] });
@@ -567,7 +573,7 @@ describe("TrackSelect initialization", () => {
   it("resolves interactions for new and reused initial tracks", async () => {
     const existingInteraction = { onHover: vi.fn() };
     const existingTrack = signalModule.create(
-      { id: "alpha::one", title: "Existing", config: { url: "existing" } },
+      { base: { id: "alpha::one", title: "Existing" }, config: { url: "existing" } },
       existingInteraction,
     );
     const store = createStore([], [createTrack("unmanaged"), existingTrack]);

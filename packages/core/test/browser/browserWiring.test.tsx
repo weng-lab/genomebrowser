@@ -35,7 +35,7 @@ describe("browser module wiring", () => {
       fetch: async () => null,
       render: { full: () => null },
     });
-    const track = module.create({ id: "error", title: "Error", config: {}, height: 60 });
+    const track = module.create({ base: { id: "error", title: "Error", height: 60 }, config: {} });
     const trackStore = createTrackStore({ modules: [module], tracks: [track] });
 
     const markup = renderToStaticMarkup(
@@ -63,10 +63,12 @@ describe("browser module wiring", () => {
       render: { full: () => null },
     });
     const track = module.create({
-      id: "short-error",
-      title: "Short error",
+      base: {
+        id: "short-error",
+        title: "Short error",
+        height: 10,
+      },
       config: {},
-      height: 10,
     });
     const trackStore = createTrackStore({ modules: [module], tracks: [track] });
 
@@ -112,8 +114,10 @@ describe("browser module wiring", () => {
     });
     const track = module.create(
       {
-        id: "interactive",
-        title: "Interactive",
+        base: {
+          id: "interactive",
+          title: "Interactive",
+        },
         config: { url: "YOUR_URL_HERE" },
       },
       { onClick },
@@ -192,8 +196,10 @@ describe("browser module wiring", () => {
       tooltipComponent: TooltipComponent,
     });
     const track = module.create({
-      id: "tooltip",
-      title: "Tooltip",
+      base: {
+        id: "tooltip",
+        title: "Tooltip",
+      },
       config: { url: "YOUR_URL_HERE" },
     });
     const trackStore = createTrackStore({ modules: [module], tracks: [track] });
@@ -292,8 +298,10 @@ describe("browser module wiring", () => {
     const onClick = vi.fn();
     const track = module.create(
       {
-        id: "settings",
-        title: "Settings",
+        base: {
+          id: "settings",
+          title: "Settings",
+        },
         config: { url: "YOUR_URL_HERE" },
       },
       { onClick },

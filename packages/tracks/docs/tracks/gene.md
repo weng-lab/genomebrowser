@@ -8,8 +8,10 @@ Use `geneModule` for transcript annotations stored in a standard BigGenePred or 
 import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
 
 const track = geneModule.create({
-  id: "genes",
-  title: "Genes",
+  base: {
+    id: "genes",
+    title: "Genes",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 ```
@@ -56,8 +58,10 @@ import {
 
 const tracks = getGeneDatasetsForAssembly(mm10.id).map((dataset) =>
   geneModule.create({
-    id: dataset.id,
-    title: getGeneDatasetTitle(dataset),
+    base: {
+      id: dataset.id,
+      title: getGeneDatasetTitle(dataset),
+    },
     source: "host",
     config: { url: dataset.url },
   }),
@@ -105,8 +109,10 @@ const interaction: GeneInteraction = {
 
 const track = geneModule.create(
   {
-    id: "genes",
-    title: "Genes",
+    base: {
+      id: "genes",
+      title: "Genes",
+    },
     config: { url: "YOUR_URL_HERE" },
   },
   interaction,

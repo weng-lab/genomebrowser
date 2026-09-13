@@ -19,7 +19,10 @@ it("keeps URL drafts out of the active source and fetcher until Set is clicked",
   const useTrackStore = createTrackStore({
     modules: [{ ...bigWigModule, fetch }],
     tracks: [
-      bigWigModule.create({ id: "signal", title: "Signal", config: { url: "YOUR_URL_HERE" } }),
+      bigWigModule.create({
+        base: { id: "signal", title: "Signal" },
+        config: { url: "YOUR_URL_HERE" },
+      }),
     ],
   });
   const settingsTrackId = "signal";

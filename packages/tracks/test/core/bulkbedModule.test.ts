@@ -4,8 +4,10 @@ import { bulkBedModule } from "../../src/bulkbed";
 describe("BulkBed module", () => {
   it("creates a full-display bulkbed config", () => {
     const track = bulkBedModule.create({
-      id: "bulk-peaks",
-      title: "Bulk peaks",
+      base: {
+        id: "bulk-peaks",
+        title: "Bulk peaks",
+      },
       config: {
         datasets: [
           { name: "Dataset A", url: "YOUR_URL_HERE" },
@@ -38,8 +40,10 @@ describe("BulkBed module", () => {
   it("requires at least one dataset", () => {
     expect(() =>
       bulkBedModule.create({
-        id: "bulk-peaks",
-        title: "Bulk peaks",
+        base: {
+          id: "bulk-peaks",
+          title: "Bulk peaks",
+        },
         config: { datasets: [] },
       }),
     ).toThrow(/bulkbed input/);
@@ -48,8 +52,10 @@ describe("BulkBed module", () => {
   it("rejects negative gaps", () => {
     expect(() =>
       bulkBedModule.create({
-        id: "bulk-peaks",
-        title: "Bulk peaks",
+        base: {
+          id: "bulk-peaks",
+          title: "Bulk peaks",
+        },
         config: {
           datasets: [{ name: "Dataset A", url: "YOUR_URL_HERE" }],
           gap: -1,
@@ -61,8 +67,10 @@ describe("BulkBed module", () => {
   it("rejects invalid row heights", () => {
     expect(() =>
       bulkBedModule.create({
-        id: "bulk-peaks",
-        title: "Bulk peaks",
+        base: {
+          id: "bulk-peaks",
+          title: "Bulk peaks",
+        },
         config: {
           datasets: [{ name: "Dataset A", url: "YOUR_URL_HERE" }],
           rowHeight: 0,

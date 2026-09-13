@@ -39,9 +39,11 @@ it("paints an opaque genomic highlight behind track marks and keeps row backgrou
     modules: [module],
     tracks: [
       module.create({
-        id: "marks",
-        title: "Marks",
-        color: "#008000",
+        base: {
+          id: "marks",
+          title: "Marks",
+          color: "#008000",
+        },
         config: {
           url: "YOUR_URL_HERE",
           fillWithZero: false,

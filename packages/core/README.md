@@ -31,8 +31,10 @@ const useTrackStore = createTrackStore({
   modules: [bigWigModule],
   tracks: [
     bigWigModule.create({
-      id: "signal",
-      title: "Signal",
+      base: {
+        id: "signal",
+        title: "Signal",
+      },
       config: {
         url: "YOUR_URL_HERE",
       },
@@ -84,3 +86,5 @@ Genome Browser v2 is intended for client-side React 19.2+ applications. It uses 
 It is not a server-rendered visualization runtime.
 
 Coordinate rulers are regular tracks supplied by `@weng-lab/genomebrowser-tracks/ruler`. Add one explicitly if needed. [Region selection modes](docs/concepts.md#region-selection-and-ruler-tracks) work across the browser independently of the ruler.
+
+[Track collections](docs/trackCollections.md) describes the shared JSON format, validation, and `genomebrowser schema` CLI.

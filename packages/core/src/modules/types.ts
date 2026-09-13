@@ -1,15 +1,13 @@
 import type { ComponentType } from "react";
 import type { z } from "zod";
+import type { trackBaseSchema } from "./schemas";
 import type { AssemblyDefinition } from "../genome/assembly";
 import type { GenomicRegion } from "../genome/region";
 
-export type TrackBase = {
-  id: string;
-  title: string;
-  display: string;
-  height: number;
-  color: string;
-};
+export type TrackBase = z.output<typeof trackBaseSchema>;
+export type TrackBaseInput<Display extends string = string> = z.input<
+  TrackCreateInputSchema<z.ZodObject, Display>
+>["base"];
 
 export type TrackSource = "host" | "user";
 
@@ -39,11 +37,7 @@ export type TrackRendererInteraction<InteractionItem> = {
 export type AnyTrackInteraction = TrackInteraction<never, never>;
 
 export type TrackCreateInput<ConfigInput, Display extends string = string> = {
-  id: string;
-  title: string;
-  display?: Display;
-  height?: number;
-  color?: string;
+  base: TrackBaseInput<Display>;
   source?: TrackSource;
   config: ConfigInput;
 };
@@ -57,9 +51,8 @@ export type TrackInstance<Config, InteractionItem = unknown> = {
 };
 
 export type TrackFetchTrack<Config> = Readonly<{
-  id: string;
+  base: Readonly<Pick<TrackBase, "id" | "display">>;
   type: string;
-  display: string;
   config: Config extends object ? Readonly<Config> : Config;
 }>;
 
@@ -149,11 +142,16 @@ export type TrackCreateInputSchema<
   Display extends string = string,
 > = z.ZodObject<
   {
-    id: z.ZodString;
-    title: z.ZodString;
-    display: z.ZodDefault<z.ZodType<Display, Display>>;
-    height: z.ZodDefault<z.ZodNumber>;
-    color: z.ZodOptional<z.ZodString>;
+    base: z.ZodObject<
+      {
+        id: z.ZodString;
+        title: z.ZodString;
+        display: z.ZodDefault<z.ZodType<Display, Display>>;
+        height: z.ZodDefault<z.ZodNumber>;
+        color: z.ZodDefault<z.ZodString>;
+      },
+      z.core.$strict
+    >;
     source: z.ZodDefault<z.ZodType<TrackSource, TrackSource>>;
     config: ConfigSchema;
   },

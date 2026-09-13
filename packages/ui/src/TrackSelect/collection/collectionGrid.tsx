@@ -11,11 +11,11 @@ import type { CollectionGridRow, TrackSelectCollectionRecord } from "./collectio
 import { getCollectionColumns, type TrackSelectColumnOverrides } from "./collectionColumns";
 import { trackSelectPanelHeight } from "../trackSelectConstants";
 import { TrackSelectEmptyPanel } from "../trackSelectEmptyPanel";
-import type { TrackSelectView } from "../schema/collectionSchema";
+import type { TrackCollectionView } from "@weng-lab/genomebrowser";
 
 type CollectionGridProps = {
   collection: TrackSelectCollectionRecord | undefined;
-  view: TrackSelectView | undefined;
+  view: TrackCollectionView | undefined;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
   columnOverrides?: TrackSelectColumnOverrides;
@@ -23,7 +23,7 @@ type CollectionGridProps = {
 
 type CollectionDataGridProps = {
   collection: TrackSelectCollectionRecord;
-  view: TrackSelectView;
+  view: TrackCollectionView;
   selectedIds: Set<string>;
   onSelectionChange: (selectedIds: Set<string>) => void;
   columnOverrides?: TrackSelectColumnOverrides;
@@ -166,7 +166,7 @@ function selectionModelsAreEqual(left: GridRowSelectionModel, right: GridRowSele
   return true;
 }
 
-function getColumnVisibilityModel(view: TrackSelectView) {
+function getColumnVisibilityModel(view: TrackCollectionView) {
   const visibility: GridColumnVisibilityModel = { id: false };
 
   for (const column of view.columns) {

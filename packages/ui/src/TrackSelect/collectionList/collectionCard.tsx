@@ -30,7 +30,8 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
           </Typography>
         ) : null}
         <Typography variant="caption" color="text.secondary">
-          {collection.tracks.length.toLocaleString()} tracks available
+          {collection.assembly} · {collection.tracks.length.toLocaleString()}{" "}
+          {collection.tracks.length === 1 ? "track" : "tracks"}
         </Typography>
       </CardActionArea>
     </Paper>

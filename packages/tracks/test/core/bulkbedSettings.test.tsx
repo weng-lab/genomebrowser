@@ -313,8 +313,10 @@ async function renderControlledSettings(
 
 function createTrack(id: string) {
   return bulkBedModule.create({
-    id,
-    title: "BulkBed",
+    base: {
+      id,
+      title: "BulkBed",
+    },
     config: initialConfig,
   });
 }

@@ -1,27 +1,16 @@
 {
+  "assembly": "hg38",
   "id": "chromhmm-comparison",
   "label": "ChromHMM comparison",
-  "views": [
-    {
-      "id": "default",
-      "label": "Tracks",
-      "columns": [
-        {
-          "field": "title",
-          "label": "Track"
-        }
-      ],
-      "grouping": [],
-      "leaf": "title"
-    }
-  ],
   "tracks": [
     {
       "type": "bulkbed",
-      "id": "tissue-states",
-      "title": "ChromHMM \u00b7 adipose and adrenal gland",
-      "display": "full",
-      "height": 100,
+      "base": {
+        "id": "tissue-states",
+        "title": "ChromHMM · adipose and adrenal gland",
+        "display": "full",
+        "height": 100
+      },
       "config": {
         "datasets": [
           {
@@ -39,8 +28,7 @@
         ],
         "rowHeight": 28,
         "gap": 4
-      },
-      "metadata": {}
+      }
     }
   ]
 }

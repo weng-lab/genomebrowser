@@ -1,10 +1,15 @@
-import type { TrackSelectCollection, TrackSelectTrack } from "../schema/collectionSchema";
+import {
+  TrackCollectionViewSchema,
+  type TrackCollectionView,
+  type TrackCollection,
+  type TrackCollectionTrack,
+} from "@weng-lab/genomebrowser";
 
 export type CollectionGridRow = {
   id: string;
   title: string;
   type: string;
-  track: TrackSelectTrack;
+  track: TrackCollectionTrack;
   // Metadata defines dynamic grid columns, so rows need a string index signature.
   [field: string]: unknown;
 };
@@ -12,11 +17,13 @@ export type CollectionGridRow = {
 export type CollectionTrackEntry = Readonly<{
   collectionId: string;
   qualifiedTrackId: string;
-  track: TrackSelectTrack;
+  track: TrackCollectionTrack;
 }>;
 
 export type TrackSelectCollectionRecord = Readonly<
-  TrackSelectCollection & {
+  Omit<TrackCollection, "label" | "views"> & {
+    label: string;
+    views: TrackCollectionView[];
     rows: CollectionGridRow[];
     trackIds: ReadonlySet<string>;
   }
@@ -30,7 +37,7 @@ export type CompiledTrackCollections = Readonly<{
 }>;
 
 export function compileTrackCollections(
-  trackCollections: TrackSelectCollection[],
+  trackCollections: TrackCollection[],
 ): CompiledTrackCollections {
   const records: TrackSelectCollectionRecord[] = [];
   const recordsById = new Map<string, TrackSelectCollectionRecord>();
@@ -46,18 +53,18 @@ export function compileTrackCollections(
     const trackIds = new Set<string>();
     const authoredTrackIds: string[] = [];
     for (const track of collection.tracks) {
-      const qualifiedTrackId = getCollectionTrackId(collection.id, track.id);
+      const qualifiedTrackId = getCollectionTrackId(collection.id, track.base.id);
       if (tracksById.has(qualifiedTrackId)) {
         throw new Error(`Duplicate collection track id: ${qualifiedTrackId}`);
       }
 
       trackIds.add(qualifiedTrackId);
-      authoredTrackIds.push(track.id);
+      authoredTrackIds.push(track.base.id);
       rows.push({
         // Keep metadata first so reserved collection fields below cannot be clobbered.
         ...track.metadata,
         id: qualifiedTrackId,
-        title: track.title,
+        title: track.base.title,
         type: track.type,
         track,
       });
@@ -68,12 +75,25 @@ export function compileTrackCollections(
       });
     }
 
-    const record = { ...collection, rows, trackIds };
+    const views = collection.views?.map((view) => TrackCollectionViewSchema.parse(view)) ?? [
+      {
+        id: "default",
+        label: "Tracks",
+        columns: [{ field: "title", label: "Track" }],
+        grouping: [],
+        leaf: "title",
+      },
+    ];
+    const record = {
+      ...collection,
+      label: collection.label ?? collection.id,
+      views,
+      rows,
+      trackIds,
+    };
     records.push(record);
     recordsById.set(record.id, record);
-    keyParts.push(
-      JSON.stringify([collection.id, collection.views.map((view) => view.id), authoredTrackIds]),
-    );
+    keyParts.push(JSON.stringify([collection.id, views.map((view) => view.id), authoredTrackIds]));
   }
 
   return {

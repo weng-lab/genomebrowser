@@ -8,8 +8,10 @@ Use `ccreBigBedModule` for ENCODE candidate cis-regulatory elements stored in th
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 
 const track = ccreBigBedModule.create({
-  id: "ccres",
-  title: "cCREs",
+  base: {
+    id: "ccres",
+    title: "cCREs",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 ```

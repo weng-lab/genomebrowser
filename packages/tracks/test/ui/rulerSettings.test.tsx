@@ -33,8 +33,10 @@ it("exposes config fields and preserves host ownership", () => {
   const updateTrack = vi.fn(() => ({ ok: true as const }));
   try {
     const track = rulerModule.create({
-      id: "ruler",
-      title: "Reference",
+      base: {
+        id: "ruler",
+        title: "Reference",
+      },
       source: "host",
       config: {},
     });

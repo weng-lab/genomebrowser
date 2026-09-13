@@ -27,10 +27,12 @@ const useTrackStore = createTrackStore({
   modules: [geneModule],
   tracks: [
     geneModule.create({
-      id: dataset.id,
-      title: getGeneDatasetTitle(dataset),
+      base: {
+        id: dataset.id,
+        title: getGeneDatasetTitle(dataset),
+        display: "full",
+      },
       source: "host",
-      display: "full",
       config: { url: dataset.url },
     }),
   ],

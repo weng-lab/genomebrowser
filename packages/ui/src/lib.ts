@@ -31,10 +31,3 @@ export type {
   TrackSelectInteraction,
   TrackSelectInteractionResolver,
 } from "./TrackSelect/collection/collectionInteraction";
-export type {
-  TrackSelectCollection,
-  TrackSelectMetadata,
-  TrackSelectTrack,
-} from "./TrackSelect/schema/collectionSchema";
-export { generateTrackCollectionJsonSchema } from "./TrackSelect/schema/generateJsonSchema";
-export { validateJson } from "./TrackSelect/schema/validateJson";

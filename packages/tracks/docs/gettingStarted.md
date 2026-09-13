@@ -17,8 +17,10 @@ import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const signalTrack = bigWigModule.create({
-  id: "signal",
-  title: "Signal",
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 
@@ -59,12 +61,14 @@ const configResult = bigWigModule.configSchema.safeParse({
 });
 
 const inputResult = bigWigModule.createInputSchema.safeParse({
-  id: "signal",
-  title: "Signal",
+  base: {
+    id: "signal",
+    title: "Signal",
+  },
   config: { url: "YOUR_URL_HERE" },
 });
 ```
 
-Use `configSchema` to validate the module-specific `config` object. Use `createInputSchema` to validate the full create input: `id`, `title`, optional base fields, and config. `module.create(...)` parses that full input and throws if validation fails.
+Use `configSchema` to validate the module-specific `config` object. Use `createInputSchema` to validate the full create input: `base` (required `id` and `title`, optional `display`, `height`, and `color`), optional `source`, and `config`. `module.create(...)` parses that full input and throws if validation fails.
 
 [Export contract](exports.md) describes the shared API. Each track page lists its source and configuration requirements.

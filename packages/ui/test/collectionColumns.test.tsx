@@ -5,9 +5,9 @@ import {
   getCollectionColumns,
   withValueMarkers,
 } from "../src/TrackSelect/collection/collectionColumns";
-import type { TrackSelectView } from "../src/TrackSelect/schema/collectionSchema";
+import type { TrackCollectionView } from "@weng-lab/genomebrowser";
 
-const defaultView: TrackSelectView = {
+const defaultView: TrackCollectionView = {
   id: "default",
   label: "Default",
   columns: [
@@ -61,7 +61,7 @@ describe("TrackSelect collection columns", () => {
 
   it("applies a collection override across its views", () => {
     const columnOverrides = { "catalog-a": { assay: { width: 220 } } };
-    const alternateView: TrackSelectView = {
+    const alternateView: TrackCollectionView = {
       ...defaultView,
       id: "alternate",
       label: "Alternate",

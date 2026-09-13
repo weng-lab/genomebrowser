@@ -50,8 +50,10 @@ describe("BED schema selection", () => {
           : { datasets: [{ name: "Sample", url: "YOUR_URL_HERE" }] };
       for (const bedSchema of bedSchemaKeys) {
         const track = module.createInputSchema.parse({
-          id: "sample",
-          title: "Sample",
+          base: {
+            id: "sample",
+            title: "Sample",
+          },
           config: { ...config, bedSchema },
         });
         expect(JSON.parse(JSON.stringify(track)).config.bedSchema).toBe(bedSchema);
@@ -98,9 +100,11 @@ describe("BED schema selection", () => {
         resources,
         demand,
         track: {
-          id: "big",
+          base: {
+            id: "big",
+            display: "dense",
+          },
           type: "bigbed",
-          display: "dense",
           config: { url: "YOUR_URL_HERE", bedSchema, rowHeight: 12 },
         },
       });
@@ -109,9 +113,11 @@ describe("BED schema selection", () => {
         resources,
         demand,
         track: {
-          id: "bulk",
+          base: {
+            id: "bulk",
+            display: "full",
+          },
           type: "bulkbed",
-          display: "full",
           config: {
             datasets: [{ name: "Sample", url: "YOUR_URL_HERE" }],
             bedSchema,

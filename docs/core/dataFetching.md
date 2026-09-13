@@ -23,14 +23,13 @@ Pass infrastructure at the narrow public boundary:
 ```tsx
 import { transcriptModule } from "@weng-lab/genomebrowser-tracks/transcript";
 
-const transcriptTrack = transcriptModule.create({
+const transcriptTrack = transcriptModule.create({ base: {
   id: "genes",
-  title: "Genes",
+  title: "Genes"},
   config: {
     assembly: "GRCh38",
     version: 47,
-  },
-});
+  }});
 ```
 
 When a host does not use the conventional route, set `config.endpoint` on Transcript tracks. Endpoint overrides are ordinary, non-secret data-source configuration and may appear in collections or saved browser state; credentials must not.

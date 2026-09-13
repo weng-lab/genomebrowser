@@ -5,11 +5,10 @@
 ## Config
 
 ```ts
-const track = bigBedModule.create({
+const track = bigBedModule.create({ base: {
   id: "peaks",
-  title: "Peaks",
-  config: { url: "YOUR_URL_HERE" },
-});
+  title: "Peaks"},
+  config: { url: "YOUR_URL_HERE" }});
 ```
 
 Fields:

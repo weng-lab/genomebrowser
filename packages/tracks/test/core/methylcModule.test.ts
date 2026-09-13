@@ -5,8 +5,10 @@ import type { MethylCUrls } from "../../src/methylc/types";
 describe("MethylC module", () => {
   it("creates a split-display methylc config with defaults", () => {
     const track = methylCModule.create({
-      id: "methylc",
-      title: "MethylC",
+      base: {
+        id: "methylc",
+        title: "MethylC",
+      },
       config: { urls: createUrls("YOUR_URL_HERE") },
     });
 
@@ -36,9 +38,11 @@ describe("MethylC module", () => {
   it("rejects combined as a display mode", () => {
     expect(() =>
       methylCModule.create({
-        id: "methylc",
-        title: "MethylC",
-        display: "combined" as never,
+        base: {
+          id: "methylc",
+          title: "MethylC",
+          display: "combined" as never,
+        },
         config: { urls: createUrls("YOUR_URL_HERE") },
       }),
     ).toThrow(/methylc input/);
@@ -47,8 +51,10 @@ describe("MethylC module", () => {
   it("allows empty channel URLs", () => {
     expect(() =>
       methylCModule.create({
-        id: "methylc",
-        title: "MethylC",
+        base: {
+          id: "methylc",
+          title: "MethylC",
+        },
         config: { urls: createUrls("") },
       }),
     ).not.toThrow();
@@ -57,8 +63,10 @@ describe("MethylC module", () => {
   it("rejects invalid ranges", () => {
     expect(() =>
       methylCModule.create({
-        id: "methylc",
-        title: "MethylC",
+        base: {
+          id: "methylc",
+          title: "MethylC",
+        },
         config: {
           urls: createUrls("YOUR_URL_HERE"),
           range: { min: 1, max: 0 },
@@ -70,8 +78,10 @@ describe("MethylC module", () => {
   it("rejects non-hexadecimal channel colors", () => {
     expect(() =>
       methylCModule.create({
-        id: "methylc",
-        title: "MethylC",
+        base: {
+          id: "methylc",
+          title: "MethylC",
+        },
         config: {
           urls: createUrls("YOUR_URL_HERE"),
           colors: {
