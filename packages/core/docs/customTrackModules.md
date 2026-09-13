@@ -205,3 +205,10 @@ Fetch errors appear directly in the track lane, prefixed with the track title. M
 to the lane width and scroll within its configured height. The error region is keyboard-focusable
 so long messages can be scrolled without opening another UI. Other tracks remain available.
 Error details are rendered as text, and the runtime does not interpret format-specific schema errors.
+
+## Hosting browser stores
+
+Renderers, settings, and tooltip components use `useGenomeBrowser()` to resolve
+their hosting browser’s bound stores. See [Access the hosting browser](concepts.md#access-the-hosting-browser)
+for selectors, imperative access, and migration from the removed direct context
+hooks. Fetchers and module-definition code cannot call React hooks.

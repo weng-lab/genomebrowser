@@ -1,5 +1,5 @@
 import { useEffect, useId } from "react";
-import { useTrackStore } from "../state/browserContextState";
+import { useGenomeBrowser } from "../state/browserContextState";
 import {
   SETTINGS_MODAL_VIEWPORT_INSET,
   useDraggableSettingsModal,
@@ -54,6 +54,7 @@ function SettingsModalHeader({
   titleId: string;
   trackId: string;
 }) {
+  const { useTrackStore } = useGenomeBrowser();
   const title = useTrackStore((state) => state.getTrack(trackId)?.base.title);
   const color = useTrackStore((state) => state.getTrack(trackId)?.base.color);
   if (!title || !color) return null;

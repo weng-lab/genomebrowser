@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useRef } from "react";
-import { useBrowserStore, type GenomicRegion } from "@weng-lab/genomebrowser";
+import { useGenomeBrowser, type GenomicRegion } from "@weng-lab/genomebrowser";
 
 export function useRulerHoverHighlight(
   visibleRegion: GenomicRegion,
@@ -10,6 +10,7 @@ export function useRulerHoverHighlight(
   const owner = useId();
   const highlightId = `ruler-hover-${owner}`;
   const activePosition = useRef<number | null>(null);
+  const { useBrowserStore } = useGenomeBrowser();
   const addHighlight = useBrowserStore((state) => state.addHighlight);
   const removeHighlight = useBrowserStore((state) => state.removeHighlight);
   const selectionMode = useBrowserStore((state) => state.selectionMode);

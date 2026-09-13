@@ -1,6 +1,6 @@
 # Ruler and reference sequence
 
-Use `rulerModule` for genomic coordinates and optional reference DNA. It is an ordinary track: add, reorder, resize, configure, and remove it through the track store. The browser does not insert a ruler automatically.
+Use `rulerModule` for genomic coordinates and optional reference DNA. It is an ordinary track: add, reorder, resize, configure, and remove it through the track store. The browser does not insert a ruler automatically. Its navigation, hover highlights, and settings resolve the hosting browser through core’s `useGenomeBrowser()` hook, so the same module can be used in independent browsers.
 
 ```ts
 import { createTrackStore } from "@weng-lab/genomebrowser";

@@ -22,6 +22,7 @@ Most applications need a small surface:
 - `createTrackStore` for registered modules and validated track instances
 - one or more registered modules, either application-defined or supplied by a track package
 - `GenomeBrowser` to render those stores
+- `useGenomeBrowser` for hosted components to access their browser and track stores
 
 Create the stores once, outside ordinary component render, and pass the same track store to any companion UI. Module authors additionally use `defineTrackModule`, `fetchOnChange`, focused renderer hooks, and exported module types. Internal package paths are not public API.
 
