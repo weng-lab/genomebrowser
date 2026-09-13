@@ -42,7 +42,7 @@ The browser measures its own container by default. Ensure the host has a real la
 
 Use `sizing="fixed"` to render the configured `marginWidth + trackWidth`, multiplied by `scale`. The wrapper scrolls horizontally when that width exceeds the available space. `setTrackWidth` only controls fixed sizing; remove application resize observers when using the default responsive mode.
 
-`scale` must be finite and greater than zero. Large scales enlarge the gutter too; containers narrower than the scaled gutter plus one logical track unit scroll rather than producing a zero or negative track width. See [GenomeBrowser](../reference/GenomeBrowser.md).
+`scale` must be finite and greater than zero. Large scales enlarge the gutter too; containers narrower than the scaled gutter plus one logical track unit scroll rather than producing a zero or negative track width. See [GenomeBrowser](../reference/browserSetup/GenomeBrowser.md).
 
 ## State resets on React renders
 

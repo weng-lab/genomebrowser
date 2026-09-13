@@ -2,9 +2,9 @@
 
 > This page is awaiting migration. See the [documentation index](../README.md) for reviewed references and the [migration queue](README.md) for remaining topics.
 
-For viewport tasks, see [assemblies and region parsing](../reference/assembliesAndRegions.md), [navigation, selection, and highlights](../reference/browserStore.md), and [browser sizing](../reference/GenomeBrowser.md).
+For viewport tasks, see [assemblies and region parsing](../reference/assembliesAndRegions/assemblies.md), [navigation, selection, and highlights](../reference/browserSetup/browserStore.md), and [browser sizing](../reference/browserSetup/GenomeBrowser.md).
 
-For track mutations and pinning, see the [track-store reference](../reference/trackStore.md).
+For track mutations and pinning, see the [track-store reference](../reference/browserSetup/trackStore.md).
 
 These recipes assume stable `useBrowserStore` and `useTrackStore` hooks created as shown in [Getting started](gettingStarted.md).
 

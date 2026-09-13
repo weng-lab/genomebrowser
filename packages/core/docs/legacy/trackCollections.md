@@ -2,7 +2,7 @@
 
 > This guide is awaiting migration. See the [documentation index](../README.md) for reviewed references and the [migration queue](README.md) for remaining topics.
 
-Use a collection to load configured tracks or provide choices through TrackSelect. See the reviewed [collection reference](../reference/collections.md) for fields, validation, and schema CLI options.
+Use a collection to load configured tracks or provide choices through TrackSelect. See the reviewed [collection reference](../reference/collectionsAndSchemas/trackCollection.md) for fields, validation, and schema CLI options.
 
 ## Load a collection into a browser
 
@@ -53,6 +53,6 @@ TrackSelect assigns host source ownership to collection-created tracks. Interact
 
 ## Editor schema workflow
 
-Export the same module array used by the application, then run the [schema CLI](../reference/collections.md#schema-cli) and commit the generated file. Set each collection's `$schema` to the generated file's relative location. Regenerate it when the module set or configuration schemas change, and use `--check` in CI to detect stale output.
+Export the same module array used by the application, then run the [schema CLI](../reference/collectionsAndSchemas/schemaCli.md#schema-cli) and commit the generated file. Set each collection's `$schema` to the generated file's relative location. Regenerate it when the module set or configuration schemas change, and use `--check` in CI to detect stale output.
 
 Editor feedback checks representable schema rules. It does not assign a static TypeScript type to imported JSON or replace runtime parsing. Use the same modules for the track store, schema generation, and validation. TrackSelect validates its supplied collections; direct integrations use `validateTrackCollection` before creating instances.

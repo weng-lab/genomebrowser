@@ -47,7 +47,7 @@ export function BrowserPage() {
 
 Store factory results are Zustand hooks, so local names should begin with `use`. Define them outside the component as above, or create them once in another stable initialization boundary. Recreating either store during render resets browser state and request coordination.
 
-For fixed dimensions or whole-browser magnification, see [GenomeBrowser](../reference/GenomeBrowser.md). You do not need a container ref, a resize observer, or calls to `setTrackWidth` for responsive sizing.
+For fixed dimensions or whole-browser magnification, see [GenomeBrowser](../reference/browserSetup/GenomeBrowser.md). You do not need a container ref, a resize observer, or calls to `setTrackWidth` for responsive sizing.
 
 ## Updating the browser
 

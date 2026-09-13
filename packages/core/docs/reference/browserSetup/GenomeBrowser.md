@@ -4,7 +4,7 @@ Render genomic tracks in a browser that follows its container automatically. Use
 
 ## Usage
 
-Install the runtime and track dependencies as shown in [Getting started](../legacy/gettingStarted.md).
+Install the runtime and track dependencies as shown in [Getting started](../../legacy/gettingStarted.md).
 
 ```tsx
 import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
@@ -98,3 +98,5 @@ The choices are native buttons. The component does not implement ARIA menu roles
 - Track width has a minimum of one logical unit. A container narrower than the scaled margin plus that minimum scrolls horizontally.
 - Width-dependent data requests retain the runtime's brief debounce during continuous resizing or scale changes. Fixed scale changes leave logical track width unchanged and do not require a new width-dependent fetch.
 - Each view owns its measurement and cleans up its observer on unmount or when switched to fixed sizing. Region and track stores survive unmounting when owned by the application.
+
+See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

@@ -118,7 +118,7 @@ export const customSignalModule = defineTrackModule<Item>()({
 });
 ```
 
-For definition options, fetch/render contracts, resources, settings, and instance types, see [Track modules](../reference/trackModules.md). For callback, tooltip, and height hooks, see [Runtime helpers](../reference/runtimeHelpers.md).
+For definition options, fetch/render contracts, resources, settings, and instance types, see [Track modules](../reference/trackDefinition/defineTrackModule.md). For callback, tooltip, and height hooks, see [Renderer integration](../reference/rendererIntegration/README.md).
 
 ## Register and create
 
@@ -155,8 +155,8 @@ The optional second argument contains per-instance callbacks and is not serializ
 
 ## Fixed annotations
 
-Use [TrackOverlay](../reference/TrackOverlay.md) for fixed SVG content or [TrackLabel](../reference/TrackLabel.md) for text annotations.
+Use [TrackOverlay](../reference/rendererIntegration/TrackOverlay.md) for fixed SVG content or [TrackLabel](../reference/rendererIntegration/TrackLabel.md) for text annotations.
 
 ## Hosting browser stores
 
-Renderers, settings, and tooltip components use `useGenomeBrowser()` to resolve their hosting browser's bound stores. See [useGenomeBrowser](../reference/browserStore.md#usegenomebrowser) for selectors and imperative access. Fetchers and module-definition code cannot call React hooks.
+Renderers, settings, and tooltip components use `useGenomeBrowser()` to resolve their hosting browser's bound stores. See [useGenomeBrowser](../reference/browserSetup/useGenomeBrowser.md#usegenomebrowser) for selectors and imperative access. Fetchers and module-definition code cannot call React hooks.

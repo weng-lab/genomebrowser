@@ -23,7 +23,7 @@ const useTrackStore = createTrackStore({
 
 Replace `YOUR_URL_HERE` with your BigWig URL. Keep the returned Zustand hook stable and give its variable a `use` prefix. Create separate stores for browsers that need independent track lists. Application controls and collection UI can share the same store as the browser.
 
-Call actions through `useTrackStore.getState()` outside rendering, or subscribe with a selector in React. The examples below use the store and module from this setup. For creating custom track types, see [custom track modules](../legacy/customTrackModules.md).
+Call actions through `useTrackStore.getState()` outside rendering, or subscribe with a selector in React. The examples below use the store and module from this setup. For creating custom track types, see [custom track modules](../../legacy/customTrackModules.md).
 
 ## createTrackStore and TrackStoreOptions
 
@@ -66,7 +66,7 @@ A registry connects each track's `type` to its module. `registry.modules` is a r
 
 `ModuleRegistry<Modules>` can retain specific module types when supplied with a typed module tuple; the default is `readonly AnyTrackModule[]`. A typed registry's `get` signature narrows its result to the matching module where possible. The factory preserves this inference through `useTrackStore.getState().registry`, so looking up a known literal module type retains its specific `create` input and interaction types. `TrackStore` and `TrackStoreInstance` also default to `readonly AnyTrackModule[]`; explicitly annotating a store with the default type gives it a general registry. This inference does not associate string track IDs with configuration types in `getTrack` or `updateTrack`.
 
-Use a specific module's `create` method when you need its typed configuration and interaction callbacks. Collection entries must become runtime instances before being passed to store actions; see [collection input](collections.md#trackcollectiontrack-and-trackcollectionentry).
+Use a specific module's `create` method when you need its typed configuration and interaction callbacks. Collection entries must become runtime instances before being passed to store actions; see [collection input](../collectionsAndSchemas/trackCollection.md#track-inputs).
 
 ## Mutation results
 
@@ -142,7 +142,7 @@ const updated = useTrackStore.getState().updateTrack("signal", {
 if (!updated.ok) console.error(updated.error);
 ```
 
-A config change requests new data when a field marked by the module with `fetchOnChange` changes. Display changes also request data. Other base fields, callbacks, and unmarked config changes reuse current data. See [request behavior](../legacy/concepts.md#exact-request-behavior) for the mounted browser's coordination rules.
+A config change requests new data when a field marked by the module with `fetchOnChange` changes. Display changes also request data. Other base fields, callbacks, and unmarked config changes reuse current data. See [request behavior](../trackDefinition/fetchingData.md#requests-and-result-lifetime) for the mounted browser's coordination rules.
 
 ## Replacing tracks atomically
 
@@ -203,6 +203,8 @@ Removing, replacing, or clearing tracks does not clear pins. Unpinning keeps the
 
 ## Context hooks
 
-Components rendered inside `GenomeBrowser` use [useGenomeBrowser](browserStore.md#usegenomebrowser) to resolve `useTrackStore`. Call it with a selector to subscribe, or use `useTrackStore.getState()` for imperative actions.
+Components rendered inside `GenomeBrowser` use [useGenomeBrowser](useGenomeBrowser.md#usegenomebrowser) to resolve `useTrackStore`. Call it with a selector to subscribe, or use `useTrackStore.getState()` for imperative actions.
 
 To access the hosting browser's module registry, select `state.registry` from the resolved `useTrackStore`. The local factory result in Usage accesses a particular application-owned store and can be used outside a mounted browser.
+
+See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

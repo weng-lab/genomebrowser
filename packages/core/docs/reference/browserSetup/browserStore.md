@@ -28,7 +28,7 @@ Use the hook's selector in React, `getState()` for current state and actions out
 
 ## createBrowserStore and BrowserStoreInput
 
-`createBrowserStore(input: BrowserStoreInput): BrowserStoreInstance` validates construction input and throws if it cannot create valid state. The initial region is normalized against a copied, frozen assembly; a partially overlapping interval is clamped. See [assemblies and regions](assembliesAndRegions.md) for coordinate and validation rules.
+`createBrowserStore(input: BrowserStoreInput): BrowserStoreInstance` validates construction input and throws if it cannot create valid state. The initial region is normalized against a copied, frozen assembly; a partially overlapping interval is clamped. See [assemblies and regions](../assembliesAndRegions/assemblies.md) for coordinate and validation rules.
 
 | Option               | Type                      | Default                                               | Description                                                                              |
 | -------------------- | ------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -40,7 +40,7 @@ Use the hook's selector in React, `getState()` for current state and actions out
 | `titleSize`          | `number`                  | `12`                                                  | Positive finite track-title font size in logical SVG units.                              |
 | `highlights`         | `Highlight[]`             | `[]`                                                  | Initial highlights, validated individually.                                              |
 | `selectionMode`      | `BrowserSelectionMode`    | `"pan"`                                               | Initial drag behavior.                                                                   |
-| `selectionHighlight` | `SelectionHighlightStyle` | `{ color: "#f59e0b", opacity: 0.25, type: "filled" }` | Complete style used for newly drawn highlights.                                          |
+| `selectionHighlight` | `SelectionHighlightStyle` | `{ color: "#f59e0b", opacity: 0.25, type: "filled" }` | Style used for newly drawn highlights.                                                   |
 
 Responsive views measure their own width and do not write that measurement into `trackWidth`. Two views sharing a store can have different sizes and scales. See [sizing examples](GenomeBrowser.md#examples).
 
@@ -49,19 +49,6 @@ Responsive views measure their own width and do not write that measurement into 
 `BrowserStore` contains all fields in the input table as initialized state: `assembly`, normalized `region`, `marginWidth`, `trackWidth`, `fontSize`, `titleSize`, `highlights`, `selectionMode`, and `selectionHighlight`. Input defaults are resolved, so these state fields are present. It also contains the actions below. `assembly` is readonly; the public action API has no assembly, margin, or typography setter.
 
 `BrowserStoreInstance` is `UseBoundStore<StoreApi<BrowserStore>>`, the Zustand hook plus its imperative store API.
-
-### useGenomeBrowser
-
-`useGenomeBrowser(): GenomeBrowserStores` resolves the nearest hosting `GenomeBrowser`'s bound Zustand stores. Use it in hosted renderers, settings, and tooltips. It throws `useGenomeBrowser must be used within a GenomeBrowser` outside that context.
-
-```tsx
-const { useBrowserStore, useTrackStore } = useGenomeBrowser();
-const region = useBrowserStore((state) => state.region);
-```
-
-Import `useGenomeBrowser` from `@weng-lab/genomebrowser`. The exported `GenomeBrowserStores` type contains `useBrowserStore: BrowserStoreInstance` and `useTrackStore: TrackStoreInstance`. These are the supplied bound hooks, retaining their identities and Zustand APIs such as `.getState()` and `.subscribe()`. Resolving context does not subscribe to store state; calling a returned hook with a selector subscribes to that selection. Ordinary parent renders can still render the consumer.
-
-Independent browsers resolve their own stores; supplying the same stores shares state. Application controls outside the browser use their application-owned factory results directly. `GenomeBrowser` does not accept arbitrary children.
 
 ## Navigation
 
@@ -108,7 +95,7 @@ const zoomOut = useBrowserStore.getState().zoom(2, 2_050_000);
 if (!zoomOut.ok) console.error(zoomOut.error);
 ```
 
-Boundary clamping can shorten the requested interval. A successful store mutation updates state synchronously; it does not wait for mounted tracks to finish fetching or rendering. See [request behavior](../legacy/concepts.md#exact-request-behavior).
+Boundary clamping can shorten the requested interval. A successful store mutation updates state synchronously; it does not wait for mounted tracks to finish fetching or rendering. See [request behavior](../trackDefinition/fetchingData.md#requests-and-result-lifetime).
 
 ### BrowserRegionMutationResult and BrowserRegionMutationErrorCode
 
@@ -122,7 +109,7 @@ type Result =
   | { ok: false; code: BrowserRegionMutationErrorCode; error: string };
 ```
 
-`BrowserRegionMutationErrorCode` includes every [RegionErrorCode](assembliesAndRegions.md#regionresult-and-regionerrorcode), plus `INVALID_ZOOM_FACTOR` and `INVALID_ZOOM_CENTER`. Even a finite zoom factor can produce an invalid coordinate if the calculated interval overflows. Expected navigation failures return a result and leave state unchanged.
+`BrowserRegionMutationErrorCode` includes every [RegionErrorCode](../assembliesAndRegions/regions.md#regionresult-and-regionerrorcode), plus `INVALID_ZOOM_FACTOR` and `INVALID_ZOOM_CENTER`. Even a finite zoom factor can produce an invalid coordinate if the calculated interval overflows. Expected navigation failures return a result and leave state unchanged.
 
 ## Fixed width
 
@@ -134,7 +121,7 @@ type Result =
 
 `BrowserSelectionMode` is `"pan" | "zoom" | "highlight"`. `setSelectionMode(mode: BrowserSelectionMode): BrowserSelectionMutationResult` replaces the active mode. Zoom and highlight modes remain active after a drag.
 
-`SelectionHighlightStyle` is `Pick<Highlight, "color" | "opacity" | "type">`. `setSelectionHighlight(style: SelectionHighlightStyle): BrowserSelectionMutationResult` replaces the complete style; it does not merge omitted fields or restyle existing highlights. Both setters return `{ ok: true }` on success. `BrowserSelectionMutationResult` uses the shared [mutation failure shape](trackStore.md#mutation-results), with `INVALID_SELECTION_MODE` or `INVALID_SELECTION_HIGHLIGHT` for invalid input. A failure leaves the entire store unchanged.
+`SelectionHighlightStyle` is `Pick<Highlight, "color" | "opacity" | "type">`: `color` is required, while `opacity` and `type` are optional and use the highlight rendering defaults when absent. `setSelectionHighlight(style: SelectionHighlightStyle): BrowserSelectionMutationResult` replaces the complete style; it does not merge omitted fields or restyle existing highlights. Both setters return `{ ok: true }` on success. `BrowserSelectionMutationResult` uses the shared [mutation failure shape](trackStore.md#mutation-results), with `INVALID_SELECTION_MODE` or `INVALID_SELECTION_HIGHLIGHT` for invalid input. A failure leaves the entire store unchanged.
 
 ```ts
 useBrowserStore.getState().setSelectionHighlight({
@@ -146,7 +133,7 @@ useBrowserStore.getState().setSelectionMode("highlight");
 // Drag the data area to add highlights; use "zoom" to navigate or "pan" to restore panning.
 ```
 
-See [selection interactions](../legacy/concepts.md#region-selection-and-ruler-tracks) for pointer behavior, cancellation, and keyboard responsibilities.
+See [selection interactions](../../legacy/concepts.md#region-selection-and-ruler-tracks) for pointer behavior, cancellation, and keyboard responsibilities.
 
 ## Highlights
 
@@ -182,3 +169,5 @@ useBrowserStore.getState().removeHighlight("candidate");
 ```
 
 To add a filled highlight, omit `type` or use `"filled"`. Selection-created highlights use the active selection style, whose initial opacity is `0.25`, rather than the generic filled-highlight rendering default.
+
+See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

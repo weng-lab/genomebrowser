@@ -10,7 +10,7 @@ The v2 package separates application-owned state, track-type behavior, and brows
 
 The browser store owns the visible genomic region, configured fixed track-area width, margin and typography sizes, zoom behavior, and highlights. The track store owns the registered module set, validated track instances, and their order. Because the stores live outside `GenomeBrowser`, application controls and optional UI-package components can use the same state.
 
-`GenomeBrowser` creates short-lived internal state for the mounted browser, including its measured container width, request results, and default settings/context-menu state. Responsive width belongs to each mounted view and never overwrites the browser store. Two views may share region and track stores while using different sizes and scales. See [GenomeBrowser](../reference/GenomeBrowser.md) for sizing and magnification. Unmounting it discards that internal state, but does not discard the application-owned browser or track stores.
+`GenomeBrowser` creates short-lived internal state for the mounted browser, including its measured container width, request results, and default settings/context-menu state. Responsive width belongs to each mounted view and never overwrites the browser store. Two views may share region and track stores while using different sizes and scales. See [GenomeBrowser](../reference/browserSetup/GenomeBrowser.md) for sizing and magnification. Unmounting it discards that internal state, but does not discard the application-owned browser or track stores.
 
 ## Access the hosting browser
 
@@ -82,7 +82,7 @@ for imperative access. Host-created hooks and store factories are unchanged.
 
 ## Assemblies bound every browser region
 
-Each browser store owns an immutable assembly and a visible genomic interval. Coordinates are zero-based and half-open, and sequence names must match the assembly exactly. See [assemblies and regions](../reference/assembliesAndRegions.md) for presets, custom definitions, parsing, and normalization; see [browser-store navigation](../reference/browserStore.md#navigation) to commit viewport changes.
+Each browser store owns an immutable assembly and a visible genomic interval. Coordinates are zero-based and half-open, and sequence names must match the assembly exactly. See [assemblies and regions](../reference/assembliesAndRegions/assemblies.md) for presets, custom definitions, parsing, and normalization; see [browser-store navigation](../reference/browserSetup/browserStore.md#navigation) to commit viewport changes.
 
 ## Track row hover feedback
 
@@ -124,7 +124,7 @@ Static construction fails by throwing: invalid assembly or initial-region input,
 
 Browser navigation, viewport-width changes, and track mutations return discriminated results for expected failures. `setRegion` and `zoom` return either `{ ok: true, region, clamped }` or `{ ok: false, code, error }`; `setTrackWidth` returns the committed width on success or a coded error. Track mutations likewise return `{ ok: false, error }` when rejected. Failed mutations are atomic and leave the current region, dimensions, tracks, and order unchanged.
 
-Browser selection setters and highlight addition validate input by throwing. See the [browser-store reference](../reference/browserStore.md) for each action's error contract.
+Browser selection setters and highlight addition return typed failure results for invalid input. See the [browser-store reference](../reference/browserSetup/browserStore.md) for each action's error contract.
 
 Interaction callbacks are functions and are therefore not part of serializable collection or saved-session JSON. Collection entries are create input; they become nested runtime instances only after the selected module creates them. Runtime context is also derived rather than serialized.
 
@@ -136,7 +136,7 @@ Application code should use runtime exports from `@weng-lab/genomebrowser`. The 
 
 The browser renders only the tracks supplied to its track store. Coordinates and optional reference DNA come from a registered and explicitly added ruler module in the tracks package; core contains no ruler-specific behavior. Removing the ruler does not remove selection interactions.
 
-Use the browser store's [selection mode and style actions](../reference/browserStore.md#selection) to configure drag behavior and newly drawn highlights.
+Use the browser store's [selection mode and style actions](../reference/browserSetup/browserStore.md#selection) to configure drag behavior and newly drawn highlights.
 
 Drag the data area in zoom mode to navigate, or in highlight mode to create a chromosome-scoped highlight without moving the region. Mode persists after selection. Dragging in pan mode retains ordinary track interactions. Track margin controls remain accessible. Zoom and Highlight modes show a crosshair and a vertical guide that follows the pointer across the data area. A transparent overlay blocks track hover highlights, tooltips, clicks, context menus, and panning in these modes. Returning to Pan removes the guide and overlay and restores normal track cursors and interactions. Guide visibility follows the selected mode; there is no separate toggle.
 

@@ -12,9 +12,11 @@ Explain import paths when choosing among entry points matters. When similar name
 
 Every public export needs a canonical page and heading, not a separate file. Maintain an export-to-reference index in `docs/reference/README.md`, including exported types, aliases, public subpaths, and related runtime symbols. Include public CLI commands and shipped schemas in reference navigation as applicable. Inspect package export maps and their source entry points; root exports alone are not the complete surface.
 
+Give independently useful functions, hooks, and components focused pages when that improves lookup. Keep store actions together and supporting types with their owning capability. Each page should make sense when opened directly, with its purpose, import path, required context, and a focused example; link to other contracts instead of assuming the reader visited them first.
+
 Group APIs by reader-facing capability:
 
-- Core: GenomeBrowser; browser store; track store; assemblies and regions; track-module contracts; runtime hooks and interactions; overlays and labels; collections, validation, and schema CLI; context-menu APIs.
+- Core: `browserSetup`, `assembliesAndRegions`, `trackDefinition`, `rendererIntegration`, and `collectionsAndSchemas`. These areas contain focused pages for stores, hooks, components, module contracts, and tooling.
 - Tracks: one reference per track module, plus focused shared references for coordinates/layout, signal processing, BED schemas, settings components, and tooltips.
 - UI: independently usable components, with their related helpers and types.
 - Reader: one reference per file format or data source, plus the common regional file contract.

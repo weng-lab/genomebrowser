@@ -11,12 +11,17 @@ packages/<package>/
     guides/                 Independent tasks and conceptual explanations
     reference/
       README.md             API topic navigation and public export index
+      <area>/               Related capabilities, when grouping helps browsing
+        README.md           Area purpose and page navigation
+        <apiOrTopic>.md     Focused API contract and examples
     troubleshooting.md      Symptoms, causes, and remedies
 ```
 
 Use these categories consistently, but create directories only when they contain useful pages. A small package may need only one getting-started page. The starter's generated application docs explain that application, not the library API, and need not imitate the library tree.
 
 READMEs route readers rather than collecting growing reference sections. Reference may include focused examples but should not repeat entire workflows.
+
+Organize larger references into shallow area folders named in camelCase; small references can remain flat. The reference root lists areas and maintains the complete export index. Each area index lists its pages, and individual pages link to related contracts and back to their area. Categories organize APIs by reader need rather than mirroring source directories.
 
 Follow repository naming conventions: camelCase for topic filenames and PascalCase for independently documented components. Use descriptive names such as `browserStore.md`; avoid catch-all files such as `helpers.md` or a growing `recipes.md`. A related group of small APIs can share a well-named page.
 
@@ -58,5 +63,7 @@ For each package:
 5. Validate coverage, examples, and links; report what is complete and any material uncertainty. Distinguish planned pages from finished documentation.
 
 For a focused implementation change, update the affected canonical pages and export index without turning the task into a package-wide migration.
+
+Reference completion and documentation migration are separate milestones. Retire legacy pages after their useful tutorial, guide, or troubleshooting content has a current home and inbound links have been updated; complete export coverage alone does not replace those workflows.
 
 For API grouping and completeness, read [API reference writing](apiReference.md). For the final maintainer pass, read [Maintainer documentation](maintainerDocs.md).

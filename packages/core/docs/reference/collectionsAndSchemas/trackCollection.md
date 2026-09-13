@@ -15,7 +15,7 @@ export const trackModules = [bigWigModule] as const;
 
 ### Author JSON
 
-Generate an editor schema from those modules:
+Generate an editor schema from those modules with the [schema CLI](schemaCli.md):
 
 ```sh
 pnpm exec genomebrowser schema --from ./trackModules.ts#trackModules --out ./trackCollection.schema.json
@@ -79,7 +79,7 @@ const result = useTrackStore.getState().setTracks(tracks);
 if (!result.ok) throw new Error(result.error);
 ```
 
-Validation does not add tracks to a browser. Create all entries or only those your application selects, then use a [track-store action](trackStore.md). With multiple module types, narrow an entry by its `type` before calling a specific module when TypeScript needs to preserve the relationship between that module and its config. TrackSelect handles validation and selected-track creation for its supplied collections.
+[Validation](validateTrackCollection.md) does not add tracks to a browser. Create all entries or only those your application selects, then use a [track-store action](../browserSetup/trackStore.md). With multiple module types, narrow an entry by its `type` before calling a specific module when TypeScript needs to preserve the relationship between that module and its config. TrackSelect handles validation and selected-track creation for its supplied collections.
 
 ## TrackCollection
 
@@ -107,12 +107,12 @@ type CollectionTrack = TrackCollection<typeof trackModules>["tracks"][number];
 
 Its config and display are correlated with its module type. Without a module parameter, config is `Record<string, unknown>` and the module type is `string`.
 
-| Field      | Type                      | Default  | Description                                                                                                                                 |
-| ---------- | ------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`     | `string`                  | Required | Registered module type.                                                                                                                     |
-| `base`     | `TrackBaseInput`          | Required | Required ID and title, plus optional display, height, and color. See [creation input](trackModules.md#trackcreateinput-and-trackbaseinput). |
-| `config`   | `Record<string, unknown>` | Required | Input validated by the selected module's config schema.                                                                                     |
-| `metadata` | `TrackMetadata`           | Omitted  | Scalar attributes used to describe and organize tracks.                                                                                     |
+| Field      | Type                      | Default  | Description                                                                                                                                                      |
+| ---------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`     | `string`                  | Required | Registered module type.                                                                                                                                          |
+| `base`     | `TrackBaseInput`          | Required | Required ID and title, plus optional display, height, and color. See [creation input](../trackDefinition/trackInstances.md#trackcreateinput-and-trackbaseinput). |
+| `config`   | `Record<string, unknown>` | Required | Input validated by the selected module's config schema.                                                                                                          |
+| `metadata` | `TrackMetadata`           | Omitted  | Scalar attributes used to describe and organize tracks.                                                                                                          |
 
 Collection entries reject `source` and interaction callbacks. Supply runtime ownership and interactions in application code during module creation. Metadata stays with the collection rather than becoming part of the runtime instance.
 
@@ -155,52 +155,4 @@ Views describe ways a collection UI can organize tracks. Core validates their st
 
 These are schema defaults. Label fallbacks, column sizing, and visibility behavior depend on the UI component.
 
-## validateTrackCollection
-
-`validateTrackCollection(input, modules)` accepts an `unknown` object and a readonly module list, not a JSON string. If loading a string, parse it with `JSON.parse` first and handle parsing failures separately.
-
-Validation checks the collection structure, each module's creation schema, duplicate track and view IDs, and every field referenced by columns, grouping, and leaf labels. It throws an `Error` containing validation details on failure. An empty module list or duplicate module types also throws.
-
-The return type infers the supplied modules and contains their authored track inputs plus normalized `TrackCollectionView[]` when views exist. Validation executes module defaults and transformations to check validity, then discards the parsed track output. Creation parses the original input again, so transformations do not compound. Transform callbacks should be pure; they are not guaranteed a single invocation. Those entries are not detached copies; treat validated input as data and create instances before use. `validateTrackCollection` does not add views or infer assembly compatibility.
-
-## generateTrackCollectionJsonSchema
-
-`generateTrackCollectionJsonSchema(modules: readonly AnyTrackModule[])` returns the JSON Schema object for collection **input**, using Zod's JSON Schema conversion. An empty module list or duplicate module types throws. Unsupported schema conversions can also throw.
-
-```ts
-import { generateTrackCollectionJsonSchema } from "@weng-lab/genomebrowser";
-
-const jsonSchema = generateTrackCollectionJsonSchema(modules);
-const schemaText = JSON.stringify(jsonSchema, null, 2);
-```
-
-Use the generated schema for editor completion and structural validation. It does not replace the additional checks in `validateTrackCollection`. The function does not write files; use the CLI below for file output.
-
-## Schema CLI
-
-The package provides the `genomebrowser schema` command. Point it at a JavaScript or TypeScript module that exports your supported track module or array:
-
-```ts
-// trackModules.ts
-import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-export const trackModules = [bigWigModule];
-```
-
-```sh
-pnpm exec genomebrowser schema --from ./trackModules.ts#trackModules --out ./trackCollection.schema.json
-pnpm exec genomebrowser schema --from ./trackModules.ts#trackModules --out ./trackCollection.schema.json --check
-```
-
-| Option               | Default                       | Behavior                                                                                                                                              |
-| -------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--from <source>`    | Required                      | Import a module or non-empty module array. Repeat to combine sources.                                                                                 |
-| `--out <file>`, `-o` | `trackCollection.schema.json` | Write formatted JSON with a trailing newline. `-` writes to stdout. Parent directories are created.                                                   |
-| `--id <uri>`         | Omitted                       | Add a JSON Schema `$id`. Must be non-empty; the CLI does not validate URI syntax.                                                                     |
-| `--check`            | `false`                       | Compare the generated text with an existing file and fail if missing, unreadable, or different. Does not write it. Cannot be combined with `--out -`. |
-| `--help`, `-h`       | `false`                       | Print usage. Running without a command also prints usage.                                                                                             |
-
-Sources can be package specifiers or local relative/absolute paths. Relative paths and output files resolve from the working directory. Append `#exportName` to select a named export. Without it, the loader accepts a module value, a suitable default export, or the only suitable named export; ambiguous named exports require explicit selection. Duplicate module types across combined sources fail schema generation.
-
-Importing a source executes its code in Node. Keep module definitions importable without application startup or browser-only side effects. Import, argument, generation, and file errors are reported on stderr with exit code 1. With stdout output, the loaded-module summary goes to stderr so stdout contains only the schema.
-
-Set `$schema` in your collection JSON to the generated file's relative location. This helps an editor interpret the file; runtime validation still uses your supplied modules.
+See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.
