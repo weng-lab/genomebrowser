@@ -26,7 +26,7 @@ import { bigWigModule as bigWigUiModule } from "@weng-lab/genomebrowser-tracks/b
 import { bulkBedModule as bulkBedUiModule } from "@weng-lab/genomebrowser-tracks/bulkbed";
 import { caveModule as caveUiModule } from "@weng-lab/genomebrowser-tracks/cave";
 import { methylCModule as methylCUiModule } from "@weng-lab/genomebrowser-tracks/methylc";
-import { transcriptModule as transcriptUiModule } from "@weng-lab/genomebrowser-tracks/transcript";
+import { geneModule as geneUiModule } from "@weng-lab/genomebrowser-tracks/gene";
 import { readCytobands, type Cytoband } from "@weng-lab/genomic-reader";
 import {
   BrowserNavigationButton,
@@ -152,7 +152,7 @@ const modules = [
   bulkBedUiModule,
   caveUiModule,
   methylCUiModule,
-  transcriptUiModule,
+  geneUiModule,
 ];
 const useTrackStore = createTrackStore({
   modules,
@@ -195,16 +195,15 @@ const useTrackStore = createTrackStore({
         ],
       },
     }),
-    transcriptUiModule.create({
+    geneUiModule.create({
       base: {
-        id: "transcript-settings-example",
-        title: "Transcript settings: GENCODE genes",
-        display: "squish",
+        id: "gene-settings-example",
+        title: "Gene settings: GENCODE 40 comprehensive",
+        display: "full",
         color: "#444444",
       },
       config: {
-        assembly: "GRCh38",
-        version: 40,
+        url: "https://users.wenglab.org/niship/gencodefiles/human.gencode.v40.comprehensive.annotation.bb",
       },
     }),
     caveUiModule.create({

@@ -23,10 +23,6 @@ export default defineConfig({
       "@weng-lab/genomebrowser-tracks/gene": path.resolve(__dirname, "src/gene/index.ts"),
       "@weng-lab/genomebrowser-tracks/methylc": path.resolve(__dirname, "src/methylc/index.ts"),
       "@weng-lab/genomebrowser-tracks/shared": path.resolve(__dirname, "src/shared/index.ts"),
-      "@weng-lab/genomebrowser-tracks/transcript": path.resolve(
-        __dirname,
-        "src/transcript/index.ts",
-      ),
       "@weng-lab/genomebrowser-tracks": path.resolve(__dirname, "src/lib.ts"),
       react: path.join(packageNodeModules, "react"),
       "react-dom": path.join(packageNodeModules, "react-dom"),
@@ -57,7 +53,6 @@ export default defineConfig({
         ccre: path.resolve(__dirname, "src/ccre/index.ts"),
         gene: path.resolve(__dirname, "src/gene/index.ts"),
         methylc: path.resolve(__dirname, "src/methylc/index.ts"),
-        transcript: path.resolve(__dirname, "src/transcript/index.ts"),
         shared: path.resolve(__dirname, "src/shared/index.ts"),
       },
       name: "genomebrowser-tracks",

@@ -30,7 +30,7 @@ Keep MUI Data Grid gestures and dialog presentation in the manual harness unless
 
 The example loads Cytoband records in application code with `readCytobands` and passes the ready records to `Cytobands`; its source file is under the playground's public data directory.
 
-The Transcript module and genome search use the conventional `/api/screen-graphql` endpoint. A temporary route that wires this example must provide that server-side proxy for SCREEN requests and keep `SCREEN_API_KEY` out of browser code.
+Genome search uses the conventional `/api/screen-graphql` endpoint. A temporary route that wires this example must provide that server-side proxy for SCREEN requests and keep `SCREEN_API_KEY` out of browser code.
 
 The former manual fixtures live with the example in `apps/playground/examples/ui/collections/`. Automated tests define their smaller inputs beside the test that uses them. Prefer a small fixture that isolates automated behavior; use the playground fixtures for realistic manual checks. Keep fixture entries aligned with modules registered by the example. Use `YOUR_URL_HERE` for new illustrative URLs unless an existing repository fixture URL is intentionally reused.
 

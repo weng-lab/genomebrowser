@@ -42,3 +42,5 @@ These docs ship with the package and are self-contained.
 - [TrackLabel](TrackLabel.md): fixed text labels at plot edges and scale positions.
 
 [Track collections](trackCollections.md) describes the shared JSON format, validation, and `genomebrowser schema` CLI.
+
+See [release notes](releaseNotes.md) for breaking changes and migration guidance.

@@ -39,7 +39,6 @@ flowchart LR
   UI -. "tests and package verification only" .-> TRACKS
 
   STANDALONE -. "server proxy" .-> SCREEN
-  TRACKS -. "transcript queries" .-> SCREEN
   READER -->|full-file and range fetches| FILES
 ```
 
@@ -164,7 +163,6 @@ flowchart TB
   CAVE["CAVE specialization<br/>cave/*"]
   METHYLC["MethylC specialization<br/>methylc/*"]
 
-  TRANSCRIPT["Transcript implementation<br/>transcript/*"]
   CORE["core package"]
   READER["reader package"]
 
@@ -176,7 +174,6 @@ flowchart TB
   EXPORTS -. "subpath exports" .-> BULKBED
   EXPORTS -. "subpath exports" .-> CAVE
   EXPORTS -. "subpath exports" .-> METHYLC
-  EXPORTS -. "subpath exports" .-> TRANSCRIPT
 
   API --> BIGBED
   API --> CCRE
@@ -184,7 +181,6 @@ flowchart TB
   API --> BIGWIG
   API --> CAVE
   API --> METHYLC
-  API --> TRANSCRIPT
 
   SHARED_API -. "re-exports" .-> FOUNDATION
   SHARED_API -. "re-exports" .-> SHARED_UI
@@ -211,8 +207,6 @@ flowchart TB
   METHYLC --> FOUNDATION
   METHYLC --> SHARED_UI
 
-  TRANSCRIPT --> FOUNDATION
-  TRANSCRIPT --> SHARED_UI
 
   BIGBED --> READER
   BIGWIG --> READER
@@ -223,7 +217,6 @@ flowchart TB
   BIGWIG --> CORE
   CAVE --> CORE
   METHYLC --> CORE
-  TRANSCRIPT --> CORE
 ```
 
 The local source graph has no static import cycle. Specialized implementations
@@ -343,7 +336,6 @@ flowchart TB
   COLLECTIONS -. "types" .-> UI
 
   TOOLBARS -. "GraphQL URL" .-> API
-  COLLECTIONS -. "transcript endpoint" .-> API
   API --> SCREEN
 ```
 
