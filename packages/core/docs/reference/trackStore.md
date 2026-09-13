@@ -27,7 +27,7 @@ Call actions through `useTrackStore.getState()` outside rendering, or subscribe 
 
 ## createTrackStore and TrackStoreOptions
 
-`createTrackStore(options): TrackStoreInstance` builds a module registry, validates the initial tracks, and places pinned tracks first. It does not fetch data; a mounted browser coordinates requests for the tracks in the store.
+`createTrackStore(options): TrackStoreInstance<Modules>` builds a module registry, validates the initial tracks, and places pinned tracks first. It does not fetch data; a mounted browser coordinates requests for the tracks in the store.
 
 | Option           | Type                        | Default  | Description                                                                                                                                                    |
 | ---------------- | --------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -35,22 +35,22 @@ Call actions through `useTrackStore.getState()` outside rendering, or subscribe 
 | `tracks`         | `AnyTrackInstance[]`        | `[]`     | Initial runtime instances, validated through their registered modules. Track IDs must be unique.                                                               |
 | `pinnedTrackIds` | `readonly string[]`         | `[]`     | IDs to place first, in top-to-bottom order. Missing IDs are reserved for later additions. The store copies the list and keeps the first occurrence of each ID. |
 
-`TrackStoreOptions<Modules, Track>` preserves the supplied module-array and track types when describing factory input. `Modules` extends `readonly AnyTrackModule[]`; `Track` extends `AnyTrackInstance`. Both default to those broad types. The factory returns `TrackStoreInstance`, whose state can contain different registered track types.
+`TrackStoreOptions<Modules, Track>` preserves the supplied module-array and track types when describing factory input. `Modules` extends `readonly AnyTrackModule[]`; `Track` extends `AnyTrackInstance`. Both default to those broad types. The factory infers `Modules` from the supplied modules and returns `TrackStoreInstance<Modules>`. Its registry retains those module types; stored tracks remain heterogeneous `AnyTrackInstance` values.
 
 Construction throws for duplicate module types, duplicate track IDs, unknown track types, or module-invalid initial instances. Register every module the store will need at creation; its registry has no action for adding modules later. Registering a module makes its type available but does not add a track.
 
 ## TrackStore and TrackStoreInstance
 
-`TrackStore` contains the state below and the actions documented on this page. All actions maintain `tracks` and `order` together.
+`TrackStore<Modules>` contains the state below and the actions documented on this page. All actions maintain `tracks` and `order` together.
 
-| State            | Type                 | Description                                                          |
-| ---------------- | -------------------- | -------------------------------------------------------------------- |
-| `tracks`         | `AnyTrackInstance[]` | Validated instances in display order, including pinned tracks first. |
-| `order`          | `string[]`           | The same order represented by each instance's `base.id`.             |
-| `pinnedTrackIds` | `readonly string[]`  | Configured pins, including IDs whose tracks are absent.              |
-| `registry`       | `ModuleRegistry`     | The modules available to this store, indexed by track type.          |
+| State            | Type                      | Description                                                          |
+| ---------------- | ------------------------- | -------------------------------------------------------------------- |
+| `tracks`         | `AnyTrackInstance[]`      | Validated instances in display order, including pinned tracks first. |
+| `order`          | `string[]`                | The same order represented by each instance's `base.id`.             |
+| `pinnedTrackIds` | `readonly string[]`       | Configured pins, including IDs whose tracks are absent.              |
+| `registry`       | `ModuleRegistry<Modules>` | The modules available to this store, indexed by track type.          |
 
-`TrackStoreInstance` is `UseBoundStore<StoreApi<TrackStore>>`: a Zustand selector hook with `getState()`, `subscribe()`, and the underlying store API. Use the track actions to preserve validation and ordering; direct state writes or mutations of returned objects bypass those checks. Unsubscribe from external subscriptions when their owner is disposed. Unmounting a browser does not discard an application-owned store.
+`TrackStoreInstance<Modules>` is `UseBoundStore<StoreApi<TrackStore<Modules>>>`: a Zustand selector hook with `getState()`, `subscribe()`, and the underlying store API. Use the track actions to preserve validation and ordering; direct state writes or mutations of returned objects bypass those checks. Unsubscribe from external subscriptions when their owner is disposed. Unmounting a browser does not discard an application-owned store.
 
 ### getTrack
 
@@ -64,7 +64,7 @@ const title = useTrackStore.getState().getTrack("signal")?.base.title;
 
 A registry connects each track's `type` to its module. `registry.modules` is a readonly, frozen copy of the original module array. `registry.get(type)` returns the matching module and throws if the type is absent. Copying the array does not clone or freeze the module objects themselves.
 
-`ModuleRegistry<Modules>` can retain specific module types when supplied with a typed module tuple; the default is `readonly AnyTrackModule[]`. A typed registry's `get` signature narrows its result to the matching module where possible. The track store exposes the default, general registry type.
+`ModuleRegistry<Modules>` can retain specific module types when supplied with a typed module tuple; the default is `readonly AnyTrackModule[]`. A typed registry's `get` signature narrows its result to the matching module where possible. The factory preserves this inference through `useTrackStore.getState().registry`, so looking up a known literal module type retains its specific `create` input and interaction types. `TrackStore` and `TrackStoreInstance` also default to `readonly AnyTrackModule[]`; explicitly annotating a store with the default type gives it a general registry. This inference does not associate string track IDs with configuration types in `getTrack` or `updateTrack`.
 
 Use a specific module's `create` method when you need its typed configuration and interaction callbacks. Collection entries must become runtime instances before being passed to store actions; see [collection input](collections.md#trackcollectiontrack-and-trackcollectionentry).
 

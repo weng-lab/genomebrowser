@@ -20,12 +20,12 @@ export type TrackStoreOptions<
   pinnedTrackIds?: readonly string[];
 };
 
-export type TrackStore = {
+export type TrackStore<Modules extends readonly AnyTrackModule[] = readonly AnyTrackModule[]> = {
   tracks: AnyTrackInstance[];
   order: string[];
   pinnedTrackIds: readonly string[];
   setPinnedTrackIds: (ids: readonly string[]) => TrackMutationResult;
-  registry: ModuleRegistry;
+  registry: ModuleRegistry<Modules>;
   setTracks: <Track extends AnyTrackInstance>(tracks: Track[]) => TrackMutationResult;
   addTrack: <Track extends AnyTrackInstance>(track: Track, index?: number) => TrackMutationResult;
   removeTrack: (id: string) => TrackMutationResult;
@@ -41,19 +41,21 @@ export type TrackStore = {
   getTrack: (id: string) => AnyTrackInstance | undefined;
 };
 
-export type TrackStoreInstance = UseBoundStore<StoreApi<TrackStore>>;
+export type TrackStoreInstance<
+  Modules extends readonly AnyTrackModule[] = readonly AnyTrackModule[],
+> = UseBoundStore<StoreApi<TrackStore<Modules>>>;
 
 export function createTrackStore<
   const Modules extends readonly AnyTrackModule[],
   Track extends AnyTrackInstance = AnyTrackInstance,
->(options: TrackStoreOptions<Modules, Track>): TrackStoreInstance {
+>(options: TrackStoreOptions<Modules, Track>): TrackStoreInstance<Modules> {
   const registry = createModuleRegistry(options.modules);
   const initialTracks = validateTracks(options.tracks ?? [], registry);
   assertUniqueTrackIds(initialTracks);
 
   const pinnedTrackIds = [...new Set(options.pinnedTrackIds)];
 
-  return create<TrackStore>((set, get) => ({
+  return create<TrackStore<Modules>>((set, get) => ({
     ...getOrderedTracks(initialTracks, pinnedTrackIds),
     pinnedTrackIds,
     setPinnedTrackIds: (ids) => {
