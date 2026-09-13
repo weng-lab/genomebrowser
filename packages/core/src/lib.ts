@@ -33,7 +33,6 @@ export type {
   AnyTrackInstance,
   AnyTrackInteraction,
   AnyTrackModule,
-  AnyTrackTooltipComponent,
   ModuleCreateInput,
   ModuleInstance,
   ReadonlyTrackInstance,
@@ -46,23 +45,25 @@ export type {
   TrackFetchDemand,
   TrackFetchTrack,
   TrackInstance,
-  TrackInteraction,
-  TrackInteractionCallback,
   TrackMutationResult,
   TrackModule,
-  TrackRenderer,
-  TrackRendererInteraction,
-  TrackRendererProps,
   TrackResources,
   TrackSettingsComponent,
   TrackSource,
   TrackSettingsProps,
-  TrackRuntimeContext,
-  TrackTooltipComponent,
   TrackUpdate,
 } from "./modules/types";
 
 // Renderer integration
+export type {
+  TrackRenderer,
+  TrackRendererProps,
+  TrackRendererInteraction,
+  TrackInteraction,
+  TrackInteractionCallback,
+  TrackRuntimeContext,
+  TrackTooltipComponent,
+} from "./modules/types";
 export { useInteraction } from "./modules/interaction";
 export { useTooltip } from "./browser/tooltip/useTooltip";
 export { useAutoTrackHeight } from "./browser/track-row/useAutoTrackHeight";
@@ -86,4 +87,3 @@ export type {
   TrackMetadata,
   TrackCollectionTrack,
 } from "./collections/collectionSchema";
-export type { TrackCollectionEntry } from "./modules/registry";

@@ -1,4 +1,4 @@
-import type { AnyTrackModule, TrackCreateInput } from "./types";
+import type { AnyTrackModule } from "./types";
 
 type ModuleForType<Modules extends readonly AnyTrackModule[], Type extends string> =
   Extract<Modules[number], { type: Type }> extends never
@@ -11,11 +11,6 @@ export type ModuleRegistry<Modules extends readonly AnyTrackModule[] = readonly 
     get<T extends string>(type: T): ModuleForType<Modules, T>;
     get(type: string): Modules[number];
   };
-
-export type TrackCollectionEntry = TrackCreateInput<Record<string, unknown>> & {
-  type: string;
-  metadata?: Record<string, string | number | boolean | null>;
-};
 
 export function createModuleRegistry<const Modules extends readonly AnyTrackModule[]>(
   modules: Modules,

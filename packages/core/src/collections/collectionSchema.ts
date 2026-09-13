@@ -1,6 +1,5 @@
 import { z } from "zod";
-import type { AnyTrackModule } from "../modules/types";
-import type { TrackCollectionEntry } from "../modules/registry";
+import type { AnyTrackModule, TrackCreateInput } from "../modules/types";
 
 export const TrackMetadataValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 
@@ -63,7 +62,10 @@ export function createTrackCollectionSchema(modules: readonly AnyTrackModule[]) 
 export type TrackCollectionColumn = z.infer<typeof TrackCollectionColumnSchema>;
 export type TrackCollectionView = z.infer<typeof TrackCollectionViewSchema>;
 export type TrackMetadata = Record<string, string | number | boolean | null>;
-export type TrackCollectionTrack = Omit<TrackCollectionEntry, "source">;
+export type TrackCollectionTrack = Omit<TrackCreateInput<Record<string, unknown>>, "source"> & {
+  type: string;
+  metadata?: TrackMetadata;
+};
 export type TrackCollection = z.input<typeof TrackCollectionBaseSchema> & {
   tracks: TrackCollectionTrack[];
 };
