@@ -194,7 +194,7 @@ If track creation, interaction validation, or the store update fails, the store 
 
 ### Collections
 
-See the `@weng-lab/genomebrowser` package’s `docs/trackCollections.md` for the portable JSON format, assembly identifiers, track configuration, and optional views and metadata.
+See the `@weng-lab/genomebrowser` package’s `docs/legacy/trackCollections.md` for the portable JSON format, assembly identifiers, track configuration, and optional views and metadata.
 
 TrackSelect displays each collection's assembly identifier. It uses `label ?? id` as the collection name and an ungrouped title view when `views` is omitted. The view selector appears only when there are multiple views. Assembly matching and filtering are application responsibilities; TrackSelect does not select or change the browser assembly.
 

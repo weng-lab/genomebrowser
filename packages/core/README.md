@@ -23,8 +23,6 @@ import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
   region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
-  marginWidth: 120,
-  trackWidth: 880,
 });
 
 const useTrackStore = createTrackStore({
@@ -51,7 +49,7 @@ Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser.
 
 Store factory results are Zustand hooks, so their names should begin with `use`. Keep both stores stable: recreating them during render resets browser state and request coordination.
 
-For a responsive browser that follows its container width, see [Getting started](docs/gettingStarted.md).
+For a responsive browser that follows its container width, see [Getting started](docs/legacy/gettingStarted.md).
 
 ## What it provides
 
@@ -72,12 +70,10 @@ Add `@weng-lab/genomebrowser-tracks@beta` for the curated BigBed, BigWig, BulkBe
 
 ## Documentation
 
-- [Getting started](docs/gettingStarted.md) - installation, stable stores, and responsive sizing
-- [Core concepts](docs/concepts.md) - state ownership, requests, and interaction lifetimes
-- [Recipes](docs/recipes.md) - common navigation, track, highlight, and sizing tasks
-- [Tracks](docs/tracks.md) - register modules and create track instances
-- [Custom track modules](docs/customTrackModules.md) - create a validated track type
-- [Troubleshooting](docs/troubleshooting.md) - diagnose setup, validation, request, and sizing problems
+- [Documentation overview](docs/README.md) - learning path and topic navigation
+- [Getting started](docs/legacy/gettingStarted.md) - install and render a responsive browser
+- [API reference](docs/reference/README.md) - browser component, viewport store, assemblies, and regions
+- [Troubleshooting](docs/legacy/troubleshooting.md) - diagnose setup and runtime problems
 
 ## Runtime requirements
 
@@ -85,6 +81,6 @@ Genome Browser v2 is intended for client-side React 19.2+ applications. It uses 
 
 It is not a server-rendered visualization runtime.
 
-Coordinate rulers are regular tracks supplied by `@weng-lab/genomebrowser-tracks/ruler`. Add one explicitly if needed. [Region selection modes](docs/concepts.md#region-selection-and-ruler-tracks) work across the browser independently of the ruler.
+Coordinate rulers are regular tracks supplied by `@weng-lab/genomebrowser-tracks/ruler`. Add one explicitly if needed. [Region selection modes](docs/legacy/concepts.md#region-selection-and-ruler-tracks) work across the browser independently of the ruler.
 
-[Track collections](docs/trackCollections.md) describes the shared JSON format, validation, and `genomebrowser schema` CLI.
+[Track collections](docs/legacy/trackCollections.md) describes the shared JSON format, validation, and `genomebrowser schema` CLI.

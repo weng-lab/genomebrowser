@@ -1,43 +1,27 @@
-# @weng-lab/genomebrowser
+# Core documentation
 
-`@weng-lab/genomebrowser` is a React runtime for displaying genomic tracks. It provides the browser viewport, validated Zustand stores, module infrastructure, and an extension API for custom track types.
+Use `@weng-lab/genomebrowser` to render genomic tracks, manage the viewport and track state, and implement custom track types. These docs ship with the package.
 
-Install the package with its React peer dependencies:
+## Reviewed API reference
 
-```sh
-pnpm add @weng-lab/genomebrowser@beta react@^19.2 react-dom@^19.2
-```
+The [reference index](reference/README.md) maps every public core export to its reference page, including the schema CLI.
 
-The package is intended for client-side React 19.2+ applications. Its browser uses SVG, pointer events, `ResizeObserver` for default responsive sizing, and remote data requests. It is not a server-rendered visualization runtime.
+- [GenomeBrowser](reference/GenomeBrowser.md): rendering, responsive and fixed sizing, and magnification.
+- [Track store](reference/trackStore.md): registration, mutations, ordering, and pinning.
+- [Browser store](reference/browserStore.md): initialization, navigation, selection, and highlights.
+- [Assemblies and regions](reference/assembliesAndRegions.md): presets, custom definitions, coordinates, parsing, and validation.
+- [Track modules](reference/trackModules.md): definition, creation, fetch/render contracts, resources, settings, and interactions.
+- [Runtime helpers](reference/runtimeHelpers.md): schema markers, renderer hooks, and settings grouping.
+- [TrackOverlay](reference/TrackOverlay.md) and [TrackLabel](reference/TrackLabel.md): fixed SVG annotations.
+- [Collections](reference/collections.md): authored tracks, view schemas, validation, and CLI generation.
+- [Context menus](reference/contextMenus.md): menu state, hooks, and built-in behavior.
 
-## Runtime and optional UI
+## Documentation awaiting migration
 
-`@weng-lab/genomebrowser` renders and manages the browser itself. `@weng-lab/genomebrowser-ui@beta` is a separate optional package for higher-level application UI such as collection-backed track selection. Both can share the same track store; installing the UI package is not required to render a browser.
+The remaining pages are in [legacy/](legacy/README.md). Their placement marks documentation that has not completed review under the new structure; it does not mean the APIs themselves are deprecated. Use the reviewed references above when topics overlap.
 
-## Recommended API
+For initial setup, the existing [getting-started page](legacy/gettingStarted.md) remains available while the cumulative tutorial is developed. The legacy index lists the remaining tutorials, guides, and troubleshooting material.
 
-Most applications need a small surface:
+## Package boundaries
 
-- `createBrowserStore` for region, dimensions, zoom, and highlights
-- `createTrackStore` for registered modules and validated track instances
-- one or more registered modules, either application-defined or supplied by a track package
-- `GenomeBrowser` to render those stores
-
-Create the stores once, outside ordinary component render, and pass the same track store to any companion UI. Module authors additionally use `defineTrackModule`, `fetchOnChange`, focused renderer hooks, and exported module types. Internal package paths are not public API.
-
-## Learning path
-
-- [Getting started](gettingStarted.md): install, create stable stores, render responsively, and update state.
-- [GenomeBrowser](GenomeBrowser.md): component API, responsive and fixed sizing, and whole-browser magnification.
-- [Core concepts](concepts.md): state ownership, request behavior, and interaction lifetimes.
-- [Recipes](recipes.md): common track, navigation, highlight, sizing, and optional UI tasks.
-- [Tracks](tracks.md): module registration, track creation, and runtime behavior.
-- [Custom track modules](customTrackModules.md): add a validated fetch/render type.
-- [Troubleshooting](troubleshooting.md): diagnose setup, validation, request, and sizing failures.
-
-These docs ship with the package and are self-contained.
-
-- [TrackOverlay](TrackOverlay.md): fixed SVG annotations within a track.
-- [TrackLabel](TrackLabel.md): fixed text labels at plot edges and scale positions.
-
-[Track collections](trackCollections.md) describes the shared JSON format, validation, and `genomebrowser schema` CLI.
+Core owns the runtime and public extension contracts. First-party modules come from `@weng-lab/genomebrowser-tracks`. Optional application controls, including TrackSelect, come from `@weng-lab/genomebrowser-ui`; they can share the runtime's stores. Package internals are not public import paths.

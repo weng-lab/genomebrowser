@@ -1,0 +1,177 @@
+# Browser store
+
+Use `createBrowserStore` to own a browser's assembly, visible region, sizing configuration, selection mode, and highlights. Pass the resulting stable hook to [GenomeBrowser](GenomeBrowser.md).
+
+## Usage
+
+```tsx
+import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
+
+const useBrowserStore = createBrowserStore({
+  assembly: hg38,
+  region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
+});
+
+export function RegionReadout() {
+  const region = useBrowserStore((state) => state.region);
+  return (
+    <output>
+      {region.chromosome}:{region.start}-{region.end}
+    </output>
+  );
+}
+```
+
+The factory returns a Zustand hook. Name it with a `use` prefix and create it once at a stable initialization boundary. A module-level store, as above, is shared by its consumers; create separate stable stores when browser instances need independent state. Recreating a store during rendering resets that state.
+
+Use the hook's selector in React, `getState()` for current state and actions outside rendering, and `subscribe(listener)` for external subscriptions. Unsubscribe when their owner is disposed. The application owns the store's lifetime; unmounting a browser does not discard it. Use the domain actions below to preserve validation rather than bypassing them with Zustand's `setState`.
+
+## createBrowserStore and BrowserStoreInput
+
+`createBrowserStore(input: BrowserStoreInput): BrowserStoreInstance` validates construction input and throws if it cannot create valid state. The initial region is normalized against a copied, frozen assembly; a partially overlapping interval is clamped. See [assemblies and regions](assembliesAndRegions.md) for coordinate and validation rules.
+
+| Option               | Type                      | Default                                               | Description                                                                              |
+| -------------------- | ------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `assembly`           | `AssemblyDefinition`      | Required                                              | Sequence names and bounds, fixed for this store's lifetime.                              |
+| `region`             | `GenomicRegion`           | Required                                              | Initial zero-based, half-open visible interval. Supply an object; parse text explicitly. |
+| `marginWidth`        | `number`                  | `50`                                                  | Positive finite left gutter width in logical SVG units.                                  |
+| `trackWidth`         | `number`                  | `1000`                                                | Positive finite track width for fixed sizing, excluding the margin.                      |
+| `fontSize`           | `number`                  | `10`                                                  | Positive finite font size in logical SVG units.                                          |
+| `titleSize`          | `number`                  | `12`                                                  | Positive finite track-title font size in logical SVG units.                              |
+| `highlights`         | `Highlight[]`             | `[]`                                                  | Initial highlights, validated individually.                                              |
+| `selectionMode`      | `BrowserSelectionMode`    | `"pan"`                                               | Initial drag behavior.                                                                   |
+| `selectionHighlight` | `SelectionHighlightStyle` | `{ color: "#f59e0b", opacity: 0.25, type: "filled" }` | Complete style used for newly drawn highlights.                                          |
+
+Responsive views measure their own width and do not write that measurement into `trackWidth`. Two views sharing a store can have different sizes and scales. See [sizing examples](GenomeBrowser.md#examples).
+
+## BrowserStore and BrowserStoreInstance
+
+`BrowserStore` contains all fields in the input table as initialized state: `assembly`, normalized `region`, `marginWidth`, `trackWidth`, `fontSize`, `titleSize`, `highlights`, `selectionMode`, and `selectionHighlight`. Input defaults are resolved, so these state fields are present. It also contains the actions below. `assembly` is readonly; the public action API has no assembly, margin, or typography setter.
+
+`BrowserStoreInstance` is `UseBoundStore<StoreApi<BrowserStore>>`, the Zustand hook plus its imperative store API.
+
+### useBrowserStore
+
+The exported `useBrowserStore<T>(selector: (state: BrowserStore) => T): T` subscribes to the store passed to the surrounding `GenomeBrowser`. Use it in components rendered inside the browser, such as a track’s settings component, when they need browser state or actions without receiving a store prop. It throws if called outside that browser context.
+
+The local `useBrowserStore` variable in the Usage example is instead the result of `createBrowserStore`. You choose that variable’s name, and it always accesses the particular store you created, including from application controls outside the browser. The exported hook chooses its store from React context and has no imperative `getState()` API.
+
+## Navigation
+
+### setRegion
+
+`setRegion(region: GenomicRegion): BrowserRegionMutationResult` validates and commits a region using the store's assembly. It intersects partial overlaps with chromosome bounds, rejects non-overlapping intervals, and leaves state unchanged on failure.
+
+For text input, handle parsing errors separately from mutation results. Using the store from Usage:
+
+```ts
+import { parseRegion, type GenomicRegion } from "@weng-lab/genomebrowser";
+
+function goToRegion(input: string) {
+  let region: GenomicRegion;
+  try {
+    region = parseRegion(input);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : "Invalid region");
+    return;
+  }
+
+  const result = useBrowserStore.getState().setRegion(region);
+  if (!result.ok) {
+    console.error(result.error);
+  } else if (result.clamped) {
+    console.info(`Showing ${result.region.chromosome}:${result.region.start}-${result.region.end}`);
+  }
+}
+
+goToRegion("chr12:53,372,922-53,423,700");
+```
+
+### zoom
+
+`zoom(factor: number, centerBase?: number): BrowserRegionMutationResult` multiplies the current interval width by a positive finite factor. Values below one zoom in; values above one zoom out. The target width is rounded to the nearest integer with a minimum of one base, and its start is rounded around the chosen center before normalization.
+
+The default center is the current interval midpoint. An explicit center must be a safe integer within the current chromosome's `[0, length)` bounds; it need not lie inside the current visible interval.
+
+```ts
+const zoomIn = useBrowserStore.getState().zoom(0.5);
+if (!zoomIn.ok) console.error(zoomIn.error);
+
+const zoomOut = useBrowserStore.getState().zoom(2, 2_050_000);
+if (!zoomOut.ok) console.error(zoomOut.error);
+```
+
+Boundary clamping can shorten the requested interval. A successful store mutation updates state synchronously; it does not wait for mounted tracks to finish fetching or rendering. See [request behavior](../legacy/concepts.md#exact-request-behavior).
+
+### BrowserRegionMutationResult and BrowserRegionMutationErrorCode
+
+Both navigation actions return:
+
+```ts
+import type { BrowserRegionMutationErrorCode, GenomicRegion } from "@weng-lab/genomebrowser";
+
+type Result =
+  | { ok: true; region: GenomicRegion; clamped: boolean }
+  | { ok: false; code: BrowserRegionMutationErrorCode; error: string };
+```
+
+`BrowserRegionMutationErrorCode` includes every [RegionErrorCode](assembliesAndRegions.md#regionresult-and-regionerrorcode), plus `INVALID_ZOOM_FACTOR` and `INVALID_ZOOM_CENTER`. Even a finite zoom factor can produce an invalid coordinate if the calculated interval overflows. Expected navigation failures return a result and leave state unchanged.
+
+## Fixed width
+
+`setTrackWidth(trackWidth: number): BrowserViewportMutationResult` commits a positive finite logical track width. It affects views using `sizing="fixed"`; it does not change responsive measurements or the genomic interval.
+
+`BrowserViewportMutationResult` is `{ ok: true; trackWidth: number }` or `{ ok: false; code: "INVALID_TRACK_WIDTH"; error: string }`. An invalid width leaves the previous value unchanged.
+
+## Selection
+
+`BrowserSelectionMode` is `"pan" | "zoom" | "highlight"`. `setSelectionMode(mode: BrowserSelectionMode): void` replaces the active mode. Zoom and highlight modes remain active after a drag.
+
+`SelectionHighlightStyle` is `Pick<Highlight, "color" | "opacity" | "type">`. `setSelectionHighlight(style: SelectionHighlightStyle): void` replaces the complete style; it does not merge omitted fields or restyle existing highlights. Both setters validate their input and throw before changing state on failure.
+
+```ts
+useBrowserStore.getState().setSelectionHighlight({
+  color: "#2563eb",
+  opacity: 0.8,
+  type: "outlined",
+});
+useBrowserStore.getState().setSelectionMode("highlight");
+// Drag the data area to add highlights; use "zoom" to navigate or "pan" to restore panning.
+```
+
+See [selection interactions](../legacy/concepts.md#region-selection-and-ruler-tracks) for pointer behavior, cancellation, and keyboard responsibilities.
+
+## Highlights
+
+Highlights mark genomic intervals across the track area. Add them programmatically with `addHighlight`, or let users draw them in highlight selection mode. The `Highlight` type describes each stored entry.
+
+### Highlight
+
+| Field     | Type                                                  | Default                            | Description                                                                                                                            |
+| --------- | ----------------------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`      | `string`                                              | Required                           | Non-empty identifier used for addition and removal.                                                                                    |
+| `region`  | `{ chromosome?: string; start: number; end: number }` | Required                           | Integer bounds with `start < end`. Omit chromosome to show this coordinate range on any chromosome; a supplied name must be non-empty. |
+| `color`   | `string`                                              | Required                           | Non-empty color string. Validation does not check CSS color syntax.                                                                    |
+| `opacity` | `number`                                              | `0.2` for filled; `1` for outlined | Value from zero to one, applied to fill or border at rendering time.                                                                   |
+| `type`    | `"filled"` or `"outlined"`                            | `"filled"`                         | Fill behind track data or transparent interior with a two-unit SVG border above track data.                                            |
+
+Highlights are validated independently of the assembly: their chromosome membership and bounds are not normalized against it. Rendering clips them to the track area and shows chromosome-scoped entries only on the matching chromosome. Highlights follow the genomic coordinates during pan and zoom. Missing `type` and `opacity` stay optional in stored entries; rendering applies their defaults.
+
+### addHighlight and removeHighlight
+
+`addHighlight(highlight: Highlight): void` validates and appends an entry. An already-present ID is a no-op after validation; invalid input throws. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
+
+`removeHighlight(id: string): void` removes all entries matching that ID; a missing ID is a no-op.
+
+```ts
+useBrowserStore.getState().addHighlight({
+  id: "candidate",
+  region: { chromosome: "chr2", start: 2_020_000, end: 2_030_000 },
+  color: "#3366cc",
+  type: "outlined",
+});
+
+useBrowserStore.getState().removeHighlight("candidate");
+```
+
+To add a filled highlight, omit `type` or use `"filled"`. Selection-created highlights use the active selection style, whose initial opacity is `0.25`, rather than the generic filled-highlight rendering default.

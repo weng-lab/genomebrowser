@@ -1,158 +1,68 @@
 ---
 name: genomebrowser-docs
-description: Use when creating or revising documentation, or when implementation changes affect public behavior, components, APIs, options, configuration, examples, accessibility, contributor guidance, or documented decisions. Covers package docs and root maintainer docs. Exclude ADRs, commit messages, TODO.md files, and code comments unless the user explicitly asks for them.
+description: Organize and maintain bundled genomebrowser package docs and repository maintainer guidance, including documentation updates for public behavior or API changes. Covers audits and documentation migrations; edit ADRs only when requested. Excludes commit messages, TODO files, and code comments unless requested.
 ---
 
 # Genome Browser Docs
 
-Write Genome Browser documentation that is accurate, practical, and useful from the reader's point of view. Documentation affected by an implementation change is part of that change.
+Documentation describes the system at the documented revision. Bundled docs describe their accompanying package version. A reader should not need knowledge of an earlier implementation to understand the current system.
 
-## Collaboration Mode
+## Scope and routing
 
-Treat documentation work as collaborative drafting by default.
+For discussion or an audit, propose the audience, page map, and content approach before editing. When documentation edits or a package pass are authorized, complete that scope without approval for each page. Documentation required by an implementation change is already in scope. Do not expand a focused change into a package-wide migration.
 
-- If the user asks to design, discuss, review, or work through docs, do not edit files yet.
-- Start by proposing the audience, structure, and content approach.
-- Ask at most 1-2 focused questions when a decision affects the shape of the docs.
-- Draft incrementally: outline first, then one page or section at a time.
-- Prefer short working drafts over large polished documents unless the user asks for a full pass.
-- Create or update files after an explicit documentation instruction such as "write this," "update the docs," "scaffold the files," or "apply that."
-- When the user requests an implementation change, treat documentation required by that change as already in scope; do not wait for a separate documentation request.
-- After editing, summarize what changed and ask what to refine next.
-- Treat this similarly to pair programming, and when the user makes changes themselves, read the file again.
+Read only the references relevant to the work:
 
-## Audience First
+- For package page creation, placement, tutorials, audits, or restructuring, read [Package architecture](references/packageArchitecture.md). It defines the target tree, learning path, and package migration workflow. A wording-only edit does not require it.
+- For documenting or changing components, functions, hooks, stores, module contracts, types, or other public APIs, read [API reference writing](references/apiReference.md). It defines canonical coverage, API grouping, and component templates.
+- For root maintainer docs, app READMEs, architecture, design/contribution guidance, or requested ADR work, read [Maintainer documentation](references/maintainerDocs.md).
 
-Decide the audience before writing:
+A task may need multiple references; do not load all of them by default. Existing docs may not yet follow the target architecture. Preserve the scope of a focused edit rather than moving unrelated pages.
 
-- User-facing package docs explain how to use the shipped package from its public surface.
-- Maintainer docs give agents and contributors the decisions, patterns, constraints, ownership, and workflows needed to work in the repository.
+## Shared documentation contract
 
-Do not mix the two audiences casually. If a user page needs background from maintainer docs, duplicate the small user-relevant explanation instead of sending package readers into repo internals.
+- Package docs teach consumers through the public surface; maintainer docs explain repository boundaries, rationale, and safe modification. Keep the audiences distinct.
+- Give each topic one canonical home. Tutorials teach a sequence, guides explain independent tasks/concepts, reference specifies APIs, and troubleshooting diagnoses symptoms. Link to exhaustive reference instead of duplicating its tables.
+- Every public export needs a reference destination, not a separate file. Keep related types with the owning API and small cooperating components together. Add a page for a distinct reader task or capability, not simply because a PR or option exists.
+- Package docs must work from an installed package. Use package-local relative links; never link upward into repository-only docs or across to sibling package directories. Cross-package links need verified published destinations, with enough local context to follow the example.
+- Examples use public exports. For track URLs use `YOUR_URL_HERE` or an existing repository URL. Do not invent data sources or APIs to simplify examples.
 
-## Context Check
+## Updating docs with implementation changes
 
-Before changing docs, do a proportional context check:
+When a PR changes behavior:
 
-- Read repo instructions and style guidance.
-- Read existing docs near the target page.
-- Read the relevant implementation and exported types before documenting behavior or APIs.
-- Check existing tests, stories, and examples for supported states and intended usage.
-- Inspect the package's public entry points so imports and examples match what users can actually use.
-- Verify defaults, callbacks, composition, constraints, and accessibility behavior against code.
-- Run or type-check examples when practical.
+1. Find the canonical explanation and other affected examples, API tables, tutorials, troubleshooting entries, and architectural claims.
+2. Rewrite existing explanations and examples to describe the complete resulting behavior. Integrate options into the API and workflow rather than appending a change announcement.
+3. Remove obsolete instructions, superseded examples, irrelevant caveats, and abandoned ideas. Update links and index entries when destinations change.
+4. Read the affected sections as a whole for contradictions, repetition, and dependence on historical context. Verify the resulting description against code, not just the new sentences.
 
-Use implementation files to verify behavior, not as the organizing structure for the docs.
-If behavior cannot be confirmed, omit it or clearly mark it as needing verification. Never invent props, defaults, behavior, accessibility support, imports, or usage recommendations.
+Prefer direct current behavior over phrases such as "previously," "now supports," or "unlike the old API." For example, write "The module supplies the complete settings form" rather than appending a correction beneath an outdated explanation.
 
-## Package Docs Contract
+Retain useful rationale for current decisions. Change history belongs in PRs, release notes, or clearly labeled historical ADRs. Separate migration guidance and include it only when requested or necessary for a supported upgrade path. Do not introduce compatibility APIs as part of documentation work.
 
-Package docs must work for someone reading them from an installed package:
+## Evidence and writing
 
-- Keep package docs self-contained.
-- Do not link upward into repository-only docs from package docs.
-- Use public package exports in examples unless explicitly documenting an internal maintainer workflow.
-- Use `YOUR_URL_HERE` for example track URLs unless reusing an existing URL already present in the repo.
+Read the relevant repository instructions, existing docs, public entry points, implementation, and tests before making behavioral claims. Verify defaults, callback timing, ownership, lifetimes, errors, constraints, and accessibility against source or tests. Omit unconfirmed claims or identify the uncertainty explicitly; do not present proposals as implemented behavior.
 
-## Component Pages
+Organize by reader needs rather than source-file layout. Lead examples with the smallest realistic working setup; include required imports, props, and context, and keep advanced cases separate.
 
-Give each public component its own package documentation page. Use this structure and omit sections that do not apply:
+## Voice and style
 
-```md
-# ComponentName
+Write for someone using or changing the genome browser. Be direct and concrete without sacrificing technical detail.
 
-One or two sentences describing what the component does and when to use it.
+- Introduce what a capability does and when to use it before presenting signatures or tables. Guides build a workflow; references need only a short introduction before the complete contract.
+- Define unfamiliar terms with an example. A sequence name identifies a chromosome or contig, such as `chr1`. Preserve API names and use consistent terminology.
+- Address the reader as "you." Name who does what: the application owns the store, the module fetches data, and the browser renders tracks.
+- Explain behavior rather than praising it. Write "Invalid regions leave the viewport unchanged," not "Validation ensures a seamless experience."
+- Use plain words and connected, manageable sentences. Remove filler, repeated package identity, and claims that add no useful information.
+- Use sentence-case headings, straight quotes, and restrained emphasis. Separate prose thoughts with periods or commas instead of em dashes or parenthetical asides. Preserve required code and mathematical punctuation.
 
-## Usage
+Before finishing, read the page for flow. Fix abrupt lists of facts, undefined terms, dense sentences, and redundant explanations while retaining defaults, errors, and constraints.
 
-Minimal runnable example.
+## Completion
 
-## Examples
-
-Focused examples for important variants, states, and behaviors.
-
-## API
-
-Exhaustive public props, types, defaults, and callbacks.
-
-## Accessibility
-
-Verified semantics, keyboard behavior, labeling, and focus behavior.
-
-## Notes
-
-Limitations, constraints, or behavior that may surprise users.
-```
-
-The first example must be the smallest realistic example that works. Include required imports and props, enough surrounding code to understand it, and only public APIs. Do not lead with advanced configuration.
-
-Add focused examples for important concepts such as variants, loading or disabled states, controlled behavior, callbacks, composition, styling, and responsive behavior. Each example should teach one main idea; do not document trivial prop combinations.
-
-For components made from multiple parts, show the expected structure early. Explain which parts are required and optional.
-
-### API Tables
-
-Document every package-owned public prop and option that a user can interact with. For compound components, document the public props for each part. Do not enumerate all standard DOM attributes when a component forwards them; state what element receives them and note any exceptions.
-
-Use this table shape:
-
-| Prop | Type | Default | Description |
-| ---- | ---- | ------- | ----------- |
-
-Include required props, behaviorally significant defaults, callbacks and when they run, controlled and uncontrolled relationships, non-obvious prop interactions, and deprecated props with replacements. Descriptions must explain behavior rather than repeat the prop name.
-
-Use generated type information when reliable tooling exists, but do not publish an unreviewed type dump. Otherwise compare the table manually against the exported types. The table must remain exhaustive even when handwritten.
-
-### Accessibility
-
-Document only behavior verified in the implementation or tests. Cover accessible names, semantic HTML or ARIA roles, keyboard interactions, focus placement and restoration, and disabled or read-only behavior when relevant. Never infer or promise unsupported accessibility behavior.
-
-## Broader User Docs
-
-Use getting-started, concept, workflow, recipe, track, and troubleshooting pages for system-level guidance that spans components or explains complete user tasks. Prefer mental models, workflows, examples, defaults, and sharp edges over repeating component API tables.
-
-For these pages:
-
-1. Start with the user goal and when to use the feature.
-2. Explain ownership, lifecycle, data flow, or responsibility boundaries when relevant.
-3. Show one minimal realistic example.
-4. Explain important behavior that is not obvious from names or types.
-5. Include common tasks, defaults, constraints, and sharp edges.
-
-Keep the happy path approachable. Move advanced material into recipes, advanced sections, or separate pages instead of making the first page intimidating.
-
-## Maintainer Docs
-
-Keep root maintainer docs lightweight and actionable. Record decisions, repository patterns, constraints, contributor workflows, ownership, and implementation guidance that agents and maintainers need to change the code safely. Do not turn maintainer docs into user guides or duplicate package API references.
-
-ADRs remain the source of truth for high-level decisions. Use the ADR skill when creating or changing one.
-
-## Writing Style
-
-- Use direct, concise sentences and address the reader as "you" when giving instructions.
-- Use sentence-case headings and the same terminology as the public API.
-- Prefer concrete descriptions and practical examples over marketing language.
-- Explain why or when something is useful, not only how to configure it.
-- Avoid repeating information already clear from the example or API table.
-- Do not describe planned or undocumented behavior as existing behavior.
-
-## Organization Guidance
-
-Organize docs by reader-facing concepts and workflows, not source-file layout or current implementation boundaries.
-
-Prefer small entry points that route readers to focused pages for getting started, core concepts, major features, recipes, and troubleshooting. Do not create a page only because a file, type, or function exists.
-
-## Completion Check
-
-Before finishing a docs change:
-
-- Verify every affected public component has a page and an exhaustive API table for its package-owned public props and options.
-- Compare component API tables with current exported types and defaults.
-- Verify package docs are self-contained and install-safe.
-- Verify examples import only public package exports unless explicitly documenting internals.
-- Verify examples avoid hallucinated track URLs.
-- Verify examples match supported behavior and type-check or run them when practical.
-- Verify accessibility guidance is supported by the implementation.
-- Verify limitations and surprising behavior are documented where relevant.
-- Complete all documentation updates required by the change rather than merely suggesting them as follow-up work.
-- In the final response, name the documentation files changed or state why the implementation has no documentation impact.
+- Check affected API coverage using the API reference guidance when applicable.
+- Read changed pages as a coherent current snapshot; remove conflicting or obsolete claims and duplicate authoritative explanations.
+- Check links, heading targets, navigation, and inbound links after moves. Verify bundled pages remain included in the package.
+- Type-check or run examples when practical, and use existing repository verification tools. Validation must cover the resulting docs, not merely added text.
+- Complete the documentation required by the authorized scope. Report files changed, validation, and material uncertainty; distinguish planned work from finished documentation.
