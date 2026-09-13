@@ -7,14 +7,12 @@ import { z } from "zod";
 import { SettingsModalController } from "../../src/browser/overlays/SettingsModalController";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { BrowserProvider, InteractionGateProvider } from "../../src/browser/state/BrowserContext";
-import { useSettingsStore, useTrackStore } from "../../src/browser/state/browserContextState";
 import { createContextMenuStore } from "../../src/browser/state/contextMenuStore";
 import { RegistryProvider } from "../../src/browser/state/RegistryContext";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { hg38 } from "../../src/genome/presets";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
-import type { SettingsModalProps } from "../../src/browser/settings/types";
 import type {
   AnyTrackInstance,
   TrackMutationResult,
@@ -62,118 +60,11 @@ afterEach(async () => {
 });
 
 describe("SettingsModalController", () => {
-  it("isolates modal header and field subscriptions", async () => {
-    let modalRenderCount = 0;
-    let headerRenderCount = 0;
-    let baseRenderCount = 0;
-    let colorRenderCount = 0;
-    let titleRenderCount = 0;
-    let moduleRenderCount = 0;
-    let modalTitle: string | undefined;
-    let modalColor: string | undefined;
-    function Modal({ children, trackId }: SettingsModalProps) {
-      modalRenderCount += 1;
-      return (
-        <div>
-          <ModalHeader trackId={trackId} />
-          {children}
-        </div>
-      );
-    }
-    function ModalHeader({ trackId }: { trackId: string }) {
-      headerRenderCount += 1;
-      const title = useTrackStore((state) => state.getTrack(trackId)?.base.title);
-      const color = useTrackStore((state) => state.getTrack(trackId)?.base.color);
-      modalTitle = title ? `Configure ${title}` : undefined;
-      modalColor = color;
-      return null;
-    }
-    function BaseSettings() {
-      baseRenderCount += 1;
-      return (
-        <>
-          <ColorField />
-          <TitleField />
-        </>
-      );
-    }
-    function ColorField() {
-      colorRenderCount += 1;
-      const trackId = useSettingsStore((state) => state.trackId)!;
-      const color = useTrackStore((state) => state.getTrack(trackId)?.base.color);
-      const updateTrack = useTrackStore((state) => state.updateTrack);
-      return (
-        <button type="button" onClick={() => updateTrack(trackId, { base: { color: "#112233" } })}>
-          Change {color}
-        </button>
-      );
-    }
-    function TitleField() {
-      titleRenderCount += 1;
-      const trackId = useSettingsStore((state) => state.trackId)!;
-      const title = useTrackStore((state) => state.getTrack(trackId)?.base.title);
-      return <span>{title}</span>;
-    }
-    function ModuleSettings() {
-      moduleRenderCount += 1;
-      return <div>Module settings</div>;
-    }
-
-    const module = { ...signalModule, settingsComponent: ModuleSettings };
-    const track = module.create({
-      base: {
-        id: "track",
-        title: "Track",
-      },
-      config: { url: "YOUR_URL_HERE" },
-    });
-    const trackStore = createTrackStore({ modules: [module], tracks: [track] });
-    const settingsStore = createSettingsStore({
-      modalComponent: Modal,
-      baseSettingsComponent: BaseSettings,
-    });
-    settingsStore.getState().openSettings("track", { x: 0, y: 0 });
-
-    await mountController(trackStore, settingsStore);
-    expect(modalRenderCount).toBe(1);
-    expect(headerRenderCount).toBe(1);
-    expect(baseRenderCount).toBe(1);
-    expect(colorRenderCount).toBe(1);
-    expect(titleRenderCount).toBe(1);
-    expect(moduleRenderCount).toBe(1);
-
-    const button = container?.querySelector("button");
-    if (!(button instanceof HTMLButtonElement)) throw new Error("Settings button not found");
-    await act(async () => button.click());
-
-    expect(trackStore.getState().getTrack("track")?.base.color).toBe("#112233");
-    expect(modalColor).toBe("#112233");
-    expect(modalRenderCount).toBe(1);
-    expect(headerRenderCount).toBe(2);
-    expect(baseRenderCount).toBe(1);
-    expect(colorRenderCount).toBe(2);
-    expect(titleRenderCount).toBe(1);
-    expect(moduleRenderCount).toBe(2);
-
-    await act(async () => {
-      trackStore.getState().updateTrack("track", { base: { title: "Updated track" } });
-    });
-    expect(modalTitle).toBe("Configure Updated track");
-    expect(modalRenderCount).toBe(1);
-    expect(headerRenderCount).toBe(3);
-    expect(baseRenderCount).toBe(1);
-    expect(titleRenderCount).toBe(2);
-    expect(moduleRenderCount).toBe(3);
-  });
-
   it("passes the current complete track and a gated updater bound to its ID", async () => {
     type Item = { value: number };
     type Config = { url: string };
     let receivedProps: TrackSettingsProps<Config, Item> | undefined;
 
-    function Modal({ children }: SettingsModalProps) {
-      return <div>{children}</div>;
-    }
     function ModuleSettings(props: TrackSettingsProps<Config, Item>) {
       receivedProps = props;
       return <div>Settings for {props.track.base.id}</div>;
@@ -208,7 +99,7 @@ describe("SettingsModalController", () => {
       { onClick },
     );
     const trackStore = createTrackStore({ modules: [module], tracks: [first, active] });
-    const settingsStore = createSettingsStore({ modalComponent: Modal });
+    const settingsStore = createSettingsStore();
     settingsStore.getState().openSettings("active", { x: 0, y: 0 });
 
     await mountController(trackStore, settingsStore);
@@ -262,11 +153,74 @@ describe("SettingsModalController", () => {
     expect(container?.textContent).not.toContain("Settings for active");
   });
 
-  it("does not carry a draft into another same-type track with the same accepted color", async () => {
-    function Modal({ children }: SettingsModalProps) {
-      return <div>{children}</div>;
-    }
+  it("validates same-type bulk updates atomically and blocks both mutation paths", async () => {
+    let props: TrackSettingsProps<SignalConfig> | undefined;
+    const module = {
+      ...signalModule,
+      settingsComponent: (value: TrackSettingsProps<SignalConfig>) => {
+        props = value;
+        return null;
+      },
+    };
+    const otherModule = defineTrackModule({
+      type: "other",
+      configSchema: z.object({ url: z.string(), clampIndicatorColor: z.string() }),
+      fetch: async () => null,
+      render: { full: () => null },
+    });
+    const first = module.create({
+      base: { id: "first", title: "First", height: 30 },
+      config: { url: "YOUR_URL_HERE" },
+    });
+    const second = module.create({
+      base: { id: "second", title: "Second", height: 50 },
+      config: { url: "YOUR_URL_HERE" },
+    });
+    const other = { ...first, type: "other", base: { ...first.base, id: "other" } };
+    const useTrackStore = createTrackStore({
+      modules: [module, otherModule],
+      tracks: [first, second, other],
+    });
+    const useSettingsStore = createSettingsStore();
+    useSettingsStore.getState().openSettings("first", { x: 0, y: 0 });
+    await mountController(useTrackStore, useSettingsStore);
+    expect(props?.displayOptions).toEqual(["full"]);
+    const before = useTrackStore.getState().tracks;
+    let result: TrackMutationResult | undefined;
+    await act(async () => {
+      result = props?.updateTracksOfType((track) => ({
+        config: { url: track.base.id === "second" ? "" : "YOUR_OTHER_URL_HERE" },
+      }));
+    });
+    expect(result?.ok).toBe(false);
+    expect(useTrackStore.getState().tracks).toBe(before);
+    await act(async () => {
+      result = props?.updateTracksOfType((track) => ({ base: { height: track.base.height + 10 } }));
+    });
+    expect(result).toEqual({ ok: true });
+    expect(useTrackStore.getState().tracks.map((track) => track.base.height)).toEqual([40, 60, 30]);
+    await renderController(useTrackStore, useSettingsStore, true);
+    await act(async () => {
+      result = props?.updateTracksOfType(() => ({ base: { height: 100 } }));
+    });
+    expect(result).toEqual({ ok: false, error: "Track interactions are currently blocked" });
+    expect(useTrackStore.getState().tracks.map((track) => track.base.height)).toEqual([40, 60, 30]);
+  });
 
+  it("does not open an empty dialog for a module without settings", async () => {
+    const module = { ...signalModule, settingsComponent: undefined };
+    const track = module.create({
+      base: { id: "plain", title: "Plain" },
+      config: { url: "YOUR_URL_HERE" },
+    });
+    const useTrackStore = createTrackStore({ modules: [module], tracks: [track] });
+    const useSettingsStore = createSettingsStore();
+    useSettingsStore.getState().openSettings("plain", { x: 0, y: 0 });
+    await mountController(useTrackStore, useSettingsStore);
+    expect(container?.querySelector("dialog")).toBeNull();
+  });
+
+  it("does not carry a draft into another same-type track with the same accepted color", async () => {
     const first = signalModule.create({
       base: {
         id: "first",
@@ -282,7 +236,7 @@ describe("SettingsModalController", () => {
       config: { url: "YOUR_OTHER_URL_HERE" },
     });
     const trackStore = createTrackStore({ modules: [signalModule], tracks: [first, second] });
-    const settingsStore = createSettingsStore({ modalComponent: Modal });
+    const settingsStore = createSettingsStore();
     settingsStore.getState().openSettings("first", { x: 0, y: 0 });
 
     await mountController(trackStore, settingsStore);

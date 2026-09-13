@@ -1,13 +1,6 @@
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
-import {
-  createBrowserStore,
-  createSettingsStore,
-  createTrackStore,
-  hg38,
-  parseRegion,
-} from "@weng-lab/genomebrowser";
+import { createBrowserStore, createTrackStore, hg38, parseRegion } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
-import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 
 // Store names begin with "use" because components also use them as React hooks.
 
@@ -28,8 +21,4 @@ export const useTrackStore = createTrackStore({
   tracks: [
     rulerModule.create({ base: { id: "reference-ruler", title: "Coordinates" }, config: {} }),
   ],
-});
-
-export const useSettingsStore = createSettingsStore({
-  baseSettingsComponent: TrackBaseSettings,
 });

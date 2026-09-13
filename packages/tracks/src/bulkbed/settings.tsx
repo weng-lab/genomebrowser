@@ -1,3 +1,5 @@
+import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
+import { TrackRowLayoutSettings } from "../shared/settings/trackRowLayoutSettings";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -40,9 +42,16 @@ type DatasetEditorState = {
 
 type CommitDatasetEdit = (edit: DatasetEdit) => ReturnType<BulkBedSettingsProps["updateTrack"]>;
 
-export function BulkBedSettings({ track, updateTrack }: BulkBedSettingsProps) {
+export function BulkBedSettings({ track, updateTrack, ...settings }: BulkBedSettingsProps) {
   return (
     <TrackSettingsLayout>
+      <TrackBaseSettings
+        track={track}
+        updateTrack={updateTrack}
+        displayOptions={settings.displayOptions}
+      >
+        <TrackRowLayoutSettings track={track} updateTrack={updateTrack} {...settings} />
+      </TrackBaseSettings>
       <GapSettings gap={track.config.gap} updateTrack={updateTrack} />
       <BulkBedDatasetsEditor
         datasets={track.config.datasets}

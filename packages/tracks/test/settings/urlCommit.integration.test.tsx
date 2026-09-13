@@ -1,12 +1,7 @@
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  createBrowserStore,
-  createSettingsStore,
-  createTrackStore,
-  GenomeBrowser,
-} from "@weng-lab/genomebrowser";
+import { createBrowserStore, createTrackStore, GenomeBrowser } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import { expect, it, vi } from "vitest";
 
@@ -30,22 +25,23 @@ it("keeps URL drafts out of the active source and fetcher until Set is clicked",
       }),
     ],
   });
-  const useSettingsStore = createSettingsStore();
-  useSettingsStore.getState().openSettings("signal", { x: 0, y: 0 });
+  const settingsTrackId = "signal";
   const container = document.createElement("div");
   document.body.appendChild(container);
   const root = createRoot(container);
   try {
     await act(async () =>
       root.render(
-        <GenomeBrowser
-          sizing="fixed"
-          browserStore={useBrowserStore}
-          trackStore={useTrackStore}
-          settingsStore={useSettingsStore}
-        />,
+        <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />,
       ),
     );
+    await act(async () => {
+      container
+        .querySelector(
+          `[aria-label="Settings for ${useTrackStore.getState().getTrack(settingsTrackId)!.base.title}"]`,
+        )
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
     const input = document.querySelector<HTMLInputElement>('input[type="url"]')!;
     const set = document.querySelector<HTMLButtonElement>('button[aria-label="Set URL"]')!;
     const initialFetchCount = fetch.mock.calls.length;

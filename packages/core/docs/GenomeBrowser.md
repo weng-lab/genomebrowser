@@ -66,13 +66,12 @@ The drawing is 800 logical units wide and displays at 1000 CSS pixels. At `scale
 
 ## API
 
-| Prop            | Type                      | Default                  | Description                                                                                                             |
-| --------------- | ------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| `browserStore`  | `BrowserStoreInstance`    | Required                 | Stable store for assembly, region, configured fixed track width, margin, typography, selection, and highlights.         |
-| `trackStore`    | `TrackStoreInstance`      | Required                 | Stable store for registered modules, tracks, and ordering.                                                              |
-| `settingsStore` | `SettingsStoreInstance`   | Internal store per mount | Optional application-owned settings store.                                                                              |
-| `sizing`        | `"responsive" \| "fixed"` | `"responsive"`           | Follow the wrapper's content width, or use the browser store's configured track width. Can change while mounted.        |
-| `scale`         | `number`                  | `1`                      | Finite positive magnification factor for the entire SVG. Invalid values throw a `RangeError`. Can change while mounted. |
+| Prop           | Type                      | Default        | Description                                                                                                             |
+| -------------- | ------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `browserStore` | `BrowserStoreInstance`    | Required       | Stable store for assembly, region, configured fixed track width, margin, typography, selection, and highlights.         |
+| `trackStore`   | `TrackStoreInstance`      | Required       | Stable store for registered modules, tracks, and ordering.                                                              |
+| `sizing`       | `"responsive" \| "fixed"` | `"responsive"` | Follow the wrapper's content width, or use the browser store's configured track width. Can change while mounted.        |
+| `scale`        | `number`                  | `1`            | Finite positive magnification factor for the entire SVG. Invalid values throw a `RangeError`. Can change while mounted. |
 
 `GenomeBrowserProps` is exported from `@weng-lab/genomebrowser`.
 

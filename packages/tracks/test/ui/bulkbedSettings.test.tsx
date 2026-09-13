@@ -347,7 +347,14 @@ function BulkBedSettingsHarness({
     | TrackInstance<BulkBedConfig, BulkBedRect>
     | undefined;
   if (!track) throw new Error("BulkBed track not found");
-  return <BulkBedSettings track={track} updateTrack={updateTrack} />;
+  return (
+    <BulkBedSettings
+      displayOptions={["full"]}
+      updateTracksOfType={() => ({ ok: true })}
+      track={track}
+      updateTrack={updateTrack}
+    />
+  );
 }
 
 function createBulkBedStore(config: BulkBedConfig) {
@@ -400,7 +407,16 @@ function renderControlledSettings(
   updateTrack: (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult,
 ) {
   if (!root) mount();
-  act(() => root?.render(<BulkBedSettings track={track} updateTrack={updateTrack} />));
+  act(() =>
+    root?.render(
+      <BulkBedSettings
+        displayOptions={["full"]}
+        updateTracksOfType={() => ({ ok: true })}
+        track={track}
+        updateTrack={updateTrack}
+      />,
+    ),
+  );
 }
 
 function gapInput() {

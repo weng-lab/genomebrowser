@@ -1,3 +1,4 @@
+import { createSettingsStore } from "../../../core/src/browser/state/settingsStore";
 // @vitest-environment jsdom
 import { act, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
@@ -5,7 +6,6 @@ import { expect, it, vi } from "vitest";
 import {
   createBrowserStore,
   createTrackStore,
-  createSettingsStore,
   createContextMenuStore,
 } from "@weng-lab/genomebrowser";
 import { BrowserContext } from "../../../core/src/browser/state/browserContextState";
@@ -40,7 +40,16 @@ it("exposes config fields and preserves host ownership", () => {
       source: "host",
       config: {},
     });
-    act(() => render(<RulerSettings track={track} updateTrack={updateTrack} />));
+    act(() =>
+      render(
+        <RulerSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
+          track={track}
+          updateTrack={updateTrack}
+        />,
+      ),
+    );
     const labels = Array.from(container.querySelectorAll("label"));
     const input = (label: string) =>
       container.querySelector<HTMLInputElement>(
@@ -82,6 +91,8 @@ it("exposes config fields and preserves host ownership", () => {
     act(() =>
       render(
         <RulerSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
           track={{
             ...track,
             config: {
@@ -106,7 +117,14 @@ it("exposes config fields and preserves host ownership", () => {
     expect(zoomButton.disabled).toBe(true);
 
     act(() =>
-      render(<RulerSettings track={{ ...track, source: "user" }} updateTrack={updateTrack} />),
+      render(
+        <RulerSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
+          track={{ ...track, source: "user" }}
+          updateTrack={updateTrack}
+        />,
+      ),
     );
     expect(input("2bit URL").disabled).toBe(false);
   } finally {

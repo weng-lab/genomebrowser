@@ -1,4 +1,4 @@
-import type { ComponentType, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export type SettingsPosition = {
   x: number;
@@ -10,9 +10,4 @@ export type SettingsModalProps = {
   position: SettingsPosition;
   closeSettings: () => void;
   children: ReactNode;
-};
-
-export type SettingsStoreInput = {
-  modalComponent?: ComponentType<SettingsModalProps>;
-  baseSettingsComponent?: ComponentType;
 };

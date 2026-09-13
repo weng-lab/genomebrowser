@@ -116,7 +116,7 @@ export const customSignalModule = defineTrackModule<Item>()({
 });
 ```
 
-Settings components receive `{ track, updateTrack }`. `track` is the current complete, shallow read-only instance, including its type, base, parsed config, source, and optional interaction callbacks. `module.create` uses `source: "user"` unless its input requests `"host"`. When `track.source` is `"host"`, disable inputs that change the data source while leaving unrelated settings enabled. Core does not identify source fields for a module.
+Settings components own the complete form, including any base controls, and receive `{ track, displayOptions, updateTrack, updateTracksOfType }`. `displayOptions` contains registered display names. `updateTracksOfType(createUpdate)` takes a callback from each current same-type track to a shallow track patch, validates the whole batch, and commits it atomically. Both update callbacks return `TrackMutationResult` and reject edits while interactions are blocked. Modal state and the shared shell are internal to the browser. Modules without `settingsComponent` have no settings button. `track` is the current complete, shallow read-only instance, including its type, base, parsed config, source, and optional interaction callbacks. `module.create` uses `source: "user"` unless its input requests `"host"`. When `track.source` is `"host"`, disable inputs that change the data source while leaving unrelated settings enabled. Core does not identify source fields for a module.
 
 The supplied `updateTrack` is already bound to that track's ID and passes through the browser's interaction gate. Return or inspect its `TrackMutationResult` when an edit can fail. Each `base`, `config`, or `interaction` patch is shallow, so replace a complete nested object or array when changing one of its values.
 
@@ -185,7 +185,7 @@ The optional second argument contains per-instance callbacks and is not serializ
 
 ## Settings, tooltip, and interactions
 
-Module settings use `TrackSettingsProps<Config, Item>` as their input contract. Read current values and `source` from `track`, then submit live edits through the supplied `updateTrack`. One update may contain optional shallow `base`, `config`, and `interaction` patches; core validates the complete candidate once and commits all supplied sections or none. The browser still renders the standard title, display, color, and height controls separately, so module settings should render only module-specific config controls.
+Module settings use `TrackSettingsProps<Config, Item>` as their input contract. Read current values and `source` from `track`, then submit live edits through the supplied `updateTrack`. One update may contain optional shallow `base`, `config`, and `interaction` patches; core validates the complete candidate once and commits all supplied sections or none. The module composes all base and config controls. Core supplies the shared modal shell without injecting fields.
 
 The renderer decides what semantic item a click or hover represents. `useInteraction<Item>()` returns item-only handlers because the browser binds the current runtime context. `useTooltip<Item, Config>()` reads that same context and opens the module's browser-positioned `tooltipComponent` with `{ item, context }`. Renderers do not pass a type or config to either hook. Both hooks require the renderer to run inside `GenomeBrowser`.
 

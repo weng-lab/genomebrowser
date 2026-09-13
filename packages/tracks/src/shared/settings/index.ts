@@ -23,3 +23,7 @@ export { TrackSettingsTextField } from "./trackSettingsTextField";
 export type { TrackSettingsTextFieldProps } from "./trackSettingsTextField";
 export { TrackSettingsUrlField } from "./trackSettingsUrlField";
 export type { TrackSettingsUrlFieldProps } from "./trackSettingsUrlField";
+
+export type { TrackBaseSettingsProps } from "./trackBaseSettings";
+export { TrackHeightSettings } from "./trackHeightSettings";
+export { TrackRowLayoutSettings } from "./trackRowLayoutSettings";

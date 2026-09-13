@@ -50,18 +50,14 @@ export type { AutoTrackHeightOptions } from "./browser/track-row/useAutoTrackHei
 export { useTooltip } from "./browser/tooltip/useTooltip";
 export { useRegistry } from "./browser/state/useRegistry";
 export { SettingsSection } from "./modules/runtime/SettingsSection";
-export { useDraggableSettingsModal } from "./browser/settings/useDraggableSettingsModal";
-export type { DraggableSettingsModalResult } from "./browser/settings/useDraggableSettingsModal";
 export { createBrowserStore } from "./browser/state/browserStore";
 export { createContextMenuStore } from "./browser/state/contextMenuStore";
 export {
   useContextMenuStore,
   useBrowserStore,
-  useSettingsStore,
   useTrackStore,
   useTrackStoreApi,
 } from "./browser/state/browserContextState";
-export { createSettingsStore } from "./browser/state/settingsStore";
 export { createTrackStore } from "./browser/state/trackStore";
 export type {
   BrowserSelectionMode,
@@ -74,13 +70,6 @@ export type {
   BrowserViewportMutationResult,
   Highlight,
 } from "./browser/state/browserStore";
-export type {
-  SettingsModalProps,
-  SettingsPosition,
-  SettingsStore,
-  SettingsStoreInput,
-  SettingsStoreInstance,
-} from "./browser/state/settingsStore";
 export type {
   ContextMenuPosition,
   ContextMenuStore,

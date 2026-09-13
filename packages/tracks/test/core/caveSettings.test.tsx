@@ -55,7 +55,16 @@ async function renderSettings() {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  await act(async () => root?.render(<CaveSettings track={track} updateTrack={updateTrack} />));
+  await act(async () =>
+    root?.render(
+      <CaveSettings
+        displayOptions={["full"]}
+        updateTracksOfType={() => ({ ok: true })}
+        track={track}
+        updateTrack={updateTrack}
+      />,
+    ),
+  );
   return updateTrack;
 }
 

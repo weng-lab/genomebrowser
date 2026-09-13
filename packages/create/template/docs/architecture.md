@@ -8,7 +8,6 @@ The app creates one set of stores outside React rendering:
 
 - `useBrowserStore`: assembly, region, dimensions, and highlights.
 - `useTrackStore`: registered modules and displayed tracks.
-- `useSettingsStore`: the track settings interface.
 
 Controls and the genome display use the same stores. A second independent browser needs its own store instances and controls connected to them. Reloading the page recreates the stores; persistence is not configured.
 

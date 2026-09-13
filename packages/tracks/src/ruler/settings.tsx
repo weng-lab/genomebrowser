@@ -1,3 +1,5 @@
+import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
+import { TrackHeightSettings } from "../shared/settings/trackHeightSettings";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Switch from "@mui/material/Switch";
@@ -13,7 +15,11 @@ import { useDraftController } from "../shared/settings/draftInput";
 import { SequenceBase } from "./SequenceBase";
 import type { RulerConfig } from "./schema";
 
-export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerConfig>) {
+export function RulerSettings({
+  track,
+  updateTrack,
+  ...settings
+}: TrackSettingsProps<RulerConfig>) {
   const trackWidth = useBrowserStore((state) => state.trackWidth);
   const region = useBrowserStore((state) => state.region);
   const zoom = useBrowserStore((state) => state.zoom);
@@ -30,6 +36,13 @@ export function RulerSettings({ track, updateTrack }: TrackSettingsProps<RulerCo
 
   return (
     <TrackSettingsLayout>
+      <TrackBaseSettings
+        track={track}
+        updateTrack={updateTrack}
+        displayOptions={settings.displayOptions}
+      >
+        <TrackHeightSettings track={track} updateTrack={updateTrack} {...settings} />
+      </TrackBaseSettings>
       <TrackSettingsSection title="Reference source">
         <TrackSettingsUrlField
           label="2bit URL"
