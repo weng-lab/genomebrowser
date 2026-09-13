@@ -72,10 +72,9 @@ it.each([
   }
 });
 
-it.each(["pointerup", "pointercancel"])(
-  "finishes a ruler drag before restoring pan on %s",
+it.each(["pointerup", "pointercancel", "Escape", "blur"])(
+  "handles an axis-only drag without changing Pan mode on %s",
   async (finishEvent) => {
-    vi.useFakeTimers();
     const region = { chromosome: "chr1", start: 100, end: 1100 };
     const browserStore = createBrowserStore({
       assembly: { id: "test", chromosomes: { chr1: 10000 } },
@@ -112,7 +111,7 @@ it.each(["pointerup", "pointercancel"])(
           new MouseEvent("pointermove", { bubbles: true, clientX: 200, clientY: 10 }),
         );
       });
-      expect(browserStore.getState().selectionMode).toBe("zoom");
+      expect(browserStore.getState().selectionMode).toBe("pan");
       await act(async () => {
         area.dispatchEvent(
           new MouseEvent("pointerdown", { bubbles: true, clientX: 200, clientY: 10, buttons: 1 }),
@@ -125,27 +124,23 @@ it.each(["pointerup", "pointercancel"])(
       });
       expect(container.querySelector("[data-region-selection]")).not.toBeNull();
       await act(async () => {
-        document.dispatchEvent(new MouseEvent(finishEvent, { clientX: 400, clientY: 10 }));
-        // Native listeners may have a microtask checkpoint between them. Mode
-        // restoration must wait for the next task, not just a microtask.
-        await Promise.resolve();
+        if (finishEvent === "Escape")
+          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+        else if (finishEvent === "blur") window.dispatchEvent(new Event("blur"));
+        else document.dispatchEvent(new MouseEvent(finishEvent, { clientX: 400, clientY: 10 }));
       });
-      expect(browserStore.getState().selectionMode).toBe("zoom");
+      expect(browserStore.getState().selectionMode).toBe("pan");
       expect(browserStore.getState().region).toEqual(
         finishEvent === "pointerup" ? { chromosome: "chr1", start: 200, end: 400 } : region,
       );
       if (finishEvent === "pointerup") {
         expect(container.querySelector("[data-ruler-zoom-area]")).toBeNull();
       }
-      await act(async () => {
-        await vi.runOnlyPendingTimersAsync();
-      });
       expect(browserStore.getState().selectionMode).toBe("pan");
       expect(container.querySelector("[data-region-selection]")).toBeNull();
     } finally {
       await act(async () => root.unmount());
       container.remove();
-      vi.useRealTimers();
     }
   },
 );

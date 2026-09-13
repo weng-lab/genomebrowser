@@ -5,8 +5,8 @@ import { rulerModule, type RulerData } from "@weng-lab/genomebrowser-tracks/rule
 import { TrackHeightContext } from "../../../core/src/browser/track-row/trackHeightContext";
 import { tickStep } from "../../src/ruler/helpers";
 const { read, createFile } = vi.hoisted(() => ({ read: vi.fn(), createFile: vi.fn() }));
-vi.mock("../../src/ruler/useRulerZoomMode", () => ({
-  useRulerZoomMode: () => ({ current: null }),
+vi.mock("../../src/ruler/useRulerZoomSelection", () => ({
+  useRulerZoomSelection: () => ({ selection: null }),
 }));
 vi.mock("../../src/ruler/useRulerHoverHighlight", () => ({
   useRulerHoverHighlight: () => ({ hover: () => {}, clear: () => {} }),
