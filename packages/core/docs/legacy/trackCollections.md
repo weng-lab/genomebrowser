@@ -9,11 +9,11 @@ Use a collection to load configured tracks or provide choices through TrackSelec
 ```ts
 import { createTrackStore, type AnyTrackModule } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-import { validateJson } from "@weng-lab/genomebrowser";
+import { validateTrackCollection } from "@weng-lab/genomebrowser";
 
 const modules: AnyTrackModule[] = [bigWigModule];
 const useTrackStore = createTrackStore({ modules });
-const collection = validateJson(
+const collection = validateTrackCollection(
   {
     assembly: "hg38",
     id: "signals",
@@ -55,4 +55,4 @@ TrackSelect assigns host source ownership to collection-created tracks. Interact
 
 Export the same module array used by the application, then run the [schema CLI](../reference/collections.md#schema-cli) and commit the generated file. Set each collection's `$schema` to the generated file's relative location. Regenerate it when the module set or configuration schemas change, and use `--check` in CI to detect stale output.
 
-Editor feedback checks representable schema rules. It does not assign a static TypeScript type to imported JSON or replace runtime parsing. Use the same modules for the track store, schema generation, and validation. TrackSelect validates its supplied collections; direct integrations use `validateJson` before creating instances.
+Editor feedback checks representable schema rules. It does not assign a static TypeScript type to imported JSON or replace runtime parsing. Use the same modules for the track store, schema generation, and validation. TrackSelect validates its supplied collections; direct integrations use `validateTrackCollection` before creating instances.

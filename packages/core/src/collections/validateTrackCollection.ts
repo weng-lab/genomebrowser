@@ -47,7 +47,10 @@ function validateLeafField(
   validateViewField(collection, view.leaf ?? "title", `views.${view.id}.leaf`, errors);
 }
 
-export function validateJson(input: unknown, modules: readonly AnyTrackModule[]): TrackCollection {
+export function validateTrackCollection(
+  input: unknown,
+  modules: readonly AnyTrackModule[],
+): TrackCollection {
   const collection = parseTrackCollection(input, modules);
   const errors: string[] = [];
 

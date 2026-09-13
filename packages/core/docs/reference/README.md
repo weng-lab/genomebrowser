@@ -35,7 +35,6 @@ Import the APIs below from `@weng-lab/genomebrowser`. Related types are document
 | `ModuleRegistry`                        | [Module registry](trackStore.md#moduleregistry)                             |
 | `TrackMutationResult`                   | [Mutation results](trackStore.md#mutation-results)                          |
 | `TrackUpdate`, `TrackBaseUpdate`        | [Update patches](trackStore.md#trackupdate-and-trackbaseupdate)             |
-| `useRegistry`                           | [Context hooks](trackStore.md#context-hooks)                                |
 
 ## Track modules
 
@@ -54,14 +53,12 @@ Import the APIs below from `@weng-lab/genomebrowser`. Related types are document
 
 ## Runtime helpers
 
-| Exports                                        | Reference                                                              |
-| ---------------------------------------------- | ---------------------------------------------------------------------- |
-| `fetchOnChange`                                | [fetchOnChange](runtimeHelpers.md#fetchonchange)                       |
-| `useInteraction`                               | [useInteraction](runtimeHelpers.md#useinteraction)                     |
-| `TrackInteractionProvider`                     | [TrackInteractionProvider](runtimeHelpers.md#trackinteractionprovider) |
-| `useTooltip`                                   | [useTooltip](runtimeHelpers.md#usetooltip)                             |
-| `useAutoTrackHeight`, `AutoTrackHeightOptions` | [useAutoTrackHeight](runtimeHelpers.md#useautotrackheight)             |
-| `SettingsSection`                              | [SettingsSection](runtimeHelpers.md#settingssection)                   |
+| Exports                                        | Reference                                                  |
+| ---------------------------------------------- | ---------------------------------------------------------- |
+| `fetchOnChange`                                | [fetchOnChange](runtimeHelpers.md#fetchonchange)           |
+| `useInteraction`                               | [useInteraction](runtimeHelpers.md#useinteraction)         |
+| `useTooltip`                                   | [useTooltip](runtimeHelpers.md#usetooltip)                 |
+| `useAutoTrackHeight`, `AutoTrackHeightOptions` | [useAutoTrackHeight](runtimeHelpers.md#useautotrackheight) |
 
 ## Overlays
 
@@ -79,17 +76,16 @@ Import the APIs below from `@weng-lab/genomebrowser`. Related types are document
 | `TrackMetadata`                                    | [TrackMetadata](collections.md#trackmetadata)                                                                         |
 | `TrackCollectionView`, `TrackCollectionViewSchema` | [TrackCollectionView and TrackCollectionViewSchema](collections.md#trackcollectionview-and-trackcollectionviewschema) |
 | `TrackCollectionColumn`                            | [TrackCollectionColumn](collections.md#trackcollectioncolumn)                                                         |
-| `validateJson`                                     | [validateJson](collections.md#validatejson)                                                                           |
+| `validateTrackCollection`                          | [validateTrackCollection](collections.md#validatetrackcollection)                                                     |
 | `createTrackCollectionSchema`                      | [createTrackCollectionSchema](collections.md#createtrackcollectionschema)                                             |
 | `generateTrackCollectionJsonSchema`                | [generateTrackCollectionJsonSchema](collections.md#generatetrackcollectionjsonschema)                                 |
 
 ## Context menus
 
-| Exports                                        | Reference                                                                                                      |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `createContextMenuStore`                       | [createContextMenuStore](contextMenus.md#createcontextmenustore)                                               |
-| `useContextMenuStore`                          | [useContextMenuStore](contextMenus.md#usecontextmenustore)                                                     |
-| `ContextMenuStore`, `ContextMenuStoreInstance` | [ContextMenuStore and ContextMenuStoreInstance](contextMenus.md#contextmenustore-and-contextmenustoreinstance) |
-| `ContextMenuPosition`                          | [ContextMenuPosition](contextMenus.md#contextmenuposition)                                                     |
+| Exports               | Reference                                                  |
+| --------------------- | ---------------------------------------------------------- |
+| `useContextMenuStore` | [useContextMenuStore](contextMenus.md#usecontextmenustore) |
+| `ContextMenuStore`    | [ContextMenuStore](contextMenus.md#contextmenustore)       |
+| `ContextMenuPosition` | [ContextMenuPosition](contextMenus.md#contextmenuposition) |
 
 The [schema CLI](collections.md#schema-cli) documents the `genomebrowser schema` command.

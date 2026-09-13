@@ -59,7 +59,7 @@ Reset coverage should target the public contract: after arbitrary draft edits, R
 
 Start failures at the boundary where they occur:
 
-- Collection errors: call `validateJson` with the application's module list and inspect the field path in the error. Confirm collection track types and nested config match registered modules.
+- Collection errors: call `validateTrackCollection` with the application's module list and inspect the field path in the error. Confirm collection track types and nested config match registered modules.
 - Grid or grouping errors: reduce the collection to one view and inspect `columns`, `grouping`, `leaf`, and required metadata. Built-in fields are `id`, `title`, and `type`.
 - Selection errors: compare collection-qualified IDs in rows, the draft map, and store track `base.id` values.
 - Ordering errors: inspect the active view and the collection's source row order before examining the diff.

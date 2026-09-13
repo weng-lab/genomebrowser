@@ -1,13 +1,10 @@
+import { createContextMenuStore } from "../../../core/src/browser/state/contextMenuStore";
 import { createSettingsStore } from "../../../core/src/browser/state/settingsStore";
 // @vitest-environment jsdom
 import { act, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
-import {
-  createBrowserStore,
-  createTrackStore,
-  createContextMenuStore,
-} from "@weng-lab/genomebrowser";
+import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
 import { BrowserContext } from "../../../core/src/browser/state/browserContextState";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 import { RulerSettings } from "../../src/ruler/settings";

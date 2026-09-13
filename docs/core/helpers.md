@@ -70,11 +70,12 @@ function ExampleSettings({ track, updateTrack }: TrackSettingsProps<Config, unkn
   };
 
   return (
-    <SettingsSection title="Scale">
+    <fieldset>
+      <legend>Scale</legend>
       <button onClick={setLogScale} disabled={track.config.scale === "log"}>
         Use log scale
       </button>
-    </SettingsSection>
+    </fieldset>
   );
 }
 ```

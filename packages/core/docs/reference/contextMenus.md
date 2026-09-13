@@ -28,29 +28,13 @@ export function TrackMenuTarget({ trackId }: { trackId: string }) {
 
 This example adds a pointer trigger only. The built-in track area already supplies its own context-menu trigger; use the hook when a custom component needs explicit control.
 
-## createContextMenuStore
-
-`createContextMenuStore(): ContextMenuStoreInstance` creates an independent Zustand store with the state and actions below. It takes no options.
-
-```ts
-import { createContextMenuStore } from "@weng-lab/genomebrowser";
-
-const useMenuState = createContextMenuStore();
-useMenuState.getState().openContextMenu("signal", { x: 100, y: 200 });
-useMenuState.getState().closeContextMenu();
-```
-
-This standalone store does not open a `GenomeBrowser` menu. The browser has no public prop for replacing its internal context-menu store. Use the context hook to control a mounted browser, or use the standalone state in UI you implement yourself.
-
-## ContextMenuStore and ContextMenuStoreInstance
+## ContextMenuStore
 
 | State      | Type                    | Initial value    | Description                               |
 | ---------- | ----------------------- | ---------------- | ----------------------------------------- |
 | `open`     | `boolean`               | `false`          | Whether the menu is requested to be open. |
 | `trackId`  | `string` or `undefined` | `undefined`      | Track targeted by the last open action.   |
 | `position` | `ContextMenuPosition`   | `{ x: 0, y: 0 }` | Requested pointer position.               |
-
-`ContextMenuStoreInstance` is `UseBoundStore<StoreApi<ContextMenuStore>>`, providing a selector hook, `getState()`, subscriptions, and the underlying Zustand API. Keep factory-created stores stable and unsubscribe from external subscriptions when their owner is disposed.
 
 ### Actions
 

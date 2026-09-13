@@ -7,11 +7,11 @@ A collection describes configured tracks for one assembly. Use it to load tracks
 Validate parsed JSON or a JavaScript object against the modules your application supports:
 
 ```ts
-import { validateJson } from "@weng-lab/genomebrowser";
+import { validateTrackCollection } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const modules = [bigWigModule];
-const collection = validateJson(
+const collection = validateTrackCollection(
   {
     assembly: "hg38",
     id: "signals",
@@ -81,7 +81,7 @@ Views describe ways a collection UI can organize tracks. Core validates their st
 | `grouping`    | `string[]`                | `[]`      | Non-empty field names in outermost-to-innermost group order. |
 | `leaf`        | `string`                  | `"title"` | Non-empty field name used to label a final track item.       |
 
-Parsing a view alone applies defaults and checks structure. It cannot check ID uniqueness across views or whether a metadata field exists on collection tracks. Use `validateJson` for those checks.
+Parsing a view alone applies defaults and checks structure. It cannot check ID uniqueness across views or whether a metadata field exists on collection tracks. Use `validateTrackCollection` for those checks.
 
 ### TrackCollectionColumn
 
@@ -95,13 +95,13 @@ Parsing a view alone applies defaults and checks structure. It cannot check ID u
 
 These are schema defaults. Label fallbacks, column sizing, and visibility behavior depend on the UI component.
 
-## validateJson
+## validateTrackCollection
 
-`validateJson(input: unknown, modules: readonly AnyTrackModule[]): TrackCollection` accepts an object, not a JSON string. If loading a string, parse it with `JSON.parse` first and handle parsing failures separately.
+`validateTrackCollection(input: unknown, modules: readonly AnyTrackModule[]): TrackCollection` accepts an object, not a JSON string. If loading a string, parse it with `JSON.parse` first and handle parsing failures separately.
 
 Validation checks the collection structure, each module's creation schema, duplicate track and view IDs, and every field referenced by columns, grouping, and leaf labels. It throws an `Error` containing validation details on failure. An empty module list or duplicate module types also throws.
 
-The result applies collection/view defaults but retains the original authored track entries. This ensures module creation applies track defaults and transformations once. Those entries are not detached copies; treat validated input as data and create instances before use. `validateJson` does not add views or infer assembly compatibility.
+The result applies collection/view defaults but retains the original authored track entries. This ensures module creation applies track defaults and transformations once. Those entries are not detached copies; treat validated input as data and create instances before use. `validateTrackCollection` does not add views or infer assembly compatibility.
 
 ## createTrackCollectionSchema
 
@@ -115,7 +115,7 @@ const parsed = schema.safeParse(collection);
 if (!parsed.success) console.error(parsed.error.issues);
 ```
 
-Unlike `validateJson`, parsing this schema returns parsed track values with module defaults and transformations applied. It checks shape, not duplicate IDs or references between views and metadata. Do not pass already-transformed config through creation again unless the schema supports doing so.
+Unlike `validateTrackCollection`, parsing this schema returns parsed track values with module defaults and transformations applied. It checks shape, not duplicate IDs or references between views and metadata. Do not pass already-transformed config through creation again unless the schema supports doing so.
 
 ## generateTrackCollectionJsonSchema
 
@@ -128,7 +128,7 @@ const jsonSchema = generateTrackCollectionJsonSchema(modules);
 const schemaText = JSON.stringify(jsonSchema, null, 2);
 ```
 
-Use the generated schema for editor completion and structural validation. It does not replace the additional checks in `validateJson`. The function does not write files; use the CLI below for file output.
+Use the generated schema for editor completion and structural validation. It does not replace the additional checks in `validateTrackCollection`. The function does not write files; use the CLI below for file output.
 
 ## Schema CLI
 

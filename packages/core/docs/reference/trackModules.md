@@ -196,7 +196,7 @@ Use [TrackOverlay](TrackOverlay.md) or [TrackLabel](TrackLabel.md) for annotatio
 
 The module supplies the complete form, including base controls. The browser supplies the modal shell and rejects these update callbacks while interactions are blocked. Inspect mutation results so rejected edits can be explained to the user. Keep batch-update callbacks free of side effects because validation can reject the batch.
 
-A module without `settingsComponent` has no settings button. Core's [SettingsSection](runtimeHelpers.md#settingssection) provides basic grouping; the tracks package supplies reusable MUI settings controls.
+A module without `settingsComponent` has no settings button. Use native form elements to group custom controls, or the reusable MUI settings controls supplied by the tracks package.
 
 ## Interactions and tooltips
 

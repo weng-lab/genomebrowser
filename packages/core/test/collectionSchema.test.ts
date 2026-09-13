@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createTrackStore, defineTrackModule } from "../src/lib";
 import { createTrackCollectionSchema } from "../src/lib";
 import { generateTrackCollectionJsonSchema } from "../src/lib";
-import { validateJson } from "../src/lib";
+import { validateTrackCollection } from "../src/lib";
 
 describe("TrackSelect collection schemas", () => {
   function Renderer() {
@@ -52,7 +52,7 @@ describe("TrackSelect collection schemas", () => {
   };
 
   it("validates registry-derived collection entries", () => {
-    expect(validateJson(validCollection, registry.modules).tracks[0]).toEqual({
+    expect(validateTrackCollection(validCollection, registry.modules).tracks[0]).toEqual({
       base: {
         id: "signal-1",
         title: "Signal 1",
@@ -68,7 +68,7 @@ describe("TrackSelect collection schemas", () => {
 
   it("rejects unknown track types and invalid nested config", () => {
     expect(() =>
-      validateJson(
+      validateTrackCollection(
         {
           ...validCollection,
           tracks: [{ ...validCollection.tracks[0], type: "missing" }],
@@ -78,7 +78,7 @@ describe("TrackSelect collection schemas", () => {
     ).toThrow(/Track collection is invalid/);
 
     expect(() =>
-      validateJson(
+      validateTrackCollection(
         {
           ...validCollection,
           tracks: [{ ...validCollection.tracks[0], config: {} }],
@@ -90,7 +90,7 @@ describe("TrackSelect collection schemas", () => {
 
   it("does not allow collection authors to set the runtime track source", () => {
     expect(() =>
-      validateJson(
+      validateTrackCollection(
         {
           ...validCollection,
           tracks: [{ ...validCollection.tracks[0], source: "user" }],
@@ -154,7 +154,7 @@ describe("TrackSelect collection schemas", () => {
       ],
     };
 
-    expect(validateJson(collection, defaultedRegistry.modules).tracks[0]).toEqual({
+    expect(validateTrackCollection(collection, defaultedRegistry.modules).tracks[0]).toEqual({
       base: {
         id: "signal-1",
         title: "Signal 1",
@@ -164,7 +164,7 @@ describe("TrackSelect collection schemas", () => {
       metadata: { assay: "signal" },
     });
     expect(() =>
-      validateJson(
+      validateTrackCollection(
         {
           ...collection,
           tracks: [{ ...collection.tracks[0], config: {} }],
@@ -198,7 +198,7 @@ describe("TrackSelect collection schemas", () => {
 
     expect(() => createTrackCollectionSchema(modules)).toThrow(error);
     expect(() => generateTrackCollectionJsonSchema(modules)).toThrow(error);
-    expect(() => validateJson(validCollection, modules)).toThrow(error);
+    expect(() => validateTrackCollection(validCollection, modules)).toThrow(error);
   });
 
   it("rejects empty registries", () => {

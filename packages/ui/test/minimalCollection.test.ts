@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createTrackStore, defineTrackModule } from "@weng-lab/genomebrowser";
 import {
-  validateJson,
+  validateTrackCollection,
   generateTrackCollectionJsonSchema,
   type TrackCollection,
 } from "@weng-lab/genomebrowser";
@@ -27,7 +27,10 @@ const minimal: TrackCollection = {
 
 describe("portable track collections", () => {
   it("validates a minimal collection and creates tracks without TrackSelect", () => {
-    const collection = validateJson(JSON.parse(JSON.stringify(minimal)), registry.modules);
+    const collection = validateTrackCollection(
+      JSON.parse(JSON.stringify(minimal)),
+      registry.modules,
+    );
     expect(collection).toEqual(minimal);
     expect(collection.tracks[0]).not.toHaveProperty("metadata");
     const track = registry
@@ -50,7 +53,7 @@ describe("portable track collections", () => {
       config: { url: "YOUR_URL_HERE", scale: 4 },
     });
     const { type, base, config } = original;
-    const collection = validateJson(
+    const collection = validateTrackCollection(
       JSON.parse(JSON.stringify({ ...minimal, tracks: [{ type, base, config }] })),
       registry.modules,
     );
@@ -62,7 +65,9 @@ describe("portable track collections", () => {
   });
 
   it("provides picker defaults without adding them to authored data", () => {
-    const compiledCollections = compileTrackCollections([validateJson(minimal, registry.modules)]);
+    const compiledCollections = compileTrackCollections([
+      validateTrackCollection(minimal, registry.modules),
+    ]);
     const record = compiledCollections.records[0]!;
     expect(record.label).toBe("signals");
     expect(record.assembly).toBe("lab/custom-v1");
@@ -90,12 +95,14 @@ describe("portable track collections", () => {
   });
 
   it.each([undefined, "", 38, { id: "hg38" }])("rejects invalid assembly %j", (assembly) => {
-    expect(() => validateJson({ ...minimal, assembly }, registry.modules)).toThrow(/assembly/);
+    expect(() => validateTrackCollection({ ...minimal, assembly }, registry.modules)).toThrow(
+      /assembly/,
+    );
   });
 
   it("rejects the flat track format and duplicate track IDs", () => {
     expect(() =>
-      validateJson(
+      validateTrackCollection(
         {
           ...minimal,
           tracks: [
@@ -106,7 +113,7 @@ describe("portable track collections", () => {
       ),
     ).toThrow(/base/);
     expect(() =>
-      validateJson(
+      validateTrackCollection(
         { ...minimal, tracks: [minimal.tracks[0], minimal.tracks[0]] },
         registry.modules,
       ),
@@ -115,12 +122,14 @@ describe("portable track collections", () => {
 
   it("requires metadata only when an authored view uses it", () => {
     expect(() =>
-      validateJson(
+      validateTrackCollection(
         { ...minimal, views: [{ id: "assay", label: "Assay", columns: [{ field: "assay" }] }] },
         registry.modules,
       ),
     ).toThrow(/metadata is missing "assay"/);
-    expect(() => validateJson({ ...minimal, views: [] }, registry.modules)).toThrow(/views/);
+    expect(() => validateTrackCollection({ ...minimal, views: [] }, registry.modules)).toThrow(
+      /views/,
+    );
   });
 
   it("exposes only assembly, id and tracks as required collection fields in JSON Schema", () => {

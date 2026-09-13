@@ -36,31 +36,6 @@ export function ClickableInterval({ item }: { item: Item }) {
 
 The returned object can contain `onClick`, `onHover`, and `onLeave`, each accepting one `Item` and returning `void`. The hook does not attach DOM events or decide what item they represent. Without a provider or configured interaction it returns `null`; individual callbacks can also be absent. This example wires pointer clicks only and does not provide a keyboard control.
 
-## TrackInteractionProvider
-
-The browser normally mounts this provider for each renderer. Use it when explicitly providing item-only handlers in an isolated renderer composition. It supplies callbacks directly; it does not bind application callbacks to runtime context or provide the contexts needed by tooltip and height hooks.
-
-```tsx
-import { TrackInteractionProvider } from "@weng-lab/genomebrowser";
-
-export function RendererExample() {
-  return (
-    <TrackInteractionProvider interaction={{ onClick: (item: unknown) => console.log(item) }}>
-      <ClickableInterval item={{ start: 100, end: 120 }} />
-    </TrackInteractionProvider>
-  );
-}
-```
-
-This example uses `ClickableInterval` above.
-
-| Prop          | Type                              | Default  | Description                                                                                                                                       |
-| ------------- | --------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `interaction` | `TrackRendererInteraction<never>` | None     | Item-only callbacks. The infrastructure type allows different renderer item types to share one context. Match the consuming renderer's item type. |
-| `children`    | `ReactNode`                       | Required | Descendants that read the supplied callbacks.                                                                                                     |
-
-An omitted interaction supplies `null`, including when nested inside another provider. This context-only component adds no DOM, focus behavior, or accessible semantics.
-
 ## useTooltip
 
 `useTooltip<Item, Config>()` returns `show(item, position): void` and `hide(): void`. Call it inside a mounted track renderer so it can read the current track context, module tooltip component, and browser SVG coordinates.
@@ -107,28 +82,3 @@ export function RowHeight({ trackId, rowCount }: { trackId: string; rowCount: nu
 | `minHeight` | `number` | `30`    | Minimum requested track height.                            |
 
 The hook requires a mounted browser height context and throws without it. A missing track ID produces no update. It uses the track store's validated update action but does not return mutation errors. Supply finite, meaningful row counts and positive dimensions; the hook has no separate input validator. Base updates do not themselves trigger a data request.
-
-## SettingsSection
-
-Use `SettingsSection` to group native controls in a custom module's settings form. It renders a section with an eight-pixel grid gap and a bold text title.
-
-```tsx
-import { SettingsSection } from "@weng-lab/genomebrowser";
-
-export function SourceSettings() {
-  return (
-    <SettingsSection title="Source">
-      <label>
-        Data URL <input type="url" />
-      </label>
-    </SettingsSection>
-  );
-}
-```
-
-| Prop       | Type        | Default  | Description                     |
-| ---------- | ----------- | -------- | ------------------------------- |
-| `title`    | `string`    | Required | Visible group title.            |
-| `children` | `ReactNode` | Required | Controls or other form content. |
-
-The title is a `div`, not a heading or fieldset legend. Label the individual controls and supply additional grouping semantics if needed. The component requires no browser context and does not forward arbitrary DOM props. For the module's full settings contract, see [track settings](trackModules.md#settings).

@@ -192,4 +192,4 @@ Removing, replacing, or clearing tracks does not clear pins. Unpinning keeps the
 
 Components rendered inside `GenomeBrowser` use [useGenomeBrowser](browserStore.md#usegenomebrowser) to resolve `useTrackStore`. Call it with a selector to subscribe, or use `useTrackStore.getState()` for imperative actions.
 
-`useRegistry(): ModuleRegistry` accesses the module registry supplied by the browser and throws outside its browser-provided context. The local factory result in Usage accesses a particular application-owned store and can be used outside a mounted browser.
+To access the hosting browser's module registry, select `state.registry` from the resolved `useTrackStore`. The local factory result in Usage accesses a particular application-owned store and can be used outside a mounted browser.

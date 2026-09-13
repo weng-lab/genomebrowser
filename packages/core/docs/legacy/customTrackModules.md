@@ -17,7 +17,6 @@ The data URL affects the response, so the schema marks it with `fetchOnChange`. 
 ```tsx
 import { z } from "zod";
 import {
-  SettingsSection,
   defineTrackModule,
   fetchOnChange,
   useInteraction,
@@ -62,7 +61,8 @@ function SignalRenderer({ config, data, region, width, height }: TrackRendererPr
 
 function SignalSettings({ track, updateTrack }: TrackSettingsProps<Config, Item>) {
   return (
-    <SettingsSection title="Signal">
+    <fieldset>
+      <legend>Signal</legend>
       <label>
         Data URL
         <input
@@ -88,7 +88,7 @@ function SignalSettings({ track, updateTrack }: TrackSettingsProps<Config, Item>
           }}
         />
       </label>
-    </SettingsSection>
+    </fieldset>
   );
 }
 

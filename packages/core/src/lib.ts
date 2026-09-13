@@ -9,7 +9,7 @@ export { normalizeRegion, parseRegion } from "./genome/region";
 export type { GenomicRegion, RegionErrorCode, RegionResult } from "./genome/region";
 
 export { defineTrackModule } from "./modules/defineTrackModule";
-export { TrackInteractionProvider, useInteraction } from "./modules/interaction";
+export { useInteraction } from "./modules/interaction";
 export type {
   AnyTrackInstance,
   AnyTrackInteraction,
@@ -48,10 +48,7 @@ export { fetchOnChange } from "./modules/fetchOnChange";
 export { useAutoTrackHeight } from "./browser/track-row/useAutoTrackHeight";
 export type { AutoTrackHeightOptions } from "./browser/track-row/useAutoTrackHeight";
 export { useTooltip } from "./browser/tooltip/useTooltip";
-export { useRegistry } from "./browser/state/useRegistry";
-export { SettingsSection } from "./modules/runtime/SettingsSection";
 export { createBrowserStore } from "./browser/state/browserStore";
-export { createContextMenuStore } from "./browser/state/contextMenuStore";
 export { useContextMenuStore, useGenomeBrowser } from "./browser/state/browserContextState";
 export type { GenomeBrowserStores } from "./browser/state/browserContextState";
 export { createTrackStore } from "./browser/state/trackStore";
@@ -66,11 +63,7 @@ export type {
   BrowserViewportMutationResult,
   Highlight,
 } from "./browser/state/browserStore";
-export type {
-  ContextMenuPosition,
-  ContextMenuStore,
-  ContextMenuStoreInstance,
-} from "./browser/state/contextMenuStore";
+export type { ContextMenuPosition, ContextMenuStore } from "./browser/state/contextMenuStore";
 export type { TrackStore, TrackStoreInstance, TrackStoreOptions } from "./browser/state/trackStore";
 
 export { TrackOverlay } from "./browser/track-overlay/TrackOverlay";
@@ -86,7 +79,7 @@ export type {
   TrackCollectionTrack,
 } from "./collections/collectionSchema";
 export { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
-export { validateJson } from "./collections/validateJson";
+export { validateTrackCollection } from "./collections/validateTrackCollection";
 
 export {
   createTrackCollectionSchema,
