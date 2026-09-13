@@ -198,3 +198,10 @@ Use only package-root exports for module authoring. BigBed-specific renderer reu
 ## Fixed annotations
 
 Use [TrackOverlay](TrackOverlay.md) for SVG content anchored to the visible plot during panning, or [TrackLabel](TrackLabel.md) for styled fixed text. Tracks own annotation values and scale calculations; core supplies positioning independent of the panning content.
+
+## Track errors
+
+Fetch errors appear directly in the track lane, prefixed with the track title. Messages wrap
+to the lane width and scroll within its configured height. The error region is keyboard-focusable
+so long messages can be scrolled without opening another UI. Other tracks remain available.
+Error details are rendered as text, and the runtime does not interpret format-specific schema errors.

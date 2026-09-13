@@ -1,3 +1,5 @@
+export { BigBedParseError } from "./bigBedParseError";
+export type { BigBedParseContext } from "./bigBedParseError";
 export { bed3Schema, createBigBedFile } from "./bigBed";
 export type { BigBedFileOptions, BigBedRecord } from "./bigBed";
 export { createBigWigFile } from "./bigWig";

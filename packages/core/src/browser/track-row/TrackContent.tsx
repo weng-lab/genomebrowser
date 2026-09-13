@@ -29,7 +29,15 @@ export const TrackContent = memo(function TrackContent({
     return <LoadingState x={0} y={0} width={width} height={height} />;
   }
   if (dataState.status === "error") {
-    return <ErrorState x={0} y={0} width={width} height={height} message={dataState.error} />;
+    return (
+      <ErrorState
+        x={0}
+        y={0}
+        width={width}
+        height={height}
+        message={`Track "${track.base.title || track.base.id}": ${dataState.error}`}
+      />
+    );
   }
 
   const module = registry.get(track.type);

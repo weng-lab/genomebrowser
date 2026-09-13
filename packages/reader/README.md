@@ -192,6 +192,7 @@ never returns partial results for these failures.
 - `createBigBedFile({ url, schema })`: synchronously configures a BigBed file. It performs no network
   request until `read()` and privately caches successful file-header, chromosome, and primary-index
   header metadata for that file object.
+- `BigBedParseError`: a Zod-compatible column validation error with record and column `context`; see [BigBed failures](docs/bigbed.md#lifecycle-and-failures).
 - `bed3Schema`: a Zod object schema that consumes zero post-BED3 fields.
 - `BigBedFileOptions<Schema>`: factory options for the public HTTP(S) URL and positional Zod schema.
 - `GenomicRegion`: a chromosome and zero-based, half-open `start` and `end` interval.

@@ -64,3 +64,12 @@ An interval tooltip uses the dataset name as its title. It also shows the featur
 | `BulkBedInteraction` | Interaction callbacks receiving `BulkBedRect` and `BulkBedConfig`. |
 
 See [BED schemas and colored tracks](../bedSchemas.md) for the shared schema exports and examples. Schema selection is configured through the track API or collection JSON; the settings panel does not edit it.
+
+## Schema errors
+
+A column validation failure reports the field name, one-based BED column number, raw value,
+and record coordinates, followed by the selected `bedSchema` and guidance to check
+`config.bedSchema`. Short records report expected and actual column counts. An omitted preset
+is identified as `bed9 (default)`; there is no automatic fallback. For narrowPeak BED6+4 data,
+`bed6` parses the standard prefix and preserves the four remaining values in `fields`.
+Network failures retain their original message rather than being labeled schema errors.
