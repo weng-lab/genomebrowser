@@ -80,7 +80,20 @@ function reportTrackChange(result: TrackMutationResult) {
 }
 ```
 
-The result is `{ ok: true }` or `{ ok: false; error: string }`. A rejected mutation leaves the existing tracks and order unchanged. A successful mutation commits synchronously; it does not wait for data loading or rendering. Module validation failures become failure results during mutations, even though the same failures throw during construction.
+The result is `{ ok: true }` or `{ ok: false; code: TrackMutationErrorCode; error: string }`. A rejected mutation leaves the existing tracks and order unchanged. A successful mutation commits synchronously; it does not wait for data loading or rendering. Schema validation failures from `defineTrackModule` become failure results during mutations, even though the same failures throw during construction. Unexpected exceptions from custom validation code propagate. Express expected validation failures through the module schema.
+
+`MutationFailure<Code extends string>` is the shared failure shape `{ ok: false; code: Code; error: string }`. Branch on `code` for application logic and use `error` for display; message text is not a stable identifier.
+
+`TrackMutationErrorCode` contains:
+
+| Code                   | Meaning                                                       |
+| ---------------------- | ------------------------------------------------------------- |
+| `INVALID_TRACK`        | Instance or settings input fails validation.                  |
+| `UNKNOWN_TRACK_MODULE` | No module is registered for the instance type.                |
+| `DUPLICATE_TRACK_ID`   | The resulting track list would contain a repeated ID.         |
+| `TRACK_NOT_FOUND`      | An update or removal names an absent track.                   |
+| `INVALID_TRACK_ORDER`  | Order does not contain every current ID exactly once.         |
+| `INTERACTION_BLOCKED`  | A hosted settings mutation is disabled during an interaction. |
 
 These contracts assume arguments with the documented shapes. The actions are not general parsers for arbitrary JavaScript values. Use module or collection schemas to validate external input.
 

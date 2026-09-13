@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import {
   createBrowserStore,
   hg38,
@@ -17,6 +17,40 @@ function createTestStore(region: GenomicRegion = { chromosome: "chr1", start: 20
 }
 
 describe("createBrowserStore", () => {
+  it("returns selection and highlight results without committing invalid input or duplicate IDs", () => {
+    const store = createTestStore();
+    const before = store.getState();
+    const notify = vi.fn();
+    store.subscribe(notify);
+    expect(before.setSelectionMode("invalid" as "pan")).toMatchObject({
+      ok: false,
+      code: "INVALID_SELECTION_MODE",
+    });
+    expect(before.setSelectionHighlight({ color: "", opacity: 0.5 })).toMatchObject({
+      ok: false,
+      code: "INVALID_SELECTION_HIGHLIGHT",
+    });
+    expect(
+      before.addHighlight({ id: "", region: { start: 0, end: 1 }, color: "red" }),
+    ).toMatchObject({ ok: false, code: "INVALID_HIGHLIGHT" });
+    expect(store.getState()).toBe(before);
+    expect(notify).not.toHaveBeenCalled();
+    expect(before.setSelectionMode("zoom")).toEqual({ ok: true });
+    expect(before.setSelectionHighlight({ color: "red" })).toEqual({ ok: true });
+    expect(store.getState().selectionHighlight).toEqual({ color: "red" });
+    const highlight = { id: "a", region: { start: 1, end: 2 }, color: "red" };
+    expect(before.addHighlight(highlight)).toEqual({ ok: true });
+    const after = store.getState();
+    expect(before.addHighlight({ ...highlight, color: "blue" })).toEqual({ ok: true });
+    expect(store.getState()).toBe(after);
+    expect(before.addHighlight({ ...highlight, color: "" })).toMatchObject({
+      ok: false,
+      code: "INVALID_HIGHLIGHT",
+    });
+    expect(store.getState()).toBe(after);
+    expect(before.removeHighlight("missing")).toBeUndefined();
+    expect(store.getState().highlights).toEqual([highlight]);
+  });
   it("owns validated selection modes and highlight style independently per browser", () => {
     const useFirst = createTestStore();
     const useSecond = createTestStore();
@@ -30,7 +64,10 @@ describe("createBrowserStore", () => {
     useFirst.getState().setSelectionHighlight({ color: "#123456", opacity: 0.8, type: "outlined" });
     expect(useSecond.getState().selectionMode).toBe("pan");
     const before = useFirst.getState();
-    expect(() => useFirst.getState().setSelectionHighlight({ color: "red", opacity: 2 })).toThrow();
+    expect(useFirst.getState().setSelectionHighlight({ color: "red", opacity: 2 })).toMatchObject({
+      ok: false,
+      code: "INVALID_SELECTION_HIGHLIGHT",
+    });
     expect(useFirst.getState()).toBe(before);
     expect(useFirst.getState().highlights).toEqual([]);
     expect(useFirst.getState().region).toEqual({ chromosome: "chr1", start: 20, end: 40 });
@@ -326,7 +363,10 @@ describe("createBrowserStore", () => {
     expect(store.getState().highlights).toEqual([highlight]);
     const invalid = { ...highlight, type: "unknown" as "outlined" };
     expect(() => createBrowserStore({ ...input, highlights: [invalid] })).toThrow();
-    expect(() => store.getState().addHighlight(invalid)).toThrow();
+    expect(store.getState().addHighlight(invalid)).toMatchObject({
+      ok: false,
+      code: "INVALID_HIGHLIGHT",
+    });
     expect(store.getState().highlights).toEqual([highlight]);
   });
 
@@ -346,12 +386,16 @@ describe("createBrowserStore", () => {
     ).toThrow(/Browser store input is invalid/);
 
     const store = createTestStore();
-    expect(() =>
+    expect(
       store.getState().addHighlight({
         id: "bad",
         region: { start: 40, end: 20 },
         color: "#ff0000",
       }),
-    ).toThrow(/Highlight is invalid/);
+    ).toMatchObject({
+      ok: false,
+      code: "INVALID_HIGHLIGHT",
+      error: expect.stringMatching(/Highlight is invalid/),
+    });
   });
 });

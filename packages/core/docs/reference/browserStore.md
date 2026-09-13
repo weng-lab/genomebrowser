@@ -132,9 +132,9 @@ type Result =
 
 ## Selection
 
-`BrowserSelectionMode` is `"pan" | "zoom" | "highlight"`. `setSelectionMode(mode: BrowserSelectionMode): void` replaces the active mode. Zoom and highlight modes remain active after a drag.
+`BrowserSelectionMode` is `"pan" | "zoom" | "highlight"`. `setSelectionMode(mode: BrowserSelectionMode): BrowserSelectionMutationResult` replaces the active mode. Zoom and highlight modes remain active after a drag.
 
-`SelectionHighlightStyle` is `Pick<Highlight, "color" | "opacity" | "type">`. `setSelectionHighlight(style: SelectionHighlightStyle): void` replaces the complete style; it does not merge omitted fields or restyle existing highlights. Both setters validate their input and throw before changing state on failure.
+`SelectionHighlightStyle` is `Pick<Highlight, "color" | "opacity" | "type">`. `setSelectionHighlight(style: SelectionHighlightStyle): BrowserSelectionMutationResult` replaces the complete style; it does not merge omitted fields or restyle existing highlights. Both setters return `{ ok: true }` on success. `BrowserSelectionMutationResult` uses the shared [mutation failure shape](trackStore.md#mutation-results), with `INVALID_SELECTION_MODE` or `INVALID_SELECTION_HIGHLIGHT` for invalid input. A failure leaves the entire store unchanged.
 
 ```ts
 useBrowserStore.getState().setSelectionHighlight({
@@ -166,7 +166,7 @@ Highlights are validated independently of the assembly: their chromosome members
 
 ### addHighlight and removeHighlight
 
-`addHighlight(highlight: Highlight): void` validates and appends an entry. An already-present ID is a no-op after validation; invalid input throws. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
+`addHighlight(highlight: Highlight): BrowserHighlightMutationResult` validates and appends an entry. `BrowserHighlightMutationResult` is `{ ok: true }` or the shared [mutation failure shape](trackStore.md#mutation-results) with code `INVALID_HIGHLIGHT`. An already-present ID is a successful no-op after validation; invalid input returns a failure without changing state. Initial `highlights` are individually validated, but construction does not deduplicate their IDs, so provide unique initial IDs.
 
 `removeHighlight(id: string): void` removes all entries matching that ID; a missing ID is a no-op.
 

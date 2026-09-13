@@ -274,7 +274,7 @@ async function renderHarness(props: HarnessProps = {}) {
           (rejectAddUpdate && nextLength > current.datasets.length) ||
           (rejectRemoveUpdate && nextLength < current.datasets.length)
         ) {
-          return { ok: false, error: "Rejected for test" };
+          return { ok: false, code: "INVALID_TRACK", error: "Rejected for test" };
         }
         return updateTrack(id, update);
       },

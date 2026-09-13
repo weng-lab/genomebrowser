@@ -104,7 +104,7 @@ Keep source order consistent with reading and keyboard order. The [layout compon
 
 The text, number, and range components keep an editable draft separate from accepted config. A valid changed draft commits after 300 ms, or immediately on blur or Enter. Escape restores the last accepted value. The field keeps a rejected draft visible and shows either its local validation error or the error returned by `onCommit`. If config changes elsewhere, the field adopts the new accepted value once it has no unresolved draft.
 
-`onCommit` must return `TrackMutationResult` from `@weng-lab/genomebrowser`. Return `{ ok: true }` for an accepted mutation or `{ ok: false, error: string }` for a rejected one. In a settings component, return the result from `updateTrack` directly as shown above.
+`onCommit` must return `TrackMutationResult` from `@weng-lab/genomebrowser`. Return `{ ok: true }` for an accepted mutation or `{ ok: false, code: TrackMutationErrorCode, error: string }` for a rejected one. In a settings component, return the result from `updateTrack` directly as shown above.
 
 URL fields apply a draft only when you activate **Set** beside the input. Typing, waiting, blur, and Enter in the input do not change the active source or request data for the draft. Escape restores the last accepted URL. Validation errors retain the draft. Host-source tracks disable both the input and Set button.
 

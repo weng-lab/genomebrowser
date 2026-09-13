@@ -112,7 +112,7 @@ async function renderHarness() {
   const updateTrack = (update: TrackUpdate<BigWigConfig, SignalPoint>): TrackMutationResult => {
     if (rejectNextUpdate) {
       rejectNextUpdate = false;
-      return { ok: false, error: "Rejected for test" };
+      return { ok: false, code: "INVALID_TRACK", error: "Rejected for test" };
     }
     acceptedTrack = bigWigModule.validate({
       ...acceptedTrack,

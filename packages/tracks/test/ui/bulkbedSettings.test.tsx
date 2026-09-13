@@ -238,7 +238,7 @@ describe("BulkBed settings", () => {
     vi.useFakeTimers();
     const updateTrack = vi.fn<
       (update: TrackUpdate<BulkBedConfig, BulkBedRect>) => TrackMutationResult
-    >(() => ({ ok: false, error: "Core rejected the update." }));
+    >(() => ({ ok: false, code: "INVALID_TRACK", error: "Core rejected the update." }));
     const { rerender } = renderSettings(initialConfig, updateTrack);
 
     updateInput(rowInput(datasetRows()[0], "Name"), "Dataset A updated");

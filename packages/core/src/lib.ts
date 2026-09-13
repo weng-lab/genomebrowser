@@ -1,9 +1,13 @@
+export type { MutationFailure } from "./mutation";
+
 // Browser setup
 export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
 export { createBrowserStore } from "./browser/state/browserStore";
 export type {
   BrowserSelectionMode,
+  BrowserSelectionMutationResult,
+  BrowserHighlightMutationResult,
   SelectionHighlightStyle,
   BrowserRegionMutationErrorCode,
   BrowserRegionMutationResult,
@@ -46,6 +50,7 @@ export type {
   TrackFetchTrack,
   TrackInstance,
   TrackMutationResult,
+  TrackMutationErrorCode,
   TrackModule,
   TrackResources,
   TrackSettingsComponent,

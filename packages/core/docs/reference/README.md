@@ -4,16 +4,16 @@ Import the APIs below from `@weng-lab/genomebrowser`. Related types are document
 
 ## Browser and viewport
 
-| Exports                                                         | Reference                                                                                            |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `GenomeBrowser`, `GenomeBrowserProps`                           | [GenomeBrowser](GenomeBrowser.md)                                                                    |
-| `createBrowserStore`, `BrowserStoreInput`                       | [Store creation](browserStore.md#createbrowserstore-and-browserstoreinput)                           |
-| `BrowserStore`, `BrowserStoreInstance`                          | [State and store instance](browserStore.md#browserstore-and-browserstoreinstance)                    |
-| `BrowserRegionMutationResult`, `BrowserRegionMutationErrorCode` | [Navigation results](browserStore.md#browserregionmutationresult-and-browserregionmutationerrorcode) |
-| `BrowserViewportMutationResult`                                 | [Fixed width](browserStore.md#fixed-width)                                                           |
-| `BrowserSelectionMode`, `SelectionHighlightStyle`               | [Selection](browserStore.md#selection)                                                               |
-| `Highlight`                                                     | [Highlights](browserStore.md#highlights)                                                             |
-| `useGenomeBrowser`, `GenomeBrowserStores`                       | [Hosting browser stores](browserStore.md#usegenomebrowser)                                           |
+| Exports                                                                             | Reference                                                                                            |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `GenomeBrowser`, `GenomeBrowserProps`                                               | [GenomeBrowser](GenomeBrowser.md)                                                                    |
+| `createBrowserStore`, `BrowserStoreInput`                                           | [Store creation](browserStore.md#createbrowserstore-and-browserstoreinput)                           |
+| `BrowserStore`, `BrowserStoreInstance`                                              | [State and store instance](browserStore.md#browserstore-and-browserstoreinstance)                    |
+| `BrowserRegionMutationResult`, `BrowserRegionMutationErrorCode`                     | [Navigation results](browserStore.md#browserregionmutationresult-and-browserregionmutationerrorcode) |
+| `BrowserViewportMutationResult`                                                     | [Fixed width](browserStore.md#fixed-width)                                                           |
+| `BrowserSelectionMode`, `SelectionHighlightStyle`, `BrowserSelectionMutationResult` | [Selection](browserStore.md#selection)                                                               |
+| `BrowserHighlightMutationResult`, `Highlight`                                       | [Highlights](browserStore.md#highlights)                                                             |
+| `useGenomeBrowser`, `GenomeBrowserStores`                                           | [Hosting browser stores](browserStore.md#usegenomebrowser)                                           |
 
 ## Assemblies and regions
 
@@ -28,13 +28,13 @@ Import the APIs below from `@weng-lab/genomebrowser`. Related types are document
 
 ## Track store
 
-| Exports                                 | Reference                                                                   |
-| --------------------------------------- | --------------------------------------------------------------------------- |
-| `createTrackStore`, `TrackStoreOptions` | [Store creation](trackStore.md#createtrackstore-and-trackstoreoptions)      |
-| `TrackStore`, `TrackStoreInstance`      | [State and store instance](trackStore.md#trackstore-and-trackstoreinstance) |
-| `ModuleRegistry`                        | [Module registry](trackStore.md#moduleregistry)                             |
-| `TrackMutationResult`                   | [Mutation results](trackStore.md#mutation-results)                          |
-| `TrackUpdate`, `TrackBaseUpdate`        | [Update patches](trackStore.md#trackupdate-and-trackbaseupdate)             |
+| Exports                                                            | Reference                                                                   |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| `createTrackStore`, `TrackStoreOptions`                            | [Store creation](trackStore.md#createtrackstore-and-trackstoreoptions)      |
+| `TrackStore`, `TrackStoreInstance`                                 | [State and store instance](trackStore.md#trackstore-and-trackstoreinstance) |
+| `ModuleRegistry`                                                   | [Module registry](trackStore.md#moduleregistry)                             |
+| `MutationFailure`, `TrackMutationErrorCode`, `TrackMutationResult` | [Mutation results](trackStore.md#mutation-results)                          |
+| `TrackUpdate`, `TrackBaseUpdate`                                   | [Update patches](trackStore.md#trackupdate-and-trackbaseupdate)             |
 
 ## Track modules
 

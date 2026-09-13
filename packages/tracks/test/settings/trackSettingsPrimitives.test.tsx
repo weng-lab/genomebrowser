@@ -90,7 +90,9 @@ describe("track settings fields", () => {
 
   it("keeps rejected drafts and synchronizes a clean field from external updates", () => {
     vi.useFakeTimers();
-    const onCommit = vi.fn(() => ({ ok: false, error: "Core rejected this title." }) as const);
+    const onCommit = vi.fn(
+      () => ({ ok: false, code: "INVALID_TRACK", error: "Core rejected this title." }) as const,
+    );
     mount(
       <TrackSettingsTextField
         label="Title"
@@ -134,7 +136,7 @@ describe("track settings fields", () => {
     vi.useFakeTimers();
     const onCommit = vi
       .fn()
-      .mockReturnValueOnce({ ok: false, error: "Core rejected this title." })
+      .mockReturnValueOnce({ ok: false, code: "INVALID_TRACK", error: "Core rejected this title." })
       .mockReturnValueOnce({ ok: true });
     mount(
       <TrackSettingsTextField
@@ -229,7 +231,7 @@ describe("track settings fields", () => {
   it("retains a rejected URL for retry and cancels a later draft with Escape", () => {
     const onCommit = vi
       .fn()
-      .mockReturnValueOnce({ ok: false, error: "Source rejected" })
+      .mockReturnValueOnce({ ok: false, code: "INVALID_TRACK", error: "Source rejected" })
       .mockReturnValue({ ok: true });
     mount(<TrackSettingsUrlField value="YOUR_URL_HERE" onCommit={onCommit} />);
     const input = getInput("URL");
