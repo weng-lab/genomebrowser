@@ -83,6 +83,14 @@ The [browser store](browserStore.md) configures the logical gutter and fixed tra
 
 The SVG has `role="group"` and the accessible name `Genome browser`. Magnification enlarges the complete drawing, including its SVG controls and tooltips. It does not change HTML settings dialogs, context menus, or controls supplied by the host application, and does not replace browser zoom or keyboard accessibility.
 
+## Track context menu
+
+Right-click a track's data area to open its context menu. `GenomeBrowser` owns the menu state internally.
+
+The menu shows registered display names and a remove button. Actions are disabled while browser interactions are blocked, and a successful action closes it. Clicking outside, pressing Escape, or scrolling outside the menu dismisses it. Scrolling within a tall menu keeps it open. Resizing the viewport recalculates its placement.
+
+The choices are native buttons. The component does not implement ARIA menu roles, arrow-key menu navigation, or automatic focus placement/restoration. Applications implementing another menu are responsible for its accessible interaction design.
+
 ## Notes
 
 - The wrapper has a one-pixel border on each side. Responsive measurements exclude that border. Fixed drawing dimensions exclude it too; the complete unrestrained wrapper is two CSS pixels wider and taller than the SVG.

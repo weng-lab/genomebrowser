@@ -80,12 +80,4 @@ Import the APIs below from `@weng-lab/genomebrowser`. Related types are document
 | `createTrackCollectionSchema`                      | [createTrackCollectionSchema](collections.md#createtrackcollectionschema)                                             |
 | `generateTrackCollectionJsonSchema`                | [generateTrackCollectionJsonSchema](collections.md#generatetrackcollectionjsonschema)                                 |
 
-## Context menus
-
-| Exports               | Reference                                                  |
-| --------------------- | ---------------------------------------------------------- |
-| `useContextMenuStore` | [useContextMenuStore](contextMenus.md#usecontextmenustore) |
-| `ContextMenuStore`    | [ContextMenuStore](contextMenus.md#contextmenustore)       |
-| `ContextMenuPosition` | [ContextMenuPosition](contextMenus.md#contextmenuposition) |
-
 The [schema CLI](collections.md#schema-cli) documents the `genomebrowser schema` command.

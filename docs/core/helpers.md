@@ -86,7 +86,7 @@ A custom modal component receives the stable active `trackId`, position, close c
 
 ## Store hooks
 
-The package exports `useGenomeBrowser` to resolve exactly the browser and track bound stores provided by the nearest `GenomeBrowser`. `useContextMenuStore` remains a separate context hook. Runtime extensions may use them when they need context beyond the props supplied by their contract. Applications outside the browser tree already hold the stable store hook returned by the corresponding factory and can read it directly.
+The package exports `useGenomeBrowser` to resolve exactly the browser and track bound stores provided by the nearest `GenomeBrowser`. Runtime extensions may use these stores when they need context beyond the props supplied by their contract. Context-menu state and its context hook are internal to core. Applications outside the browser tree already hold the stable store hook returned by the corresponding factory and can read it directly.
 
 ## Application store factories
 

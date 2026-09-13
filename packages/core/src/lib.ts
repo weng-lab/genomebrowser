@@ -1,15 +1,34 @@
+// Browser setup
 export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
-export { defaultScreenGraphQlEndpoint } from "./screen";
+export { createBrowserStore } from "./browser/state/browserStore";
+export type {
+  BrowserSelectionMode,
+  SelectionHighlightStyle,
+  BrowserRegionMutationErrorCode,
+  BrowserRegionMutationResult,
+  BrowserStore,
+  BrowserStoreInput,
+  BrowserStoreInstance,
+  BrowserViewportMutationResult,
+  Highlight,
+} from "./browser/state/browserStore";
+export { createTrackStore } from "./browser/state/trackStore";
+export type { TrackStore, TrackStoreInstance, TrackStoreOptions } from "./browser/state/trackStore";
+export type { ModuleRegistry } from "./modules/registry";
+export { useGenomeBrowser } from "./browser/state/browserContextState";
+export type { GenomeBrowserStores } from "./browser/state/browserContextState";
 
+// Assemblies and regions
 export { createAssemblyDefinition } from "./genome/assembly";
 export type { AssemblyDefinition } from "./genome/assembly";
-export { ce11, dm6, hg38, mm10, tair10 } from "./genome/presets";
-export { normalizeRegion, parseRegion } from "./genome/region";
+export { hg38, mm10, ce11, dm6, tair10 } from "./genome/presets";
+export { parseRegion, normalizeRegion } from "./genome/region";
 export type { GenomicRegion, RegionErrorCode, RegionResult } from "./genome/region";
 
+// Track definition
 export { defineTrackModule } from "./modules/defineTrackModule";
-export { useInteraction } from "./modules/interaction";
+export { fetchOnChange } from "./modules/fetchOnChange";
 export type {
   AnyTrackInstance,
   AnyTrackInteraction,
@@ -42,35 +61,24 @@ export type {
   TrackTooltipComponent,
   TrackUpdate,
 } from "./modules/types";
-export type { ModuleRegistry, TrackCollectionEntry } from "./modules/registry";
 
-export { fetchOnChange } from "./modules/fetchOnChange";
+// Renderer integration
+export { useInteraction } from "./modules/interaction";
+export { useTooltip } from "./browser/tooltip/useTooltip";
 export { useAutoTrackHeight } from "./browser/track-row/useAutoTrackHeight";
 export type { AutoTrackHeightOptions } from "./browser/track-row/useAutoTrackHeight";
-export { useTooltip } from "./browser/tooltip/useTooltip";
-export { createBrowserStore } from "./browser/state/browserStore";
-export { useContextMenuStore, useGenomeBrowser } from "./browser/state/browserContextState";
-export type { GenomeBrowserStores } from "./browser/state/browserContextState";
-export { createTrackStore } from "./browser/state/trackStore";
-export type {
-  BrowserSelectionMode,
-  SelectionHighlightStyle,
-  BrowserRegionMutationErrorCode,
-  BrowserRegionMutationResult,
-  BrowserStore,
-  BrowserStoreInput,
-  BrowserStoreInstance,
-  BrowserViewportMutationResult,
-  Highlight,
-} from "./browser/state/browserStore";
-export type { ContextMenuPosition, ContextMenuStore } from "./browser/state/contextMenuStore";
-export type { TrackStore, TrackStoreInstance, TrackStoreOptions } from "./browser/state/trackStore";
-
 export { TrackOverlay } from "./browser/track-overlay/TrackOverlay";
 export type { TrackOverlayProps } from "./browser/track-overlay/TrackOverlay";
 export { TrackLabel } from "./browser/track-overlay/TrackLabel";
 export type { TrackLabelProps } from "./browser/track-overlay/TrackLabel";
 
+// Collections and schemas
+export { validateTrackCollection } from "./collections/validateTrackCollection";
+export {
+  createTrackCollectionSchema,
+  TrackCollectionViewSchema,
+} from "./collections/collectionSchema";
+export { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
 export type {
   TrackCollection,
   TrackCollectionView,
@@ -78,10 +86,7 @@ export type {
   TrackMetadata,
   TrackCollectionTrack,
 } from "./collections/collectionSchema";
-export { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
-export { validateTrackCollection } from "./collections/validateTrackCollection";
+export type { TrackCollectionEntry } from "./modules/registry";
 
-export {
-  createTrackCollectionSchema,
-  TrackCollectionViewSchema,
-} from "./collections/collectionSchema";
+// Integration constant
+export { defaultScreenGraphQlEndpoint } from "./screen";

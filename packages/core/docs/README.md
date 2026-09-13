@@ -11,10 +11,9 @@ The [reference index](reference/README.md) maps every public core export to its 
 - [Browser store](reference/browserStore.md): initialization, navigation, selection, and highlights.
 - [Assemblies and regions](reference/assembliesAndRegions.md): presets, custom definitions, coordinates, parsing, and validation.
 - [Track modules](reference/trackModules.md): definition, creation, fetch/render contracts, resources, settings, and interactions.
-- [Runtime helpers](reference/runtimeHelpers.md): schema markers, renderer hooks, and settings grouping.
+- [Runtime helpers](reference/runtimeHelpers.md): schema markers and renderer hooks.
 - [TrackOverlay](reference/TrackOverlay.md) and [TrackLabel](reference/TrackLabel.md): fixed SVG annotations.
 - [Collections](reference/collections.md): authored tracks, view schemas, validation, and CLI generation.
-- [Context menus](reference/contextMenus.md): menu state, hooks, and built-in behavior.
 
 ## Documentation awaiting migration
 

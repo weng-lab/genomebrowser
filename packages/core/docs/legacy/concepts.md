@@ -94,8 +94,6 @@ Right-click a track's data area to choose its display mode or remove it. The men
 
 Scrolling outside the menu dismisses it, including scrolling the page or a containing panel. Scrolling within the menu keeps it open.
 
-`ContextMenuPosition` uses viewport coordinates in CSS pixels (`MouseEvent.clientX` and `MouseEvent.clientY`).
-
 ## Modules define track types
 
 A registered module holds stable behavior for one type: schemas, defaults, fetching, renderers, display modes, and optional settings and tooltip components. A track instance holds values for one row:
