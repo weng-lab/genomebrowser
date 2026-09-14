@@ -1,10 +1,10 @@
 # Fetching track data
 
-Implement a module's `fetch` function to load and prepare data for its renderers. Core supplies the requested interval, width, and storage scoped to this track.
+Implement a module's `fetch` function to load and prepare data for its renderers. Core supplies the requested region, width, and storage scoped to this track.
 
 ## Usage
 
-This fetcher returns intervals stored in the module's config; it needs no network service:
+This fetcher returns regions stored in the module's config; it needs no network service:
 
 ```ts
 import type { TrackFetch } from "@weng-lab/genomebrowser";
@@ -17,7 +17,7 @@ export const fetchIntervals: TrackFetch<Config, Interval[]> = async ({ track }) 
 };
 ```
 
-Pass `fetchIntervals` as a module's `fetch` option and mark its `intervals` schema with [fetchOnChange](fetchOnChange.md). The [module definition example](defineTrackModule.md) shows the complete wiring.
+Pass `fetchIntervals` as a module's `fetch` option and mark its `intervals` schema with [fetchOnChange](fetchOnChange.md). The [module definition example](defineTrackModule.md) shows how to connect the fetcher to a module.
 
 ## Fetching data
 
@@ -48,12 +48,12 @@ Values persist across requests and demand/config changes. The fetcher decides wh
 
 ## Requests and result lifetime
 
-A mounted browser requests data for initial tracks and added tracks. Changes to the requested assembly, interval, or logical width request data again. A changed track type, display, or marked config value invalidates that track's result. Title, color, height, callback, ordering, and unmarked config changes do not themselves request data. Replacing a track with the same ID and the same fetch inputs can reuse its result.
+A mounted browser requests data for initial tracks and added tracks. Changes to the requested assembly, region, or logical width request data again. A changed track type, display, or marked config value invalidates that track's result. Title, color, height, callback, ordering, and unmarked config changes do not themselves request data. Replacing a track with the same ID and the same fetch inputs can reuse its result.
 
-Width-only changes use a 200 ms trailing debounce. A non-width fetch input change promotes the pending width immediately. Request intervals can include overscan beyond the visible interval; use the supplied demand rather than reading a browser store inside the fetcher.
+Core waits until width-only changes stop for 200 ms before requesting data. If another fetch input changes during that delay, core starts the request immediately using the latest width. Request regions can include overscan beyond the visible region; use the supplied demand rather than reading a browser store inside the fetcher.
 
-Core ignores results from superseded request batches. It does not cancel the underlying work, so a fetch may continue after a new request starts or a track is removed. Tracks in a request batch are fetched concurrently and their success/error results are committed when the batch settles. A rejected fetch becomes a track-local error result and does not reject other tracks' fetches.
+Core ignores results from superseded request batches. It does not cancel the underlying work, so a fetch may continue after a new request starts or a track is removed. Core runs the fetchers in a batch concurrently and commits their results after every fetch has finished or failed. A rejected fetch becomes a track-local error result and does not reject other tracks' fetches.
 
-Core can retain compatible data while a same-scale pan settles. Renderers must use their supplied [render region and width](../rendererIntegration/trackRenderer.md), which can differ from the visible viewport.
+Core can keep displaying existing data during a same-scale pan while the next request is in progress. Renderers must use their supplied [render region and width](../rendererIntegration/trackRenderer.md), which can differ from the visible viewport.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

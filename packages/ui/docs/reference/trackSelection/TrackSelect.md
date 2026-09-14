@@ -65,6 +65,10 @@ export function TrackPicker() {
 }
 ```
 
+With one collection, the dialog opens directly on its detail screen; with multiple collections, it opens on the collection list. In grouped views, group checkboxes select or deselect all selectable descendants. Only track IDs enter the selection, not group IDs.
+
+The active view determines the order of newly added tracks. Groups follow their first appearance in collection order, nested groups follow the view's grouping fields, and tracks within each final group retain collection order. Changing views can therefore change the insertion order on Submit.
+
 The host controls the dialog through `open` and `onClose`. Browsing and selection changes remain a draft until the user submits them.
 
 See [Getting started](../../gettingStarted.md) for a complete example in which `TrackSelect` and `GenomeBrowser` share the store.

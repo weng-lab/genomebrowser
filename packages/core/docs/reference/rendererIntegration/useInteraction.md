@@ -1,6 +1,8 @@
 # useInteraction
 
-`useInteraction<Item>(): TrackRendererInteraction<Item> | null` reads item-only callbacks for the current renderer. The browser supplies them from the instance's [interaction callbacks](useInteraction.md#instance-callbacks), with runtime context already bound.
+Call a `useInteraction` handler with the clicked or hovered item. Core then calls the track instance's application callback with that item and the track's current context.
+
+`useInteraction<Item>(): TrackRendererInteraction<Item> | null` returns the handlers for the current renderer.
 
 ```tsx
 import { useInteraction } from "@weng-lab/genomebrowser";
@@ -20,9 +22,9 @@ The returned object can contain `onClick`, `onHover`, and `onLeave`, each accept
 
 `TrackRuntimeContext<Config>` contains readonly `type`, `base`, and parsed `config`. It is derived from the current validated instance. It is not persisted state and contains no collection metadata or source field. Object config and base are shallow readonly views.
 
-Renderers choose the semantic item and invoke [useInteraction](useInteraction.md#useinteraction) handlers. The browser binds the runtime context, so `TrackRendererInteraction<Item>` exposes those same optional callback names with item-only signatures `(item: Item) => void`. Callback frequency and which events are emitted depend on the renderer; keep frequent hover handlers lightweight.
+The renderer decides which item to pass and when to emit each event. Hover handlers can run frequently, so avoid expensive work in them.
 
-The item type is supplied by the renderer and is not checked at runtime. Define the module with `defineTrackModule<Item>()` so its `create(input, interaction)` callbacks and tooltip use the same item type. Pass callbacks as the second `create` argument, and use [track-store patches](../browserSetup/trackStore.md#trackupdate-and-trackbaseupdate) to replace them later. Updated callbacks receive runtime context from the current validated instance.
+The item type is supplied by the renderer and is not checked at runtime. Define the module with `defineTrackModule<Item>()` so its `create(input, interaction)` callbacks and tooltip use the same item type. Pass callbacks as the second `create` argument, and use [track-store patches](../browserSetup/trackStore.md#trackupdate-and-trackbaseupdate) to replace them later.
 
 | Context field | Type                                               | Description                                              |
 | ------------- | -------------------------------------------------- | -------------------------------------------------------- |
@@ -30,6 +32,6 @@ The item type is supplied by the renderer and is not checked at runtime. Define 
 | `base`        | `Readonly<TrackBase>`                              | Current resolved ID, title, display, height, and color.  |
 | `config`      | `Readonly<Config>` for objects; otherwise `Config` | Parsed configuration. Nested values are not deep-frozen. |
 
-`TrackInteraction<Item = unknown, Config = unknown>` and `TrackInteractionCallback<Item, Config = unknown>` accept runtime context; `TrackRendererInteraction<Item>` accepts only the item. `TrackRuntimeContext<Config = unknown>` supplies the context shape above. Callback exceptions are not caught by the hook.
+`Item` and `Config` default to `unknown` in `TrackInteraction`. `Config` also defaults to `unknown` in `TrackInteractionCallback` and `TrackRuntimeContext`. The hook does not catch callback exceptions.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

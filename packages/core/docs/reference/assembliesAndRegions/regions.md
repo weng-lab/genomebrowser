@@ -1,10 +1,10 @@
 # Regions
 
-Use `parseRegion` to read text and `normalizeRegion` to validate an interval against an assembly. Both use the same coordinate convention as the browser.
+Use `parseRegion` to read text and `normalizeRegion` to validate a region against an assembly. Both use the same coordinate convention as the browser.
 
 ## Coordinates
 
-`GenomicRegion` is `{ chromosome: string; start: number; end: number }`. Coordinates are **zero-based and half-open**: `{ chromosome: "chr1", start: 0, end: 1 }` selects the first base, and interval width is `end - start`. Parsing a string uses the same convention; it does not subtract one from the start.
+`GenomicRegion` is `{ chromosome: string; start: number; end: number }`. Coordinates are **zero-based and half-open**: `{ chromosome: "chr1", start: 0, end: 1 }` selects the first base, and region width is `end - start`. Parsing a string uses the same convention; it does not subtract one from the start.
 
 A sequence name identifies a chromosome or another assembled piece of DNA, such as a contig or scaffold. It is the key in the assembly's `chromosomes` map and the value of a region's `chromosome` field. For example, `chr1` and `Chr1` are different names; use the spelling found in both your assembly definition and data source.
 
@@ -36,7 +36,7 @@ const result = normalizeRegion({ chromosome: "contigA", start: -10, end: 20 }, a
 // { ok: true, region: { chromosome: "contigA", start: 0, end: 20 }, clamped: true }
 ```
 
-A partial overlap is intersected with `[0, chromosomeLength)`. The interval can become shorter; it is not shifted to preserve its width. An interval entirely outside the chromosome is rejected.
+A partial overlap is intersected with `[0, chromosomeLength)`. The region can become shorter; it is not shifted to preserve its width. A region entirely outside the chromosome is rejected.
 
 ### RegionResult and RegionErrorCode
 
@@ -50,7 +50,7 @@ type Result =
   | { ok: false; code: RegionErrorCode; error: string };
 ```
 
-On success, `region` is the validated interval and `clamped` indicates whether either bound changed. On failure, `error` explains the rejected input and `code` identifies its category:
+On success, `region` is the validated region and `clamped` indicates whether either bound changed. On failure, `error` explains the rejected input and `code` identifies its category:
 
 | Code                 | Cause                                                                |
 | -------------------- | -------------------------------------------------------------------- |
@@ -59,7 +59,7 @@ On success, `region` is the validated interval and `clamped` indicates whether e
 | `REVERSED_REGION`    | Start is greater than end.                                           |
 | `ZERO_WIDTH_REGION`  | Start equals end.                                                    |
 | `UNKNOWN_CHROMOSOME` | The exact sequence key is absent from the assembly.                  |
-| `OUTSIDE_CHROMOSOME` | The interval has no overlap with the chromosome bounds.              |
+| `OUTSIDE_CHROMOSOME` | The region has no overlap with the chromosome bounds.                |
 
 Validation checks object shape, coordinates, ordering, membership, then overlap. Expected invalid-region inputs return a failure result rather than throwing. To commit a region to a browser, see [browser-store navigation](../browserSetup/browserStore.md#navigation).
 

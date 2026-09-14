@@ -23,7 +23,7 @@ const useTrackStore = createTrackStore({
 
 Replace `YOUR_URL_HERE` with your BigWig URL. Keep the returned Zustand hook stable and give its variable a `use` prefix. Create separate stores for browsers that need independent track lists. Application controls and collection UI can share the same store as the browser.
 
-Call actions through `useTrackStore.getState()` outside rendering, or subscribe with a selector in React. The examples below use the store and module from this setup. For creating custom track types, see [custom track modules](../../legacy/customTrackModules.md).
+In React components, select both displayed values and actions through the hook. For example, `useTrackStore((state) => state.updateTrack)` supplies the stable update action for an event handler without subscribing to track changes. Use `getState()` outside React or for an event-time snapshot of a value that does not drive rendering. It does not subscribe to changes. See [state and action access](../../gettingStarted/firstBrowser.md#access-browser-state-and-actions) for a React example. The action snippets below run outside React and use the store and module from this setup. For creating custom track types, see [custom track modules](../../guides/customTracks.md).
 
 ## createTrackStore and TrackStoreOptions
 
@@ -56,15 +56,26 @@ Construction throws for duplicate module types, duplicate track IDs, unknown tra
 
 `getTrack(id: string): AnyTrackInstance | undefined` finds an instance by `base.id`. It returns `undefined` when the ID is absent. It returns the stored instance, not a detached copy; edit it with `updateTrack`.
 
-```ts
-const title = useTrackStore.getState().getTrack("signal")?.base.title;
+To display a track property in React, perform the lookup inside the selector so the component subscribes to its result:
+
+```tsx
+export function SignalTitle() {
+  const title = useTrackStore((state) => state.getTrack("signal")?.base.title);
+  return <span>{title ?? "Signal track is absent"}</span>;
+}
 ```
+
+Selecting only `state.getTrack` and calling it later during rendering subscribes to the lookup function rather than the track property. Outside React, `useTrackStore.getState().getTrack("signal")` performs a one-time lookup without a subscription.
 
 ### ModuleRegistry
 
 A registry connects each track's `type` to its module. `registry.modules` is a readonly, frozen copy of the original module array. `registry.get(type)` returns the matching module and throws if the type is absent. Copying the array does not clone or freeze the module objects themselves.
 
-`ModuleRegistry<Modules>` can retain specific module types when supplied with a typed module tuple; the default is `readonly AnyTrackModule[]`. A typed registry's `get` signature narrows its result to the matching module where possible. The factory preserves this inference through `useTrackStore.getState().registry`, so looking up a known literal module type retains its specific `create` input and interaction types. `TrackStore` and `TrackStoreInstance` also default to `readonly AnyTrackModule[]`; explicitly annotating a store with the default type gives it a general registry. This inference does not associate string track IDs with configuration types in `getTrack` or `updateTrack`.
+`ModuleRegistry<Modules>` retains specific module types when given a typed module tuple. Looking up a known literal type through `useTrackStore.getState().registry.get` then returns that module's specific type, including its `create` input and interaction types.
+
+The default module parameter for `ModuleRegistry`, `TrackStore`, and `TrackStoreInstance` is `readonly AnyTrackModule[]`. Explicitly annotating a store with that default loses the specific module types in its registry.
+
+Registry inference applies to module types, not track IDs. It does not infer a track's configuration type from the string ID passed to `getTrack` or `updateTrack`.
 
 Use a specific module's `create` method when you need its typed configuration and interaction callbacks. Collection entries must become runtime instances before being passed to store actions; see [collection input](../collectionsAndSchemas/trackCollection.md#track-inputs).
 
@@ -121,7 +132,7 @@ if (!added.ok) console.error(added.error);
 
 ## Updating a track
 
-`updateTrack<Config, InteractionItem = unknown>(id: string, update: TrackUpdate<Config, InteractionItem>): TrackMutationResult` edits an existing track. It merges the supplied patches, validates the complete candidate once, and commits all supplied changes or none. A missing ID produces a failure result.
+`updateTrack<Config, InteractionItem = unknown>(id: string, update: TrackUpdate<Config, InteractionItem>): TrackMutationResult` edits an existing track. It merges the supplied patches, validates the resulting instance once, and commits all supplied changes or none. A missing ID produces a failure result.
 
 ### TrackUpdate and TrackBaseUpdate
 
@@ -146,7 +157,7 @@ A config change requests new data when a field marked by the module with `fetchO
 
 ## Replacing tracks atomically
 
-Use one operation when several membership changes must succeed together. Calling `removeTrack` followed by `addTrack` separately can leave the first change committed if the second fails.
+Use one operation when tracks must be added or removed together. Calling `removeTrack` followed by `addTrack` separately can leave the first change committed if the second fails.
 
 ### applyTrackChanges
 
@@ -203,7 +214,7 @@ Removing, replacing, or clearing tracks does not clear pins. Unpinning keeps the
 
 ## Context hooks
 
-Components rendered inside `GenomeBrowser` use [useGenomeBrowser](useGenomeBrowser.md#usegenomebrowser) to resolve `useTrackStore`. Call it with a selector to subscribe, or use `useTrackStore.getState()` for imperative actions.
+Components rendered inside `GenomeBrowser` use [useGenomeBrowser](useGenomeBrowser.md#usegenomebrowser) to resolve `useTrackStore`. Select values and actions from the returned hook at the component's top level, then call selected actions from event handlers. Reserve `getState()` for an event-time snapshot when the value is not part of the rendered state.
 
 To access the hosting browser's module registry, select `state.registry` from the resolved `useTrackStore`. The local factory result in Usage accesses a particular application-owned store and can be used outside a mounted browser.
 

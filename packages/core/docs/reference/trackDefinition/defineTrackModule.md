@@ -1,12 +1,12 @@
 # defineTrackModule
 
-A track module defines one kind of track: how to validate its configuration, fetch its data, draw its display modes, and provide settings or tooltips. A track instance holds the values for one row. You can create several instances of the same module with different data sources or settings.
+A track module defines one kind of track: how to validate its configuration, fetch its data, draw its display modes, and provide settings or tooltips. A track instance holds the values for one row. Create several instances of the same module to use different data sources or settings.
 
 ## Usage
 
 Use `defineTrackModule(definition)` to infer configuration, fetched data, and display types. Use `defineTrackModule<Item>()(definition)` when interactions and tooltips need a specific item type.
 
-This module displays intervals supplied directly in its configuration:
+This module displays regions supplied directly in its configuration:
 
 ```tsx
 import { z } from "zod";
@@ -97,7 +97,7 @@ Register the module and add the instance to a [track store](../browserSetup/trac
 
 `ModuleCreateInput<M>` extracts input from a module's `createInputSchema`. `ModuleInstance<M>` extracts the return type of its `validate` method. Use these to retain a particular module's config and interaction types in application code.
 
-`AnyTrackModule` and `AnyTrackInstance` describe heterogeneous registries and track lists. The instance has `config: Record<string, unknown>`; the module exposes its callable creation/validation methods while its fetch and component values are broadly typed. `AnyTrackInteraction` is `TrackInteraction<never, never>`. These let infrastructure store different module types together. Use the concrete generic contracts when authoring or invoking typed callbacks.
+`AnyTrackModule` and `AnyTrackInstance` describe heterogeneous registries and track lists. The instance has `config: Record<string, unknown>`; the module exposes its callable creation/validation methods while its fetch and component values are broadly typed. `AnyTrackInteraction` is `TrackInteraction<never, never>`. Use these types for lists containing different track or module types. Use a specific module's types when defining or calling its callbacks.
 
 ## Related contracts
 

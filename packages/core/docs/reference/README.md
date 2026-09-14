@@ -1,18 +1,18 @@
 # Core API reference
 
-Import all runtime APIs and types below from `@weng-lab/genomebrowser`. The package has one public JavaScript entry point and also installs the `genomebrowser` CLI. Supporting types share a reference with their owning capability.
+Import all runtime APIs and types below from `@weng-lab/genomebrowser`. The package has one public JavaScript entry point and also installs the `genomebrowser` CLI. Each API page includes its related types.
 
 ## Browse by area
 
-- [Browser setup](browserSetup/README.md): Render a browser, own its stores, and access them from hosted components.
-- [Assemblies and regions](assembliesAndRegions/README.md): Choose sequence definitions and parse or validate genomic intervals.
+- [Browser setup](browserSetup/README.md): Render a browser, create its stores, and access them from hosted components.
+- [Assemblies and regions](assembliesAndRegions/README.md): Choose sequence definitions and parse or validate genomic regions.
 - [Track definition](trackDefinition/README.md): Define modules, create instances, fetch data, and supply settings forms.
 - [Renderer integration](rendererIntegration/README.md): Draw track data and connect SVG content to interactions, tooltips, and automatic sizing.
-- [Collections and schemas](collectionsAndSchemas/README.md): Author and validate track catalogs and generate schemas for editor tooling.
+- [Collections and schemas](collectionsAndSchemas/README.md): Define track collections, validate their input, and generate JSON schemas for editors.
 
 ## Public export index
 
-Each current export has one canonical destination below. Store methods and module members are documented on the corresponding store or module page.
+Look up an export below to find its documentation. Store methods and module members are documented on the corresponding store or module page.
 
 ### Browser setup
 

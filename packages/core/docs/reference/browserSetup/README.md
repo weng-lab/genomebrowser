@@ -1,6 +1,6 @@
 # Browser setup
 
-Render a browser, own its stores, and access them from hosted components.
+Render a browser, create its stores, and access them from hosted components.
 
 - [GenomeBrowser](GenomeBrowser.md): Render a responsive or fixed-width browser and magnify its SVG.
 - [Browser store](browserStore.md): Initialize and change viewport state, selection, and highlights.

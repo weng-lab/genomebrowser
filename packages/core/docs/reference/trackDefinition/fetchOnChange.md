@@ -18,8 +18,12 @@ Here, changing `url` requests data again. A threshold used only while rendering 
 
 ## Marker placement
 
-Place markers on fields inside `configSchema`; `defineTrackModule` creates a strict copy of the root object schema. Core traverses object properties and array elements to find marked schemas. A marker on an object or array includes its entire value. Apply markers outside wrappers such as optional/default schemas, as in `fetchOnChange(z.string().optional())`; the traversal does not descend through every Zod wrapper. The marker does not issue requests by itself; the mounted browser observes committed track changes.
+Place markers on fields inside `configSchema`. Apply them outside optional or default wrappers, as in `fetchOnChange(z.string().optional())`. A marker on an object or array includes its entire value.
 
-Changes are compared using marked parsed config values. Supplying an equivalent marked value does not by itself require another fetch. Rendering-only configuration can stay unmarked, but every value that changes the fetched result needs a marker. See [request timing](fetchingData.md#requests-and-result-lifetime) for width changes and result reuse.
+Core searches object properties and array elements for markers, but does not search through every Zod wrapper. Mark fields rather than the root config object, since `defineTrackModule` makes a strict copy of that object schema.
+
+The marker does not issue requests. The mounted browser checks marked values when track changes are committed.
+
+Core compares the parsed values of marked fields. Supplying an equivalent value does not require another fetch. Fields used only while rendering can stay unmarked. See [request timing](fetchingData.md#requests-and-result-lifetime) for width changes and result reuse.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

@@ -1,6 +1,6 @@
 # generateTrackCollectionJsonSchema
 
-Generate editor tooling for your application's supported track modules. Import this function from `@weng-lab/genomebrowser`.
+Generate a JSON Schema for collections using the track modules supported by the application. Import this function from `@weng-lab/genomebrowser`.
 
 ## API
 

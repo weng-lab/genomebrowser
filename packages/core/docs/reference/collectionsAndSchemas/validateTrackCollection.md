@@ -1,6 +1,6 @@
 # validateTrackCollection
 
-Validate external or authored collection data against the modules your application supports before creating runtime instances. Import this function from `@weng-lab/genomebrowser`.
+Validate collection input against the modules supported by the application before creating track instances. Import this function from `@weng-lab/genomebrowser`.
 
 ## Usage
 
@@ -35,7 +35,9 @@ Replace `YOUR_URL_HERE` with your data URL. Pass `tracks` to a [track store](../
 
 Validation checks the collection structure, each module's creation schema, duplicate track and view IDs, and every field referenced by columns, grouping, and leaf labels. It throws an `Error` containing validation details on failure. An empty module list or duplicate module types also throws.
 
-The return type infers the supplied modules and contains their authored track inputs plus normalized `TrackCollectionView[]` when views exist. Validation executes module defaults and transformations to check validity, then discards the parsed track output. Creation parses the original input again, so transformations do not compound. Transform callbacks should be pure; they are not guaranteed a single invocation. Those entries are not detached copies; treat validated input as data and create instances before use. `validateTrackCollection` does not add views or infer assembly compatibility.
+Validation runs each module's defaults and transformations to check its track input, then discards the parsed track output. Creating instances later parses the original input again. This avoids applying transformations to already-transformed values. Keep transform callbacks free of side effects because they can run more than once.
+
+The function does not check whether the collection's assembly matches the browser's assembly. The application must make that check.
 
 ### Signature and result
 
@@ -48,6 +50,10 @@ declare function validateTrackCollection<const Modules extends readonly AnyTrack
 ): Omit<TrackCollection<Modules>, "views"> & { views?: TrackCollectionView[] };
 ```
 
-The returned collection has normalized collection and view fields while `tracks` retains the supplied array and its authored entries. Config defaults are checked but are not inserted into those entries. Validation is synchronous and does not fetch track data or the collection's `$schema`. Failures throw rather than returning a store mutation result. Handle thrown errors at your input boundary; error text contains details but has no exported error-code contract.
+The return type uses the supplied module types for its track inputs. If the collection contains views, the result includes them as `TrackCollectionView[]` with defaults applied. The function does not add views when they are absent.
+
+The returned collection has validated collection fields, but `tracks` is the original array containing the original entries. Validation does not copy the entries or insert config defaults into them. Create instances from those entries before adding tracks to a browser.
+
+Validation runs synchronously and does not fetch track data or the collection's `$schema`. Catch thrown errors when loading collection input. Errors contain validation details but have no exported error codes, unlike store mutation results.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

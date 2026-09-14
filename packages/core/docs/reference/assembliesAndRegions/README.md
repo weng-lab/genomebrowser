@@ -1,8 +1,8 @@
 # Assemblies and regions
 
-Choose sequence definitions and parse or validate genomic intervals.
+Choose sequence definitions and parse or validate genomic regions.
 
 - [Assemblies](assemblies.md): Use built-in assemblies or define your own chromosome lengths.
-- [Regions](regions.md): Understand coordinates, parse text, and normalize intervals.
+- [Regions](regions.md): Understand coordinates, parse text, and normalize regions.
 
 See the [complete export index](../README.md#public-export-index) to look up a symbol by name.

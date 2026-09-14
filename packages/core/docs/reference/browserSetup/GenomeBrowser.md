@@ -4,7 +4,7 @@ Render genomic tracks in a browser that follows its container automatically. Use
 
 ## Usage
 
-Install the runtime and track dependencies as shown in [Getting started](../../legacy/gettingStarted.md).
+Install the runtime and track dependencies as shown in [Getting started](../../gettingStarted/firstBrowser.md).
 
 ```tsx
 import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
@@ -64,7 +64,7 @@ const useFixedBrowserStore = createBrowserStore({
 
 The drawing is 800 logical units wide and displays at 1000 CSS pixels. At `scale={1}`, it displays at 800 pixels; at `scale={0.75}`, it displays at 600 pixels. Fixed sizing does not observe the container. The wrapper scrolls horizontally when the drawing is wider than the available space.
 
-`useFixedBrowserStore.getState().setTrackWidth(950)` changes the fixed track width. It excludes the margin and is expressed in logical SVG units before scale is applied.
+Outside React, `useFixedBrowserStore.getState().setTrackWidth(950)` changes the fixed track width. Inside a component, select `state.setTrackWidth` from `useFixedBrowserStore` and call that action from the control's event handler. The width excludes the margin and is expressed in logical SVG units before scale is applied.
 
 ## API
 
@@ -81,7 +81,11 @@ The [browser store](browserStore.md) configures the logical gutter and fixed tra
 
 ## Accessibility
 
-The SVG has `role="group"` and the accessible name `Genome browser`. Magnification enlarges the complete drawing, including its SVG controls and tooltips. It does not change HTML settings dialogs, context menus, or controls supplied by the host application, and does not replace browser zoom or keyboard accessibility.
+The SVG has `role="group"` and the accessible name `Genome browser`. The `scale` prop affects SVG content only. HTML settings dialogs, context menus, and application controls retain their size. Scaling the drawing does not replace browser zoom or keyboard support.
+
+## Track row hover
+
+Hovering the left track margin, including the color strip and track controls, highlights the row while interactions are enabled. Leaving the margin clears the highlight. The centered title and genomic data area do not activate it.
 
 ## Track context menu
 
@@ -89,11 +93,11 @@ Right-click a track's data area to open its context menu. `GenomeBrowser` owns t
 
 The menu shows registered display names and a remove button. Actions are disabled while browser interactions are blocked, and a successful action closes it. Clicking outside, pressing Escape, or scrolling outside the menu dismisses it. Scrolling within a tall menu keeps it open. Resizing the viewport recalculates its placement.
 
-The choices are native buttons. The component does not implement ARIA menu roles, arrow-key menu navigation, or automatic focus placement/restoration. Applications implementing another menu are responsible for its accessible interaction design.
+The choices are native buttons. The component does not implement ARIA menu roles, arrow-key menu navigation, or automatic focus placement/restoration. An application that supplies its own menu must implement its keyboard and focus behavior.
 
 ## Notes
 
-- The wrapper has a one-pixel border on each side. Responsive measurements exclude that border. Fixed drawing dimensions exclude it too; the complete unrestrained wrapper is two CSS pixels wider and taller than the SVG.
+- The wrapper has a one-pixel border on each side. Responsive measurements exclude that border. Fixed drawing dimensions exclude it too; the wrapper is two CSS pixels wider and taller than the SVG when the layout does not constrain it.
 - Responsive views wait for the first positive measurement before rendering or requesting track data. Once measured, hidden containers preserve the last usable width until visible again. Responsive sizing requires `ResizeObserver`.
 - Track width has a minimum of one logical unit. A container narrower than the scaled margin plus that minimum scrolls horizontally.
 - Width-dependent data requests retain the runtime's brief debounce during continuous resizing or scale changes. Fixed scale changes leave logical track width unchanged and do not require a new width-dependent fetch.

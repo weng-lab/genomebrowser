@@ -31,22 +31,20 @@ Core's bundled docs own the main integration tutorial. Offer two entrances: crea
 
 1. Render a first browser: installation, assembly, stable stores, a data track, ruler, and responsive container.
 2. Build a useful track display: track types, ordering, settings, data sources, and interactions.
-3. Add application controls: navigation, selection, highlights, and cytobands.
+3. Use browser navigation and selection: panning, zooming, highlights, and provided controls.
 4. Let users choose tracks: collections, TrackSelect, initial/default selections, and saving committed choices.
 
-State the dependencies and setup required by each chapter, the expected working result, and the next step. Keep package-specific quick starts independently usable. Custom module authoring is an advanced guide, not a prerequisite for completing this path. Document only supported capabilities; do not invent an integration API to simplify a tutorial.
+State the dependencies and setup required by each chapter, the expected working result, and the next step. Present starter generation and manual installation as explicit alternatives, with a clear continuation for each; readers should not infer that a generated project needs the manual setup repeated. Keep package-specific quick starts independently usable. Custom module authoring is an advanced guide, not a prerequisite for completing this path. Document only supported capabilities; do not invent an integration API to simplify a tutorial.
 
 ## Writing tutorials and guides
 
 Use `gettingStarted/` for sequential learning, `guides/` for independent tasks and concepts, and troubleshooting for diagnosis. Track configuration belongs in the track's reference page. Prefer mental models, workflows, examples, defaults, and sharp edges over repeating API tables.
 
-For these pages:
+Build the explanation around a minimal realistic example. Introduce the required pieces, what each does, and why they fit together before presenting their code. For a setup with several cooperating parts, develop the example in connected steps and make clear how the snippets form a working file or application.
 
-1. Start with the user goal and when to use the feature.
-2. Explain ownership, lifecycle, data flow, or responsibility boundaries when relevant.
-3. Show one minimal realistic example.
-4. Explain important behavior that is not obvious from names or types.
-5. Include common tasks, defaults, constraints, and sharp edges.
+Place ownership, lifecycle, configuration, and constraints alongside the concept they explain. Avoid a large copy-and-paste example followed by a separate explanation dump, or a recurring pattern of code followed by unrelated one-sentence tips. Text after an example should interpret its result or lead into the next step. Integrate necessary details into the relevant explanation and put optional extensions in focused sections or further-reading links; not every example needs a trailing paragraph.
+
+Integration guides teach browser features and their use in an application. Prefer focused library calls and provided components over walkthroughs for building custom forms, toolbars, or other generic React UI. Explain application-owned state only where it is part of the feature contract, such as a dialog's open state or a track picker's draft and committed selection.
 
 Keep the happy path approachable. Move advanced material into focused guides or advanced sections instead of making the first page intimidating.
 

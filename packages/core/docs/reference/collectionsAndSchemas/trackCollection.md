@@ -59,7 +59,7 @@ export const authoredCollection = {
 } satisfies TrackCollection<typeof trackModules>;
 ```
 
-You can also write the `tracks` array directly for a small collection. TypeScript checks types; runtime validation additionally checks constraints such as non-empty strings, duplicate IDs, and metadata references.
+For a small collection, write the `tracks` array directly. TypeScript checks types. Runtime validation also checks non-empty strings, duplicate IDs, and metadata references.
 
 ### Validate and create tracks
 
@@ -79,7 +79,7 @@ const result = useTrackStore.getState().setTracks(tracks);
 if (!result.ok) throw new Error(result.error);
 ```
 
-[Validation](validateTrackCollection.md) does not add tracks to a browser. Create all entries or only those your application selects, then use a [track-store action](../browserSetup/trackStore.md). With multiple module types, narrow an entry by its `type` before calling a specific module when TypeScript needs to preserve the relationship between that module and its config. TrackSelect handles validation and selected-track creation for its supplied collections.
+[Validation](validateTrackCollection.md) does not add tracks to a browser. Create all entries or only those your application selects, then use a [track-store action](../browserSetup/trackStore.md). For collections with several module types, TypeScript may need to know which config belongs to which module. Narrow an entry by its `type` before passing its config to a specific module. TrackSelect handles validation and selected-track creation for its supplied collections.
 
 ## TrackCollection
 
@@ -99,7 +99,7 @@ A collection does not contain chromosome lengths, viewport state, highlights, or
 
 ### Track inputs
 
-An entry is an authored recipe, not a runtime `TrackInstance`. Derive its type from the collection when needed:
+An entry contains the input needed to create a track. Create a runtime `TrackInstance` from it before adding it to a store. Derive its type from the collection when needed:
 
 ```ts
 type CollectionTrack = TrackCollection<typeof trackModules>["tracks"][number];

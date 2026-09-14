@@ -19,7 +19,7 @@ export function RangeLabels() {
 
 ## Examples
 
-For an interior scale position, use `anchor="left"` or `anchor="right"` with a logical SVG coordinate:
+To place a label at a specific height along a plot edge, use `anchor="left"` or `anchor="right"` with a logical SVG coordinate:
 
 ```tsx
 import { TrackLabel } from "@weng-lab/genomebrowser";

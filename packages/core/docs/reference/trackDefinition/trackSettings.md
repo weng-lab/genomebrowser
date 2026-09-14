@@ -40,12 +40,12 @@ Set `settingsComponent: SignalSettings` in a module whose parsed config matches 
 
 | Prop                 | Type                                                                                                                                     | Default  | Description                                                                                                   |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
-| `track`              | `ReadonlyTrackInstance<Config, InteractionItem>`                                                                                         | Required | Current complete instance.                                                                                    |
+| `track`              | `ReadonlyTrackInstance<Config, InteractionItem>`                                                                                         | Required | The track instance with its current settings and callbacks.                                                   |
 | `displayOptions`     | `readonly string[]`                                                                                                                      | Required | Registered renderer names.                                                                                    |
 | `updateTrack`        | `(update: TrackUpdate<Config, InteractionItem>) => TrackMutationResult`                                                                  | Required | Applies a shallow patch to this instance. Its ID is already bound.                                            |
 | `updateTracksOfType` | `(createUpdate: (track: ReadonlyTrackInstance<Config, InteractionItem>) => TrackUpdate<Config, InteractionItem>) => TrackMutationResult` | Required | Computes patches for every current same-type track, validates the resulting batch, and commits it atomically. |
 
-The module supplies the complete form, including base controls. The browser supplies the modal shell and rejects these update callbacks while interactions are blocked. Inspect mutation results so rejected edits can be explained to the user. Keep batch-update callbacks free of side effects because validation can reject the batch.
+The module supplies the complete form, including base controls. The browser opens the form in a dialog. Check mutation results to explain rejected edits in the form. Keep batch-update callbacks free of side effects because validation can reject the batch.
 
 A module without `settingsComponent` has no settings button. Use native form elements to group custom controls, or the reusable MUI settings controls supplied by the tracks package.
 
@@ -53,6 +53,6 @@ A module without `settingsComponent` has no settings button. Use native form ele
 
 Both callbacks return [TrackMutationResult](../browserSetup/trackStore.md#mutation-results). Successful changes commit synchronously and do not wait for fetching or rendering. `updateTrack` uses the store's [shallow patch rules](../browserSetup/trackStore.md#trackupdate-and-trackbaseupdate). `updateTracksOfType` computes one patch for each same-type instance and validates the entire replacement list, including unchanged instances of other types. A rejected batch leaves all tracks unchanged. Unexpected exceptions from a patch callback or custom schema code propagate.
 
-The browser supplies every prop in the table. `InteractionItem` defaults to `unknown`. Use `track.source` when your form needs to distinguish host-owned sources from user-editable sources; core does not identify or protect source config fields for you. Hosted controls sit inside a disabled fieldset while browser interactions are blocked. The callbacks also return `INTERACTION_BLOCKED` during that period.
+The browser supplies every prop in the table. `InteractionItem` defaults to `unknown`. Use `track.source` when your form needs to distinguish host-owned sources from user-editable sources; core does not identify or protect source config fields. Hosted controls sit inside a disabled fieldset while browser interactions are blocked. The callbacks also return `INTERACTION_BLOCKED` during that period.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

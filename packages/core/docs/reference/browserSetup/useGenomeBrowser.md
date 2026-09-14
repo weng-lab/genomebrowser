@@ -1,6 +1,6 @@
 # useGenomeBrowser
 
-Resolve the hosting browser's stores from a track renderer, settings component, or tooltip. Use the returned hooks to subscribe to state, or their imperative methods in event handlers.
+Resolve the hosting browser's stores from a track renderer, settings component, or tooltip. Use the returned hooks to select displayed state and actions, then invoke selected actions from event handlers.
 
 ## Usage
 
@@ -35,9 +35,13 @@ Application controls outside `GenomeBrowser` use their application-owned [browse
 | `useBrowserStore` | `BrowserStoreInstance` | Assembly, viewport, selection, and highlights.                |
 | `useTrackStore`   | `TrackStoreInstance`   | Registered modules, track instances, ordering, and mutations. |
 
-The returned hooks retain the identities and APIs of the stores supplied to `GenomeBrowser`, including `getState()`, `subscribe()`, and `setState()`. Use validated actions when changing state. The wrapper object is newly returned on each call; its identity is not a stability guarantee.
+The returned hooks retain the identities and APIs of the stores supplied to `GenomeBrowser`, including `getState()`, `subscribe()`, and `setState()`. Use validated actions when changing state. Each call returns a new wrapper object, so do not rely on that object keeping the same identity.
 
-Resolving context does not subscribe to store state. Calling a returned hook with a selector subscribes to that selection. Ordinary parent renders can still render the consumer. The contextual track store uses the general `TrackStoreInstance` type; module-specific registry inference is retained on the application's factory result.
+Calling `useGenomeBrowser()` does not subscribe to state. Call a returned store hook with a selector to subscribe to the value the component displays. Selecting `state.updateTrack` subscribes to the action function, which stays the same when tracks change. Parent renders can still render the component.
+
+`getState()` reads a snapshot without subscribing. Use it when an event needs a current value that does not drive rendering. See [state and action access](../../gettingStarted/firstBrowser.md#access-browser-state-and-actions) for examples.
+
+The returned track store uses the general `TrackStoreInstance` type. The application's factory result retains more specific registry types inferred from its module list.
 
 ## Context and lifetime
 

@@ -20,7 +20,7 @@ Replace `YOUR_URL_HERE` with your data URL. The instance has resolved display, h
 
 ## Creating and validating instances
 
-`module.create(input, interaction?)` validates creation input, applies defaults, and returns a runtime instance. `module.validate(instance: unknown)` validates an already-resolved instance. Both return a parsed instance and throw an `Error` containing validation details on failure. They do not add the instance to a store or fetch data.
+`module.create(input, interaction?)` validates creation input, applies defaults, and returns a runtime instance. `module.validate(instance: unknown)` validates an instance whose defaults have already been applied. Both return a parsed instance and throw an `Error` containing validation details on failure. They do not add the instance to a store or fetch data.
 
 `validate` parses config with the same schema as `create`; store construction and mutations also invoke module validation. A schema with transformations must accept the resulting runtime config and tolerate validation again. Keep transforms and refinements free of side effects. Collection validation preserves authored inputs, but does not change this runtime validation contract.
 
@@ -51,11 +51,11 @@ Replace `YOUR_URL_HERE` with your data URL. The instance has resolved display, h
 | `type`        | `string`                                    | Module identifier supplied by creation.                                         |
 | `base`        | `TrackBase`                                 | Required `id`, `title`, `display`, `height`, and `color`, with the rules above. |
 | `config`      | `Config`                                    | Parsed module configuration.                                                    |
-| `source`      | `TrackSource`                               | Resolved source ownership.                                                      |
+| `source`      | `TrackSource`                               | Whether the user or application controls the data source.                       |
 | `interaction` | `TrackInteraction<InteractionItem, Config>` | Optional instance callbacks.                                                    |
 
 Instance validation requires resolved base values and source. It checks the module type and rejects extra top-level fields, including components or collection metadata. `ReadonlyTrackInstance<Config, InteractionItem>` is a shallow readonly view of this instance, with readonly base and object config properties. It does not deep-freeze nested values.
 
-Use [track-store patches](../browserSetup/trackStore.md#trackupdate-and-trackbaseupdate) to edit instances. Collection JSON contains authored creation values and metadata, not code-bearing runtime instances; see [collections](../collectionsAndSchemas/trackCollection.md).
+Use [track-store patches](../browserSetup/trackStore.md#trackupdate-and-trackbaseupdate) to edit instances. Collection JSON stores track creation input and metadata. Runtime callbacks remain in application code. See [collections](../collectionsAndSchemas/trackCollection.md).
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.
