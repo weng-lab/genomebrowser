@@ -57,21 +57,21 @@ Use `getState()` for code outside React, including file-scoped module callbacks 
 
 Write for someone using or changing the genome browser. Be direct and concrete without sacrificing technical detail.
 
-- Introduce what a capability does and when to use it before presenting signatures or tables. Guides build a workflow; references need only a short introduction before the complete contract.
+- Start with what the feature does or when to use it, then explain how. Avoid abstract introductions about application domains or demonstrating capabilities. Guides build a workflow; references need only a short introduction before the complete contract.
 - Define unfamiliar terms with an example. A sequence name identifies a chromosome or contig, such as `chr1`. Preserve API names and use consistent terminology.
 - Call a span on a chromosome a "region" or "genomic region." Use "locus" (plural "loci") when referring to a biological location. Do not alternate with "interval" or invent context such as "candidate interval" for a generic example. Preserve actual API identifiers and data-field names, such as `intervals`, when discussing those contracts.
 - Assume familiarity with ordinary genome-browser behavior. State once in the first-browser introduction that tracks share the viewport; do not repeat that navigation moves all tracks or that browser actions affect the whole display. Explain package-specific contracts such as request invalidation, error handling, and linked browser instances where they matter.
 - Use a manual-style voice: "To add a track, register its module..." or "Create a browser store..." rather than "You can..." or "You will learn..." Name who does what: the application owns the store, the module fetches data, and the browser renders tracks.
-- Explain behavior rather than praising it. Write "Invalid regions leave the viewport unchanged," not "Validation ensures a seamless experience."
+- Explain behavior in concrete terms. Write "when every request finishes" instead of "when the batch settles," and "create stores once per component" instead of "establish an ownership boundary." Retain precise API and technical terms where they help.
 - Develop one idea per paragraph, connecting the purpose, behavior, and practical consequence. Direct instructions should still read as connected prose, not a string of isolated commands or conditional tips. Remove filler, repeated package identity, and claims that add no useful information.
 - Use sentence-case headings, straight quotes, and restrained emphasis. Separate prose thoughts with periods or commas instead of em dashes or parenthetical asides. Preserve required code and mathematical punctuation.
 
-Before finishing, read the page for flow. Fix abrupt lists of facts, undefined terms, dense sentences, and redundant explanations while retaining defaults, errors, and constraints.
+Before finishing, read the page for flow. Simplify abstract wording, split dense paragraphs, and remove repeated explanations. Keep the manual voice and preserve defaults, errors, and constraints.
 
 ## Completion
 
 - Check affected API coverage using the API reference guidance when applicable.
 - Read changed pages as a coherent current snapshot; remove conflicting or obsolete claims and duplicate authoritative explanations.
-- Check links, heading targets, navigation, and inbound links after moves. Verify bundled pages remain included in the package.
+- When a page's scope changes, review its title, filename, and index description together. Check links, heading targets, navigation, and inbound links after renames or moves. Verify bundled pages remain included in the package.
 - Type-check or run examples when practical, and use existing repository verification tools. Validation must cover the resulting docs, not merely added text.
 - Complete the documentation required by the authorized scope. Report files changed, validation, and material uncertainty; distinguish planned work from finished documentation.
