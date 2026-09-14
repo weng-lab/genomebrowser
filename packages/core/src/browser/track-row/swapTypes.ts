@@ -1,4 +1,4 @@
-import type { MouseEvent, ReactNode } from "react";
+import type { PointerEvent, ReactNode } from "react";
 
 export type SwapPreview = {
   draggedId: string;
@@ -7,7 +7,7 @@ export type SwapPreview = {
 };
 
 export type TrackFrameSwapProps = {
-  onSwapMouseDown?: (event: MouseEvent<SVGRectElement>) => void;
+  onSwapPointerDown?: (event: PointerEvent<SVGRectElement>) => void;
   swapping: boolean;
   isDragClone: boolean;
 };
