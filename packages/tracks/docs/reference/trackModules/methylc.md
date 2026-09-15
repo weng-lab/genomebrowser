@@ -1,18 +1,8 @@
 # MethylC
 
-Use `methylCModule` for strand-specific methylation and depth data stored in BigWig files. It accepts eight channel entries and skips channels whose URL is empty. The example enables CpG and depth for both strands.
+Use `methylCModule` for strand-specific methylation and depth data stored in BigWig files. It accepts eight channel entries and skips channels whose URL is empty.
 
-## methylCModule
-
-Import `methylCModule`, `MethylCCreateInput`, and `MethylCConfig` from `@weng-lab/genomebrowser-tracks/methylc`. Register the module with core's track store before adding its instances.
-
-`methylCModule.create(input, interaction?)` accepts `MethylCCreateInput` and returns a validated track instance. `base.id` and `base.title` are required non-empty strings; `config` is required, with the fields below. Optional `source` defaults to `"user"`; `"host"` marks an application-owned source. Base display, height, and color use the defaults below. A supplied height must be positive and color must use six-digit `#RRGGBB` syntax.
-
-`MethylCCreateInput` permits omitted fields with defaults; `MethylCConfig` describes the parsed config with defaults applied. `methylCModule.validate(instance)` validates an existing complete instance. Both methods throw on invalid input. `configSchema` and `createInputSchema` expose Zod parsing and safe parsing; the top-level config and create-input objects reject unknown keys. `displays` lists supported display names.
-
-Pass callbacks as the second argument to `create`; they are runtime behavior, separate from serialized configuration. Callback support and payloads are described below. The module supplies its fetcher, renderers, settings, and tooltip to core.
-
-## Minimal track
+## Usage
 
 The `urls` object requires all eight channel entries. Set a channel URL to an empty string if it has no source.
 
@@ -43,6 +33,10 @@ const track = methylCModule.create({
 });
 ```
 
+## methylCModule
+
+`methylCModule.create(input, interaction?)` returns a track with `type: "methylc"`. Register `methylCModule` with the track store before adding its instances. See [Create and validate tracks](trackCreation.md) for required base fields, source ownership, schemas, and validation errors.
+
 ## Displays and base defaults
 
 | Field     | Supported or default | Behavior                                                                  |
@@ -62,21 +56,23 @@ const track = methylCModule.create({
 
 Color defaults are `cpg: "#648bd8"`, `chg: "#ff944d"`, `chh: "#ff00ff"`, and `depth: "#525252"`. Changing colors, masking, or range redraws the track without requesting data.
 
-Use `methylCModule.configSchema` to validate config and `methylCModule.createInputSchema` to validate the full create input.
-
 ## Source requirements
 
 Each non-empty channel URL must be an absolute public HTTP(S) BigWig URL. The server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../../legacy/dataSources.md) if a file does not load. An empty URL produces empty channel data without a request.
 
 Each enabled channel chooses its own BigWig zoom level from the visible region and track width. It falls back to unzoomed values when that file has no suitable level. Channel files do not need matching zoom levels because the renderer condenses every channel to the same pixel grid.
 
-The module keeps one file reader per channel URL in the browser's track-scoped fetcher resources, so file metadata and zoom levels are fetched once per source and reused by later pans and zooms. Changing a channel URL creates a fresh reader for that source on the next request.
+Each mounted track caches readers by channel URL and reuses metadata and zoom levels across requests. Changing a URL selects the corresponding reader, creating one if needed.
 
-## Settings and tooltip
+## Settings
 
 The settings panel has URL fields for all eight strand and channel combinations. It also has four channel color controls, a **Mask CpG by coverage** switch, and min/max range controls.
 
-The tooltip lists only channels with a non-empty URL. It orders plus CpG/CHG/CHH/depth before minus CpG/CHG/CHH/depth. Rows use their channel colors and show values with two decimal places, or **No data**. With no channels enabled, the tooltip shows **Channels: None enabled**. The renderer emits `onHover` and `onLeave`, but no click interactions. Every channel uses the shared signal condensation rules, including zero-based half-open overlap boundaries.
+## Tooltip and interactions
+
+The tooltip lists channels with a non-empty URL in the [channel order](#tooltip-and-data-shapes) below. Rows use their channel colors and show values with two decimal places, or **No data**. With no channels enabled, the tooltip shows **Channels: None enabled**.
+
+The renderer emits `onHover` and `onLeave`, but no click interactions. Callbacks receive the rendered values and visibility map described below.
 
 See [Signal condensation](../dataPrimitives/condenseSignalRecords.md) for the shared `SignalPoint` type and pixel aggregation contract.
 
@@ -97,10 +93,23 @@ See [Signal condensation](../dataPrimitives/condenseSignalRecords.md) for the sh
 
 ## Tooltip and data shapes
 
-`MethylCData` is an array of eight `BigWigRecord[]` channel arrays, ordered plus CpG, CHG, CHH, depth, then minus CpG, CHG, CHH, depth. `MethylCShowRows` contains required booleans `fwdCpg`, `fwdChg`, `fwdChh`, `fwdDepth`, `revCpg`, `revChg`, `revChh`, and `revDepth`. `MethylCTooltipItem` is `{ tooltipValues: SignalPoint[]; showRows: MethylCShowRows }`, with values in that channel order.
+`MethylCData` contains eight `BigWigRecord[]` arrays in the order below. `MethylCShowRows` has one required boolean for each corresponding tooltip row.
+
+| Index | Channel     | Visibility field |
+| ----- | ----------- | ---------------- |
+| `0`   | Plus CpG    | `fwdCpg`         |
+| `1`   | Plus CHG    | `fwdChg`         |
+| `2`   | Plus CHH    | `fwdChh`         |
+| `3`   | Plus depth  | `fwdDepth`       |
+| `4`   | Minus CpG   | `revCpg`         |
+| `5`   | Minus CHG   | `revChg`         |
+| `6`   | Minus CHH   | `revChh`         |
+| `7`   | Minus depth | `revDepth`       |
+
+`MethylCTooltipItem` is `{ tooltipValues: SignalPoint[]; showRows: MethylCShowRows }`. Its values follow the same channel order.
 
 ## Value labels
 
-Split display labels the mirrored methylation scale at the left of the plot and the depth scale at the right. Depth labels include a “Depth” prefix. Only configured channel groups receive labels. Labels use monospace text on translucent white backgrounds and do not intercept pointer interactions. They stay fixed at the visible plot edges during panning and update with the rendered scale. Labels that would overlap vertically are omitted, and tracks shorter than 14 pixels omit labels.
+Split display labels the mirrored methylation scale at the left of the plot and the depth scale at the right. Depth labels include a "Depth" prefix. Only configured channel groups receive labels. Labels use monospace text on translucent white backgrounds and do not intercept pointer interactions. They stay fixed at the visible plot edges during panning and update with the rendered scale. Labels that would overlap vertically are omitted, and tracks shorter than 14 pixels omit labels.
 
 Return to [Area index](README.md) or [Tracks API reference](../README.md).

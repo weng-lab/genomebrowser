@@ -1,6 +1,10 @@
 # BED schema examples
 
-These are existing mouse sources used by SCREEN. Register `bigBedModule` and `bulkBedModule` with your browser's track store. Each BigBed track shows one source; each BulkBed track shows a row per dataset.
+Use `bed9` for files whose color is stored in the ninth BED column. Use `ccre` when a tenth column contains the cCRE classification. These examples use mouse sources already used by SCREEN. Register `bigBedModule` and `bulkBedModule` with the browser's track store.
+
+## Choose sources
+
+The examples below share these imports and URLs:
 
 ```ts
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
@@ -10,7 +14,13 @@ const chromHmmForebrain = "https://downloads.wenglab.org/Registry-V4/ENCFF330GHF
 const chromHmmForebrainLater = "https://downloads.wenglab.org/Registry-V4/ENCFF739VQW.bigBed";
 const ccreAggregate = "https://downloads.wenglab.org/mm10-cCREs.DCC.bigBed";
 const ccreAdipose = "https://downloads.wenglab.org/Registry-V4/ENCFF409WOB_ENCFF476CKA.bigBed";
+```
 
+## Display one source per track
+
+The ChromHMM file uses BED9 colors for chromatin states. The aggregate cCRE file adds a classification column, so it uses `bedSchema: "ccre"`:
+
+```ts
 const chromHmm = bigBedModule.create({
   base: {
     id: "mouse-chromhmm",
@@ -26,7 +36,15 @@ const ccres = bigBedModule.create({
   },
   config: { url: ccreAggregate, bedSchema: "ccre" },
 });
+```
 
+Both tracks use the general BigBed renderer and tooltip. To display the cCRE classification in the tooltip, use the [cCRE module](../reference/trackModules/ccre.md).
+
+## Compare sources within one track
+
+BulkBed assigns one row to each dataset with features in the visible viewport. The names label the datasets in tooltips. Each track applies one schema to every source, so the ChromHMM and cCRE comparisons are separate tracks:
+
+```ts
 const bulkChromHmm = bulkBedModule.create({
   base: {
     id: "mouse-chromhmm-comparison",
@@ -56,4 +74,6 @@ const bulkCcres = bulkBedModule.create({
 });
 ```
 
-Return to [Legacy guides](README.md) or [API reference](../reference/README.md).
+Add these instances to the track store's `tracks` array. The [BED schema reference](../reference/dataPrimitives/bedSchemas.md) covers column validation, colors, and additional fields.
+
+Return to [Guides and release history](README.md) or [Tracks documentation](../README.md).

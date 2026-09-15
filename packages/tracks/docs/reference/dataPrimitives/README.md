@@ -1,6 +1,6 @@
-# Data primitives
+# BED schemas and signal processing
 
-Import components and their supporting types from `@weng-lab/genomebrowser-tracks/shared`.
+Parse BED columns and combine signal records into pixels with utilities from `@weng-lab/genomebrowser-tracks/shared`.
 
 - [BED schema presets](bedSchemas.md)
 - [Signal condensation](condenseSignalRecords.md)

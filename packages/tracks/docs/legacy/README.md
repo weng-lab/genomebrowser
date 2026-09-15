@@ -1,8 +1,7 @@
-# Legacy guides and history
+# Guides and release history
 
-These existing tutorials, task guides, and release notes are retained outside the API reference. They are not separate API authorities; use the [reference index](../reference/README.md) for current contracts.
+For setup, use [Use first-party tracks](../gettingStarted/useTracks.md). The guides below cover specific tasks. Release notes describe historical changes and migrations.
 
-- [Getting started](gettingStarted.md)
 - [Author track settings](trackSettings.md)
 - [BED schema examples](bedSchemaExamples.md)
 - [Data source troubleshooting](dataSources.md)

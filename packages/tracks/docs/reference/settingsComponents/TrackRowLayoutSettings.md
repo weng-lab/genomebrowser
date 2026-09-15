@@ -20,7 +20,13 @@ function IntervalSettings(props: TrackSettingsProps<BigBedConfig, BigBedRow>) {
 
 ## API
 
-The generic `Config` must extend `RowLayoutConfig`. Height edits derive row height; row-height edits derive total height. Each update commits both values together and preserves the nearest whole row count, with at least one row. Apply to all preserves each matching track's own row count. Row height must be at least 1; minimum total height is the current row count in pixels. Rejected edits retain their draft and show the mutation error. These components consume core's `TrackSettingsProps<Config, Item>`; they do not export separate props aliases.
+The generic `Config` must extend `RowLayoutConfig`.
+
+Changing Height calculates a new row height. Changing Row height calculates a new total height. Each edit submits both values together, preserving the nearest whole row count with a minimum of one row. Apply to all preserves each matching track's own row count.
+
+Row height must be at least 1 pixel, so the minimum total height equals the row count in pixels. Rejected edits retain their draft and show the mutation error.
+
+This component accepts core's `TrackSettingsProps<Config, Item>`. It has no separate exported props type.
 
 | Prop                 | Type                                                                                                               | Default  | Description                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------ |
@@ -31,10 +37,10 @@ The generic `Config` must extend `RowLayoutConfig`. Height edits derive row heig
 
 ## Accessibility
 
-Fields have visible labels and validation errors. Dimension actions are named “Apply Height to all tracks of this type” and “Apply Row height to all tracks of this type” where present. Rows stack at narrow widths.
+Fields have visible labels and validation errors. Dimension actions are named "Apply Height to all tracks of this type" and "Apply Row height to all tracks of this type" where present. Rows stack at narrow widths.
 
 ## Notes
 
-Pass current props and return the supplied mutation results. The browser owns the shell and resets field drafts when switching tracks. See [settings authoring](../../legacy/trackSettings.md) for composition and draft behavior.
+See [Author track settings](../../legacy/trackSettings.md) for form composition and browser hosting.
 
 Return to [Area index](README.md) or [Tracks API reference](../README.md).

@@ -24,13 +24,15 @@ function SignalSettings(props: TrackSettingsProps<BigWigConfig, SignalPoint>) {
 
 ## API
 
-`TrackBaseSettingsProps` is the public prop type. This component has no store dependency. Title cannot be blank; display selection appears only when there is more than one option. Display changes commit immediately and show returned errors. Title and color follow their shared field commit behavior.
+`TrackBaseSettingsProps` contains the props below. The component reads them without accessing a store.
+
+Title cannot be blank. Display selection appears when there is more than one option and commits immediately, showing returned errors. Title and color use the commit behavior of [TrackSettingsTextField](TrackSettingsTextField.md#commit-behavior) and [TrackSettingsColorField](TrackSettingsColorField.md#commit-behavior).
 
 | Prop             | Type                                                         | Default  | Description                                          |
 | ---------------- | ------------------------------------------------------------ | -------- | ---------------------------------------------------- |
 | `track`          | `{ base: Readonly<TrackBase> }`                              | Required | Current accepted base options.                       |
 | `displayOptions` | `readonly string[]`                                          | Required | Registered display modes.                            |
-| `updateTrack`    | `(update: { base: TrackBaseUpdate }) => TrackMutationResult` | Required | Commits a base patch and returns validation results. |
+| `updateTrack`    | `(update: { base: TrackBaseUpdate }) => TrackMutationResult` | Required | Submits a base patch and returns validation results. |
 | `children`       | `ReactNode`                                                  | None     | Additional controls, such as dimension settings.     |
 
 ## Accessibility
@@ -39,6 +41,6 @@ Fields have visible labels and validation errors. The section uses a fieldset an
 
 ## Notes
 
-Pass current props and return the supplied mutation results. The browser owns the shell and resets field drafts when switching tracks. See [settings authoring](../../legacy/trackSettings.md) for composition and draft behavior.
+See [Author track settings](../../legacy/trackSettings.md) for form composition and browser hosting.
 
 Return to [Area index](README.md) or [Tracks API reference](../README.md).

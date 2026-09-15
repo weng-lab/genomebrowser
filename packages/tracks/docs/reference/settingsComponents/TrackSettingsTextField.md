@@ -24,8 +24,6 @@ export function FieldExample({ value, onCommit }: TrackSettingsTextFieldProps) {
 
 ## API
 
-`TrackSettingsTextFieldProps` describes the props below. `onCommit` must return the mutation result; return the result of core's `updateTrack` when used in a module settings form.
-
 | Prop           | Type                                              | Default         | Description                                                                   |
 | -------------- | ------------------------------------------------- | --------------- | ----------------------------------------------------------------------------- |
 | `autoComplete` | `string`                                          | Browser default | Sets the input's autocomplete hint.                                           |
@@ -33,7 +31,7 @@ export function FieldExample({ value, onCommit }: TrackSettingsTextFieldProps) {
 | `inputMode`    | `"email" \| "search" \| "tel" \| "text" \| "url"` | Browser default | Hints which virtual keyboard to show.                                         |
 | `label`        | `string`                                          | Required        | Visible MUI field label and accessible name.                                  |
 | `normalize`    | `(value: string) => string`                       | Identity        | Transforms a locally valid draft before comparison and commit.                |
-| `onCommit`     | `(value: string) => TrackMutationResult`          | Required        | Attempts to persist a validated, normalized value.                            |
+| `onCommit`     | `(value: string) => TrackMutationResult`          | Required        | Submits a validated, normalized value.                                        |
 | `placeholder`  | `string`                                          | None            | Example or hint shown when the draft is empty. It does not replace the label. |
 | `required`     | `boolean`                                         | `false`         | Marks the field required. Validation remains controlled by `validate`.        |
 | `type`         | `"text" \| "url"`                                 | `"text"`        | Sets the native input type.                                                   |
@@ -42,9 +40,9 @@ export function FieldExample({ value, onCommit }: TrackSettingsTextFieldProps) {
 
 ## Commit behavior
 
-Valid changed drafts commit after 300 ms, or immediately on blur or Enter. Escape restores the accepted value. Rejected drafts remain visible with an error. External values replace the local value when no unresolved draft remains.
+Valid changed drafts commit after 300 ms, or immediately on blur or Enter. Escape restores the accepted value. External values replace the local value when no unresolved draft remains.
 
-The component owns its draft, while the caller owns the accepted value. It does not access browser stores directly. `onCommit` returns `TrackMutationResult` from core: success accepts the draft; failure retains it and displays the returned error.
+The field keeps its draft locally and takes the accepted value from its props. Return `TrackMutationResult` from `onCommit`, using core's `updateTrack` result in a module form. Success accepts the draft; failure retains it and shows the returned error. The field does not read browser stores.
 
 ## Accessibility
 

@@ -1,18 +1,12 @@
 # Row layout
 
-Import `useRowLayout`, `RowLayoutConfig`, `isRowLayoutConfig`, and the dimension conversion functions from `@weng-lab/genomebrowser-tracks/shared`.
+Call `useRowLayout` from a track renderer to update track height when its visible row count changes. It preserves `config.rowHeight` and calculates total height as `max(1, rowCount) * rowHeight`. Import the hook and its related types and functions from `@weng-lab/genomebrowser-tracks/shared`.
 
-`isRowLayoutConfig(config)` tests whether a config satisfies the shared row-layout contract. The renderer opts into height synchronization by calling `useRowLayout`; the type guard alone does not activate it. This public type guard accepts a finite numeric `rowHeight` of at least `1`. A module's config schema should enforce the same rule so track creation and updates reject invalid values.
+## Size the visible rows
 
-Track height is the total vertical space in `base.height`. Row height is the complete vertical slot for one row in `config.rowHeight`. Content height is the part of that slot used by the drawing. Put margins or gaps inside the slot by reducing content height. Do not add them to track height.
+The renderer supplies `rowCount`. When the count depends on genomic features, use those that intersect `TrackRendererProps.visibleRegion`. Continue using `region` and `width` to lay out all data retained for panning.
 
-The invariant is:
-
-```ts
-trackHeightFromRowCount(rowCount, rowHeight) === Math.max(1, rowCount) * rowHeight;
-```
-
-`rowCount` belongs to the renderer, not track config. When genomic features determine the count, calculate it from features that intersect `TrackRendererProps.visibleRegion`. Keep using `TrackRendererProps.region` and `width` to lay out all overscanned data for rendering. Call `useRowLayout` with the visible count. The hook keeps `config.rowHeight` unchanged and updates the browser-owned track height.
+This example draws a band for each visible row. A full renderer also draws its genomic features and data outside the viewport:
 
 ```tsx
 import type { TrackRendererProps } from "@weng-lab/genomebrowser";
@@ -36,7 +30,7 @@ export function RowRenderer({
   return (
     <g>
       <rect width={width} height={trackHeight} fill="#ffffff" />
-      {visibleRows.map((row, index) => (
+      {visibleRows.map((_row, index) => (
         <g key={index} transform={`translate(0, ${index * rowHeight})`}>
           <rect width="100%" height={Math.max(0, rowHeight - 2)} />
         </g>
@@ -46,20 +40,26 @@ export function RowRenderer({
 }
 ```
 
-This sizing-only example draws a band for each visible row; a full renderer also lays out its genomic features and overscanned data.
+Row height includes the entire vertical slot. Keep gaps and margins inside that slot by reducing the drawn content height, as the two-pixel gap does above. Track height is the combined height of the slots in `base.height`.
 
-The two-pixel gap in this example reduces content height without making it negative at small valid row heights. It does not change row height or track height. The hook must run inside `GenomeBrowser`. It throws for invalid row height instead of clamping the configured value.
+## Validation
 
-Modules explicitly compose `TrackRowLayoutSettings` for adjacent Height and Row height fields. A Height edit derives row height. A Row height edit derives total track height. Each edit preserves the current derived row count and submits both values in one update. Other modules compose `TrackHeightSettings` for one Height field with a 20-pixel minimum.
+`RowLayoutConfig` contains `rowHeight: number`. `isRowLayoutConfig` accepts an object with a finite row height of at least 1. Checking the config does not change track height; the renderer must call `useRowLayout` inside `GenomeBrowser` to update it. Invalid row heights throw rather than being clamped. Enforce the same limit in the module's config schema so creation and edits reject invalid values.
 
-| Export                     | Type                                                                                                         | Description                                                          |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| `RowLayoutConfig`          | `{ rowHeight: number }`                                                                                      | Structural opt-in config. `rowHeight` is the complete vertical slot. |
-| `isRowLayoutConfig`        | `(value: unknown) => value is RowLayoutConfig`                                                               | Accepts finite row heights at or above 1 pixel.                      |
-| `rowCountFromTrackHeight`  | `(trackHeight: number, rowHeight: number) => number`                                                         | Derives the nearest whole row count, with at least one visible row.  |
-| `rowHeightFromTrackHeight` | `(trackHeight: number, rowCount: number) => number`                                                          | Derives the complete row-slot height.                                |
-| `trackHeightFromRowCount`  | `(rowCount: number, rowHeight: number) => number`                                                            | Applies the exact `max(1, rowCount) * rowHeight` invariant.          |
-| `useRowLayout`             | `(trackId: string, rowCount: number, config: RowLayoutConfig) => { rowHeight: number; trackHeight: number }` | Returns row geometry, then synchronizes browser track state.         |
+## Settings
+
+Use [TrackRowLayoutSettings](../settingsComponents/TrackRowLayoutSettings.md) to edit Height and Row height together while preserving the current row count. For a track with fixed height, use [TrackHeightSettings](../settingsComponents/TrackHeightSettings.md), whose field has a 20-pixel minimum.
+
+## API
+
+| Export                     | Type                                                                                                         | Description                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `RowLayoutConfig`          | `{ rowHeight: number }`                                                                                      | Config containing the complete height of one row slot.                 |
+| `isRowLayoutConfig`        | `(value: unknown) => value is RowLayoutConfig`                                                               | Accepts finite row heights at or above 1 pixel.                        |
+| `rowCountFromTrackHeight`  | `(trackHeight: number, rowHeight: number) => number`                                                         | Derives the nearest whole row count, with at least one visible row.    |
+| `rowHeightFromTrackHeight` | `(trackHeight: number, rowCount: number) => number`                                                          | Derives the complete row-slot height.                                  |
+| `trackHeightFromRowCount`  | `(rowCount: number, rowHeight: number) => number`                                                            | Returns `max(1, rowCount) * rowHeight`.                                |
+| `useRowLayout`             | `(trackId: string, rowCount: number, config: RowLayoutConfig) => { rowHeight: number; trackHeight: number }` | Returns both heights and updates the stored track height in an effect. |
 
 The conversions require a positive finite track height, a non-negative integer row count, and a finite row height of at least 1 pixel. They throw `RangeError` for invalid inputs.
 

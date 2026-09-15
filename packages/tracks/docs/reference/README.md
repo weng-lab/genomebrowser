@@ -1,19 +1,19 @@
 # Tracks API reference
 
-Import individual modules from `@weng-lab/genomebrowser-tracks/<track>`, shared primitives from `@weng-lab/genomebrowser-tracks/shared`, and `firstPartyTrackModules` from the package root. The folders below organize documentation; they are not additional import paths. Internal source files are not public package entries.
+Import individual modules from `@weng-lab/genomebrowser-tracks/<track>`, shared utilities from `@weng-lab/genomebrowser-tracks/shared`, and `firstPartyTrackModules` from the package root. The folders below organize documentation; they are not additional import paths. Internal source files are not public package entries.
 
 ## Browse by area
 
 - [Track modules](trackModules/README.md): one self-contained page per module, including configuration, displays, data, interactions, and module-specific helpers.
 - [Collections and schemas](collectionsAndSchemas/README.md): the complete registry and bundled JSON schema.
-- [Data primitives](dataPrimitives/README.md): BED parsing presets and signal condensation.
+- [BED schemas and signal processing](dataPrimitives/README.md): BED parsing presets and signal condensation.
 - [Coordinates and layout](coordinatesAndLayout/README.md): coordinate conversion, row packing, and sizing.
 - [Settings components](settingsComponents/README.md): form layout, base settings, dimensions, and editable fields.
 - [Tooltips](tooltips/README.md): SVG content and display formatting.
 
 ## Public export index
 
-Every named export has one canonical reference below. Import suffixes are relative to `@weng-lab/genomebrowser-tracks`. Supporting types share their owning feature's page.
+Find runtime exports and their related types below. Import suffixes are relative to `@weng-lab/genomebrowser-tracks`.
 
 | Import                         | Exports                                                                                                                                                                                                                                                                     | Reference                                                                  |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |

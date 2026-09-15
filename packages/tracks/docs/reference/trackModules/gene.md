@@ -2,17 +2,7 @@
 
 Use `geneModule` for transcript annotations stored in a standard BigGenePred or expanded BigGenePredPlusV1 BigBed file. The track can draw every transcript, transcripts matching configured tags, or one merged structure per gene.
 
-## geneModule
-
-Import `geneModule`, `GeneCreateInput`, and `GeneConfig` from `@weng-lab/genomebrowser-tracks/gene`. Register the module with core's track store before adding its instances.
-
-`geneModule.create(input, interaction?)` accepts `GeneCreateInput` and returns a validated track instance. `base.id` and `base.title` are required non-empty strings; `config` is required, with the fields below. Optional `source` defaults to `"user"`; `"host"` marks an application-owned source. Base display, height, and color use the defaults below. A supplied height must be positive and color must use six-digit `#RRGGBB` syntax.
-
-`GeneCreateInput` permits omitted fields with defaults; `GeneConfig` describes the parsed config with defaults applied. `geneModule.validate(instance)` validates an existing complete instance. Both methods throw on invalid input. `configSchema` and `createInputSchema` expose Zod parsing and safe parsing; the top-level config and create-input objects reject unknown keys. `displays` lists supported display names.
-
-Pass callbacks as the second argument to `create`; they are runtime behavior, separate from serialized configuration. Callback support and payloads are described below. The module supplies its fetcher, renderers, settings, and tooltip to core.
-
-## Minimal track
+## Usage
 
 ```ts
 import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
@@ -26,6 +16,10 @@ const track = geneModule.create({
 });
 ```
 
+## geneModule
+
+`geneModule.create(input, interaction?)` returns a track with `type: "gene"`. Register `geneModule` with the track store before adding its instances. See [Create and validate tracks](trackCreation.md) for required base fields, source ownership, schemas, and validation errors.
+
 ## Displays and base defaults
 
 | Field     | Supported or default                       | Behavior                                                                                                                         |
@@ -34,9 +28,17 @@ const track = geneModule.create({
 | `height`  | `12`                                       | The renderer replaces this with packed row count times `rowHeight`.                                                              |
 | `color`   | `"#4b9560"`                                | Fill and stroke color for transcripts that do not match a configured tag.                                                        |
 
+### Transcript structure
+
 Full and tagged draw each intron as a line with chevrons pointing in the transcript's strand direction. Exons are rectangles. For a coding transcript, intersection with the half-open `thickStart` to `thickEnd` interval produces tall CDS segments. Exon sequence outside that interval produces shorter UTR segments classified as 5-prime or 3-prime from the transcript strand. When `thickStart` equals `thickEnd`, every exon is a shorter noncoding-exon segment.
 
-Tag colors use exact, case-sensitive equality. A transcript uses the color from the first `tagColors` entry matching one of its source tags. Full applies these colors while retaining unmatched transcripts. Tagged omits unmatched transcripts, and an empty list draws no transcripts. Gene-name highlighting overrides tag colors. Standard BigGenePred does not include tags, so its tagged display is empty. Merged preserves the grouped union of all source transcripts and does not apply tag colors. Exon coverage replaces overlapping intron coverage, and conflicting exon categories resolve in this order: CDS, UTR, then noncoding exon.
+### Tags and highlighting
+
+A transcript uses the first `tagColors` entry that exactly matches one of its source tags. Matching is case-sensitive. Full display also draws unmatched transcripts in the base color. Tagged display omits them, so an empty tag list draws nothing. Standard BigGenePred has no tags and produces an empty tagged display.
+
+Gene-name highlighting overrides tag colors. Merged display combines all source transcripts without applying tag colors. Exon coverage replaces overlapping intron coverage. For overlapping exon categories, CDS takes precedence over UTR, which takes precedence over noncoding exon.
+
+### Labels and height
 
 Full and tagged label each transcript with its normalized `transcriptName`. Merged uses the gene name. A label appears to the right when space permits, otherwise to the left. The renderer hides it when neither side fits inside the viewport. Label bounds participate in row packing.
 
@@ -52,7 +54,13 @@ All displays derive total height from rows needed by features that intersect the
 | `highlightColor` | `string`         | `"#000000"`                                  | Six-digit hexadecimal color for matching glyphs and labels. Gene highlighting overrides tag colors. |
 | `rowHeight`      | `number`         | `12`                                         | Complete vertical row slot. Must be finite and at least 1 pixel.                                    |
 
-The Gene settings panel provides the required URL, gene highlighting controls, and an ordered list of tag colors. For a host-owned track, inline annotation dataset and version controls list the host datasets available for the browser's current assembly. Selecting either value changes the URL, while the URL field remains disabled. User-owned tracks omit these selectors and keep the URL editable. Drag a tag row's handle with a pointer to change its priority. Tag inputs accept free-entry values and suggest tags observed in regions fetched from the current URL during this page session. These suggestions are not a complete catalog of the BigBed file. The shared base settings provide display, color, height, and row-height controls.
+## Settings
+
+The form edits the source URL, gene highlighting, and ordered tag colors, along with title, display, color, height, and row height.
+
+Host-owned tracks show annotation dataset and version selectors for the current assembly. Selecting either changes the URL while the URL field remains disabled. User-owned tracks show an editable URL field without those selectors.
+
+Drag a tag row's handle with a pointer to change its priority. Tag fields accept typed values and suggest tags observed in regions fetched from the current URL during this page session. The suggestions cover only those fetched regions.
 
 ## Reference datasets
 
@@ -78,13 +86,26 @@ const tracks = getGeneDatasetsForAssembly(mm10.id).map((dataset) =>
 );
 ```
 
-The mm10 catalog contains GENCODE M25 basic and comprehensive annotations for GRCm38. The hg38 catalog contains human releases 29, 40, 46–49 in both variants and release 50 basic. Newer mouse releases on GRCm39/mm39 are not included. Unknown assembly IDs, including mm39, return an empty array; host settings display an unavailable-datasets message. IDs match exactly: use `mm10`, not `GRCm38`.
+The mm10 catalog contains GENCODE M25 basic and comprehensive annotations for GRCm38. The hg38 catalog contains human releases 29, 40, 46–49 in both variants and release 50 basic. Newer mouse releases on GRCm39/mm39 are not included.
 
-`getGeneDatasetsForAssembly(assembly: string)` returns `readonly GeneDataset[]`. Each dataset has `id`, `assembly`, `variant` (`"basic" | "comprehensive"`), numeric `version`, display `release` (for example, `"M25"`), and `url`. `getGeneDatasetTitle(dataset)` returns a title such as `GENCODE M25 basic`.
+Unknown assembly IDs, including mm39, return an empty array; host settings display an unavailable-datasets message. IDs match exactly: use `mm10`, not `GRCm38`.
 
-Each catalog entry can create an independent track for comparison. Settings change the existing track's URL, preserving its display configuration. Titles matching `getGeneDatasetTitle` for the previous dataset follow the selection; other titles remain unchanged. Save the resulting track configuration and base fields together when persisting tracks.
+`getGeneDatasetsForAssembly(assembly: string)` returns `readonly GeneDataset[]`. `getGeneDatasetTitle(dataset)` returns a title such as `GENCODE M25 basic`.
 
-Catalog filtering selects declared compatible sources; it does not infer or validate the assembly of an arbitrary URL. Applications remain responsible for matching custom files to their browser assembly.
+| Readonly `GeneDataset` field | Type                           | Description                       |
+| ---------------------------- | ------------------------------ | --------------------------------- |
+| `id`                         | `string`                       | Dataset identifier.               |
+| `assembly`                   | `string`                       | Assembly ID.                      |
+| `variant`                    | `"basic"` or `"comprehensive"` | Annotation subset.                |
+| `version`                    | `number`                       | Release number.                   |
+| `release`                    | `string`                       | Display release, such as `"M25"`. |
+| `url`                        | `string`                       | BigBed source.                    |
+
+Each catalog entry can create an independent track for comparison.
+
+Settings change the existing track's URL, preserving its display configuration. Titles matching `getGeneDatasetTitle` for the previous dataset follow the selection; other titles remain unchanged. Save the resulting track configuration and base fields together when persisting tracks.
+
+The catalog lists sources for known assemblies. For a custom URL, the application must match the file to the browser assembly.
 
 ## Source requirements
 
@@ -92,11 +113,11 @@ The source must be an absolute public HTTP or HTTPS BigBed URL. Standard BigGene
 
 `chrom`, `chromStart`, `chromEnd`, `name`, `score`, `strand`, `thickStart`, `thickEnd`, `reserved`, `blockCount`, `blockSizes`, `chromStarts`, `name2`, `cdsStartStat`, `cdsEndStat`, `exonFrames`, `type`, `geneName`, `geneName2`, `geneType`.
 
-BigGenePredPlusV1 appends `tags` and `attributes`:
+BigGenePredPlusV1 appends `tags` as column 21 and `attributes` as column 22.
 
-`chrom`, `chromStart`, `chromEnd`, `name`, `score`, `strand`, `thickStart`, `thickEnd`, `reserved`, `blockCount`, `blockSizes`, `chromStarts`, `name2`, `cdsStartStat`, `cdsEndStat`, `exonFrames`, `type`, `geneName`, `geneName2`, `geneType`, `tags`, `attributes`.
+In the expanded format, `tags` is a comma-separated string. The track trims entries and removes empty and duplicate entries while preserving first-seen order. `attributes` is compact JSON whose top level is an object and whose values are strings or string arrays. The track parses these fields into `GeneTranscript.tags` and `GeneTranscript.attributes`. Standard records receive an empty tag list and attribute object.
 
-In the expanded format, `tags` is a comma-separated string. The track trims entries and removes empty and duplicate entries while preserving first-seen order. `attributes` is compact JSON whose top level is an object and whose values are strings or string arrays. The track parses these fields into `GeneTranscript.tags` and `GeneTranscript.attributes`. Standard records receive an empty tag list and attribute object. The track exposes trimmed `name2` as `transcriptName`, falling back to the transcript identifier when `name2` is blank. The complete source record remains available as `source`.
+The track exposes trimmed `name2` as `transcriptName`, falling back to the transcript identifier when `name2` is blank. The complete source record remains available as `source`.
 
 The reader rejects malformed coordinates and block arrays, invalid JSON, and unsupported attribute value types. The server must support byte-range responses and cross-origin browser requests. See [Data source troubleshooting](../../legacy/dataSources.md).
 
@@ -135,11 +156,33 @@ Part tooltips show the type, interval, and length. Transcript parts also show bo
 
 ## Data shapes
 
-`GeneData` is `GeneTranscript[]`. Each transcript has `kind: "transcript"`, string `chromosome`, numeric `start` and `end`, `strand` (`"+"` or `"-"`), string `transcriptId`, `transcriptName`, `geneId`, and `geneName`, plus `tags: string[]`, `attributes: Record<string, string | string[]>`, and `exons`. Each exon has numeric `start`, `end`, and `frame` (`-1`, `0`, `1`, or `2`). The `source` property retains the parsed source fields described under source requirements.
+`GeneData` is `GeneTranscript[]`. Each `GeneTranscript` contains:
 
-`GroupedGene` has `kind: "gene"`, the same interval and strand fields, `geneId`, `geneName`, and `transcripts: GeneTranscript[]`. `GeneTagColor` is `{ tag: string; color: string }`.
+| Field                            | Type                                 | Description                                                |
+| -------------------------------- | ------------------------------------ | ---------------------------------------------------------- |
+| `kind`                           | `"transcript"`                       | Identifies a transcript.                                   |
+| `chromosome`                     | `string`                             | Chromosome name.                                           |
+| `start`, `end`                   | `number`                             | Genomic coordinates.                                       |
+| `strand`                         | `"+"` or `"-"`                       | Transcript strand.                                         |
+| `transcriptId`, `transcriptName` | `string`                             | Transcript identifier and display name.                    |
+| `geneId`, `geneName`             | `string`                             | Gene identifier and display name.                          |
+| `tags`                           | `string[]`                           | Normalized source tags.                                    |
+| `attributes`                     | `Record<string, string \| string[]>` | Parsed attributes.                                         |
+| `exons`                          | Array of `{ start, end, frame }`     | Numeric coordinates and a frame of `-1`, `0`, `1`, or `2`. |
+| `source`                         | Parsed source record                 | Original source fields described above.                    |
 
-`GeneInteractionTarget` discriminates whole-feature targets from parts: `kind: "gene"` has a grouped feature; `kind: "transcript"` has a transcript feature; `kind: "part"` has either feature with a matching part. Use `target.part.source` to distinguish transcript and merged parts after narrowing `kind`. Supporting source-format and geometry aliases are internal; consumers can reference nested fields through these public types.
+`GroupedGene` has `kind: "gene"`, the same chromosome, coordinate, strand, and gene fields, and `transcripts: GeneTranscript[]`. `GeneTagColor` is `{ tag: string; color: string }`.
+
+`GeneInteractionTarget` identifies the clicked or hovered feature:
+
+| `kind`         | `feature`        | `part`                                       |
+| -------------- | ---------------- | -------------------------------------------- |
+| `"gene"`       | `GroupedGene`    | Absent.                                      |
+| `"transcript"` | `GeneTranscript` | Absent.                                      |
+| `"part"`       | `GeneTranscript` | Transcript part with `source: "transcript"`. |
+| `"part"`       | `GroupedGene`    | Merged part with `source: "merged"`.         |
+
+After narrowing `kind` to `"part"`, inspect `target.part.source` to distinguish transcript and merged geometry. Source-format and geometry aliases are internal; access their fields through these public types.
 
 ## Exported types
 

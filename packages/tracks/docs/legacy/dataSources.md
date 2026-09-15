@@ -18,6 +18,8 @@ If the server ignores the `Range` request header or cannot return `206 Partial C
 
 ## Reference sequence
 
-The [ruler](../reference/trackModules/ruler.md) accepts HTTP(S) version-0 2bit files with byte-range support and browser CORS. Expose `Content-Range` to the browser. Sequence names must match the assembly exactly. A missing chromosome returns no sequence; request failures leave the coordinate axis visible. BigWig numeric values are not reference bases.
+The [ruler](../reference/trackModules/ruler.md) accepts HTTP(S) version-0 2bit files with byte-range support and browser CORS. Expose `Content-Range` to the browser. Sequence names must match the assembly exactly.
 
-Return to [Legacy guides](README.md) or [API reference](../reference/README.md).
+A missing chromosome returns no sequence. Request failures leave the coordinate axis visible.
+
+Return to [Guides and release history](README.md) or [API reference](../reference/README.md).

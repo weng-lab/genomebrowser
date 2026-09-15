@@ -1,18 +1,8 @@
 # BulkBed
 
-Use `bulkBedModule` to compare several named BigBed datasets in one track. It expects one browser-accessible BigBed URL per dataset. The example creates one row for a dataset named Sample A.
+Use `bulkBedModule` to compare several named BigBed datasets in one track. It expects one browser-accessible BigBed URL per dataset.
 
-## bulkBedModule
-
-Import `bulkBedModule`, `BulkBedCreateInput`, and `BulkBedConfig` from `@weng-lab/genomebrowser-tracks/bulkbed`. Register the module with core's track store before adding its instances.
-
-`bulkBedModule.create(input, interaction?)` accepts `BulkBedCreateInput` and returns a validated track instance. `base.id` and `base.title` are required non-empty strings; `config` is required, with the fields below. Optional `source` defaults to `"user"`; `"host"` marks an application-owned source. Base display, height, and color use the defaults below. A supplied height must be positive and color must use six-digit `#RRGGBB` syntax.
-
-`BulkBedCreateInput` permits omitted fields with defaults; `BulkBedConfig` describes the parsed config with defaults applied. `bulkBedModule.validate(instance)` validates an existing complete instance. Both methods throw on invalid input. `configSchema` and `createInputSchema` expose Zod parsing and safe parsing; the top-level config and create-input objects reject unknown keys. `displays` lists supported display names.
-
-Pass callbacks as the second argument to `create`; they are runtime behavior, separate from serialized configuration. Callback support and payloads are described below. The module supplies its fetcher, renderers, settings, and tooltip to core.
-
-## Minimal track
+## Usage
 
 ```ts
 import { bulkBedModule } from "@weng-lab/genomebrowser-tracks/bulkbed";
@@ -27,6 +17,10 @@ const track = bulkBedModule.create({
   },
 });
 ```
+
+## bulkBedModule
+
+`bulkBedModule.create(input, interaction?)` returns a track with `type: "bulkbed"`. Register `bulkBedModule` with the track store before adding its instances. See [Create and validate tracks](trackCreation.md) for required base fields, source ownership, schemas, and validation errors.
 
 ## Displays and base defaults
 
@@ -45,19 +39,25 @@ const track = bulkBedModule.create({
 | `bedSchema` | `BedSchemaKey`     | `"bed9"`                   | Selects the positional column parser. Changing it requests new data.                                  |
 | `rowHeight` | `number`           | `12`                       | Complete vertical slot for one dataset. Must be finite and at least 1.                                |
 
-BulkBed counts datasets that have at least one interval intersecting the visible viewport. Total height is exactly `max(1, rowCount) * rowHeight`. Visible datasets occupy the top row slots. Datasets with only overscanned side data remain rendered in later slots for panning, but they do not make the track taller. The renderer subtracts `gap` from drawable band height and clamps the result to zero, so content never extends the slot or makes total height larger. Changing viewport or data may change row count, but it does not change configured row height.
+### Dataset rows
 
-Changing a dataset name does not request data again. Fetched rows keep the name from their last request. Their tooltip can show the previous name until a region or source change requests new data. Use `bulkBedModule.configSchema` to validate config and `bulkBedModule.createInputSchema` to validate the full create input.
+BulkBed counts datasets with at least one feature in the visible viewport. Their rows appear first, and total height is `max(1, rowCount) * rowHeight`. Datasets with data only outside the viewport remain rendered in later slots for panning without increasing track height. The count can change as the view or data changes; `rowHeight` stays the same.
+
+Within each slot, the renderer subtracts `gap` from the band height and clamps the result to zero. Gaps therefore reduce the drawing height without increasing track height.
+
+Changing a dataset name does not request data again. Fetched rows keep the name from their last request. Their tooltip can show the previous name until a region or source change requests new data.
 
 ## Source requirements
 
 Every dataset URL must point to an absolute public HTTP(S) BigBed file. Each server must return `206 Partial Content` for exact byte-range requests and allow browser requests through CORS. See [Data source troubleshooting](../../legacy/dataSources.md) if a file does not load.
 
-The module fetches sources concurrently and uses BED9 by default. The track’s `bedSchema` applies to every dataset; all sources are assumed to use the same schema. It keeps one cached file reader per dataset URL in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata is fetched once per source. It leaves columns beyond the selected schema in the row's `fields` array.
+The module fetches sources concurrently. All datasets use the track's selected `bedSchema`, or BED9 when omitted. Columns beyond that schema remain in each row's `fields` array.
+
+Each mounted track caches file readers by URL and schema, reusing metadata across requests.
 
 ## Settings and tooltip
 
-The BulkBed-specific settings panel edits the gap and ordered dataset list. You can add datasets, edit each required name and URL, or remove a dataset as long as one remains. When `gap` is omitted, the renderer uses 2 pixels. The settings field initially shows 0 until you save a value. The shared base panel provides coordinated Height and Row height fields.
+The settings panel edits the gap and ordered dataset list. Add datasets, edit their names and URLs, or remove a dataset while at least one remains. When `gap` is omitted, the renderer uses 2 pixels. The settings field initially shows 0 until you save a value. The shared base panel provides coordinated Height and Row height fields.
 
 An interval tooltip uses the dataset name as its title. It also shows the feature name, genomic location, strand, and score when present. The renderer passes a `BulkBedRect` with `datasetName` to `onClick`, `onHover`, and `onLeave`.
 
@@ -75,13 +75,6 @@ An interval tooltip uses the dataset name as its title. It also shows the featur
 
 See [BED schemas and colored tracks](../dataPrimitives/bedSchemas.md) for the shared schema exports and examples. Schema selection is configured through the track API or collection JSON; the settings panel does not edit it.
 
-## Schema errors
-
-A column validation failure reports the field name, one-based BED column number, raw value,
-and record coordinates, followed by the selected `bedSchema` and guidance to check
-`config.bedSchema`. Short records report expected and actual column counts. An omitted preset
-is identified as `bed9 (default)`; there is no automatic fallback. For narrowPeak BED6+4 data,
-`bed6` parses the standard prefix and preserves the four remaining values in `fields`.
-Network failures retain their original message rather than being labeled schema errors.
+For column-error messages and schema selection, see [Column validation](../dataPrimitives/bedSchemas.md#column-validation).
 
 Return to [Area index](README.md) or [Tracks API reference](../README.md).

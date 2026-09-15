@@ -1,9 +1,8 @@
 # BED schemas and colored tracks
 
-BigBed and BulkBed accept a serializable `config.bedSchema` key. Omission means `"bed9"`. BulkBed applies the same schema to every dataset.
+Set `config.bedSchema` on BigBed or BulkBed to match the file's columns. Omitting it selects `"bed9"`. Changing the key requests data again. All datasets in a BulkBed track use the same schema, so put files with different column layouts in separate tracks.
 
-Parsing is strict: missing required columns or values that fail the selected schema cause a fetch error. There is no automatic detection or fallback. Set `bedSchema` to match your files, such as `"bed3"` for coordinate-only data.
-Changing the key requests data again using the selected schema. BulkBed applies one schema to every dataset in the track; group datasets with different column layouts into separate tracks.
+Missing columns or invalid values cause a fetch error. The reader does not detect a different schema or fall back to one.
 
 | Key    | Parsed columns after chromosome, start, and end      |
 | ------ | ---------------------------------------------------- |
@@ -14,19 +13,15 @@ Changing the key requests data again using the selected schema. BulkBed applies 
 | `bed9` | name, score, strand, thickStart, thickEnd, color     |
 | `ccre` | BED9 columns followed by ccreClass (Registry BED9+1) |
 
-Score and thick coordinates become numbers. BED9's RGB column becomes a CSS `rgb(...)` color; `0` becomes black. Invalid RGB triples fail parsing. Select a schema matching the source columns: BED5 has a score, while BED9 has an explicit color. Columns beyond the chosen schema remain in `fields`. The schema controls parsing; it does not add thick-region or block rendering.
+The reader converts numeric and color fields as described under [Column validation](#column-validation). Columns beyond the selected schema remain in `fields`. Schema selection changes parsing; it does not add thick-region or block rendering.
 
-Both renderers use the parsed color for each interval, with the track color as fallback when no color is parsed. Dense rendering may merge adjacent or overlapping intervals of the same color. Names and scores become available to tooltips and callbacks. The generic tracks retain their generic tooltips; use the cCRE module when you want its specialized tooltip.
+BigBed and BulkBed draw each feature in its parsed color, falling back to the track color when no color is present. Dense rendering may merge adjacent or overlapping features of the same color. Names and scores are available to tooltips and callbacks. Use [cCRE BigBed](../trackModules/ccre.md) for a tooltip that also displays cCRE classification.
 
 ## Reuse the schemas
 
 ```ts
 import { createBigBedFile } from "@weng-lab/genomic-reader";
-import {
-  bedSchemas,
-  bedSchemaKeys,
-  type BedSchemaKey,
-} from "@weng-lab/genomebrowser-tracks/shared";
+import { bedSchemas, type BedSchemaKey } from "@weng-lab/genomebrowser-tracks/shared";
 
 const key: BedSchemaKey = "bed9";
 const file = createBigBedFile({ url: "YOUR_URL_HERE", schema: bedSchemas[key] });
@@ -34,7 +29,7 @@ const file = createBigBedFile({ url: "YOUR_URL_HERE", schema: bedSchemas[key] })
 
 `bedSchemas.ccre` is also the schema used by `ccreBigBedModule`; both paths validate the same columns and colors.
 
-`bedSchemaKeys` lists supported keys, and `bedSchemaKeySchema` is their Zod enum for validating configuration. Custom Zod schemas can still be used in custom module fetchers; they are not accepted as keys in these first-party tracks.
+`bedSchemaKeys` lists supported keys, and `bedSchemaKeySchema` is their Zod enum for validating configuration. Use a custom module fetcher to parse a schema outside these presets. First-party tracks accept only the listed keys.
 
 ## Exported API
 
@@ -47,9 +42,13 @@ const file = createBigBedFile({ url: "YOUR_URL_HERE", schema: bedSchemas[key] })
 
 ## Column validation
 
-`bed3` consumes no extra columns. Subsequent presets extend it in file order: `bed4` adds string `name`; `bed5` adds numeric `score`; `bed6` adds string `strand`; `bed9` adds numeric `thickStart`, numeric `thickEnd`, and `color`; `ccre` adds string `ccreClass`. Numeric fields use Zod number coercion. These presets do not constrain strand strings to a fixed vocabulary.
+The table above lists columns in file order. `name`, `strand`, and `ccreClass` remain strings. Strand values are not restricted to a fixed vocabulary. Score and thick coordinates use Zod number coercion.
 
-Colors accept `"0"` or three comma-separated integer channels from 0 through 255. `"0"` becomes `rgb(0,0,0)`; triplets become `rgb(R,G,B)`. Invalid colors reject parsing. Reader errors include file-column context; schema parsing alone produces Zod validation errors.
+Colors accept `"0"` or three comma-separated integers from 0 through 255. `"0"` becomes `rgb(0,0,0)`; triplets become `rgb(R,G,B)`. Other values fail parsing.
+
+BigBed and BulkBed column errors identify the field, one-based BED column number, raw value, record coordinates, and selected `bedSchema`. Short records report expected and actual column counts. An omitted preset is identified as `bed9 (default)`. Network errors retain their original messages. Parsing a schema directly produces Zod errors without the reader's file-column context.
+
+For narrowPeak BED6+4 data, select `bed6` to parse the standard prefix and preserve the four remaining values in `fields`.
 
 See [BED schema examples](../../legacy/bedSchemaExamples.md) for existing ChromHMM and cCRE sources.
 

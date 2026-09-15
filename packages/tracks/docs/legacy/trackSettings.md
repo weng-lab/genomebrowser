@@ -1,24 +1,10 @@
 # Author track settings
 
-Use the settings controls from `@weng-lab/genomebrowser-tracks/shared` to build MUI settings for a track module. The shared entry does not load any first-party modules. For every prop and verified accessibility behavior, see the [settings component API](../reference/settingsComponents/README.md).
+Use the controls from `@weng-lab/genomebrowser-tracks/shared` to build a module's settings form. Core hosts the form in its settings modal. The module supplies all controls, including base fields.
 
-## Understand settings ownership
+## Build the form
 
-The core browser owns the settings modal. It provides the title, close behavior, position, and width. The shared shell is 550 px wide with a maximum total height equal to its width, further constrained by the viewport. Short forms use their natural height; longer forms scroll internally beneath the header. It renders the active module's `settingsComponent` as the complete form. Settings state is internal to the browser.
-
-Your module chooses and composes all controls, including base options. Reuse `TrackBaseSettings` for title, color, and display. Add `TrackHeightSettings` for fixed height or `TrackRowLayoutSettings` for modules with row-layout config. Do not add another modal, dialog title, close button, or fixed width. Modules without a settings component have no settings button.
-
-The tracks package owns the MUI controls described here. Core remains independent of MUI. Tooltip content follows a separate module contract. See [Author track tooltips](../reference/tooltips/TrackTooltip.md).
-
-## Use height terms consistently
-
-Track height is the total vertical space in `base.height`. Row height is the complete slot for one row in `config.rowHeight`. Content height is the part of that slot used for a rectangle, line, label, or other drawing.
-
-Keep margins and gaps inside the row slot by reducing content height. Do not add them to track height. See [Row layout](../reference/coordinatesAndLayout/rowLayout.md) for the sizing contract.
-
-## Build a minimal settings component
-
-This example replaces the settings component on the first-party BigWig module. It reads the accepted URL and range from the supplied track. Each field sends an attempted edit through the mutation callback from core.
+This example replaces BigWig's settings form. `TrackBaseSettings` adds title, color, and display controls, with `TrackHeightSettings` for height. The remaining fields edit the source and Y-axis bounds. Each field returns the result of `updateTrack` so a rejected edit stays visible with its error.
 
 ```tsx
 import { type TrackSettingsProps } from "@weng-lab/genomebrowser";
@@ -80,44 +66,38 @@ export const signalTrack = signalModule.create({
 });
 ```
 
-Register `signalModule` and `signalTrack` with the track store. Core supplies `TrackSettingsProps`. The `track` value is a current, shallow read-only view of the complete track. Its `source` is `"user"` by default and can be `"host"` when the embedding application controls the data source. Disable only the data-source controls for host-source tracks, and leave unrelated settings enabled. `updateTrack` is already bound to that track's ID.
+Register `signalModule` and `signalTrack` with the track store. Core passes `TrackSettingsProps` to the form. `track` is the current, shallow read-only instance, and `updateTrack` is bound to its ID. The example disables URL editing for `source: "host"` while keeping appearance controls available.
 
-Send edits through `updateTrack` as the fields accept them. It accepts optional shallow `base`, `config`, and `interaction` patches in one validated mutation. The full mutation succeeds or fails as a unit. Replace a complete nested object or array when changing one of its values.
+## Apply edits
 
-`displayOptions` lists the registered module's display names. `updateTracksOfType(createUpdate)` applies a shallow patch to every track with the exact same type, including the active track. The callback receives each current track so it can preserve per-track values. The complete batch is validated before any changes are stored. Both mutation callbacks return validation errors and reject changes while browser interactions are blocked.
+`updateTrack` accepts shallow `base`, `config`, and `interaction` patches. Core validates the entire mutation before applying it. Replace a complete nested object or array when editing one of its values.
 
-```tsx
-updateTracksOfType((track) => ({ base: { height: track.base.height + 10 } }));
-```
+Return the resulting `TrackMutationResult` from `onCommit`. `{ ok: true }` accepts the edit. `{ ok: false, code: TrackMutationErrorCode, error: string }` keeps the draft and shows the error. The component manages drafts locally while the caller supplies accepted values.
 
-## Compose the form
+For edits across tracks, `updateTracksOfType(createUpdate)` calls `createUpdate` with each current track of the same type, including the active track. Return a patch based on that track to preserve its other values. Core validates the whole batch before storing any changes. Both mutation callbacks reject edits while browser interactions are blocked. `displayOptions` lists the registered module's display names.
 
-Start with `TrackSettingsLayout`, then divide controls into `TrackSettingsSection` groups.
+## Choose controls and layout
 
-- Use `TrackSettingsFieldRow` for a fixed relationship, such as minimum and maximum or a switch and its dependent color. The controls share one row and stack in source order on narrow viewports.
-- Use `TrackSettingsFieldGrid` when a variable set of peer controls can flow into available columns.
-- Use `TrackSettingsFullRow` inside a grid for a long value such as a source URL. It also works for a nested field row that must stay together.
+Start with `TrackSettingsLayout` and group related controls under `TrackSettingsSection`. Use `TrackBaseSettings` for common base fields. For modules with `config.rowHeight`, add `TrackRowLayoutSettings` in place of `TrackHeightSettings` to coordinate total height and row height.
 
-Keep source order consistent with reading and keyboard order. The [layout component API](../reference/settingsComponents/formLayout.md) lists exact sizing and breakpoint behavior.
+Track height is the total space in `base.height`. Each row occupies `config.rowHeight`, including its internal margins and gaps. Reduce the drawn content height to make room for those gaps. See [Row layout](../reference/coordinatesAndLayout/rowLayout.md) for the calculation.
 
-## Return mutation results
+Use `TrackSettingsFieldRow` for controls that belong together, such as two range bounds or a switch and its color. Use `TrackSettingsFieldGrid` when controls can flow into available columns, and `TrackSettingsFullRow` for a URL or nested row that must span the grid. The [layout reference](../reference/settingsComponents/formLayout.md) gives spacing and responsive behavior.
 
-The text, number, and range components keep an editable draft separate from accepted config. A valid changed draft commits after 300 ms, or immediately on blur or Enter. Escape restores the last accepted value. The field keeps a rejected draft visible and shows either its local validation error or the error returned by `onCommit`. If config changes elsewhere, the field adopts the new accepted value once it has no unresolved draft.
+## Drafts and commit timing
 
-`onCommit` must return `TrackMutationResult` from `@weng-lab/genomebrowser`. Return `{ ok: true }` for an accepted mutation or `{ ok: false, code: TrackMutationErrorCode, error: string }` for a rejected one. In a settings component, return the result from `updateTrack` directly as shown above.
+Text, number, and range fields commit a valid changed draft after 300 ms, or immediately on blur or Enter. Escape restores the last accepted value. Invalid or rejected drafts stay visible with their errors. An external value replaces the local value once no unresolved draft remains.
 
-URL fields apply a draft only when you activate **Set** beside the input. Typing, waiting, blur, and Enter in the input do not change the active source or request data for the draft. Escape restores the last accepted URL. Validation errors retain the draft. Host-source tracks disable both the input and Set button.
+URL fields commit only when **Set** is activated. Typing, waiting, blur, and Enter do not change the source or request data. Escape restores the accepted URL. For host-owned sources, disable both the input and Set button through the field's `disabled` prop.
 
-The color field behaves differently. A manually typed hexadecimal value commits only on blur or Enter. Picker changes commit continuously so the track can preview them. Escape cancels a manual draft.
+Color text commits on blur or Enter. Picker changes commit during interaction for a live preview. Escape cancels a manual text draft. The [field references](../reference/settingsComponents/README.md) specify validation and callbacks for each control.
 
-## Label and group controls
+## Labels and browser hosting
 
-Give every field a specific visible label. Use `TrackSettingsSection` when a legend helps explain the relationship between fields. Keep disabled dependent controls visible so the current value and relationship remain clear.
+Give every field a visible label. Use a section legend to explain a group, and preserve reading order in the component tree. Keep disabled dependent controls visible so users can see their current values. Shared controls provide error associations and keyboard behavior described in their references.
 
-The shared range and color components include their own error associations, keyboard behavior, and focus handling. Do not wrap them in controls that interfere with those behaviors. See [Settings accessibility](../reference/settingsComponents/README.md#accessibility) for the verified details.
+Core supplies the modal's title, close control, position, and width. Do not add a second dialog or fixed width to the form. The modal is 550 pixels wide, with total height capped at its width and constrained by the viewport. Short forms use their natural height; longer forms scroll beneath the header. Core resets field drafts when switching tracks. A module without `settingsComponent` has no settings button.
 
-## First-party settings
+First-party modules already provide complete forms. Their URL fields are disabled for host-owned tracks, while appearance fields remain editable. The forms are not standalone exports; reuse the controls from `/shared` when building a different form. Tooltip content is separate and uses [TrackTooltip](../reference/tooltips/TrackTooltip.md).
 
-First-party modules already include their complete settings panels. Their URL fields are visibly disabled when `track.source` is `"host"`, including modules with several data sources. Track title, display, color, height, and non-source config remain editable. These panels use the controls documented here but are not standalone exports. The `/shared` entry exports `TrackBaseSettings` for shared base fields and all components in the [settings component API](../reference/settingsComponents/README.md).
-
-Return to [Legacy guides](README.md) or [API reference](../reference/README.md).
+Return to [Guides and release history](README.md) or [Tracks documentation](../README.md).

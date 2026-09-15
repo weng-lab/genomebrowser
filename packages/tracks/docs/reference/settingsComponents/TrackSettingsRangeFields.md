@@ -20,8 +20,6 @@ export function FieldExample({
 
 ## API
 
-`TrackSettingsRangeFieldsProps` describes the props below. `onCommit` must return the mutation result; return the result of core's `updateTrack` when used in a module settings form.
-
 The range is optional in both modes. Selecting **Use automatic range** commits `undefined`.
 
 | Prop           | Type     | Default     | Description                                       |
@@ -35,7 +33,7 @@ The range is optional in both modes. Selecting **Use automatic range** commits `
 | ---------- | --------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------ |
 | `mode`     | `"complete"`                                                                | `"complete"` | Requires both bounds together. Both blank values select automatic range. |
 | `range`    | `{ min: number; max: number } \| undefined`                                 | Required     | Current accepted complete range.                                         |
-| `onCommit` | `(range: { min: number; max: number } \| undefined) => TrackMutationResult` | Required     | Attempts to persist a complete range or automatic range.                 |
+| `onCommit` | `(range: { min: number; max: number } \| undefined) => TrackMutationResult` | Required     | Submits a complete range or automatic range.                             |
 
 ### Independent mode
 
@@ -43,15 +41,15 @@ The range is optional in both modes. Selecting **Use automatic range** commits `
 | ---------- | ----------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------- |
 | `mode`     | `"independent"`                                                               | Required | Allows either bound to be omitted independently.                 |
 | `range`    | `{ min?: number; max?: number } \| undefined`                                 | Required | Current accepted override. `min`, `max`, or both may be present. |
-| `onCommit` | `(range: { min?: number; max?: number } \| undefined) => TrackMutationResult` | Required | Attempts to persist independent overrides or automatic range.    |
+| `onCommit` | `(range: { min?: number; max?: number } \| undefined) => TrackMutationResult` | Required | Submits independent overrides or automatic range.                |
 
-Every entered bound must be finite. When both are present, minimum must be less than maximum. Complete mode reports an error until both bounds are present. Independent mode can commit either bound alone.
+Every entered bound must be finite. When both are present, minimum must be less than maximum. In complete mode, filling only one bound produces an error.
 
 ## Commit behavior
 
-Valid changed drafts commit after 300 ms, or immediately on blur or Enter. Escape restores the accepted value. Rejected drafts remain visible with an error. External values replace the local value when no unresolved draft remains.
+Valid changed drafts commit after 300 ms, or immediately on blur or Enter. Escape restores the accepted value. External values replace the local value when no unresolved draft remains.
 
-The component owns its draft, while the caller owns the accepted value. It does not access browser stores directly. `onCommit` returns `TrackMutationResult` from core: success accepts the draft; failure retains it and displays the returned error.
+The field keeps its draft locally and takes the accepted value from its props. Return `TrackMutationResult` from `onCommit`, using core's `updateTrack` result in a module form. Success accepts the draft; failure retains it and shows the returned error. The field does not read browser stores.
 
 ## Accessibility
 

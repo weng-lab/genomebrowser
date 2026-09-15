@@ -25,8 +25,6 @@ export function FieldExample({ value, onCommit }: TrackSettingsNumberFieldProps)
 
 ## API
 
-`TrackSettingsNumberFieldProps` describes the props below. `onCommit` must return the mutation result; return the result of core's `updateTrack` when used in a module settings form.
-
 This component uses a text input so partial numeric drafts such as `-` and `1.` remain editable. It commits only complete finite numbers.
 
 | Prop        | Type                                     | Default     | Description                                                                       |
@@ -35,7 +33,7 @@ This component uses a text input so partial numeric drafts such as `-` and `1.` 
 | `inputMode` | `"decimal" \| "numeric"`                 | `"decimal"` | Hints which numeric virtual keyboard to show.                                     |
 | `label`     | `string`                                 | Required    | Visible MUI field label and accessible name.                                      |
 | `min`       | `number`                                 | None        | Adds minimum-value input metadata. Enforce the limit in `validate` when required. |
-| `onCommit`  | `(value: number) => TrackMutationResult` | Required    | Attempts to persist a validated finite number.                                    |
+| `onCommit`  | `(value: number) => TrackMutationResult` | Required    | Submits a validated finite number.                                                |
 | `required`  | `boolean`                                | `false`     | Marks the field required. The field already rejects blank drafts.                 |
 | `step`      | `"any" \| number`                        | None        | Adds numeric step input metadata. Enforce step rules in `validate` when required. |
 | `validate`  | `(value: number) => string \| undefined` | Required    | Applies domain validation after finite-number parsing.                            |
@@ -43,9 +41,9 @@ This component uses a text input so partial numeric drafts such as `-` and `1.` 
 
 ## Commit behavior
 
-Valid changed drafts commit after 300 ms, or immediately on blur or Enter. Escape restores the accepted value. Rejected drafts remain visible with an error. External values replace the local value when no unresolved draft remains.
+Valid changed drafts commit after 300 ms, or immediately on blur or Enter. Escape restores the accepted value. External values replace the local value when no unresolved draft remains.
 
-The component owns its draft, while the caller owns the accepted value. It does not access browser stores directly. `onCommit` returns `TrackMutationResult` from core: success accepts the draft; failure retains it and displays the returned error.
+The field keeps its draft locally and takes the accepted value from its props. Return `TrackMutationResult` from `onCommit`, using core's `updateTrack` result in a module form. Success accepts the draft; failure retains it and shows the returned error. The field does not read browser stores.
 
 ## Accessibility
 

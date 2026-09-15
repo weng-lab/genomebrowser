@@ -1,18 +1,8 @@
 # BigBed
 
-Use `bigBedModule` for genomic intervals stored in one general BigBed file. It expects a browser-accessible BigBed URL. The example creates a track titled Peaks from that source.
+Use `bigBedModule` for genomic intervals stored in one BigBed file. It expects a browser-accessible BigBed URL.
 
-## bigBedModule
-
-Import `bigBedModule`, `BigBedCreateInput`, and `BigBedConfig` from `@weng-lab/genomebrowser-tracks/bigbed`. Register the module with core's track store before adding its instances.
-
-`bigBedModule.create(input, interaction?)` accepts `BigBedCreateInput` and returns a validated track instance. `base.id` and `base.title` are required non-empty strings; `config` is required, with the fields below. Optional `source` defaults to `"user"`; `"host"` marks an application-owned source. Base display, height, and color use the defaults below. A supplied height must be positive and color must use six-digit `#RRGGBB` syntax.
-
-`BigBedCreateInput` permits omitted fields with defaults; `BigBedConfig` describes the parsed config with defaults applied. `bigBedModule.validate(instance)` validates an existing complete instance. Both methods throw on invalid input. `configSchema` and `createInputSchema` expose Zod parsing and safe parsing; the top-level config and create-input objects reject unknown keys. `displays` lists supported display names.
-
-Pass callbacks as the second argument to `create`; they are runtime behavior, separate from serialized configuration. Callback support and payloads are described below. The module supplies its fetcher, renderers, settings, and tooltip to core.
-
-## Minimal track
+## Usage
 
 ```ts
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
@@ -25,6 +15,10 @@ const track = bigBedModule.create({
   config: { url: "YOUR_URL_HERE" },
 });
 ```
+
+## bigBedModule
+
+`bigBedModule.create(input, interaction?)` returns a track with `type: "bigbed"`. Register `bigBedModule` with the track store before adding its instances. See [Create and validate tracks](trackCreation.md) for required base fields, source ownership, schemas, and validation errors.
 
 ## Displays and base defaults
 
@@ -42,9 +36,13 @@ const track = bigBedModule.create({
 | `bedSchema` | `BedSchemaKey` | `"bed9"` | Selects the positional column parser. Changing it requests new data. |
 | `rowHeight` | `number`       | `12`     | Complete vertical row slot. Must be finite and at least 1.           |
 
-Both displays preserve configured `rowHeight`. Dense always passes one row to the shared layout contract, so changing Height or Row height stretches its single slot. Squish derives total height from rows needed by intervals that intersect the visible viewport. It still packs and renders intervals from the larger overscanned region for panning, but those side intervals do not make the track taller. Viewport or data changes can repack squish rows and update total height without changing row height. In both displays, the interval rectangle and its vertical margins stay inside each slot.
+### Row height
 
-Use `bigBedModule.configSchema` to validate config and `bigBedModule.createInputSchema` to validate the full create input.
+Dense uses one row. Changing Height or Row height resizes that row.
+
+Squish calculates total height from the packed rows that intersect the visible viewport. It also packs and renders features fetched on either side for panning, but those features do not make the track taller. Panning or loading new data can change the row count while preserving `rowHeight`.
+
+In both displays, feature rectangles and their vertical margins fit inside each row slot.
 
 ## Source requirements
 
@@ -52,11 +50,11 @@ The source must be an absolute public HTTP(S) BigBed URL. The server must return
 
 The fetcher uses `config.bedSchema` to parse columns after BED3. Omitting it uses BED9, including names, scores, strand, thick coordinates, and RGB colors. Set `bedSchema: "bed3"` to read only coordinates. Columns beyond the selected schema remain in `BigBedRow.fields`. See [BED schemas and colored tracks](../dataPrimitives/bedSchemas.md) for available keys and ChromHMM/cCRE examples.
 
-The track keeps one cached file reader per URL and schema in the browser's track-scoped fetcher resources for the track's lifetime, so file metadata is fetched once per source. Changing the URL creates or reuses the reader for that URL on the next request.
+Each mounted track caches a file reader for each URL and schema, reusing metadata across requests. Changing the URL creates or reuses the corresponding reader on the next request.
 
 ## Settings and tooltip
 
-The BigBed-specific settings panel has one required URL field. It applies a change after the field passes validation. The shared base panel provides coordinated Height and Row height fields for both displays.
+The BigBed-specific settings panel has one required URL field. Activate Set to apply a changed URL. The shared base panel provides coordinated Height and Row height fields for both displays.
 
 When available, the interval name becomes the tooltip title. The tooltip also shows the genomic location and any strand or score value. The renderer passes the corresponding `BigBedRow` to supplied `onClick`, `onHover`, and `onLeave` callbacks.
 
@@ -75,13 +73,6 @@ For custom BigBed reading, use `createBigBedFile({ url, schema })` from `@weng-l
 
 See [BED schemas and colored tracks](../dataPrimitives/bedSchemas.md) for the shared schema exports and examples. Schema selection is configured through the track API or collection JSON; the settings panel does not edit it.
 
-## Schema errors
-
-A column validation failure reports the field name, one-based BED column number, raw value,
-and record coordinates, followed by the selected `bedSchema` and guidance to check
-`config.bedSchema`. Short records report expected and actual column counts. An omitted preset
-is identified as `bed9 (default)`; there is no automatic fallback. For narrowPeak BED6+4 data,
-`bed6` parses the standard prefix and preserves the four remaining values in `fields`.
-Network failures retain their original message rather than being labeled schema errors.
+For column-error messages and schema selection, see [Column validation](../dataPrimitives/bedSchemas.md#column-validation).
 
 Return to [Area index](README.md) or [Tracks API reference](../README.md).

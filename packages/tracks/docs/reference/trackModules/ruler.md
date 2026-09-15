@@ -1,16 +1,6 @@
 # Ruler and reference sequence
 
-Use `rulerModule` for genomic coordinates and optional reference DNA. It is an ordinary track: add, reorder, resize, configure, and remove it through the track store. The browser does not insert a ruler automatically. Its navigation, hover highlights, and settings resolve the hosting browser through core’s `useGenomeBrowser()` hook, so the same module can be used in independent browsers.
-
-## rulerModule
-
-Import `rulerModule`, `RulerCreateInput`, and `RulerConfig` from `@weng-lab/genomebrowser-tracks/ruler`. Register the module with core's track store before adding its instances.
-
-`rulerModule.create(input, interaction?)` accepts `RulerCreateInput` and returns a validated track instance. `base.id` and `base.title` are required non-empty strings; `config` is required, with the fields below. Optional `source` defaults to `"user"`; `"host"` marks an application-owned source. Base display, height, and color use the defaults below. A supplied height must be positive and color must use six-digit `#RRGGBB` syntax.
-
-`RulerCreateInput` permits omitted fields with defaults; `RulerConfig` describes the parsed config with defaults applied. `rulerModule.validate(instance)` validates an existing complete instance. Both methods throw on invalid input. `configSchema` and `createInputSchema` expose Zod parsing and safe parsing; the top-level config and create-input objects reject unknown keys. `displays` lists supported display names.
-
-The module supplies its fetcher, renderer, and settings to core. Ruler handles navigation and base hover highlights internally and supplies no tooltip component.
+Add `rulerModule` to draw genomic coordinates and optional reference DNA. The browser does not insert a ruler automatically. Ruler navigation and highlights use the hosting browser's stores.
 
 ## Usage
 
@@ -22,59 +12,82 @@ const useTrackStore = createTrackStore({
   modules: [rulerModule],
   tracks: [
     rulerModule.create({
-      base: {
-        id: "reference",
-        title: "Reference",
-      },
-      config: { sequenceUrl: "YOUR_URL_HERE" },
+      base: { id: "reference", title: "Reference" },
+      config: {},
     }),
   ],
 });
 ```
 
-Replace the placeholder with a valid HTTP(S) 2bit URL for your assembly. For coordinates alone, use `config: {}`. `firstPartyTrackModules` includes the ruler module, but registering a module does not create a track.
+This draws coordinates without fetching sequence. To add DNA bases, set `config.sequenceUrl` to a version-0 UCSC 2bit URL for your assembly. Its chromosome names must match the assembly exactly.
+
+## rulerModule
+
+`rulerModule.create(input, interaction?)` returns a track with `type: "ruler"`. Register `rulerModule` with the track store before adding its instances. See [Create and validate tracks](trackCreation.md) for required base fields, source ownership, schemas, and validation errors.
+
+The module handles navigation and base hover highlights internally. It supplies no tooltip component. [firstPartyTrackModules](../collectionsAndSchemas/firstPartyTrackModules.md) includes the ruler.
 
 ## Displays and base defaults
 
-| Base option | Default     | Behavior                                                                                                                    |
-| ----------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `display`   | `"full"`    | The only display.                                                                                                           |
-| `height`    | `22`        | Automatically sized: 22 SVG pixels for coordinates, 48 when reference bases render.                                         |
-| `color`     | `"#475569"` | Coordinate ticks and axis. Bases use A: `#228b22`, C: blue, G: orange, T: red, and N: `#64748b`, regardless of letter case. |
+| Base option | Default     | Behavior                                                                            |
+| ----------- | ----------- | ----------------------------------------------------------------------------------- |
+| `display`   | `"full"`    | The only display.                                                                   |
+| `height`    | `22`        | The renderer uses 22 SVG pixels for coordinates and 48 when reference bases appear. |
+| `color`     | `"#475569"` | Coordinate ticks and axis.                                                          |
+
+Bases use fixed colors in either letter case: A uses `#228b22`, C blue, G orange, T red, and N `#64748b`.
 
 ## Config
 
-| Config                     | Type      | Default     | Behavior                                                                                                                                     |
-| -------------------------- | --------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sequenceUrl`              | `string`  | Unset       | HTTP(S) UCSC version-0 2bit file. Must use the assembly's exact chromosome names.                                                            |
-| `sequenceMinPixelsPerBase` | `number`  | `15`        | Minimum SVG pixels per base for fetching and drawing sequence; allowed range 1–100.                                                          |
-| `sequenceHighlightColor`   | `string`  | `"#64748b"` | Six-digit hex color for the browser-wide hover highlight on any reference base. Rendering only; changing it does not refetch sequence.       |
-| `distinguishMaskedBases`   | `boolean` | `false`     | Show soft-masked bases in lowercase when enabled; otherwise display all bases uppercase. Rendering only; toggling does not refetch sequence. |
+| Option                     | Type      | Default     | Description                                                                               |
+| -------------------------- | --------- | ----------- | ----------------------------------------------------------------------------------------- |
+| `sequenceUrl`              | `string`  | Unset       | HTTP or HTTPS URL for a version-0 UCSC 2bit file.                                         |
+| `sequenceMinPixelsPerBase` | `number`  | `15`        | Minimum SVG pixels per base for fetching and drawing sequence. Accepts 1 through 100.     |
+| `sequenceHighlightColor`   | `string`  | `"#64748b"` | Six-digit hex color for the highlight shown when hovering a base.                         |
+| `distinguishMaskedBases`   | `boolean` | `false`     | Shows soft-masked bases in lowercase when enabled. Otherwise, all bases appear uppercase. |
 
-## Rendering and fetching
+Changing the URL or resolution threshold requests sequence again. Highlight color and masking changes update rendering from current data.
 
-Ticks adapt to region span and width. Tick labels use zero-based genomic coordinates; each letter is centered in its half-open base interval. Bases appear when each base has at least 15 horizontal SVG pixels by default. For example, a 1,000-pixel track can show 66 bp and a 2,000-pixel track can show 133 bp. Letter size adapts to the available space. Fetching and rendering use the same pixels-per-base threshold; overscan preserves this ratio so panning stays aligned. Metadata is reused for the lifetime of the mounted track. Changing the sequence URL or resolution threshold invalidates the track's fetch.
+## Sequence display and fetching
 
-Unknown bases appear as `N`; masked bases are displayed uppercase by default. Enable `distinguishMaskedBases` to display them lowercase while keeping unmasked bases uppercase. The 2bit reader preserves lowercase masking information in the returned records. Coordinates stay compact when sequence is missing or unavailable; errors are included in the SVG title. Changing the source or navigating requests again. No sequence request occurs when the URL is absent or the view is too broad.
+Ticks adapt to region width and use zero-based coordinates. Each base letter is centered over its half-open genomic region. By default, letters appear at 15 SVG pixels per base or more. A 1,000-pixel drawing can therefore show 66 bases, and a 2,000-pixel drawing can show 133. Letter size follows the available space.
 
-## Settings and hover highlights
+Fetching and drawing use the same resolution threshold, including data retained outside the viewport for panning. The reader reuses file metadata for the mounted track. Without a URL, or when zoomed too far out, the ruler makes no sequence request.
 
-The “Sequence highlight color” field sets one hover color for all reference bases.
+Unknown bases appear as `N`. The reader preserves lowercase masking information; `distinguishMaskedBases` controls whether the ruler displays it. A missing chromosome produces no sequence. Request failures keep the coordinate axis visible and put the error in its SVG title. Changing the source or navigating requests data again. See [Data source troubleshooting](../../legacy/dataSources.md) for range and CORS requirements.
 
-The settings panel separates the 2bit URL under “Reference source” from “Sequence visibility” and “Sequence appearance” controls. A “Sequence resolution” slider runs from “Farther out” (5 pixels per base) to “Closer in” (25), defaulting to 15. The visibility section pairs its title with a to-scale ACGTACGT preview using the same glyphs, colors, and letter sizing as the ruler. Each preview base occupies the selected number of pixels. A full-width slider sits below, followed by the live bp threshold beside the zoom action. The appearance section contains a full-width highlight color field and a left-aligned masking switch. The threshold previews while dragging; the configuration commits on release. The programmatic config still accepts 1–100 pixels per base. The panel shows the largest sequence-visible span, rounded down from track width divided by minimum pixels per base, and updates when either changes. “Zoom in to sequence” centers that span on the current view, clamped to chromosome bounds. The button is disabled without a sequence URL, when the track is too narrow for one base, or when already at or below that span. Lower thresholds show sequence sooner; higher thresholds require more zoom. A host-owned track disables URL editing. Shared base settings control title and coordinate color. Content height is automatic. There is no zoom hint or status row below the coordinates. Hovering a reference base automatically adds a one-base, browser-wide highlight through the core highlight API. Moving between bases replaces it; leaving, dragging, navigating, losing window focus, or removing the ruler clears it. User-created highlights remain unchanged. The hover highlight temporarily appears in the shared highlights list, including any UI or persistence using that list. No app callback wiring is required. There are no per-base tooltips.
+During zoom transitions, ticks cover the viewport and up to one viewport on either side, clipped to the retained render region. The ruler limits tick generation while sequence loads, including after a chromosome-wide view.
+
+## Settings
+
+The form groups controls under "Reference source", "Sequence visibility", and "Sequence appearance". Host-owned tracks disable URL editing. Shared base settings edit the title and coordinate color; content determines height.
+
+### Sequence resolution
+
+The slider runs from 5 pixels per base at "Farther out" to 25 at "Closer in", with a default of 15. ACGTACGT letters preview the selected spacing with the ruler's glyphs and colors. Dragging updates the preview; releasing commits the threshold. Programmatic config accepts the wider range of 1 through 100. Lowering the threshold shows bases farther out; raising it requires closer zoom.
+
+The form shows the largest sequence-visible span as `floor(trackWidth / sequenceMinPixelsPerBase)` and updates it as width or threshold changes. "Zoom in to sequence" centers that span on the current view, clamped to chromosome bounds. It is disabled without a source, when the track cannot fit one base, or when the current view is already at least that close.
+
+### Sequence appearance
+
+"Sequence highlight color" sets the hover color for every base. "Distinguish masked bases" controls lowercase display.
+
+## Hover highlights
+
+Hovering a base adds a one-base highlight across the browser. Moving to another base replaces it. Leaving, dragging, navigating, losing window focus, or removing the ruler clears it while preserving user-created highlights. No application callback is required.
+
+The temporary highlight appears in the browser's shared highlights list. Application UI and persistence that read that list can observe it. Bases have no individual tooltips.
 
 ## Selecting regions
 
-In Pan mode, the coordinate axis and tick labels show a crosshair and support axis-only drag-to-zoom without changing the browser's selection mode or toolbar. The selected interval is previewed on the axis; Escape, pointer cancellation, or losing window focus cancels it. The axis zoom hit area stops above the reference sequence, so sequence characters retain hover highlights and panning. Pointer movement over dialogs does not activate ruler interactions. Explicit browser-wide Zoom and Highlight modes cover the data area, including the ruler, with a crosshair and vertical cursor guide and block underlying track interactions. Returning to Pan restores the ruler's ordinary interactions.
+In Pan mode, drag the coordinate axis or tick labels to zoom to a region. A crosshair and selection preview show the target. Escape, pointer cancellation, or losing window focus cancels the drag. The hit area ends above the DNA letters, which retain their hover and panning behavior. Moving over a dialog does not activate ruler interactions.
 
-Selection belongs to the browser and works with any tracks, even after removing the ruler. Set `useBrowserStore.getState().setSelectionMode("zoom")` or `"highlight"` and drag across the data area. Use `"pan"` for normal panning. The UI package offers `BrowserSelectionControls` for these modes. Keyboard bindings belong to the host application; the browser SVG does not take focus or register shortcuts.
+The browser's Zoom and Highlight modes cover the data area with a crosshair and vertical cursor guide and block underlying track interactions. Return to Pan to restore the ruler's axis selection behavior. These browser modes also work without a ruler.
 
-See [Data source troubleshooting](../../legacy/dataSources.md) for range and CORS requirements. Ordinary BigWig signal values cannot provide reference bases without a separate encoding contract.
+Outside React, call `useBrowserStore.getState().setSelectionMode("zoom")`, `"highlight"`, or `"pan"` on the application-owned store. React controls should select `setSelectionMode` through the store hook. The UI package provides `BrowserSelectionControls`. The host application owns keyboard shortcuts; the browser SVG does not take focus or register them.
 
 ## Exports
 
-The `@weng-lab/genomebrowser-tracks/ruler` subpath exports `rulerModule`, `RulerCreateInput`, `RulerConfig`, and `RulerData`. `RulerData` is `{ records: TwoBitRecord[]; error?: string }`; `TwoBitRecord` belongs to `@weng-lab/genomic-reader`.
+The `/ruler` entry exports `rulerModule`, `RulerCreateInput`, `RulerConfig`, and `RulerData`. `RulerData` is `{ records: TwoBitRecord[]; error?: string }`; `TwoBitRecord` comes from `@weng-lab/genomic-reader`.
 
-During zoom transitions, ruler ticks cover the current viewport and up to one viewport on each side, clipped to the retained render region. Tick generation stays bounded while reference sequence loads, even after a chromosome-wide view.
-
-Return to [Area index](README.md) or [Tracks API reference](../README.md).
+Return to [Track modules](README.md) or [Tracks API reference](../README.md).

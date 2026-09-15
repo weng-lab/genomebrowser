@@ -14,11 +14,11 @@ Import components and their supporting types from `@weng-lab/genomebrowser-track
 
 ## Fields
 
-Each field reference specifies validation, commit timing, and its exported props type. Return core mutation results from commit callbacks.
+Choose a text, number, URL, range, or color field for the value being edited. Return core mutation results from its commit callback so the field can accept the edit or show an error.
 
 ## Accessibility
 
-Fields supply visible labels and validation feedback. Component pages describe keyboard and focus behavior. Layout preserves source order. The browser owns the settings modal.
+Fields provide visible labels and validation feedback. See each component's reference for keyboard and focus behavior. Layout components preserve the controls' source order.
 
 See [Settings authoring](../../legacy/trackSettings.md) for a complete form example.
 

@@ -24,7 +24,7 @@ function SignalSettings(props: TrackSettingsProps<BigWigConfig, SignalPoint>) {
 
 ## API
 
-Height edits require a finite value of at least 20 pixels. Apply to all sends the same height to every track of this exact type. Rejected edits retain their draft and show the mutation error. These components consume core's `TrackSettingsProps<Config, Item>`; they do not export separate props aliases.
+Height edits require a finite value of at least 20 pixels. Apply to all sends the same height to every track of this exact type. Rejected edits retain their draft and show the mutation error. This component accepts core's `TrackSettingsProps<Config, Item>`. It has no separate exported props type.
 
 | Prop                 | Type                                                                                                               | Default  | Description                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------ |
@@ -35,10 +35,10 @@ Height edits require a finite value of at least 20 pixels. Apply to all sends th
 
 ## Accessibility
 
-Fields have visible labels and validation errors. The dimension action is named “Apply Height to all tracks of this type”. Rows stack at narrow widths.
+Fields have visible labels and validation errors. The dimension action is named "Apply Height to all tracks of this type". Rows stack at narrow widths.
 
 ## Notes
 
-Pass current props and return the supplied mutation results. The browser owns the shell and resets field drafts when switching tracks. See [settings authoring](../../legacy/trackSettings.md) for composition and draft behavior.
+See [Author track settings](../../legacy/trackSettings.md) for form composition and browser hosting.
 
 Return to [Area index](README.md) or [Tracks API reference](../README.md).

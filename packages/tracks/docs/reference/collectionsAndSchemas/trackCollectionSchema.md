@@ -12,6 +12,6 @@ For a collection JSON file in your project root, enable editor validation and co
 
 This snippet shows the schema reference only; your collection still needs its required fields. Adjust the relative path for nested collection files. Tooling can resolve the public package subpath directly. Custom modules require a schema generated from your own module list using the `genomebrowser schema` CLI from `@weng-lab/genomebrowser`.
 
-This is a JSON asset, not a JavaScript function. It provides editor validation; runtime collection validation remains the responsibility of `validateTrackCollection` from core with the same module list.
+The schema provides editor validation. To validate a collection at runtime, call core's `validateTrackCollection` with the same module list.
 
 Return to [Area index](README.md) or [Tracks API reference](../README.md).

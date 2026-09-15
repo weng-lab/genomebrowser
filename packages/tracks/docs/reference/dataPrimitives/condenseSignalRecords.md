@@ -1,6 +1,6 @@
 # Signal condensation
 
-The `condenseSignalRecords` export from `@weng-lab/genomebrowser-tracks/shared` converts genomic-reader BigWig records into fixed-width pixel points. It is useful when a custom track needs the same overlap and aggregation behavior as the built-in signal tracks.
+Use `condenseSignalRecords` from `@weng-lab/genomebrowser-tracks/shared` to combine BigWig records into pixel minima and maxima for a custom signal renderer.
 
 ## Usage
 
@@ -25,7 +25,7 @@ const points: SignalPoint[] = condenseSignalRecords(
 | `condenseSignalRecords` | `(records: readonly (BigWigValueRecord \| BigWigSummaryRecord)[], region: GenomicRegion, width: number) => SignalPoint[]` | Condenses value or summary records into pixel points. |
 | `SignalPoint`           | `{ x: number; min: number \| null; max: number \| null }`                                                                 | One zero-based pixel column.                          |
 
-`BigWigValueRecord` and `BigWigSummaryRecord` are existing public types from `@weng-lab/genomic-reader`; `GenomicRegion` is the existing public type from `@weng-lab/genomebrowser`. The shared entry does not duplicate them.
+`BigWigValueRecord` and `BigWigSummaryRecord` are types from `@weng-lab/genomic-reader`; `GenomicRegion` is a type from `@weng-lab/genomebrowser`.
 
 ## Behavior
 

@@ -33,16 +33,16 @@ export function SettingsLayoutExample() {
 
 ## `TrackSettingsSection`
 
-| Prop       | Type        | Default  | Description                                           |
-| ---------- | ----------- | -------- | ----------------------------------------------------- |
-| `title`    | `string`    | Required | Visible section legend.                               |
-| `children` | `ReactNode` | Required | Controls or layout primitives grouped by the section. |
+| Prop       | Type        | Default  | Description                                 |
+| ---------- | ----------- | -------- | ------------------------------------------- |
+| `title`    | `string`    | Required | Visible section legend.                     |
+| `children` | `ReactNode` | Required | Controls or layouts grouped by the section. |
 
 ## `TrackSettingsFieldRow`
 
-| Prop       | Type        | Default  | Description                                                                                             |
-| ---------- | ----------- | -------- | ------------------------------------------------------------------------------------------------------- |
-| `children` | `ReactNode` | Required | Fixed peer controls. They share the available row width and stack at viewport widths of 566 px or less. |
+| Prop       | Type        | Default  | Description                                                                                                                            |
+| ---------- | ----------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `children` | `ReactNode` | Required | Controls that belong together, such as a minimum and maximum. They share the row width and stack at viewport widths of 566 px or less. |
 
 ## `TrackSettingsFieldGrid`
 

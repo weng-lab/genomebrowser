@@ -23,6 +23,6 @@ clientXToTrackX(300, { left: 50, width: 1000 }, 500); // 125
 | `createGenomicXScale` | `(region: GenomicRegion, width: number) => (position: number) => number`                             | Creates an unclamped genomic-to-track pixel scale. |
 | `clientXToTrackX`     | `(clientX: number, bounds: Readonly<{ left: number; width: number }>, trackWidth: number) => number` | Converts a client X coordinate into track space.   |
 
-Supply finite coordinates and widths, and a genomic region with positive span. The functions do not validate these inputs. Coordinate conversion does not navigate the browser or change track state.
+Supply finite coordinates and widths, and a genomic region with positive span. The functions do not validate these inputs.
 
 Return to [Area index](README.md) or [Tracks API reference](../README.md).
