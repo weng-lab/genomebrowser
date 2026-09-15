@@ -1,38 +1,30 @@
-# @weng-lab/genomebrowser-ui
+# UI documentation
 
-`@weng-lab/genomebrowser-ui` provides higher-level React UI for `@weng-lab/genomebrowser`. Use it when an application needs browser controls such as `TrackSelect` in addition to the rendering runtime and stores.
+Use `@weng-lab/genomebrowser-ui` to add application controls to a genome browser or display a chromosome overview. These docs ship with the package.
 
-## Install
+## Getting started
 
-Install the coordinated UI and runtime prereleases with the UI package's peer dependencies:
+[Add browser controls](gettingStarted/addBrowserControls.md) builds a responsive browser with pan and zoom buttons, region selection controls, and a highlight dialog. It shows how to keep browser state across renders and open and close the dialog. See [installation and license setup](../README.md#install) before running the example.
 
-```sh
-pnpm add @weng-lab/genomebrowser-ui@beta @weng-lab/genomebrowser@beta @weng-lab/genomebrowser-tracks@beta @weng-lab/genomic-reader@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
-```
+## Guides
 
-The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. Use your package manager's peer-dependency output to keep the installed versions compatible with the release you select.
+- [Choose tracks from collections](guides/trackSelection.md): connect a picker, set defaults, save selections, and customize collection views.
+- [Handle collection track interactions](guides/trackInteractions.md): attach callbacks from application code and use current runtime values alongside collection metadata.
+- [Connect a chromosome overview](guides/chromosomeOverview.md): load cytobands, show the browser region and highlights, and navigate when a highlight is activated.
 
-The UI package participates in the host application's normal MUI setup and theme. It does not require a package-specific stylesheet or provider.
+[Troubleshooting](troubleshooting.md) covers validation failures, unexpected selections, and missing content.
 
-The UI package uses MUI X Premium components but does not provide or configure an MUI X license. The host application must have its own MUI X Premium license and call `LicenseInfo.setLicenseKey` before rendering its components:
+## API reference
 
-```ts
-import { LicenseInfo } from "@mui/x-license";
+The [reference index](reference/README.md) lists every public UI component, helper, and type.
 
-LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_X_LICENSE_KEY);
-```
+- [Browser controls](reference/browserControls/README.md): pan, zoom, and region interaction modes.
+- [Highlights](reference/highlights/README.md): add, edit, remove, and navigate to marked regions.
+- [Chromosome overview](reference/chromosomeOverview/README.md): cytobands, region brackets, highlight overlays, and tooltips.
+- [Track selection](reference/trackSelection/README.md): selection lifecycle, column customization, and interaction callbacks.
 
-Keep this setup in the host application's entry point or another module imported before `TrackSelect`. The environment variable name is host-defined; the UI package does not read it or include a license key in the distributed package.
+## Package responsibilities
 
-## Start here
+Core owns `GenomeBrowser`, browser and track stores, and the collection format. Tracks supplies first-party modules and their settings forms and tooltips. UI supplies the application controls documented here. Reader supplies the cytoband records and file reader consumed by the chromosome overview guide.
 
-- [API reference](reference/README.md) organizes every public component, helper, and type by area.
-
-- [Getting started](gettingStarted.md) shows a browser and TrackSelect sharing one stable track store.
-- [Cytobands](reference/chromosomeOverview/Cytobands.md) documents chromosome ideograms, browser-region brackets, and interactive loci.
-- [Browser navigation button](reference/browserControls/BrowserNavigationButton.md) documents store-bound pan and zoom composition.
-- [Highlight dialog](reference/highlights/HighlightDialog.md) documents store-bound highlight management.
-- [TrackSelect](reference/trackSelection/TrackSelect.md) explains collections, the selection lifecycle, customization, schema tooling, and troubleshooting.
-- [Track interactions](recipes/trackInteractions.md) shows one shared runtime-aware callback dispatcher across a heterogeneous collection.
-
-- [BrowserSelectionControls](reference/browserControls/BrowserSelectionControls.md)
+Import UI components from `@weng-lab/genomebrowser-ui`. It has one public JavaScript entry point. Import core, track, and reader APIs from their own packages; UI does not re-export them.

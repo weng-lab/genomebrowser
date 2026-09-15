@@ -1,24 +1,24 @@
 # @weng-lab/genomebrowser-ui
 
-Ready-made React controls for applications built with `@weng-lab/genomebrowser`.
+React application controls for `@weng-lab/genomebrowser`: pan and zoom buttons, region selection controls, a highlight dialog, collection-based track selection, and chromosome ideograms.
 
-The UI package provides higher-level interfaces such as collection-backed track selection, browser navigation controls, highlight management, and a data-only cytoband renderer. Track selection, navigation controls, and highlight management can share runtime stores with `GenomeBrowser`; `Cytobands` receives cytoband data and application state from its caller.
-
-> This package is under active development and its public API may change.
+The application owns the browser and track stores. Pass those stores to the controls that use them. `Cytobands` accepts data and callbacks directly, so it can also render independently of a browser.
 
 ## Install
 
-Install the UI package, the browser runtime, and the required peer dependencies:
+In a React application, install UI and its peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui@beta @weng-lab/genomebrowser@beta @weng-lab/genomebrowser-tracks@beta @weng-lab/genomic-reader@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material @mui/icons-material @mui/x-data-grid-premium @mui/x-license @mui/x-tree-view
+pnpm add @weng-lab/genomebrowser-ui@latest @weng-lab/genomebrowser@latest @emotion/react@latest @emotion/styled@latest @mui/material@latest @mui/icons-material@latest @mui/x-data-grid-premium@latest @mui/x-license@latest @mui/x-tree-view@latest
 ```
 
-The supported peer versions are React 19.2+, Emotion 11, MUI 7, and MUI X 8. The UI package participates in your application's normal MUI theme and does not require a package-specific stylesheet or provider.
+Supported versions are React and React DOM 19.2+, Emotion 11, MUI 7, and MUI X 8. Check your package manager's peer-dependency output when installing. Add `@weng-lab/genomebrowser-tracks@latest` for first-party track modules and `@weng-lab/genomic-reader@latest` when importing its cytoband reader.
 
-## MUI X license
+UI components use the application's MUI theme. There is no package-specific provider, stylesheet, or global CSS reset to install.
 
-The UI package uses MUI X Premium components. Your application must have an MUI X Premium license and configure it before rendering its components:
+### Configure the MUI X license
+
+`TrackSelect` uses MUI X Premium components. Configure your application's MUI X Premium license before rendering the picker. For example, in a Vite application entry point:
 
 ```ts
 import { LicenseInfo } from "@mui/x-license";
@@ -26,94 +26,35 @@ import { LicenseInfo } from "@mui/x-license";
 LicenseInfo.setLicenseKey(import.meta.env.VITE_MUI_X_LICENSE_KEY);
 ```
 
-Keep this setup in your application entry point or another module imported before the UI package. The environment variable name is application-defined; the package does not read it or distribute a license key.
+Use your own license key and environment variable name; the package supplies neither.
 
-## Quick start
+## Add a control to an existing browser
 
-Create the runtime stores and track collections outside component rendering. Pass the same track store to `GenomeBrowser` and `TrackSelect`.
+Pass the browser's store to a navigation button. This component pans right by half the visible region:
 
 ```tsx
-import { useState } from "react";
-import { TrackSelect } from "@weng-lab/genomebrowser-ui";
-import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
-import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
+import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import { BrowserNavigationButton } from "@weng-lab/genomebrowser-ui";
 
-const useBrowserStore = createBrowserStore({
-  assembly: hg38,
-  region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
-  trackWidth: 900,
-});
-
-const useTrackStore = createTrackStore({
-  modules: [bigWigModule],
-});
-
-const trackCollections = [
-  {
-    assembly: "hg38",
-    id: "signals",
-    label: "Signal tracks",
-    views: [
-      {
-        id: "by-assay",
-        label: "By assay",
-        columns: [{ field: "assay", label: "Assay" }],
-        grouping: ["assay"],
-        leaf: "title",
-      },
-    ],
-    tracks: [
-      {
-        base: {
-          id: "example-signal",
-          title: "Example signal",
-        },
-        type: "bigwig",
-        config: { url: "YOUR_URL_HERE" },
-        metadata: { assay: "ATAC-seq" },
-      },
-    ],
-  },
-];
-
-export function BrowserWithTrackSelect() {
-  const [trackSelectOpen, setTrackSelectOpen] = useState(false);
-
+export function PanRight({ browserStore }: { browserStore: BrowserStoreInstance }) {
   return (
-    <>
-      <button type="button" onClick={() => setTrackSelectOpen(true)}>
-        Choose tracks
-      </button>
-
-      <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
-
-      <TrackSelect
-        open={trackSelectOpen}
-        onClose={() => setTrackSelectOpen(false)}
-        trackCollections={trackCollections}
-        useTrackStore={useTrackStore}
-        defaultTrackIds={["signals::example-signal"]}
-      />
-    </>
+    <BrowserNavigationButton browserStore={browserStore} action={{ type: "pan", fraction: 0.5 }}>
+      Pan right
+    </BrowserNavigationButton>
   );
 }
 ```
 
-Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser. Collection selections remain a draft until the user submits them; canceling or closing the dialog leaves the track store unchanged.
-
-## When to use the UI package
-
-Use `@weng-lab/genomebrowser` by itself when you only need the runtime and application-defined modules. Add `@weng-lab/genomebrowser-tracks` for curated first-party modules. Add `@weng-lab/genomebrowser-ui` when you need generic application controls and can provide the required MUI dependencies and licensing.
+Render `PanRight` beside `GenomeBrowser` with the same `browserStore`. The button disables itself at the chromosome boundary.
 
 ## Documentation
 
-- [API reference](docs/reference/README.md) - all public components, helpers, and types
+Start with [Add browser controls](docs/gettingStarted/addBrowserControls.md) for a complete browser with navigation, selection, and highlights.
 
-- [Getting started](docs/gettingStarted.md) - connect `TrackSelect` to a browser
-- [TrackSelect](docs/reference/trackSelection/TrackSelect.md) - collections, selection behavior, customization, and schema tooling
-- [Cytobands](docs/reference/chromosomeOverview/Cytobands.md) - chromosome ideograms, region brackets, and interactive loci
-- [Browser navigation button](docs/reference/browserControls/BrowserNavigationButton.md) - compose store-bound pan and zoom controls
-- [Highlight dialog](docs/reference/highlights/HighlightDialog.md) - add and remove browser highlights
-- [Track interactions](docs/recipes/trackInteractions.md) - connect collection tracks to host callbacks
+- [Track selection](docs/guides/trackSelection.md): browse collections, set defaults, and save selections.
+- [Track interactions](docs/guides/trackInteractions.md): attach application callbacks to collection tracks.
+- [Chromosome overview](docs/guides/chromosomeOverview.md): connect cytobands and highlights to a browser.
+- [Troubleshooting](docs/troubleshooting.md): diagnose setup and integration problems.
+- [API reference](docs/reference/README.md): component props, helpers, and types.
 
-- [BrowserSelectionControls](docs/reference/browserControls/BrowserSelectionControls.md) chooses pan, region zoom, or highlight selection.
+The [documentation index](docs/README.md) maps the learning path and package responsibilities.

@@ -71,7 +71,7 @@ The active view determines the order of newly added tracks. Groups follow their 
 
 The host controls the dialog through `open` and `onClose`. Browsing and selection changes remain a draft until the user submits them.
 
-See [Getting started](../../gettingStarted.md) for a complete example in which `TrackSelect` and `GenomeBrowser` share the store.
+See [Choose tracks from collections](../../guides/trackSelection.md) for a complete example in which `TrackSelect` and `GenomeBrowser` share the store.
 
 ### Choose JSON or TypeScript collections
 
@@ -165,7 +165,7 @@ See [Column customization](columnCustomization.md) for override merging and the 
 
 Pass `resolveTrackInteraction` when collection-created tracks need host callbacks. The resolver receives the owning collection ID, qualified track ID, and parsed authored track during initialization and successful Submit reconciliation. It is not called while users browse or edit the draft.
 
-The returned callbacks later receive the renderer item, current runtime context, and collection context. Keep collection JSON data-only and use the resolver to attach application behavior. See [Track interactions](../../recipes/trackInteractions.md) for a complete typed example.
+The returned callbacks later receive the renderer item, current runtime context, and collection context. Keep collection JSON data-only and use the resolver to attach application behavior. See [Track interactions](../../guides/trackInteractions.md) for a complete typed example.
 
 See [Track interactions](trackInteractions.md) for resolver timing, callback types, and replacement semantics.
 
@@ -235,13 +235,7 @@ TrackSelect uses the host application's MUI theme and needs no package-specific 
 
 ### Troubleshooting
 
-**The collection fails to open:** Read the `Track collection is invalid` error. Confirm that every `type` is registered, every `config` matches its module, view fields exist in each track's metadata, and the collection has no unsupported properties.
-
-**A track cannot be selected:** Check the total collection selection against `maxTracks`. The limit applies across collections, and a blocked increase opens the track-limit dialog.
-
-**Submit shows an error:** Confirm that schema tooling and the application use the same modules and versions. Check that selected tracks still satisfy their modules and that the interaction resolver returns only supported callback functions.
-
-**Submit order is unexpected:** Check the active view. Its grouping fields and the collection's source order determine newly added track order; existing tracks retain their relative order.
+See [UI troubleshooting](../../troubleshooting.md) for collection validation, selection limits, submission errors, and unexpected ordering.
 
 ## Related reference
 

@@ -2,7 +2,7 @@
 
 Import all components, helpers, and types below from `@weng-lab/genomebrowser-ui`. The package has one public JavaScript entry point. Supporting types share a reference with their owning capability.
 
-The application owns runtime stores, collection data, and dialog visibility. Store-bound controls receive the same stores used by `GenomeBrowser`; `Cytobands` receives data and callbacks directly. See [package setup](../README.md) for dependencies, MUI theming, and licensing.
+The application owns runtime stores, collection data, and dialog visibility. Store-bound controls receive the same stores used by `GenomeBrowser`; `Cytobands` receives data and callbacks directly. See [package setup](../../README.md) for dependencies, MUI theming, and licensing.
 
 ## Browse by area
 

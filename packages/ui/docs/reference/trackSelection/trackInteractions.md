@@ -19,7 +19,7 @@ const interaction: TrackSelectInteraction<unknown> = {
 export const resolveTrackInteraction: TrackSelectInteractionResolver = () => interaction;
 ```
 
-Pass `resolveTrackInteraction` to TrackSelect. Use item and config types matching the selected module, or narrow unknown values in callbacks. See the [integration recipe](../../recipes/trackInteractions.md) for heterogeneous collections.
+Pass `resolveTrackInteraction` to TrackSelect. Use item and config types matching the selected module, or narrow unknown values in callbacks. See the [integration guide](../../guides/trackInteractions.md) for heterogeneous collections.
 
 ## TrackSelectInteractionResolver
 
