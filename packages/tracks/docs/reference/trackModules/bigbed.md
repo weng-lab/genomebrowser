@@ -58,7 +58,83 @@ The BigBed-specific settings panel has one required URL field. Activate Set to a
 
 When available, the interval name becomes the tooltip title. The tooltip also shows the genomic location and any strand or score value. The renderer passes the corresponding `BigBedRow` to supplied `onClick`, `onHover`, and `onLeave` callbacks.
 
-For custom BigBed reading, use `createBigBedFile({ url, schema })` from `@weng-lab/genomic-reader` and call `file.read(region)`. See [BED schemas](../dataPrimitives/bedSchemas.md#reuse-the-schemas) for shared presets.
+## fetchBigBedRows
+
+Import `fetchBigBedRows` from `@weng-lab/genomebrowser-tracks/bigbed` to read custom columns inside a track fetcher while reusing file metadata across requests.
+
+```ts
+fetchBigBedRows({ url, region, schema, resources });
+```
+
+All four options are required:
+
+| Option      | Type             | Description                                                                  |
+| ----------- | ---------------- | ---------------------------------------------------------------------------- |
+| `url`       | `string`         | BigBed source URL, with the same source requirements as the built-in module. |
+| `region`    | `GenomicRegion`  | Chromosome and half-open region to read.                                     |
+| `schema`    | `z.ZodObject`    | Ordered fields for columns after chromosome, start, and end.                 |
+| `resources` | `TrackResources` | The resources supplied to the module's fetch callback.                       |
+
+The result is `Promise<BigBedRecord<Schema>[]>`, with column types inferred from the schema. Each row includes `chromosome`, `start`, `end`, and unconsumed columns in `fields`. Network, file-reading, and column-validation errors reject the promise.
+
+Readers are cached by URL and schema object identity within the supplied resources. Define schemas outside the fetch callback so successive requests reuse the same object. Changing the URL or schema creates or reuses the matching reader; earlier readers remain until the track is removed or the browser unmounts. Separate tracks and browser instances have separate resources. The helper reuses readers, but still reads the requested region on each call.
+
+### Custom-schema module
+
+This narrowPeak example reuses BigBed rendering and supplies its own positional schema. Define the module once and register it with the track store like any other module.
+
+```ts
+import { z } from "zod";
+import { defineTrackModule, type TrackFetchContext } from "@weng-lab/genomebrowser";
+import type { BigBedRecord } from "@weng-lab/genomic-reader";
+import {
+  bigBedModule,
+  fetchBigBedRows,
+  type BigBedData,
+} from "@weng-lab/genomebrowser-tracks/bigbed";
+
+const narrowPeakSchema = z.object({
+  name: z.string(),
+  score: z.coerce.number().int().min(0),
+  strand: z.string(),
+  signalValue: z.coerce.number(),
+  pValue: z.coerce.number(),
+  qValue: z.coerce.number(),
+  peak: z.coerce.number().int().min(-1),
+});
+type NarrowPeakRow = BigBedRecord<typeof narrowPeakSchema>;
+const configSchema = bigBedModule.configSchema.omit({ bedSchema: true });
+
+export const narrowPeakModule = defineTrackModule<NarrowPeakRow>()({
+  type: "narrowpeak",
+  configSchema,
+  defaults: { height: 12, color: "#4b9560" },
+  render: bigBedModule.render,
+  fetch: ({
+    track,
+    demand,
+    resources,
+  }: TrackFetchContext<z.output<typeof configSchema>>): Promise<BigBedData> =>
+    fetchBigBedRows({
+      url: track.config.url,
+      region: demand.region,
+      schema: narrowPeakSchema,
+      resources,
+    }),
+  tooltipComponent: ({ item }) => `${item.name}: signal ${item.signalValue}`,
+});
+
+const peaks = narrowPeakModule.create({
+  base: { id: "peaks", title: "Peaks" },
+  config: { url: "YOUR_URL_HERE" },
+});
+```
+
+The callback's `Promise<BigBedData>` annotation matches the existing renderer types. The helper itself retains the inferred custom fields, and `defineTrackModule<NarrowPeakRow>()` types tooltip and interaction items with those fields. Reuse requires columns compatible with `BigBedRow`, including numeric coordinates and any optional name, score, strand, or color values.
+
+This schema accepts MACS scores above 1000 and missing-value sentinels of `-1` for p-value, q-value, and summit offset. If a tooltip displays significance, label p-value and q-value fields as negative log10 values and display `-1` as missing.
+
+For reads outside a track, use `createBigBedFile({ url, schema })` from `@weng-lab/genomic-reader` and retain the reader between calls to `file.read(region)`. See [BED schemas](../dataPrimitives/bedSchemas.md#reuse-the-schemas) for shared presets.
 
 ## Exported types
 
