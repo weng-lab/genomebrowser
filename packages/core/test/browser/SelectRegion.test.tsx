@@ -21,6 +21,7 @@ type SelectionTestProps = Pick<Parameters<typeof SelectRegion>[0], "region" | "s
       | "marginWidth"
       | "totalHeight"
       | "mode"
+      | "onModeChange"
       | "highlightStyle"
       | "onHighlight"
       | "children"
@@ -36,6 +37,68 @@ afterEach(async () => {
 });
 
 describe("SelectRegion", () => {
+  it("starts shared Zoom from a marked descendant before track panning and survives the mode update", async () => {
+    const setRegion = vi.fn();
+    const onModeChange = vi.fn();
+    const onPan = vi.fn();
+    const props: SelectionTestProps = {
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      setRegion,
+      mode: "pan",
+      onModeChange,
+      children: (
+        <g onPointerDown={onPan}>
+          <g data-genomebrowser-selection-mode="zoom">
+            <rect data-zoom-target="" />
+          </g>
+        </g>
+      ),
+    };
+    await renderSelection(props);
+    await act(async () =>
+      svg!
+        .querySelector("[data-zoom-target]")!
+        .dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, clientX: 90 })),
+    );
+    expect(onModeChange).toHaveBeenCalledExactlyOnceWith("zoom");
+    expect(onPan).not.toHaveBeenCalled();
+    await rerenderSelection({ ...props, mode: "zoom" });
+    await act(async () => document.dispatchEvent(new MouseEvent("pointermove", { clientX: 40 })));
+    const selection = svg!.querySelector("[data-region-selection]")!;
+    expect(selection.getAttribute("height")).toBe("100");
+    expect(selection.getAttribute("x")).toBe("40");
+    expect(selection.getAttribute("width")).toBe("50");
+    await act(async () => document.dispatchEvent(new MouseEvent("pointerup", { clientX: 40 })));
+    expect(setRegion).toHaveBeenCalledExactlyOnceWith({ chromosome: "chr1", start: 120, end: 170 });
+    expect(svg!.querySelector("[data-region-selection]")).toBeNull();
+  });
+
+  it.each([
+    { disabled: true, button: 0, clientX: 60 },
+    { disabled: false, button: 2, clientX: 60 },
+    { disabled: false, button: 0, clientX: 10 },
+  ])(
+    "does not switch modes for an ineligible marked press: %j",
+    async ({ disabled, button, clientX }) => {
+      const onModeChange = vi.fn();
+      await renderSelection({
+        region: { chromosome: "chr1", start: 100, end: 200 },
+        setRegion: vi.fn(),
+        mode: "pan",
+        disabled,
+        onModeChange,
+        children: <rect data-genomebrowser-selection-mode="zoom" />,
+      });
+      await act(async () =>
+        svg!
+          .querySelector("[data-genomebrowser-selection-mode]")!
+          .dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, button, clientX })),
+      );
+      expect(onModeChange).not.toHaveBeenCalled();
+      expect(svg!.querySelector("[data-region-selection]")).toBeNull();
+    },
+  );
+
   it("tracks the guide only on the overlay and removes it in Pan or while blocked", async () => {
     const props = { region: { chromosome: "chr1", start: 0, end: 100 }, setRegion: vi.fn() };
     await renderSelection(props);
