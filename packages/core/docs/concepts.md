@@ -88,6 +88,10 @@ An `AssemblyDefinition` has a non-empty `id` and a non-empty `chromosomes` recor
 
 Core coordinates are zero-based and half-open. `{ chromosome: "chr1", start: 0, end: 1 }` selects the first base, and region width is `end - start`. The assembly definition does not change this convention.
 
+## Track panning
+
+In `pan` mode, drag horizontally from a track's title or data area to move the genomic region. The full title row is available for panning, including on short tracks. Drag left to move toward higher coordinates, or right to move toward lower coordinates. The left margin remains available for track controls and reordering.
+
 ## Track row hover feedback
 
 Hovering the left track margin, including its color strip and track controls, highlights the full track row. The highlight turns off when the pointer leaves that margin. Hovering the centered track title or genomic data area does not activate the row highlight.

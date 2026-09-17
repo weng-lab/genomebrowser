@@ -233,8 +233,9 @@ function trackRow(id: string) {
   const title = Array.from(container?.querySelectorAll("text") ?? []).find(
     (element) => element.textContent === `${id} (full)`,
   );
-  if (!title?.parentElement) throw new Error(`Track row not found: ${id}`);
-  return title.parentElement;
+  const row = title?.closest('g[transform^="translate(0,"]');
+  if (!row) throw new Error(`Track row not found: ${id}`);
+  return row;
 }
 
 function renderedIds() {

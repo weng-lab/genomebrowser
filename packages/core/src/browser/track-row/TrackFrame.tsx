@@ -101,16 +101,20 @@ export function TrackFrame({
           pointerEvents="none"
         />
       </g>
-      <text
-        fill="#000000"
-        x={marginWidth + trackWidth / 2}
-        y={titleSize / 2 + 5}
-        fontSize={`${titleSize}px`}
-        textAnchor="middle"
-        alignmentBaseline="baseline"
-      >
-        {`${track.base.title} (${track.base.display})`}
-      </text>
+      <g transform={`translate(${marginWidth},0)`} onContextMenu={handleContextMenu}>
+        <PanTrack panDrag={panDrag} disabled={isPanLocked} width={trackWidth} height={titleMargin}>
+          <text
+            fill="#000000"
+            x={trackWidth / 2}
+            y={titleSize / 2 + 5}
+            fontSize={`${titleSize}px`}
+            textAnchor="middle"
+            alignmentBaseline="baseline"
+          >
+            {`${track.base.title} (${track.base.display})`}
+          </text>
+        </PanTrack>
+      </g>
       <g
         onMouseEnter={() => {
           if (!disableHover) setHover(true);
