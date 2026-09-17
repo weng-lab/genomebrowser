@@ -126,6 +126,8 @@ For a config-only change, the browser requests only that track and only when a f
 
 Each module fetch receives shallow read-only track and render-demand snapshots. It may return raw records or data processed for the requested region, display, and SVG width. The selected renderer turns that result into SVG output.
 
+On touchscreens in pan mode, swipe horizontally over track content to pan and vertically to scroll the page. Drag the left margin to lift and reorder an unpinned track, then release to drop it; no long press is needed. The margin reserves touch gestures for reordering. On desktop, the cursor stays in the grabbing state until the reorder ends.
+
 During panning, existing SVG content moves immediately. Previously successful track data stays visible while a same-scale pan request is in flight. Zooming replaces incompatible old data with loading placeholders immediately, keeping render dimensions bounded while the new region loads. A display, SVG width, assembly, or marked config change clears incompatible data while its replacement loads; width changes stay visible until their settle delay elapses. The browser settles onto the newest render region only after its track requests finish, and it blocks pointer interactions during mismatched or fetching states. A failed request is shown as a track error; other tracks can still complete.
 
 ## Mutation behavior
