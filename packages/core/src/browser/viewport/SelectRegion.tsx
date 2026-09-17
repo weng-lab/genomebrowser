@@ -33,6 +33,7 @@ export function SelectRegion({
   setRegion,
   disabled = false,
   mode = "zoom",
+  onModeChange,
   highlightStyle = DEFAULT_HIGHLIGHT,
   onHighlight,
   highlights = [],
@@ -46,6 +47,7 @@ export function SelectRegion({
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
   disabled?: boolean;
   mode?: BrowserSelectionMode;
+  onModeChange?: (mode: BrowserSelectionMode) => void;
   highlightStyle?: SelectionHighlightStyle;
   onHighlight?: (highlight: Highlight) => void;
   highlights?: readonly Highlight[];
@@ -68,13 +70,17 @@ export function SelectRegion({
 
   useEffect(
     () => cancel,
-    [cancel, disabled, mode, highlightStyle, marginWidth, trackWidth, totalHeight, region, svg],
+    [cancel, disabled, highlightStyle, marginWidth, trackWidth, totalHeight, region, svg],
   );
 
-  const startSelection = (event: ReactPointerEvent<SVGGElement>) => {
+  useEffect(() => {
+    if (session.current && session.current.mode !== mode) cancel();
+  }, [cancel, mode]);
+
+  const startSelection = (event: ReactPointerEvent<SVGGElement>, selectionMode = mode) => {
     if (disabled || !hasValidDimensions || !svg || event.button !== 0 || event.isPrimary === false)
       return;
-    if (mode === "pan") return;
+    if (selectionMode === "pan") return;
     const point = svgPoint(svg, event.clientX, event.clientY);
     if (
       !point ||
@@ -87,7 +93,8 @@ export function SelectRegion({
     event.stopPropagation();
     cancel();
     const start = point.x;
-    session.current = { start, end: start, mode, pointerId: event.pointerId };
+    if (selectionMode !== mode) onModeChange?.(selectionMode);
+    session.current = { start, end: start, mode: selectionMode, pointerId: event.pointerId };
     setSelection(session.current);
     const move = (event: PointerEvent) => {
       if (!session.current || session.current.pointerId !== event.pointerId) return;
@@ -139,7 +146,13 @@ export function SelectRegion({
     : null;
 
   return (
-    <g>
+    <g
+      onPointerDownCapture={(event) => {
+        if (mode !== "pan" || !onModeChange || !(event.target instanceof Element)) return;
+        const target = event.target.closest('[data-genomebrowser-selection-mode="zoom"]');
+        if (target && event.currentTarget.contains(target)) startSelection(event, "zoom");
+      }}
+    >
       <rect
         fill="transparent"
         pointerEvents="all"
@@ -158,7 +171,7 @@ export function SelectRegion({
             fill="transparent"
             pointerEvents="all"
             style={{ cursor: "crosshair", touchAction: "none", userSelect: "none" }}
-            onPointerDown={startSelection}
+            onPointerDown={(event) => startSelection(event)}
             onPointerMove={(event) => {
               if (!svg || !guide.current) return;
               const point = svgPoint(svg, event.clientX, event.clientY);

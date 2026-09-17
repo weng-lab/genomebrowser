@@ -1,6 +1,6 @@
 # Ruler and reference sequence
 
-Use `rulerModule` for genomic coordinates and optional reference DNA. It is an ordinary track: add, reorder, resize, configure, and remove it through the track store. The browser does not insert a ruler automatically. Its navigation, hover highlights, and settings resolve the hosting browser through core’s `useGenomeBrowser()` hook, so the same module can be used in independent browsers.
+Use `rulerModule` for genomic coordinates and optional reference DNA. It is an ordinary track: add, reorder, resize, configure, and remove it through the track store. The browser does not insert a ruler automatically. Its hover highlights and settings resolve the hosting browser through core’s `useGenomeBrowser()` hook, so the same module can be used in independent browsers.
 
 ```ts
 import { createTrackStore } from "@weng-lab/genomebrowser";
@@ -45,7 +45,7 @@ The settings panel separates the 2bit URL under “Reference source” from “S
 
 ## Selecting regions
 
-In Pan mode, the coordinate axis and tick labels show a crosshair and support axis-only drag-to-zoom without changing the browser's selection mode or toolbar. The selected interval is previewed on the axis; Escape, pointer cancellation, or losing window focus cancels it. The axis zoom hit area stops above the reference sequence, so sequence characters retain hover highlights and panning. Pointer movement over dialogs does not activate ruler interactions. Explicit browser-wide Zoom and Highlight modes cover the data area, including the ruler, with a crosshair and vertical cursor guide and block underlying track interactions. Returning to Pan restores the ruler's ordinary interactions.
+In Pan mode, pressing the coordinate axis or tick labels switches the browser and toolbar to Zoom and starts the shared region selection. The preview spans the full browser height, and releasing a drag zooms to the selected interval. Zoom mode stays active afterward. Escape, pointer cancellation, or losing window focus cancels the selection while keeping Zoom mode active. The axis zoom hit area stops above the reference sequence, so sequence characters retain hover highlights and panning. Pointer movement over dialogs does not activate ruler interactions. Explicit browser-wide Zoom and Highlight modes cover the data area, including the ruler, with a crosshair and vertical cursor guide and block underlying track interactions. Returning to Pan restores the ruler's ordinary interactions.
 
 Selection belongs to the browser and works with any tracks, even after removing the ruler. Set `useBrowserStore.getState().setSelectionMode("zoom")` or `"highlight"` and drag across the data area. Use `"pan"` for normal panning. The UI package offers `BrowserSelectionControls` for these modes. Keyboard bindings belong to the host application; the browser SVG does not take focus or register shortcuts.
 

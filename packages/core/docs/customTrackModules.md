@@ -185,6 +185,8 @@ The optional second argument contains per-instance callbacks and is not serializ
 
 ## Settings, tooltip, and interactions
 
+A renderer can mark an SVG hit area with `data-genomebrowser-selection-mode="zoom"` to start shared zoom selection from Pan mode. A primary left-button pointer press inside the data area switches the hosting browser to Zoom and starts the same full-height preview, drag handling, and cancellation used by the Zoom overlay. Core handles the press before track panning or item handlers. Zoom remains active after release or cancellation. Existing Zoom and Highlight modes keep their selected behavior. Set the hit area’s `pointerEvents` and cursor as appropriate for the renderer.
+
 Module settings use `TrackSettingsProps<Config, Item>` as their input contract. Read current values and `source` from `track`, then submit live edits through the supplied `updateTrack`. One update may contain optional shallow `base`, `config`, and `interaction` patches; core validates the complete candidate once and commits all supplied sections or none. The module composes all base and config controls. Core supplies the shared modal shell without injecting fields.
 
 The renderer decides what semantic item a click or hover represents. `useInteraction<Item>()` returns item-only handlers because the browser binds the current runtime context. `useTooltip<Item, Config>()` reads that same context and opens the module's browser-positioned `tooltipComponent` with `{ item, context }`. Renderers do not pass a type or config to either hook. Both hooks require the renderer to run inside `GenomeBrowser`.
