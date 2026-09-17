@@ -51,7 +51,7 @@ The active selection mode determines what a drag across the data area does:
 
 Set the initial mode with `selectionMode` in the browser-store input, or change it later with `setSelectionMode`. Zoom and highlight modes display a crosshair and a vertical guide across the data area. Their selection overlay handles the gesture instead of track hover, clicks, context menus, or panning. Returning to pan mode restores those interactions.
 
-A track can provide a hit area that starts shared zoom selection from pan mode. Pressing that area switches the browser to zoom and starts the full-height selection preview. Zoom remains active after release or cancellation. Existing zoom and highlight modes keep their selected behavior.
+In Pan mode, drag the ruler's coordinate axis to zoom into a region. This switches the toolbar to Zoom mode, which stays selected after you finish or cancel the drag. Select Pan to resume panning.
 
 A completed selection leaves the chosen mode active, allowing repeated zooms or highlights. Escape cancels an unfinished selection without changing the mode, viewport, or existing highlights. The drag must span at least four SVG pixels, and its bounds round outward to whole bases. Selection works across the browser independently of the ruler track.
 
