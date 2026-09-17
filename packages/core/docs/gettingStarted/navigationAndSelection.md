@@ -4,7 +4,9 @@ This chapter uses the browser from [Add and configure tracks](configureTracks.md
 
 ## Pan through the genome
 
-The browser starts in pan mode. Dragging the data area moves the view along the current chromosome while keeping the genomic span unchanged. Horizontal trackpad scrolling also pans. Scrolling right moves toward higher coordinates, and scrolling left moves toward lower coordinates. A side-scrolling mouse can also pan left and right. Gestures that move more vertically than horizontally scroll the page.
+The browser starts in pan mode. Drag horizontally from a track's title or data area to move the view along the current chromosome while keeping the genomic span unchanged. The full title row supports panning, including on short tracks. Drag left toward higher coordinates or right toward lower coordinates. Horizontal trackpad scrolling also pans. Scrolling right moves toward higher coordinates, and scrolling left moves toward lower coordinates. A side-scrolling mouse can also pan left and right. Gestures that move more vertically than horizontally scroll the page.
+
+On touchscreens in pan mode, swipe horizontally over track content to pan and vertically to scroll the page. Drag the left margin to lift and reorder an unpinned track, then release to drop it. No long press is needed. The margin reserves touch gestures for reordering, and the desktop cursor stays in the grabbing state until the reorder ends.
 
 During a pan, existing track content moves immediately while the browser requests data for the new region. Core temporarily blocks track interactions until the data has loaded and matches its position on screen. Hovering and clicking then resume.
 
@@ -48,6 +50,8 @@ The active selection mode determines what a drag across the data area does:
 | `highlight` | Mark the selected region without moving the view. |
 
 Set the initial mode with `selectionMode` in the browser-store input, or change it later with `setSelectionMode`. Zoom and highlight modes display a crosshair and a vertical guide across the data area. Their selection overlay handles the gesture instead of track hover, clicks, context menus, or panning. Returning to pan mode restores those interactions.
+
+A track can provide a hit area that starts shared zoom selection from pan mode. Pressing that area switches the browser to zoom and starts the full-height selection preview. Zoom remains active after release or cancellation. Existing zoom and highlight modes keep their selected behavior.
 
 A completed selection leaves the chosen mode active, allowing repeated zooms or highlights. Escape cancels an unfinished selection without changing the mode, viewport, or existing highlights. The drag must span at least four SVG pixels, and its bounds round outward to whole bases. Selection works across the browser independently of the ruler track.
 

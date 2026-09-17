@@ -56,6 +56,10 @@ Use `region` and `width` together for horizontal positioning. Use `visibleRegion
 
 Use [TrackOverlay](TrackOverlay.md) or [TrackLabel](TrackLabel.md) for annotations fixed to the visible plot. The browser supplies row controls and handles clipping and panning.
 
+## Shared zoom selection
+
+Mark an SVG hit area with `data-genomebrowser-selection-mode="zoom"` to start shared zoom selection from pan mode. A primary left-button pointer press inside the data area switches the hosting browser to zoom and starts its full-height preview, drag handling, and cancellation. Core handles the press before track panning or item handlers. Zoom remains active after release or cancellation. Existing zoom and highlight modes keep their selected behavior. Set the hit area's `pointerEvents` and cursor as appropriate for the renderer.
+
 ## Context and lifecycle
 
 Core supplies every renderer prop. It mounts the renderer with successful data and shows loading or error content separately. A new display or fetch input can discard the current renderer while replacement data loads. Keep persistent track configuration in the track store.

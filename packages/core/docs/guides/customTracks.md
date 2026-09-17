@@ -272,3 +272,5 @@ Hover callbacks can run frequently as the pointer crosses features. Keep transie
 - [Data fetching and rendering](dataFetching.md): remote requests, fetch-dependent config, and resource reuse.
 - [Renderer integration](../reference/rendererIntegration/README.md): fixed labels, overlays, and automatic track height.
 - [Track settings](../reference/trackDefinition/trackSettings.md): validated updates and complete settings-form ownership.
+
+To start browser-wide zoom selection from a custom SVG hit area, use the [shared zoom selection attribute](../reference/rendererIntegration/trackRenderer.md#shared-zoom-selection). Core owns the selection preview and drag handling.

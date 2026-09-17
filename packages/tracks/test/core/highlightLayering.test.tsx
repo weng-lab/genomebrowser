@@ -72,9 +72,12 @@ it("paints an opaque genomic highlight behind track marks and keeps row backgrou
     const title = Array.from(container.querySelectorAll("text")).find((text) =>
       text.textContent?.startsWith("Marks"),
     )!;
-    expect(title.parentElement?.querySelector('rect[x="100"][y="0"]')?.getAttribute("fill")).toBe(
-      "transparent",
-    );
+    expect(
+      title
+        .closest('g[transform^="translate(0,"]')
+        ?.querySelector('rect[x="100"][y="0"]')
+        ?.getAttribute("fill"),
+    ).toBe("transparent");
   } finally {
     await act(async () => root.unmount());
     container.remove();

@@ -73,7 +73,7 @@ it.each([
 });
 
 it.each(["pointerup", "pointercancel", "Escape", "blur"])(
-  "handles an axis-only drag without changing Pan mode on %s",
+  "switches an axis drag from Pan to shared Zoom selection on %s",
   async (finishEvent) => {
     const region = { chromosome: "chr1", start: 100, end: 1100 };
     const browserStore = createBrowserStore({
@@ -122,21 +122,27 @@ it.each(["pointerup", "pointercancel", "Escape", "blur"])(
           new MouseEvent("pointermove", { clientX: 400, clientY: 10, buttons: 1 }),
         );
       });
-      expect(container.querySelector("[data-region-selection]")).not.toBeNull();
+      const selection = container.querySelector("[data-region-selection]")!;
+      expect(selection).not.toBeNull();
+      expect(selection.closest("[clip-path]")).toBeNull();
+      expect(selection.closest('[aria-label="Genomic ruler"]')).toBeNull();
+      expect(selection.getAttribute("height")).toBe(area.ownerSVGElement!.getAttribute("height"));
+      expect(container.querySelector("[data-selection-overlay]")).not.toBeNull();
+      expect(browserStore.getState().selectionMode).toBe("zoom");
       await act(async () => {
         if (finishEvent === "Escape")
           document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
         else if (finishEvent === "blur") window.dispatchEvent(new Event("blur"));
         else document.dispatchEvent(new MouseEvent(finishEvent, { clientX: 400, clientY: 10 }));
       });
-      expect(browserStore.getState().selectionMode).toBe("pan");
+      expect(browserStore.getState().selectionMode).toBe("zoom");
       expect(browserStore.getState().region).toEqual(
         finishEvent === "pointerup" ? { chromosome: "chr1", start: 200, end: 400 } : region,
       );
       if (finishEvent === "pointerup") {
         expect(container.querySelector("[data-ruler-zoom-area]")).toBeNull();
       }
-      expect(browserStore.getState().selectionMode).toBe("pan");
+      expect(browserStore.getState().selectionMode).toBe("zoom");
       expect(container.querySelector("[data-region-selection]")).toBeNull();
     } finally {
       await act(async () => root.unmount());

@@ -18,7 +18,7 @@ export function TrackFrame({
   registerContentGroup,
   panDrag,
   isPanLocked = false,
-  onSwapMouseDown,
+  onSwapPointerDown,
   swapping = false,
   isDragClone = false,
   disableHover = false,
@@ -35,7 +35,7 @@ export function TrackFrame({
   registerContentGroup?: (node: SVGGElement) => () => void;
   panDrag?: PanDragHandlers;
   isPanLocked?: boolean;
-  onSwapMouseDown?: (event: React.MouseEvent<SVGRectElement>) => void;
+  onSwapPointerDown?: (event: React.PointerEvent<SVGRectElement>) => void;
   swapping?: boolean;
   isDragClone?: boolean;
   disableHover?: boolean;
@@ -101,16 +101,20 @@ export function TrackFrame({
           pointerEvents="none"
         />
       </g>
-      <text
-        fill="#000000"
-        x={marginWidth + trackWidth / 2}
-        y={titleSize / 2 + 5}
-        fontSize={`${titleSize}px`}
-        textAnchor="middle"
-        alignmentBaseline="baseline"
-      >
-        {`${track.base.title} (${track.base.display})`}
-      </text>
+      <g transform={`translate(${marginWidth},0)`} onContextMenu={handleContextMenu}>
+        <PanTrack panDrag={panDrag} disabled={isPanLocked} width={trackWidth} height={titleMargin}>
+          <text
+            fill="#000000"
+            x={trackWidth / 2}
+            y={titleSize / 2 + 5}
+            fontSize={`${titleSize}px`}
+            textAnchor="middle"
+            alignmentBaseline="baseline"
+          >
+            {`${track.base.title} (${track.base.display})`}
+          </text>
+        </PanTrack>
+      </g>
       <g
         onMouseEnter={() => {
           if (!disableHover) setHover(true);
@@ -123,8 +127,11 @@ export function TrackFrame({
           width={marginWidth}
           height={wrapperHeight}
           fill="#ffffff"
-          onMouseDown={onSwapMouseDown}
-          style={{ cursor: onSwapMouseDown ? (swapping ? "grabbing" : "grab") : "default" }}
+          onPointerDown={onSwapPointerDown}
+          style={{
+            cursor: onSwapPointerDown ? (swapping ? "grabbing" : "grab") : "default",
+            touchAction: onSwapPointerDown ? "none" : "auto",
+          }}
         />
         <rect
           x={0}

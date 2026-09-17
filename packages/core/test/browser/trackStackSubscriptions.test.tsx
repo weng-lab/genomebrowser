@@ -75,40 +75,52 @@ describe("TrackStack subscriptions", () => {
     expect(trackRow("second").querySelector('rect[style*="cursor: grab"]')).not.toBeNull();
   });
 
-  it("keeps drag previews and drops below pins and ignores a stale drag after pin changes", async () => {
-    const useTrackStore = createStore();
-    useTrackStore.getState().addTrack(createTrack("third", 20));
-    useTrackStore.getState().setPinnedTrackIds(["first"]);
-    await renderBrowser(useTrackStore);
-    const point = { x: 0, y: 0, matrixTransform: () => ({ x: point.x, y: point.y }) };
-    Object.assign(browserSvg(), {
-      createSVGPoint: () => point,
-      getScreenCTM: () => ({ inverse: () => ({}) }),
-    });
-    const startDrag = async (id: string) => {
-      const handle = trackRow(id).querySelector('rect[style*="cursor: grab"]');
-      if (!handle) throw new Error("Drag handle not found");
-      await mutate(() => {
-        handle.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientY: 200 }));
+  it.each(["mouse", "touch"])(
+    "keeps %s drag previews and drops below pins and ignores a stale drag after pin changes",
+    async (pointerType) => {
+      const useTrackStore = createStore();
+      useTrackStore.getState().addTrack(createTrack("third", 20));
+      useTrackStore.getState().setPinnedTrackIds(["first"]);
+      await renderBrowser(useTrackStore);
+      const point = { x: 0, y: 0, matrixTransform: () => ({ x: point.x, y: point.y }) };
+      Object.assign(browserSvg(), {
+        createSVGPoint: () => point,
+        getScreenCTM: () => ({ inverse: () => ({}) }),
       });
-    };
-    const move = () => document.dispatchEvent(new MouseEvent("mousemove", { clientY: -200 }));
-    const drop = () => document.dispatchEvent(new MouseEvent("mouseup", { clientY: -200 }));
-    await startDrag("third");
-    await mutate(move);
-    expect(trackRow("first").getAttribute("transform")).toBe("translate(0,0)");
-    await mutate(drop);
-    expect(useTrackStore.getState().order).toEqual(["first", "third", "second"]);
+      const startDrag = async (id: string) => {
+        const handle = trackRow(id).querySelector('rect[style*="cursor: grab"]');
+        if (!handle) throw new Error("Drag handle not found");
+        await mutate(() => {
+          handle.dispatchEvent(pointerEvent("pointerdown", 200, pointerType));
+        });
+      };
+      const move = () => document.dispatchEvent(pointerEvent("pointermove", -200, pointerType));
+      const drop = () => document.dispatchEvent(pointerEvent("pointerup", -200, pointerType));
+      await startDrag("third");
+      expect(document.head.textContent).toContain("cursor: grabbing");
+      await mutate(move);
+      expect(trackRow("first").getAttribute("transform")).toBe("translate(0,0)");
+      await mutate(drop);
+      expect(useTrackStore.getState().order).toEqual(["first", "third", "second"]);
 
-    await startDrag("second");
-    await mutate(move);
-    await mutate(() => {
-      useTrackStore.getState().setPinnedTrackIds(["second", "first"]);
-    });
-    await mutate(drop);
-    expect(useTrackStore.getState().order).toEqual(["second", "first", "third"]);
-    expect(renderedIds()).toEqual(["second", "first", "third"]);
-  });
+      await startDrag("second");
+      await mutate(move);
+      await mutate(() => {
+        document.dispatchEvent(pointerEvent("pointercancel", -200, pointerType));
+      });
+      expect(useTrackStore.getState().order).toEqual(["first", "third", "second"]);
+      expect(document.head.textContent).not.toContain("cursor: grabbing");
+
+      await startDrag("second");
+      await mutate(move);
+      await mutate(() => {
+        useTrackStore.getState().setPinnedTrackIds(["second", "first"]);
+      });
+      await mutate(drop);
+      expect(useTrackStore.getState().order).toEqual(["second", "first", "third"]);
+      expect(renderedIds()).toEqual(["second", "first", "third"]);
+    },
+  );
 
   it("rerenders only the addressed production row when its presentation changes", async () => {
     const useTrackStore = createStore();
@@ -233,12 +245,19 @@ function trackRow(id: string) {
   const title = Array.from(container?.querySelectorAll("text") ?? []).find(
     (element) => element.textContent === `${id} (full)`,
   );
-  if (!title?.parentElement) throw new Error(`Track row not found: ${id}`);
-  return title.parentElement;
+  const row = title?.closest('g[transform^="translate(0,"]');
+  if (!row) throw new Error(`Track row not found: ${id}`);
+  return row;
 }
 
 function renderedIds() {
   return Array.from(container?.querySelectorAll("[data-track-renderer]") ?? []).map((element) =>
     element.getAttribute("data-track-renderer"),
   );
+}
+
+function pointerEvent(type: string, clientY: number, pointerType: string) {
+  const event = new MouseEvent(type, { bubbles: true, cancelable: true, clientY });
+  Object.assign(event, { pointerId: 1, isPrimary: true, pointerType });
+  return event;
 }

@@ -25,7 +25,7 @@ This draws coordinates without fetching sequence. To add DNA bases, set `config.
 
 `rulerModule.create(input, interaction?)` returns a track with `type: "ruler"`. Register `rulerModule` with the track store before adding its instances. See [Create and validate tracks](trackCreation.md) for required base fields, source ownership, schemas, and validation errors.
 
-The module handles navigation and base hover highlights internally. It supplies no tooltip component. [firstPartyTrackModules](../collectionsAndSchemas/firstPartyTrackModules.md) includes the ruler.
+The module uses core's shared zoom selection and handles base hover highlights internally. It supplies no tooltip component. [firstPartyTrackModules](../collectionsAndSchemas/firstPartyTrackModules.md) includes the ruler.
 
 ## Displays and base defaults
 
@@ -80,7 +80,7 @@ The temporary highlight appears in the browser's shared highlights list. Applica
 
 ## Selecting regions
 
-In Pan mode, drag the coordinate axis or tick labels to zoom to a region. A crosshair and selection preview show the target. Escape, pointer cancellation, or losing window focus cancels the drag. The hit area ends above the DNA letters, which retain their hover and panning behavior. Moving over a dialog does not activate ruler interactions.
+In Pan mode, pressing the coordinate axis or tick labels switches the browser and toolbar to Zoom and starts shared region selection. The preview spans the full browser height, and releasing a drag zooms to the selected region. Zoom stays active afterward. Escape, pointer cancellation, or losing window focus cancels the selection while keeping Zoom active. The hit area ends above the DNA letters, which retain their hover and panning behavior. Moving over a dialog does not activate ruler interactions.
 
 The browser's Zoom and Highlight modes cover the data area with a crosshair and vertical cursor guide and block underlying track interactions. Return to Pan to restore the ruler's axis selection behavior. These browser modes also work without a ruler.
 

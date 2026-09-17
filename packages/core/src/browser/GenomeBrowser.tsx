@@ -334,6 +334,7 @@ function BrowserView({
   const { isInteractionBlocked } = useTrackMutationGate();
   const { useBrowserStore } = useGenomeBrowser();
   const selectionMode = useBrowserStore((state) => state.selectionMode);
+  const setSelectionMode = useBrowserStore((state) => state.setSelectionMode);
   const selectionHighlight = useBrowserStore((state) => state.selectionHighlight);
   const addHighlight = useBrowserStore((state) => state.addHighlight);
   const highlights = useBrowserStore((state) => state.highlights);
@@ -359,6 +360,7 @@ function BrowserView({
           setRegion={setRegion}
           disabled={isInteractionBlocked}
           mode={selectionMode}
+          onModeChange={setSelectionMode}
           highlightStyle={selectionHighlight}
           onHighlight={addHighlight}
           highlights={highlights}
