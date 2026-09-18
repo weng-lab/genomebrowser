@@ -6,10 +6,11 @@ pnpm monorepo for an embeddable React genome browser.
 
 Read the guidance relevant to the change:
 
-- Project structure and feature ownership: [architecture](docs/project/architecture.md) and [feature placement](docs/project/feature-placement.md).
-- Application UI in `packages/ui` or `apps/*`: [interface design](docs/project/design.md).
-- Tests and verification: [testing](docs/contributing/testing.md) and [verification](docs/contributing/verify.md). Use `pnpm verify` for the workspace check.
-- Package scripts, Turbo, or CI orchestration: [builds](docs/tooling/builds.md). Shared dependency changes: [dependencies](docs/tooling/dependencies.md).
+- Shared project terminology: [glossary](docs/glossary.md). Use its terms consistently and suggest additions when new project-specific terms arise, grouping related terms under existing entries where possible.
+- Project structure and feature ownership: [architecture](docs/01-project/01-architecture.md) and [feature placement](docs/01-project/02-feature-placement.md).
+- Application UI in `packages/ui` or `apps/*`: [interface design](docs/01-project/03-design.md).
+- Tests and verification: [testing](docs/02-contributing/testing.md) and [verification](docs/02-contributing/verify.md). Use `pnpm verify` for the workspace check.
+- Package scripts, Turbo, or CI orchestration: [builds](docs/03-tooling/builds.md). Shared dependency changes: [dependencies](docs/03-tooling/dependencies.md).
 
 Maintainer guidance lives in `docs/`. Consumer docs in `packages/*/docs/` ship with their packages; keep them self-contained and update them when public behavior changes.
 

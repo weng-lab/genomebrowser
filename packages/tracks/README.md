@@ -42,12 +42,12 @@ export function BrowserPage() {
 
 Replace `YOUR_URL_HERE` with an hg38 BigWig URL containing data in the selected region. The file server must support byte-range requests and allow requests from your application through CORS. The browser measures its container automatically; give it a container with a positive width.
 
-The store factories return Zustand hooks, so their names begin with `use`. These file-scoped stores retain state across renders and share it between every mounted `BrowserPage`. See [Use first-party tracks](docs/gettingStarted/useTracks.md) for the complete setup with a ruler and track configuration.
+The store factories return Zustand hooks, so their names begin with `use`. These file-scoped stores retain state across renders and share it between every mounted `BrowserPage`. See [Use first-party tracks](docs/01-gettingStarted/01-useTracks.md) for the complete setup with a ruler and track configuration.
 
 ## Documentation
 
 - [Documentation overview](docs/README.md): entry points for using tracks and reusing shared components.
-- [Use first-party tracks](docs/gettingStarted/useTracks.md): choose a module, connect its source, and render a browser.
-- [Choose a track module](docs/reference/trackModules/README.md): find a module for your file format or dataset.
-- [API reference](docs/reference/README.md): module contracts, shared utilities, and the public export index.
-- [Data source troubleshooting](docs/legacy/dataSources.md): diagnose failed file requests.
+- [Use first-party tracks](docs/01-gettingStarted/01-useTracks.md): choose a module, connect its source, and render a browser.
+- [Choose a track module](docs/03-reference/01-trackModules/README.md): find a module for your file format or dataset.
+- [API reference](docs/03-reference/README.md): module contracts, shared utilities, and the public export index.
+- [Data source troubleshooting](docs/04-troubleshooting.md): diagnose failed file requests.

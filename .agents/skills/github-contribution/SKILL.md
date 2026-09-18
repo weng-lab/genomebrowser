@@ -5,7 +5,7 @@ description: Prepare or update genomebrowser GitHub issues, pull requests, and c
 
 # GitHub contribution
 
-Read [contribution guidance](../../../docs/contributing/README.md) and the relevant template in `.github/`. For PR handoff, also read [verification guidance](../../../docs/contributing/verify.md). Paths in these links are relative to this skill.
+Read [contribution guidance](../../../docs/02-contributing/README.md) and the relevant template in `.github/`. For PR handoff, also read [verification guidance](../../../docs/02-contributing/verify.md). Paths in these links are relative to this skill.
 
 1. Identify the requested operation, current diff, and related issue or PR. Load only the context needed for that contribution.
 2. Inspect repository labels and confirm the contributor's GitHub account before setting metadata. Follow the shared guidance for attribution and writing.

@@ -47,7 +47,7 @@ Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser.
 
 Store factory results are Zustand hooks, so their names should begin with `use`. Keep both stores stable. Recreating them during render resets browser state and request coordination.
 
-For a responsive browser that follows its container width, see [Getting started](docs/gettingStarted/firstBrowser.md).
+For a responsive browser that follows its container width, see [Getting started](docs/01-gettingStarted/01-firstBrowser.md).
 
 ## Optional packages
 
@@ -60,14 +60,14 @@ Add `@weng-lab/genomebrowser-tracks@2.0.0` for the BigBed, BigWig, BulkBed, CAVE
 ## Documentation
 
 - [Documentation overview](docs/README.md). Learning path and topic navigation.
-- [Getting started](docs/gettingStarted/firstBrowser.md). Install and render a responsive browser.
-- [API reference](docs/reference/README.md). Browser component, viewport store, assemblies, and regions.
-- [Troubleshooting](docs/troubleshooting.md). Diagnose setup and runtime problems.
+- [Getting started](docs/01-gettingStarted/01-firstBrowser.md). Install and render a responsive browser.
+- [API reference](docs/03-reference/README.md). Browser component, viewport store, assemblies, and regions.
+- [Troubleshooting](docs/04-troubleshooting.md). Diagnose setup and runtime problems.
 
 ## Runtime requirements
 
 Genome Browser v2 runs in React 19.2+ client applications. It uses SVG, pointer events, and remote data requests. Responsive sizing also requires `ResizeObserver`. Render it on the client rather than on the server.
 
-Coordinate rulers are regular tracks supplied by `@weng-lab/genomebrowser-tracks/ruler`. Add one explicitly if needed. [Region selection modes](docs/gettingStarted/navigationAndSelection.md#select-a-region-by-dragging) work across the browser independently of the ruler.
+Coordinate rulers are regular tracks supplied by `@weng-lab/genomebrowser-tracks/ruler`. Add one explicitly if needed. [Region selection modes](docs/01-gettingStarted/03-navigationAndSelection.md#select-a-region-by-dragging) work across the browser independently of the ruler.
 
-[Track collections](docs/gettingStarted/trackCollections.md) covers the shared JSON format, validation, and `genomebrowser schema` CLI.
+[Track collections](docs/01-gettingStarted/04-trackCollections.md) covers the shared JSON format, validation, and `genomebrowser schema` CLI.

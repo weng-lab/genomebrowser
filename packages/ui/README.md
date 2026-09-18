@@ -49,12 +49,12 @@ Render `PanRight` beside `GenomeBrowser` with the same `browserStore`. The butto
 
 ## Documentation
 
-Start with [Add browser controls](docs/gettingStarted/addBrowserControls.md) for a complete browser with navigation, selection, and highlights.
+Start with [Add browser controls](docs/01-gettingStarted/01-addBrowserControls.md) for a complete browser with navigation, selection, and highlights.
 
-- [Track selection](docs/guides/trackSelection.md): browse collections, set defaults, and save selections.
-- [Track interactions](docs/guides/trackInteractions.md): attach application callbacks to collection tracks.
-- [Chromosome overview](docs/guides/chromosomeOverview.md): connect cytobands and highlights to a browser.
-- [Troubleshooting](docs/troubleshooting.md): diagnose setup and integration problems.
-- [API reference](docs/reference/README.md): component props, helpers, and types.
+- [Track selection](docs/02-guides/trackSelection.md): browse collections, set defaults, and save selections.
+- [Track interactions](docs/02-guides/trackInteractions.md): attach application callbacks to collection tracks.
+- [Chromosome overview](docs/02-guides/chromosomeOverview.md): connect cytobands and highlights to a browser.
+- [Troubleshooting](docs/04-troubleshooting.md): diagnose setup and integration problems.
+- [API reference](docs/03-reference/README.md): component props, helpers, and types.
 
 The [documentation index](docs/README.md) maps the learning path and package responsibilities.

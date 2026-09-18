@@ -9,7 +9,7 @@ Create a temporary, interactive page where the maintainer can exercise an implem
 
 ## Propose the harness
 
-Inspect the current changes, the production API or component they expose, and the nearest playground route. Read [interface design](../../../docs/project/design.md). Before changing the Next.js app, read the installed documentation beginning at `apps/playground/node_modules/next/dist/docs/index.md` and follow the applicable guidance.
+Inspect the current changes, the production API or component they expose, and the nearest playground route. Read [interface design](../../../docs/01-project/03-design.md). Before changing the Next.js app, read the installed documentation beginning at `apps/playground/node_modules/next/dist/docs/index.md` and follow the applicable guidance.
 
 Give the user a concise proposal that names:
 

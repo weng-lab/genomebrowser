@@ -4,19 +4,27 @@ These docs contain repository guidance for maintainers and agents. Repository-lo
 
 ## Understand the project
 
-Start with [architecture](project/architecture.md) for the project's purpose and structure. Use [feature placement](project/feature-placement.md) to decide where a change belongs and [interface design](project/design.md) for shared UI expectations.
+[Project glossary](glossary.md) defines shared vocabulary for browser concepts and implementation details.
+
+[Project guidance](01-project/README.md) provides the suggested reading order.
+
+Start with [architecture](01-project/01-architecture.md) for the project's purpose and structure. Use [feature placement](01-project/02-feature-placement.md) to decide where a change belongs and [interface design](01-project/03-design.md) for shared UI expectations.
 
 ## Contribute a change
 
-[Contributing](contributing/README.md) covers issues, commits, PRs, and review expectations. [Testing](contributing/testing.md) explains what to test; [verification](contributing/verify.md) explains how to run checks.
+[Contributing](02-contributing/README.md) covers issues, commits, PRs, and review expectations. [Testing](02-contributing/testing.md) explains what to test; [verification](02-contributing/verify.md) explains how to run checks.
 
 ## Maintain the tooling
 
-- [Build orchestration](tooling/builds.md): task ownership and caching.
-- [Dependencies](tooling/dependencies.md): shared dependency policy.
-- [Collection schemas](tooling/collection-schemas.md): regeneration commands.
-- [Releases](tooling/releases.md): version selection, preparation, and human publication.
+[Tooling index](03-tooling/README.md) collects the maintenance guides.
+
+- [Build orchestration](03-tooling/builds.md): task ownership and caching.
+- [Dependencies](03-tooling/dependencies.md): shared dependency policy.
+- [Collection schemas](03-tooling/collection-schemas.md): regeneration commands.
+- [Releases](03-tooling/releases.md): version selection, preparation, and human publication.
 
 ## Write documentation
 
-[Documentation guidance](documentation/README.md) explains where shared guidance belongs and links to writing references.
+[Documentation guidance](04-documentation/README.md) explains where shared guidance belongs and links to writing references.
+
+Return to [Repository overview](../README.md).

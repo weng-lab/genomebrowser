@@ -24,6 +24,6 @@ Reuse the file object to retain loaded metadata. Binary readers require an HTTP 
 ## Documentation
 
 - [Documentation overview](docs/README.md)
-- [API reference and complete export index](docs/reference/README.md)
+- [API reference and complete export index](docs/03-reference/README.md)
 
 Only the package root is public. Byte-range transport, binary indexes, and decoders are internal.

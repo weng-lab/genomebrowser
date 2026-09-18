@@ -7,12 +7,12 @@ description: Organize and maintain bundled genomebrowser package docs and reposi
 
 ## Load the relevant guidance
 
-Read [Writing documentation](../../../docs/documentation/writing.md) for shared evidence, example, and style requirements. Then read only the references needed for the task:
+Read [Writing documentation](../../../docs/04-documentation/writing.md) for shared evidence, example, and style requirements. Then read only the references needed for the task:
 
-- Package page creation, placement, tutorials, audits, or restructuring: [Package documentation architecture](../../../docs/documentation/packageArchitecture.md). A wording-only edit does not require this page.
-- Public components, functions, hooks, stores, module contracts, types, or other APIs: [API reference writing](../../../docs/documentation/apiReference.md).
-- Maintainer docs, app READMEs, architecture, contribution/design guidance, or requested ADR work: [Maintainer documentation](../../../docs/documentation/maintainerDocs.md).
-- Changes to where shared guidance lives or how agents find it: [Documentation and agent guidance](../../../docs/documentation/README.md).
+- Package page creation, placement, tutorials, audits, or restructuring: [Package documentation architecture](../../../docs/04-documentation/packageArchitecture.md). A wording-only edit does not require this page.
+- Public components, functions, hooks, stores, module contracts, types, or other APIs: [API reference writing](../../../docs/04-documentation/apiReference.md).
+- Maintainer docs, app READMEs, architecture, contribution/design guidance, or requested ADR work: [Maintainer documentation](../../../docs/04-documentation/maintainerDocs.md).
+- Changes to where shared guidance lives or how agents find it: [Documentation and agent guidance](../../../docs/04-documentation/README.md).
 
 Links are relative to this skill file. These documents live in the repository and are the shared authority; do not keep duplicate policy in the skill.
 
