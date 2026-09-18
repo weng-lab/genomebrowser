@@ -1,6 +1,6 @@
 import { useId } from "react";
 import type { CytobandColors, CytobandsProps } from "./cytobandsTypes";
-import { cytobandSvg as CytobandSvg } from "./cytobandSvg";
+import { CytobandSvg } from "./cytobandSvg";
 import { highlightLayer as HighlightLayer } from "./highlightLayer";
 import { currentRegionBracket as CurrentRegionBracket } from "./currentRegionBracket";
 

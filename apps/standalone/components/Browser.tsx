@@ -9,20 +9,18 @@ import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
 import {
   HighlightDialog,
+  ControlToolbar,
   TrackSelect,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
 import { useState } from "react";
-import { RegionOverview } from "./RegionOverview";
-import { BrowserHeader, NavigationControls } from "./Toolbars";
 import { browserAssembly } from "../lib/assembly";
 import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
 
 const useBrowserStore = createBrowserStore({
   assembly: browserAssembly,
   region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
-  marginWidth: 50,
 });
 
 const useTrackStore = createTrackStore({
@@ -60,22 +58,20 @@ const resolveTrackInteraction: TrackSelectInteractionResolver = ({ qualifiedTrac
 export function Browser() {
   const [highlightDialogOpen, setHighlightDialogOpen] = useState(false);
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
-  const region = useBrowserStore((state) => state.region);
-  const highlights = useBrowserStore((state) => state.highlights);
 
   return (
-    <main>
-      <BrowserHeader
+    <Box sx={{ p: 1 }}>
+      <ControlToolbar
+        browserStore={useBrowserStore}
+        search={{
+          assembly: "GRCh38",
+          graphqlUrl: "/api/screen-graphql",
+          queries: ["Gene", "SNP", "cCRE", "Coordinate"],
+        }}
         onManageHighlights={() => setHighlightDialogOpen(true)}
         onSelectTracks={() => setTrackSelectOpen(true)}
       />
-      <NavigationControls browserStore={useBrowserStore} />
-      <RegionOverview
-        chromosomeLength={browserAssembly.chromosomes[region.chromosome] ?? 0}
-        region={region}
-        highlights={highlights}
-      />
-      <Box sx={{ width: "100%", overflowX: "auto" }}>
+      <Box sx={{ pt: 1, width: "100%", overflowX: "auto" }}>
         <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
       </Box>
       <TrackSelect
@@ -92,6 +88,6 @@ export function Browser() {
         open={highlightDialogOpen}
         onClose={() => setHighlightDialogOpen(false)}
       />
-    </main>
+    </Box>
   );
 }

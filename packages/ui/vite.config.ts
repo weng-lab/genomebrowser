@@ -10,7 +10,7 @@ export default defineConfig({
   envPrefix: ["VITE_", "NEXT_PUBLIC_"],
   test: {
     server: {
-      deps: { inline: ["@mui/x-data-grid", "@mui/x-data-grid-premium"] },
+      deps: { inline: ["@weng-lab/ui-components", "@mui/x-data-grid", "@mui/x-data-grid-premium"] },
     },
   },
   plugins: [
@@ -35,6 +35,7 @@ export default defineConfig({
         "react-dom",
         "react/jsx-runtime",
         "@weng-lab/genomebrowser",
+        "@weng-lab/ui-components",
         "zod",
         /^node:.*/,
         /^@mui\/.*/,

@@ -22,10 +22,12 @@ Use `@weng-lab/genomebrowser-ui` to add application controls to a genome browser
 
 The [reference index](03-reference/README.md) lists every public UI component, helper, and type.
 
-- [Browser controls](03-reference/01-browserControls/README.md): pan, zoom, and region interaction modes.
+- [Browser controls](03-reference/01-browserControls/README.md): region search, pan, zoom, and region interaction modes.
 - [Highlights](03-reference/02-highlights/README.md): add, edit, remove, and navigate to marked regions.
 - [Track selection](03-reference/03-trackSelection/README.md): selection lifecycle, column customization, and interaction callbacks.
 - [Chromosome overview](03-reference/04-chromosomeOverview/README.md): cytobands, region brackets, highlight overlays, and tooltips.
+
+- [Shared UI](03-reference/05-sharedUI/README.md): Labeled outlines for custom content.
 
 ## Package responsibilities
 

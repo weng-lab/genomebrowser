@@ -88,7 +88,7 @@ The hit area ends above the DNA letters, which retain their hover and panning be
 
 The browser's Zoom and Highlight modes cover the data area with a crosshair and vertical cursor guide and block underlying track interactions. Return to Pan to restore the ruler's axis selection behavior. These browser modes also work without a ruler.
 
-Outside React, call `useBrowserStore.getState().setSelectionMode("zoom")`, `"highlight"`, or `"pan"` on the application-owned store. React controls should select `setSelectionMode` through the store hook. The UI package provides `BrowserSelectionControls`. The host application owns keyboard shortcuts; the browser SVG does not take focus or register them.
+Outside React, call `useBrowserStore.getState().setSelectionMode("zoom")`, `"highlight"`, or `"pan"` on the application-owned store. React controls should select `setSelectionMode` through the store hook. The UI package provides `SelectionControls`. The host application owns keyboard shortcuts; the browser SVG does not take focus or register them.
 
 ## Exports
 

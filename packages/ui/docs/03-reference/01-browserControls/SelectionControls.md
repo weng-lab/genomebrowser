@@ -1,4 +1,4 @@
-# BrowserSelectionControls
+# SelectionControls
 
 Choose how dragging across the genome browser behaves: pan, zoom to a selected region, or create a highlight.
 
@@ -6,7 +6,7 @@ Choose how dragging across the genome browser behaves: pan, zoom to a selected r
 
 ```tsx
 import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
-import { BrowserSelectionControls } from "@weng-lab/genomebrowser-ui";
+import { SelectionControls } from "@weng-lab/genomebrowser-ui";
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -14,7 +14,7 @@ const useBrowserStore = createBrowserStore({
 });
 
 export function SelectionToolbar() {
-  return <BrowserSelectionControls browserStore={useBrowserStore} />;
+  return <SelectionControls browserStore={useBrowserStore} />;
 }
 ```
 
@@ -22,18 +22,18 @@ Pass the same browser store to `GenomeBrowser`. The control reflects store chang
 
 ## API
 
-### BrowserSelectionControlsProps
+### SelectionControlsProps
 
 | Prop           | Type                   | Default  | Description                                              |
 | -------------- | ---------------------- | -------- | -------------------------------------------------------- |
 | `browserStore` | `BrowserStoreInstance` | Required | Owns the selected mode and the displayed browser region. |
 | `disabled`     | `boolean`              | `false`  | Disables all mode buttons.                               |
 
-The package exports `BrowserSelectionControls` and `BrowserSelectionControlsProps` from its root.
+The package exports `SelectionControls` and `SelectionControlsProps` from its root.
 
 ## Accessibility
 
-The MUI toggle group has the name **Region interaction**. Each button has a visible label and exposes its selected state. Buttons work with Tab, Enter and Space. The genome browser SVG does not take focus or register keyboard shortcuts; applications can implement bindings using the browser store.
+The MUI toggle group has the name **Region interaction**. Each button has a visible label and exposes its selected state. Tooltips describe the drag action for each mode on hover or keyboard focus. Buttons work with Tab, Enter and Space. The genome browser SVG does not take focus or register keyboard shortcuts; applications can implement bindings using the browser store.
 
 ## Notes
 

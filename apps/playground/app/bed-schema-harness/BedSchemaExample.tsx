@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { createBrowserStore, createTrackStore, GenomeBrowser } from "@weng-lab/genomebrowser";
 import { type BigBedRow } from "@weng-lab/genomebrowser-tracks/bigbed";
 import { bedSchemaKeys, bedSchemaKeySchema } from "@weng-lab/genomebrowser-tracks/shared";
-import { BrowserNavigationButton } from "@weng-lab/genomebrowser-ui";
+import { NavigationButton } from "@weng-lab/genomebrowser-ui";
 
 type BedSchemaExampleProps = {
   title: string;
@@ -65,20 +65,20 @@ export function BedSchemaExample({
           useFlexGap
           sx={{ flexWrap: "wrap", alignItems: "center" }}
         >
-          <BrowserNavigationButton
+          <NavigationButton
             browserStore={useBrowserStore}
             action={{ type: "zoom", factor: 0.5 }}
             size="small"
           >
             Zoom in
-          </BrowserNavigationButton>
-          <BrowserNavigationButton
+          </NavigationButton>
+          <NavigationButton
             browserStore={useBrowserStore}
             action={{ type: "zoom", factor: 2 }}
             size="small"
           >
             Zoom out
-          </BrowserNavigationButton>
+          </NavigationButton>
           <Button size="small" onClick={() => useBrowserStore.getState().setRegion(initialRegion)}>
             Reset region
           </Button>

@@ -23,11 +23,7 @@ import Button from "@mui/material/Button";
 import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
-import {
-  BrowserNavigationButton,
-  BrowserSelectionControls,
-  HighlightDialog,
-} from "@weng-lab/genomebrowser-ui";
+import { NavigationButton, SelectionControls, HighlightDialog } from "@weng-lab/genomebrowser-ui";
 
 export function Browser() {
   const [useBrowserStore] = useState(() =>
@@ -52,31 +48,19 @@ export function Browser() {
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, alignItems: "center", mb: 1 }}>
-        <BrowserNavigationButton
-          browserStore={useBrowserStore}
-          action={{ type: "pan", fraction: -0.5 }}
-        >
+        <NavigationButton browserStore={useBrowserStore} action={{ type: "pan", fraction: -0.5 }}>
           Pan left
-        </BrowserNavigationButton>
-        <BrowserNavigationButton
-          browserStore={useBrowserStore}
-          action={{ type: "pan", fraction: 0.5 }}
-        >
+        </NavigationButton>
+        <NavigationButton browserStore={useBrowserStore} action={{ type: "pan", fraction: 0.5 }}>
           Pan right
-        </BrowserNavigationButton>
-        <BrowserNavigationButton
-          browserStore={useBrowserStore}
-          action={{ type: "zoom", factor: 0.5 }}
-        >
+        </NavigationButton>
+        <NavigationButton browserStore={useBrowserStore} action={{ type: "zoom", factor: 0.5 }}>
           Zoom in
-        </BrowserNavigationButton>
-        <BrowserNavigationButton
-          browserStore={useBrowserStore}
-          action={{ type: "zoom", factor: 2 }}
-        >
+        </NavigationButton>
+        <NavigationButton browserStore={useBrowserStore} action={{ type: "zoom", factor: 2 }}>
           Zoom out
-        </BrowserNavigationButton>
-        <BrowserSelectionControls browserStore={useBrowserStore} />
+        </NavigationButton>
+        <SelectionControls browserStore={useBrowserStore} />
         <Button onClick={() => setHighlightsOpen(true)}>Highlights</Button>
       </Box>
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
@@ -98,7 +82,7 @@ Render `<Browser />` in the application. Pan moves by the chosen fraction of the
 
 ## Select and manage regions
 
-Choose Pan, Select zoom, or Highlight to set the browser's drag mode. Select zoom navigates to the dragged region. Highlight adds a marked region to the browser store.
+Choose Pan, Zoom, or Highlight to set the browser's drag mode. Zoom navigates to the dragged region. Highlight adds a marked region to the browser store.
 
 Open Highlights to inspect those regions or add one by coordinates. The dialog can edit, remove, or navigate to a highlight. Adding a highlight, saving an edit, and removing a highlight update the store. Closing the dialog discards unsaved form edits; it does not undo changes already accepted by the store.
 

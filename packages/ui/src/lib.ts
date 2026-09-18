@@ -1,11 +1,27 @@
-export { BrowserSelectionControls } from "./BrowserSelectionControls/browserSelectionControls";
-export type { BrowserSelectionControlsProps } from "./BrowserSelectionControls/browserSelectionControls";
-// Browser Controls
-export { BrowserNavigationButton } from "./BrowserNavigationButton/browserNavigationButton";
+// Browser controls
+export {
+  ControlToolbar,
+  RegionControls,
+  NavigationControls,
+  InteractionControls,
+  ManagementControls,
+  SelectionControls,
+  NavigationButton,
+} from "./BrowserControls";
 export type {
-  BrowserNavigationAction,
-  BrowserNavigationButtonProps,
-} from "./BrowserNavigationButton/browserNavigationButton";
+  ControlToolbarProps,
+  RegionControlsProps,
+  NavigationControlsProps,
+  InteractionControlsProps,
+  ManagementControlsProps,
+  SelectionControlsProps,
+  NavigationButtonProps,
+  NavigationAction,
+} from "./BrowserControls";
+
+// Shared UI
+export { LabeledGroup } from "./LabeledGroup/labeledGroup";
+export type { LabeledGroupProps } from "./LabeledGroup/labeledGroup";
 
 // Highlight Dialog
 export { HighlightDialog } from "./HighlightDialog/HighlightDialog";
