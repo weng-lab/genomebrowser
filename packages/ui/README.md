@@ -47,7 +47,15 @@ export function PanRight({ browserStore }: { browserStore: BrowserStoreInstance 
 
 Render `PanRight` beside `GenomeBrowser` with the same `browserStore`. The button disables itself at the chromosome boundary.
 
+## Optional genome search
+
+Applications that add SCREEN-backed search need a server-side `SCREEN_API_KEY` for gene, SNP, and cCRE queries. For example, `GenomeSearch` from the separate `@weng-lab/ui-components` package uses SCREEN for these searches. Coordinate search and the controls exported by `@weng-lab/genomebrowser-ui` do not require this key.
+
+Point `GenomeSearch`'s `graphqlUrl` at an application server endpoint, such as `/api/screen-graphql`. That endpoint should forward GraphQL requests to `https://screen.api.wenglab.org/graphql` and add `Authorization: Bearer <SCREEN_API_KEY>` from the server environment. Keep the key out of component props and browser-exposed environment variables such as `NEXT_PUBLIC_*` or `VITE_*`. The starter application includes this proxy for local development; its bundled deployment guide describes the production endpoint.
+
 ## Documentation
+
+Before writing or changing an integration, read `node_modules/@weng-lab/genomebrowser-ui/docs/README.md` in your application, then follow its links to the relevant guides and API references. These bundled docs describe the installed package version. Give coding agents this path so they use the same version-specific documentation.
 
 Start with [Add browser controls](docs/01-gettingStarted/01-addBrowserControls.md) for a complete browser with navigation, selection, and highlights.
 

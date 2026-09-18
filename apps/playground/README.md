@@ -8,7 +8,7 @@ The files under `examples/` preserve the former core and UI package demos and th
 
 The playground resolves every public workspace package entry directly to its TypeScript source. Add new public track subpaths to `tsconfig.json`; both Turbopack and TypeScript use those paths.
 
-From the repository root, a human maintainer can run:
+From the repository root, run:
 
 ```sh
 pnpm playground dev

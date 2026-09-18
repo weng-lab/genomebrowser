@@ -49,6 +49,6 @@ Coordinates are zero-based and half-open: `chr1:0-100` covers the first 100 base
 
 Page content and controls are ordinary React components. Keep state with the component that uses it, and preserve the [track initialization behavior](02-architecture.md#why-the-track-picker-stays-on-the-page) when changing the layout.
 
-For a new data format or rendering style, check existing modules first. Custom modules use the core package's `docs/customTrackModules.md`; register them in `myModules` and run `npm run schema` afterward.
+For a new data format or rendering style, check existing modules first. Read `node_modules/@weng-lab/genomebrowser/docs/02-guides/customTracks.md` for custom modules; register them in `myModules` and run `npm run schema` afterward.
 
 Complete the [verification steps](../AGENTS.md#verification), including loading changed tracks at a representative region.

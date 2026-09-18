@@ -46,6 +46,8 @@ The store factories return Zustand hooks, so their names begin with `use`. These
 
 ## Documentation
 
+Before writing or changing an integration, read `node_modules/@weng-lab/genomebrowser-tracks/docs/README.md` in your application, then follow its links to the relevant guides and API references. These bundled docs describe the installed package version. Give coding agents this path so they use the same version-specific documentation.
+
 - [Documentation overview](docs/README.md): entry points for using tracks and reusing shared components.
 - [Use first-party tracks](docs/01-gettingStarted/01-useTracks.md): choose a module, connect its source, and render a browser.
 - [Choose a track module](docs/03-reference/01-trackModules/README.md): find a module for your file format or dataset.

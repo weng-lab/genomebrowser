@@ -59,6 +59,8 @@ Add `@weng-lab/genomebrowser-tracks@2.0.0` for the BigBed, BigWig, BulkBed, CAVE
 
 ## Documentation
 
+Before writing or changing an integration, read `node_modules/@weng-lab/genomebrowser/docs/README.md` in your application, then follow its links to the relevant guides and API references. These bundled docs describe the installed package version. Give coding agents this path so they use the same version-specific documentation.
+
 - [Documentation overview](docs/README.md). Learning path and topic navigation.
 - [Getting started](docs/01-gettingStarted/01-firstBrowser.md). Install and render a responsive browser.
 - [API reference](docs/03-reference/README.md). Browser component, viewport store, assemblies, and regions.
