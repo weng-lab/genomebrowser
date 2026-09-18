@@ -7,7 +7,7 @@ Choose a module for your data source and register it with core's track store. Ea
 ## Install
 
 ```sh
-pnpm add @weng-lab/genomebrowser-tracks@latest @weng-lab/genomebrowser@latest react@latest react-dom@latest @emotion/react@latest @emotion/styled@latest @mui/material@latest
+pnpm add @weng-lab/genomebrowser-tracks@2.0.0 @weng-lab/genomebrowser@2.0.0 react@^19.2.0 react-dom@^19.2.0 @emotion/react@11 @emotion/styled@11 @mui/material@7
 ```
 
 Use React and React DOM 19.2 or later, Emotion 11, and MUI 7. Render the browser in a client application. Settings forms use the application's MUI theme.

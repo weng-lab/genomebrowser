@@ -70,7 +70,7 @@ The optional UI package provides `BrowserNavigationButton` for pan and zoom acti
 In addition to the dependencies from the first chapter, install the UI package and its remaining peers:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui@latest @mui/icons-material@latest @mui/x-data-grid-premium@latest @mui/x-license@latest @mui/x-tree-view@latest
+pnpm add @weng-lab/genomebrowser-ui@2.0.0 @mui/icons-material@7 @mui/x-data-grid-premium@8 @mui/x-license@8 @mui/x-tree-view@8
 ```
 
 The following `App.tsx` uses the provided controls with the existing `Browser` component. Each navigation button declares its action, while the selection control supplies the Pan, Zoom, and Highlight choices:

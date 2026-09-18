@@ -5,7 +5,7 @@ Read BigWig signal, BigBed annotations, TwoBit reference DNA, chromosome sizes, 
 ## Install
 
 ```sh
-npm install @weng-lab/genomic-reader@beta zod
+npm install @weng-lab/genomic-reader@2.0.0 zod@4
 ```
 
 Zod 4 is a peer dependency and supplies BigBed column schemas.

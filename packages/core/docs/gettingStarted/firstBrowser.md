@@ -13,7 +13,7 @@ Use the starter to generate a complete application, or install the packages in a
 To start a new application, run the starter commands below. The starter creates a Vite and React project with a working browser, sample tracks, and application controls:
 
 ```sh
-npm create @weng-lab/genomebrowser@latest my-browser
+npm create @weng-lab/genomebrowser@2.0.0 my-browser
 cd my-browser
 npm install
 npm run dev
@@ -26,7 +26,7 @@ The generated application already includes the browser dependencies and setup. C
 For an existing React application, core provides the browser component and its state, while the tracks package supplies the ruler and BigWig implementations. The track settings also depend on Emotion and MUI. Install these packages together:
 
 ```sh
-pnpm add @weng-lab/genomebrowser@latest @weng-lab/genomebrowser-tracks@latest @emotion/react@latest @emotion/styled@latest @mui/material@latest
+pnpm add @weng-lab/genomebrowser@2.0.0 @weng-lab/genomebrowser-tracks@2.0.0 @emotion/react@11 @emotion/styled@11 @mui/material@7
 ```
 
 This setup assumes the application already uses `react` and `react-dom` 19.2 or later. The browser runs on the client, where it can measure the layout and render interactive SVG tracks.

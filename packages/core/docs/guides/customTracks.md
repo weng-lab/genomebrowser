@@ -5,7 +5,7 @@ A custom module defines how a new track type validates configuration, produces d
 This guide builds an annotation track from regions supplied directly in configuration. The example runs without a server. Its fetcher and renderer use the same APIs as a track that loads remote data. It assumes the core and React setup from [Create a genome browser](../gettingStarted/firstBrowser.md). Module schemas use Zod, so add it as a direct dependency:
 
 ```sh
-pnpm add zod@latest
+pnpm add zod@4
 ```
 
 ## Define the configuration and data

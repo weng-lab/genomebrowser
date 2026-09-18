@@ -9,7 +9,7 @@ The component receives data and callbacks directly. The application loads the cy
 Complete [UI installation](../../README.md#install), then install the reader for this example:
 
 ```sh
-pnpm add @weng-lab/genomic-reader@latest
+pnpm add @weng-lab/genomic-reader@2.0.0
 ```
 
 Load the records with `readCytobands` in the application's data-loading code, then pass them to the overview. Replace `YOUR_URL_HERE` with a browser-accessible UCSC cytoband file for the browser's assembly. The reader accepts plain text and gzip-compressed files.

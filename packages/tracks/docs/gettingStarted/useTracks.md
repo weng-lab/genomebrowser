@@ -9,7 +9,7 @@ Use React and React DOM 19.2 or later. For a new application, the [core document
 Core supplies the browser and its stores. Tracks supplies the modules and their settings forms, which use the application's MUI theme. Install the packages and their Emotion and MUI dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser@latest @weng-lab/genomebrowser-tracks@latest @emotion/react@latest @emotion/styled@latest @mui/material@latest
+pnpm add @weng-lab/genomebrowser@2.0.0 @weng-lab/genomebrowser-tracks@2.0.0 @emotion/react@11 @emotion/styled@11 @mui/material@7
 ```
 
 Render the browser on the client, where it can measure its container and request data. The tracks package does not install a global theme or stylesheet.

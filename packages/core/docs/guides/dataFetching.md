@@ -80,7 +80,7 @@ Zooming changes the genomic scale, making old content incompatible with the new 
 
 Some fetchers create a reusable object, such as an indexed file reader that retains file metadata. `resources` provides storage for that object across requests within one track and one mounted browser. Core does not inspect the stored value, so the fetcher must decide whether it remains valid after a source change.
 
-The following separate example uses the reader package to retrieve raw BigWig values. Install `@weng-lab/genomic-reader@latest` as a direct dependency when importing it in a custom module. The cached entry includes its source URL, allowing a later URL edit to replace the reader before making the next request.
+The following separate example uses the reader package to retrieve raw BigWig values. Install `@weng-lab/genomic-reader@2.0.0` as a direct dependency when importing it in a custom module. The cached entry includes its source URL, allowing a later URL edit to replace the reader before making the next request.
 
 ```ts
 import type { TrackFetch } from "@weng-lab/genomebrowser";

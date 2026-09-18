@@ -1,6 +1,6 @@
 {
   "name": "@weng-lab/create-genomebrowser",
-  "version": "2.0.0-beta.3",
+  "version": "2.0.0",
   "description": "Create an editable genome browser application.",
   "license": "MIT",
   "repository": {
@@ -34,7 +34,7 @@
   "type": "module",
   "publishConfig": {
     "access": "public",
-    "tag": "beta"
+    "tag": "latest"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && chmod +x dist/create.js && node scripts/verify-package.mjs",

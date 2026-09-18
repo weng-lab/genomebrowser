@@ -8,7 +8,7 @@ Compare the intended release commit with each package's actual published baselin
 
 Update dependency minimums only where consumers need the new version. Check runtime dependencies, peers, and the starter template, which ships inside the create package. Refresh the lockfile and affected docs with the release changes.
 
-Select the npm dist-tag and GitHub prerelease status to match the intended release. The repository currently has beta-specific publishing scripts and manifest tags. Reconcile those with the selected version and channel during release preparation; they do not determine release policy.
+Select the npm dist-tag and GitHub prerelease status to match the intended release. The package manifests and publishing scripts default to `latest` for stable releases. Prereleases require an explicit prerelease version and dist-tag.
 
 ## Check the published artifact
 
@@ -25,6 +25,8 @@ Use an explicit package selection and dist-tag. For example, substitute the sele
 ```sh
 pnpm --filter @weng-lab/genomic-reader publish --tag <TAG>
 ```
+
+For the coordinated v2.0.0 release of core, tracks, UI, reader, and create, run `pnpm publish:dry-run`, then have a human run `pnpm publish:stable` from the clean, committed release checkout. These commands select the five public workspace packages; private apps and the starter template are excluded. The dry run skips Git checks so it can validate preparation changes before they are committed. Actual publication keeps Git checks enabled.
 
 Add `--dry-run` to validate the selection without publishing. For multiple packages, use pnpm's recursive filtered publishing or publish dependencies first. Use a whole-workspace command only when its eligible packages match the intended release set.
 

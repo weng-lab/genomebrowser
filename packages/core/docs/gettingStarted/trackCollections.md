@@ -102,7 +102,7 @@ TrackSelect handles collection validation, selected-track creation, and selectio
 If the UI dependencies were installed for the browser controls, no additional installation is needed. Otherwise, add the UI package and its remaining peers to the packages from the first chapter:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui@latest @mui/icons-material@latest @mui/x-data-grid-premium@latest @mui/x-license@latest @mui/x-tree-view@latest
+pnpm add @weng-lab/genomebrowser-ui@2.0.0 @mui/icons-material@7 @mui/x-data-grid-premium@8 @mui/x-license@8 @mui/x-tree-view@8
 ```
 
 TrackSelect uses MUI X Premium for its grid. Applications using it need to account for MUI X licensing; the package does not configure a license key on the application's behalf.

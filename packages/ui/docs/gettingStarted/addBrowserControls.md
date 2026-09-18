@@ -5,7 +5,7 @@ Connect navigation buttons, region selection controls, and a highlight dialog to
 Complete the [package installation](../../README.md#install) in an existing React application, then add the first-party tracks:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-tracks@latest
+pnpm add @weng-lab/genomebrowser-tracks@2.0.0
 ```
 
 Use a browser-accessible BigWig file aligned to hg38. Replace `YOUR_URL_HERE` below and choose a region containing data. The example runs in a client-rendered React component.

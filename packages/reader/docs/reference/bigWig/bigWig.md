@@ -8,7 +8,7 @@ BigWig file. The reader fetches only the byte ranges needed for each genomic reg
 Install the package and its Zod 4 peer dependency:
 
 ```sh
-npm install @weng-lab/genomic-reader@beta zod
+npm install @weng-lab/genomic-reader@2.0.0 zod@4
 ```
 
 ## Read source values

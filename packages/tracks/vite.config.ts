@@ -7,6 +7,25 @@ import { defineConfig } from "vitest/config";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageNodeModules = path.resolve(__dirname, "node_modules");
 
+const trackEntries = {
+  "genomebrowser-tracks": path.resolve(__dirname, "src/lib.ts"),
+  ruler: path.resolve(__dirname, "src/ruler/index.ts"),
+  bigbed: path.resolve(__dirname, "src/bigbed/index.ts"),
+  bigwig: path.resolve(__dirname, "src/bigwig/index.ts"),
+  bulkbed: path.resolve(__dirname, "src/bulkbed/index.ts"),
+  cave: path.resolve(__dirname, "src/cave/index.ts"),
+  ccre: path.resolve(__dirname, "src/ccre/index.ts"),
+  gene: path.resolve(__dirname, "src/gene/index.ts"),
+  methylc: path.resolve(__dirname, "src/methylc/index.ts"),
+  shared: path.resolve(__dirname, "src/shared/index.ts"),
+};
+
+const trackAliases = Object.fromEntries(
+  Object.entries(trackEntries)
+    .filter(([name]) => name !== "genomebrowser-tracks")
+    .map(([name, source]) => [`@weng-lab/genomebrowser-tracks/${name}`, source]),
+);
+
 export default defineConfig({
   test: {
     alias: {
@@ -14,16 +33,8 @@ export default defineConfig({
       "@emotion/styled": path.join(packageNodeModules, "@emotion/styled"),
       "@mui/material": path.join(packageNodeModules, "@mui/material"),
       "@weng-lab/genomebrowser": path.resolve(__dirname, "../core/src/lib.ts"),
-      "@weng-lab/genomebrowser-tracks/ruler": path.resolve(__dirname, "src/ruler/index.ts"),
-      "@weng-lab/genomebrowser-tracks/bigbed": path.resolve(__dirname, "src/bigbed/index.ts"),
-      "@weng-lab/genomebrowser-tracks/bigwig": path.resolve(__dirname, "src/bigwig/index.ts"),
-      "@weng-lab/genomebrowser-tracks/bulkbed": path.resolve(__dirname, "src/bulkbed/index.ts"),
-      "@weng-lab/genomebrowser-tracks/cave": path.resolve(__dirname, "src/cave/index.ts"),
-      "@weng-lab/genomebrowser-tracks/ccre": path.resolve(__dirname, "src/ccre/index.ts"),
-      "@weng-lab/genomebrowser-tracks/gene": path.resolve(__dirname, "src/gene/index.ts"),
-      "@weng-lab/genomebrowser-tracks/methylc": path.resolve(__dirname, "src/methylc/index.ts"),
-      "@weng-lab/genomebrowser-tracks/shared": path.resolve(__dirname, "src/shared/index.ts"),
-      "@weng-lab/genomebrowser-tracks": path.resolve(__dirname, "src/lib.ts"),
+      ...trackAliases,
+      "@weng-lab/genomebrowser-tracks": trackEntries["genomebrowser-tracks"],
       react: path.join(packageNodeModules, "react"),
       "react-dom": path.join(packageNodeModules, "react-dom"),
     },
@@ -43,18 +54,7 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: {
-        "genomebrowser-tracks": path.resolve(__dirname, "src/lib.ts"),
-        ruler: path.resolve(__dirname, "src/ruler/index.ts"),
-        bigbed: path.resolve(__dirname, "src/bigbed/index.ts"),
-        bigwig: path.resolve(__dirname, "src/bigwig/index.ts"),
-        bulkbed: path.resolve(__dirname, "src/bulkbed/index.ts"),
-        cave: path.resolve(__dirname, "src/cave/index.ts"),
-        ccre: path.resolve(__dirname, "src/ccre/index.ts"),
-        gene: path.resolve(__dirname, "src/gene/index.ts"),
-        methylc: path.resolve(__dirname, "src/methylc/index.ts"),
-        shared: path.resolve(__dirname, "src/shared/index.ts"),
-      },
+      entry: trackEntries,
       name: "genomebrowser-tracks",
       fileName: (format, entryName) =>
         entryName === "genomebrowser-tracks" ? `${entryName}.${format}.js` : `${entryName}.js`,

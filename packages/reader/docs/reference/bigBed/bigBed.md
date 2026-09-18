@@ -8,7 +8,7 @@ the whole file. The factory uses a Zod schema to name and parse positional colum
 Zod 4 is required to define what fields to parse after BED3 fields.
 
 ```sh
-npm install @weng-lab/genomic-reader@beta zod
+npm install @weng-lab/genomic-reader@2.0.0 zod@4
 ```
 
 ## Start with BED3

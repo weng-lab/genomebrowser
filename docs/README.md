@@ -20,9 +20,3 @@ Start with [architecture](project/architecture.md) for the project's purpose and
 ## Write documentation
 
 [Documentation guidance](documentation/README.md) explains where shared guidance belongs and links to writing references.
-
-## Deferred cleanup
-
-- [ ] Review React and playground skill consolidation.
-- [ ] Review the old reader design prompt and Gene planning notes.
-- [ ] Audit installation examples against their intended releases.

@@ -4,12 +4,10 @@ A React runtime for displaying interactive genomic tracks.
 
 Create browser and track stores, add track modules, and pass the stores to `GenomeBrowser`. Use first-party modules for common file formats or define custom track types.
 
-> This package is under active development and its public API may change.
-
 ## Install
 
 ```sh
-pnpm add @weng-lab/genomebrowser@latest @weng-lab/genomebrowser-tracks@latest react@latest react-dom@latest @emotion/react@latest @emotion/styled@latest @mui/material@latest
+pnpm add @weng-lab/genomebrowser@2.0.0 @weng-lab/genomebrowser-tracks@2.0.0 react@^19.2.0 react-dom@^19.2.0 @emotion/react@11 @emotion/styled@11 @mui/material@7
 ```
 
 ## Quick start
@@ -55,9 +53,9 @@ For a responsive browser that follows its container width, see [Getting started]
 
 Start with this package when you need to render or control a genome browser.
 
-Add `@weng-lab/genomebrowser-ui@latest` for controls such as track selection from collections or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
+Add `@weng-lab/genomebrowser-ui@2.0.0` for controls such as track selection from collections or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
 
-Add `@weng-lab/genomebrowser-tracks@latest` for the BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Gene modules. Core does not export first-party track implementations.
+Add `@weng-lab/genomebrowser-tracks@2.0.0` for the BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Gene modules. Core does not export first-party track implementations.
 
 ## Documentation
 

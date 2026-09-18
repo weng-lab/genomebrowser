@@ -4,7 +4,7 @@ To make a track that works like an existing one with a few changes, reuse that m
 
 This example starts with BigBed and changes its schema, tooltip, and settings for cCRE tracks. [Create a custom track](customTracks.md) covers building a module from scratch.
 
-The tracks package already provides `ccreBigBedModule` through `@weng-lab/genomebrowser-tracks/ccre`. Use that module for its standard cCRE behavior. The example uses the dependencies from [Create a genome browser](../gettingStarted/firstBrowser.md), plus `zod@latest` as a direct dependency.
+The tracks package already provides `ccreBigBedModule` through `@weng-lab/genomebrowser-tracks/ccre`. Use that module for its standard cCRE behavior. The example uses the dependencies from [Create a genome browser](../gettingStarted/firstBrowser.md), plus `zod@4` as a direct dependency.
 
 ## Change the configuration
 

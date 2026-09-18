@@ -15,7 +15,7 @@ This pnpm monorepo contains independently versioned packages for the Weng Lab Ge
 - `packages/reader` (`@weng-lab/genomic-reader`) provides format-independent
   TypeScript contracts for reading genomic data by region.
 - `packages/create` (`@weng-lab/create-genomebrowser`) scaffolds an editable
-  browser application with the beta packages.
+  browser application with the stable v2 packages.
 
 Private applications live under `apps/`:
 
@@ -24,6 +24,18 @@ Private applications live under `apps/`:
 
 User-facing documentation is shipped from each package's `docs/` directory.
 See the [maintainer docs](docs/README.md) and [contribution guide](docs/contributing/README.md) for repository guidance.
+
+## Install
+
+The package documentation targets stable v2.0.0. Create an application with:
+
+```sh
+npm create @weng-lab/genomebrowser@2.0.0 my-browser
+```
+
+For an existing application, follow the installation instructions in the
+[core README](packages/core/README.md). All five public packages use the
+`latest` npm dist-tag for stable releases.
 
 ## Setup
 

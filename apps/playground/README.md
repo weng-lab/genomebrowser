@@ -6,7 +6,7 @@ The home page (`/`) shows an mm10 browser with one GENCODE M25 comprehensive Gen
 
 The files under `examples/` preserve the former core and UI package demos and their fixtures. They are intentionally not connected to routes. Each `App.tsx` is already a client component, so a temporary route can import it directly.
 
-The playground resolves every public workspace package entry directly to its TypeScript source. Add new public track subpaths to both `next.config.ts` and `tsconfig.json` so runtime and type resolution stay aligned.
+The playground resolves every public workspace package entry directly to its TypeScript source. Add new public track subpaths to `tsconfig.json`; both Turbopack and TypeScript use those paths.
 
 From the repository root, a human maintainer can run:
 
