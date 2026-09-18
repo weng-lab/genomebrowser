@@ -59,7 +59,7 @@ The active selection mode determines what a drag across the data area does:
 | `zoom`      | Navigate to the selected region.                  |
 | `highlight` | Mark the selected region without moving the view. |
 
-Set the initial mode with `selectionMode` in the browser-store input, or change it later with `setSelectionMode`. Zoom and highlight modes display a crosshair and a vertical guide across the data area. Their selection overlay handles the gesture instead of track hover, clicks, context menus, or panning. Returning to pan mode restores those interactions.
+Set the initial mode with `selectionMode` in the browser-store input, or change it later with `setSelectionMode`. Zoom and highlight modes display a crosshair and a vertical guide across the data area. The guide hides while dragging a selection so only the selected region is shown. Their selection overlay handles the gesture instead of track hover, clicks, context menus, or panning. Returning to pan mode restores those interactions.
 
 In Pan mode, drag the ruler's coordinate axis to zoom into a region. This switches the toolbar to Zoom mode, which stays selected after you finish or cancel the drag. Select Pan to resume panning.
 

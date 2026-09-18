@@ -210,7 +210,7 @@ export function SelectRegion({
             strokeWidth={1}
             vectorEffect="non-scaling-stroke"
             pointerEvents="none"
-            style={{ visibility: "hidden" }}
+            style={{ visibility: "hidden", display: selection ? "none" : undefined }}
           />
         </g>
       )}
