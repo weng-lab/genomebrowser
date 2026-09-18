@@ -9,7 +9,7 @@ Create a temporary, interactive page where the maintainer can exercise an implem
 
 ## Propose the harness
 
-Inspect the current changes, the production API or component they expose, and the nearest playground route. Read `DESIGN.md`. Before changing the Next.js app, read the installed documentation beginning at `apps/playground/node_modules/next/dist/docs/index.md` and follow the applicable guidance.
+Inspect the current changes, the production API or component they expose, and the nearest playground route. Read [interface design](../../../docs/project/design.md). Before changing the Next.js app, read the installed documentation beginning at `apps/playground/node_modules/next/dist/docs/index.md` and follow the applicable guidance.
 
 Give the user a concise proposal that names:
 
@@ -37,7 +37,7 @@ Import workspace package APIs directly. If the agreed behavior cannot be exercis
 
 ## Make behavior explorable
 
-Use MUI and the active theme for application controls, following `DESIGN.md`. Prefer a compact working surface over a polished demo. Use domain-specific labels and include only controls that help the maintainer understand the change.
+Use MUI and the active theme for application controls, following the interface design guidance. Prefer a compact working surface over a polished demo. Use domain-specific labels and include only controls that help the maintainer understand the change.
 
 Provide editable inputs, useful presets, and explicit actions where the flow is not naturally reactive. Show current state, transitions, errors, and raw structured output when they help explain what happened. Exercise the real production seam directly; do not duplicate its logic or replace it with a mock.
 

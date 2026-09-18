@@ -1,52 +1,23 @@
-# Genomebrowser Monorepo
+# Genomebrowser
 
 pnpm monorepo for an embeddable React genome browser.
 
-All packages in this monorepo are in beta. Making changes to the public API that aren't additions is heavily discouraged. Explain your reasoning for wanting to change public API if you feel it will be the simplest path to a solution. Internal APIs may change as necessary.
+## Where to look
 
-## Package map
+Read the guidance relevant to the change:
 
-- `packages/core` (`@weng-lab/genomebrowser`) - the browser runtime.
-- `packages/tracks` (`@weng-lab/genomebrowser-tracks`) - curated first-party track modules.
-- `packages/ui` (`@weng-lab/genomebrowser-ui`) - collection and application UI.
-- `packages/reader` (`@weng-lab/genomic-reader`) - a library for reading genomic data from files.
-- `apps/standalone` (`@weng-lab/genomebrowser-standalone`) - the deployed standalone web app.
-- `apps/playground` (`@weng-lab/genomebrowser-playground`) - experiments and custom browser setups.
+- Project structure and feature ownership: [architecture](docs/project/architecture.md) and [feature placement](docs/project/feature-placement.md).
+- Application UI in `packages/ui` or `apps/*`: [interface design](docs/project/design.md).
+- Tests and verification: [testing](docs/contributing/testing.md) and [verification](docs/contributing/verify.md). Use `pnpm verify` for the workspace check.
+- Package scripts, Turbo, or CI orchestration: [builds](docs/tooling/builds.md). Shared dependency changes: [dependencies](docs/tooling/dependencies.md).
 
-## Documentation
+Maintainer guidance lives in `docs/`. Consumer docs in `packages/*/docs/` ship with their packages; keep them self-contained and update them when public behavior changes.
 
-Root `docs/` is maintainer documentation. Things like design decisions and ADRs go here.
+Before changing a Next.js app, read that app's installed `node_modules/next/dist/docs/index.md`, then the relevant pages. Follow the installed version's guidance and deprecation warnings.
 
-`packages/*/docs/` is user-facing documentation that ships with the package; it must be self-contained. Ensure you update them as we change public API, behavior and other docs worthy edits.
+## Constraints
 
-## Application design
-
-Before designing, implementing, or reviewing application UI in `packages/ui` or `apps/*`, read and follow [`DESIGN.md`](DESIGN.md).
-
-## Contributing
-
-When creating or editing commits, pull requests, or issues, follow
-[`CONTRIBUTING.md`](CONTRIBUTING.md) and the corresponding templates in
-`.github/`.
-
-## Turborepo
-
-When verifying changes, use `pnpm verify`, which leverages turborepo by checking and building all packages and applications. Turborepo caches unchanged tasks so it is quick.
-
-Read [`docs/turborepo.md`](docs/turborepo.md) before changing package task
-scripts, `turbo.json`, cache inputs or outputs, or CI task orchestration.
-
-## Dependency rules
-
-This is not the Next.js you know from training data. API, conventions, and file structure may have changed. Before changing either app, read the installed documentation in the app's `node_modules/next/dist/docs`, starting with `index.md`, and heed deprecation warnings.
-
-## Hard rules
-
-- Never run `pnpm run dev`. The user runs the dev server manually.
-- Never invent track URLs in examples — use `"YOUR_URL_HERE"` or existing URLs.
-- Zustand store names MUST start with `use` — they are React hooks and the compiler
-  treats them as such.
-- Do NOT suggest compatibility layers, aliases, temporary exports, to support
-  older versions of any package.
-- When committing changes to git, if there are any changes not made by you in this session, ask if they should also be added to the commit.
-- Changes to packages/core must be track-agnostic. A track may motivate a new core capability, but core must not contain track-specific behavior, types, imports, or exceptions; keep those concerns in packages/tracks.
+- Zustand store hooks must have names starting with `use` so the React compiler recognizes them.
+- Do not invent track URLs. Use `YOUR_URL_HERE` or an existing repository URL.
+- Do not introduce compatibility layers, aliases, or temporary exports for older package versions unless explicitly asked to. Bring up when it may be useful.
+- Before including changes from outside this session in a commit, ask the user whether to include them.

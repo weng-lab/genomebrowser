@@ -1,9 +1,6 @@
 # Weng Lab Genome Browser
 
-This pnpm monorepo contains independently versioned `2.0.0-beta` packages for the
-Weng Lab Genome Browser. The packages are prereleases and are not intended to
-replace an npm `latest` release. Any publication must retain the configured
-`beta` dist-tag.
+This pnpm monorepo contains independently versioned packages for the Weng Lab Genome Browser. See the [release guide](docs/tooling/releases.md) for version selection and publication.
 
 ## Package map
 
@@ -26,8 +23,7 @@ Private applications live under `apps/`:
 - `apps/playground` (`@weng-lab/genomebrowser-playground`) contains experiments and custom browser setups. It resolves workspace package imports directly to source; preserved package demos under `examples/` are intentionally not routed.
 
 User-facing documentation is shipped from each package's `docs/` directory.
-Repository decisions and contributor guidance live in the root `docs/`
-directory and `AGENTS.md`.
+See the [maintainer docs](docs/README.md) and [contribution guide](docs/contributing/README.md) for repository guidance.
 
 ## Setup
 
@@ -45,7 +41,7 @@ their framework and TypeScript dependencies in their own manifests.
 
 Run commands from the repository root. Turborepo runs each task in the workspace
 projects that define it, follows package dependencies, and reuses results from
-its local cache. See the [Turborepo maintainer guide](docs/turborepo.md) for
+its local cache. See the [build orchestration guide](docs/tooling/builds.md) for
 filters, cache behavior, and task configuration.
 
 | Task             | Workspace           | Focused example                                                            |
@@ -65,11 +61,4 @@ Set `SCREEN_API_KEY` in the standalone app's local environment for transcript da
 reads the key only in its server-side SCREEN GraphQL proxy; the key is not
 exposed to browser code.
 
-Before submitting a change, run the relevant targeted commands followed by
-`pnpm verify`. Package publication is a
-separate maintainer action; do not publish as part of routine verification.
-`pnpm publish:dry-run` validates the publishable packages without changing npm state. An
-authorized prerelease must use `pnpm publish:beta`, which passes the `beta`
-tag explicitly rather than relying on a registry's current default tag. Both
-paths rebuild the packages before packing; package safeguards build required
-workspace dependencies first so declarations and executable output cannot be stale or missing.
+Before submitting a change, follow the [verification guide](docs/contributing/verify.md). Package publication is a separate maintainer action described in the [release guide](docs/tooling/releases.md).

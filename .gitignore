@@ -33,13 +33,6 @@ next-env.d.ts
 *storybook.log
 storybook-static
 
-# Local benchmark artifacts
-benchmarks/**/fixtures/
-benchmarks/**/profiles/
-benchmarks/**/*.har
-benchmarks/**/*.cpuprofile
-benchmarks/**/*-trace.json
-
 .opencode
 .devserve
 .vercel
