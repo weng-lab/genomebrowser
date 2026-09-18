@@ -20,3 +20,5 @@ Set `NEXT_PUBLIC_MUI_X_LICENSE_KEY` in `.env.local` to the MUI X Premium license
 pnpm standalone dev
 pnpm exec turbo run build --filter=@weng-lab/genomebrowser-standalone
 ```
+
+The root layout wraps the application in MUI's `AppRouterCacheProvider` so streamed Emotion styles are collected during server rendering and inserted into the document head. Keep browser controls inside this provider to preserve matching server and client markup.

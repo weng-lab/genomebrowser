@@ -13,10 +13,12 @@
     "format:check": "oxfmt . --check"
   },
   "dependencies": {
+    "@emotion/cache": "catalog:",
     "@emotion/react": "catalog:",
     "@emotion/styled": "catalog:",
     "@mui/icons-material": "catalog:",
     "@mui/material": "catalog:",
+    "@mui/material-nextjs": "catalog:",
     "@mui/x-license": "catalog:",
     "@weng-lab/genomebrowser": "workspace:*",
     "@weng-lab/genomebrowser-tracks": "workspace:*",

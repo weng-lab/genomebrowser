@@ -98,7 +98,7 @@ Render `<Browser />` in the application. Pan moves by the chosen fraction of the
 
 ## Select and manage regions
 
-Choose Pan, Select zoom, or Highlight to set the browser's drag mode. Select zoom navigates to the dragged region. Highlight adds a marked region to the browser store.
+Choose Pan, Zoom, or Highlight to set the browser's drag mode. Zoom navigates to the dragged region. Highlight adds a marked region to the browser store.
 
 Open Highlights to inspect those regions or add one by coordinates. The dialog can edit, remove, or navigate to a highlight. Adding a highlight, saving an edit, and removing a highlight update the store. Closing the dialog discards unsaved form edits; it does not undo changes already accepted by the store.
 

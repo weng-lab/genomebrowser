@@ -132,57 +132,59 @@ function RegionControl({
               }}
             />
           ) : (
-            <ButtonBase
-              ref={displayRef}
-              onClick={() => setEditing(true)}
-              aria-label={`Edit region ${coordinates}`}
-              sx={{
-                flex: 1,
-                overflow: "hidden",
-                minWidth: 0,
-                justifyContent: "flex-start",
-                borderRadius: 0.5,
-                px: 0.5,
-                py: 0.25,
-                "&:hover": { bgcolor: "action.hover" },
-                "&.Mui-focusVisible": { outline: "2px solid", outlineColor: "primary.main" },
-              }}
-            >
-              <Box
+            <Tooltip title="Click to search for a new region" describeChild>
+              <ButtonBase
+                ref={displayRef}
+                onClick={() => setEditing(true)}
+                aria-label={`Edit region ${coordinates}`}
                 sx={{
-                  display: "flex",
-                  alignItems: "baseline",
-                  flexWrap: "nowrap",
-                  columnGap: 1,
-                  textAlign: "left",
+                  flex: 1,
+                  overflow: "hidden",
                   minWidth: 0,
+                  justifyContent: "flex-start",
+                  borderRadius: 0.5,
+                  px: 0.5,
+                  py: 0.25,
+                  "&:hover": { bgcolor: "action.hover" },
+                  "&.Mui-focusVisible": { outline: "2px solid", outlineColor: "primary.main" },
                 }}
               >
-                <Typography
-                  variant="body2"
+                <Box
                   sx={{
-                    fontWeight: 600,
-                    fontVariantNumeric: "tabular-nums",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
+                    display: "flex",
+                    alignItems: "baseline",
+                    flexWrap: "nowrap",
+                    columnGap: 1,
+                    textAlign: "left",
+                    minWidth: 0,
                   }}
                 >
-                  {coordinates}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
-                >
-                  {span}
-                </Typography>
-              </Box>
-              <SearchIcon
-                fontSize="small"
-                sx={{ ml: "auto", pl: 0.5, flexShrink: 0, color: "text.secondary" }}
-              />
-            </ButtonBase>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      fontVariantNumeric: "tabular-nums",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {coordinates}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ whiteSpace: "nowrap", flexShrink: 0 }}
+                  >
+                    {span}
+                  </Typography>
+                </Box>
+                <SearchIcon
+                  fontSize="small"
+                  sx={{ ml: "auto", pl: 0.5, flexShrink: 0, color: "text.secondary" }}
+                />
+              </ButtonBase>
+            </Tooltip>
           )}
           {editing ? (
             <IconButton
@@ -221,72 +223,97 @@ const groupSx = {
 function Navigation({ browserStore }: { browserStore: BrowserStoreInstance }) {
   const [pan, setPan] = useState(0.25);
   const [zoom, setZoom] = useState(3);
+  const [openMagnitude, setOpenMagnitude] = useState<"pan" | "zoom" | null>(null);
   return (
     <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
       <Box role="group" aria-label="Pan controls" sx={groupSx}>
-        <BrowserNavigationButton
-          browserStore={browserStore}
-          action={{ type: "pan", fraction: -pan }}
-          aria-label="Pan left"
-          variant="outlined"
-          size="small"
-        >
-          <ArrowBackIcon fontSize="small" />
-        </BrowserNavigationButton>
-        <Select
-          value={pan}
-          renderValue={(value) => `${value * 100}%`}
-          onChange={(e) => setPan(Number(e.target.value))}
-          inputProps={{ "aria-label": "Pan magnitude" }}
-          size="small"
-        >
-          <MenuItem value={0.25}>25%</MenuItem>
-          <MenuItem value={0.5}>50%</MenuItem>
-          <MenuItem value={1}>100%</MenuItem>
-        </Select>
+        <Tooltip title="Pan left by the selected percentage" describeChild>
+          <span style={{ display: "inline-flex" }}>
+            <BrowserNavigationButton
+              browserStore={browserStore}
+              action={{ type: "pan", fraction: -pan }}
+              aria-label="Pan left"
+              variant="outlined"
+              size="small"
+            >
+              <ArrowBackIcon fontSize="small" />
+            </BrowserNavigationButton>
+          </span>
+        </Tooltip>
+        <Tooltip title={openMagnitude === "pan" ? "" : "Choose how far to pan"} describeChild>
+          <Select
+            value={pan}
+            onOpen={() => setOpenMagnitude("pan")}
+            onClose={() => setOpenMagnitude(null)}
+            renderValue={(value) => `${value * 100}%`}
+            onChange={(e) => setPan(Number(e.target.value))}
+            inputProps={{ "aria-label": "Pan magnitude" }}
+            size="small"
+          >
+            <MenuItem value={0.25}>25%</MenuItem>
+            <MenuItem value={0.5}>50%</MenuItem>
+            <MenuItem value={1}>100%</MenuItem>
+          </Select>
+        </Tooltip>
 
-        <BrowserNavigationButton
-          browserStore={browserStore}
-          action={{ type: "pan", fraction: pan }}
-          aria-label="Pan right"
-          variant="outlined"
-          size="small"
-        >
-          <ArrowForwardIcon fontSize="small" />
-        </BrowserNavigationButton>
+        <Tooltip title="Pan right by the selected percentage" describeChild>
+          <span style={{ display: "inline-flex" }}>
+            <BrowserNavigationButton
+              browserStore={browserStore}
+              action={{ type: "pan", fraction: pan }}
+              aria-label="Pan right"
+              variant="outlined"
+              size="small"
+            >
+              <ArrowForwardIcon fontSize="small" />
+            </BrowserNavigationButton>
+          </span>
+        </Tooltip>
       </Box>
       <Box role="group" aria-label="Zoom controls" sx={groupSx}>
-        <BrowserNavigationButton
-          browserStore={browserStore}
-          action={{ type: "zoom", factor: zoom }}
-          aria-label="Zoom out"
-          variant="outlined"
-          size="small"
-        >
-          <RemoveIcon fontSize="small" />
-        </BrowserNavigationButton>
-        <Select
-          value={zoom}
-          onChange={(e) => setZoom(Number(e.target.value))}
-          inputProps={{ "aria-label": "Zoom magnitude" }}
-          size="small"
-        >
-          {[1.5, 3, 10].map((value) => (
-            <MenuItem key={value} value={value}>
-              {value}×
-            </MenuItem>
-          ))}
-        </Select>
+        <Tooltip title="Zoom out by the selected factor" describeChild>
+          <span style={{ display: "inline-flex" }}>
+            <BrowserNavigationButton
+              browserStore={browserStore}
+              action={{ type: "zoom", factor: zoom }}
+              aria-label="Zoom out"
+              variant="outlined"
+              size="small"
+            >
+              <RemoveIcon fontSize="small" />
+            </BrowserNavigationButton>
+          </span>
+        </Tooltip>
+        <Tooltip title={openMagnitude === "zoom" ? "" : "Choose the zoom factor"} describeChild>
+          <Select
+            value={zoom}
+            onOpen={() => setOpenMagnitude("zoom")}
+            onClose={() => setOpenMagnitude(null)}
+            onChange={(e) => setZoom(Number(e.target.value))}
+            inputProps={{ "aria-label": "Zoom magnitude" }}
+            size="small"
+          >
+            {[1.5, 3, 10].map((value) => (
+              <MenuItem key={value} value={value}>
+                {value}X
+              </MenuItem>
+            ))}
+          </Select>
+        </Tooltip>
 
-        <BrowserNavigationButton
-          browserStore={browserStore}
-          action={{ type: "zoom", factor: 1 / zoom }}
-          aria-label="Zoom in"
-          variant="outlined"
-          size="small"
-        >
-          <AddIcon fontSize="small" />
-        </BrowserNavigationButton>
+        <Tooltip title="Zoom in by the selected factor" describeChild>
+          <span style={{ display: "inline-flex" }}>
+            <BrowserNavigationButton
+              browserStore={browserStore}
+              action={{ type: "zoom", factor: 1 / zoom }}
+              aria-label="Zoom in"
+              variant="outlined"
+              size="small"
+            >
+              <AddIcon fontSize="small" />
+            </BrowserNavigationButton>
+          </span>
+        </Tooltip>
       </Box>
     </Stack>
   );
@@ -325,22 +352,26 @@ export function BrowserToolbar({
         <Section title="Manage">
           <Stack direction="row" spacing={0.5}>
             {onManageHighlights ? (
-              <Button
-                size="small"
-                startIcon={<HighlightIcon fontSize="small" />}
-                onClick={onManageHighlights}
-              >
-                Highlights
-              </Button>
+              <Tooltip title="Click to manage highlights" describeChild>
+                <Button
+                  size="small"
+                  startIcon={<HighlightIcon fontSize="small" />}
+                  onClick={onManageHighlights}
+                >
+                  Highlights
+                </Button>
+              </Tooltip>
             ) : null}
             {onSelectTracks ? (
-              <Button
-                size="small"
-                startIcon={<LayersIcon fontSize="small" />}
-                onClick={onSelectTracks}
-              >
-                Tracks
-              </Button>
+              <Tooltip title="Click to manage tracks" describeChild>
+                <Button
+                  size="small"
+                  startIcon={<LayersIcon fontSize="small" />}
+                  onClick={onSelectTracks}
+                >
+                  Tracks
+                </Button>
+              </Tooltip>
             ) : null}
           </Stack>
         </Section>

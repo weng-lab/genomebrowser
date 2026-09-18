@@ -93,3 +93,38 @@ it("shows only supplied management actions and calls the host", () => {
   expect(onSelectTracks).toHaveBeenCalledOnce();
   expect(container.textContent).not.toContain("Highlights");
 });
+
+it.each(["Pan magnitude", "Zoom magnitude"])(
+  "hides the %s tooltip while its options are open",
+  async (label) => {
+    vi.useFakeTimers();
+    try {
+      mount();
+      const select = container.querySelector<HTMLElement>(
+        `[role="combobox"][aria-label="${label}"]`,
+      )!;
+      expect(select).not.toBeNull();
+      await act(async () => {
+        select.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      expect(document.querySelector('[role="tooltip"]')).not.toBeNull();
+      await act(async () => {
+        select.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 }));
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      expect(document.querySelector('[role="listbox"]')).not.toBeNull();
+      expect(document.querySelector('[role="tooltip"]')).toBeNull();
+      const option = document.querySelector<HTMLElement>('[role="option"]')!;
+      act(() => option.click());
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      expect(document.querySelector('[role="listbox"]')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  },
+);

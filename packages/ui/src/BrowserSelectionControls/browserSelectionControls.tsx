@@ -1,4 +1,5 @@
 import ToggleButton from "@mui/material/ToggleButton";
+import Tooltip from "@mui/material/Tooltip";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
 
@@ -22,23 +23,25 @@ export function BrowserSelectionControls({
       value={mode}
       disabled={disabled}
     >
-      <ToggleButton value="pan" onClick={() => setMode("pan")} title="Pan (P)">
-        Pan
-      </ToggleButton>
-      <ToggleButton
-        value="zoom"
-        onClick={() => setMode("zoom")}
-        title="Select a region to zoom (Z or Shift-drag)"
+      <Tooltip title="Drag to pan the region" describeChild disableHoverListener={disabled}>
+        <ToggleButton value="pan" onClick={() => setMode("pan")}>
+          Pan
+        </ToggleButton>
+      </Tooltip>
+      <Tooltip
+        title="Drag to select a region to zoom into"
+        describeChild
+        disableHoverListener={disabled}
       >
-        Select zoom
-      </ToggleButton>
-      <ToggleButton
-        value="highlight"
-        onClick={() => setMode("highlight")}
-        title="Select a region to highlight (H or Alt-Shift-drag)"
-      >
-        Highlight
-      </ToggleButton>
+        <ToggleButton value="zoom" onClick={() => setMode("zoom")}>
+          Zoom
+        </ToggleButton>
+      </Tooltip>
+      <Tooltip title="Drag to highlight a region" describeChild disableHoverListener={disabled}>
+        <ToggleButton value="highlight" onClick={() => setMode("highlight")}>
+          Highlight
+        </ToggleButton>
+      </Tooltip>
     </ToggleButtonGroup>
   );
 }
