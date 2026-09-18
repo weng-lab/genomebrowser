@@ -26,7 +26,7 @@ See the [maintainer docs](docs/README.md) and [contribution guide](docs/02-contr
 
 ## Install
 
-The package documentation targets stable v2.0.0. Create an application with:
+The package documentation targets stable v2.0.0. Create a new application with:
 
 ```sh
 npm create @weng-lab/genomebrowser@2.0.0 my-browser
@@ -61,13 +61,18 @@ their framework and TypeScript dependencies in their own manifests.
 
 ## Commands
 
-Run commands from the repository root. Turborepo runs each task in the workspace
+Run `pnpm verify` from the repository root for the usual workspace check. It runs
+formatting checks, lint, builds, and tests. Use the individual commands below for
+focused work.
+
+Turborepo runs each task in the workspace
 projects that define it, follows package dependencies, and reuses results from
 its local cache. See the [build orchestration guide](docs/03-tooling/builds.md) for
 filters, cache behavior, and task configuration.
 
 | Task             | Workspace           | Focused example                                                            |
 | ---------------- | ------------------- | -------------------------------------------------------------------------- |
+| Verify workspace | `pnpm verify`       | Run from the repository root for the full check.                           |
 | Build            | `pnpm build`        | `pnpm exec turbo run build --filter=@weng-lab/genomebrowser-tracks`        |
 | Test             | `pnpm test`         | `pnpm exec turbo run test --filter=@weng-lab/genomebrowser-tracks`         |
 | Typecheck        | `pnpm typecheck`    | `pnpm exec turbo run typecheck --filter=@weng-lab/genomebrowser-tracks`    |

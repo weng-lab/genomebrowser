@@ -25,9 +25,9 @@
   },
   "devDependencies": {
     "oxfmt": "^0.50.0",
-    "oxlint": "^1.65.0",
-    "react-doctor": "^0.9.5",
+    "oxlint": "^1.76.0",
+    "react-doctor": "^0.9.14",
     "turbo": "2.10.11"
   },
-  "packageManager": "pnpm@11.24.0"
+  "packageManager": "pnpm@12.4.2"
 }
