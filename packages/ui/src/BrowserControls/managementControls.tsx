@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Button, Stack, Tooltip } from "@mui/material";
+import { Button, Divider, Stack, Tooltip } from "@mui/material";
 import HighlightIcon from "@mui/icons-material/Highlight";
 import LayersIcon from "@mui/icons-material/Layers";
 import { LabeledGroup } from "../LabeledGroup/labeledGroup";
@@ -18,7 +18,13 @@ export function ManagementControls({
   if (!onManageHighlights && !onSelectTracks && !managementActions) return null;
   return (
     <LabeledGroup title="Manage">
-      <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+      <Stack
+        direction="row"
+        spacing={0.5}
+        useFlexGap
+        flexWrap="wrap"
+        divider={<Divider orientation="vertical" flexItem aria-hidden="true" />}
+      >
         {onManageHighlights ? (
           <Tooltip title="Click to manage highlights" describeChild>
             <Button

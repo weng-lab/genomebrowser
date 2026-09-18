@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Box, MenuItem, Select, Stack, Tooltip } from "@mui/material";
+import { Box, Divider, MenuItem, Select, Stack, Tooltip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import AddIcon from "@mui/icons-material/Add";
@@ -27,7 +27,13 @@ export function NavigationControls({ browserStore, navigationActions }: Navigati
   const [openMagnitude, setOpenMagnitude] = useState<"pan" | "zoom" | null>(null);
   return (
     <LabeledGroup title="Navigate">
-      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+      <Stack
+        direction="row"
+        spacing={1}
+        useFlexGap
+        flexWrap="wrap"
+        divider={<Divider orientation="vertical" flexItem aria-hidden="true" />}
+      >
         <Box role="group" aria-label="Pan controls" sx={groupSx}>
           <Tooltip title="Pan left by the selected percentage" describeChild>
             <span style={{ display: "inline-flex" }}>
@@ -35,7 +41,7 @@ export function NavigationControls({ browserStore, navigationActions }: Navigati
                 browserStore={browserStore}
                 action={{ type: "pan", fraction: -pan }}
                 aria-label="Pan left"
-                variant="outlined"
+                variant="text"
                 size="small"
               >
                 <ArrowBackIcon fontSize="small" />
@@ -64,7 +70,7 @@ export function NavigationControls({ browserStore, navigationActions }: Navigati
                 browserStore={browserStore}
                 action={{ type: "pan", fraction: pan }}
                 aria-label="Pan right"
-                variant="outlined"
+                variant="text"
                 size="small"
               >
                 <ArrowForwardIcon fontSize="small" />
@@ -79,7 +85,7 @@ export function NavigationControls({ browserStore, navigationActions }: Navigati
                 browserStore={browserStore}
                 action={{ type: "zoom", factor: zoom }}
                 aria-label="Zoom out"
-                variant="outlined"
+                variant="text"
                 size="small"
               >
                 <RemoveIcon fontSize="small" />
@@ -109,7 +115,7 @@ export function NavigationControls({ browserStore, navigationActions }: Navigati
                 browserStore={browserStore}
                 action={{ type: "zoom", factor: 1 / zoom }}
                 aria-label="Zoom in"
-                variant="outlined"
+                variant="text"
                 size="small"
               >
                 <AddIcon fontSize="small" />

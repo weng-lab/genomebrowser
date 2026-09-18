@@ -99,6 +99,7 @@ export function RegionControls({ browserStore: useBrowserStore, search }: Region
                     overflow: "hidden",
                     minWidth: 0,
                     justifyContent: "flex-start",
+                    columnGap: 0.5,
                     borderRadius: 0.5,
                     px: 0.5,
                     py: 0.25,
@@ -138,7 +139,7 @@ export function RegionControls({ browserStore: useBrowserStore, search }: Region
                   </Box>
                   <SearchIcon
                     fontSize="small"
-                    sx={{ ml: "auto", pl: 0.5, flexShrink: 0, color: "text.secondary" }}
+                    sx={{ ml: "auto", flexShrink: 0, color: "text.secondary" }}
                   />
                 </ButtonBase>
               </Tooltip>
