@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type RefObject,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import type { GenomicRegion } from "../../genome/region";
@@ -137,22 +138,7 @@ export function SelectRegion({
       requestedModeFrom: selectionMode !== mode ? mode : undefined,
     };
     setSelection(session.current);
-    const move = (event: PointerEvent) => {
-      if (!session.current || session.current.pointerId !== event.pointerId) return;
-      const point = svgPoint(svg, event.clientX, event.clientY);
-      if (!point || !Number.isFinite(point.x)) return;
-      session.current = {
-        ...session.current,
-        end: Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x)),
-      };
-      setSelection(session.current);
-    };
-    const up = (event: PointerEvent) => {
-      if (session.current?.pointerId !== event.pointerId) return;
-      move(event);
-      const current = session.current;
-      cancel();
-      if (!current || Math.abs(current.end - current.start) < 4) return;
+    cleanup.current = listenForSelection(session, setSelection, cancel, (current) => {
       const selectedRegion = getSelectedRegion(current, region, marginWidth, trackWidth);
       if (current.mode === "zoom") setRegion(selectedRegion);
       else
@@ -161,30 +147,8 @@ export function SelectRegion({
           id: createHighlightId(selectedRegion, highlights),
           region: selectedRegion,
         });
-    };
-    const pointerCancel = (event: PointerEvent) => {
-      if (session.current?.pointerId === event.pointerId) cancel();
-    };
-    const keyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") cancel();
-    };
-    document.addEventListener("pointermove", move);
-    document.addEventListener("pointerup", up);
-    document.addEventListener("pointercancel", pointerCancel);
-    document.addEventListener("keydown", keyDown);
-    window.addEventListener("blur", cancel);
-    cleanup.current = () => {
-      document.removeEventListener("pointermove", move);
-      document.removeEventListener("pointerup", up);
-      document.removeEventListener("pointercancel", pointerCancel);
-      document.removeEventListener("keydown", keyDown);
-      window.removeEventListener("blur", cancel);
-    };
+    });
   };
-
-  const selectedRegion = visibleSelection
-    ? getSelectedRegion(visibleSelection, region, marginWidth, trackWidth)
-    : null;
 
   return (
     <g
@@ -250,32 +214,79 @@ export function SelectRegion({
           />
         </g>
       )}
-      {visibleSelection && (
-        <g pointerEvents="none">
-          <rect
-            data-region-selection=""
-            fill={visibleSelection.mode === "highlight" ? highlightStyle.color : "#2563eb"}
-            fillOpacity={0.18}
-            stroke={visibleSelection.mode === "highlight" ? highlightStyle.color : "#2563eb"}
-            strokeDasharray="4 3"
-            x={Math.min(visibleSelection.start, visibleSelection.end)}
-            y={0}
-            width={Math.abs(visibleSelection.end - visibleSelection.start)}
-            height={totalHeight}
-          />
-          <text
-            x={Math.min(visibleSelection.start, visibleSelection.end) + 6}
-            y={16}
-            fontSize={12}
-            fill="#172554"
-          >
-            {visibleSelection.mode === "zoom" ? "Zoom" : "Highlight"} ·{" "}
-            {selectedRegion ? (selectedRegion.end - selectedRegion.start).toLocaleString() : 0} bp
-          </text>
-        </g>
-      )}
+      {visibleSelection && <SelectionPreview selection={visibleSelection} />}
     </g>
   );
+}
+
+function SelectionPreview({ selection }: { selection: Selection }) {
+  const { region, marginWidth, trackWidth, totalHeight, highlightStyle } = selection.context;
+  const selectedRegion = getSelectedRegion(selection, region, marginWidth, trackWidth);
+  return (
+    <g pointerEvents="none">
+      <rect
+        data-region-selection=""
+        fill={selection.mode === "highlight" ? highlightStyle.color : "#2563eb"}
+        fillOpacity={0.18}
+        stroke={selection.mode === "highlight" ? highlightStyle.color : "#2563eb"}
+        strokeDasharray="4 3"
+        x={Math.min(selection.start, selection.end)}
+        y={0}
+        width={Math.abs(selection.end - selection.start)}
+        height={totalHeight}
+      />
+      <text x={Math.min(selection.start, selection.end) + 6} y={16} fontSize={12} fill="#172554">
+        {selection.mode === "zoom" ? "Zoom" : "Highlight"} ·{" "}
+        {(selectedRegion.end - selectedRegion.start).toLocaleString()} bp
+      </text>
+    </g>
+  );
+}
+
+function listenForSelection(
+  session: RefObject<Selection | null>,
+  onChange: (selection: Selection) => void,
+  cancel: () => void,
+  onComplete: (selection: Selection) => void,
+) {
+  const move = (event: PointerEvent) => {
+    const current = session.current;
+    if (!current || current.pointerId !== event.pointerId) return;
+    const { svg, marginWidth, trackWidth } = current.context;
+    if (!svg) return;
+    const point = svgPoint(svg, event.clientX, event.clientY);
+    if (!point || !Number.isFinite(point.x)) return;
+    session.current = {
+      ...current,
+      end: Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x)),
+    };
+    onChange(session.current);
+  };
+  const up = (event: PointerEvent) => {
+    if (session.current?.pointerId !== event.pointerId) return;
+    move(event);
+    const current = session.current;
+    cancel();
+    if (current && Math.abs(current.end - current.start) >= 4) onComplete(current);
+  };
+  const pointerCancel = (event: PointerEvent) => {
+    if (session.current?.pointerId === event.pointerId) cancel();
+  };
+  const keyDown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") cancel();
+  };
+  document.addEventListener("pointermove", move);
+  document.addEventListener("pointerup", up);
+  document.addEventListener("pointercancel", pointerCancel);
+  document.addEventListener("keydown", keyDown);
+  window.addEventListener("blur", cancel);
+  return () => {
+    document.removeEventListener("pointermove", move);
+    document.removeEventListener("pointerup", up);
+    document.removeEventListener("pointercancel", pointerCancel);
+    document.removeEventListener("keydown", keyDown);
+    window.removeEventListener("blur", cancel);
+  };
 }
 
 function isSelectionCurrent(
