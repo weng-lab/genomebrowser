@@ -36,14 +36,14 @@ Add `onManageHighlights={() => setHighlightsOpen(true)}` and `onSelectTracks={()
 
 ### Add application actions
 
-Pass `navigationActions` or `managementActions` as React nodes to append controls inside the corresponding group. These props also work on `NavigationControls` and `ManagementControls`. The host owns their behavior and accessible labels. Use small MUI buttons, with a 32px height for navigation actions.
+Pass `navigationActions` or `managementActions` as React nodes to append controls inside the corresponding group. These props also work on `NavigationControls` and `ManagementControls`. The host owns their behavior and accessible labels. Use small MUI text buttons, with a 32px height for navigation actions.
 
 ```tsx
 <ControlToolbar
   browserStore={useBrowserStore}
   search={search}
   navigationActions={
-    <Button size="small" variant="outlined" sx={{ height: 32 }} onClick={recenter}>
+    <Button size="small" variant="text" sx={{ height: 32 }} onClick={recenter}>
       Recenter
     </Button>
   }
@@ -140,7 +140,7 @@ Use `<ManagementControls onSelectTracks={() => setTracksOpen(true)} />` to expos
 
 ## Accessibility
 
-The controls form a named group with fieldset legends. Icon actions have accessible names. Navigate tooltips describe pan and zoom actions and their magnitude selectors; Interaction tooltips explain each drag mode. Manage tooltips identify the highlights and tracks actions. Magnitude tooltips hide while their dropdown is open so the options remain visible. The region display has a tooltip inviting you to search for a new region. Clicking the region opens an autofocus search input; Escape or Cancel closes it and restores focus to the region button. Rejected regions keep search open and display the store validation error without clearing the draft. Escape is intercepted only while search is open. A successful search also restores focus; clicking outside closes search without moving focus back. Pan and zoom each place their magnitude selector between two outlined action buttons. The region field grows up to 440px and contracts before groups wrap on narrow screens; long coordinates truncate in the display and remain available by opening search.
+The controls form a named group with fieldset legends. Icon actions have accessible names. Navigate tooltips describe pan and zoom actions and their magnitude selectors; Interaction tooltips explain each drag mode. Manage tooltips identify the highlights and tracks actions. Magnitude tooltips hide while their dropdown is open so the options remain visible. The region display has a tooltip inviting you to search for a new region. Clicking the region opens an autofocus search input; Escape or Cancel closes it and restores focus to the region button. Rejected regions keep search open and display the store validation error without clearing the draft. Escape is intercepted only while search is open. A successful search also restores focus; clicking outside closes search without moving focus back. Pan and zoom each place their magnitude selector between two borderless action buttons. Vertical dividers separate pan, zoom, and any application navigation actions, and separate management actions. The region field grows up to 440px and contracts before groups wrap on narrow screens; long coordinates truncate in the display and remain available by opening search.
 
 ## Notes
 
