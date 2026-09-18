@@ -122,7 +122,9 @@ Track renderers can unmount when their data or display becomes incompatible with
 
 Unmounting `GenomeBrowser` discards its container measurement, displayed data, and track resources. Remounting it with the same application-owned stores retains the region and track configuration but fetches data again. A fetch already in flight can continue after unmounting; core ignores obsolete results rather than cancelling the underlying work.
 
-To save a session, store the values needed to recreate its browser and tracks, then validate them when loading. Do not serialize store hooks, callbacks, or reader objects. Cached fetch results are separate from session configuration. Collection selection IDs cover only catalog choices. Custom schemas that transform config input may need an explicit conversion from runtime values back to authored input.
+To save a session, store the values needed to recreate its browser and tracks, then validate them when loading. Do not serialize store hooks, callbacks, or reader objects. Cached fetch results are separate from session configuration.
+
+Collection selection IDs save only catalog choices. Custom schemas that transform config input may need an explicit conversion from runtime values back to authored input.
 
 ## Further reading
 

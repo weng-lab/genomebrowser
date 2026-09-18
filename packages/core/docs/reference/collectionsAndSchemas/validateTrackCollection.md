@@ -35,7 +35,7 @@ Replace `YOUR_URL_HERE` with your data URL. Pass `tracks` to a [track store](../
 
 Validation checks the collection structure, each module's creation schema, duplicate track and view IDs, and every field referenced by columns, grouping, and leaf labels. It throws an `Error` containing validation details on failure. An empty module list or duplicate module types also throws.
 
-Validation runs each module's defaults and transformations to check its track input, then discards the parsed track output. Creating instances later parses the original input again. This avoids applying transformations to already-transformed values. Keep transform callbacks free of side effects because they can run more than once.
+Validation runs each module's defaults and transforms to check the input, then discards that parsed track result. Creating a track parses the original input again, so it does not apply transforms to already-transformed values. Keep transforms free of side effects because they can run more than once.
 
 The function does not check whether the collection's assembly matches the browser's assembly. The application must make that check.
 

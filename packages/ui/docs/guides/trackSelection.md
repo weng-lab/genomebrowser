@@ -101,7 +101,16 @@ Collection tracks use `source: "host"`. First-party settings disable their sourc
 
 ## Restore and save a selection
 
-Use `initialTrackIds` for a restored selection and keep recommended tracks in `defaultTrackIds`. An explicit initial list takes precedence during initialization; Reset still returns to the defaults. An empty list means no collection tracks. An absent list lets defaults apply, and omitting both props preserves the initial store.
+Use `initialTrackIds` for a restored selection and keep recommended tracks in `defaultTrackIds`. Initialization uses these props as follows:
+
+| Input                          | Initial selection                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------------- |
+| `initialTrackIds` contains IDs | Use those IDs.                                                                           |
+| `initialTrackIds` is `[]`      | Select no collection tracks.                                                             |
+| `initialTrackIds` is absent    | Use `defaultTrackIds` when supplied. An empty default list selects no collection tracks. |
+| Both props are absent          | Preserve the initial store.                                                              |
+
+Reset always uses `defaultTrackIds`, even when an explicit initial list supplies the starting selection.
 
 Once the application has loaded its saved IDs into `savedTrackIds`, add `initialTrackIds` and `onCommittedTrackIds` to the existing picker. This example saves submitted IDs to local storage:
 

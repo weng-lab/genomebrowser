@@ -49,7 +49,7 @@ Store factory results are Zustand hooks, so their names should begin with `use`.
 
 For a responsive browser that follows its container width, see [Getting started](docs/gettingStarted/firstBrowser.md).
 
-## Do you need the UI package?
+## Optional packages
 
 Start with this package when you need to render or control a genome browser.
 
@@ -59,10 +59,10 @@ Add `@weng-lab/genomebrowser-tracks@2.0.0` for the BigBed, BigWig, BulkBed, CAVE
 
 ## Documentation
 
-- [Documentation overview](docs/README.md) - learning path and topic navigation
-- [Getting started](docs/gettingStarted/firstBrowser.md) - install and render a responsive browser
-- [API reference](docs/reference/README.md) - browser component, viewport store, assemblies, and regions
-- [Troubleshooting](docs/troubleshooting.md) - diagnose setup and runtime problems
+- [Documentation overview](docs/README.md). Learning path and topic navigation.
+- [Getting started](docs/gettingStarted/firstBrowser.md). Install and render a responsive browser.
+- [API reference](docs/reference/README.md). Browser component, viewport store, assemblies, and regions.
+- [Troubleshooting](docs/troubleshooting.md). Diagnose setup and runtime problems.
 
 ## Runtime requirements
 

@@ -52,7 +52,9 @@ A mounted browser requests data for initial tracks and added tracks. Changes to 
 
 Core waits until width-only changes stop for 200 ms before requesting data. If another fetch input changes during that delay, core starts the request immediately using the latest width. Request regions can include overscan beyond the visible region; use the supplied demand rather than reading a browser store inside the fetcher.
 
-Core ignores results from superseded request batches. It does not cancel the underlying work, so a fetch may continue after a new request starts or a track is removed. Core runs the fetchers in a batch concurrently and commits their results after every fetch has finished or failed. A rejected fetch becomes a track-local error result and does not reject other tracks' fetches.
+Core ignores results from superseded request batches. It does not cancel the underlying work, so a fetch may continue after a new request starts or a track is removed.
+
+Core runs the fetchers in a batch concurrently and commits their results after every fetch has finished or failed. A rejected fetch becomes a track-local error result and does not reject other tracks' fetches.
 
 Core can keep displaying existing data during a same-scale pan while the next request is in progress. Renderers must use their supplied [render region and width](../rendererIntegration/trackRenderer.md), which can differ from the visible viewport.
 

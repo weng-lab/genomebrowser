@@ -24,7 +24,7 @@ export function Browser() {
 }
 ```
 
-The host must provide a layout width. In flex or grid layouts, allow the containing item to shrink with `min-width: 0`. No application observer, ref, initial track width, or margin subtraction is needed.
+The host must provide a layout width. In flex or grid layouts, allow the containing item to shrink with `min-width: 0`. `GenomeBrowser` measures the container itself.
 
 ## Examples
 

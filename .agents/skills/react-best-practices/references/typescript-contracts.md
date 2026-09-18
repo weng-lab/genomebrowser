@@ -1,6 +1,6 @@
-# React TypeScript Contracts
+# React TypeScript contracts
 
-## Annotate Contracts, Infer Internals
+## Annotate contracts, infer internals
 
 Usually annotate component props, Context values, reducer state and actions, reusable hook inputs, and exported contracts. Usually infer local variables, JSX returns, inline event parameters, and intermediate transformations.
 
@@ -8,11 +8,11 @@ Annotate state when its initial value is narrower than its valid values, such as
 
 Prefer typing a component's props parameter directly. `React.FC` is acceptable when established by the project; do not churn either style without a functional reason.
 
-## Encode Valid States
+## Encode valid states
 
 - Use discriminated unions for distinct states such as idle, loading, success, and error.
 - Use unions of prop shapes for mutually exclusive component modes.
-- Model absence honestly instead of asserting placeholders such as `{} as User`.
+- Represent missing values in the type instead of asserting placeholders such as `{} as User`.
 - Prefer narrowing to assertions; treat `as any` as a defect unless an unavoidable boundary explains it.
 
 ```tsx
@@ -28,7 +28,7 @@ type Props =
 
 Model the actual lifecycle: stale data may legitimately coexist with refreshing or a refresh error. Do not force that UI into a mutually exclusive union that discards useful data.
 
-## Reuse React Types
+## Reuse React types
 
 - Native wrapper props: `React.ComponentPropsWithoutRef<'button'>`.
 - Renderable children: `React.ReactNode`.
@@ -41,7 +41,7 @@ Follow the installed React version for ref APIs. Do not mechanically introduce o
 
 Inline JSX handlers receive contextual typing. Higher-level components should expose domain values in callbacks; raw DOM events belong in thin DOM wrappers.
 
-## Context, Reducers, and Generics
+## Context, reducers, and generics
 
 When Context has no meaningful default, create it as `T | null` and expose a guarded hook that throws a clear missing-provider error. Do not fabricate a default or use `null!`.
 
@@ -53,4 +53,4 @@ Use type aliases and interfaces according to functional needs and project conven
 
 ## Sources
 
-The React TypeScript Cheatsheet, React's type surface, Sentry's TypeScript guidance, and Total TypeScript material.
+The React TypeScript Cheatsheet, React's exported types, Sentry's TypeScript guidance, and Total TypeScript material.

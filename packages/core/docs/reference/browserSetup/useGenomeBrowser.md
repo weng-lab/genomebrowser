@@ -1,6 +1,6 @@
 # useGenomeBrowser
 
-Resolve the hosting browser's stores from a track renderer, settings component, or tooltip. Use the returned hooks to select displayed state and actions, then invoke selected actions from event handlers.
+Access the hosting browser's stores from a track renderer, settings component, or tooltip. Use the returned hooks to select displayed state and actions, then invoke selected actions from event handlers.
 
 ## Usage
 
@@ -47,6 +47,6 @@ The returned track store uses the general `TrackStoreInstance` type. The applica
 
 The hook throws `useGenomeBrowser must be used within a GenomeBrowser` outside a hosted component. Fetchers and module-definition code cannot call React hooks.
 
-Independent browsers resolve their own supplied stores; supplying the same stores shares state. Replacing a supplied store changes the store resolved by consumers. Unmounting the browser removes its context but does not discard application-owned stores. Clean up any imperative subscriptions when their consumer is disposed.
+Independent browsers resolve their own supplied stores; supplying the same stores shares state. Replacing a supplied store changes the store resolved by consumers. Unmounting the browser removes its context but does not discard application-owned stores. Clean up external subscriptions when the subscribing component unmounts.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

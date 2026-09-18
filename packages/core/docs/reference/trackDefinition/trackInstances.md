@@ -22,7 +22,7 @@ Replace `YOUR_URL_HERE` with your data URL. The instance has resolved display, h
 
 `module.create(input, interaction?)` validates creation input, applies defaults, and returns a runtime instance. `module.validate(instance: unknown)` validates an instance whose defaults have already been applied. Both return a parsed instance and throw an `Error` containing validation details on failure. They do not add the instance to a store or fetch data.
 
-`validate` parses config with the same schema as `create`; store construction and mutations also invoke module validation. A schema with transformations must accept the resulting runtime config and tolerate validation again. Keep transforms and refinements free of side effects. Collection validation preserves authored inputs, but does not change this runtime validation contract.
+`validate` parses config with the same schema as `create`; store construction and mutations also invoke module validation. A schema with transformations must also accept its own parsed output, because stores validate instances again. Keep transforms and refinements free of side effects. Collection validation preserves authored inputs, but does not change this runtime validation contract.
 
 ### TrackCreateInput and TrackBaseInput
 

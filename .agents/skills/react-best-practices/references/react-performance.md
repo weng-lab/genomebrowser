@@ -1,12 +1,12 @@
-# React Performance
+# React performance
 
-## Find the Work That Matters
+## Find the work that matters
 
 Use the affected interaction, profiler, network trace, or bundle report to identify expensive work. Avoid speculative caches and broad memoization. Check whether the project uses React Compiler before manually stabilizing every value or callback. Preserve rendering semantics and current props through every optimization.
 
-Distinguish an obvious structural fix (removing redundant derived state or an unnecessary subscription) from added machinery (memo boundaries, caches, deferred rendering). The former need not wait for profiling; the latter needs a concrete expensive path and a way to assess the benefit. A routine component edit does not require a benchmark.
+Remove redundant derived state and unnecessary subscriptions directly. Add memoization, caches, or deferred rendering when you have identified expensive work and can assess the benefit. A routine component edit does not require a benchmark.
 
-## Reduce Subscription and Render Scope
+## Reduce subscription and render scope
 
 Subscribe to the smallest external-store value that rendering actually uses, using the store's supported selector and equality conventions. A component showing a threshold may need a boolean rather than the entire changing value. If a value is used only when handling an event, read it then through the supported store API when that preserves the intended timing; rendered output still needs a subscription.
 
@@ -23,11 +23,11 @@ const showDetails = useViewportStore((state) => state.zoom >= 10);
 
 Use the first form if the UI also displays the numeric zoom. Avoid selectors that allocate a new object on every read unless the store's supported equality mechanism handles it. This example assumes Zustand is already in use; it is not a reason to add it.
 
-Keep unrelated synchronization separate when it has independent dependencies. State ownership and Effect rules live in [State and Effects](state-and-effects.md); do not hide reactive dependencies behind refs to reduce renders.
+Keep unrelated synchronization separate when it has independent dependencies. State ownership and Effect rules live in [State and effects](state-and-effects.md); do not hide reactive dependencies behind refs to reduce renders.
 
 Use lazy state initialization for expensive initial values. Use functional updates when computing new state from previous state. Hoist invariant defaults when identity churn defeats a meaningful optimization; do not hoist instance-owned mutable data.
 
-## Isolate Expensive Rendering
+## Isolate expensive rendering
 
 Create a useful component boundary around expensive output. Add memoization only where stable inputs let it skip meaningful work and the compiler does not already handle it. Avoid custom comparators unless every prop, including callbacks, is accounted for. Do not memoize trivial expressions or depend on memoization for identity or correctness.
 
@@ -62,7 +62,7 @@ Keep filtering or other expensive derivation inside the deferred subtree; doing 
 
 For long offscreen content, consider virtualization or `content-visibility` based on actual DOM/rendering cost. Verify scrolling, layout sizing, focus, and accessibility behavior. Hiding content and unmounting it have different state and Effect lifetimes; choose intentionally.
 
-## Fetch and Load Deliberately
+## Fetch and load deliberately
 
 Start independent requests together when all are needed. Preserve genuine dependencies, error handling, cancellation, and service concurrency limits. Check cheap local conditions before initiating avoidable remote work.
 
@@ -72,9 +72,9 @@ Load substantial optional features on demand when this reduces initial work. Con
 
 Defer nonessential third-party scripts where their ordering and product requirements allow. Keep essential interaction available during loading and handle load failure.
 
-## Browser Boundaries
+## Browser boundaries
 
-Deduplicate genuinely shared global listeners while retaining per-instance cleanup and ownership. Passive listeners are appropriate only when the handler does not need `preventDefault`. Keep browser-only reads out of server rendering and use the framework's established hydration strategy; suppression of hydration warnings is not a synchronization fix.
+Deduplicate shared global listeners while retaining per-instance cleanup and ownership. Passive listeners are appropriate only when the handler does not need `preventDefault`. Keep browser-only reads out of server rendering and use the framework's established hydration strategy; suppression of hydration warnings is not a synchronization fix.
 
 ## Attribution
 

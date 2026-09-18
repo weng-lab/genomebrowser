@@ -106,7 +106,9 @@ A display change requests replacement data. BigWig color and vertical-range chan
 
 ## Arrange the rows
 
-The store exposes the current display order as track IDs. To move the comparison above the signal, select the `reorderTracks` action in a control and pass it the desired order when the button is pressed. Include every current track exactly once; a missing or duplicate ID causes a rejected result and leaves the order unchanged. Add this component to `TrackOrderControls.tsx` and render it alongside the other controls:
+The store exposes the current display order as track IDs. To move the comparison above the signal, select `reorderTracks` in a control and call it with the desired ID order when the button is pressed.
+
+Include every current track exactly once. A missing or duplicate ID rejects the update and leaves the order unchanged. Add this component to `TrackOrderControls.tsx` and render it alongside the other controls:
 
 ```tsx
 import { useState } from "react";

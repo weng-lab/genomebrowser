@@ -1,6 +1,6 @@
 # Customization
 
-For a dataset change, the useful inputs are its URL, format, assembly, label, and a region of interest. For an interface change, describe the intended interaction or comparison. An agent can use that context to implement and verify the change.
+For dataset changes, provide the URL, format, assembly, label, and a representative region. For interface changes, describe the intended interaction or comparison.
 
 ## Add a dataset
 

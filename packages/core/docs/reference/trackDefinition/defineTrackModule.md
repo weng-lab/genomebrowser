@@ -76,7 +76,9 @@ Register the module and add the instance to a [track store](../browserSetup/trac
 | `settingsComponent` | `TrackSettingsComponent<Config, Item>`                  | None      | Complete settings form for an instance.                                                                              |
 | `tooltipComponent`  | `TrackTooltipComponent<Item, Config>`                   | None      | SVG content shown by the runtime tooltip hook.                                                                       |
 
-`Config` is the schema's parsed output type. `Data` is inferred from the fetch promise. The default display is the first renderer key; `defaults.display`, when supplied, must match a key. Default height is `80` logical SVG units and default color is `"#000000"`. Invalid displays or base defaults throw during module definition. Put module-specific config defaults in the Zod schema.
+`Config` is the schema's parsed output type. `Data` is inferred from the fetch promise.
+
+The default display is the first renderer key. If supplied, `defaults.display` must match a key. Default height is `80` logical SVG units and default color is `"#000000"`. Put module-specific config defaults in the Zod schema. Invalid displays or base defaults throw during module definition.
 
 ## TrackModule and inferred types
 

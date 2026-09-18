@@ -31,7 +31,7 @@ Pass `resolveTrackInteraction` to TrackSelect. Use item and config types matchin
 | `qualifiedTrackId` | `string`                            | Provides the public `${collectionId}::${trackId}` ID. |
 | `track`            | `TrackCollection["tracks"][number]` | Provides the parsed authored collection track.        |
 
-Its return type is `AnyTrackSelectInteraction | undefined`. When supplied, resolver output is authoritative: `undefined` removes an existing interaction from a reused collection track, and a returned object replaces all callbacks rather than merging them.
+Its return type is `AnyTrackSelectInteraction | undefined`. Returning `undefined` removes existing callbacks from a reused collection track. Returning an object replaces all callbacks rather than merging them.
 
 The resolver runs for selected entries during initialization and Submit reconciliation, including reused tracks. It can run before a reconciliation fails; keep side effects in the event callbacks. Browsing and draft edits do not invoke it. Changing only resolver identity does not rewrite the store.
 
@@ -60,7 +60,7 @@ type TrackSelectInteraction<Item, Config = unknown> = {
 type AnyTrackSelectInteraction = TrackSelectInteraction<never, never>;
 ```
 
-`TrackRuntimeContext` comes from `@weng-lab/genomebrowser`. `AnyTrackSelectInteraction` is the erased resolver return type that accepts interactions for different module item and config types; use `TrackSelectInteraction<Item, Config>` when authoring callbacks.
+`TrackRuntimeContext` comes from `@weng-lab/genomebrowser`. `AnyTrackSelectInteraction` is the general resolver return type. It accepts interactions for different module item and config types; use `TrackSelectInteraction<Item, Config>` when authoring callbacks.
 
 | Callback  | Signature                             | Description                                       |
 | --------- | ------------------------------------- | ------------------------------------------------- |

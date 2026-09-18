@@ -79,7 +79,11 @@ const result = useTrackStore.getState().setTracks(tracks);
 if (!result.ok) throw new Error(result.error);
 ```
 
-[Validation](validateTrackCollection.md) does not add tracks to a browser. Create all entries or only those your application selects, then use a [track-store action](../browserSetup/trackStore.md). For collections with several module types, TypeScript may need to know which config belongs to which module. Narrow an entry by its `type` before passing its config to a specific module. TrackSelect handles validation and selected-track creation for its supplied collections.
+[Validation](validateTrackCollection.md) does not add tracks to a browser. Create all entries or only those your application selects, then use a [track-store action](../browserSetup/trackStore.md).
+
+For collections with several module types, TypeScript may need to know which config belongs to which module. Narrow an entry by its `type` before passing its config to a specific module.
+
+TrackSelect handles validation and selected-track creation for its supplied collections.
 
 ## TrackCollection
 

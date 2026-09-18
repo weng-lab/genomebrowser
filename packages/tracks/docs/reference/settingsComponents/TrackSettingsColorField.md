@@ -32,7 +32,7 @@ The visual picker provides a saturation and brightness area plus a hue slider.
 
 Manual text commits on blur or Enter; Escape cancels its draft. Picker changes preview live through pointer or keyboard interaction. The component groups rapid updates into animation frames and commits the final color when the interaction ends.
 
-The field keeps its draft locally and takes the accepted value from its props. Return `TrackMutationResult` from `onCommit`, using core's `updateTrack` result in a module form. Success accepts the draft; failure retains it and shows the returned error. The field does not read browser stores.
+The field stores the draft locally. Pass the accepted value through `value` and return `TrackMutationResult` from `onCommit`. In a module form, return core's `updateTrack` result. A successful result accepts the draft. A failed result keeps the draft and displays its error. The field does not read browser stores.
 
 ## Accessibility
 

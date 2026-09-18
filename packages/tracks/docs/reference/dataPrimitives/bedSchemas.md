@@ -4,14 +4,14 @@ Set `config.bedSchema` on BigBed or BulkBed to match the file's columns. Omittin
 
 Missing columns or invalid values cause a fetch error. The reader does not detect a different schema or fall back to one.
 
-| Key    | Parsed columns after chromosome, start, and end      |
-| ------ | ---------------------------------------------------- |
-| `bed3` | None                                                 |
-| `bed4` | name                                                 |
-| `bed5` | name, score                                          |
-| `bed6` | name, score, strand                                  |
-| `bed9` | name, score, strand, thickStart, thickEnd, color     |
-| `ccre` | BED9 columns followed by ccreClass (Registry BED9+1) |
+| Key    | Parsed columns after chromosome, start, and end           |
+| ------ | --------------------------------------------------------- |
+| `bed3` | None                                                      |
+| `bed4` | name                                                      |
+| `bed5` | name, score                                               |
+| `bed6` | name, score, strand                                       |
+| `bed9` | name, score, strand, thickStart, thickEnd, color          |
+| `ccre` | BED9 columns followed by ccreClass. Uses Registry BED9+1. |
 
 The reader converts numeric and color fields as described under [Column validation](#column-validation). Columns beyond the selected schema remain in `fields`. Schema selection changes parsing; it does not add thick-region or block rendering.
 

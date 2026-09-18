@@ -1,6 +1,6 @@
 # Core documentation
 
-Use `@weng-lab/genomebrowser` to render genomic tracks, manage the viewport and track state, and implement custom track types. These docs ship with the package.
+Use `@weng-lab/genomebrowser` to render genomic tracks, manage the viewport and track state, and implement custom track types.
 
 ## Getting started
 

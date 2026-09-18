@@ -41,7 +41,7 @@ const track = bulkBedModule.create({
 
 ### Dataset rows
 
-BulkBed counts datasets with at least one feature in the visible viewport. Their rows appear first, and total height is `max(1, rowCount) * rowHeight`. Datasets with data only outside the viewport remain rendered in later slots for panning without increasing track height. The count can change as the view or data changes; `rowHeight` stays the same.
+Datasets with at least one feature in the visible viewport occupy the first rows. Total height is `max(1, rowCount) * rowHeight`. Datasets with data only outside the viewport are drawn afterward for panning and do not increase track height. The count can change as the view or data changes. `rowHeight` stays the same.
 
 Within each slot, the renderer subtracts `gap` from the band height and clamps the result to zero. Gaps therefore reduce the drawing height without increasing track height.
 

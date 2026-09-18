@@ -151,9 +151,13 @@ Application controls targeting catalog rows must use their qualified IDs as well
 
 ### Restore and save selections
 
-To restore a saved selection, pass its collection-qualified IDs through `initialTrackIds`. These take precedence over `defaultTrackIds` during initialization, while defaults continue to define the dialog's Reset target. Load the initial IDs once and keep them stable for the mounted picker; an empty array deliberately starts with no catalog tracks.
+To restore a saved selection, pass its collection-qualified IDs through `initialTrackIds`. These take precedence over `defaultTrackIds` during initialization. Load the initial IDs once and keep them stable for the mounted picker. An empty array deliberately starts with no catalog tracks.
 
-Use `onCommittedTrackIds` to save the ordered collection IDs after a successful Submit. The callback excludes non-collection tracks and does not run for initialization, Cancel, Reset draft actions, or changes made through other controls. It records track choices and order; saving edited settings or other browser state requires an application-owned session format.
+`defaultTrackIds` continues to define the dialog's Reset target, even when `initialTrackIds` supplies the starting selection.
+
+Use `onCommittedTrackIds` to save the ordered collection IDs after a successful Submit. The callback excludes non-collection tracks. It does not run for initialization, Cancel, Reset draft actions, or changes made through other controls.
+
+The callback records track choices and order. Saving edited settings or other browser state requires an application-owned session format.
 
 ## Further reading
 

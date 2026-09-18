@@ -51,7 +51,11 @@ A module without `settingsComponent` has no settings button. Use native form ele
 
 ## Mutation behavior
 
-Both callbacks return [TrackMutationResult](../browserSetup/trackStore.md#mutation-results). Successful changes commit synchronously and do not wait for fetching or rendering. `updateTrack` uses the store's [shallow patch rules](../browserSetup/trackStore.md#trackupdate-and-trackbaseupdate). `updateTracksOfType` computes one patch for each same-type instance and validates the entire replacement list, including unchanged instances of other types. A rejected batch leaves all tracks unchanged. Unexpected exceptions from a patch callback or custom schema code propagate.
+Both callbacks return [TrackMutationResult](../browserSetup/trackStore.md#mutation-results). Successful changes commit synchronously and do not wait for fetching or rendering. `updateTrack` uses the store's [shallow patch rules](../browserSetup/trackStore.md#trackupdate-and-trackbaseupdate).
+
+`updateTracksOfType` computes one patch for each same-type instance and validates the entire replacement list, including unchanged instances of other types. A rejected batch leaves all tracks unchanged.
+
+Unexpected exceptions from a patch callback or custom schema code propagate.
 
 The browser supplies every prop in the table. `InteractionItem` defaults to `unknown`. Use `track.source` when your form needs to distinguish host-owned sources from user-editable sources; core does not identify or protect source config fields. Hosted controls sit inside a disabled fieldset while browser interactions are blocked. The callbacks also return `INTERACTION_BLOCKED` during that period.
 

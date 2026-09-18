@@ -122,7 +122,9 @@ When only the width changes, core waits until resizing has stopped for 200 ms be
 
 Core starts the tracks' fetchers together and displays their results once every request in the batch has finished. A failed track shows an error while successful tracks show their data, but a slow request delays the whole batch. Core blocks pointer interactions while fetching or while data is drawn at an outdated position.
 
-When newer requests supersede a batch, core ignores the old results. The underlying work is not cancelled, and the fetch contract has no abort signal. Fetchers should return their result rather than directly mutating application state, and resource writes must account for requests that can overlap. Store the reader in `resources` before awaiting its result, as above. Each request then keeps its own reader reference even if another request replaces the cached entry.
+When newer requests supersede a batch, core ignores the old results. The underlying work is not cancelled, and the fetch contract has no abort signal. Fetchers should return their result rather than directly mutating application state.
+
+Resource writes must account for requests that can overlap. Store the reader in `resources` before awaiting its result, as above. Each request then keeps its own reader reference even if another request replaces the cached entry.
 
 ## Further reading
 

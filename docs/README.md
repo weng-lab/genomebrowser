@@ -1,6 +1,6 @@
 # Maintainer documentation
 
-These docs serve human maintainers and provide shared guidance for agents and their skills. Repository-local skills reference files here, so update their references and workflows when the guidance changes. Consumer API documentation lives in each package's `docs/` directory.
+These docs contain repository guidance for maintainers and agents. Repository-local skills reference files here, so update their references and workflows when the guidance changes. Consumer API documentation lives in each package's `docs/` directory.
 
 ## Understand the project
 

@@ -6,11 +6,11 @@ References support lookup and should retain complete technical contracts, includ
 
 Connect related sections so readers understand how built-in options lead to customization, or how parsing leads to validation.
 
-Explain import paths when choosing among entry points matters. When similar names refer to different APIs, explain their purpose, ownership, and required context directly rather than simply warning readers not to confuse them.
+Explain import paths when choosing among entry points matters. When similar names refer to different APIs, explain their purpose, ownership, and required context directly rather than warning readers not to confuse them.
 
 ## Ownership and coverage
 
-Every public export needs a canonical page and heading, not a separate file. Maintain an export-to-reference index in `docs/reference/README.md`, including exported types, aliases, public subpaths, and related runtime symbols. Include public CLI commands and shipped schemas in reference navigation as applicable. Inspect package export maps and their source entry points; root exports alone are not the complete surface.
+Every public export needs a canonical page and heading, not a separate file. Maintain an export-to-reference index in `docs/reference/README.md`, including exported types, aliases, public subpaths, and related runtime symbols. Include public CLI commands and shipped schemas in reference navigation as applicable. Inspect package export maps and their source entry points; root exports alone do not include every public API.
 
 Give independently useful functions, hooks, and components focused pages when that improves lookup. Keep store actions together and supporting types with their owning capability. Each page should make sense when opened directly, with its purpose, import path, required context, and a focused example; link to other contracts instead of assuming the reader visited them first.
 
@@ -22,7 +22,7 @@ Group APIs by reader-facing capability:
 - Reader: one reference per file format or data source, plus the common regional file contract.
 - Starter: command usage, generated output, and constraints; generated application guides own running, customization, architecture, and deployment instructions.
 
-These are grouping guidelines, not a frozen export inventory. Reconcile them with the current public surface during each package pass. Document public exports even when they are specialized; flag questionable exports separately rather than silently omitting them or changing the API during a docs cleanup.
+These are grouping guidelines, not a fixed list of exports. Reconcile them with the current public exports during each package pass. Document public exports even when they are specialized; flag questionable exports separately rather than silently omitting them or changing the API during a docs cleanup.
 
 For functions, hooks, stores, and modules, document signatures, inputs, defaults, results, failures, required context, lifetime, and important interactions. Store reference includes initialization options, observable public state, actions, and mutation-result semantics. Module reference includes creation, configuration, displays, source requirements, interactions, and related types. Keep each supporting type with its owning capability and link from other uses.
 
@@ -81,4 +81,4 @@ Check table structure after formatting: every row must retain the intended colum
 
 Document only behavior verified in the implementation or tests. Cover accessible names, semantic HTML or ARIA roles, keyboard interactions, focus placement and restoration, and disabled or read-only behavior when relevant. Never infer or promise unsupported accessibility behavior.
 
-Before finishing, reconcile affected export-index entries and API sections with current entry points, types, defaults, and behavior. For a full package pass, cover the entire public surface, including subpaths; for a focused change, cover the affected APIs.
+Before finishing, reconcile affected export-index entries and API sections with current entry points, types, defaults, and behavior. For a full package pass, cover the entire public API, including subpaths; for a focused change, cover the affected APIs.

@@ -1,6 +1,6 @@
-# State and Effects
+# State and effects
 
-## Represent Values Correctly
+## Represent values correctly
 
 Decide in this order:
 
@@ -20,7 +20,7 @@ useEffect(() => { setFullName(`${first} ${last}`); }, [first, last]);
 const fullName = `${first} ${last}`;
 ```
 
-## Place State Deliberately
+## Place state deliberately
 
 - Keep state in the lowest component that owns all interactions involving it.
 - Lift it only to the least common parent of components that coordinate through it.
@@ -37,7 +37,7 @@ A value must be fully controlled by its parent or owned locally. Do not copy an 
 
 Here `defaultText` seeds local state once; later updates to the same note do not overwrite the draft. If external edits must be reflected immediately, make the text controlled instead. Choose that behavior from the editing requirements, not as a performance optimization.
 
-## Apply the Effect Boundary
+## Apply the Effect boundary
 
 An Effect synchronizes React with an external system: a browser API, timer, network connection, subscription, external store, or imperative non-React widget. If no external system can be named, remove the Effect.
 
@@ -55,7 +55,7 @@ Common replacements:
 - Effect chain → derivation plus one handler.
 - Manual external-store subscription → `useSyncExternalStore`.
 
-## Make Effects Honest
+## Declare dependencies and clean up Effects
 
 Every Effect must declare all reactive dependencies, clean up retained resources, tolerate setup-cleanup-setup, and prevent obsolete asynchronous work from updating current state. Treat dependency warnings as design feedback rather than suppressing them.
 

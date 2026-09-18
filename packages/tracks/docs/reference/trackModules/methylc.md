@@ -110,6 +110,8 @@ See [Signal condensation](../dataPrimitives/condenseSignalRecords.md) for the sh
 
 ## Value labels
 
-Split display labels the mirrored methylation scale at the left of the plot and the depth scale at the right. Depth labels include a "Depth" prefix. Only configured channel groups receive labels. Labels use monospace text on translucent white backgrounds and do not intercept pointer interactions. They stay fixed at the visible plot edges during panning and update with the rendered scale. Labels that would overlap vertically are omitted, and tracks shorter than 14 pixels omit labels.
+Split display labels the mirrored methylation scale at the left of the plot and the depth scale at the right. Depth labels include a "Depth" prefix. Only configured channel groups receive labels.
+
+Labels use monospace text on translucent white backgrounds and do not intercept pointer interactions. They stay fixed at the visible plot edges during panning and update with the rendered scale. Labels that would overlap vertically are omitted, and tracks shorter than 14 pixels omit labels.
 
 Return to [Area index](README.md) or [Tracks API reference](../README.md).

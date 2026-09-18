@@ -38,7 +38,7 @@ State the dependencies and setup required by each chapter, the expected working 
 
 ## Writing tutorials and guides
 
-Use `gettingStarted/` for sequential learning, `guides/` for independent tasks and concepts, and troubleshooting for diagnosis. Track configuration belongs in the track's reference page. Prefer mental models, workflows, examples, defaults, and sharp edges over repeating API tables.
+Use `gettingStarted/` for sequential learning, `guides/` for independent tasks and concepts, and troubleshooting for diagnosis. Track configuration belongs in the track's reference page. Explain concepts, workflows, examples, defaults, and limitations instead of repeating API tables.
 
 Build the explanation around a minimal realistic example. Keep examples focused on the concept being taught. Use local data to explain fetch and render contracts; introduce services, URL construction, and response validation when those are the subject. Introduce the required pieces, what each does, and why they fit together before presenting their code. For a setup with several cooperating parts, develop the example in connected steps and make clear how the snippets form a working file or application.
 

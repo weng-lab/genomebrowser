@@ -83,11 +83,11 @@ Press Ctrl+C in the tunnel terminal to disconnect it, and in the remote server t
 
 ## Troubleshooting remote access
 
-- **A laptop port is occupied:** change only the local port in the tunnel, for example `-L 127.0.0.1:15173:127.0.0.1:5173`, then open `http://localhost:15173`.
-- **A server port is occupied:** choose another Vite `--port` and use that same port as the final number in `-L`.
-- **The page cannot connect:** confirm Vite is still running and the tunnel connects to the same server. A successful SSH connection alone does not prove that Vite is listening.
-- **The page loads but tracks fail:** genomic URLs are fetched by your laptop's browser. The app tunnel does not forward those data requests. The URLs must be reachable from the laptop, including any required VPN, and support CORS and byte-range requests. See [Host your genomic files](deployment.md#host-your-genomic-files).
-- **Coordinate search works but gene search fails:** check the server's `.env.local`, restart Vite, and confirm the server can reach the SCREEN API.
-- **The preview shows old changes:** rebuild with `npm run build` and refresh the page.
+- **A laptop port is occupied.** Change only the local port in the tunnel, for example `-L 127.0.0.1:15173:127.0.0.1:5173`, then open `http://localhost:15173`.
+- **A server port is occupied.** Choose another Vite `--port` and use that same port as the final number in `-L`.
+- **The page cannot connect.** Confirm Vite is still running and the tunnel connects to the same server. A successful SSH connection alone does not prove that Vite is listening.
+- **The page loads but tracks fail.** Genomic URLs are fetched by your laptop's browser. The app tunnel does not forward those data requests. The URLs must be reachable from the laptop, including any required VPN, and support CORS and byte-range requests. See [Host your genomic files](deployment.md#host-your-genomic-files).
+- **Coordinate search works but gene search fails.** Check the server's `.env.local`, restart Vite, and confirm the server can reach the SCREEN API.
+- **The preview shows old changes.** Rebuild with `npm run build` and refresh the page.
 
 Once connected, check startup tracks, pan and zoom, track selection, a lab-hosted dataset, and search in both development and preview modes.

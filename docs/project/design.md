@@ -6,7 +6,7 @@ The browser is primarily embedded in scientific websites. Shared UI should fit t
 
 Use MUI for application controls and draw interface colors, spacing, and typography from the active theme. Do not impose global resets or a shared theme on the host. Scientific colors belong to track configuration and should remain independent of interface styling.
 
-The UI package provides curated controls for embedding applications. The standalone app may reuse them or build its own interface. Follow [feature placement](feature-placement.md) when deciding where a component belongs.
+The UI package provides controls for embedding applications. The standalone app may reuse them or build its own interface. Follow [feature placement](feature-placement.md) when deciding where a component belongs.
 
 ## Make settings immediate and predictable
 

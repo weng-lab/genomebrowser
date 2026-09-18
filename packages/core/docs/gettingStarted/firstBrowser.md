@@ -86,7 +86,7 @@ const useTrackStore = createTrackStore({
 
 ### Connect the stores to the component
 
-With the region and tracks defined, `GenomeBrowser` connects their state to the visualization. It requests track data for the region and renders the results within the available layout width. The wrapper below fills its parent, with `minWidth: 0` allowing it to shrink inside a flex or grid layout. The component measures that width automatically and follows subsequent size changes.
+`GenomeBrowser` requests data for the region and renders the tracks within the available layout width. The wrapper below fills its parent, with `minWidth: 0` allowing it to shrink inside a flex or grid layout. The component measures that width automatically and follows subsequent size changes.
 
 ```tsx
 import { GenomeBrowser } from "@weng-lab/genomebrowser";
@@ -100,7 +100,7 @@ export function Browser() {
 }
 ```
 
-The resulting `Browser` component contains the complete visualization. Render it from the application component that provides its place in the page, such as `App.tsx`:
+Render `Browser` from `App.tsx`:
 
 ```tsx
 import { Browser } from "./Browser";

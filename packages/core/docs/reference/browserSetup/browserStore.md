@@ -1,6 +1,6 @@
 # Browser store
 
-Use `createBrowserStore` to own a browser's assembly, visible region, sizing configuration, selection mode, and highlights. Pass the resulting stable hook to [GenomeBrowser](GenomeBrowser.md).
+`createBrowserStore` creates state for a browser's assembly, visible region, sizing configuration, selection mode, and highlights. Pass the resulting stable hook to [GenomeBrowser](GenomeBrowser.md).
 
 ## Usage
 
@@ -48,7 +48,9 @@ Responsive views measure their own width and do not write that measurement into 
 
 ## BrowserStore and BrowserStoreInstance
 
-`BrowserStore` contains all fields in the input table as initialized state: `assembly`, normalized `region`, `marginWidth`, `trackWidth`, `fontSize`, `titleSize`, `highlights`, `selectionMode`, and `selectionHighlight`. Input defaults are resolved, so these state fields are present. It also contains the actions below. `assembly` is readonly; the public action API has no assembly, margin, or typography setter.
+`BrowserStore` contains all fields in the input table as initialized state: `assembly`, normalized `region`, `marginWidth`, `trackWidth`, `fontSize`, `titleSize`, `highlights`, `selectionMode`, and `selectionHighlight`. Input defaults are resolved, so these state fields are present. It also contains the actions below.
+
+`assembly` is readonly; the public action API has no assembly, margin, or typography setter.
 
 `BrowserStoreInstance` is `UseBoundStore<StoreApi<BrowserStore>>`, the Zustand hook plus its imperative store API.
 

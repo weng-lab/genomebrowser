@@ -1,15 +1,15 @@
 # Cytobands
 
 `Cytobands` renders one complete chromosome ideogram from data supplied by the
-application. Use `readCytobands` from `@weng-lab/genomic-reader` (or another
-application data source) to load the records, then pass the records and the
-chromosome length to this component.
+application. Load records with `readCytobands` from `@weng-lab/genomic-reader`
+or another application data source, then pass them and the chromosome length
+to this component.
 
 ## Usage
 
-The application owns loading and error UI, and the source URL. This
-example keeps the request outside `Cytobands` and passes ready data through its
-data-only props:
+`Cytobands` does not fetch data or render loading and error states. The
+application supplies the source URL, loads the records, and handles loading
+and errors. This example renders `Cytobands` once the data is ready:
 
 ```tsx
 import { useEffect, useState } from "react";
@@ -75,15 +75,10 @@ reader accepts plain UTF-8 and gzip-compressed files. A complete file lets the
 example derive the displayed chromosome length from its largest band end; an
 application can instead pass a known chromosome length from its assembly data.
 
-`Cytobands` does not fetch data and does not render a loading or error state.
-The caller decides whether to render the component only after data is ready.
-`bands` may contain records for multiple chromosomes; the component renders
-only records whose `chromosome` matches the `chromosome` prop.
-
-## Browser region and loci
+## Browser region and highlights
 
 `currentRegion` is an optional browser viewport bracket. It is independent from
-`highlights`, so changing the browser region does not change application loci
+`highlights`, so changing the browser region does not change highlights
 or the supplied cytoband data.
 
 ```tsx
@@ -138,12 +133,12 @@ export function BrowserIdeogram({ bands }: { bands: readonly Cytoband[] }) {
 
 `GenomicRegion` uses zero-based, half-open coordinates. A highlight without a
 `region.chromosome` uses the displayed chromosome. Highlights on another
-chromosome, invalid intervals, and intervals outside the chromosome extent do
-not render. Valid intervals are clipped to the extent. Narrow loci receive a
-visible marker and a wider pointer target; wider loci render as interval
-overlays. Overlapping loci use deterministic coordinate and ID ordering.
+chromosome or with invalid or out-of-range regions do not render. Partially
+overlapping regions are clipped to the chromosome extent. Narrow highlights
+receive a visible marker and a wider pointer target; wider highlights cover
+their regions. Overlapping highlights use deterministic coordinate and ID ordering.
 
-`type: "outlined"` draws intervals with a 2-pixel border and no fill, preserving the bands underneath. Its opacity defaults to 1; filled highlights default to 0.2. Explicit opacity applies to the border or fill. Regions narrower than the minimum interaction width retain the 2-pixel marker for either type, using the same opacity defaults. Outlined interiors remain hoverable and clickable.
+`type: "outlined"` draws highlights with a 2-pixel border and no fill, preserving the bands underneath. Its opacity defaults to 1; filled highlights default to 0.2. Explicit opacity applies to the border or fill. Regions narrower than the minimum interaction width retain the 2-pixel marker for either type, using the same opacity defaults. Outlined interiors remain hoverable and clickable.
 
 The current-region bracket is non-interactive and renders after highlights. It
 appears only for a valid region on the displayed chromosome, clips partial
@@ -154,9 +149,8 @@ genomic position.
 
 Rendered highlights show a coordinate tooltip on pointer hover. Use
 `renderHighlightTooltip` to replace it with SVG-compatible content. The
-application owns any lookup,
-caching, loading, error, authentication, and cleanup logic for
-application-specific tooltip data:
+application handles lookup, caching, loading, errors, authentication, and
+cleanup for its tooltip data:
 
 ```tsx
 import { useEffect, useState } from "react";
@@ -210,6 +204,8 @@ The tooltip is SVG-only: return SVG-compatible content such as `<text>` or
 `<g>`, not HTML or `foreignObject`. `Cytobands` measures the rendered SVG
 content and updates the tooltip size when that content changes.
 
+### Tooltip placement and appearance
+
 The active tooltip renders in a fixed, viewport-sized SVG portal under
 `document.body`, rather than inside the ideogram SVG. Tooltips start beside the
 position from the pointer-enter event. Near the right or bottom viewport edge,
@@ -218,16 +214,20 @@ margin. Content that is wider or taller than the available viewport area is
 clipped inside the bounded shell rather than extending beyond that margin.
 Custom SVG content does not wrap automatically.
 
-The portal ignores pointer events. Paper, divider, and text colors use the
+Paper, divider, and text colors use the
 active MUI theme's CSS-variable-aware palette tokens when available. Caption
 typography, shape, and the tooltip z-index also come from the active theme.
+
+### Tooltip lifetime
 
 Tooltip content is mounted only for the active highlight, so a request in the
 tooltip component runs only while that highlight is hovered. Pointer leave
 closes the tooltip. Switching highlights, removing the active highlight, and
-unmounting `Cytobands` remove the portal content and its observers. Keyboard
-focus does not open a tooltip; clickable highlights remain keyboard-activatable
-with Enter or Space and expose their coordinates through their accessible name.
+unmounting `Cytobands` remove the portal content and its observers.
+
+The active tooltip requires a browser document. Server rendering emits the
+ideogram without tooltip portal content. Keyboard behavior is described under
+[Accessibility](#accessibility).
 
 ## Data and rendering
 
@@ -237,15 +237,15 @@ with Enter or Space and expose their coordinates through their accessible name.
 - `name` is the band name.
 - `stain` is preserved from the source file and controls the default rendering.
 
-The component safely renders negative, positive-intensity, variable, stalk,
+The component renders negative, positive-intensity, variable, stalk,
 and centromere stains. Unknown stains use the `unknown` color. It filters
 records to the displayed chromosome, removes invalid or out-of-range
-intervals, clips partial overlap, and sorts the rendered records
+regions, clips partial overlap, and sorts the rendered records
 deterministically. `chromosomeLength` defines the full horizontal genomic
 extent and must be a positive finite number for bands or overlays to render.
 
 Changing dimensions, colors, regions, bands, highlights, or callbacks updates
-the rendered SVG synchronously; `Cytobands` makes no network request.
+the rendered SVG synchronously.
 
 ## API
 
@@ -259,7 +259,7 @@ the rendered SVG synchronously; `Cytobands` makes no network request.
 | `width`                   | `number`                                                                                                 | Required           | SVG width and horizontal coordinate space. Non-finite or negative values render as `0`.                                                  |
 | `height`                  | `number`                                                                                                 | Required           | SVG height. Non-finite or negative values render as `0`.                                                                                 |
 | `colors`                  | `Partial<CytobandColors>`                                                                                | `undefined`        | Overrides one or more stain colors.                                                                                                      |
-| `highlights`              | `readonly Highlight[]`                                                                                   | `[]`               | Application loci to overlay. Filled opacity defaults to `0.2`; outlined opacity defaults to `1`.                                         |
+| `highlights`              | `readonly Highlight[]`                                                                                   | `[]`               | Highlights to overlay. Filled opacity defaults to `0.2`; outlined opacity defaults to `1`.                                               |
 | `currentRegion`           | `GenomicRegion`                                                                                          | `undefined`        | Browser viewport rendered as a separate, non-interactive blue bracket.                                                                   |
 | `renderHighlightTooltip`  | `(highlight: Highlight) => ReactNode`                                                                    | Coordinate tooltip | Returns SVG-compatible content for the fixed viewport tooltip shown for the pointer-hovered highlight.                                   |
 | `onHighlightClick`        | `(highlight: Highlight, event: ReactMouseEvent<SVGGElement> \| ReactKeyboardEvent<SVGGElement>) => void` | `undefined`        | Runs for a pointer click or non-repeated Enter/Space activation. Supplying it gives valid highlights `role="button"` and keyboard focus. |
@@ -300,11 +300,8 @@ coordinate label remains its accessible name.
 
 ## Notes
 
-- `Cytobands` renders one complete chromosome, not a multi-chromosome track or the browser's current domain.
 - It does not own or subscribe to a browser store. The caller selects and passes `currentRegion`.
 - It does not require a `GenomeBrowser`, track store, Apollo provider, or application tooltip-data API.
-- Cytoband bands, highlights, and the current-region bracket are clipped to the supplied chromosome extent. The tooltip portal is independent of the ideogram bounds and stacking context.
-- The active tooltip requires a browser document. Server rendering emits the ideogram without tooltip portal content.
 - Overlapping pointer targets follow deterministic SVG paint order; the later rendered target receives pointer input where targets overlap.
 
 ## Related reference

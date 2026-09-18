@@ -37,8 +37,8 @@ type BigWigValueRecord = {
 };
 ```
 
-Unzoomed reads do not invent summary statistics. They can return large arrays for wide regions, so
-read a zoom level explicitly when displaying a wide view.
+`read()` can return large arrays for wide regions. For wide views, use `readZoomLevel()` to read
+stored summaries when the file provides them.
 
 ## Read a zoom level
 
@@ -67,14 +67,13 @@ A `reductionLevel` must be a positive integer and must exactly match an availabl
 unavailable level rejects; the reader does not substitute a nearby level or silently use unzoomed
 data.
 
-This method targets a useful source resolution for the chosen level. It is not a hard result-count
-cap: the reader does not aggregate again, force one record per pixel, or promise any particular
-record count. File-defined summaries may be sparse and need not align with display pixels.
+The selected level does not guarantee a result count or one record per pixel. The reader returns
+the stored summaries without aggregating them again. These summaries may be sparse and need not
+align with display pixels.
 
 ## Understand zoom summaries
 
-Zoom levels contain lossy, file-generated summaries of source values. A zoom read returns
-`BigWigSummaryRecord` objects instead of pretending that an aggregate is a source value:
+Zoom reads return `BigWigSummaryRecord` objects containing the lossy summaries stored in the file:
 
 ```ts
 type BigWigSummaryRecord = {

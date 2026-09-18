@@ -98,7 +98,7 @@ The `satisfies` check catches structural TypeScript errors without changing the 
 
 ### Set initial and reset selections
 
-Use collection-qualified IDs in the form `${collectionId}::${trackId}`. `initialTrackIds` selects tracks for the current initialization lifetime, while `defaultTrackIds` defines the selection restored by Reset.
+Use collection-qualified IDs in the form `${collectionId}::${trackId}`. `initialTrackIds` sets the initial collection selection. `defaultTrackIds` defines the draft selection restored by Reset.
 
 ```tsx
 <TrackSelect
@@ -111,11 +111,20 @@ Use collection-qualified IDs in the form `${collectionId}::${trackId}`. `initial
 />
 ```
 
-When both props are supplied, `initialTrackIds` takes precedence during initialization. Reset still targets `defaultTrackIds`. Passing an explicit empty array removes all tracks represented by the supplied collections; leaving both props `undefined` preserves the initial store.
+On mount, TrackSelect applies `initialTrackIds` to the store, or `defaultTrackIds` if `initialTrackIds` is absent. This runs even when `open` is `false`. An explicit empty initial selection removes all tracks represented by the supplied collections. Leaving both props `undefined` preserves the initial store.
 
-Initialization runs even when `open` is `false`. It runs when the component mounts and when its initialization identity changes: the store, collection/view/track IDs, effective initial IDs, or `maxTracks`. Changing only `defaultTrackIds` while `initialTrackIds` is present changes the Reset target without rewriting the store. Ordinary updates to the same store do not reapply the initial selection, while a remount starts a new initialization lifetime.
+TrackSelect reapplies the initial selection when any of these inputs change:
 
-TrackSelect preserves non-collection tracks first in their existing order, followed by initialized collection tracks in the supplied ID order. Reconciled collection tracks always use `source: "host"`. First-party settings visibly disable their data-source URL inputs while title, display, color, height, and unrelated module settings remain editable. Tracks created directly through a module use `source: "user"` unless the caller supplies another source.
+- The store passed as `useTrackStore`.
+- Collection, view, or track IDs.
+- The initial selection IDs, taken from `initialTrackIds` when supplied and otherwise from `defaultTrackIds`.
+- `maxTracks`.
+
+Ordinary updates to the same store do not reapply the initial selection. Unmounting and remounting TrackSelect applies it again.
+
+Reset restores `defaultTrackIds` in the draft, or clears collection tracks from the draft when defaults are absent. Submit applies that draft to the store. Changing only `defaultTrackIds` while `initialTrackIds` is supplied changes the Reset target without updating the store.
+
+TrackSelect preserves non-collection tracks first in their existing order, followed by initialized collection tracks in the supplied ID order. Collection tracks added or reused during initialization or Submit always use `source: "host"`. First-party settings visibly disable their data-source URL inputs while title, display, color, height, and unrelated module settings remain editable. Tracks created directly through a module use `source: "user"` unless the caller supplies another source.
 
 ### Persist submitted selections
 
@@ -163,7 +172,7 @@ See [Column customization](columnCustomization.md) for override merging and the 
 
 ### Attach track interactions
 
-Pass `resolveTrackInteraction` when collection-created tracks need host callbacks. The resolver receives the owning collection ID, qualified track ID, and parsed authored track during initialization and successful Submit reconciliation. It is not called while users browse or edit the draft.
+Pass `resolveTrackInteraction` when collection-created tracks need host callbacks. The resolver receives the owning collection ID, qualified track ID, and parsed authored track when initialization or Submit updates selected collection tracks in the store. It is not called while users browse or edit the draft.
 
 The returned callbacks later receive the renderer item, current runtime context, and collection context. Keep collection JSON data-only and use the resolver to attach application behavior. See [Track interactions](../../guides/trackInteractions.md) for a complete typed example.
 
@@ -185,7 +194,7 @@ See [Track interactions](trackInteractions.md) for resolver timing, callback typ
 | `defaultTrackIds`         | `readonly string[]`                     | `undefined`      | Sets the ordered collection selection used for initialization when `initialTrackIds` is absent and restored by Reset. Without it, Reset clears collection tracks. |
 | `onCommittedTrackIds`     | `(trackIds: readonly string[]) => void` | `undefined`      | Runs after a successful Submit with all selected collection-qualified IDs in browser order.                                                                       |
 | `columnOverrides`         | `TrackSelectColumnOverrides`            | `undefined`      | Applies host-only MUI Data Grid column options by collection ID and field. The `field` option cannot be overridden.                                               |
-| `resolveTrackInteraction` | `TrackSelectInteractionResolver`        | `undefined`      | Resolves application callbacks for selected collection tracks during initialization and Submit reconciliation.                                                    |
+| `resolveTrackInteraction` | `TrackSelectInteractionResolver`        | `undefined`      | Resolves application callbacks for selected collection tracks when initialization or Submit updates selected collection tracks in the store.                      |
 
 ### Dialog actions
 
@@ -208,7 +217,7 @@ TrackSelect displays each collection's assembly identifier. It uses `label ?? id
 
 The public qualified ID format is `${collectionId}::${trackId}`. Use it in `initialTrackIds`, `defaultTrackIds`, and values received by `onCommittedTrackIds`. Duplicate IDs, unknown IDs, and initialization lists longer than `maxTracks` are rejected.
 
-TrackSelect treats any store track whose ID matches a supplied collection entry as collection-owned. Reconciliation sets both new and reused collection tracks to `source: "host"`, regardless of their previous source. Give fixed or non-collection tracks IDs outside that reserved set. If application code inserts a different track with a reserved ID, initialization or Submit may reuse or remove it during normal reconciliation.
+TrackSelect treats any store track whose ID matches a supplied collection entry as collection-owned. Initialization and Submit set both new and reused collection tracks to `source: "host"`, regardless of their previous source. Give fixed or non-collection tracks IDs outside that reserved set. If application code inserts a different track with a reserved ID, initialization or Submit may reuse or remove it when applying the selection.
 
 ## Accessibility
 
@@ -227,7 +236,7 @@ TrackSelect treats any store track whose ID matches a supplied collection entry 
 - Collection IDs must be unique in `trackCollections`, and track IDs must be unique within a collection. The same authored track ID may appear in different collections because TrackSelect qualifies it with the collection ID.
 - TrackSelect validates collections against the registry before rendering dialog content. Unknown track types, unsupported properties, invalid module config, and missing view metadata fail validation.
 - Use the same module set for the track store, JSON Schema generation, and standalone validation. A collection generated for one registry can fail against another.
-- Keep `trackCollections` stable. Recreating the array causes unchanged collections to be parsed again and can change initialization identity if collection, view, or track IDs also change.
+- Keep `trackCollections` stable. Recreating the array causes unchanged collections to be parsed again and reapplies the initial selection if collection, view, or track IDs also change.
 
 ### Theme and licensing
 

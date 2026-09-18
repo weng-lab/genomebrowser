@@ -8,7 +8,7 @@ Direct checks are useful while iterating. For example, `pnpm core test` runs cor
 
 Run `pnpm run doctor` before PR handoff and report relevant React Doctor findings. This is a separate diagnostic pass, not part of `pnpm verify`. Its CI workflow is nonblocking. Distinguish findings caused by the change from existing findings; do not expand a focused contribution into unrelated cleanup.
 
-> Note: the CI and local versions of React Doctor may be out of sync occasionally, and some issues may or may not be reported in either place. Update as needed, and consolidate CI and local results when necessary.
+CI and local React Doctor versions can report different findings. Compare their versions and results before deciding which findings need attention. Update the versions when needed and review findings from both runs.
 
 For changes to the Rust conversion tool, also run:
 

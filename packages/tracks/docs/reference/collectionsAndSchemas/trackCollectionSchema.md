@@ -1,6 +1,6 @@
 # Collection JSON schema
 
-The package ships `@weng-lab/genomebrowser-tracks/trackCollection.schema.json`, generated from all modules in `firstPartyTrackModules`. It describes track collections and each track's create-input config, including the supported `bedSchema` keys.
+The package ships `@weng-lab/genomebrowser-tracks/trackCollection.schema.json`, generated from all modules in `firstPartyTrackModules`. It describes track collections and the configuration accepted when creating each track, including the supported `bedSchema` keys.
 
 For a collection JSON file in your project root, enable editor validation and completion with:
 

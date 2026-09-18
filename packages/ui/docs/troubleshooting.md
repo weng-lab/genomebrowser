@@ -30,7 +30,9 @@ Validation also runs while TrackSelect is closed. An application loading externa
 
 Initialization uses `initialTrackIds` when supplied, otherwise `defaultTrackIds`. Passing `[]` explicitly clears collection tracks; omitting both preserves the initial store.
 
-TrackSelect can reapply the initial selection when it remounts, receives a different store, or its collection, view, or track IDs change. Changing `maxTracks` or the initial selection also reapplies it. The initial selection comes from `initialTrackIds`, or from `defaultTrackIds` when initial IDs are absent. Keep the picker mounted and use `open` for visibility. Keep restored IDs stable rather than feeding every live track change back into `initialTrackIds`.
+TrackSelect can reapply the initial selection when it remounts, receives a different store, or its collection, view, or track IDs change. Changing `maxTracks` or the IDs used for initialization also reapplies it.
+
+Keep the picker mounted and use `open` for visibility. Keep restored IDs stable rather than feeding every live track change back into `initialTrackIds`.
 
 Changing defaults while explicit initial IDs are present changes the Reset target without reinitializing the store. See [initial and reset selections](reference/trackSelection/TrackSelect.md#set-initial-and-reset-selections).
 

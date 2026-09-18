@@ -1,6 +1,6 @@
 # UI documentation
 
-Use `@weng-lab/genomebrowser-ui` to add application controls to a genome browser or display a chromosome overview. These docs ship with the package.
+Use `@weng-lab/genomebrowser-ui` to add application controls to a genome browser or display a chromosome overview.
 
 ## Getting started
 

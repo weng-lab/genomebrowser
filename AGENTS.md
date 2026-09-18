@@ -19,5 +19,5 @@ Before changing a Next.js app, read that app's installed `node_modules/next/dist
 
 - Zustand store hooks must have names starting with `use` so the React compiler recognizes them.
 - Do not invent track URLs. Use `YOUR_URL_HERE` or an existing repository URL.
-- Do not introduce compatibility layers, aliases, or temporary exports for older package versions unless explicitly asked to. Bring up when it may be useful.
+- Do not introduce compatibility layers, aliases, or temporary exports for older package versions unless explicitly asked to. If compatibility support would help, explain why before proposing it.
 - Before including changes from outside this session in a commit, ask the user whether to include them.

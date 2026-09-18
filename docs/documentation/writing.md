@@ -1,8 +1,8 @@
 # Writing documentation
 
-- Package docs teach consumers through the public surface; maintainer docs explain repository boundaries, rationale, and safe modification. Keep the audiences distinct.
+- Package docs teach consumers through the public API; maintainer docs explain repository boundaries, rationale, and safe modification. Keep the audiences distinct.
 - Give each topic one canonical home. Tutorials teach a sequence, guides explain independent tasks/concepts, reference specifies APIs, and troubleshooting diagnoses symptoms. Link to exhaustive reference instead of duplicating its tables.
-- Every public export needs a reference destination, not a separate file. Keep related types with the owning API and small cooperating components together. Add a page for a distinct reader task or capability, not simply because a PR or option exists.
+- Every public export needs a reference destination, not a separate file. Keep related types with the owning API and small cooperating components together. Add a page when it serves a distinct reader task or capability. A new PR or option alone does not justify a new page.
 - Package docs must work from an installed package. Use package-local relative links; never link upward into repository-only docs or across to sibling package directories. Cross-package links need verified published destinations, with enough local context to follow the example.
 - Examples use public exports. For track URLs use `YOUR_URL_HERE` or an existing repository URL. Do not invent data sources or APIs to simplify examples.
 - Installation and starter commands must select a release that provides the documented APIs. Verify the intended release channel rather than assuming `@latest` contains the documented version. Keep actual minimum runtime requirements explicit where relevant; documentation edits do not change publication policy.

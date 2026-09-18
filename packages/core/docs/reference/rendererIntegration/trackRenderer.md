@@ -58,7 +58,9 @@ Use [TrackOverlay](TrackOverlay.md) or [TrackLabel](TrackLabel.md) for annotatio
 
 ## Shared zoom selection
 
-Mark an SVG hit area with `data-genomebrowser-selection-mode="zoom"` to start shared zoom selection from pan mode. A primary left-button pointer press inside the data area switches the hosting browser to zoom and starts its full-height preview, drag handling, and cancellation. Core handles the press before track panning or item handlers. Zoom remains active after release or cancellation. Existing zoom and highlight modes keep their selected behavior. Set the hit area's `pointerEvents` and cursor as appropriate for the renderer.
+The ruler uses `data-genomebrowser-selection-mode="zoom"` on its coordinate axis to start zoom selection from pan mode. Custom renderers can add the same attribute to an SVG hit area and set its `pointerEvents` and cursor.
+
+In pan mode, a primary left-button press on that area starts the browser's full-height zoom selection before track panning or item handlers run. Zoom stays active after release or cancellation. If zoom or highlight mode is already active, the gesture uses that mode.
 
 ## Context and lifecycle
 

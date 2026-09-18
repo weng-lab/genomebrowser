@@ -36,6 +36,6 @@ The wrapper uses `pointer-events="none"` so annotations do not obstruct plot int
 
 ## Notes
 
-Requires a mounted track frame in `GenomeBrowser`. Renders nothing outside that context or before the overlay target mounts. It is a client-side rendering feature. For styled text annotations, use [TrackLabel](TrackLabel.md).
+`TrackOverlay` requires a mounted track frame in `GenomeBrowser`. It renders nothing outside that context or before the overlay target mounts. It is a client-side rendering feature. For styled text annotations, use [TrackLabel](TrackLabel.md).
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

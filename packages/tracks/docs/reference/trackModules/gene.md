@@ -150,9 +150,21 @@ const track = geneModule.create(
 );
 ```
 
-For a `"part"` target, `target.part.source` distinguishes transcript geometry from merged geometry. Transcript parts retain exon, intron, frame, and transcription-order metadata. Merged exon parts retain winning and overridden transcript contributions. A merged intron part represents one drawable run and exposes its detailed contribution intervals through `segments`.
+For a `"part"` target, `target.part.source` is `"transcript"` or `"merged"`. Transcript parts retain exon, intron, frame, and transcription-order metadata.
 
-Part tooltips show the type, interval, and length. Transcript parts also show both the transcript name and identifier, exon or intron number, UTR side, or coding frame when relevant. Merged parts show supporting transcript names and any lower-priority classifications at the same interval. For merged intron runs, support is collected across the run because it can vary between stored segments. Whole transcript targets show both the transcript name and identifier; whole gene targets show the transcript count.
+Where transcripts overlap in a merged part, the displayed classification follows this priority: CDS, UTR, noncoding exon, then intron. For merged exon parts, `metadata.winningContributions` records the transcripts with that classification. `metadata.overriddenContributions` retains the lower-priority classifications from other transcripts at the same interval.
+
+A merged intron part combines adjacent intron intervals into one visible run. Its `segments` retain the contribution metadata for each interval, since different transcripts may support different sections of the run.
+
+All part tooltips show the type, interval, and length. Additional details depend on the target:
+
+| Target            | Tooltip details                                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Transcript part   | Transcript name and identifier, exon or intron number, and UTR side or coding frame when relevant.                                              |
+| Merged exon part  | Names of transcripts supporting the displayed classification, lower-priority classifications at the same interval, and UTR sides when relevant. |
+| Merged intron run | Names of supporting transcripts collected from all `segments` in the run.                                                                       |
+| Whole transcript  | Location, strand, transcript name, and identifier.                                                                                              |
+| Whole gene        | Location, strand, and transcript count.                                                                                                         |
 
 ## Data shapes
 

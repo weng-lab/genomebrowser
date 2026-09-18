@@ -102,7 +102,7 @@ export const applicationCcreModule = defineTrackModule<BigBedRow>()({
 });
 ```
 
-`defineTrackModule` builds creation and validation functions for the new schema and type. Simply copying a finished module and replacing its `configSchema` would retain creation and validation functions built for the original definition. Reuse its behavior through a new definition instead.
+`defineTrackModule` builds creation and validation functions for the new schema and type. Copying a finished module and replacing its `configSchema` would retain creation and validation functions built for the original definition. Reuse its behavior through a new definition instead.
 
 Here, BigBed still loads the records and draws their features. To filter or process the records before drawing them, supply a different fetcher that returns the data expected by the selected renderers. If the data shape changes, adapt the renderers and interaction item type together. [Data fetching and rendering](dataFetching.md) explains which changes require new requests.
 

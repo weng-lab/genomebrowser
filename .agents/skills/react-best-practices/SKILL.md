@@ -3,9 +3,9 @@ name: react-best-practices
 description: Use when writing, refactoring, or reviewing React/TypeScript components and hooks for correctness, maintainability, composition, or performance, including React-related Next.js fetching and rendering. Excludes styling-only work and non-React TypeScript.
 ---
 
-# React Best Practices
+# React best practices
 
-Produce the smallest React implementation that remains correct, readable, maintainable, and responsive as requirements change.
+Implement the current requirement with the smallest correct React design. Keep the code readable and maintainable, and check responsiveness when it matters to the change.
 
 ## Workflow
 
@@ -16,10 +16,10 @@ Produce the smallest React implementation that remains correct, readable, mainta
 
 During implementation, apply the guidance without narrating a checklist. During review, report concrete correctness, design, or performance risks with preferred replacements, not stylistic nits. During design discussion, do not edit files unless asked. Keep focused changes free of unrelated cleanup.
 
-## Core Principles
+## Core principles
 
 - Derive values during rendering when existing props or state determine them; keep owned state at the lowest common owner.
-- Effects synchronize with external systems. Keep interaction logic in handlers and dependencies and cleanup honest.
+- Effects synchronize with external systems. Keep interaction logic in handlers. Declare every reactive dependency and clean up retained resources.
 - Props remain current values unless an initial-only contract is explicit. Multiple mounted instances must remain independent.
 - Prefer clear domain APIs and composition. Boolean props, render props, and Context are valid when they fit the actual contract.
 - Earn abstractions from observed callers and variation; avoid speculative shared frameworks.
@@ -31,7 +31,7 @@ During implementation, apply the guidance without narrating a checklist. During 
 ## References
 
 - **Bundled Next.js documentation:** Before changing a Next.js app, read that app's `node_modules/next/dist/docs/index.md`, then the pages relevant to the change, and heed deprecation warnings. Resolve this path from the app directory. Prefer these installed-version docs over remembered APIs or upstream examples; if unavailable, use official Next.js documentation matching the installed version.
-- [State and Effects](references/state-and-effects.md): Read for state, reducers, prop synchronization, refs, Effects, or external subscriptions.
+- [State and effects](references/state-and-effects.md): Read for state, reducers, prop synchronization, refs, Effects, or external subscriptions.
 - [Component design](references/component-design.md): Read for component or hook responsibilities, composition, shared abstractions, variants, or provider boundaries.
 - [TypeScript contracts](references/typescript-contracts.md): Read when defining or changing props, events, refs, Context, reducers, children, or generic React APIs.
 - [React performance](references/react-performance.md): Read for expensive rendering, subscriptions, responsiveness, client fetching, or bundle loading.

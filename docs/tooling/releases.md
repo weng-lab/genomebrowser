@@ -26,7 +26,9 @@ Use an explicit package selection and dist-tag. For example, substitute the sele
 pnpm --filter @weng-lab/genomic-reader publish --tag <TAG>
 ```
 
-For the coordinated v2.0.0 release of core, tracks, UI, reader, and create, run `pnpm publish:dry-run`, then have a human run `pnpm publish:stable` from the clean, committed release checkout. These commands select the five public workspace packages; private apps and the starter template are excluded. The dry run skips Git checks so it can validate preparation changes before they are committed. Actual publication keeps Git checks enabled.
+For the coordinated v2.0.0 release of core, tracks, UI, reader, and create, run `pnpm publish:dry-run`, then have a human run `pnpm publish:stable` from the clean, committed release checkout. These commands select the five public workspace packages; private apps and the starter template are excluded.
+
+The dry run skips Git checks so it can validate preparation changes before they are committed. Actual publication keeps Git checks enabled.
 
 Add `--dry-run` to validate the selection without publishing. For multiple packages, use pnpm's recursive filtered publishing or publish dependencies first. Use a whole-workspace command only when its eligible packages match the intended release set.
 
@@ -38,13 +40,13 @@ GitHub drafts may be prepared beforehand. Publishing them requires a separate ex
 
 Use one release per package, targeting the verified release commit. The naming convention is:
 
-| Package directory | Git tag | Release title |
-| --- | --- | --- |
-| core | `core-v<VERSION>` | `Core <VERSION>` |
-| tracks | `tracks-v<VERSION>` | `Tracks <VERSION>` |
-| ui | `ui-v<VERSION>` | `UI <VERSION>` |
-| reader | `reader-v<VERSION>` | `Reader <VERSION>` |
-| create | `create-v<VERSION>` | `Create <VERSION>` |
+| Package directory | Git tag             | Release title      |
+| ----------------- | ------------------- | ------------------ |
+| core              | `core-v<VERSION>`   | `Core <VERSION>`   |
+| tracks            | `tracks-v<VERSION>` | `Tracks <VERSION>` |
+| ui                | `ui-v<VERSION>`     | `UI <VERSION>`     |
+| reader            | `reader-v<VERSION>` | `Reader <VERSION>` |
+| create            | `create-v<VERSION>` | `Create <VERSION>` |
 
 Private apps are not package release targets. Reuse existing drafts; investigate conflicting tags rather than moving them. Update published releases only when requested.
 

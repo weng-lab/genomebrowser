@@ -1,6 +1,6 @@
 # Deployment
 
-Deployment has three parts: the built website, accessible genomic files, and a search endpoint. Provide the target host, site address, audience, and access constraints so an agent can configure and verify the deployment.
+Deployment has three parts: the built website, accessible genomic files, and a search endpoint. Before deployment, choose the host, site address, audience, and access requirements.
 
 To run the app or test a build over SSH first, see [Run, build, and access remotely](running.md).
 
@@ -30,7 +30,7 @@ Keep the key out of browser code and `VITE_` variables. The local `.env.local` f
 
 Collection entries require HTTP or HTTPS URLs reachable by the intended audience. The lab's suggested directory is `/zata/public_html/users/YOUR_USER`; establish its corresponding public URL before configuring tracks.
 
-BigWig and BigBed access requires byte-range requests with uncompressed partial responses. A different data origin must allow cross-origin requests (CORS). See `node_modules/@weng-lab/genomebrowser-tracks/docs/legacy/dataSources.md` for diagnostics.
+BigWig and BigBed access requires byte-range requests with uncompressed partial responses. A different data origin must allow cross-origin requests through CORS. See `node_modules/@weng-lab/genomebrowser-tracks/docs/legacy/dataSources.md` for diagnostics.
 
 ## Verify deployment
 

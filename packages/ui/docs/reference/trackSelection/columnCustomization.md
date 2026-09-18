@@ -48,7 +48,7 @@ type ValueMarkerConfig = { color: string };
 type ValueMarkerMap = Readonly<Record<string, string | ValueMarkerConfig>>;
 ```
 
-Each key identifies a displayed value. A string value specifies its marker color directly; an object supplies the same color through its required `color` field. Colors are passed to the marker styling. There is no package color-validation or fallback contract.
+Each key identifies a displayed value. A string value specifies its marker color directly; an object supplies the same color through its required `color` field. The helper passes colors to styling without validating them or choosing a fallback.
 
 Markers are hidden from assistive technology; their text remains available. Custom `renderCell` implementations must preserve an accessible text equivalent and appropriate keyboard behavior.
 

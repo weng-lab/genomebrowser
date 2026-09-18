@@ -4,9 +4,9 @@
 
 Before changing a package integration, read the relevant installed documentation:
 
-- `node_modules/@weng-lab/genomebrowser/docs/README.md` — runtime, stores, assemblies, and custom track modules.
-- `node_modules/@weng-lab/genomebrowser-tracks/docs/README.md` — built-in tracks, configuration, settings, and data sources.
-- `node_modules/@weng-lab/genomebrowser-ui/docs/README.md` — track selection, navigation, and highlights.
+- `node_modules/@weng-lab/genomebrowser/docs/README.md`. Runtime, stores, assemblies, and custom track modules.
+- `node_modules/@weng-lab/genomebrowser-tracks/docs/README.md`. Built-in tracks, configuration, settings, and data sources.
+- `node_modules/@weng-lab/genomebrowser-ui/docs/README.md`. Track selection, navigation, and highlights.
 
 Template-specific guidance is in `docs/`, including production search setup in `docs/deployment.md`.
 

@@ -122,7 +122,11 @@ const track = bigWigModule.create(
 
 `BigWigInteraction` uses core's `TrackInteraction<SignalPoint, BigWigConfig>`. Each callback receives the pixel item and a context containing the current track `type`, resolved `base`, and parsed `config`.
 
-Both displays emit `onHover` when the pointer moves to a different pixel containing signal. They emit `onLeave` for the last signal pixel when the pointer reaches a missing pixel or leaves the overlay. Moving directly between two signal pixels emits the new hover without an intervening leave. Although the shared interaction type permits `onClick`, BigWig's renderers do not emit it.
+Both displays emit `onHover` when the pointer moves to a different pixel containing signal. They emit `onLeave` for the last signal pixel when the pointer reaches a missing pixel or leaves the overlay.
+
+Moving directly between two signal pixels emits the new hover without an intervening leave.
+
+Although the shared interaction type permits `onClick`, BigWig's renderers do not emit it.
 
 ## Validation
 

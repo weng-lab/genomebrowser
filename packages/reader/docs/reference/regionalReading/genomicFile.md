@@ -22,7 +22,7 @@ interface GenomicFile<T extends GenomicRecord> {
 }
 ```
 
-This structural interface describes a regional read and its result type. There is no base class to construct or inherit. Format-specific file types supply the record shape; BigWig additionally exposes zoom methods. Keep a file instance to reuse its metadata. Built-in factories validate their options synchronously and defer network access until an operation needs it.
+This structural interface describes a regional read and its result type. There is no base class to construct or inherit. Format-specific file types supply the record shape; BigWig also exposes zoom methods. Keep a file instance to reuse its metadata. Built-in factories validate their options synchronously and defer network access until an operation needs it.
 
 The interface does not enforce coordinate conventions, clipping, sorting, caching, or validation on custom implementations. Consult each format's contract for those behaviors: [BigWig](../bigWig/bigWig.md), [BigBed](../bigBed/bigBed.md), and [TwoBit](../twoBit/twoBit.md).
 
@@ -36,7 +36,7 @@ type GenomicRegion = {
 };
 ```
 
-Identifies the chromosome or contig and requested interval. Sequence names are supplied as strings. Coordinate interpretation belongs to the selected reader.
+Identifies the chromosome or contig and requested region. Sequence names are supplied as strings. Coordinate interpretation belongs to the selected reader.
 
 ## GenomicRecord
 
@@ -48,7 +48,7 @@ type GenomicRecord = {
 };
 ```
 
-Defines the coordinate fields required on returned records. It has the same structural shape as `GenomicRegion` but names the result role. Format-specific records extend it with signal, annotation, or sequence data.
+`GenomicRecord` describes a returned record using the same coordinate fields as `GenomicRegion`. Format-specific records extend it with signal, annotation, or sequence data.
 
 ## ReadOptions
 

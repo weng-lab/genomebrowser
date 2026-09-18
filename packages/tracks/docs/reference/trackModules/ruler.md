@@ -80,7 +80,11 @@ The temporary highlight appears in the browser's shared highlights list. Applica
 
 ## Selecting regions
 
-In Pan mode, pressing the coordinate axis or tick labels switches the browser and toolbar to Zoom and starts shared region selection. The preview spans the full browser height, and releasing a drag zooms to the selected region. Zoom stays active afterward. Escape, pointer cancellation, or losing window focus cancels the selection while keeping Zoom active. The hit area ends above the DNA letters, which retain their hover and panning behavior. Moving over a dialog does not activate ruler interactions.
+In Pan mode, pressing the coordinate axis or tick labels switches the browser and toolbar to Zoom and starts shared region selection. The preview spans the full browser height.
+
+Releasing a drag zooms to the selected region. Escape, pointer cancellation, or losing window focus cancels the selection. Zoom stays active after either finishing or cancelling.
+
+The hit area ends above the DNA letters, which retain their hover and panning behavior. Moving over a dialog does not activate ruler interactions.
 
 The browser's Zoom and Highlight modes cover the data area with a crosshair and vertical cursor guide and block underlying track interactions. Return to Pan to restore the ruler's axis selection behavior. These browser modes also work without a ruler.
 

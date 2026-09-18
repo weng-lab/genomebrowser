@@ -17,11 +17,23 @@ const records = await file.read({ chromosome: "chr1", start: 100, end: 120 });
 | `TwoBitRecord`                | `GenomicRecord & { sequence: string }`       | Sequence length equals `end - start`.                             |
 | `TwoBitFile`                  | `GenomicFile<TwoBitRecord>`                  | Reuse an instance to retain index and chromosome metadata.        |
 
-Both byte orders are supported. Unknown blocks become `N`; soft-masked blocks become lowercase, including `n` where masks overlap unknown bases. Bases stay in forward-reference order. Missing chromosomes and requests entirely beyond a sequence return `[]`; an overlapping request is clipped to its sequence end.
+## Sequence output
 
-The reader caches successful metadata per file instance, then requests only the packed bytes covering each region. It does not cache sequence results. Cancellation is scoped to each read and does not poison subsequent requests. Invalid regions, unsupported versions, malformed metadata, truncated data, and range failures reject the read.
+Unknown blocks become `N`. Soft-masked blocks become lowercase, including `n` where masks overlap unknown bases. Bases stay in forward-reference order.
 
-The server must support byte ranges and browser CORS, with exact-size `206 Partial Content` responses. Exposing `Content-Range` allows offset verification but is optional. A 2bit file contains DNA; a normal BigWig contains numeric values and is not a reference-sequence source. This API does not infer bases from numeric values or support local filesystem paths, compressed 2bit files, or version-1 64-bit indices.
+Missing chromosomes and requests entirely beyond a sequence return `[]`. An overlapping request is clipped to its sequence end.
+
+## Caching and cancellation
+
+The reader caches successful metadata per file instance, then requests only the packed bytes covering each region. It does not cache sequence results.
+
+Cancellation applies only to the read being cancelled. Cancelling one read does not affect later reads. Invalid regions, unsupported versions, malformed metadata, truncated data, and range failures reject the read.
+
+## Server and format requirements
+
+The server must support byte ranges and browser CORS, with exact-size `206 Partial Content` responses. Exposing `Content-Range` allows offset verification but is optional.
+
+Both byte orders are supported. Local filesystem paths, compressed 2bit files, and version-1 64-bit indices are not supported.
 
 ## Public types and methods
 

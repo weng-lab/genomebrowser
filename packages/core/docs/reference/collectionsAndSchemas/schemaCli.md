@@ -25,7 +25,9 @@ Sources can be package specifiers or local paths. Relative source paths and outp
 
 Append `#exportName` to select a named export. Without it, the loader accepts a module value, a default export containing track modules, or a single named export containing track modules. If several named exports qualify, select one explicitly. Duplicate module types across combined sources fail schema generation.
 
-Importing a source executes its code in Node. Keep module definitions importable without application startup or browser-only side effects. Import, argument, generation, and file errors are reported on stderr with exit code 1. With stdout output, the loaded-module summary goes to stderr so stdout contains only the schema.
+Importing a source executes its code in Node. Keep module definitions importable without application startup or browser-only side effects.
+
+The CLI reports import, argument, generation, and file errors on stderr with exit code 1. With stdout output, the loaded-module summary goes to stderr so stdout contains only the schema.
 
 Set `$schema` in your collection JSON to the generated file's relative location. This helps an editor interpret the file; runtime validation still uses your supplied modules.
 

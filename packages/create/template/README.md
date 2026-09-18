@@ -1,6 +1,6 @@
 # Your genome browser
 
-An editable React and TypeScript application built with the Weng Lab genome browser packages. It starts with hg38 and reference tracks, ready to adapt to your datasets and workflows.
+An editable React and TypeScript application built with the Weng Lab genome browser packages. It starts with hg38 and reference tracks.
 
 ## Run locally
 

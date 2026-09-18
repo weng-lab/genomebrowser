@@ -1,6 +1,6 @@
 # UI API reference
 
-Import all components, helpers, and types below from `@weng-lab/genomebrowser-ui`. The package has one public JavaScript entry point. Supporting types share a reference with their owning capability.
+Import all components, helpers, and types below from `@weng-lab/genomebrowser-ui`. The package has one public JavaScript entry point. Each component or helper is documented with its related types.
 
 The application owns runtime stores, collection data, and dialog visibility. Store-bound controls receive the same stores used by `GenomeBrowser`; `Cytobands` receives data and callbacks directly. See [package setup](../../README.md) for dependencies, MUI theming, and licensing.
 
@@ -8,7 +8,7 @@ The application owns runtime stores, collection data, and dialog visibility. Sto
 
 - [Browser controls](browserControls/README.md): Pan, zoom, and choose region interaction modes.
 - [Highlights](highlights/README.md): Manage browser highlights.
-- [Chromosome overview](chromosomeOverview/README.md): Display cytobands, the viewport, and interactive loci.
+- [Chromosome overview](chromosomeOverview/README.md): Display cytobands, the viewport, and interactive highlights.
 - [Track selection](trackSelection/README.md): Browse collections, customize columns, and attach application callbacks.
 
 ## Public export index

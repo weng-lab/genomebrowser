@@ -1,6 +1,6 @@
 # Architecture
 
-The page composes browser controls and the genome display. Controls own their local state, such as whether a dialog is open. Shared stores connect navigation, tracks, and rendering.
+The page contains browser controls and the genome display. Controls own their local state, such as whether a dialog is open. Shared stores connect navigation, tracks, and rendering.
 
 ## Shared state
 

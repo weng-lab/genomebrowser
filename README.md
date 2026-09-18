@@ -6,7 +6,7 @@ This pnpm monorepo contains independently versioned packages for the Weng Lab Ge
 
 - `packages/core` (`@weng-lab/genomebrowser`) is the embeddable React runtime.
   It renders genomic tracks and owns the browser state and extension APIs.
-- `packages/tracks` (`@weng-lab/genomebrowser-tracks`) provides the curated,
+- `packages/tracks` (`@weng-lab/genomebrowser-tracks`) provides the
   MUI-based BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Gene
   modules.
 - `packages/ui` (`@weng-lab/genomebrowser-ui`) provides optional, higher-level
@@ -14,7 +14,7 @@ This pnpm monorepo contains independently versioned packages for the Weng Lab Ge
   the browser do not need this package.
 - `packages/reader` (`@weng-lab/genomic-reader`) provides format-independent
   TypeScript contracts for reading genomic data by region.
-- `packages/create` (`@weng-lab/create-genomebrowser`) scaffolds an editable
+- `packages/create` (`@weng-lab/create-genomebrowser`) creates an editable
   browser application with the stable v2 packages.
 
 Private applications live under `apps/`:
@@ -39,8 +39,8 @@ For an existing application, follow the installation instructions in the
 
 ## Setup
 
-Use the pnpm version declared in `package.json`, then install the single
-workspace dependency graph from the repository root:
+Use the pnpm version declared in `package.json`, then install workspace
+dependencies from the repository root:
 
 ```sh
 pnpm install --frozen-lockfile

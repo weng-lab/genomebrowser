@@ -1,6 +1,6 @@
 # BrowserNavigationButton
 
-`BrowserNavigationButton` is a store-bound MUI button for one pan or zoom action. Use it to build navigation controls that match your application while keeping them synchronized with `GenomeBrowser`.
+`BrowserNavigationButton` is a MUI button that pans or zooms the supplied browser store. Use it to build navigation controls for `GenomeBrowser`.
 
 ## Usage
 
@@ -59,7 +59,7 @@ export function BrowserWithNavigation() {
 }
 ```
 
-The UI package does not provide a standard toolbar. Your application chooses the actions, children, icons, tooltips, grouping, ordering, wrapping, MUI variants, sizes, and styling.
+The UI package does not provide a standard toolbar. The application arranges and styles these buttons using ordinary MUI props.
 
 ## Navigation behavior
 

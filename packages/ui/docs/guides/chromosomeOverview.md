@@ -75,7 +75,7 @@ In the [controls tutorial](../gettingStarted/addBrowserControls.md), import `Bro
 
 ## Choose highlights and tooltip content
 
-The example displays browser-store highlights. An application may instead pass its own array of loci without adding them to the browser store. The viewport bracket and highlight overlays are independent.
+The example displays browser-store highlights. An application may instead pass its own array of highlighted regions without adding them to the browser store. The viewport bracket and highlight overlays are independent.
 
 Coordinates are zero-based and half-open. A highlight without a chromosome uses the displayed chromosome. Highlights on another chromosome do not render. Narrow regions receive a visible marker and a wider pointer target; the bracket itself is non-interactive.
 

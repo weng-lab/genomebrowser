@@ -23,7 +23,11 @@ const useTrackStore = createTrackStore({
 
 Replace `YOUR_URL_HERE` with your BigWig URL. Keep the returned Zustand hook stable and give its variable a `use` prefix. Create separate stores for browsers that need independent track lists. Application controls and collection UI can share the same store as the browser.
 
-In React components, select both displayed values and actions through the hook. For example, `useTrackStore((state) => state.updateTrack)` supplies the stable update action for an event handler without subscribing to track changes. Use `getState()` outside React or for an event-time snapshot of a value that does not drive rendering. It does not subscribe to changes. See [state and action access](../../gettingStarted/firstBrowser.md#access-browser-state-and-actions) for a React example. The action snippets below run outside React and use the store and module from this setup. For creating custom track types, see [custom track modules](../../guides/customTracks.md).
+In React components, select displayed values and actions through the hook. For example, `useTrackStore((state) => state.updateTrack)` supplies the stable update action for an event handler without subscribing to track changes. See [state and action access](../../gettingStarted/firstBrowser.md#access-browser-state-and-actions) for a React example.
+
+Use `getState()` outside React or in an event handler to read a value that does not drive rendering. It returns a snapshot without subscribing to changes. The action snippets below run outside React and use the store and module from this setup.
+
+For creating custom track types, see [custom track modules](../../guides/customTracks.md).
 
 ## createTrackStore and TrackStoreOptions
 
@@ -91,7 +95,11 @@ function reportTrackChange(result: TrackMutationResult) {
 }
 ```
 
-The result is `{ ok: true }` or `{ ok: false; code: TrackMutationErrorCode; error: string }`. A rejected mutation leaves the existing tracks and order unchanged. A successful mutation commits synchronously; it does not wait for data loading or rendering. Schema validation failures from `defineTrackModule` become failure results during mutations, even though the same failures throw during construction. Unexpected exceptions from custom validation code propagate. Express expected validation failures through the module schema.
+A successful mutation returns `{ ok: true }` and commits synchronously. It does not wait for data loading or rendering.
+
+A rejected mutation returns `{ ok: false; code: TrackMutationErrorCode; error: string }` and leaves the existing tracks and order unchanged. Schema validation failures from `defineTrackModule` return this failure result during mutations. The same failures throw during store construction.
+
+Unexpected exceptions from custom validation code propagate. Express expected validation failures through the module schema.
 
 `MutationFailure<Code extends string>` is the shared failure shape `{ ok: false; code: Code; error: string }`. Branch on `code` for application logic and use `error` for display; message text is not a stable identifier.
 

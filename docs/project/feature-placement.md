@@ -28,17 +28,17 @@ Applications own product workflows, such as searching a particular catalog and a
 
 ## Reader provides programmatic access to genomic files
 
-Reader owns retrieving data from genomic files for a requested region or other supported input. Its purpose is to make those files accessible to code without requiring callers to implement the file format or transport details. Track fetchers use that access as part of their own data-loading behavior.
+Reader retrieves genomic data without requiring callers to implement file formats or transport. Track fetchers use it to load data for the requested region.
 
-Internal caching can support efficient file access without making a general caching system the package's primary responsibility. First-party track fetchers currently retain file-reader objects through their track-scoped `resources`. Those objects preserve reusable metadata, including headers, so subsequent reads of the same source do not repeat that metadata work. This does not imply that every requested region's records are cached.
+Caching supports file access; it does not make Reader a general caching system. First-party track fetchers retain file-reader objects in their track-scoped `resources`. Those objects reuse metadata, including headers, across reads of the same source. This does not mean they cache every requested region's records.
 
 Reader could eventually expose additional caching capabilities, such as a region cache that fetchers could retain through resources. That is a possible extension, not an established API or a requirement to move all track caching into reader. Keep the file-access interface simple and evaluate broader caching features when a concrete need warrants them.
 
-## UI provides curated controls for embedding
+## UI provides controls for embedding
 
-The UI package gives consuming websites a curated set of components to integrate into their existing interfaces. Like first-party tracks, these controls should be useful directly and support a consistent experience across embedded browsers. Lab websites such as SCREEN, PsychSCREEN, and Factorbook are the intended consumers of shared controls for navigation, track selection, and other browser interactions.
+UI provides navigation, track selection, and other browser controls for embedding applications such as SCREEN, PsychSCREEN, and Factorbook.
 
-The standalone app owns its product interface and application-specific components. It may use UI-package components when they fit, but the package is not its required component layer. Do not move standalone-specific components into UI merely to share their location; judge additions by their usefulness to applications embedding the browser.
+The standalone app owns its interface and application-specific components. It may use UI components when they fit, but is not required to. Add components to UI when they are useful to embedding applications, not merely to place standalone components in a shared package.
 
 ## Example of an open placement decision: grouped tracks
 

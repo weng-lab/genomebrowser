@@ -107,7 +107,7 @@ keys, even with `z.strictObject`; they remain unparsed in `fields`.
 
 The reader owns and protects `chromosome`, `start`, `end`, and `fields`, so a schema cannot declare
 those names. It also rejects integer-index-like property names because JavaScript enumerates them
-out of declaration order. Use a normal stripping object (`z.object`), `z.strictObject`, or an
+out of declaration order. Use `z.object` with its default stripping behavior, `z.strictObject`, or an
 explicit `z.never()` catchall. Loose, passthrough, value-producing catchall, object-level transform,
 wrapped, and object-level refined schemas are not supported. These restrictions keep positional
 mapping and the inferred output shape consistent.
@@ -182,12 +182,14 @@ file object to refresh metadata if the content at a URL changes.
 Ordinary no-data cases return `[]`. Once a file exists, `read()` asynchronously rejects for invalid
 regions, network and HTTP contract failures, aborts, incompatible files, binary decode errors,
 decompression errors, and Zod parsing failures. These failures never become empty or partial
-results. Column validation failures throw `BigBedParseError`, a subclass of `z.ZodError`.
-Its readable `message` identifies the record, one-based BED column number, schema field, and
-raw value (or expected and actual column counts for a short record). `context` exposes
-`region`, `column`, `field`, `value`, `expectedColumns`, and `actualColumns`; the counts include
-BED3, and `value` is absent for a missing column. Zod `issues` include the schema field in
-`path`, and `cause` preserves the original Zod error. Other failures propagate unchanged.
+results.
+
+Column validation failures reject with `BigBedParseError`, a subclass of `z.ZodError`.
+Its `message` identifies the record, one-based BED column number, schema field, and raw value.
+For a short record, the message reports the expected and actual column counts instead.
+The error's `context` provides these details as fields; see [BigBedParseContext](#bigbedparsecontext).
+Zod `issues` include the schema field in `path`, and `cause` preserves the original Zod error.
+Other failures propagate unchanged.
 
 Schemas are explicit: the reader neither chooses a schema from column count nor falls back
 when validation fails.

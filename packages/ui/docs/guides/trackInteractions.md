@@ -28,7 +28,9 @@ const resolveTrackInteraction: TrackSelectInteractionResolver = ({ collectionId 
 
 Add `resolveTrackInteraction={resolveTrackInteraction}` to the existing TrackSelect element. Replace the log with the application's details panel or another action appropriate to the selected item.
 
-TrackSelect calls the resolver when applying the initial selection and on Submit, including for tracks already in the store. The returned callback runs later, when the user interacts with a rendered item. Browsing, changing a draft, or canceling does not call the resolver. Passing a different resolver function alone does not update callbacks on existing tracks.
+TrackSelect calls the resolver when applying the initial selection and on Submit, including for tracks already in the store. Browsing, changing a draft, or canceling does not call it. Passing a different resolver function alone does not update callbacks on existing tracks.
+
+The returned callback runs later, when the user interacts with a rendered item.
 
 ## Read runtime values and collection metadata
 

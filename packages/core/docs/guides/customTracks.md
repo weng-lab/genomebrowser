@@ -187,7 +187,7 @@ function AnnotationSettings({ track, updateTrack }: TrackSettingsProps<Config, A
 }
 ```
 
-A source-editing form also needs an ownership policy. Instances carry `source: "user"` or `"host"`, but core cannot identify which custom config fields represent a source. The module's form must use that value to decide which source controls are editable. This example exposes only label visibility.
+Use `track.source` to decide whether users can edit source fields. Instances carry `source: "user"` or `"host"`, but core cannot identify which custom config fields represent a source. The module's form must enforce that choice. This example exposes only label visibility.
 
 ## Emit items and show tooltips
 

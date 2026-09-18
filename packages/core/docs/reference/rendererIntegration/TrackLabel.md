@@ -52,6 +52,6 @@ Labels are SVG text with no keyboard interaction. Pointer events pass through to
 
 ## Notes
 
-Built on [TrackOverlay](TrackOverlay.md); requires a mounted track renderer and uses visible plot coordinates, not overscanned content coordinates. Corner labels sit against the top or bottom edge. Their values still update when the renderer's data changes.
+`TrackLabel` uses [TrackOverlay](TrackOverlay.md) and requires a mounted track renderer. Its coordinates refer to the visible plot rather than the content retained outside the viewport for panning. Corner labels sit against the top or bottom edge. Their values still update when the renderer's data changes.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

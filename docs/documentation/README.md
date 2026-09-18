@@ -2,9 +2,9 @@
 
 Maintainer documentation is shared by people and agents. Repository documents own project requirements, policies, and their rationale. Keep each topic in one canonical location so changing a policy does not require finding copies in several agent instructions.
 
-## Skills route common tasks
+## Skills start common workflows
 
-Repository skills make common workflows discoverable and explicitly invocable. Keep them small: describe when the skill applies, require it to read the relevant repository documents, and guide execution through the task. A short skill is useful even when its main job is to load the right guidance.
+Repository skills let users and agents start common workflows. Keep each skill short. State when it applies, which repository documents to read, and how to complete the task. A short skill is useful even when its main job is to load the right guidance.
 
 Put shared reference material in the repository documentation rather than inside a skill's references directory. These skills are specific to this repository; they do not need to carry a portable copy of its policies. Developers should be able to find and follow the same guidance without invoking a skill.
 

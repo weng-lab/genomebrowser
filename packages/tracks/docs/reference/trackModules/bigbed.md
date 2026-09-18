@@ -22,11 +22,11 @@ const track = bigBedModule.create({
 
 ## Displays and base defaults
 
-| Field     | Supported or default            | Behavior                                                                               |
-| --------- | ------------------------------- | -------------------------------------------------------------------------------------- |
-| `display` | `"dense"` (default), `"squish"` | Dense stretches one row across its slot. Squish packs overlapping intervals into rows. |
-| `height`  | `12`                            | Dense one-row height. Squish replaces it with packed row count times `rowHeight`.      |
-| `color`   | `"#4b9560"`                     | Fallback interval color when a row has no color.                                       |
+| Field     | Supported or default             | Behavior                                                                               |
+| --------- | -------------------------------- | -------------------------------------------------------------------------------------- |
+| `display` | `"dense"` by default, `"squish"` | Dense stretches one row across its slot. Squish packs overlapping intervals into rows. |
+| `height`  | `12`                             | Dense one-row height. Squish replaces it with packed row count times `rowHeight`.      |
+| `color`   | `"#4b9560"`                      | Fallback interval color when a row has no color.                                       |
 
 ## Config
 
@@ -77,7 +77,9 @@ All four options are required:
 
 The result is `Promise<BigBedRecord<Schema>[]>`, with column types inferred from the schema. Each row includes `chromosome`, `start`, `end`, and unconsumed columns in `fields`. Network, file-reading, and column-validation errors reject the promise.
 
-Readers are cached by URL and schema object identity within the supplied resources. Define schemas outside the fetch callback so successive requests reuse the same object. Changing the URL or schema creates or reuses the matching reader; earlier readers remain until the track is removed or the browser unmounts. Separate tracks and browser instances have separate resources. The helper reuses readers, but still reads the requested region on each call.
+Readers are cached by URL and schema object identity within the supplied resources. Define schemas outside the fetch callback so successive requests reuse the same object. Changing the URL or schema creates or reuses the matching reader.
+
+Earlier readers remain until the track is removed or the browser unmounts. Separate tracks and browser instances have separate resources. The helper reuses readers, but still reads the requested region on each call.
 
 ### Custom-schema module
 

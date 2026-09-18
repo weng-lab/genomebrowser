@@ -49,7 +49,7 @@ Every entered bound must be finite. When both are present, minimum must be less 
 
 Valid changed drafts commit after 300 ms, or immediately on blur or Enter. Escape restores the accepted value. External values replace the local value when no unresolved draft remains.
 
-The field keeps its draft locally and takes the accepted value from its props. Return `TrackMutationResult` from `onCommit`, using core's `updateTrack` result in a module form. Success accepts the draft; failure retains it and shows the returned error. The field does not read browser stores.
+The field stores the draft locally. Pass the accepted value through `range` and return `TrackMutationResult` from `onCommit`. In a module form, return core's `updateTrack` result. A successful result accepts the draft. A failed result keeps the draft and displays its error. The field does not read browser stores.
 
 ## Accessibility
 

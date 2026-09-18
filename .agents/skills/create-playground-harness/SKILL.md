@@ -20,7 +20,7 @@ Give the user a concise proposal that names:
 - representative normal, boundary, failure, and repeated-action scenarios that matter for this change
 - the files expected inside the route directory
 
-Ask the user to approve or revise the proposal. Do not edit files until they approve it. This step is complete when the user and agent agree on a focused harness tied to the actual implementation.
+Ask the user to approve or revise the proposal. Do not edit files until they approve it.
 
 ## Keep it self-contained
 
@@ -33,15 +33,15 @@ Place every harness file, fixture, and local helper inside `apps/playground/app/
 - Do not add code markers; the route directory is the disposable boundary.
 - Do not expose secrets, move server-only behavior into client code, or invent track URLs.
 
-Import workspace package APIs directly. If the agreed behavior cannot be exercised without changing a file outside the route directory, stop and propose the minimum external plumbing and its cleanup cost before editing it. This step is complete when deleting one route directory removes the harness, unless the user explicitly approved a wider boundary.
+Import workspace package APIs directly. If the agreed behavior requires changes outside the route directory, stop and describe the required changes and how to remove them. Get the user's approval before editing those files.
 
 ## Make behavior explorable
 
-Use MUI and the active theme for application controls, following the interface design guidance. Prefer a compact working surface over a polished demo. Use domain-specific labels and include only controls that help the maintainer understand the change.
+Use MUI and the active theme for application controls, following the interface design guidance. Keep the page compact and focused on the behavior being explored. Use domain-specific labels and include only controls that help the maintainer understand the change.
 
-Provide editable inputs, useful presets, and explicit actions where the flow is not naturally reactive. Show current state, transitions, errors, and raw structured output when they help explain what happened. Exercise the real production seam directly; do not duplicate its logic or replace it with a mock.
+Provide editable inputs, useful presets, and explicit actions where the flow is not naturally reactive. Show current state, transitions, errors, and raw structured output when they help explain what happened. Call the production component or API directly. Do not duplicate its logic or replace it with a mock.
 
-Cover the meaningful scenarios from the approved proposal. Include repeated actions when state transitions, cleanup, cancellation, caching, or stale data could affect the result. This step is complete when the maintainer can initiate each scenario and observe its outcome from the page.
+Cover the meaningful scenarios from the approved proposal. Include repeated actions when state transitions, cleanup, cancellation, caching, or stale data could affect the result.
 
 ## Verify and hand off
 
@@ -51,8 +51,8 @@ Report:
 
 - the route path the user should open
 - the scenarios and controls available
-- the production seam being exercised
+- the production component or API being called
 - the verification result and any unrelated failures
 - the route directory to delete when finished
 
-The work is complete when the route builds, the page exercises the agreed production behavior, and cleanup is a clearly identified directory deletion.
+The work is complete when the route builds and the maintainer can run each agreed scenario and observe its outcome. Deleting the route directory must remove the harness. If the user approved changes outside that directory, also explain how to remove those changes.

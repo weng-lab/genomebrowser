@@ -24,7 +24,9 @@ function SignalSettings(props: TrackSettingsProps<BigWigConfig, SignalPoint>) {
 
 ## API
 
-Height edits require a finite value of at least 20 pixels. Apply to all sends the same height to every track of this exact type. Rejected edits retain their draft and show the mutation error. This component accepts core's `TrackSettingsProps<Config, Item>`. It has no separate exported props type.
+Height edits require a finite value of at least 20 pixels. Apply to all sends the same height to every track of this exact type. Rejected edits retain their draft and show the mutation error.
+
+This component accepts core's `TrackSettingsProps<Config, Item>`. It has no separate exported props type.
 
 | Prop                 | Type                                                                                                               | Default  | Description                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------ |

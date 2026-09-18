@@ -1,6 +1,6 @@
 # Reader API reference
 
-Import all runtime APIs and types from `@weng-lab/genomic-reader`. The package has one public entry point. Supporting types share a reference with their owning capability.
+Import all runtime APIs and types from `@weng-lab/genomic-reader`. The package has one public entry point. Each reader API is documented with its related types.
 
 ## Browse by area
 
