@@ -1,4 +1,3 @@
-import { useRulerZoomMode } from "./useRulerZoomMode";
 import { SequenceBase } from "./SequenceBase";
 import { useRulerHoverHighlight } from "./useRulerHoverHighlight";
 import { tickStep } from "./helpers";
@@ -36,19 +35,18 @@ export function Ruler({
     showSequence,
     config.sequenceHighlightColor,
   );
-  const zoomHandlers = useRulerZoomMode();
   const sequenceHeight = Math.max(1, Math.min(25, height - axisY - 6));
   return (
     <g aria-label="Genomic ruler" pointerEvents="none" style={{ userSelect: "none" }}>
       <rect
-        {...zoomHandlers}
+        data-genomebrowser-selection-mode="zoom"
         data-ruler-zoom-area=""
         x={x(visibleRegion.start)}
         y={0}
         width={(visibleRegion.end - visibleRegion.start) * pixelsPerBase}
         height={Math.min(height, axisY + 2)}
         pointerEvents="all"
-        style={{ cursor: "crosshair" }}
+        style={{ cursor: "crosshair", touchAction: "none" }}
         fill="transparent"
       />
       <line x1={0} x2={width} y1={axisY} y2={axisY} stroke={color} opacity={0.35} />

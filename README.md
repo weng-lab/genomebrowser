@@ -1,38 +1,56 @@
 # Weng Lab Genome Browser
 
-This pnpm monorepo contains independently versioned `2.0.0-beta` packages for the
-Weng Lab Genome Browser. The packages are prereleases and are not intended to
-replace an npm `latest` release. Any publication must retain the configured
-`beta` dist-tag.
+This pnpm monorepo contains independently versioned packages for the Weng Lab Genome Browser. See the [release guide](docs/03-tooling/releases.md) for version selection and publication.
 
 ## Package map
 
 - `packages/core` (`@weng-lab/genomebrowser`) is the embeddable React runtime.
   It renders genomic tracks and owns the browser state and extension APIs.
-- `packages/tracks` (`@weng-lab/genomebrowser-tracks`) provides the curated,
-  MUI-based BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Transcript
+- `packages/tracks` (`@weng-lab/genomebrowser-tracks`) provides the
+  MUI-based BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Gene
   modules.
 - `packages/ui` (`@weng-lab/genomebrowser-ui`) provides optional, higher-level
   application controls that depend on the runtime. Applications that only need
   the browser do not need this package.
 - `packages/reader` (`@weng-lab/genomic-reader`) provides format-independent
   TypeScript contracts for reading genomic data by region.
-- `packages/create` (`@weng-lab/create-genomebrowser`) scaffolds an editable
-  browser application with the beta packages.
+- `packages/create` (`@weng-lab/create-genomebrowser`) creates an editable
+  browser application with the stable v2 packages.
 
 Private applications live under `apps/`:
 
-- `apps/standalone` (`@weng-lab/genomebrowser-standalone`) is the deployed web application.
+- [Standalone app](apps/standalone/README.md) (`apps/standalone`, `@weng-lab/genomebrowser-standalone`) is the deployed web application. Its README covers SCREEN search and environment configuration.
 - `apps/playground` (`@weng-lab/genomebrowser-playground`) contains experiments and custom browser setups. It resolves workspace package imports directly to source; preserved package demos under `examples/` are intentionally not routed.
 
-User-facing documentation is shipped from each package's `docs/` directory.
-Repository decisions and contributor guidance live in the root `docs/`
-directory and `AGENTS.md`.
+See the [maintainer docs](docs/README.md) and [contribution guide](docs/02-contributing/README.md) for repository guidance.
+
+## Install
+
+The package documentation targets stable v2.0.0. Create a new application with:
+
+```sh
+npm create @weng-lab/genomebrowser@2.0.0 my-browser
+```
+
+For an existing application, follow the installation instructions in the
+[core README](packages/core/README.md). All five public packages use the
+`latest` npm dist-tag for stable releases.
+
+## Read the installed package docs
+
+The core, tracks, UI, and reader packages ship their documentation in `docs/`. Before writing or changing an integration, open the relevant index from your application's directory:
+
+- `node_modules/@weng-lab/genomebrowser/docs/README.md`
+- `node_modules/@weng-lab/genomebrowser-tracks/docs/README.md`
+- `node_modules/@weng-lab/genomebrowser-ui/docs/README.md`
+- `node_modules/@weng-lab/genomic-reader/docs/README.md`
+
+Follow the index to the guides and API references for the task. Prefer these bundled docs when working with an installed package because they describe that version; the repository's default branch may document a different version. Include this instruction in your application's `AGENTS.md` when using coding agents. Generated applications already include it.
 
 ## Setup
 
-Use the pnpm version declared in `package.json`, then install the single
-workspace dependency graph from the repository root:
+Use the pnpm version declared in `package.json`, then install workspace
+dependencies from the repository root:
 
 ```sh
 pnpm install --frozen-lockfile
@@ -43,33 +61,22 @@ their framework and TypeScript dependencies in their own manifests.
 
 ## Commands
 
-Run commands from the repository root. Turborepo runs each task in the workspace
+Run `pnpm verify` from the repository root for the usual workspace check. It runs
+formatting checks, lint, builds, and tests. Use the individual commands below for
+focused work.
+
+Turborepo runs each task in the workspace
 projects that define it, follows package dependencies, and reuses results from
-its local cache. See the [Turborepo maintainer guide](docs/turborepo.md) for
+its local cache. See the [build orchestration guide](docs/03-tooling/builds.md) for
 filters, cache behavior, and task configuration.
 
 | Task             | Workspace           | Focused example                                                            |
 | ---------------- | ------------------- | -------------------------------------------------------------------------- |
+| Verify workspace | `pnpm verify`       | Run from the repository root for the full check.                           |
 | Build            | `pnpm build`        | `pnpm exec turbo run build --filter=@weng-lab/genomebrowser-tracks`        |
 | Test             | `pnpm test`         | `pnpm exec turbo run test --filter=@weng-lab/genomebrowser-tracks`         |
 | Typecheck        | `pnpm typecheck`    | `pnpm exec turbo run typecheck --filter=@weng-lab/genomebrowser-tracks`    |
 | Lint             | `pnpm lint`         | `pnpm exec turbo run lint --filter=@weng-lab/genomebrowser-tracks`         |
 | Check formatting | `pnpm format:check` | `pnpm exec turbo run format:check --filter=@weng-lab/genomebrowser-tracks` |
 
-Human maintainers can run `pnpm dev` or `pnpm playground dev` for the playground and `pnpm standalone dev` for the standalone product.
-Automation agents must not start the development servers; inspect
-`.devserve/out.log` and `.devserve/err.log` when diagnosing a server already
-started by a user.
-
-Set `SCREEN_API_KEY` in the standalone app's local environment for transcript data. The app
-reads the key only in its server-side SCREEN GraphQL proxy; the key is not
-exposed to browser code.
-
-Before submitting a change, run the relevant targeted commands followed by
-`pnpm verify`. Package publication is a
-separate maintainer action; do not publish as part of routine verification.
-`pnpm publish:dry-run` validates the publishable packages without changing npm state. An
-authorized prerelease must use `pnpm publish:beta`, which passes the `beta`
-tag explicitly rather than relying on a registry's current default tag. Both
-paths rebuild the packages before packing; package safeguards build required
-workspace dependencies first so declarations and executable output cannot be stale or missing.
+For more detail about working in this monorepo, see the [maintainer documentation](docs/README.md).

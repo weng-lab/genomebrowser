@@ -3,17 +3,10 @@
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import {
-  GenomeBrowser,
-  createBrowserStore,
-  createSettingsStore,
-  createTrackStore,
-} from "@weng-lab/genomebrowser";
+import { GenomeBrowser, createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
-import { TrackBaseSettings } from "@weng-lab/genomebrowser-tracks/shared";
 import {
   HighlightDialog,
   BrowserToolbar,
@@ -24,7 +17,6 @@ import {
 import { useState } from "react";
 import { browserAssembly } from "../lib/assembly";
 import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
-import { AppBar } from "@mui/material";
 
 const useBrowserStore = createBrowserStore({
   assembly: browserAssembly,
@@ -54,10 +46,6 @@ const useTrackStore = createTrackStore({
   ],
 });
 
-const useSettingsStore = createSettingsStore({
-  baseSettingsComponent: TrackBaseSettings,
-});
-
 const ccreInteraction: TrackSelectInteraction<CcreBigBedRow, CcreBigBedConfig> = {
   onClick: (item) => {
     console.log("cCRE BigBed row", item);
@@ -84,11 +72,7 @@ export function Browser() {
         onSelectTracks={() => setTrackSelectOpen(true)}
       />
       <Box sx={{ pt: 1, width: "100%", overflowX: "auto" }}>
-        <GenomeBrowser
-          browserStore={useBrowserStore}
-          settingsStore={useSettingsStore}
-          trackStore={useTrackStore}
-        />
+        <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
       </Box>
       <TrackSelect
         open={trackSelectOpen}

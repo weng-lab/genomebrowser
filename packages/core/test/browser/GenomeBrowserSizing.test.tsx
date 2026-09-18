@@ -246,7 +246,7 @@ describe("browser sizing", () => {
       const element = svg();
       installCoordinates(element, 1.25);
       const trackWidth = geometry().viewBox![2] - 50;
-      const hitArea = element.querySelector("rect")!;
+      const hitArea = element.querySelector("[data-selection-overlay]")!;
       await act(async () =>
         hitArea.dispatchEvent(pointerEvent("pointerdown", (50 + trackWidth * 0.25) * 1.25)),
       );

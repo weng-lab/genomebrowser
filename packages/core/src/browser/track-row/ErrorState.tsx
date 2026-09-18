@@ -1,4 +1,6 @@
-import { ErrorIcon } from "./icons";
+import { use } from "react";
+import { createPortal } from "react-dom";
+import { trackOverlayContext } from "../track-overlay/context";
 
 export function ErrorState({
   x,
@@ -13,31 +15,35 @@ export function ErrorState({
   height: number;
   message: string;
 }) {
-  const minIconSize = 18;
-  const maxIconSize = 40;
-  const minFontSize = 8;
-  const maxFontSize = 12;
-  const gap = 2;
-  const showIcon = height >= minIconSize + gap + minFontSize;
-  const fontSize = showIcon
-    ? Math.min(maxFontSize, height - minIconSize - gap)
-    : Math.min(maxFontSize, height);
-  const size = showIcon
-    ? Math.min(maxIconSize, Math.max(minIconSize, height / 3), height - gap - fontSize)
-    : 0;
-  return (
-    <g transform={`translate(${x + (width - size) / 2},${y})`}>
-      {showIcon && <ErrorIcon outline="#000000" inside="#ffffff" width={size} height={size} />}
-      <text
-        fill="#000000"
-        textAnchor="middle"
-        dominantBaseline="hanging"
-        fontSize={`${fontSize}px`}
-        x={size / 2}
-        y={showIcon ? size + gap : 0}
+  const overlay = use(trackOverlayContext);
+  const lane = (
+    <foreignObject x={x} y={y} width={overlay?.width ?? width} height={height} pointerEvents="auto">
+      <div
+        role="region"
+        aria-label="Track error"
+        tabIndex={0}
+        onPointerDown={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
+        style={{
+          display: "block",
+          width: "100%",
+          height: "100%",
+          padding: "0 4px",
+          border: 0,
+          background: "#fff",
+          color: "#9b1c1c",
+          font: `${Math.min(12, height)}px sans-serif`,
+          textAlign: "left",
+          boxSizing: "border-box",
+          overflow: "auto",
+          whiteSpace: "pre-wrap",
+          overflowWrap: "anywhere",
+        }}
       >
-        {message}
-      </text>
-    </g>
+        Error — {message}
+      </div>
+    </foreignObject>
   );
+
+  return overlay?.target ? createPortal(lane, overlay.target) : lane;
 }

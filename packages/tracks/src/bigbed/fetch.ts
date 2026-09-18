@@ -1,12 +1,8 @@
-import { bedSchemas } from "../shared/bedSchemas";
-import type { GenomicRegion, TrackFetchContext } from "@weng-lab/genomebrowser";
-import {
-  createBigBedFile,
-  type BigBedFileOptions,
-  type BigBedRecord,
-} from "@weng-lab/genomic-reader";
+import type { GenomicRegion, TrackFetchContext, TrackResources } from "@weng-lab/genomebrowser";
+import type { BigBedFileOptions, BigBedRecord } from "@weng-lab/genomic-reader";
 import type { z } from "zod";
 import { readCachedBigBedRows } from "../shared/cachedFiles";
+import { readBedPreset } from "../shared/readBedPreset";
 import type { BigBedConfig, BigBedData } from "./types";
 
 export async function fetchBigBed({
@@ -14,23 +10,20 @@ export async function fetchBigBed({
   demand: { region },
   resources,
 }: TrackFetchContext<BigBedConfig>): Promise<BigBedData> {
-  return readCachedBigBedRows(
-    resources,
-    config.url,
-    bedSchemas[config.bedSchema ?? "bed9"],
-    region,
-  );
+  return readBedPreset(resources, config.url, config.bedSchema, region);
 }
 
+/** Reads custom BigBed columns, reusing a reader per URL and schema identity in resources. */
 export async function fetchBigBedRows<Schema extends z.ZodObject>({
   url,
   region,
   schema,
+  resources,
 }: {
   url: string;
   region: GenomicRegion;
   schema: BigBedFileOptions<Schema>["schema"];
+  resources: TrackResources;
 }): Promise<BigBedRecord<Schema>[]> {
-  const file = createBigBedFile({ url, schema });
-  return file.read(region);
+  return readCachedBigBedRows(resources, url, schema, region);
 }

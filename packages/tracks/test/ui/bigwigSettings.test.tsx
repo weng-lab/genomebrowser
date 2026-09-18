@@ -235,7 +235,14 @@ function renderSettings(initialConfig = config, source: TrackSource = "user") {
   document.body.append(container);
   root = createRoot(container);
   act(() => {
-    root?.render(<BigWigSettings track={track} updateTrack={updateTrack} />);
+    root?.render(
+      <BigWigSettings
+        displayOptions={["full"]}
+        updateTracksOfType={() => ({ ok: true })}
+        track={track}
+        updateTrack={updateTrack}
+      />,
+    );
   });
   return updateTrack;
 }

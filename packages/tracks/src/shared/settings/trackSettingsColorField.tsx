@@ -47,7 +47,8 @@ function TrackSettingsColorFieldSession(props: TrackSettingsColorFieldProps) {
     validate: (value): DraftValidation<string> => validateHexColorDraft(value),
     isEqual: colorsAreEqual,
     onCommit: (color) => {
-      if (props.disabled) return { ok: false, error: "The color field is disabled." };
+      if (props.disabled)
+        return { ok: false, code: "INTERACTION_BLOCKED", error: "The color field is disabled." };
       return props.onCommit(color);
     },
     debounceMs: false,

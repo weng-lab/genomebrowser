@@ -33,6 +33,7 @@ export function SelectRegion({
   setRegion,
   disabled = false,
   mode = "zoom",
+  onModeChange,
   highlightStyle = DEFAULT_HIGHLIGHT,
   onHighlight,
   highlights = [],
@@ -46,6 +47,7 @@ export function SelectRegion({
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
   disabled?: boolean;
   mode?: BrowserSelectionMode;
+  onModeChange?: (mode: BrowserSelectionMode) => void;
   highlightStyle?: SelectionHighlightStyle;
   onHighlight?: (highlight: Highlight) => void;
   highlights?: readonly Highlight[];
@@ -54,7 +56,8 @@ export function SelectRegion({
   const [selection, setSelection] = useState<Selection | null>(null);
   const session = useRef<Selection | null>(null);
   const cleanup = useRef<(() => void) | null>(null);
-  const suppressClick = useRef(false);
+  const guide = useRef<SVGLineElement | null>(null);
+  const selectionActive = mode !== "pan" && !disabled;
   const hasValidDimensions = [marginWidth, trackWidth, totalHeight].every(
     (value) => Number.isFinite(value) && value > 0,
   );
@@ -67,14 +70,17 @@ export function SelectRegion({
 
   useEffect(
     () => cancel,
-    [cancel, disabled, mode, highlightStyle, marginWidth, trackWidth, totalHeight, region, svg],
+    [cancel, disabled, highlightStyle, marginWidth, trackWidth, totalHeight, region, svg],
   );
 
-  const startSelection = (event: ReactPointerEvent<SVGGElement>) => {
-    suppressClick.current = false;
+  useEffect(() => {
+    if (session.current && session.current.mode !== mode) cancel();
+  }, [cancel, mode]);
+
+  const startSelection = (event: ReactPointerEvent<SVGGElement>, selectionMode = mode) => {
     if (disabled || !hasValidDimensions || !svg || event.button !== 0 || event.isPrimary === false)
       return;
-    if (mode === "pan") return;
+    if (selectionMode === "pan") return;
     const point = svgPoint(svg, event.clientX, event.clientY);
     if (
       !point ||
@@ -86,9 +92,9 @@ export function SelectRegion({
     event.preventDefault();
     event.stopPropagation();
     cancel();
-    suppressClick.current = true;
     const start = point.x;
-    session.current = { start, end: start, mode, pointerId: event.pointerId };
+    if (selectionMode !== mode) onModeChange?.(selectionMode);
+    session.current = { start, end: start, mode: selectionMode, pointerId: event.pointerId };
     setSelection(session.current);
     const move = (event: PointerEvent) => {
       if (!session.current || session.current.pointerId !== event.pointerId) return;
@@ -141,18 +147,10 @@ export function SelectRegion({
 
   return (
     <g
-      onPointerDownCapture={startSelection}
-      onClickCapture={(event) => {
-        if (suppressClick.current) {
-          suppressClick.current = false;
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      }}
-      style={{
-        cursor: mode === "pan" ? undefined : "crosshair",
-        touchAction: "none",
-        userSelect: "none",
+      onPointerDownCapture={(event) => {
+        if (mode !== "pan" || !onModeChange || !(event.target instanceof Element)) return;
+        const target = event.target.closest('[data-genomebrowser-selection-mode="zoom"]');
+        if (target && event.currentTarget.contains(target)) startSelection(event, "zoom");
       }}
     >
       <rect
@@ -163,6 +161,54 @@ export function SelectRegion({
         x={hasValidDimensions ? marginWidth : 0}
       />
       {children}
+      {selectionActive && hasValidDimensions && (
+        <g>
+          <rect
+            data-selection-overlay=""
+            x={marginWidth}
+            width={trackWidth}
+            height={totalHeight}
+            fill="transparent"
+            pointerEvents="all"
+            style={{ cursor: "crosshair", touchAction: "none", userSelect: "none" }}
+            onPointerDown={(event) => startSelection(event)}
+            onPointerMove={(event) => {
+              if (!svg || !guide.current) return;
+              const point = svgPoint(svg, event.clientX, event.clientY);
+              if (!point || !Number.isFinite(point.x)) return;
+              guide.current.setAttribute("x1", String(point.x));
+              guide.current.setAttribute("x2", String(point.x));
+              guide.current.style.visibility = "visible";
+            }}
+            onPointerLeave={() => {
+              if (guide.current) guide.current.style.visibility = "hidden";
+            }}
+            onPointerCancel={() => {
+              if (guide.current) guide.current.style.visibility = "hidden";
+            }}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+            onContextMenu={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+          />
+          <line
+            ref={guide}
+            data-cursor-guide=""
+            y1={0}
+            y2={totalHeight}
+            stroke="currentColor"
+            strokeOpacity={0.6}
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+            pointerEvents="none"
+            style={{ visibility: "hidden" }}
+          />
+        </g>
+      )}
       {selection && (
         <g pointerEvents="none">
           <rect

@@ -38,6 +38,45 @@ describe("createTrackStore", () => {
     });
   }
 
+  it("codes every expected rejection and leaves the entire store and subscribers unchanged", () => {
+    const store = createTrackStore({ modules: [signalModule], tracks: [signalTrack()] });
+    const state = store.getState();
+    const notify = vi.fn();
+    store.subscribe(notify);
+    const invalid = { ...signalTrack("bad"), config: { url: "" } };
+    const cases = [
+      [() => state.addTrack(signalTrack()), "DUPLICATE_TRACK_ID"],
+      [() => state.addTrack({ ...signalTrack(), type: "unknown" }), "UNKNOWN_TRACK_MODULE"],
+      [() => state.addTrack(invalid), "INVALID_TRACK"],
+      [() => state.setTracks([signalTrack("new"), invalid]), "INVALID_TRACK"],
+      [() => state.setTracks([signalTrack(), signalTrack()]), "DUPLICATE_TRACK_ID"],
+      [() => state.removeTrack("missing"), "TRACK_NOT_FOUND"],
+      [() => state.updateTrack("missing", {}), "TRACK_NOT_FOUND"],
+      [() => state.updateTrack("signal", { base: { height: -1 } }), "INVALID_TRACK"],
+      [() => state.reorderTracks([]), "INVALID_TRACK_ORDER"],
+      [() => state.applyTrackChanges({ remove: ["signal"], add: [invalid] }), "INVALID_TRACK"],
+      [() => state.applyTrackChanges({ remove: ["signal", "missing"] }), "TRACK_NOT_FOUND"],
+      [() => state.applyTrackChanges({ add: [signalTrack()] }), "DUPLICATE_TRACK_ID"],
+    ] as const;
+    for (const [mutate, code] of cases) {
+      expect(mutate()).toEqual({ ok: false, code, error: expect.any(String) });
+      expect(store.getState()).toBe(state);
+    }
+    expect(notify).not.toHaveBeenCalled();
+  });
+
+  it("propagates unexpected validator exceptions without committing a partial batch", () => {
+    const bug = new Error("validator bug");
+    const module = { ...signalModule, validate: vi.fn(signalModule.validate) };
+    const store = createTrackStore({ modules: [module], tracks: [signalTrack()] });
+    const before = store.getState();
+    module.validate.mockImplementationOnce(signalModule.validate).mockImplementationOnce(() => {
+      throw bug;
+    });
+    expect(() => before.setTracks([signalTrack("a"), signalTrack("b")])).toThrow(bug);
+    expect(store.getState()).toBe(before);
+  });
+
   it("pins tracks from any module in configured order and snapshots duplicate IDs", () => {
     const ids = ["interval", "b", "interval"];
     const store = createTrackStore({

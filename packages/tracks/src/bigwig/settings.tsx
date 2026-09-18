@@ -1,3 +1,5 @@
+import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
+import { TrackHeightSettings } from "../shared/settings/trackHeightSettings";
 import Box from "@mui/material/Box";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
@@ -16,10 +18,17 @@ import type { SignalPoint } from "../shared/signal";
 import type { BigWigConfig } from "./types";
 
 type Props = TrackSettingsProps<BigWigConfig, SignalPoint>;
-export function BigWigSettings({ track, updateTrack }: Props) {
+export function BigWigSettings({ track, updateTrack, ...settings }: Props) {
   const { config } = track;
   return (
     <TrackSettingsLayout>
+      <TrackBaseSettings
+        track={track}
+        updateTrack={updateTrack}
+        displayOptions={settings.displayOptions}
+      >
+        <TrackHeightSettings track={track} updateTrack={updateTrack} {...settings} />
+      </TrackBaseSettings>
       <TrackSettingsSection title="BigWig source">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>

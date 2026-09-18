@@ -1,4 +1,4 @@
-import { useTrackStore } from "@weng-lab/genomebrowser";
+import { useGenomeBrowser } from "@weng-lab/genomebrowser";
 import { useEffect } from "react";
 import { z } from "zod";
 
@@ -38,6 +38,7 @@ export function useRowLayout(trackId: string, rowCount: number, config: RowLayou
     throw new RangeError("config.rowHeight must be a finite number of at least 1 pixel.");
   }
 
+  const { useTrackStore } = useGenomeBrowser();
   const currentHeight = useTrackStore((state) => state.getTrack(trackId)?.base.height);
   const updateTrack = useTrackStore((state) => state.updateTrack);
   const rowHeight = config.rowHeight;

@@ -14,17 +14,19 @@ const trackState = vi.hoisted(() => ({
 
 vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
-  useTrackStore: (
-    selector: (state: {
-      getTrack: (trackId: string) => { base: { height: number } } | undefined;
-      updateTrack: typeof trackState.updateTrack;
-    }) => unknown,
-  ) =>
-    selector({
-      getTrack: (trackId) =>
-        trackId === "rows" ? { base: { height: trackState.currentHeight } } : undefined,
-      updateTrack: trackState.updateTrack,
-    }),
+  useGenomeBrowser: () => ({
+    useTrackStore: (
+      selector: (state: {
+        getTrack: (trackId: string) => { base: { height: number } } | undefined;
+        updateTrack: typeof trackState.updateTrack;
+      }) => unknown,
+    ) =>
+      selector({
+        getTrack: (trackId) =>
+          trackId === "rows" ? { base: { height: trackState.currentHeight } } : undefined,
+        updateTrack: trackState.updateTrack,
+      }),
+  }),
 }));
 
 import { useRowLayout } from "@weng-lab/genomebrowser-tracks/shared";

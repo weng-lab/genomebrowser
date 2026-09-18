@@ -75,6 +75,8 @@ function Harness({ onSettingsRender = () => undefined, trackId = "bulk-peaks" }:
       </button>
       <Profiler id="bulkbed-settings" onRender={onSettingsRender}>
         <BulkBedSettings
+          displayOptions={["full"]}
+          updateTracksOfType={() => ({ ok: true })}
           track={track}
           updateTrack={(update) => useStore.getState().updateTrack(trackId, update)}
         />
@@ -272,7 +274,7 @@ async function renderHarness(props: HarnessProps = {}) {
           (rejectAddUpdate && nextLength > current.datasets.length) ||
           (rejectRemoveUpdate && nextLength < current.datasets.length)
         ) {
-          return { ok: false, error: "Rejected for test" };
+          return { ok: false, code: "INVALID_TRACK", error: "Rejected for test" };
         }
         return updateTrack(id, update);
       },
@@ -297,7 +299,16 @@ async function renderControlledSettings(
     document.body.appendChild(container);
     root = createRoot(container);
   }
-  await act(async () => root?.render(<BulkBedSettings track={track} updateTrack={updateTrack} />));
+  await act(async () =>
+    root?.render(
+      <BulkBedSettings
+        displayOptions={["full"]}
+        updateTracksOfType={() => ({ ok: true })}
+        track={track}
+        updateTrack={updateTrack}
+      />,
+    ),
+  );
 }
 
 function createTrack(id: string) {

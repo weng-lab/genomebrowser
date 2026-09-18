@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { bed3Schema } from "../src/lib";
+import { z } from "zod";
+import { BigBedParseError, bed3Schema } from "../src/lib";
 import { decodeBigBedBlock, stableSortBigBedRecords } from "../src/internal/bigBedDecoder";
 
 const encoder = new TextEncoder();
@@ -88,6 +89,86 @@ describe("BigBed record decoding", () => {
         start: 0xfffffffe,
         end: 0xffffffff,
         fields: ["field"],
+      },
+    ]);
+  });
+});
+
+describe("BigBed schema diagnostics", () => {
+  const schema = z.object({
+    name: z.string(),
+    score: z.coerce.number(),
+    strand: z.string(),
+    signalValue: z.coerce.number(),
+    pValue: z.coerce.number(),
+    qValue: z.coerce.number(),
+    peak: z.coerce.number(),
+  });
+  const decode = (payload: string, selected = schema) =>
+    decodeBigBedBlock(
+      record(1, 10, 20, payload),
+      "little-endian",
+      1,
+      "chr1",
+      0,
+      100,
+      selected,
+      Object.keys(selected.shape),
+    );
+
+  it("preserves custom field names, raw values, record coordinates, and Zod compatibility", async () => {
+    const error = await decode("peak1\t611\t.\t10.8645\t65.6076\tinvalid\t418").catch(
+      (error) => error,
+    );
+    expect(error).toBeInstanceOf(z.ZodError);
+    expect(error).toBeInstanceOf(BigBedParseError);
+    expect(error.context).toEqual({
+      region: { chromosome: "chr1", start: 10, end: 20 },
+      column: 9,
+      field: "qValue",
+      value: "invalid",
+      expectedColumns: 10,
+      actualColumns: 10,
+    });
+    expect(error.issues[0].path).toEqual(["qValue"]);
+    expect(error.message).toContain('Column 9 (qValue): received "invalid"');
+    expect(error.message).toContain("chr1:10-20");
+    expect(error.cause).toBeInstanceOf(z.ZodError);
+  });
+
+  it("reports the first missing column and total BED column counts", async () => {
+    const error = await decode("peak1\t611\t.").catch((error) => error);
+    expect(error.context).toMatchObject({
+      column: 7,
+      field: "signalValue",
+      expectedColumns: 10,
+      actualColumns: 6,
+    });
+    expect(error.message).toContain("Expected at least 10 columns; received 6");
+    expect(error.issues[0].path).toEqual(["signalValue"]);
+  });
+
+  it("preserves extra narrowPeak values under a BED6 schema", async () => {
+    const bed6 = schema.pick({ name: true, score: true, strand: true });
+    const rows = await decodeBigBedBlock(
+      record(1, 10, 20, "peak1\t611\t.\t10.8645\t65.6076\t61.1871\t418"),
+      "little-endian",
+      1,
+      "chr1",
+      0,
+      100,
+      bed6,
+      Object.keys(bed6.shape),
+    );
+    expect(rows).toEqual([
+      {
+        chromosome: "chr1",
+        start: 10,
+        end: 20,
+        name: "peak1",
+        score: 611,
+        strand: ".",
+        fields: ["10.8645", "65.6076", "61.1871", "418"],
       },
     ]);
   });

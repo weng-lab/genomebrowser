@@ -2,14 +2,12 @@
 
 A React runtime for displaying interactive genomic tracks.
 
-Genome Browser v2 provides the browser viewport, validated state stores, track-module runtime, and an extension API for custom track types.
-
-> This package is under active development and its public API may change.
+Create browser and track stores, add track modules, and pass the stores to `GenomeBrowser`. Use first-party modules for common file formats or define custom track types.
 
 ## Install
 
 ```sh
-pnpm add @weng-lab/genomebrowser@beta @weng-lab/genomebrowser-tracks@beta react@^19.2 react-dom@^19.2 @emotion/react @emotion/styled @mui/material
+pnpm add @weng-lab/genomebrowser@2.0.0 @weng-lab/genomebrowser-tracks@2.0.0 react@^19.2.0 react-dom@^19.2.0 @emotion/react@11 @emotion/styled@11 @mui/material@7
 ```
 
 ## Quick start
@@ -23,8 +21,6 @@ import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
   region: { chromosome: "chr1", start: 1_000_000, end: 1_100_000 },
-  marginWidth: 120,
-  trackWidth: 880,
 });
 
 const useTrackStore = createTrackStore({
@@ -49,42 +45,31 @@ export function BrowserPage() {
 
 Replace `YOUR_URL_HERE` with a BigWig URL accessible from the browser.
 
-Store factory results are Zustand hooks, so their names should begin with `use`. Keep both stores stable: recreating them during render resets browser state and request coordination.
+Store factory results are Zustand hooks, so their names should begin with `use`. Keep both stores stable. Recreating them during render resets browser state and request coordination.
 
-For a responsive browser that follows its container width, see [Getting started](docs/gettingStarted.md).
+For a responsive browser that follows its container width, see [Getting started](docs/01-gettingStarted/01-firstBrowser.md).
 
-## What it provides
-
-- An interactive genomic viewport
-- Validated browser and track stores
-- Runtime infrastructure for registered track modules
-- Programmatic navigation, highlighting, and track updates
-- Request coordination as regions and track configuration change
-- An extension API for custom fetch-and-render track modules
-
-## Do you need the UI package?
+## Optional packages
 
 Start with this package when you need to render or control a genome browser.
 
-Add `@weng-lab/genomebrowser-ui@beta` when you also need ready-made application controls such as collection-backed track selection or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
+Add `@weng-lab/genomebrowser-ui@2.0.0` for controls such as track selection from collections or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
 
-Add `@weng-lab/genomebrowser-tracks@beta` for the curated BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Transcript modules. Core does not export first-party track implementations.
+Add `@weng-lab/genomebrowser-tracks@2.0.0` for the BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Gene modules. Core does not export first-party track implementations.
 
 ## Documentation
 
-- [Getting started](docs/gettingStarted.md) - installation, stable stores, and responsive sizing
-- [Core concepts](docs/concepts.md) - state ownership, requests, and interaction lifetimes
-- [Recipes](docs/recipes.md) - common navigation, track, highlight, and sizing tasks
-- [Tracks](docs/tracks.md) - register modules and create track instances
-- [Custom track modules](docs/customTrackModules.md) - create a validated track type
-- [Troubleshooting](docs/troubleshooting.md) - diagnose setup, validation, request, and sizing problems
+Before writing or changing an integration, read `node_modules/@weng-lab/genomebrowser/docs/README.md` in your application, then follow its links to the relevant guides and API references. These bundled docs describe the installed package version. Give coding agents this path so they use the same version-specific documentation.
+
+- [Documentation overview](docs/README.md). Learning path and topic navigation.
+- [Getting started](docs/01-gettingStarted/01-firstBrowser.md). Install and render a responsive browser.
+- [API reference](docs/03-reference/README.md). Browser component, viewport store, assemblies, and regions.
+- [Troubleshooting](docs/04-troubleshooting.md). Diagnose setup and runtime problems.
 
 ## Runtime requirements
 
-Genome Browser v2 is intended for client-side React 19.2+ applications. It uses browser APIs including SVG, pointer events, remote data requests, and, when implementing responsive sizing, `ResizeObserver`.
+Genome Browser v2 runs in React 19.2+ client applications. It uses SVG, pointer events, and remote data requests. Responsive sizing also requires `ResizeObserver`. Render it on the client rather than on the server.
 
-It is not a server-rendered visualization runtime.
+Coordinate rulers are regular tracks supplied by `@weng-lab/genomebrowser-tracks/ruler`. Add one explicitly if needed. [Region selection modes](docs/01-gettingStarted/03-navigationAndSelection.md#select-a-region-by-dragging) work across the browser independently of the ruler.
 
-Coordinate rulers are regular tracks supplied by `@weng-lab/genomebrowser-tracks/ruler`. Add one explicitly if needed. [Region selection modes](docs/concepts.md#region-selection-and-ruler-tracks) work across the browser independently of the ruler.
-
-[Track collections](docs/trackCollections.md) describes the shared JSON format, validation, and `genomebrowser schema` CLI.
+[Track collections](docs/01-gettingStarted/04-trackCollections.md) covers the shared JSON format, validation, and `genomebrowser schema` CLI.

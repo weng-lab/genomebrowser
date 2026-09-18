@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import type { MouseEvent, RefObject } from "react";
+import type { PointerEvent, RefObject } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
 import { svgPoint } from "../../modules/utils/svg";
-import { useTrackMutationGate, useTrackStoreApi } from "../state/browserContextState";
+import { useTrackMutationGate, useGenomeBrowser } from "../state/browserContextState";
 import { useBrowserSvg } from "../svg/browserSvgState";
 import { getTrackWrapperHeight } from "./trackLayout";
 import { getSwapOrder, getSwapPreview, isSameSwapPreview } from "./trackSwapMath";
@@ -10,8 +10,9 @@ import type { SwapPreview, TrackFrameSwapProps } from "./swapTypes";
 
 type DragSession = {
   didEnd: () => boolean;
-  handleMove: (event: globalThis.MouseEvent) => void;
-  handleUp: (event: globalThis.MouseEvent) => void;
+  handleMove: (event: globalThis.PointerEvent) => void;
+  handleUp: (event: globalThis.PointerEvent) => void;
+  handleCancel: (event: globalThis.PointerEvent) => void;
 };
 
 export function useTrackSwap({
@@ -30,7 +31,7 @@ export function useTrackSwap({
   cloneRef: RefObject<SVGGElement | null>;
 }) {
   const svg = useBrowserSvg();
-  const useTrackStore = useTrackStoreApi();
+  const { useTrackStore } = useGenomeBrowser();
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const isPinned = useTrackStore((state) => state.pinnedTrackIds.includes(track.base.id));
   const [dragSession, setDragSession] = useState<DragSession | null>(null);
@@ -39,17 +40,32 @@ export function useTrackSwap({
 
   useEffect(() => {
     if (!dragSession) return;
-    document.addEventListener("mousemove", dragSession.handleMove);
-    document.addEventListener("mouseup", dragSession.handleUp);
+    document.addEventListener("pointermove", dragSession.handleMove);
+    document.addEventListener("pointerup", dragSession.handleUp);
+    document.addEventListener("pointercancel", dragSession.handleCancel);
+    const cursorStyle = document.createElement("style");
+    cursorStyle.textContent = "* { cursor: grabbing !important; }";
+    document.head.appendChild(cursorStyle);
     return () => {
-      document.removeEventListener("mousemove", dragSession.handleMove);
-      document.removeEventListener("mouseup", dragSession.handleUp);
+      document.removeEventListener("pointermove", dragSession.handleMove);
+      document.removeEventListener("pointerup", dragSession.handleUp);
+      document.removeEventListener("pointercancel", dragSession.handleCancel);
+      cursorStyle.remove();
       if (!dragSession.didEnd()) onPreviewEnd();
     };
   }, [dragSession, onPreviewEnd]);
 
-  const handleSwapMouseDown = (event: MouseEvent<SVGRectElement>) => {
-    if (disabled || isPinned || isInteractionBlocked || event.button !== 0) return;
+  const handleSwapPointerDown = (event: PointerEvent<SVGRectElement>) => {
+    if (
+      disabled ||
+      isPinned ||
+      isInteractionBlocked ||
+      isSwapping ||
+      !event.isPrimary ||
+      event.button !== 0
+    )
+      return;
+    const pointerId = event.pointerId;
     const { tracks, pinnedTrackIds, reorderTracks } = useTrackStore.getState();
     if (!svg || tracks.length < 2) return;
     const startPoint = svgPoint(svg, event.clientX, event.clientY);
@@ -83,7 +99,8 @@ export function useTrackSwap({
       cloneRef.current?.setAttribute("transform", `translate(0,${deltaY})`);
     };
 
-    const handleMove = (event: globalThis.MouseEvent) => {
+    const handleMove = (event: globalThis.PointerEvent) => {
+      if (event.pointerId !== pointerId || isEnded) return;
       event.preventDefault();
       const point = svgPoint(svg, event.clientX, event.clientY);
       if (!point) return;
@@ -93,7 +110,8 @@ export function useTrackSwap({
       updatePreview(latestDeltaY);
     };
 
-    const handleUp = (event: globalThis.MouseEvent) => {
+    const handleUp = (event: globalThis.PointerEvent) => {
+      if (event.pointerId !== pointerId || isEnded) return;
       event.preventDefault();
       if (isCurrent() && Math.abs(latestDeltaY) > 5) {
         const nextOrder = getSwapOrder(
@@ -112,24 +130,33 @@ export function useTrackSwap({
       onPreviewEnd();
     };
 
+    const handleCancel = (event: globalThis.PointerEvent) => {
+      if (event.pointerId !== pointerId || isEnded) return;
+      isEnded = true;
+      setDragSession(null);
+      previewRef.current = null;
+      onPreviewEnd();
+    };
+
     previewRef.current = null;
     setDragSession({
       didEnd: () => isEnded,
       handleMove,
       handleUp,
+      handleCancel,
     });
     updatePreview(0);
   };
 
-  const onSwapMouseDown =
-    disabled || isPinned || isInteractionBlocked ? undefined : handleSwapMouseDown;
+  const onSwapPointerDown =
+    disabled || isPinned || isInteractionBlocked ? undefined : handleSwapPointerDown;
   const swapProps: TrackFrameSwapProps = {
-    onSwapMouseDown,
+    onSwapPointerDown,
     swapping: isSwapping,
     isDragClone: false,
   };
   const cloneSwapProps: TrackFrameSwapProps = {
-    onSwapMouseDown,
+    onSwapPointerDown,
     swapping: true,
     isDragClone: true,
   };

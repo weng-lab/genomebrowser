@@ -1,6 +1,8 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   TrackBaseSettings,
+  TrackHeightSettings,
+  TrackRowLayoutSettings,
   TrackSettingsColorField,
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
@@ -27,6 +29,8 @@ describe("public track settings authoring API", () => {
   it("exports every authoring component", () => {
     const components = [
       TrackBaseSettings,
+      TrackHeightSettings,
+      TrackRowLayoutSettings,
       TrackSettingsColorField,
       TrackSettingsFieldGrid,
       TrackSettingsFieldRow,

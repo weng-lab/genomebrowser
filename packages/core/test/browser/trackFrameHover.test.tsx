@@ -22,6 +22,7 @@ const module = defineTrackModule({
   type: "frame-hover-test",
   configSchema: z.object({}),
   fetch: async () => null,
+  settingsComponent: () => null,
   render: { full: () => null },
 });
 const track = module.create({ base: { id: "test", title: "Test track" }, config: {} });
@@ -39,9 +40,9 @@ afterEach(async () => {
 describe("track frame hover highlight", () => {
   it("shows only while the pointer is within the left margin", async () => {
     const onDataHover = vi.fn();
-    const onSwapMouseDown = vi.fn();
+    const onSwapPointerDown = vi.fn();
     const settingsStore = createSettingsStore();
-    await renderFrame({ onDataHover, onSwapMouseDown, settingsStore });
+    await renderFrame({ onDataHover, onSwapPointerDown, settingsStore });
 
     const margin = marginRect();
     const title = requiredElement("text");
@@ -67,13 +68,13 @@ describe("track frame hover highlight", () => {
     expect(onDataHover).toHaveBeenCalledOnce();
     expect(highlight()).toBeNull();
 
-    await dispatchMouse(margin, "mousedown");
-    expect(onSwapMouseDown).toHaveBeenCalledOnce();
+    await dispatchMouse(margin, "pointerdown");
+    expect(onSwapPointerDown).toHaveBeenCalledOnce();
 
     await dispatchMouse(settingsControl, "mousedown");
     await dispatchMouse(settingsControl, "click");
-    expect(onSwapMouseDown).toHaveBeenCalledOnce();
-    expect(settingsStore.getState()).toMatchObject({ open: true, trackId: track.base.id });
+    expect(onSwapPointerDown).toHaveBeenCalledOnce();
+    expect(settingsStore.getState()).toMatchObject({ trackId: track.base.id });
   });
 
   it("keeps the margin highlight disabled for swap previews", async () => {
@@ -88,12 +89,12 @@ describe("track frame hover highlight", () => {
 async function renderFrame({
   disableHover = false,
   onDataHover,
-  onSwapMouseDown,
+  onSwapPointerDown,
   settingsStore = createSettingsStore(),
 }: {
   disableHover?: boolean;
   onDataHover?: () => void;
-  onSwapMouseDown?: (event: React.MouseEvent<SVGRectElement>) => void;
+  onSwapPointerDown?: (event: React.PointerEvent<SVGRectElement>) => void;
   settingsStore?: ReturnType<typeof createSettingsStore>;
 }) {
   const browserStore = createBrowserStore({
@@ -118,7 +119,7 @@ async function renderFrame({
               trackWidth={trackWidth}
               titleSize={12}
               disableHover={disableHover}
-              onSwapMouseDown={onSwapMouseDown}
+              onSwapPointerDown={onSwapPointerDown}
             >
               <rect
                 data-testid="data-area"

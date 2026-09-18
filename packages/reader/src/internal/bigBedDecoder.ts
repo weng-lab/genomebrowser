@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BigBedParseError } from "../bigBedParseError";
 import type { GenomicRecord } from "../genomicFile";
 import { throwIfAborted } from "./abort";
 import { BinaryReader, type ByteOrder } from "./binaryReader";
@@ -61,7 +62,16 @@ export async function decodeBigBedBlock<Schema extends z.ZodObject>(
     const tokens = payload.length === 0 ? [] : payload.split("\t");
     throwIfAborted(signal);
     if (tokens.length < fieldNames.length) {
-      z.array(z.string()).min(fieldNames.length).parse(tokens);
+      const result = z.array(z.string()).min(fieldNames.length).safeParse(tokens);
+      if (!result.success) {
+        throw new BigBedParseError(result.error, {
+          region: { chromosome, start, end },
+          column: tokens.length + 4,
+          field: fieldNames[tokens.length]!,
+          expectedColumns: fieldNames.length + 3,
+          actualColumns: tokens.length + 3,
+        });
+      }
     }
 
     const record: object = {};
@@ -71,7 +81,18 @@ export async function decodeBigBedBlock<Schema extends z.ZodObject>(
     for (let index = 0; index < fieldNames.length; index += 1) {
       const fieldName = fieldNames[index]!;
       throwIfAborted(signal);
-      const parsed = await schema.shape[fieldName]!.parseAsync(tokens[index]!);
+      const result = await schema.shape[fieldName]!.safeParseAsync(tokens[index]!);
+      if (!result.success) {
+        throw new BigBedParseError(result.error, {
+          region: { chromosome, start, end },
+          column: index + 4,
+          field: fieldName,
+          value: tokens[index]!,
+          expectedColumns: fieldNames.length + 3,
+          actualColumns: tokens.length + 3,
+        });
+      }
+      const parsed = result.data;
       throwIfAborted(signal);
       defineOwnProperty(record, fieldName, parsed);
     }

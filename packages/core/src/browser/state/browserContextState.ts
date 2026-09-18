@@ -1,9 +1,9 @@
 import { createContext, use } from "react";
 import type { TrackMutationResult } from "../../modules/types";
-import type { BrowserStore, BrowserStoreInstance } from "./browserStore";
+import type { BrowserStoreInstance } from "./browserStore";
 import type { ContextMenuStore, ContextMenuStoreInstance } from "./contextMenuStore";
 import type { SettingsStore, SettingsStoreInstance } from "./settingsStore";
-import type { TrackStore, TrackStoreInstance } from "./trackStore";
+import type { TrackStoreInstance } from "./trackStore";
 
 export type BrowserContextValue = {
   browserStore: BrowserStoreInstance;
@@ -19,22 +19,21 @@ export type InteractionGateContextValue = {
 export const BrowserContext = createContext<BrowserContextValue | null>(null);
 export const InteractionGateContext = createContext<InteractionGateContextValue | null>(null);
 
-export function useTrackStore<T>(selector: (state: TrackStore) => T): T {
-  const context = use(BrowserContext);
-  if (!context) throw new Error("useTrackStore must be used within a GenomeBrowser");
-  return context.trackStore(selector);
-}
+/** The hosting browser's bound Zustand stores, including their imperative APIs. */
+export type GenomeBrowserStores = {
+  useBrowserStore: BrowserStoreInstance;
+  useTrackStore: TrackStoreInstance;
+};
 
-export function useTrackStoreApi(): TrackStoreInstance {
+/**
+ * Resolve the nearest GenomeBrowser's stores without subscribing to their state.
+ * Call a returned store hook with a selector to subscribe. Available to hosted
+ * renderers, settings, and tooltips; throws outside a GenomeBrowser.
+ */
+export function useGenomeBrowser(): GenomeBrowserStores {
   const context = use(BrowserContext);
-  if (!context) throw new Error("useTrackStoreApi must be used within a GenomeBrowser");
-  return context.trackStore;
-}
-
-export function useBrowserStore<T>(selector: (state: BrowserStore) => T): T {
-  const context = use(BrowserContext);
-  if (!context) throw new Error("useBrowserStore must be used within a GenomeBrowser");
-  return context.browserStore(selector);
+  if (!context) throw new Error("useGenomeBrowser must be used within a GenomeBrowser");
+  return { useBrowserStore: context.browserStore, useTrackStore: context.trackStore };
 }
 
 export function useContextMenuStore<T>(selector: (state: ContextMenuStore) => T): T {
@@ -55,9 +54,13 @@ export function useTrackMutationGate() {
 
   return {
     isInteractionBlocked: context.isInteractionBlocked,
-    runTrackMutation: (mutation: () => TrackMutationResult) => {
+    runTrackMutation: (mutation: () => TrackMutationResult): TrackMutationResult => {
       if (context.isInteractionBlocked) {
-        return { ok: false, error: "Track interactions are currently blocked" };
+        return {
+          ok: false,
+          code: "INTERACTION_BLOCKED",
+          error: "Track interactions are currently blocked",
+        };
       }
       return mutation();
     },

@@ -1,3 +1,5 @@
+import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
+import { TrackRowLayoutSettings } from "../shared/settings/trackRowLayoutSettings";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -8,7 +10,7 @@ import IconButton from "@mui/material/IconButton";
 import SvgIcon from "@mui/material/SvgIcon";
 import TextField from "@mui/material/TextField";
 import type { TextFieldProps } from "@mui/material/TextField";
-import { useBrowserStore, type TrackSettingsProps } from "@weng-lab/genomebrowser";
+import { useGenomeBrowser, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { useState, type ComponentProps } from "react";
 import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import {
@@ -27,7 +29,7 @@ import type { GeneConfig, GeneTagColor } from "./types";
 
 type GeneSettingsProps = TrackSettingsProps<GeneConfig, GeneInteractionTarget>;
 
-export function GeneSettings({ track, updateTrack }: GeneSettingsProps) {
+export function GeneSettings({ track, updateTrack, ...settings }: GeneSettingsProps) {
   const observedTags = useObservedGeneTags(track.config.url);
   const tagColors = track.config.tagColors;
   const tagOptions = normalizeTags([...tagColors.map(({ tag }) => tag), ...observedTags]);
@@ -58,6 +60,13 @@ export function GeneSettings({ track, updateTrack }: GeneSettingsProps) {
 
   return (
     <TrackSettingsLayout>
+      <TrackBaseSettings
+        track={track}
+        updateTrack={updateTrack}
+        displayOptions={settings.displayOptions}
+      >
+        <TrackRowLayoutSettings track={track} updateTrack={updateTrack} {...settings} />
+      </TrackBaseSettings>
       <TrackSettingsSection title="BigGenePred">
         <TrackSettingsFieldGrid>
           {track.source === "host" ? (
@@ -186,6 +195,7 @@ function HostGeneDatasetField({
   url: string;
   onChange: (dataset: GeneDataset) => void;
 }) {
+  const { useBrowserStore } = useGenomeBrowser();
   const assembly = useBrowserStore((state) => state.assembly.id);
   const datasets = getGeneDatasetsForAssembly(assembly);
   const selectedDataset = datasets.find((dataset) => dataset.url === url) ?? null;

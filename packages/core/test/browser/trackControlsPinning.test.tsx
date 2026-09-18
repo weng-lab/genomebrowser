@@ -29,6 +29,7 @@ it("disables pinned move controls and moves other tracks only within the unpinne
     type: "custom",
     configSchema: z.object({}),
     fetch: async () => null,
+    settingsComponent: () => null,
     render: { full: () => null },
   });
   const tracks = ["a", "b", "c", "d"].map((id) =>

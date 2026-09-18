@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import {
+  validateTrackCollection,
   createTrackStore,
   defineTrackModule,
   type TrackInteraction,
@@ -90,7 +91,9 @@ const collections: TrackCollection[] = [
     ],
   },
 ];
-const compiledCollections = compileTrackCollections(collections);
+const compiledCollections = compileTrackCollections(
+  collections.map((collection) => validateTrackCollection(collection, registry.modules)),
+);
 
 describe("TrackSelect default track reconciliation", () => {
   it("preserves non-collection tracks and applies the exact cross-collection order", () => {

@@ -1,3 +1,5 @@
+import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
+import { TrackHeightSettings } from "../shared/settings/trackHeightSettings";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
@@ -44,7 +46,7 @@ type ConfigEditorState = {
   baseConfig: Readonly<MethylCConfig>;
 };
 
-export function MethylCSettings({ track, updateTrack }: MethylCSettingsProps) {
+export function MethylCSettings({ track, updateTrack, ...settings }: MethylCSettingsProps) {
   const [configEditor, setConfigEditor] = useState(() => createConfigEditorState(track.config));
   const latestConfigEditor = useRef(configEditor);
   const renderedConfigEditor = reconcileConfigEditorState(configEditor, track.config);
@@ -83,6 +85,13 @@ export function MethylCSettings({ track, updateTrack }: MethylCSettingsProps) {
 
   return (
     <TrackSettingsLayout>
+      <TrackBaseSettings
+        track={track}
+        updateTrack={updateTrack}
+        displayOptions={settings.displayOptions}
+      >
+        <TrackHeightSettings track={track} updateTrack={updateTrack} {...settings} />
+      </TrackBaseSettings>
       <SourceSettings
         config={currentConfig}
         disabled={track.source === "host"}

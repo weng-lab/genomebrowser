@@ -2,7 +2,8 @@ import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { z } from "zod";
 import { createAssemblyDefinition, type AssemblyDefinition } from "../../genome/assembly";
 import { normalizeRegion, type GenomicRegion, type RegionErrorCode } from "../../genome/region";
-import { parsePublicInput } from "../../modules/schemas";
+import type { MutationFailure } from "../../mutation";
+import { formatZodError, parsePublicInput } from "../../modules/schemas";
 
 export type Highlight = {
   id: string;
@@ -39,11 +40,17 @@ export type BrowserRegionMutationErrorCode =
 
 export type BrowserRegionMutationResult =
   | { ok: true; region: GenomicRegion; clamped: boolean }
-  | { ok: false; code: BrowserRegionMutationErrorCode; error: string };
+  | MutationFailure<BrowserRegionMutationErrorCode>;
 
 export type BrowserViewportMutationResult =
   | { ok: true; trackWidth: number }
-  | { ok: false; code: "INVALID_TRACK_WIDTH"; error: string };
+  | MutationFailure<"INVALID_TRACK_WIDTH">;
+
+export type BrowserSelectionMutationResult =
+  | { ok: true }
+  | MutationFailure<"INVALID_SELECTION_MODE" | "INVALID_SELECTION_HIGHLIGHT">;
+
+export type BrowserHighlightMutationResult = { ok: true } | MutationFailure<"INVALID_HIGHLIGHT">;
 
 export type BrowserStore = {
   readonly assembly: AssemblyDefinition;
@@ -55,13 +62,13 @@ export type BrowserStore = {
   highlights: Highlight[];
   selectionMode: BrowserSelectionMode;
   selectionHighlight: SelectionHighlightStyle;
-  setSelectionMode: (mode: BrowserSelectionMode) => void;
-  setSelectionHighlight: (style: SelectionHighlightStyle) => void;
+  setSelectionMode: (mode: BrowserSelectionMode) => BrowserSelectionMutationResult;
+  setSelectionHighlight: (style: SelectionHighlightStyle) => BrowserSelectionMutationResult;
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
   /** Set the configured logical width for fixed views; responsive views measure themselves. */
   setTrackWidth: (trackWidth: number) => BrowserViewportMutationResult;
   zoom: (factor: number, centerBase?: number) => BrowserRegionMutationResult;
-  addHighlight: (highlight: Highlight) => void;
+  addHighlight: (highlight: Highlight) => BrowserHighlightMutationResult;
   removeHighlight: (id: string) => void;
 };
 
@@ -132,16 +139,28 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
         opacity: 0.25,
         type: "filled",
       },
-      setSelectionMode: (mode) =>
-        set({ selectionMode: parsePublicInput(selectionModeSchema, mode, "Selection mode") }),
-      setSelectionHighlight: (style) =>
-        set({
-          selectionHighlight: parsePublicInput(
-            selectionHighlightSchema,
-            style,
-            "Selection highlight",
-          ),
-        }),
+      setSelectionMode: (mode) => {
+        const result = selectionModeSchema.safeParse(mode);
+        if (!result.success)
+          return {
+            ok: false,
+            code: "INVALID_SELECTION_MODE",
+            error: `Selection mode is invalid: ${formatZodError(result.error)}`,
+          };
+        set({ selectionMode: result.data });
+        return { ok: true };
+      },
+      setSelectionHighlight: (style) => {
+        const result = selectionHighlightSchema.safeParse(style);
+        if (!result.success)
+          return {
+            ok: false,
+            code: "INVALID_SELECTION_HIGHLIGHT",
+            error: `Selection highlight is invalid: ${formatZodError(result.error)}`,
+          };
+        set({ selectionHighlight: result.data });
+        return { ok: true };
+      },
 
       setRegion: commitRegion,
       setTrackWidth: (trackWidth) => {
@@ -187,9 +206,18 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
         });
       },
       addHighlight: (highlight) => {
-        const parsedHighlight = parsePublicInput(highlightSchema, highlight, "Highlight");
-        if (get().highlights.some((existing) => existing.id === parsedHighlight.id)) return;
+        const result = highlightSchema.safeParse(highlight);
+        if (!result.success)
+          return {
+            ok: false,
+            code: "INVALID_HIGHLIGHT",
+            error: `Highlight is invalid: ${formatZodError(result.error)}`,
+          };
+        const parsedHighlight = result.data;
+        if (get().highlights.some((existing) => existing.id === parsedHighlight.id))
+          return { ok: true };
         set((state) => ({ highlights: [...state.highlights, parsedHighlight] }));
+        return { ok: true };
       },
       removeHighlight: (id) => {
         set((state) => ({

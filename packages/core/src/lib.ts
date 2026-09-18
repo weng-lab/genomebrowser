@@ -1,20 +1,42 @@
+export type { MutationFailure } from "./mutation";
+
+// Browser setup
 export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
-export { defaultScreenGraphQlEndpoint } from "./screen";
+export { createBrowserStore } from "./browser/state/browserStore";
+export type {
+  BrowserSelectionMode,
+  BrowserSelectionMutationResult,
+  BrowserHighlightMutationResult,
+  SelectionHighlightStyle,
+  BrowserRegionMutationErrorCode,
+  BrowserRegionMutationResult,
+  BrowserStore,
+  BrowserStoreInput,
+  BrowserStoreInstance,
+  BrowserViewportMutationResult,
+  Highlight,
+} from "./browser/state/browserStore";
+export { createTrackStore } from "./browser/state/trackStore";
+export type { TrackStore, TrackStoreInstance, TrackStoreOptions } from "./browser/state/trackStore";
+export type { ModuleRegistry } from "./modules/registry";
+export { useGenomeBrowser } from "./browser/state/browserContextState";
+export type { GenomeBrowserStores } from "./browser/state/browserContextState";
 
+// Assemblies and regions
 export { createAssemblyDefinition } from "./genome/assembly";
 export type { AssemblyDefinition } from "./genome/assembly";
-export { ce11, dm6, hg38, mm10, tair10 } from "./genome/presets";
-export { normalizeRegion, parseRegion } from "./genome/region";
+export { hg38, mm10, ce11, dm6, tair10 } from "./genome/presets";
+export { parseRegion, normalizeRegion } from "./genome/region";
 export type { GenomicRegion, RegionErrorCode, RegionResult } from "./genome/region";
 
+// Track definition
 export { defineTrackModule } from "./modules/defineTrackModule";
-export { TrackInteractionProvider, useInteraction } from "./modules/interaction";
+export { fetchOnChange } from "./modules/fetchOnChange";
 export type {
   AnyTrackInstance,
   AnyTrackInteraction,
   AnyTrackModule,
-  AnyTrackTooltipComponent,
   ModuleCreateInput,
   ModuleInstance,
   ReadonlyTrackInstance,
@@ -27,83 +49,41 @@ export type {
   TrackFetchDemand,
   TrackFetchTrack,
   TrackInstance,
-  TrackInteraction,
-  TrackInteractionCallback,
   TrackMutationResult,
+  TrackMutationErrorCode,
   TrackModule,
-  TrackRenderer,
-  TrackRendererInteraction,
-  TrackRendererProps,
   TrackResources,
   TrackSettingsComponent,
   TrackSource,
   TrackSettingsProps,
-  TrackRuntimeContext,
-  TrackTooltipComponent,
   TrackUpdate,
 } from "./modules/types";
-export type { ModuleRegistry, TrackCollectionEntry } from "./modules/registry";
 
-export { fetchOnChange } from "./modules/fetchOnChange";
+// Renderer integration
+export type {
+  TrackRenderer,
+  TrackRendererProps,
+  TrackRendererInteraction,
+  TrackInteraction,
+  TrackInteractionCallback,
+  TrackRuntimeContext,
+  TrackTooltipComponent,
+} from "./modules/types";
+export { useInteraction } from "./modules/interaction";
+export { useTooltip } from "./browser/tooltip/useTooltip";
 export { useAutoTrackHeight } from "./browser/track-row/useAutoTrackHeight";
 export type { AutoTrackHeightOptions } from "./browser/track-row/useAutoTrackHeight";
-export { useTooltip } from "./browser/tooltip/useTooltip";
-export { useRegistry } from "./browser/state/useRegistry";
-export { SettingsSection } from "./modules/runtime/SettingsSection";
-export { useDraggableSettingsModal } from "./browser/settings/useDraggableSettingsModal";
-export type { DraggableSettingsModalResult } from "./browser/settings/useDraggableSettingsModal";
-export { createBrowserStore } from "./browser/state/browserStore";
-export { createContextMenuStore } from "./browser/state/contextMenuStore";
-export {
-  useContextMenuStore,
-  useBrowserStore,
-  useSettingsStore,
-  useTrackStore,
-  useTrackStoreApi,
-} from "./browser/state/browserContextState";
-export { createSettingsStore } from "./browser/state/settingsStore";
-export { createTrackStore } from "./browser/state/trackStore";
-export type {
-  BrowserSelectionMode,
-  SelectionHighlightStyle,
-  BrowserRegionMutationErrorCode,
-  BrowserRegionMutationResult,
-  BrowserStore,
-  BrowserStoreInput,
-  BrowserStoreInstance,
-  BrowserViewportMutationResult,
-  Highlight,
-} from "./browser/state/browserStore";
-export type {
-  SettingsModalProps,
-  SettingsPosition,
-  SettingsStore,
-  SettingsStoreInput,
-  SettingsStoreInstance,
-} from "./browser/state/settingsStore";
-export type {
-  ContextMenuPosition,
-  ContextMenuStore,
-  ContextMenuStoreInstance,
-} from "./browser/state/contextMenuStore";
-export type { TrackStore, TrackStoreInstance, TrackStoreOptions } from "./browser/state/trackStore";
-
 export { TrackOverlay } from "./browser/track-overlay/TrackOverlay";
 export type { TrackOverlayProps } from "./browser/track-overlay/TrackOverlay";
 export { TrackLabel } from "./browser/track-overlay/TrackLabel";
 export type { TrackLabelProps } from "./browser/track-overlay/TrackLabel";
 
+// Collections and schemas
+export { validateTrackCollection } from "./collections/validateTrackCollection";
+export { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
 export type {
   TrackCollection,
   TrackCollectionView,
   TrackCollectionColumn,
   TrackMetadata,
-  TrackCollectionTrack,
-} from "./collections/collectionSchema";
-export { generateTrackCollectionJsonSchema } from "./collections/generateJsonSchema";
-export { validateJson } from "./collections/validateJson";
-
-export {
-  createTrackCollectionSchema,
-  TrackCollectionViewSchema,
 } from "./collections/collectionSchema";

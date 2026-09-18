@@ -1,3 +1,5 @@
+import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
+import { TrackHeightSettings } from "../shared/settings/trackHeightSettings";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
@@ -23,9 +25,16 @@ const ageOptions = [
 
 type CaveSettingsProps = TrackSettingsProps<CaveConfig, CaveTooltipItem>;
 
-export function CaveSettings({ track, updateTrack }: CaveSettingsProps) {
+export function CaveSettings({ track, updateTrack, ...settings }: CaveSettingsProps) {
   return (
     <TrackSettingsLayout>
+      <TrackBaseSettings
+        track={track}
+        updateTrack={updateTrack}
+        displayOptions={settings.displayOptions}
+      >
+        <TrackHeightSettings track={track} updateTrack={updateTrack} {...settings} />
+      </TrackBaseSettings>
       <CaveDatasetSettings config={track.config} updateTrack={updateTrack} />
       <CaveColorSettings config={track.config} updateTrack={updateTrack} />
     </TrackSettingsLayout>

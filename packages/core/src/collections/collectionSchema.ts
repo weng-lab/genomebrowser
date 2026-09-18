@@ -1,8 +1,7 @@
 import { z } from "zod";
-import type { AnyTrackModule } from "../modules/types";
-import type { TrackCollectionEntry } from "../modules/registry";
+import type { AnyTrackModule, ModuleCreateInput } from "../modules/types";
 
-export const TrackMetadataValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const TrackMetadataValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 
 const TrackCollectionColumnSchema = z.strictObject({
   field: z.string().min(1),
@@ -12,7 +11,7 @@ const TrackCollectionColumnSchema = z.strictObject({
   hidden: z.boolean().optional(),
 });
 
-export const TrackCollectionViewSchema = z.strictObject({
+const TrackCollectionViewSchema = z.strictObject({
   id: z.string().min(1),
   label: z.string().min(1),
   description: z.string().min(1).optional(),
@@ -21,7 +20,7 @@ export const TrackCollectionViewSchema = z.strictObject({
   leaf: z.string().min(1).default("title"),
 });
 
-export const TrackCollectionBaseSchema = z.strictObject({
+const TrackCollectionBaseSchema = z.strictObject({
   $schema: z.string().min(1).optional(),
   assembly: z.string().min(1),
   id: z.string().min(1),
@@ -63,7 +62,14 @@ export function createTrackCollectionSchema(modules: readonly AnyTrackModule[]) 
 export type TrackCollectionColumn = z.infer<typeof TrackCollectionColumnSchema>;
 export type TrackCollectionView = z.infer<typeof TrackCollectionViewSchema>;
 export type TrackMetadata = Record<string, string | number | boolean | null>;
-export type TrackCollectionTrack = Omit<TrackCollectionEntry, "source">;
-export type TrackCollection = z.input<typeof TrackCollectionBaseSchema> & {
-  tracks: TrackCollectionTrack[];
-};
+type CollectionTrack<Module extends AnyTrackModule> = Module extends AnyTrackModule
+  ? Omit<ModuleCreateInput<Module>, "source"> & {
+      type: Module["type"];
+      metadata?: TrackMetadata;
+    }
+  : never;
+
+export type TrackCollection<Modules extends readonly AnyTrackModule[] = readonly AnyTrackModule[]> =
+  z.input<typeof TrackCollectionBaseSchema> & {
+    tracks: CollectionTrack<Modules[number]>[];
+  };

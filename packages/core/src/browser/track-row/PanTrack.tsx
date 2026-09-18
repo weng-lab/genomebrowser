@@ -38,7 +38,7 @@ export function PanTrack({
 
   return (
     <g
-      style={{ cursor }}
+      style={{ cursor, touchAction: "pan-y pinch-zoom" }}
       onPointerDown={handlePointerDown}
       onPointerMove={panDrag.onPointerMove}
       onPointerUp={handlePointerUp}

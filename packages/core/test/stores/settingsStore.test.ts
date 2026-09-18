@@ -1,69 +1,15 @@
 import { describe, expect, it } from "vitest";
-import {
-  createSettingsStore,
-  type SettingsModalProps,
-} from "../../src/browser/state/settingsStore";
+import { createSettingsStore } from "../../src/browser/state/settingsStore";
 
-describe("createSettingsStore", () => {
-  function ModalComponent(_props: SettingsModalProps) {
-    return null;
-  }
-
-  function BaseSettingsComponent() {
-    return null;
-  }
-
-  function ReplacementModal(_props: SettingsModalProps) {
-    return null;
-  }
-
-  function ReplacementBaseSettings() {
-    return null;
-  }
-
-  it("starts closed with defaults", () => {
-    const store = createSettingsStore();
-
-    expect(store.getState().open).toBe(false);
-    expect(store.getState().trackId).toBeUndefined();
-  });
-
-  it("opens and closes settings for a track", () => {
-    const store = createSettingsStore();
-
-    store.getState().openSettings("signal", { x: 10, y: 20 });
-
-    expect(store.getState()).toMatchObject({
-      open: true,
-      trackId: "signal",
-      position: { x: 10, y: 20 },
-    });
-
-    store.getState().closeSettings();
-
-    expect(store.getState().open).toBe(false);
-  });
-
-  it("uses component overrides from input", () => {
-    const store = createSettingsStore({
-      modalComponent: ModalComponent,
-      baseSettingsComponent: BaseSettingsComponent,
-    });
-
-    expect(store.getState().modalComponent).toBe(ModalComponent);
-    expect(store.getState().baseSettingsComponent).toBe(BaseSettingsComponent);
-  });
-
-  it("replaces modal and base settings components", () => {
-    const store = createSettingsStore({
-      modalComponent: ModalComponent,
-      baseSettingsComponent: BaseSettingsComponent,
-    });
-
-    store.getState().setModalComponent(ReplacementModal);
-    store.getState().setBaseSettingsComponent(ReplacementBaseSettings);
-
-    expect(store.getState().modalComponent).toBe(ReplacementModal);
-    expect(store.getState().baseSettingsComponent).toBe(ReplacementBaseSettings);
+describe("internal settings state", () => {
+  it("opens, switches, and clears the selected track on close", () => {
+    const useStore = createSettingsStore();
+    expect(useStore.getState().trackId).toBeUndefined();
+    useStore.getState().openSettings("first", { x: 10, y: 20 });
+    expect(useStore.getState()).toMatchObject({ trackId: "first", position: { x: 10, y: 20 } });
+    useStore.getState().openSettings("second", { x: 30, y: 40 });
+    expect(useStore.getState()).toMatchObject({ trackId: "second", position: { x: 30, y: 40 } });
+    useStore.getState().closeSettings();
+    expect(useStore.getState().trackId).toBeUndefined();
   });
 });

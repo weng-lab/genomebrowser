@@ -1,5 +1,5 @@
 import { useEffect, useId } from "react";
-import { useTrackStore } from "../state/browserContextState";
+import { useGenomeBrowser } from "../state/browserContextState";
 import {
   SETTINGS_MODAL_VIEWPORT_INSET,
   useDraggableSettingsModal,
@@ -54,6 +54,7 @@ function SettingsModalHeader({
   titleId: string;
   trackId: string;
 }) {
+  const { useTrackStore } = useGenomeBrowser();
   const title = useTrackStore((state) => state.getTrack(trackId)?.base.title);
   const color = useTrackStore((state) => state.getTrack(trackId)?.base.color);
   if (!title || !color) return null;
@@ -101,6 +102,10 @@ const modalStyle = {
   boxSizing: "border-box",
   width: "550px",
   maxWidth: `calc(100vw - ${SETTINGS_MODAL_VIEWPORT_INSET * 2}px)`,
+  maxHeight: `min(550px, calc(100vw - ${SETTINGS_MODAL_VIEWPORT_INSET * 2}px), calc(100dvh - ${SETTINGS_MODAL_VIEWPORT_INSET * 2}px))`,
+  display: "grid",
+  gridTemplateRows: "auto minmax(0, 1fr)",
+  overflow: "hidden",
   margin: 0,
   padding: 0,
   background: "#ffffff",
@@ -139,6 +144,6 @@ const modalContentStyle = {
   display: "grid",
   gap: "12px",
   padding: "12px",
-  maxHeight: "min(70vh, 720px)",
+  minHeight: 0,
   overflowY: "auto",
 } as const;

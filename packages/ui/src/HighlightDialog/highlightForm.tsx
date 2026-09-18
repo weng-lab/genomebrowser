@@ -1,3 +1,4 @@
+import Alert from "@mui/material/Alert";
 import AddIcon from "@mui/icons-material/Add";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -10,7 +11,7 @@ import { formatRegion, parseHighlightRegion, resolveHighlightRegion } from "./hi
 
 const defaultColor = "#3366cc";
 
-type FormErrors = Partial<Record<"name" | "region" | "opacity", string>>;
+type FormErrors = Partial<Record<"name" | "region" | "opacity" | "submit", string>>;
 
 type FormValues = {
   name: string;
@@ -141,7 +142,11 @@ export function HighlightForm({
       }));
       onSaved?.();
     } else {
-      addHighlight(nextHighlight);
+      const result = addHighlight(nextHighlight);
+      if (!result.ok) {
+        dispatch({ type: "validationFailed", errors: { submit: result.error } });
+        return;
+      }
       dispatch({ type: "reset" });
     }
   }
@@ -149,6 +154,7 @@ export function HighlightForm({
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <Stack spacing={1.25}>
+        {errors.submit ? <Alert severity="error">{errors.submit}</Alert> : null}
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1} alignItems="flex-start">
           <TextField
             autoFocus={Boolean(initialHighlight)}

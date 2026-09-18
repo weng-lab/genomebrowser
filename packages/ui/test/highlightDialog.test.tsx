@@ -22,6 +22,23 @@ afterEach(() => {
 });
 
 describe("HighlightDialog", () => {
+  it("preserves the draft and displays a rejected insertion result", () => {
+    const browserStore = createTestStore();
+    browserStore.setState({
+      addHighlight: () => ({ ok: false, code: "INVALID_HIGHLIGHT", error: "Highlight rejected." }),
+    });
+    mount(<HighlightDialog browserStore={browserStore} open onClose={vi.fn()} />);
+    clickButton("Add New Highlight");
+    setTextInput("ID", "Focus region");
+    setTextInput("Region", "chr2:1200-1500");
+    clickButton("Add Highlight");
+    expect(document.body.querySelector('[role="alert"]')?.textContent).toContain(
+      "Highlight rejected.",
+    );
+    expect(getInput("ID").value).toBe("Focus region");
+    expect(getInput("Region").value).toBe("chr2:1200-1500");
+    expect(browserStore.getState().highlights).toEqual([]);
+  });
   it("shows newest highlights first without reordering the store", () => {
     const browserStore = createTestStore();
     for (const id of ["First", "Second", "Third"]) {

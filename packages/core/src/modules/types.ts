@@ -1,3 +1,4 @@
+import type { MutationFailure } from "../mutation";
 import type { ComponentType } from "react";
 import type { z } from "zod";
 import type { trackBaseSchema } from "./schemas";
@@ -97,7 +98,15 @@ export type TrackRendererProps<Config, Data> = {
 
 export type TrackRenderer<Config, Data> = ComponentType<TrackRendererProps<Config, Data>>;
 
-export type TrackMutationResult = { ok: true } | { ok: false; error: string };
+export type TrackMutationErrorCode =
+  | "INVALID_TRACK"
+  | "UNKNOWN_TRACK_MODULE"
+  | "DUPLICATE_TRACK_ID"
+  | "TRACK_NOT_FOUND"
+  | "INVALID_TRACK_ORDER"
+  | "INTERACTION_BLOCKED";
+
+export type TrackMutationResult = { ok: true } | MutationFailure<TrackMutationErrorCode>;
 
 export type TrackBaseUpdate = Partial<Omit<TrackBase, "id">>;
 
@@ -117,6 +126,12 @@ export type ReadonlyTrackInstance<Config, InteractionItem = unknown> = Readonly<
 
 export type TrackSettingsProps<Config, InteractionItem = unknown> = {
   track: ReadonlyTrackInstance<Config, InteractionItem>;
+  displayOptions: readonly string[];
+  updateTracksOfType: (
+    createUpdate: (
+      track: ReadonlyTrackInstance<Config, InteractionItem>,
+    ) => TrackUpdate<Config, InteractionItem>,
+  ) => TrackMutationResult;
   updateTrack: (update: TrackUpdate<Config, InteractionItem>) => TrackMutationResult;
 };
 

@@ -9,8 +9,11 @@ const bed9Schema = bed6Schema.extend({
   thickEnd: z.coerce.number(),
   color: z
     .string()
-    .regex(/^(?:0|\d{1,3},\d{1,3},\d{1,3})$/)
-    .refine((value) => value.split(",").every((channel) => Number(channel) <= 255))
+    .regex(/^(?:0|\d{1,3},\d{1,3},\d{1,3})$/, "Expected itemRgb as 0 or R,G,B (channels 0–255)")
+    .refine(
+      (value) => value.split(",").every((channel) => Number(channel) <= 255),
+      "Expected itemRgb channels between 0 and 255",
+    )
     .transform((value) => (value === "0" ? "rgb(0,0,0)" : `rgb(${value})`)),
 });
 
