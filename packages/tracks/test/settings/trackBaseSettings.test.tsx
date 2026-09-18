@@ -295,7 +295,7 @@ describe("TrackBaseSettings", () => {
   it("commits valid colors and surfaces rejected mutations", async () => {
     const updateTrack = vi
       .fn<(update: TrackUpdate<never>) => TrackMutationResult>()
-      .mockReturnValueOnce({ ok: false, error: "Core rejected this color." })
+      .mockReturnValueOnce({ ok: false, code: "INVALID_TRACK", error: "Core rejected this color." })
       .mockReturnValueOnce({ ok: true });
     await mountSettings(updateTrack, ["full", "dense"]);
 

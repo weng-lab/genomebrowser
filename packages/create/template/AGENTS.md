@@ -2,13 +2,14 @@
 
 ## Package documentation
 
-Before changing a package integration, read the relevant installed documentation:
+Before changing a package integration, read the relevant documentation index under the application's `node_modules`, then follow its links to the guides and API references for the task. These docs describe the installed version; prefer them over remembered APIs or documentation from another version:
 
-- `node_modules/@weng-lab/genomebrowser/docs/README.md` — runtime, stores, assemblies, and custom track modules.
-- `node_modules/@weng-lab/genomebrowser-tracks/docs/README.md` — built-in tracks, configuration, settings, and data sources.
-- `node_modules/@weng-lab/genomebrowser-ui/docs/README.md` — track selection, navigation, and highlights.
+- `node_modules/@weng-lab/genomebrowser/docs/README.md`. Runtime, stores, assemblies, and custom track modules.
+- `node_modules/@weng-lab/genomebrowser-tracks/docs/README.md`. Built-in tracks, configuration, settings, and data sources.
+- `node_modules/@weng-lab/genomebrowser-ui/docs/README.md`. Track selection, navigation, and highlights.
+- `node_modules/@weng-lab/genomic-reader/docs/README.md`, when installed for direct use. File readers, chromosome sizes, and cytobands.
 
-Template-specific guidance is in `docs/`, including production search setup in `docs/deployment.md`.
+Template-specific guidance is in `docs/`, including production search setup in `docs/04-deployment.md`.
 
 ## Verification
 

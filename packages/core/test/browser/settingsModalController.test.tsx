@@ -143,6 +143,7 @@ describe("SettingsModalController", () => {
     });
     expect(blockedResult).toEqual({
       ok: false,
+      code: "INTERACTION_BLOCKED",
       error: "Track interactions are currently blocked",
     });
     expect(trackStore.getState().getTrack("active")?.base.title).toBe("Updated active");
@@ -203,7 +204,11 @@ describe("SettingsModalController", () => {
     await act(async () => {
       result = props?.updateTracksOfType(() => ({ base: { height: 100 } }));
     });
-    expect(result).toEqual({ ok: false, error: "Track interactions are currently blocked" });
+    expect(result).toEqual({
+      ok: false,
+      code: "INTERACTION_BLOCKED",
+      error: "Track interactions are currently blocked",
+    });
     expect(useTrackStore.getState().tracks.map((track) => track.base.height)).toEqual([40, 60, 30]);
   });
 

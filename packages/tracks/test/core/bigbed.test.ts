@@ -11,9 +11,8 @@ vi.mock("@weng-lab/genomic-reader", async (original) => ({
 }));
 
 import { bedSchemas } from "../../src/shared/bedSchemas";
-import { bed3Schema } from "@weng-lab/genomic-reader";
 import type { GenomicRegion, TrackFetchContext, TrackResources } from "@weng-lab/genomebrowser";
-import { fetchBigBed, fetchBigBedRows } from "../../src/bigbed/fetch";
+import { fetchBigBed } from "../../src/bigbed/fetch";
 import { bigBedModule } from "../../src/bigbed";
 
 function createResources(): TrackResources {
@@ -80,22 +79,6 @@ describe("BigBed track", () => {
         config: { url: "YOUR_URL_HERE", rowHeight: 0 },
       }),
     ).toThrow(/bigbed input/);
-  });
-
-  it("reads BigBed records with the genomic reader BED3 schema", async () => {
-    const region = { chromosome: "chr1", start: 10, end: 20 };
-    const records = [{ chromosome: "chr1", start: 12, end: 18, fields: ["feature"] }];
-    reader.read.mockResolvedValue(records);
-
-    await expect(
-      fetchBigBedRows({ url: "https://example.org/data.bb", region, schema: bed3Schema }),
-    ).resolves.toBe(records);
-
-    expect(reader.createBigBedFile).toHaveBeenCalledWith({
-      url: "https://example.org/data.bb",
-      schema: bed3Schema,
-    });
-    expect(reader.read).toHaveBeenCalledWith(region);
   });
 
   it("reuses the cached file across fetches and replaces it when the URL changes", async () => {

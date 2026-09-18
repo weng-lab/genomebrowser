@@ -54,9 +54,13 @@ export function useTrackMutationGate() {
 
   return {
     isInteractionBlocked: context.isInteractionBlocked,
-    runTrackMutation: (mutation: () => TrackMutationResult) => {
+    runTrackMutation: (mutation: () => TrackMutationResult): TrackMutationResult => {
       if (context.isInteractionBlocked) {
-        return { ok: false, error: "Track interactions are currently blocked" };
+        return {
+          ok: false,
+          code: "INTERACTION_BLOCKED",
+          error: "Track interactions are currently blocked",
+        };
       }
       return mutation();
     },

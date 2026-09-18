@@ -11,8 +11,8 @@ bedToBigBed -type=bed6 basic.bed chrom.sizes basic.bb
 bedToBigBed -type=bed6 -unc basic.bed chrom.sizes basic-unc.bb
 ```
 
-The committed binaries were generated with the UCSC Kent utility `bedToBigBed v. 2.7` (BigBed
-version 4). Their SHA-256 hashes are:
+The committed binaries were generated with the UCSC Kent utility `bedToBigBed v. 2.7`.
+They use BigBed version 4. Their SHA-256 hashes are:
 
 ```text
 677248b56d6186f4b03bd8a661229fa319ecac4b79488aac8e3fc634079dbc0a  basic.bb

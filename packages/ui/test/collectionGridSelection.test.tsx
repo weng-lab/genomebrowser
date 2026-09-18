@@ -10,7 +10,7 @@ import type { TrackCollection } from "@weng-lab/genomebrowser";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
-const collection: TrackCollection = {
+const collection = {
   assembly: "hg38",
   id: "catalog",
   label: "Collection",
@@ -52,7 +52,7 @@ const collection: TrackCollection = {
       metadata: { category: "Group B", subgroup: "Nested B" },
     },
   ],
-};
+} satisfies TrackCollection;
 
 const collectionRecord = compileTrackCollections([collection]).records[0]!;
 const view = collectionRecord.views[0]!;

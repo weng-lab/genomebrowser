@@ -3,7 +3,7 @@ import type {
   TrackInteraction,
   TrackRuntimeContext,
 } from "@weng-lab/genomebrowser";
-import type { TrackMetadata, TrackCollectionTrack } from "@weng-lab/genomebrowser";
+import type { TrackMetadata, TrackCollection } from "@weng-lab/genomebrowser";
 
 export type TrackSelectCollectionContext = Readonly<{
   collectionId: string;
@@ -29,7 +29,7 @@ export type TrackSelectInteractionResolver = (
   entry: Readonly<{
     collectionId: string;
     qualifiedTrackId: string;
-    track: TrackCollectionTrack;
+    track: TrackCollection["tracks"][number];
   }>,
 ) => AnyTrackSelectInteraction | undefined;
 

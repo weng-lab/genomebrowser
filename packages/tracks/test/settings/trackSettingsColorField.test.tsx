@@ -107,6 +107,7 @@ describe("TrackSettingsColorField", () => {
   it("returns to the accepted color when a picker mutation is rejected", () => {
     const onCommit = vi.fn<(color: string) => TrackMutationResult>(() => ({
       ok: false,
+      code: "INVALID_TRACK",
       error: "Core rejected this color.",
     }));
     mount(<TrackSettingsColorField label="Track color" value="#FF0000" onCommit={onCommit} />);

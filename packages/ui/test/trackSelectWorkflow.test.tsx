@@ -5,6 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import {
+  validateTrackCollection,
   createTrackStore,
   defineTrackModule,
   type TrackInteraction,
@@ -14,11 +15,7 @@ import {
 import type { TrackSelectInteraction, TrackSelectInteractionResolver } from "../src/lib";
 import TrackSelect from "../src/TrackSelect/TrackSelect";
 import { compileTrackCollections } from "../src/TrackSelect/collection/collectionCompilation";
-import type {
-  TrackCollection,
-  TrackCollectionTrack,
-  TrackCollectionView,
-} from "@weng-lab/genomebrowser";
+import type { TrackCollection, TrackCollectionView } from "@weng-lab/genomebrowser";
 import {
   type TrackSelectState,
   useTrackSelectState,
@@ -79,7 +76,7 @@ const groupedView: TrackCollectionView = {
   grouping: ["group"],
 };
 
-function collectionTrack(id: string, group: string): TrackCollectionTrack {
+function collectionTrack(id: string, group: string): TrackCollection["tracks"][number] {
   return {
     base: {
       id,
@@ -195,7 +192,11 @@ function createStateOptions({
     onCommittedTrackIds,
     setTracks: commitTracks,
     options: {
-      compiledCollections: compileTrackCollections(trackCollections),
+      compiledCollections: compileTrackCollections(
+        trackCollections.map((collection) =>
+          validateTrackCollection(collection, store.getState().registry.modules),
+        ),
+      ),
       tracks: store.getState().tracks,
       registry: store.getState().registry,
       setTracks: commitTracks,

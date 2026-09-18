@@ -1,6 +1,6 @@
 # Your genome browser
 
-An editable React and TypeScript application built with the Weng Lab genome browser packages. It starts with hg38 and reference tracks, ready to adapt to your datasets and workflows.
+An editable React and TypeScript application built with the Weng Lab genome browser packages. It starts with hg38 and reference tracks.
 
 ## Run locally
 
@@ -13,15 +13,17 @@ npm run dev
 
 Open the address printed by Vite. Source changes usually appear automatically.
 
-See [Run, build, and access remotely](docs/running.md) for built previews and SSH access from your laptop to an app running on a lab server.
+See [Run, build, and access remotely](docs/01-running.md) for built previews and SSH access from your laptop to an app running on a lab server.
 
 For gene, SNP, and cCRE search, copy `.env.example` to `.env.local`, set `SCREEN_API_KEY`, and restart the server. Keys are available from <https://console.wenglab.org/>. Coordinate search works without a key.
 
 ## Customize and deploy
 
-- [Customization](docs/customization.md): datasets, startup selection, assemblies, and interface changes.
-- [Architecture](docs/architecture.md): shared state and track initialization.
-- [Deployment](docs/deployment.md): hosting the website, data, and search endpoint.
+Follow the [application documentation](docs/README.md) for the full reading path.
+
+- [Customization](docs/03-customization.md): datasets, startup selection, assemblies, and interface changes.
+- [Architecture](docs/02-architecture.md): shared state and track initialization.
+- [Deployment](docs/04-deployment.md): hosting the website, data, and search endpoint.
 
 For agent-assisted changes, provide the intended behavior, assembly, dataset URLs, and a representative region. [AGENTS.md](AGENTS.md) provides package documentation locations and verification commands.
 

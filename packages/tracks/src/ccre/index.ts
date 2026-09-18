@@ -6,7 +6,8 @@ import { DenseBigBed, SquishBigBed } from "../bigbed/render";
 import { BigBedSettings } from "../bigbed/settings";
 import type { BigBedConfig } from "../bigbed/types";
 import { defaultRowHeight, rowHeightSchema } from "../shared/layout/rowLayout";
-import { ccreBigBedSchema, type CcreBigBedRow } from "./schema";
+import { bedSchemas } from "../shared/bedSchemas";
+import type { CcreBigBedRow } from "./types";
 import { CcreBigBedTooltip } from "./tooltip";
 
 const configSchema = z.object({
@@ -19,7 +20,7 @@ async function fetchCcreBigBed({
   demand: { region },
   resources,
 }: TrackFetchContext<BigBedConfig>): Promise<CcreBigBedRow[]> {
-  return readCachedBigBedRows(resources, config.url, ccreBigBedSchema, region);
+  return readCachedBigBedRows(resources, config.url, bedSchemas.ccre, region);
 }
 
 export const ccreBigBedModule = defineTrackModule<CcreBigBedRow>()({
@@ -34,5 +35,4 @@ export const ccreBigBedModule = defineTrackModule<CcreBigBedRow>()({
 
 export type CcreBigBedCreateInput = ModuleCreateInput<typeof ccreBigBedModule>;
 export type CcreBigBedConfig = ModuleInstance<typeof ccreBigBedModule>["config"];
-export { ccreBigBedSchema } from "./schema";
-export type { CcreBigBedRow } from "./schema";
+export type { CcreBigBedRow } from "./types";

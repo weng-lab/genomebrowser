@@ -48,6 +48,8 @@ type AwaitedSchemaOutput<Schema extends z.ZodObject> = keyof Schema["shape"] ext
 export type BigBedRecord<Schema extends z.ZodObject> = GenomicRecord &
   AwaitedSchemaOutput<Schema> & { fields: string[] };
 
+export type BigBedFile<Schema extends z.ZodObject> = GenomicFile<BigBedRecord<Schema>>;
+
 export type BigBedFileOptions<Schema extends z.ZodObject> = {
   url: string;
   schema: Schema &
@@ -213,7 +215,7 @@ async function readBigBed<Schema extends z.ZodObject>(
 
 export function createBigBedFile<Schema extends z.ZodObject>(
   options: BigBedFileOptions<Schema>,
-): GenomicFile<BigBedRecord<Schema>> {
+): BigBedFile<Schema> {
   if (options === null || typeof options !== "object") {
     throw new TypeError("BigBed file options must be an object");
   }

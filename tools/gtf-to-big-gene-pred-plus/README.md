@@ -14,11 +14,17 @@ cargo build --release
   --output annotation.bb
 ```
 
-The GTF input may be plain text or gzip-compressed with a `.gz` suffix. The chromosome sizes file is required and must contain exactly two whitespace-separated columns per line: chromosome name and positive length. The converter first tries an exact chromosome-name match. When a GTF name does not start with `chr` and has no exact match, it also tries the name with a `chr` prefix. For example, GTF chromosome `1` matches a `chr1` sizes entry and is written to the BigBed as `chr1`. Other naming differences, including Ensembl-to-UCSC alternate-locus names, still require matching names in the chromosome sizes file. The converter rejects every GTF feature on an unknown chromosome or outside the declared length.
+The GTF input may be plain text or gzip-compressed with a `.gz` suffix. The chromosome sizes file is required and must contain exactly two whitespace-separated columns per line: chromosome name and positive length.
+
+### Chromosome-name matching
+
+The converter first tries an exact chromosome-name match. When a GTF name does not start with `chr` and has no exact match, it also tries the name with a `chr` prefix. For example, GTF chromosome `1` matches a `chr1` sizes entry and is written to the BigBed as `chr1`.
+
+Other naming differences, including Ensembl-to-UCSC alternate-locus names, require matching names in the chromosome sizes file. The converter rejects every GTF feature on an unknown chromosome or outside the declared length.
 
 ## Input contract
 
-The converter deliberately rejects ambiguous annotations instead of guessing:
+Annotations must meet these requirements:
 
 - Each output transcript needs one `transcript` record with exactly one `transcript_id` and `gene_id`.
 - Each transcript needs at least one nonoverlapping `exon`. Its first and last exon bounds must match the transcript record.
@@ -31,11 +37,25 @@ Output records are sorted by chromosome, start, end, and remaining fields before
 
 ## Field mapping
 
-`name` is `transcript_id`, and `name2` is `transcript_name` with an ID fallback. `geneName`, `geneName2`, and `geneType` come from `gene_id`, `gene_name`, and `gene_type`. Score and reserved are `0`. The `tags` field joins every transcript-line `tag` value with commas in source order and is empty when no tags are present.
+| Output field        | Source or value                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------ |
+| `name`              | `transcript_id`.                                                                                       |
+| `name2`             | `transcript_name`, falling back to `transcript_id`.                                                    |
+| `geneName`          | `gene_id`.                                                                                             |
+| `geneName2`         | `gene_name`.                                                                                           |
+| `geneType`          | `gene_type`.                                                                                           |
+| `score`, `reserved` | `0`.                                                                                                   |
+| `tags`              | Every transcript-line `tag` value, joined with commas in source order. Empty when no tags are present. |
 
-Coding thick bounds cover the CDS plus any start- and stop-codon records. A noncoding transcript uses `thickStart = thickEnd = chromEnd`. Start and end status values are `cmpl` when the corresponding biological start or stop codon exists and `incmpl` when it does not. The converter maps those biological statuses onto genomic low and high fields by strand, so a minus-strand stop codon controls `cdsStartStat` and its start codon controls `cdsEndStat`. Noncoding statuses are `none`.
+Coding thick bounds cover the CDS plus any start- and stop-codon records. A noncoding transcript uses `thickStart = thickEnd = chromEnd`.
 
-The JSON field comes only from the transcript line. It keeps first-seen key order and repeated-value order. A key with one value is a JSON string; a repeated key becomes a JSON array. The typed attributes `gene_id`, `gene_name`, `gene_type`, `transcript_id`, `transcript_name`, and `transcript_type` are excluded, as is every `tag`. Other attributes, including `gene_biotype` and `transcript_biotype`, remain in JSON. `serde_json` writes compact JSON with deterministic escaping.
+Start and end status values are `cmpl` when the corresponding biological start or stop codon exists and `incmpl` when it does not. The converter maps those statuses to genomic low and high fields by strand. For a minus-strand transcript, the stop codon controls `cdsStartStat` and the start codon controls `cdsEndStat`. Noncoding statuses are `none`.
+
+### JSON attributes
+
+The `attributes` field comes only from the transcript line. It keeps first-seen key order and repeated-value order. A key with one value is a JSON string; a repeated key becomes a JSON array.
+
+The typed attributes `gene_id`, `gene_name`, `gene_type`, `transcript_id`, `transcript_name`, and `transcript_type` are excluded, as is every `tag`. Other attributes, including `gene_biotype` and `transcript_biotype`, remain in JSON. `serde_json` writes compact JSON with deterministic escaping.
 
 ## Exon-frame convention
 

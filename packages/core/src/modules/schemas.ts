@@ -12,16 +12,18 @@ export const trackBaseSchema = z.strictObject({
   color: hexColorSchema,
 });
 
-function formatZodError(error: z.ZodError) {
+export function formatZodError(error: z.ZodError) {
   return error.issues
     .map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`)
     .join("; ");
 }
 
+export class PublicInputValidationError extends Error {}
+
 export function parsePublicInput<T>(schema: z.ZodType<T>, input: unknown, label: string): T {
   const result = schema.safeParse(input);
   if (!result.success) {
-    throw new Error(`${label} is invalid: ${formatZodError(result.error)}`);
+    throw new PublicInputValidationError(`${label} is invalid: ${formatZodError(result.error)}`);
   }
   return result.data;
 }

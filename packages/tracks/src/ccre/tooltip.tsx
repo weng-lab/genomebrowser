@@ -2,7 +2,7 @@ import type { TrackRuntimeContext } from "@weng-lab/genomebrowser";
 import type { BigBedConfig } from "../bigbed/types";
 import { formatGenomicInterval } from "../shared/tooltips/trackTooltipFormatters";
 import { TrackTooltip } from "../shared/tooltips/trackTooltip";
-import type { CcreBigBedRow } from "./schema";
+import type { CcreBigBedRow } from "./types";
 
 export function CcreBigBedTooltip({
   item,

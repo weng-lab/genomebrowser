@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ccreBigBedModule, ccreBigBedSchema } from "../../src/ccre";
+import { ccreBigBedModule } from "../../src/ccre";
+import { bedSchemas } from "@weng-lab/genomebrowser-tracks/shared";
 
 describe("cCRE BigBed track", () => {
   it("defines a distinct module type", () => {
@@ -16,7 +17,7 @@ describe("cCRE BigBed track", () => {
   });
 
   it("parses the aggregate cCRE columns", () => {
-    expect(Object.keys(ccreBigBedSchema.shape)).toEqual([
+    expect(Object.keys(bedSchemas.ccre.shape)).toEqual([
       "name",
       "score",
       "strand",
@@ -27,7 +28,7 @@ describe("cCRE BigBed track", () => {
     ]);
 
     expect(
-      ccreBigBedSchema.parse({
+      bedSchemas.ccre.parse({
         name: "EH38E4064188",
         score: "0",
         strand: ".",

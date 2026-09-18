@@ -13,10 +13,10 @@ The source deliberately includes:
 - the intervals `chr1:970-1030` and `chr1:1970-2030`, which overlap the lower
   and upper boundaries of a `chr1:1000-2000` query;
 - positive, negative, integer, and fractional values from `-9.5` through `9`;
-- enough records and genomic span for four actual converter-generated zoom
+- enough records and genomic span for four converter-generated zoom
   levels.
 
-The intentionally small `-blockSize=4` and `-itemsPerSlot=8` settings keep the
+The small `-blockSize=4` and `-itemsPerSlot=8` settings keep the
 fixtures tiny while placing the 111 source records in 14 primary data blocks.
 They are fixture-generation settings, not recommended production defaults.
 
@@ -66,7 +66,7 @@ basic.bw          3721 bytes  0d28870fb5ea1fa2d70495693be1861b662e52d79c6f3d1630
 basic-unc.bw      4908 bytes  e49672a6eceb71c92509279217cf74f7d58c5140c565447dffead54163bce688
 ```
 
-## Trusted UCSC inspection
+## UCSC inspection
 
 Run these commands to verify the BBI version, compression mode, chromosomes,
 and declared zoom levels:
@@ -76,7 +76,7 @@ bigWigInfo -chroms -zooms basic.bw
 bigWigInfo -chroms -zooms basic-unc.bw
 ```
 
-The trusted UCSC output is:
+The UCSC output is:
 
 ```text
 version: 4
@@ -134,7 +134,7 @@ diff -u basic.bedGraph /tmp/basic-unc.roundtrip.bedGraph
 
 Both `diff` commands exit 0 with no output.
 
-For a trusted zoom-backed regional summary, UCSC `bigWigSummary` reports the
+For a zoom-backed regional summary, UCSC `bigWigSummary` reports the
 following identical results for both fixtures:
 
 ```sh

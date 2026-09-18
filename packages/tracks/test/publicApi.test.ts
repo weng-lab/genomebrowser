@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { validateJson, type TrackInteraction } from "@weng-lab/genomebrowser";
+import { validateTrackCollection, type TrackInteraction } from "@weng-lab/genomebrowser";
 import type {
   BigWigRecord,
   BigWigSummaryRecord,
@@ -31,14 +31,12 @@ import {
 } from "@weng-lab/genomebrowser-tracks/cave";
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 import {
-  type BigGenePredPlusV1Source,
-  type BigGenePredSource,
   geneModule,
   type GeneConfig,
   type GeneCreateInput,
   type GeneInteraction,
   type GeneInteractionTarget,
-  type GenePart,
+  type GeneTranscript,
 } from "@weng-lab/genomebrowser-tracks/gene";
 import {
   methylCModule,
@@ -90,11 +88,11 @@ describe("first-party track package", () => {
         },
       ],
     };
-    expect(() => validateJson(collection, firstPartyTrackModules)).toThrow();
+    expect(() => validateTrackCollection(collection, firstPartyTrackModules)).toThrow();
     collection.tracks[0]!.type = "gene";
-    expect(() => validateJson(collection, firstPartyTrackModules)).toThrow();
+    expect(() => validateTrackCollection(collection, firstPartyTrackModules)).toThrow();
     expect(
-      validateJson(
+      validateTrackCollection(
         {
           ...collection,
           tracks: [
@@ -149,8 +147,7 @@ describe("first-party track package", () => {
     >();
     expectTypeOf<CaveCreateInput>().toEqualTypeOf<Parameters<typeof caveModule.create>[0]>();
     expectTypeOf<CaveConfig>().toEqualTypeOf<ReturnType<typeof caveModule.validate>["config"]>();
-    expectTypeOf<BigGenePredSource["geneType"]>().toEqualTypeOf<string>();
-    expectTypeOf<BigGenePredPlusV1Source["tags"]>().toEqualTypeOf<string>();
+    expectTypeOf<GeneTranscript["source"]["geneType"]>().toEqualTypeOf<string>();
     expectTypeOf<CaveData>().toEqualTypeOf<{ top: BigWigRecord[]; bottom: BigWigRecord[] }>();
     expectTypeOf<GeneCreateInput>().toEqualTypeOf<Parameters<typeof geneModule.create>[0]>();
     expectTypeOf<GeneConfig>().toEqualTypeOf<ReturnType<typeof geneModule.validate>["config"]>();
@@ -158,8 +155,8 @@ describe("first-party track package", () => {
       TrackInteraction<GeneInteractionTarget, GeneConfig>
     >();
     expectTypeOf<
-      Extract<GeneInteractionTarget, { kind: "part" }>["part"]
-    >().toEqualTypeOf<GenePart>();
+      Extract<GeneInteractionTarget, { kind: "part" }>["part"]["source"]
+    >().toEqualTypeOf<"transcript" | "merged">();
     expectTypeOf<MethylCCreateInput>().toEqualTypeOf<Parameters<typeof methylCModule.create>[0]>();
     expectTypeOf<MethylCConfig>().toEqualTypeOf<
       ReturnType<typeof methylCModule.validate>["config"]

@@ -1,6 +1,9 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
+import { createTrackStore } from "../../src/browser/state/trackStore";
+import type { ComponentProps } from "react";
+import type { GenomeBrowser } from "../../src/lib";
 import { createModuleRegistry } from "../../src/modules/registry";
 import type {
   ModuleCreateInput,
@@ -12,6 +15,7 @@ import type {
   TrackSettingsComponent,
   TrackSettingsProps,
   TrackUpdate,
+  TrackStoreInstance,
 } from "../../src/lib";
 
 describe("track module type contracts", () => {
@@ -122,6 +126,34 @@ describe("track module type contracts", () => {
     expectTypeOf<ModuleCreateInput<typeof module>>().toEqualTypeOf<
       ModuleCreateInput<typeof moduleA>
     >();
+  });
+
+  it("preserves module inference through the track store", () => {
+    const useTrackStore = createTrackStore({ modules: [moduleA, moduleB] });
+    const storeRegistry = useTrackStore.getState().registry;
+    const module = storeRegistry.get("a");
+
+    expectTypeOf(storeRegistry.modules).toEqualTypeOf<readonly [typeof moduleA, typeof moduleB]>();
+    expectTypeOf(module).toEqualTypeOf<typeof moduleA>();
+    expectTypeOf(storeRegistry.get("b")).toEqualTypeOf<typeof moduleB>();
+    expectTypeOf(useTrackStore).toExtend<TrackStoreInstance>();
+    expectTypeOf(useTrackStore).toExtend<ComponentProps<typeof GenomeBrowser>["trackStore"]>();
+
+    const track = module.create({
+      base: { id: "track-a", title: "Track A" },
+      config: { url: "YOUR_URL_HERE" },
+    });
+    expectTypeOf(track).toEqualTypeOf<ModuleInstance<typeof moduleA>>();
+    expect(track.config.scale).toBe("auto");
+
+    // eslint-disable-next-line no-constant-condition -- Compile-time-only negative type assertions.
+    if (false) {
+      module.create({
+        base: { id: "track-a", title: "Track A" },
+        // @ts-expect-error Module B's configuration is not accepted by module A.
+        config: { endpoint: "YOUR_URL_HERE" },
+      });
+    }
   });
 
   it("keeps erased registry lookups as module values", () => {

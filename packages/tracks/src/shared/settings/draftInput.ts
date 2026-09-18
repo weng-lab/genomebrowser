@@ -84,7 +84,11 @@ export function useDraftController<Raw, Value>(
     const validation = options.validate(currentDraft.raw);
     if (!validation.ok) {
       setDraft({ ...currentDraft, error: validation.error, pendingRevision: undefined });
-      return { ok: false, error: validation.error } satisfies TrackMutationResult;
+      return {
+        ok: false,
+        code: "INVALID_TRACK",
+        error: validation.error,
+      } satisfies TrackMutationResult;
     }
 
     const baseline = currentBaseline(currentDraft);

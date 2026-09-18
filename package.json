@@ -15,19 +15,19 @@
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
     "format": "turbo run format //#format:root",
-    "format:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md CONTRIBUTING.md README.md docs/turborepo.md .github",
+    "format:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md README.md .github",
     "format:check": "turbo run format:check //#format:check:root",
-    "format:check:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md CONTRIBUTING.md README.md docs/turborepo.md .github --check",
+    "format:check:root": "oxfmt package.json pnpm-workspace.yaml turbo.json AGENTS.md README.md .github --check",
     "verify": "turbo run format:check lint build test //#format:check:root",
     "doctor": "pnpm exec react-doctor . --verbose",
-    "publish:dry-run": "pnpm publish -r --tag beta --dry-run --no-git-checks",
-    "publish:beta": "pnpm publish -r --tag beta"
+    "publish:dry-run": "pnpm publish -r --tag latest --dry-run --no-git-checks",
+    "publish:stable": "pnpm publish -r --tag latest"
   },
   "devDependencies": {
     "oxfmt": "^0.50.0",
-    "oxlint": "^1.65.0",
-    "react-doctor": "^0.9.5",
+    "oxlint": "^1.76.0",
+    "react-doctor": "^0.9.14",
     "turbo": "2.10.11"
   },
-  "packageManager": "pnpm@11.24.0"
+  "packageManager": "pnpm@12.4.2"
 }

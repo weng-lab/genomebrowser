@@ -1,6 +1,6 @@
 ## Summary
 
-<!-- Briefly state what changed and why. -->
+<!-- Briefly state the problem and resulting behavior. Explain how the implementation achieves it and why, pointing to the key files for review. -->
 
 ## Manual verification
 

@@ -72,6 +72,7 @@ assertJsonEqual(
 assertJsonEqual(
   declarationExports.typeNames,
   [
+    "BigBedFile",
     "BigBedFileOptions",
     "BigBedParseContext",
     "BigBedRecord",

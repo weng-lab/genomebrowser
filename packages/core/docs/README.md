@@ -1,46 +1,51 @@
-# @weng-lab/genomebrowser
+# Core documentation
 
-`@weng-lab/genomebrowser` is a React runtime for displaying genomic tracks. It provides the browser viewport, validated Zustand stores, module infrastructure, and an extension API for custom track types.
+Use `@weng-lab/genomebrowser` to render genomic tracks, manage the viewport and track state, and implement custom track types.
 
-Install the package with its React peer dependencies:
+## Getting started
 
-```sh
-pnpm add @weng-lab/genomebrowser@beta react@^19.2 react-dom@^19.2
-```
+[Browse this section](01-gettingStarted/README.md).
 
-The package is intended for client-side React 19.2+ applications. Its browser uses SVG, pointer events, `ResizeObserver` for default responsive sizing, and remote data requests. It is not a server-rendered visualization runtime.
+The tutorial builds one React integration across four chapters. Start with a responsive browser, then configure tracks, navigate and select regions, and work with track collections.
 
-## Runtime and optional UI
+1. [Create a genome browser](01-gettingStarted/01-firstBrowser.md): choose a setup path and connect the assembly, stores, and first tracks.
+2. [Add and configure tracks](01-gettingStarted/02-configureTracks.md): add tracks, change their settings and order, and handle feature clicks.
+3. [Navigate and select regions](01-gettingStarted/03-navigationAndSelection.md): pan, zoom, mark regions, and use the provided controls.
+4. [Use track collections](01-gettingStarted/04-trackCollections.md): define and share collections, load tracks directly, or offer selection through TrackSelect.
 
-`@weng-lab/genomebrowser` renders and manages the browser itself. `@weng-lab/genomebrowser-ui@beta` is a separate optional package for higher-level application UI such as collection-backed track selection. Both can share the same track store; installing the UI package is not required to render a browser.
+## Guides
 
-## Recommended API
+[Browse this section](02-guides/README.md).
 
-Most applications need a small surface:
+- [State and browser lifetime](02-guides/stateAndLifetime.md): choose store ownership, link views, and access state from application or hosted components.
+- [Customize an existing track module](02-guides/customizeTrackModules.md): reuse a module's fetcher and renderers with a different schema, settings form, or tooltip.
+- [Create a custom track](02-guides/customTracks.md): build a working annotation module, then add settings, interactions, and tooltips.
+- [Data fetching and rendering](02-guides/dataFetching.md): use render demand, choose refetch inputs, and reuse resources across requests.
 
-- `createBrowserStore` for region, dimensions, zoom, and highlights
-- `createTrackStore` for registered modules and validated track instances
-- one or more registered modules, either application-defined or supplied by a track package
-- `GenomeBrowser` to render those stores
-- `useGenomeBrowser` for hosted components to access their browser and track stores
+[Troubleshooting](04-troubleshooting.md) covers setup problems, rejected updates, and rendering errors.
 
-Create the stores once, outside ordinary component render, and pass the same track store to any companion UI. Module authors additionally use `defineTrackModule`, `fetchOnChange`, focused renderer hooks, and exported module types. Internal package paths are not public API.
+## API reference
 
-## Learning path
+The [reference index](03-reference/README.md) links to documentation for every public core export and includes the schema CLI. Browse the reference by area:
 
-- [Getting started](gettingStarted.md): install, create stable stores, render responsively, and update state.
-- [GenomeBrowser](GenomeBrowser.md): component API, responsive and fixed sizing, and whole-browser magnification.
-- [Core concepts](concepts.md): state ownership, request behavior, and interaction lifetimes.
-- [Recipes](recipes.md): common track, navigation, highlight, sizing, and optional UI tasks.
-- [Tracks](tracks.md): module registration, track creation, and runtime behavior.
-- [Custom track modules](customTrackModules.md): add a validated fetch/render type.
-- [Troubleshooting](troubleshooting.md): diagnose setup, validation, request, and sizing failures.
+- [Browser setup](03-reference/01-browserSetup/README.md): Render a browser, create its stores, and access them from hosted components.
+- [Assemblies and regions](03-reference/02-assembliesAndRegions/README.md): Choose sequence definitions and parse or validate genomic regions.
+- [Track definition](03-reference/03-trackDefinition/README.md): Define modules, create instances, fetch data, and supply settings forms.
+- [Renderer integration](03-reference/04-rendererIntegration/README.md): Draw track data and connect SVG content to interactions, tooltips, and automatic sizing.
+- [Collections and schemas](03-reference/05-collectionsAndSchemas/README.md): Define track collections, validate their input, and generate JSON schemas for editors.
 
-These docs ship with the package and are self-contained.
+## Package boundaries
 
-- [TrackOverlay](TrackOverlay.md): fixed SVG annotations within a track.
-- [TrackLabel](TrackLabel.md): fixed text labels at plot edges and scale positions.
+Core renders the browser, manages requests, and defines the APIs for track modules. First-party modules come from `@weng-lab/genomebrowser-tracks`. Optional application controls, including TrackSelect, come from `@weng-lab/genomebrowser-ui`; they can share the runtime's stores. Package internals are not public import paths.
 
-[Track collections](trackCollections.md) describes the shared JSON format, validation, and `genomebrowser schema` CLI.
+Hosted renderers, settings, and tooltips use [useGenomeBrowser](03-reference/01-browserSetup/useGenomeBrowser.md#usegenomebrowser) to access their browser and track stores.
 
-See [release notes](releaseNotes.md) for breaking changes and migration guidance.
+## Further reading
+
+These resources explain the libraries and web APIs used in core's public API:
+
+- [Zod](https://zod.dev/): define configuration schemas, validate input, and infer TypeScript types for track modules.
+- [Zustand](https://github.com/pmndrs/zustand): understand the store hooks returned by core, including selectors, subscriptions, and access outside React.
+- [SVG on MDN](https://developer.mozilla.org/en-US/docs/Web/SVG): work with shapes, text, coordinates, and transforms when writing track renderers and tooltips.
+
+Return to [Package overview](../README.md).
