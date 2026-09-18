@@ -1,8 +1,10 @@
 # Package releases
 
-Packages have independent version histories. Use the version the maintainer specifies; otherwise recommend a version from the changes since that package's last published release, following semantic versioning. Leave unchanged packages alone unless a shipped dependency or template change requires a release.
+Packages have independent version histories and may be released individually, as a selected group, or together in a coordinated release. Their version numbers do not need to match. Use the version the maintainer specifies for each selected package; otherwise recommend a version from the changes since that package's last published release, following semantic versioning. Leave unchanged packages alone unless a shipped dependency or template change requires a release, or the maintainer explicitly includes them in a coordinated release.
 
 ## Establish what is being released
+
+If the request does not name packages or explicitly select a coordinated release, ask which packages to release before changing release files or creating drafts. For example: "Which packages should we release, or should this be a coordinated release of all five?" A request such as "make a 2.0.0 release" specifies a version, not package scope. Do not infer scope from matching manifest versions or publishing scripts. Reuse a scope already established in the conversation.
 
 Compare the intended release commit with each package's actual published baseline, using npm metadata and verified tags. A manifest version or preparation PR is not proof of publication. Include consumer-relevant direct commits and shared changes as well as PRs; include unmerged work only when requested and clearly mark it pending.
 
@@ -50,4 +52,8 @@ Use one release per package, targeting the verified release commit. The naming c
 
 Private apps are not package release targets. Reuse existing drafts; investigate conflicting tags rather than moving them. Update published releases only when requested.
 
-Keep notes specific to the package and useful to its consumers. Open with the main change and a link to the exact npm version. Small releases can be one paragraph; add grouped changes and upgrade notes when needed. Explain breaking migrations before the change list, and include relevant PR links. Omit routine checks and internal cleanup unless they affect consumers.
+Write each release as a package-specific changelog from its previous published version, followed by upgrade notes only where consumers need to take action. Name the comparison version explicitly, including its prerelease suffix when applicable. A coordinated release still uses each package's own published baseline.
+
+Open with a short summary of what changed and a link to the exact npm version. Put the change list first, grouping additions, fixes, and removals when that helps readers. Include relevant PR links. Follow it with an optional "Upgrade notes from <previous version>" section describing required API, configuration, data, or dependency changes. Mention breaking changes in the changelog and explain how to migrate in the upgrade section. Do not lead with migration instructions, repeat unchanged installation requirements, or turn the notes into a package overview. Link setup and API documentation for background.
+
+Small releases can be a single changelog paragraph and need no upgrade section when no action is required. If an older stable version also needs a separate migration path, label it explicitly after the changes rather than mixing it with the previous-release upgrade notes. Omit routine checks and internal cleanup unless they affect consumers.
