@@ -3,7 +3,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { Box, Tooltip } from "@mui/material";
-import { BrowserNavigationButton } from "@weng-lab/genomebrowser-ui";
+import { NavigationButton } from "@weng-lab/genomebrowser-ui";
 import { useBrowserStore } from "../../stores";
 
 export default function NavigationControls() {
@@ -12,7 +12,7 @@ export default function NavigationControls() {
       <Box aria-label="Pan" role="group" sx={{ display: "flex", flexShrink: 0, gap: 1 }}>
         <Tooltip title="Pan left by half a viewport">
           <Box component="span" sx={{ display: "inline-flex" }}>
-            <BrowserNavigationButton
+            <NavigationButton
               action={{ type: "pan", fraction: -0.5 }}
               aria-label="Pan left by half a viewport"
               browserStore={useBrowserStore}
@@ -21,12 +21,12 @@ export default function NavigationControls() {
               variant="outlined"
             >
               <ArrowBackIcon fontSize="small" />
-            </BrowserNavigationButton>
+            </NavigationButton>
           </Box>
         </Tooltip>
         <Tooltip title="Pan right by half a viewport">
           <Box component="span" sx={{ display: "inline-flex" }}>
-            <BrowserNavigationButton
+            <NavigationButton
               action={{ type: "pan", fraction: 0.5 }}
               aria-label="Pan right by half a viewport"
               browserStore={useBrowserStore}
@@ -35,14 +35,14 @@ export default function NavigationControls() {
               variant="outlined"
             >
               <ArrowForwardIcon fontSize="small" />
-            </BrowserNavigationButton>
+            </NavigationButton>
           </Box>
         </Tooltip>
       </Box>
       <Box aria-label="Zoom" role="group" sx={{ display: "flex", flexShrink: 0, gap: 1 }}>
         <Tooltip title="Zoom out 2×">
           <Box component="span" sx={{ display: "inline-flex" }}>
-            <BrowserNavigationButton
+            <NavigationButton
               action={{ type: "zoom", factor: 2 }}
               aria-label="Zoom out 2×"
               browserStore={useBrowserStore}
@@ -51,12 +51,12 @@ export default function NavigationControls() {
               variant="outlined"
             >
               <RemoveIcon fontSize="small" />
-            </BrowserNavigationButton>
+            </NavigationButton>
           </Box>
         </Tooltip>
         <Tooltip title="Zoom in 2×">
           <Box component="span" sx={{ display: "inline-flex" }}>
-            <BrowserNavigationButton
+            <NavigationButton
               action={{ type: "zoom", factor: 0.5 }}
               aria-label="Zoom in 2×"
               browserStore={useBrowserStore}
@@ -65,7 +65,7 @@ export default function NavigationControls() {
               variant="outlined"
             >
               <AddIcon fontSize="small" />
-            </BrowserNavigationButton>
+            </NavigationButton>
           </Box>
         </Tooltip>
       </Box>

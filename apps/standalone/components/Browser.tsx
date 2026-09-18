@@ -9,7 +9,7 @@ import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
 import {
   HighlightDialog,
-  BrowserToolbar,
+  ControlToolbar,
   TrackSelect,
   type TrackSelectInteraction,
   type TrackSelectInteractionResolver,
@@ -61,7 +61,7 @@ export function Browser() {
 
   return (
     <Box sx={{ p: 1 }}>
-      <BrowserToolbar
+      <ControlToolbar
         browserStore={useBrowserStore}
         search={{
           assembly: "GRCh38",

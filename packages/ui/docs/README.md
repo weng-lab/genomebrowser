@@ -27,6 +27,8 @@ The [reference index](03-reference/README.md) lists every public UI component, h
 - [Track selection](03-reference/03-trackSelection/README.md): selection lifecycle, column customization, and interaction callbacks.
 - [Chromosome overview](03-reference/04-chromosomeOverview/README.md): cytobands, region brackets, highlight overlays, and tooltips.
 
+- [Shared UI](03-reference/05-sharedUI/README.md): Labeled outlines for custom content.
+
 ## Package responsibilities
 
 Core owns `GenomeBrowser`, browser and track stores, and the collection format. Tracks supplies first-party modules and their settings forms and tooltips. UI supplies the application controls documented here. Reader supplies the cytoband records and file reader consumed by the chromosome overview guide.

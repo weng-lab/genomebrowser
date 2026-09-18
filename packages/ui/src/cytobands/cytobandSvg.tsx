@@ -1,3 +1,4 @@
+import { useTheme } from "@mui/material/styles";
 import type { Cytoband } from "@weng-lab/genomic-reader";
 import type { CytobandColors } from "./cytobandsTypes";
 
@@ -11,7 +12,7 @@ type cytobandSvgProps = {
   clipId: string;
 };
 
-export function cytobandSvg({
+export function CytobandSvg({
   chromosome,
   chromosomeLength,
   bands,
@@ -20,6 +21,8 @@ export function cytobandSvg({
   colors,
   clipId,
 }: cytobandSvgProps) {
+  const theme = useTheme();
+  const borderColor = (theme.vars ?? theme).palette.text.secondary;
   const bandY = height * 0.1;
   const bandHeight = height * 0.8;
   const renderedBands = getRenderedBands(bands, chromosome, chromosomeLength);
@@ -32,7 +35,7 @@ export function cytobandSvg({
           <rect height={height} width={width} x={0} y={0} />
         </clipPath>
       </defs>
-      <g clipPath={`url(#${clipId})`} data-testid="cytobands">
+      <g clipPath={`url(#${clipId})`} data-testid="cytobands" stroke={borderColor} strokeWidth={1}>
         {renderedBands.map(({ band, start, end }, index) => {
           const x = (start / chromosomeLength) * width;
           const bandWidth = ((end - start) / chromosomeLength) * width;
@@ -43,6 +46,7 @@ export function cytobandSvg({
               : `M ${x + bandWidth} ${bandY} L ${x} ${height / 2} L ${x + bandWidth} ${bandY + bandHeight} Z`;
             return (
               <path
+                vectorEffect="non-scaling-stroke"
                 d={d}
                 data-stain={band.stain}
                 fill={colors.centromere}
@@ -53,6 +57,7 @@ export function cytobandSvg({
           const appearance = getBandAppearance(band.stain, colors);
           return (
             <rect
+              vectorEffect="non-scaling-stroke"
               data-stain={band.stain}
               fill={appearance.fill}
               fillOpacity={appearance.opacity}

@@ -3,15 +3,12 @@ import Tooltip from "@mui/material/Tooltip";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
 
-export type BrowserSelectionControlsProps = {
+export type SelectionControlsProps = {
   browserStore: BrowserStoreInstance;
   disabled?: boolean;
 };
 
-export function BrowserSelectionControls({
-  browserStore,
-  disabled = false,
-}: BrowserSelectionControlsProps) {
+export function SelectionControls({ browserStore, disabled = false }: SelectionControlsProps) {
   const useBrowserStore = browserStore;
   const mode = useBrowserStore((state) => state.selectionMode);
   const setMode = useBrowserStore((state) => state.setSelectionMode);

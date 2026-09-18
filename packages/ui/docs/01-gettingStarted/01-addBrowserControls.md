@@ -23,11 +23,7 @@ import Button from "@mui/material/Button";
 import { GenomeBrowser, createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
-import {
-  BrowserNavigationButton,
-  BrowserSelectionControls,
-  HighlightDialog,
-} from "@weng-lab/genomebrowser-ui";
+import { NavigationButton, SelectionControls, HighlightDialog } from "@weng-lab/genomebrowser-ui";
 
 export function Browser() {
   const [useBrowserStore] = useState(() =>
@@ -52,31 +48,19 @@ export function Browser() {
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, alignItems: "center", mb: 1 }}>
-        <BrowserNavigationButton
-          browserStore={useBrowserStore}
-          action={{ type: "pan", fraction: -0.5 }}
-        >
+        <NavigationButton browserStore={useBrowserStore} action={{ type: "pan", fraction: -0.5 }}>
           Pan left
-        </BrowserNavigationButton>
-        <BrowserNavigationButton
-          browserStore={useBrowserStore}
-          action={{ type: "pan", fraction: 0.5 }}
-        >
+        </NavigationButton>
+        <NavigationButton browserStore={useBrowserStore} action={{ type: "pan", fraction: 0.5 }}>
           Pan right
-        </BrowserNavigationButton>
-        <BrowserNavigationButton
-          browserStore={useBrowserStore}
-          action={{ type: "zoom", factor: 0.5 }}
-        >
+        </NavigationButton>
+        <NavigationButton browserStore={useBrowserStore} action={{ type: "zoom", factor: 0.5 }}>
           Zoom in
-        </BrowserNavigationButton>
-        <BrowserNavigationButton
-          browserStore={useBrowserStore}
-          action={{ type: "zoom", factor: 2 }}
-        >
+        </NavigationButton>
+        <NavigationButton browserStore={useBrowserStore} action={{ type: "zoom", factor: 2 }}>
           Zoom out
-        </BrowserNavigationButton>
-        <BrowserSelectionControls browserStore={useBrowserStore} />
+        </NavigationButton>
+        <SelectionControls browserStore={useBrowserStore} />
         <Button onClick={() => setHighlightsOpen(true)}>Highlights</Button>
       </Box>
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />

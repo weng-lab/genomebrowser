@@ -244,6 +244,9 @@ regions, clips partial overlap, and sorts the rendered records
 deterministically. `chromosomeLength` defines the full horizontal genomic
 extent and must be a positive finite number for bands or overlays to render.
 
+Each band has a 1px outline using the MUI theme's secondary text color, so pale
+stains remain visible against the background. The outline stays 1px when the SVG is scaled.
+
 Changing dimensions, colors, regions, bands, highlights, or callbacks updates
 the rendered SVG synchronously.
 

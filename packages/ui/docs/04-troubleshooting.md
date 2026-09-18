@@ -4,11 +4,11 @@ Start with the symptom below. The [API reference](03-reference/README.md) specif
 
 ## Controls do not affect the displayed browser
 
-Pass the same browser store to `GenomeBrowser`, `BrowserNavigationButton`, `BrowserSelectionControls`, and `HighlightDialog`. TrackSelect needs the same track store as GenomeBrowser. Creating another store with identical options still creates separate state.
+Pass the same browser store to `GenomeBrowser`, `NavigationButton`, `SelectionControls`, and `HighlightDialog`. TrackSelect needs the same track store as GenomeBrowser. Creating another store with identical options still creates separate state.
 
 Keep store instances stable across renders. Use a lazy state initializer for each mounted browser, or a file-scoped store for intentionally shared state. See [Add browser controls](01-gettingStarted/01-addBrowserControls.md#create-stores-for-the-browser).
 
-Navigation buttons disable themselves when the requested movement is unavailable, including at chromosome boundaries. Invalid pan fractions or zoom factors also disable the action. See [navigation actions](03-reference/01-browserControls/BrowserNavigationButton.md#browsernavigationaction).
+Navigation buttons disable themselves when the requested movement is unavailable, including at chromosome boundaries. Invalid pan fractions or zoom factors also disable the action. See [navigation actions](03-reference/01-browserControls/NavigationButton.md#navigationaction).
 
 ## The browser has no visible tracks
 

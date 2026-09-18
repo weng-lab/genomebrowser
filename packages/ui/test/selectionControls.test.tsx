@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it } from "vitest";
 import { createBrowserStore } from "@weng-lab/genomebrowser";
-import { BrowserSelectionControls } from "../src/lib";
+import { SelectionControls } from "../src/lib";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 it("keeps buttons and external mode changes synchronized, isolates stores, and supports disabled controls", () => {
@@ -20,8 +20,8 @@ it("keeps buttons and external mode changes synchronized, isolates stores, and s
     act(() =>
       root.render(
         <>
-          <BrowserSelectionControls browserStore={useFirst} />
-          <BrowserSelectionControls browserStore={useSecond} disabled />
+          <SelectionControls browserStore={useFirst} />
+          <SelectionControls browserStore={useSecond} disabled />
         </>,
       ),
     );

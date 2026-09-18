@@ -75,7 +75,7 @@ For known regions, `addHighlight` adds a highlight with an application-chosen ID
 
 ## Use the provided controls
 
-The optional UI package provides `BrowserNavigationButton` for pan and zoom actions and `BrowserSelectionControls` for choosing the drag mode. Bind them to the same browser store as the visualization so their actions operate on its current region and selection state.
+The optional UI package provides `NavigationButton` for pan and zoom actions and `SelectionControls` for choosing the drag mode. Bind them to the same browser store as the visualization so their actions operate on its current region and selection state.
 
 In addition to the dependencies from the first chapter, install the UI package and its remaining peers:
 
@@ -86,23 +86,20 @@ pnpm add @weng-lab/genomebrowser-ui@2.0.0 @mui/icons-material@7 @mui/x-data-grid
 The following `App.tsx` uses the provided controls with the existing `Browser` component. Each navigation button declares its action, while the selection control supplies the Pan, Zoom, and Highlight choices:
 
 ```tsx
-import { BrowserNavigationButton, BrowserSelectionControls } from "@weng-lab/genomebrowser-ui";
+import { NavigationButton, SelectionControls } from "@weng-lab/genomebrowser-ui";
 import { Browser } from "./Browser";
 import { useBrowserStore } from "./browserState";
 
 export default function App() {
   return (
     <>
-      <BrowserNavigationButton
-        browserStore={useBrowserStore}
-        action={{ type: "zoom", factor: 0.5 }}
-      >
+      <NavigationButton browserStore={useBrowserStore} action={{ type: "zoom", factor: 0.5 }}>
         Zoom in
-      </BrowserNavigationButton>
-      <BrowserNavigationButton browserStore={useBrowserStore} action={{ type: "zoom", factor: 2 }}>
+      </NavigationButton>
+      <NavigationButton browserStore={useBrowserStore} action={{ type: "zoom", factor: 2 }}>
         Zoom out
-      </BrowserNavigationButton>
-      <BrowserSelectionControls browserStore={useBrowserStore} />
+      </NavigationButton>
+      <SelectionControls browserStore={useBrowserStore} />
       <Browser />
     </>
   );

@@ -29,7 +29,7 @@ import { methylCModule as methylCUiModule } from "@weng-lab/genomebrowser-tracks
 import { geneModule as geneUiModule } from "@weng-lab/genomebrowser-tracks/gene";
 import { readCytobands, type Cytoband } from "@weng-lab/genomic-reader";
 import {
-  BrowserNavigationButton,
+  NavigationButton,
   Cytobands,
   TrackSelect,
   withValueMarkers,
@@ -462,7 +462,7 @@ function BrowserNavigationCompositions() {
           role="toolbar"
           useFlexGap
         >
-          <BrowserNavigationButton
+          <NavigationButton
             action={{ type: "pan", fraction: -1 }}
             aria-label="Pan left by one viewport"
             browserStore={useBrowserStore}
@@ -470,8 +470,8 @@ function BrowserNavigationCompositions() {
             variant="outlined"
           >
             ← Full viewport
-          </BrowserNavigationButton>
-          <BrowserNavigationButton
+          </NavigationButton>
+          <NavigationButton
             action={{ type: "pan", fraction: -0.5 }}
             aria-label="Pan left by half a viewport"
             browserStore={useBrowserStore}
@@ -479,8 +479,8 @@ function BrowserNavigationCompositions() {
             variant="outlined"
           >
             ← Half viewport
-          </BrowserNavigationButton>
-          <BrowserNavigationButton
+          </NavigationButton>
+          <NavigationButton
             action={{ type: "pan", fraction: 0.5 }}
             aria-label="Pan right by half a viewport"
             browserStore={useBrowserStore}
@@ -488,8 +488,8 @@ function BrowserNavigationCompositions() {
             variant="outlined"
           >
             Half viewport →
-          </BrowserNavigationButton>
-          <BrowserNavigationButton
+          </NavigationButton>
+          <NavigationButton
             action={{ type: "pan", fraction: 1 }}
             aria-label="Pan right by one viewport"
             browserStore={useBrowserStore}
@@ -497,8 +497,8 @@ function BrowserNavigationCompositions() {
             variant="outlined"
           >
             Full viewport →
-          </BrowserNavigationButton>
-          <BrowserNavigationButton
+          </NavigationButton>
+          <NavigationButton
             action={{ type: "zoom", factor: 3 }}
             aria-label="Zoom out 3×"
             browserStore={useBrowserStore}
@@ -506,8 +506,8 @@ function BrowserNavigationCompositions() {
             variant="outlined"
           >
             − 3×
-          </BrowserNavigationButton>
-          <BrowserNavigationButton
+          </NavigationButton>
+          <NavigationButton
             action={{ type: "zoom", factor: 1 / 3 }}
             aria-label="Zoom in 3×"
             browserStore={useBrowserStore}
@@ -515,7 +515,7 @@ function BrowserNavigationCompositions() {
             variant="outlined"
           >
             + 3×
-          </BrowserNavigationButton>
+          </NavigationButton>
         </Stack>
       </Box>
 
@@ -533,7 +533,7 @@ function BrowserNavigationCompositions() {
         >
           <Tooltip title="Pan left by a quarter viewport">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <BrowserNavigationButton
+              <NavigationButton
                 action={{ type: "pan", fraction: -0.25 }}
                 aria-label="Pan left by a quarter viewport"
                 browserStore={useBrowserStore}
@@ -542,12 +542,12 @@ function BrowserNavigationCompositions() {
                 variant="contained"
               >
                 <span aria-hidden="true">←</span>
-              </BrowserNavigationButton>
+              </NavigationButton>
             </Box>
           </Tooltip>
           <Tooltip title="Pan right by a quarter viewport">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <BrowserNavigationButton
+              <NavigationButton
                 action={{ type: "pan", fraction: 0.25 }}
                 aria-label="Pan right by a quarter viewport"
                 browserStore={useBrowserStore}
@@ -556,12 +556,12 @@ function BrowserNavigationCompositions() {
                 variant="contained"
               >
                 <span aria-hidden="true">→</span>
-              </BrowserNavigationButton>
+              </NavigationButton>
             </Box>
           </Tooltip>
           <Tooltip title="Zoom out 2×">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <BrowserNavigationButton
+              <NavigationButton
                 action={{ type: "zoom", factor: 2 }}
                 aria-label="Zoom out 2×"
                 browserStore={useBrowserStore}
@@ -570,12 +570,12 @@ function BrowserNavigationCompositions() {
                 variant="outlined"
               >
                 <span aria-hidden="true">−</span>
-              </BrowserNavigationButton>
+              </NavigationButton>
             </Box>
           </Tooltip>
           <Tooltip title="Zoom in 2×">
             <Box component="span" sx={{ display: "inline-flex" }}>
-              <BrowserNavigationButton
+              <NavigationButton
                 action={{ type: "zoom", factor: 0.5 }}
                 aria-label="Zoom in 2×"
                 browserStore={useBrowserStore}
@@ -584,7 +584,7 @@ function BrowserNavigationCompositions() {
                 variant="outlined"
               >
                 <span aria-hidden="true">+</span>
-              </BrowserNavigationButton>
+              </NavigationButton>
             </Box>
           </Tooltip>
         </Stack>

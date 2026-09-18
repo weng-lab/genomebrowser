@@ -8,11 +8,7 @@ import {
 import { act, Profiler, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, expectTypeOf, it, vi } from "vitest";
-import {
-  BrowserNavigationButton,
-  type BrowserNavigationAction,
-  type BrowserNavigationButtonProps,
-} from "../src/lib";
+import { NavigationButton, type NavigationAction, type NavigationButtonProps } from "../src/lib";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -29,17 +25,15 @@ afterEach(() => {
   root = undefined;
 });
 
-describe("BrowserNavigationButton", () => {
+describe("NavigationButton", () => {
   it("exports its component and store-bound action contract from the package root", () => {
-    type HasOnClick = "onClick" extends keyof BrowserNavigationButtonProps ? true : false;
+    type HasOnClick = "onClick" extends keyof NavigationButtonProps ? true : false;
 
-    expect(BrowserNavigationButton).toBeTypeOf("function");
-    expectTypeOf(BrowserNavigationButton)
-      .parameter(0)
-      .toEqualTypeOf<BrowserNavigationButtonProps>();
-    expectTypeOf<BrowserNavigationButtonProps["action"]>().toEqualTypeOf<BrowserNavigationAction>();
-    expectTypeOf<{ type: "pan"; fraction: number }>().toExtend<BrowserNavigationAction>();
-    expectTypeOf<{ type: "zoom"; factor: number }>().toExtend<BrowserNavigationAction>();
+    expect(NavigationButton).toBeTypeOf("function");
+    expectTypeOf(NavigationButton).parameter(0).toEqualTypeOf<NavigationButtonProps>();
+    expectTypeOf<NavigationButtonProps["action"]>().toEqualTypeOf<NavigationAction>();
+    expectTypeOf<{ type: "pan"; fraction: number }>().toExtend<NavigationAction>();
+    expectTypeOf<{ type: "zoom"; factor: number }>().toExtend<NavigationAction>();
     expectTypeOf<HasOnClick>().toEqualTypeOf<false>();
   });
 
@@ -154,7 +148,7 @@ describe("BrowserNavigationButton", () => {
     expect(getButton().disabled).toBe(true);
   });
 
-  it.each<BrowserNavigationAction>([
+  it.each<NavigationAction>([
     { type: "pan", fraction: 0 },
     { type: "pan", fraction: Number.NaN },
     { type: "pan", fraction: Number.POSITIVE_INFINITY },
@@ -197,26 +191,26 @@ describe("BrowserNavigationButton", () => {
     expect(getButton().getAttribute("aria-label")).toBe("Zoom out");
 
     render(
-      <BrowserNavigationButton
+      <NavigationButton
         action={{ type: "zoom", factor: 2 }}
         aria-label="Show more context"
         browserStore={browserStore}
       >
         Custom child
-      </BrowserNavigationButton>,
+      </NavigationButton>,
     );
     expect(getButton().getAttribute("aria-label")).toBe("Show more context");
 
     render(
       <>
         <span id="navigation-name">Move along chromosome</span>
-        <BrowserNavigationButton
+        <NavigationButton
           action={{ type: "pan", fraction: 0.5 }}
           aria-labelledby="navigation-name"
           browserStore={browserStore}
         >
           Custom child
-        </BrowserNavigationButton>
+        </NavigationButton>
       </>,
     );
     expect(getButton().hasAttribute("aria-label")).toBe(false);
@@ -226,7 +220,7 @@ describe("BrowserNavigationButton", () => {
   it("forwards consumer presentation while remaining a native MUI button", () => {
     const browserStore = createTestStore();
     mount(
-      <BrowserNavigationButton
+      <NavigationButton
         action={{ type: "pan", fraction: 0.5 }}
         browserStore={browserStore}
         className="consumer-navigation"
@@ -237,7 +231,7 @@ describe("BrowserNavigationButton", () => {
         variant="contained"
       >
         Forward
-      </BrowserNavigationButton>,
+      </NavigationButton>,
     );
 
     const button = getButton();
@@ -260,12 +254,9 @@ describe("BrowserNavigationButton", () => {
     let renderCount = 0;
     mount(
       <Profiler id="navigation" onRender={() => renderCount++}>
-        <BrowserNavigationButton
-          action={{ type: "pan", fraction: -0.5 }}
-          browserStore={browserStore}
-        >
+        <NavigationButton action={{ type: "pan", fraction: -0.5 }} browserStore={browserStore}>
           Move
-        </BrowserNavigationButton>
+        </NavigationButton>
       </Profiler>,
     );
     const initialRenderCount = renderCount;
@@ -285,27 +276,27 @@ function createTestStore(region: GenomicRegion = { chromosome: "chr1", start: 20
 
 function mountButton(
   browserStore: BrowserStoreInstance,
-  action: BrowserNavigationAction,
+  action: NavigationAction,
   children: ReactNode,
   disabled = false,
 ) {
   mount(
-    <BrowserNavigationButton action={action} browserStore={browserStore} disabled={disabled}>
+    <NavigationButton action={action} browserStore={browserStore} disabled={disabled}>
       {children}
-    </BrowserNavigationButton>,
+    </NavigationButton>,
   );
 }
 
 function renderButton(
   browserStore: BrowserStoreInstance,
-  action: BrowserNavigationAction,
+  action: NavigationAction,
   children: ReactNode,
   disabled = false,
 ) {
   render(
-    <BrowserNavigationButton action={action} browserStore={browserStore} disabled={disabled}>
+    <NavigationButton action={action} browserStore={browserStore} disabled={disabled}>
       {children}
-    </BrowserNavigationButton>,
+    </NavigationButton>,
   );
 }
 

@@ -5,23 +5,21 @@ import type {
   GenomicRegion,
 } from "@weng-lab/genomebrowser";
 
-export type BrowserNavigationAction =
-  | { type: "pan"; fraction: number }
-  | { type: "zoom"; factor: number };
+export type NavigationAction = { type: "pan"; fraction: number } | { type: "zoom"; factor: number };
 
-export type BrowserNavigationButtonProps = Omit<ButtonProps, "action" | "onClick"> & {
+export type NavigationButtonProps = Omit<ButtonProps, "action" | "onClick"> & {
   browserStore: BrowserStoreInstance;
-  action: BrowserNavigationAction;
+  action: NavigationAction;
 };
 
-export function BrowserNavigationButton({
+export function NavigationButton({
   action,
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   browserStore,
   disabled = false,
   ...buttonProps
-}: BrowserNavigationButtonProps) {
+}: NavigationButtonProps) {
   const useBrowserStore = browserStore;
   const assembly = useBrowserStore((state) => state.assembly);
   const region = useBrowserStore((state) => state.region);
@@ -62,7 +60,7 @@ export function BrowserNavigationButton({
 }
 
 function isNavigationUnavailable(
-  action: BrowserNavigationAction,
+  action: NavigationAction,
   assembly: AssemblyDefinition,
   region: GenomicRegion,
 ) {
@@ -87,7 +85,7 @@ function isNavigationUnavailable(
   return action.factor < 1 ? regionSpan <= 1 : regionSpan >= chromosomeLength;
 }
 
-function getActionName(action: BrowserNavigationAction) {
+function getActionName(action: NavigationAction) {
   if (action.type === "pan") {
     if (action.fraction < 0) return "Pan left";
     if (action.fraction > 0) return "Pan right";

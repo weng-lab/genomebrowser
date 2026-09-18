@@ -34,13 +34,13 @@ Pass the browser's store to a navigation button. This component pans right by ha
 
 ```tsx
 import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
-import { BrowserNavigationButton } from "@weng-lab/genomebrowser-ui";
+import { NavigationButton } from "@weng-lab/genomebrowser-ui";
 
 export function PanRight({ browserStore }: { browserStore: BrowserStoreInstance }) {
   return (
-    <BrowserNavigationButton browserStore={browserStore} action={{ type: "pan", fraction: 0.5 }}>
+    <NavigationButton browserStore={browserStore} action={{ type: "pan", fraction: 0.5 }}>
       Pan right
-    </BrowserNavigationButton>
+    </NavigationButton>
   );
 }
 ```
@@ -49,9 +49,9 @@ Render `PanRight` beside `GenomeBrowser` with the same `browserStore`. The butto
 
 ## Optional genome search
 
-Applications that add SCREEN-backed search need a server-side `SCREEN_API_KEY` for gene, SNP, and cCRE queries. `BrowserToolbar` embeds `GenomeSearch` from `@weng-lab/ui-components` for these searches. Coordinate-only search, pan and zoom, selection controls, and management actions do not require this key.
+Applications that add SCREEN-backed search need a server-side `SCREEN_API_KEY` for gene, SNP, and cCRE queries. `ControlToolbar` embeds `GenomeSearch` from `@weng-lab/ui-components` for these searches. Coordinate-only search, pan and zoom, selection controls, and management actions do not require this key.
 
-Point `BrowserToolbar`'s `search.graphqlUrl`, or `GenomeSearch`'s `graphqlUrl`, at an application server endpoint, such as `/api/screen-graphql`. That endpoint should forward GraphQL requests to `https://screen.api.wenglab.org/graphql` and add `Authorization: Bearer <SCREEN_API_KEY>` from the server environment. Keep the key out of component props and browser-exposed environment variables such as `NEXT_PUBLIC_*` or `VITE_*`. The starter application includes this proxy for local development; its bundled deployment guide describes the production endpoint.
+Point `ControlToolbar`'s `search.graphqlUrl`, or `GenomeSearch`'s `graphqlUrl`, at an application server endpoint, such as `/api/screen-graphql`. That endpoint should forward GraphQL requests to `https://screen.api.wenglab.org/graphql` and add `Authorization: Bearer <SCREEN_API_KEY>` from the server environment. Keep the key out of component props and browser-exposed environment variables such as `NEXT_PUBLIC_*` or `VITE_*`. The starter application includes this proxy for local development; its bundled deployment guide describes the production endpoint.
 
 ## Documentation
 
@@ -59,7 +59,7 @@ Before writing or changing an integration, read `node_modules/@weng-lab/genomebr
 
 Start with [Add browser controls](docs/01-gettingStarted/01-addBrowserControls.md) for a complete browser with navigation, selection, and highlights.
 
-- [BrowserToolbar](docs/03-reference/01-browserControls/BrowserToolbar.md): combine region search, navigation, interaction modes, and management actions.
+- [ControlToolbar](docs/03-reference/01-browserControls/ControlToolbar.md): combine region search, navigation, interaction modes, and management actions.
 - [Track selection](docs/02-guides/trackSelection.md): browse collections, set defaults, and save selections.
 - [Track interactions](docs/02-guides/trackInteractions.md): attach application callbacks to collection tracks.
 - [Chromosome overview](docs/02-guides/chromosomeOverview.md): connect cytobands and highlights to a browser.

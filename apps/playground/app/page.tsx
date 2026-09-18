@@ -9,7 +9,7 @@ import {
   getGeneDatasetsForAssembly,
   getGeneDatasetTitle,
 } from "@weng-lab/genomebrowser-tracks/gene";
-import { BrowserNavigationButton } from "@weng-lab/genomebrowser-ui";
+import { NavigationButton } from "@weng-lab/genomebrowser-ui";
 import { useEffect, useRef } from "react";
 
 const dataset = getGeneDatasetsForAssembly(mm10.id).find(
@@ -64,20 +64,20 @@ export default function Home() {
         <Typography component="h1" variant="h6" sx={{ m: 0 }}>
           Mouse genes · mm10
         </Typography>
-        <BrowserNavigationButton
+        <NavigationButton
           browserStore={useBrowserStore}
           action={{ type: "zoom", factor: 0.5 }}
           size="small"
         >
           Zoom in
-        </BrowserNavigationButton>
-        <BrowserNavigationButton
+        </NavigationButton>
+        <NavigationButton
           browserStore={useBrowserStore}
           action={{ type: "zoom", factor: 2 }}
           size="small"
         >
           Zoom out
-        </BrowserNavigationButton>
+        </NavigationButton>
         <Typography variant="body2" color="text.secondary">
           {region.chromosome}:{region.start.toLocaleString("en-US")}–
           {region.end.toLocaleString("en-US")}

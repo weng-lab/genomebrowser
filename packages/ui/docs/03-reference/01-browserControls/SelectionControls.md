@@ -1,4 +1,4 @@
-# BrowserSelectionControls
+# SelectionControls
 
 Choose how dragging across the genome browser behaves: pan, zoom to a selected region, or create a highlight.
 
@@ -6,7 +6,7 @@ Choose how dragging across the genome browser behaves: pan, zoom to a selected r
 
 ```tsx
 import { createBrowserStore, hg38 } from "@weng-lab/genomebrowser";
-import { BrowserSelectionControls } from "@weng-lab/genomebrowser-ui";
+import { SelectionControls } from "@weng-lab/genomebrowser-ui";
 
 const useBrowserStore = createBrowserStore({
   assembly: hg38,
@@ -14,7 +14,7 @@ const useBrowserStore = createBrowserStore({
 });
 
 export function SelectionToolbar() {
-  return <BrowserSelectionControls browserStore={useBrowserStore} />;
+  return <SelectionControls browserStore={useBrowserStore} />;
 }
 ```
 
@@ -22,14 +22,14 @@ Pass the same browser store to `GenomeBrowser`. The control reflects store chang
 
 ## API
 
-### BrowserSelectionControlsProps
+### SelectionControlsProps
 
 | Prop           | Type                   | Default  | Description                                              |
 | -------------- | ---------------------- | -------- | -------------------------------------------------------- |
 | `browserStore` | `BrowserStoreInstance` | Required | Owns the selected mode and the displayed browser region. |
 | `disabled`     | `boolean`              | `false`  | Disables all mode buttons.                               |
 
-The package exports `BrowserSelectionControls` and `BrowserSelectionControlsProps` from its root.
+The package exports `SelectionControls` and `SelectionControlsProps` from its root.
 
 ## Accessibility
 
