@@ -31,12 +31,9 @@ catalogs:
   native:
     "typescript": "7.0.2"
 
-onlyBuiltDependencies:
-  - "@mui/x-telemetry"
-  - esbuild
-  - sharp
 allowBuilds:
-  "@mui/x-telemetry": true
+  # Optional telemetry initialization fails with ENOENT in MUI X 8.29.0.
+  "@mui/x-telemetry": false
   esbuild: true
   sharp: true
 minimumReleaseAgeExclude:
