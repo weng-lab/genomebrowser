@@ -1,8 +1,10 @@
 # Shared dependencies
 
-Define external dependency versions in the `pnpm-workspace.yaml` catalog.
-Reference them with `catalog:` in root, app, and library dependencies and
-development dependencies. Internal packages use `workspace:` references.
+Define versions for external dependencies shared across workspace packages in
+the `pnpm-workspace.yaml` catalog. Reference them with `catalog:` in each
+consumer's dependencies or development dependencies. Dependencies used by only
+one app or package keep their versions in that consumer's `package.json`.
+Internal packages use `workspace:` references.
 Libraries must also declare their runtime peers as development dependencies
 so local builds use the same versions as the apps. Keep published peer
 dependency ranges compatible rather than pinning them to the catalog.
