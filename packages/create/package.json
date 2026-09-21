@@ -47,8 +47,8 @@
     "prepack": "pnpm build"
   },
   "devDependencies": {
-    "@types/node": "^24.3.1",
-    "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "vitest": "4.1.7"
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

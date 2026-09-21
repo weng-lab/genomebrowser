@@ -1,5 +1,5 @@
 import { access, readFile, readdir } from "node:fs/promises";
-import { builtinModules } from "node:module";
+import { builtinModules, createRequire } from "node:module";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -29,7 +29,16 @@ assert(
 const runtimeDependencies = Object.keys(manifest.dependencies ?? {}).sort();
 assertJsonEqual(runtimeDependencies, ["fflate"], "runtime dependencies bundled into the ESM build");
 assert(acceptsZod4(manifest.peerDependencies?.zod), "Zod 4 must be a peer dependency");
-assert(acceptsZod4(manifest.devDependencies?.zod), "Zod 4 must be a development dependency");
+const zodDevelopmentRange = manifest.devDependencies?.zod;
+assert(
+  zodDevelopmentRange === "catalog:" || acceptsZod4(zodDevelopmentRange),
+  "Zod 4 must be a development dependency",
+);
+const require = createRequire(import.meta.url);
+assert(
+  require("zod/package.json").version.startsWith("4."),
+  "The installed development dependency must be Zod 4",
+);
 
 const javascriptPath = resolveExport(rootExport.import);
 const declarationPath = resolveExport(rootExport.types);
