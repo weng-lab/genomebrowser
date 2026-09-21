@@ -45,9 +45,9 @@
     "prepack": "pnpm build:checked"
   },
   "dependencies": {
-    "jiti": "catalog:",
+    "jiti": "^2.6.2",
     "zod": "catalog:",
-    "zustand": "catalog:"
+    "zustand": "5.0.15"
   },
   "devDependencies": {
     "@types/node": "catalog:",

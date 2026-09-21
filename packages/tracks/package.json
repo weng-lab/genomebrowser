@@ -82,11 +82,11 @@
     "prepack": "pnpm --filter @weng-lab/genomebrowser build:checked && pnpm --filter @weng-lab/genomic-reader build:checked && pnpm build:checked"
   },
   "dependencies": {
-    "@dnd-kit/core": "catalog:",
-    "@dnd-kit/sortable": "catalog:",
-    "@dnd-kit/utilities": "catalog:",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@weng-lab/genomic-reader": "workspace:^2.0.0",
-    "react-colorful": "catalog:",
+    "react-colorful": "^5.8.0",
     "zod": "catalog:"
   },
   "devDependencies": {

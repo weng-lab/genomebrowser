@@ -26,8 +26,8 @@
   "devDependencies": {
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
-    "react-doctor": "catalog:",
-    "turbo": "catalog:"
+    "react-doctor": "^0.9.14",
+    "turbo": "2.10.11"
   },
   "packageManager": "pnpm@12.4.2"
 }

@@ -43,7 +43,7 @@
     "prepack": "pnpm build:checked"
   },
   "dependencies": {
-    "fflate": "catalog:"
+    "fflate": "^0.8.2"
   },
   "devDependencies": {
     "@typescript/native": "catalog:",
