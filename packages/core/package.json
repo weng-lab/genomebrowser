@@ -45,23 +45,23 @@
     "prepack": "pnpm build:checked"
   },
   "dependencies": {
-    "jiti": "^2.6.2",
-    "zod": "^4.4.3",
+    "jiti": "catalog:",
+    "zod": "catalog:",
     "zustand": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^24.3.1",
+    "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@typescript/native": "npm:typescript@^7.0.2",
-    "@vitejs/plugin-react": "^6.0.2",
-    "jsdom": "^26.1.0",
+    "@typescript/native": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "jsdom": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "vite": "^8.0.13",
-    "vite-plugin-dts": "^4.5.4",
-    "vitest": "4.1.7"
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-dts": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "react": "^19.2.0",

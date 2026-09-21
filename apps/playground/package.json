@@ -21,17 +21,17 @@
     "@weng-lab/genomebrowser-tracks": "workspace:*",
     "@weng-lab/genomebrowser-ui": "workspace:*",
     "@weng-lab/genomic-reader": "workspace:*",
-    "next": "16.2.12",
+    "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "zod": "4.4.3"
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "26.1.2",
+    "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "oxfmt": "0.61.0",
-    "oxlint": "1.76.0",
-    "typescript": "npm:@typescript/typescript6@6.0.2"
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:native"
   }
 }

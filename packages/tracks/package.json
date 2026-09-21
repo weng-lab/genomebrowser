@@ -82,12 +82,12 @@
     "prepack": "pnpm --filter @weng-lab/genomebrowser build:checked && pnpm --filter @weng-lab/genomic-reader build:checked && pnpm build:checked"
   },
   "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
+    "@dnd-kit/core": "catalog:",
+    "@dnd-kit/sortable": "catalog:",
+    "@dnd-kit/utilities": "catalog:",
     "@weng-lab/genomic-reader": "workspace:^2.0.0",
-    "react-colorful": "^5.8.0",
-    "zod": "^4.4.3"
+    "react-colorful": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@emotion/react": "catalog:",
@@ -95,16 +95,16 @@
     "@mui/material": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@typescript/native": "npm:typescript@^7.0.2",
-    "@vitejs/plugin-react": "^6.0.2",
+    "@typescript/native": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
     "@weng-lab/genomebrowser": "workspace:^2.0.0",
-    "jsdom": "^26.1.0",
+    "jsdom": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "vite": "^8.0.13",
-    "vite-plugin-dts": "^4.5.4",
-    "vitest": "4.1.7"
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-dts": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "@emotion/react": "^11.0.0",

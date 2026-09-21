@@ -24,10 +24,10 @@
     "publish:stable": "pnpm publish -r --tag latest"
   },
   "devDependencies": {
-    "oxfmt": "^0.50.0",
-    "oxlint": "^1.76.0",
-    "react-doctor": "^0.9.14",
-    "turbo": "2.10.11"
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "react-doctor": "catalog:",
+    "turbo": "catalog:"
   },
   "packageManager": "pnpm@12.4.2"
 }
