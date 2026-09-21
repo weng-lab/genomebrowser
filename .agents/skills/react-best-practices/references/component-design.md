@@ -38,6 +38,16 @@ Never define a component inside another component's render; its identity changes
 
 A custom hook should name a cohesive React behavior with a stable contract. Do not use hooks as miscellaneous containers or speculative reuse points.
 
+## Keep changes understandable locally
+
+Keep a feature's components, hooks, and helpers close to the behavior they implement, following the repository's ownership guidance. Extract code when it hides meaningful complexity or separates a responsibility. Avoid chains of forwarding hooks or components that force callers to understand the same details across more files.
+
+Expose domain operations through small contracts. Callers should not need to coordinate internal providers, raw setters, or implementation details to perform one operation.
+
+Keep deterministic calculations testable without React. Use hooks for React state, subscriptions, and lifecycle behavior; do not add a hook solely to wrap a calculation.
+
+When changing a shared component or hook contract, inspect its consumers and verify the affected behavior through a representative caller. Check observable results rather than reproducing the implementation in the test.
+
 ## Extract shared code after comparing callers
 
 AHA means **Avoid Hasty Abstractions**. Temporary duplication is safer than a shared API built before you understand how its callers differ. Duplication stays local. A wrong abstraction spreads flags, branches, and coupling across callers.

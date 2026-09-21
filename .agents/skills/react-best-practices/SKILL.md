@@ -10,7 +10,7 @@ Implement the current requirement with the smallest correct React design. Keep t
 ## Workflow
 
 1. Inspect the relevant components, hooks, types, nearby conventions, and installed React version. For performance work, inspect the compiler and build configuration too.
-2. Identify the decisions involved and read only the relevant references below. A narrow edit should not trigger a full architecture or performance audit.
+2. Identify the decisions involved and read only the relevant references below. Before moving behavior or introducing a shared API, consult the repository's architecture and feature-placement guidance. A narrow edit should not trigger a full architecture or performance audit.
 3. Implement the simplest design that satisfies the current requirement. Follow project instructions and installed framework documentation for version-sensitive APIs.
 4. Verify behavior and run the project's relevant checks. For optimization, compare the affected interaction or resource cost before and after when practical.
 
