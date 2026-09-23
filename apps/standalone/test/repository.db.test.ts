@@ -1,3 +1,4 @@
+import { createCustomTrackRepository } from "../features/custom-tracks/repository";
 import { randomUUID } from "node:crypto";
 import { beforeAll, afterAll, describe, expect, it } from "vitest";
 import postgres from "postgres";
@@ -89,4 +90,16 @@ describe("PostgreSQL session persistence", () => {
       repository.save("limited-owner", { name: "Replacement", snapshot }),
     ).resolves.toHaveProperty("id");
   });
+});
+
+it("persists custom collections independently of sessions and makes creation retries idempotent", async () => {
+  const custom = createCustomTrackRepository(database);
+  const track = createInitialSnapshot(defaultAssembly).trackStore.tracks[0];
+  track.base.id = randomUUID();
+  track.source = "user";
+  const entry = { assemblyId: "hg38", track };
+  await Promise.all([custom.save("custom-owner", entry), custom.save("custom-owner", entry)]);
+  expect(await custom.listByOwner("custom-owner")).toEqual([entry]);
+  expect(await custom.listByOwner("another-owner")).toEqual([]);
+  expect(await repository.listByOwner("custom-owner")).toEqual([]);
 });

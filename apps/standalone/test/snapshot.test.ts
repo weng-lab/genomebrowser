@@ -14,6 +14,9 @@ describe("session snapshots", () => {
       const initial = parseSessionSnapshot(createInitialSnapshot(assembly));
       const { useBrowserStore, useTrackStore } = createBrowserStores(initial);
       const restored = parseSessionSnapshot(captureSessionSnapshot(useBrowserStore, useTrackStore));
+      expect(restored.trackStore.pinnedTrackIds).toEqual(
+        restored.trackStore.tracks.map(({ base }) => base.id),
+      );
       expect(restored.browser.assembly.id).toBe(assembly.definition.id);
       expect(restored.trackStore.tracks[1].config.url).toBe(
         assembly.reference.genes.find(({ id }) => id === assembly.reference.defaultGeneDatasetId)
@@ -68,6 +71,7 @@ describe("session snapshots", () => {
         config: { url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed" },
       }),
     );
+    useTrackStore.getState().setPinnedTrackIds(["reference-ruler"]);
     const ids = useTrackStore.getState().order;
     useTrackStore.getState().reorderTracks([ids[0], ids[2], ids[1]]);
     const restored = createBrowserStores(

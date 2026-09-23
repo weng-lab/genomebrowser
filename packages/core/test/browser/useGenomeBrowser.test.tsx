@@ -280,3 +280,38 @@ describe("useGenomeBrowser", () => {
     expect(second.useBrowserStore.getState().region.start).toBe(500);
   });
 });
+
+it("hosts application children outside the SVG with the supplied browser context", async () => {
+  const first = createStores();
+  const second = createStores(500);
+  function Child() {
+    const { useBrowserStore } = useGenomeBrowser();
+    const start = useBrowserStore((state) => state.region.start);
+    return <button data-hosted-child>{start}</button>;
+  }
+  await render(
+    <>
+      <GenomeBrowser
+        browserStore={first.useBrowserStore}
+        trackStore={first.useTrackStore}
+        sizing="fixed"
+      >
+        <Child />
+      </GenomeBrowser>
+      <GenomeBrowser
+        browserStore={second.useBrowserStore}
+        trackStore={second.useTrackStore}
+        sizing="fixed"
+      >
+        <Child />
+      </GenomeBrowser>
+    </>,
+  );
+  const children = container!.querySelectorAll("[data-hosted-child]");
+  expect([...children].map((child) => child.textContent)).toEqual(["0", "500"]);
+  expect(children[0].closest("svg")).toBeNull();
+  await act(async () => {
+    second.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 700, end: 800 });
+  });
+  expect([...children].map((child) => child.textContent)).toEqual(["0", "700"]);
+});

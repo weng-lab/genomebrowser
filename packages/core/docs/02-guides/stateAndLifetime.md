@@ -114,7 +114,7 @@ export function VisibleRegionLabel() {
 }
 ```
 
-Resolving `useGenomeBrowser()` does not itself subscribe to state; calling one of its returned hooks does. The context is available to components hosted inside the browser. A sibling toolbar uses the application-owned store directly, and `GenomeBrowser` does not accept arbitrary children to place that toolbar inside its context. Fetch functions also receive their own explicit inputs and cannot call React hooks.
+Resolving `useGenomeBrowser()` does not itself subscribe to state; calling one of its returned hooks does. The context is available to components hosted inside the browser. A sibling toolbar uses the application-owned store directly. Application children passed to `GenomeBrowser` render outside the SVG and share its context. Fetch functions also receive their own explicit inputs and cannot call React hooks.
 
 ## Preserve configuration across rendering changes
 

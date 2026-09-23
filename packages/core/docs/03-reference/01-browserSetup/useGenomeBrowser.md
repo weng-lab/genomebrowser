@@ -1,6 +1,6 @@
 # useGenomeBrowser
 
-Access the hosting browser's stores from a track renderer, settings component, or tooltip. Use the returned hooks to select displayed state and actions, then invoke selected actions from event handlers.
+Access the hosting browser's stores from a track renderer, settings component, tooltip, or application child. Use the returned hooks to select displayed state and actions, then invoke selected actions from event handlers.
 
 ## Usage
 
@@ -22,7 +22,7 @@ export function VisibleChromosome() {
 }
 ```
 
-Application controls outside `GenomeBrowser` use their application-owned [browser store](browserStore.md) and [track store](trackStore.md) directly. `GenomeBrowser` does not accept arbitrary children.
+Application controls outside `GenomeBrowser` use their application-owned [browser store](browserStore.md) and [track store](trackStore.md) directly. Application controls and dialogs passed as `GenomeBrowser` children can use the hook. They render outside the SVG.
 
 ## API
 

@@ -1,3 +1,4 @@
+import { getCurrentUserCustomTracks } from "../../../features/custom-tracks/queries";
 import type { Metadata } from "next";
 import { Box } from "@mui/material";
 import { AuthUnavailable } from "../../../features/auth/AuthUnavailable";
@@ -18,6 +19,7 @@ export default async function SavedSessionPage({
   if (result.status === "auth-unavailable") return <AuthUnavailable />;
   if (result.status === "storage-unavailable") return <SessionDashboard result={result} />;
   const { session } = result;
+  const customTracks = await getCurrentUserCustomTracks();
   return (
     <Box sx={{ px: { xs: 1, md: 3 }, py: 0 }}>
       <SessionNavigation
@@ -25,6 +27,7 @@ export default async function SavedSessionPage({
       />
       <Browser
         key={session.id}
+        initialCustomTracks={customTracks}
         initialSnapshot={session.snapshot}
         initialSession={{ id: session.id, name: session.name, revision: session.revision }}
       />

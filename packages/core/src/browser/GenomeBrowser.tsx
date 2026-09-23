@@ -50,6 +50,8 @@ const PAN_OVERSCAN_MULTIPLIER = 3;
 export type GenomeBrowserProps = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
+  /** Application controls and dialogs hosted outside the SVG with browser context. */
+  children?: ReactNode;
   /** Follow the container by default, or use the store's configured track width. */
   sizing?: "responsive" | "fixed";
   /** Magnification of the entire SVG. Must be finite and positive. */
@@ -59,6 +61,7 @@ export type GenomeBrowserProps = {
 export function GenomeBrowser({
   browserStore,
   trackStore,
+  children,
   sizing = "responsive",
   scale = 1,
 }: GenomeBrowserProps) {
@@ -97,7 +100,9 @@ export function GenomeBrowser({
           trackStore={trackStore}
           trackWidth={trackWidth}
           scale={scale}
-        />
+        >
+          {children}
+        </GenomeBrowserRuntime>
       )}
     </div>
   );
@@ -108,6 +113,7 @@ function GenomeBrowserRuntime({
   trackStore,
   trackWidth,
   scale,
+  children,
 }: GenomeBrowserProps & { trackWidth: number; scale: number }) {
   const useBrowserStore = browserStore;
   const useTrackStore = trackStore;
@@ -241,6 +247,7 @@ function GenomeBrowserRuntime({
                   titleSize={titleSize}
                   trackLayouts={trackLayouts}
                 />
+                {children}
               </TrackDataCoordinator>
             </TooltipProvider>
           </TrackHeightProvider>

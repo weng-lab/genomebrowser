@@ -19,7 +19,7 @@ export function createInitialSnapshot(assembly: AssemblyConfig): SessionSnapshot
       selectionHighlight: { color: "#f59e0b", opacity: 0.25, type: "filled" },
     },
     trackStore: {
-      pinnedTrackIds: ["reference-ruler"],
+      pinnedTrackIds: ["reference-ruler", `reference-annotations::${genes.id}`],
       tracks: [
         {
           type: "ruler",

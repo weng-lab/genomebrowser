@@ -1,6 +1,6 @@
 # Sessions and persistence
 
-Session design and implementation status. Current behavior is identified below; guest tab persistence and user collections remain planned. Setup and implementation details live in the [app README](../README.md).
+Session design and implementation status. Current behavior is identified below; guest tab persistence and named collection organization remain planned. Setup and implementation details live in the [app README](../README.md).
 
 The standalone genome browser is for researchers exploring genomic regions and comparing tracks from provided datasets and their own data sources. Sessions let them return to ongoing work. Collections help them organize tracks for use across that work.
 
@@ -36,7 +36,7 @@ For example, a researcher groups several hosted signal tracks into a collection 
 
 A collection entry and a session track are separate. Once added, the session stores an independent track instance with its current configuration and no collection dependency. Changing its appearance in one session does not change the collection entry or another session. Changes to a collection must not rewrite existing session instances.
 
-The application provides the assembly-specific collections described above. Personal collections remain planned.
+The application provides the assembly-specific collections described above. Implemented: the dashboard separates sessions from custom tracks with horizontal tabs. The browser creates custom tracks through a type picker and the module settings form, saves them to an account collection for the current assembly, and inserts them below pinned tracks. Saved custom tracks can be added to other sessions of that assembly. Named collections, collection editing, and deletion remain planned.
 
 ## Choose collections for a session
 

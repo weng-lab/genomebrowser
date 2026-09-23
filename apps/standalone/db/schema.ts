@@ -34,3 +34,18 @@ export const sessions = pgTable(
     check("sessions_snapshot_version", sql`${table.snapshotVersion} = 1`),
   ],
 );
+
+export const customTracks = pgTable(
+  "custom_tracks",
+  {
+    ownerId: text("owner_id").notNull(),
+    id: uuid("id").notNull(),
+    assemblyId: text("assembly_id").notNull(),
+    track: jsonb("track").$type<SessionSnapshot["trackStore"]["tracks"][number]>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.ownerId, table.id] }),
+    index("custom_tracks_owner_assembly_idx").on(table.ownerId, table.assemblyId),
+  ],
+);

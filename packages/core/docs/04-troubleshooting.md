@@ -68,7 +68,7 @@ A remounted visualization also recreates its internal request and overlay state,
 
 ## `useGenomeBrowser` throws outside a browser
 
-The hook resolves context supplied to hosted renderers, settings forms, and tooltips. A toolbar beside `GenomeBrowser` is outside that context and should use the application-owned store directly. `GenomeBrowser` does not accept arbitrary children for injecting such controls.
+The hook resolves context supplied to hosted renderers, settings forms, and tooltips. A toolbar beside `GenomeBrowser` is outside that context and should use the application-owned store directly. Controls or dialogs that need the context can be passed as `GenomeBrowser` children, which render outside the SVG.
 
 For reusable track components, keep the hook inside the hosted component rather than at module-definition time or inside a fetcher. The [context reference](03-reference/01-browserSetup/useGenomeBrowser.md) explains how resolving a store differs from subscribing to it.
 

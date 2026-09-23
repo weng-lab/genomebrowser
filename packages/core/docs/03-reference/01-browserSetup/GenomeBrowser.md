@@ -66,6 +66,18 @@ The drawing is 800 logical units wide and displays at 1000 CSS pixels. At `scale
 
 Outside React, `useFixedBrowserStore.getState().setTrackWidth(950)` changes the fixed track width. Inside a component, select `state.setTrackWidth` from `useFixedBrowserStore` and call that action from the control's event handler. The width excludes the margin and is expressed in logical SVG units before scale is applied.
 
+### Hosted application dialogs
+
+Pass application controls or dialogs as children when they need [browser context](useGenomeBrowser.md). Children render after the browser view, outside the SVG, and can use `useGenomeBrowser()` to access the supplied stores. A portal-based dialog keeps that context when it opens elsewhere in the document. The application controls its visibility and mutations.
+
+```tsx
+<GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore}>
+  <YourTrackDialog />
+</GenomeBrowser>
+```
+
+Like the browser runtime, children mount after the first positive container measurement in responsive mode. Use an HTML component or a portal here; SVG overlays belong in track renderers.
+
 ## API
 
 | Prop           | Type                      | Default        | Description                                                                                                             |
@@ -73,6 +85,7 @@ Outside React, `useFixedBrowserStore.getState().setTrackWidth(950)` changes the 
 | `browserStore` | `BrowserStoreInstance`    | Required       | Stable store for assembly, region, configured fixed track width, margin, typography, selection, and highlights.         |
 | `trackStore`   | `TrackStoreInstance`      | Required       | Stable store for registered modules, tracks, and ordering.                                                              |
 | `sizing`       | `"responsive" \| "fixed"` | `"responsive"` | Follow the wrapper's content width, or use the browser store's configured track width. Can change while mounted.        |
+| `children`     | `ReactNode`               | None           | Application content rendered outside the SVG with browser context.                                                      |
 | `scale`        | `number`                  | `1`            | Finite positive magnification factor for the entire SVG. Invalid values throw a `RangeError`. Can change while mounted. |
 
 `GenomeBrowserProps` is exported from `@weng-lab/genomebrowser`.
