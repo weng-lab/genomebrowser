@@ -16,6 +16,7 @@ const trackEntries = {
   cave: path.resolve(__dirname, "src/cave/index.ts"),
   ccre: path.resolve(__dirname, "src/ccre/index.ts"),
   gene: path.resolve(__dirname, "src/gene/index.ts"),
+  "gene-datasets": path.resolve(__dirname, "src/gene-datasets/index.ts"),
   methylc: path.resolve(__dirname, "src/methylc/index.ts"),
   shared: path.resolve(__dirname, "src/shared/index.ts"),
 };

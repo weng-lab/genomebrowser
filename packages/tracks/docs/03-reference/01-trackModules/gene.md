@@ -64,7 +64,7 @@ Drag a tag row's handle with a pointer to change its priority. Tag fields accept
 
 ## Reference datasets
 
-Import `getGeneDatasetsForAssembly` and `getGeneDatasetTitle` from `@weng-lab/genomebrowser-tracks/gene` to build collections from the same catalog used by Gene settings:
+Import `getGeneDatasetsForAssembly` and `getGeneDatasetTitle` from `@weng-lab/genomebrowser-tracks/gene` to build collections from the same catalog used by Gene settings. For server code, `@weng-lab/genomebrowser-tracks/gene-datasets` exports these helpers and the `GeneDataset` type without importing renderers or settings components.
 
 ```ts
 import { mm10 } from "@weng-lab/genomebrowser";

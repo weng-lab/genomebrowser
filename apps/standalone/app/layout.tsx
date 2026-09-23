@@ -5,6 +5,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import { Analytics } from "@vercel/analytics/next";
 import { MuiXLicenseProvider } from "../features/site/MuiXLicenseProvider";
 import { SiteTheme } from "../features/site/SiteTheme";
+import { SessionNavigationProvider } from "../features/sessions/SessionNavigation";
 import { SiteHeader } from "../features/site/SiteHeader";
 import { SiteFooter } from "../features/site/SiteFooter";
 import { isAuthConfigured } from "../features/auth/config";
@@ -22,16 +23,18 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     <AppRouterCacheProvider>
       <SiteTheme>
         <MuiXLicenseProvider>
-          <div className="site-shell">
-            <a className="skip-link" href="#main-content">
-              Skip to content
-            </a>
-            <SiteHeader authConfigured={authConfigured} />
-            <main id="main-content" tabIndex={-1}>
-              {children}
-            </main>
-            <SiteFooter />
-          </div>
+          <SessionNavigationProvider authConfigured={authConfigured}>
+            <div className="site-shell">
+              <a className="skip-link" href="#main-content">
+                Skip to content
+              </a>
+              <SiteHeader authConfigured={authConfigured} />
+              <main id="main-content" tabIndex={-1}>
+                {children}
+              </main>
+              <SiteFooter />
+            </div>
+          </SessionNavigationProvider>
         </MuiXLicenseProvider>
       </SiteTheme>
     </AppRouterCacheProvider>

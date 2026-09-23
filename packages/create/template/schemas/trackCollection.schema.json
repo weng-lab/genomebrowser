@@ -127,7 +127,7 @@
                   "color": {
                     "default": "#475569",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   }
                 },
                 "required": [
@@ -142,7 +142,7 @@
                   "sequenceHighlightColor": {
                     "default": "#64748b",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   },
                   "distinguishMaskedBases": {
                     "default": false,
@@ -225,7 +225,7 @@
                   "color": {
                     "default": "#4b9560",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   }
                 },
                 "required": [
@@ -327,7 +327,7 @@
                   "color": {
                     "default": "#2266aa",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   }
                 },
                 "required": [
@@ -365,7 +365,7 @@
                   "clampIndicatorColor": {
                     "default": "#ff0000",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   }
                 },
                 "required": [
@@ -436,7 +436,7 @@
                   "color": {
                     "default": "#4b9560",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   }
                 },
                 "required": [
@@ -558,7 +558,7 @@
                   "color": {
                     "default": "#3333ff",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   }
                 },
                 "required": [
@@ -591,12 +591,12 @@
                   "topColor": {
                     "default": "#000000",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   },
                   "bottomColor": {
                     "default": "#000000",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   }
                 },
                 "required": [
@@ -669,7 +669,7 @@
                   "color": {
                     "default": "#4b9560",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   }
                 },
                 "required": [
@@ -761,7 +761,7 @@
                   "color": {
                     "default": "#4b9560",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   }
                 },
                 "required": [
@@ -791,7 +791,7 @@
                         },
                         "color": {
                           "type": "string",
-                          "pattern": "^#[0-9a-f]{6}$"
+                          "pattern": "^#[0-9a-fA-F]{6}$"
                         }
                       },
                       "required": [
@@ -803,7 +803,7 @@
                   "highlightColor": {
                     "default": "#000000",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   },
                   "rowHeight": {
                     "default": 12,
@@ -879,7 +879,7 @@
                   "color": {
                     "default": "#000000",
                     "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
+                    "pattern": "^#[0-9a-fA-F]{6}$"
                   }
                 },
                 "required": [
@@ -1022,22 +1022,22 @@
                       "cpg": {
                         "default": "#648bd8",
                         "type": "string",
-                        "pattern": "^#[0-9a-f]{6}$"
+                        "pattern": "^#[0-9a-fA-F]{6}$"
                       },
                       "chg": {
                         "default": "#ff944d",
                         "type": "string",
-                        "pattern": "^#[0-9a-f]{6}$"
+                        "pattern": "^#[0-9a-fA-F]{6}$"
                       },
                       "chh": {
                         "default": "#ff00ff",
                         "type": "string",
-                        "pattern": "^#[0-9a-f]{6}$"
+                        "pattern": "^#[0-9a-fA-F]{6}$"
                       },
                       "depth": {
                         "default": "#525252",
                         "type": "string",
-                        "pattern": "^#[0-9a-f]{6}$"
+                        "pattern": "^#[0-9a-fA-F]{6}$"
                       }
                     }
                   },

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const hexColorSchema = z
   .string()
-  .regex(/^#[0-9a-f]{6}$/i, "Expected a six-digit hexadecimal color in #RRGGBB format");
+  .regex(/^#[0-9a-fA-F]{6}$/, "Expected a six-digit hexadecimal color in #RRGGBB format");
 
 export const trackBaseSchema = z.strictObject({
   id: z.string().min(1),

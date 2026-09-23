@@ -9,7 +9,7 @@ export default function proxy(request: NextRequest, event: NextFetchEvent) {
   return authenticate(request, event);
 }
 
-// All current routes are public. Future private resources must check auth at use.
+// Initialize Clerk here; private resources enforce authorization at data access.
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|txt|docx?|xlsx?|zip|webmanifest)).*)",

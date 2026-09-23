@@ -2,6 +2,8 @@
 
 Use an assembly definition to specify the available chromosomes and their lengths. Import presets and `createAssemblyDefinition` from `@weng-lab/genomebrowser`.
 
+For server code, import them from `@weng-lab/genomebrowser/genome`. This entry exposes `createAssemblyDefinition`, `AssemblyDefinition`, and all five presets without importing React components.
+
 ## Built-in assemblies
 
 The library provides these pre-built assembly definitions. Pass one as the `assembly` option when creating a browser store. Each includes the main nuclear chromosomes and organelle sequences; use a custom definition for additional contigs or alternate loci.

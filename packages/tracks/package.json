@@ -63,7 +63,11 @@
       "types": "./dist/src/ruler/index.d.ts",
       "import": "./dist/ruler.js"
     },
-    "./trackCollection.schema.json": "./schemas/trackCollection.schema.json"
+    "./trackCollection.schema.json": "./schemas/trackCollection.schema.json",
+    "./gene-datasets": {
+      "types": "./dist/src/gene-datasets/index.d.ts",
+      "import": "./dist/gene-datasets.js"
+    }
   },
   "publishConfig": {
     "access": "public",

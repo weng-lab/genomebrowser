@@ -3,7 +3,7 @@ import { z } from "zod";
 export const rulerConfigSchema = z.object({
   sequenceHighlightColor: z
     .string()
-    .regex(/^#[0-9a-f]{6}$/i)
+    .regex(/^#[0-9a-fA-F]{6}$/)
     .default("#64748b"),
   distinguishMaskedBases: z.boolean().default(false),
   sequenceUrl: fetchOnChange(z.url({ protocol: /^https?$/ }).optional()),

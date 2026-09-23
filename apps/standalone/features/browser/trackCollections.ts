@@ -1,39 +1,38 @@
 import chromHmmTracks from "./chromhmm-comparison.json";
-import {
-  getGeneDatasetsForAssembly,
-  getGeneDatasetTitle,
-} from "@weng-lab/genomebrowser-tracks/gene";
-import { browserAssembly } from "./assembly";
+import { getGeneDatasetTitle } from "@weng-lab/genomebrowser-tracks/gene";
+import type { AssemblyConfig } from "./assembly";
 import type { TrackCollection } from "@weng-lab/genomebrowser";
 import biosampleTracks from "./human-biosamples.json";
 
-const geneTracks = {
-  assembly: browserAssembly.id,
-  id: "reference-annotations",
-  label: "Reference annotations",
-  description: "Reference gene annotations for the current genome assembly.",
-  views: [
-    {
-      id: "default",
-      label: "Tracks",
-      columns: [{ field: "title", label: "Track" }],
-      grouping: [],
-      leaf: "title",
-    },
-  ],
-  tracks: getGeneDatasetsForAssembly(browserAssembly.id).map((dataset) => ({
-    base: {
-      id: dataset.id,
-      title: getGeneDatasetTitle(dataset),
-      display: "merged",
-      height: 60,
-      color: "#444444",
-    },
-    type: "gene" as const,
-    config: { url: dataset.url },
-    metadata: {},
-  })),
-} satisfies TrackCollection;
+function getGeneTracks(assembly: AssemblyConfig): TrackCollection {
+  return {
+    assembly: assembly.definition.id,
+    id: "reference-annotations",
+    label: "Reference annotations",
+    description: "Reference gene annotations for the current genome assembly.",
+    views: [
+      {
+        id: "default",
+        label: "Tracks",
+        columns: [{ field: "title", label: "Track" }],
+        grouping: [],
+        leaf: "title",
+      },
+    ],
+    tracks: assembly.reference.genes.map((dataset) => ({
+      base: {
+        id: dataset.id,
+        title: getGeneDatasetTitle(dataset),
+        display: "merged",
+        height: 60,
+        color: "#444444",
+      },
+      type: "gene" as const,
+      config: { url: dataset.url },
+      metadata: {},
+    })),
+  } satisfies TrackCollection;
+}
 
 const ccreComparisonTracks = {
   assembly: "hg38",
@@ -135,19 +134,16 @@ const caveTracks = {
   })),
 } satisfies TrackCollection;
 
-export const trackCollections = [
-  geneTracks,
-  chromHmmTracks,
-  ccreComparisonTracks,
-  caveTracks,
-  biosampleTracks,
-];
-
-export const defaultTrackIds = [
-  "chromhmm-comparison::tissue-states",
-  "reference-annotations::gencode-v40-comprehensive",
-  "ccre-comparisons::aggregate-and-adipose-ccres",
-  "human-biosamples::ccre-aggregate",
-  "human-biosamples::wgbs-ENCSR539UBP",
-  "cave-development::gaba-adulthood",
-] as const;
+export function getTrackCollections(assembly: AssemblyConfig) {
+  return [
+    getGeneTracks(assembly),
+    chromHmmTracks,
+    ccreComparisonTracks,
+    caveTracks,
+    biosampleTracks,
+  ].filter(
+    (collection) =>
+      collection.assembly === assembly.definition.id &&
+      assembly.collectionIds.includes(collection.id),
+  );
+}

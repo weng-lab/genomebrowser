@@ -21,10 +21,10 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: { genomebrowser: "src/lib.ts", cli: "src/cli.ts" },
+      entry: { genomebrowser: "src/lib.ts", cli: "src/cli.ts", genome: "src/genome/index.ts" },
       name: "genomebrowser",
       fileName: (format, entryName) =>
-        entryName === "cli" ? "cli.js" : `genomebrowser.${format}.js`,
+        entryName === "genomebrowser" ? `genomebrowser.${format}.js` : `${entryName}.js`,
       formats: ["es"],
     },
     rollupOptions: {

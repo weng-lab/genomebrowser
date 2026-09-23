@@ -1,72 +1,46 @@
 "use client";
 
-import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
-
 import Box from "@mui/material/Box";
-import { GenomeBrowser, createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
-import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
-import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
-import {
-  HighlightDialog,
-  ControlToolbar,
-  TrackSelect,
-  type TrackSelectInteraction,
-  type TrackSelectInteractionResolver,
-} from "@weng-lab/genomebrowser-ui";
-import { useState } from "react";
-import { browserAssembly } from "./assembly";
-import { defaultTrackIds, trackCollections } from "./trackCollections";
+import { GenomeBrowser } from "@weng-lab/genomebrowser";
+import { HighlightDialog, ControlToolbar, TrackSelect } from "@weng-lab/genomebrowser-ui";
+import { useMemo, useState } from "react";
+import { defaultAssembly, getAssembly } from "./assembly";
+import { createBrowserStores, resolveTrackInteraction } from "./stores";
+import { SessionAutosave } from "../sessions/SessionAutosave";
+import type { SavedSession, SessionSnapshot } from "../sessions/types";
+import { getTrackCollections } from "./trackCollections";
 
-const useBrowserStore = createBrowserStore({
-  assembly: browserAssembly,
-  region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
-});
-
-const useTrackStore = createTrackStore({
-  modules: firstPartyTrackModules,
-  tracks: [
-    rulerModule.create({
-      base: {
-        id: "reference-ruler",
-        title: "Reference · hg38",
-      },
-      config: { sequenceUrl: "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.2bit" },
-    }),
-    bigWigModule.create({
-      base: {
-        id: "user-source-example",
-        title: "User-sourced BigWig",
-      },
-      source: "user",
-      config: {
-        url: "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw",
-      },
-    }),
-  ],
-});
-
-const ccreInteraction: TrackSelectInteraction<CcreBigBedRow, CcreBigBedConfig> = {
-  onClick: (item) => {
-    console.log("cCRE BigBed row", item);
-  },
-};
-
-const resolveTrackInteraction: TrackSelectInteractionResolver = ({ qualifiedTrackId }) =>
-  qualifiedTrackId === "human-biosamples::ccre-aggregate" ? ccreInteraction : undefined;
-
-export function Browser() {
+export function Browser({
+  initialSnapshot,
+  initialSession,
+}: {
+  initialSnapshot?: SessionSnapshot;
+  initialSession?: Pick<SavedSession, "id" | "name" | "revision">;
+}) {
+  const [{ useBrowserStore, useTrackStore }] = useState(() => createBrowserStores(initialSnapshot));
+  const assembly = initialSnapshot
+    ? getAssembly(initialSnapshot.browser.assembly.id)!
+    : defaultAssembly;
+  const trackCollections = useMemo(() => getTrackCollections(assembly), [assembly]);
   const [highlightDialogOpen, setHighlightDialogOpen] = useState(false);
   const [trackSelectOpen, setTrackSelectOpen] = useState(false);
 
   return (
     <Box sx={{ p: 1 }}>
+      {initialSession && (
+        <SessionAutosave
+          browserStore={useBrowserStore}
+          trackStore={useTrackStore}
+          initialSession={initialSession}
+          initialSnapshot={initialSnapshot}
+        />
+      )}
       <ControlToolbar
         browserStore={useBrowserStore}
         search={{
-          assembly: "GRCh38",
+          assembly: assembly.search.assembly,
           graphqlUrl: "/api/screen-graphql",
-          queries: ["Gene", "SNP", "cCRE", "Coordinate"],
+          queries: assembly.search.queries,
         }}
         onManageHighlights={() => setHighlightDialogOpen(true)}
         onSelectTracks={() => setTrackSelectOpen(true)}
@@ -78,7 +52,6 @@ export function Browser() {
         open={trackSelectOpen}
         onClose={() => setTrackSelectOpen(false)}
         title="Choose tracks"
-        defaultTrackIds={defaultTrackIds}
         trackCollections={trackCollections}
         useTrackStore={useTrackStore}
         resolveTrackInteraction={resolveTrackInteraction}

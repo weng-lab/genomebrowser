@@ -10,7 +10,13 @@
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt .",
-    "format:check": "oxfmt . --check"
+    "format:check": "oxfmt . --check",
+    "test": "vitest run",
+    "test:db": "vitest run --config vitest.db.config.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:up": "docker compose --env-file .env.local up -d --wait",
+    "db:down": "docker compose --env-file .env.local stop"
   },
   "dependencies": {
     "@clerk/nextjs": "7.9.5",
@@ -27,16 +33,23 @@
     "@weng-lab/genomebrowser-ui": "workspace:*",
     "@weng-lab/genomic-reader": "workspace:*",
     "@weng-lab/ui-components": "catalog:",
+    "ajv": "^8.20.0",
+    "drizzle-orm": "^0.45.3",
     "next": "catalog:",
+    "postgres": "^3.4.9",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "drizzle-kit": "^0.31.11",
+    "jsdom": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
-    "typescript": "catalog:native"
+    "typescript": "catalog:native",
+    "vitest": "catalog:"
   }
 }

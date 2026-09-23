@@ -27,6 +27,10 @@
     ".": {
       "types": "./dist/src/lib.d.ts",
       "import": "./dist/genomebrowser.es.js"
+    },
+    "./genome": {
+      "types": "./dist/src/genome/index.d.ts",
+      "import": "./dist/genome.js"
     }
   },
   "publishConfig": {

@@ -1,6 +1,6 @@
 # Core API reference
 
-Import all runtime APIs and types below from `@weng-lab/genomebrowser`. The package has one public JavaScript entry point and also installs the `genomebrowser` CLI. Each API page includes its related types.
+Import all runtime APIs and types below from `@weng-lab/genomebrowser`. The `/genome` entry provides assembly definitions without React dependencies for server code. The package also installs the `genomebrowser` CLI. Each API page includes its related types.
 
 ## Browse by area
 
@@ -33,6 +33,8 @@ Look up an export below to find its documentation. Store methods and module memb
 | `TrackUpdate`, `TrackBaseUpdate`                                                    | [Update patches](01-browserSetup/trackStore.md#trackupdate-and-trackbaseupdate)                                      |
 
 ### Assemblies and regions
+
+The `@weng-lab/genomebrowser/genome` subpath exports `createAssemblyDefinition`, `AssemblyDefinition`, `hg38`, `mm10`, `ce11`, `dm6`, and `tair10`. See [Assemblies](02-assembliesAndRegions/assemblies.md).
 
 | Exports                                          | Reference                                                                                    |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------- |

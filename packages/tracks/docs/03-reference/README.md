@@ -15,6 +15,8 @@ Import individual modules from `@weng-lab/genomebrowser-tracks/<track>`, shared 
 
 Find runtime exports and their related types below. Import suffixes are relative to `@weng-lab/genomebrowser-tracks`.
 
+The `/gene-datasets` entry exports `getGeneDatasetsForAssembly`, `getGeneDatasetTitle`, and `GeneDataset` for server code. See the [gene dataset catalog](01-trackModules/gene.md).
+
 | Import                         | Exports                                                                                                                                                                                                                                                                     | Reference                                                                     |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | `root`                         | `firstPartyTrackModules`                                                                                                                                                                                                                                                    | [firstPartyTrackModules](02-collectionsAndSchemas/firstPartyTrackModules.md)  |
