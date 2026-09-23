@@ -21,7 +21,7 @@ export async function saveSession(input: unknown): Promise<SaveSessionResult> {
     };
   }
   try {
-    const repository = getSessionRepository();
+    const repository = await getSessionRepository();
     if (!repository) return { ok: false, error: "Session storage is not configured." };
     const result = await repository.save(userId, parsed);
     return { ok: true, ...result };

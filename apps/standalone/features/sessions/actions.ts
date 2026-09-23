@@ -22,7 +22,7 @@ export async function createSession(input: unknown): Promise<SaveSessionResult> 
   const assembly = getAssembly(parsed.data.assemblyId);
   if (!assembly) return { ok: false, error: "Choose an assembly from the list." };
   try {
-    const repository = getSessionRepository();
+    const repository = await getSessionRepository();
     if (!repository) return { ok: false, error: "Session storage is not configured." };
     const result = await repository.save(
       userId,
@@ -49,7 +49,7 @@ export async function deleteSession(
   if (!userId) return { ok: false, error: "Sign in to manage your sessions." };
   if (!sessionIdSchema.safeParse(id).success) return { ok: false, error: "Invalid session ID." };
   try {
-    const repository = getSessionRepository();
+    const repository = await getSessionRepository();
     if (!repository) return { ok: false, error: "Session storage is not configured." };
     if (!(await repository.deleteByOwner(userId, id)))
       return { ok: false, error: "This session is no longer available." };

@@ -43,21 +43,32 @@ export function Browser({
           initialSnapshot={initialSnapshot}
         />
       )}
-      <ControlToolbar
-        browserStore={useBrowserStore}
-        search={{
-          assembly: assembly.search.assembly,
-          graphqlUrl: "/api/screen-graphql",
-          queries: assembly.search.queries,
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: 1440,
+          mx: "auto",
+          '& > [aria-label="Genome browser controls"]': {
+            justifyContent: "space-evenly",
+          },
         }}
-        onManageHighlights={() => setHighlightDialogOpen(true)}
-        onSelectTracks={() => setTrackSelectOpen(true)}
-        managementActions={
-          <Button size="small" startIcon={<AddIcon />} onClick={() => setAddTrackOpen(true)}>
-            Add track
-          </Button>
-        }
-      />
+      >
+        <ControlToolbar
+          browserStore={useBrowserStore}
+          search={{
+            assembly: assembly.search.assembly,
+            graphqlUrl: "/api/screen-graphql",
+            queries: assembly.search.queries,
+          }}
+          onManageHighlights={() => setHighlightDialogOpen(true)}
+          onSelectTracks={() => setTrackSelectOpen(true)}
+          managementActions={
+            <Button size="small" startIcon={<AddIcon />} onClick={() => setAddTrackOpen(true)}>
+              Add track
+            </Button>
+          }
+        />
+      </Box>
       <Box sx={{ pt: 1, width: "100%", overflowX: "auto" }}>
         <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore}>
           {addTrackOpen && (

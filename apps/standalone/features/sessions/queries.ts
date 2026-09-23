@@ -1,7 +1,7 @@
 import "server-only";
 
 import { auth } from "@clerk/nextjs/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { isAuthConfigured } from "../auth/config";
 import { getSessionRepository } from "./repository";
 import type { SessionListResult } from "./types";
@@ -17,7 +17,7 @@ export async function getCurrentUserSessions(): Promise<
 
   // Resolve the owner here, never from a URL or client-supplied user ID.
   try {
-    const repository = getSessionRepository();
+    const repository = await getSessionRepository();
     if (!repository) return { status: "storage-unavailable" };
     const sessions = await repository.listByOwner(userId);
     return { status: "ready", sessions };
@@ -31,9 +31,9 @@ export async function getCurrentUserSession(id: string) {
   const { userId, redirectToSignIn } = await auth();
   if (!userId) return redirectToSignIn({ returnBackUrl: `/browser/${encodeURIComponent(id)}` });
   if (!sessionIdSchema.safeParse(id).success) notFound();
-  const repository = getSessionRepository();
+  const repository = await getSessionRepository();
   if (!repository) return { status: "storage-unavailable" } as const;
   const session = await repository.getByOwner(userId, id);
-  if (!session) notFound();
+  if (!session) redirect("/browser");
   return { status: "ready", session } as const;
 }

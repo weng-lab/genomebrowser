@@ -1,11 +1,11 @@
 import "server-only";
 import { and, desc, eq } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { getDatabase } from "../../db/client";
 import { customTracks } from "../../db/schema";
 import type { CustomTrack } from "./types";
 
-export function createCustomTrackRepository(database: PostgresJsDatabase) {
+export function createCustomTrackRepository(database: NodePgDatabase) {
   return {
     async listByOwner(ownerId: string): Promise<CustomTrack[]> {
       return database
@@ -33,7 +33,7 @@ export function createCustomTrackRepository(database: PostgresJsDatabase) {
   };
 }
 
-export function getCustomTrackRepository() {
-  const database = getDatabase();
+export async function getCustomTrackRepository() {
+  const database = await getDatabase();
   return database ? createCustomTrackRepository(database) : null;
 }

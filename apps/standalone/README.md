@@ -34,7 +34,7 @@ Provide both Clerk keys during production builds and at runtime. Next.js embeds 
 
 On `/dashboard`, select **Create a session**, enter a name, and choose an assembly. Creation saves a session with the reference ruler and default gene track pinned at the top, then opens `/browser/[sessionId]`. The dashboard lists only the signed-in user's sessions and supports opening and deleting them. Accounts can have up to five sessions, including when requests create sessions concurrently.
 
-The navbar shows the selected session's title, and its Browser link returns to that session from other pages. The tab remembers only the session ID, title, and owner in `sessionStorage`; browser and track state still load from PostgreSQL when opening the session. Selection is scoped to the signed-in account. Opening guest mode or deleting the selected session clears it.
+The navbar shows the selected session's title, and its Browser link returns to that session from other pages. The tab remembers only the session ID, title, and owner in `sessionStorage`; browser and track state still load from PostgreSQL when opening the session. Selection is scoped to the signed-in account. Opening guest mode or deleting the selected session clears it. If a remembered session is no longer available to the signed-in user, opening it redirects to `/browser` and clears the selection.
 
 Browser and track store changes automatically save the visible region, highlights, browser settings, and ordered track instances. Highlight colors, opacity, and style persist. Selection mode does not persist and starts as pan when reopening a session. The browser has no manual save button or session-name editor; names are chosen during creation. Guest tab storage remains unimplemented.
 
@@ -62,7 +62,7 @@ The registry includes hg38 and mm10. hg38 uses the existing UCSC 2bit reference 
 
 ## PostgreSQL setup
 
-Drizzle defines tables in `db/schema.ts` and tracks SQL migrations in `db/migrations/`. The application opens a bounded PostgreSQL connection pool lazily. Builds do not connect to the database. Missing `DATABASE_URL` produces an unavailable-storage state, while query failures produce a load error.
+Drizzle defines tables in `db/schema.ts` and tracks SQL migrations in `db/migrations/`. The application uses the `pg` driver and initializes one pool per server process, with at most five connections. Builds do not connect to the database. If neither `DATABASE_URL` nor `INSTANCE_CONNECTION_NAME` is configured, storage is unavailable. Incomplete Cloud SQL settings, connection failures, and query failures produce load or save errors.
 
 For local development, set `POSTGRES_PASSWORD` to a random password in `.env.local` and set `DATABASE_URL` to `postgresql://genomebrowser:PASSWORD@127.0.0.1:55432/genomebrowser`, replacing `PASSWORD` with the same URL-encoded password. Preserve the existing Clerk and application settings. The Compose service binds only to localhost and keeps data in a named volume.
 
@@ -77,6 +77,33 @@ pnpm standalone dev
 After changing the Drizzle schema, run `pnpm standalone db:generate`, review the generated SQL, and apply it with `pnpm standalone db:migrate`. This follows the [Drizzle migration workflow](https://orm.drizzle.team/docs/migrations). Never edit an applied migration.
 
 `pnpm standalone test` checks serialization and action authorization. `pnpm standalone test:db` loads `.env.local` and runs PostgreSQL integration tests using `TEST_DATABASE_URL` if set, otherwise `DATABASE_URL`. These tests create and remove an isolated schema; they do not modify saved sessions. The database role needs schema-creation permission. Run them against a local or dedicated test database. Workspace verification runs the unit tests, not database integration tests.
+
+### Cloud SQL on Vercel
+
+Follow [Connect Vercel previews to Cloud SQL](docs/vercel-gcp.md) for the setup steps and exact values for the development database.
+
+Set `INSTANCE_CONNECTION_NAME` to use the Google Cloud SQL Node.js connector over the instance's public IP. This takes precedence over `DATABASE_URL`. The connector handles encryption and Cloud SQL connection authorization; `DB_USER` and `DB_PASSWORD` authenticate the PostgreSQL user. The instance must have public IP enabled, but the connector does not require adding Vercel IPs to authorized networks. This connection runs in the Node.js runtime.
+
+Configure these server-only variables in Vercel's **Preview** environment:
+
+| Variable                                 | Value                                                   |
+| ---------------------------------------- | ------------------------------------------------------- |
+| `INSTANCE_CONNECTION_NAME`               | `devenv-215523:us-east1:genesmetadata-instance`         |
+| `DB_NAME`                                | `genomebrowser-dev`                                     |
+| `DB_USER`                                | Dedicated PostgreSQL login with access to this database |
+| `DB_PASSWORD`                            | Original password, without URL encoding                 |
+| `GCP_PROJECT_NUMBER`                     | Numeric Google Cloud project number                     |
+| `GCP_SERVICE_ACCOUNT_EMAIL`              | Service account used by the preview deployment          |
+| `GCP_WORKLOAD_IDENTITY_POOL_ID`          | Workload Identity Federation pool ID                    |
+| `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID` | OIDC provider ID within that pool                       |
+
+Follow [Vercel's Google Cloud federation guide](https://vercel.com/docs/oidc/gcp) to create the pool and provider. Use the provider's **Default audience** option. The client derives that audience from the project number, pool ID, and provider ID and requests a matching Vercel token. Configure `google.subject` from `assertion.sub` and restrict service-account impersonation with `roles/iam.workloadIdentityUser` to the intended Vercel team, project, and preview environment. Give the service account `roles/cloudsql.client`, and enable the Cloud SQL Admin and IAM Service Account Credentials APIs. PostgreSQL permissions are separate from these IAM roles.
+
+Vercel supplies the OIDC token at runtime; do not paste a token or Google service-account key into the environment. The client obtains a current OIDC token whenever Google credentials need refreshing and registers the pool with Vercel's connection lifecycle helper. Each running function process can open its own pool, so account for concurrent previews when sizing the instance's connection limit.
+
+Set both Clerk keys for Preview as described above, then redeploy. Validate the connection by creating a session, changing its region, and reopening it. A successful build does not establish database connectivity.
+
+Locally, leave `INSTANCE_CONNECTION_NAME` empty and keep using `DATABASE_URL` through the Cloud SQL Auth Proxy or Docker. If using the connector outside Vercel, it uses Google Application Default Credentials. Migrations and integration tests continue to use PostgreSQL URLs, not the connector settings. Apply migrations through the local proxy with an appropriately privileged database login; builds do not run them automatically. Shared preview databases also share schema changes and records.
 
 ## Browser controls
 

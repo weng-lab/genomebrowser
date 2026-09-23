@@ -21,7 +21,7 @@ export async function saveCustomTrack(input: unknown): Promise<SaveCustomTrackRe
     };
   }
   try {
-    const repository = getCustomTrackRepository();
+    const repository = await getCustomTrackRepository();
     if (!repository) return { ok: false, error: "Custom track storage is unavailable." };
     const saved = await repository.save(userId, entry);
     revalidatePath("/dashboard");

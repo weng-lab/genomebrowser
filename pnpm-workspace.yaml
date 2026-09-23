@@ -35,6 +35,8 @@ allowBuilds:
   # Optional telemetry initialization fails with ENOENT in MUI X 8.29.0.
   "@mui/x-telemetry": false
   esbuild: true
+  # The postinstall script only checks dependent version specifications.
+  protobufjs: false
   sharp: true
 minimumReleaseAgeExclude:
   - "@oxfmt/binding-android-arm-eabi@0.61.0"

@@ -9,7 +9,7 @@ export async function getCurrentUserCustomTracks(): Promise<CustomTracksResult> 
   const { userId } = await auth();
   if (!userId) return { status: "signed-out" };
   try {
-    const repository = getCustomTrackRepository();
+    const repository = await getCustomTrackRepository();
     if (!repository) return { status: "storage-unavailable" };
     return { status: "ready", tracks: await repository.listByOwner(userId) };
   } catch {

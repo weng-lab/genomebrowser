@@ -8,7 +8,20 @@
         "CLERK_SECRET_KEY",
         "NEXT_PUBLIC_MUI_X_LICENSE_KEY"
       ],
-      "passThroughEnv": ["SCREEN_API_KEY", "DATABASE_URL"]
+      "passThroughEnv": [
+        "SCREEN_API_KEY",
+        "DATABASE_URL",
+        "INSTANCE_CONNECTION_NAME",
+        "DB_NAME",
+        "DB_USER",
+        "DB_PASSWORD",
+        "GCP_PROJECT_NUMBER",
+        "GCP_SERVICE_ACCOUNT_EMAIL",
+        "GCP_WORKLOAD_IDENTITY_POOL_ID",
+        "GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID",
+        "VERCEL",
+        "VERCEL_OIDC_TOKEN"
+      ]
     }
   }
 }

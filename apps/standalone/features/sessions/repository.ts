@@ -1,6 +1,6 @@
 import "server-only";
 import { and, count, desc, eq, sql } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { getDatabase } from "../../db/client";
 import { sessions } from "../../db/schema";
 import { parseSessionSnapshot } from "./validation";
@@ -10,7 +10,7 @@ export class SessionWriteError extends Error {}
 
 const savedFields = { id: sessions.id, revision: sessions.revision, updatedAt: sessions.updatedAt };
 
-export function createSessionRepository(database: PostgresJsDatabase) {
+export function createSessionRepository(database: NodePgDatabase) {
   return {
     async listByOwner(ownerId: string): Promise<SessionSummary[]> {
       const rows = await database
@@ -116,7 +116,7 @@ export function createSessionRepository(database: PostgresJsDatabase) {
   };
 }
 
-export function getSessionRepository() {
-  const database = getDatabase();
+export async function getSessionRepository() {
+  const database = await getDatabase();
   return database ? createSessionRepository(database) : null;
 }

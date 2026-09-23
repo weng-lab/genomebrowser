@@ -1,9 +1,9 @@
 import { createCustomTrackRepository } from "../features/custom-tracks/repository";
 import { randomUUID } from "node:crypto";
 import { beforeAll, afterAll, describe, expect, it } from "vitest";
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { createSessionRepository } from "../features/sessions/repository";
 import { defaultAssembly, assemblies } from "../features/browser/assembly";
 import { createInitialSnapshot } from "../features/sessions/initialSnapshot";
@@ -12,18 +12,18 @@ const url = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
 if (!url)
   throw new Error("Set TEST_DATABASE_URL or DATABASE_URL to run PostgreSQL integration tests.");
 const schema = `session_test_${randomUUID().replaceAll("-", "")}`;
-const admin = postgres(url, { max: 1 });
-const client = postgres(url, { connection: { search_path: schema }, max: 10 });
+const admin = new Pool({ connectionString: url, max: 1 });
+const client = new Pool({ connectionString: url, options: `-c search_path=${schema}`, max: 10 });
 const database = drizzle(client);
 const repository = createSessionRepository(database);
 
 beforeAll(async () => {
-  await admin`create schema ${admin(schema)}`;
+  await admin.query(`create schema "${schema}"`);
   await migrate(database, { migrationsFolder: "./db/migrations", migrationsSchema: schema });
 });
 afterAll(async () => {
   await client.end();
-  await admin`drop schema if exists ${admin(schema)} cascade`;
+  await admin.query(`drop schema if exists "${schema}" cascade`);
   await admin.end();
 });
 
