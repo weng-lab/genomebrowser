@@ -19,7 +19,7 @@ This pnpm monorepo contains independently versioned packages for the Weng Lab Ge
 
 Private applications live under `apps/`:
 
-- [Standalone app](apps/standalone/README.md) (`apps/standalone`, `@weng-lab/genomebrowser-standalone`) is the deployed web application. Its README covers SCREEN search and environment configuration.
+- [Standalone app](apps/standalone/README.md) (`apps/standalone`, `@weng-lab/genomebrowser-standalone`) is the deployed web application. Its [local development guide](apps/standalone/docs/localDevelopment.md) covers accounts, database access, and SCREEN search.
 - `apps/playground` (`@weng-lab/genomebrowser-playground`) contains experiments and custom browser setups. It resolves workspace package imports directly to source; preserved package demos under `examples/` are intentionally not routed.
 
 See the [maintainer docs](docs/README.md) and [contribution guide](docs/02-contributing/README.md) for repository guidance.

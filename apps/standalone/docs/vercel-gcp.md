@@ -89,4 +89,12 @@ Use a **Preview** deployment for these steps. Vercel's **Development** environme
 
 If saving fails, open the deployment's runtime logs. Check the exact team slug and preview permission from step 3, the eight variables from step 4, and the PostgreSQL password. A successful build alone does not verify database access.
 
-Return to [standalone app setup](../README.md#cloud-sql-on-vercel).
+## Connection notes
+
+The Cloud SQL instance must have public IP enabled. The connector encrypts the connection without adding Vercel IP addresses to authorized networks. Each running function process can open up to five database connections.
+
+Provide Clerk keys at build time and runtime. Next.js embeds the publishable key in the client bundle, so changing Clerk applications requires rebuilding. Configure the intended domains and sign-in methods in Clerk. Shared API Console accounts do not establish cross-domain single sign-on without Clerk's multi-domain configuration.
+
+Builds do not run database migrations. Apply reviewed migrations through the local proxy with an appropriately privileged login. Preview deployments sharing `genomebrowser-dev` also share records and schema changes.
+
+For the local proxy, migrations, and tests, follow [local development](localDevelopment.md). Return to [standalone docs](README.md).

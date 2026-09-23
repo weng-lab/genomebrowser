@@ -1,6 +1,6 @@
 # Sessions and persistence
 
-Session design and implementation status. Current behavior is identified below; guest tab persistence and named collection organization remain planned. Setup and implementation details live in the [app README](../README.md).
+Session design and implementation status. Current behavior is identified below; guest tab persistence and named collection organization remain planned. See [local development](localDevelopment.md) for setup and [session persistence](sessionPersistence.md) for implementation details.
 
 The standalone genome browser is for researchers exploring genomic regions and comparing tracks from provided datasets and their own data sources. Sessions let them return to ongoing work. Collections help them organize tracks for use across that work.
 
@@ -50,3 +50,5 @@ For example, a researcher may want "Pilot study" available in one session and a 
 - Is choosing collections per session part of the first version, and what does disabling or removing one do?
 - How should users recover unsaved edits after failed saves, switching sessions, sign-out, or a conflicting update?
 - Which additional assemblies, reference sources, and provided collections are needed?
+
+Return to [standalone docs](README.md).
