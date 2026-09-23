@@ -3,7 +3,7 @@ import type { GenomicRegion, Highlight } from "@weng-lab/genomebrowser";
 import { Cytobands } from "@weng-lab/genomebrowser-ui";
 import { readCytobands, type Cytoband } from "@weng-lab/genomic-reader";
 import { useEffect, useState } from "react";
-import { useObservedWidth } from "../hooks/useObservedWidth";
+import { useObservedWidth } from "./useObservedWidth";
 
 type CytobandState =
   | { status: "loading" }

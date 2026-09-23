@@ -2,7 +2,13 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "env": [
+        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+        "CLERK_SECRET_KEY",
+        "NEXT_PUBLIC_MUI_X_LICENSE_KEY"
+      ],
+      "passThroughEnv": ["SCREEN_API_KEY"]
     }
   }
 }

@@ -15,8 +15,8 @@ import {
   type TrackSelectInteractionResolver,
 } from "@weng-lab/genomebrowser-ui";
 import { useState } from "react";
-import { browserAssembly } from "../lib/assembly";
-import { defaultTrackIds, trackCollections } from "../lib/trackCollections";
+import { browserAssembly } from "./assembly";
+import { defaultTrackIds, trackCollections } from "./trackCollections";
 
 const useBrowserStore = createBrowserStore({
   assembly: browserAssembly,
