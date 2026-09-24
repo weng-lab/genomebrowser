@@ -1,6 +1,6 @@
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
 import type { BigBedRecord } from "@weng-lab/genomic-reader";
-import { readCachedBigBedRows } from "../shared/cachedFiles";
+import { readCachedBigBedRows } from "../../shared/cachedFiles";
 import { bigGenePredSchema } from "./schema";
 import { publishObservedGeneTags } from "./tagCatalog";
 import type {
@@ -11,7 +11,7 @@ import type {
   GeneData,
   GeneExon,
   GeneTranscript,
-} from "./types";
+} from "../types";
 
 type BigGenePredRecord = BigBedRecord<typeof bigGenePredSchema>;
 

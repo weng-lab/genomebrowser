@@ -1,5 +1,6 @@
+import { memo } from "react";
 import type { GeneExonPartKind } from "./geometry";
-import type { GeneStrand } from "./types";
+import type { GeneStrand } from "../../types";
 
 export type GeneGlyphPartId = string;
 
@@ -32,7 +33,7 @@ type GeneGlyphProps = {
   color: string;
 };
 
-export function GeneGlyph({
+export const GeneGlyph = memo(function GeneGlyph({
   geometry,
   strand,
   x,
@@ -112,7 +113,7 @@ export function GeneGlyph({
       })}
     </>
   );
-}
+});
 
 function createGeneGlyphMetrics(rowHeight: number) {
   return {

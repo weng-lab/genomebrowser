@@ -1,4 +1,4 @@
-import type { GeneExon, GeneTranscript, GroupedGene } from "./types";
+import type { GeneExon, GeneTranscript, GroupedGene } from "../../types";
 
 export type GeneExonPartKind = "utr" | "cds" | "noncoding-exon";
 export type GeneUtrSide = "5-prime" | "3-prime";

@@ -1,42 +1,22 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
-import { memo, useCallback, useLayoutEffect, useMemo, useRef } from "react";
-import { createGenomicXScale } from "../shared/coordinates";
-import { useRowLayout } from "../shared/layout";
-import { packViewportRows } from "../shared/layout/viewportRows";
-import { intersectsVisibleRegion } from "../shared/viewport";
-import { GeneGlyph as GeneGlyphComponent } from "./glyph";
-import { findTranscriptTagColor, groupTranscriptsByGene } from "./helpers";
-import type { GeneInteractionTarget } from "./interactions";
-import { createGeneLabelLayout, type GeneLabelLayout } from "./labels";
-import {
-  prepareGeneTranscriptGlyph,
-  prepareMergedGeneGlyph,
-  type PreparedGeneGlyph,
-} from "./preparation";
-import type { GeneConfig, GeneData, GeneFeature } from "./types";
+import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
+import { createGenomicXScale } from "../../shared/coordinates";
+import { useRowLayout } from "../../shared/layout";
+import { packViewportRows } from "../../shared/layout/viewportRows";
+import { intersectsVisibleRegion } from "../../shared/viewport";
+import type { GeneInteractionTarget } from "../interactions";
+import type { GeneConfig, GeneData, GeneFeature } from "../types";
+import { findTranscriptTagColor } from "./features";
+import { GeneLabel } from "./GeneLabel";
+import { GenePartHitTargets } from "./GenePartHitTargets";
+import { GeneGlyph } from "./glyph/GeneGlyph";
+import { prepareGeneTranscriptGlyph, prepareMergedGeneGlyph } from "./glyph/preparation";
+import { createGeneLabelLayout } from "./labels";
 
 const maximumLabelFontSize = 10;
-const GeneGlyph = memo(GeneGlyphComponent);
 
-export function FullGene(props: TrackRendererProps<GeneConfig, GeneData>) {
-  return <GeneRows {...props} features={props.data} />;
-}
-
-export function TaggedGene(props: TrackRendererProps<GeneConfig, GeneData>) {
-  const transcripts = useMemo(
-    () =>
-      props.data.filter((transcript) => findTranscriptTagColor(transcript, props.config.tagColors)),
-    [props.config.tagColors, props.data],
-  );
-  return <GeneRows {...props} features={transcripts} />;
-}
-
-export function MergedGene(props: TrackRendererProps<GeneConfig, GeneData>) {
-  const genes = useMemo(() => groupTranscriptsByGene(props.data), [props.data]);
-  return <GeneRows {...props} features={genes} />;
-}
-
-function GeneRows({
+/** Packs features into rows and draws each one with its glyph, label, and hit targets. */
+export function GeneRows({
   id,
   config,
   color,
@@ -191,84 +171,6 @@ function GeneRows({
     </g>
   );
 }
-
-const GenePartHitTargets = memo(function GenePartHitTargets({
-  prepared,
-  x,
-  width,
-  rowTop,
-  rowHeight,
-  interactionProps,
-}: {
-  prepared: PreparedGeneGlyph;
-  x: (position: number) => number;
-  width: number;
-  rowTop: number;
-  rowHeight: number;
-  interactionProps: (target: GeneInteractionTarget) => {
-    style: { cursor: string };
-    onClick: () => void;
-    onMouseEnter: (event: React.MouseEvent<SVGElement>) => void;
-    onMouseLeave: () => void;
-  };
-}) {
-  return [...prepared.geometry.introns, ...prepared.geometry.exonParts].map((part) => {
-    const start = Math.max(0, x(part.start));
-    const end = Math.min(width, x(part.end));
-    if (end <= 0 || start >= width || end <= start) return null;
-    const target = prepared.targets.get(part.id);
-    if (!target) return null;
-    const handlers = interactionProps(target);
-    return (
-      <rect
-        key={part.id}
-        data-gene-part-hit-target=""
-        data-gene-part-id={part.id}
-        x={start}
-        y={rowTop}
-        width={Math.max(1, end - start)}
-        height={rowHeight}
-        fill="transparent"
-        pointerEvents="all"
-        style={handlers.style}
-        onClick={handlers.onClick}
-        onMouseEnter={handlers.onMouseEnter}
-        onMouseLeave={handlers.onMouseLeave}
-      />
-    );
-  });
-});
-
-const GeneLabel = memo(function GeneLabel({
-  label,
-  color,
-  fontSize,
-  rowTop,
-  rowHeight,
-}: {
-  label: GeneLabelLayout | null;
-  color: string;
-  fontSize: number;
-  rowTop: number;
-  rowHeight: number;
-}) {
-  if (!label) return null;
-  return (
-    <text
-      data-gene-label=""
-      x={label.x}
-      y={rowTop + rowHeight / 2}
-      textAnchor={label.anchor}
-      dominantBaseline="middle"
-      fill={color}
-      fontSize={fontSize}
-      pointerEvents="none"
-      style={{ userSelect: "none" }}
-    >
-      {label.text}
-    </text>
-  );
-});
 
 function featureLabel(feature: GeneFeature): string {
   return feature.kind === "gene" ? feature.geneName : feature.transcriptName;

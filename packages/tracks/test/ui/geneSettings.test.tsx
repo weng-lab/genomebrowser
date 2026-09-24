@@ -11,9 +11,9 @@ import {
 } from "@weng-lab/genomebrowser-tracks/gene";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { GeneSettings } from "../../src/gene/settings";
-import { reorderTagColors } from "../../src/gene/settingsHelpers";
-import { publishObservedGeneTags } from "../../src/gene/tagCatalog";
+import { GeneSettings } from "../../src/gene/settings/GeneSettings";
+import { reorderTagColors } from "../../src/gene/settings/reorderTagColors";
+import { publishObservedGeneTags } from "../../src/gene/data/tagCatalog";
 
 const browser = vi.hoisted(() => ({ assemblyId: "hg38" }));
 

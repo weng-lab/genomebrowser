@@ -3,9 +3,9 @@ import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser";
 import { z } from "zod";
 import { defaultRowHeight, rowHeightSchema } from "../shared/layout/rowLayout";
 import { hexColorSchema } from "../shared/schemas";
-import { fetchGene } from "./fetch";
-import { FullGene, MergedGene, TaggedGene } from "./render";
-import { GeneSettings } from "./settings";
+import { fetchGene } from "./data/fetch";
+import { FullGene, MergedGene, TaggedGene } from "./render/renderers";
+import { GeneSettings } from "./settings/GeneSettings";
 import { GeneTooltip } from "./tooltip";
 import type { GeneInteractionTarget } from "./interactions";
 
@@ -47,5 +47,5 @@ export type GeneConfig = ModuleInstance<typeof geneModule>["config"];
 export type { GeneData, GeneDisplay, GeneTagColor, GeneTranscript, GroupedGene } from "./types";
 export type { GeneInteraction, GeneInteractionTarget } from "./interactions";
 
-export { getGeneDatasetsForAssembly, getGeneDatasetTitle } from "./datasets";
-export type { GeneDataset } from "./datasets";
+export { getGeneDatasetsForAssembly, getGeneDatasetTitle } from "./data/datasets";
+export type { GeneDataset } from "./data/datasets";

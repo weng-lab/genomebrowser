@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { createCompositeGeneGeometry, createCompositeIntronRuns } from "../../src/gene/geometry";
+import {
+  createCompositeGeneGeometry,
+  createCompositeIntronRuns,
+} from "../../src/gene/render/glyph/geometry";
 import type {
   CompositeGeneContribution,
   CompositeGeneIntronPart,
   CompositeGenePart,
   CompositeGenePartMetadata,
   GeneUtrSide,
-} from "../../src/gene/geometry";
+} from "../../src/gene/render/glyph/geometry";
 import type { GeneExon, GeneStrand, GeneTranscript, GroupedGene } from "../../src/gene/types";
 
 describe("Composite gene geometry", () => {
