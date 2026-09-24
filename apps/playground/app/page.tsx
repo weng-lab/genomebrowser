@@ -43,12 +43,7 @@ const useTrackStore = createTrackStore({
       config: {
         sequenceUrl: "https://users.wenglab.org/niship/hg38.2bit",
         url: "https://users.wenglab.org/niship/Immune.bam",
-        indexUrl:
-         "https://users.wenglab.org/niship/Immune.bam.bai",
-
-        // url: "https://raw.githubusercontent.com/igvteam/igv.js/de59761b65419195e18f3f26c7ec71531883dea2/test/data/bam/HG002_chr11_119076212_119102218_2.bam",
-       // indexUrl:
-        //  "https://raw.githubusercontent.com/igvteam/igv.js/de59761b65419195e18f3f26c7ec71531883dea2/test/data/bam/HG002_chr11_119076212_119102218_2.bam.bai",
+        indexUrl: "https://users.wenglab.org/niship/Immune.bam.bai",
       },
     }),
   ],
