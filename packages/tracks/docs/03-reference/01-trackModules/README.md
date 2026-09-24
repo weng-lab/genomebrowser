@@ -4,7 +4,11 @@ Choose a track by the source you already have. Each module includes a renderer, 
 
 ## Using modules
 
-[Create and validate tracks](trackCreation.md) covers registration, creation input, and schemas shared by all first-party modules. Import individual modules from their track subpaths, or use [firstPartyTrackModules](../02-collectionsAndSchemas/firstPartyTrackModules.md) to register all eight.
+[Create and validate tracks](trackCreation.md) covers registration, creation input, and schemas shared by all first-party modules. Import individual modules from their track subpaths, or use [firstPartyTrackModules](../02-collectionsAndSchemas/firstPartyTrackModules.md) to register all nine.
+
+## BAM files
+
+- [BAM](bam.md) reads coordinate-sorted alignments with a BAI index. Dense, squish, pack, and full displays show strand-colored CIGAR blocks and read details.
 
 ## BigBed files
 

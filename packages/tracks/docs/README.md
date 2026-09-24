@@ -21,7 +21,7 @@ For the complete custom-module workflow, including fetching, rendering, and regi
 
 The [reference index](03-reference/README.md) maps public exports and package subpaths to their documentation. Browse by task:
 
-- [Track modules](03-reference/01-trackModules/README.md): create and configure BigWig, BigBed, BulkBed, cCRE BigBed, Gene, MethylC, CAVE, and Ruler tracks.
+- [Track modules](03-reference/01-trackModules/README.md): create and configure BAM, BigWig, BigBed, BulkBed, cCRE BigBed, Gene, MethylC, CAVE, and Ruler tracks.
 - [Collections and schemas](03-reference/02-collectionsAndSchemas/README.md): register all first-party modules and use the bundled collection JSON schema.
 - [BED schemas and signal processing](03-reference/03-dataPrimitives/README.md): parse BED columns and condense signal records into rendered pixels.
 - [Coordinates and layout](03-reference/04-coordinatesAndLayout/README.md): convert coordinates, pack overlapping features, and coordinate row height with track height.
@@ -32,6 +32,6 @@ The [reference index](03-reference/README.md) maps public exports and package su
 
 Core owns the browser component, stores, module contracts, and renderer hooks. Tracks supplies the first-party implementations and reusable components documented here. Optional application controls, such as collection-based track selection, belong to `@weng-lab/genomebrowser-ui`.
 
-Import an individual module from its track subpath, such as `@weng-lab/genomebrowser-tracks/bigwig`. The package root exports `firstPartyTrackModules` and loads all eight modules. The `/shared` entry exports reusable utilities and components without loading any first-party modules. Internal files are not public import paths.
+Import an individual module from its track subpath, such as `@weng-lab/genomebrowser-tracks/bigwig`. The package root exports `firstPartyTrackModules` and loads all nine modules. The `/shared` entry exports reusable utilities and components without loading any first-party modules. Internal files are not public import paths.
 
 Return to [Package overview](../README.md).

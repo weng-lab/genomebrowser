@@ -23,7 +23,7 @@ The module using this renderer must provide a matching `tooltipComponent` to sho
 
 `hide` cancels a pending call and hides this hook's tooltip. Unmounting does the same cleanup, and panning also hides the tooltip. Calling the hook outside the required browser and track contexts throws.
 
-The browser places a tooltip corner 10 logical SVG units from the pointer on each axis and switches corners near edges. Oversized content can extend beyond the browser.
+The browser places a tooltip corner 10 logical SVG units from the pointer on each axis and switches corners near edges. When that placement would clip content at the browser boundary, the tooltip moves to a fixed SVG overlay attached to the document body. The overlay preserves browser scale, stays within the window, and shrinks only if its content is larger than the window. Scrolling or resizing dismisses this overlay.
 
 Tooltip content does not intercept pointer events. The hook provides no keyboard trigger or accessible description relationship; supply meaningful content and any required accessible alternative in the track UI.
 

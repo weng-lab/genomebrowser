@@ -63,7 +63,11 @@
       "types": "./dist/src/ruler/index.d.ts",
       "import": "./dist/ruler.js"
     },
-    "./trackCollection.schema.json": "./schemas/trackCollection.schema.json"
+    "./trackCollection.schema.json": "./schemas/trackCollection.schema.json",
+    "./bam": {
+      "types": "./dist/src/bam/index.d.ts",
+      "import": "./dist/bam.js"
+    }
   },
   "publishConfig": {
     "access": "public",

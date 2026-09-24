@@ -1,6 +1,6 @@
 # @weng-lab/genomic-reader
 
-Read BigWig signal, BigBed annotations, TwoBit reference DNA, chromosome sizes, and UCSC cytobands in browser applications.
+Read BigWig signal, BigBed annotations, BAM alignments, TwoBit reference DNA, chromosome sizes, and UCSC cytobands in browser applications.
 
 ## Install
 

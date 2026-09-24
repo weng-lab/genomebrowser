@@ -30,7 +30,7 @@ const useTrackStore = createTrackStore({
       base: {
         id: "reference-ruler",
         title: "Reference · hg38",
-      },
+      },      
       config: { sequenceUrl: "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.2bit" },
     }),
     bigWigModule.create({

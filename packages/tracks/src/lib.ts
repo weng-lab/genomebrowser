@@ -1,3 +1,4 @@
+import { bamModule } from "./bam";
 import { rulerModule } from "./ruler";
 import { bigBedModule } from "./bigbed";
 import { bigWigModule } from "./bigwig";
@@ -16,4 +17,5 @@ export const firstPartyTrackModules = [
   ccreBigBedModule,
   geneModule,
   methylCModule,
+  bamModule,
 ] as const;

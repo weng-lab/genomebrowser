@@ -27,6 +27,7 @@
       "@weng-lab/genomebrowser-tracks/bulkbed": ["../../packages/tracks/src/bulkbed/index.ts"],
       "@weng-lab/genomebrowser-tracks/cave": ["../../packages/tracks/src/cave/index.ts"],
       "@weng-lab/genomebrowser-tracks/ccre": ["../../packages/tracks/src/ccre/index.ts"],
+      "@weng-lab/genomebrowser-tracks/bam": ["../../packages/tracks/src/bam/index.ts"],
       "@weng-lab/genomebrowser-tracks/gene": ["../../packages/tracks/src/gene/index.ts"],
       "@weng-lab/genomebrowser-tracks/methylc": ["../../packages/tracks/src/methylc/index.ts"],
       "@weng-lab/genomebrowser-tracks/shared": ["../../packages/tracks/src/shared/index.ts"],

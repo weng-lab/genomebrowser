@@ -28,3 +28,7 @@ export type { ChromSizes, ReadChromSizesOptions } from "./chromSizes";
 // Cytobands
 export { parseCytobands, readCytobands } from "./cytobands";
 export type { Cytoband, ReadCytobandsOptions } from "./cytobands";
+
+// BAM alignments
+export { createBamFile } from "./bam";
+export type { BamFile, BamFileOptions, BamRecord, BamCigarOperation, BamMate } from "./bam";
