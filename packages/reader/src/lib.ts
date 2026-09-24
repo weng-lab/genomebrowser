@@ -17,6 +17,18 @@ export type { BigBedFile, BigBedFileOptions, BigBedRecord } from "./bigBed";
 export { BigBedParseError } from "./bigBedParseError";
 export type { BigBedParseContext } from "./bigBedParseError";
 
+// BAM alignments
+export { createBamFile } from "./bam";
+export type {
+  BamCigarOperation,
+  BamCigarSegment,
+  BamFile,
+  BamFileOptions,
+  BamHeader,
+  BamRecord,
+  BamReference,
+} from "./bam";
+
 // TwoBit sequence
 export { createTwoBitFile } from "./twoBit";
 export type { TwoBitFile, TwoBitFileOptions, TwoBitRecord } from "./twoBit";

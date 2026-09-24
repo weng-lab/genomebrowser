@@ -7,6 +7,7 @@ Import all runtime APIs and types from `@weng-lab/genomic-reader`. The package h
 - [Regional reading](regionalReading/README.md)
 - [BigWig signal](bigWig/README.md)
 - [BigBed annotations](bigBed/README.md)
+- [BAM alignments](bam/README.md)
 - [TwoBit sequence](twoBit/README.md)
 - [Chromosome sizes](chromSizes/README.md)
 - [Cytobands](cytobands/README.md)
@@ -42,6 +43,15 @@ Every public export has a canonical destination below. File methods are document
 | `bed3Schema`         | [BigBed annotations](bigBed/bigBed.md#bed3schema)         |
 | `BigBedParseError`   | [BigBed annotations](bigBed/bigBed.md#bigbedparseerror)   |
 | `BigBedParseContext` | [BigBed annotations](bigBed/bigBed.md#bigbedparsecontext) |
+
+### BAM alignments
+
+| Exports                                | Reference                                                     |
+| -------------------------------------- | ------------------------------------------------------------- |
+| `createBamFile`, `BamFileOptions`      | [BAM alignments](bam/bam.md#createbamfile-and-bamfileoptions) |
+| `BamFile`, `BamRecord`                 | [BAM alignments](bam/bam.md#bamfile-and-bamrecord)            |
+| `BamHeader`, `BamReference`            | [BAM alignments](bam/bam.md#the-header)                       |
+| `BamCigarOperation`, `BamCigarSegment` | [BAM alignments](bam/bam.md#cigar)                            |
 
 ### TwoBit sequence
 
