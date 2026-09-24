@@ -16,11 +16,11 @@ The genomic span currently visible in the browser, also called the **visible reg
 
 ### Render region
 
-The genomic span prepared for drawing, including **overscan**, the extra coverage beyond the viewport used during panning. A renderer positions its data using the region and width supplied with that data. The visible region can differ from this render region.
+The genomic span prepared for drawing, including **overscan**, the extra coverage beyond the viewport used during panning. Each track has its own render region, the span its current data covers, so tracks can differ while one is still loading. A renderer positions its data using the region and width supplied with that data. The visible region can differ from this render region.
 
 ### Overscan
 
-The extra genomic coverage prepared beyond the viewport’s edges, allowing existing track content to move into view immediately during panning while new data loads.
+The extra genomic coverage prepared beyond the viewport’s edges, allowing existing track content to move into view immediately during panning while new data loads. A drag stops where a track’s overscan ends, and a pan that leaves at least half a viewport of overscan on each side needs no new request.
 
 > viewport = visible coverage; render region = viewport plus overscan.
 

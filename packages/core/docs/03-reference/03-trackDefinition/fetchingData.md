@@ -1,6 +1,6 @@
 # Fetching track data
 
-Implement a module's `fetch` function to load and prepare data for its renderers. Core supplies the requested region, width, and storage scoped to this track.
+Implement a module's `fetch` function to load and prepare data for its renderers. Core supplies the requested region, width, storage scoped to this track, and an abort signal.
 
 ## Usage
 
@@ -21,17 +21,20 @@ Pass `fetchIntervals` as a module's `fetch` option and mark its `intervals` sche
 
 ## Fetching data
 
-`TrackFetch<Config, Data>` is `(context: TrackFetchContext<Config>) => Promise<Data>`. Each request receives a track snapshot, the render demand, and track-local resources.
+`TrackFetch<Config, Data>` is `(context: TrackFetchContext<Config>) => Promise<Data>`. Each request receives a track snapshot, the render demand, track-local resources, and an abort signal.
 
 | Context field | Type                      | Contents                                                                  |
 | ------------- | ------------------------- | ------------------------------------------------------------------------- |
 | `track`       | `TrackFetchTrack<Config>` | Readonly `type`, `base: { id, display }`, and complete parsed config.     |
 | `demand`      | `TrackFetchDemand`        | Readonly `assembly`, genomic `region`, and logical SVG `width`.           |
 | `resources`   | `TrackResources`          | Storage retained between requests for this track in this mounted browser. |
+| `signal`      | `AbortSignal` (optional)  | Aborts when core no longer needs this request.                            |
 
 The snapshots are shallow readonly views. Fetchers may return raw records or process them for the supplied display and width. The requested region includes extra bases outside the visible viewport to support panning. Mark config fields used for requests or fetch-time processing with [fetchOnChange](fetchOnChange.md#fetchonchange).
 
-A rejected fetch puts that track into an error state. The error message appears as text in its lane, prefixed with the title; long messages wrap and can be scrolled. Other tracks can succeed even when this fetch rejects. The fetch contract does not include an abort signal.
+A rejected fetch puts that track into an error state. The error message appears as text in its lane, prefixed with the title; long messages wrap and can be scrolled. Other tracks can succeed even when this fetch rejects.
+
+`signal` is optional in the type so code can call a fetcher directly, but a mounted browser always supplies it. Pass it to network or reader calls, such as `file.read(region, { signal })`, so a superseded download stops. A fetcher that catches errors to return partial data should rethrow when `signal.aborted` is true. Core ignores the result of an aborted request either way.
 
 ### TrackResources
 
@@ -52,10 +55,12 @@ A mounted browser requests data for initial tracks and added tracks. Changes to 
 
 Core waits until width-only changes stop for 200 ms before requesting data. If another fetch input changes during that delay, core starts the request immediately using the latest width. Request regions can include overscan beyond the visible region; use the supplied demand rather than reading a browser store inside the fetcher.
 
-Core ignores results from superseded request batches. It does not cancel the underlying work, so a fetch may continue after a new request starts or a track is removed.
+Each track requests its data separately and shows its result as soon as it arrives. A rejected fetch becomes that track's error result and does not affect other tracks. An error result is retried on the next region, assembly, width, or fetch-input change, never on a timer.
 
-Core runs the fetchers in a batch concurrently and commits their results after every fetch has finished or failed. A rejected fetch becomes a track-local error result and does not reject other tracks' fetches.
+When a newer request replaces one, or its track is removed, core aborts that request's `signal` and ignores its result.
 
-Core can keep displaying existing data during a same-scale pan while the next request is in progress. Renderers must use their supplied [render region and width](../04-rendererIntegration/trackRenderer.md), which can differ from the visible viewport.
+A pan that still leaves at least half a visible span of loaded data beyond each edge of the view does not request data. Otherwise the track requests the window around the new view and keeps displaying its existing data at the correct position until the result arrives. Each track can therefore show data for a different region. Renderers must use their supplied [render region and width](../04-rendererIntegration/trackRenderer.md), which can differ from the visible viewport and from other tracks.
+
+A zoom, or a changed display or marked config value, hides the existing result and shows a loading state until new data arrives. Pointer interactions stay blocked until every track has a result for the current request.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

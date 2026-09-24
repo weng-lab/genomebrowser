@@ -14,7 +14,7 @@ The browser starts in pan mode. Panning moves the view along the current chromos
 
 Trackpad gestures that move more vertically than horizontally scroll the page.
 
-During a pan, existing track content moves immediately while the browser requests data for the new region. Core temporarily blocks track interactions until the data has loaded and matches its position on screen. Hovering and clicking then resume.
+During a pan, existing track content moves immediately. Each track has data loaded beyond both edges of the view, and a drag stops where that data ends, so a pan never shows empty space. After a pan, tracks running short of data request more and show it as it arrives. Core blocks track interactions until every track has loaded. Hovering and clicking then resume.
 
 ## Reorder tracks
 

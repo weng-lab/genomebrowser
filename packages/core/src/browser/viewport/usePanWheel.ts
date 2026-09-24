@@ -17,7 +17,7 @@ export function usePanWheel({
   disabled: boolean;
   trackWidth: number;
   isDragging: () => boolean;
-  setContentOffset: (deltaPx: number) => void;
+  setContentOffset: (deltaPx: number) => number;
   onCommit: (deltaPx: number) => void;
 }) {
   useEffect(() => {
@@ -60,8 +60,8 @@ export function usePanWheel({
       if (!Number.isFinite(distance) || distance === 0) return;
 
       event.preventDefault();
-      delta -= distance;
-      setContentOffset(delta);
+      // Keep the applied offset so a gesture stopped at the data edge reverses at once.
+      delta = setContentOffset(delta - distance);
       clearTimeout(timer);
       timer = setTimeout(() => {
         const committedDelta = delta;
