@@ -5,11 +5,11 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { GenomeBrowser } from "@weng-lab/genomebrowser";
 import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
-import { Browser } from "../features/browser/Browser";
-import { createBrowserStores } from "../features/browser/stores";
-import { defaultAssembly } from "../features/browser/assembly";
-import { captureSessionSnapshot } from "../features/sessions/snapshot";
-import { createInitialSnapshot } from "../features/sessions/initialSnapshot";
+import { Browser } from "@/features/browser/Browser";
+import { restoreStores } from "@/features/session-snapshot/restoreStores";
+import { defaultAssembly } from "@/features/assemblies/assemblies";
+import { captureSessionSnapshot } from "@/features/session-snapshot/captureSnapshot";
+import { createInitialSnapshot } from "@/features/session-snapshot/initialSnapshot";
 
 // Keep the real store factories and TrackSelect, including its mount-time effects.
 // Drawing and unrelated controls are omitted to avoid fetching genomic data.
@@ -22,7 +22,7 @@ vi.mock("@weng-lab/genomebrowser-ui", async (importOriginal) => ({
   ControlToolbar: () => null,
   HighlightDialog: () => null,
 }));
-vi.mock("../features/sessions/SessionAutosave", () => ({ SessionAutosave: () => null }));
+vi.mock("@/features/sessions/SessionAutosave", () => ({ SessionAutosave: () => null }));
 
 let root: Root;
 let container: HTMLDivElement;
@@ -46,7 +46,7 @@ function mountedStores() {
 }
 
 it("keeps all eight saved tracks, their settings, and their order after the selector mounts", async () => {
-  const { useBrowserStore, useTrackStore } = createBrowserStores();
+  const { useBrowserStore, useTrackStore } = restoreStores();
   const genes = defaultAssembly.reference.genes
     .filter(({ id }) => id !== defaultAssembly.reference.defaultGeneDatasetId)
     .slice(0, 5);
@@ -79,7 +79,7 @@ it("keeps all eight saved tracks, their settings, and their order after the sele
   await act(async () =>
     root.render(
       <StrictMode>
-        <Browser initialSnapshot={snapshot} />
+        <Browser session={{ id: "session", name: "Study", revision: 1, snapshot }} />
       </StrictMode>,
     ),
   );
@@ -90,7 +90,7 @@ it("keeps all eight saved tracks, their settings, and their order after the sele
   await act(async () =>
     root.render(
       <StrictMode>
-        <Browser initialSnapshot={snapshot} />
+        <Browser session={{ id: "session", name: "Study", revision: 1, snapshot }} />
       </StrictMode>,
     ),
   );
@@ -102,7 +102,9 @@ it("keeps all eight saved tracks, their settings, and their order after the sele
 it("keeps an intentionally empty saved session empty", async () => {
   const snapshot = createInitialSnapshot(defaultAssembly);
   snapshot.trackStore = { tracks: [], pinnedTrackIds: [] };
-  await act(async () => root.render(<Browser initialSnapshot={snapshot} />));
+  await act(async () =>
+    root.render(<Browser session={{ id: "session", name: "Study", revision: 1, snapshot }} />),
+  );
   expect(mountedStores().useTrackStore.getState().tracks).toEqual([]);
 });
 

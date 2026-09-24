@@ -1,16 +1,14 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { isAuthConfigured } from "../auth/config";
-import { getCustomTrackRepository } from "./repository";
-import { parseCustomTrack } from "./validation";
+import { requireOwner } from "@/features/auth/owner";
+import { getCustomTrackRepository } from "./server/repository";
+import { parseCustomTrack } from "./server/validation";
 import type { SaveCustomTrackResult } from "./types";
 
 export async function saveCustomTrack(input: unknown): Promise<SaveCustomTrackResult> {
-  if (!isAuthConfigured()) return { ok: false, error: "Accounts are unavailable." };
-  const { userId } = await auth();
-  if (!userId) return { ok: false, error: "Sign in to save custom tracks." };
+  const owner = await requireOwner("Sign in to save custom tracks.");
+  if (!owner.ok) return owner;
   let entry;
   try {
     entry = parseCustomTrack(input);
@@ -23,7 +21,7 @@ export async function saveCustomTrack(input: unknown): Promise<SaveCustomTrackRe
   try {
     const repository = await getCustomTrackRepository();
     if (!repository) return { ok: false, error: "Custom track storage is unavailable." };
-    const saved = await repository.save(userId, entry);
+    const saved = await repository.save(owner.ownerId, entry);
     revalidatePath("/dashboard");
     return { ok: true, entry: saved };
   } catch {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { getDatabase } from "../db/client";
+import { getDatabase } from "@/db/client";
 
 const mocks = vi.hoisted(() => ({
   pool: vi.fn(),

@@ -11,7 +11,6 @@ export type AssemblyConfig = {
   initialRegion: GenomicRegion;
   reference: { sequenceUrl?: string; genes: readonly GeneDataset[]; defaultGeneDatasetId: string };
   search: { assembly: "GRCh38" | "mm10"; queries: ("Gene" | "SNP" | "cCRE" | "Coordinate")[] };
-  collectionIds: readonly string[];
 };
 
 export const assemblies: readonly AssemblyConfig[] = [
@@ -25,7 +24,6 @@ export const assemblies: readonly AssemblyConfig[] = [
       defaultGeneDatasetId: "gencode-v40-comprehensive",
     },
     search: { assembly: "GRCh38", queries: ["Gene", "SNP", "cCRE", "Coordinate"] },
-    collectionIds: ["reference-annotations", "human-biosamples"],
   },
   {
     definition: mm10,
@@ -36,9 +34,12 @@ export const assemblies: readonly AssemblyConfig[] = [
       defaultGeneDatasetId: "gencode-vM25-comprehensive",
     },
     search: { assembly: "mm10", queries: ["Coordinate"] },
-    collectionIds: ["reference-annotations"],
   },
 ];
+
+/** Collection of the assembly's reference gene datasets. Its entries share these base settings. */
+export const referenceCollectionId = "reference-annotations";
+export const referenceGeneTrackBase = { display: "merged", height: 60, color: "#444444" } as const;
 
 export function getAssembly(id: string) {
   return assemblies.find(({ definition }) => definition.id === id);

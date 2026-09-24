@@ -3,31 +3,22 @@
 import Alert from "@mui/material/Alert";
 import type { BrowserStoreInstance, TrackStoreInstance } from "@weng-lab/genomebrowser";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { createSessionAutosave, persistSession } from "./autosave";
-import { captureSessionSnapshot } from "./snapshot";
-import type { SavedSession, SessionSnapshot } from "./types";
+import { createSessionAutosave } from "./autosave/createAutosave";
+import { putSession } from "./autosave/sessionClient";
+import type { SavedSession } from "./types";
 
-type Props = {
-  browserStore: BrowserStoreInstance;
-  trackStore: TrackStoreInstance;
-  initialSession: Pick<SavedSession, "id" | "name" | "revision">;
-  initialSnapshot?: SessionSnapshot;
-};
-
+/** Saves store changes to the session in the background. Renders only save failures. */
 export function SessionAutosave({
   browserStore,
   trackStore,
-  initialSession,
-  initialSnapshot,
-}: Props) {
+  session,
+}: {
+  browserStore: BrowserStoreInstance;
+  trackStore: TrackStoreInstance;
+  session: Pick<SavedSession, "id" | "name" | "revision" | "snapshot">;
+}) {
   const [autosave] = useState(() =>
-    createSessionAutosave({
-      browserStore,
-      trackStore,
-      initialSession,
-      initialSnapshot: initialSnapshot ?? captureSessionSnapshot(browserStore, trackStore),
-      save: persistSession,
-    }),
+    createSessionAutosave({ browserStore, trackStore, session, save: putSession }),
   );
   const status = useSyncExternalStore(autosave.subscribe, autosave.getStatus, autosave.getStatus);
 

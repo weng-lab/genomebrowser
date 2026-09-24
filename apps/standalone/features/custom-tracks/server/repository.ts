@@ -1,9 +1,9 @@
 import "server-only";
 import { and, desc, eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { getDatabase } from "../../db/client";
-import { customTracks } from "../../db/schema";
-import type { CustomTrack } from "./types";
+import { getDatabase } from "@/db/client";
+import { customTracks } from "@/db/schema";
+import type { CustomTrack } from "../types";
 
 export function createCustomTrackRepository(database: NodePgDatabase) {
   return {

@@ -1,7 +1,7 @@
 import { Alert, Box, Chip, Stack, Typography } from "@mui/material";
 import type { CustomTracksResult } from "./types";
 
-export function CustomCollections({ result }: { result: CustomTracksResult }) {
+export function CustomTrackList({ result }: { result: CustomTracksResult }) {
   if (result.status !== "ready") {
     return (
       <Alert severity={result.status === "error" ? "error" : "info"}>

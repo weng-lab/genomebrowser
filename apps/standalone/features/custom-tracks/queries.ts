@@ -1,7 +1,7 @@
 import "server-only";
 import { auth } from "@clerk/nextjs/server";
-import { isAuthConfigured } from "../auth/config";
-import { getCustomTrackRepository } from "./repository";
+import { isAuthConfigured } from "@/features/auth/config";
+import { getCustomTrackRepository } from "./server/repository";
 import type { CustomTracksResult } from "./types";
 
 export async function getCurrentUserCustomTracks(): Promise<CustomTracksResult> {

@@ -1,20 +1,28 @@
 import Ajv2020 from "ajv/dist/2020";
+import collectionSchema from "@weng-lab/genomebrowser-tracks/trackCollection.schema.json";
 import { z } from "zod";
-import collectionSchema from "../../schemas/trackCollection.schema.json";
-import type { SaveSessionInput, SessionSnapshot } from "./types";
-import { getAssembly } from "../browser/assembly";
+import { getAssembly } from "@/features/assemblies/assemblies";
+import { isHttpUrl } from "@/lib/urls";
+import type { SerializedTrack, SessionSnapshot } from "./types";
 
 const coordinate = z.number().int().nonnegative();
-const region = z.strictObject({
-  chromosome: z.string().min(1),
-  start: coordinate,
-  end: coordinate,
-});
 const highlightStyle = {
   color: z.string().min(1),
   opacity: z.number().min(0).max(1).optional(),
   type: z.enum(["filled", "outlined"]).optional(),
 };
+const trackSchema = z.strictObject({
+  type: z.string().min(1),
+  source: z.enum(["host", "user"]),
+  base: z.strictObject({
+    id: z.string().min(1),
+    title: z.string().min(1),
+    display: z.string().min(1),
+    height: z.number().positive(),
+    color: z.string().regex(/^#[0-9a-f]{6}$/i),
+  }),
+  config: z.record(z.string(), z.json()),
+});
 const snapshotSchema = z.strictObject({
   version: z.literal(1),
   browser: z.strictObject({
@@ -22,7 +30,7 @@ const snapshotSchema = z.strictObject({
       id: z.string().min(1),
       chromosomes: z.record(z.string().min(1), z.number().int().positive()),
     }),
-    region,
+    region: z.strictObject({ chromosome: z.string().min(1), start: coordinate, end: coordinate }),
     highlights: z.array(
       z.strictObject({
         id: z.string().min(1),
@@ -41,32 +49,31 @@ const snapshotSchema = z.strictObject({
     selectionHighlight: z.strictObject(highlightStyle),
   }),
   trackStore: z.strictObject({
-    tracks: z.array(
-      z.strictObject({
-        type: z.string().min(1),
-        source: z.enum(["host", "user"]),
-        base: z.strictObject({
-          id: z.string().min(1),
-          title: z.string().min(1),
-          display: z.string().min(1),
-          height: z.number().positive(),
-          color: z.string().regex(/^#[0-9a-f]{6}$/i),
-        }),
-        config: z.record(z.string(), z.json()),
-      }),
-    ),
+    tracks: z.array(trackSchema),
     pinnedTrackIds: z.array(z.string().min(1)),
   }),
 });
 
 // Use the generated module schemas without importing React renderers on the server.
-const validateTracks = new Ajv2020({
+const validateModuleConfigs = new Ajv2020({
   strict: false,
-  formats: {
-    uri: (value: string) => URL.canParse(value) && /^https?:$/.test(new URL(value).protocol),
-  },
+  formats: { uri: isHttpUrl },
 }).compile(collectionSchema.properties.tracks);
 
+function assertModuleConfigs(tracks: SerializedTrack[]) {
+  if (!validateModuleConfigs(tracks.map(({ type, base, config }) => ({ type, base, config })))) {
+    throw new Error("A track has an unknown module or invalid configuration.");
+  }
+}
+
+/** Validate one track's structure and its module configuration. */
+export function parseSerializedTrack(input: unknown): SerializedTrack {
+  const track = trackSchema.parse(input);
+  assertModuleConfigs([track]);
+  return track;
+}
+
+/** Validate a snapshot against its structure, the assembly registry, and module schemas. */
 export function parseSessionSnapshot(input: unknown): SessionSnapshot {
   const snapshot = snapshotSchema.parse(input);
   const { browser, trackStore } = snapshot;
@@ -100,22 +107,6 @@ export function parseSessionSnapshot(input: unknown): SessionSnapshot {
   if (pinned.some((id, index) => ids[index] !== id)) {
     throw new Error("Pinned tracks must appear first in their configured order.");
   }
-  if (
-    !validateTracks(trackStore.tracks.map(({ type, base, config }) => ({ type, base, config })))
-  ) {
-    throw new Error("A track has an unknown module or invalid configuration.");
-  }
+  assertModuleConfigs(trackStore.tracks);
   return snapshot;
-}
-
-export const sessionIdSchema = z.uuid();
-const saveFields = { name: z.string().trim().min(1).max(100), snapshot: z.unknown() };
-const saveInputSchema = z.union([
-  z.strictObject(saveFields),
-  z.strictObject({ ...saveFields, id: sessionIdSchema, revision: z.number().int().positive() }),
-]);
-
-export function parseSaveSessionInput(input: unknown): SaveSessionInput {
-  const parsed = saveInputSchema.parse(input);
-  return { ...parsed, snapshot: parseSessionSnapshot(parsed.snapshot) };
 }

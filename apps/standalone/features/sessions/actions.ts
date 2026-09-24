@@ -1,33 +1,37 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
-import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { isAuthConfigured } from "../auth/config";
-import { getSessionRepository, SessionWriteError } from "./repository";
-import { parseSaveSessionInput, sessionIdSchema } from "./validation";
+import { z } from "zod";
+import { getAssembly } from "@/features/assemblies/assemblies";
+import { requireOwner } from "@/features/auth/owner";
+import { createInitialSnapshot } from "@/features/session-snapshot/initialSnapshot";
+import type { ActionResult } from "@/lib/actionResult";
+import { SESSION_NAME_MAX_LENGTH } from "./rules";
+import { sessionIdSchema, sessionNameSchema } from "./server/schemas";
+import { getSessionRepository, SessionWriteError } from "./server/repository";
 import type { SaveSessionResult } from "./types";
-import { getAssembly } from "../browser/assembly";
-import { createInitialSnapshot } from "./initialSnapshot";
+
+const createInputSchema = z.strictObject({ name: sessionNameSchema, assemblyId: z.string() });
 
 export async function createSession(input: unknown): Promise<SaveSessionResult> {
-  if (!isAuthConfigured()) return { ok: false, error: "Accounts are unavailable." };
-  const { userId } = await auth();
-  if (!userId) return { ok: false, error: "Sign in to create a session." };
-  const parsed = z
-    .strictObject({ name: z.string().trim().min(1).max(100), assemblyId: z.string() })
-    .safeParse(input);
-  if (!parsed.success)
-    return { ok: false, error: "Enter a name of 1–100 characters and choose an assembly." };
+  const owner = await requireOwner("Sign in to create a session.");
+  if (!owner.ok) return owner;
+  const parsed = createInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: `Enter a name of 1–${SESSION_NAME_MAX_LENGTH} characters and choose an assembly.`,
+    };
+  }
   const assembly = getAssembly(parsed.data.assemblyId);
   if (!assembly) return { ok: false, error: "Choose an assembly from the list." };
   try {
     const repository = await getSessionRepository();
     if (!repository) return { ok: false, error: "Session storage is not configured." };
-    const result = await repository.save(
-      userId,
-      parseSaveSessionInput({ name: parsed.data.name, snapshot: createInitialSnapshot(assembly) }),
-    );
+    const result = await repository.create(owner.ownerId, {
+      name: parsed.data.name,
+      snapshot: createInitialSnapshot(assembly),
+    });
     revalidatePath("/dashboard");
     return { ok: true, ...result };
   } catch (error) {
@@ -41,18 +45,16 @@ export async function createSession(input: unknown): Promise<SaveSessionResult> 
   }
 }
 
-export async function deleteSession(
-  id: string,
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (!isAuthConfigured()) return { ok: false, error: "Accounts are unavailable." };
-  const { userId } = await auth();
-  if (!userId) return { ok: false, error: "Sign in to manage your sessions." };
+export async function deleteSession(id: string): Promise<ActionResult> {
+  const owner = await requireOwner("Sign in to manage your sessions.");
+  if (!owner.ok) return owner;
   if (!sessionIdSchema.safeParse(id).success) return { ok: false, error: "Invalid session ID." };
   try {
     const repository = await getSessionRepository();
     if (!repository) return { ok: false, error: "Session storage is not configured." };
-    if (!(await repository.deleteByOwner(userId, id)))
+    if (!(await repository.deleteByOwner(owner.ownerId, id))) {
       return { ok: false, error: "This session is no longer available." };
+    }
     revalidatePath("/dashboard");
     revalidatePath(`/browser/${id}`);
     return { ok: true };

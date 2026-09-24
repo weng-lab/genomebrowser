@@ -2,15 +2,16 @@
 import { act, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createBrowserStores } from "../features/browser/stores";
-import { SessionAutosave } from "../features/sessions/SessionAutosave";
-import { CreateSessionButton } from "../features/sessions/CreateSessionButton";
-import type { SaveSessionResult } from "../features/sessions/types";
+import { restoreStores } from "@/features/session-snapshot/restoreStores";
+import { SessionAutosave } from "@/features/sessions/SessionAutosave";
+import { CreateSessionButton } from "@/features/sessions/components/CreateSessionButton";
+import type { SaveSessionResult } from "@/features/sessions/types";
+import { captureSessionSnapshot } from "@/features/session-snapshot/captureSnapshot";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn(), push: vi.fn() }));
-vi.mock("../features/sessions/actions", () => ({ createSession: mocks.create }));
+vi.mock("@/features/sessions/actions", () => ({ createSession: mocks.create }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
-vi.mock("../features/site/SiteLink", () => ({ SiteLink: "a" }));
+vi.mock("@/components/SiteLink", () => ({ SiteLink: "a" }));
 
 let root: Root;
 let container: HTMLDivElement;
@@ -40,7 +41,7 @@ function button(text: string) {
 
 it("autosaves without save or name controls and keeps newer edits local", async () => {
   vi.useFakeTimers();
-  const { useBrowserStore, useTrackStore } = createBrowserStores();
+  const { useBrowserStore, useTrackStore } = restoreStores();
   const first = Promise.withResolvers<Response>();
   const fetch = vi
     .fn()
@@ -55,7 +56,12 @@ it("autosaves without save or name controls and keeps newer edits local", async 
         <SessionAutosave
           browserStore={useBrowserStore}
           trackStore={useTrackStore}
-          initialSession={{ id: "session", name: "Study", revision: 1 }}
+          session={{
+            id: "session",
+            name: "Study",
+            revision: 1,
+            snapshot: captureSessionSnapshot(useBrowserStore, useTrackStore),
+          }}
         />
       </StrictMode>,
     ),

@@ -1,5 +1,5 @@
 import { revalidatePath } from "next/cache";
-import { saveSession } from "../../../../features/sessions/saveSession";
+import { saveSession } from "@/features/sessions/saveSession";
 
 export async function PUT(
   request: Request,

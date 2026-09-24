@@ -10,11 +10,11 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { useState, useTransition } from "react";
-import { useSessionNavigation } from "./SessionNavigation";
-import { deleteSession } from "./actions";
+import { useActiveSession } from "../activeSession";
+import { deleteSession } from "../actions";
 
 export function DeleteSessionButton({ id, name }: { id: string; name: string }) {
-  const { forget } = useSessionNavigation();
+  const { clearIfActive } = useActiveSession();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +56,7 @@ export function DeleteSessionButton({ id, name }: { id: string; name: string }) 
                 try {
                   const result = await deleteSession(id);
                   if (result.ok) {
-                    forget(id);
+                    clearIfActive(id);
                     setOpen(false);
                   } else setError(result.error);
                 } catch {

@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { getCurrentUserSession } from "../features/sessions/queries";
+import { getCurrentUserSession } from "@/features/sessions/queries";
 
 const mocks = vi.hoisted(() => ({
   getByOwner: vi.fn(),
@@ -7,8 +7,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@clerk/nextjs/server", () => ({
   auth: async () => ({ userId: "owner-a" }),
 }));
-vi.mock("../features/auth/config", () => ({ isAuthConfigured: () => true }));
-vi.mock("../features/sessions/repository", () => ({
+vi.mock("@/features/auth/config", () => ({ isAuthConfigured: () => true }));
+vi.mock("@/features/sessions/server/repository", () => ({
   getSessionRepository: () => ({ getByOwner: mocks.getByOwner }),
 }));
 

@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createBrowserStores } from "../features/browser/stores";
-import { createSessionAutosave } from "../features/sessions/autosave";
-import { parseSessionSnapshot } from "../features/sessions/validation";
-import { captureSessionSnapshot } from "../features/sessions/snapshot";
-import type { SaveSessionResult } from "../features/sessions/types";
+import { restoreStores } from "@/features/session-snapshot/restoreStores";
+import { createSessionAutosave } from "@/features/sessions/autosave/createAutosave";
+import { parseSessionSnapshot } from "@/features/session-snapshot/parseSnapshot";
+import { captureSessionSnapshot } from "@/features/session-snapshot/captureSnapshot";
+import type { SaveSessionResult } from "@/features/sessions/types";
 
 let disconnect: (() => void) | undefined;
 beforeEach(() => vi.useFakeTimers());
@@ -14,13 +14,17 @@ afterEach(() => {
 });
 
 function setup() {
-  const { useBrowserStore, useTrackStore } = createBrowserStores();
+  const { useBrowserStore, useTrackStore } = restoreStores();
   const save = vi.fn().mockResolvedValue({ ok: true, id: "session", revision: 2 });
   const queue = createSessionAutosave({
     browserStore: useBrowserStore,
     trackStore: useTrackStore,
-    initialSession: { id: "session", name: "Study", revision: 1 },
-    initialSnapshot: parseSessionSnapshot(captureSessionSnapshot(useBrowserStore, useTrackStore)),
+    session: {
+      id: "session",
+      name: "Study",
+      revision: 1,
+      snapshot: parseSessionSnapshot(captureSessionSnapshot(useBrowserStore, useTrackStore)),
+    },
     save,
   });
   disconnect = queue.connect();

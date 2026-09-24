@@ -1,14 +1,14 @@
 import type { BrowserStoreInstance, TrackStoreInstance } from "@weng-lab/genomebrowser";
-import { captureSessionSnapshot } from "./snapshot";
-import type { SavedSession, SaveSessionInput, SaveSessionResult, SessionSnapshot } from "./types";
+import { captureSessionSnapshot } from "@/features/session-snapshot/captureSnapshot";
+import type { SessionSnapshot } from "@/features/session-snapshot/types";
+import type { SavedSession, SaveSessionResult, SessionUpdate } from "../types";
 
 type Status = { phase: "saved" | "pending" | "saving" } | { phase: "error"; message: string };
 type Options = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
-  initialSession: Pick<SavedSession, "id" | "name" | "revision">;
-  initialSnapshot: SessionSnapshot;
-  save: (input: SaveSessionInput) => Promise<SaveSessionResult>;
+  session: Pick<SavedSession, "id" | "name" | "revision" | "snapshot">;
+  save: (update: SessionUpdate) => Promise<SaveSessionResult>;
 };
 
 // JSONB and validation may reorder object keys; array order remains meaningful.
@@ -23,15 +23,9 @@ function snapshotKey(snapshot: SessionSnapshot) {
 }
 
 /** One writer per open session. Store notifications only queue work; serialization runs later. */
-export function createSessionAutosave({
-  browserStore,
-  trackStore,
-  initialSession,
-  initialSnapshot,
-  save,
-}: Options) {
-  let revision = initialSession.revision;
-  let savedSnapshot = snapshotKey(initialSnapshot);
+export function createSessionAutosave({ browserStore, trackStore, session, save }: Options) {
+  let revision = session.revision;
+  let savedSnapshot = snapshotKey(session.snapshot);
   let status: Status = { phase: "saved" };
   let dirty = false;
   let inFlight = false;
@@ -89,7 +83,7 @@ export function createSessionAutosave({
     publish({ phase: "saving" });
     let result: SaveSessionResult;
     try {
-      result = await save({ id: initialSession.id, name: initialSession.name, revision, snapshot });
+      result = await save({ id: session.id, name: session.name, revision, snapshot });
     } catch {
       result = {
         ok: false,
@@ -141,17 +135,4 @@ export function createSessionAutosave({
     },
     flush,
   };
-}
-
-export async function persistSession(input: SaveSessionInput): Promise<SaveSessionResult> {
-  const body = JSON.stringify(input);
-  const response = await fetch(`/api/sessions/${encodeURIComponent(input.id!)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body,
-    // Browsers limit outstanding keepalive bodies to 64 KiB.
-    keepalive: new Blob([body]).size < 60_000,
-  });
-  if (response.status >= 500) throw new Error("Session storage is unavailable.");
-  return response.json();
 }

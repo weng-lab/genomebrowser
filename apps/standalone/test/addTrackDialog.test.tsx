@@ -2,14 +2,14 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { AddTrackDialog } from "../features/custom-tracks/AddTrackDialog";
-import { createBrowserStores } from "../features/browser/stores";
-import { defaultAssembly } from "../features/browser/assembly";
-import { DashboardTabs } from "../features/sessions/DashboardTabs";
-import { CustomCollections } from "../features/custom-tracks/CustomCollections";
+import { AddTrackDialog } from "@/features/custom-tracks/AddTrackDialog";
+import { restoreStores } from "@/features/session-snapshot/restoreStores";
+import { defaultAssembly } from "@/features/assemblies/assemblies";
+import { DashboardTabs } from "@/app/dashboard/_components/DashboardTabs";
+import { CustomTrackList } from "@/features/custom-tracks/CustomTrackList";
 
 const mocks = vi.hoisted(() => ({ save: vi.fn() }));
-vi.mock("../features/custom-tracks/actions", () => ({ saveCustomTrack: mocks.save }));
+vi.mock("@/features/custom-tracks/actions", () => ({ saveCustomTrack: mocks.save }));
 let root: Root;
 let container: HTMLDivElement;
 beforeEach(() => {
@@ -39,7 +39,7 @@ async function change(input: HTMLInputElement, value: string) {
   });
 }
 async function openBigwig() {
-  const stores = createBrowserStores();
+  const stores = restoreStores();
   const close = vi.fn();
   await act(async () =>
     root.render(
@@ -115,16 +115,14 @@ it("does not save a placeholder or uncommitted source", async () => {
 });
 
 it("separates sessions and persisted custom collections in horizontal tabs", async () => {
-  const { useTrackStore } = createBrowserStores();
+  const { useTrackStore } = restoreStores();
   const track = JSON.parse(JSON.stringify(useTrackStore.getState().tracks[0]));
   await act(async () =>
     root.render(
       <DashboardTabs
         sessions={<div>Session list</div>}
         collections={
-          <CustomCollections
-            result={{ status: "ready", tracks: [{ assemblyId: "hg38", track }] }}
-          />
+          <CustomTrackList result={{ status: "ready", tracks: [{ assemblyId: "hg38", track }] }} />
         }
       />,
     ),
@@ -137,7 +135,7 @@ it("separates sessions and persisted custom collections in horizontal tabs", asy
 });
 
 it("reuses saved tracks only in their assembly and leaves the collection copy unchanged", async () => {
-  const { useTrackStore } = createBrowserStores();
+  const { useTrackStore } = restoreStores();
   const saved = JSON.parse(JSON.stringify(useTrackStore.getState().tracks[1]));
   saved.base.id = crypto.randomUUID();
   saved.source = "user";

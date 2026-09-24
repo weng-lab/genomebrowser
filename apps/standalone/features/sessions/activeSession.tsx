@@ -10,27 +10,27 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { SavedSession } from "./types";
+import type { ActiveSession } from "./types";
 
-type Session = Pick<SavedSession, "id" | "name" | "ownerId">;
-type Navigation = {
-  session: Session | null;
-  select: (session: Session | null) => void;
-  forget: (id: string) => void;
+type ActiveSessionState = {
+  session: ActiveSession | null;
+  setActive: (session: ActiveSession | null) => void;
+  /** Clear the active session if it is the one with this ID, such as after deleting it. */
+  clearIfActive: (id: string) => void;
 };
-const SessionNavigationContext = createContext<Navigation | null>(null);
+const ActiveSessionContext = createContext<ActiveSessionState | null>(null);
 const storageKey = (ownerId: string) => `genomebrowser:active-session:${ownerId}`;
 
-function remember(ownerId: string, session: Session | null) {
+function remember(ownerId: string, session: ActiveSession | null) {
   try {
     if (session) sessionStorage.setItem(storageKey(ownerId), JSON.stringify(session));
     else sessionStorage.removeItem(storageKey(ownerId));
   } catch {
-    /* Navigation still works when browser storage is unavailable. */
+    /* ActiveSessionState still works when browser storage is unavailable. */
   }
 }
 
-function recall(ownerId: string): Session | null {
+function recall(ownerId: string): ActiveSession | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(storageKey(ownerId)) ?? "null");
     if (
@@ -46,7 +46,7 @@ function recall(ownerId: string): Session | null {
   return null;
 }
 
-export function SessionNavigationProvider({
+export function ActiveSessionProvider({
   authConfigured,
   children,
 }: {
@@ -54,25 +54,25 @@ export function SessionNavigationProvider({
   children: ReactNode;
 }) {
   return authConfigured ? (
-    <AuthenticatedNavigation>{children}</AuthenticatedNavigation>
+    <AccountActiveSession>{children}</AccountActiveSession>
   ) : (
-    <NavigationProvider ownerId={null}>{children}</NavigationProvider>
+    <OwnerActiveSession ownerId={null}>{children}</OwnerActiveSession>
   );
 }
 
-function AuthenticatedNavigation({ children }: { children: ReactNode }) {
+function AccountActiveSession({ children }: { children: ReactNode }) {
   const { user } = useUser();
-  return <NavigationProvider ownerId={user?.id ?? null}>{children}</NavigationProvider>;
+  return <OwnerActiveSession ownerId={user?.id ?? null}>{children}</OwnerActiveSession>;
 }
 
-function NavigationProvider({
+function OwnerActiveSession({
   ownerId,
   children,
 }: {
   ownerId: string | null;
   children: ReactNode;
 }) {
-  const [sessions, setSessions] = useState<Record<string, Session | null>>({});
+  const [sessions, setSessions] = useState<Record<string, ActiveSession | null>>({});
   const session = ownerId ? (sessions[ownerId] ?? null) : null;
 
   useEffect(() => {
@@ -84,8 +84,8 @@ function NavigationProvider({
     );
   }, [ownerId]);
 
-  const select = useCallback(
-    (next: Session | null) => {
+  const setActive = useCallback(
+    (next: ActiveSession | null) => {
       const owner = next?.ownerId ?? ownerId;
       if (!owner) return;
       remember(owner, next);
@@ -102,30 +102,33 @@ function NavigationProvider({
     },
     [ownerId],
   );
-  const forget = useCallback(
+  const clearIfActive = useCallback(
     (id: string) => {
-      if (session?.id === id) select(null);
+      if (session?.id === id) setActive(null);
     },
-    [session, select],
+    [session, setActive],
   );
-  const value = useMemo(() => ({ session, select, forget }), [session, select, forget]);
-  return <SessionNavigationContext value={value}>{children}</SessionNavigationContext>;
+  const value = useMemo(
+    () => ({ session, setActive, clearIfActive }),
+    [session, setActive, clearIfActive],
+  );
+  return <ActiveSessionContext value={value}>{children}</ActiveSessionContext>;
 }
 
-export function useSessionNavigation() {
-  const navigation = useContext(SessionNavigationContext);
-  if (!navigation) throw new Error("Session navigation requires SessionNavigationProvider.");
-  return navigation;
+export function useActiveSession() {
+  const state = useContext(ActiveSessionContext);
+  if (!state) throw new Error("useActiveSession requires ActiveSessionProvider.");
+  return state;
 }
 
 /** Register only sessions that the server has successfully loaded for this owner. */
-export function SessionNavigation({ session }: { session: Session | null }) {
-  const { select } = useSessionNavigation();
+export function RegisterActiveSession({ session }: { session: ActiveSession | null }) {
+  const { setActive } = useActiveSession();
   const id = session?.id;
   const name = session?.name;
   const ownerId = session?.ownerId;
   useEffect(() => {
-    select(id && name && ownerId ? { id, name, ownerId } : null);
-  }, [id, name, ownerId, select]);
+    setActive(id && name && ownerId ? { id, name, ownerId } : null);
+  }, [id, name, ownerId, setActive]);
   return null;
 }

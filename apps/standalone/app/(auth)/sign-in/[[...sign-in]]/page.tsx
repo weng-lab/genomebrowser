@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { SignIn } from "@clerk/nextjs";
 import { Box } from "@mui/material";
-import { isAuthConfigured } from "../../../../features/auth/config";
-import { AuthUnavailable } from "../../../../features/auth/AuthUnavailable";
+import { AuthUnavailable } from "@/features/auth/AuthUnavailable";
+import { isAuthConfigured } from "@/features/auth/config";
 
 export const metadata: Metadata = { title: "Sign in" };
 

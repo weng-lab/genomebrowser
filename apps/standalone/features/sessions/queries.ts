@@ -2,25 +2,24 @@ import "server-only";
 
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
-import { isAuthConfigured } from "../auth/config";
-import { getSessionRepository } from "./repository";
+import { isAuthConfigured } from "@/features/auth/config";
+import { sessionIdSchema } from "./server/schemas";
+import { getSessionRepository } from "./server/repository";
 import type { SessionListResult } from "./types";
-import { sessionIdSchema } from "./validation";
+
+// Pages redirect signed-out visitors to sign in, so they read Clerk directly instead of
+// returning an error result through requireOwner.
 
 export async function getCurrentUserSessions(): Promise<
   SessionListResult | { status: "auth-unavailable" }
 > {
   if (!isAuthConfigured()) return { status: "auth-unavailable" };
-
   const { userId, redirectToSignIn } = await auth();
   if (!userId) return redirectToSignIn({ returnBackUrl: "/dashboard" });
-
-  // Resolve the owner here, never from a URL or client-supplied user ID.
   try {
     const repository = await getSessionRepository();
     if (!repository) return { status: "storage-unavailable" };
-    const sessions = await repository.listByOwner(userId);
-    return { status: "ready", sessions };
+    return { status: "ready", sessions: await repository.listByOwner(userId) };
   } catch {
     return { status: "error" };
   }

@@ -13,7 +13,8 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
-import { createSession } from "./actions";
+import { createSession } from "../actions";
+import { SESSION_NAME_MAX_LENGTH } from "../rules";
 
 export function CreateSessionButton({
   assemblies,
@@ -66,7 +67,7 @@ export function CreateSessionButton({
                 value={name}
                 required
                 disabled={pending}
-                slotProps={{ htmlInput: { maxLength: 100 } }}
+                slotProps={{ htmlInput: { maxLength: SESSION_NAME_MAX_LENGTH } }}
                 onChange={(event) => setName(event.target.value)}
               />
               <TextField

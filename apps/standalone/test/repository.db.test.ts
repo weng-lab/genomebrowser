@@ -1,12 +1,12 @@
-import { createCustomTrackRepository } from "../features/custom-tracks/repository";
+import { createCustomTrackRepository } from "@/features/custom-tracks/server/repository";
 import { randomUUID } from "node:crypto";
 import { beforeAll, afterAll, describe, expect, it } from "vitest";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { createSessionRepository } from "../features/sessions/repository";
-import { defaultAssembly, assemblies } from "../features/browser/assembly";
-import { createInitialSnapshot } from "../features/sessions/initialSnapshot";
+import { createSessionRepository } from "@/features/sessions/server/repository";
+import { defaultAssembly, assemblies } from "@/features/assemblies/assemblies";
+import { createInitialSnapshot } from "@/features/session-snapshot/initialSnapshot";
 
 const url = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
 if (!url)
@@ -39,13 +39,13 @@ describe("PostgreSQL session persistence", () => {
         type: "outlined",
       },
     ];
-    const created = await repository.save("owner-a", { name: "Study", snapshot });
+    const created = await repository.create("owner-a", { name: "Study", snapshot });
     expect((await repository.getByOwner("owner-a", created.id))?.snapshot).toEqual(snapshot);
     expect(await repository.getByOwner("owner-b", created.id)).toBeNull();
     expect(await repository.listByOwner("owner-b")).toEqual([]);
     expect(await repository.deleteByOwner("owner-b", created.id)).toBe(false);
     await expect(
-      repository.save("owner-b", { ...created, name: "Hijacked", snapshot }),
+      repository.update("owner-b", { ...created, name: "Hijacked", snapshot }),
     ).rejects.toThrow(/no longer available/);
     expect(await repository.listByOwner("owner-a")).toEqual([
       expect.objectContaining({ id: created.id, name: "Study", trackCount: 2, assemblyId: "hg38" }),
@@ -56,17 +56,17 @@ describe("PostgreSQL session persistence", () => {
 
   it("allows only one concurrent update of the same revision and keeps the assembly fixed", async () => {
     const snapshot = createInitialSnapshot(defaultAssembly);
-    const created = await repository.save("concurrent-owner", { name: "Initial", snapshot });
+    const created = await repository.create("concurrent-owner", { name: "Initial", snapshot });
     const updates = await Promise.allSettled([
-      repository.save("concurrent-owner", { ...created, name: "First", snapshot }),
-      repository.save("concurrent-owner", { ...created, name: "Second", snapshot }),
+      repository.update("concurrent-owner", { ...created, name: "First", snapshot }),
+      repository.update("concurrent-owner", { ...created, name: "Second", snapshot }),
     ]);
     expect(updates.filter(({ status }) => status === "fulfilled")).toHaveLength(1);
     expect(updates.filter(({ status }) => status === "rejected")).toHaveLength(1);
     const saved = await repository.getByOwner("concurrent-owner", created.id);
     expect(saved?.revision).toBe(2);
     await expect(
-      repository.save("concurrent-owner", {
+      repository.update("concurrent-owner", {
         id: created.id,
         revision: 2,
         name: "Other assembly",
@@ -79,7 +79,7 @@ describe("PostgreSQL session persistence", () => {
     const snapshot = createInitialSnapshot(defaultAssembly);
     const results = await Promise.allSettled(
       Array.from({ length: 8 }, (_, index) =>
-        repository.save("limited-owner", { name: `Session ${index}`, snapshot }),
+        repository.create("limited-owner", { name: `Session ${index}`, snapshot }),
       ),
     );
     expect(results.filter(({ status }) => status === "fulfilled")).toHaveLength(5);
@@ -87,7 +87,7 @@ describe("PostgreSQL session persistence", () => {
     expect(list).toHaveLength(5);
     await repository.deleteByOwner("limited-owner", list[0].id);
     await expect(
-      repository.save("limited-owner", { name: "Replacement", snapshot }),
+      repository.create("limited-owner", { name: "Replacement", snapshot }),
     ).resolves.toHaveProperty("id");
   });
 });

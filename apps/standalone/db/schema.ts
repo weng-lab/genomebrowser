@@ -11,13 +11,14 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-import type { SessionSnapshot } from "../features/sessions/types";
+import type { SerializedTrack, SessionSnapshot } from "../features/session-snapshot/types";
 
 export const sessions = pgTable(
   "sessions",
   {
     ownerId: text("owner_id").notNull(),
     id: uuid("id").defaultRandom().notNull(),
+    // Matches SESSION_NAME_MAX_LENGTH in features/sessions/rules.ts.
     name: varchar("name", { length: 100 }).notNull(),
     snapshotVersion: integer("snapshot_version").notNull(),
     browserState: jsonb("browser_state").$type<SessionSnapshot["browser"]>().notNull(),
@@ -41,7 +42,7 @@ export const customTracks = pgTable(
     ownerId: text("owner_id").notNull(),
     id: uuid("id").notNull(),
     assemblyId: text("assembly_id").notNull(),
-    track: jsonb("track").$type<SessionSnapshot["trackStore"]["tracks"][number]>().notNull(),
+    track: jsonb("track").$type<SerializedTrack>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

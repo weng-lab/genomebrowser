@@ -2,12 +2,9 @@
 import { act, type ComponentProps } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { SiteHeader } from "../features/site/SiteHeader";
-import {
-  SessionNavigation,
-  SessionNavigationProvider,
-} from "../features/sessions/SessionNavigation";
-import { DeleteSessionButton } from "../features/sessions/DeleteSessionButton";
+import { SiteHeader } from "@/features/site/SiteHeader";
+import { RegisterActiveSession, ActiveSessionProvider } from "@/features/sessions/activeSession";
+import { DeleteSessionButton } from "@/features/sessions/components/DeleteSessionButton";
 
 const mocks = vi.hoisted(() => ({
   pathname: "/",
@@ -21,8 +18,8 @@ vi.mock("next/link", () => ({
     <a {...props} />
   ),
 }));
-vi.mock("../features/auth/AccountControls", () => ({ AccountControls: () => null }));
-vi.mock("../features/sessions/actions", () => ({ deleteSession: mocks.remove }));
+vi.mock("@/features/auth/AccountControls", () => ({ AccountControls: () => null }));
+vi.mock("@/features/sessions/actions", () => ({ deleteSession: mocks.remove }));
 const first = { id: "session-one", name: "Enhancer study", ownerId: "owner-a" };
 const second = { id: "session-two", name: "Promoter study", ownerId: "owner-a" };
 let root: Root;
@@ -47,11 +44,11 @@ afterEach(async () => {
 async function render(session?: typeof first | null, showDelete = false) {
   await act(async () =>
     root.render(
-      <SessionNavigationProvider authConfigured>
+      <ActiveSessionProvider authConfigured>
         <SiteHeader authConfigured />
-        {session !== undefined && <SessionNavigation session={session} />}
+        {session !== undefined && <RegisterActiveSession session={session} />}
         {showDelete && <DeleteSessionButton id={first.id} name={first.name} />}
-      </SessionNavigationProvider>,
+      </ActiveSessionProvider>,
     ),
   );
 }

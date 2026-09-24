@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
-import { assemblies, defaultAssembly } from "../features/browser/assembly";
-import { createCustomTrackDraft } from "../features/custom-tracks/catalog";
-import { parseCustomTrack } from "../features/custom-tracks/validation";
+import { assemblies, defaultAssembly } from "@/features/assemblies/assemblies";
+import { createCustomTrackDraft } from "@/features/custom-tracks/catalog";
+import { parseCustomTrack } from "@/features/custom-tracks/server/validation";
 
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -12,11 +12,11 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@clerk/nextjs/server", () => ({ auth: mocks.auth }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-vi.mock("../features/auth/config", () => ({ isAuthConfigured: mocks.configured }));
-vi.mock("../features/custom-tracks/repository", () => ({
+vi.mock("@/features/auth/config", () => ({ isAuthConfigured: mocks.configured }));
+vi.mock("@/features/custom-tracks/server/repository", () => ({
   getCustomTrackRepository: mocks.repository,
 }));
-import { saveCustomTrack } from "../features/custom-tracks/actions";
+import { saveCustomTrack } from "@/features/custom-tracks/actions";
 
 function input() {
   const track = createCustomTrackDraft(firstPartyTrackModules[0], defaultAssembly);

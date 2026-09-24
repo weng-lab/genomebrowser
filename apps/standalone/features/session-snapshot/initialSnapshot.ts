@@ -1,11 +1,17 @@
-import type { AssemblyConfig } from "../browser/assembly";
+import {
+  referenceCollectionId,
+  referenceGeneTrackBase,
+  type AssemblyConfig,
+} from "@/features/assemblies/assemblies";
 import type { SessionSnapshot } from "./types";
 
+/** Guests and new sessions start with the reference ruler and default gene track pinned. */
 export function createInitialSnapshot(assembly: AssemblyConfig): SessionSnapshot {
   const genes = assembly.reference.genes.find(
     ({ id }) => id === assembly.reference.defaultGeneDatasetId,
   );
   if (!genes) throw new Error("The assembly's default gene dataset is missing.");
+  const geneTrackId = `${referenceCollectionId}::${genes.id}`;
   return {
     version: 1,
     browser: {
@@ -19,7 +25,7 @@ export function createInitialSnapshot(assembly: AssemblyConfig): SessionSnapshot
       selectionHighlight: { color: "#f59e0b", opacity: 0.25, type: "filled" },
     },
     trackStore: {
-      pinnedTrackIds: ["reference-ruler", `reference-annotations::${genes.id}`],
+      pinnedTrackIds: ["reference-ruler", geneTrackId],
       tracks: [
         {
           type: "ruler",
@@ -39,11 +45,9 @@ export function createInitialSnapshot(assembly: AssemblyConfig): SessionSnapshot
           type: "gene",
           source: "host",
           base: {
-            id: `reference-annotations::${genes.id}`,
+            id: geneTrackId,
             title: `GENCODE ${genes.release} ${genes.variant}`,
-            display: "merged",
-            height: 60,
-            color: "#444444",
+            ...referenceGeneTrackBase,
           },
           config: { url: genes.url },
         },

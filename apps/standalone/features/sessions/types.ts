@@ -1,39 +1,8 @@
-import type { BrowserStore, GenomicRegion, TrackBase, TrackSource } from "@weng-lab/genomebrowser";
+import type { GenomicRegion } from "@weng-lab/genomebrowser";
+import type { SessionSnapshot } from "@/features/session-snapshot/types";
+import type { ActionResult } from "@/lib/actionResult";
 
-export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
-
-// Persist configured data only. Modules, actions, callbacks, and fetched data stay in memory.
-export type SessionSnapshot = {
-  version: 1;
-  browser: Pick<
-    BrowserStore,
-    | "assembly"
-    | "region"
-    | "highlights"
-    | "marginWidth"
-    | "trackWidth"
-    | "fontSize"
-    | "titleSize"
-    | "selectionHighlight"
-  >;
-  trackStore: {
-    // Array order is display order, matching the track store's ordered tracks.
-    tracks: {
-      type: string;
-      base: TrackBase;
-      config: { [key: string]: JsonValue };
-      source: TrackSource;
-    }[];
-    pinnedTrackIds: string[];
-  };
-};
-
+/** A named session snapshot stored for one account. */
 export type SavedSession = {
   id: string;
   ownerId: string;
@@ -44,6 +13,9 @@ export type SavedSession = {
   updatedAt: string;
   snapshot: SessionSnapshot;
 };
+
+/** The saved session the current tab is working in. */
+export type ActiveSession = Pick<SavedSession, "id" | "name" | "ownerId">;
 
 // Dashboard queries do not need source URLs or the full store snapshot.
 export type SessionSummary = Pick<SavedSession, "id" | "name" | "createdAt" | "updatedAt"> & {
@@ -57,11 +29,9 @@ export type SessionListResult =
   | { status: "storage-unavailable" }
   | { status: "error" };
 
-export type SaveSessionInput = {
-  name: string;
-  snapshot: SessionSnapshot;
-} & ({ id?: never; revision?: never } | { id: string; revision: number });
+export type NewSession = Pick<SavedSession, "name" | "snapshot">;
+/** An update must name the revision it was based on. */
+export type SessionUpdate = NewSession & Pick<SavedSession, "id" | "revision">;
 
-export type SaveSessionResult =
-  | { ok: true; id: string; revision: number; updatedAt: string }
-  | { ok: false; error: string; retryable?: boolean };
+export type SessionWrite = Pick<SavedSession, "id" | "revision" | "updatedAt">;
+export type SaveSessionResult = ActionResult<SessionWrite>;

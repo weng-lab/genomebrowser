@@ -1,14 +1,39 @@
 import "server-only";
 import { and, count, desc, eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { getDatabase } from "../../db/client";
-import { sessions } from "../../db/schema";
-import { parseSessionSnapshot } from "./validation";
-import type { SaveSessionInput, SavedSession, SessionSummary } from "./types";
+import { getDatabase } from "@/db/client";
+import { sessions } from "@/db/schema";
+import { parseSessionSnapshot } from "@/features/session-snapshot/parseSnapshot";
+import { SESSION_LIMIT } from "../rules";
+import type {
+  NewSession,
+  SavedSession,
+  SessionSummary,
+  SessionUpdate,
+  SessionWrite,
+} from "../types";
 
+/** A write the user can resolve, such as a stale revision. Its message is user-facing. */
 export class SessionWriteError extends Error {}
 
-const savedFields = { id: sessions.id, revision: sessions.revision, updatedAt: sessions.updatedAt };
+const writtenFields = {
+  id: sessions.id,
+  revision: sessions.revision,
+  updatedAt: sessions.updatedAt,
+};
+
+function stateColumns({ name, snapshot }: NewSession) {
+  return {
+    name,
+    snapshotVersion: snapshot.version,
+    browserState: snapshot.browser,
+    trackState: snapshot.trackStore,
+  };
+}
+
+function toSessionWrite(row: { id: string; revision: number; updatedAt: Date }): SessionWrite {
+  return { ...row, updatedAt: row.updatedAt.toISOString() };
+}
 
 export function createSessionRepository(database: NodePgDatabase) {
   return {
@@ -32,6 +57,7 @@ export function createSessionRepository(database: NodePgDatabase) {
         updatedAt: row.updatedAt.toISOString(),
       }));
     },
+
     async getByOwner(ownerId: string, id: string): Promise<SavedSession | null> {
       const [row] = await database
         .select()
@@ -52,60 +78,58 @@ export function createSessionRepository(database: NodePgDatabase) {
         }),
       };
     },
-    async save(ownerId: string, input: SaveSessionInput) {
+
+    async create(ownerId: string, session: NewSession): Promise<SessionWrite> {
       const row = await database.transaction(async (transaction) => {
-        const state = {
-          name: input.name,
-          snapshotVersion: input.snapshot.version,
-          browserState: input.snapshot.browser,
-          trackState: input.snapshot.trackStore,
-        };
-        if (input.id === undefined) {
-          // Serialize creation for this owner so concurrent requests cannot exceed the limit.
-          await transaction.execute(
-            sql`select pg_advisory_xact_lock(hashtextextended(${ownerId}, 0))`,
+        // Serialize creation for this owner so concurrent requests cannot exceed the limit.
+        await transaction.execute(
+          sql`select pg_advisory_xact_lock(hashtextextended(${ownerId}, 0))`,
+        );
+        const [total] = await transaction
+          .select({ value: count() })
+          .from(sessions)
+          .where(eq(sessions.ownerId, ownerId));
+        if (total.value >= SESSION_LIMIT) {
+          throw new SessionWriteError(
+            `You can save up to ${SESSION_LIMIT} sessions. Delete a session from the dashboard first.`,
           );
-          const [total] = await transaction
-            .select({ value: count() })
-            .from(sessions)
-            .where(eq(sessions.ownerId, ownerId));
-          if (total.value >= 5)
-            throw new SessionWriteError(
-              "You can save up to five sessions. Delete a session from the dashboard first.",
-            );
-          const [created] = await transaction
-            .insert(sessions)
-            .values({ ownerId, ...state })
-            .returning(savedFields);
-          return created;
         }
-        const ownerAndId = and(eq(sessions.ownerId, ownerId), eq(sessions.id, input.id));
+        const [created] = await transaction
+          .insert(sessions)
+          .values({ ownerId, ...stateColumns(session) })
+          .returning(writtenFields);
+        return created;
+      });
+      return toSessionWrite(row);
+    },
+
+    async update(ownerId: string, update: SessionUpdate): Promise<SessionWrite> {
+      const row = await database.transaction(async (transaction) => {
+        const ownerAndId = and(eq(sessions.ownerId, ownerId), eq(sessions.id, update.id));
         const [existing] = await transaction
           .select()
           .from(sessions)
           .where(ownerAndId)
           .for("update");
         if (!existing) throw new SessionWriteError("This session is no longer available.");
-        if (existing.revision !== input.revision)
+        if (existing.revision !== update.revision) {
           throw new SessionWriteError(
             "This session changed in another tab. Reload it before saving again.",
           );
-        if (existing.browserState.assembly.id !== input.snapshot.browser.assembly.id) {
+        }
+        if (existing.browserState.assembly.id !== update.snapshot.browser.assembly.id) {
           throw new SessionWriteError("A session's assembly cannot be changed.");
         }
         const [updated] = await transaction
           .update(sessions)
-          .set({
-            ...state,
-            revision: existing.revision + 1,
-            updatedAt: new Date(),
-          })
+          .set({ ...stateColumns(update), revision: existing.revision + 1, updatedAt: new Date() })
           .where(ownerAndId)
-          .returning(savedFields);
+          .returning(writtenFields);
         return updated;
       });
-      return { ...row, updatedAt: row.updatedAt.toISOString() };
+      return toSessionWrite(row);
     },
+
     async deleteByOwner(ownerId: string, id: string) {
       const rows = await database
         .delete(sessions)

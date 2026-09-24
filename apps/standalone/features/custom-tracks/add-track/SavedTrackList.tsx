@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Alert, Button, Stack, Typography } from "@mui/material";
 import type { TrackStoreInstance } from "@weng-lab/genomebrowser";
-import type { CustomTracksResult } from "./types";
+import type { CustomTracksResult } from "../types";
 
-export function CustomTrackPicker({
+export function SavedTrackList({
   result,
   assemblyId,
   useTrackStore,

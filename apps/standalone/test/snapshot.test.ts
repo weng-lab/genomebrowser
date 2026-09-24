@@ -1,18 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
-import { assemblies, defaultAssembly } from "../features/browser/assembly";
-import { createBrowserStores } from "../features/browser/stores";
-import { getTrackCollections } from "../features/browser/trackCollections";
-import { createInitialSnapshot } from "../features/sessions/initialSnapshot";
-import { captureSessionSnapshot } from "../features/sessions/snapshot";
-import { parseSessionSnapshot } from "../features/sessions/validation";
+import { assemblies, defaultAssembly } from "@/features/assemblies/assemblies";
+import { restoreStores } from "@/features/session-snapshot/restoreStores";
+import { getTrackCollections } from "@/features/assemblies/trackCollections";
+import { createInitialSnapshot } from "@/features/session-snapshot/initialSnapshot";
+import { captureSessionSnapshot } from "@/features/session-snapshot/captureSnapshot";
+import { parseSessionSnapshot } from "@/features/session-snapshot/parseSnapshot";
 
 describe("session snapshots", () => {
   it.each(assemblies)(
     "initializes and restores $label with assembly-specific references",
     (assembly) => {
       const initial = parseSessionSnapshot(createInitialSnapshot(assembly));
-      const { useBrowserStore, useTrackStore } = createBrowserStores(initial);
+      const { useBrowserStore, useTrackStore } = restoreStores(initial);
       const restored = parseSessionSnapshot(captureSessionSnapshot(useBrowserStore, useTrackStore));
       expect(restored.trackStore.pinnedTrackIds).toEqual(
         restored.trackStore.tracks.map(({ base }) => base.id),
@@ -31,7 +31,7 @@ describe("session snapshots", () => {
   );
 
   it("round trips highlights and track settings but resets selection mode and excludes runtime values", () => {
-    const { useBrowserStore, useTrackStore } = createBrowserStores();
+    const { useBrowserStore, useTrackStore } = restoreStores();
     useBrowserStore.getState().setSelectionMode("highlight");
     useBrowserStore.getState().addHighlight({
       id: "highlight",
@@ -50,7 +50,7 @@ describe("session snapshots", () => {
     expect(snapshot.browser).not.toHaveProperty("setRegion");
     expect(snapshot.trackStore).not.toHaveProperty("registry");
     expect(snapshot.trackStore.tracks[1]).not.toHaveProperty("interaction");
-    const restored = createBrowserStores(JSON.parse(JSON.stringify(snapshot)));
+    const restored = restoreStores(JSON.parse(JSON.stringify(snapshot)));
     expect(restored.useBrowserStore.getState().selectionMode).toBe("pan");
     expect(restored.useBrowserStore.getState().highlights).toEqual(
       useBrowserStore.getState().highlights,
@@ -61,8 +61,8 @@ describe("session snapshots", () => {
     expect(restored.useBrowserStore.getState().highlights).toHaveLength(1);
   });
 
-  it("preserves track order, pinned IDs, source ownership, and application callbacks", () => {
-    const { useBrowserStore, useTrackStore } = createBrowserStores();
+  it("preserves track order, pinned IDs, and source ownership", () => {
+    const { useBrowserStore, useTrackStore } = restoreStores();
     const module = ccreBigBedModule;
     useTrackStore.getState().addTrack(
       module.create({
@@ -74,13 +74,12 @@ describe("session snapshots", () => {
     useTrackStore.getState().setPinnedTrackIds(["reference-ruler"]);
     const ids = useTrackStore.getState().order;
     useTrackStore.getState().reorderTracks([ids[0], ids[2], ids[1]]);
-    const restored = createBrowserStores(
+    const restored = restoreStores(
       parseSessionSnapshot(captureSessionSnapshot(useBrowserStore, useTrackStore)),
     );
     expect(restored.useTrackStore.getState().order).toEqual(useTrackStore.getState().order);
     expect(restored.useTrackStore.getState().pinnedTrackIds).toEqual(["reference-ruler"]);
     expect(restored.useTrackStore.getState().tracks[1].source).toBe("host");
-    expect(restored.useTrackStore.getState().tracks[1].interaction?.onClick).toBeTypeOf("function");
   });
 
   it("rejects unknown versions, unregistered assemblies, duplicate tracks and invalid module configuration", () => {
@@ -106,7 +105,7 @@ describe("session snapshots", () => {
   });
 
   it("rejects values JSON serialization would silently lose", () => {
-    const { useBrowserStore, useTrackStore } = createBrowserStores();
+    const { useBrowserStore, useTrackStore } = restoreStores();
     // A custom module may retain a non-JSON value. The serializer must fail rather than lose it.
     useTrackStore.getState().tracks[0].config.unserializable = () => undefined;
     expect(() => captureSessionSnapshot(useBrowserStore, useTrackStore)).toThrow(/JSON/);

@@ -1,6 +1,6 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { createInitialSnapshot } from "../features/sessions/initialSnapshot";
-import { defaultAssembly } from "../features/browser/assembly";
+import { createInitialSnapshot } from "@/features/session-snapshot/initialSnapshot";
+import { defaultAssembly } from "@/features/assemblies/assemblies";
 
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -10,12 +10,12 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@clerk/nextjs/server", () => ({ auth: mocks.auth }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidate }));
-vi.mock("../features/auth/config", () => ({ isAuthConfigured: () => true }));
-vi.mock("../features/sessions/repository", () => ({
+vi.mock("@/features/auth/config", () => ({ isAuthConfigured: () => true }));
+vi.mock("@/features/sessions/server/repository", () => ({
   getSessionRepository: mocks.repository,
   SessionWriteError: class extends Error {},
 }));
-import { PUT } from "../app/api/sessions/[sessionId]/route";
+import { PUT } from "@/app/api/sessions/[sessionId]/route";
 const id = "43ae03a6-52ec-40ac-a2e2-c4c2252a177a";
 const input = () => ({
   name: "Study",
@@ -33,7 +33,7 @@ const context = { params: Promise.resolve({ sessionId: id }) };
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.auth.mockResolvedValue({ userId: "owner" });
-  mocks.repository.mockReturnValue({ save: mocks.save });
+  mocks.repository.mockReturnValue({ update: mocks.save });
   mocks.save.mockResolvedValue({ id, revision: 2, updatedAt: "2026-09-23T12:00:00Z" });
 });
 it("writes as the authenticated owner and returns metadata without reloading the session", async () => {

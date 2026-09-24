@@ -1,5 +1,5 @@
 import { Button, Container, Typography } from "@mui/material";
-import { SiteLink } from "../site/SiteLink";
+import { SiteLink } from "@/components/SiteLink";
 
 export function AuthUnavailable() {
   return (

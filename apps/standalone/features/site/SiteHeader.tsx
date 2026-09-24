@@ -3,8 +3,8 @@
 import { AppBar, Box, Button, Stack, Toolbar, Typography } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSessionNavigation } from "../sessions/SessionNavigation";
-import { AccountControls } from "../auth/AccountControls";
+import { AccountControls } from "@/features/auth/AccountControls";
+import { useActiveSession } from "@/features/sessions/activeSession";
 
 const siteMap = [
   { href: "/", label: "Home" },
@@ -14,7 +14,7 @@ const siteMap = [
 
 export function SiteHeader({ authConfigured }: { authConfigured: boolean }) {
   const pathname = usePathname();
-  const { session } = useSessionNavigation();
+  const { session } = useActiveSession();
   return (
     <AppBar
       position="static"
