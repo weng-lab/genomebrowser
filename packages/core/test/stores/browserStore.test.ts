@@ -87,6 +87,12 @@ describe("createBrowserStore", () => {
     expect(store.getState()).not.toHaveProperty("setAssembly");
   });
 
+  it("starts not loading and accepts no loading input", () => {
+    expectTypeOf<BrowserStoreInput>().not.toHaveProperty("isLoading");
+
+    expect(createTestStore().getState().isLoading).toBe(false);
+  });
+
   it("uses custom assembly bounds even when its id matches a preset", () => {
     const store = createBrowserStore({
       assembly: { id: "hg38", chromosomes: { custom: 25 } },

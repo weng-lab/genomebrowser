@@ -2,7 +2,6 @@ import {
   useLayoutEffect,
   useMemo,
   useState,
-  useSyncExternalStore,
   type Dispatch,
   type ReactNode,
   type SetStateAction,
@@ -178,7 +177,7 @@ function GenomeBrowserRuntime({
                 registry.get(type).tooltipComponent as AnyTrackTooltipComponent | undefined
               }
             >
-              <InteractionGate dataController={dataController}>
+              <InteractionGate useBrowserStore={useBrowserStore}>
                 <BrowserView
                   useTrackStore={useTrackStore}
                   dataController={dataController}
@@ -212,17 +211,13 @@ function GenomeBrowserRuntime({
  * loading. Tracks still show their data as it arrives; only interaction waits.
  */
 function InteractionGate({
-  dataController,
+  useBrowserStore,
   children,
 }: {
-  dataController: TrackDataController;
+  useBrowserStore: BrowserStoreInstance;
   children: ReactNode;
 }) {
-  const isInteractionBlocked = useSyncExternalStore(
-    dataController.subscribe,
-    dataController.getIsLoading,
-    dataController.getIsLoading,
-  );
+  const isInteractionBlocked = useBrowserStore((state) => state.isLoading);
   const interactionGateValue = useMemo(() => ({ isInteractionBlocked }), [isInteractionBlocked]);
 
   return <InteractionGateProvider value={interactionGateValue}>{children}</InteractionGateProvider>;

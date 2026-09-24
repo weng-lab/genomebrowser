@@ -20,6 +20,7 @@ type Request = {
 };
 
 let requests: Request[] = [];
+let browserStore: ReturnType<typeof createBrowserStore> | undefined;
 let disconnect: (() => void) | undefined;
 
 afterEach(() => {
@@ -72,7 +73,7 @@ function setup({
   resourceStore?: ReturnType<typeof createTrackResourceStore>;
 } = {}) {
   fetch.mockClear();
-  const browserStore = createBrowserStore({
+  browserStore = createBrowserStore({
     assembly: { id: "test", chromosomes: { chr1: chromosomeLength } },
     region,
     trackWidth: 1_000,
@@ -92,6 +93,10 @@ function setup({
   controller.subscribe(listener);
   disconnect = controller.connect();
   return { browserStore, trackStore, controller, listener, resourceStore };
+}
+
+function isLoading() {
+  return browserStore?.getState().isLoading;
 }
 
 function lastRequest(trackId: string) {
@@ -128,17 +133,17 @@ describe("track data controller", () => {
       region: { chromosome: "chr1", start: 0, end: 3_000 },
       width: 3_000,
     });
-    expect(controller.getIsLoading()).toBe(true);
+    expect(isLoading()).toBe(true);
 
     await resolve("a");
     const b = controller.getTrack("b");
     expect(data(controller, "a")).toBe("a");
     expect(b).toEqual({ status: "loading" });
-    expect(controller.getIsLoading()).toBe(true);
+    expect(isLoading()).toBe(true);
 
     await resolve("b");
     expect(data(controller, "b")).toBe("b");
-    expect(controller.getIsLoading()).toBe(false);
+    expect(isLoading()).toBe(false);
   });
 
   it("keeps one track's state identity when another track's result arrives", async () => {
@@ -155,15 +160,16 @@ describe("track data controller", () => {
     expect(controller.getTrack("a")).toBe(a);
   });
 
-  it("reports loading in the same store update that commits a region needing data", async () => {
-    const { controller, browserStore, listener } = setup();
+  it("sets the browser store's isLoading in the update that commits a region needing data", async () => {
+    const { browserStore } = setup();
     await resolveAll();
-    listener.mockClear();
+    const seen: boolean[] = [];
+    browserStore.subscribe((state) => seen.push(state.isLoading));
 
     browserStore.getState().setRegion({ chromosome: "chr1", start: 5_000, end: 6_000 });
 
-    expect(controller.getIsLoading()).toBe(true);
-    expect(listener).toHaveBeenCalled();
+    expect(isLoading()).toBe(true);
+    expect(seen).toContain(true);
   });
 
   it("does not fetch for a pan inside the pre-loaded margin", async () => {
@@ -175,7 +181,7 @@ describe("track data controller", () => {
     browserStore.getState().setRegion({ chromosome: "chr1", start: 1_200, end: 2_200 });
 
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(controller.getIsLoading()).toBe(false);
+    expect(isLoading()).toBe(false);
     expect(controller.getTrack("a")).toBe(a);
   });
 
@@ -192,12 +198,12 @@ describe("track data controller", () => {
       start: 600,
       end: 3_600,
     });
-    expect(controller.getIsLoading()).toBe(true);
+    expect(isLoading()).toBe(true);
     expect(data(controller, "a")).toBe("a");
   });
 
   it("does not refetch for repeated pans at a chromosome end", async () => {
-    const { controller, browserStore } = setup({
+    const { browserStore } = setup({
       region: { chromosome: "chr1", start: 2_000, end: 3_000 },
       chromosomeLength: 3_000,
     });
@@ -213,7 +219,7 @@ describe("track data controller", () => {
     browserStore.getState().setRegion({ chromosome: "chr1", start: 2_000, end: 3_000 });
 
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(controller.getIsLoading()).toBe(false);
+    expect(isLoading()).toBe(false);
   });
 
   it("hides old data across a zoom", async () => {
@@ -240,11 +246,11 @@ describe("track data controller", () => {
     await flush();
     // The first result stays on screen until the current request finishes.
     expect(data(controller, "a")).toBe("a");
-    expect(controller.getIsLoading()).toBe(true);
+    expect(isLoading()).toBe(true);
 
     await resolve("a", "current");
     expect(data(controller, "a")).toBe("current");
-    expect(controller.getIsLoading()).toBe(false);
+    expect(isLoading()).toBe(false);
   });
 
   it("refetches once after a resize settles and keeps old data until then", async () => {
@@ -290,12 +296,12 @@ describe("track data controller", () => {
     await flush();
 
     expect(controller.getTrack("a")).toMatchObject({ status: "error", error: "unreachable" });
-    expect(controller.getIsLoading()).toBe(false);
+    expect(isLoading()).toBe(false);
 
     // A small pan would stay inside the margin for ready data; errors always retry.
     browserStore.getState().setRegion({ chromosome: "chr1", start: 1_100, end: 2_100 });
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(controller.getIsLoading()).toBe(true);
+    expect(isLoading()).toBe(true);
   });
 
   it("refetches only when a track's fetch signature changes", async () => {
@@ -352,7 +358,7 @@ describe("track data controller", () => {
     trackStore.getState().removeTrack("b");
 
     expect(pending.context.signal?.aborted).toBe(true);
-    expect(controller.getIsLoading()).toBe(false);
+    expect(isLoading()).toBe(false);
     expect(controller.getTrack("b")).toEqual({ status: "loading" });
     expect(resourceStore.resourcesFor({ type: module.type, id: "b" }).get("reader")).toBe(
       undefined,
@@ -368,6 +374,7 @@ describe("track data controller", () => {
     disconnect = undefined;
 
     expect(pending.context.signal?.aborted).toBe(true);
+    expect(isLoading()).toBe(false);
     expect(resourceStore.resourcesFor({ type: module.type, id: "a" }).get("reader")).toBe(
       undefined,
     );

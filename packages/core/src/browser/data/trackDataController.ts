@@ -51,8 +51,6 @@ export type TrackDataController = {
   subscribe(listener: () => void): () => void;
   /** Stable until that track's displayed state changes. */
   getTrack(trackId: string): TrackDataState;
-  /** True while any track has a request in flight. */
-  getIsLoading(): boolean;
   /** Starts following the stores and fetching. Returns a function that stops and releases everything. */
   connect(): () => void;
 };
@@ -63,7 +61,7 @@ const loadingState: TrackDataState = { status: "loading" };
  * Owns track data for one mounted browser. Each track fetches on its own and
  * shows its result as soon as it arrives. The controller reads the region,
  * assembly and tracks straight from the stores, so a committed region starts
- * its requests and reports loading in the same store update.
+ * its requests and sets the browser store's `isLoading` in the same update.
  */
 export function createTrackDataController({
   browserStore,
@@ -84,7 +82,6 @@ export function createTrackDataController({
   const assemblyKeys = new WeakMap<AssemblyDefinition, string>();
   const listeners = new Set<() => void>();
   let connected = false;
-  let isLoading = trackStore.getState().tracks.length > 0;
   let trackWidth = initialTrackWidth;
   let debouncedTrackWidth = initialTrackWidth;
   let widthTimer: ReturnType<typeof setTimeout> | undefined;
@@ -238,12 +235,8 @@ export function createTrackDataController({
       startFetch(registry, track, fetchKey, demand);
     }
 
+    setIsLoading([...entries.values()].some((entry) => entry.pending));
     let changed = false;
-    const nextIsLoading = [...entries.values()].some((entry) => entry.pending);
-    if (nextIsLoading !== isLoading) {
-      isLoading = nextIsLoading;
-      changed = true;
-    }
     for (const trackId of states.keys()) {
       if (entries.has(trackId)) continue;
       states.delete(trackId);
@@ -257,6 +250,10 @@ export function createTrackDataController({
       changed = true;
     }
     if (changed) notify();
+  };
+
+  const setIsLoading = (isLoading: boolean) => {
+    if (browserStore.getState().isLoading !== isLoading) browserStore.setState({ isLoading });
   };
 
   /** A pending width change joins the next region, assembly, or track change instead of refetching twice. */
@@ -289,7 +286,6 @@ export function createTrackDataController({
       return () => listeners.delete(listener);
     },
     getTrack: (trackId) => states.get(trackId) ?? loadingState,
-    getIsLoading: () => isLoading,
     connect() {
       connected = true;
       const unsubscribeBrowser = browserStore.subscribe((state, previous) => {
@@ -315,7 +311,7 @@ export function createTrackDataController({
         entries.clear();
         states.clear();
         retainedTracks = undefined;
-        isLoading = trackStore.getState().tracks.length > 0;
+        setIsLoading(false);
         resourceStore.clear();
       };
     },
