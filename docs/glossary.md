@@ -83,6 +83,12 @@ The region and logical drawing width core asks a track's fetcher to satisfy. A d
 
 Reusable values retained between fetches for one track type and ID in one browser instance, such as a file reader or cache. Resources are separate from track configuration and the current fetch result. The fetcher manages their validity when sources change; removing the track or unmounting the browser releases core's references to them.
 
+## Testing
+
+### Render budget
+
+The exact number of committed React renders per component that a test allows for one interaction, such as a region change, recorded as an inline snapshot. A higher count fails the test. Each budget notes which renders are necessary, where a component shows new data, a new region, or new configuration, so wasteful renders are easy to spot.
+
 ## Keep the vocabulary useful
 
 Prefer these terms in discussions, issues, and documentation. Qualify ambiguous words: region selection versus track selection, display mode versus collection view, and track height versus row height. Preserve exact API names when discussing code.

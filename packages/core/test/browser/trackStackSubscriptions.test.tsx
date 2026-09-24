@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 
+import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { GenomeBrowser } from "../../src/browser/GenomeBrowser";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
@@ -12,22 +13,7 @@ import { defineTrackModule } from "../../src/modules/defineTrackModule";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
-const { trackFrameRenderCounts } = vi.hoisted(() => ({
-  trackFrameRenderCounts: new Map<string, number>(),
-}));
-
-vi.mock("../../src/browser/track-row/TrackControls", () => ({
-  TrackControls: ({ track }: { track: { base: { id: string } } }) => {
-    const id = track.base.id;
-    trackFrameRenderCounts.set(id, (trackFrameRenderCounts.get(id) ?? 0) + 1);
-    return <g data-track-controls={id} />;
-  },
-}));
-
-const rendererRenderCounts = new Map<string, number>();
-
 function Renderer({ id, color }: { id: string; color: string }) {
-  rendererRenderCounts.set(id, (rendererRenderCounts.get(id) ?? 0) + 1);
   return <rect data-track-renderer={id} fill={color} />;
 }
 
@@ -40,14 +26,15 @@ const module = defineTrackModule({
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;
+let probe: Probe | undefined;
 
 afterEach(async () => {
   if (root) await act(async () => root?.unmount());
   container?.remove();
   container = undefined;
   root = undefined;
-  trackFrameRenderCounts.clear();
-  rendererRenderCounts.clear();
+  probe?.unmount();
+  probe = undefined;
 });
 
 describe("TrackStack subscriptions", () => {
@@ -124,22 +111,25 @@ describe("TrackStack subscriptions", () => {
 
   it("rerenders only the addressed production row when its presentation changes", async () => {
     const useTrackStore = createStore();
-    await renderBrowser(useTrackStore);
-    trackFrameRenderCounts.clear();
-    rendererRenderCounts.clear();
+    probe = await renderWithProbe(
+      <GenomeBrowser sizing="fixed" browserStore={createBrowser()} trackStore={useTrackStore} />,
+    );
 
-    await act(async () => {
+    const report = await probe.measure(() => {
       expect(useTrackStore.getState().updateTrack("first", { base: { color: "#123456" } })).toEqual(
         { ok: true },
       );
-      await flushEffects();
     });
 
-    expect(trackFrameRenderCounts.get("first")).toBe(1);
-    expect(trackFrameRenderCounts.get("second")).toBeUndefined();
-    expect(rendererRenderCounts.get("first")).toBe(1);
-    expect(rendererRenderCounts.get("second")).toBeUndefined();
-    expect(rowRenderer("first").getAttribute("fill")).toBe("#123456");
+    const renderedInstances = (name: string) =>
+      report.why(name).map(({ instance, renders }) => ({ instance, renders }));
+    expect(renderedInstances("TrackControls")).toEqual([
+      { instance: "TrackControls#first", renders: 1 },
+    ]);
+    expect(renderedInstances("Renderer")).toEqual([{ instance: "Renderer#first", renders: 1 }]);
+    expect(document.querySelector('[data-track-renderer="first"]')?.getAttribute("fill")).toBe(
+      "#123456",
+    );
   });
 
   it("updates total height, row positions, membership, replacement, and order", async () => {
@@ -198,14 +188,18 @@ function createTrack(id: string, height: number) {
   return module.create({ base: { id, title: id, height }, config: {} });
 }
 
-async function renderBrowser(useTrackStore: ReturnType<typeof createStore>) {
-  const useBrowserStore = createBrowserStore({
+function createBrowser() {
+  return createBrowserStore({
     assembly: { id: "test", chromosomes: { chr1: 1_000 } },
     region: { chromosome: "chr1", start: 0, end: 100 },
     marginWidth: 100,
     trackWidth: 1_000,
     titleSize: 10,
   });
+}
+
+async function renderBrowser(useTrackStore: ReturnType<typeof createStore>) {
+  const useBrowserStore = createBrowser();
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -232,12 +226,6 @@ async function flushEffects() {
 function browserSvg() {
   const element = container?.querySelector<SVGSVGElement>("#browserSVG");
   if (!element) throw new Error("Browser SVG not found");
-  return element;
-}
-
-function rowRenderer(id: string) {
-  const element = container?.querySelector(`[data-track-renderer="${id}"]`);
-  if (!element) throw new Error(`Track renderer not found: ${id}`);
   return element;
 }
 

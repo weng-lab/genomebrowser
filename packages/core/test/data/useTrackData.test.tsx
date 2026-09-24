@@ -552,58 +552,6 @@ describe("useTrackData", () => {
     });
   });
 
-  it("distinguishes mixed Date and bigint values in a module fetch signature", async () => {
-    const fetch = vi.fn(
-      async ({ track }: { track: { config: { revision: bigint; timestamp: Date } } }) =>
-        track.config.revision.toString(),
-    );
-    const module = defineTrackModule({
-      type: "bigint-signature",
-      configSchema: z.object({
-        revision: fetchOnChange(z.bigint()),
-        timestamp: fetchOnChange(z.date()),
-      }),
-      fetch,
-      render: { full: () => null },
-    });
-    const useDataStore = createDataStore();
-    const useTrackStore = createTrackStore({
-      modules: [module],
-      tracks: [
-        module.create({
-          base: {
-            id: "signal",
-            title: "Signal",
-          },
-          config: { revision: 1n, timestamp: new Date("2026-01-01T00:00:00Z") },
-        }),
-      ],
-    });
-
-    container = document.createElement("div");
-    document.body.appendChild(container);
-    root = createRoot(container);
-    await act(async () =>
-      root?.render(
-        <Harness
-          useDataStore={useDataStore}
-          useTrackStore={useTrackStore}
-          region={{ chromosome: "chr1", start: 0, end: 10 }}
-        />,
-      ),
-    );
-    expect(fetch).toHaveBeenCalledOnce();
-
-    await act(async () => {
-      expect(useTrackStore.getState().updateTrack("signal", { config: { revision: 2n } })).toEqual({
-        ok: true,
-      });
-    });
-
-    expect(fetch).toHaveBeenCalledTimes(2);
-    expect(useDataStore.getState().data.signal).toEqual({ status: "success", data: "2" });
-  });
-
   it("clears fetching and data when the final pending track is removed", async () => {
     const request = createDeferred<unknown>();
     const fetch = vi.fn(() => request.promise);

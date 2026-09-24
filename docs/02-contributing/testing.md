@@ -10,4 +10,8 @@ Use React tests when the behavior depends on hooks, component state, or interact
 
 Core tests should exercise generic browser and module contracts. First-party track behavior belongs in the tracks package's tests, keeping the same ownership boundary as the implementation.
 
+## Render budgets
+
+Render budgets record the exact number of committed renders per component for common browser interactions, using the private `@weng-lab/render-probe` package. Core's budgets are in `packages/core/test/renders/`. Add or update a scenario when a change affects how components subscribe to stores, consume context, or pass props, especially in performance work. Budgets are inline snapshots: a higher count fails the test, and a lower one is accepted with `vitest -u` and reviewed as a smaller number in the diff. The [verify-renders skill](../../.agents/skills/verify-renders/SKILL.md) describes the workflow for measuring, classifying, and reducing renders.
+
 See [Verifying changes](verify.md) for commands and handoff checks.
