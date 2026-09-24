@@ -8,6 +8,7 @@ export async function fetchRuler({
   track: { config },
   demand: { region, width },
   resources,
+  signal,
 }: TrackFetchContext<RulerConfig>): Promise<RulerData> {
   if (!config.sequenceUrl || width / (region.end - region.start) < config.sequenceMinPixelsPerBase)
     return { records: [] };
@@ -19,8 +20,10 @@ export async function fetchRuler({
     resources.set(key, cached);
   }
   try {
-    return { records: await cached.file.read(region) };
+    return { records: await cached.file.read(region, { signal }) };
   } catch (error) {
+    // A superseded request is not a failure to report; let the browser drop it.
+    if (signal?.aborted) throw error;
     // Coordinates remain useful even when the optional sequence source fails.
     return {
       records: [],

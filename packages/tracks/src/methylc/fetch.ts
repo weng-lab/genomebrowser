@@ -7,6 +7,7 @@ export async function fetchMethylC({
   track: { config },
   demand: { region, width },
   resources,
+  signal,
 }: TrackFetchContext<MethylCConfig>): Promise<MethylCData> {
   const plus = config.urls.plusStrand;
   const minus = config.urls.minusStrand;
@@ -20,7 +21,7 @@ export async function fetchMethylC({
       minus.chg.url,
       minus.chh.url,
       minus.depth.url,
-    ].map((url) => fetchChannel(url, region, width, resources)),
+    ].map((url) => fetchChannel(url, region, width, resources, signal)),
   );
 }
 
@@ -29,6 +30,7 @@ async function fetchChannel(
   region: GenomicRegion,
   width: number,
   resources: TrackFetchContext<MethylCConfig>["resources"],
+  signal: AbortSignal | undefined,
 ): Promise<BigWigRecord[]> {
-  return url ? readCachedBigWigRecords(resources, url, region, width) : [];
+  return url ? readCachedBigWigRecords(resources, url, region, width, signal) : [];
 }

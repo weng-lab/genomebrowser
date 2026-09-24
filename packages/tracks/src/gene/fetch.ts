@@ -19,8 +19,9 @@ export async function fetchGene({
   track: { config },
   demand: { region },
   resources,
+  signal,
 }: TrackFetchContext<GeneConfig>): Promise<GeneData> {
-  const rows = await readCachedBigBedRows(resources, config.url, bigGenePredSchema, region);
+  const rows = await readCachedBigBedRows(resources, config.url, bigGenePredSchema, region, signal);
   const transcripts = rows.map(parseBigGenePredRecord);
   publishObservedGeneTags(
     config.url,

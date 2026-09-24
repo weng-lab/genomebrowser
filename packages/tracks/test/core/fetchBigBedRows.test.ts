@@ -77,7 +77,7 @@ describe("fetchBigBedRows", () => {
     const nextRegion = { ...region, start: 200, end: 300 };
     await fetchBigBedRows({ ...input, region: nextRegion });
     expect(reader.create).toHaveBeenCalledTimes(1);
-    expect(read).toHaveBeenLastCalledWith(nextRegion);
+    expect(read).toHaveBeenLastCalledWith(nextRegion, { signal: undefined });
     await fetchBigBedRows({ ...input, url: "OTHER_URL_HERE" });
     await fetchBigBedRows({ ...input, schema: narrowPeakSchema.clone() });
     await fetchBigBedRows({ ...input, resources: createResources() });

@@ -6,13 +6,16 @@ export async function fetchBulkBed({
   track: { config },
   demand: { region },
   resources,
+  signal,
 }: TrackFetchContext<BulkBedConfig>): Promise<BulkBedData> {
   return Promise.all(
     config.datasets.map(async (dataset, index) =>
-      (await readBedPreset(resources, dataset.url, config.bedSchema, region)).map((row) => ({
-        ...row,
-        datasetName: dataset.name || `Dataset ${index + 1}`,
-      })),
+      (await readBedPreset(resources, dataset.url, config.bedSchema, region, signal)).map(
+        (row) => ({
+          ...row,
+          datasetName: dataset.name || `Dataset ${index + 1}`,
+        }),
+      ),
     ),
   );
 }

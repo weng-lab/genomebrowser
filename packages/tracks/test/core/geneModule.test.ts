@@ -208,7 +208,7 @@ describe("Gene module", () => {
       schema: bigGenePredSchema,
     });
     expect(read).toHaveBeenCalledTimes(2);
-    expect(read).toHaveBeenCalledWith(region);
+    expect(read).toHaveBeenCalledWith(region, { signal: undefined });
   });
 
   it("accumulates tags observed across successful reads of the same source", async () => {
