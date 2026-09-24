@@ -24,6 +24,6 @@ Core searches object properties and array elements for markers, but does not sea
 
 The marker does not issue requests. The mounted browser checks marked values when track changes are committed.
 
-Core compares the parsed values of marked fields. Supplying an equivalent value does not require another fetch. See [request timing](fetchingData.md#requests-and-result-lifetime) for width changes and result reuse.
+Core compares the parsed values of marked fields. Marked values should be JSON: strings, finite or non-finite numbers, booleans, `null`, arrays, and plain objects. Supplying an equivalent JSON value does not require another fetch. Other values, such as `Date`, `Map`, `Set`, class instances, and functions, compare by object identity, so a new instance requests data again even when its contents are unchanged. See [request timing](fetchingData.md#requests-and-result-lifetime) for width changes and result reuse.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.
