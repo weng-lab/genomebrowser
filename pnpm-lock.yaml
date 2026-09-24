@@ -618,6 +618,9 @@ importers:
       '@weng-lab/genomebrowser':
         specifier: workspace:^2.0.0
         version: link:../core
+      '@weng-lab/render-probe':
+        specifier: workspace:*
+        version: link:../render-probe
       jsdom:
         specifier: 'catalog:'
         version: 26.1.0(supports-color@8.1.1)
