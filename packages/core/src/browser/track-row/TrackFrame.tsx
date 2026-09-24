@@ -1,7 +1,8 @@
 import { trackOverlayContext } from "../track-overlay/context";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
 import { useContextMenuStore } from "../state/browserContextState";
+import type { RegisterContentGroup } from "../viewport/useContentTransform";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { PanTrack } from "./PanTrack";
 import { TrackControls } from "./TrackControls";
@@ -15,9 +16,9 @@ export function TrackFrame({
   trackWidth,
   contentX = marginWidth,
   contentWidth = trackWidth,
+  limitsDrag = false,
   registerContentGroup,
   panDrag,
-  isPanLocked = false,
   onSwapPointerDown,
   swapping = false,
   isDragClone = false,
@@ -30,11 +31,13 @@ export function TrackFrame({
   previewOffsetY?: number;
   marginWidth: number;
   trackWidth: number;
+  /** Where the content group sits before any drag. */
   contentX?: number;
   contentWidth?: number;
-  registerContentGroup?: (node: SVGGElement) => () => void;
+  /** Whether the content is loaded data that a drag must not scroll past. */
+  limitsDrag?: boolean;
+  registerContentGroup?: RegisterContentGroup;
   panDrag?: PanDragHandlers;
-  isPanLocked?: boolean;
   onSwapPointerDown?: (event: React.PointerEvent<SVGRectElement>) => void;
   swapping?: boolean;
   isDragClone?: boolean;
@@ -55,10 +58,15 @@ export function TrackFrame({
   const openContextMenu = useContextMenuStore((state) => state.openContextMenu);
   const showHover = hover && !disableHover;
 
-  useEffect(() => {
+  // Registration owns the content transform so drag frames can move it without
+  // a render. A layout effect paints a new position in the same frame as its data.
+  useLayoutEffect(() => {
     if (isDragClone || !registerContentGroup || !contentGroupRef.current) return;
-    return registerContentGroup(contentGroupRef.current);
-  }, [isDragClone, registerContentGroup]);
+    return registerContentGroup(contentGroupRef.current, {
+      x: contentX,
+      width: limitsDrag ? contentWidth : undefined,
+    });
+  }, [contentWidth, contentX, isDragClone, limitsDrag, registerContentGroup]);
 
   const handleContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -81,14 +89,12 @@ export function TrackFrame({
         onContextMenu={handleContextMenu}
       />
       <g clipPath={`url(#${contentClipId})`} onContextMenu={handleContextMenu}>
-        <g ref={contentGroupRef} transform={`translate(${contentX},0)`}>
+        <g
+          ref={contentGroupRef}
+          transform={isDragClone || !registerContentGroup ? `translate(${contentX},0)` : undefined}
+        >
           <g transform={`translate(0,${titleMargin})`}>
-            <PanTrack
-              panDrag={panDrag}
-              disabled={isPanLocked}
-              width={contentWidth}
-              height={track.base.height}
-            >
+            <PanTrack panDrag={panDrag} width={contentWidth} height={track.base.height}>
               <trackOverlayContext.Provider value={overlayContext}>
                 {children}
               </trackOverlayContext.Provider>
@@ -102,7 +108,7 @@ export function TrackFrame({
         />
       </g>
       <g transform={`translate(${marginWidth},0)`} onContextMenu={handleContextMenu}>
-        <PanTrack panDrag={panDrag} disabled={isPanLocked} width={trackWidth} height={titleMargin}>
+        <PanTrack panDrag={panDrag} width={trackWidth} height={titleMargin}>
           <text
             fill="#000000"
             x={trackWidth / 2}

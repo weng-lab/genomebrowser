@@ -1,8 +1,9 @@
 import type { ErrorInfo } from "react";
-import type { DataState } from "../data/types";
+import type { TrackDataState } from "../data/trackDataController";
 import type { AnyTrackInstance } from "../../modules/types";
 import type { GenomicRegion } from "../../genome/region";
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
+import type { RegisterContentGroup } from "../viewport/useContentTransform";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { ErrorState } from "./ErrorState";
 import { SwapTrack } from "./SwapTrack";
@@ -25,25 +26,23 @@ export function TrackRow({
   contentWidth,
   registerContentGroup,
   panDrag,
-  isPanLocked,
   disableHover,
   titleSize,
   onPreviewChange,
   onPreviewEnd,
 }: {
   track: AnyTrackInstance;
-  dataState: DataState | undefined;
+  dataState: TrackDataState;
   visibleRegion: GenomicRegion;
   region: GenomicRegion;
   y: number;
   previewOffsetY: number;
   marginWidth: number;
   trackWidth: number;
-  contentX?: number;
-  contentWidth?: number;
-  registerContentGroup?: (node: SVGGElement) => () => void;
+  contentX: number;
+  contentWidth: number;
+  registerContentGroup?: RegisterContentGroup;
   panDrag?: PanDragHandlers;
-  isPanLocked?: boolean;
   disableHover: boolean;
   titleSize: number;
   onPreviewChange: (preview: SwapPreview) => void;
@@ -53,7 +52,6 @@ export function TrackRow({
     <SwapTrack
       track={track}
       titleSize={titleSize}
-      disabled={isPanLocked}
       onPreviewChange={onPreviewChange}
       onPreviewEnd={onPreviewEnd}
     >
@@ -67,9 +65,9 @@ export function TrackRow({
           trackWidth={trackWidth}
           contentX={contentX}
           contentWidth={contentWidth}
+          limitsDrag={dataState.status !== "loading"}
           registerContentGroup={registerContentGroup}
           panDrag={panDrag}
-          isPanLocked={isPanLocked}
           disableHover={disableHover}
           titleSize={titleSize}
         >
@@ -78,7 +76,7 @@ export function TrackRow({
               <ErrorState
                 x={0}
                 y={0}
-                width={contentWidth ?? trackWidth}
+                width={contentWidth}
                 height={track.base.height}
                 message={`Track unavailable: ${track.base.title || track.base.id}`}
               />
@@ -87,10 +85,10 @@ export function TrackRow({
           >
             <TrackContent
               track={track}
-              dataState={dataState ?? { status: "loading" }}
+              dataState={dataState}
               visibleRegion={visibleRegion}
               region={region}
-              width={contentWidth ?? trackWidth}
+              width={contentWidth}
               height={track.base.height}
             />
           </RenderErrorBoundary>

@@ -1,6 +1,7 @@
-import { useEffect, useId, useRef } from "react";
+import { useId, useLayoutEffect, useRef } from "react";
 import type { GenomicRegion } from "../../genome/region";
 import { useGenomeBrowser } from "../state/browserContextState";
+import type { RegisterContentGroup } from "../viewport/useContentTransform";
 import { getHighlightRects } from "./highlightRects";
 
 export function Highlights({
@@ -20,7 +21,7 @@ export function Highlights({
   contentX: number;
   browserWidth: number;
   totalHeight: number;
-  registerContentGroup?: (node: SVGGElement) => () => void;
+  registerContentGroup?: RegisterContentGroup;
 }) {
   const { useBrowserStore } = useGenomeBrowser();
   const highlights = useBrowserStore((state) => state.highlights);
@@ -30,10 +31,11 @@ export function Highlights({
     (rect) => rect.type === type,
   );
 
-  useEffect(() => {
+  // Highlights don't limit a drag; they follow it across the pre-loaded window.
+  useLayoutEffect(() => {
     if (!registerContentGroup || !contentGroupRef.current) return;
-    return registerContentGroup(contentGroupRef.current);
-  }, [rects.length, registerContentGroup]);
+    return registerContentGroup(contentGroupRef.current, { x: contentX });
+  }, [contentX, rects.length, registerContentGroup]);
 
   if (rects.length === 0) return null;
 
@@ -45,7 +47,10 @@ export function Highlights({
         </clipPath>
       </defs>
       <g clipPath={`url(#${clipId})`}>
-        <g ref={contentGroupRef} transform={`translate(${contentX},0)`}>
+        <g
+          ref={contentGroupRef}
+          transform={registerContentGroup ? undefined : `translate(${contentX},0)`}
+        >
           {rects.map((rect) => (
             <rect
               key={rect.id}

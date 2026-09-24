@@ -63,10 +63,10 @@ When available, the interval name becomes the tooltip title. The tooltip also sh
 Import `fetchBigBedRows` from `@weng-lab/genomebrowser-tracks/bigbed` to read custom columns inside a track fetcher while reusing file metadata across requests.
 
 ```ts
-fetchBigBedRows({ url, region, schema, resources });
+fetchBigBedRows({ url, region, schema, resources, signal });
 ```
 
-All four options are required:
+`signal` is optional; the other four options are required:
 
 | Option      | Type             | Description                                                                  |
 | ----------- | ---------------- | ---------------------------------------------------------------------------- |
@@ -74,6 +74,7 @@ All four options are required:
 | `region`    | `GenomicRegion`  | Chromosome and half-open region to read.                                     |
 | `schema`    | `z.ZodObject`    | Ordered fields for columns after chromosome, start, and end.                 |
 | `resources` | `TrackResources` | The resources supplied to the module's fetch callback.                       |
+| `signal`    | `AbortSignal`    | The fetch context's signal. Aborting it stops the read.                      |
 
 The result is `Promise<BigBedRecord<Schema>[]>`, with column types inferred from the schema. Each row includes `chromosome`, `start`, `end`, and unconsumed columns in `fields`. Network, file-reading, and column-validation errors reject the promise.
 
@@ -116,12 +117,14 @@ export const narrowPeakModule = defineTrackModule<NarrowPeakRow>()({
     track,
     demand,
     resources,
+    signal,
   }: TrackFetchContext<z.output<typeof configSchema>>): Promise<BigBedData> =>
     fetchBigBedRows({
       url: track.config.url,
       region: demand.region,
       schema: narrowPeakSchema,
       resources,
+      signal,
     }),
   tooltipComponent: ({ item }) => `${item.name}: signal ${item.signalValue}`,
 });

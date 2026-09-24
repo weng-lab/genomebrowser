@@ -50,12 +50,12 @@ Core observes committed track state and compares the parsed values marked by `fe
 
 The renderer can apply `opacity` to SVG output using the existing records. Leaving it unmarked allows those edits to redraw without a request. If score filtering moved into the renderer, `minimumScore` could likewise become a rendering-only setting. The marker follows where a value is used, rather than whether its name sounds visual or data-related.
 
-Apply markers to fields inside the config schema, outside optional or default wrappers. A marker around an object or array includes the entire value. Changes to the region, display, assembly, or logical width also trigger requests, without config markers.
+Apply markers to fields inside the config schema, outside optional or default wrappers. A marker around an object or array includes the entire value. Changes to the region, display, assembly, or logical width also trigger requests, without config markers. A pan requests data only when less than half a visible span of loaded data would remain beyond an edge of the view.
 
 | Change                                                     | Request behavior                          |
 | ---------------------------------------------------------- | ----------------------------------------- |
 | Initial mount or an added track                            | Fetch the new track data.                 |
-| Requested region or assembly                               | Fetch tracks for the new demand.          |
+| Requested region or assembly                               | Fetch when loaded data runs short.        |
 | Logical render width                                       | Fetch after resizing stops.               |
 | Track type, display, or a marked config value              | Replace that track's incompatible result. |
 | Title, color, height, callbacks, order, or unmarked config | Redraw without triggering a data request. |
@@ -64,7 +64,7 @@ An equivalent marked value does not force a request. Replacing an instance with 
 
 ## Keep rendering coordinates aligned
 
-The renderer receives `region` and `width` corresponding to its displayed data. During a same-scale pan, that can still be the previous render region while a new request is in flight. Core positions that content relative to the viewport, so the renderer must continue to map its records using the supplied pair.
+The renderer receives `region` and `width` corresponding to its displayed data. During a same-scale pan, that can still be the previous render region while a new request is in flight, and each track can be on a different region. Core positions each track's content from its own region, so the renderer must continue to map its records using the supplied pair.
 
 Use `visibleRegion` for decisions that specifically depend on what is on screen, such as the value range or number of visible rows. Use `region` and `width` for horizontal placement. Mixing the visible region with the overscanned width stretches or shifts features during navigation.
 
@@ -97,6 +97,7 @@ export const fetchValues: TrackFetch<FileConfig, BigWigValueRecord[]> = async ({
   track,
   demand,
   resources,
+  signal,
 }) => {
   let cached = resources.get<CachedReader>("signal-reader");
   if (!cached || cached.url !== track.config.url) {
@@ -106,7 +107,7 @@ export const fetchValues: TrackFetch<FileConfig, BigWigValueRecord[]> = async ({
     };
     resources.set("signal-reader", cached);
   }
-  return cached.file.read(demand.region);
+  return cached.file.read(demand.region, { signal });
 };
 ```
 
@@ -120,9 +121,9 @@ Resource values survive demand and config changes, but removing the track or unm
 
 When only the width changes, core waits until resizing has stopped for 200 ms before requesting data. If another fetch input changes during that wait, core starts the request immediately using the latest width.
 
-Core starts the tracks' fetchers together and displays their results once every request in the batch has finished. A failed track shows an error while successful tracks show their data, but a slow request delays the whole batch. Core blocks pointer interactions while fetching or while data is drawn at an outdated position.
+Each track fetches on its own and shows its result as soon as it arrives, so a slow track does not hold back the others. A failed track shows an error while successful tracks show their data. Core blocks pointer interactions until every track has a result for the current request.
 
-When newer requests supersede a batch, core ignores the old results. The underlying work is not cancelled, and the fetch contract has no abort signal. Fetchers should return their result rather than directly mutating application state.
+When a newer request replaces one, or the track is removed, core aborts the request's `signal` and ignores its result. Passing `signal` to the reader, as above, stops the download. Fetchers should return their result rather than directly mutating application state.
 
 Resource writes must account for requests that can overlap. Store the reader in `resources` before awaiting its result, as above. Each request then keeps its own reader reference even if another request replaces the cached entry.
 

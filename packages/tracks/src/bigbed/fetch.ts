@@ -9,8 +9,9 @@ export async function fetchBigBed({
   track: { config },
   demand: { region },
   resources,
+  signal,
 }: TrackFetchContext<BigBedConfig>): Promise<BigBedData> {
-  return readBedPreset(resources, config.url, config.bedSchema, region);
+  return readBedPreset(resources, config.url, config.bedSchema, region, signal);
 }
 
 /** Reads custom BigBed columns, reusing a reader per URL and schema identity in resources. */
@@ -19,11 +20,13 @@ export async function fetchBigBedRows<Schema extends z.ZodObject>({
   region,
   schema,
   resources,
+  signal,
 }: {
   url: string;
   region: GenomicRegion;
   schema: BigBedFileOptions<Schema>["schema"];
   resources: TrackResources;
+  signal?: AbortSignal;
 }): Promise<BigBedRecord<Schema>[]> {
-  return readCachedBigBedRows(resources, url, schema, region);
+  return readCachedBigBedRows(resources, url, schema, region, signal);
 }

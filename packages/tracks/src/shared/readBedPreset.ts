@@ -8,10 +8,11 @@ export async function readBedPreset(
   url: string,
   preset: BedSchemaKey | undefined,
   region: GenomicRegion,
+  signal?: AbortSignal,
 ) {
   const selected = preset ?? "bed9";
   try {
-    return await readCachedBigBedRows(resources, url, bedSchemas[selected], region);
+    return await readCachedBigBedRows(resources, url, bedSchemas[selected], region, signal);
   } catch (error) {
     if (!(error instanceof BigBedParseError)) throw error;
     throw new Error(

@@ -1,43 +1,34 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import type { GenomicRegion } from "../../genome/region";
 import { isSameSwapPreview } from "./trackSwapMath";
 import type { SwapPreview } from "./swapTypes";
+import type { RegisterContentGroup } from "../viewport/useContentTransform";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
+import { getContentPlacement } from "../viewport/renderWindow";
 import type { TrackStoreInstance } from "../state/trackStore";
 import { TrackRow } from "./TrackRow";
-import type { DataStoreInstance } from "../data/types";
-import { getTrackDataState } from "../data/dataStore";
+import type { TrackDataController } from "../data/trackDataController";
 import type { TrackLayout } from "./trackLayout";
 
 export function TrackStack({
   trackStore,
-  useDataStore,
-  isDisplayDataCompatible = true,
+  dataController,
   trackLayouts,
   visibleRegion,
-  region,
   marginWidth,
   trackWidth,
-  contentX,
-  contentWidth,
   registerContentGroup,
   panDrag,
-  isPanLocked,
   titleSize,
 }: {
   trackStore: TrackStoreInstance;
-  useDataStore: DataStoreInstance;
-  isDisplayDataCompatible?: boolean;
+  dataController: TrackDataController;
   trackLayouts: TrackLayout[];
   visibleRegion: GenomicRegion;
-  region: GenomicRegion;
   marginWidth: number;
   trackWidth: number;
-  contentX?: number;
-  contentWidth?: number;
-  registerContentGroup?: (node: SVGGElement) => () => void;
+  registerContentGroup?: RegisterContentGroup;
   panDrag?: PanDragHandlers;
-  isPanLocked?: boolean;
   titleSize: number;
 }) {
   const useTrackStore = trackStore;
@@ -52,18 +43,13 @@ export function TrackStack({
     <ConnectedTrackRow
       key={layout.id}
       trackStore={useTrackStore}
-      useDataStore={useDataStore}
-      isDisplayDataCompatible={isDisplayDataCompatible}
+      dataController={dataController}
       layout={layout}
       visibleRegion={visibleRegion}
-      region={region}
       marginWidth={marginWidth}
       trackWidth={trackWidth}
-      contentX={contentX}
-      contentWidth={contentWidth}
       registerContentGroup={registerContentGroup}
       panDrag={panDrag}
-      isPanLocked={isPanLocked}
       disableHover={!!swapPreview}
       titleSize={titleSize}
       previewOffsetY={getPreviewOffsetY(layout, trackLayouts, swapPreview)}
@@ -75,18 +61,13 @@ export function TrackStack({
 
 function ConnectedTrackRow({
   trackStore,
-  useDataStore,
-  isDisplayDataCompatible = true,
+  dataController,
   layout,
   visibleRegion,
-  region,
   marginWidth,
   trackWidth,
-  contentX,
-  contentWidth,
   registerContentGroup,
   panDrag,
-  isPanLocked,
   disableHover,
   titleSize,
   previewOffsetY,
@@ -94,18 +75,13 @@ function ConnectedTrackRow({
   onPreviewEnd,
 }: {
   trackStore: TrackStoreInstance;
-  useDataStore: DataStoreInstance;
-  isDisplayDataCompatible?: boolean;
+  dataController: TrackDataController;
   layout: TrackLayout;
   visibleRegion: GenomicRegion;
-  region: GenomicRegion;
   marginWidth: number;
   trackWidth: number;
-  contentX?: number;
-  contentWidth?: number;
-  registerContentGroup?: (node: SVGGElement) => () => void;
+  registerContentGroup?: RegisterContentGroup;
   panDrag?: PanDragHandlers;
-  isPanLocked?: boolean;
   disableHover: boolean;
   titleSize: number;
   previewOffsetY: number;
@@ -116,27 +92,30 @@ function ConnectedTrackRow({
   const track = useTrackStore((state) =>
     state.tracks[layout.index]?.base.id === layout.id ? state.tracks[layout.index] : undefined,
   );
-  const dataState = useDataStore((state) =>
-    getTrackDataState(state.data[layout.id], state.fetchingTrackIds.has(layout.id)),
-  );
+  // Each row subscribes to its own entry, so one track's result renders only its row.
+  const getDataState = () => dataController.getTrack(layout.id);
+  const dataState = useSyncExternalStore(dataController.subscribe, getDataState, getDataState);
 
   if (!track) return null;
+
+  // Each track is placed from the region its own data covers.
+  const dataRegion = dataState.status === "loading" ? visibleRegion : dataState.region;
+  const placement = getContentPlacement(dataRegion, visibleRegion, trackWidth, marginWidth);
 
   return (
     <TrackRow
       track={track}
-      dataState={isDisplayDataCompatible ? dataState : { status: "loading" }}
+      dataState={dataState}
       visibleRegion={visibleRegion}
-      region={region}
+      region={dataRegion}
       y={layout.y}
       previewOffsetY={previewOffsetY}
       marginWidth={marginWidth}
       trackWidth={trackWidth}
-      contentX={contentX}
-      contentWidth={contentWidth}
+      contentX={placement.x}
+      contentWidth={placement.width}
       registerContentGroup={registerContentGroup}
       panDrag={panDrag}
-      isPanLocked={isPanLocked}
       disableHover={disableHover}
       titleSize={titleSize}
       onPreviewChange={onPreviewChange}
