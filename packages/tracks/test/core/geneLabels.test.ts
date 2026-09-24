@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createGeneLabelLayout } from "../../src/gene/labels";
+import { createGeneLabelLayout } from "../../src/gene/render/labels";
 
 describe("Gene label placement", () => {
   it("places a label to the right when it fits", () => {

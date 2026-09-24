@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createGeneTranscriptGeometry } from "../../src/gene/geometry";
+import { createGeneTranscriptGeometry } from "../../src/gene/render/glyph/geometry";
 import type { GeneTranscript } from "../../src/gene/types";
 
 describe("Gene transcript geometry", () => {

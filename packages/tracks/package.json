@@ -98,6 +98,7 @@
     "@typescript/native": "catalog:",
     "@vitejs/plugin-react": "catalog:",
     "@weng-lab/genomebrowser": "workspace:^2.0.0",
+    "@weng-lab/render-probe": "workspace:*",
     "jsdom": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

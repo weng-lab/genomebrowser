@@ -6,9 +6,9 @@ import {
   type GeneExonPart,
   type GeneIntronPart,
 } from "./geometry";
-import type { GeneGlyphGeometry, GeneGlyphPartId } from "./glyph";
-import type { GeneInteractionTarget } from "./interactions";
-import type { GeneTranscript, GroupedGene } from "./types";
+import type { GeneGlyphGeometry, GeneGlyphPartId } from "./GeneGlyph";
+import type { GeneInteractionTarget } from "../../interactions";
+import type { GeneTranscript, GroupedGene } from "../../types";
 
 export type PreparedGeneGlyph = {
   geometry: GeneGlyphGeometry;

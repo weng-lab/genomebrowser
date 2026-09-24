@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { prepareGeneTranscriptGlyph, prepareMergedGeneGlyph } from "../../src/gene/preparation";
+import {
+  prepareGeneTranscriptGlyph,
+  prepareMergedGeneGlyph,
+} from "../../src/gene/render/glyph/preparation";
 import type { GeneExon, GeneTranscript, GroupedGene } from "../../src/gene/types";
 
 describe("Gene glyph preparation", () => {

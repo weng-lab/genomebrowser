@@ -28,6 +28,7 @@ const trackAliases = Object.fromEntries(
 
 export default defineConfig({
   test: {
+    setupFiles: ["@weng-lab/render-probe/setup"],
     alias: {
       "@emotion/react": path.join(packageNodeModules, "@emotion/react"),
       "@emotion/styled": path.join(packageNodeModules, "@emotion/styled"),

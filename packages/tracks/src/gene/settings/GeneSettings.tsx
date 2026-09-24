@@ -1,5 +1,5 @@
-import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
-import { TrackRowLayoutSettings } from "../shared/settings/trackRowLayoutSettings";
+import { TrackBaseSettings } from "../../shared/settings/trackBaseSettings";
+import { TrackRowLayoutSettings } from "../../shared/settings/trackRowLayoutSettings";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -12,20 +12,24 @@ import TextField from "@mui/material/TextField";
 import type { TextFieldProps } from "@mui/material/TextField";
 import { useGenomeBrowser, type TrackSettingsProps } from "@weng-lab/genomebrowser";
 import { useState, type ComponentProps } from "react";
-import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
+import { TrackSettingsColorField } from "../../shared/settings/trackSettingsColorField";
 import {
   TrackSettingsFieldGrid,
   TrackSettingsFieldRow,
   TrackSettingsFullRow,
-} from "../shared/settings/trackSettingsFieldGrid";
-import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
-import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
-import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
-import { useObservedGeneTags } from "./tagCatalog";
-import { getGeneDatasetsForAssembly, getGeneDatasetTitle, type GeneDataset } from "./datasets";
-import type { GeneInteractionTarget } from "./interactions";
-import { reorderTagColors } from "./settingsHelpers";
-import type { GeneConfig, GeneTagColor } from "./types";
+} from "../../shared/settings/trackSettingsFieldGrid";
+import { TrackSettingsLayout } from "../../shared/settings/trackSettingsLayout";
+import { TrackSettingsSection } from "../../shared/settings/trackSettingsSection";
+import { TrackSettingsUrlField } from "../../shared/settings/trackSettingsUrlField";
+import { useObservedGeneTags } from "../data/tagCatalog";
+import {
+  getGeneDatasetsForAssembly,
+  getGeneDatasetTitle,
+  type GeneDataset,
+} from "../data/datasets";
+import type { GeneInteractionTarget } from "../interactions";
+import { reorderTagColors } from "./reorderTagColors";
+import type { GeneConfig, GeneTagColor } from "../types";
 
 type GeneSettingsProps = TrackSettingsProps<GeneConfig, GeneInteractionTarget>;
 

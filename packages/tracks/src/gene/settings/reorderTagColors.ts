@@ -1,5 +1,5 @@
 import { arrayMove } from "@dnd-kit/sortable";
-import type { GeneTagColor } from "./types";
+import type { GeneTagColor } from "../types";
 
 export function reorderTagColors(
   tagColors: GeneTagColor[],

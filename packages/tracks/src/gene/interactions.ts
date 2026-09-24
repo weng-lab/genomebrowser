@@ -4,7 +4,7 @@ import type {
   CompositeGeneIntronRun,
   GeneExonPart,
   GeneIntronPart,
-} from "./geometry";
+} from "./render/glyph/geometry";
 import type { GeneConfig, GeneTranscript, GroupedGene } from "./types";
 
 export type GeneTranscriptPart = (GeneIntronPart | GeneExonPart) & {
