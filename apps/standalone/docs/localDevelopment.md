@@ -34,7 +34,7 @@ If it already exists, add missing variables without overwriting your current set
 
 Use both Clerk keys from the same application and environment as API Console to share user accounts. Without both keys, only public browsing is available and account controls are hidden. Coordinate search works without `SCREEN_API_KEY`.
 
-For the local proxy or Docker, leave `INSTANCE_CONNECTION_NAME` empty. It overrides `DATABASE_URL` when set. The `DB_*` and `GCP_*` connector settings are for the separate [Vercel setup](vercel-gcp.md).
+For the local proxy or Docker, leave `INSTANCE_CONNECTION_NAME` empty. It overrides `DATABASE_URL` when set. The `DB_*` and `GCP_*` connector settings are for the separate [Vercel setup](vercelCloudSql.md).
 
 Restart the development server after changing environment variables. Keep database credentials, `CLERK_SECRET_KEY`, and `SCREEN_API_KEY` server-side; do not give them a `NEXT_PUBLIC_` prefix.
 
@@ -153,4 +153,4 @@ The integration tests use `TEST_DATABASE_URL` when set, otherwise `DATABASE_URL`
 | No sign-in controls                     | Configure both Clerk keys and restart the app.                                                                 |
 | Package imports cannot resolve          | Run the Turbo build from step 4.                                                                               |
 
-For deployments, continue with [Vercel and Cloud SQL](vercel-gcp.md). Return to [standalone docs](README.md).
+For deployments, continue with [Vercel and Cloud SQL](vercelCloudSql.md). Return to [standalone docs](README.md).

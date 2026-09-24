@@ -1,6 +1,6 @@
 # Session and custom-track persistence
 
-Current behavior of saved sessions, custom tracks, and database access. For planned guest storage and collection organization, see the [design notes](sessions-and-persistence.md).
+Current behavior of saved sessions, custom tracks, and database access. For planned guest storage and collection organization, see the [session roadmap](sessionRoadmap.md). Terms follow the [glossary](glossary.md).
 
 ## Saved sessions
 
@@ -14,7 +14,7 @@ Autosave groups store notifications into 350 ms batches, captures a detached sna
 
 The database snapshot initializes the client stores when the session page loads. After that, data flows from the stores to `PUT /api/sessions/[sessionId]`; responses contain only save metadata or an error. Route-handler invalidation marks the dashboard and session page stale for future visits without refreshing the active page or hydrating the stores again.
 
-The server derives ownership from Clerk for every read and mutation. The `sessions` table has a composite primary key of `owner_id` and `id`, plus a name, revision, timestamps, snapshot version, `browser_state` JSONB, and `track_state` JSONB. Both states update in one transaction. Store actions, module implementations, interaction callbacks, and fetched data stay out of storage. Server validation checks snapshot structure, registered assemblies, track IDs, and module configuration using the generated track JSON schema. Opening a session creates independent stores and restores application callbacks.
+The server derives ownership from Clerk for every read and mutation. The `sessions` table has a composite primary key of `owner_id` and `id`, plus a name, revision, timestamps, snapshot version, `browser_state` JSONB, and `track_state` JSONB. Both states update in one transaction. Store actions, module implementations, interaction callbacks, and fetched data stay out of storage. Server validation checks snapshot structure, registered assemblies, track IDs, and module configuration using the generated track JSON schema. Opening a session creates independent stores.
 
 Updates must match the saved revision. A stale tab receives a conflict error instead of overwriting a newer save. Reloading discards local unsaved edits and loads the stored revision. Transient failures retry with increasing delays up to ten seconds while mounted. Conflicts, invalid snapshots, and authorization failures display an error and do not overwrite local state or retry indefinitely. Pending changes flush when the page is hidden or the session unmounts. Small requests use browser keepalive, but closing the browser before saving finishes is not guaranteed to preserve edits, especially large snapshots or requests queued behind an in-flight save. Routine saves run silently; only save failures display an alert. Session assembly is immutable.
 
@@ -34,4 +34,4 @@ For local development, `DATABASE_URL` selects the database. Setting `INSTANCE_CO
 
 If neither connection setting is present, storage is unavailable. Incomplete Cloud SQL settings, connection failures, and query failures produce load or save errors. Vercel's connection lifecycle helper manages idle pool connections, and the Google credential supplier reads a current OIDC token when credentials need refreshing. Concurrent server processes each have their own pool.
 
-Follow [local development](localDevelopment.md) for database setup, migrations, and tests, or [Vercel deployment](vercel-gcp.md) for the hosted connector. Return to [standalone docs](README.md).
+Follow [local development](localDevelopment.md) for database setup, migrations, and tests, or [Vercel deployment](vercelCloudSql.md) for the hosted connector. Return to [standalone docs](README.md).

@@ -13,9 +13,10 @@ Open `/browser` for the genomic workspace or `/dashboard` for saved sessions and
 ## Documentation
 
 - [Local development](docs/localDevelopment.md): environment variables, database access, migrations, tests, and troubleshooting.
-- [Vercel and Cloud SQL](docs/vercel-gcp.md): preview deployment setup.
-- [App architecture](docs/architecture.md): feature ownership, accounts, assemblies, and controls.
+- [Vercel and Cloud SQL](docs/vercelCloudSql.md): preview deployment setup.
+- [App architecture](docs/architecture.md): code organization, dependency rules, accounts, assemblies, and controls.
+- [Glossary](docs/glossary.md): session and custom-track terms used in this app.
 - [Session persistence](docs/sessionPersistence.md): autosave, custom tracks, and database behavior.
-- [Sessions and collections design](docs/sessions-and-persistence.md): implemented behavior, proposals, and open questions.
+- [Session roadmap](docs/sessionRoadmap.md): planned workflows and open product questions.
 
 See the [docs index](docs/README.md) for the reading order.
