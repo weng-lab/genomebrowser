@@ -7,11 +7,8 @@ import { SessionAutosave } from "../features/sessions/SessionAutosave";
 import { CreateSessionButton } from "../features/sessions/CreateSessionButton";
 import type { SaveSessionResult } from "../features/sessions/types";
 
-const mocks = vi.hoisted(() => ({ save: vi.fn(), create: vi.fn(), push: vi.fn() }));
-vi.mock("../features/sessions/actions", () => ({
-  saveSession: mocks.save,
-  createSession: mocks.create,
-}));
+const mocks = vi.hoisted(() => ({ create: vi.fn(), push: vi.fn() }));
+vi.mock("../features/sessions/actions", () => ({ createSession: mocks.create }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mocks.push }) }));
 vi.mock("../features/site/SiteLink", () => ({ SiteLink: "a" }));
 

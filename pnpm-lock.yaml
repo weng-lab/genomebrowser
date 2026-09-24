@@ -360,9 +360,6 @@ importers:
       '@weng-lab/genomic-reader':
         specifier: workspace:*
         version: link:../../packages/reader
-      '@weng-lab/ui-components':
-        specifier: 'catalog:'
-        version: 3.3.0(59bfb49a3883a6dad5009e1152269108)
       ajv:
         specifier: ^8.20.0
         version: 8.20.0

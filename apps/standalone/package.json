@@ -35,7 +35,6 @@
     "@weng-lab/genomebrowser-tracks": "workspace:*",
     "@weng-lab/genomebrowser-ui": "workspace:*",
     "@weng-lab/genomic-reader": "workspace:*",
-    "@weng-lab/ui-components": "catalog:",
     "ajv": "^8.20.0",
     "drizzle-orm": "^0.45.3",
     "google-auth-library": "^11.1.0",
