@@ -10,6 +10,7 @@ Read the guidance relevant to the change:
 - Project structure and feature ownership: [architecture](docs/01-project/01-architecture.md) and [feature placement](docs/01-project/02-feature-placement.md).
 - Application UI in `packages/ui` or `apps/*`: [interface design](docs/01-project/03-design.md).
 - Tests and verification: [testing](docs/02-contributing/testing.md) and [verification](docs/02-contributing/verify.md). Use `pnpm verify` for the workspace check.
+- React render behavior, re-renders, or performance in core, tracks, or UI: the `verify-renders` skill and the render budgets section of [testing](docs/02-contributing/testing.md).
 - Package scripts, Turbo, or CI orchestration: [builds](docs/03-tooling/builds.md). Shared dependency changes: [dependencies](docs/03-tooling/dependencies.md).
 
 Maintainer guidance lives in `docs/`. Consumer docs in `packages/*/docs/` ship with their packages; keep them self-contained and update them when public behavior changes.

@@ -16,15 +16,16 @@ An application composes the browser by creating its browser and track stores, re
 
 Core coordinates the viewport, track data requests, rendering, and browser interactions. A track module supplies the behavior for its visualization, including fetching, rendering, and configuration validation. This lets first-party and application-owned modules participate through the same contract while hiding their data and rendering details from core.
 
-| Part              | Role                                                                                                                          |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `packages/core`   | Embeddable browser runtime, state, and track-module contracts.                                                                |
-| `packages/tracks` | First-party modules and shared track-specific presentation. Modules use core's public contracts and reader for genomic files. |
-| `packages/reader` | Genomic file reading, usable independently of the browser.                                                                    |
-| `packages/ui`     | Navigation, track selection, highlight controls, and chromosome overviews for embedding the browser in existing websites.     |
-| `apps/standalone` | The browser as its own product, with application-specific components and optional reuse of UI-package controls.               |
-| `apps/playground` | Experiments and custom browser compositions used during development.                                                          |
-| `packages/create` | A starter generator for developers building a browser application.                                                            |
+| Part                    | Role                                                                                                                          |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `packages/core`         | Embeddable browser runtime, state, and track-module contracts.                                                                |
+| `packages/tracks`       | First-party modules and shared track-specific presentation. Modules use core's public contracts and reader for genomic files. |
+| `packages/reader`       | Genomic file reading, usable independently of the browser.                                                                    |
+| `packages/ui`           | Navigation, track selection, highlight controls, and chromosome overviews for embedding the browser in existing websites.     |
+| `apps/standalone`       | The browser as its own product, with application-specific components and optional reuse of UI-package controls.               |
+| `apps/playground`       | Experiments and custom browser compositions used during development.                                                          |
+| `packages/create`       | A starter generator for developers building a browser application.                                                            |
+| `packages/render-probe` | Internal test utility that measures React render counts for render budgets. Private and unpublished.                          |
 
 Core and reader provide independent foundations. Tracks combines their capabilities; UI supplies controls around the browser. Applications choose the modules and controls that fit their workflows. The standalone app is one such application, not the source of every shared component's requirements.
 

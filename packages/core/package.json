@@ -47,7 +47,7 @@
   "dependencies": {
     "jiti": "^2.6.2",
     "zod": "catalog:",
-    "zustand": "5.0.15"
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
@@ -55,6 +55,7 @@
     "@types/react-dom": "catalog:",
     "@typescript/native": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "@weng-lab/render-probe": "workspace:*",
     "jsdom": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
