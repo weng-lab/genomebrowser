@@ -1,3 +1,4 @@
+import { dynseqModule } from "./dynseq";
 import { rulerModule } from "./ruler";
 import { bigBedModule } from "./bigbed";
 import { bigWigModule } from "./bigwig";
@@ -9,6 +10,7 @@ import { methylCModule } from "./methylc";
 
 export const firstPartyTrackModules = [
   rulerModule,
+  dynseqModule,
   bigBedModule,
   bigWigModule,
   bulkBedModule,

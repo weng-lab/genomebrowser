@@ -10,6 +10,7 @@ const packageNodeModules = path.resolve(__dirname, "node_modules");
 const trackEntries = {
   "genomebrowser-tracks": path.resolve(__dirname, "src/lib.ts"),
   ruler: path.resolve(__dirname, "src/ruler/index.ts"),
+  dynseq: path.resolve(__dirname, "src/dynseq/index.ts"),
   bigbed: path.resolve(__dirname, "src/bigbed/index.ts"),
   bigwig: path.resolve(__dirname, "src/bigwig/index.ts"),
   bulkbed: path.resolve(__dirname, "src/bulkbed/index.ts"),

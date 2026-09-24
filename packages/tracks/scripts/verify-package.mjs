@@ -5,13 +5,24 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const packageDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(resolve(packageDirectory, "package.json"), "utf8"));
 assertEqual(manifest.sideEffects, false, "package sideEffects declaration");
-const trackNames = ["bigbed", "bigwig", "bulkbed", "cave", "ccre", "gene", "methylc", "ruler"];
+const trackNames = [
+  "bigbed",
+  "bigwig",
+  "bulkbed",
+  "cave",
+  "ccre",
+  "dynseq",
+  "gene",
+  "methylc",
+  "ruler",
+];
 const expectedRuntimeExports = new Map([
   ["./ruler", ["rulerModule"]],
   ["./bigbed", ["bigBedModule", "fetchBigBedRows"]],
   ["./bigwig", ["bigWigModule"]],
   ["./bulkbed", ["bulkBedModule"]],
   ["./cave", ["caveModule"]],
+  ["./dynseq", ["dynseqModule", "NUCLEOTIDE_COLORS", "NUCLEOTIDE_GLYPHS"]],
   ["./ccre", ["ccreBigBedModule"]],
   ["./gene", ["geneModule", "getGeneDatasetsForAssembly", "getGeneDatasetTitle"]],
   ["./methylc", ["methylCModule"]],

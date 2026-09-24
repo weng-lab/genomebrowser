@@ -43,6 +43,10 @@
       "types": "./dist/src/cave/index.d.ts",
       "import": "./dist/cave.js"
     },
+    "./dynseq": {
+      "types": "./dist/src/dynseq/index.d.ts",
+      "import": "./dist/dynseq.js"
+    },
     "./ccre": {
       "types": "./dist/src/ccre/index.d.ts",
       "import": "./dist/ccre.js"
