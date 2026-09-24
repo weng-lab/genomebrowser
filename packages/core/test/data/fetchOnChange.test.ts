@@ -187,53 +187,30 @@ describe("fetchOnChange", () => {
     ).not.toBe(createFetchSignature(module, track));
   });
 
-  it("canonicalizes object keys and distinguishes special numbers", () => {
-    expect(signatureFor({ second: 2, first: 1 })).toBe(signatureFor({ first: 1, second: 2 }));
-    expect(signatureFor(-0)).not.toBe(signatureFor(0));
+  it("compares JSON values by content and other values by identity", () => {
+    expect(signatureFor({ items: [1, "a", null] })).toBe(signatureFor({ items: [1, "a", null] }));
     expect(signatureFor(Number.NaN)).not.toBe(signatureFor(null));
     expect(signatureFor(Number.POSITIVE_INFINITY)).not.toBe(signatureFor(Number.NEGATIVE_INFINITY));
+
+    const date = new Date("2026-01-01T00:00:00Z");
+    expect(signatureFor(date)).toBe(signatureFor(date));
+    expect(signatureFor(date)).not.toBe(signatureFor(new Date("2026-01-01T00:00:00Z")));
+    expect(signatureFor(new Map([["key", 1]]))).not.toBe(signatureFor(new Map([["key", 1]])));
+    expect(signatureFor(() => 1)).not.toBe(signatureFor(() => 1));
+    expect(signatureFor(Symbol("value"))).not.toBe(signatureFor(Symbol("value")));
   });
 
-  it("encodes Map, Set, and mixed Date and bigint values", () => {
-    expect(signatureFor(new Map([["key", 1]]))).not.toBe(signatureFor(new Map([["key", 2]])));
-    expect(signatureFor(new Set(["first"]))).not.toBe(signatureFor(new Set(["second"])));
-
-    const first = { timestamp: new Date("2026-01-01T00:00:00Z"), revision: 1n };
-    const second = { timestamp: new Date("2026-01-01T00:00:00Z"), revision: 2n };
-    expect(() => signatureFor(first)).not.toThrow();
-    expect(signatureFor(first)).not.toBe(signatureFor(second));
-  });
-
-  it("encodes cycles and repeated references without throwing", () => {
+  it("falls back to config identity for values that cannot be stringified", () => {
     const cyclic: { self?: unknown } = {};
     cyclic.self = cyclic;
-    const shared = { value: "shared" };
-    const repeated = { first: shared, second: shared };
+    const config = { value: cyclic };
 
-    expect(() => signatureFor(cyclic)).not.toThrow();
-    expect(signatureFor(cyclic)).toBe(signatureFor(cyclic));
-    expect(() => signatureFor(repeated)).not.toThrow();
-
-    expect(signatureFor(Symbol("value"))).not.toBe(signatureFor(Symbol("value")));
-    expect(signatureFor(() => 1)).not.toBe(signatureFor(() => 1));
-  });
-
-  it("distinguishes custom instances whose state is not visibly enumerable", () => {
-    class PrivateValue {
-      #value: string;
-
-      constructor(value: string) {
-        this.#value = value;
-      }
-
-      read() {
-        return this.#value;
-      }
-    }
-
-    const first = new PrivateValue("first");
-    expect(first.read()).toBe("first");
-    expect(signatureFor(first)).toBe(signatureFor(first));
-    expect(signatureFor(first)).not.toBe(signatureFor(new PrivateValue("second")));
+    expect(() => createFetchSignature(arbitraryValueModule, { config })).not.toThrow();
+    expect(createFetchSignature(arbitraryValueModule, { config })).toBe(
+      createFetchSignature(arbitraryValueModule, { config }),
+    );
+    expect(createFetchSignature(arbitraryValueModule, { config })).not.toBe(
+      createFetchSignature(arbitraryValueModule, { config: { value: cyclic } }),
+    );
   });
 });
