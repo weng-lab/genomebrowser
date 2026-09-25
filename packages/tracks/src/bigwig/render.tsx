@@ -181,7 +181,7 @@ function getRenderedPoints(
   return points;
 }
 
-function getViewportRange(
+export function getViewportRange(
   config: BigWigConfig,
   data: BigWigData,
   visibleRegion: TrackRendererProps<BigWigConfig, BigWigData>["visibleRegion"],

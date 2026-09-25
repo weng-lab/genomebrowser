@@ -2,10 +2,14 @@ import type { GenomicRegion, TrackResources } from "@weng-lab/genomebrowser";
 import {
   createBigBedFile,
   createBigWigFile,
+  createTwoBitFile,
   type BigBedFileOptions,
   type BigBedRecord,
   type BigWigFile,
   type BigWigRecord,
+  type BigWigValueRecord,
+  type TwoBitFile,
+  type TwoBitRecord,
 } from "@weng-lab/genomic-reader";
 import type { z } from "zod";
 
@@ -13,6 +17,7 @@ import type { z } from "zod";
 // individual readers are keyed by source URL inside the stored map.
 const BIG_WIG_FILES = "bigwig-files";
 const BIG_BED_FILES = "bigbed-files";
+const TWO_BIT_FILES = "twobit-files";
 
 /**
  * Reads BigWig records at a resolution suited to the viewport, reusing one
@@ -91,4 +96,37 @@ function cachedFiles<F>(resources: TrackResources, key: string): Map<string, F> 
   const files = resources.get<Map<string, F>>(key) ?? new Map<string, F>();
   resources.set(key, files);
   return files;
+}
+
+/**
+ * Reads BigWig source values without substituting a zoom summary, for tracks
+ * that plot individual bases and cannot use a reduced level.
+ */
+export async function readCachedBigWigValues(
+  resources: TrackResources,
+  url: string,
+  region: GenomicRegion,
+): Promise<BigWigValueRecord[]> {
+  const files = cachedFiles<BigWigFile>(resources, BIG_WIG_FILES);
+  let file = files.get(url);
+  if (!file) {
+    file = createBigWigFile({ url });
+    files.set(url, file);
+  }
+  return file.read(region);
+}
+
+/** Reads reference sequence, reusing one 2bit reader per source URL. */
+export async function readCachedTwoBitSequence(
+  resources: TrackResources,
+  url: string,
+  region: GenomicRegion,
+): Promise<TwoBitRecord[]> {
+  const files = cachedFiles<TwoBitFile>(resources, TWO_BIT_FILES);
+  let file = files.get(url);
+  if (!file) {
+    file = createTwoBitFile({ url });
+    files.set(url, file);
+  }
+  return file.read(region);
 }

@@ -43,6 +43,10 @@
       "types": "./dist/src/cave/index.d.ts",
       "import": "./dist/cave.js"
     },
+    "./dynseq": {
+      "types": "./dist/src/dynseq/index.d.ts",
+      "import": "./dist/dynseq.js"
+    },
     "./ccre": {
       "types": "./dist/src/ccre/index.d.ts",
       "import": "./dist/ccre.js"
@@ -74,6 +78,7 @@
     "build:checked": "pnpm typecheck && pnpm build",
     "typecheck": "tsc -b",
     "test": "vitest run",
+    "test:e2e": "node test/browser/dynseq.e2e.mjs",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt .",
