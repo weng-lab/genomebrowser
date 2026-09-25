@@ -52,5 +52,5 @@ jobs:
         run: |
           opencode run --standalone --auto \
             --agent contribution-review \
-            --model vercel/anthropic/claude-opus-5.5 \
+            --model vercel/openai/gpt-6-luna \
             "Review $CONTRIBUTION_KIND #$CONTRIBUTION_NUMBER in $GH_REPO for enough information to act. Publish an advisory clarification only if needed, following your instructions."
