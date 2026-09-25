@@ -58,11 +58,15 @@ const MAX_COMPRESSED_BLOCK_SIZE = 1n << 16n;
 
 /**
  * How many index chunks to read at once. Each chunk costs a round trip, and a
- * dense locus resolves to hundreds of them, so reading strictly in sequence
- * makes latency rather than bandwidth the limit. Kept small enough to stay
- * within a browser's per-host connection budget.
+ * dense locus resolves to dozens of them even after merging, so reading strictly
+ * in sequence makes latency rather than bandwidth the limit.
+ *
+ * Higher than `MAX_CONCURRENT_MERGED_RANGES` in the BBI reader, which fetches a
+ * handful of large merged ranges where this fetches many smaller ones. Measured
+ * against a dense RNA-seq locus: 4 took 2.5s and 8 took 1.5s, and past 8 the
+ * curve is flat, so the extra sockets buy nothing.
  */
-const CHUNK_FETCH_CONCURRENCY = 12;
+const CHUNK_FETCH_CONCURRENCY = 8;
 const INITIAL_HEADER_READ_SIZE = 1n << 16n;
 const MAX_HEADER_READ_SIZE = 1n << 26n;
 

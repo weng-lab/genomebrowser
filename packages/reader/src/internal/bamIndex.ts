@@ -19,6 +19,13 @@ const LINEAR_INDEX_SHIFT = 14; // 16 KiB windows
 /** Bin 37450 is a pseudo-bin carrying mapped/unmapped counts, not real chunks. */
 const PSEUDO_BIN = 37450;
 
+/**
+ * Largest a BGZF block can be, and so the slack a reader must allow past a
+ * chunk's final block: the index records where that block starts but not how
+ * long it is.
+ */
+const MAX_COMPRESSED_BLOCK_SIZE = 1n << 16n;
+
 export type BamChunk = {
   /** Virtual offset of the first record, inclusive. */
   begin: bigint;
@@ -131,9 +138,14 @@ export function selectChunks(reference: BamIndexReference, start: number, end: n
   const merged: BamChunk[] = [];
   for (const chunk of candidates) {
     const previous = merged.at(-1);
-    // Merge when the next chunk starts inside, or in the same block as, the end
-    // of the previous one: the intervening bytes get fetched either way.
-    if (previous && chunk.begin >> 16n <= previous.end >> 16n) {
+    // Merge when the next chunk begins within the slack the previous one
+    // already costs. A reader cannot know the length of a chunk's final block,
+    // so it has to read a maximum block past it; anything starting inside that
+    // window is bytes it fetches either way, and keeping the two apart buys a
+    // second request for data already in hand. A dense locus is mostly chunks a
+    // few hundred bytes long, so leaving them separate means each one pays the
+    // full 64 KiB and the read is dominated by slack rather than by records.
+    if (previous && (chunk.begin >> 16n) - (previous.end >> 16n) <= MAX_COMPRESSED_BLOCK_SIZE) {
       if (chunk.end > previous.end) previous.end = chunk.end;
       continue;
     }
