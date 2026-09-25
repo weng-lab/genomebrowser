@@ -42,3 +42,11 @@ To preview a review from a worktree containing the agent, authenticate `gh`, pro
 opencode run --standalone --auto --agent review --model anthropic/claude-opus-5-5 \
   "Preview PR #123 in weng-lab/genomebrowser. Reply with the proposed comment; do not post or change anything on GitHub."
 ```
+
+## Contribution clarity review
+
+The separate contribution review workflow checks whether issues and PRs provide enough information to act. It accepts short descriptions and reasonable differences from the templates. It asks for clarification only when missing or conflicting information prevents useful work, and does not change titles, descriptions, or metadata.
+
+It runs on opening, editing, or reopening an issue or PR, and when a draft PR becomes ready. Bot events, draft PRs, and fork PRs are skipped. Label changes, comments, and new commits alone do not trigger it. An edit to the title or body triggers a fresh review that also considers the discussion. The agent updates one advisory comment and removes it when clarification is no longer needed.
+
+It uses the same `ANTHROPIC_API_KEY` secret as the code reviewer. The issue workflow must exist on the default branch, and the agent must exist in the checked-out default or PR base revision. To preview locally, use `--agent contribution-review` in the command above and specify an issue or PR number.

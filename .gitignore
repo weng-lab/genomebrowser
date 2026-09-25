@@ -38,6 +38,7 @@ storybook-static
 !.opencode/agents/
 .opencode/agents/*
 !.opencode/agents/review.md
+!.opencode/agents/contribution-review.md
 .devserve
 .vercel
 .codex
