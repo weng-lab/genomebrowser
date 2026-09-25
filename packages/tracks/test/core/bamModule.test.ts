@@ -30,6 +30,7 @@ function resources(): TrackResources {
   };
 }
 const region = { chromosome: "chr1", start: 100, end: 110 };
+const signal = new AbortController().signal;
 function context(
   cache: TrackResources,
   config: Partial<BamConfig> = {},
@@ -44,6 +45,7 @@ function context(
       assembly: { id: "test", chromosomes: { chr1: 1000000 } },
     },
     resources: cache,
+    signal,
   };
 }
 beforeEach(() => vi.resetAllMocks());
@@ -141,7 +143,7 @@ describe("BAM module public contract", () => {
     await bamModule.fetch(context(cache, { url: "SECOND_BAM", indexUrl: "SECOND_INDEX" }));
     await bamModule.fetch(context(resources()));
     expect(mocks.createBamFile).toHaveBeenCalledTimes(4);
-    expect(read).toHaveBeenCalledWith(region);
+    expect(read).toHaveBeenCalledWith(region, { signal });
     expect(mocks.createTwoBitFile).not.toHaveBeenCalled();
   });
   it.each([5, 10])("does not fetch visible regions at or above the limit %i", async (maxWindow) => {

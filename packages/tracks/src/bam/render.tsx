@@ -57,7 +57,7 @@ function BamRenderer({
     visibleRegion.end - visibleRegion.start <= config.alignments.sequenceMaxWindow &&
     rowHeight >= 10;
   return (
-    <g data-bam-display={display}>
+    <g data-bam-display={display} style={{ userSelect: "none" }}>
       <rect width={width} height={trackHeight} fill="transparent" pointerEvents="none" />
       {status && (
         <text x={Math.max(0, x(visibleRegion.start)) + 4} y={11} fontSize={11} fill="#475569">

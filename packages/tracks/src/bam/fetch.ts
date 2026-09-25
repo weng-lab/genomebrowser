@@ -12,6 +12,7 @@ export async function fetchBam({
   track: { config },
   demand: { region, visibleRegion },
   resources,
+  signal,
 }: TrackFetchContext<BamConfig>): Promise<BamData> {
   if (visibleRegion.end - visibleRegion.start >= config.maxWindow) {
     return {
@@ -29,7 +30,7 @@ export async function fetchBam({
     };
     resources.set("bam-file", cached);
   }
-  const recordsPromise = cached.file.read(region);
+  const recordsPromise = cached.file.read(region, { signal });
   // Optional reference failures must not hide alignments.
   const referencePromise = async (): Promise<Pick<BamData, "reference" | "referenceError">> => {
     // Fetch reference with alignments so retained or overscanned data can show mismatches
@@ -44,7 +45,7 @@ export async function fetchBam({
         };
         resources.set("bam-reference", reference);
       }
-      const sequence = await reference.file.read(region);
+      const sequence = await reference.file.read(region, { signal });
       if (sequence.length === 0)
         return { reference: [], referenceError: "Reference sequence not found for this region." };
       return { reference: sequence };
