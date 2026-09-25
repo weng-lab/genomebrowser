@@ -27,3 +27,28 @@ A failed formatting check is work to finish, not just a result to report. Apply 
 ## Reporting results
 
 Report failures, checks that could not run, and any remaining uncertainty about the changed behavior. Passing automated checks does not establish behavior they do not exercise. Keep PR descriptions focused on the implementation and relevant review limits rather than copying check logs.
+
+## Automated PR review
+
+The PR review workflow uses OpenCode and GPT-6 Luna through Vercel AI Gateway to review repository conformity, code quality, and PR scope. Add a Vercel AI Gateway API key as the `AI_GATEWAY_API_KEY` repository Actions secret to enable it. The agent must already exist on the PR's base branch, so the workflow can run after its initial setup is merged.
+
+Reviews run when a PR opens, receives commits, reopens, or becomes ready for review. Drafts, fork PRs, and Dependabot events are skipped. The agent uses Git and `gh` to inspect the contribution and manage its review comment, starting with instructions from the base revision.
+
+The code reviewer never runs `pnpm verify` or other verification commands, installs dependencies, or triggers CI. It reviews source, tests, documentation, and existing CI evidence for code quality and repository conformity. Instructions to run checks in contribution guides and skills apply to implementation work, not the reviewer. Pending checks do not prevent the quality review.
+
+Findings appear in one bot comment that is updated on reruns and removed when a completed review has no findings. Blocking labels are recommendations for the team, not an automatic merge gate. Incomplete reviews are reported in the job output. Keep this job advisory rather than adding it to required branch checks.
+
+To preview a review from a worktree containing the agent, authenticate `gh`, provide Vercel AI Gateway credentials to OpenCode, and run the following command with the PR number to review. Preview also works for closed or merged PRs and does not change GitHub comments.
+
+```sh
+opencode run --standalone --auto --agent review --model vercel/openai/gpt-6-luna \
+  "Preview PR #123 in weng-lab/genomebrowser. Reply with the proposed comment; do not post or change anything on GitHub."
+```
+
+## Contribution clarity review
+
+The separate contribution review workflow checks whether issues and PRs provide enough information to act. It accepts short descriptions and reasonable differences from the templates. It asks for clarification only when missing or conflicting information prevents useful work, and does not change titles, descriptions, or metadata.
+
+It runs on opening, editing, or reopening an issue or PR, and when a draft PR becomes ready. Bot events, draft PRs, and fork PRs are skipped. Label changes, comments, and new commits alone do not trigger it. An edit to the title or body triggers a fresh review that also considers the discussion. The agent updates one advisory comment and removes it when clarification is no longer needed.
+
+It uses the same `AI_GATEWAY_API_KEY` secret as the code reviewer. The issue workflow must exist on the default branch, and the agent must exist in the checked-out default or PR base revision. To preview locally, use `--agent contribution-review` in the command above and specify an issue or PR number.

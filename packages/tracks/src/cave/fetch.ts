@@ -7,12 +7,13 @@ export async function fetchCave({
   track: { config },
   demand: { region, width },
   resources,
+  signal,
 }: TrackFetchContext<CaveConfig>): Promise<CaveData> {
   const url = (assay: "hmC" | "OXBS") =>
     `${base}${config.neurotransmitter}_${assay}_${config.age}.CGN-both.frac.cov5.bw`;
   const [top, bottom] = await Promise.all([
-    readCachedBigWigRecords(resources, url("hmC"), region, width),
-    readCachedBigWigRecords(resources, url("OXBS"), region, width),
+    readCachedBigWigRecords(resources, url("hmC"), region, width, signal),
+    readCachedBigWigRecords(resources, url("OXBS"), region, width, signal),
   ]);
   return { top, bottom };
 }

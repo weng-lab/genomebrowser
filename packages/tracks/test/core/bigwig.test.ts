@@ -82,6 +82,18 @@ describe("BigWig track fetching", () => {
     reader.getZoomLevels.mockResolvedValue([]);
   });
 
+  it("passes the abort signal to every reader call", async () => {
+    const controller = new AbortController();
+    const region = { chromosome: "chr1", start: 0, end: 1_000 };
+    reader.getZoomLevels.mockResolvedValue([2]);
+    reader.readZoomLevel.mockResolvedValue([]);
+
+    await fetchBigWig({ ...createContext("YOUR_URL_HERE", region), signal: controller.signal });
+
+    expect(reader.getZoomLevels).toHaveBeenCalledWith({ signal: controller.signal });
+    expect(reader.readZoomLevel).toHaveBeenCalledWith(region, 2, { signal: controller.signal });
+  });
+
   it("reads unzoomed values when no suitable zoom level is available", async () => {
     const region = { chromosome: "chr1", start: 10, end: 20 };
     reader.read.mockResolvedValue([
@@ -95,7 +107,7 @@ describe("BigWig track fetching", () => {
     expect(reader.createBigWigFile).toHaveBeenCalledWith({
       url: "https://example.org/data.bw",
     });
-    expect(reader.read).toHaveBeenCalledWith(region);
+    expect(reader.read).toHaveBeenCalledWith(region, { signal: undefined });
   });
 
   it("reads the coarsest zoom level that keeps two summaries per pixel", async () => {
@@ -119,7 +131,7 @@ describe("BigWig track fetching", () => {
       readCachedBigWigRecords(createResources(), "https://example.org/data.bw", region, 1_000),
     ).resolves.toEqual([summary]);
 
-    expect(reader.readZoomLevel).toHaveBeenCalledWith(region, 400);
+    expect(reader.readZoomLevel).toHaveBeenCalledWith(region, 400, { signal: undefined });
     expect(reader.read).not.toHaveBeenCalled();
   });
 

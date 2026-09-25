@@ -5,7 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { GenomeBrowser } from "../../src/browser/GenomeBrowser";
-import type { DataState } from "../../src/browser/data/types";
+import type { TrackContentState } from "../../src/browser/track-row/TrackContent";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { RegistryProvider } from "../../src/browser/state/RegistryContext";
 import { createTrackStore } from "../../src/browser/state/trackStore";
@@ -158,7 +158,7 @@ describe("track render error isolation", () => {
             track={track}
             dataState={{ status: "error", error: "Expected fetch failure" }}
           />
-          <TrackState track={unsupportedTrack} dataState={{ status: "success", data: null }} />
+          <TrackState track={unsupportedTrack} dataState={{ status: "ready", data: null }} />
         </svg>
       </RegistryProvider>,
     );
@@ -175,7 +175,13 @@ describe("track render error isolation", () => {
   });
 });
 
-function TrackState({ track, dataState }: { track: AnyTrackInstance; dataState: DataState }) {
+function TrackState({
+  track,
+  dataState,
+}: {
+  track: AnyTrackInstance;
+  dataState: TrackContentState;
+}) {
   return (
     <g>
       <TrackContent

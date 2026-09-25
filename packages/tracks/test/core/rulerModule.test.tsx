@@ -129,9 +129,9 @@ describe("ruler module", () => {
     expect(createFile).not.toHaveBeenCalled();
     expect(await fetch(120, url)).toMatchObject({ records: [{ sequence: "ACGTNacgtn" }] });
     await fetch(1000, url, 200);
-    expect(read).toHaveBeenCalledWith({ ...region, end: 300 });
+    expect(read).toHaveBeenCalledWith({ ...region, end: 300 }, { signal: undefined });
     await fetch(2000, url, 400);
-    expect(read).toHaveBeenCalledWith({ ...region, end: 500 });
+    expect(read).toHaveBeenCalledWith({ ...region, end: 500 }, { signal: undefined });
     await fetch(119, url);
     expect(createFile).toHaveBeenCalledTimes(1);
     await fetch(240, "https://example.test/other.2bit");
@@ -139,5 +139,27 @@ describe("ruler module", () => {
     read.mockRejectedValueOnce(new Error("range access denied"));
     expect(await fetch(120, url)).toEqual({ records: [], error: "range access denied" });
     expect((await fetch(120, url)).records).toHaveLength(1);
+  });
+  it("passes the abort signal to the reader and rethrows aborted reads", async () => {
+    const controller = new AbortController();
+    const abortError = new DOMException("Aborted", "AbortError");
+    read.mockImplementationOnce(async () => {
+      controller.abort();
+      throw abortError;
+    });
+    createFile.mockReturnValue({ read });
+    const request = rulerModule.fetch({
+      track: {
+        base: { id: "ruler", display: "full" },
+        type: "ruler",
+        config: { ...rulerModule.create(input).config, sequenceUrl: url },
+      },
+      demand: { region, visibleRegion: region, width: 1000, assembly: hg38 },
+      resources: resources(),
+      signal: controller.signal,
+    });
+
+    await expect(request).rejects.toBe(abortError);
+    expect(read).toHaveBeenLastCalledWith(region, { signal: controller.signal });
   });
 });

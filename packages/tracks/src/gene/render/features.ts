@@ -1,4 +1,4 @@
-import type { GeneTagColor, GeneTranscript, GroupedGene } from "./types";
+import type { GeneTagColor, GeneTranscript, GroupedGene } from "../types";
 
 export function findTranscriptTagColor(
   transcript: GeneTranscript,

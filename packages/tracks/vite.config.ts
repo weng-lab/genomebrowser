@@ -11,6 +11,7 @@ const trackEntries = {
   "genomebrowser-tracks": path.resolve(__dirname, "src/lib.ts"),
   ruler: path.resolve(__dirname, "src/ruler/index.ts"),
   bam: path.resolve(__dirname, "src/bam/index.ts"),
+  dynseq: path.resolve(__dirname, "src/dynseq/index.ts"),
   bigbed: path.resolve(__dirname, "src/bigbed/index.ts"),
   bigwig: path.resolve(__dirname, "src/bigwig/index.ts"),
   bulkbed: path.resolve(__dirname, "src/bulkbed/index.ts"),
@@ -29,6 +30,7 @@ const trackAliases = Object.fromEntries(
 
 export default defineConfig({
   test: {
+    setupFiles: ["@weng-lab/render-probe/setup"],
     alias: {
       "@emotion/react": path.join(packageNodeModules, "@emotion/react"),
       "@emotion/styled": path.join(packageNodeModules, "@emotion/styled"),

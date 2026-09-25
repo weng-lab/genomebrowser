@@ -33,8 +33,8 @@ vi.mock("../../src/shared/layout", async (importOriginal) => ({
   useRowLayout: runtime.useRowLayout,
 }));
 
-vi.mock("../../src/gene/geometry", async (importOriginal) => {
-  const geometry = await importOriginal<typeof import("../../src/gene/geometry")>();
+vi.mock("../../src/gene/render/glyph/geometry", async (importOriginal) => {
+  const geometry = await importOriginal<typeof import("../../src/gene/render/glyph/geometry")>();
   return {
     ...geometry,
     createCompositeGeneGeometry: (
@@ -52,7 +52,7 @@ vi.mock("../../src/gene/geometry", async (importOriginal) => {
   };
 });
 
-import { FullGene, MergedGene, TaggedGene } from "../../src/gene/render";
+import { FullGene, MergedGene, TaggedGene } from "../../src/gene/render/renderers";
 import type { GeneData, GeneTranscript } from "../../src/gene/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =

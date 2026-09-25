@@ -161,6 +161,23 @@ const updated = useTrackStore.getState().updateTrack("signal", {
 if (!updated.ok) console.error(updated.error);
 ```
 
+For example, after setting the signal track's range to `{ min: 0, max: 100 }`, update just its lower bound:
+
+```ts
+const rangeSet = useTrackStore.getState().updateTrack("signal", {
+  config: { yRange: { min: 0, max: 100 } },
+});
+if (!rangeSet.ok) throw new Error(rangeSet.error);
+
+const lowerBoundSet = useTrackStore.getState().updateTrack("signal", {
+  config: { yRange: { min: 10 } },
+});
+if (!lowerBoundSet.ok) throw new Error(lowerBoundSet.error);
+// The range is now { min: 10, max: 100 }.
+```
+
+No spread of the existing `yRange` is needed. Setting `min` to `100` or higher would fail this module's range validation and preserve the accepted range. Recursive patches update existing objects; omitting a nested key does not delete it.
+
 A config change requests new data when a field marked by the module with `fetchOnChange` changes. Display changes also request data. Other base fields, callbacks, and unmarked config changes reuse current data. See [request behavior](../03-trackDefinition/fetchingData.md#requests-and-result-lifetime) for the mounted browser's coordination rules.
 
 ## Replacing tracks atomically

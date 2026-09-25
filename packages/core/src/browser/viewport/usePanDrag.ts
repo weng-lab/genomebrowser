@@ -1,4 +1,4 @@
-import { useCallback, useRef, type MouseEvent, type PointerEvent } from "react";
+import { useCallback, useMemo, useRef, type MouseEvent, type PointerEvent } from "react";
 import { svgPoint } from "../../modules/utils/svg";
 
 const PAN_COMMIT_THRESHOLD_PX = 10;
@@ -17,7 +17,6 @@ type UsePanDragOptions = {
   svg: SVGSVGElement | null;
   getCurrentDelta: () => number;
   setDelta: (deltaPx: number) => void;
-  onStart: () => void;
   onCommit: (deltaPx: number) => void;
   onCancel: () => void;
 };
@@ -27,7 +26,6 @@ export function usePanDrag({
   svg,
   getCurrentDelta,
   setDelta,
-  onStart,
   onCommit,
   onCancel,
 }: UsePanDragOptions): PanDragHandlers {
@@ -75,10 +73,9 @@ export function usePanDrag({
       startSvgX.current = x;
       startDeltaPx.current = getCurrentDelta();
       isDraggingRef.current = true;
-      onStart();
       return true;
     },
-    [disabled, getCurrentDelta, getEventX, onStart],
+    [disabled, getCurrentDelta, getEventX],
   );
 
   const isDragging = useCallback(() => isDraggingRef.current, []);
@@ -138,12 +135,15 @@ export function usePanDrag({
     event.stopPropagation();
   }, []);
 
-  return {
-    isDragging,
-    onPointerDown,
-    onPointerMove,
-    onPointerUp,
-    onPointerCancel,
-    onClickCapture,
-  };
+  return useMemo(
+    () => ({
+      isDragging,
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel,
+      onClickCapture,
+    }),
+    [isDragging, onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onClickCapture],
+  );
 }

@@ -62,6 +62,12 @@ export type BrowserStore = {
   highlights: Highlight[];
   selectionMode: BrowserSelectionMode;
   selectionHighlight: SelectionHighlightStyle;
+  /**
+   * True while a mounted browser is loading track data. Pointer interaction in
+   * the browser is blocked meanwhile. Set by the browser; read it to disable
+   * application controls until the browser has settled.
+   */
+  readonly isLoading: boolean;
   setSelectionMode: (mode: BrowserSelectionMode) => BrowserSelectionMutationResult;
   setSelectionHighlight: (style: SelectionHighlightStyle) => BrowserSelectionMutationResult;
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
@@ -139,6 +145,7 @@ export function createBrowserStore(input: BrowserStoreInput): BrowserStoreInstan
         opacity: 0.25,
         type: "filled",
       },
+      isLoading: false,
       setSelectionMode: (mode) => {
         const result = selectionModeSchema.safeParse(mode);
         if (!result.success)

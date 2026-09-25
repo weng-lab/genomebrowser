@@ -7,6 +7,11 @@ import type {
   BigWigValueRecord,
 } from "@weng-lab/genomic-reader";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
+import {
+  dynseqModule,
+  type DynseqConfig,
+  type DynseqCreateInput,
+} from "@weng-lab/genomebrowser-tracks/dynseq";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import {
   bigBedModule,
@@ -51,6 +56,7 @@ describe("first-party track package", () => {
   it("exports all nine pre-bound modules as a ready-made collection", () => {
     expect(firstPartyTrackModules).toEqual([
       rulerModule,
+      dynseqModule,
       bigBedModule,
       bigWigModule,
       bulkBedModule,
@@ -62,6 +68,7 @@ describe("first-party track package", () => {
     ]);
     expect(firstPartyTrackModules.map((module) => module.type)).toEqual([
       "ruler",
+      "dynseq",
       "bigbed",
       "bigwig",
       "bulkbed",
@@ -135,6 +142,10 @@ describe("first-party track package", () => {
   });
 
   it("derives create-input and validated config types from each module", () => {
+    expectTypeOf<DynseqCreateInput>().toEqualTypeOf<Parameters<typeof dynseqModule.create>[0]>();
+    expectTypeOf<DynseqConfig>().toEqualTypeOf<
+      ReturnType<typeof dynseqModule.validate>["config"]
+    >();
     expectTypeOf<BigBedCreateInput>().toEqualTypeOf<Parameters<typeof bigBedModule.create>[0]>();
     expectTypeOf<BigBedConfig>().toEqualTypeOf<
       ReturnType<typeof bigBedModule.validate>["config"]

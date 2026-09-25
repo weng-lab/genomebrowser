@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import type { GenomicRegion } from "../../genome/region";
 import type { BrowserRegionMutationResult } from "../state/browserStore";
 import { usePanDrag } from "./usePanDrag";
@@ -49,55 +49,39 @@ export function usePanController({
   getContentOffset,
   setContentOffset,
   setRegion,
-  onPanStart,
 }: {
   svg: SVGSVGElement | null;
   region: GenomicRegion;
   trackWidth: number;
   getContentOffset: () => number;
-  setContentOffset: (deltaPx: number) => void;
+  setContentOffset: (deltaPx: number) => number;
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
-  onPanStart: () => void;
 }) {
-  const [isPanLocked, setIsPanLocked] = useState(false);
   const hasValidTrackWidth = Number.isFinite(trackWidth) && trackWidth > 0;
 
-  const unlockPan = useCallback(() => {
-    setIsPanLocked(false);
-  }, []);
-
+  // A successful commit leaves the drag offset in place; the content transform
+  // resets it in the same frame as the new region renders.
   const commitPan = useCallback(
     (committedDeltaPx: number) => {
       const candidate = getPanCommitRegion(region, trackWidth, committedDeltaPx);
-      if (!candidate) {
-        setContentOffset(0);
-        return;
-      }
-      const result = setRegion(candidate);
-      if (!result.ok) {
-        setContentOffset(0);
-        return;
-      }
-      setContentOffset(0);
-      setIsPanLocked(true);
+      if (!candidate || !setRegion(candidate).ok) setContentOffset(0);
     },
     [region, trackWidth, setRegion, setContentOffset],
   );
 
+  const cancelPan = useCallback(() => setContentOffset(0), [setContentOffset]);
+
   const panDrag = usePanDrag({
-    disabled: isPanLocked || !hasValidTrackWidth,
+    disabled: !hasValidTrackWidth,
     svg,
     getCurrentDelta: getContentOffset,
     setDelta: setContentOffset,
-    onCancel: () => setContentOffset(0),
-    onStart: onPanStart,
+    onCancel: cancelPan,
     onCommit: commitPan,
   });
 
   return {
-    isPanLocked,
     commitPan,
     panDrag,
-    unlockPan,
   };
 }

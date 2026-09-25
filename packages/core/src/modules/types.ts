@@ -82,6 +82,12 @@ export type TrackFetchContext<Config> = Readonly<{
   track: TrackFetchTrack<Config>;
   demand: TrackFetchDemand;
   resources: TrackResources;
+  /**
+   * Aborts when the browser no longer needs this request, such as after the
+   * view moves again or the track is removed. Pass it to reader calls so
+   * superseded downloads stop. The browser ignores results of aborted requests.
+   */
+  signal?: AbortSignal;
 }>;
 
 export type TrackFetch<Config, Data> = (context: TrackFetchContext<Config>) => Promise<Data>;
