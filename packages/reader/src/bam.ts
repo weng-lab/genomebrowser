@@ -1,7 +1,13 @@
 import type { GenomicFile, GenomicRecord, GenomicRegion, ReadOptions } from "./genomicFile";
 import { throwIfAborted } from "./internal/abort";
 import { decodeBamRecords } from "./internal/bamDecoder";
-import { readBamIndex, selectChunks, type BamChunk, type BamIndex } from "./internal/bamIndex";
+import {
+  BGZF_BLOCK_SLACK,
+  readBamIndex,
+  selectChunks,
+  type BamChunk,
+  type BamIndex,
+} from "./internal/bamIndex";
 import { BinaryReader } from "./internal/binaryReader";
 import { inflateBgzfBlocks, joinBgzfBlocks, splitVirtualOffset } from "./internal/bgzf";
 import type { ExactRangeMetadata } from "./internal/httpRange";
@@ -165,49 +171,66 @@ export function createBamFile(options: BamFileOptions): BamFile {
 
       const reader = new RequestRangeReader(url, { signal, metadata: cache.rangeMetadata });
 
-      const readChunk = async (chunk: BamChunk): Promise<BamRecord[]> => {
-        const begin = splitVirtualOffset(chunk.begin);
-        const end = splitVirtualOffset(chunk.end);
-        // The index gives the end block's offset but not its length, so read
-        // one maximum block past it and let the inflater stop where it runs out.
-        const length = end.blockOffset - begin.blockOffset + MAX_COMPRESSED_BLOCK_SIZE;
-        const key = `${begin.blockOffset}:${length}`;
-        let bytes = cache.chunkBytes.get(key);
-        if (bytes === undefined) {
-          bytes = await reader.readBounded(begin.blockOffset, 1n, length);
-          throwIfAborted(signal);
-          cache.chunkBytes.set(key, bytes);
-          cache.chunkBytesSize += bytes.byteLength;
-          // Map iterates in insertion order, so the first key is the oldest.
-          while (cache.chunkBytesSize > MAX_CACHED_CHUNK_BYTES) {
-            const oldest = cache.chunkBytes.keys().next();
-            if (oldest.done) break;
-            cache.chunkBytesSize -= cache.chunkBytes.get(oldest.value)?.byteLength ?? 0;
-            cache.chunkBytes.delete(oldest.value);
-          }
-        } else {
+      const readRange = async (offset: bigint, length: bigint): Promise<Uint8Array> => {
+        const key = `${offset}:${length}`;
+        const cached = cache.chunkBytes.get(key);
+        if (cached !== undefined) {
           throwIfAborted(signal);
           // Refresh recency so a range still in use is not the next evicted.
           cache.chunkBytes.delete(key);
-          cache.chunkBytes.set(key, bytes);
+          cache.chunkBytes.set(key, cached);
+          return cached;
         }
+        const fetched = await reader.readBounded(offset, 1n, length);
+        throwIfAborted(signal);
+        cache.chunkBytes.set(key, fetched);
+        cache.chunkBytesSize += fetched.byteLength;
+        // Map iterates in insertion order, so the first key is the oldest.
+        while (cache.chunkBytesSize > MAX_CACHED_CHUNK_BYTES) {
+          const oldest = cache.chunkBytes.keys().next();
+          if (oldest.done) break;
+          cache.chunkBytesSize -= cache.chunkBytes.get(oldest.value)?.byteLength ?? 0;
+          cache.chunkBytes.delete(oldest.value);
+        }
+        return fetched;
+      };
 
-        const blocks = inflateBgzfBlocks(bytes, begin.blockOffset);
-        if (blocks.length === 0) return [];
-        const { data, startIndexByBlockOffset } = joinBgzfBlocks(blocks);
+      const readChunk = async (chunk: BamChunk): Promise<BamRecord[]> => {
+        const begin = splitVirtualOffset(chunk.begin);
+        const end = splitVirtualOffset(chunk.end);
+        const span = end.blockOffset - begin.blockOffset;
+        // The span already covers every block before the final one, so only the
+        // final block needs slack, and only when the chunk reads into it. Try
+        // the slack real blocks need, then the format's maximum.
+        for (const slack of [BGZF_BLOCK_SLACK, MAX_COMPRESSED_BLOCK_SIZE]) {
+          const bytes = await readRange(begin.blockOffset, span + slack);
+          const blocks = inflateBgzfBlocks(bytes, begin.blockOffset);
+          if (blocks.length === 0) return [];
+          const { data, startIndexByBlockOffset } = joinBgzfBlocks(blocks);
 
-        const from = (startIndexByBlockOffset.get(begin.blockOffset) ?? 0) + begin.dataOffset;
-        const endBlockStart = startIndexByBlockOffset.get(end.blockOffset);
-        const to = endBlockStart === undefined ? data.length : endBlockStart + end.dataOffset;
+          const endBlockStart = startIndexByBlockOffset.get(end.blockOffset);
+          // Reading short would silently drop the tail of the chunk, so when the
+          // final block did not arrive, read again with the format's maximum.
+          if (
+            end.dataOffset > 0 &&
+            endBlockStart === undefined &&
+            slack !== MAX_COMPRESSED_BLOCK_SIZE
+          )
+            continue;
 
-        return [
-          ...decodeBamRecords(data, from, to, {
-            referenceId,
-            chromosome: region.chromosome,
-            regionStart: region.start,
-            regionEnd: region.end,
-          }),
-        ];
+          const from = (startIndexByBlockOffset.get(begin.blockOffset) ?? 0) + begin.dataOffset;
+          const to = endBlockStart === undefined ? data.length : endBlockStart + end.dataOffset;
+
+          return [
+            ...decodeBamRecords(data, from, to, {
+              referenceId,
+              chromosome: region.chromosome,
+              regionStart: region.start,
+              regionEnd: region.end,
+            }),
+          ];
+        }
+        return [];
       };
 
       // A dense locus resolves to hundreds of disjoint chunks, and awaiting them

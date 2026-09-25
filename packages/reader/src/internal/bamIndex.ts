@@ -20,11 +20,25 @@ const LINEAR_INDEX_SHIFT = 14; // 16 KiB windows
 const PSEUDO_BIN = 37450;
 
 /**
- * Largest a BGZF block can be, and so the slack a reader must allow past a
- * chunk's final block: the index records where that block starts but not how
- * long it is.
+ * Slack a reader allows past a chunk's final block on the first attempt. The
+ * index records where that block starts but not how long it is, and the format
+ * permits up to 64 KiB, but real writers emit far smaller blocks: sampling this
+ * project's BAMs gives a median near 8 KiB and a maximum near 12 KiB. Reading
+ * the format's maximum every time made slack, not data, the bulk of a fetch, so
+ * the reader starts here and retries larger when a block genuinely exceeds it.
  */
-const MAX_COMPRESSED_BLOCK_SIZE = 1n << 16n;
+export const BGZF_BLOCK_SLACK = 16n * 1024n;
+
+/**
+ * How wide a gap between chunks is still worth reading through.
+ *
+ * Merging costs the gap bytes but saves a round trip, so this trades bytes
+ * against latency and is independent of the slack above. Measured against a
+ * dense RNA-seq locus, 64 KiB and 128 KiB were within noise of each other on
+ * time while 64 KiB moved 2.3 MB less, and widening to 320 KiB lost a third of
+ * the speed to the extra bytes.
+ */
+const MAX_MERGED_CHUNK_GAP = 64n * 1024n;
 
 export type BamChunk = {
   /** Virtual offset of the first record, inclusive. */
@@ -145,7 +159,7 @@ export function selectChunks(reference: BamIndexReference, start: number, end: n
     // second request for data already in hand. A dense locus is mostly chunks a
     // few hundred bytes long, so leaving them separate means each one pays the
     // full 64 KiB and the read is dominated by slack rather than by records.
-    if (previous && (chunk.begin >> 16n) - (previous.end >> 16n) <= MAX_COMPRESSED_BLOCK_SIZE) {
+    if (previous && (chunk.begin >> 16n) - (previous.end >> 16n) <= MAX_MERGED_CHUNK_GAP) {
       if (chunk.end > previous.end) previous.end = chunk.end;
       continue;
     }
