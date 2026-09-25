@@ -27,3 +27,18 @@ A failed formatting check is work to finish, not just a result to report. Apply 
 ## Reporting results
 
 Report failures, checks that could not run, and any remaining uncertainty about the changed behavior. Passing automated checks does not establish behavior they do not exercise. Keep PR descriptions focused on the implementation and relevant review limits rather than copying check logs.
+
+## Automated PR review
+
+The PR review workflow uses OpenCode and Anthropic Opus 5.5 to review repository conformity, code quality, and PR scope. Add `ANTHROPIC_API_KEY` as a repository Actions secret to enable it. The agent must already exist on the PR's base branch, so the workflow can run after its initial setup is merged.
+
+Reviews run when a PR opens, receives commits, reopens, or becomes ready for review. Drafts, fork PRs, and Dependabot events are skipped. The agent uses Git and `gh` to inspect the contribution and manage its review comment, starting with instructions from the base revision.
+
+Findings appear in one bot comment that is updated on reruns and removed when a completed review has no findings. Blocking labels are recommendations for the team, not an automatic merge gate. Incomplete reviews are reported in the job output. Keep this job advisory rather than adding it to required branch checks.
+
+To preview a review from a worktree containing the agent, authenticate `gh`, provide Anthropic credentials to OpenCode, and run the following command with the PR number to review. Preview also works for closed or merged PRs and does not change GitHub comments.
+
+```sh
+opencode run --standalone --agent review --model anthropic/claude-opus-5-5 \
+  "Preview PR #123 in weng-lab/genomebrowser. Reply with the proposed comment; do not post or change anything on GitHub."
+```
