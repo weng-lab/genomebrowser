@@ -37,6 +37,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 24
+          package-manager-cache: false
 
       - name: Install OpenCode
         run: npm install --global @opencode/cli@2.0.16
