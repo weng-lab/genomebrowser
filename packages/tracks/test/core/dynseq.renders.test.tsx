@@ -48,13 +48,13 @@ it("budgets a zoom from signal to sequence through the browser store", async () 
       end: 120,
     }),
   );
-  // Necessary: FullDynseq mounts once with the fetched close-up data. TrackContent
-  // commits the region change, loading state, and completed data. Counts match
-  // the original renderer before the BigWig refactor.
-  expect(report.pick("FullDynseq", "TrackContent")).toMatchInlineSnapshot(`
+  // Necessary: FullDynseq and SequenceDynseq each mount once with the fetched
+  // close-up data. Core's own budgets cover TrackContent's loading transitions;
+  // this budget measures the module's signal-to-sequence rendering work.
+  expect(report.pick("FullDynseq", "SequenceDynseq")).toMatchInlineSnapshot(`
     {
       "FullDynseq": 1,
-      "TrackContent": 3,
+      "SequenceDynseq": 1,
     }
   `);
 });

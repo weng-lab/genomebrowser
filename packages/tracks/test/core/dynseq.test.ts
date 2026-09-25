@@ -143,7 +143,10 @@ describe("dynseq fetching", () => {
         },
       });
       expect(data).toEqual({ signal: summaries, sequence: [] });
-      expect(file.readZoomLevel).toHaveBeenCalledWith(demand.region, 10);
+      expect(file.readZoomLevel).toHaveBeenCalledTimes(1);
+      // Reader request options belong to the shared fetcher. This scenario checks
+      // that dynseq selects the correct region and summary resolution.
+      expect(file.readZoomLevel.mock.calls[0]?.slice(0, 2)).toEqual([demand.region, 10]);
       expect(reader.readBigWig).not.toHaveBeenCalled();
       expect(reader.createTwoBitFile).not.toHaveBeenCalled();
     },
