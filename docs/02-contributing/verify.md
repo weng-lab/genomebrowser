@@ -39,6 +39,6 @@ Findings appear in one bot comment that is updated on reruns and removed when a 
 To preview a review from a worktree containing the agent, authenticate `gh`, provide Anthropic credentials to OpenCode, and run the following command with the PR number to review. Preview also works for closed or merged PRs and does not change GitHub comments.
 
 ```sh
-opencode run --standalone --agent review --model anthropic/claude-opus-5-5 \
+opencode run --standalone --auto --agent review --model anthropic/claude-opus-5-5 \
   "Preview PR #123 in weng-lab/genomebrowser. Reply with the proposed comment; do not post or change anything on GitHub."
 ```
