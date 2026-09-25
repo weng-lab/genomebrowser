@@ -8,6 +8,7 @@ export async function fetchDynseq(context: TrackFetchContext<DynseqConfig>): Pro
     track: { config, base },
     demand: { region, width },
     resources,
+    signal: abortSignal,
   } = context;
   // Pixels per base is unchanged by overscan. Prepare sequence at this resolution
   // even when maxLetterBases still hides it: fetch demand has no viewport span.
@@ -19,8 +20,8 @@ export async function fetchDynseq(context: TrackFetchContext<DynseqConfig>): Pro
     return { signal: await fetchBigWig(context), sequence: [] };
   }
   const [signal, sequence] = await Promise.all([
-    readCachedBigWigValues(resources, config.url, region),
-    readCachedTwoBitSequence(resources, config.twoBitUrl, region),
+    readCachedBigWigValues(resources, config.url, region, abortSignal),
+    readCachedTwoBitSequence(resources, config.twoBitUrl, region, abortSignal),
   ]);
   return { signal, sequence };
 }
