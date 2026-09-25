@@ -23,14 +23,28 @@ const module = defineTrackModule({
   render: { full: TestRenderer },
 });
 
+// Resolves immediately unless a test holds its requests with `holdSlowRequests`.
+let slowRequests: (() => void)[] | undefined;
+const slowModule = defineTrackModule({
+  type: "render-budget-slow-test",
+  configSchema: z.object({}),
+  fetch: () =>
+    new Promise<null>((resolve) => {
+      if (slowRequests) slowRequests.push(() => resolve(null));
+      else resolve(null);
+    }),
+  render: { full: TestRenderer },
+});
+
 let probe: Probe | undefined;
 
 afterEach(() => {
   probe?.unmount();
   probe = undefined;
+  slowRequests = undefined;
 });
 
-async function mountBrowser() {
+async function mountBrowser({ slowTrack = false }: { slowTrack?: boolean } = {}) {
   const browserStore = createBrowserStore({
     assembly: { id: "test", chromosomes: { chr1: 10_000 } },
     region: { chromosome: "chr1", start: 0, end: 1_000 },
@@ -39,8 +53,18 @@ async function mountBrowser() {
     titleSize: 10,
   });
   const trackStore = createTrackStore({
-    modules: [module],
-    tracks: ["first", "second", "third"].map(createTrack),
+    modules: [module, slowModule],
+    tracks: [
+      ...(slowTrack ? ["first", "second"] : ["first", "second", "third"]).map(createTrack),
+      ...(slowTrack
+        ? [
+            slowModule.create({
+              base: { id: "third", title: "third", height: 20 },
+              config: {},
+            }),
+          ]
+        : []),
+    ],
   });
   probe = await renderWithProbe(
     <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
@@ -78,21 +102,21 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     const { probe } = await mountBrowser();
 
     // Necessary: one render per instance, so 1 each for the runtime, view, and stack, 3
-    // per row component, 6 PanTracks, and 2 Highlights. Mounting currently takes several
-    // commits, re-rendering the whole tree while the fetch settles.
+    // per row component, 6 PanTracks, and 2 Highlights, then 1 per row when its data
+    // arrives. Mounting still takes a second commit of the view for the SVG element.
     expect(budget(probe.mounted)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 3,
+        "BrowserView": 2,
         "ConnectedTrackRow": 9,
         "GenomeBrowserRuntime": 2,
-        "Highlights": 6,
+        "Highlights": 4,
         "PanTrack": 18,
         "TestRenderer": 3,
         "TrackContent": 6,
         "TrackControls": 9,
         "TrackFrame": 9,
         "TrackRow": 9,
-        "TrackStack": 3,
+        "TrackStack": 2,
       }
     `);
   });
@@ -104,23 +128,139 @@ describe("GenomeBrowser render budgets with three tracks", () => {
       browserStore.getState().setRegion({ chromosome: "chr1", start: 500, end: 1_500 }),
     );
 
-    // Necessary: every row and its renderer must render once for the new region, and
-    // the view, stack, and both Highlights layers must reposition: 1 each for the view
-    // and stack, 3 per row component, 6 PanTracks, and 2 Highlights. The runtime need
-    // not render. The loading state also remounts each renderer before the fetch settles.
+    // Necessary: every row renders once for the new region; the pan keeps each track's
+    // old data on screen and its new data arrives in the same commit. The view, stack,
+    // and both Highlights layers reposition once. The runtime reads the region.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 3,
-        "ConnectedTrackRow": 9,
-        "GenomeBrowserRuntime": 2,
-        "Highlights": 6,
+        "BrowserView": 1,
+        "ConnectedTrackRow": 3,
+        "GenomeBrowserRuntime": 1,
+        "Highlights": 2,
+        "PanTrack": 6,
+        "TestRenderer": 3,
+        "TrackContent": 3,
+        "TrackControls": 3,
+        "TrackFrame": 3,
+        "TrackRow": 3,
+        "TrackStack": 1,
+      }
+    `);
+  });
+
+  it("drags a pan inside the pre-loaded window", async () => {
+    const { probe, browserStore } = await mountBrowser();
+    const svg = document.querySelector<SVGSVGElement>("#browserSVG");
+    const panTarget = Array.from(svg?.querySelectorAll<SVGGElement>("g") ?? []).find(
+      (group) => group.style.cursor === "grab",
+    );
+    if (!svg || !panTarget) throw new Error("Expected a pannable track");
+    installSvgCoordinates(svg);
+    installPointerCapture(panTarget);
+
+    // A 200px drag moves the view by 200 bases, well inside the one-span margin
+    // loaded on each side, so no track fetches. Drag frames move the content without
+    // rendering. Necessary: the commit renders every row once for the new visible
+    // region, and the view, stack, and Highlights once.
+    const report = await probe.measure(() => {
+      panTarget.dispatchEvent(pointerEvent("pointerdown", 500));
+      panTarget.dispatchEvent(pointerEvent("pointermove", 300));
+      panTarget.dispatchEvent(pointerEvent("pointerup", 300));
+    });
+
+    expect(browserStore.getState().region).toEqual({
+      chromosome: "chr1",
+      start: 200,
+      end: 1_200,
+    });
+    expect(budget(report)).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 1,
+        "ConnectedTrackRow": 3,
+        "GenomeBrowserRuntime": 1,
+        "Highlights": 2,
+        "PanTrack": 6,
+        "TestRenderer": 3,
+        "TrackContent": 3,
+        "TrackControls": 3,
+        "TrackFrame": 3,
+        "TrackRow": 3,
+        "TrackStack": 1,
+      }
+    `);
+  });
+
+  it("shows fast tracks before a slow track resolves", async () => {
+    const { probe, browserStore } = await mountBrowser({ slowTrack: true });
+    const requests: (() => void)[] = [];
+    slowRequests = requests;
+
+    // setRegion commits a region outside the loaded window. The two fast tracks
+    // resolve at once and the third track's request stays pending. Necessary: every
+    // row renders once for the new region, then each fast row once for its data.
+    const commit = await probe.measure(() =>
+      browserStore.getState().setRegion({ chromosome: "chr1", start: 3_000, end: 4_000 }),
+    );
+    expect(requests).toHaveLength(1);
+    expect(budget(commit)).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 1,
+        "ConnectedTrackRow": 5,
+        "GenomeBrowserRuntime": 1,
+        "Highlights": 2,
+        "PanTrack": 10,
+        "TestRenderer": 5,
+        "TrackContent": 5,
+        "TrackControls": 5,
+        "TrackFrame": 5,
+        "TrackRow": 5,
+        "TrackStack": 1,
+      }
+    `);
+
+    // Necessary: only the slow row renders for its data. Nothing else changes.
+    const resolve = await probe.measure(() => requests[0]?.());
+    expect(budget(resolve)).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 0,
+        "ConnectedTrackRow": 1,
+        "GenomeBrowserRuntime": 0,
+        "Highlights": 0,
+        "PanTrack": 6,
+        "TestRenderer": 1,
+        "TrackContent": 1,
+        "TrackControls": 3,
+        "TrackFrame": 3,
+        "TrackRow": 1,
+        "TrackStack": 0,
+      }
+    `);
+  });
+
+  it("changes the track width", async () => {
+    const { probe, browserStore } = await mountBrowser();
+
+    // setTrackWidth resizes the view at once; the refetch at the new width waits for
+    // the width debounce to settle. Necessary: every row renders once for the new
+    // width and once for its new data; the view, stack, and Highlights once.
+    const report = await probe.measure(async () => {
+      browserStore.getState().setTrackWidth(1_200);
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    });
+
+    expect(budget(report)).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 1,
+        "ConnectedTrackRow": 6,
+        "GenomeBrowserRuntime": 1,
+        "Highlights": 2,
         "PanTrack": 18,
         "TestRenderer": 6,
-        "TrackContent": 9,
+        "TrackContent": 6,
         "TrackControls": 9,
         "TrackFrame": 9,
-        "TrackRow": 9,
-        "TrackStack": 3,
+        "TrackRow": 6,
+        "TrackStack": 1,
       }
     `);
   });
@@ -155,22 +295,23 @@ describe("GenomeBrowser render budgets with three tracks", () => {
 
     const report = await probe.measure(() => trackStore.getState().addTrack(createTrack("fourth")));
 
-    // Necessary: the new row mounts once per component, and the view, stack, and
-    // Highlights render once for the taller browser. The three existing rows do not
-    // move and need not render.
+    // Necessary: the new row mounts once per component and renders again for its data,
+    // and the view, stack, and Highlights render once for the taller browser. The three
+    // existing rows do not move but still render once: createTrackLayouts returns new
+    // layout objects. The loading gate re-renders every SwapTrack's frame twice.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 3,
-        "ConnectedTrackRow": 12,
-        "GenomeBrowserRuntime": 2,
-        "Highlights": 6,
-        "PanTrack": 24,
+        "BrowserView": 1,
+        "ConnectedTrackRow": 5,
+        "GenomeBrowserRuntime": 1,
+        "Highlights": 2,
+        "PanTrack": 18,
         "TestRenderer": 1,
         "TrackContent": 2,
-        "TrackControls": 12,
-        "TrackFrame": 12,
-        "TrackRow": 12,
-        "TrackStack": 3,
+        "TrackControls": 9,
+        "TrackFrame": 9,
+        "TrackRow": 5,
+        "TrackStack": 1,
       }
     `);
   });
@@ -186,21 +327,20 @@ describe("GenomeBrowser render budgets with three tracks", () => {
       }),
     );
 
-    // Necessary: only the two Highlights layers. Every row re-renders because the view
-    // re-renders.
+    // Necessary: only the two Highlights layers. Nothing is wasted.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 1,
-        "ConnectedTrackRow": 3,
+        "BrowserView": 0,
+        "ConnectedTrackRow": 0,
         "GenomeBrowserRuntime": 0,
         "Highlights": 2,
-        "PanTrack": 6,
+        "PanTrack": 0,
         "TestRenderer": 0,
         "TrackContent": 0,
-        "TrackControls": 3,
-        "TrackFrame": 3,
-        "TrackRow": 3,
-        "TrackStack": 1,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
       }
     `);
   });
@@ -255,3 +395,42 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     `);
   });
 });
+
+function installSvgCoordinates(svg: SVGSVGElement) {
+  const point = {
+    x: 0,
+    y: 0,
+    matrixTransform: () => ({ x: point.x, y: point.y }),
+  };
+  Object.assign(svg, {
+    createSVGPoint: () => point,
+    getScreenCTM: () => ({ inverse: () => ({}) }),
+  });
+}
+
+function installPointerCapture(element: SVGGElement) {
+  let capturedPointerId: number | null = null;
+  Object.assign(element, {
+    hasPointerCapture: (pointerId: number) => capturedPointerId === pointerId,
+    releasePointerCapture: () => {
+      capturedPointerId = null;
+    },
+    setPointerCapture: (pointerId: number) => {
+      capturedPointerId = pointerId;
+    },
+  });
+}
+
+function pointerEvent(type: string, clientX: number) {
+  const event = new MouseEvent(type, {
+    bubbles: true,
+    button: 0,
+    clientX,
+    clientY: 0,
+  });
+  Object.defineProperties(event, {
+    isPrimary: { value: true },
+    pointerId: { value: 1 },
+  });
+  return event;
+}

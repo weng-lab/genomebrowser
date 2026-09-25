@@ -58,7 +58,7 @@ describe("CAVE track fetching", () => {
 
     expect(reader.createBigWigFile).toHaveBeenCalledTimes(2);
     expect(reader.readZoomLevel).toHaveBeenCalledTimes(2);
-    expect(reader.readZoomLevel).toHaveBeenCalledWith(region, 400);
+    expect(reader.readZoomLevel).toHaveBeenCalledWith(region, 400, { signal: undefined });
     expect(reader.read).not.toHaveBeenCalled();
   });
 });

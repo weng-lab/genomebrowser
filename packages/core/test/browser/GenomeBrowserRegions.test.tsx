@@ -203,7 +203,7 @@ describe("GenomeBrowser region windows", () => {
     );
   });
 
-  it("unlocks a clamped pan when the normalized fetch window is unchanged", async () => {
+  it("stops a drag at the chromosome edge instead of shortening the view", async () => {
     vi.useFakeTimers();
     const fetch = vi.fn(async () => null);
     function Renderer({ width }: { width: number }) {
@@ -253,11 +253,12 @@ describe("GenomeBrowser region windows", () => {
       await vi.advanceTimersByTimeAsync(200);
     });
 
-    expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 0, end: 800 });
-    expect(fetch).toHaveBeenCalledTimes(2);
+    // The whole chromosome is already visible, so the drag cannot move at all.
+    expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 0, end: 1_000 });
+    expect(fetch).toHaveBeenCalledOnce();
     expect(container?.querySelector('[role="status"]')).toBeNull();
     expect(container?.querySelector('[data-testid="render-width"]')?.getAttribute("width")).toBe(
-      "125",
+      "100",
     );
   });
 

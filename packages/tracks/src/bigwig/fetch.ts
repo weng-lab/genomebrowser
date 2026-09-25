@@ -6,6 +6,7 @@ export async function fetchBigWig({
   track: { config },
   demand: { region, width },
   resources,
+  signal,
 }: TrackFetchContext<BigWigConfig>): Promise<BigWigData> {
-  return readCachedBigWigRecords(resources, config.url, region, width);
+  return readCachedBigWigRecords(resources, config.url, region, width, signal);
 }

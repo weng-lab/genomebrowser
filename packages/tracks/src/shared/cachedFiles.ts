@@ -30,6 +30,7 @@ export async function readCachedBigWigRecords(
   url: string,
   region: GenomicRegion,
   width: number,
+  signal?: AbortSignal,
 ): Promise<BigWigRecord[]> {
   const files = cachedFiles<BigWigFile>(resources, BIG_WIG_FILES);
   let file = files.get(url);
@@ -39,12 +40,12 @@ export async function readCachedBigWigRecords(
   }
 
   const reductionLevel = selectZoomLevel(
-    await file.getZoomLevels(),
+    await file.getZoomLevels({ signal }),
     region.end - region.start,
     width,
   );
-  if (reductionLevel !== undefined) return file.readZoomLevel(region, reductionLevel);
-  return file.read(region);
+  if (reductionLevel !== undefined) return file.readZoomLevel(region, reductionLevel, { signal });
+  return file.read(region, { signal });
 }
 
 function selectZoomLevel(
@@ -72,6 +73,7 @@ export async function readCachedBigBedRows<Schema extends z.ZodObject>(
   url: string,
   schema: BigBedFileOptions<Schema>["schema"],
   region: GenomicRegion,
+  signal?: AbortSignal,
 ): Promise<BigBedRecord<Schema>[]> {
   const sources = cachedFiles<Map<z.ZodObject, ReturnType<typeof createBigBedFile<Schema>>>>(
     resources,
@@ -87,7 +89,7 @@ export async function readCachedBigBedRows<Schema extends z.ZodObject>(
     file = createBigBedFile({ url, schema });
     files.set(schema, file);
   }
-  return file.read(region);
+  return file.read(region, { signal });
 }
 
 function cachedFiles<F>(resources: TrackResources, key: string): Map<string, F> {

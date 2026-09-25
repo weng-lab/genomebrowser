@@ -131,7 +131,7 @@ describe("browser module wiring", () => {
         <RegistryProvider registry={trackStore.getState().registry}>
           <TrackContent
             track={trackStore.getState().getTrack("interactive")!}
-            dataState={{ status: "success", data: null }}
+            dataState={{ status: "ready", data: null }}
             visibleRegion={region}
             region={region}
             width={100}
@@ -218,7 +218,7 @@ describe("browser module wiring", () => {
             <RegistryProvider registry={trackStore.getState().registry}>
               <TrackContent
                 track={trackStore.getState().getTrack("tooltip")!}
-                dataState={{ status: "success", data: null }}
+                dataState={{ status: "ready", data: null }}
                 visibleRegion={region}
                 region={region}
                 width={100}

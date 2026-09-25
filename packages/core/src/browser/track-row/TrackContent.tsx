@@ -1,5 +1,4 @@
 import { memo, type ComponentType } from "react";
-import type { DataState } from "../data/types";
 import { bindTrackInteraction, TrackInteractionProvider } from "../../modules/interaction";
 import { TrackRuntimeContextProvider } from "../../modules/runtimeContext";
 import type { AnyTrackInstance, TrackRendererProps } from "../../modules/types";
@@ -7,6 +6,12 @@ import type { GenomicRegion } from "../../genome/region";
 import { useRegistry } from "../state/useRegistry";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
+
+/** The parts of a track's data state the content needs to draw. */
+export type TrackContentState =
+  | { status: "loading" }
+  | { status: "ready"; data: unknown }
+  | { status: "error"; error: string };
 
 export const TrackContent = memo(function TrackContent({
   track,
@@ -17,7 +22,7 @@ export const TrackContent = memo(function TrackContent({
   height,
 }: {
   track: AnyTrackInstance;
-  dataState: DataState;
+  dataState: TrackContentState;
   visibleRegion: GenomicRegion;
   region: GenomicRegion;
   width: number;

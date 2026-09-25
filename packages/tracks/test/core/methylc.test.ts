@@ -45,7 +45,7 @@ describe("MethylC track fetching", () => {
       url: "https://example.org/minus-depth.bw",
     });
     expect(reader.read).toHaveBeenCalledTimes(8);
-    expect(reader.read).toHaveBeenCalledWith(region);
+    expect(reader.read).toHaveBeenCalledWith(region, { signal: undefined });
     expect(result).toHaveLength(8);
     expect(result[0]).toEqual([
       { kind: "value", chromosome: "chr1", start: 12, end: 18, value: 0.75 },
@@ -70,7 +70,7 @@ describe("MethylC track fetching", () => {
     await fetchMethylC(createContext(config, region));
 
     expect(reader.readZoomLevel).toHaveBeenCalledTimes(8);
-    expect(reader.readZoomLevel).toHaveBeenCalledWith(region, 400);
+    expect(reader.readZoomLevel).toHaveBeenCalledWith(region, 400, { signal: undefined });
     expect(reader.read).not.toHaveBeenCalled();
   });
 
