@@ -4,20 +4,19 @@ import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 import { z } from "zod";
-import { SettingsModalController } from "../../src/browser/overlays/SettingsModalController";
-import { createBrowserStore } from "../../src/browser/state/browserStore";
-import { BrowserProvider, InteractionGateProvider } from "../../src/browser/state/BrowserContext";
-import { createContextMenuStore } from "../../src/browser/state/contextMenuStore";
-import { RegistryProvider } from "../../src/browser/state/RegistryContext";
-import { createSettingsStore } from "../../src/browser/state/settingsStore";
-import { createTrackStore } from "../../src/browser/state/trackStore";
-import { hg38 } from "../../src/genome/presets";
-import { defineTrackModule } from "../../src/modules/defineTrackModule";
-import type {
-  AnyTrackInstance,
-  TrackMutationResult,
-  TrackSettingsProps,
-} from "../../src/modules/types";
+import {
+  GenomeBrowser,
+  createBrowserStore,
+  createTrackStore,
+  defineTrackModule,
+  type AnyTrackInstance,
+  type TrackMutationResult,
+  type TrackSettingsProps,
+} from "../../src/lib";
+
+let holdFetch = false;
+const fetchData = () => (holdFetch ? new Promise<null>(() => {}) : Promise.resolve(null));
+let useBrowserStore: ReturnType<typeof createBrowserStore>;
 
 type SignalConfig = { url: string; clampIndicatorColor: string };
 function SignalSettings({ track, updateTrack }: TrackSettingsProps<SignalConfig>) {
@@ -41,7 +40,7 @@ const signalModule = defineTrackModule({
     url: z.string().min(1),
     clampIndicatorColor: z.string().default("#ff0000"),
   }),
-  fetch: async () => null,
+  fetch: fetchData,
   render: { full: () => null },
   settingsComponent: SignalSettings,
 });
@@ -57,9 +56,10 @@ afterEach(async () => {
   container?.remove();
   container = undefined;
   root = undefined;
+  holdFetch = false;
 });
 
-describe("SettingsModalController", () => {
+describe("browser settings workflows", () => {
   it("passes the current complete track and a gated updater bound to its ID", async () => {
     type Item = { value: number };
     type Config = { url: string };
@@ -76,7 +76,7 @@ describe("SettingsModalController", () => {
     const module = defineTrackModule<Item>()({
       type: "bound-settings",
       configSchema: z.object({ url: z.string().min(1) }),
-      fetch: async () => null,
+      fetch: fetchData,
       render: { full: Renderer },
       settingsComponent: ModuleSettings,
     });
@@ -98,14 +98,12 @@ describe("SettingsModalController", () => {
       },
       { onClick },
     );
-    const trackStore = createTrackStore({ modules: [module], tracks: [first, active] });
-    const settingsStore = createSettingsStore();
-    settingsStore.getState().openSettings("active", { x: 0, y: 0 });
-
-    await mountController(trackStore, settingsStore);
+    const useTrackStore = createTrackStore({ modules: [module], tracks: [first, active] });
+    await mountBrowser(useTrackStore);
+    await openSettings("Active");
 
     const initialProps = requireValue(receivedProps, "Module settings props not received");
-    expect(initialProps.track).toBe(trackStore.getState().getTrack("active"));
+    expect(initialProps.track).toEqual(useTrackStore.getState().getTrack("active"));
     expect(initialProps.track).toMatchObject({
       type: "bound-settings",
       base: { id: "active", title: "Active" },
@@ -124,17 +122,17 @@ describe("SettingsModalController", () => {
     });
 
     expect(updateResult).toEqual({ ok: true });
-    expect(trackStore.getState().getTrack("first")?.base.title).toBe("First");
-    expect(trackStore.getState().getTrack("active")).toMatchObject({
+    expect(useTrackStore.getState().getTrack("first")?.base.title).toBe("First");
+    expect(useTrackStore.getState().getTrack("active")).toMatchObject({
       base: { id: "active", title: "Updated active" },
       config: { url: "YOUR_URL_HERE" },
       interaction: { onClick: nextOnClick },
     });
-    expect(requireValue(receivedProps, "Module settings props not received").track).toBe(
-      trackStore.getState().getTrack("active"),
+    expect(requireValue(receivedProps, "Module settings props not received").track).toEqual(
+      useTrackStore.getState().getTrack("active"),
     );
 
-    await renderController(trackStore, settingsStore, true);
+    await blockInteractions();
     let blockedResult: TrackMutationResult | undefined;
     await act(async () => {
       blockedResult = requireValue(receivedProps, "Module settings props not received").updateTrack(
@@ -146,10 +144,10 @@ describe("SettingsModalController", () => {
       code: "INTERACTION_BLOCKED",
       error: "Track interactions are currently blocked",
     });
-    expect(trackStore.getState().getTrack("active")?.base.title).toBe("Updated active");
+    expect(useTrackStore.getState().getTrack("active")?.base.title).toBe("Updated active");
 
     await act(async () => {
-      trackStore.getState().removeTrack("active");
+      useTrackStore.getState().removeTrack("active");
     });
     expect(container?.textContent).not.toContain("Settings for active");
   });
@@ -166,7 +164,7 @@ describe("SettingsModalController", () => {
     const otherModule = defineTrackModule({
       type: "other",
       configSchema: z.object({ url: z.string(), clampIndicatorColor: z.string() }),
-      fetch: async () => null,
+      fetch: fetchData,
       render: { full: () => null },
     });
     const first = module.create({
@@ -182,9 +180,8 @@ describe("SettingsModalController", () => {
       modules: [module, otherModule],
       tracks: [first, second, other],
     });
-    const useSettingsStore = createSettingsStore();
-    useSettingsStore.getState().openSettings("first", { x: 0, y: 0 });
-    await mountController(useTrackStore, useSettingsStore);
+    await mountBrowser(useTrackStore);
+    await openSettings("First");
     expect(props?.displayOptions).toEqual(["full"]);
     const before = useTrackStore.getState().tracks;
     let result: TrackMutationResult | undefined;
@@ -194,13 +191,13 @@ describe("SettingsModalController", () => {
       }));
     });
     expect(result?.ok).toBe(false);
-    expect(useTrackStore.getState().tracks).toBe(before);
+    expect(useTrackStore.getState().tracks).toEqual(before);
     await act(async () => {
       result = props?.updateTracksOfType((track) => ({ base: { height: track.base.height + 10 } }));
     });
     expect(result).toEqual({ ok: true });
     expect(useTrackStore.getState().tracks.map((track) => track.base.height)).toEqual([40, 60, 30]);
-    await renderController(useTrackStore, useSettingsStore, true);
+    await blockInteractions();
     await act(async () => {
       result = props?.updateTracksOfType(() => ({ base: { height: 100 } }));
     });
@@ -219,9 +216,8 @@ describe("SettingsModalController", () => {
       config: { url: "YOUR_URL_HERE" },
     });
     const useTrackStore = createTrackStore({ modules: [module], tracks: [track] });
-    const useSettingsStore = createSettingsStore();
-    useSettingsStore.getState().openSettings("plain", { x: 0, y: 0 });
-    await mountController(useTrackStore, useSettingsStore);
+    await mountBrowser(useTrackStore);
+    expect(container?.querySelector('[aria-label="Settings for Plain"]')).toBeNull();
     expect(container?.querySelector("dialog")).toBeNull();
   });
 
@@ -240,62 +236,62 @@ describe("SettingsModalController", () => {
       },
       config: { url: "YOUR_OTHER_URL_HERE" },
     });
-    const trackStore = createTrackStore({ modules: [signalModule], tracks: [first, second] });
-    const settingsStore = createSettingsStore();
-    settingsStore.getState().openSettings("first", { x: 0, y: 0 });
-
-    await mountController(trackStore, settingsStore);
+    const useTrackStore = createTrackStore({ modules: [signalModule], tracks: [first, second] });
+    await mountBrowser(useTrackStore);
+    await openSettings("First");
 
     await act(async () => setTextInput(colorInput(), "#112233"));
     expect(colorInput().value).toBe("#112233");
-    expect(acceptedColor(trackStore.getState().getTrack("first"))).toBe("#ff0000");
+    expect(acceptedColor(useTrackStore.getState().getTrack("first"))).toBe("#ff0000");
 
-    await act(async () => settingsStore.getState().openSettings("second", { x: 0, y: 0 }));
+    await openSettings("Second");
     expect(colorInput().value).toBe("#ff0000");
 
     await act(async () => {
       colorInput().dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
     });
-    expect(acceptedColor(trackStore.getState().getTrack("second"))).toBe("#ff0000");
+    expect(acceptedColor(useTrackStore.getState().getTrack("second"))).toBe("#ff0000");
+    await act(async () =>
+      container
+        ?.querySelector('[aria-label="Close settings"]')
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true })),
+    );
+    expect(container?.querySelector("dialog")).toBeNull();
+    await openSettings("First");
+    expect(colorInput().value).toBe("#ff0000");
+    await act(async () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })));
+    expect(container?.querySelector("dialog")).toBeNull();
   });
 });
 
-async function mountController(
-  trackStore: ReturnType<typeof createTrackStore>,
-  settingsStore: ReturnType<typeof createSettingsStore>,
-) {
+async function mountBrowser(useTrackStore: ReturnType<typeof createTrackStore>) {
+  useBrowserStore = createBrowserStore({
+    assembly: { id: "test", chromosomes: { chr1: 10_000 } },
+    region: { chromosome: "chr1", start: 1_000, end: 2_000 },
+    trackWidth: 1_000,
+  });
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
-  await renderController(trackStore, settingsStore, false);
+  await act(async () =>
+    root?.render(
+      <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />,
+    ),
+  );
 }
 
-async function renderController(
-  trackStore: ReturnType<typeof createTrackStore>,
-  settingsStore: ReturnType<typeof createSettingsStore>,
-  isInteractionBlocked: boolean,
-) {
-  await act(async () => {
-    root?.render(
-      <BrowserProvider
-        value={{
-          browserStore: createBrowserStore({
-            assembly: hg38,
-            region: { chromosome: "chr1", start: 0, end: 10 },
-          }),
-          trackStore,
-          contextMenuStore: createContextMenuStore(),
-          settingsStore,
-        }}
-      >
-        <InteractionGateProvider value={{ isInteractionBlocked }}>
-          <RegistryProvider registry={trackStore.getState().registry}>
-            <SettingsModalController />
-          </RegistryProvider>
-        </InteractionGateProvider>
-      </BrowserProvider>,
-    );
-  });
+async function openSettings(title: string) {
+  const button = container?.querySelector(`[aria-label="Settings for ${title}"]`);
+  if (!button) throw new Error(`No settings control for ${title}`);
+  await act(async () => button.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+}
+
+async function blockInteractions() {
+  holdFetch = true;
+  await act(async () =>
+    useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 5_000, end: 6_000 }),
+  );
+  expect(useBrowserStore.getState().isLoading).toBe(true);
 }
 
 function colorInput() {
