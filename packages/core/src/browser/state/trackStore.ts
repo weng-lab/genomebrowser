@@ -142,7 +142,7 @@ export function createTrackStore<
             ...update.base,
             id: currentTrack.base.id,
           },
-          config: mergeConfig(currentConfig, update.config ?? {}),
+          config: { ...currentConfig, ...update.config },
           ...(interaction !== undefined ? { interaction } : {}),
         },
         registry,
@@ -275,31 +275,4 @@ function getValidOrderResult(
     seen.add(id);
   }
   return mutationOk;
-}
-
-function mergeConfig(
-  current: Record<string, unknown>,
-  patch: Record<string, unknown>,
-): Record<string, unknown> {
-  const result = { ...current };
-  for (const key of Object.keys(patch)) {
-    const value = patch[key];
-    const previous = current[key];
-    const merged =
-      isPlainConfigObject(previous) && isPlainConfigObject(value)
-        ? mergeConfig(previous, value)
-        : value;
-    Object.defineProperty(result, key, {
-      value: merged,
-      enumerable: true,
-      configurable: true,
-      writable: true,
-    });
-  }
-  return result;
-}
-function isPlainConfigObject(value: unknown): value is Record<string, unknown> {
-  if (!isRecord(value)) return false;
-  const prototype = Object.getPrototypeOf(value);
-  return prototype === Object.prototype || prototype === null;
 }

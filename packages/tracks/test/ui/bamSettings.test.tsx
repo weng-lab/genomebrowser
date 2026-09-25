@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { bamModule } from "@weng-lab/genomebrowser-tracks/bam";
 import { BamSettings } from "../../src/bam/settings";
+import type { BamConfig } from "../../src/bam/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -15,6 +16,7 @@ afterEach(() => {
   root = undefined;
   container = undefined;
 });
+let defaults: BamConfig;
 function setup(source: "host" | "user") {
   const track = bamModule.create({
     source,
@@ -22,6 +24,7 @@ function setup(source: "host" | "user") {
     config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE" },
   });
   const update = vi.fn(() => ({ ok: true as const }));
+  defaults = track.config;
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -66,7 +69,9 @@ describe("BAM settings", () => {
     );
     expect(update).toHaveBeenCalledWith({ config: { indexUrl: "UPDATED_INDEX" } });
     act(() => container!.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click());
-    expect(update).toHaveBeenCalledWith({ config: { filters: { includeDuplicates: false } } });
+    expect(update).toHaveBeenCalledWith({
+      config: { filters: { ...defaults.filters, includeDuplicates: false } },
+    });
   });
   it("locks all host-owned source URLs while allowing display settings", () => {
     setup("host");
@@ -82,7 +87,7 @@ describe("BAM settings", () => {
   });
 });
 
-it("uses explicit strand controls and commits nested alignment settings for host tracks", () => {
+it("uses explicit strand controls and commits whole alignment groups for host tracks", () => {
   const update = setup("host");
   const labels = [...container!.querySelectorAll("label")];
   expect(labels.some((label) => label.textContent?.replace(/\s*\*$/, "").trim() === "Color")).toBe(
@@ -101,6 +106,8 @@ it("uses explicit strand controls and commits nested alignment settings for host
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
     act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
-    expect(update).toHaveBeenLastCalledWith({ config: { alignments: expected } });
+    expect(update).toHaveBeenLastCalledWith({
+      config: { alignments: { ...defaults.alignments, ...expected } },
+    });
   }
 });

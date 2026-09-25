@@ -19,7 +19,7 @@ Check the assembly, chromosome name, and data coverage in the selected region. C
 
 ## BAM indexes and zoom limits
 
-[BAM](03-reference/01-trackModules/bam.md) needs a matching BAI URL and exact sequence names. A zoom-in message means the render region, including overscan, exceeds `maxWindow`; zoom in or increase that setting. A reference warning affects optional mismatch comparisons, while BAM and index failures use the track error display.
+[BAM](03-reference/01-trackModules/bam.md) needs a matching BAI URL and exact sequence names. A zoom-in message means the visible span has reached `maxWindow`; zoom in or increase that setting. A reference warning affects optional mismatch comparisons, while BAM and index failures use the track error display.
 
 ## Reference sequence
 

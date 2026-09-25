@@ -76,12 +76,13 @@ The fetcher retains one BAM reader keyed by both source URLs and one optional re
 
 The region limit controls genomic span, not read count. High-depth regions and full display can still produce many SVG elements.
 
-`BamConfigInput` accepts optional `alignments` and `filters` objects. Omitted groups, empty groups, and omitted fields receive the defaults above. `BamConfig` is the fully parsed configuration. Nested config patches preserve sibling values:
+`BamConfigInput` accepts optional `alignments` and `filters` objects. Omitted groups, empty groups, and omitted fields receive the defaults above. `BamConfig` is the fully parsed configuration. Track patches are shallow, so a patched `alignments` or `filters` group replaces the current group, and its omitted fields return to their defaults. Supply every field you want to keep:
 
 ```ts
-useTrackStore.getState().updateTrack("alignments", {
-  config: { alignments: { forwardColor: "#225588" }, filters: { includeDuplicates: false } },
+const result = useTrackStore.getState().updateTrack("alignments", {
+  config: { filters: { minimumMappingQuality: 20, includeDuplicates: false } },
 });
+if (!result.ok) console.error(result.error);
 ```
 
 ## Settings

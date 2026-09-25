@@ -42,7 +42,7 @@ Set `settingsComponent: SignalSettings` in a module whose parsed config matches 
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
 | `track`              | `ReadonlyTrackInstance<Config, InteractionItem>`                                                                                         | Required | The track instance with its current settings and callbacks.                                                   |
 | `displayOptions`     | `readonly string[]`                                                                                                                      | Required | Registered renderer names.                                                                                    |
-| `updateTrack`        | `(update: TrackUpdate<Config, InteractionItem>) => TrackMutationResult`                                                                  | Required | Patches this instance, recursively merging plain config objects. Its ID is already bound.                     |
+| `updateTrack`        | `(update: TrackUpdate<Config, InteractionItem>) => TrackMutationResult`                                                                  | Required | Applies a shallow patch to this instance. Its ID is already bound.                                            |
 | `updateTracksOfType` | `(createUpdate: (track: ReadonlyTrackInstance<Config, InteractionItem>) => TrackUpdate<Config, InteractionItem>) => TrackMutationResult` | Required | Computes patches for every current same-type track, validates the resulting batch, and commits it atomically. |
 
 The module supplies the complete form, including base controls. The browser opens the form in a dialog. Check mutation results to explain rejected edits in the form. Keep batch-update callbacks free of side effects because validation can reject the batch.
@@ -51,7 +51,7 @@ A module without `settingsComponent` has no settings button. Use native form ele
 
 ## Mutation behavior
 
-Both callbacks return [TrackMutationResult](../01-browserSetup/trackStore.md#mutation-results). Successful changes commit synchronously and do not wait for fetching or rendering. `updateTrack` uses the store's [patch rules](../01-browserSetup/trackStore.md#trackupdate-and-trackbaseupdate).
+Both callbacks return [TrackMutationResult](../01-browserSetup/trackStore.md#mutation-results). Successful changes commit synchronously and do not wait for fetching or rendering. `updateTrack` uses the store's [shallow patch rules](../01-browserSetup/trackStore.md#trackupdate-and-trackbaseupdate).
 
 `updateTracksOfType` computes one patch for each same-type instance and validates the entire replacement list, including unchanged instances of other types. A rejected batch leaves all tracks unchanged.
 

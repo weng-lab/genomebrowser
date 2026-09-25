@@ -147,10 +147,10 @@ if (!added.ok) console.error(added.error);
 | Patch         | Type                                                 | Description                                                                                                  |
 | ------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `base`        | `TrackBaseUpdate`                                    | Optional changes to title, display, height, or color. `TrackBaseUpdate` is `Partial<Omit<TrackBase, "id">>`. |
-| `config`      | Recursive partial config                             | Optional changes to the module's configuration. The registered module validates the resulting config.        |
+| `config`      | `Partial<Config>`                                    | Optional changes to the module's configuration. The registered module validates the resulting config.        |
 | `interaction` | `Partial<TrackInteraction<InteractionItem, Config>>` | Optional changes to instance callbacks. Unspecified callbacks are retained.                                  |
 
-Base and interaction sections are merged shallowly. Plain objects in config patches merge recursively, preserving unspecified sibling fields. Arrays and non-plain values replace their previous values; explicit `undefined` is passed to the module schema and may restore defaults or remove optional values. Omitting a section preserves it. The current ID, type, source, and track order are retained; replace the instance to change its identity or source.
+Each section is merged shallowly. A nested object or array supplied in a patch replaces its previous value rather than merging recursively. Omitting a section preserves it. The current ID, type, source, and track order are retained; replace the instance to change its identity or source.
 
 ```ts
 const updated = useTrackStore.getState().updateTrack("signal", {
@@ -160,23 +160,6 @@ const updated = useTrackStore.getState().updateTrack("signal", {
 });
 if (!updated.ok) console.error(updated.error);
 ```
-
-For example, after setting the signal track's range to `{ min: 0, max: 100 }`, update just its lower bound:
-
-```ts
-const rangeSet = useTrackStore.getState().updateTrack("signal", {
-  config: { yRange: { min: 0, max: 100 } },
-});
-if (!rangeSet.ok) throw new Error(rangeSet.error);
-
-const lowerBoundSet = useTrackStore.getState().updateTrack("signal", {
-  config: { yRange: { min: 10 } },
-});
-if (!lowerBoundSet.ok) throw new Error(lowerBoundSet.error);
-// The range is now { min: 10, max: 100 }.
-```
-
-No spread of the existing `yRange` is needed. Setting `min` to `100` or higher would fail this module's range validation and preserve the accepted range. Recursive patches update existing objects; omitting a nested key does not delete it.
 
 A config change requests new data when a field marked by the module with `fetchOnChange` changes. Display changes also request data. Other base fields, callbacks, and unmarked config changes reuse current data. See [request behavior](../03-trackDefinition/fetchingData.md#requests-and-result-lifetime) for the mounted browser's coordination rules.
 

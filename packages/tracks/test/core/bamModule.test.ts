@@ -50,7 +50,7 @@ function context(
 }
 beforeEach(() => vi.resetAllMocks());
 describe("BAM module public contract", () => {
-  it("defaults omitted and partial groups and preserves siblings in nested updates", () => {
+  it("defaults omitted and partial groups and replaces nested groups in updates", () => {
     const defaults = bamModule.create(input).config;
     expect(
       bamModule.create({ ...input, config: { ...input.config, alignments: {}, filters: {} } })
@@ -73,10 +73,11 @@ describe("BAM module public contract", () => {
         },
       }).ok,
     ).toBe(true);
+    // Patches are shallow: omitted fields in a supplied group return to their defaults.
     expect(store.getState().getTrack("bam")?.config).toEqual({
       ...defaults,
-      alignments: { ...defaults.alignments, rowHeight: 24, forwardColor: "#123456" },
-      filters: { minimumMappingQuality: 20, includeDuplicates: false },
+      alignments: { ...defaults.alignments, forwardColor: "#123456" },
+      filters: { ...defaults.filters, includeDuplicates: false },
     });
     expect(
       store.getState().updateTrack("bam", { config: { alignments: { sequenceMaxWindow: 0 } } }).ok,
