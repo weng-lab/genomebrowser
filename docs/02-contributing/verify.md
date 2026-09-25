@@ -38,6 +38,8 @@ The PR review workflow uses OpenCode and GPT-6 Luna through Vercel AI Gateway to
 
 Reviews run when a PR opens, receives commits, reopens, or becomes ready for review. Drafts, fork PRs, and Dependabot events are skipped. The agent uses Git and `gh` to inspect the contribution and manage its review comment, starting with instructions from the base revision.
 
+The code reviewer never runs `pnpm verify` or other verification commands, installs dependencies, or triggers CI. It reviews source, tests, documentation, and existing CI evidence for code quality and repository conformity. Instructions to run checks in contribution guides and skills apply to implementation work, not the reviewer. Pending checks do not prevent the quality review.
+
 Findings appear in one bot comment that is updated on reruns and removed when a completed review has no findings. Blocking labels are recommendations for the team, not an automatic merge gate. Incomplete reviews are reported in the job output. Keep this job advisory rather than adding it to required branch checks.
 
 To preview a review from a worktree containing the agent, authenticate `gh`, provide Vercel AI Gateway credentials to OpenCode, and run the following command with the PR number to review. Preview also works for closed or merged PRs and does not change GitHub comments.
