@@ -1,7 +1,7 @@
 import type { GenomicFile, GenomicRecord, GenomicRegion, ReadOptions } from "./genomicFile";
 import { throwIfAborted } from "./internal/abort";
 import { decodeBamRecords } from "./internal/bamDecoder";
-import { readBamIndex, selectChunks, type BamIndex } from "./internal/bamIndex";
+import { readBamIndex, selectChunks, type BamChunk, type BamIndex } from "./internal/bamIndex";
 import { BinaryReader } from "./internal/binaryReader";
 import { inflateBgzfBlocks, joinBgzfBlocks, splitVirtualOffset } from "./internal/bgzf";
 import type { ExactRangeMetadata } from "./internal/httpRange";
@@ -55,6 +55,14 @@ export interface BamFile extends GenomicFile<BamRecord> {
 const BAM_MAGIC = 0x014d4142; // "BAM\1", little-endian
 /** BSIZE is 16 bits, so no BGZF block is longer than this compressed. */
 const MAX_COMPRESSED_BLOCK_SIZE = 1n << 16n;
+
+/**
+ * How many index chunks to read at once. Each chunk costs a round trip, and a
+ * dense locus resolves to hundreds of them, so reading strictly in sequence
+ * makes latency rather than bandwidth the limit. Kept small enough to stay
+ * within a browser's per-host connection budget.
+ */
+const CHUNK_FETCH_CONCURRENCY = 12;
 const INITIAL_HEADER_READ_SIZE = 1n << 16n;
 const MAX_HEADER_READ_SIZE = 1n << 26n;
 
@@ -130,8 +138,8 @@ export function createBamFile(options: BamFileOptions): BamFile {
       if (chunks.length === 0) return [];
 
       const reader = new RequestRangeReader(url, { signal, metadata: cache.rangeMetadata });
-      const records: BamRecord[] = [];
-      for (const chunk of chunks) {
+
+      const readChunk = async (chunk: BamChunk): Promise<BamRecord[]> => {
         const begin = splitVirtualOffset(chunk.begin);
         const end = splitVirtualOffset(chunk.end);
         // The index gives the end block's offset but not its length, so read
@@ -141,23 +149,41 @@ export function createBamFile(options: BamFileOptions): BamFile {
         throwIfAborted(signal);
 
         const blocks = inflateBgzfBlocks(bytes, begin.blockOffset);
-        if (blocks.length === 0) continue;
+        if (blocks.length === 0) return [];
         const { data, startIndexByBlockOffset } = joinBgzfBlocks(blocks);
 
         const from = (startIndexByBlockOffset.get(begin.blockOffset) ?? 0) + begin.dataOffset;
         const endBlockStart = startIndexByBlockOffset.get(end.blockOffset);
         const to = endBlockStart === undefined ? data.length : endBlockStart + end.dataOffset;
 
-        for (const record of decodeBamRecords(data, from, to, {
-          referenceId,
-          chromosome: region.chromosome,
-          regionStart: region.start,
-          regionEnd: region.end,
-        })) {
-          records.push(record);
-        }
-      }
+        return [
+          ...decodeBamRecords(data, from, to, {
+            referenceId,
+            chromosome: region.chromosome,
+            regionStart: region.start,
+            regionEnd: region.end,
+          }),
+        ];
+      };
 
+      // A dense locus resolves to hundreds of disjoint chunks, and awaiting them
+      // one after another costs a round trip each: the wall clock ends up
+      // proportional to the chunk count rather than to the bytes read. Reading a
+      // few at a time keeps the same chunks and the same bytes.
+      const perChunk: BamRecord[][] = Array.from({ length: chunks.length }, () => []);
+      let nextChunk = 0;
+      await Promise.all(
+        Array.from({ length: Math.min(CHUNK_FETCH_CONCURRENCY, chunks.length) }, async () => {
+          for (;;) {
+            const index = nextChunk++;
+            const chunk = chunks[index];
+            if (!chunk) return;
+            perChunk[index] = await readChunk(chunk);
+          }
+        }),
+      );
+
+      const records: BamRecord[] = perChunk.flat();
       records.sort((left, right) => left.start - right.start || left.end - right.end);
       return records;
     },
