@@ -168,6 +168,18 @@ function AlignmentShape({
   return (
     <g pointerEvents="none">
       <line x1={start} x2={end} y1={middle} y2={middle} stroke={color} strokeOpacity={0.35} />
+      {record.cigar.length === 0 && (
+        <rect
+          data-cigar-unavailable
+          x={start}
+          y={y}
+          width={Math.max(1, end - start)}
+          height={height}
+          fill="none"
+          stroke={color}
+          strokeWidth={Math.min(1, height / 4)}
+        />
+      )}
       {record.cigar.map((operation) => {
         const operationKey = `${operation.referenceOffset}:${operation.sequenceOffset}:${operation.op}`;
         const position = record.start + operation.referenceOffset;

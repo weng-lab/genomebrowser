@@ -53,6 +53,18 @@ function bgzf(bytes: Uint8Array) {
   new DataView(result.buffer).setUint16(16, result.length - 1, true);
   return result;
 }
+function tag(name: string, type: string, ...values: Uint8Array[]) {
+  return concat(new TextEncoder().encode(name + type), ...values);
+}
+function cgTag(ops: [number, number][]) {
+  return tag(
+    "CG",
+    "B",
+    new TextEncoder().encode("I"),
+    int(ops.length),
+    ...ops.map(([length, op]) => int((length << 4) | op)),
+  );
+}
 // Splicing/deletion, clipping, insertion, padding, =/X, and a cross-reference mate.
 function fixture(
   options: {
@@ -63,6 +75,7 @@ function fixture(
     odd?: boolean;
     invalidRecord?: boolean;
     longCigar?: boolean;
+    aux?: Uint8Array;
     missingQualities?: boolean;
     flags?: number;
     duplicateChunks?: boolean;
@@ -116,6 +129,7 @@ function fixture(
     ...ops.map(([length, op]) => int((length << 4) | op)),
     new Uint8Array(options.odd ? [0x12, 0x48, 0xf1, 0x20] : [0x12, 0x48, 0xf1]),
     new Uint8Array(options.odd ? 7 : 6).fill(options.missingQualities ? 255 : 30),
+    options.aux ?? new Uint8Array(),
   );
   const alignment = concat(int(options.invalidRecord ? record.length + 1 : record.length), record);
   const first = options.splitHeader
@@ -170,10 +184,40 @@ describe("BAM regional reader", () => {
     expect(await file.read(region)).toHaveLength(1);
   });
 
-  it("rejects unsupported long CIGAR placeholders explicitly", async () => {
-    const { bam, bai } = fixture({ longCigar: true });
+  it("replaces long CIGAR placeholders with the CG tag after skipping other tags", async () => {
+    const { bam, bai } = fixture({
+      longCigar: true,
+      aux: concat(
+        tag("NM", "i", int(3)),
+        tag("RG", "Z", new TextEncoder().encode("group\0")),
+        tag("ZB", "B", new TextEncoder().encode("s"), int(2), new Uint8Array(4)),
+        // 2M20N1D3M1I: six bases over the placeholder's 26-base span.
+        cgTag([
+          [2, 0],
+          [20, 3],
+          [1, 2],
+          [3, 0],
+          [1, 1],
+        ]),
+      ),
+    });
     mockFiles(bam, bai);
-    await expect(createBamFile({ url, indexUrl }).read(region)).rejects.toThrow("long CIGAR");
+    const [record] = await createBamFile({ url, indexUrl }).read(region);
+    expect(record).toMatchObject({ start: 100, end: 126, sequence: "ACGTNA" });
+    expect(record.cigar.map(({ op, length }) => `${length}${op}`).join("")).toBe("2M20N1D3M1I");
+    expect(record.cigar[3]).toEqual({ op: "M", length: 3, sequenceOffset: 2, referenceOffset: 23 });
+  });
+  it.each([
+    ["missing", new Uint8Array()],
+    ["truncated", cgTag([[2, 0]]).subarray(0, 10)],
+    ["inconsistent", cgTag([[6, 0]])],
+    ["non-uint32", tag("CG", "B", new TextEncoder().encode("i"), int(1), int((6 << 4) | 0))],
+  ])("keeps a long CIGAR read's span when its CG tag is %s", async (_, aux) => {
+    const { bam, bai } = fixture({ longCigar: true, aux });
+    mockFiles(bam, bai);
+    const records = await createBamFile({ url, indexUrl }).read(region);
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({ start: 100, end: 126, sequence: "ACGTNA", cigar: [] });
   });
   it("reads header fields across blocks and decodes odd sequence lengths", async () => {
     const { bam, bai } = fixture({ splitHeader: true, odd: true });

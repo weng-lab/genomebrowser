@@ -193,6 +193,28 @@ describe("BAM displays", () => {
       ),
     ).toHaveLength(0);
   });
+  it("outlines the span of reads without CIGAR detail and labels it unavailable", () => {
+    const record = read({ start: 10, end: 30, cigar: [] });
+    const outline = markup("pack", { records: [record], reference: [] }).querySelector(
+      "[data-cigar-unavailable]",
+    );
+    expect(outline?.getAttribute("x")).toBe("150");
+    expect(outline?.getAttribute("width")).toBe("300");
+    expect(outline?.getAttribute("fill")).toBe("none");
+    expect(
+      markup("pack", { records: [read()], reference: [] }).querySelector(
+        "[data-cigar-unavailable]",
+      ),
+    ).toBeNull();
+    const tooltip = document.createElement("div");
+    tooltip.innerHTML = renderToStaticMarkup(
+      <svg>
+        <BamTooltip item={record} />
+      </svg>,
+    );
+    const values = [...tooltip.querySelectorAll("text")].map((text) => text.textContent);
+    expect(values[values.indexOf("CIGAR") + 1]).toBe("Unavailable");
+  });
   it("uses CIGAR X without reference, preserves stored reverse sequence, and suppresses letters at broad zoom", () => {
     const record = read({
       strand: "-",

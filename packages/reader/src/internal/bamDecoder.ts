@@ -45,26 +45,14 @@ export function decodeBamRecords(
     if (nameBytes.at(-1) !== 0) throw new Error("Invalid BAM read name");
     const readName = new TextDecoder().decode(nameBytes.subarray(0, -1));
     record.skip(nameLength);
-    const cigar: BamCigarOperation[] = [];
-    let sequenceOffset = 0;
-    let referenceOffset = 0;
-    for (let i = 0; i < cigarCount; i++) {
-      const raw = record.readUint32();
-      const op = CIGAR[raw & 15] as BamCigarOperation["op"] | undefined;
-      const length = raw >>> 4;
-      if (!op || length === 0) throw new Error("Invalid BAM CIGAR operation");
-      cigar.push({ op, length, sequenceOffset, referenceOffset });
-      if ("MIS=X".includes(op)) sequenceOffset += length;
-      if ("MDN=X".includes(op)) referenceOffset += length;
-    }
-    // The two-operation placeholder encodes the real CIGAR in CG:B:I.
-    if (
+    const { cigar, sequenceOffset, referenceOffset } = readCigar(record, cigarCount);
+    // Reads with more than 65535 operations store this placeholder and keep the real CIGAR in
+    // CG:B:I. The placeholder's N length is the true reference span.
+    const longCigar =
       cigar.length === 2 &&
       cigar[0].op === "S" &&
       cigar[0].length === sequenceLength &&
-      cigar[1].op === "N"
-    )
-      throw new Error("BAM long CIGAR (CG tag) is not supported");
+      cigar[1].op === "N";
     if (sequenceLength > 0 && cigarCount > 0 && sequenceOffset !== sequenceLength)
       throw new Error("BAM CIGAR and sequence lengths differ");
     const end = start + Math.max(referenceOffset, 1);
@@ -92,7 +80,7 @@ export function decodeBamRecords(
       flags,
       strand: flags & 16 ? "-" : "+",
       mappingQuality,
-      cigar,
+      cigar: longCigar ? (readLongCigar(record, sequenceLength, referenceOffset) ?? []) : cigar,
       sequence: sequence.join(""),
       phredQualities: qualities.every((quality) => quality === 255) ? null : qualities,
       mate:
@@ -108,4 +96,70 @@ export function decodeBamRecords(
     });
   }
   return records;
+}
+
+function readCigar(reader: BinaryReader, count: number) {
+  const cigar: BamCigarOperation[] = [];
+  let sequenceOffset = 0;
+  let referenceOffset = 0;
+  for (let i = 0; i < count; i++) {
+    const raw = reader.readUint32();
+    const op = CIGAR[raw & 15] as BamCigarOperation["op"] | undefined;
+    const length = raw >>> 4;
+    if (!op || length === 0) throw new Error("Invalid BAM CIGAR operation");
+    cigar.push({ op, length, sequenceOffset, referenceOffset });
+    if ("MIS=X".includes(op)) sequenceOffset += length;
+    if ("MDN=X".includes(op)) referenceOffset += length;
+  }
+  return { cigar, sequenceOffset, referenceOffset };
+}
+
+const TAG_SIZES: Partial<Record<string, number>> = {
+  A: 1,
+  c: 1,
+  C: 1,
+  s: 2,
+  S: 2,
+  i: 4,
+  I: 4,
+  f: 4,
+};
+
+/**
+ * Reads the CG:B:I CIGAR from the auxiliary tags. Returns null when the tag is missing,
+ * malformed, or disagrees with the placeholder, so the read keeps its span without detail.
+ */
+function readLongCigar(reader: BinaryReader, sequenceLength: number, referenceLength: number) {
+  try {
+    while (reader.remaining > 0) {
+      const tag = String.fromCharCode(reader.readUint8(), reader.readUint8());
+      const type = String.fromCharCode(reader.readUint8());
+      if (type === "Z" || type === "H") {
+        while (reader.readUint8() !== 0);
+        continue;
+      }
+      if (type !== "B") {
+        const size = TAG_SIZES[type];
+        if (!size) return null;
+        reader.skip(size);
+        continue;
+      }
+      const subtype = String.fromCharCode(reader.readUint8());
+      const size = TAG_SIZES[subtype];
+      const count = reader.readUint32();
+      if (!size || count * size > reader.remaining) return null;
+      if (tag !== "CG") {
+        reader.skip(count * size);
+        continue;
+      }
+      if (subtype !== "I") return null;
+      const long = readCigar(reader, count);
+      return long.sequenceOffset === sequenceLength && long.referenceOffset === referenceLength
+        ? long.cigar
+        : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }

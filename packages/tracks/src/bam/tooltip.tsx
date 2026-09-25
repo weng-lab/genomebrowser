@@ -21,7 +21,7 @@ export function BamTooltip({ item }: { item: BamRecord }) {
   const meanQuality = knownQualities?.length
     ? (knownQualities.reduce((sum, value) => sum + value, 0) / knownQualities.length).toFixed(1)
     : "Unavailable";
-  const cigar = item.cigar.map(({ op, length }) => `${length}${op}`).join("") || "*";
+  const cigar = item.cigar.map(({ op, length }) => `${length}${op}`).join("") || "Unavailable";
   const short = (value: string) => (value.length > 80 ? value.slice(0, 77) + "…" : value);
   return (
     <TrackTooltip

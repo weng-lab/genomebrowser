@@ -67,7 +67,7 @@ The header is validated and cached after a successful load, shared with `read()`
 | `flags`          | `number`              | Raw SAM bit flags.                                                   |
 | `strand`         | `"+"` or `"-"`        | Alignment orientation from flag 0x10.                                |
 | `mappingQuality` | `number`              | Raw MAPQ; 255 means unavailable.                                     |
-| `cigar`          | `BamCigarOperation[]` | Operations in stored order.                                          |
+| `cigar`          | `BamCigarOperation[]` | Operations in stored order; empty when unavailable.                  |
 | `sequence`       | `string`              | Stored BAM sequence, including IUPAC bases; empty if absent.         |
 | `phredQualities` | `number[]` or `null`  | Per-base Phred scores, or null when unavailable/absent.              |
 | `mate`           | `BamMate` or `null`   | Mate reference information, or null when the reference ID is absent. |
@@ -91,6 +91,6 @@ A live check on 2026-09-23 found that UCSC serves BAM ranges with `Content-Encod
 
 ## Supported files
 
-This reader supports BAI indexing, not CSI, CRAM, or unindexed BAM. BAM and BAI must describe the same coordinate-sorted file; matching reference counts alone cannot verify that an index is current. The long CIGAR placeholder pattern (`l_seq S` followed by a reference-span `N`) is currently rejected explicitly; decoding its `CG` auxiliary tag is not supported. General auxiliary tag decoding and coverage aggregation are not part of this API.
+This reader supports BAI indexing, not CSI, CRAM, or unindexed BAM. BAM and BAI must describe the same coordinate-sorted file; matching reference counts alone cannot verify that an index is current. Alignments with more than 65,535 CIGAR operations store a placeholder (`l_seq S` followed by a reference-span `N`) and keep the real CIGAR in the `CG:B:I` auxiliary tag. The reader returns the `CG` operations in place of the placeholder. If that tag is missing or does not match the placeholder, the record keeps its reference span with an empty `cigar`. General auxiliary tag decoding and coverage aggregation are not part of this API.
 
 [BAM index](README.md) · [All reader APIs](../README.md)

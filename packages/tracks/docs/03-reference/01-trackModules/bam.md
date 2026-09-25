@@ -49,7 +49,7 @@ The initial base height is `14`. Each renderer replaces it with the height of th
 
 ### Alignment structure and bases
 
-CIGAR `M`, `=`, and `X` operations draw aligned blocks. Deletions (`D`) draw solid connectors; skipped reference regions (`N`) draw dashed connectors. Insertions (`I`) use purple ticks. Soft clips (`S`) use strand-colored ticks at their reference anchor; they are not stretched into reference coordinates. Hard clips and padding consume no reference space and draw no blocks.
+CIGAR `M`, `=`, and `X` operations draw aligned blocks. Deletions (`D`) draw solid connectors; skipped reference regions (`N`) draw dashed connectors. Insertions (`I`) use purple ticks. Soft clips (`S`) use strand-colored ticks at their reference anchor; they are not stretched into reference coordinates. Hard clips and padding consume no reference space and draw no blocks. A read without CIGAR operations draws as an unfilled outline over its reference span.
 
 In pack and full, bases appear when the visible span is at most `alignments.sequenceMaxWindow` (100 bp by default), when the row height is at least 10. Sequence is drawn in stored BAM orientation, including for reverse-strand reads. CIGAR `X` blocks are highlighted red at every zoom.
 
@@ -91,7 +91,7 @@ The form edits title, display mode, forward and reverse colors, row height, all 
 
 ## Tooltip and interactions
 
-The tooltip shows read name, zero-based half-open location, strand, MAPQ, sequence length, reference span, CIGAR, numeric and decoded SAM flags, mate location and orientation, signed template length, mean base quality, and stored sequence. MAPQ 255 and absent qualities are labeled unavailable. Tooltip values wrap into lines of at most 32 characters, preferring spaces where available. CIGAR and sequence previews remain shortened after 80 characters.
+The tooltip shows read name, zero-based half-open location, strand, MAPQ, sequence length, reference span, CIGAR, numeric and decoded SAM flags, mate location and orientation, signed template length, mean base quality, and stored sequence. MAPQ 255, absent qualities, and empty CIGARs are labeled unavailable. Tooltip values wrap into lines of at most 32 characters, preferring spaces where available. CIGAR and sequence previews remain shortened after 80 characters.
 
 Click, hover, and leave callbacks receive the complete `BamRecord` and core's track context. Their records retain full sequences and CIGAR operations even when tooltip previews are shortened.
 
@@ -133,7 +133,7 @@ Each reference record contains `chromosome`, `start`, `end`, and `sequence`. The
 
 BAM must be coordinate-sorted, BGZF-compressed, and paired with its matching BAI index. BAM and optional 2bit requests require HTTP 206 byte ranges without transport `Content-Encoding`; the BAI is fetched in full. All sources need browser CORS access.
 
-The reader supports BAI, not CSI or CRAM, and rejects long-CIGAR placeholders. Regional coordinates must end at or before `2 ** 29`. Unmapped reads are omitted; secondary, supplementary, and quality-failed records remain visible unless filtered by MAPQ or duplicate settings.
+The reader supports BAI, not CSI or CRAM. It decodes long CIGARs from the `CG` tag; when that tag is missing or inconsistent, the read keeps its span with no CIGAR operations. Regional coordinates must end at or before `2 ** 29`. Unmapped reads are omitted; secondary, supplementary, and quality-failed records remain visible unless filtered by MAPQ or duplicate settings.
 
 BAM or index errors use core's track error display. Optional reference failures preserve alignments and add a status message. Missing BAM chromosomes return no alignments. See [Data source troubleshooting](../../04-troubleshooting.md).
 
