@@ -1,11 +1,11 @@
 import type { ModuleCreateInput, ModuleInstance } from "@weng-lab/genomebrowser";
 import { defineTrackModule } from "@weng-lab/genomebrowser";
 import { fetchDynseq } from "./fetch";
-import { FullDynseq } from "./render";
+import { DenseDynseq, FullDynseq } from "./render";
 import { configSchema } from "./schema";
 import { DynseqSettings } from "./settings";
 import { DynseqTooltip } from "./tooltip";
-import type { DynseqPoint } from "./types";
+import type { DynseqItem } from "./types";
 
 /**
  * A per-base score track after Kundaje et al.: a filled signal when zoomed out,
@@ -13,12 +13,12 @@ import type { DynseqPoint } from "./types";
  * negative scores below the axis. Suits conservation and model attribution
  * signals, where which base carries the score is the point.
  */
-export const dynseqModule = defineTrackModule<DynseqPoint>()({
+export const dynseqModule = defineTrackModule<DynseqItem>()({
   type: "dynseq",
-  defaults: { height: 100, color: "#3a6ea5" },
+  defaults: { height: 80, color: "#2266aa" },
   configSchema,
   fetch: fetchDynseq,
-  render: { full: FullDynseq },
+  render: { full: FullDynseq, dense: DenseDynseq },
   settingsComponent: DynseqSettings,
   tooltipComponent: DynseqTooltip,
 });
@@ -26,4 +26,10 @@ export const dynseqModule = defineTrackModule<DynseqPoint>()({
 export type DynseqCreateInput = ModuleCreateInput<typeof dynseqModule>;
 export type DynseqConfig = ModuleInstance<typeof dynseqModule>["config"];
 export { NUCLEOTIDE_COLORS, NUCLEOTIDE_GLYPHS } from "./glyphs";
-export type { DynseqData, DynseqPoint } from "./types";
+export type {
+  DynseqData,
+  DynseqPoint,
+  DynseqItem,
+  DynseqInteraction,
+  DynseqDisplay,
+} from "./types";

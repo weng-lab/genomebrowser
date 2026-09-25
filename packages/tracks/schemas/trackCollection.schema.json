@@ -197,15 +197,15 @@
                   "display": {
                     "default": "full",
                     "type": "string",
-                    "enum": ["full"]
+                    "enum": ["full", "dense"]
                   },
                   "height": {
-                    "default": 100,
+                    "default": 80,
                     "type": "number",
                     "exclusiveMinimum": 0
                   },
                   "color": {
-                    "default": "#3a6ea5",
+                    "default": "#2266aa",
                     "type": "string",
                     "pattern": "^#[0-9a-f]{6}$"
                   }
@@ -219,6 +219,30 @@
                   "url": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "fillWithZero": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "yRange": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "number"
+                      },
+                      "max": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "showClampIndicators": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "clampIndicatorColor": {
+                    "default": "#ff0000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
                   },
                   "twoBitUrl": {
                     "type": "string",

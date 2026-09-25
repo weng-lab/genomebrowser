@@ -68,7 +68,7 @@ describe("dynseq module", () => {
         twoBitUrl: "https://example.test/genome.2bit",
       },
     });
-    expect(track.base).toMatchObject({ display: "full", height: 100, color: "#3a6ea5" });
+    expect(track.base).toMatchObject({ display: "full", height: 80, color: "#2266aa" });
     expect(track.config).toMatchObject({ minPixelsPerBase: 3, maxLetterBases: 500 });
   });
 
@@ -83,21 +83,14 @@ describe("dynseq module", () => {
 });
 
 describe("dynseq fetching", () => {
-  it("pairs each scored base with the reference base at the same coordinate", async () => {
-    reader.readBigWig.mockResolvedValue([
-      { kind: "value", chromosome: "chr1", start: 100, end: 103, value: 0.5 },
-      { kind: "value", chromosome: "chr1", start: 104, end: 105, value: -2 },
-    ]);
-    reader.readTwoBit.mockResolvedValue([
-      { chromosome: "chr1", start: 100, end: 110, sequence: "ACGTacgtAC" },
-    ]);
-
-    expect(await fetchDynseq(createContext())).toEqual([
-      { position: 100, score: 0.5, base: "A" },
-      { position: 101, score: 0.5, base: "C" },
-      { position: 102, score: 0.5, base: "G" },
-      { position: 104, score: -2, base: "a" },
-    ]);
+  it("preserves scored intervals instead of allocating a point for every base", async () => {
+    const scores = [{ kind: "value", chromosome: "chr1", start: 100, end: 110, value: 0.5 }];
+    const sequences = [{ chromosome: "chr1", start: 100, end: 110, sequence: "ACGTacgtAC" }];
+    reader.readBigWig.mockResolvedValue(scores);
+    reader.readTwoBit.mockResolvedValue(sequences);
+    const data = await fetchDynseq(createContext());
+    expect(data.signal).toBe(scores);
+    expect(data.sequence).toBe(sequences);
   });
 
   it("reads source values rather than a zoom summary", async () => {
@@ -114,27 +107,47 @@ describe("dynseq fetching", () => {
     expect(file.getZoomLevels).not.toHaveBeenCalled();
   });
 
-  it("drops scores with no reference base to sit on", async () => {
-    reader.readBigWig.mockResolvedValue([
-      { kind: "value", chromosome: "chr1", start: 98, end: 102, value: 1 },
-    ]);
-    reader.readTwoBit.mockResolvedValue([
-      { chromosome: "chr1", start: 100, end: 110, sequence: "ACGTACGTAC" },
-    ]);
-    // 98 and 99 precede the sequence record and are skipped rather than shifted.
-    expect(await fetchDynseq(createContext())).toEqual([
-      { position: 100, score: 1, base: "A" },
-      { position: 101, score: 1, base: "C" },
-    ]);
+  it("retains signal when the reference has no sequence for the region", async () => {
+    const scores = [{ kind: "value", chromosome: "chr1", start: 100, end: 101, value: 1 }];
+    reader.readBigWig.mockResolvedValue(scores);
+    reader.readTwoBit.mockResolvedValue([]);
+    expect(await fetchDynseq(createContext())).toEqual({ signal: scores, sequence: [] });
   });
 
-  it("returns nothing when the reference has no sequence for the region", async () => {
-    reader.readBigWig.mockResolvedValue([
-      { kind: "value", chromosome: "chr1", start: 100, end: 101, value: 1 },
-    ]);
-    reader.readTwoBit.mockResolvedValue([]);
-    expect(await fetchDynseq(createContext())).toEqual([]);
-  });
+  it.each(["wide", "dense"])(
+    "uses BigWig zoom summaries without reference reads for %s demand",
+    async (mode) => {
+      const context = createContext();
+      const demand = {
+        ...context.demand,
+        region: { chromosome: "chr1", start: 0, end: 10000 },
+        width: 100,
+      };
+      const summaries = [
+        { kind: "summary", chromosome: "chr1", start: 0, end: 10000, min: -2, max: 3 },
+      ];
+      const file = {
+        read: reader.readBigWig,
+        getZoomLevels: vi.fn().mockResolvedValue([10, 100]),
+        readZoomLevel: vi.fn().mockResolvedValue(summaries),
+      };
+      reader.createBigWigFile.mockReturnValue(file);
+      const data = await fetchDynseq({
+        ...context,
+        demand,
+        track: {
+          ...context.track,
+          base: { ...context.track.base, display: mode === "dense" ? "dense" : "full" },
+          // Dense must still use the signal reader when letters would be eligible.
+          config: { ...context.track.config, minPixelsPerBase: mode === "dense" ? 0.001 : 3 },
+        },
+      });
+      expect(data).toEqual({ signal: summaries, sequence: [] });
+      expect(file.readZoomLevel).toHaveBeenCalledWith(demand.region, 10);
+      expect(reader.readBigWig).not.toHaveBeenCalled();
+      expect(reader.createTwoBitFile).not.toHaveBeenCalled();
+    },
+  );
 
   it("reuses one reader per source across reads", async () => {
     reader.readBigWig.mockResolvedValue([]);

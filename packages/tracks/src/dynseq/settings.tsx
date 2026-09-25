@@ -9,9 +9,10 @@ import {
   TrackSettingsUrlField,
 } from "../shared/settings";
 import { TrackHeightSettings } from "../shared/settings/trackHeightSettings";
-import type { DynseqConfig, DynseqPoint } from "./types";
+import { SignalSettings } from "../bigwig/signalSettings";
+import type { DynseqConfig, DynseqItem } from "./types";
 
-type Props = TrackSettingsProps<DynseqConfig, DynseqPoint>;
+type Props = TrackSettingsProps<DynseqConfig, DynseqItem>;
 
 export function DynseqSettings({ track, updateTrack, ...settings }: Props) {
   const { config } = track;
@@ -27,7 +28,7 @@ export function DynseqSettings({ track, updateTrack, ...settings }: Props) {
         <TrackHeightSettings track={track} updateTrack={updateTrack} {...settings} />
       </TrackBaseSettings>
 
-      <TrackSettingsSection title="dynseq source">
+      <TrackSettingsSection title="Sources">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>
             <TrackSettingsUrlField
@@ -49,6 +50,8 @@ export function DynseqSettings({ track, updateTrack, ...settings }: Props) {
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
       </TrackSettingsSection>
+
+      <SignalSettings config={config} onChange={(config) => updateTrack({ config })} />
 
       <TrackSettingsSection title="Letters">
         <TrackSettingsFieldGrid>

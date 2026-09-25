@@ -1,4 +1,8 @@
-import { useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
+import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
+import { DenseBigWig, FullBigWig, getViewportRange } from "../bigwig/render";
+import { createYScale } from "../bigwig/helpers";
+import { createGenomicXScale } from "../shared/coordinates";
+import { ValueLabels } from "../shared/ValueLabels";
 import { NUCLEOTIDE_COLORS, NUCLEOTIDE_GLYPHS } from "./glyphs";
 import type { DynseqConfig, DynseqData, DynseqPoint } from "./types";
 
@@ -38,71 +42,88 @@ function Glyph({
   );
 }
 
-export function FullDynseq({ color, config, data, region, visibleRegion, width, height }: Props) {
-  const tooltip = useTooltip<DynseqPoint, DynseqConfig>();
-  if (data.length === 0) return null;
-
-  const bases = region.end - region.start;
-  const middle = height / 2;
-  const toX = (position: number) => ((position - region.start) / bases) * width;
-
-  // Largest absolute score, found by looping rather than spreading into
-  // Math.max: a wide window over a genome-wide file returns tens of thousands
-  // of points, and spreading that many arguments overflows the call stack.
-  let peak = 1e-6;
-  for (const point of data) {
-    const magnitude = Math.abs(point.score);
-    if (magnitude > peak) peak = magnitude;
-  }
-
-  // Whether letters are legible is a question about the viewport, so it is
-  // measured against visibleRegion. `region` is the overscanned render window,
-  // which is wider and would demand a correspondingly smaller view.
-  const visibleBases = visibleRegion.end - visibleRegion.start;
+export function FullDynseq(props: Props) {
+  const { config, data, region, visibleRegion, width } = props;
   const showLetters =
-    width / Math.max(1, bases) >= config.minPixelsPerBase && visibleBases <= config.maxLetterBases;
+    data.sequence.length > 0 &&
+    width / Math.max(1, region.end - region.start) >= config.minPixelsPerBase &&
+    visibleRegion.end - visibleRegion.start <= config.maxLetterBases;
+  return showLetters ? <SequenceDynseq {...props} /> : <FullBigWig {...props} data={data.signal} />;
+}
 
-  if (!showLetters) {
-    let path = `M ${toX(region.start)} ${middle}`;
-    for (const point of data) {
-      path += ` L ${toX(point.position).toFixed(2)} ${(middle - (point.score / peak) * middle).toFixed(2)}`;
+export function DenseDynseq(props: Props) {
+  return <DenseBigWig {...props} data={props.data.signal} />;
+}
+
+function SequenceDynseq({ config, data, region, visibleRegion, width, height }: Props) {
+  const tooltip = useTooltip<DynseqPoint, DynseqConfig>();
+  const interaction = useInteraction<DynseqPoint>();
+  const range = getViewportRange(config, data.signal, visibleRegion, region, width);
+  const y = createYScale(range, height);
+  const clamp = (value: number) => Math.max(range.min, Math.min(range.max, value));
+  const baseline = y(clamp(0));
+  const toX = createGenomicXScale(region, width);
+  const cellWidth = width / (region.end - region.start);
+  const points: DynseqPoint[] = [];
+  for (const record of data.signal) {
+    if (record.kind !== "value" || record.chromosome !== region.chromosome) continue;
+    for (const sequence of data.sequence) {
+      if (sequence.chromosome !== region.chromosome) continue;
+      const start = Math.max(record.start, sequence.start, region.start);
+      const end = Math.min(record.end, sequence.end, region.end);
+      for (let position = start; position < end; position++) {
+        const base = sequence.sequence[position - sequence.start]?.toUpperCase();
+        if (base && NUCLEOTIDE_GLYPHS[base]) points.push({ position, score: record.value, base });
+      }
     }
-    path += ` L ${toX(region.end)} ${middle} Z`;
-    return (
-      <>
-        <line x1={0} y1={middle} x2={width} y2={middle} stroke="#cccccc" strokeWidth={0.5} />
-        <path d={path} fill={color} opacity={0.8} />
-        <text x={2} y={10} fontSize={10} fill="#666666">
-          {peak.toFixed(2)}
-        </text>
-      </>
-    );
   }
-
-  const cellWidth = width / data.length;
   return (
-    <>
-      <line x1={0} y1={middle} x2={width} y2={middle} stroke="#cccccc" strokeWidth={0.5} />
-      {data.map((point) => {
-        const base = point.base.toUpperCase();
-        if (!NUCLEOTIDE_GLYPHS[base]) return null;
-        return (
-          <g
-            key={point.position}
-            onMouseEnter={(event) => tooltip.show(point, event)}
-            onMouseLeave={tooltip.hide}
-          >
-            <Glyph
-              base={base}
-              x={toX(point.position)}
-              cellWidth={cellWidth}
-              pixelHeight={(Math.abs(point.score) / peak) * middle}
-              baseline={middle}
-              negative={point.score < 0}
+    <g>
+      <line x1={0} y1={baseline} x2={width} y2={baseline} stroke="#dddddd" strokeWidth={1} />
+      {points.map((point) => (
+        <g key={point.position}>
+          <Glyph
+            base={point.base}
+            x={toX(point.position)}
+            cellWidth={cellWidth}
+            pixelHeight={Math.abs(y(clamp(point.score)) - baseline)}
+            baseline={baseline}
+            negative={point.score < 0}
+          />
+          {config.showClampIndicators && (point.score > range.max || point.score < range.min) && (
+            <line
+              x1={toX(point.position) + cellWidth / 2}
+              x2={toX(point.position) + cellWidth / 2}
+              y1={point.score > range.max ? 0 : height - 2}
+              y2={point.score > range.max ? 2 : height}
+              stroke={config.clampIndicatorColor}
+              strokeWidth={1}
             />
-          </g>
-        );
-      })}
-    </>
+          )}
+          <rect
+            x={toX(point.position)}
+            width={cellWidth}
+            height={height}
+            fill="transparent"
+            onMouseEnter={(event) => {
+              tooltip.show(point, event);
+              interaction?.onHover?.(point);
+            }}
+            onMouseLeave={() => {
+              tooltip.hide();
+              interaction?.onLeave?.(point);
+            }}
+          />
+        </g>
+      ))}
+      <ValueLabels
+        height={height}
+        ticks={[
+          { value: range.max, y: 0 },
+          { value: range.min, y: height },
+          ...(range.min < 0 && range.max > 0 ? [{ value: 0, y: baseline }] : []),
+        ]}
+      />
+    </g>
   );
 }

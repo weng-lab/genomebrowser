@@ -1,3 +1,7 @@
+import type { TrackInteraction } from "@weng-lab/genomebrowser";
+import type { TwoBitRecord } from "@weng-lab/genomic-reader";
+import type { BigWigData } from "../bigwig/types";
+import type { SignalPoint } from "../shared/signal";
 import type { z } from "zod";
 import type { configSchema } from "./schema";
 
@@ -10,4 +14,7 @@ export type DynseqPoint = {
   base: string;
 };
 
-export type DynseqData = DynseqPoint[];
+export type DynseqData = { signal: BigWigData; sequence: TwoBitRecord[] };
+export type DynseqItem = DynseqPoint | SignalPoint;
+export type DynseqInteraction = TrackInteraction<DynseqItem, DynseqConfig>;
+export type DynseqDisplay = "full" | "dense";

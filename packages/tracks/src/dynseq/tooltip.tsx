@@ -1,7 +1,13 @@
 import { TrackTooltip } from "../shared/tooltips";
-import type { DynseqPoint } from "./types";
+import { BigWigTooltip } from "../bigwig/tooltip";
+import type { TrackTooltipComponent } from "@weng-lab/genomebrowser";
+import type { DynseqConfig, DynseqItem } from "./types";
 
-export function DynseqTooltip({ item }: { item: DynseqPoint }) {
+export const DynseqTooltip: TrackTooltipComponent<DynseqItem, DynseqConfig> = ({
+  item,
+  context,
+}) => {
+  if (!("base" in item)) return <BigWigTooltip item={item} context={context} />;
   return (
     <TrackTooltip
       title={item.base.toUpperCase()}
@@ -11,4 +17,4 @@ export function DynseqTooltip({ item }: { item: DynseqPoint }) {
       ]}
     />
   );
-}
+};

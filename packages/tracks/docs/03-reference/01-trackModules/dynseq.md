@@ -1,73 +1,90 @@
 # dynseq
 
-`dynseqModule` draws per-base scores as a filled signal when zoomed out, and as reference
-nucleotides scaled by their score when zoomed in, with negative scores below the axis. It suits
-conservation tracks and model attribution signals, where which base carries the score is the point.
+`dynseqModule` behaves like a [BigWig track](bigwig.md), replacing the full signal plot
+with score-scaled reference nucleotides when zoomed in. It uses the same signal renderer,
+viewport scaling, hover behavior, and signal settings as BigWig.
 
 ```ts
 import { dynseqModule } from "@weng-lab/genomebrowser-tracks/dynseq";
 
 dynseqModule.create({
-  base: { id: "phylop", title: "phyloP", height: 100 },
+  base: { id: "phylop", title: "phyloP" },
   config: { url: "YOUR_URL_HERE", twoBitUrl: "YOUR_URL_HERE" },
 });
 ```
 
-## Two files
+## Displays and defaults
 
-The score BigWig supplies the values and the 2bit supplies the letters. Both are read for the same
-region, and the 2bit record starts exactly at the base it reports, so scores and letters line up by
-coordinate with no offset correction. A score with no reference base to sit on is dropped rather
-than shifted onto a neighbour.
+The `full` display shows letters when the visible span is at most `maxLetterBases` and
+each base has at least `minPixelsPerBase` logical pixels. Otherwise it draws the BigWig
+signal. The `dense` display always uses BigWig's dense signal renderer.
 
-Scores are read as BigWig **source values**, never as a zoom summary, because a reduced level has no
-single value to place on an individual base. Reading a genome-wide file across a wide window
-therefore returns one record per base; keep the track's window modest, or pair it with a plain
-BigWig track for the zoomed-out view.
+Defaults match BigWig: display `full`, height `80`, and color `#2266aa`.
+Nucleotides use their own colors; the base color controls the signal plot.
 
 ## Configuration
 
-| Option             | Default  | Meaning                                                     |
-| ------------------ | -------- | ----------------------------------------------------------- |
-| `url`              | required | Per-base score BigWig.                                      |
-| `twoBitUrl`        | required | Reference sequence supplying the letters.                   |
-| `maxLetterBases`   | `500`    | Letters are drawn only when the visible window is narrower. |
-| `minPixelsPerBase` | `3`      | Letters also need this much room per base.                  |
+| Option                | Default   | Meaning                                                                                                            |
+| --------------------- | --------- | ------------------------------------------------------------------------------------------------------------------ |
+| `url`                 | required  | Score BigWig URL.                                                                                                  |
+| `twoBitUrl`           | required  | Reference 2bit URL for letters.                                                                                    |
+| `fillWithZero`        | `false`   | Treat missing signal pixels as zero when drawing signal and determining the range. Does not invent scored letters. |
+| `yRange`              | automatic | Optional `{ min?: number, max?: number }` bounds. Both specified bounds must satisfy `min < max`.                  |
+| `showClampIndicators` | `true`    | Mark values clipped by the range in full signal and sequence views.                                                |
+| `clampIndicatorColor` | `#ff0000` | Six-digit hexadecimal indicator color.                                                                             |
+| `maxLetterBases`      | `500`     | Positive integer limit on the visible span for letters.                                                            |
+| `minPixelsPerBase`    | `3`       | Positive minimum logical pixels per base for letters.                                                              |
 
-Changing either URL refetches; the two thresholds re-render what is already loaded.
+Changing either URL or `minPixelsPerBase` refetches. Other settings update rendering
+without refetching. Settings use the shared base, height, range, and rendering controls;
+host-owned tracks disable URL editing.
 
-`maxLetterBases` measures the **visible** window, not the overscanned render window the browser
-fetches, so the number means what it says on screen.
+## Fetching and reference availability
 
-## Scaling
+At signal resolution, dynseq uses the same resolution-aware BigWig reader as BigWig,
+including zoom summaries. It retains intervals rather than allocating a point for each base.
+Dense display never requests reference sequence.
 
-Every score is scaled against the largest absolute value in the window, and the axis sits at the
-track's vertical centre. A single extreme base therefore flattens the rest of the view, which is
-expected for signals such as phyloP where most positions sit near zero and a conserved element
-spikes. Zooming in rescales to the new window.
+At letter resolution, it reads raw scores and reference sequence for the render region.
+Pixels per base remain the same across overscan, so this criterion also handles responsive
+resizing. Sequence may be prepared before `maxLetterBases` allows it to appear: fetching
+uses the render region, while that display limit measures the visible region. Adjusting
+`maxLetterBases` can therefore reveal already-loaded letters without a new request.
 
-Soft-masked reference bases arrive lowercase and are upper-cased before the glyph is chosen, so a
-repeat-masked region still draws letters.
+A broken reference does not affect wide or dense signal views. At letter resolution,
+a reference request failure reports a track fetch error. If the reference contains no
+sequence for the region, the track shows the available signal instead.
 
-Letter height encodes the score, so a poorly conserved base inside an otherwise conserved feature is
-genuinely tiny: a start codon whose middle base scores near zero draws as a full-height `A`, a
-sliver of a `T`, and a full-height `G`. That is the track reporting the data, not losing it.
+Both files must support HTTP range requests and send permissive CORS headers when cross-origin.
+See [Data source troubleshooting](../../04-troubleshooting.md).
 
-A base whose score rounds to zero height is not drawn at all. **A gap means "scored near zero", not
-"no data"** - the distinction matters when checking a sequence by eye, because the drawn letters are
-not one per base and cannot be counted off against a reference. Read positions from the tooltip, or
-from a glyph's own x coordinate, rather than by counting glyphs.
+## Sequence scaling and gaps
 
-There is currently no minimum glyph height. Adding one, ideally as a configurable floor so a caller
-can choose how visible near-zero bases should be, would make low-scoring stretches legible without
-changing what the heights mean.
+Letters use BigWig's automatic viewport range or the configured bounds. Offscreen scores
+in overscan do not determine the range. Positive scores extend upward from the zero baseline;
+negative scores extend downward. The baseline is clipped to the range when zero is outside it.
+
+Each glyph occupies one genomic base even when scores are sparse. Lowercase reference
+bases are uppercased before choosing a glyph. Missing scores and unsupported reference
+characters have no letter. Zero-height letters have no visible glyph, but scored supported
+bases retain a full-height hover target so their position and score remain inspectable.
+
+## Data and interactions
+
+`DynseqData` contains `signal`, an array of BigWig source or summary records, and `sequence`,
+an array of 2bit records. Sequence is empty for signal-resolution requests and dense display.
+
+`DynseqItem` is `SignalPoint | DynseqPoint`. `DynseqPoint` has `{ position, score, base }`;
+position is zero-based and base is uppercase. Hover and leave callbacks receive a signal
+point in signal displays and a nucleotide point in sequence view. Check `"base" in item`
+to distinguish them. Tooltips show the signal value or the nucleotide's position and score.
+
+`DynseqInteraction` types those callbacks. `DynseqDisplay` is `"full" | "dense"`.
+`DynseqCreateInput` and `DynseqConfig` describe creation input and resolved configuration.
+All these types are exported from the `/dynseq` entry point.
 
 ## Glyphs
 
-The nucleotide shapes are the weng-lab LogoJS geometry, emitted as plain SVG. `NUCLEOTIDE_GLYPHS`
-and `NUCLEOTIDE_COLORS` are exported for callers that want to draw the same letters elsewhere.
-
-## Source requirements
-
-Both files must support HTTP range requests and send permissive CORS headers when cross-origin. See
-[Data source troubleshooting](../../04-troubleshooting.md).
+The nucleotide shapes use the weng-lab LogoJS geometry as SVG paths.
+`NUCLEOTIDE_GLYPHS` and `NUCLEOTIDE_COLORS` are exported from `/dynseq` for applications
+that draw the same letters elsewhere.
