@@ -8,10 +8,20 @@ export const bamConfigSchema = z.object({
   indexUrl: fetchOnChange(z.string().min(1)),
   sequenceUrl: fetchOnChange(z.url({ protocol: /^https?$/ }).optional()),
   maxWindow: fetchOnChange(z.number().int().min(1).max(100_000).default(50_000)),
-  sequenceMaxWindow: z.number().int().min(1).max(100_000).default(100),
-  rowHeight: rowHeightSchema.default(14),
-  reverseColor: hexColorSchema.default("#cc3333"),
-  minimumMappingQuality: z.number().int().min(0).max(254).default(0),
-  showDuplicates: z.boolean().default(true),
+  alignments: z
+    .object({
+      rowHeight: rowHeightSchema.default(14),
+      forwardColor: hexColorSchema.default("#3366cc"),
+      reverseColor: hexColorSchema.default("#cc3333"),
+      sequenceMaxWindow: z.number().int().min(1).max(100_000).default(100),
+    })
+    .prefault({}),
+  filters: z
+    .object({
+      minimumMappingQuality: z.number().int().min(0).max(254).default(0),
+      includeDuplicates: z.boolean().default(true),
+    })
+    .prefault({}),
 });
+export type BamConfigInput = z.input<typeof bamConfigSchema>;
 export type BamConfig = z.output<typeof bamConfigSchema>;

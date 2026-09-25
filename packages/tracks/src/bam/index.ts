@@ -17,4 +17,11 @@ export const bamModule = defineTrackModule<BamRecord>()({
 });
 
 export type BamCreateInput = ModuleCreateInput<typeof bamModule>;
-export type { BamConfig, BamData, BamDisplay, BamInteraction, BamRecord } from "./types";
+export type {
+  BamConfigInput,
+  BamConfig,
+  BamData,
+  BamDisplay,
+  BamInteraction,
+  BamRecord,
+} from "./types";

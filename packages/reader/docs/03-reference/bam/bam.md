@@ -34,7 +34,9 @@ Reuse the file object to retain the parsed reference dictionary and BAI index. A
 ## BamFile
 
 ```ts
-type BamFile = GenomicFile<BamRecord>;
+interface BamFile extends GenomicFile<BamRecord> {
+  getHeader(options?: ReadOptions): Promise<BamHeader>;
+}
 ```
 
 `read(region, options?)` follows the [regional file contract](../regionalReading/genomicFile.md). It returns mapped alignments overlapping the zero-based, half-open region, sorted by start and then end. Records retain their full coordinates and sequences. Overlap uses the reference span from CIGAR, including deletions and skipped regions. A mapped record consuming no reference bases occupies one base for overlap.
@@ -42,6 +44,18 @@ type BamFile = GenomicFile<BamRecord>;
 Missing sequence names, regions beyond a sequence's length, and regions without alignments return an empty array. Unmapped records are omitted; secondary, supplementary, duplicate, and quality-failed alignments remain available through their flags.
 
 Coordinates must be nonnegative integers with start before end. BAI queries must end at or before `2 ** 29`. Validation, HTTP failures, invalid/truncated binary data, and cancellation reject the read without returning partial records. Each call accepts its own optional `AbortSignal`; aborting one call does not cancel concurrent calls.
+
+## BamHeader and BamReference
+
+`getHeader({ signal }?)` returns `{ text: string, references: BamReference[] }`. `text` is the SAM header text; each reference contains `name: string` and `length: number`, in file order. Names retain their original spelling, even after reads using the `chr` fallback.
+
+```ts
+const controller = new AbortController();
+const header = await file.getHeader({ signal: controller.signal });
+console.log(header.text, header.references);
+```
+
+The header is validated and cached after a successful load, shared with `read()`. Header access does not fetch the BAI. Each call returns a defensive copy of the reference list. Pre-aborted and in-flight calls reject, including requests served from the cache. Aborting one caller does not cancel other callers or prevent retrying. Malformed headers reject without caching partial results.
 
 ## BamRecord
 

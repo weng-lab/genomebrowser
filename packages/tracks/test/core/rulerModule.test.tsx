@@ -116,7 +116,12 @@ describe("ruler module", () => {
           type: "ruler",
           config: { ...rulerModule.create(input).config, sequenceUrl, sequenceMinPixelsPerBase: 5 },
         },
-        demand: { region: { ...region, end: region.start + viewportSpan }, width, assembly: hg38 },
+        demand: {
+          region: { ...region, end: region.start + viewportSpan },
+          visibleRegion: { ...region, end: region.start + viewportSpan },
+          width,
+          assembly: hg38,
+        },
         resources: cached,
       });
     await fetch(1000);

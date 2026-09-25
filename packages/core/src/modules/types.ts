@@ -60,6 +60,7 @@ export type TrackFetchTrack<Config> = Readonly<{
 export type TrackFetchDemand = Readonly<{
   assembly: AssemblyDefinition;
   region: Readonly<GenomicRegion>;
+  visibleRegion: Readonly<GenomicRegion>;
   width: number;
 }>;
 
@@ -110,9 +111,15 @@ export type TrackMutationResult = { ok: true } | MutationFailure<TrackMutationEr
 
 export type TrackBaseUpdate = Partial<Omit<TrackBase, "id">>;
 
+type ConfigPatch<T> = T extends readonly unknown[]
+  ? T
+  : T extends object
+    ? { [K in keyof T]?: ConfigPatch<T[K]> }
+    : T;
+
 export type TrackUpdate<Config, InteractionItem = unknown> = {
   base?: TrackBaseUpdate;
-  config?: Partial<Config>;
+  config?: Partial<Config> | ConfigPatch<Config>;
   interaction?: Partial<TrackInteraction<InteractionItem, Config>>;
 };
 

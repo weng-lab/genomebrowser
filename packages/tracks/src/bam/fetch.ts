@@ -10,10 +10,10 @@ import type { BamData } from "./types";
 
 export async function fetchBam({
   track: { config },
-  demand: { region },
+  demand: { region, visibleRegion },
   resources,
 }: TrackFetchContext<BamConfig>): Promise<BamData> {
-  if (region.end - region.start >= config.maxWindow) {
+  if (visibleRegion.end - visibleRegion.start >= config.maxWindow) {
     return {
       records: [],
       reference: [],

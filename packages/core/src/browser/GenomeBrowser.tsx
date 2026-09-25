@@ -214,6 +214,7 @@ function GenomeBrowserRuntime({
                 resourceStore={resourceStore}
                 assembly={assembly}
                 region={targetRenderRegion}
+                visibleRegion={region}
                 width={targetRenderWidth}
                 onSettled={() => handleDataSettled(dataKey)}
                 isPanLocked={isPanLocked}
@@ -256,6 +257,7 @@ function TrackDataCoordinator({
   resourceStore,
   assembly,
   region,
+  visibleRegion,
   width,
   onSettled,
   isPanLocked,
@@ -266,6 +268,7 @@ function TrackDataCoordinator({
   resourceStore: TrackResourceStoreInstance;
   assembly: BrowserStore["assembly"];
   region: GenomicRegion;
+  visibleRegion: GenomicRegion;
   width: number;
   onSettled: () => void;
   isPanLocked: boolean;
@@ -277,6 +280,7 @@ function TrackDataCoordinator({
     resourceStore,
     assembly,
     region,
+    visibleRegion,
     width,
     onSettled,
   });

@@ -20,7 +20,10 @@ export function layoutBam(
   width: number,
 ) {
   const x = createGenomicXScale(region, width);
-  const rowHeight = display === "squish" ? Math.max(1, config.rowHeight / 2) : config.rowHeight;
+  const rowHeight =
+    display === "squish"
+      ? Math.max(1, config.alignments.rowHeight / 2)
+      : config.alignments.rowHeight;
   const fontSize = Math.min(11, rowHeight * 0.75);
   const viewportStart = Math.max(0, x(visibleRegion.start));
   const viewportEnd = Math.min(width, x(visibleRegion.end));
@@ -29,10 +32,11 @@ export function layoutBam(
       (record) =>
         intersectsVisibleRegion(record, region) &&
         (record.flags & 4) === 0 &&
-        (config.showDuplicates || !(record.flags & 1024)) &&
+        (config.filters.includeDuplicates || !(record.flags & 1024)) &&
         // MAPQ 255 is unavailable, not evidence of high confidence.
-        (config.minimumMappingQuality === 0 ||
-          (record.mappingQuality !== 255 && record.mappingQuality >= config.minimumMappingQuality)),
+        (config.filters.minimumMappingQuality === 0 ||
+          (record.mappingQuality !== 255 &&
+            record.mappingQuality >= config.filters.minimumMappingQuality)),
     )
     .map((record) => {
       const start = Math.max(0, x(record.start));

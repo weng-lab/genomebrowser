@@ -10,5 +10,5 @@ export type BamData = {
   referenceError?: string;
 };
 export type BamInteraction = TrackInteraction<BamRecord, BamConfig>;
-export type { BamConfig } from "./schema";
+export type { BamConfig, BamConfigInput } from "./schema";
 export type { BamRecord } from "@weng-lab/genomic-reader";

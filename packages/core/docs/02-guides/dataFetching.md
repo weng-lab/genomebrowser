@@ -6,7 +6,7 @@ The application owns the viewport and track instances. Core coordinates requests
 
 ## Fetch for the render demand
 
-The visible viewport is the region requested by the application. The render region includes additional bases around that viewport so existing content can move immediately during panning. Core supplies that expanded region and its logical SVG width as `demand.region` and `demand.width`.
+The visible viewport is the region requested by the application. The render region includes additional bases around that viewport so existing content can move immediately during panning. Core supplies that expanded region and its logical SVG width as `demand.region` and `demand.width`. `demand.visibleRegion` supplies the viewport separately for decisions such as zoom limits; data requests should still cover `demand.region`.
 
 A fetcher should use those supplied values together. Reading the visible region from an application store would omit the extra data that the renderer expects and couple the module to one application. The fetch context also includes the requested assembly and a track snapshot containing its type, ID, display, and parsed config.
 

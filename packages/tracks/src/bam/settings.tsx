@@ -24,24 +24,33 @@ export function BamSettings({
   const config = track.config;
   return (
     <TrackSettingsLayout>
-      <TrackBaseSettings track={track} updateTrack={updateTrack} displayOptions={displayOptions}>
+      <TrackBaseSettings
+        track={track}
+        updateTrack={updateTrack}
+        displayOptions={displayOptions}
+        showColor={false}
+      >
         <TrackSettingsFieldRow>
           <TrackSettingsNumberField
             label="Row height"
             min={1}
-            value={config.rowHeight}
+            value={config.alignments.rowHeight}
             validate={(value) => (value >= 1 ? undefined : "Enter at least 1 pixel.")}
-            onCommit={(rowHeight) => updateTrack({ config: { rowHeight } })}
+            onCommit={(rowHeight) => updateTrack({ config: { alignments: { rowHeight } } })}
           />
           <TrackSettingsColorField
-            label="Reverse strand color"
-            value={config.reverseColor}
-            onCommit={(reverseColor) => updateTrack({ config: { reverseColor } })}
+            label="Forward color"
+            value={config.alignments.forwardColor}
+            onCommit={(forwardColor) => updateTrack({ config: { alignments: { forwardColor } } })}
+          />
+          <TrackSettingsColorField
+            label="Reverse color"
+            value={config.alignments.reverseColor}
+            onCommit={(reverseColor) => updateTrack({ config: { alignments: { reverseColor } } })}
           />
         </TrackSettingsFieldRow>
         <Typography variant="caption">
-          Color sets the forward strand. Squish uses half the row height; track height follows
-          visible rows.
+          Squish uses half the row height; track height follows visible rows.
         </Typography>
       </TrackBaseSettings>
       <TrackSettingsSection title="BAM source">
@@ -85,13 +94,15 @@ export function BamSettings({
           <TrackSettingsNumberField
             label="Minimum mapping quality"
             min={0}
-            value={config.minimumMappingQuality}
+            value={config.filters.minimumMappingQuality}
             validate={(value) =>
               Number.isInteger(value) && value >= 0 && value <= 254
                 ? undefined
                 : "Enter an integer from 0 to 254."
             }
-            onCommit={(minimumMappingQuality) => updateTrack({ config: { minimumMappingQuality } })}
+            onCommit={(minimumMappingQuality) =>
+              updateTrack({ config: { filters: { minimumMappingQuality } } })
+            }
           />
           <TrackSettingsNumberField
             label="Maximum window (bp)"
@@ -109,13 +120,15 @@ export function BamSettings({
           <TrackSettingsNumberField
             label="Sequence letters maximum window (bp)"
             min={1}
-            value={config.sequenceMaxWindow}
+            value={config.alignments.sequenceMaxWindow}
             validate={(value) =>
               Number.isInteger(value) && value >= 1 && value <= 100_000
                 ? undefined
                 : "Enter an integer from 1 to 100000."
             }
-            onCommit={(sequenceMaxWindow) => updateTrack({ config: { sequenceMaxWindow } })}
+            onCommit={(sequenceMaxWindow) =>
+              updateTrack({ config: { alignments: { sequenceMaxWindow } } })
+            }
           />
         </TrackSettingsFieldRow>
         <Typography variant="caption">
@@ -126,8 +139,10 @@ export function BamSettings({
           label="Show duplicate reads"
           control={
             <Checkbox
-              checked={config.showDuplicates}
-              onChange={(_, showDuplicates) => updateTrack({ config: { showDuplicates } })}
+              checked={config.filters.includeDuplicates}
+              onChange={(_, includeDuplicates) =>
+                updateTrack({ config: { filters: { includeDuplicates } } })
+              }
             />
           }
         />

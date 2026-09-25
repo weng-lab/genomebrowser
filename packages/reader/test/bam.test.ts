@@ -56,6 +56,7 @@ function bgzf(bytes: Uint8Array) {
 // Splicing/deletion, clipping, insertion, padding, =/X, and a cross-reference mate.
 function fixture(
   options: {
+    text?: string;
     split?: boolean;
     splitHeader?: boolean;
     sameBlock?: boolean;
@@ -70,7 +71,8 @@ function fixture(
 ) {
   const header = concat(
     int(0x014d4142),
-    int(0),
+    int(new TextEncoder().encode(options.text ?? "").length),
+    new TextEncoder().encode(options.text ?? ""),
     int(2),
     int(5),
     new TextEncoder().encode("chr1\0"),
@@ -342,5 +344,65 @@ describe("BAM regional reader", () => {
     });
     expect(records[0].chromosome).toBe("21");
     expect(await file.read({ chromosome: "1", start: 0, end: 100 })).toEqual([]);
+  });
+});
+
+describe("BAM header access", () => {
+  it("returns SAM text and references across blocks without fetching an index and protects the cache", async () => {
+    const { bam, bai } = fixture({ text: "@HD\tVN:1.6\n", splitHeader: true });
+    const fetch = mockFiles(bam, bai);
+    const file = createBamFile({ url, indexUrl });
+    const header = await file.getHeader();
+    expect(header).toEqual({
+      text: "@HD\tVN:1.6\n",
+      references: [
+        { name: "chr1", length: 10000 },
+        { name: "chr2", length: 10000 },
+      ],
+    });
+    expect(fetch.mock.calls.some(([url]) => url === indexUrl)).toBe(false);
+    header.references[0].name = "changed";
+    fetch.mockClear();
+    expect((await file.getHeader()).references[0].name).toBe("chr1");
+    expect(fetch).not.toHaveBeenCalled();
+    expect(await file.read(region)).toHaveLength(1);
+    fetch.mockClear();
+    expect((await file.getHeader()).text).toBe("@HD\tVN:1.6\n");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it("honors pre-aborted, in-flight, and cached cancellation without poisoning other callers", async () => {
+    const { bam, bai } = fixture();
+    const fetch = mockFiles(bam, bai);
+    const file = createBamFile({ url, indexUrl });
+    const aborted = new AbortController();
+    aborted.abort();
+    await expect(file.getHeader({ signal: aborted.signal })).rejects.toMatchObject({
+      name: "AbortError",
+    });
+    expect(fetch).not.toHaveBeenCalled();
+    const controller = new AbortController();
+    const pending = file.getHeader({ signal: controller.signal });
+    const active = file.getHeader();
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+    expect((await active).references).toHaveLength(2);
+    fetch.mockClear();
+    await expect(file.getHeader({ signal: controller.signal })).rejects.toMatchObject({
+      name: "AbortError",
+    });
+    const cachedController = new AbortController();
+    const cached = file.getHeader({ signal: cachedController.signal });
+    cachedController.abort();
+    await expect(cached).rejects.toMatchObject({ name: "AbortError" });
+    expect((await file.getHeader()).references).toHaveLength(2);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it("rejects malformed header data and permits retry", async () => {
+    const good = fixture();
+    mockFiles(bgzf(concat(int(0x014d4142), int(-1))), good.bai);
+    const file = createBamFile({ url, indexUrl });
+    await expect(file.getHeader()).rejects.toThrow();
+    mockFiles(good.bam, good.bai);
+    expect((await file.getHeader()).references).toHaveLength(2);
   });
 });

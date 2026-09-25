@@ -1001,31 +1001,48 @@
                     "minimum": 1,
                     "maximum": 100000
                   },
-                  "rowHeight": {
-                    "default": 14,
-                    "type": "number",
-                    "minimum": 1
+                  "alignments": {
+                    "default": {},
+                    "type": "object",
+                    "properties": {
+                      "rowHeight": {
+                        "default": 14,
+                        "type": "number",
+                        "minimum": 1
+                      },
+                      "forwardColor": {
+                        "default": "#3366cc",
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                      },
+                      "reverseColor": {
+                        "default": "#cc3333",
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                      },
+                      "sequenceMaxWindow": {
+                        "default": 100,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000
+                      }
+                    }
                   },
-                  "reverseColor": {
-                    "default": "#cc3333",
-                    "type": "string",
-                    "pattern": "^#[0-9a-f]{6}$"
-                  },
-                  "minimumMappingQuality": {
-                    "default": 0,
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 254
-                  },
-                  "showDuplicates": {
-                    "default": true,
-                    "type": "boolean"
-                  },
-                  "sequenceMaxWindow": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 100000,
-                    "default": 100
+                  "filters": {
+                    "default": {},
+                    "type": "object",
+                    "properties": {
+                      "minimumMappingQuality": {
+                        "default": 0,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 254
+                      },
+                      "includeDuplicates": {
+                        "default": true,
+                        "type": "boolean"
+                      }
+                    }
                   }
                 },
                 "required": ["url", "indexUrl"],

@@ -52,6 +52,7 @@ Every public export has a canonical destination below. File methods are document
 | `BamFile`                         | [BAM file](bam/bam.md#bamfile)                             |
 | `BamRecord`                       | [Alignment records](bam/bam.md#bamrecord)                  |
 | `BamCigarOperation`               | [CIGAR operations](bam/bam.md#bamcigaroperation)           |
+| `BamHeader`, `BamReference`       | [Header access](bam/bam.md#bamheader-and-bamreference)     |
 | `BamMate`                         | [Mate information](bam/bam.md#bammate)                     |
 
 ### TwoBit sequence

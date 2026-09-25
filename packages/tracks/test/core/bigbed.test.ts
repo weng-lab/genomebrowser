@@ -42,7 +42,12 @@ function createContext(
       type: "bigbed",
       config: { url, rowHeight: 12 },
     },
-    demand: { assembly: { id: "test", chromosomes: { chr1: 1_000 } }, region, width: 100 },
+    demand: {
+      assembly: { id: "test", chromosomes: { chr1: 1_000 } },
+      region,
+      visibleRegion: region,
+      width: 100,
+    },
     resources,
   };
 }

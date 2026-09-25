@@ -12,6 +12,11 @@ import {
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
+const readers = vi.hoisted(() => ({ read: vi.fn() }));
+vi.mock("@weng-lab/genomic-reader", async (original) => ({
+  ...(await original<typeof import("@weng-lab/genomic-reader")>()),
+  createBamFile: () => ({ read: readers.read }),
+}));
 let root: Root | undefined;
 let container: HTMLDivElement | undefined;
 afterEach(async () => {
@@ -41,6 +46,52 @@ async function settle(action: () => void) {
   });
 }
 describe("BAM hosted track", () => {
+  it("fetches overscan below the visible limit and recovers after crossing it", async () => {
+    readers.read.mockResolvedValue(
+      records.map((r) => ({ ...r, start: r.start + 100000, end: r.end + 100000 })),
+    );
+    const trackStore = createTrackStore({
+      modules: [bamModule],
+      tracks: [
+        bamModule.create({
+          base: { id: "bam", title: "BAM" },
+          config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE" },
+        }),
+      ],
+    });
+    const browserStore = createBrowserStore({
+      assembly: { id: "test", chromosomes: { chr1: 1000000 } },
+      region: { chromosome: "chr1", start: 100000, end: 117000 },
+      trackWidth: 1000,
+    });
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await settle(() =>
+      root?.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      ),
+    );
+    const demand = readers.read.mock.calls.at(-1)![0];
+    expect(demand.end - demand.start).toBeGreaterThan(50000);
+    expect(container.querySelectorAll("[data-bam-read]")).toHaveLength(3);
+    for (const span of [49999, 50000, 50001, 17000]) {
+      const before = readers.read.mock.calls.length;
+      await settle(() => {
+        browserStore
+          .getState()
+          .setRegion({ chromosome: "chr1", start: 100000, end: 100000 + span });
+      });
+      if (span >= 50000) {
+        expect(readers.read).toHaveBeenCalledTimes(before);
+        expect(container.textContent).toContain("Zoom in to see BAM track");
+        expect(container.querySelectorAll("[data-bam-read]")).toHaveLength(0);
+      } else {
+        expect(readers.read.mock.calls.length).toBeGreaterThan(before);
+        expect(container.querySelectorAll("[data-bam-read]")).toHaveLength(3);
+      }
+    }
+  });
   it("switches displays, derives height, delivers interactions, and refetches only fetch-affecting settings", async () => {
     const fetch = vi.fn(async (): Promise<BamData> => ({ records, reference: [] }));
     const click = vi.fn();
@@ -96,10 +147,8 @@ describe("BAM hosted track", () => {
     await settle(() => {
       useTrackStore.getState().updateTrack("bam", {
         config: {
-          reverseColor: "#aa0000",
-          minimumMappingQuality: 20,
-          showDuplicates: false,
-          rowHeight: 16,
+          alignments: { reverseColor: "#aa0000", rowHeight: 16 },
+          filters: { minimumMappingQuality: 20, includeDuplicates: false },
         },
       });
     });

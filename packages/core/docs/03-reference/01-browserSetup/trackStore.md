@@ -147,10 +147,10 @@ if (!added.ok) console.error(added.error);
 | Patch         | Type                                                 | Description                                                                                                  |
 | ------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `base`        | `TrackBaseUpdate`                                    | Optional changes to title, display, height, or color. `TrackBaseUpdate` is `Partial<Omit<TrackBase, "id">>`. |
-| `config`      | `Partial<Config>`                                    | Optional changes to the module's configuration. The registered module validates the resulting config.        |
+| `config`      | Recursive partial config                             | Optional changes to the module's configuration. The registered module validates the resulting config.        |
 | `interaction` | `Partial<TrackInteraction<InteractionItem, Config>>` | Optional changes to instance callbacks. Unspecified callbacks are retained.                                  |
 
-Each section is merged shallowly. A nested object or array supplied in a patch replaces its previous value rather than merging recursively. Omitting a section preserves it. The current ID, type, source, and track order are retained; replace the instance to change its identity or source.
+Base and interaction sections are merged shallowly. Plain objects in config patches merge recursively, preserving unspecified sibling fields. Arrays and non-plain values replace their previous values; explicit `undefined` is passed to the module schema and may restore defaults or remove optional values. Omitting a section preserves it. The current ID, type, source, and track order are retained; replace the instance to change its identity or source.
 
 ```ts
 const updated = useTrackStore.getState().updateTrack("signal", {

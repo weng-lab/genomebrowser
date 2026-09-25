@@ -31,4 +31,12 @@ export type { Cytoband, ReadCytobandsOptions } from "./cytobands";
 
 // BAM alignments
 export { createBamFile } from "./bam";
-export type { BamFile, BamFileOptions, BamRecord, BamCigarOperation, BamMate } from "./bam";
+export type {
+  BamFile,
+  BamFileOptions,
+  BamRecord,
+  BamCigarOperation,
+  BamMate,
+  BamHeader,
+  BamReference,
+} from "./bam";

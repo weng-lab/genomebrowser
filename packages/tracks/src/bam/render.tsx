@@ -22,7 +22,6 @@ export function FullBam(props: Props) {
 function BamRenderer({
   id,
   config,
-  color,
   data,
   region,
   visibleRegion,
@@ -55,7 +54,7 @@ function BamRenderer({
   const pixelsPerBase = width / (region.end - region.start);
   const showBases =
     (display === "pack" || display === "full") &&
-    visibleRegion.end - visibleRegion.start <= config.sequenceMaxWindow &&
+    visibleRegion.end - visibleRegion.start <= config.alignments.sequenceMaxWindow &&
     rowHeight >= 10;
   return (
     <g data-bam-display={display}>
@@ -72,7 +71,10 @@ function BamRenderer({
           transform={`translate(0,${(rowIndex + statusRows) * rowHeight})`}
         >
           {row.map(({ record, start, end, label }, index) => {
-            const strandColor = record.strand === "+" ? color : config.reverseColor;
+            const strandColor =
+              record.strand === "+"
+                ? config.alignments.forwardColor
+                : config.alignments.reverseColor;
             return (
               <g
                 key={index}

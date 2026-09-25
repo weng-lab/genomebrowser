@@ -50,6 +50,7 @@ describe("CAVE track fetching", () => {
         demand: {
           assembly: { id: "hg38", chromosomes: { chr1: 248_956_422 } },
           region,
+          visibleRegion: region,
           width: 100,
         },
         resources: createResources(),

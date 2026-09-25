@@ -46,7 +46,8 @@ describe("BAM settings", () => {
       "BAI URL",
       "Reference 2bit URL",
       "Minimum mapping quality",
-      "Reverse strand color",
+      "Forward color",
+      "Reverse color",
       "Row height",
       "Sequence letters maximum window (bp)",
     ])
@@ -65,7 +66,7 @@ describe("BAM settings", () => {
     );
     expect(update).toHaveBeenCalledWith({ config: { indexUrl: "UPDATED_INDEX" } });
     act(() => container!.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click());
-    expect(update).toHaveBeenCalledWith({ config: { showDuplicates: false } });
+    expect(update).toHaveBeenCalledWith({ config: { filters: { includeDuplicates: false } } });
   });
   it("locks all host-owned source URLs while allowing display settings", () => {
     setup("host");
@@ -79,4 +80,27 @@ describe("BAM settings", () => {
       "true",
     );
   });
+});
+
+it("uses explicit strand controls and commits nested alignment settings for host tracks", () => {
+  const update = setup("host");
+  const labels = [...container!.querySelectorAll("label")];
+  expect(labels.some((label) => label.textContent?.replace(/\s*\*$/, "").trim() === "Color")).toBe(
+    false,
+  );
+  for (const [name, value, expected] of [
+    ["Forward color", "#123456", { forwardColor: "#123456" }],
+    ["Reverse color", "#654321", { reverseColor: "#654321" }],
+    ["Sequence letters maximum window (bp)", "200", { sequenceMaxWindow: 200 }],
+  ] as const) {
+    const label = labels.find((label) => label.textContent?.replace(/\s*\*$/, "").trim() === name)!;
+    const input = document.getElementById(label.htmlFor) as HTMLInputElement;
+    expect(input.disabled).toBe(false);
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+    expect(update).toHaveBeenLastCalledWith({ config: { alignments: expected } });
+  }
 });

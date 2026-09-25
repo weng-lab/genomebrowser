@@ -19,6 +19,7 @@ export function useTrackData({
   resourceStore,
   assembly,
   region,
+  visibleRegion = region,
   width,
   widthDebounceMs = WIDTH_DEBOUNCE_MS,
   onSettled,
@@ -28,6 +29,7 @@ export function useTrackData({
   resourceStore: TrackResourceStoreInstance;
   assembly: AssemblyDefinition;
   region: GenomicRegion;
+  visibleRegion?: GenomicRegion;
   width: number;
   /**
    * Trailing delay before a width change joins the fetch demand. Width changes
@@ -56,16 +58,30 @@ export function useTrackData({
     () => ({ chromosome: region.chromosome, end: region.end, start: region.start }),
     [region.chromosome, region.end, region.start],
   );
+  const fetchVisibleRegion = useMemo<GenomicRegion>(
+    () => ({
+      chromosome: visibleRegion.chromosome,
+      start: visibleRegion.start,
+      end: visibleRegion.end,
+    }),
+    [visibleRegion.chromosome, visibleRegion.start, visibleRegion.end],
+  );
   const demandResetKey = useMemo(
     // Every non-width demand input: a change here promotes a pending width
     // immediately so the resulting fetch carries final values.
-    () => JSON.stringify({ assembly, region: fetchRegion, keys: currentFetchKeys }),
-    [assembly, currentFetchKeys, fetchRegion],
+    () =>
+      JSON.stringify({
+        assembly,
+        region: fetchRegion,
+        visibleRegion: fetchVisibleRegion,
+        keys: currentFetchKeys,
+      }),
+    [assembly, currentFetchKeys, fetchRegion, fetchVisibleRegion],
   );
   const demandWidth = useDebouncedValue(width, widthDebounceMs, demandResetKey);
   const demandIdentity = useMemo(
-    () => createDemandIdentity(assembly, fetchRegion, demandWidth),
-    [assembly, fetchRegion, demandWidth],
+    () => createDemandIdentity(assembly, fetchRegion, demandWidth, fetchVisibleRegion),
+    [assembly, fetchRegion, demandWidth, fetchVisibleRegion],
   );
   const incompatibleTrackIds = getIncompatibleTrackIds(
     tracks,
@@ -131,6 +147,7 @@ export function useTrackData({
           track,
           assembly,
           region: fetchRegion,
+          visibleRegion: fetchVisibleRegion,
           width: demandWidth,
         });
         return [track.base.id, result] as const;
@@ -158,6 +175,7 @@ export function useTrackData({
     demandIdentity,
     demandWidth,
     fetchRegion,
+    fetchVisibleRegion,
     registry,
     resourceStore,
     setData,
@@ -194,10 +212,11 @@ function createDemandIdentity(
   assembly: AssemblyDefinition,
   region: GenomicRegion,
   width: number,
+  visibleRegion: GenomicRegion,
 ): FetchDemandIdentity {
   const assemblyKey = JSON.stringify(assembly);
   return {
-    key: JSON.stringify({ assembly: assemblyKey, region, width }),
+    key: JSON.stringify({ assembly: assemblyKey, region, visibleRegion, width }),
     assembly: assemblyKey,
     width,
   };

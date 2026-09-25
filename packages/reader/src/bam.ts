@@ -1,5 +1,5 @@
 // Adapted from weng-lab/bigwig-reader src/bam (MIT, Copyright 2018 weng-lab).
-import type { GenomicFile, GenomicRecord } from "./genomicFile";
+import type { GenomicFile, GenomicRecord, ReadOptions } from "./genomicFile";
 import { throwIfAborted } from "./internal/abort";
 import { BamBgzfReader, BamHeaderReader, joinBamBytes } from "./internal/bamBgzf";
 import { bamChunks, parseBamIndex, type BamIndex } from "./internal/bamIndex";
@@ -27,8 +27,11 @@ export type BamRecord = GenomicRecord & {
   mate: BamMate | null;
   templateLength: number;
 };
-export type BamFile = GenomicFile<BamRecord>;
-type BamReference = { name: string; length: number };
+export interface BamFile extends GenomicFile<BamRecord> {
+  getHeader(options?: ReadOptions): Promise<BamHeader>;
+}
+export type BamReference = { name: string; length: number };
+export type BamHeader = { text: string; references: BamReference[] };
 
 /** Read coordinate-sorted BAM alignments using a BAI index. */
 export function createBamFile(options: BamFileOptions): BamFile {
@@ -37,18 +40,34 @@ export function createBamFile(options: BamFileOptions): BamFile {
   const url = validateHttpUrl(options.url);
   const indexUrl = validateHttpUrl(options.indexUrl);
   const metadata: ExactRangeMetadata = {};
-  let references: BamReference[] | undefined;
+  let header: BamHeader | undefined;
   let index: BamIndex | undefined;
+  async function loadHeader(signal?: AbortSignal): Promise<BamHeader> {
+    throwIfAborted(signal);
+    const loaded =
+      header ??
+      (await readHeader(new BamBgzfReader(new RequestRangeReader(url, { signal, metadata }))));
+    throwIfAborted(signal);
+    header = loaded;
+    return loaded;
+  }
   return {
+    async getHeader(options) {
+      const loaded = await loadHeader(options?.signal);
+      throwIfAborted(options?.signal);
+      return {
+        text: loaded.text,
+        references: loaded.references.map((reference) => ({ ...reference })),
+      };
+    },
     async read(region, options) {
       validateRegion(region);
       if (region.end > 2 ** 29) throw new RangeError("BAI regions must end at or before 2^29");
       const signal = options?.signal;
       throwIfAborted(signal);
       const bgzf = new BamBgzfReader(new RequestRangeReader(url, { signal, metadata }));
-      const loadedReferences = references ?? (await readReferences(bgzf));
+      const { references } = await loadHeader(signal);
       throwIfAborted(signal);
-      references = loadedReferences;
       let refId = references.findIndex((ref) => ref.name === region.chromosome);
       if (refId < 0) {
         const alternate = region.chromosome.startsWith("chr")
@@ -104,10 +123,10 @@ export function createBamFile(options: BamFileOptions): BamFile {
   };
 }
 
-async function readReferences(bgzf: BamBgzfReader): Promise<BamReference[]> {
+async function readHeader(bgzf: BamBgzfReader): Promise<BamHeader> {
   const reader = new BamHeaderReader(bgzf);
   if ((await reader.int()) !== 0x014d4142) throw new Error("Expected a BAM file");
-  await reader.bytes(await reader.int());
+  const text = new TextDecoder().decode(await reader.bytes(await reader.int()));
   const count = await reader.int();
   if (count < 0) throw new Error("Invalid BAM reference count");
   const references: BamReference[] = [];
@@ -122,5 +141,5 @@ async function readReferences(bgzf: BamBgzfReader): Promise<BamReference[]> {
     names.add(name);
     references.push({ name, length });
   }
-  return references;
+  return { text, references };
 }

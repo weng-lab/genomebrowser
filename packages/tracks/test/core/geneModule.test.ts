@@ -77,7 +77,12 @@ function context(
         rowHeight: 12,
       },
     },
-    demand: { assembly: { id: "test", chromosomes: { chr17: 1_000 } }, region, width: 100 },
+    demand: {
+      assembly: { id: "test", chromosomes: { chr17: 1_000 } },
+      region,
+      visibleRegion: region,
+      width: 100,
+    },
     resources,
   };
 }

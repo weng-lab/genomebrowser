@@ -123,6 +123,7 @@ function createContext(
     demand: {
       assembly: { id: "test", chromosomes: { chr1: 1_000 } },
       region,
+      visibleRegion: region,
       width: 100,
     },
     resources: {

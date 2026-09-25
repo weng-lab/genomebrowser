@@ -63,7 +63,7 @@ export function Browser() {
 
 The creation input establishes a track's initial settings. Subsequent changes go through the track store's actions, which validate the resulting instance before committing it. An `updateTrack` patch can change common properties under `base` and module options under `config`. Omitted top-level fields retain their current values, so changing a color does not require resupplying the title or data URL.
 
-The following control switches the signal track to its dense display and gives both signal tracks the same vertical range. A shared range makes the two plots use the same numeric scale. The nested `yRange` value is supplied in full because patches are shallow: replacing it does not merge its previous `min` and `max` fields.
+The following control switches the signal track to its dense display and gives both signal tracks the same vertical range. A shared range makes the two plots use the same numeric scale. Plain config objects merge recursively, so updating only `yRange.min` preserves the existing `max`. This example sets both bounds explicitly.
 
 Add this component in `SignalControls.tsx` and render `<SignalControls />` alongside `<Browser />` in `App.tsx`. The error belongs to the control that performs the update, while the accepted track settings remain in the shared store.
 

@@ -124,6 +124,7 @@ describe("GenomeBrowser region windows", () => {
         track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
           assembly: browserStore.getState().assembly,
+          visibleRegion: browserStore.getState().region,
           region: { chromosome: "chr1", start: 0, end: 200 },
           width: 200,
         },
@@ -144,6 +145,7 @@ describe("GenomeBrowser region windows", () => {
         track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
           assembly: browserStore.getState().assembly,
+          visibleRegion: browserStore.getState().region,
           region: { chromosome: "chr1", start: 300, end: 600 },
           width: 300,
         },
@@ -167,6 +169,7 @@ describe("GenomeBrowser region windows", () => {
         track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
           assembly: browserStore.getState().assembly,
+          visibleRegion: browserStore.getState().region,
           region: { chromosome: "chr1", start: 300, end: 600 },
           width: 600,
         },
@@ -196,6 +199,7 @@ describe("GenomeBrowser region windows", () => {
         track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
           assembly: browserStore.getState().assembly,
+          visibleRegion: browserStore.getState().region,
           region: { chromosome: "chr1", start: 800, end: 1_000 },
           width: 400,
         },

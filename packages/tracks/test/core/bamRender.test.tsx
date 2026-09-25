@@ -86,13 +86,19 @@ describe("BAM displays", () => {
         ).toBe("AAAAAAAAAA");
       }
       expect(
-        markup(display, data, { config: { ...track.config, sequenceMaxWindow: 99 } }).querySelector(
-          '[data-cigar="M"]',
-        )?.textContent,
+        markup(display, data, {
+          config: {
+            ...track.config,
+            alignments: { ...track.config.alignments, sequenceMaxWindow: 99 },
+          },
+        }).querySelector('[data-cigar="M"]')?.textContent,
       ).toBe("");
       expect(
         markup(display, data, {
-          config: { ...track.config, sequenceMaxWindow: 200 },
+          config: {
+            ...track.config,
+            alignments: { ...track.config.alignments, sequenceMaxWindow: 200 },
+          },
           visibleRegion: { chromosome: "chr1", start: 0, end: 200 },
         }).querySelector('[data-cigar="M"]')?.textContent,
       ).toBe("AAAAAAAAAA");
@@ -216,7 +222,10 @@ describe("BAM displays", () => {
     };
     expect(
       markup("pack", data, {
-        config: { ...track.config, showDuplicates: false, minimumMappingQuality: 20 },
+        config: {
+          ...track.config,
+          filters: { includeDuplicates: false, minimumMappingQuality: 20 },
+        },
       }).querySelectorAll("[data-bam-read]"),
     ).toHaveLength(1);
   });

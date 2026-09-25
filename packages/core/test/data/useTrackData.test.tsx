@@ -220,7 +220,7 @@ describe("useTrackData", () => {
           type: "demand-test",
           config: { label: "Signal" },
         },
-        demand: { assembly: testAssembly, region, width: 100 },
+        demand: { assembly: testAssembly, region, visibleRegion: region, width: 100 },
       }),
     );
 
@@ -849,4 +849,40 @@ describe("useTrackData", () => {
     expect(latestOnSettled).toHaveBeenCalledOnce();
     expect(fetch).toHaveBeenCalledOnce();
   });
+});
+
+it("refetches when only the visible region changes inside an unchanged render demand", async () => {
+  const fetch = vi.fn(async () => []);
+  const module = defineTrackModule({
+    type: "visible-demand",
+    configSchema: z.object({}),
+    fetch,
+    render: { full: () => null },
+  });
+  const useTrackStore = createTrackStore({
+    modules: [module],
+    tracks: [module.create({ base: { id: "track", title: "Track" }, config: {} })],
+  });
+  const useDataStore = createDataStore();
+  container = document.createElement("div");
+  root = createRoot(container);
+  const region = { chromosome: "chr1", start: 0, end: 1000 };
+  for (const end of [600, 400]) {
+    const visibleRegion = { chromosome: "chr1", start: 0, end };
+    const before = fetch.mock.calls.length;
+    await act(async () =>
+      root?.render(
+        <Harness
+          useTrackStore={useTrackStore}
+          useDataStore={useDataStore}
+          region={region}
+          visibleRegion={visibleRegion}
+        />,
+      ),
+    );
+    expect(fetch).toHaveBeenCalledTimes(before + 1);
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.objectContaining({ demand: expect.objectContaining({ region, visibleRegion }) }),
+    );
+  }
 });

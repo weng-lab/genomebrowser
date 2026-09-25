@@ -16,6 +16,8 @@ const useTrackStore = createTrackStore({
       config: {
         url: "YOUR_URL_HERE",
         indexUrl: "YOUR_URL_HERE",
+        alignments: { rowHeight: 14, forwardColor: "#3366cc", reverseColor: "#cc3333" },
+        filters: { includeDuplicates: true },
       },
     }),
   ],
@@ -24,7 +26,7 @@ const useTrackStore = createTrackStore({
 
 Supply separate HTTP(S) URLs for the BAM and its BAI. The BAM must use the browser assembly. Exact reference names take priority; if absent, the BAM reader tries adding or removing `chr`. A browser region named `chr20` therefore matches a BAM reference named `20`, with returned alignments using `chr20`. This changes names only, not coordinates or assembly. Optional reference sequence names must still match the browser exactly.
 
-All four displays show **Zoom in to see BAM track** when the visible browser region reaches `config.maxWindow` (default 50,000 bp). The same limit also prevents fetching render regions at or above it, including overscan. Consequently, overscan can trigger the message before the visible span reaches the limit. Configure an integer from 1 through 100,000 bp.
+All four displays show **Zoom in to see BAM track** when the visible browser region reaches `config.maxWindow` (default 50,000 bp). Fetching uses this same visible span; overscan does not count toward the limit. Below the limit, reads are fetched for the expanded render region. Configure an integer from 1 through 100,000 bp.
 
 ## bamModule
 
@@ -43,13 +45,13 @@ The package root's `firstPartyTrackModules` includes BAM. The individual `/bam` 
 
 The initial base height is `14`. Each renderer replaces it with the height of the rows needed in the visible viewport. Overscan reads remain available for panning without increasing that height. Empty displays retain at least one row. Status messages reserve additional rows.
 
-`base.color`, default `#3366cc`, colors forward-strand reads. `config.reverseColor`, default `#cc3333`, colors reverse-strand reads. Both use darker interiors for aligned blocks, with strand-colored outlines and direction marks. These conventions are inspired by [UCSC BAM strand coloring](https://www.genome.ucsc.edu/goldenPath/help/hgBamTrackHelp), rather than implementing every UCSC BAM setting.
+`config.alignments.forwardColor`, default `#3366cc`, colors forward-strand reads. `config.alignments.reverseColor`, default `#cc3333`, colors reverse-strand reads. Both use darker interiors for aligned blocks, with strand-colored outlines and direction marks. These conventions are inspired by [UCSC BAM strand coloring](https://www.genome.ucsc.edu/goldenPath/help/hgBamTrackHelp), rather than implementing every UCSC BAM setting.
 
 ### Alignment structure and bases
 
 CIGAR `M`, `=`, and `X` operations draw aligned blocks. Deletions (`D`) draw solid connectors; skipped reference regions (`N`) draw dashed connectors. Insertions (`I`) use purple ticks. Soft clips (`S`) use strand-colored ticks at their reference anchor; they are not stretched into reference coordinates. Hard clips and padding consume no reference space and draw no blocks.
 
-In pack and full, bases appear when the visible span is at most `sequenceMaxWindow` (100 bp by default), when the row height is at least 10. Sequence is drawn in stored BAM orientation, including for reverse-strand reads. CIGAR `X` blocks are highlighted red at every zoom.
+In pack and full, bases appear when the visible span is at most `alignments.sequenceMaxWindow` (100 bp by default), when the row height is at least 10. Sequence is drawn in stored BAM orientation, including for reverse-strand reads. CIGAR `X` blocks are highlighted red at every zoom.
 
 An optional `sequenceUrl` supplies a version-0 UCSC 2bit reference. The reference is fetched with alignments, including outside the visible viewport, so zooming into retained data can highlight mismatches. When letters are visible, the track compares canonical A/C/G/T bases in `M` operations with the reference and highlights mismatches in bright red. Lowercase reference bases are compared without case sensitivity. Ambiguous bases are not treated as confirmed mismatches. Without reference data, `M` operations are not assumed to match or mismatch; only explicit `X` operations establish mismatches.
 
@@ -57,25 +59,34 @@ Each alignment is rendered separately. Mate coordinates appear in tooltips; the 
 
 ## Config
 
-| Option                  | Type      | Default   | Description                                                                                                                                                                        |
-| ----------------------- | --------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`                   | `string`  | Required  | Nonempty BAM URL. Changing it requests new data.                                                                                                                                   |
-| `indexUrl`              | `string`  | Required  | Nonempty matching BAI URL. Changing it replaces the retained BAM reader and requests data.                                                                                         |
-| `sequenceUrl`           | `string`  | Unset     | HTTP(S) 2bit reference URL for the same assembly. Changing it requests new data.                                                                                                   |
-| `maxWindow`             | `number`  | `50000`   | Exclusive span limit for display and fetching, including fetch overscan. Integer from 1 through 100000. At or above the limit, shows a zoom-in message. Changing it requests data. |
-| `sequenceMaxWindow`     | `number`  | `100`     | Maximum visible span in bp for letters, inclusive. Integer from 1 to 100000, independent of ruler settings and plot width.                                                         |
-| `rowHeight`             | `number`  | `14`      | Complete row slot in pixels, finite and at least 1. Squish uses half this value.                                                                                                   |
-| `reverseColor`          | `string`  | `#cc3333` | Six-digit hexadecimal color for reverse-strand alignments.                                                                                                                         |
-| `minimumMappingQuality` | `number`  | `0`       | Integer from 0 through 254. Filters loaded records locally. Zero includes unavailable MAPQ 255; positive thresholds exclude unavailable MAPQ.                                      |
-| `showDuplicates`        | `boolean` | `true`    | Whether to include records with SAM duplicate flag 0x400. Filters loaded records locally.                                                                                          |
+| Option                          | Type      | Default   | Description                                                                                                                                                                               |
+| ------------------------------- | --------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`                           | `string`  | Required  | Nonempty BAM URL. Changing it requests new data.                                                                                                                                          |
+| `indexUrl`                      | `string`  | Required  | Nonempty matching BAI URL. Changing it replaces the retained BAM reader and requests data.                                                                                                |
+| `sequenceUrl`                   | `string`  | Unset     | HTTP(S) 2bit reference URL for the same assembly. Changing it requests new data.                                                                                                          |
+| `maxWindow`                     | `number`  | `50000`   | Exclusive visible-span limit for display and fetching, independent of overscan. Integer from 1 through 100000. At or above the limit, shows a zoom-in message. Changing it requests data. |
+| `alignments.sequenceMaxWindow`  | `number`  | `100`     | Maximum visible span in bp for letters, inclusive. Integer from 1 to 100000, independent of ruler settings and plot width.                                                                |
+| `alignments.rowHeight`          | `number`  | `14`      | Complete row slot in pixels, finite and at least 1. Squish uses half this value.                                                                                                          |
+| `alignments.forwardColor`       | `string`  | `#3366cc` | Forward-strand color, a six-digit hex value. Independent of the generic base color.                                                                                                       |
+| `alignments.reverseColor`       | `string`  | `#cc3333` | Six-digit hexadecimal color for reverse-strand alignments.                                                                                                                                |
+| `filters.minimumMappingQuality` | `number`  | `0`       | Integer from 0 through 254. Filters loaded records locally. Zero includes unavailable MAPQ 255; positive thresholds exclude unavailable MAPQ.                                             |
+| `filters.includeDuplicates`     | `boolean` | `true`    | Whether to include records with SAM duplicate flag 0x400. Filters loaded records locally.                                                                                                 |
 
 The fetcher retains one BAM reader keyed by both source URLs and one optional reference reader keyed by its URL, using resources scoped to the mounted track. It does not retain alignment regions. Render-only changes such as colors, row height, mapping-quality filtering, and duplicate filtering reuse current records.
 
 The region limit controls genomic span, not read count. High-depth regions and full display can still produce many SVG elements.
 
+`BamConfigInput` accepts optional `alignments` and `filters` objects. Omitted groups, empty groups, and omitted fields receive the defaults above. `BamConfig` is the fully parsed configuration. Nested config patches preserve sibling values:
+
+```ts
+useTrackStore.getState().updateTrack("alignments", {
+  config: { alignments: { forwardColor: "#225588" }, filters: { includeDuplicates: false } },
+});
+```
+
 ## Settings
 
-The form edits title, display mode, forward and reverse colors, row height, all three source URLs, mapping-quality threshold, duplicate visibility, and the render-region limit. URL drafts apply only when Set is activated. Host-owned tracks disable all source URL fields while keeping presentation controls available. Height is calculated from the display and visible rows; edit Row height to resize alignments.
+The form edits title, display mode, forward and reverse colors, row height, all three source URLs, mapping-quality threshold, duplicate visibility, and the visible-span limit. URL drafts apply only when Set is activated. Host-owned tracks disable all source URL fields while keeping presentation controls available. Height is calculated from the display and visible rows; edit Row height to resize alignments.
 
 ## Tooltip and interactions
 
@@ -106,6 +117,7 @@ const track = bamModule.create(
 | Export           | Contract                                                                                                                                   |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `BamCreateInput` | Input to `bamModule.create`, with optional defaulted config values.                                                                        |
+| `BamConfigInput` | Authored configuration with optional alignment and filter groups.                                                                          |
 | `BamConfig`      | Parsed config with the defaults above applied.                                                                                             |
 | `BamDisplay`     | `"dense" \| "squish" \| "pack" \| "full"`.                                                                                                 |
 | `BamData`        | Fetch result: `records: BamRecord[]`, `reference: TwoBitRecord[]`, optional `message` for the region limit, and optional `referenceError`. |

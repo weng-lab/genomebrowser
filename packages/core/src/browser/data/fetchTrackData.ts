@@ -10,6 +10,7 @@ export async function fetchTrackData({
   resourceStore,
   track,
   region,
+  visibleRegion = region,
   width,
   assembly,
 }: {
@@ -17,6 +18,7 @@ export async function fetchTrackData({
   resourceStore: TrackResourceStoreInstance;
   track: AnyTrackInstance;
   region: GenomicRegion;
+  visibleRegion?: GenomicRegion;
   width: number;
   assembly: AssemblyDefinition;
 }): Promise<DataResult> {
@@ -29,7 +31,7 @@ export async function fetchTrackData({
         type: track.type,
         config: track.config,
       },
-      demand: { assembly, region, width },
+      demand: { assembly, region, visibleRegion, width },
       resources: resourceStore.resourcesFor({ type: track.type, id: track.base.id }),
     });
     return { status: "success", data };

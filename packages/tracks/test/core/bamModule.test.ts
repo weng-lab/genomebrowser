@@ -37,12 +37,49 @@ function context(
 ): TrackFetchContext<BamConfig> {
   return {
     track: { ...bamModule.create(input), config: { ...bamModule.create(input).config, ...config } },
-    demand: { region, width, assembly: { id: "test", chromosomes: { chr1: 1000000 } } },
+    demand: {
+      region,
+      visibleRegion: region,
+      width,
+      assembly: { id: "test", chromosomes: { chr1: 1000000 } },
+    },
     resources: cache,
   };
 }
 beforeEach(() => vi.resetAllMocks());
 describe("BAM module public contract", () => {
+  it("defaults omitted and partial groups and preserves siblings in nested updates", () => {
+    const defaults = bamModule.create(input).config;
+    expect(
+      bamModule.create({ ...input, config: { ...input.config, alignments: {}, filters: {} } })
+        .config,
+    ).toEqual(defaults);
+    const track = bamModule.create({
+      ...input,
+      config: {
+        ...input.config,
+        alignments: { rowHeight: 24 },
+        filters: { minimumMappingQuality: 20 },
+      },
+    });
+    const store = createTrackStore({ modules: [bamModule], tracks: [track] });
+    expect(
+      store.getState().updateTrack("bam", {
+        config: {
+          alignments: { forwardColor: "#123456" },
+          filters: { includeDuplicates: false },
+        },
+      }).ok,
+    ).toBe(true);
+    expect(store.getState().getTrack("bam")?.config).toEqual({
+      ...defaults,
+      alignments: { ...defaults.alignments, rowHeight: 24, forwardColor: "#123456" },
+      filters: { minimumMappingQuality: 20, includeDuplicates: false },
+    });
+    expect(
+      store.getState().updateTrack("bam", { config: { alignments: { sequenceMaxWindow: 0 } } }).ok,
+    ).toBe(false);
+  });
   it("registers all four displays, applies defaults, and validates updates", () => {
     expect(firstPartyTrackModules).toContain(bamModule);
     expect(bamModule.displays).toEqual(["dense", "squish", "pack", "full"]);
@@ -51,12 +88,14 @@ describe("BAM module public contract", () => {
       type: "bam",
       base: { display: "pack", color: "#3366cc", height: 14 },
       config: {
-        rowHeight: 14,
-        reverseColor: "#cc3333",
-        minimumMappingQuality: 0,
-        showDuplicates: true,
+        alignments: {
+          rowHeight: 14,
+          forwardColor: "#3366cc",
+          reverseColor: "#cc3333",
+          sequenceMaxWindow: 100,
+        },
+        filters: { minimumMappingQuality: 0, includeDuplicates: true },
         maxWindow: 50000,
-        sequenceMaxWindow: 100,
       },
     });
     expect(
@@ -76,10 +115,12 @@ describe("BAM module public contract", () => {
       false,
     );
     expect(
-      useTracks.getState().updateTrack("bam", { config: { minimumMappingQuality: 255 } }).ok,
+      useTracks
+        .getState()
+        .updateTrack("bam", { config: { filters: { minimumMappingQuality: 255 } } }).ok,
     ).toBe(false);
     expect(() =>
-      bamModule.create({ ...input, config: { ...input.config, rowHeight: 0 } }),
+      bamModule.create({ ...input, config: { ...input.config, alignments: { rowHeight: 0 } } }),
     ).toThrow();
     expect(() =>
       bamModule.create({ ...input, config: { ...input.config, indexUrl: "" } }),
@@ -103,7 +144,7 @@ describe("BAM module public contract", () => {
     expect(read).toHaveBeenCalledWith(region);
     expect(mocks.createTwoBitFile).not.toHaveBeenCalled();
   });
-  it.each([5, 10])("does not fetch render regions at or above the limit %i", async (maxWindow) => {
+  it.each([5, 10])("does not fetch visible regions at or above the limit %i", async (maxWindow) => {
     const result = await bamModule.fetch(context(resources(), { maxWindow }));
     expect(result.records).toEqual([]);
     expect(result.message).toContain("Zoom in");
