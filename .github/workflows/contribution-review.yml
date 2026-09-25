@@ -43,7 +43,7 @@ jobs:
 
       - name: Review contribution
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           CONTRIBUTION_KIND: ${{ github.event_name == 'issues' && 'issue' || 'PR' }}
@@ -51,5 +51,5 @@ jobs:
         run: |
           opencode run --standalone --auto \
             --agent contribution-review \
-            --model anthropic/claude-opus-5-5 \
+            --model vercel/anthropic/claude-opus-5.5 \
             "Review $CONTRIBUTION_KIND #$CONTRIBUTION_NUMBER in $GH_REPO for enough information to act. Publish an advisory clarification only if needed, following your instructions."
