@@ -67,6 +67,20 @@ const MAX_COMPRESSED_BLOCK_SIZE = 1n << 16n;
  * curve is flat, so the extra sockets buy nothing.
  */
 const CHUNK_FETCH_CONCURRENCY = 8;
+
+/**
+ * How much compressed chunk data one file keeps.
+ *
+ * Panning re-reads almost exactly what the previous view read: the browser
+ * overscans the viewport, so a step sideways lands well inside the range
+ * already fetched and the index resolves it to the same chunks. Measured on a
+ * 25% pan, every one of the 76 ranges was byte-identical to one just requested,
+ * so without a cache each step pays the whole read again.
+ *
+ * Compressed bytes are kept rather than inflated blocks: they are several times
+ * smaller, and re-inflating costs far less than the round trip it avoids.
+ */
+const MAX_CACHED_CHUNK_BYTES = 64 * 1024 * 1024;
 const INITIAL_HEADER_READ_SIZE = 1n << 16n;
 const MAX_HEADER_READ_SIZE = 1n << 26n;
 
@@ -76,6 +90,9 @@ type BamMetadataCache = {
   index?: BamIndex;
   rangeMetadata: ExactRangeMetadata;
   indexRangeMetadata: ExactRangeMetadata;
+  /** Compressed chunk bytes, keyed by the exact range read. */
+  chunkBytes: Map<string, Uint8Array>;
+  chunkBytesSize: number;
 };
 
 /**
@@ -99,7 +116,12 @@ export function createBamFile(options: BamFileOptions): BamFile {
   const indexUrl =
     options.indexUrl === undefined ? `${url}.bai` : validateHttpUrl(options.indexUrl);
 
-  const cache: BamMetadataCache = { rangeMetadata: {}, indexRangeMetadata: {} };
+  const cache: BamMetadataCache = {
+    rangeMetadata: {},
+    indexRangeMetadata: {},
+    chunkBytes: new Map(),
+    chunkBytesSize: 0,
+  };
 
   async function loadHeader(signal: AbortSignal | undefined): Promise<BamHeader> {
     if (cache.header) return cache.header;
@@ -149,8 +171,26 @@ export function createBamFile(options: BamFileOptions): BamFile {
         // The index gives the end block's offset but not its length, so read
         // one maximum block past it and let the inflater stop where it runs out.
         const length = end.blockOffset - begin.blockOffset + MAX_COMPRESSED_BLOCK_SIZE;
-        const bytes = await reader.readBounded(begin.blockOffset, 1n, length);
-        throwIfAborted(signal);
+        const key = `${begin.blockOffset}:${length}`;
+        let bytes = cache.chunkBytes.get(key);
+        if (bytes === undefined) {
+          bytes = await reader.readBounded(begin.blockOffset, 1n, length);
+          throwIfAborted(signal);
+          cache.chunkBytes.set(key, bytes);
+          cache.chunkBytesSize += bytes.byteLength;
+          // Map iterates in insertion order, so the first key is the oldest.
+          while (cache.chunkBytesSize > MAX_CACHED_CHUNK_BYTES) {
+            const oldest = cache.chunkBytes.keys().next();
+            if (oldest.done) break;
+            cache.chunkBytesSize -= cache.chunkBytes.get(oldest.value)?.byteLength ?? 0;
+            cache.chunkBytes.delete(oldest.value);
+          }
+        } else {
+          throwIfAborted(signal);
+          // Refresh recency so a range still in use is not the next evicted.
+          cache.chunkBytes.delete(key);
+          cache.chunkBytes.set(key, bytes);
+        }
 
         const blocks = inflateBgzfBlocks(bytes, begin.blockOffset);
         if (blocks.length === 0) return [];
