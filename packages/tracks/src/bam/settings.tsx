@@ -1,6 +1,5 @@
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import Typography from "@mui/material/Typography";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
 import type { BamRecord } from "@weng-lab/genomic-reader";
 import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
@@ -56,9 +55,6 @@ export function BamSettings({
             onCommit={(reverseColor) => updateAlignments({ reverseColor })}
           />
         </TrackSettingsFieldRow>
-        <Typography variant="caption">
-          Squish uses half the row height; track height follows visible rows.
-        </Typography>
       </TrackBaseSettings>
       <TrackSettingsSection title="BAM source">
         <TrackSettingsFieldGrid>
@@ -93,10 +89,6 @@ export function BamSettings({
             />
           </TrackSettingsFullRow>
         </TrackSettingsFieldGrid>
-        <Typography variant="caption">
-          An optional reference from the same assembly identifies mismatching bases when zoomed in.
-          BAM names may differ by a chr prefix; reference sequence names must match the browser.
-        </Typography>
       </TrackSettingsSection>
       <TrackSettingsSection title="Alignment display">
         <TrackSettingsFieldRow>
@@ -136,10 +128,6 @@ export function BamSettings({
             onCommit={(sequenceMaxWindow) => updateAlignments({ sequenceMaxWindow })}
           />
         </TrackSettingsFieldRow>
-        <Typography variant="caption">
-          Letters appear at this visible span or less in pack/full mode with row height at least 10
-          pixels.
-        </Typography>
         <FormControlLabel
           label="Show duplicate reads"
           control={
