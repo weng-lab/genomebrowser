@@ -48,6 +48,7 @@ describe("CAVE track fetching", () => {
           },
         },
         demand: {
+          basePairDetail: true,
           assembly: { id: "hg38", chromosomes: { chr1: 248_956_422 } },
           region,
           visibleRegion: region,

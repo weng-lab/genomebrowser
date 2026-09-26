@@ -123,6 +123,7 @@ describe("GenomeBrowser region windows", () => {
       expect.objectContaining({
         track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
+          basePairDetail: true,
           assembly: browserStore.getState().assembly,
           visibleRegion: browserStore.getState().region,
           region: { chromosome: "chr1", start: 0, end: 200 },
@@ -144,6 +145,7 @@ describe("GenomeBrowser region windows", () => {
       expect.objectContaining({
         track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
+          basePairDetail: true,
           assembly: browserStore.getState().assembly,
           visibleRegion: browserStore.getState().region,
           region: { chromosome: "chr1", start: 300, end: 600 },
@@ -168,6 +170,7 @@ describe("GenomeBrowser region windows", () => {
       expect.objectContaining({
         track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
+          basePairDetail: true,
           assembly: browserStore.getState().assembly,
           visibleRegion: browserStore.getState().region,
           region: { chromosome: "chr1", start: 300, end: 600 },
@@ -198,6 +201,7 @@ describe("GenomeBrowser region windows", () => {
       expect.objectContaining({
         track: { base: { id: "bounded", display: "full" }, type: "bounded-fetch-test", config: {} },
         demand: {
+          basePairDetail: true,
           assembly: browserStore.getState().assembly,
           visibleRegion: browserStore.getState().region,
           region: { chromosome: "chr1", start: 800, end: 1_000 },

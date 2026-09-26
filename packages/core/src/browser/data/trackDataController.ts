@@ -1,3 +1,8 @@
+import {
+  basePairDetailVisible,
+  getBasePairDetailStatus,
+  type BasePairDetailStatus,
+} from "../viewport/basePairDetail";
 import type { AssemblyDefinition } from "../../genome/assembly";
 import type { GenomicRegion } from "../../genome/region";
 import { createFetchSignature } from "../../modules/fetchOnChange";
@@ -13,6 +18,7 @@ export const PAN_OVERSCAN_MULTIPLIER = 3;
 const WIDTH_DEBOUNCE_MS = 200;
 
 type TrackResultBase = {
+  basePairDetail: boolean;
   /** The genomic region the data covers. */
   region: GenomicRegion;
   /** Debounced track width when the request started. */
@@ -36,6 +42,7 @@ type PendingRequest = { fetchKey: string; demandKey: string; controller: AbortCo
 type TrackEntry = { current?: TrackResult; pending?: PendingRequest };
 
 type Demand = {
+  basePairDetail: boolean;
   assembly: AssemblyDefinition;
   assemblyKey: string;
   view: GenomicRegion;
@@ -48,6 +55,8 @@ type Demand = {
 export type TrackDataController = {
   /** Mirrors the measured track width. Changes are debounced before they refetch. */
   setTrackWidth(width: number): void;
+  getBasePairDetail(): boolean;
+  getBasePairDetailStatus(): BasePairDetailStatus;
   subscribe(listener: () => void): () => void;
   /** Stable until that track's displayed state changes. */
   getTrack(trackId: string): TrackDataState;
@@ -87,6 +96,42 @@ export function createTrackDataController({
   let widthTimer: ReturnType<typeof setTimeout> | undefined;
   let retainedTracks: AnyTrackInstance[] | undefined;
 
+  const detailEligible = () => {
+    const { region, basePairDetail } = browserStore.getState();
+    return region.end - region.start <= basePairDetail.maxVisibleBases;
+  };
+  const nextDetail = (wasVisible: boolean) => {
+    const { region } = browserStore.getState();
+    return basePairDetailVisible(
+      detailEligible(),
+      trackWidth,
+      region.end - region.start,
+      wasVisible,
+    );
+  };
+  let detailVisible = nextDetail(false);
+  const nextDetailStatus = () =>
+    getBasePairDetailStatus(
+      detailVisible,
+      detailEligible(),
+      trackWidth,
+      browserStore.getState().basePairDetail.maxVisibleBases,
+    );
+  let detailStatus = nextDetailStatus();
+  const updateDetail = () => {
+    const next = nextDetail(detailVisible);
+    detailVisible = next;
+    const status = nextDetailStatus();
+    if (
+      status.reason === detailStatus.reason &&
+      status.zoomTargetBases === detailStatus.zoomTargetBases &&
+      status.maxReadableBases === detailStatus.maxReadableBases
+    )
+      return false;
+    detailStatus = status;
+    return true;
+  };
+
   const notify = () => {
     for (const listener of listeners) listener();
   };
@@ -115,14 +160,16 @@ export function createTrackDataController({
     const region = target?.targetRenderRegion ?? view;
     const width = target?.renderWidth ?? Math.max(0, debouncedTrackWidth);
     const assemblyKey = assemblyKeyFor(assembly);
+    const basePairDetail = detailEligible();
     return {
+      basePairDetail,
       assembly,
       assemblyKey,
       view,
       region,
       width,
       trackWidth: debouncedTrackWidth,
-      key: JSON.stringify({ assembly: assemblyKey, region, width }),
+      key: JSON.stringify({ assembly: assemblyKey, region, width, basePairDetail }),
     };
   };
 
@@ -155,6 +202,7 @@ export function createTrackDataController({
     };
     entries.set(trackId, { current: entry.current, pending: request });
     const base = {
+      basePairDetail: demand.basePairDetail,
       region: demand.region,
       trackWidth: demand.trackWidth,
       visibleSpan: demand.view.end - demand.view.start,
@@ -173,6 +221,7 @@ export function createTrackDataController({
             config: track.config,
           },
           demand: {
+            basePairDetail: demand.basePairDetail,
             assembly: demand.assembly,
             region: demand.region,
             visibleRegion: demand.view,
@@ -202,6 +251,7 @@ export function createTrackDataController({
   /** Brings every track in line with the stores and notifies if anything visible changed. */
   const update = () => {
     if (!connected) return;
+    const detailChanged = updateDetail();
     const { tracks, registry } = trackStore.getState();
     const demand = getDemand();
     const chromosomeLength = demand.assembly.chromosomes[demand.view.chromosome] ?? 0;
@@ -241,7 +291,7 @@ export function createTrackDataController({
     }
 
     setIsLoading([...entries.values()].some((entry) => entry.pending));
-    let changed = false;
+    let changed = detailChanged;
     for (const trackId of states.keys()) {
       if (entries.has(trackId)) continue;
       states.delete(trackId);
@@ -273,6 +323,7 @@ export function createTrackDataController({
     setTrackWidth(width) {
       if (width === trackWidth) return;
       trackWidth = width;
+      if (updateDetail()) notify();
       clearTimeout(widthTimer);
       widthTimer = undefined;
       if (widthDebounceMs <= 0) {
@@ -286,6 +337,8 @@ export function createTrackDataController({
         update();
       }, widthDebounceMs);
     },
+    getBasePairDetail: () => detailVisible,
+    getBasePairDetailStatus: () => detailStatus,
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
@@ -294,7 +347,12 @@ export function createTrackDataController({
     connect() {
       connected = true;
       const unsubscribeBrowser = browserStore.subscribe((state, previous) => {
-        if (state.region === previous.region && state.assembly === previous.assembly) return;
+        if (
+          state.region === previous.region &&
+          state.assembly === previous.assembly &&
+          state.basePairDetail.maxVisibleBases === previous.basePairDetail.maxVisibleBases
+        )
+          return;
         flushWidth();
         update();
       });
@@ -343,7 +401,8 @@ function coversView(
     current.assemblyKey !== demand.assemblyKey ||
     current.region.chromosome !== view.chromosome ||
     current.visibleSpan !== span ||
-    current.trackWidth !== demand.trackWidth
+    current.trackWidth !== demand.trackWidth ||
+    current.basePairDetail !== demand.basePairDetail
   ) {
     return false;
   }

@@ -151,12 +151,6 @@
                   "sequenceUrl": {
                     "type": "string",
                     "format": "uri"
-                  },
-                  "sequenceMinPixelsPerBase": {
-                    "default": 15,
-                    "type": "number",
-                    "minimum": 1,
-                    "maximum": 100
                   }
                 },
                 "additionalProperties": false
@@ -164,6 +158,121 @@
               "type": {
                 "type": "string",
                 "const": "ruler"
+              },
+              "metadata": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": [
+              "base",
+              "config",
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "full",
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "dense"
+                    ]
+                  },
+                  "height": {
+                    "default": 80,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#2266aa",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ],
+                "additionalProperties": false
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "fillWithZero": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "yRange": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "number"
+                      },
+                      "max": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "showClampIndicators": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "clampIndicatorColor": {
+                    "default": "#ff0000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  },
+                  "twoBitUrl": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "url",
+                  "twoBitUrl"
+                ],
+                "additionalProperties": false
+              },
+              "type": {
+                "type": "string",
+                "const": "dynseq"
               },
               "metadata": {
                 "type": "object",
@@ -1162,10 +1271,30 @@
                     "minimum": 1,
                     "maximum": 100000
                   },
+                  "filters": {
+                    "default": {},
+                    "type": "object",
+                    "properties": {
+                      "minimumMappingQuality": {
+                        "default": 0,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 254
+                      },
+                      "includeDuplicates": {
+                        "default": true,
+                        "type": "boolean"
+                      }
+                    }
+                  },
                   "alignments": {
                     "default": {},
                     "type": "object",
                     "properties": {
+                      "show": {
+                        "default": true,
+                        "type": "boolean"
+                      },
                       "rowHeight": {
                         "default": 14,
                         "type": "number",
@@ -1181,25 +1310,118 @@
                         "type": "string",
                         "pattern": "^#[0-9a-f]{6}$"
                       },
-                      "sequenceMaxWindow": {
+                      "maxRows": {
                         "default": 100,
                         "type": "integer",
                         "minimum": 1,
-                        "maximum": 100000
+                        "maximum": 10000
                       }
                     }
                   },
-                  "filters": {
+                  "coverage": {
                     "default": {},
                     "type": "object",
                     "properties": {
-                      "minimumMappingQuality": {
-                        "default": 0,
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 254
+                      "show": {
+                        "default": true,
+                        "type": "boolean"
                       },
-                      "includeDuplicates": {
+                      "height": {
+                        "default": 60,
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 1000
+                      },
+                      "color": {
+                        "default": "#808080",
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                      },
+                      "scale": {
+                        "default": {
+                          "mode": "auto"
+                        },
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "mode": {
+                                "type": "string",
+                                "const": "auto"
+                              }
+                            },
+                            "required": [
+                              "mode"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "mode": {
+                                "type": "string",
+                                "const": "fixed"
+                              },
+                              "max": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              }
+                            },
+                            "required": [
+                              "mode",
+                              "max"
+                            ]
+                          }
+                        ]
+                      },
+                      "graph": {
+                        "default": "bars",
+                        "type": "string",
+                        "enum": [
+                          "bars",
+                          "line"
+                        ]
+                      },
+                      "aggregation": {
+                        "default": "mean",
+                        "type": "string",
+                        "enum": [
+                          "mean",
+                          "max"
+                        ]
+                      }
+                    }
+                  },
+                  "junctions": {
+                    "default": {},
+                    "type": "object",
+                    "properties": {
+                      "show": {
+                        "default": false,
+                        "type": "boolean"
+                      },
+                      "height": {
+                        "default": 100,
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 1000
+                      },
+                      "color": {
+                        "default": "#808080",
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                      },
+                      "minimumSupport": {
+                        "default": 1,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "maximumSpan": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "showCounts": {
                         "default": true,
                         "type": "boolean"
                       }

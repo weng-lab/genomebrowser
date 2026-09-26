@@ -1,3 +1,4 @@
+import { BasePairDetailSettings } from "../shared/settings/basePairDetailSettings";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import MenuItem from "@mui/material/MenuItem";
@@ -217,17 +218,6 @@ export function BamSettings({
           </TrackSettingsFieldRow>
           <TrackSettingsFieldRow>
             <TrackSettingsNumberField
-              label="Sequence letters maximum window (bp)"
-              min={1}
-              value={config.alignments.sequenceMaxWindow}
-              validate={(value) =>
-                Number.isInteger(value) && value >= 1 && value <= 100_000
-                  ? undefined
-                  : "Enter an integer from 1 to 100000."
-              }
-              onCommit={(sequenceMaxWindow) => updateAlignments({ sequenceMaxWindow })}
-            />
-            <TrackSettingsNumberField
               label="Maximum rows"
               min={1}
               value={config.alignments.maxRows}
@@ -265,6 +255,17 @@ export function BamSettings({
           }
         />
       </TrackSettingsSection>
+      <BasePairDetailSettings
+        unavailableReason={
+          !config.alignments.show
+            ? "Enable Alignments above to show letters on this track."
+            : track.base.display !== "pack" && track.base.display !== "full"
+              ? "Choose Pack or Full display above to show letters on this track."
+              : config.alignments.rowHeight < 10
+                ? "Increase row height to at least 10 pixels to show letters on this track."
+                : undefined
+        }
+      />
       <TrackSettingsSection title="BAM source">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>

@@ -59,6 +59,7 @@ function createContext(
       },
     },
     demand: {
+      basePairDetail: true,
       assembly: { id: "test", chromosomes: { chr1: 1_000 } },
       region,
       visibleRegion: region,

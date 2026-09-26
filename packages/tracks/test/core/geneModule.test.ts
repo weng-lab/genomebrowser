@@ -78,6 +78,7 @@ function context(
       },
     },
     demand: {
+      basePairDetail: true,
       assembly: { id: "test", chromosomes: { chr17: 1_000 } },
       region,
       visibleRegion: region,

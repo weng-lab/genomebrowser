@@ -28,7 +28,6 @@ export const bamConfigSchema = z
         rowHeight: rowHeightSchema.default(14),
         forwardColor: hexColorSchema.default("#3366cc"),
         reverseColor: hexColorSchema.default("#cc3333"),
-        sequenceMaxWindow: z.number().int().min(1).max(100_000).default(100),
         maxRows: z.number().int().min(1).max(10_000).default(100),
       })
       .prefault({}),

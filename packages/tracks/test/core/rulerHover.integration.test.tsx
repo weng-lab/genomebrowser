@@ -27,7 +27,6 @@ it("owns hover highlights and clears them without removing user or other ruler h
         },
         config: {
           sequenceUrl: "https://example.test/ref.2bit",
-          sequenceMinPixelsPerBase: 5,
           sequenceHighlightColor: id === "one" ? "#ff8800" : "#0088ff",
         },
       }),

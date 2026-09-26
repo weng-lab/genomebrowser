@@ -1,3 +1,4 @@
+import { useBasePairDetail } from "@weng-lab/genomebrowser";
 import { SequenceBase } from "./SequenceBase";
 import { useRulerHoverHighlight } from "./useRulerHoverHighlight";
 import { tickStep } from "./helpers";
@@ -19,9 +20,10 @@ export function Ruler({
   const pixelsPerBase = width / span;
   const x = (base: number) => (base - region.start) * pixelsPerBase;
   const axisY = 20;
+  const basePairDetail = useBasePairDetail();
   const showSequence =
     Boolean(config.sequenceUrl) &&
-    pixelsPerBase >= config.sequenceMinPixelsPerBase &&
+    basePairDetail &&
     data.records.some(
       (record) =>
         record.chromosome === visibleRegion.chromosome &&

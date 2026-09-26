@@ -94,9 +94,11 @@ Squish, pack, and full draw at most `alignments.maxRows` rows (100 by default). 
 
 CIGAR `M`, `=`, and `X` operations draw aligned blocks. Deletions (`D`) draw solid connectors; skipped reference regions (`N`) draw dashed connectors. Insertions (`I`) use purple ticks. Soft clips (`S`) use strand-colored ticks at their reference anchor; they are not stretched into reference coordinates. Hard clips and padding consume no reference space and draw no blocks. A read without CIGAR operations draws as an unfilled outline over its reference span.
 
-In pack and full, bases appear when the visible span is at most `alignments.sequenceMaxWindow` (100 bp by default), when the row height is at least 10. Sequence is drawn in stored BAM orientation, including for reverse-strand reads. CIGAR `X` blocks are highlighted red at every zoom.
+In pack and full, bases appear when the shared browser gate enables detail and row height is at least 10. Sequence is drawn in stored BAM orientation, including for reverse-strand reads. CIGAR `X` blocks are highlighted red at every zoom.
 
-An optional `sequenceUrl` supplies a version-0 UCSC 2bit reference. The reference is fetched with alignments, including outside the visible viewport, so zooming into retained data can highlight mismatches. When letters are visible, the track compares canonical A/C/G/T bases in `M` operations with the reference and highlights mismatches in bright red. Lowercase reference bases are compared without case sensitivity. Ambiguous bases are not treated as confirmed mismatches. Without reference data, `M` operations are not assumed to match or mismatch; only explicit `X` operations establish mismatches.
+The host sets `basePairDetail.maxVisibleBases` in `createBrowserStore`, or changes it with `setBasePairDetail`. The default is 100 visible bp, inclusive. Core's `useBasePairDetail()` enables letters at 8 logical SVG units per base and keeps them visible down to 6. Overscan does not affect the gate; resizing uses the actual plot width. Responsive UI scale changes logical width, while fixed sizing scale leaves the gate unchanged.
+
+An optional `sequenceUrl` supplies a version-0 UCSC 2bit reference. The reference is fetched within the browser's bp cutoff, including overscan, even when the width guard hides letters. The last successful reference window is reused during resizing. When letters are visible, the track compares canonical A/C/G/T bases in `M` operations with the reference and highlights mismatches in bright red. Lowercase reference bases are compared without case sensitivity. Ambiguous bases are not treated as confirmed mismatches. Without reference data, `M` operations are not assumed to match or mismatch; only explicit `X` operations establish mismatches.
 
 Each alignment is rendered separately. Mate coordinates appear in tooltips; the track does not join paired reads into fragments.
 
@@ -126,7 +128,6 @@ Each alignment is rendered separately. Mate coordinates appear in tooltips; the 
 | `alignments.rowHeight`          | `number`             | `14`               | Complete row slot in pixels, finite and at least 1. Squish uses half this value.                                                                                                          |
 | `alignments.forwardColor`       | `string`             | `#3366cc`          | Forward-strand color, a six-digit hex value. Independent of the generic base color.                                                                                                       |
 | `alignments.reverseColor`       | `string`             | `#cc3333`          | Six-digit hexadecimal color for reverse-strand alignments.                                                                                                                                |
-| `alignments.sequenceMaxWindow`  | `number`             | `100`              | Maximum visible span in bp for letters, inclusive. Integer from 1 to 100000, independent of ruler settings and plot width.                                                                |
 | `alignments.maxRows`            | `number`             | `100`              | Maximum alignment rows drawn in squish, pack, and full. Integer from 1 through 10000. Undrawn reads still count toward coverage and junctions.                                            |
 
 The fetcher retains one BAM reader keyed by both source URLs and one optional reference reader keyed by its URL, using resources scoped to the mounted track. It does not retain alignment regions. Render-only changes such as section visibility, colors, heights, scale, junction thresholds, row height, mapping-quality filtering, and duplicate filtering reuse current records.
@@ -145,6 +146,10 @@ if (!result.ok) console.error(result.error);
 ## Settings
 
 The form edits title, display mode, section visibility, the settings of each shown section, mapping-quality threshold, duplicate visibility, all three source URLs, and the visible-span limit. Controls for a hidden section are removed from the form, and its settings are kept for when it is shown again. The switch for the last shown section is disabled. URL drafts apply only when Set is activated. Host-owned tracks disable all source URL fields while keeping presentation controls available. Height is calculated from the shown sections; edit a section height, Row height, or Maximum rows to resize the track.
+
+The **Sequence letters** section shares its setting with all participating tracks. Its slider runs from larger letters to more bases and edits the browser's `basePairDetail.maxVisibleBases` cutoff immediately. The displayed span and slider range account for the mounted plot width; an existing preference above that range is preserved until the user moves the slider. The sample bases illustrate density and are not reference data.
+
+**Show letters** centers the viewport on the displayed, readable span. The control shows track-specific prerequisites when the source or display mode prevents letters. Host-owned tracks can still edit this display preference.
 
 ## Tooltip and interactions
 

@@ -124,11 +124,24 @@ export async function readCachedTwoBitSequence(
   region: GenomicRegion,
   signal?: AbortSignal,
 ): Promise<TwoBitRecord[]> {
+  const cached = resources.get<{ url: string; region: GenomicRegion; records: TwoBitRecord[] }>(
+    "twobit-sequence",
+  );
+  if (
+    cached &&
+    cached.url === url &&
+    cached.region.chromosome === region.chromosome &&
+    cached.region.start === region.start &&
+    cached.region.end === region.end
+  )
+    return cached.records;
   const files = cachedFiles<TwoBitFile>(resources, TWO_BIT_FILES);
   let file = files.get(url);
   if (!file) {
     file = createTwoBitFile({ url });
     files.set(url, file);
   }
-  return file.read(region, { signal });
+  const records = await file.read(region, { signal });
+  if (!signal?.aborted) resources.set("twobit-sequence", { url, region, records });
+  return records;
 }

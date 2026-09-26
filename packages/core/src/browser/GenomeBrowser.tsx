@@ -1,3 +1,4 @@
+import { BasePairDetailContext } from "./viewport/basePairDetail";
 import {
   useLayoutEffect,
   useMemo,
@@ -167,42 +168,44 @@ function GenomeBrowserRuntime({
   );
 
   return (
-    <BrowserProvider value={browserContextValue}>
-      <RegistryProvider registry={registry}>
-        <BrowserSvgProvider svg={svg}>
-          <TrackHeightProvider>
-            <TooltipProvider
-              isDisabled={panDrag.isDragging}
-              getTooltipComponent={(type) =>
-                registry.get(type).tooltipComponent as AnyTrackTooltipComponent | undefined
-              }
-            >
-              <InteractionGate useBrowserStore={useBrowserStore}>
-                <BrowserView
-                  useTrackStore={useTrackStore}
-                  dataController={dataController}
-                  svg={svg}
-                  setSvg={setSvg}
-                  browserWidth={browserWidth}
-                  scale={scale}
-                  totalHeight={totalHeight}
-                  marginWidth={marginWidth}
-                  trackWidth={trackWidth}
-                  region={region}
-                  setRegion={setRegion}
-                  registerContentGroup={registerContentGroup}
-                  onPanCommit={commitPan}
-                  setContentOffset={setContentOffset}
-                  panDrag={panDrag}
-                  titleSize={titleSize}
-                  trackLayouts={trackLayouts}
-                />
-              </InteractionGate>
-            </TooltipProvider>
-          </TrackHeightProvider>
-        </BrowserSvgProvider>
-      </RegistryProvider>
-    </BrowserProvider>
+    <BasePairDetailContext value={dataController}>
+      <BrowserProvider value={browserContextValue}>
+        <RegistryProvider registry={registry}>
+          <BrowserSvgProvider svg={svg}>
+            <TrackHeightProvider>
+              <TooltipProvider
+                isDisabled={panDrag.isDragging}
+                getTooltipComponent={(type) =>
+                  registry.get(type).tooltipComponent as AnyTrackTooltipComponent | undefined
+                }
+              >
+                <InteractionGate useBrowserStore={useBrowserStore}>
+                  <BrowserView
+                    useTrackStore={useTrackStore}
+                    dataController={dataController}
+                    svg={svg}
+                    setSvg={setSvg}
+                    browserWidth={browserWidth}
+                    scale={scale}
+                    totalHeight={totalHeight}
+                    marginWidth={marginWidth}
+                    trackWidth={trackWidth}
+                    region={region}
+                    setRegion={setRegion}
+                    registerContentGroup={registerContentGroup}
+                    onPanCommit={commitPan}
+                    setContentOffset={setContentOffset}
+                    panDrag={panDrag}
+                    titleSize={titleSize}
+                    trackLayouts={trackLayouts}
+                  />
+                </InteractionGate>
+              </TooltipProvider>
+            </TrackHeightProvider>
+          </BrowserSvgProvider>
+        </RegistryProvider>
+      </BrowserProvider>
+    </BasePairDetailContext>
   );
 }
 

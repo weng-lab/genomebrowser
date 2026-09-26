@@ -1,3 +1,4 @@
+import { useBasePairDetail } from "@weng-lab/genomebrowser";
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import type { BamRecord, TwoBitRecord } from "@weng-lab/genomic-reader";
 import { memo, useRef, useState, type MouseEvent } from "react";
@@ -394,10 +395,8 @@ function AlignmentSection({
   const interaction = useInteraction<BamRecord>();
   const tooltip = useTooltip<BamTooltipItem, BamConfig>();
   const hoveredRef = useRef<BamRecord | undefined>(undefined);
-  const showBases =
-    (display === "pack" || display === "full") &&
-    visibleRegion.end - visibleRegion.start <= config.alignments.sequenceMaxWindow &&
-    rowHeight >= 10;
+  const basePairDetail = useBasePairDetail();
+  const showBases = (display === "pack" || display === "full") && basePairDetail && rowHeight >= 10;
   const glyphs = layout.rows.flatMap((row, rowIndex) => row.map((glyph) => ({ glyph, rowIndex })));
   const records = new Map(glyphs.map(({ glyph }) => [glyph.key, glyph.record]));
   // One set of handlers for every read keeps each read free of hook subscriptions.
