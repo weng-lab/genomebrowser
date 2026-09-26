@@ -23,7 +23,7 @@ The collection schema is generated from the registered modules. Regenerate it wi
 
 ## Why the track picker stays on the page
 
-The track store starts empty. `TrackSelect` loads `defaultTrackIds` when mounted, even while its dialog is closed. Those IDs also define the selector's Reset selection.
+`src/stores.ts` creates the track store with a coordinate ruler. `TrackSelect` adds the `defaultTrackIds` tracks after the ruler when mounted, even while its dialog is closed. Those IDs also define the selector's Reset selection. The ruler is not a collection entry, so the selector does not list it, and Reset or Submit leaves it in place.
 
 Keep the selector mounted with `open={false}` when closed. Conditional mounting delays startup tracks until the dialog opens; remounting can reapply the initial selection. Keep the collection array stable to avoid reparsing unchanged configuration.
 
