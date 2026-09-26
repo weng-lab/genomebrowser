@@ -100,7 +100,7 @@ async function event(id: string, type: string) {
   );
   await act(async () => vi.advanceTimersByTimeAsync(20));
 }
-const tooltipText = () => container.querySelector('[data-testid="tooltip"]')?.textContent;
+const tooltipText = () => document.querySelector('[data-testid="tooltip"]')?.textContent;
 
 it("delivers item-only renderer interactions with current track context to the host", async () => {
   const t = await mount();

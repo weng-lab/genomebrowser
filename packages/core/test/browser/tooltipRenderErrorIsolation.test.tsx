@@ -77,7 +77,7 @@ beforeEach(async () => {
   const point = { x: 0, y: 0, matrixTransform: () => ({ x: point.x, y: point.y }) };
   Object.assign(container.querySelector("svg")!, {
     createSVGPoint: () => point,
-    getScreenCTM: () => ({ inverse: () => ({}) }),
+    getScreenCTM: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, inverse: () => ({}) }),
   });
 });
 
@@ -112,8 +112,8 @@ async function event(id: string, type = "mousemove", x = 40) {
 describe("tooltip failures through a registered module", () => {
   it("contains a failure, reports safe context once, and leaves navigation and tracks usable", async () => {
     await event("broken");
-    expect(container.textContent).toContain("Tooltip unavailable");
-    expect(container.textContent).not.toContain(renderError.message);
+    expect(document.body.textContent).toContain("Tooltip unavailable");
+    expect(document.body.textContent).not.toContain(renderError.message);
     expect(container.querySelector('[data-testid="healthy"]')).not.toBeNull();
     expect(reports.mock.calls[0]?.[1]).toMatchObject({
       componentStack: expect.stringContaining("Tooltip"),
@@ -125,26 +125,26 @@ describe("tooltip failures through a registered module", () => {
       useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 1_100, end: 2_100 }),
     );
     expect(useBrowserStore.getState().region.start).toBe(1_100);
-    expect(container.textContent).toContain("Tooltip unavailable");
+    expect(document.body.textContent).toContain("Tooltip unavailable");
     expect(reports.mock.calls).toHaveLength(reportCount);
   });
 
   it("shows another track's tooltip after a failure", async () => {
     await event("broken");
-    expect(container.textContent).toContain("Tooltip unavailable");
+    expect(document.body.textContent).toContain("Tooltip unavailable");
     await event("healthy");
-    expect(container.textContent).toContain("healthy tooltip");
-    expect(container.textContent).not.toContain("Tooltip unavailable");
+    expect(document.body.textContent).toContain("healthy tooltip");
+    expect(document.body.textContent).not.toContain("Tooltip unavailable");
   });
 
   it("recovers the same owner's tooltip after hiding and showing it again", async () => {
     await event("broken");
-    expect(container.textContent).toContain("Tooltip unavailable");
+    expect(document.body.textContent).toContain("Tooltip unavailable");
     await event("broken", "mouseout");
-    expect(container.textContent).not.toContain("Tooltip unavailable");
+    expect(document.body.textContent).not.toContain("Tooltip unavailable");
     broken = false;
     await event("broken");
-    expect(container.textContent).toContain("broken tooltip");
-    expect(container.textContent).not.toContain("Tooltip unavailable");
+    expect(document.body.textContent).toContain("broken tooltip");
+    expect(document.body.textContent).not.toContain("Tooltip unavailable");
   });
 });

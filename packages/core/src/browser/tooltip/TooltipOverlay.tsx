@@ -5,6 +5,7 @@ import { RenderErrorBoundary } from "../RenderErrorBoundary";
 import { useInternalTooltipStore } from "./tooltipContextState";
 
 const TOOLTIP_OFFSET = 10;
+const VIEWPORT_MARGIN = 4;
 const tooltipRenderErrorPrefix = "[genomebrowser] Tooltip render error";
 
 export function TooltipOverlay({ width, height }: { width: number; height: number }) {
@@ -15,34 +16,23 @@ export function TooltipOverlay({ width, height }: { width: number; height: numbe
   const anchor = useInternalTooltipStore((state) => state.anchor);
   const owner = useInternalTooltipStore((state) => state.owner);
   const ref = useRef<SVGGElement>(null);
-  const [box, setBox] = useState({
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-    screenX: 0,
-    screenY: 0,
-    sourceScale: 0,
-    viewportWidth: 0,
-    viewportHeight: 0,
-  });
-
-  const { x, y, escaped, portal } = getTooltipPlacement(box, anchor, width, height);
+  const [box, setBox] = useState<TooltipBox>(emptyBox);
 
   // Read content bounds and the hosting SVG transform together. Placement is
   // derived from this DOM measurement rather than synchronized through another effect.
   useLayoutEffect(() => {
     if (!isVisible || !content || !ref.current) return;
-    const next = measureTooltip(ref.current, svg, anchor);
+    const next = measureTooltip(ref.current, svg);
     setBox((previous) =>
       (Object.keys(next) as (keyof typeof next)[]).every((key) => previous[key] === next[key])
         ? previous
         : next,
     );
-  }, [content, isVisible, escaped, svg, anchor, width, height]);
+  }, [content, isVisible, svg, anchor, width, height]);
 
+  // The fixed overlay does not follow the browser, so moving the page dismisses it.
   useEffect(() => {
-    if (!escaped || !owner) return;
+    if (!owner) return;
     const view = svg?.ownerDocument.defaultView;
     if (!view) return;
     const dismiss = () => hide(owner);
@@ -52,47 +42,40 @@ export function TooltipOverlay({ width, height }: { width: number; height: numbe
       view.removeEventListener("scroll", dismiss, true);
       view.removeEventListener("resize", dismiss);
     };
-  }, [escaped, owner, svg, hide]);
+  }, [owner, svg, hide]);
 
-  if (!isVisible || !content) return null;
+  if (!isVisible || !content || !svg) return null;
 
-  const tooltip = (
-    <g
-      ref={ref}
-      transform={portal ? undefined : `translate(${x},${y})`}
-      style={{ pointerEvents: "none" }}
+  // Always render in the same portal so content keeps its state and styling
+  // whether it fits inside the browser or extends past it.
+  const { left, top } = getTooltipPlacement(box, anchor, width, height);
+  return createPortal(
+    <svg
+      data-genomebrowser-tooltip-overlay=""
+      width={box.width * box.scale}
+      height={box.height * box.scale}
+      viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
+      style={{
+        position: "fixed",
+        left,
+        top,
+        overflow: "visible",
+        pointerEvents: "none",
+        zIndex: 1500,
+      }}
     >
-      <RenderErrorBoundary
-        key={owner}
-        fallback={<TooltipErrorFallback />}
-        onError={reportTooltipRenderError}
-      >
-        {content}
-      </RenderErrorBoundary>
-    </g>
+      <g ref={ref} style={{ pointerEvents: "none" }}>
+        <RenderErrorBoundary
+          key={owner}
+          fallback={<TooltipErrorFallback />}
+          onError={reportTooltipRenderError}
+        >
+          {content}
+        </RenderErrorBoundary>
+      </g>
+    </svg>,
+    svg.ownerDocument.body,
   );
-  if (portal && svg) {
-    return createPortal(
-      <svg
-        data-genomebrowser-tooltip-overlay=""
-        width={box.width * portal.scale}
-        height={box.height * portal.scale}
-        viewBox={`${box.x} ${box.y} ${box.width} ${box.height}`}
-        style={{
-          position: "fixed",
-          left: portal.left,
-          top: portal.top,
-          overflow: "visible",
-          pointerEvents: "none",
-          zIndex: 1500,
-        }}
-      >
-        {tooltip}
-      </svg>,
-      svg.ownerDocument.body,
-    );
-  }
-  return tooltip;
 }
 
 type TooltipBox = {
@@ -100,13 +83,26 @@ type TooltipBox = {
   y: number;
   width: number;
   height: number;
-  screenX: number;
-  screenY: number;
-  sourceScale: number;
+  /** Screen scale and origin of the browser SVG. */
+  scale: number;
+  originX: number;
+  originY: number;
   viewportWidth: number;
   viewportHeight: number;
 };
 type TooltipAnchor = { x: number; y: number };
+
+const emptyBox: TooltipBox = {
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+  scale: 1,
+  originX: 0,
+  originY: 0,
+  viewportWidth: 0,
+  viewportHeight: 0,
+};
 
 function getTooltipPlacement(
   box: TooltipBox,
@@ -122,62 +118,39 @@ function getTooltipPlacement(
   const roomAbove = anchor.y - TOOLTIP_OFFSET;
   const useRightCorner = box.width > roomRight && roomLeft > roomRight;
   const useBottomCorner = box.height > roomBelow && roomAbove > roomBelow;
-  const cornerX = box.x + (useRightCorner ? box.width : 0);
-  const cornerY = box.y + (useBottomCorner ? box.height : 0);
-  const x = anchor.x + (useRightCorner ? -TOOLTIP_OFFSET : TOOLTIP_OFFSET) - cornerX;
-  const y = anchor.y + (useBottomCorner ? -TOOLTIP_OFFSET : TOOLTIP_OFFSET) - cornerY;
+  const x = anchor.x + (useRightCorner ? -TOOLTIP_OFFSET - box.width : TOOLTIP_OFFSET);
+  const y = anchor.y + (useBottomCorner ? -TOOLTIP_OFFSET - box.height : TOOLTIP_OFFSET);
+  const fits = x >= 0 && y >= 0 && x + box.width <= width && y + box.height <= height;
+  if (fits) return { left: box.originX + x * box.scale, top: box.originY + y * box.scale };
 
-  const overflows =
-    x + box.x < 0 ||
-    y + box.y < 0 ||
-    x + box.x + box.width > width ||
-    y + box.y + box.height > height;
-  const escaped = overflows && box.sourceScale > 0 && box.width > 0 && box.height > 0;
-  const scale = escaped
-    ? Math.min(
-        box.sourceScale,
-        Math.max(1, box.viewportWidth - 8) / box.width,
-        Math.max(1, box.viewportHeight - 8) / box.height,
-      )
-    : 1;
-  const gap = TOOLTIP_OFFSET * box.sourceScale;
-  const tooltipWidth = box.width * scale;
-  const tooltipHeight = box.height * scale;
-  const screenLeft =
-    box.screenX + gap + tooltipWidth <= box.viewportWidth
-      ? box.screenX + gap
-      : box.screenX - gap - tooltipWidth;
-  const screenTop =
-    box.screenY + gap + tooltipHeight <= box.viewportHeight
-      ? box.screenY + gap
-      : box.screenY - gap - tooltipHeight;
-  const portal = escaped
-    ? {
-        left: Math.max(4, Math.min(screenLeft, box.viewportWidth - tooltipWidth - 4)),
-        top: Math.max(4, Math.min(screenTop, box.viewportHeight - tooltipHeight - 4)),
-        scale,
-      }
-    : null;
-
-  return { x, y, escaped, portal };
+  // Outside the browser, place against the window instead. Content larger than
+  // the window keeps its size and starts at the top-left margin.
+  const gap = TOOLTIP_OFFSET * box.scale;
+  const screenX = box.originX + anchor.x * box.scale;
+  const screenY = box.originY + anchor.y * box.scale;
+  return {
+    left: placeOnAxis(screenX, gap, box.width * box.scale, box.viewportWidth),
+    top: placeOnAxis(screenY, gap, box.height * box.scale, box.viewportHeight),
+  };
 }
 
-function measureTooltip(
-  element: SVGGElement,
-  svg: SVGSVGElement | null | undefined,
-  anchor: TooltipAnchor,
-): TooltipBox {
-  const { x, y, width: boxWidth, height: boxHeight } = element.getBBox();
+function placeOnAxis(pointer: number, gap: number, size: number, viewport: number) {
+  const start = pointer + gap + size <= viewport ? pointer + gap : pointer - gap - size;
+  return Math.max(VIEWPORT_MARGIN, Math.min(start, viewport - size - VIEWPORT_MARGIN));
+}
+
+function measureTooltip(element: SVGGElement, svg: SVGSVGElement | null | undefined): TooltipBox {
+  const { x, y, width, height } = element.getBBox();
   const matrix = svg?.getScreenCTM?.();
   const view = svg?.ownerDocument.defaultView;
   return {
     x,
     y,
-    width: boxWidth,
-    height: boxHeight,
-    screenX: matrix ? anchor.x * matrix.a + anchor.y * matrix.c + matrix.e : 0,
-    screenY: matrix ? anchor.x * matrix.b + anchor.y * matrix.d + matrix.f : 0,
-    sourceScale: matrix && view ? Math.hypot(matrix.a, matrix.b) : 0,
+    width,
+    height,
+    scale: matrix ? Math.hypot(matrix.a, matrix.b) : 1,
+    originX: matrix?.e ?? 0,
+    originY: matrix?.f ?? 0,
     viewportWidth: view?.innerWidth ?? 0,
     viewportHeight: view?.innerHeight ?? 0,
   };
