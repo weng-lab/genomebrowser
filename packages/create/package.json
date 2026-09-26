@@ -37,8 +37,8 @@
     "tag": "latest"
   },
   "scripts": {
-    "build": "tsc6 -p tsconfig.json && chmod +x dist/create.js && node scripts/verify-package.mjs",
-    "typecheck": "tsc6 -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.json && chmod +x dist/create.js && node scripts/verify-package.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
