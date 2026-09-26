@@ -58,3 +58,40 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  browser:
+    name: Browser workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm tracks exec agent-browser install --with-deps
+
+      - name: Test browser workflows
+        run: pnpm test:browser
+
+      - name: Upload browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failures
+          path: packages/tracks/test-results/browser/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -34,6 +34,8 @@ catalogs:
     "typescript": "7.0.2"
 
 allowBuilds:
+  # The package includes native binaries; provision Chromium explicitly for browser tests.
+  agent-browser: false
   # Optional telemetry initialization fails with ENOENT in MUI X 8.29.0.
   "@mui/x-telemetry": false
   esbuild: true

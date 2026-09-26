@@ -43,6 +43,10 @@
     "//#format:root": {
       "cache": false
     },
-    "//#format:check:root": {}
+    "//#format:check:root": {},
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "cache": false
+    }
   }
 }

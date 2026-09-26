@@ -1,8 +1,8 @@
 import { createRoot } from "react-dom/client";
 import { useState } from "react";
 import { GenomeBrowser, createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
-import { dynseqModule } from "../../src/dynseq";
-import { bigWigModule } from "../../src/bigwig";
+import { dynseqModule } from "@weng-lab/genomebrowser-tracks/dynseq";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 
 const url = new URL("/scores.bw", location.href).href;
 const twoBitUrl = new URL("/reference.2bit", location.href).href;

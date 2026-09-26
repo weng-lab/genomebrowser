@@ -45,3 +45,6 @@ storybook-static
 
 # Generated test coverage
 coverage/
+
+# Browser failure artifacts
+test-results/

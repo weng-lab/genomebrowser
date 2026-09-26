@@ -627,6 +627,9 @@ importers:
       '@weng-lab/render-probe':
         specifier: workspace:*
         version: link:../render-probe
+      agent-browser:
+        specifier: 0.26.0
+        version: 0.26.0
       jsdom:
         specifier: 'catalog:'
         version: 26.1.0(supports-color@8.1.1)
@@ -2806,6 +2809,10 @@ packages:
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
+
+  agent-browser@0.26.0:
+    resolution: {integrity: sha512-pdqSfjwbFSp+qnwlb2g23e9wXveIOfMi19xpPA9xZUbzEAUp6W4YBZj6Ybj8z4M7WkcbGDDYc+oDIHDt9R3EDQ==}
+    hasBin: true
 
   agent-install@0.0.5:
     resolution: {integrity: sha512-nHlms9BkP8ZiY79HrwCGiA2DcNaXrAaJrCM/BEqQ7MEsSKyCk+2A76xPGylIfASZSZE0SaU3T0bNSg4rBPIJAQ==}
@@ -5869,6 +5876,8 @@ snapshots:
   acorn@8.18.0: {}
 
   agent-base@7.1.4: {}
+
+  agent-browser@0.26.0: {}
 
   agent-install@0.0.5:
     dependencies:

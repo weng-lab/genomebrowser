@@ -21,7 +21,8 @@
     "verify": "turbo run format:check lint build test //#format:check:root",
     "doctor": "pnpm exec react-doctor . --verbose",
     "publish:dry-run": "pnpm publish -r --tag latest --dry-run --no-git-checks",
-    "publish:stable": "pnpm publish -r --tag latest"
+    "publish:stable": "pnpm publish -r --tag latest",
+    "test:browser": "turbo run test:e2e --filter=@weng-lab/genomebrowser-tracks"
   },
   "devDependencies": {
     "oxfmt": "catalog:",

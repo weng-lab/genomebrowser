@@ -26,6 +26,19 @@ Use React integration tests for hooks, state, and interactions. Use a real brows
 
 Core owns generic browser and module contract tests; tracks owns first-party track behavior. Give each behavior a primary testing home. Additional layers should protect distinct failures, such as correct reader output versus correct display of that output.
 
+## Browser workflows
+
+Run `pnpm test:browser` for the deterministic Chromium workflows. Install the browser
+first with `pnpm tracks exec agent-browser install --with-deps`. The command builds
+workspace dependencies and runs real fixture loading, pointer navigation, and the
+existing dynseq scenarios. CI runs it in the separate `Browser workflows` job and
+uploads screenshots and traces on failure.
+
+See the [browser test guide](../../packages/tracks/test/browser/README.md) for setup,
+fixture ownership, failure artifacts, and adding scenarios. Keep detailed data and
+async edge cases in fast integration tests. Preserve gesture and geometry tests until
+equivalent browser coverage passes.
+
 ## Exceptions and maintenance
 
 Private-code tests require substantial correctness or performance risk that public-boundary coverage cannot practically address. Explain that risk and limitation in a short suite comment. Complex biological geometry or binary decoding may qualify; convenience, faster setup alone, or simply containing logic do not. Assert algorithm results rather than intermediate representations.
