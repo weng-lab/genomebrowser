@@ -3,13 +3,17 @@ import type { BamChunk } from "./bamIndex";
 import type { ExactRangeOptions } from "./httpRange";
 import { RequestRangeReader } from "./requestRangeReader";
 
-/** Chunks this close share one request: reading the gap costs less than another round trip. */
-const MAX_MERGED_CHUNK_GAP = 64n * 1024n;
 /**
  * Bytes requested past a range's final block, whose length the index does not record. BGZF
  * permits 64 KiB blocks; sampled files stayed under 28 KiB. A larger block costs a second request.
  */
 const FINAL_BLOCK_SLACK = 32n * 1024n;
+/**
+ * A chunk starting within the slack of the previous chunk's final block joins its request. Those
+ * bytes would be read anyway, so merging never downloads more than separate requests, however
+ * many chunks a range chains together.
+ */
+const MAX_MERGED_CHUNK_GAP = FINAL_BLOCK_SLACK;
 const MAX_BGZF_BLOCK_SIZE = 65536n;
 /** Dense regions resolve to many ranges; overlapping their round trips stays within browser connection limits. */
 const MAX_CONCURRENT_RANGES = 8;

@@ -471,7 +471,8 @@ describe("BAM chunk requests", () => {
     expect(mock.mock.calls.filter(([input]) => input === url)).toHaveLength(1);
   });
   it("reads distant chunks concurrently, at most eight at a time", async () => {
-    const { bam, bai } = spacedFixture(20, { fillerBlocks: 2 });
+    // About 60 KB apart: merging these would download more than separate requests.
+    const { bam, bai } = spacedFixture(20, { fillerBlocks: 1 });
     let active = 0;
     let peak = 0;
     const mock = mockFiles(bam, bai, async () => {
