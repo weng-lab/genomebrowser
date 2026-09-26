@@ -1,3 +1,4 @@
+import { useBasePairDetail } from "@weng-lab/genomebrowser";
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { DenseBigWig, FullBigWig, getViewportRange } from "../bigwig/render";
 import { createYScale } from "../bigwig/helpers";
@@ -43,11 +44,9 @@ function Glyph({
 }
 
 export function FullDynseq(props: Props) {
-  const { config, data, region, visibleRegion, width } = props;
-  const showLetters =
-    data.sequence.length > 0 &&
-    width / Math.max(1, region.end - region.start) >= config.minPixelsPerBase &&
-    visibleRegion.end - visibleRegion.start <= config.maxLetterBases;
+  const { data } = props;
+  const basePairDetail = useBasePairDetail();
+  const showLetters = basePairDetail && data.sequence.length > 0;
   return showLetters ? <SequenceDynseq {...props} /> : <FullBigWig {...props} data={data.signal} />;
 }
 

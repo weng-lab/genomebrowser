@@ -121,6 +121,7 @@ function createContext(
   return {
     track: { base: { id: "methylc", display: "full" }, type: "methylc", config },
     demand: {
+      basePairDetail: true,
       assembly: { id: "test", chromosomes: { chr1: 1_000 } },
       region,
       visibleRegion: region,

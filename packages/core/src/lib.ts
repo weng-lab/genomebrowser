@@ -5,6 +5,8 @@ export { GenomeBrowser } from "./browser/GenomeBrowser";
 export type { GenomeBrowserProps } from "./browser/GenomeBrowser";
 export { createBrowserStore } from "./browser/state/browserStore";
 export type {
+  BasePairDetailSettings,
+  BasePairDetailMutationResult,
   BrowserSelectionMode,
   BrowserSelectionMutationResult,
   BrowserHighlightMutationResult,
@@ -60,6 +62,7 @@ export type {
 } from "./modules/types";
 
 // Renderer integration
+export { useBasePairDetail } from "./browser/viewport/basePairDetail";
 export type {
   TrackRenderer,
   TrackRendererProps,

@@ -40,12 +40,14 @@ function createContext(resources = createResources()) {
       }),
     },
     demand: {
+      basePairDetail: true,
       assembly: { id: "test", chromosomes: { chr1: 1000 } },
       region,
+      visibleRegion: region,
       width: 500,
     },
     resources,
-  } as unknown as TrackFetchContext<DynseqConfig>;
+  } satisfies TrackFetchContext<DynseqConfig>;
 }
 
 beforeEach(() => {
@@ -69,7 +71,6 @@ describe("dynseq module", () => {
       },
     });
     expect(track.base).toMatchObject({ display: "full", height: 80, color: "#2266aa" });
-    expect(track.config).toMatchObject({ minPixelsPerBase: 3, maxLetterBases: 500 });
   });
 
   it("requires both a score file and a reference", () => {
@@ -120,6 +121,7 @@ describe("dynseq fetching", () => {
       const context = createContext();
       const demand = {
         ...context.demand,
+        basePairDetail: mode === "dense",
         region: { chromosome: "chr1", start: 0, end: 10000 },
         width: 100,
       };
@@ -138,8 +140,6 @@ describe("dynseq fetching", () => {
         track: {
           ...context.track,
           base: { ...context.track.base, display: mode === "dense" ? "dense" : "full" },
-          // Dense must still use the signal reader when letters would be eligible.
-          config: { ...context.track.config, minPixelsPerBase: mode === "dense" ? 0.001 : 3 },
         },
       });
       expect(data).toEqual({ signal: summaries, sequence: [] });

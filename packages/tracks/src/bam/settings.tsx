@@ -115,19 +115,6 @@ export function BamSettings({
             onCommit={(maxWindow) => updateTrack({ config: { maxWindow } })}
           />
         </TrackSettingsFieldRow>
-        <TrackSettingsFieldRow>
-          <TrackSettingsNumberField
-            label="Sequence letters maximum window (bp)"
-            min={1}
-            value={config.alignments.sequenceMaxWindow}
-            validate={(value) =>
-              Number.isInteger(value) && value >= 1 && value <= 100_000
-                ? undefined
-                : "Enter an integer from 1 to 100000."
-            }
-            onCommit={(sequenceMaxWindow) => updateAlignments({ sequenceMaxWindow })}
-          />
-        </TrackSettingsFieldRow>
         <FormControlLabel
           label="Show duplicate reads"
           control={

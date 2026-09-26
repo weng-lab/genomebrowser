@@ -151,12 +151,6 @@
                   "sequenceUrl": {
                     "type": "string",
                     "format": "uri"
-                  },
-                  "sequenceMinPixelsPerBase": {
-                    "default": 15,
-                    "type": "number",
-                    "minimum": 1,
-                    "maximum": 100
                   }
                 },
                 "additionalProperties": false
@@ -164,6 +158,121 @@
               "type": {
                 "type": "string",
                 "const": "ruler"
+              },
+              "metadata": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": [
+              "base",
+              "config",
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "full",
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "dense"
+                    ]
+                  },
+                  "height": {
+                    "default": 80,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#2266aa",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ],
+                "additionalProperties": false
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "fillWithZero": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "yRange": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "number"
+                      },
+                      "max": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "showClampIndicators": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "clampIndicatorColor": {
+                    "default": "#ff0000",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  },
+                  "twoBitUrl": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "url",
+                  "twoBitUrl"
+                ],
+                "additionalProperties": false
+              },
+              "type": {
+                "type": "string",
+                "const": "dynseq"
               },
               "metadata": {
                 "type": "object",
@@ -1180,12 +1289,6 @@
                         "default": "#cc3333",
                         "type": "string",
                         "pattern": "^#[0-9a-f]{6}$"
-                      },
-                      "sequenceMaxWindow": {
-                        "default": 100,
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 100000
                       }
                     }
                   },

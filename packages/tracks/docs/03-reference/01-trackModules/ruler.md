@@ -39,20 +39,21 @@ Bases use fixed colors in either letter case: A uses `#228b22`, C blue, G orange
 
 ## Config
 
-| Option                     | Type      | Default     | Description                                                                               |
-| -------------------------- | --------- | ----------- | ----------------------------------------------------------------------------------------- |
-| `sequenceUrl`              | `string`  | Unset       | HTTP or HTTPS URL for a version-0 UCSC 2bit file.                                         |
-| `sequenceMinPixelsPerBase` | `number`  | `15`        | Minimum SVG pixels per base for fetching and drawing sequence. Accepts 1 through 100.     |
-| `sequenceHighlightColor`   | `string`  | `"#64748b"` | Six-digit hex color for the highlight shown when hovering a base.                         |
-| `distinguishMaskedBases`   | `boolean` | `false`     | Shows soft-masked bases in lowercase when enabled. Otherwise, all bases appear uppercase. |
+| Option                   | Type      | Default     | Description                                                                               |
+| ------------------------ | --------- | ----------- | ----------------------------------------------------------------------------------------- |
+| `sequenceUrl`            | `string`  | Unset       | HTTP or HTTPS URL for a version-0 UCSC 2bit file.                                         |
+| `sequenceHighlightColor` | `string`  | `"#64748b"` | Six-digit hex color for the highlight shown when hovering a base.                         |
+| `distinguishMaskedBases` | `boolean` | `false`     | Shows soft-masked bases in lowercase when enabled. Otherwise, all bases appear uppercase. |
 
-Changing the URL or resolution threshold requests sequence again. Highlight color and masking changes update rendering from current data.
+Changing the URL requests sequence again. Highlight color and masking changes update rendering from current data.
 
 ## Sequence display and fetching
 
-Ticks adapt to region width and use zero-based coordinates. Each base letter is centered over its half-open genomic region. By default, letters appear at 15 SVG pixels per base or more. A 1,000-pixel drawing can therefore show 66 bases, and a 2,000-pixel drawing can show 133. Letter size follows the available space.
+Ticks adapt to region width and use zero-based coordinates. Each base letter is centered over its half-open genomic region. Letter size follows the available space.
 
-Fetching and drawing use the same resolution threshold, including data retained outside the viewport for panning. The reader reuses file metadata for the mounted track. Without a URL, or when zoomed too far out, the ruler makes no sequence request.
+The host sets `basePairDetail.maxVisibleBases` in `createBrowserStore`, or changes it with `setBasePairDetail`. The default is 100 visible bp, inclusive. Core's `useBasePairDetail()` enables letters at 8 logical SVG units per base and keeps them visible down to 6. Overscan does not affect the gate; resizing uses the actual plot width. Responsive UI scale changes logical width, while fixed sizing scale leaves the gate unchanged.
+
+Fetching uses the bp cutoff, independent of the width guard. A configured ruler prepares sequence within that cutoff even if the plot is too narrow to display it. The reader reuses file metadata and the last successful sequence window for the mounted track. Width-only changes reuse that sequence. Without a URL, or outside the cutoff, the ruler makes no sequence request.
 
 Unknown bases appear as `N`. The reader preserves lowercase masking information; `distinguishMaskedBases` controls whether the ruler displays it. A missing chromosome produces no sequence. Request failures keep the coordinate axis visible and put the error in its SVG title. Changing the source or navigating requests data again. See [Data source troubleshooting](../../04-troubleshooting.md) for range and CORS requirements.
 
@@ -60,13 +61,9 @@ During zoom transitions, ticks cover the viewport and up to one viewport on eith
 
 ## Settings
 
-The form groups controls under "Reference source", "Sequence visibility", and "Sequence appearance". Host-owned tracks disable URL editing. Shared base settings edit the title and coordinate color; content determines height.
+The form groups controls under "Reference source" and "Sequence appearance". Host-owned tracks disable URL editing. Shared base settings edit the title and coordinate color; content determines height.
 
-### Sequence resolution
-
-The slider runs from 5 pixels per base at "Farther out" to 25 at "Closer in", with a default of 15. ACGTACGT letters preview the selected spacing with the ruler's glyphs and colors. Dragging updates the preview; releasing commits the threshold. Programmatic config accepts the wider range of 1 through 100. Lowering the threshold shows bases farther out; raising it requires closer zoom.
-
-The form shows the largest sequence-visible span as `floor(trackWidth / sequenceMinPixelsPerBase)` and updates it as width or threshold changes. "Zoom in to sequence" centers that span on the current view, clamped to chromosome bounds. It is disabled without a source, when the track cannot fit one base, or when the current view is already at least that close.
+Sequence visibility is configured once by the host browser. The ruler form has no independent threshold or width-derived zoom shortcut.
 
 ### Sequence appearance
 

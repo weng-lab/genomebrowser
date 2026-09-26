@@ -22,6 +22,7 @@ Look up an export below to find its documentation. Store methods and module memb
 | `createBrowserStore`, `BrowserStoreInput`                                           | [Store creation](01-browserSetup/browserStore.md#createbrowserstore-and-browserstoreinput)                           |
 | `BrowserStore`, `BrowserStoreInstance`                                              | [State and store instance](01-browserSetup/browserStore.md#browserstore-and-browserstoreinstance)                    |
 | `BrowserRegionMutationResult`, `BrowserRegionMutationErrorCode`                     | [Navigation results](01-browserSetup/browserStore.md#browserregionmutationresult-and-browserregionmutationerrorcode) |
+| `BasePairDetailSettings`, `BasePairDetailMutationResult`                            | [Base-pair detail settings](01-browserSetup/browserStore.md#base-pair-detail)                                        |
 | `BrowserViewportMutationResult`                                                     | [Fixed width](01-browserSetup/browserStore.md#fixed-width)                                                           |
 | `BrowserSelectionMode`, `SelectionHighlightStyle`, `BrowserSelectionMutationResult` | [Selection](01-browserSetup/browserStore.md#selection)                                                               |
 | `BrowserHighlightMutationResult`, `Highlight`                                       | [Highlights](01-browserSetup/browserStore.md#highlights)                                                             |
@@ -62,6 +63,7 @@ Look up an export below to find its documentation. Store methods and module memb
 | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | `TrackRenderer`, `TrackRendererProps`                                                             | [Rendering](04-rendererIntegration/trackRenderer.md#rendering)                           |
 | `TrackInteraction`, `TrackInteractionCallback`, `TrackRuntimeContext`, `TrackRendererInteraction` | [Interactions and tooltips](04-rendererIntegration/useInteraction.md#instance-callbacks) |
+| `useBasePairDetail`                                                                               | [Base-pair detail](04-rendererIntegration/useBasePairDetail.md#usebasepairdetail)        |
 | `useInteraction`                                                                                  | [useInteraction](04-rendererIntegration/useInteraction.md#useinteraction)                |
 | `useTooltip`                                                                                      | [useTooltip](04-rendererIntegration/useTooltip.md#usetooltip)                            |
 | `useAutoTrackHeight`, `AutoTrackHeightOptions`                                                    | [useAutoTrackHeight](04-rendererIntegration/useAutoTrackHeight.md#useautotrackheight)    |

@@ -1,3 +1,4 @@
+import { useBasePairDetail } from "@weng-lab/genomebrowser";
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import type { BamRecord, TwoBitRecord } from "@weng-lab/genomic-reader";
 import { createGenomicXScale } from "../shared/coordinates";
@@ -52,10 +53,8 @@ function BamRenderer({
   const interaction = useInteraction<BamRecord>();
   const tooltip = useTooltip<BamRecord, BamConfig>();
   const pixelsPerBase = width / (region.end - region.start);
-  const showBases =
-    (display === "pack" || display === "full") &&
-    visibleRegion.end - visibleRegion.start <= config.alignments.sequenceMaxWindow &&
-    rowHeight >= 10;
+  const basePairDetail = useBasePairDetail();
+  const showBases = (display === "pack" || display === "full") && basePairDetail && rowHeight >= 10;
   return (
     <g data-bam-display={display} style={{ userSelect: "none" }}>
       <rect width={width} height={trackHeight} fill="transparent" pointerEvents="none" />

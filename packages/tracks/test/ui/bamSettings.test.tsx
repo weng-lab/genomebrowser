@@ -52,7 +52,6 @@ describe("BAM settings", () => {
       "Forward color",
       "Reverse color",
       "Row height",
-      "Sequence letters maximum window (bp)",
     ])
       expect(container!.textContent).toContain(label);
     const index = container!.querySelectorAll<HTMLInputElement>('input[type="url"]')[1];
@@ -96,7 +95,6 @@ it("uses explicit strand controls and commits whole alignment groups for host tr
   for (const [name, value, expected] of [
     ["Forward color", "#123456", { forwardColor: "#123456" }],
     ["Reverse color", "#654321", { reverseColor: "#654321" }],
-    ["Sequence letters maximum window (bp)", "200", { sequenceMaxWindow: 200 }],
   ] as const) {
     const label = labels.find((label) => label.textContent?.replace(/\s*\*$/, "").trim() === name)!;
     const input = document.getElementById(label.htmlFor) as HTMLInputElement;

@@ -1,3 +1,4 @@
+import { BasePairDetailContext } from "../../../core/src/browser/viewport/basePairDetail";
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot } from "react-dom/client";
@@ -56,54 +57,27 @@ const props = {
   region: { chromosome: "chr1", start: 0, end: 100 },
   visibleRegion: { chromosome: "chr1", start: 0, end: 100 },
 };
-function markup(display: string, data: BamData, overrides: Partial<typeof props> = {}) {
+function markup(
+  display: string,
+  data: BamData,
+  overrides: Partial<typeof props> = {},
+  basePairDetail = true,
+) {
   const Renderer = bamModule.render[display];
   const element = document.createElement("div");
   element.innerHTML = renderToStaticMarkup(
-    <svg>
-      <Renderer {...props} {...overrides} data={data} />
-    </svg>,
+    <BasePairDetailContext
+      value={{ subscribe: () => () => {}, getBasePairDetail: () => basePairDetail }}
+    >
+      <svg>
+        <Renderer {...props} {...overrides} data={data} />
+      </svg>
+    </BasePairDetailContext>,
   );
   return element;
 }
 beforeEach(() => vi.clearAllMocks());
 describe("BAM displays", () => {
-  it("uses the configurable visible span for letters independently of width and overscan", () => {
-    const data = { records: [read()], reference: [] };
-    for (const display of ["pack", "full"]) {
-      for (const width of [500, 1500]) {
-        expect(
-          markup(display, data, {
-            width,
-            visibleRegion: { chromosome: "chr1", start: 0, end: 101 },
-          }).querySelector('[data-cigar="M"]')?.textContent,
-        ).toBe("");
-        expect(
-          markup(display, data, {
-            width,
-            region: { chromosome: "chr1", start: 0, end: 300 },
-          }).querySelector('[data-cigar="M"]')?.textContent,
-        ).toBe("AAAAAAAAAA");
-      }
-      expect(
-        markup(display, data, {
-          config: {
-            ...track.config,
-            alignments: { ...track.config.alignments, sequenceMaxWindow: 99 },
-          },
-        }).querySelector('[data-cigar="M"]')?.textContent,
-      ).toBe("");
-      expect(
-        markup(display, data, {
-          config: {
-            ...track.config,
-            alignments: { ...track.config.alignments, sequenceMaxWindow: 200 },
-          },
-          visibleRegion: { chromosome: "chr1", start: 0, end: 200 },
-        }).querySelector('[data-cigar="M"]')?.textContent,
-      ).toBe("AAAAAAAAAA");
-    }
-  });
   it("uses the visible span for the exclusive configurable zoom limit in every display", () => {
     const data = { records: [read()], reference: [] };
     const region = { chromosome: "chr1", start: 0, end: 150000 };
@@ -215,7 +189,7 @@ describe("BAM displays", () => {
     const values = [...tooltip.querySelectorAll("text")].map((text) => text.textContent);
     expect(values[values.indexOf("CIGAR") + 1]).toBe("Unavailable");
   });
-  it("uses CIGAR X without reference, preserves stored reverse sequence, and suppresses letters at broad zoom", () => {
+  it("uses CIGAR X without reference, preserves stored reverse sequence, and respects the shared detail decision", () => {
     const record = read({
       strand: "-",
       sequence: "ACGTAAAAAA",
@@ -225,11 +199,9 @@ describe("BAM displays", () => {
     expect(element.querySelector('[data-cigar="X"]')?.textContent).toBe("ACGTAAAAAA");
     expect(element.querySelectorAll('[data-mismatch="true"]')).toHaveLength(10);
     expect(
-      markup(
-        "full",
-        { records: [record], reference: [] },
-        { visibleRegion: { chromosome: "chr1", start: 0, end: 101 } },
-      ).querySelector('[data-cigar="X"]')?.textContent,
+      markup("full", { records: [record], reference: [] }, {}, false).querySelector(
+        '[data-cigar="X"]',
+      )?.textContent,
     ).toBe("");
   });
   it("filters duplicates and unknown MAPQ locally and ignores other chromosomes", () => {
@@ -281,9 +253,13 @@ describe("BAM displays", () => {
     try {
       act(() =>
         root.render(
-          <svg>
-            <Renderer {...props} data={{ records: [record], reference: [] }} />
-          </svg>,
+          <BasePairDetailContext
+            value={{ subscribe: () => () => {}, getBasePairDetail: () => true }}
+          >
+            <svg>
+              <Renderer {...props} data={{ records: [record], reference: [] }} />
+            </svg>
+          </BasePairDetailContext>,
         ),
       );
       const glyph = element.querySelector("[data-bam-read]")!;

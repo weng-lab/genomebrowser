@@ -4,7 +4,6 @@ import {
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
   TrackSettingsLayout,
-  TrackSettingsNumberField,
   TrackSettingsSection,
   TrackSettingsUrlField,
 } from "../shared/settings";
@@ -52,30 +51,6 @@ export function DynseqSettings({ track, updateTrack, ...settings }: Props) {
       </TrackSettingsSection>
 
       <SignalSettings config={config} onChange={(config) => updateTrack({ config })} />
-
-      <TrackSettingsSection title="Letters">
-        <TrackSettingsFieldGrid>
-          <TrackSettingsNumberField
-            label="Letters below (bp)"
-            min={1}
-            step={1}
-            inputMode="numeric"
-            value={config.maxLetterBases}
-            validate={(value) =>
-              Number.isInteger(value) && value >= 1 ? undefined : "Enter a whole number of bases."
-            }
-            onCommit={(maxLetterBases) => updateTrack({ config: { maxLetterBases } })}
-          />
-          <TrackSettingsNumberField
-            label="Minimum pixels per base"
-            min={1}
-            step="any"
-            value={config.minPixelsPerBase}
-            validate={(value) => (value > 0 ? undefined : "Enter a positive number of pixels.")}
-            onCommit={(minPixelsPerBase) => updateTrack({ config: { minPixelsPerBase } })}
-          />
-        </TrackSettingsFieldGrid>
-      </TrackSettingsSection>
     </TrackSettingsLayout>
   );
 }

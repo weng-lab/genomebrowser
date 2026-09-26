@@ -15,9 +15,9 @@ dynseqModule.create({
 
 ## Displays and defaults
 
-The `full` display shows letters when the visible span is at most `maxLetterBases` and
-each base has at least `minPixelsPerBase` logical pixels. Otherwise it draws the BigWig
-signal. The `dense` display always uses BigWig's dense signal renderer.
+The `full` display shows letters when the shared browser gate enables detail and sequence is available. Otherwise it draws the BigWig signal. The `dense` display always uses BigWig's dense signal renderer.
+
+The host sets `basePairDetail.maxVisibleBases` in `createBrowserStore`, or changes it with `setBasePairDetail`. The default is 100 visible bp, inclusive. Core's `useBasePairDetail()` enables letters at 8 logical SVG units per base and keeps them visible down to 6. Overscan does not affect the gate; resizing uses the actual plot width. Responsive UI scale changes logical width, while fixed sizing scale leaves the gate unchanged.
 
 Defaults match BigWig: display `full`, height `80`, and color `#2266aa`.
 Nucleotides use their own colors; the base color controls the signal plot.
@@ -32,10 +32,8 @@ Nucleotides use their own colors; the base color controls the signal plot.
 | `yRange`              | automatic | Optional `{ min?: number, max?: number }` bounds. Both specified bounds must satisfy `min < max`.                  |
 | `showClampIndicators` | `true`    | Mark values clipped by the range in full signal and sequence views.                                                |
 | `clampIndicatorColor` | `#ff0000` | Six-digit hexadecimal indicator color.                                                                             |
-| `maxLetterBases`      | `500`     | Positive integer limit on the visible span for letters.                                                            |
-| `minPixelsPerBase`    | `3`       | Positive minimum logical pixels per base for letters.                                                              |
 
-Changing either URL or `minPixelsPerBase` refetches. Other settings update rendering
+Changing either URL refetches. Other settings update rendering
 without refetching. Settings use the shared base, height, range, and rendering controls;
 host-owned tracks disable URL editing.
 
@@ -45,15 +43,9 @@ At signal resolution, dynseq uses the same resolution-aware BigWig reader as Big
 including zoom summaries. It retains intervals rather than allocating a point for each base.
 Dense display never requests reference sequence.
 
-At letter resolution, it reads raw scores and reference sequence for the render region.
-Pixels per base remain the same across overscan, so this criterion also handles responsive
-resizing. Sequence may be prepared before `maxLetterBases` allows it to appear: fetching
-uses the render region, while that display limit measures the visible region. Adjusting
-`maxLetterBases` can therefore reveal already-loaded letters without a new request.
+Within the browser's bp cutoff, full display reads raw scores and reference sequence for the render region. This includes overscan and happens even when the width guard hides letters. It retains the last successful reference window, so resizing the same region reuses sequence. Outside the cutoff, or in dense display, it reads signal without reference sequence.
 
-A broken reference does not affect wide or dense signal views. At letter resolution,
-a reference request failure reports a track fetch error. If the reference contains no
-sequence for the region, the track shows the available signal instead.
+A broken reference does not affect views outside the bp cutoff or dense displays. Within the cutoff, a reference request failure reports a track fetch error, including on narrow plots. If the reference contains no sequence for the region, the track shows the available signal instead.
 
 Both files must support HTTP range requests and send permissive CORS headers when cross-origin.
 See [Data source troubleshooting](../../04-troubleshooting.md).
@@ -72,7 +64,7 @@ bases retain a full-height hover target so their position and score remain inspe
 ## Data and interactions
 
 `DynseqData` contains `signal`, an array of BigWig source or summary records, and `sequence`,
-an array of 2bit records. Sequence is empty for signal-resolution requests and dense display.
+an array of 2bit records. Sequence is empty outside the bp cutoff and in dense display.
 
 `DynseqItem` is `SignalPoint | DynseqPoint`. `DynseqPoint` has `{ position, score, base }`;
 position is zero-based and base is uppercase. Hover and leave callbacks receive a signal

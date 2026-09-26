@@ -41,13 +41,13 @@ describe("visible row-derived track height", () => {
             id: "ruler",
             title: "Reference",
           },
-          config: { sequenceUrl: "https://example.test/ref.2bit", sequenceMinPixelsPerBase: 5 },
+          config: { sequenceUrl: "https://example.test/ref.2bit" },
         }),
       ],
     });
     const browserStore = createBrowserStore({
       assembly: { id: "test", chromosomes: { chr1: 1000 } },
-      region: { chromosome: "chr1", start: 100, end: 301 },
+      region: { chromosome: "chr1", start: 100, end: 201 },
       trackWidth: 1000,
     });
     container = document.createElement("div");
@@ -60,7 +60,7 @@ describe("visible row-derived track height", () => {
     );
     expect(trackStore.getState().getTrack("ruler")?.base.height).toBe(22);
     expect(container.textContent).not.toContain("Zoom in");
-    await panTo(browserStore, { chromosome: "chr1", start: 100, end: 300 });
+    await panTo(browserStore, { chromosome: "chr1", start: 100, end: 200 });
     expect(trackStore.getState().getTrack("ruler")?.base.height).toBe(48);
     expect(container.querySelector('[aria-label="chr1:100 A"]')).not.toBeNull();
     const fetchCount = module.fetch.mock.calls.length;
@@ -74,7 +74,7 @@ describe("visible row-derived track height", () => {
     );
     expect(container.querySelector('[aria-label="chr1:100 A"]')).not.toBeNull();
     expect(module.fetch).toHaveBeenCalledTimes(fetchCount);
-    await panTo(browserStore, { chromosome: "chr1", start: 100, end: 301 });
+    await panTo(browserStore, { chromosome: "chr1", start: 100, end: 201 });
     expect(trackStore.getState().getTrack("ruler")?.base.height).toBe(22);
   });
 

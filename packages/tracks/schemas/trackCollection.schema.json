@@ -140,12 +140,6 @@
                   "sequenceUrl": {
                     "type": "string",
                     "format": "uri"
-                  },
-                  "sequenceMinPixelsPerBase": {
-                    "default": 15,
-                    "type": "number",
-                    "minimum": 1,
-                    "maximum": 100
                   }
                 },
                 "additionalProperties": false
@@ -247,17 +241,6 @@
                   "twoBitUrl": {
                     "type": "string",
                     "minLength": 1
-                  },
-                  "minPixelsPerBase": {
-                    "default": 3,
-                    "type": "number",
-                    "exclusiveMinimum": 0
-                  },
-                  "maxLetterBases": {
-                    "default": 500,
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
                   }
                 },
                 "required": ["url", "twoBitUrl"],
@@ -1132,12 +1115,6 @@
                         "default": "#cc3333",
                         "type": "string",
                         "pattern": "^#[0-9a-f]{6}$"
-                      },
-                      "sequenceMaxWindow": {
-                        "default": 100,
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 100000
                       }
                     }
                   },

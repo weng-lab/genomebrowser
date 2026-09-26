@@ -69,50 +69,6 @@ it("exposes config fields and preserves host ownership", () => {
     act(() => checkbox.click());
     expect(updateTrack).toHaveBeenLastCalledWith({ config: { distinguishMaskedBases: true } });
     expect(container.textContent).not.toContain("Bases appear when each");
-    const slider = container.querySelector<HTMLInputElement>('input[type="range"]')!;
-    expect(slider.getAttribute("aria-label")).toBe("Sequence resolution");
-    expect(slider.min).toBe("5");
-    expect(slider.max).toBe("25");
-    expect(slider.value).toBe("15");
-    const preview = container.querySelector('svg[role="img"]')!;
-    expect(preview.getAttribute("width")).toBe("120");
-    expect(preview.querySelectorAll("text")).toHaveLength(8);
-    expect(slider.disabled).toBe(false);
-    const zoomButton = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
-      (button) => button.textContent === "Zoom in to sequence",
-    )!;
-    expect(container.textContent).toContain("66 bp");
-    expect(zoomButton.disabled).toBe(true);
-    act(() => useBrowserStore.getState().setTrackWidth(2000));
-    expect(container.textContent).toContain("133 bp");
-    act(() =>
-      render(
-        <RulerSettings
-          displayOptions={["full"]}
-          updateTracksOfType={() => ({ ok: true })}
-          track={{
-            ...track,
-            config: {
-              ...track.config,
-              sequenceUrl: "https://example.test/ref.2bit",
-              sequenceMinPixelsPerBase: 10,
-            },
-          }}
-          updateTrack={updateTrack}
-        />,
-      ),
-    );
-    expect(container.textContent).toContain("200 bp");
-    expect(container.querySelector('svg[role="img"]')?.getAttribute("width")).toBe("80");
-    expect(zoomButton.disabled).toBe(false);
-    act(() => zoomButton.click());
-    expect(useBrowserStore.getState().region).toEqual({
-      chromosome: "chr1",
-      start: 1400,
-      end: 1600,
-    });
-    expect(zoomButton.disabled).toBe(true);
-
     act(() =>
       render(
         <RulerSettings

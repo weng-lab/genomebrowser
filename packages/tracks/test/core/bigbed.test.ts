@@ -43,6 +43,7 @@ function createContext(
       config: { url, rowHeight: 12 },
     },
     demand: {
+      basePairDetail: true,
       assembly: { id: "test", chromosomes: { chr1: 1_000 } },
       region,
       visibleRegion: region,

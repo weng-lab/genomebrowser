@@ -42,6 +42,10 @@ The reusable implementation of a track type. Its **fetcher** produces data for a
 
 A module-supported way to draw a track's data, selected by `base.display`. Each mode has a renderer. Use display mode for a visualization choice, and collection view for a way of organizing a catalog.
 
+### Base-pair detail
+
+Per-base content such as ruler reference letters, BAM sequence letters, or dynseq nucleotide glyphs. The browser's **base-pair detail gate** combines a configurable visible-span cutoff with a width guard. Fetch demand reports eligibility from the bp cutoff; renderers use `useBasePairDetail` for the width-aware decision. The width guard has separate entry and exit thresholds to avoid repeated switching during small resizes.
+
 ### Track configuration
 
 The configured values for one track. **Base settings**, stored in `base`, include ID, title, color, height, and display mode. Reserve **config** for the module-specific `config` object, such as source URLs and filtering thresholds. A module's **config schema** defines valid values and defaults. **Track settings** can refer to the controls used to edit these values.
