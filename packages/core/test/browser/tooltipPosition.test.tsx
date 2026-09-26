@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act } from "react";
+import { act, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipContextProvider } from "../../src/browser/tooltip/TooltipContext";
@@ -39,7 +39,9 @@ afterEach(async () => {
   }
 });
 
-async function render(width = 500, height = 300) {
+async function render(width = 500, height = 300, matrix = { a: 1, b: 0, e: 0, f: 0 }) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  Object.defineProperty(svg, "getScreenCTM", { value: () => ({ c: 0, d: matrix.a, ...matrix }) });
   await act(async () => {
     root.render(
       <TooltipContextProvider
@@ -47,22 +49,27 @@ async function render(width = 500, height = 300) {
         isDisabled={() => false}
         getTooltipComponent={() => undefined}
       >
-        <svg>
-          <TooltipOverlay width={width} height={height} />
-        </svg>
+        <BrowserSvgProvider svg={svg}>
+          <svg>
+            <TooltipOverlay width={width} height={height} />
+          </svg>
+        </BrowserSvgProvider>
       </TooltipContextProvider>,
     );
   });
 }
 
-async function show(x: number, y: number) {
-  await act(async () => store.getState().show("track", <rect />, { x, y }));
-  const overlay = container.querySelector<SVGGElement>("svg > g");
+function getOverlay() {
+  return document.querySelector<SVGSVGElement>("[data-genomebrowser-tooltip-overlay]");
+}
+
+async function show(x: number, y: number, content = <rect />) {
+  await act(async () => store.getState().show("track", content, { x, y }));
+  const overlay = getOverlay();
   if (!overlay) throw new Error("Tooltip did not render");
+  expect(container.contains(overlay)).toBe(false);
   expect(overlay.style.pointerEvents).toBe("none");
-  const translation = overlay.getAttribute("transform")?.match(/translate\(([^,]+),([^\)]+)\)/);
-  if (!translation) throw new Error("Tooltip has no translation");
-  return { left: Number(translation[1]) + box.x, top: Number(translation[2]) + box.y };
+  return { left: parseFloat(overlay.style.left), top: parseFloat(overlay.style.top) };
 }
 
 describe("tooltip corner positioning", () => {
@@ -105,6 +112,7 @@ describe("tooltip corner positioning", () => {
     await render();
     expect(await show(0, 0)).toEqual({ left: 10, top: 10 });
     expect(await show(500, 300)).toEqual({ left: 370, top: 230 });
+    expect(getOverlay()?.getAttribute("viewBox")).toBe(`${x} ${y} 120 60`);
   });
 
   it("reselects the corner after browser or content dimensions change", async () => {
@@ -116,79 +124,56 @@ describe("tooltip corner positioning", () => {
     expect(await show(300, 200)).toEqual({ left: 310, top: 210 });
   });
 
-  it("preserves the gap on the roomier side when neither corner fits", async () => {
-    box = { x: -20, y: 15, width: 600, height: 400 };
-    await render();
-    expect(await show(200, 100)).toEqual({ left: 210, top: 110 });
-    expect(await show(300, 200)).toEqual({ left: -310, top: -210 });
+  it("maps the browser's screen scale and offset onto the overlay", async () => {
+    await render(500, 300, { a: 2, b: 0, e: 100, f: 200 });
+    expect(await show(500, 300)).toEqual({ left: 840, top: 660 });
+    expect(getOverlay()?.getAttribute("width")).toBe("240");
+    expect(getOverlay()?.getAttribute("height")).toBe("120");
   });
 });
 
 describe("tooltips outside compact browser bounds", () => {
-  it("escapes clipping, preserves scaled coordinates and local bounds, and dismisses on scroll", async () => {
+  it("places against the window at browser scale", async () => {
     box = { x: -10, y: -8, width: 300, height: 220 };
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    Object.defineProperty(svg, "getScreenCTM", {
-      value: () => ({ a: 2, b: 0, c: 0, d: 2, e: 100, f: 200 }),
-    });
-    await act(async () =>
-      root.render(
-        <TooltipContextProvider
-          store={store}
-          isDisabled={() => false}
-          getTooltipComponent={() => undefined}
-        >
-          <BrowserSvgProvider svg={svg}>
-            <svg>
-              <TooltipOverlay width={200} height={40} />
-            </svg>
-          </BrowserSvgProvider>
-        </TooltipContextProvider>,
-      ),
-    );
-    await act(async () => store.getState().show("track", <rect />, { x: 50, y: 10 }));
-    const portal = document.querySelector<SVGSVGElement>("[data-genomebrowser-tooltip-overlay]");
-    expect(portal).not.toBeNull();
-    expect(container.contains(portal)).toBe(false);
-    expect(portal?.getAttribute("viewBox")).toBe("-10 -8 300 220");
-    expect(portal?.getAttribute("width")).toBe("600");
-    expect(portal?.getAttribute("height")).toBe("440");
-    expect(portal?.style.left).toBe("220px");
-    expect(portal?.style.top).toBe("240px");
-    expect(portal?.style.pointerEvents).toBe("none");
-    await act(async () => window.dispatchEvent(new Event("scroll")));
-    expect(document.querySelector("[data-genomebrowser-tooltip-overlay]")).toBeNull();
-    expect(store.getState().isVisible).toBe(false);
+    await render(200, 40, { a: 2, b: 0, e: 100, f: 200 });
+    expect(await show(50, 10)).toEqual({ left: 220, top: 240 });
+    const overlay = getOverlay();
+    expect(overlay?.getAttribute("viewBox")).toBe("-10 -8 300 220");
+    expect(overlay?.getAttribute("width")).toBe("600");
+    expect(overlay?.getAttribute("height")).toBe("440");
   });
 
-  it("fits unusually large content inside the window and removes the portal on hide", async () => {
+  it("keeps content larger than the window at full size from the top-left margin", async () => {
     box = { x: 0, y: 0, width: 2000, height: 1000 };
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    Object.defineProperty(svg, "getScreenCTM", {
-      value: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }),
-    });
-    await act(async () =>
-      root.render(
-        <TooltipContextProvider
-          store={store}
-          isDisabled={() => false}
-          getTooltipComponent={() => undefined}
-        >
-          <BrowserSvgProvider svg={svg}>
-            <svg>
-              <TooltipOverlay width={200} height={40} />
-            </svg>
-          </BrowserSvgProvider>
-        </TooltipContextProvider>,
-      ),
-    );
-    await act(async () => store.getState().show("track", <rect />, { x: 190, y: 30 }));
-    const portal = document.querySelector<SVGSVGElement>("[data-genomebrowser-tooltip-overlay]")!;
-    expect(Number(portal.getAttribute("width"))).toBeLessThanOrEqual(window.innerWidth - 8);
-    expect(Number(portal.getAttribute("height"))).toBeLessThanOrEqual(window.innerHeight - 8);
-    expect(parseFloat(portal.style.left)).toBeGreaterThanOrEqual(4);
-    expect(parseFloat(portal.style.top)).toBeGreaterThanOrEqual(4);
+    await render(200, 40);
+    expect(await show(190, 30)).toEqual({ left: 4, top: 4 });
+    expect(getOverlay()?.getAttribute("width")).toBe("2000");
+    expect(getOverlay()?.getAttribute("height")).toBe("1000");
     await act(async () => store.getState().hide("track"));
-    expect(document.querySelector("[data-genomebrowser-tooltip-overlay]")).toBeNull();
+    expect(getOverlay()).toBeNull();
+  });
+
+  it("keeps content mounted when the tooltip crosses the browser boundary", async () => {
+    const mounted = vi.fn();
+    function Content() {
+      useEffect(() => mounted(), []);
+      return <rect />;
+    }
+    await render(200, 100);
+    expect(await show(0, 0, <Content />)).toEqual({ left: 10, top: 10 });
+    expect(await show(100, 50, <Content />)).toEqual({ left: 110, top: 60 });
+    expect(await show(0, 0, <Content />)).toEqual({ left: 10, top: 10 });
+    expect(mounted).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["inside", 0, 0],
+    ["outside", 190, 30],
+  ])("dismisses a tooltip %s the browser on scroll", async (_, x, y) => {
+    await render(200, 40);
+    await show(x, y);
+    await act(async () => window.dispatchEvent(new Event("scroll")));
+    expect(getOverlay()).toBeNull();
+    expect(store.getState().isVisible).toBe(false);
   });
 });

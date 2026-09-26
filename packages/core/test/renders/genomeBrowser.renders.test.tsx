@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 
 import { renderWithProbe, type Probe, type RenderReport } from "@weng-lab/render-probe";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, onTestFinished } from "vitest";
 import { z } from "zod";
 import { GenomeBrowser } from "../../src/browser/GenomeBrowser";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
+import { useTooltip } from "../../src/browser/tooltip/useTooltip";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 
 // Render budgets: exact committed render counts for common interactions. A higher
@@ -36,6 +37,29 @@ const slowModule = defineTrackModule({
   render: { full: TestRenderer },
 });
 
+function TooltipRenderer() {
+  const tooltip = useTooltip<string, Record<string, never>>();
+  return (
+    <rect
+      data-testid="tooltip-target"
+      onMouseMove={(event) => tooltip.show("item", event)}
+      onMouseLeave={tooltip.hide}
+    />
+  );
+}
+
+function TestTooltip({ item }: { item: string }) {
+  return <text>{item}</text>;
+}
+
+const tooltipModule = defineTrackModule<string>()({
+  type: "render-budget-tooltip-test",
+  configSchema: z.object({}),
+  fetch: async () => null,
+  render: { full: TooltipRenderer },
+  tooltipComponent: TestTooltip,
+});
+
 let probe: Probe | undefined;
 
 afterEach(() => {
@@ -44,7 +68,10 @@ afterEach(() => {
   slowRequests = undefined;
 });
 
-async function mountBrowser({ slowTrack = false }: { slowTrack?: boolean } = {}) {
+async function mountBrowser({
+  slowTrack = false,
+  tooltipTrack = false,
+}: { slowTrack?: boolean; tooltipTrack?: boolean } = {}) {
   const browserStore = createBrowserStore({
     assembly: { id: "test", chromosomes: { chr1: 10_000 } },
     region: { chromosome: "chr1", start: 0, end: 1_000 },
@@ -53,9 +80,19 @@ async function mountBrowser({ slowTrack = false }: { slowTrack?: boolean } = {})
     titleSize: 10,
   });
   const trackStore = createTrackStore({
-    modules: [module, slowModule],
+    modules: [module, slowModule, tooltipModule],
     tracks: [
-      ...(slowTrack ? ["first", "second"] : ["first", "second", "third"]).map(createTrack),
+      ...(slowTrack || tooltipTrack ? ["first", "second"] : ["first", "second", "third"]).map(
+        createTrack,
+      ),
+      ...(tooltipTrack
+        ? [
+            tooltipModule.create({
+              base: { id: "third", title: "third", height: 20 },
+              config: {},
+            }),
+          ]
+        : []),
       ...(slowTrack
         ? [
             slowModule.create({
@@ -339,6 +376,55 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "TrackContent": 0,
         "TrackControls": 0,
         "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+  });
+
+  // `useTooltip().show` and `hide` from a renderer's pointer events, which update the
+  // browser's tooltip store after an animation frame.
+  it("shows and hides a tooltip", async () => {
+    const { probe } = await mountBrowser({ tooltipTrack: true });
+    const svg = document.querySelector<SVGSVGElement>("#browserSVG")!;
+    const point = { x: 0, y: 0, matrixTransform: () => ({ x: point.x, y: point.y }) };
+    const matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, inverse: () => matrix };
+    Object.assign(svg, { createSVGPoint: () => point, getScreenCTM: () => matrix });
+    Object.defineProperty(SVGElement.prototype, "getBBox", {
+      configurable: true,
+      value: () => ({ x: 0, y: 0, width: 120, height: 30 }),
+    });
+    onTestFinished(() => {
+      Reflect.deleteProperty(SVGElement.prototype, "getBBox");
+    });
+    const target = document.querySelector('[data-testid="tooltip-target"]')!;
+
+    const shown = await probe.measure(async () => {
+      target.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 200 }));
+      await new Promise(requestAnimationFrame);
+    });
+    const hidden = await probe.measure(() =>
+      target.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })),
+    );
+
+    // Necessary: the overlay renders the content, then again once it is measured.
+    // Hiding renders only the overlay. No browser or track component renders.
+    const names = ["BrowserView", "TrackStack", "TrackRow", "TooltipRenderer", "TooltipOverlay"];
+    expect(shown.pick(...names, "TestTooltip")).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 0,
+        "TestTooltip": 1,
+        "TooltipOverlay": 2,
+        "TooltipRenderer": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+    expect(hidden.pick(...names)).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 0,
+        "TooltipOverlay": 1,
+        "TooltipRenderer": 0,
         "TrackRow": 0,
         "TrackStack": 0,
       }
