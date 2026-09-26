@@ -106,6 +106,7 @@ export async function readCachedBigWigValues(
   resources: TrackResources,
   url: string,
   region: GenomicRegion,
+  signal?: AbortSignal,
 ): Promise<BigWigValueRecord[]> {
   const files = cachedFiles<BigWigFile>(resources, BIG_WIG_FILES);
   let file = files.get(url);
@@ -113,7 +114,7 @@ export async function readCachedBigWigValues(
     file = createBigWigFile({ url });
     files.set(url, file);
   }
-  return file.read(region);
+  return file.read(region, { signal });
 }
 
 /** Reads reference sequence, reusing one 2bit reader per source URL. */
@@ -121,6 +122,7 @@ export async function readCachedTwoBitSequence(
   resources: TrackResources,
   url: string,
   region: GenomicRegion,
+  signal?: AbortSignal,
 ): Promise<TwoBitRecord[]> {
   const files = cachedFiles<TwoBitFile>(resources, TWO_BIT_FILES);
   let file = files.get(url);
@@ -128,5 +130,5 @@ export async function readCachedTwoBitSequence(
     file = createTwoBitFile({ url });
     files.set(url, file);
   }
-  return file.read(region);
+  return file.read(region, { signal });
 }

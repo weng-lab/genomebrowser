@@ -102,7 +102,7 @@ describe("dynseq fetching", () => {
     reader.createBigWigFile.mockReturnValue(file);
 
     await fetchDynseq(createContext());
-    expect(file.read).toHaveBeenCalledWith(region);
+    expect(file.read).toHaveBeenCalledWith(region, { signal: undefined });
     expect(file.readZoomLevel).not.toHaveBeenCalled();
     expect(file.getZoomLevels).not.toHaveBeenCalled();
   });
@@ -151,6 +151,32 @@ describe("dynseq fetching", () => {
       expect(reader.createTwoBitFile).not.toHaveBeenCalled();
     },
   );
+
+  it("cancels both source reads when the request is aborted", async () => {
+    const abortedReads: AbortSignal[] = [];
+    const readUntilAborted = (_region: GenomicRegion, options: { signal?: AbortSignal }) =>
+      new Promise((_resolve, reject) => {
+        options.signal?.addEventListener("abort", () => {
+          abortedReads.push(options.signal!);
+          reject(options.signal!.reason);
+        });
+      });
+    reader.readBigWig.mockImplementation(readUntilAborted);
+    reader.readTwoBit.mockImplementation(readUntilAborted);
+    const resources = createResources();
+
+    // The second request reuses the cached readers from the first.
+    for (let request = 0; request < 2; request++) {
+      abortedReads.length = 0;
+      const controller = new AbortController();
+      const fetching = fetchDynseq({ ...createContext(resources), signal: controller.signal });
+      controller.abort();
+      await expect(fetching).rejects.toMatchObject({ name: "AbortError" });
+      expect(abortedReads).toEqual([controller.signal, controller.signal]);
+    }
+    expect(reader.createBigWigFile).toHaveBeenCalledTimes(1);
+    expect(reader.createTwoBitFile).toHaveBeenCalledTimes(1);
+  });
 
   it("reuses one reader per source across reads", async () => {
     reader.readBigWig.mockResolvedValue([]);

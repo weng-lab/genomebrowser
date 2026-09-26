@@ -1,195 +1,150 @@
 // @vitest-environment jsdom
 
-import { act, useState } from "react";
+import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { TooltipContextProvider } from "../../src/browser/tooltip/TooltipContext";
-import { TooltipOverlay } from "../../src/browser/tooltip/TooltipOverlay";
+import { z } from "zod";
 import {
-  createTooltipStore,
-  type TooltipStoreInstance,
-} from "../../src/browser/tooltip/tooltipStore";
+  GenomeBrowser,
+  createBrowserStore,
+  createTrackStore,
+  defineTrackModule,
+  useTooltip,
+} from "../../src/lib";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
-
-const tooltipRenderErrorPrefix = "[genomebrowser] Tooltip render error";
 const renderError = new Error("private tooltip exception");
-const originalGetBBox = Object.getOwnPropertyDescriptor(SVGElement.prototype, "getBBox");
-
-let container: HTMLDivElement | undefined;
-let root: Root | undefined;
-let store: TooltipStoreInstance;
+const reportPrefix = "[genomebrowser] Tooltip render error";
+const originalBBox = Object.getOwnPropertyDescriptor(SVGElement.prototype, "getBBox");
+let root: Root;
+let container: HTMLDivElement;
+let useBrowserStore: ReturnType<typeof createBrowserStore>;
+let broken: boolean;
+let reports: ReturnType<typeof vi.spyOn>;
+let caught: unknown[];
 
 beforeEach(async () => {
+  broken = true;
+  caught = [];
+  vi.useFakeTimers();
+  // Only the injected error may be intercepted. Unexpected diagnostics fail cleanup below.
+  reports = vi.spyOn(console, "error").mockImplementation(() => {});
   Object.defineProperty(SVGElement.prototype, "getBBox", {
     configurable: true,
-    value: vi.fn(() => ({ x: 0, y: 0, width: 144, height: 30 })),
+    value: () => ({ x: 0, y: 0, width: 144, height: 30 }),
   });
-  store = createTooltipStore();
-  container = document.createElement("div");
-  document.body.appendChild(container);
-  root = createRoot(container);
-
-  await act(async () => {
-    root?.render(
-      <TooltipContextProvider
-        isDisabled={() => false}
-        getTooltipComponent={() => undefined}
-        store={store}
-      >
-        <BrowserSurface />
-      </TooltipContextProvider>,
+  function Renderer({ id }: { id: string }) {
+    const tooltip = useTooltip<{ id: string; secret: string }, Record<string, never>>();
+    return (
+      <rect
+        data-testid={id}
+        onMouseMove={(event) => tooltip.show({ id, secret: "private item" }, event)}
+        onMouseLeave={() => tooltip.hide()}
+      />
     );
+  }
+  function Tooltip({ item }: { item: { id: string; secret: string } }) {
+    if (item.id === "broken" && broken) throw renderError;
+    return <text>{item.id} tooltip</text>;
+  }
+  const module = defineTrackModule<{ id: string; secret: string }>()({
+    type: "tooltip-errors",
+    configSchema: z.object({}),
+    fetch: async () => null,
+    render: { full: Renderer },
+    tooltipComponent: Tooltip,
+  });
+  const useTrackStore = createTrackStore({
+    modules: [module],
+    tracks: ["broken", "healthy"].map((id) =>
+      module.create({ base: { id, title: id }, config: {} }),
+    ),
+  });
+  useBrowserStore = createBrowserStore({
+    assembly: { id: "test", chromosomes: { chr1: 10_000 } },
+    region: { chromosome: "chr1", start: 1_000, end: 2_000 },
+    trackWidth: 1_000,
+  });
+  container = document.createElement("div");
+  document.body.append(container);
+  root = createRoot(container, { onCaughtError: (error) => caught.push(error) });
+  await act(async () =>
+    root.render(
+      <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />,
+    ),
+  );
+  const point = { x: 0, y: 0, matrixTransform: () => ({ x: point.x, y: point.y }) };
+  Object.assign(container.querySelector("svg")!, {
+    createSVGPoint: () => point,
+    getScreenCTM: () => ({ inverse: () => ({}) }),
   });
 });
 
 afterEach(async () => {
-  if (root) await act(async () => root?.unmount());
-  container?.remove();
-  container = undefined;
-  root = undefined;
-  vi.restoreAllMocks();
-  if (originalGetBBox) {
-    Object.defineProperty(SVGElement.prototype, "getBBox", originalGetBBox);
-  } else {
-    Reflect.deleteProperty(SVGElement.prototype, "getBBox");
+  try {
+    await act(async () => root.unmount());
+    expect(caught.length).toBeGreaterThan(0);
+    for (const error of caught) expect(error).toBe(renderError);
+    expect(reports.mock.calls.length).toBeGreaterThan(0);
+    for (const [prefix, detail] of reports.mock.calls) {
+      expect(prefix).toBe(reportPrefix);
+      expect(detail).toMatchObject({ error: renderError, extensionPoint: "tooltip content" });
+    }
+  } finally {
+    container.remove();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    if (originalBBox) Object.defineProperty(SVGElement.prototype, "getBBox", originalBBox);
+    else Reflect.deleteProperty(SVGElement.prototype, "getBBox");
   }
 });
 
-describe("tooltip render error isolation", () => {
-  it("contains throwing content and reports safe tooltip context", async () => {
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const privateItem = { secret: "private tooltip item" };
+async function event(id: string, type = "mousemove", x = 40) {
+  const target = container.querySelector(`[data-testid="${id}"]`);
+  if (!target) throw new Error(`Missing renderer ${id}`);
+  await act(async () =>
+    target.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: x, clientY: 50 })),
+  );
+  await act(async () => vi.advanceTimersByTimeAsync(20));
+}
 
-    await show("broken-owner", <ThrowingTooltip item={privateItem} />, { x: 40, y: 50 });
-
-    const fallback = requiredText("Tooltip unavailable");
-    const fallbackGroup = fallback.parentElement;
-    const fallbackRect = fallbackGroup?.querySelector("rect");
-    expect(fallbackRect?.getAttribute("width")).toBe("144");
-    expect(fallbackRect?.getAttribute("height")).toBe("30");
-    expect(container?.textContent).not.toContain(renderError.message);
-    expect(requiredElement('[data-testid="track-content"]')).toBeTruthy();
-    expect(requiredElement('[data-testid="browser-navigation"]')).toBeTruthy();
-    expect(requiredElement('[data-testid="unrelated-overlay"]')).toBeTruthy();
-
+describe("tooltip failures through a registered module", () => {
+  it("contains a failure, reports safe context once, and leaves navigation and tracks usable", async () => {
+    await event("broken");
+    expect(container.textContent).toContain("Tooltip unavailable");
+    expect(container.textContent).not.toContain(renderError.message);
+    expect(container.querySelector('[data-testid="healthy"]')).not.toBeNull();
+    expect(reports.mock.calls[0]?.[1]).toMatchObject({
+      componentStack: expect.stringContaining("Tooltip"),
+    });
+    expect(JSON.stringify(reports.mock.calls)).not.toContain("private item");
+    const reportCount = reports.mock.calls.length;
+    await event("broken", "mousemove", 120);
     await act(async () =>
-      requiredElement('[data-testid="browser-navigation"]').dispatchEvent(
-        new MouseEvent("click", { bubbles: true }),
-      ),
+      useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 1_100, end: 2_100 }),
     );
-    expect(requiredText("Navigation updates: 1")).toBeTruthy();
-    expect(requiredText("Tooltip unavailable")).toBe(fallback);
-
-    const customLog = consoleError.mock.calls.find(
-      ([message]) => message === tooltipRenderErrorPrefix,
-    );
-    expect(customLog?.[1]).toEqual({
-      extensionPoint: "tooltip content",
-      error: renderError,
-      componentStack: expect.stringContaining("ThrowingTooltip"),
-    });
-    expect(JSON.stringify(customLog?.[1])).not.toContain(privateItem.secret);
+    expect(useBrowserStore.getState().region.start).toBe(1_100);
+    expect(container.textContent).toContain("Tooltip unavailable");
+    expect(reports.mock.calls).toHaveLength(reportCount);
   });
 
-  it("renders content from a different owner after a failure", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
-    await show("broken-owner", <ThrowingTooltip item={{ secret: "hidden" }} />, {
-      x: 40,
-      y: 50,
-    });
-
-    await show("healthy-owner", <text>Healthy tooltip</text>, { x: 80, y: 90 });
-
-    expect(requiredText("Healthy tooltip")).toBeTruthy();
-    expect(container?.textContent).not.toContain("Tooltip unavailable");
+  it("shows another track's tooltip after a failure", async () => {
+    await event("broken");
+    expect(container.textContent).toContain("Tooltip unavailable");
+    await event("healthy");
+    expect(container.textContent).toContain("healthy tooltip");
+    expect(container.textContent).not.toContain("Tooltip unavailable");
   });
 
-  it("recovers after the failed tooltip is hidden and shown again", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
-    await show("same-owner", <ThrowingTooltip item={{ secret: "hidden" }} />, { x: 40, y: 50 });
-
-    await act(async () => store.getState().hide("same-owner"));
-    expect(container?.textContent).not.toContain("Tooltip unavailable");
-
-    await show("same-owner", <text>Recovered tooltip</text>, { x: 60, y: 70 });
-    expect(requiredText("Recovered tooltip")).toBeTruthy();
-  });
-
-  it("does not retry failed content during same-owner movement", async () => {
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const CountingThrowingTooltip = vi.fn(function CountingThrowingTooltip(): never {
-      throw renderError;
-    });
-    await show("moving-owner", <CountingThrowingTooltip />, {
-      x: 40,
-      y: 50,
-    });
-    const renderCountAfterFailure = CountingThrowingTooltip.mock.calls.length;
-    const reportCountAfterFailure = customReportCount(consoleError.mock.calls);
-
-    await show("moving-owner", <CountingThrowingTooltip />, {
-      x: 120,
-      y: 130,
-    });
-    await show("moving-owner", <CountingThrowingTooltip />, {
-      x: 140,
-      y: 150,
-    });
-
-    expect(requiredText("Tooltip unavailable")).toBeTruthy();
-    expect(CountingThrowingTooltip).toHaveBeenCalledTimes(renderCountAfterFailure);
-    expect(customReportCount(consoleError.mock.calls)).toBe(reportCountAfterFailure);
-    expect(
-      requiredText("Tooltip unavailable").parentElement?.parentElement?.getAttribute("transform"),
-    ).toBe("translate(150,160)");
+  it("recovers the same owner's tooltip after hiding and showing it again", async () => {
+    await event("broken");
+    expect(container.textContent).toContain("Tooltip unavailable");
+    await event("broken", "mouseout");
+    expect(container.textContent).not.toContain("Tooltip unavailable");
+    broken = false;
+    await event("broken");
+    expect(container.textContent).toContain("broken tooltip");
+    expect(container.textContent).not.toContain("Tooltip unavailable");
   });
 });
-
-function BrowserSurface() {
-  const [navigationUpdates, setNavigationUpdates] = useState(0);
-
-  return (
-    <svg>
-      <g data-testid="track-content">
-        <text>Track remains available</text>
-      </g>
-      <g
-        data-testid="browser-navigation"
-        onClick={() => setNavigationUpdates((count) => count + 1)}
-      >
-        <rect width={20} height={20} />
-        <text>Navigation updates: {navigationUpdates}</text>
-      </g>
-      <g data-testid="unrelated-overlay" />
-      <TooltipOverlay width={500} height={300} />
-    </svg>
-  );
-}
-
-function ThrowingTooltip({ item: _item }: { item: { secret: string } }): never {
-  throw renderError;
-}
-
-async function show(owner: string, content: React.ReactElement, anchor: { x: number; y: number }) {
-  await act(async () => store.getState().show(owner, content, anchor));
-}
-
-function customReportCount(calls: unknown[][]) {
-  return calls.filter(([message]) => message === tooltipRenderErrorPrefix).length;
-}
-
-function requiredText(content: string) {
-  const element = Array.from(container?.querySelectorAll("text") ?? []).find(
-    (candidate) => candidate.textContent === content,
-  );
-  if (!element) throw new Error(`Text not found: ${content}`);
-  return element;
-}
-
-function requiredElement<E extends Element = Element>(selector: string) {
-  const element = container?.querySelector<E>(selector);
-  if (!element) throw new Error(`Element not found: ${selector}`);
-  return element;
-}
