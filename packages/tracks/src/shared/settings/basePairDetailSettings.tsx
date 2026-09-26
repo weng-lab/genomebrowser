@@ -18,7 +18,7 @@ export function BasePairDetailSettings({ unavailableReason }: { unavailableReaso
   const zoom = useBrowserStore((state) => state.zoom);
   const { reason, zoomTargetBases, maxReadableBases } = useBasePairDetailStatus();
   const target = zoomTargetBases ?? 1;
-  const count = Math.round(8 + (24 * target) / Math.max(1, maxReadableBases));
+  const count = Math.round(8 + (16 * target) / Math.max(1, maxReadableBases));
   const label = `${target.toLocaleString("en-US")} bp`;
   return (
     <TrackSettingsSection title="Sequence letters">
