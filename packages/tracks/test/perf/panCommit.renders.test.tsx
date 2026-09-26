@@ -226,7 +226,7 @@ describe("pan commit inside loaded data", () => {
     expect({ renders: result.renders, mutations: result.mutations }).toMatchInlineSnapshot(`
       {
         "mutations": 93,
-        "renders": 157,
+        "renders": 150,
       }
     `);
   });

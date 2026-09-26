@@ -69,7 +69,7 @@ export type {
   TrackRuntimeContext,
   TrackTooltipComponent,
 } from "./modules/types";
-export { useInteraction } from "./modules/interaction";
+export { useInteraction } from "./modules/trackRuntimeState";
 export { useTooltip } from "./browser/tooltip/useTooltip";
 export { useAutoTrackHeight } from "./browser/track-row/useAutoTrackHeight";
 export type { AutoTrackHeightOptions } from "./browser/track-row/useAutoTrackHeight";
