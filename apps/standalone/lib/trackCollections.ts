@@ -135,12 +135,80 @@ const caveTracks = {
   })),
 } satisfies TrackCollection;
 
+const longreadRNATracks = {
+  assembly: "hg38",
+  id: "long-read-rna-seq",
+  label: "Long-read RNA-seq BAM Tracks",
+  description: "K562 long-read RNA-seq alignments on hg38.",
+  views: [
+    {
+      id: "celltype",
+      label: "Cell type",
+      columns: [
+        {
+          field: "celltype",
+          label: "Cell type",
+        },
+        {
+          field: "experiment_accession",
+          label: "Experiment accession",
+        },
+        {
+          field: "file_accession",
+          label: "File accession",
+        },
+      ],
+      grouping: ["celltype"],
+      leaf: "title",
+    },
+  ],
+  tracks: [
+    {
+      type: "bam",
+      base: {
+        id: "ENCFF322UJU",
+        title: "K562 long-read RNA-seq - ENCSR526TQU - ENCFF322UJU",
+        display: "pack",
+      },
+      config: {
+        url: "https://users.wenglab.org/niship/ENCSR526TQU.ENCFF322UJU.K562.bam",
+        indexUrl: "https://users.wenglab.org/niship/ENCSR526TQU.ENCFF322UJU.K562.bam.bai",
+        sequenceUrl: "https://users.wenglab.org/niship/hg38.2bit",
+      },
+      metadata: {
+        celltype: "K562",
+        file_accession: "ENCFF322UJU",
+        experiment_accession: "ENCSR526TQU",
+      },
+    },
+    {
+      type: "bam",
+      base: {
+        id: "ENCFF504GVG",
+        title: "K562 long-read RNA-seq - ENCSR589FUJ - ENCFF504GVG",
+        display: "pack",
+      },
+      config: {
+        url: "https://users.wenglab.org/niship/ENCSR589FUJ.ENCFF504GVG.K562.bam",
+        indexUrl: "https://users.wenglab.org/niship/ENCSR589FUJ.ENCFF504GVG.K562.bam.bai",
+        sequenceUrl: "https://users.wenglab.org/niship/hg38.2bit",
+      },
+      metadata: {
+        celltype: "K562",
+        file_accession: "ENCFF504GVG",
+        experiment_accession: "ENCSR589FUJ",
+      },
+    },
+  ],
+} satisfies TrackCollection;
+
 export const trackCollections = [
   geneTracks,
   chromHmmTracks,
   ccreComparisonTracks,
   caveTracks,
   biosampleTracks,
+  longreadRNATracks,
 ];
 
 export const defaultTrackIds = [

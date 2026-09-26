@@ -24,7 +24,7 @@ interface GenomicFile<T extends GenomicRecord> {
 
 This structural interface describes a regional read and its result type. There is no base class to construct or inherit. Format-specific file types supply the record shape; BigWig also exposes zoom methods. Keep a file instance to reuse its metadata. Built-in factories validate their options synchronously and defer network access until an operation needs it.
 
-The interface does not enforce coordinate conventions, clipping, sorting, caching, or validation on custom implementations. Consult each format's contract for those behaviors: [BigWig](../bigWig/bigWig.md), [BigBed](../bigBed/bigBed.md), and [TwoBit](../twoBit/twoBit.md).
+The interface does not enforce coordinate conventions, clipping, sorting, caching, or validation on custom implementations. Consult each format's contract for those behaviors: [BigWig](../bigWig/bigWig.md), [BigBed](../bigBed/bigBed.md), [BAM](../bam/bam.md), and [TwoBit](../twoBit/twoBit.md).
 
 ## GenomicRegion
 

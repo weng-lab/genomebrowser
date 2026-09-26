@@ -6,6 +6,7 @@ const packageDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(resolve(packageDirectory, "package.json"), "utf8"));
 assertEqual(manifest.sideEffects, false, "package sideEffects declaration");
 const trackNames = [
+  "bam",
   "bigbed",
   "bigwig",
   "bulkbed",
@@ -17,6 +18,7 @@ const trackNames = [
   "ruler",
 ];
 const expectedRuntimeExports = new Map([
+  ["./bam", ["bamModule"]],
   ["./ruler", ["rulerModule"]],
   ["./bigbed", ["bigBedModule", "fetchBigBedRows"]],
   ["./bigwig", ["bigWigModule"]],

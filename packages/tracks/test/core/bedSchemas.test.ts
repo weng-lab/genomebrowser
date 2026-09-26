@@ -76,6 +76,7 @@ describe("BED schema selection", () => {
       demand: {
         assembly: { id: "test", chromosomes: { chr1: 1000 } },
         region: { chromosome: "chr1", start: 100, end: 200 },
+        visibleRegion: { chromosome: "chr1", start: 100, end: 200 },
         width: 100,
       },
       track: {
@@ -142,6 +143,7 @@ describe("BED schema selection", () => {
         clear: () => values.clear(),
       };
       const demand = {
+        visibleRegion: { chromosome: "chr1", start: 100, end: 200 },
         assembly: { id: "test", chromosomes: { chr1: 1000 } },
         region: { chromosome: "chr1", start: 100, end: 200 },
         width: 100,

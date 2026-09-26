@@ -58,7 +58,12 @@ function createContext(
         clampIndicatorColor: "#ff0000",
       },
     },
-    demand: { assembly: { id: "test", chromosomes: { chr1: 1_000 } }, region, width: 100 },
+    demand: {
+      assembly: { id: "test", chromosomes: { chr1: 1_000 } },
+      region,
+      visibleRegion: region,
+      width: 100,
+    },
     resources,
   };
 }

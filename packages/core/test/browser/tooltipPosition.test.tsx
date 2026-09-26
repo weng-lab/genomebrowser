@@ -4,6 +4,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipContextProvider } from "../../src/browser/tooltip/TooltipContext";
+import { BrowserSvgProvider } from "../../src/browser/svg/BrowserSvgContext";
 import { TooltipOverlay } from "../../src/browser/tooltip/TooltipOverlay";
 import { createTooltipStore } from "../../src/browser/tooltip/tooltipStore";
 
@@ -120,5 +121,74 @@ describe("tooltip corner positioning", () => {
     await render();
     expect(await show(200, 100)).toEqual({ left: 210, top: 110 });
     expect(await show(300, 200)).toEqual({ left: -310, top: -210 });
+  });
+});
+
+describe("tooltips outside compact browser bounds", () => {
+  it("escapes clipping, preserves scaled coordinates and local bounds, and dismisses on scroll", async () => {
+    box = { x: -10, y: -8, width: 300, height: 220 };
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    Object.defineProperty(svg, "getScreenCTM", {
+      value: () => ({ a: 2, b: 0, c: 0, d: 2, e: 100, f: 200 }),
+    });
+    await act(async () =>
+      root.render(
+        <TooltipContextProvider
+          store={store}
+          isDisabled={() => false}
+          getTooltipComponent={() => undefined}
+        >
+          <BrowserSvgProvider svg={svg}>
+            <svg>
+              <TooltipOverlay width={200} height={40} />
+            </svg>
+          </BrowserSvgProvider>
+        </TooltipContextProvider>,
+      ),
+    );
+    await act(async () => store.getState().show("track", <rect />, { x: 50, y: 10 }));
+    const portal = document.querySelector<SVGSVGElement>("[data-genomebrowser-tooltip-overlay]");
+    expect(portal).not.toBeNull();
+    expect(container.contains(portal)).toBe(false);
+    expect(portal?.getAttribute("viewBox")).toBe("-10 -8 300 220");
+    expect(portal?.getAttribute("width")).toBe("600");
+    expect(portal?.getAttribute("height")).toBe("440");
+    expect(portal?.style.left).toBe("220px");
+    expect(portal?.style.top).toBe("240px");
+    expect(portal?.style.pointerEvents).toBe("none");
+    await act(async () => window.dispatchEvent(new Event("scroll")));
+    expect(document.querySelector("[data-genomebrowser-tooltip-overlay]")).toBeNull();
+    expect(store.getState().isVisible).toBe(false);
+  });
+
+  it("fits unusually large content inside the window and removes the portal on hide", async () => {
+    box = { x: 0, y: 0, width: 2000, height: 1000 };
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    Object.defineProperty(svg, "getScreenCTM", {
+      value: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }),
+    });
+    await act(async () =>
+      root.render(
+        <TooltipContextProvider
+          store={store}
+          isDisabled={() => false}
+          getTooltipComponent={() => undefined}
+        >
+          <BrowserSvgProvider svg={svg}>
+            <svg>
+              <TooltipOverlay width={200} height={40} />
+            </svg>
+          </BrowserSvgProvider>
+        </TooltipContextProvider>,
+      ),
+    );
+    await act(async () => store.getState().show("track", <rect />, { x: 190, y: 30 }));
+    const portal = document.querySelector<SVGSVGElement>("[data-genomebrowser-tooltip-overlay]")!;
+    expect(Number(portal.getAttribute("width"))).toBeLessThanOrEqual(window.innerWidth - 8);
+    expect(Number(portal.getAttribute("height"))).toBeLessThanOrEqual(window.innerHeight - 8);
+    expect(parseFloat(portal.style.left)).toBeGreaterThanOrEqual(4);
+    expect(parseFloat(portal.style.top)).toBeGreaterThanOrEqual(4);
+    await act(async () => store.getState().hide("track"));
+    expect(document.querySelector("[data-genomebrowser-tooltip-overlay]")).toBeNull();
   });
 });

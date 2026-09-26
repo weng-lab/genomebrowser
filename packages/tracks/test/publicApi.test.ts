@@ -1,3 +1,4 @@
+import { bamModule } from "@weng-lab/genomebrowser-tracks/bam";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { validateTrackCollection, type TrackInteraction } from "@weng-lab/genomebrowser";
 import type {
@@ -63,6 +64,7 @@ describe("first-party track package", () => {
       ccreBigBedModule,
       geneModule,
       methylCModule,
+      bamModule,
     ]);
     expect(firstPartyTrackModules.map((module) => module.type)).toEqual([
       "ruler",
@@ -74,6 +76,7 @@ describe("first-party track package", () => {
       "ccre-bigbed",
       "gene",
       "methylc",
+      "bam",
     ]);
     for (const module of firstPartyTrackModules) {
       expect(module.configSchema).toBeDefined();

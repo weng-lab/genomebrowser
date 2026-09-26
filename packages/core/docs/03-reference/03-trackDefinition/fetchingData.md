@@ -23,12 +23,14 @@ Pass `fetchIntervals` as a module's `fetch` option and mark its `intervals` sche
 
 `TrackFetch<Config, Data>` is `(context: TrackFetchContext<Config>) => Promise<Data>`. Each request receives a track snapshot, the render demand, track-local resources, and an abort signal.
 
-| Context field | Type                      | Contents                                                                  |
-| ------------- | ------------------------- | ------------------------------------------------------------------------- |
-| `track`       | `TrackFetchTrack<Config>` | Readonly `type`, `base: { id, display }`, and complete parsed config.     |
-| `demand`      | `TrackFetchDemand`        | Readonly `assembly`, genomic `region`, and logical SVG `width`.           |
-| `resources`   | `TrackResources`          | Storage retained between requests for this track in this mounted browser. |
-| `signal`      | `AbortSignal` (optional)  | Aborts when core no longer needs this request.                            |
+| Context field | Type                      | Contents                                                                          |
+| ------------- | ------------------------- | --------------------------------------------------------------------------------- |
+| `track`       | `TrackFetchTrack<Config>` | Readonly `type`, `base: { id, display }`, and complete parsed config.             |
+| `demand`      | `TrackFetchDemand`        | Readonly `assembly`, expanded `region`, `visibleRegion`, and logical SVG `width`. |
+| `resources`   | `TrackResources`          | Storage retained between requests for this track in this mounted browser.         |
+| `signal`      | `AbortSignal` (optional)  | Aborts when core no longer needs this request.                                    |
+
+Use `demand.visibleRegion` for viewport-dependent decisions such as a zoom limit. Read data for `demand.region`, which includes overscan. The visible region is a snapshot at request time. Core may reuse fetched data during same-scale pans; zooming triggers a new request even when chromosome clipping leaves the expanded region unchanged.
 
 The snapshots are shallow readonly views. Fetchers may return raw records or process them for the supplied display and width. The requested region includes extra bases outside the visible viewport to support panning. Mark config fields used for requests or fetch-time processing with [fetchOnChange](fetchOnChange.md#fetchonchange).
 

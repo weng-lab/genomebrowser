@@ -172,7 +172,12 @@ export function createTrackDataController({
             type: track.type,
             config: track.config,
           },
-          demand: { assembly: demand.assembly, region: demand.region, width: demand.width },
+          demand: {
+            assembly: demand.assembly,
+            region: demand.region,
+            visibleRegion: demand.view,
+            width: demand.width,
+          },
           resources: resourceStore.resourcesFor({ type: track.type, id: trackId }),
           signal: request.controller.signal,
         });

@@ -89,6 +89,7 @@ describe("browser data lifecycle", () => {
     expect(t.requests).toHaveLength(2);
     expect(t.latest().context.demand).toMatchObject({
       region: { chromosome: "chr1", start: 0, end: 3_000 },
+      visibleRegion: { chromosome: "chr1", start: 1_000, end: 2_000 },
       width: 3_000,
     });
     expect(t.useBrowserStore.getState().isLoading).toBe(true);
@@ -130,6 +131,25 @@ describe("browser data lifecycle", () => {
     expect(t.requests).toHaveLength(1);
     expect(t.text()).toBe("a");
     expect(t.useBrowserStore.getState().isLoading).toBe(false);
+  });
+
+  it("refetches a zoom when chromosome clipping keeps the fetched region unchanged", async () => {
+    const t = await mount({ ids: ["a"], end: 1_000, start: 0 });
+    const first = t.latest().context.demand;
+    await t.resolve();
+    await act(async () =>
+      t.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 0, end: 500 }),
+    );
+    expect(t.requests).toHaveLength(2);
+    expect(t.latest().context.demand.region).toEqual(first.region);
+    expect(t.latest().context.demand.visibleRegion).toEqual({
+      chromosome: "chr1",
+      start: 0,
+      end: 500,
+    });
+    expect(t.text()).toBeUndefined();
+    await t.resolve("a", "zoomed");
+    expect(t.text()).toBe("zoomed");
   });
 
   it.each(["resolve", "reject"] as const)(

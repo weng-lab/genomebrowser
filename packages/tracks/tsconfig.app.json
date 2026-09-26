@@ -9,6 +9,7 @@
 
     "moduleResolution": "bundler",
     "paths": {
+      "@weng-lab/genomebrowser-tracks/bam": ["./src/bam/index.ts"],
       "@weng-lab/genomebrowser-tracks": ["./src/lib.ts"],
       "@weng-lab/genomebrowser-tracks/bigbed": ["./src/bigbed/index.ts"],
       "@weng-lab/genomebrowser-tracks/dynseq": ["./src/dynseq/index.ts"],

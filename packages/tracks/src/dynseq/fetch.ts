@@ -11,7 +11,7 @@ export async function fetchDynseq(context: TrackFetchContext<DynseqConfig>): Pro
     signal: abortSignal,
   } = context;
   // Pixels per base is unchanged by overscan. Prepare sequence at this resolution
-  // even when maxLetterBases still hides it: fetch demand has no viewport span.
+  // even when maxLetterBases still hides it; that threshold is applied during rendering.
   // Keeping intervals intact avoids allocating one object per base in signal mode.
   if (
     base.display === "dense" ||

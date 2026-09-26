@@ -7,6 +7,7 @@ Import all runtime APIs and types from `@weng-lab/genomic-reader`. The package h
 - [Regional reading](regionalReading/README.md)
 - [BigWig signal](bigWig/README.md)
 - [BigBed annotations](bigBed/README.md)
+- [BAM alignments](bam/README.md)
 - [TwoBit sequence](twoBit/README.md)
 - [Chromosome sizes](chromSizes/README.md)
 - [Cytobands](cytobands/README.md)
@@ -42,6 +43,17 @@ Every public export has a canonical destination below. File methods are document
 | `bed3Schema`         | [BigBed annotations](bigBed/bigBed.md#bed3schema)         |
 | `BigBedParseError`   | [BigBed annotations](bigBed/bigBed.md#bigbedparseerror)   |
 | `BigBedParseContext` | [BigBed annotations](bigBed/bigBed.md#bigbedparsecontext) |
+
+### BAM alignments
+
+| Exports                           | Reference                                                  |
+| --------------------------------- | ---------------------------------------------------------- |
+| `createBamFile`, `BamFileOptions` | [BAM factory](bam/bam.md#createbamfile-and-bamfileoptions) |
+| `BamFile`                         | [BAM file](bam/bam.md#bamfile)                             |
+| `BamRecord`                       | [Alignment records](bam/bam.md#bamrecord)                  |
+| `BamCigarOperation`               | [CIGAR operations](bam/bam.md#bamcigaroperation)           |
+| `BamHeader`, `BamReference`       | [Header access](bam/bam.md#bamheader-and-bamreference)     |
+| `BamMate`                         | [Mate information](bam/bam.md#bammate)                     |
 
 ### TwoBit sequence
 

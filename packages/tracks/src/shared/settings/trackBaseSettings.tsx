@@ -16,6 +16,7 @@ export type TrackBaseSettingsProps = {
   displayOptions: readonly string[];
   updateTrack: (update: { base: TrackBaseUpdate }) => TrackMutationResult;
   children?: ReactNode;
+  showColor?: boolean;
 };
 
 export function TrackBaseSettings({
@@ -23,6 +24,7 @@ export function TrackBaseSettings({
   displayOptions,
   updateTrack,
   children,
+  showColor = true,
 }: TrackBaseSettingsProps) {
   const [displayError, setDisplayError] = useState<string>();
   return (
@@ -35,11 +37,13 @@ export function TrackBaseSettings({
           validate={(title) => (title.trim() === "" ? "Enter a title." : undefined)}
           onCommit={(title) => updateTrack({ base: { title } })}
         />
-        <TrackSettingsColorField
-          label="Color"
-          value={track.base.color}
-          onCommit={(color) => updateTrack({ base: { color } })}
-        />
+        {showColor && (
+          <TrackSettingsColorField
+            label="Color"
+            value={track.base.color}
+            onCommit={(color) => updateTrack({ base: { color } })}
+          />
+        )}
       </TrackSettingsFieldRow>
       {displayOptions.length > 1 && (
         <TrackSettingsFieldRow>

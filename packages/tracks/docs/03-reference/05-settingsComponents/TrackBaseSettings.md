@@ -44,3 +44,5 @@ Fields have visible labels and validation errors. The section uses a fieldset an
 See [Settings form layout](formLayout.md) for form composition.
 
 Return to [Area index](README.md) or [Tracks API reference](../README.md).
+
+Set `showColor={false}` to omit the generic Color control when a module exposes its own colors, such as forward and reverse strand colors. The default is `true`.

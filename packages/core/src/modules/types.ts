@@ -60,6 +60,7 @@ export type TrackFetchTrack<Config> = Readonly<{
 export type TrackFetchDemand = Readonly<{
   assembly: AssemblyDefinition;
   region: Readonly<GenomicRegion>;
+  visibleRegion: Readonly<GenomicRegion>;
   width: number;
 }>;
 

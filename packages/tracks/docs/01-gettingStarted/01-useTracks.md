@@ -16,7 +16,7 @@ Render the browser on the client, where it can measure its container and request
 
 ## Choose a module and source
 
-[BigWig](../03-reference/01-trackModules/bigwig.md) displays signal from one BigWig file. For annotations, use [BigBed](../03-reference/01-trackModules/bigbed.md); for gene and transcript structures, use [Gene](../03-reference/01-trackModules/gene.md). The [module index](../03-reference/01-trackModules/README.md) lists all supported formats and specialized tracks.
+[BigWig](../03-reference/01-trackModules/bigwig.md) displays signal from one BigWig file. For annotations, use [BigBed](../03-reference/01-trackModules/bigbed.md); for gene and transcript structures, use [Gene](../03-reference/01-trackModules/gene.md). For aligned sequencing reads, use [BAM](../03-reference/01-trackModules/bam.md) with matching BAM and BAI URLs. The [module index](../03-reference/01-trackModules/README.md) lists all supported formats and specialized tracks.
 
 For this example, use an hg38 BigWig file containing signal on `chr1` between 1,000,000 and 1,100,000, or change the region to match your file. Replace `YOUR_URL_HERE` with the file URL. Its server must support HTTP byte-range requests and allow requests from your application's origin through CORS.
 

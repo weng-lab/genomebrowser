@@ -1099,6 +1099,152 @@
               "type"
             ],
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "display": {
+                    "default": "pack",
+                    "type": "string",
+                    "enum": [
+                      "dense",
+                      "squish",
+                      "pack",
+                      "full"
+                    ]
+                  },
+                  "height": {
+                    "default": 14,
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "color": {
+                    "default": "#3366cc",
+                    "type": "string",
+                    "pattern": "^#[0-9a-f]{6}$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ],
+                "additionalProperties": false
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "indexUrl": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sequenceUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "maxWindow": {
+                    "default": 50000,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000
+                  },
+                  "alignments": {
+                    "default": {},
+                    "type": "object",
+                    "properties": {
+                      "rowHeight": {
+                        "default": 14,
+                        "type": "number",
+                        "minimum": 1
+                      },
+                      "forwardColor": {
+                        "default": "#3366cc",
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                      },
+                      "reverseColor": {
+                        "default": "#cc3333",
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                      },
+                      "sequenceMaxWindow": {
+                        "default": 100,
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000
+                      }
+                    }
+                  },
+                  "filters": {
+                    "default": {},
+                    "type": "object",
+                    "properties": {
+                      "minimumMappingQuality": {
+                        "default": 0,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 254
+                      },
+                      "includeDuplicates": {
+                        "default": true,
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "url",
+                  "indexUrl"
+                ],
+                "additionalProperties": false
+              },
+              "type": {
+                "type": "string",
+                "const": "bam"
+              },
+              "metadata": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "required": [
+              "base",
+              "config",
+              "type"
+            ],
+            "additionalProperties": false
           }
         ]
       }
