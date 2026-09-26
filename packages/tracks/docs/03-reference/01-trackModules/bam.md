@@ -90,9 +90,9 @@ if (!result.ok) console.error(result.error);
 
 The form edits title, display mode, forward and reverse colors, row height, all three source URLs, mapping-quality threshold, duplicate visibility, and the visible-span limit. URL drafts apply only when Set is activated. Host-owned tracks disable all source URL fields while keeping presentation controls available. Height is calculated from the display and visible rows; edit Row height to resize alignments.
 
-The **Base-pair detail** section shares its bp cutoff with the ruler and other participating tracks. It edits browser state, not BAM configuration. Valid edits commit on Enter or blur; Escape cancels the draft, and invalid input stays visible with an error. Host-owned tracks can still edit this display preference.
+The **Sequence letters** section shares its setting with all participating tracks. Its slider runs from larger letters to more bases and edits the browser's `basePairDetail.maxVisibleBases` cutoff immediately. The displayed span and slider range account for the mounted plot width; an existing preference above that range is preserved until the user moves the slider. The sample bases illustrate density and are not reference data.
 
-The section explains the current visible span and width guard. **Zoom to letters** uses the actual plot width and centers a view small enough for readable letters. In dense or squish mode, it asks for Pack or Full instead; below a row height of 10, it asks for more row height. It does not promise letters when sequence data is missing.
+**Show letters** centers the viewport on the displayed, readable span. The control shows track-specific prerequisites when the source or display mode prevents letters. Host-owned tracks can still edit this display preference.
 
 ## Tooltip and interactions
 

@@ -61,11 +61,11 @@ During zoom transitions, ticks cover the viewport and up to one viewport on eith
 
 ## Settings
 
-The form groups controls under "Base-pair detail", "Reference source", and "Sequence appearance". Host-owned tracks disable URL editing. Shared base settings edit the title and coordinate color; content determines height.
+The form groups controls under "Sequence letters", "Reference source", and "Sequence appearance". Host-owned tracks disable URL editing. Shared base settings edit the title and coordinate color; content determines height.
 
-The **Base-pair detail** section edits the browser's shared `basePairDetail.maxVisibleBases` cutoff. The same control appears in BAM settings; changing either updates the setting for all participating tracks. Valid drafts commit on Enter or blur; Escape restores the committed value, and invalid drafts remain visible with an error. Host-owned source restrictions do not lock this browser-wide display setting.
+The **Sequence letters** section shares its setting with all participating tracks. Its slider runs from larger letters to more bases and edits the browser's `basePairDetail.maxVisibleBases` cutoff immediately. The displayed span and slider range account for the mounted plot width; an existing preference above that range is preserved until the user moves the slider. The sample bases illustrate density and are not reference data.
 
-The section shows the current visible span and explains whether zoom or available width prevents letters. Without a reference URL, it points to the source field instead. **Zoom to letters** centers a view that satisfies both the bp cutoff and the actual plot-width entry guard. The action is absent when letters are already enabled, a source is missing, or the browser is too narrow to fit one base. An expandable explanation describes the resizing buffer without exposing pixel thresholds.
+**Show letters** centers the viewport on the displayed, readable span. The control shows track-specific prerequisites when the source or display mode prevents letters. Host-owned tracks can still edit this display preference.
 
 ### Sequence appearance
 

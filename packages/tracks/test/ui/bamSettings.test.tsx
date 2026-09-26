@@ -11,7 +11,7 @@ import { bamModule } from "@weng-lab/genomebrowser-tracks/bam";
 import { BamSettings } from "../../src/bam/settings";
 import type { BamConfig } from "../../src/bam/types";
 
-const detailStatus = { reason: "viewport" as const, zoomTargetBases: 100 };
+const detailStatus = { reason: "viewport" as const, zoomTargetBases: 100, maxReadableBases: 125 };
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 let root: Root | undefined;

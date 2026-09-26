@@ -19,6 +19,8 @@ export type BasePairDetailStatus = Readonly<{
   reason: "ready" | "viewport" | "width";
   /** Span that satisfies both the bp cutoff and width entry guard, or null if one base cannot fit. */
   zoomTargetBases: number | null;
+  /** Maximum span that fits readable letters at this mounted width. */
+  maxReadableBases: number;
 }>;
 
 export function getBasePairDetailStatus(
@@ -31,6 +33,7 @@ export function getBasePairDetailStatus(
   return {
     reason: visible ? "ready" : eligible ? "width" : "viewport",
     zoomTargetBases: target >= 1 ? target : null,
+    maxReadableBases: Math.max(0, Math.floor(width / ENTER_PIXELS_PER_BASE)),
   };
 }
 

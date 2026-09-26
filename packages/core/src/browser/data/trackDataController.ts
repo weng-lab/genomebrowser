@@ -124,7 +124,8 @@ export function createTrackDataController({
     const status = nextDetailStatus();
     if (
       status.reason === detailStatus.reason &&
-      status.zoomTargetBases === detailStatus.zoomTargetBases
+      status.zoomTargetBases === detailStatus.zoomTargetBases &&
+      status.maxReadableBases === detailStatus.maxReadableBases
     )
       return false;
     detailStatus = status;

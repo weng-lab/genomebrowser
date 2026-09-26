@@ -57,76 +57,49 @@ async function click(label: string) {
   expect(target, label).toBeDefined();
   await act(async () => target!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 }
-function cutoff() {
-  const label = [...container.querySelectorAll("label")].find(
-    (label) => label.textContent === "Show letters when viewing up to",
-  )!;
-  return document.getElementById(label.htmlFor) as HTMLInputElement;
+function slider() {
+  return container.querySelector('input[type="range"]') as HTMLInputElement;
 }
-async function type(value: string) {
+async function slide(value: string) {
   await act(async () => {
-    const input = cutoff();
-    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(
+      slider(),
+      value,
+    );
+    slider().dispatchEvent(new Event("input", { bubbles: true }));
   });
 }
-async function key(key: string) {
-  await act(async () =>
-    cutoff().dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true })),
-  );
-}
-it("shares the cutoff between ruler and BAM, commits deliberately, and retains invalid drafts", async () => {
+it("shares the letter zoom between ruler and BAM and limits it to readable spans", async () => {
   const { browserStore } = await setup();
   await click("Settings for Ruler");
-  expect(container.textContent).toContain("Shared across all tracks.");
-  expect(container.textContent).toContain("Viewing 240 bp");
-  await type("250");
-  await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 350));
-  });
+  expect(slider().max).toBe("125");
+  await slide("75");
+  expect(browserStore.getState().basePairDetail.maxVisibleBases).toBe(75);
+  await click("Close settings");
+  await click("Settings for BAM");
+  expect(slider().value).toBe("75");
+  await slide("125");
+  await click("Show letters · 125 bp");
+  expect(browserStore.getState().region.end - browserStore.getState().region.start).toBe(125);
+  expect(container.textContent).toContain("Letter view enabled");
+});
+it("shows an achievable target on narrow plots without overwriting the stored preference", async () => {
+  const { browserStore } = await setup({ width: 400, span: 240 });
+  await click("Settings for BAM");
+  expect(slider().value).toBe("50");
+  expect(slider().max).toBe("50");
   expect(browserStore.getState().basePairDetail.maxVisibleBases).toBe(100);
-  await key("Enter");
-  expect(browserStore.getState().basePairDetail.maxVisibleBases).toBe(250);
-  expect(container.textContent).toContain("Letters need more room");
-  await type("0");
-  await key("Enter");
-  expect(cutoff().value).toBe("0");
-  expect(container.textContent).toContain("Enter a whole number");
-  expect(browserStore.getState().basePairDetail.maxVisibleBases).toBe(250);
-  await key("Escape");
-  expect(cutoff().value).toBe("250");
-  await click("Close settings");
-  await click("Settings for BAM");
-  expect(cutoff().value).toBe("250");
-  await type("300");
-  await act(async () => cutoff().dispatchEvent(new FocusEvent("focusout", { bubbles: true })));
-  expect(browserStore.getState().basePairDetail.maxVisibleBases).toBe(300);
-  await click("Close settings");
-  await click("Settings for Ruler");
-  expect(cutoff().value).toBe("300");
-});
-it("zooms around the center far enough for a narrow plot to show letters", async () => {
-  const { browserStore } = await setup({ width: 400, span: 80 });
-  await click("Settings for BAM");
-  expect(container.textContent).toContain("Letters need more room");
-  await act(async () => {
-    browserStore.getState().setRegion({ chromosome: "chr1", start: 1000, end: 1240 });
-  });
-  expect(container.textContent).toContain(
-    "Zoom in to 50 bp or less for readable letters at this width.",
-  );
-  await click("Zoom to letters");
+  await click("Show letters · 50 bp");
   expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 1095, end: 1145 });
-  expect(container.textContent).toContain("This view allows letters");
-  expect(container.textContent).not.toContain("Zoom to letters");
+  expect(container.textContent).toContain("Letter view enabled");
 });
-it("explains track-specific prerequisites instead of offering an ineffective zoom action", async () => {
+it("explains track prerequisites instead of offering an ineffective zoom action", async () => {
   await setup({ sequence: false, display: "squish" });
   await click("Settings for Ruler");
   expect(container.textContent).toContain("Add a reference 2bit URL below");
-  expect(container.textContent).not.toContain("Zoom to letters");
+  expect(container.textContent).not.toContain("Show letters ·");
   await click("Close settings");
   await click("Settings for BAM");
   expect(container.textContent).toContain("Choose Pack or Full display above");
-  expect(container.textContent).not.toContain("Zoom to letters");
+  expect(container.textContent).not.toContain("Show letters ·");
 });

@@ -71,3 +71,5 @@ export function ZoomToLetters() {
 ```
 
 Changing a cutoff or plot width updates this status even when `useBasePairDetail()` remains false. Panning at the same span and width leaves it unchanged. Both hooks share the mounted browser's visibility history.
+
+`maxReadableBases` reports the maximum span allowed by the mounted width entry guard, independent of the configured bp cutoff. Settings can use it to bound a slider to readable choices.

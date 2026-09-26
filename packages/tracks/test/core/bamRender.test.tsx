@@ -69,7 +69,11 @@ function markup(
     <BasePairDetailContext
       value={{
         subscribe: () => () => {},
-        getBasePairDetailStatus: () => ({ reason: "ready", zoomTargetBases: 100 }),
+        getBasePairDetailStatus: () => ({
+          reason: "ready",
+          zoomTargetBases: 100,
+          maxReadableBases: 125,
+        }),
         getBasePairDetail: () => basePairDetail,
       }}
     >
@@ -260,7 +264,11 @@ describe("BAM displays", () => {
           <BasePairDetailContext
             value={{
               subscribe: () => () => {},
-              getBasePairDetailStatus: () => ({ reason: "ready", zoomTargetBases: 100 }),
+              getBasePairDetailStatus: () => ({
+                reason: "ready",
+                zoomTargetBases: 100,
+                maxReadableBases: 125,
+              }),
               getBasePairDetail: () => true,
             }}
           >
