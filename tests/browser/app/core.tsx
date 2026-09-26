@@ -17,6 +17,8 @@ const configSchema = z.object({
 });
 type Config = z.output<typeof configSchema>;
 const params = new URLSearchParams(location.search);
+const scale = Number(params.get("scale") ?? 1);
+const trackWidth = params.has("compact") ? 200 : 600;
 const origin = Number(params.get("origin") ?? 0);
 const initialTooltipWidth = Number(params.get("tooltipWidth") ?? 120);
 const tooltipHeight = Number(params.get("tooltipHeight") ?? 60);
@@ -77,14 +79,7 @@ const module = defineTrackModule({
     const tooltipWidth = context.config.tooltipWidth;
     return (
       <g role="tooltip">
-        <rect
-          x={origin}
-          y={origin}
-          width={tooltipWidth}
-          height={tooltipHeight}
-          fill="white"
-          stroke="black"
-        />
+        <rect x={origin} y={origin} width={tooltipWidth} height={tooltipHeight} fill="#fff5cc" />
         <text x={origin + 5} y={origin + 20}>
           {tooltipWidth < 100 ? "Info" : "Track details"}
         </text>
@@ -108,7 +103,7 @@ const useBrowserStore = createBrowserStore({
             : 800,
   },
   selectionHighlight: { color: "#ff0000", opacity: 0.7, type: "outlined" },
-  trackWidth: 600,
+  trackWidth,
   marginWidth: 100,
 });
 const useTrackStore = createTrackStore({
@@ -123,7 +118,7 @@ const useTrackStore = createTrackStore({
         base: {
           id,
           title: id.toUpperCase(),
-          height: errors && index < 2 ? [10, 60][index] : 100,
+          height: errors && index < 2 ? [10, 60][index] : params.has("compact") ? 10 : 100,
           color: ["#99bbdd", "#aadd99", "#ddaa99"][index],
         },
         config: { fail: errors && index < 2, tooltipWidth: initialTooltipWidth },
@@ -182,13 +177,18 @@ function App() {
       <section
         id="browser"
         style={{
-          width: 702,
+          width: (trackWidth + 100) * scale + 2,
           maxWidth: "100%",
           maxHeight: params.has("panel") ? 250 : undefined,
           overflowY: "auto",
         }}
       >
-        <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />
+        <GenomeBrowser
+          scale={scale}
+          sizing="fixed"
+          browserStore={useBrowserStore}
+          trackStore={useTrackStore}
+        />
       </section>
       <div style={{ height: 1200 }}>Page scroll space</div>
     </>

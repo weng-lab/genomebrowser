@@ -57,7 +57,8 @@ and local fixtures before keeping the generated test.
 - `scenarios/core-settings-menu.spec.ts`: keyboard-opened settings, edits, scrolling,
   dragging, viewport resizing, context-menu targeting, and page, panel, and menu scrolling.
 - `scenarios/core-tooltip.spec.ts`: measured SVG bounds at corners, nonzero content origins,
-  fit thresholds, resized content and plots, and oversized tooltips.
+  fit thresholds, resized content and plots, scaled overlays outside compact browsers,
+  viewport fitting, and dismissal on scrolling or resizing.
 - `scenarios/core-errors.spec.ts`: rejected module fetches in 10px and 60px rows, real error
   scrolling, neighboring track bounds, and preventing error-text drags from panning.
 
@@ -66,7 +67,8 @@ Its controls and outputs are also available for manual exploration. Add `?ruler`
 or `?panel` for the ruler, short error tracks, or a scrolling host panel. Use
 `?region=lower`, `?region=upper`, or `?region=base` to explore chromosome boundaries. The tooltip cases
 use `origin`, `tooltipWidth`, and `tooltipHeight` query parameters. These are fixture
-options, not production APIs.
+options, not production APIs. Add `?compact&scale=2` for a short browser at twice its
+logical size.
 
 These workflows replace the private tooltip-position, error-layout, default-settings-modal,
 context-menu geometry, track-control pinning, and swap-math suites. Selection gestures and

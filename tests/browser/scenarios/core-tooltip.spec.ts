@@ -53,26 +53,46 @@ test("tooltip flips at fit thresholds and responds to plot and content size chan
   await corner(anchorX, y - 1, false, false);
 });
 
-test("oversized tooltip preserves its pointer gap on the roomier side", async ({ page }) => {
-  await open(page, "?origin=-20&tooltipWidth=800&tooltipHeight=500");
-  for (const [id, offset, left] of [
-    ["a", 50, false],
-    ["c", 450, true],
-  ] as const) {
-    const track = await box(page.getByTestId(id));
-    const x = track.x + offset;
-    const y = track.y + 30;
-    await page.mouse.move(x, y);
-    await expect
-      .poll(async () => {
-        const b = await page.getByRole("tooltip").boundingBox();
-        return b
-          ? [
-              Math.round(left ? x - b.x - b.width : b.x - x),
-              Math.round(left ? y - b.y - b.height : b.y - y),
-            ]
-          : null;
-      })
-      .toEqual([10, 10]);
-  }
+test("tooltip escapes a compact browser at its display scale and dismisses on scroll or resize", async ({
+  page,
+}) => {
+  await open(page, "?compact&scale=2&origin=-10&tooltipWidth=300&tooltipHeight=220");
+  const tooltip = page.getByRole("tooltip");
+  const browser = await box(page.getByRole("group", { name: "Genome browser" }));
+  const track = await box(page.getByTestId("a"));
+  const x = track.x + 20;
+  const y = track.y + 10;
+  await page.mouse.move(x, y);
+  await expect(tooltip).toBeVisible();
+  await expect(tooltip).toBeInViewport({ ratio: 1 });
+  const bounds = await box(tooltip);
+  expect(bounds.width).toBe(600);
+  expect(bounds.height).toBe(440);
+  expect(bounds.x - x).toBe(20);
+  expect(bounds.y - y).toBe(20);
+  expect(bounds.y + bounds.height).toBeGreaterThan(browser.y + browser.height);
+  await inside(tooltip, { x: 4, y: 4, width: 992, height: 792 });
+  await page.mouse.wheel(0, 50);
+  await expect(tooltip).toHaveCount(0);
+  const moved = await box(page.getByTestId("a"));
+  await page.mouse.move(moved.x + 30, moved.y + 10);
+  await expect(tooltip).toBeVisible();
+  await page.setViewportSize({ width: 900, height: 700 });
+  await expect(tooltip).toHaveCount(0);
+});
+
+test("tooltip larger than the window shrinks to fit and disappears on pointer leave", async ({
+  page,
+}) => {
+  await open(page, "?tooltipWidth=2000&tooltipHeight=1000");
+  const track = await box(page.getByTestId("a"));
+  await page.mouse.move(track.x + 50, track.y + 30);
+  const tooltip = page.getByRole("tooltip");
+  await expect(tooltip).toBeInViewport({ ratio: 1 });
+  await inside(tooltip, { x: 4, y: 4, width: 992, height: 792 });
+  const bounds = await box(tooltip);
+  expect(bounds.width).toBeCloseTo(992);
+  expect(bounds.width / bounds.height).toBeCloseTo(2);
+  await page.mouse.move(900, 790);
+  await expect(tooltip).toHaveCount(0);
 });
