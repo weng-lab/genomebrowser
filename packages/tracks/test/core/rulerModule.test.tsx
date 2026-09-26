@@ -1,8 +1,16 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createTrackStore, hg38, type TrackResources } from "@weng-lab/genomebrowser";
+import {
+  createBrowserStore,
+  createTrackStore,
+  hg38,
+  type TrackResources,
+} from "@weng-lab/genomebrowser";
 import { rulerModule, type RulerData } from "@weng-lab/genomebrowser-tracks/ruler";
-import { TrackHeightContext } from "../../../core/src/browser/track-row/trackHeightContext";
+import {
+  BrowserProvider,
+  createBrowserContextValue,
+} from "../../../core/src/browser/state/BrowserContext";
 import { tickStep } from "../../src/ruler/helpers";
 const { read, createFile } = vi.hoisted(() => ({ read: vi.fn(), createFile: vi.fn() }));
 vi.mock("../../src/ruler/useRulerHoverHighlight", () => ({
@@ -43,7 +51,13 @@ function render(
   });
   const Renderer = rulerModule.render.full;
   return renderToStaticMarkup(
-    <TrackHeightContext value={{ getTrackHeight: () => 22, updateHeight: () => ({ ok: true }) }}>
+    <BrowserProvider
+      value={createBrowserContextValue(
+        createBrowserStore({ assembly: hg38, region }),
+        createTrackStore({ modules: [rulerModule], tracks: [track] }),
+        () => false,
+      )}
+    >
       <svg>
         <Renderer
           {...track.base}
@@ -54,7 +68,7 @@ function render(
           data={data}
         />
       </svg>
-    </TrackHeightContext>,
+    </BrowserProvider>,
   );
 }
 describe("ruler module", () => {

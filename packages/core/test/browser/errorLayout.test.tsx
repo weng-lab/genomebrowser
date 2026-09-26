@@ -1,8 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createTrackStore, defineTrackModule } from "../../src/lib";
-import { RegistryProvider } from "../../src/browser/state/RegistryContext";
+import { createBrowserStore, createTrackStore, defineTrackModule, hg38 } from "../../src/lib";
+import type { TrackStoreInstance } from "../../src/lib";
+import { BrowserProvider, createBrowserContextValue } from "../../src/browser/state/BrowserContext";
 import { TrackContent } from "../../src/browser/track-row/TrackContent";
 
 // Preserve these existing layout guards until real-browser tests verify scrolling
@@ -22,7 +23,7 @@ describe("fetch error layout guards", () => {
     const useTrackStore = createTrackStore({ modules: [module], tracks: [track] });
 
     const markup = renderToStaticMarkup(
-      <RegistryProvider registry={useTrackStore.getState().registry}>
+      <BrowserProvider value={browserContext(useTrackStore)}>
         <TrackContent
           track={track}
           dataState={{ status: "error", error: "Failed to load" }}
@@ -31,7 +32,7 @@ describe("fetch error layout guards", () => {
           width={100}
           height={track.base.height}
         />
-      </RegistryProvider>,
+      </BrowserProvider>,
     );
 
     expect(markup).toContain('<foreignObject x="0" y="0" width="100" height="60"');
@@ -58,7 +59,7 @@ describe("fetch error layout guards", () => {
     const useTrackStore = createTrackStore({ modules: [module], tracks: [track] });
 
     const markup = renderToStaticMarkup(
-      <RegistryProvider registry={useTrackStore.getState().registry}>
+      <BrowserProvider value={browserContext(useTrackStore)}>
         <TrackContent
           track={track}
           dataState={{ status: "error", error: "Failed to load" }}
@@ -67,7 +68,7 @@ describe("fetch error layout guards", () => {
           width={100}
           height={track.base.height}
         />
-      </RegistryProvider>,
+      </BrowserProvider>,
     );
 
     expect(markup).not.toContain("<svg");
@@ -75,3 +76,11 @@ describe("fetch error layout guards", () => {
     expect(markup).toContain('height="10"');
   });
 });
+
+function browserContext(trackStore: TrackStoreInstance) {
+  const browserStore = createBrowserStore({
+    assembly: hg38,
+    region: { chromosome: "chr1", start: 0, end: 10 },
+  });
+  return createBrowserContextValue(browserStore, trackStore, () => false);
+}

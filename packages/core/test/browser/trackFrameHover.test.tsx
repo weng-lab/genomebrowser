@@ -5,8 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
-import { BrowserProvider, InteractionGateProvider } from "../../src/browser/state/BrowserContext";
-import { createContextMenuStore } from "../../src/browser/state/contextMenuStore";
+import { BrowserProvider, createBrowserContextValue } from "../../src/browser/state/BrowserContext";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { TrackFrame } from "../../src/browser/track-row/TrackFrame";
@@ -102,34 +101,36 @@ async function renderFrame({
     region: { chromosome: "chr1", start: 1, end: 100 },
   });
   const trackStore = createTrackStore({ modules: [module], tracks: [track] });
-  const contextMenuStore = createContextMenuStore();
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
 
   await act(async () =>
     root?.render(
-      <BrowserProvider value={{ browserStore, trackStore, contextMenuStore, settingsStore }}>
-        <InteractionGateProvider value={{ isInteractionBlocked: false }}>
-          <svg>
-            <TrackFrame
-              track={track}
-              y={0}
-              marginWidth={marginWidth}
-              trackWidth={trackWidth}
-              titleSize={12}
-              disableHover={disableHover}
-              onSwapPointerDown={onSwapPointerDown}
-            >
-              <rect
-                data-testid="data-area"
-                width={trackWidth}
-                height={track.base.height}
-                onMouseMove={onDataHover}
-              />
-            </TrackFrame>
-          </svg>
-        </InteractionGateProvider>
+      <BrowserProvider
+        value={{
+          ...createBrowserContextValue(browserStore, trackStore, () => false),
+          settingsStore,
+        }}
+      >
+        <svg>
+          <TrackFrame
+            track={track}
+            y={0}
+            marginWidth={marginWidth}
+            trackWidth={trackWidth}
+            titleSize={12}
+            disableHover={disableHover}
+            onSwapPointerDown={onSwapPointerDown}
+          >
+            <rect
+              data-testid="data-area"
+              width={trackWidth}
+              height={track.base.height}
+              onMouseMove={onDataHover}
+            />
+          </TrackFrame>
+        </svg>
       </BrowserProvider>,
     ),
   );

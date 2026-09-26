@@ -1,5 +1,5 @@
-import { use, useState, type ReactNode } from "react";
-import { InteractionGateContext } from "../state/browserContextState";
+import { useState, type ReactNode } from "react";
+import { useIsInteractionBlocked } from "../state/browserContextState";
 import type { PanDragHandlers } from "../viewport/usePanDrag";
 
 export function PanTrack({
@@ -14,7 +14,7 @@ export function PanTrack({
   children: ReactNode;
 }) {
   const [isDragging, setIsDragging] = useState(false);
-  const disabled = use(InteractionGateContext)?.isInteractionBlocked ?? false;
+  const disabled = useIsInteractionBlocked();
 
   if (!panDrag) return children;
 

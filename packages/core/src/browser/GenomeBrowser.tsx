@@ -13,20 +13,15 @@ import {
   type TrackDataController,
 } from "./data/trackDataController";
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
-import { TooltipProvider } from "./tooltip/TooltipProvider";
 import { BrowserSvgProvider } from "./svg/BrowserSvgContext";
-import { TrackHeightProvider } from "./track-row/TrackHeightProvider";
-import { createSettingsStore } from "./state/settingsStore";
-import { BrowserProvider, InteractionGateProvider } from "./state/BrowserContext";
+import { BrowserProvider, createBrowserContextValue } from "./state/BrowserContext";
 import type { BrowserStore, BrowserStoreInstance } from "./state/browserStore";
-import { useGenomeBrowser, useTrackMutationGate } from "./state/browserContextState";
-import { createContextMenuStore } from "./state/contextMenuStore";
+import { useGenomeBrowser, useIsInteractionBlocked } from "./state/browserContextState";
 import type { TrackStoreInstance } from "./state/trackStore";
 import { InteractionShield } from "./overlays/InteractionShield";
 import { Highlights } from "./overlays/Highlights";
 import { ContextMenuController } from "./overlays/ContextMenuController";
 import { SettingsModalController } from "./overlays/SettingsModalController";
-import { RegistryProvider } from "./state/RegistryContext";
 import { SvgShell } from "./svg/SvgShell";
 import {
   createTrackLayouts,
@@ -34,7 +29,6 @@ import {
   type TrackLayout,
 } from "./track-row/trackLayout";
 import { TrackStack } from "./track-row/TrackStack";
-import type { AnyTrackTooltipComponent } from "../modules/types";
 import { SelectRegion } from "./viewport/SelectRegion";
 import { getContentPlacement, getRenderWindow } from "./viewport/renderWindow";
 import { useContentTransform, type RegisterContentGroup } from "./viewport/useContentTransform";
@@ -119,10 +113,7 @@ function GenomeBrowserRuntime({
   const wrapperHeights = useTrackStore(
     useShallow((state) => state.tracks.map((track) => getTrackWrapperHeight(track, titleSize))),
   );
-  const registry = useTrackStore((state) => state.registry);
 
-  const contextMenuStore = useMemo(() => createContextMenuStore(), []);
-  const internalSettingsStore = useMemo(() => createSettingsStore(), []);
   // One controller per mount gives each browser instance private track data
   // and fetcher resources. It follows the stores itself once connected.
   const [dataController] = useState(() =>
@@ -156,71 +147,37 @@ function GenomeBrowserRuntime({
     setRegion,
   });
 
-  const browserContextValue = useMemo(
-    () => ({
-      browserStore,
-      trackStore,
-      contextMenuStore,
-      settingsStore: internalSettingsStore,
-    }),
-    [internalSettingsStore, browserStore, contextMenuStore, trackStore],
+  // The value never changes after mount, so components subscribe to changing
+  // state through store selectors.
+  const [browserContextValue] = useState(() =>
+    createBrowserContextValue(browserStore, trackStore, panDrag.isDragging),
   );
 
   return (
     <BrowserProvider value={browserContextValue}>
-      <RegistryProvider registry={registry}>
-        <BrowserSvgProvider svg={svg}>
-          <TrackHeightProvider>
-            <TooltipProvider
-              isDisabled={panDrag.isDragging}
-              getTooltipComponent={(type) =>
-                registry.get(type).tooltipComponent as AnyTrackTooltipComponent | undefined
-              }
-            >
-              <InteractionGate useBrowserStore={useBrowserStore}>
-                <BrowserView
-                  useTrackStore={useTrackStore}
-                  dataController={dataController}
-                  svg={svg}
-                  setSvg={setSvg}
-                  browserWidth={browserWidth}
-                  scale={scale}
-                  totalHeight={totalHeight}
-                  marginWidth={marginWidth}
-                  trackWidth={trackWidth}
-                  region={region}
-                  setRegion={setRegion}
-                  registerContentGroup={registerContentGroup}
-                  onPanCommit={commitPan}
-                  setContentOffset={setContentOffset}
-                  panDrag={panDrag}
-                  titleSize={titleSize}
-                  trackLayouts={trackLayouts}
-                />
-              </InteractionGate>
-            </TooltipProvider>
-          </TrackHeightProvider>
-        </BrowserSvgProvider>
-      </RegistryProvider>
+      <BrowserSvgProvider svg={svg}>
+        <BrowserView
+          useTrackStore={useTrackStore}
+          dataController={dataController}
+          svg={svg}
+          setSvg={setSvg}
+          browserWidth={browserWidth}
+          scale={scale}
+          totalHeight={totalHeight}
+          marginWidth={marginWidth}
+          trackWidth={trackWidth}
+          region={region}
+          setRegion={setRegion}
+          registerContentGroup={registerContentGroup}
+          onPanCommit={commitPan}
+          setContentOffset={setContentOffset}
+          panDrag={panDrag}
+          titleSize={titleSize}
+          trackLayouts={trackLayouts}
+        />
+      </BrowserSvgProvider>
     </BrowserProvider>
   );
-}
-
-/**
- * Blocks pan, zoom, selection, reordering and settings while any track is
- * loading. Tracks still show their data as it arrives; only interaction waits.
- */
-function InteractionGate({
-  useBrowserStore,
-  children,
-}: {
-  useBrowserStore: BrowserStoreInstance;
-  children: ReactNode;
-}) {
-  const isInteractionBlocked = useBrowserStore((state) => state.isLoading);
-  const interactionGateValue = useMemo(() => ({ isInteractionBlocked }), [isInteractionBlocked]);
-
-  return <InteractionGateProvider value={interactionGateValue}>{children}</InteractionGateProvider>;
 }
 
 function BrowserView({
@@ -349,7 +306,7 @@ function PanWheel({
   setContentOffset: (deltaPx: number) => number;
   onCommit: (deltaPx: number) => void;
 }) {
-  const { isInteractionBlocked } = useTrackMutationGate();
+  const isInteractionBlocked = useIsInteractionBlocked();
   const { useBrowserStore } = useGenomeBrowser();
   const selectionMode = useBrowserStore((state) => state.selectionMode);
   usePanWheel({
@@ -380,7 +337,7 @@ function GatedSelectRegion({
   setRegion: BrowserStore["setRegion"];
   children: ReactNode;
 }) {
-  const { isInteractionBlocked } = useTrackMutationGate();
+  const isInteractionBlocked = useIsInteractionBlocked();
   const { useBrowserStore } = useGenomeBrowser();
   const selectionMode = useBrowserStore((state) => state.selectionMode);
   const setSelectionMode = useBrowserStore((state) => state.setSelectionMode);
@@ -409,6 +366,6 @@ function GatedSelectRegion({
 }
 
 function GatedInteractionShield({ width, height }: { width: number; height: number }) {
-  const { isInteractionBlocked } = useTrackMutationGate();
+  const isInteractionBlocked = useIsInteractionBlocked();
   return <InteractionShield active={isInteractionBlocked} width={width} height={height} />;
 }

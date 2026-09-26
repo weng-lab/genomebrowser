@@ -3,7 +3,7 @@ import { bindTrackInteraction, TrackInteractionProvider } from "../../modules/in
 import { TrackRuntimeContextProvider } from "../../modules/runtimeContext";
 import type { AnyTrackInstance, TrackRendererProps } from "../../modules/types";
 import type { GenomicRegion } from "../../genome/region";
-import { useRegistry } from "../state/useRegistry";
+import { useRegistry } from "../state/browserContextState";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 

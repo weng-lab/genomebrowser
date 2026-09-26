@@ -1,23 +1,33 @@
 import { createContext, use } from "react";
 import type { TrackMutationResult } from "../../modules/types";
+import type { TooltipStore } from "../tooltip/types";
+import type { TooltipStoreInstance } from "../tooltip/tooltipStore";
 import type { BrowserStoreInstance } from "./browserStore";
 import type { ContextMenuStore, ContextMenuStoreInstance } from "./contextMenuStore";
 import type { SettingsStore, SettingsStoreInstance } from "./settingsStore";
 import type { TrackStoreInstance } from "./trackStore";
 
+/**
+ * One mounted browser's stores and stable callbacks. The value never changes after
+ * mount; components subscribe to changing state through the stores' selectors.
+ */
 export type BrowserContextValue = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
   contextMenuStore: ContextMenuStoreInstance;
   settingsStore: SettingsStoreInstance;
-};
-
-export type InteractionGateContextValue = {
-  isInteractionBlocked: boolean;
+  tooltipStore: TooltipStoreInstance;
+  /** Whether a pan drag is in progress. Read at call time, not subscribed. */
+  isPanDragging: () => boolean;
 };
 
 export const BrowserContext = createContext<BrowserContextValue | null>(null);
-export const InteractionGateContext = createContext<InteractionGateContextValue | null>(null);
+
+function useBrowserContext(hook: string) {
+  const context = use(BrowserContext);
+  if (!context) throw new Error(`${hook} must be used within a GenomeBrowser`);
+  return context;
+}
 
 /** The hosting browser's bound Zustand stores, including their imperative APIs. */
 export type GenomeBrowserStores = {
@@ -31,31 +41,42 @@ export type GenomeBrowserStores = {
  * renderers, settings, and tooltips; throws outside a GenomeBrowser.
  */
 export function useGenomeBrowser(): GenomeBrowserStores {
-  const context = use(BrowserContext);
-  if (!context) throw new Error("useGenomeBrowser must be used within a GenomeBrowser");
+  const context = useBrowserContext("useGenomeBrowser");
   return { useBrowserStore: context.browserStore, useTrackStore: context.trackStore };
 }
 
+export function useRegistry() {
+  return useBrowserContext("useRegistry").trackStore((state) => state.registry);
+}
+
 export function useContextMenuStore<T>(selector: (state: ContextMenuStore) => T): T {
-  const context = use(BrowserContext);
-  if (!context) throw new Error("useContextMenuStore must be used within a GenomeBrowser");
-  return context.contextMenuStore(selector);
+  return useBrowserContext("useContextMenuStore").contextMenuStore(selector);
 }
 
 export function useSettingsStore<T>(selector: (state: SettingsStore) => T): T {
-  const context = use(BrowserContext);
-  if (!context) throw new Error("useSettingsStore must be used within a GenomeBrowser");
-  return context.settingsStore(selector);
+  return useBrowserContext("useSettingsStore").settingsStore(selector);
+}
+
+export function useTooltipStore<T>(selector: (state: TooltipStore) => T): T {
+  return useBrowserContext("useTooltip").tooltipStore(selector);
+}
+
+export function useIsPanDragging() {
+  return useBrowserContext("useTooltip").isPanDragging;
+}
+
+/** Whether pending track requests block pan, zoom, selection, reordering and settings. */
+export function useIsInteractionBlocked() {
+  return useBrowserContext("useIsInteractionBlocked").browserStore((state) => state.isLoading);
 }
 
 export function useTrackMutationGate() {
-  const context = use(InteractionGateContext);
-  if (!context) throw new Error("useTrackMutationGate must be used within a GenomeBrowser");
+  const isInteractionBlocked = useIsInteractionBlocked();
 
   return {
-    isInteractionBlocked: context.isInteractionBlocked,
+    isInteractionBlocked,
     runTrackMutation: (mutation: () => TrackMutationResult): TrackMutationResult => {
-      if (context.isInteractionBlocked) {
+      if (isInteractionBlocked) {
         return {
           ok: false,
           code: "INTERACTION_BLOCKED",
