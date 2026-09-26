@@ -17,11 +17,16 @@ function TestRenderer({ color }: { color: string }) {
   return <rect fill={color} />;
 }
 
+function TestSettings() {
+  return <div>Test settings</div>;
+}
+
 const module = defineTrackModule({
   type: "render-budget-test",
   configSchema: z.object({}),
   fetch: async () => null,
   render: { full: TestRenderer },
+  settingsComponent: TestSettings,
 });
 
 // Resolves immediately unless a test holds its requests with `holdSlowRequests`.
@@ -118,8 +123,9 @@ function createTrack(id: string) {
  * and content) and the browser has two `Highlights` layers, so their counts per
  * render are 2 per row and 2 per browser.
  */
-function budget(report: RenderReport) {
+function budget(report: RenderReport, ...extra: string[]) {
   return report.pick(
+    ...extra,
     "GenomeBrowserRuntime",
     "BrowserView",
     "TrackStack",
@@ -373,6 +379,116 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "Highlights": 2,
         "PanTrack": 0,
         "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+  });
+
+  it("removes a track", async () => {
+    const { probe, trackStore } = await mountBrowser();
+
+    const report = await probe.measure(() => trackStore.getState().removeTrack("second"));
+
+    // Necessary: the view and stack render once for the shorter browser, and the third
+    // row moves up. The first row does not move but still renders once:
+    // createTrackLayouts returns new layout objects.
+    expect(budget(report)).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 1,
+        "ConnectedTrackRow": 2,
+        "GenomeBrowserRuntime": 1,
+        "Highlights": 2,
+        "PanTrack": 4,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 2,
+        "TrackFrame": 2,
+        "TrackRow": 2,
+        "TrackStack": 1,
+      }
+    `);
+  });
+
+  // A right click on a track calls the context menu store's `openContextMenu`.
+  it("opens and closes the context menu", async () => {
+    const { probe } = await mountBrowser();
+    const target = Array.from(document.querySelectorAll("#browserSVG text")).find(
+      (text) => text.textContent === "second (full)",
+    );
+    if (!target) throw new Error("Expected a track title");
+
+    const opened = await probe.measure(() =>
+      target.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true })),
+    );
+    expect(document.body.textContent).toContain("remove");
+    const closed = await probe.measure(() =>
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })),
+    );
+    expect(document.body.textContent).not.toContain("remove");
+
+    // Necessary: only the menu renders to open and close. No browser or track component
+    // renders.
+    expect(budget(opened, "ContextMenuController")).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 0,
+        "ConnectedTrackRow": 0,
+        "ContextMenuController": 1,
+        "GenomeBrowserRuntime": 0,
+        "Highlights": 0,
+        "PanTrack": 0,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+    expect(budget(closed, "ContextMenuController")).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 0,
+        "ConnectedTrackRow": 0,
+        "ContextMenuController": 1,
+        "GenomeBrowserRuntime": 0,
+        "Highlights": 0,
+        "PanTrack": 0,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+  });
+
+  // The settings button calls the settings store's `openSettings`.
+  it("opens track settings", async () => {
+    const { probe } = await mountBrowser();
+    const button = document.querySelector('[aria-label="Settings for second"]');
+    if (!button) throw new Error("Expected a settings button");
+
+    const report = await probe.measure(() =>
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true })),
+    );
+    expect(document.body.textContent).toContain("Test settings");
+
+    // Necessary: only the settings modal and its content render. No browser or track
+    // component renders.
+    expect(budget(report, "SettingsModalController", "TestSettings")).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 0,
+        "ConnectedTrackRow": 0,
+        "GenomeBrowserRuntime": 0,
+        "Highlights": 0,
+        "PanTrack": 0,
+        "SettingsModalController": 1,
+        "TestRenderer": 0,
+        "TestSettings": 1,
         "TrackContent": 0,
         "TrackControls": 0,
         "TrackFrame": 0,
