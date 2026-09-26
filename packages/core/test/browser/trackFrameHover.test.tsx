@@ -9,6 +9,8 @@ import { BrowserProvider, createBrowserContextValue } from "../../src/browser/st
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { TrackFrame } from "../../src/browser/track-row/TrackFrame";
+import { TrackStackContext } from "../../src/browser/track-row/trackStackContext";
+import { createTrackDataController } from "../../src/browser/data/trackDataController";
 import { hg38 } from "../../src/genome/presets";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 
@@ -101,6 +103,21 @@ async function renderFrame({
     region: { chromosome: "chr1", start: 1, end: 100 },
   });
   const trackStore = createTrackStore({ modules: [module], tracks: [track] });
+  const stack = {
+    dataController: createTrackDataController({ browserStore, trackStore, trackWidth }),
+    marginWidth,
+    trackWidth,
+    titleSize: 12,
+    registerContentGroup: () => () => {},
+    panDrag: {
+      isDragging: () => false,
+      onPointerDown: () => false,
+      onPointerMove: () => {},
+      onPointerUp: () => {},
+      onPointerCancel: () => {},
+      onClickCapture: () => {},
+    },
+  };
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -114,22 +131,27 @@ async function renderFrame({
         }}
       >
         <svg>
-          <TrackFrame
-            track={track}
-            y={0}
-            marginWidth={marginWidth}
-            trackWidth={trackWidth}
-            titleSize={12}
-            disableHover={disableHover}
-            onSwapPointerDown={onSwapPointerDown}
-          >
-            <rect
-              data-testid="data-area"
-              width={trackWidth}
-              height={track.base.height}
-              onMouseMove={onDataHover}
-            />
-          </TrackFrame>
+          <TrackStackContext.Provider value={stack}>
+            <TrackFrame
+              track={track}
+              y={0}
+              previewOffsetY={0}
+              contentX={marginWidth}
+              contentWidth={trackWidth}
+              limitsDrag={false}
+              swapping={false}
+              isDragClone={false}
+              disableHover={disableHover}
+              onSwapPointerDown={onSwapPointerDown}
+            >
+              <rect
+                data-testid="data-area"
+                width={trackWidth}
+                height={track.base.height}
+                onMouseMove={onDataHover}
+              />
+            </TrackFrame>
+          </TrackStackContext.Provider>
         </svg>
       </BrowserProvider>,
     ),

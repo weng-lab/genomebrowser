@@ -1,82 +1,68 @@
-import type { ErrorInfo } from "react";
-import type { TrackDataState } from "../data/trackDataController";
+import { useSyncExternalStore, type ErrorInfo } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
 import type { GenomicRegion } from "../../genome/region";
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
-import type { RegisterContentGroup } from "../viewport/useContentTransform";
-import type { PanDragHandlers } from "../viewport/usePanDrag";
+import { useGenomeBrowser } from "../state/browserContextState";
+import { getContentPlacement } from "../viewport/renderWindow";
 import { ErrorState } from "./ErrorState";
 import { SwapTrack } from "./SwapTrack";
 import { TrackContent } from "./TrackContent";
 import { TrackFrame } from "./TrackFrame";
 import type { SwapPreview } from "./swapTypes";
+import type { TrackLayout } from "./trackLayout";
+import { useTrackStack } from "./trackStackContext";
 
 const trackRenderErrorPrefix = "[genomebrowser] Track render error";
 
 export function TrackRow({
-  track,
-  dataState,
+  layout,
   visibleRegion,
-  region,
-  y,
   previewOffsetY,
-  marginWidth,
-  trackWidth,
-  contentX,
-  contentWidth,
-  registerContentGroup,
-  panDrag,
   disableHover,
-  titleSize,
   onPreviewChange,
   onPreviewEnd,
 }: {
-  track: AnyTrackInstance;
-  dataState: TrackDataState;
+  layout: TrackLayout;
   visibleRegion: GenomicRegion;
-  region: GenomicRegion;
-  y: number;
   previewOffsetY: number;
-  marginWidth: number;
-  trackWidth: number;
-  contentX: number;
-  contentWidth: number;
-  registerContentGroup?: RegisterContentGroup;
-  panDrag?: PanDragHandlers;
   disableHover: boolean;
-  titleSize: number;
   onPreviewChange: (preview: SwapPreview) => void;
   onPreviewEnd: () => void;
 }) {
+  const { useTrackStore } = useGenomeBrowser();
+  const { dataController, marginWidth, trackWidth } = useTrackStack();
+  const track = useTrackStore((state) =>
+    state.tracks[layout.index]?.base.id === layout.id ? state.tracks[layout.index] : undefined,
+  );
+  // Each row subscribes to its own entry, so one track's result renders only its row.
+  const getDataState = () => dataController.getTrack(layout.id);
+  const dataState = useSyncExternalStore(dataController.subscribe, getDataState, getDataState);
+
+  if (!track) return null;
+
+  // Each track is placed from the region its own data covers.
+  const region = dataState.status === "loading" ? visibleRegion : dataState.region;
+  const placement = getContentPlacement(region, visibleRegion, trackWidth, marginWidth);
+
   return (
-    <SwapTrack
-      track={track}
-      titleSize={titleSize}
-      onPreviewChange={onPreviewChange}
-      onPreviewEnd={onPreviewEnd}
-    >
+    <SwapTrack track={track} onPreviewChange={onPreviewChange} onPreviewEnd={onPreviewEnd}>
       {(swapProps) => (
         <TrackFrame
           {...swapProps}
           track={track}
-          y={y}
+          y={layout.y}
           previewOffsetY={previewOffsetY}
-          marginWidth={marginWidth}
-          trackWidth={trackWidth}
-          contentX={contentX}
-          contentWidth={contentWidth}
+          contentX={placement.x}
+          contentWidth={placement.width}
           limitsDrag={dataState.status !== "loading"}
-          registerContentGroup={registerContentGroup}
-          panDrag={panDrag}
           disableHover={disableHover}
-          titleSize={titleSize}
         >
           <RenderErrorBoundary
             fallback={
               <ErrorState
                 x={0}
                 y={0}
-                width={contentWidth}
+                width={placement.width}
                 height={track.base.height}
                 message={`Track unavailable: ${track.base.title || track.base.id}`}
               />
@@ -88,7 +74,7 @@ export function TrackRow({
               dataState={dataState}
               visibleRegion={visibleRegion}
               region={region}
-              width={contentWidth}
+              width={placement.width}
               height={track.base.height}
             />
           </RenderErrorBoundary>

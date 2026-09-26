@@ -157,7 +157,6 @@ function GenomeBrowserRuntime({
     <BrowserProvider value={browserContextValue}>
       <BrowserSvgProvider svg={svg}>
         <BrowserView
-          useTrackStore={useTrackStore}
           dataController={dataController}
           svg={svg}
           setSvg={setSvg}
@@ -181,7 +180,6 @@ function GenomeBrowserRuntime({
 }
 
 function BrowserView({
-  useTrackStore,
   dataController,
   svg,
   setSvg,
@@ -199,7 +197,6 @@ function BrowserView({
   titleSize,
   trackLayouts,
 }: {
-  useTrackStore: TrackStoreInstance;
   dataController: TrackDataController;
   svg: SVGSVGElement | null;
   setSvg: Dispatch<SetStateAction<SVGSVGElement | null>>;
@@ -259,7 +256,6 @@ function BrowserView({
           />
           <g>
             <TrackStack
-              trackStore={useTrackStore}
               dataController={dataController}
               trackLayouts={trackLayouts}
               visibleRegion={region}

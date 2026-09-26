@@ -6,14 +6,12 @@ import type { SwapPreview, SwapTrackRender } from "./swapTypes";
 
 export function SwapTrack({
   track,
-  titleSize,
   disabled = false,
   onPreviewChange,
   onPreviewEnd,
   children,
 }: {
   track: AnyTrackInstance;
-  titleSize: number;
   disabled?: boolean;
   onPreviewChange: (preview: SwapPreview) => void;
   onPreviewEnd: () => void;
@@ -22,7 +20,6 @@ export function SwapTrack({
   const cloneRef = useRef<SVGGElement>(null);
   const { svg, isSwapping, swapProps, cloneSwapProps } = useTrackSwap({
     track,
-    titleSize,
     disabled,
     onPreviewChange,
     onPreviewEnd,

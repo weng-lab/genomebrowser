@@ -8,15 +8,13 @@ export function PanTrack({
   height,
   children,
 }: {
-  panDrag?: PanDragHandlers;
+  panDrag: PanDragHandlers;
   width: number;
   height: number;
   children: ReactNode;
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const disabled = useIsInteractionBlocked();
-
-  if (!panDrag) return children;
 
   const cursor = disabled ? "default" : isDragging ? "grabbing" : "grab";
 

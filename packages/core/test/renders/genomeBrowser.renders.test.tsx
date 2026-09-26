@@ -129,7 +129,6 @@ function budget(report: RenderReport, ...extra: string[]) {
     "GenomeBrowserRuntime",
     "BrowserView",
     "TrackStack",
-    "ConnectedTrackRow",
     "TrackRow",
     "TrackFrame",
     "PanTrack",
@@ -150,7 +149,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(probe.mounted)).toMatchInlineSnapshot(`
       {
         "BrowserView": 2,
-        "ConnectedTrackRow": 9,
         "GenomeBrowserRuntime": 2,
         "Highlights": 4,
         "PanTrack": 18,
@@ -177,7 +175,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(report)).toMatchInlineSnapshot(`
       {
         "BrowserView": 1,
-        "ConnectedTrackRow": 3,
         "GenomeBrowserRuntime": 1,
         "Highlights": 2,
         "PanTrack": 6,
@@ -219,7 +216,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(report)).toMatchInlineSnapshot(`
       {
         "BrowserView": 1,
-        "ConnectedTrackRow": 3,
         "GenomeBrowserRuntime": 1,
         "Highlights": 2,
         "PanTrack": 6,
@@ -248,7 +244,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(commit)).toMatchInlineSnapshot(`
       {
         "BrowserView": 1,
-        "ConnectedTrackRow": 5,
         "GenomeBrowserRuntime": 1,
         "Highlights": 2,
         "PanTrack": 10,
@@ -266,7 +261,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(resolve)).toMatchInlineSnapshot(`
       {
         "BrowserView": 0,
-        "ConnectedTrackRow": 1,
         "GenomeBrowserRuntime": 0,
         "Highlights": 0,
         "PanTrack": 6,
@@ -294,7 +288,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(report)).toMatchInlineSnapshot(`
       {
         "BrowserView": 1,
-        "ConnectedTrackRow": 6,
         "GenomeBrowserRuntime": 1,
         "Highlights": 2,
         "PanTrack": 18,
@@ -319,7 +312,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(report)).toMatchInlineSnapshot(`
       {
         "BrowserView": 0,
-        "ConnectedTrackRow": 1,
         "GenomeBrowserRuntime": 0,
         "Highlights": 0,
         "PanTrack": 2,
@@ -345,7 +337,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(report)).toMatchInlineSnapshot(`
       {
         "BrowserView": 1,
-        "ConnectedTrackRow": 5,
         "GenomeBrowserRuntime": 1,
         "Highlights": 2,
         "PanTrack": 18,
@@ -374,7 +365,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(report)).toMatchInlineSnapshot(`
       {
         "BrowserView": 0,
-        "ConnectedTrackRow": 0,
         "GenomeBrowserRuntime": 0,
         "Highlights": 2,
         "PanTrack": 0,
@@ -399,7 +389,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(report)).toMatchInlineSnapshot(`
       {
         "BrowserView": 1,
-        "ConnectedTrackRow": 2,
         "GenomeBrowserRuntime": 1,
         "Highlights": 2,
         "PanTrack": 4,
@@ -435,7 +424,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(opened, "ContextMenuController")).toMatchInlineSnapshot(`
       {
         "BrowserView": 0,
-        "ConnectedTrackRow": 0,
         "ContextMenuController": 1,
         "GenomeBrowserRuntime": 0,
         "Highlights": 0,
@@ -451,7 +439,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(closed, "ContextMenuController")).toMatchInlineSnapshot(`
       {
         "BrowserView": 0,
-        "ConnectedTrackRow": 0,
         "ContextMenuController": 1,
         "GenomeBrowserRuntime": 0,
         "Highlights": 0,
@@ -482,7 +469,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(report, "SettingsModalController", "TestSettings")).toMatchInlineSnapshot(`
       {
         "BrowserView": 0,
-        "ConnectedTrackRow": 0,
         "GenomeBrowserRuntime": 0,
         "Highlights": 0,
         "PanTrack": 0,
@@ -557,7 +543,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(report)).toMatchInlineSnapshot(`
       {
         "BrowserView": 1,
-        "ConnectedTrackRow": 3,
         "GenomeBrowserRuntime": 1,
         "Highlights": 2,
         "PanTrack": 6,
@@ -583,7 +568,6 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(budget(report)).toMatchInlineSnapshot(`
       {
         "BrowserView": 1,
-        "ConnectedTrackRow": 3,
         "GenomeBrowserRuntime": 1,
         "Highlights": 2,
         "PanTrack": 6,
