@@ -38,19 +38,23 @@ export function useRowLayout(trackId: string, rowCount: number, config: RowLayou
     throw new RangeError("config.rowHeight must be a finite number of at least 1 pixel.");
   }
 
+  const rowHeight = config.rowHeight;
+  const trackHeight = trackHeightFromRowCount(rowCount, rowHeight);
+  useTrackHeight(trackId, trackHeight);
+  return { rowHeight, trackHeight };
+}
+
+/** Stores the height a renderer draws as the track's base height. */
+export function useTrackHeight(trackId: string, trackHeight: number) {
   const { useTrackStore } = useGenomeBrowser();
   const currentHeight = useTrackStore((state) => state.getTrack(trackId)?.base.height);
   const updateTrack = useTrackStore((state) => state.updateTrack);
-  const rowHeight = config.rowHeight;
-  const trackHeight = trackHeightFromRowCount(rowCount, rowHeight);
 
   useEffect(() => {
     if (currentHeight !== undefined && currentHeight !== trackHeight) {
       updateTrack(trackId, { base: { height: trackHeight } });
     }
   }, [currentHeight, trackHeight, trackId, updateTrack]);
-
-  return { rowHeight, trackHeight };
 }
 
 function visibleRowCount(rowCount: number): number {

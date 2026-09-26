@@ -22,28 +22,43 @@ export class BamBgzfReader {
       this.#windowStart = offset;
     }
     const bytes = this.#window.subarray(Number(offset - this.#windowStart));
-    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    if (bytes[0] !== 31 || bytes[1] !== 139 || bytes[2] !== 8 || bytes[3] !== 4)
-      throw new Error("Expected a BGZF block");
-    const extraEnd = 12 + view.getUint16(10, true);
-    if (extraEnd > bytes.length) throw new Error("Truncated BGZF header");
-    let size = 0;
-    let position = 12;
-    while (position + 4 <= extraEnd) {
-      const length = view.getUint16(position + 2, true);
-      if (position + 4 + length > extraEnd) throw new Error("Invalid BGZF extra field");
-      if (bytes[position] === 66 && bytes[position + 1] === 67 && length === 2)
-        size = view.getUint16(position + 4, true) + 1;
-      position += 4 + length;
-    }
-    if (position !== extraEnd || size < extraEnd + 8 || size > bytes.length)
-      throw new Error("Invalid or truncated BGZF block");
-    const expected = view.getUint32(size - 4, true);
-    if (expected > 65536) throw new Error("Invalid BGZF uncompressed size");
-    const decoded = gunzipSync(bytes.subarray(0, size));
-    if (decoded.length !== expected) throw new Error("Invalid BGZF uncompressed size");
-    return { bytes: decoded, next: offset + BigInt(size) };
+    const size = bgzfBlockSize(bytes);
+    if (size === undefined || size > bytes.length) throw new Error("Truncated BGZF block");
+    return { bytes: inflateBgzfBlock(bytes.subarray(0, size)), next: offset + BigInt(size) };
   }
+}
+
+/** Compressed size of the BGZF block that `bytes` starts with, or undefined if its header is cut off. */
+export function bgzfBlockSize(bytes: Uint8Array): number | undefined {
+  if (bytes.length < 12) return undefined;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (bytes[0] !== 31 || bytes[1] !== 139 || bytes[2] !== 8 || bytes[3] !== 4)
+    throw new Error("Expected a BGZF block");
+  const extraEnd = 12 + view.getUint16(10, true);
+  if (extraEnd > bytes.length) return undefined;
+  let size = 0;
+  let position = 12;
+  while (position + 4 <= extraEnd) {
+    const length = view.getUint16(position + 2, true);
+    if (position + 4 + length > extraEnd) throw new Error("Invalid BGZF extra field");
+    if (bytes[position] === 66 && bytes[position + 1] === 67 && length === 2)
+      size = view.getUint16(position + 4, true) + 1;
+    position += 4 + length;
+  }
+  if (position !== extraEnd || size < extraEnd + 8) throw new Error("Invalid BGZF block");
+  return size;
+}
+
+/** Inflates one complete BGZF block. */
+export function inflateBgzfBlock(block: Uint8Array): Uint8Array {
+  const expected = new DataView(block.buffer, block.byteOffset, block.byteLength).getUint32(
+    block.length - 4,
+    true,
+  );
+  if (expected > 65536) throw new Error("Invalid BGZF uncompressed size");
+  const decoded = gunzipSync(block);
+  if (decoded.length !== expected) throw new Error("Invalid BGZF uncompressed size");
+  return decoded;
 }
 
 /** Reads header fields even when they cross compressed block boundaries. */

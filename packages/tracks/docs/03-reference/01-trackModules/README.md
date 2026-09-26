@@ -8,7 +8,7 @@ Choose a track by the source you already have. Each module includes a renderer, 
 
 ## BAM files
 
-- [BAM](bam.md) reads coordinate-sorted alignments with a BAI index. Dense, squish, pack, and full displays show strand-colored CIGAR blocks and read details.
+- [BAM](bam.md) reads coordinate-sorted alignments with a BAI index. It stacks a coverage graph, splice-junction arcs, and strand-colored alignments drawn in dense, squish, pack, or full layouts.
 
 ## BigBed files
 

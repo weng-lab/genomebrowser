@@ -4,12 +4,13 @@ import { BasePairDetailContext } from "../../../core/src/browser/viewport/basePa
 import { createSettingsStore } from "../../../core/src/browser/state/settingsStore";
 import { createContextMenuStore } from "../../../core/src/browser/state/contextMenuStore";
 // @vitest-environment jsdom
-import { act } from "react";
+import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { bamModule } from "@weng-lab/genomebrowser-tracks/bam";
+import { bamModule, type BamRecord } from "@weng-lab/genomebrowser-tracks/bam";
 import { BamSettings } from "../../src/bam/settings";
 import type { BamConfig } from "../../src/bam/types";
+import { type TrackUpdate } from "@weng-lab/genomebrowser";
 
 const detailStatus = { reason: "viewport" as const, zoomTargetBases: 100, maxReadableBases: 125 };
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -65,6 +66,33 @@ function setup(source: "host" | "user") {
   );
   return update;
 }
+function TestBrowser({ children }: { children: ReactNode }) {
+  const context = {
+    browserStore: createBrowserStore({
+      assembly: { id: "test", chromosomes: { chr1: 10000 } },
+      region: { chromosome: "chr1", start: 0, end: 1000 },
+    }),
+    trackStore: createTrackStore({ modules: [], tracks: [] }),
+    settingsStore: createSettingsStore(),
+    contextMenuStore: createContextMenuStore(),
+  };
+  return (
+    <BasePairDetailContext
+      value={{
+        subscribe: () => () => {},
+        getBasePairDetail: () => false,
+        getBasePairDetailStatus: () => detailStatus,
+      }}
+    >
+      <BrowserContext value={context}>{children}</BrowserContext>
+    </BasePairDetailContext>
+  );
+}
+function duplicatesCheckbox() {
+  return [...container!.querySelectorAll("label")]
+    .find((label) => label.textContent === "Show duplicate reads")!
+    .querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+}
 describe("BAM settings", () => {
   it("commits the index URL explicitly and exposes filtering and display controls", () => {
     const update = setup("user");
@@ -92,7 +120,7 @@ describe("BAM settings", () => {
       container!.querySelector<HTMLButtonElement>('button[aria-label="Set BAI URL"]')!.click(),
     );
     expect(update).toHaveBeenCalledWith({ config: { indexUrl: "UPDATED_INDEX" } });
-    act(() => container!.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click());
+    act(() => duplicatesCheckbox().click());
     expect(update).toHaveBeenCalledWith({
       config: { filters: { ...defaults.filters, includeDuplicates: false } },
     });
@@ -102,9 +130,7 @@ describe("BAM settings", () => {
     const urls = container!.querySelectorAll<HTMLInputElement>('input[type="url"]');
     expect(urls).toHaveLength(3);
     expect([...urls].every((input) => input.disabled)).toBe(true);
-    expect(container!.querySelector<HTMLInputElement>('input[type="checkbox"]')!.disabled).toBe(
-      false,
-    );
+    expect(duplicatesCheckbox().disabled).toBe(false);
     expect(container!.querySelector('[role="combobox"]')?.getAttribute("aria-disabled")).not.toBe(
       "true",
     );
@@ -133,4 +159,113 @@ it("uses explicit strand controls and commits whole alignment groups for host tr
       config: { alignments: { ...defaults.alignments, ...expected } },
     });
   }
+});
+
+it("shows controls for enabled sections and keeps at least one section visible", () => {
+  const update = setup("user");
+  const text = container!.textContent;
+  expect(text).toContain("Coverage height");
+  expect(text).toContain("Row height");
+  expect(text).not.toContain("Minimum supporting alignments");
+  const switchFor = (name: string) =>
+    [...container!.querySelectorAll("label")]
+      .find((label) => label.textContent === name)!
+      .querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+  act(() => switchFor("Splice junctions").click());
+  expect(update).toHaveBeenLastCalledWith({
+    config: { junctions: { ...defaults.junctions, show: true } },
+  });
+  expect(switchFor("Coverage").disabled).toBe(false);
+
+  act(() => root?.unmount());
+  root = createRoot(container!);
+  const coverageOnly = bamModule.create({
+    base: { id: "bam", title: "BAM" },
+    config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE", alignments: { show: false } },
+  });
+  act(() =>
+    root?.render(
+      <TestBrowser>
+        <BamSettings
+          track={coverageOnly}
+          displayOptions={bamModule.displays}
+          updateTrack={update}
+          updateTracksOfType={() => ({ ok: true })}
+        />
+      </TestBrowser>,
+    ),
+  );
+  expect(switchFor("Coverage").disabled).toBe(true);
+  expect(container!.textContent).not.toContain("Row height");
+  expect(container!.textContent).toContain("Enable Alignments above");
+  expect(container!.textContent).not.toContain("Show letters ·");
+});
+
+it("rejects unsafe intron spans and allows a valid span to be cleared", () => {
+  const useTrackStore = createTrackStore({
+    modules: [bamModule],
+    tracks: [
+      bamModule.create({
+        base: { id: "bam", title: "BAM" },
+        config: {
+          url: "YOUR_URL_HERE",
+          indexUrl: "YOUR_URL_HERE",
+          junctions: { show: true, maximumSpan: 100 },
+        },
+      }),
+    ],
+  });
+  const update = vi.fn((patch: TrackUpdate<BamConfig, BamRecord>) =>
+    useTrackStore.getState().updateTrack("bam", patch),
+  );
+  function Settings() {
+    const track = useTrackStore((state) => state.getTrack("bam"))!;
+    return (
+      <BamSettings
+        track={bamModule.validate(track)}
+        displayOptions={bamModule.displays}
+        updateTrack={update}
+        updateTracksOfType={() => ({ ok: true })}
+      />
+    );
+  }
+  container = document.createElement("div");
+  document.body.appendChild(container);
+  root = createRoot(container);
+  act(() =>
+    root!.render(
+      <TestBrowser>
+        <Settings />
+      </TestBrowser>,
+    ),
+  );
+  const label = [...container.querySelectorAll("label")].find(
+    (label) => label.textContent === "Maximum intron span (bp)",
+  )!;
+  const input = document.getElementById(label.htmlFor) as HTMLInputElement;
+  const enter = (value: string) => {
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+  };
+  for (const invalid of ["9007199254740992", "9".repeat(400)]) {
+    enter(invalid);
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(update).not.toHaveBeenCalled();
+    expect(
+      bamModule.validate(useTrackStore.getState().getTrack("bam")).config.junctions.maximumSpan,
+    ).toBe(100);
+  }
+  enter(String(Number.MAX_SAFE_INTEGER));
+  expect(input.getAttribute("aria-invalid")).toBe("false");
+  expect(
+    bamModule.validate(useTrackStore.getState().getTrack("bam")).config.junctions.maximumSpan,
+  ).toBe(Number.MAX_SAFE_INTEGER);
+  enter("");
+  expect(input.getAttribute("aria-invalid")).toBe("false");
+  expect(
+    bamModule.validate(useTrackStore.getState().getTrack("bam")).config.junctions.maximumSpan,
+  ).toBeUndefined();
 });

@@ -8,10 +8,16 @@ const indexUrl = url + ".bai";
 const region = { chromosome: "chr1", start: 100, end: 200 };
 afterEach(() => vi.unstubAllGlobals());
 
-function mockFiles(bam: Uint8Array, bai: Uint8Array) {
+function mockFiles(
+  bam: Uint8Array,
+  bai: Uint8Array,
+  hold?: (signal: AbortSignal) => Promise<Response | void>,
+) {
   const mock = vi.fn<typeof fetch>(async (input, init) => {
     init?.signal?.throwIfAborted();
     if (String(input) === indexUrl) return new Response(bai.slice(), { status: 200 });
+    const held = await hold?.(init!.signal!);
+    if (held) return held;
     const range = /^bytes=(\d+)-(\d+)$/.exec(new Headers(init?.headers).get("range")!);
     const start = Number(range![1]);
     const end = Math.min(Number(range![2]), bam.length - 1);
@@ -388,6 +394,155 @@ describe("BAM regional reader", () => {
     });
     expect(records[0].chromosome).toBe("21");
     expect(await file.read({ chromosome: "1", start: 0, end: 100 })).toEqual([]);
+  });
+});
+
+// Deterministic incompressible bytes, so BGZF blocks keep a predictable compressed size.
+function noise(length: number) {
+  const bytes = new Uint8Array(length);
+  let state = 1;
+  for (let i = 0; i < length; i++) {
+    state = (Math.imul(state, 1103515245) + 12345) >>> 0;
+    bytes[i] = state >>> 24;
+  }
+  return bytes;
+}
+// One alignment per block, each its own BAI chunk. Filler blocks push chunks apart; padding after
+// an alignment lies outside its chunk but enlarges the block the chunk ends in.
+function spacedFixture(count: number, options: { fillerBlocks?: number; padding?: number } = {}) {
+  const header = concat(
+    int(0x014d4142),
+    int(0),
+    int(1),
+    int(5),
+    new TextEncoder().encode("chr1\0"),
+    int(10000),
+  );
+  const blocks = [bgzf(header)];
+  let offset = BigInt(blocks[0].length);
+  const chunks: Uint8Array[] = [];
+  for (let i = 0; i < count; i++) {
+    const core = new Uint8Array(32);
+    const view = new DataView(core.buffer);
+    view.setInt32(4, 100 + i, true);
+    core[8] = 2;
+    view.setUint16(12, 1, true);
+    view.setInt32(20, -1, true);
+    view.setInt32(24, -1, true);
+    const record = concat(core, new TextEncoder().encode("r\0"), int((10 << 4) | 0));
+    const alignment = concat(int(record.length), record);
+    const block = bgzf(concat(alignment, noise(options.padding ?? 0)));
+    chunks.push(concat(vo(offset << 16n), vo((offset << 16n) | BigInt(alignment.length))));
+    blocks.push(block);
+    offset += BigInt(block.length);
+    for (let j = 0; j < (options.fillerBlocks ?? 0); j++) {
+      const filler = bgzf(noise(60000));
+      blocks.push(filler);
+      offset += BigInt(filler.length);
+    }
+  }
+  const bam = concat(...blocks, bgzf(new Uint8Array()));
+  const bai = concat(int(0x01494142), int(1), int(1), int(0), int(count), ...chunks, int(0));
+  return { bam, bai };
+}
+// Holds BAM range requests until the test settles them.
+function holdRanges() {
+  const pending: { signal: AbortSignal; settle: (response?: Response) => void }[] = [];
+  const hold = (signal: AbortSignal) =>
+    new Promise<Response | void>((resolve, reject) => {
+      signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+      pending.push({ signal, settle: resolve });
+    });
+  return { pending, hold };
+}
+const spacedRegion = { chromosome: "chr1", start: 0, end: 10000 };
+
+describe("BAM chunk requests", () => {
+  it("reads nearby chunks in one request", async () => {
+    const { bam, bai } = spacedFixture(20);
+    const mock = mockFiles(bam, bai);
+    const file = createBamFile({ url, indexUrl });
+    await file.getHeader();
+    mock.mockClear();
+    const records = await file.read(spacedRegion);
+    expect(records.map((record) => record.start)).toEqual(
+      Array.from({ length: 20 }, (_, i) => 100 + i),
+    );
+    expect(mock.mock.calls.filter(([input]) => input === url)).toHaveLength(1);
+  });
+  it("reads distant chunks concurrently, at most eight at a time", async () => {
+    // About 60 KB apart: merging these would download more than separate requests.
+    const { bam, bai } = spacedFixture(20, { fillerBlocks: 1 });
+    let active = 0;
+    let peak = 0;
+    const mock = mockFiles(bam, bai, async () => {
+      peak = Math.max(peak, ++active);
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      active--;
+    });
+    const file = createBamFile({ url, indexUrl });
+    await file.getHeader();
+    mock.mockClear();
+    peak = 0;
+    const records = await file.read(spacedRegion);
+    expect(records.map((record) => record.start)).toEqual(
+      Array.from({ length: 20 }, (_, i) => 100 + i),
+    );
+    expect(mock.mock.calls.filter(([input]) => input === url)).toHaveLength(20);
+    expect(peak).toBe(8);
+  });
+  it.each([0, 1])(
+    "fetches only the missing suffix of a large final block (filler blocks=%s)",
+    async (fillerBlocks) => {
+      const { bam, bai } = spacedFixture(1, { padding: 50000, fillerBlocks });
+      const mock = mockFiles(bam, bai);
+      const file = createBamFile({ url, indexUrl });
+      await file.getHeader();
+      mock.mockClear();
+      const records = await file.read(spacedRegion);
+      expect(records.map((record) => record.start)).toEqual([100]);
+      const view = new DataView(bam.buffer, bam.byteOffset, bam.byteLength);
+      const blockStart = view.getUint16(16, true) + 1;
+      const blockSize = view.getUint16(blockStart + 16, true) + 1;
+      const ranges = mock.mock.calls
+        .filter(([input]) => input === url)
+        .map(([, init]) => new Headers(init?.headers).get("range"));
+      expect(ranges).toEqual([
+        `bytes=${blockStart}-${blockStart + 32768 - 1}`,
+        `bytes=${blockStart + 32768}-${blockStart + blockSize - 1}`,
+      ]);
+    },
+  );
+  it("cancels every in-flight request when the read is aborted", async () => {
+    const { bam, bai } = spacedFixture(20, { fillerBlocks: 2 });
+    const { pending, hold } = holdRanges();
+    let holding = false;
+    mockFiles(bam, bai, (signal) => (holding ? hold(signal) : Promise.resolve()));
+    const file = createBamFile({ url, indexUrl });
+    await file.getHeader();
+    holding = true;
+    const controller = new AbortController();
+    const read = file.read(spacedRegion, { signal: controller.signal });
+    await vi.waitFor(() => expect(pending).toHaveLength(8));
+    controller.abort();
+    await expect(read).rejects.toMatchObject({ name: "AbortError" });
+    expect(pending.every(({ signal }) => signal.aborted)).toBe(true);
+    expect(pending).toHaveLength(8);
+  });
+  it("cancels the remaining requests when one fails", async () => {
+    const { bam, bai } = spacedFixture(20, { fillerBlocks: 2 });
+    const { pending, hold } = holdRanges();
+    let holding = false;
+    mockFiles(bam, bai, (signal) => (holding ? hold(signal) : Promise.resolve()));
+    const file = createBamFile({ url, indexUrl });
+    await file.getHeader();
+    holding = true;
+    const read = file.read(spacedRegion);
+    await vi.waitFor(() => expect(pending).toHaveLength(8));
+    pending[3].settle(new Response(null, { status: 500 }));
+    await expect(read).rejects.toThrow("received 500");
+    expect(pending.every(({ signal }, i) => i === 3 || signal.aborted)).toBe(true);
+    expect(pending).toHaveLength(8);
   });
 });
 
