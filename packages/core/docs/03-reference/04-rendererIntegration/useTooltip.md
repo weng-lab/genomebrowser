@@ -23,7 +23,9 @@ The module using this renderer must provide a matching `tooltipComponent` to sho
 
 `hide` cancels a pending call and hides this hook's tooltip. Unmounting does the same cleanup, and panning also hides the tooltip. Calling the hook outside the required browser and track contexts throws.
 
-The browser places a tooltip corner 10 logical SVG units from the pointer on each axis and switches corners near edges. When that placement would clip content at the browser boundary, the tooltip moves to a fixed SVG overlay attached to the document body. The overlay preserves browser scale, stays within the window, and shrinks only if its content is larger than the window. Scrolling or resizing dismisses this overlay.
+Tooltips render in a fixed SVG overlay attached to the document body, at the browser's scale, so the browser's container never clips them. Content inherits styles from the document body rather than the browser's container, so set fonts and colors on the content itself. The browser places a tooltip corner 10 logical SVG units from the pointer on each axis and switches corners to keep the tooltip inside the browser. When it cannot fit inside the browser, it is placed against the window instead, flipping sides as needed and staying 4 pixels from the window edges. Content larger than the window keeps its size and starts at the window's top-left margin. Scrolling or resizing the window dismisses the tooltip.
+
+The overlay uses `z-index: 1500`. A browser inside a native modal `<dialog>` opened with `showModal()` sits in the top layer, above that overlay, so its tooltips are hidden.
 
 Tooltip content does not intercept pointer events. The hook provides no keyboard trigger or accessible description relationship; supply meaningful content and any required accessible alternative in the track UI.
 
