@@ -697,9 +697,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: 'catalog:'
         version: 6.1.1(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
-      '@weng-lab/genomebrowser-tracks':
-        specifier: workspace:^2.0.0
-        version: link:../tracks
       '@weng-lab/ui-components':
         specifier: 'catalog:'
         version: 3.3.0(59bfb49a3883a6dad5009e1152269108)
@@ -712,9 +709,6 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.3.0(react@19.3.0)
-      tsx:
-        specifier: ^4.22.4
-        version: 4.23.13
       typescript:
         specifier: 'catalog:'
         version: '@typescript/typescript6@6.0.2'
@@ -6148,6 +6142,7 @@ snapshots:
       '@esbuild/win32-arm64': 0.28.2
       '@esbuild/win32-ia32': 0.28.2
       '@esbuild/win32-x64': 0.28.2
+    optional: true
 
   escalade@3.2.0: {}
 
@@ -7115,6 +7110,7 @@ snapshots:
       esbuild: 0.28.2
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   turbo@2.10.11:
     optionalDependencies:
