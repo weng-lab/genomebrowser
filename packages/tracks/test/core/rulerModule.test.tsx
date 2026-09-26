@@ -44,7 +44,13 @@ function render(
   const Renderer = rulerModule.render.full;
   return renderToStaticMarkup(
     <TrackHeightContext value={{ getTrackHeight: () => 22, updateHeight: () => ({ ok: true }) }}>
-      <BasePairDetailContext value={{ subscribe: () => () => {}, getBasePairDetail: () => true }}>
+      <BasePairDetailContext
+        value={{
+          subscribe: () => () => {},
+          getBasePairDetailStatus: () => ({ reason: "ready", zoomTargetBases: 100 }),
+          getBasePairDetail: () => true,
+        }}
+      >
         <svg>
           <Renderer
             {...track.base}

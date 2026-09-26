@@ -90,6 +90,10 @@ if (!result.ok) console.error(result.error);
 
 The form edits title, display mode, forward and reverse colors, row height, all three source URLs, mapping-quality threshold, duplicate visibility, and the visible-span limit. URL drafts apply only when Set is activated. Host-owned tracks disable all source URL fields while keeping presentation controls available. Height is calculated from the display and visible rows; edit Row height to resize alignments.
 
+The **Base-pair detail** section shares its bp cutoff with the ruler and other participating tracks. It edits browser state, not BAM configuration. Valid edits commit on Enter or blur; Escape cancels the draft, and invalid input stays visible with an error. Host-owned tracks can still edit this display preference.
+
+The section explains the current visible span and width guard. **Zoom to letters** uses the actual plot width and centers a view small enough for readable letters. In dense or squish mode, it asks for Pack or Full instead; below a row height of 10, it asks for more row height. It does not promise letters when sequence data is missing.
+
 ## Tooltip and interactions
 
 The tooltip shows read name, zero-based half-open location, strand, MAPQ, sequence length, reference span, CIGAR, numeric and decoded SAM flags, mate location and orientation, signed template length, mean base quality, and stored sequence. MAPQ 255, absent qualities, and empty CIGARs are labeled unavailable. Tooltip values wrap into lines of at most 32 characters, preferring spaces where available. CIGAR and sequence previews remain shortened after 80 characters.

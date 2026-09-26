@@ -59,17 +59,18 @@ Look up an export below to find its documentation. Store methods and module memb
 
 ### Renderer integration
 
-| Exports                                                                                           | Reference                                                                                |
-| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `TrackRenderer`, `TrackRendererProps`                                                             | [Rendering](04-rendererIntegration/trackRenderer.md#rendering)                           |
-| `TrackInteraction`, `TrackInteractionCallback`, `TrackRuntimeContext`, `TrackRendererInteraction` | [Interactions and tooltips](04-rendererIntegration/useInteraction.md#instance-callbacks) |
-| `useBasePairDetail`                                                                               | [Base-pair detail](04-rendererIntegration/useBasePairDetail.md#usebasepairdetail)        |
-| `useInteraction`                                                                                  | [useInteraction](04-rendererIntegration/useInteraction.md#useinteraction)                |
-| `useTooltip`                                                                                      | [useTooltip](04-rendererIntegration/useTooltip.md#usetooltip)                            |
-| `useAutoTrackHeight`, `AutoTrackHeightOptions`                                                    | [useAutoTrackHeight](04-rendererIntegration/useAutoTrackHeight.md#useautotrackheight)    |
-| `TrackOverlay`, `TrackOverlayProps`                                                               | [TrackOverlay](04-rendererIntegration/TrackOverlay.md)                                   |
-| `TrackLabel`, `TrackLabelProps`                                                                   | [TrackLabel](04-rendererIntegration/TrackLabel.md)                                       |
-| `TrackTooltipComponent`                                                                           | [Tooltip component](04-rendererIntegration/useTooltip.md#tracktooltipcomponent)          |
+| Exports                                                                                           | Reference                                                                                                                     |
+| ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `TrackRenderer`, `TrackRendererProps`                                                             | [Rendering](04-rendererIntegration/trackRenderer.md#rendering)                                                                |
+| `TrackInteraction`, `TrackInteractionCallback`, `TrackRuntimeContext`, `TrackRendererInteraction` | [Interactions and tooltips](04-rendererIntegration/useInteraction.md#instance-callbacks)                                      |
+| `useBasePairDetail`                                                                               | [Base-pair detail](04-rendererIntegration/useBasePairDetail.md#usebasepairdetail)                                             |
+| `useBasePairDetailStatus`, `BasePairDetailStatus`                                                 | [Detail status and zoom target](04-rendererIntegration/useBasePairDetail.md#usebasepairdetailstatus-and-basepairdetailstatus) |
+| `useInteraction`                                                                                  | [useInteraction](04-rendererIntegration/useInteraction.md#useinteraction)                                                     |
+| `useTooltip`                                                                                      | [useTooltip](04-rendererIntegration/useTooltip.md#usetooltip)                                                                 |
+| `useAutoTrackHeight`, `AutoTrackHeightOptions`                                                    | [useAutoTrackHeight](04-rendererIntegration/useAutoTrackHeight.md#useautotrackheight)                                         |
+| `TrackOverlay`, `TrackOverlayProps`                                                               | [TrackOverlay](04-rendererIntegration/TrackOverlay.md)                                                                        |
+| `TrackLabel`, `TrackLabelProps`                                                                   | [TrackLabel](04-rendererIntegration/TrackLabel.md)                                                                            |
+| `TrackTooltipComponent`                                                                           | [Tooltip component](04-rendererIntegration/useTooltip.md#tracktooltipcomponent)                                               |
 
 ### Collections and schemas
 

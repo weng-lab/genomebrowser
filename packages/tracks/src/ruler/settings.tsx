@@ -1,3 +1,4 @@
+import { BasePairDetailSettings } from "../shared/settings/basePairDetailSettings";
 import { TrackBaseSettings } from "../shared/settings/trackBaseSettings";
 import { TrackHeightSettings } from "../shared/settings/trackHeightSettings";
 import Box from "@mui/material/Box";
@@ -25,6 +26,14 @@ export function RulerSettings({
       >
         <TrackHeightSettings track={track} updateTrack={updateTrack} {...settings} />
       </TrackBaseSettings>
+      <BasePairDetailSettings
+        unavailableReason={
+          !track.config.sequenceUrl
+            ? "Add a reference 2bit URL below to show bases on this ruler."
+            : undefined
+        }
+      />
+
       <TrackSettingsSection title="Reference source">
         <TrackSettingsUrlField
           label="2bit URL"

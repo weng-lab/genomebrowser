@@ -1,3 +1,8 @@
+import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
+import { BrowserContext } from "../../../core/src/browser/state/browserContextState";
+import { BasePairDetailContext } from "../../../core/src/browser/viewport/basePairDetail";
+import { createSettingsStore } from "../../../core/src/browser/state/settingsStore";
+import { createContextMenuStore } from "../../../core/src/browser/state/contextMenuStore";
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -6,6 +11,7 @@ import { bamModule } from "@weng-lab/genomebrowser-tracks/bam";
 import { BamSettings } from "../../src/bam/settings";
 import type { BamConfig } from "../../src/bam/types";
 
+const detailStatus = { reason: "viewport" as const, zoomTargetBases: 100 };
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 let root: Root | undefined;
@@ -28,14 +34,33 @@ function setup(source: "host" | "user") {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
+  const context = {
+    browserStore: createBrowserStore({
+      assembly: { id: "test", chromosomes: { chr1: 10000 } },
+      region: { chromosome: "chr1", start: 0, end: 1000 },
+    }),
+    trackStore: createTrackStore({ modules: [], tracks: [] }),
+    settingsStore: createSettingsStore(),
+    contextMenuStore: createContextMenuStore(),
+  };
   act(() =>
     root?.render(
-      <BamSettings
-        track={track}
-        displayOptions={bamModule.displays}
-        updateTrack={update}
-        updateTracksOfType={() => ({ ok: true })}
-      />,
+      <BasePairDetailContext
+        value={{
+          subscribe: () => () => {},
+          getBasePairDetail: () => false,
+          getBasePairDetailStatus: () => detailStatus,
+        }}
+      >
+        <BrowserContext value={context}>
+          <BamSettings
+            track={track}
+            displayOptions={bamModule.displays}
+            updateTrack={update}
+            updateTracksOfType={() => ({ ok: true })}
+          />
+        </BrowserContext>
+      </BasePairDetailContext>,
     ),
   );
   return update;

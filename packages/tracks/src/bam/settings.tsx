@@ -1,3 +1,4 @@
+import { BasePairDetailSettings } from "../shared/settings/basePairDetailSettings";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import type { TrackSettingsProps } from "@weng-lab/genomebrowser";
@@ -56,6 +57,16 @@ export function BamSettings({
           />
         </TrackSettingsFieldRow>
       </TrackBaseSettings>
+      <BasePairDetailSettings
+        unavailableReason={
+          track.base.display !== "pack" && track.base.display !== "full"
+            ? "Choose Pack or Full display above to show letters on this track."
+            : config.alignments.rowHeight < 10
+              ? "Increase row height to at least 10 pixels to show letters on this track."
+              : undefined
+        }
+      />
+
       <TrackSettingsSection title="BAM source">
         <TrackSettingsFieldGrid>
           <TrackSettingsFullRow>

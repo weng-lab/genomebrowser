@@ -62,7 +62,8 @@ export type {
 } from "./modules/types";
 
 // Renderer integration
-export { useBasePairDetail } from "./browser/viewport/basePairDetail";
+export type { BasePairDetailStatus } from "./browser/viewport/basePairDetail";
+export { useBasePairDetail, useBasePairDetailStatus } from "./browser/viewport/basePairDetail";
 export type {
   TrackRenderer,
   TrackRendererProps,

@@ -1,4 +1,8 @@
-import { basePairDetailVisible } from "../viewport/basePairDetail";
+import {
+  basePairDetailVisible,
+  getBasePairDetailStatus,
+  type BasePairDetailStatus,
+} from "../viewport/basePairDetail";
 import type { AssemblyDefinition } from "../../genome/assembly";
 import type { GenomicRegion } from "../../genome/region";
 import { createFetchSignature } from "../../modules/fetchOnChange";
@@ -52,6 +56,7 @@ export type TrackDataController = {
   /** Mirrors the measured track width. Changes are debounced before they refetch. */
   setTrackWidth(width: number): void;
   getBasePairDetail(): boolean;
+  getBasePairDetailStatus(): BasePairDetailStatus;
   subscribe(listener: () => void): () => void;
   /** Stable until that track's displayed state changes. */
   getTrack(trackId: string): TrackDataState;
@@ -105,11 +110,25 @@ export function createTrackDataController({
     );
   };
   let detailVisible = nextDetail(false);
+  const nextDetailStatus = () =>
+    getBasePairDetailStatus(
+      detailVisible,
+      detailEligible(),
+      trackWidth,
+      browserStore.getState().basePairDetail.maxVisibleBases,
+    );
+  let detailStatus = nextDetailStatus();
   const updateDetail = () => {
     const next = nextDetail(detailVisible);
-    const changed = next !== detailVisible;
     detailVisible = next;
-    return changed;
+    const status = nextDetailStatus();
+    if (
+      status.reason === detailStatus.reason &&
+      status.zoomTargetBases === detailStatus.zoomTargetBases
+    )
+      return false;
+    detailStatus = status;
+    return true;
   };
 
   const notify = () => {
@@ -318,6 +337,7 @@ export function createTrackDataController({
       }, widthDebounceMs);
     },
     getBasePairDetail: () => detailVisible,
+    getBasePairDetailStatus: () => detailStatus,
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

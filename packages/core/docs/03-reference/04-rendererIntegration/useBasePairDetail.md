@@ -45,3 +45,29 @@ export const fetchSequence: TrackFetch<Config, Data> = async ({ demand, track })
 This local-data example illustrates the decision; a file-backed fetcher would read its sequence source. No module registration flag is required. Core refreshes track demand when eligibility changes, even when old data covers the viewport. Editing the cutoff without changing eligibility does not itself refetch. Superseded requests are aborted and ignored.
 
 Width-only changes retain the existing result while ordinary width-dependent requests debounce. Fetchers should use track resources to reuse width-independent data. First-party ruler, BAM, and dynseq retain their last successful reference-sequence window, so resizing the same region does not read that sequence again. See [fetching data](../03-trackDefinition/fetchingData.md) for resources and result lifetime.
+
+## useBasePairDetailStatus and BasePairDetailStatus
+
+`useBasePairDetailStatus(): BasePairDetailStatus` explains the same browser-owned decision for hosted settings and controls. It takes no arguments, requires a `GenomeBrowser`, and throws outside one. The returned snapshot is readonly and stable until either field changes.
+
+| Field             | Type                                   | Meaning                                                                                                                                                                                                                                                  |
+| ----------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `reason`          | `"ready"` or `"viewport"` or `"width"` | `ready` means the shared gate allows letters; `viewport` means the visible span exceeds the cutoff; `width` means the span qualifies but the buffered width guard hides letters. Track-specific display requirements and data availability are separate. |
+| `zoomTargetBases` | `number` or `null`                     | The largest whole-base span satisfying both the cutoff and the width entry guard. Uses the actual mounted plot width, including responsive sizing and scale. Null means the plot cannot fit even one base.                                               |
+
+A settings control can offer a centered zoom using the hosting browser's `zoom` action:
+
+```tsx
+import { useBasePairDetailStatus, useGenomeBrowser } from "@weng-lab/genomebrowser";
+
+export function ZoomToLetters() {
+  const { reason, zoomTargetBases } = useBasePairDetailStatus();
+  const { useBrowserStore } = useGenomeBrowser();
+  const span = useBrowserStore((state) => state.region.end - state.region.start);
+  const zoom = useBrowserStore((state) => state.zoom);
+  if (reason === "ready" || zoomTargetBases === null || zoomTargetBases >= span) return null;
+  return <button onClick={() => zoom(zoomTargetBases / span)}>Zoom to letters</button>;
+}
+```
+
+Changing a cutoff or plot width updates this status even when `useBasePairDetail()` remains false. Panning at the same span and width leaves it unchanged. Both hooks share the mounted browser's visibility history.

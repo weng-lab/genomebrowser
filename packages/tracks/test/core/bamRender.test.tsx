@@ -67,7 +67,11 @@ function markup(
   const element = document.createElement("div");
   element.innerHTML = renderToStaticMarkup(
     <BasePairDetailContext
-      value={{ subscribe: () => () => {}, getBasePairDetail: () => basePairDetail }}
+      value={{
+        subscribe: () => () => {},
+        getBasePairDetailStatus: () => ({ reason: "ready", zoomTargetBases: 100 }),
+        getBasePairDetail: () => basePairDetail,
+      }}
     >
       <svg>
         <Renderer {...props} {...overrides} data={data} />
@@ -254,7 +258,11 @@ describe("BAM displays", () => {
       act(() =>
         root.render(
           <BasePairDetailContext
-            value={{ subscribe: () => () => {}, getBasePairDetail: () => true }}
+            value={{
+              subscribe: () => () => {},
+              getBasePairDetailStatus: () => ({ reason: "ready", zoomTargetBases: 100 }),
+              getBasePairDetail: () => true,
+            }}
           >
             <svg>
               <Renderer {...props} data={{ records: [record], reference: [] }} />
