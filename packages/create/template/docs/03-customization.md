@@ -9,11 +9,13 @@ Add an entry to `tracks` in `collections/default-tracks.json`. For example:
 ```json
 {
   "type": "bigwig",
-  "id": "my-signal",
-  "title": "My experiment",
-  "display": "full",
-  "height": 50,
-  "color": "#336699",
+  "base": {
+    "id": "my-signal",
+    "title": "My experiment",
+    "display": "full",
+    "height": 50,
+    "color": "#336699"
+  },
   "config": {
     "url": "YOUR_URL_HERE"
   },
