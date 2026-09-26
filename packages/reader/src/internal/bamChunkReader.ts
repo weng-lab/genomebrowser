@@ -74,8 +74,12 @@ async function readRange(reader: RequestRangeReader, range: BamRange): Promise<U
   const final = bytes.subarray(Number(span));
   const size = bgzfBlockSize(final);
   if (size !== undefined && size <= final.length) return bytes;
-  const tail = await reader.readBounded(range.end, 1n, MAX_BGZF_BLOCK_SIZE);
-  return joinBamBytes([bytes.subarray(0, Number(span)), tail]);
+  const fetched = BigInt(final.length);
+  const tail =
+    size === undefined
+      ? await reader.readBounded(range.end + fetched, 1n, MAX_BGZF_BLOCK_SIZE - fetched)
+      : await reader.readExact(range.end + fetched, BigInt(size) - fetched);
+  return joinBamBytes([bytes, tail]);
 }
 
 function chunkBytes(bytes: Uint8Array, rangeStart: bigint, chunk: BamChunk): Uint8Array {

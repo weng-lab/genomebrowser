@@ -491,12 +491,28 @@ describe("BAM chunk requests", () => {
     expect(mock.mock.calls.filter(([input]) => input === url)).toHaveLength(20);
     expect(peak).toBe(8);
   });
-  it("reads a final block larger than the usual allowance", async () => {
-    const { bam, bai } = spacedFixture(1, { padding: 50000 });
-    mockFiles(bam, bai);
-    const records = await createBamFile({ url, indexUrl }).read(spacedRegion);
-    expect(records.map((record) => record.start)).toEqual([100]);
-  });
+  it.each([0, 1])(
+    "fetches only the missing suffix of a large final block (filler blocks=%s)",
+    async (fillerBlocks) => {
+      const { bam, bai } = spacedFixture(1, { padding: 50000, fillerBlocks });
+      const mock = mockFiles(bam, bai);
+      const file = createBamFile({ url, indexUrl });
+      await file.getHeader();
+      mock.mockClear();
+      const records = await file.read(spacedRegion);
+      expect(records.map((record) => record.start)).toEqual([100]);
+      const view = new DataView(bam.buffer, bam.byteOffset, bam.byteLength);
+      const blockStart = view.getUint16(16, true) + 1;
+      const blockSize = view.getUint16(blockStart + 16, true) + 1;
+      const ranges = mock.mock.calls
+        .filter(([input]) => input === url)
+        .map(([, init]) => new Headers(init?.headers).get("range"));
+      expect(ranges).toEqual([
+        `bytes=${blockStart}-${blockStart + 32768 - 1}`,
+        `bytes=${blockStart + 32768}-${blockStart + blockSize - 1}`,
+      ]);
+    },
+  );
   it("cancels every in-flight request when the read is aborted", async () => {
     const { bam, bai } = spacedFixture(20, { fillerBlocks: 2 });
     const { pending, hold } = holdRanges();
