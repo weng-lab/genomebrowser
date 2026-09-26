@@ -5,6 +5,7 @@ import { afterEach, expect, it } from "vitest";
 import { GenomeBrowser, createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
 import { rulerModule } from "../../src/ruler";
 import { bamModule } from "../../src/bam";
+import { dynseqModule } from "../../src/dynseq";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -29,6 +30,7 @@ async function setup({
     modules: [
       { ...rulerModule, fetch: async () => ({ records: [] }) },
       { ...bamModule, fetch: async () => ({ records: [], reference: [] }) },
+      { ...dynseqModule, fetch: async () => ({ signal: [], sequence: [] }) },
     ],
     tracks: [
       rulerModule.create({
@@ -38,6 +40,10 @@ async function setup({
       bamModule.create({
         base: { id: "bam", title: "BAM", display },
         config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE" },
+      }),
+      dynseqModule.create({
+        base: { id: "dynseq", title: "Dynseq" },
+        config: { url: "YOUR_URL_HERE", twoBitUrl: "YOUR_URL_HERE" },
       }),
     ],
   });
@@ -69,7 +75,7 @@ async function slide(value: string) {
     slider().dispatchEvent(new Event("input", { bubbles: true }));
   });
 }
-it("shares the letter zoom between ruler and BAM and limits it to readable spans", async () => {
+it("shares the letter zoom across ruler, BAM and dynseq and limits it to readable spans", async () => {
   const { browserStore } = await setup();
   await click("Settings for Ruler");
   expect(slider().max).toBe("125");
@@ -78,6 +84,12 @@ it("shares the letter zoom between ruler and BAM and limits it to readable spans
   await click("Close settings");
   await click("Settings for BAM");
   expect(slider().value).toBe("75");
+  await slide("125");
+  await click("Close settings");
+  await click("Settings for Dynseq");
+  expect(slider().value).toBe("125");
+  await slide("80");
+  expect(browserStore.getState().basePairDetail.maxVisibleBases).toBe(80);
   await slide("125");
   await click("Show letters · 125 bp");
   expect(browserStore.getState().region.end - browserStore.getState().region.start).toBe(125);
@@ -94,7 +106,7 @@ it("shows an achievable target on narrow plots without overwriting the stored pr
   expect(container.textContent).toContain("Letter view enabled");
 });
 it("explains track prerequisites instead of offering an ineffective zoom action", async () => {
-  await setup({ sequence: false, display: "squish" });
+  const { trackStore } = await setup({ sequence: false, display: "squish" });
   await click("Settings for Ruler");
   expect(container.textContent).toContain("Add a reference 2bit URL below");
   expect(container.textContent).not.toContain("Show letters ·");
@@ -102,4 +114,17 @@ it("explains track prerequisites instead of offering an ineffective zoom action"
   await click("Settings for BAM");
   expect(container.textContent).toContain("Choose Pack or Full display above");
   expect(container.textContent).not.toContain("Show letters ·");
+  await click("Close settings");
+  await act(async () => {
+    trackStore.getState().updateTrack("dynseq", { base: { display: "dense" } });
+  });
+  await click("Settings for Dynseq");
+  expect(container.textContent).toContain("Choose Full display above");
+  expect(container.textContent).not.toContain("Show letters ·");
+  expect(slider()).not.toBeNull();
+  await act(async () => {
+    trackStore.getState().updateTrack("dynseq", { base: { display: "full" } });
+  });
+  expect(container.textContent).not.toContain("Choose Full display above");
+  expect(container.textContent).toContain("Show letters · 100 bp");
 });

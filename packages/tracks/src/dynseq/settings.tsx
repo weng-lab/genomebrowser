@@ -9,6 +9,7 @@ import {
 } from "../shared/settings";
 import { TrackHeightSettings } from "../shared/settings/trackHeightSettings";
 import { SignalSettings } from "../bigwig/signalSettings";
+import { BasePairDetailSettings } from "../shared/settings/basePairDetailSettings";
 import type { DynseqConfig, DynseqItem } from "./types";
 
 type Props = TrackSettingsProps<DynseqConfig, DynseqItem>;
@@ -26,6 +27,14 @@ export function DynseqSettings({ track, updateTrack, ...settings }: Props) {
       >
         <TrackHeightSettings track={track} updateTrack={updateTrack} {...settings} />
       </TrackBaseSettings>
+
+      <BasePairDetailSettings
+        unavailableReason={
+          track.base.display === "dense"
+            ? "Choose Full display above to show letters on this track."
+            : undefined
+        }
+      />
 
       <TrackSettingsSection title="Sources">
         <TrackSettingsFieldGrid>

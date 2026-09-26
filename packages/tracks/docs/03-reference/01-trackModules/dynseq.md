@@ -37,6 +37,8 @@ Changing either URL refetches. Other settings update rendering
 without refetching. Settings use the shared base, height, range, and rendering controls;
 host-owned tracks disable URL editing.
 
+The Sequence letters control changes the shared browser cutoff used by ruler, BAM, and dynseq tracks. In full display, Show letters zooms to a readable span. Dense display shows a reminder to choose Full before using letter view.
+
 ## Fetching and reference availability
 
 At signal resolution, dynseq uses the same resolution-aware BigWig reader as BigWig,
