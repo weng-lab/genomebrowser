@@ -21,6 +21,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "typescript": "catalog:native",
-    "vite": "catalog:"
+    "vite": "catalog:",
+    "zod": "catalog:"
   }
 }

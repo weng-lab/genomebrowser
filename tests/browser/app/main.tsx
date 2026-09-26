@@ -26,6 +26,8 @@ function App() {
         <a href="/">Signal and navigation</a>
         {" | "}
         <a href="/dynseq.html">Dynseq</a>
+        {" | "}
+        <a href="/core.html">Core interactions</a>
       </nav>
       <output aria-label="Visible region">
         {region.chromosome}:{region.start}-{region.end}

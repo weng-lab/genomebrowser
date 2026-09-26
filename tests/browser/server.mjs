@@ -24,6 +24,17 @@ reference.fill(0x1b, 49);
 const server = await createServer({
   configFile: false,
   root,
+  optimizeDeps: {
+    // Workspace builds can change without changing dependency versions.
+    force: true,
+    entries: ["*.html"],
+    include: [
+      "@weng-lab/genomebrowser",
+      "@weng-lab/genomebrowser-tracks/bigwig",
+      "@weng-lab/genomebrowser-tracks/dynseq",
+      "@weng-lab/genomebrowser-tracks/ruler",
+    ],
+  },
   plugins: [
     react(),
     {

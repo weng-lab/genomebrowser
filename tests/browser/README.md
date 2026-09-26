@@ -15,7 +15,7 @@ pnpm browser exec playwright install --with-deps chromium
 pnpm test:browser
 ```
 
-The root command builds the required packages and runs the three workflows. It runs
+The root command builds the required packages and runs all discovered workflows. It runs
 separately from `pnpm verify`, which does not provision Chromium. On a machine with
 Chromium's system dependencies installed, omit `--with-deps`.
 
@@ -34,13 +34,13 @@ builds; rerun `pnpm test:browser` after changing production packages.
 
 For hands-on exploration, `pnpm browser:dev` builds dependencies and leaves the fixture
 app running at <http://127.0.0.1:4178>. Drag the signal plot and watch the visible region,
-hover signal blocks, or follow the link to dynseq's zoom and display controls. Stop that
+hover signal blocks, or follow the links to dynseq and core interactions. Stop that
 server before running automated tests, which start their own server on the same port.
 While the manual server is running, `pnpm browser exec playwright codegen http://127.0.0.1:4178`
 can record actions to use as a starting point for a new scenario. Add meaningful assertions
 and local fixtures before keeping the generated test.
 
-## Initial workflows
+## Workflows
 
 - `scenarios/bigwig.spec.ts`: real BigWig loading, positive and negative signal geometry,
   an empty gap, and the hovered signal value.
@@ -50,7 +50,31 @@ and local fixtures before keeping the generated test.
   glyph dimensions, thresholds, resize, negative scores, dense display, shared settings,
   and reference independence. Named steps make the longer workflow inspectable in UI mode.
 
-Existing gesture, geometry, and fast integration tests remain in their packages.
+- `scenarios/core-selection.spec.ts`: zoom, reverse highlights, repeated selections,
+  ruler gestures, Escape cancellation, selection hit testing, guides, and margin controls.
+- `scenarios/core-reorder.spec.ts`: live drag previews, moves in both directions, pinned
+  track boundaries, and the margin's move controls.
+- `scenarios/core-settings-menu.spec.ts`: keyboard-opened settings, edits, scrolling,
+  dragging, viewport resizing, context-menu targeting, and page, panel, and menu scrolling.
+- `scenarios/core-tooltip.spec.ts`: measured SVG bounds at corners, nonzero content origins,
+  fit thresholds, resized content and plots, and oversized tooltips.
+- `scenarios/core-errors.spec.ts`: rejected module fetches in 10px and 60px rows, real error
+  scrolling, neighboring track bounds, and preventing error-text drags from panning.
+
+The core scenarios use `/core.html`, a small public custom module and browser stores.
+Its controls and outputs are also available for manual exploration. Add `?ruler`, `?errors`,
+or `?panel` for the ruler, short error tracks, or a scrolling host panel. Use
+`?region=lower`, `?region=upper`, or `?region=base` to explore chromosome boundaries. The tooltip cases
+use `origin`, `tooltipWidth`, and `tooltipHeight` query parameters. These are fixture
+options, not production APIs.
+
+These workflows replace the private tooltip-position, error-layout, default-settings-modal,
+context-menu geometry, track-control pinning, and swap-math suites. Selection gestures and
+geometry also move here. Private checks for impossible dimensions,
+listener bookkeeping, and isolated keyboard behavior are removed. Four fast selection
+cancellation cases remain because they protect stale commits and React layout-effect
+timing. Public settings-update and async integration tests stay in core. Keep those data
+and timing permutations in fast tests.
 
 ## Add a workflow
 

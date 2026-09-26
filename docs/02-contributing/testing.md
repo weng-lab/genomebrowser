@@ -30,8 +30,8 @@ Core owns generic browser and module contract tests; tracks owns first-party tra
 
 Run `pnpm test:browser` for the deterministic Chromium workflows. Install the browser
 first with `pnpm browser exec playwright install --with-deps chromium`. The command builds
-workspace dependencies and runs real fixture loading, pointer navigation, and the
-existing dynseq scenarios. CI runs it in the separate `Browser workflows` job and
+workspace dependencies and runs real fixture loading, pointer navigation, selection,
+reordering, settings and menus, tooltip bounds, short error scrolling, and dynseq scenarios. CI runs it in the separate `Browser workflows` job and
 uploads screenshots and traces on failure.
 
 See the [browser test guide](../../tests/browser/README.md) for setup,
