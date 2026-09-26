@@ -1,6 +1,7 @@
 import type { BamRecord } from "@weng-lab/genomic-reader";
 import { TrackTooltip } from "../shared/tooltips/trackTooltip";
 import { formatGenomicInterval } from "../shared/tooltips/trackTooltipFormatters";
+import type { BamCoverageBin, BamJunction, BamTooltipItem } from "./types";
 
 const flags: [number, string][] = [
   [1, "paired"],
@@ -16,7 +17,53 @@ const flags: [number, string][] = [
   [2048, "supplementary"],
 ];
 
-export function BamTooltip({ item }: { item: BamRecord }) {
+const depthFormatter = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+
+export function BamTooltip({ item }: { item: BamTooltipItem }) {
+  if (!("kind" in item)) return <AlignmentTooltip item={item} />;
+  if (item.kind === "coverage") return <CoverageTooltip item={item} />;
+  return <JunctionTooltip item={item} />;
+}
+
+function CoverageTooltip({ item }: { item: BamCoverageBin }) {
+  const bases = item.end - item.start;
+  const location = formatGenomicInterval(item.start, item.end, item.chromosome);
+  if (bases === 1)
+    return (
+      <TrackTooltip
+        title="Coverage"
+        rows={[
+          { label: "Location", value: location },
+          { label: "Depth", value: `${item.max.toLocaleString()} alignments` },
+        ]}
+      />
+    );
+  return (
+    <TrackTooltip
+      title={`Coverage across ${bases.toLocaleString()} bases`}
+      rows={[
+        { label: "Location", value: location },
+        { label: "Mean depth", value: depthFormatter.format(item.mean) },
+        { label: "Max depth", value: item.max.toLocaleString() },
+      ]}
+    />
+  );
+}
+
+function JunctionTooltip({ item }: { item: BamJunction }) {
+  return (
+    <TrackTooltip
+      title="Splice junction"
+      rows={[
+        { label: "Intron", value: formatGenomicInterval(item.start, item.end, item.chromosome) },
+        { label: "Span", value: `${(item.end - item.start).toLocaleString()} bp` },
+        { label: "Support", value: `${item.support.toLocaleString()} alignments` },
+      ]}
+    />
+  );
+}
+
+function AlignmentTooltip({ item }: { item: BamRecord }) {
   const knownQualities = item.phredQualities?.filter((quality) => quality !== 255);
   const meanQuality = knownQualities?.length
     ? (knownQualities.reduce((sum, value) => sum + value, 0) / knownQualities.length).toFixed(1)

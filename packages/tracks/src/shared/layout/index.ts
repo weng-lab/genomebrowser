@@ -6,6 +6,7 @@ export {
   rowHeightFromTrackHeight,
   trackHeightFromRowCount,
   useRowLayout,
+  useTrackHeight,
 } from "./rowLayout";
 export type { RowLayoutConfig } from "./rowLayout";
 

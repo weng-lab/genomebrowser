@@ -20,6 +20,7 @@ export type BamCreateInput = ModuleCreateInput<typeof bamModule>;
 export type {
   BamConfigInput,
   BamConfig,
+  BamCoverageScale,
   BamData,
   BamDisplay,
   BamInteraction,
