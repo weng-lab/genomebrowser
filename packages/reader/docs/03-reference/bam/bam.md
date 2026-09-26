@@ -45,6 +45,8 @@ Missing sequence names, regions beyond a sequence's length, and regions without 
 
 Coordinates must be nonnegative integers with start before end. BAI queries must end at or before `2 ** 29`. Validation, HTTP failures, invalid/truncated binary data, and cancellation reject the read without returning partial records. Each call accepts its own optional `AbortSignal`; aborting one call does not cancel concurrent calls.
 
+A read requests the BAM byte ranges its index chunks point to. Chunks less than 32 KiB apart share one request, and up to eight requests run at once. Aborting the read, or any request failing, cancels the requests still running.
+
 ## BamHeader and BamReference
 
 `getHeader({ signal }?)` returns `{ text: string, references: BamReference[] }`. `text` is the SAM header text; each reference contains `name: string` and `length: number`, in file order. Names retain their original spelling, even after reads using the `chr` fallback.
