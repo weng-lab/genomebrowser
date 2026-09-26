@@ -39,6 +39,7 @@ function context(
   return {
     track: { ...bamModule.create(input), config: { ...bamModule.create(input).config, ...config } },
     demand: {
+      basePairDetail: true,
       region,
       visibleRegion: region,
       width,
@@ -80,7 +81,7 @@ describe("BAM module public contract", () => {
       filters: { ...defaults.filters, includeDuplicates: false },
     });
     expect(
-      store.getState().updateTrack("bam", { config: { alignments: { sequenceMaxWindow: 0 } } }).ok,
+      store.getState().updateTrack("bam", { config: { alignments: { rowHeight: 0 } } }).ok,
     ).toBe(false);
   });
   it("registers all four displays, applies defaults, and validates updates", () => {
@@ -95,7 +96,6 @@ describe("BAM module public contract", () => {
           rowHeight: 14,
           forwardColor: "#3366cc",
           reverseColor: "#cc3333",
-          sequenceMaxWindow: 100,
         },
         filters: { minimumMappingQuality: 0, includeDuplicates: true },
         maxWindow: 50000,

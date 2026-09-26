@@ -136,16 +136,24 @@ try {
   await sameSignal();
   await click("Show letters");
   await letters(true);
-  await click("Require wider letters");
-  await letters(false);
-  await sameSignal();
-  await click("Default letters");
+  const sequenceRequests = requests.filter((url) => url.endsWith(".2bit")).length;
+  await click("Buffer width");
   await letters(true);
+  await browser("wait", "--load", "networkidle");
   await click("Narrow");
   await letters(false);
   await sameSignal();
+  await click("Buffer width");
+  await letters(false);
+  await browser("wait", "--load", "networkidle");
   await click("Expand");
   await letters(true);
+  await browser("wait", "--load", "networkidle");
+  assert.equal(
+    requests.filter((url) => url.endsWith(".2bit")).length,
+    sequenceRequests,
+    "Resizing must reuse the loaded reference window",
+  );
   await click("Negative");
   await letters(true);
   const hover = await evaluate(`(() => {
@@ -171,7 +179,7 @@ try {
   await browser("click", '#dynseq [aria-label="Settings for Signal"]');
   await browser("wait", "--text", "Y-axis range");
   const settings = await browser("snapshot", "-i");
-  assert.match(settings.snapshot, /Minimum pixels per base/);
+  assert.doesNotMatch(settings.snapshot, /Minimum pixels per base|Letters below/);
   assert.match(settings.snapshot, /Fill missing values with zero/);
   assert.match(settings.snapshot, /Show clamp indicators/);
   assert.match(settings.snapshot, /Scores BigWig URL/);

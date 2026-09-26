@@ -9,6 +9,6 @@ instances sharing a browser store. Controls drive the public store APIs. The ser
 serves the reader package's BigWig fixture and a generated 2bit over HTTP range requests.
 
 Assertions cover identical signal SVG, zoom and responsive resize transitions, letter
-threshold edits, sparse glyph widths, negative-score tooltips, dense display, shared
+central cutoff edits, buffered width transitions, reference reuse while resizing, sparse glyph widths, negative-score tooltips, dense display, shared
 settings, and absence of reference requests in signal-only views. Run this check separately
 from `pnpm verify`, which does not provision Chromium or the agent-browser CLI.

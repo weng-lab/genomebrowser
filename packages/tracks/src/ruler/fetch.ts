@@ -1,26 +1,21 @@
+import { readCachedTwoBitSequence } from "../shared/cachedFiles";
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
-import { createTwoBitFile, type TwoBitFile, type TwoBitRecord } from "@weng-lab/genomic-reader";
+import { type TwoBitRecord } from "@weng-lab/genomic-reader";
 
 import type { RulerConfig } from "./schema";
 export type RulerData = { records: TwoBitRecord[]; error?: string };
 
 export async function fetchRuler({
   track: { config },
-  demand: { region, width },
+  demand: { region, basePairDetail },
   resources,
   signal,
 }: TrackFetchContext<RulerConfig>): Promise<RulerData> {
-  if (!config.sequenceUrl || width / (region.end - region.start) < config.sequenceMinPixelsPerBase)
-    return { records: [] };
-  // The browser's overscan uses the same pixels/base as the visible viewport.
-  const key = "ruler-sequence-file";
-  let cached = resources.get<{ url: string; file: TwoBitFile }>(key);
-  if (!cached || cached.url !== config.sequenceUrl) {
-    cached = { url: config.sequenceUrl, file: createTwoBitFile({ url: config.sequenceUrl }) };
-    resources.set(key, cached);
-  }
+  if (!config.sequenceUrl || !basePairDetail) return { records: [] };
   try {
-    return { records: await cached.file.read(region, { signal }) };
+    return {
+      records: await readCachedTwoBitSequence(resources, config.sequenceUrl, region, signal),
+    };
   } catch (error) {
     // A superseded request is not a failure to report; let the browser drop it.
     if (signal?.aborted) throw error;

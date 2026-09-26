@@ -23,12 +23,12 @@ Pass `fetchIntervals` as a module's `fetch` option and mark its `intervals` sche
 
 `TrackFetch<Config, Data>` is `(context: TrackFetchContext<Config>) => Promise<Data>`. Each request receives a track snapshot, the render demand, track-local resources, and an abort signal.
 
-| Context field | Type                      | Contents                                                                          |
-| ------------- | ------------------------- | --------------------------------------------------------------------------------- |
-| `track`       | `TrackFetchTrack<Config>` | Readonly `type`, `base: { id, display }`, and complete parsed config.             |
-| `demand`      | `TrackFetchDemand`        | Readonly `assembly`, expanded `region`, `visibleRegion`, and logical SVG `width`. |
-| `resources`   | `TrackResources`          | Storage retained between requests for this track in this mounted browser.         |
-| `signal`      | `AbortSignal` (optional)  | Aborts when core no longer needs this request.                                    |
+| Context field | Type                      | Contents                                                                                                     |
+| ------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `track`       | `TrackFetchTrack<Config>` | Readonly `type`, `base: { id, display }`, and complete parsed config.                                        |
+| `demand`      | `TrackFetchDemand`        | Readonly `assembly`, expanded `region`, `visibleRegion`, logical SVG `width`, and `basePairDetail: boolean`. |
+| `resources`   | `TrackResources`          | Storage retained between requests for this track in this mounted browser.                                    |
+| `signal`      | `AbortSignal` (optional)  | Aborts when core no longer needs this request.                                                               |
 
 Use `demand.visibleRegion` for viewport-dependent decisions such as a zoom limit. Read data for `demand.region`, which includes overscan. The visible region is a snapshot at request time. Core may reuse fetched data during same-scale pans; zooming triggers a new request even when chromosome clipping leaves the expanded region unchanged.
 
@@ -37,6 +37,12 @@ The snapshots are shallow readonly views. Fetchers may return raw records or pro
 A rejected fetch puts that track into an error state. The error message appears as text in its lane, prefixed with the title; long messages wrap and can be scrolled. Other tracks can succeed even when this fetch rejects.
 
 `signal` is optional in the type so code can call a fetcher directly, but a mounted browser always supplies it. Pass it to network or reader calls, such as `file.read(region, { signal })`, so a superseded download stops. A fetcher that catches errors to return partial data should rethrow when `signal.aborted` is true. Core ignores the result of an aborted request either way.
+
+### Base-pair detail demand
+
+`demand.basePairDetail` is true when the visible span is at or below the browser's `basePairDetail.maxVisibleBases` cutoff, which defaults to 100 bp. Use it for detail-dependent data requests. It ignores drawing width so data can stay prepared while letters are hidden on narrow plots. Renderers use [useBasePairDetail](../04-rendererIntegration/useBasePairDetail.md) for the shared decision that also checks available space.
+
+Eligibility changes invalidate demand for every track, including changes caused by the central setting alone. Existing same-zoom results can remain visible while replacement data loads. The width guard does not independently trigger requests; ordinary width-dependent fetching still follows the debounce below.
 
 ### TrackResources
 

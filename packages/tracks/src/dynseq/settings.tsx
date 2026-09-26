@@ -4,12 +4,12 @@ import {
   TrackSettingsFieldGrid,
   TrackSettingsFullRow,
   TrackSettingsLayout,
-  TrackSettingsNumberField,
   TrackSettingsSection,
   TrackSettingsUrlField,
 } from "../shared/settings";
 import { TrackHeightSettings } from "../shared/settings/trackHeightSettings";
 import { SignalSettings } from "../bigwig/signalSettings";
+import { BasePairDetailSettings } from "../shared/settings/basePairDetailSettings";
 import type { DynseqConfig, DynseqItem } from "./types";
 
 type Props = TrackSettingsProps<DynseqConfig, DynseqItem>;
@@ -27,6 +27,14 @@ export function DynseqSettings({ track, updateTrack, ...settings }: Props) {
       >
         <TrackHeightSettings track={track} updateTrack={updateTrack} {...settings} />
       </TrackBaseSettings>
+
+      <BasePairDetailSettings
+        unavailableReason={
+          track.base.display === "dense"
+            ? "Choose Full display above to show letters on this track."
+            : undefined
+        }
+      />
 
       <TrackSettingsSection title="Sources">
         <TrackSettingsFieldGrid>
@@ -52,30 +60,6 @@ export function DynseqSettings({ track, updateTrack, ...settings }: Props) {
       </TrackSettingsSection>
 
       <SignalSettings config={config} onChange={(config) => updateTrack({ config })} />
-
-      <TrackSettingsSection title="Letters">
-        <TrackSettingsFieldGrid>
-          <TrackSettingsNumberField
-            label="Letters below (bp)"
-            min={1}
-            step={1}
-            inputMode="numeric"
-            value={config.maxLetterBases}
-            validate={(value) =>
-              Number.isInteger(value) && value >= 1 ? undefined : "Enter a whole number of bases."
-            }
-            onCommit={(maxLetterBases) => updateTrack({ config: { maxLetterBases } })}
-          />
-          <TrackSettingsNumberField
-            label="Minimum pixels per base"
-            min={1}
-            step="any"
-            value={config.minPixelsPerBase}
-            validate={(value) => (value > 0 ? undefined : "Enter a positive number of pixels.")}
-            onCommit={(minPixelsPerBase) => updateTrack({ config: { minPixelsPerBase } })}
-          />
-        </TrackSettingsFieldGrid>
-      </TrackSettingsSection>
     </TrackSettingsLayout>
   );
 }

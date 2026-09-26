@@ -1,5 +1,7 @@
-import type { TrackMutationResult } from "@weng-lab/genomebrowser";
+import type { MutationFailure } from "@weng-lab/genomebrowser";
 import { useEffect, useEffectEvent, useState, type KeyboardEvent } from "react";
+
+type DraftCommitResult = { ok: true } | MutationFailure<string>;
 
 const defaultDebounceMs = 300;
 
@@ -12,7 +14,7 @@ export type DraftControllerOptions<Raw, Value> = {
   toRaw: (value: Value) => Raw;
   validate: (raw: Raw) => DraftValidation<Value>;
   isEqual: (left: Value, right: Value) => boolean;
-  onCommit: (value: Value) => TrackMutationResult;
+  onCommit: (value: Value) => DraftCommitResult;
   debounceMs?: number | false;
 };
 
@@ -26,10 +28,10 @@ export type DraftController<Raw, Value> = {
     value: Raw,
     options?: {
       commitUnchanged?: boolean;
-      onCommit?: (value: Value) => TrackMutationResult;
+      onCommit?: (value: Value) => DraftCommitResult;
       retainRejectedDraft?: boolean;
     },
-  ) => TrackMutationResult;
+  ) => DraftCommitResult;
 };
 
 type DraftState<Raw, Value> = {
@@ -77,7 +79,7 @@ export function useDraftController<Raw, Value>(
     currentDraft: DraftState<Raw, Value>,
     submitOptions?: {
       commitUnchanged?: boolean;
-      onCommit?: (value: Value) => TrackMutationResult;
+      onCommit?: (value: Value) => DraftCommitResult;
       retainRejectedDraft?: boolean;
     },
   ) => {
@@ -88,7 +90,7 @@ export function useDraftController<Raw, Value>(
         ok: false,
         code: "INVALID_TRACK",
         error: validation.error,
-      } satisfies TrackMutationResult;
+      } satisfies DraftCommitResult;
     }
 
     const baseline = currentBaseline(currentDraft);
@@ -104,7 +106,7 @@ export function useDraftController<Raw, Value>(
           revision: currentDraft.revision,
         });
       }
-      return { ok: true } satisfies TrackMutationResult;
+      return { ok: true } satisfies DraftCommitResult;
     }
 
     const result = (submitOptions?.onCommit ?? options.onCommit)(validation.value);
@@ -157,7 +159,7 @@ export function useDraftController<Raw, Value>(
     raw: Raw,
     submitOptions?: {
       commitUnchanged?: boolean;
-      onCommit?: (value: Value) => TrackMutationResult;
+      onCommit?: (value: Value) => DraftCommitResult;
       retainRejectedDraft?: boolean;
     },
   ) => {

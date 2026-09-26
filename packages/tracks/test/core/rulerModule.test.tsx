@@ -1,3 +1,4 @@
+import { BasePairDetailContext } from "../../../core/src/browser/viewport/basePairDetail";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -43,7 +44,6 @@ function render(
     ...input,
     config: {
       sequenceUrl: sequenceUrl ?? undefined,
-      sequenceMinPixelsPerBase: 5,
       distinguishMaskedBases,
     },
   });
@@ -56,16 +56,28 @@ function render(
         () => false,
       )}
     >
-      <svg>
-        <Renderer
-          {...track.base}
-          config={track.config}
-          width={width}
-          region={{ ...region, end: region.start + viewportSpan }}
-          visibleRegion={{ ...region, end: region.start + viewportSpan }}
-          data={data}
-        />
-      </svg>
+      <BasePairDetailContext
+        value={{
+          subscribe: () => () => {},
+          getBasePairDetailStatus: () => ({
+            reason: "ready",
+            zoomTargetBases: 100,
+            maxReadableBases: 125,
+          }),
+          getBasePairDetail: () => true,
+        }}
+      >
+        <svg>
+          <Renderer
+            {...track.base}
+            config={track.config}
+            width={width}
+            region={{ ...region, end: region.start + viewportSpan }}
+            visibleRegion={{ ...region, end: region.start + viewportSpan }}
+            data={data}
+          />
+        </svg>
+      </BasePairDetailContext>
     </BrowserProvider>,
   );
 }
@@ -78,10 +90,6 @@ describe("ruler module", () => {
     ).toThrow();
     expect(track.base.height).toBe(22);
     expect(track.config.distinguishMaskedBases).toBe(false);
-    expect(track.config.sequenceMinPixelsPerBase).toBe(15);
-    expect(() =>
-      rulerModule.create({ ...input, config: { sequenceMinPixelsPerBase: 0 } }),
-    ).toThrow();
     expect(() =>
       rulerModule.create({ ...input, config: { sequenceUrl: "file:///ref.2bit" } }),
     ).toThrow();
@@ -106,11 +114,6 @@ describe("ruler module", () => {
     expect(masked).toContain('aria-label="chr1:105 a"');
     expect(masked).toContain('aria-label="chr1:100 A"');
     expect(masked).toContain('fill="#228b22"');
-    expect(render(1000, data, url, 200)).toContain('aria-label="chr1:100 A"');
-    expect(render(2000, data, url, 400)).toContain('aria-label="chr1:100 A"');
-    expect(render(999, data, url, 200)).not.toContain('aria-label="chr1:100 A"');
-    expect(render(1999, data, url, 400)).not.toContain('aria-label="chr1:100 A"');
-    expect(render(999, data, url, 200)).not.toContain("Zoom in");
     expect(render(120, data)).toContain('aria-label="chr1:109 N"');
     expect(render(120, { records: [], error: "CORS" })).toContain("Reference sequence unavailable");
   });
@@ -126,9 +129,10 @@ describe("ruler module", () => {
             display: "full",
           },
           type: "ruler",
-          config: { ...rulerModule.create(input).config, sequenceUrl, sequenceMinPixelsPerBase: 5 },
+          config: { ...rulerModule.create(input).config, sequenceUrl },
         },
         demand: {
+          basePairDetail: viewportSpan <= 100,
           region: { ...region, end: region.start + viewportSpan },
           visibleRegion: { ...region, end: region.start + viewportSpan },
           width,
@@ -140,10 +144,10 @@ describe("ruler module", () => {
     await fetch(999, url, 200);
     expect(createFile).not.toHaveBeenCalled();
     expect(await fetch(120, url)).toMatchObject({ records: [{ sequence: "ACGTNacgtn" }] });
-    await fetch(1000, url, 200);
-    expect(read).toHaveBeenCalledWith({ ...region, end: 300 }, { signal: undefined });
-    await fetch(2000, url, 400);
-    expect(read).toHaveBeenCalledWith({ ...region, end: 500 }, { signal: undefined });
+    await fetch(1000, url, 80);
+    expect(read).toHaveBeenCalledWith({ ...region, end: 180 }, { signal: undefined });
+    await fetch(2000, url, 90);
+    expect(read).toHaveBeenCalledWith({ ...region, end: 190 }, { signal: undefined });
     await fetch(119, url);
     expect(createFile).toHaveBeenCalledTimes(1);
     await fetch(240, "https://example.test/other.2bit");
@@ -166,7 +170,7 @@ describe("ruler module", () => {
         type: "ruler",
         config: { ...rulerModule.create(input).config, sequenceUrl: url },
       },
-      demand: { region, visibleRegion: region, width: 1000, assembly: hg38 },
+      demand: { basePairDetail: true, region, visibleRegion: region, width: 1000, assembly: hg38 },
       resources: resources(),
       signal: controller.signal,
     });

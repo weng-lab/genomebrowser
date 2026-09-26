@@ -114,6 +114,7 @@ describe("fetchBigBedRows", () => {
         config: { url: "YOUR_URL_HERE" },
       }),
       demand: {
+        basePairDetail: true,
         assembly: { id: "test", chromosomes: { chr1: 1000 } },
         region: { chromosome: "chr1", start: 100, end: 200 },
         visibleRegion: { chromosome: "chr1", start: 100, end: 200 },

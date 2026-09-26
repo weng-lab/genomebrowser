@@ -31,7 +31,7 @@ const bigwigStore = createTrackStore({
   ],
 });
 function App() {
-  const [width, setWidth] = useState(700);
+  const [width, setWidth] = useState(1100);
   const region = useBrowserStore((state) => state.region);
   const setRegion = useBrowserStore((state) => state.setRegion);
   return (
@@ -44,34 +44,15 @@ function App() {
         Negative
       </button>
       <button onClick={() => setWidth(300)}>Narrow</button>
-      <button onClick={() => setWidth(700)}>Expand</button>
-      <button
-        onClick={() =>
-          dynseqStore.getState().updateTrack("signal", { config: { maxLetterBases: 50 } })
-        }
-      >
+      <button onClick={() => setWidth(800)}>Buffer width</button>
+      <button onClick={() => setWidth(1100)}>Expand</button>
+      <button onClick={() => useBrowserStore.getState().setBasePairDetail({ maxVisibleBases: 50 })}>
         Hide letters
       </button>
       <button
-        onClick={() =>
-          dynseqStore.getState().updateTrack("signal", { config: { maxLetterBases: 500 } })
-        }
+        onClick={() => useBrowserStore.getState().setBasePairDetail({ maxVisibleBases: 100 })}
       >
         Show letters
-      </button>
-      <button
-        onClick={() =>
-          dynseqStore.getState().updateTrack("signal", { config: { minPixelsPerBase: 10 } })
-        }
-      >
-        Require wider letters
-      </button>
-      <button
-        onClick={() =>
-          dynseqStore.getState().updateTrack("signal", { config: { minPixelsPerBase: 3 } })
-        }
-      >
-        Default letters
       </button>
       <button
         onClick={() =>

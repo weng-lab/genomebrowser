@@ -1,16 +1,12 @@
+import { readCachedTwoBitSequence } from "../shared/cachedFiles";
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
-import {
-  createBamFile,
-  createTwoBitFile,
-  type BamFile,
-  type TwoBitFile,
-} from "@weng-lab/genomic-reader";
+import { createBamFile, type BamFile } from "@weng-lab/genomic-reader";
 import type { BamConfig } from "./schema";
 import type { BamData } from "./types";
 
 export async function fetchBam({
   track: { config },
-  demand: { region, visibleRegion },
+  demand: { region, visibleRegion, basePairDetail },
   resources,
   signal,
 }: TrackFetchContext<BamConfig>): Promise<BamData> {
@@ -33,19 +29,14 @@ export async function fetchBam({
   const recordsPromise = cached.file.read(region, { signal });
   // Optional reference failures must not hide alignments.
   const referencePromise = async (): Promise<Pick<BamData, "reference" | "referenceError">> => {
-    // Fetch reference with alignments so retained or overscanned data can show mismatches
-    // when the visible span reaches the independently configured letter threshold.
-    if (!config.sequenceUrl) return { reference: [] };
+    if (!config.sequenceUrl || !basePairDetail) return { reference: [] };
     try {
-      let reference = resources.get<{ url: string; file: TwoBitFile }>("bam-reference");
-      if (!reference || reference.url !== config.sequenceUrl) {
-        reference = {
-          url: config.sequenceUrl,
-          file: createTwoBitFile({ url: config.sequenceUrl }),
-        };
-        resources.set("bam-reference", reference);
-      }
-      const sequence = await reference.file.read(region, { signal });
+      const sequence = await readCachedTwoBitSequence(
+        resources,
+        config.sequenceUrl,
+        region,
+        signal,
+      );
       if (sequence.length === 0)
         return { reference: [], referenceError: "Reference sequence not found for this region." };
       return { reference: sequence };

@@ -1,12 +1,17 @@
+import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
+import { createBrowserContextValue } from "../../../core/src/browser/state/browserContextState";
+import { BrowserProvider } from "../../../core/src/browser/state/BrowserContext";
+import { BasePairDetailContext } from "../../../core/src/browser/viewport/basePairDetail";
 // @vitest-environment jsdom
-import { act } from "react";
+import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { bamModule, type BamRecord } from "@weng-lab/genomebrowser-tracks/bam";
 import { BamSettings } from "../../src/bam/settings";
 import type { BamConfig } from "../../src/bam/types";
-import { createTrackStore, type TrackUpdate } from "@weng-lab/genomebrowser";
+import { type TrackUpdate } from "@weng-lab/genomebrowser";
 
+const detailStatus = { reason: "viewport" as const, zoomTargetBases: 100, maxReadableBases: 125 };
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 let root: Root | undefined;
@@ -29,17 +34,56 @@ function setup(source: "host" | "user") {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
+  const context = createBrowserContextValue(
+    createBrowserStore({
+      assembly: { id: "test", chromosomes: { chr1: 10000 } },
+      region: { chromosome: "chr1", start: 0, end: 1000 },
+    }),
+    createTrackStore({ modules: [], tracks: [] }),
+    () => false,
+  );
   act(() =>
     root?.render(
-      <BamSettings
-        track={track}
-        displayOptions={bamModule.displays}
-        updateTrack={update}
-        updateTracksOfType={() => ({ ok: true })}
-      />,
+      <BasePairDetailContext
+        value={{
+          subscribe: () => () => {},
+          getBasePairDetail: () => false,
+          getBasePairDetailStatus: () => detailStatus,
+        }}
+      >
+        <BrowserProvider value={context}>
+          <BamSettings
+            track={track}
+            displayOptions={bamModule.displays}
+            updateTrack={update}
+            updateTracksOfType={() => ({ ok: true })}
+          />
+        </BrowserProvider>
+      </BasePairDetailContext>,
     ),
   );
   return update;
+}
+function TestBrowser({ children }: { children: ReactNode }) {
+  const context = createBrowserContextValue(
+    createBrowserStore({
+      assembly: { id: "test", chromosomes: { chr1: 10000 } },
+      region: { chromosome: "chr1", start: 0, end: 1000 },
+    }),
+    createTrackStore({ modules: [], tracks: [] }),
+    () => false,
+  );
+  return (
+    <BasePairDetailContext
+      value={{
+        subscribe: () => () => {},
+        getBasePairDetail: () => false,
+        getBasePairDetailStatus: () => detailStatus,
+      }}
+    >
+      <BrowserProvider value={context}>{children}</BrowserProvider>
+    </BasePairDetailContext>
+  );
 }
 function duplicatesCheckbox() {
   return [...container!.querySelectorAll("label")]
@@ -58,7 +102,6 @@ describe("BAM settings", () => {
       "Forward color",
       "Reverse color",
       "Row height",
-      "Sequence letters maximum window (bp)",
     ])
       expect(container!.textContent).toContain(label);
     const index = container!.querySelectorAll<HTMLInputElement>('input[type="url"]')[1];
@@ -100,7 +143,6 @@ it("uses explicit strand controls and commits whole alignment groups for host tr
   for (const [name, value, expected] of [
     ["Forward color", "#123456", { forwardColor: "#123456" }],
     ["Reverse color", "#654321", { reverseColor: "#654321" }],
-    ["Sequence letters maximum window (bp)", "200", { sequenceMaxWindow: 200 }],
   ] as const) {
     const label = labels.find((label) => label.textContent?.replace(/\s*\*$/, "").trim() === name)!;
     const input = document.getElementById(label.htmlFor) as HTMLInputElement;
@@ -140,16 +182,20 @@ it("shows controls for enabled sections and keeps at least one section visible",
   });
   act(() =>
     root?.render(
-      <BamSettings
-        track={coverageOnly}
-        displayOptions={bamModule.displays}
-        updateTrack={update}
-        updateTracksOfType={() => ({ ok: true })}
-      />,
+      <TestBrowser>
+        <BamSettings
+          track={coverageOnly}
+          displayOptions={bamModule.displays}
+          updateTrack={update}
+          updateTracksOfType={() => ({ ok: true })}
+        />
+      </TestBrowser>,
     ),
   );
   expect(switchFor("Coverage").disabled).toBe(true);
   expect(container!.textContent).not.toContain("Row height");
+  expect(container!.textContent).toContain("Enable Alignments above");
+  expect(container!.textContent).not.toContain("Show letters ·");
 });
 
 it("rejects unsafe intron spans and allows a valid span to be cleared", () => {
@@ -183,7 +229,13 @@ it("rejects unsafe intron spans and allows a valid span to be cleared", () => {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  act(() => root!.render(<Settings />));
+  act(() =>
+    root!.render(
+      <TestBrowser>
+        <Settings />
+      </TestBrowser>,
+    ),
+  );
   const label = [...container.querySelectorAll("label")].find(
     (label) => label.textContent === "Maximum intron span (bp)",
   )!;

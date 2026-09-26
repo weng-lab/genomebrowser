@@ -58,6 +58,8 @@ export type TrackFetchTrack<Config> = Readonly<{
 }>;
 
 export type TrackFetchDemand = Readonly<{
+  /** Viewport is within the browser cutoff, independent of the width guard. */
+  basePairDetail: boolean;
   assembly: AssemblyDefinition;
   region: Readonly<GenomicRegion>;
   visibleRegion: Readonly<GenomicRegion>;
