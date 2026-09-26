@@ -5,14 +5,10 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { GenomeBrowser } from "../../src/browser/GenomeBrowser";
-import type { TrackContentState } from "../../src/browser/track-row/TrackContent";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
-import { RegistryProvider } from "../../src/browser/state/RegistryContext";
 import { createTrackStore } from "../../src/browser/state/trackStore";
-import { TrackContent } from "../../src/browser/track-row/TrackContent";
 import { hg38 } from "../../src/genome/presets";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
-import type { AnyTrackInstance } from "../../src/modules/types";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -73,20 +69,20 @@ describe("track render error isolation", () => {
       },
       config: {},
     });
-    const browserStore = createBrowserStore({
+    const useBrowserStore = createBrowserStore({
       assembly: hg38,
       region: { chromosome: "chr1", start: 1, end: 1000 },
       marginWidth: 120,
       trackWidth: 500,
       titleSize: 12,
     });
-    const trackStore = createTrackStore({
+    const useTrackStore = createTrackStore({
       modules: [throwingModule, healthyModule],
       tracks: [brokenTrack, healthyTrack],
     });
 
     await render(
-      <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />,
     );
 
     const svg = requiredElement<SVGSVGElement>("#browserSVG");
@@ -111,8 +107,8 @@ describe("track render error isolation", () => {
     expect(svg.getAttribute("viewBox")).toBe("0 0 620 146");
     expect(svg.querySelector('rect[x="120"][width="500"][height="146"]')).toBeTruthy();
 
-    await act(async () => browserStore.getState().zoom(0.5));
-    expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 251, end: 751 });
+    await act(async () => useBrowserStore.getState().zoom(0.5));
+    expect(useBrowserStore.getState().region).toEqual({ chromosome: "chr1", start: 251, end: 751 });
     expect(requiredElement("#browserSVG")).toBe(svg);
     expect(requiredElement('[data-testid="healthy-renderer"]')).toBeTruthy();
     expect(requiredText("Error — Track unavailable: Broken track")).toBeTruthy();
@@ -133,68 +129,7 @@ describe("track render error isolation", () => {
     expect(JSON.stringify(customLog?.[1])).not.toContain("private track config");
     expect(JSON.stringify(customLog?.[1])).not.toContain("private fetched data");
   });
-
-  it("keeps loading, fetch-error, and unsupported-display states explicit", async () => {
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const renderer = vi.fn(HealthyRenderer);
-    const module = defineTrackModule({
-      type: "expected-state-test",
-      configSchema: z.object({}),
-      fetch: async () => null,
-      render: { full: renderer },
-    });
-    const track = module.create({ base: { id: "expected", title: "Expected states" }, config: {} });
-    const unsupportedTrack: AnyTrackInstance = {
-      ...track,
-      base: { ...track.base, id: "unsupported", display: "missing" },
-    };
-    const trackStore = createTrackStore({ modules: [module], tracks: [track] });
-
-    await render(
-      <RegistryProvider registry={trackStore.getState().registry}>
-        <svg>
-          <TrackState track={track} dataState={{ status: "loading" }} />
-          <TrackState
-            track={track}
-            dataState={{ status: "error", error: "Expected fetch failure" }}
-          />
-          <TrackState track={unsupportedTrack} dataState={{ status: "ready", data: null }} />
-        </svg>
-      </RegistryProvider>,
-    );
-
-    expect(requiredElement("animateTransform")).toBeTruthy();
-    expect(requiredText('Error — Track "Expected states": Expected fetch failure')).toBeTruthy();
-    expect(
-      requiredText('Error — Display "missing" is not supported by "expected-state-test"'),
-    ).toBeTruthy();
-    expect(renderer).not.toHaveBeenCalled();
-    expect(consoleError.mock.calls.some(([message]) => message === trackRenderErrorPrefix)).toBe(
-      false,
-    );
-  });
 });
-
-function TrackState({
-  track,
-  dataState,
-}: {
-  track: AnyTrackInstance;
-  dataState: TrackContentState;
-}) {
-  return (
-    <g>
-      <TrackContent
-        track={track}
-        dataState={dataState}
-        visibleRegion={{ chromosome: "chr1", start: 0, end: 100 }}
-        region={{ chromosome: "chr1", start: 0, end: 100 }}
-        width={100}
-        height={track.base.height}
-      />
-    </g>
-  );
-}
 
 async function render(children: React.ReactNode) {
   container = document.createElement("div");

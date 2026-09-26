@@ -42,7 +42,8 @@
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt .",
     "format:check": "oxfmt . --check",
-    "prepack": "pnpm build:checked"
+    "prepack": "pnpm build:checked",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "jiti": "^2.6.2",
@@ -55,6 +56,7 @@
     "@types/react-dom": "catalog:",
     "@typescript/native": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
     "@weng-lab/render-probe": "workspace:*",
     "jsdom": "catalog:",
     "react": "catalog:",

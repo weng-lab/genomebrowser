@@ -4,16 +4,12 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { ContextMenuController } from "../../src/browser/overlays/ContextMenuController";
-import { BrowserProvider, InteractionGateProvider } from "../../src/browser/state/BrowserContext";
-import { createBrowserStore } from "../../src/browser/state/browserStore";
-import { createContextMenuStore } from "../../src/browser/state/contextMenuStore";
-import { RegistryProvider } from "../../src/browser/state/RegistryContext";
-import { createSettingsStore } from "../../src/browser/state/settingsStore";
-import { createTrackStore } from "../../src/browser/state/trackStore";
-import { TrackFrame } from "../../src/browser/track-row/TrackFrame";
-import { hg38 } from "../../src/genome/presets";
-import { defineTrackModule } from "../../src/modules/defineTrackModule";
+import {
+  GenomeBrowser,
+  createBrowserStore,
+  createTrackStore,
+  defineTrackModule,
+} from "../../src/lib";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -22,11 +18,15 @@ const module = defineTrackModule({
   type: "context-menu-test",
   configSchema: z.object({}),
   fetch: async () => null,
-  render: { full: () => null },
+  render: { full: Renderer, dense: Renderer },
 });
+function Renderer({ id }: { id: string }) {
+  return <rect data-testid={id} width={500} height={30} />;
+}
 const track = module.create({ base: { id: "test", title: "Test track" }, config: {} });
 let container: HTMLDivElement;
 let root: Root;
+let useTrackStore: ReturnType<typeof createTrackStore>;
 
 beforeEach(async () => {
   vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(800);
@@ -36,34 +36,21 @@ beforeEach(async () => {
     height: 80,
   } as DOMRect);
   const useBrowserStore = createBrowserStore({
-    assembly: hg38,
+    assembly: { id: "test", chromosomes: { chr1: 10_000 } },
+    trackWidth: 500,
+    marginWidth: 120,
     region: { chromosome: "chr1", start: 1, end: 100 },
   });
-  const useTrackStore = createTrackStore({ modules: [module], tracks: [track] });
+  useTrackStore = createTrackStore({
+    modules: [module],
+    tracks: [track, module.create({ base: { id: "other", title: "Other" }, config: {} })],
+  });
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () => {
     root.render(
-      <RegistryProvider registry={useTrackStore.getState().registry}>
-        <BrowserProvider
-          value={{
-            browserStore: useBrowserStore,
-            trackStore: useTrackStore,
-            contextMenuStore: createContextMenuStore(),
-            settingsStore: createSettingsStore(),
-          }}
-        >
-          <InteractionGateProvider value={{ isInteractionBlocked: false }}>
-            <svg>
-              <TrackFrame track={track} y={0} marginWidth={120} trackWidth={500} titleSize={12}>
-                <rect data-testid="track-data" width={500} height={track.base.height} />
-              </TrackFrame>
-            </svg>
-            <ContextMenuController />
-          </InteractionGateProvider>
-        </BrowserProvider>
-      </RegistryProvider>,
+      <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />,
     );
   });
 });
@@ -74,8 +61,25 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
+it("switches targets, commits display changes, and removes only the selected track", async () => {
+  expect(menuButton("remove")).toBeNull();
+  await openMenu(10, 10);
+  await act(async () => menuButton("dense")!.click());
+  expect(useTrackStore.getState().getTrack("test")?.base.display).toBe("dense");
+  expect(useTrackStore.getState().getTrack("other")?.base.display).toBe("full");
+  expect(menuButton("remove")).toBeNull();
+  await openMenu(10, 10);
+  await openMenu(10, 10, '[data-testid="other"]');
+  await act(async () => menuButton("remove")!.click());
+  expect(useTrackStore.getState().getTrack("other")).toBeUndefined();
+  expect(useTrackStore.getState().getTrack("test")).toBeDefined();
+  expect(container.querySelector('[data-testid="other"]')).toBeNull();
+  expect(menuButton("remove")).toBeNull();
+});
+
+// Positioning cases remain provisional until real-browser coverage replaces synthetic geometry.
 describe("track context menu positioning", () => {
-  it.each(['[data-testid="track-data"]', 'rect[x="120"][y="0"]'])(
+  it.each(['[data-testid="test"]', '[aria-label="Genome browser"] rect[x="120"][y="0"]'])(
     "anchors to viewport coordinates after scrolling when opened from %s",
     async (selector) => {
       await openMenu(250, 150, selector);
@@ -107,7 +111,7 @@ describe("track context menu positioning", () => {
     expect(menu().style.left).toBe("100px");
     expect(menu().style.top).toBe("100px");
     await act(async () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })));
-    expect(container.querySelector("button")).toBeNull();
+    expect(menuButton("remove")).toBeNull();
   });
 
   it.each(["window", "document", "containing panel"])(
@@ -116,12 +120,12 @@ describe("track context menu positioning", () => {
       await openMenu(250, 150);
       const target = source === "window" ? window : source === "document" ? document : container;
       await act(async () => target.dispatchEvent(new Event("scroll")));
-      expect(container.querySelector("button")).toBeNull();
+      expect(menuButton("remove")).toBeNull();
 
       await openMenu(100, 100);
       expect(menu().style.left).toBe("100px");
       await act(async () => target.dispatchEvent(new Event("scroll")));
-      expect(container.querySelector("button")).toBeNull();
+      expect(menuButton("remove")).toBeNull();
     },
   );
 
@@ -133,11 +137,18 @@ describe("track context menu positioning", () => {
   });
 });
 
+function menuButton(label: string) {
+  return (
+    Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === label,
+    ) ?? null
+  );
+}
 function menu() {
-  return container.querySelector("button")!.parentElement!;
+  return menuButton("remove")!.parentElement!;
 }
 
-async function openMenu(x: number, y: number, selector = '[data-testid="track-data"]') {
+async function openMenu(x: number, y: number, selector = '[data-testid="test"]') {
   const event = new MouseEvent("contextmenu", {
     bubbles: true,
     cancelable: true,

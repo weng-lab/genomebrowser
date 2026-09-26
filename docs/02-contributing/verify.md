@@ -4,6 +4,10 @@ Run `pnpm verify` from the repository root before handing off a PR. It runs the 
 
 Direct checks are useful while iterating. For example, `pnpm core test` runs core's tests. Use the affected package's configured commands for focused feedback, then use `pnpm verify` for the workspace check before handoff.
 
+## Coverage
+
+Run `pnpm core test:coverage` to generate a core coverage report at `packages/core/coverage/index.html`. Open it in a browser to inspect uncovered lines and branches. The report includes all core source files, including files no test imports. Use gaps to investigate missing behavior coverage; a covered line does not prove that a test asserts its result. Coverage is optional and has no percentage threshold.
+
 ## Additional checks
 
 Run `pnpm run doctor` before PR handoff and report relevant React Doctor findings. This is a separate diagnostic pass, not part of `pnpm verify`. Its CI workflow is nonblocking. Distinguish findings caused by the change from existing findings; do not expand a focused contribution into unrelated cleanup.

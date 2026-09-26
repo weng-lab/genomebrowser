@@ -42,3 +42,6 @@ storybook-static
 .devserve
 .vercel
 .codex
+
+# Generated test coverage
+coverage/
