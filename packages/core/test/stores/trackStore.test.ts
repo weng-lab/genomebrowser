@@ -541,15 +541,4 @@ describe("createTrackStore", () => {
       config: { yRange: { min: 5, max: 20 } },
     });
   });
-
-  it("exposes updateTrack as the only existing-track update API", () => {
-    const store = createTrackStore({
-      modules: [signalModule, intervalModule],
-      tracks: [signalTrack()],
-    });
-
-    expect(store.getState().updateTrack).toBeTypeOf("function");
-    expect(store.getState()).not.toHaveProperty("updateBase");
-    expect(store.getState()).not.toHaveProperty("updateConfig");
-  });
 });

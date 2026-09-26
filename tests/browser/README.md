@@ -52,6 +52,8 @@ and local fixtures before keeping the generated test.
 
 - `scenarios/core-selection.spec.ts`: zoom, reverse highlights, repeated selections,
   ruler gestures, Escape cancellation, selection hit testing, guides, and margin controls.
+- `scenarios/core-pan.spec.ts`: title and blank-header dragging on ordinary and short
+  tracks, wheel navigation, sub-base movements, and margin hover without blocking controls.
 - `scenarios/core-reorder.spec.ts`: live drag previews, moves in both directions, pinned
   track boundaries, and the margin's move controls.
 - `scenarios/core-settings-menu.spec.ts`: keyboard-opened settings, edits, scrolling,
@@ -72,10 +74,11 @@ logical size.
 
 These workflows replace the private tooltip-position, error-layout, default-settings-modal,
 context-menu geometry, track-control pinning, and swap-math suites. Selection gestures and
-geometry also move here. Private checks for impossible dimensions,
+geometry also move here, along with title dragging and track-frame hover. Private checks for impossible dimensions,
 listener bookkeeping, and isolated keyboard behavior are removed. Four fast selection
 cancellation cases remain because they protect stale commits and React layout-effect
-timing. Public settings-update and async integration tests stay in core. Keep those data
+timing. Fast pan tests retain wheel settling, cancellation, and rejected commits.
+Public settings-update and async integration tests stay in core. Keep those data
 and timing permutations in fast tests.
 
 ## Add a workflow

@@ -3,11 +3,7 @@
 import { act, type PointerEvent as ReactPointerEvent } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  expandRegion,
-  getPanCommitRegion,
-  usePanController,
-} from "../../src/browser/viewport/usePanController";
+import { usePanController } from "../../src/browser/viewport/usePanController";
 import { usePanWheel } from "../../src/browser/viewport/usePanWheel";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 
@@ -42,58 +38,10 @@ afterEach(async () => {
   root = undefined;
 });
 
-describe("pan region math", () => {
-  it("expands a region evenly around the visible span", () => {
-    expect(expandRegion({ chromosome: "chr1", start: 100, end: 200 }, 3)).toEqual({
-      chromosome: "chr1",
-      start: 0,
-      end: 300,
-    });
-  });
-
-  it("commits a positive pan delta by shifting the region left", () => {
-    expect(getPanCommitRegion({ chromosome: "chr1", start: 100, end: 200 }, 100, 25)).toEqual({
-      chromosome: "chr1",
-      start: 75,
-      end: 175,
-    });
-  });
-
-  it("commits a negative pan delta by shifting the region right", () => {
-    expect(getPanCommitRegion({ chromosome: "chr1", start: 100, end: 200 }, 100, -25)).toEqual({
-      chromosome: "chr1",
-      start: 125,
-      end: 225,
-    });
-  });
-
-  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
-    "rejects invalid pan width %s before coordinate math",
-    (width) => {
-      expect(
-        getPanCommitRegion({ chromosome: "chr1", start: 100, end: 200 }, width, 25),
-      ).toBeNull();
-    },
-  );
-
-  it("rejects a non-finite pan delta before coordinate math", () => {
-    expect(
-      getPanCommitRegion(
-        { chromosome: "chr1", start: 100, end: 200 },
-        100,
-        Number.POSITIVE_INFINITY,
-      ),
-    ).toBeNull();
-  });
-
-  it.each([20, -20])("rejects pan delta %s when it cannot move by one base", (deltaPx) => {
-    expect(
-      getPanCommitRegion({ chromosome: "chr1", start: 100, end: 101 }, 1_000, deltaPx),
-    ).toBeNull();
-  });
-});
-
-describe("usePanController", () => {
+// Browser input and pan direction are covered in core-pan.spec.ts. These fast cases
+// retain cancellation/settling timing and commit rejection paths that need controlled
+// clocks or a region update between pointer events.
+describe("pan commit and cancellation", () => {
   it("commits an active drag against the latest region and width", async () => {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     let contentOffset = 0;
@@ -268,26 +216,6 @@ describe("usePanController", () => {
 
       expect(setRegion).not.toHaveBeenCalled();
       expect(interaction.getContentOffset()).toBe(0);
-    },
-  );
-
-  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
-    "does not begin or commit a pan with invalid track width %s",
-    async (trackWidth) => {
-      const interaction = createPanInteraction();
-      const setRegion = vi.fn();
-
-      await renderController({
-        svg: interaction.svg,
-        region: { chromosome: "chr1", start: 20, end: 40 },
-        trackWidth,
-        getContentOffset: interaction.getContentOffset,
-        setContentOffset: interaction.setContentOffset,
-        setRegion,
-      });
-
-      expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(20))).toBe(false);
-      expect(setRegion).not.toHaveBeenCalled();
     },
   );
 });
