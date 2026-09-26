@@ -1,10 +1,18 @@
 import { createContext, use } from "react";
 import type { TrackMutationResult } from "../../modules/types";
 import type { TooltipStore } from "../tooltip/types";
-import type { TooltipStoreInstance } from "../tooltip/tooltipStore";
+import { createTooltipStore, type TooltipStoreInstance } from "../tooltip/tooltipStore";
 import type { BrowserStoreInstance } from "./browserStore";
-import type { ContextMenuStore, ContextMenuStoreInstance } from "./contextMenuStore";
-import type { SettingsStore, SettingsStoreInstance } from "./settingsStore";
+import {
+  createContextMenuStore,
+  type ContextMenuStore,
+  type ContextMenuStoreInstance,
+} from "./contextMenuStore";
+import {
+  createSettingsStore,
+  type SettingsStore,
+  type SettingsStoreInstance,
+} from "./settingsStore";
 import type { TrackStoreInstance } from "./trackStore";
 
 /**
@@ -22,6 +30,22 @@ export type BrowserContextValue = {
 };
 
 export const BrowserContext = createContext<BrowserContextValue | null>(null);
+
+/** Create one browser's context value with private menu, settings, and tooltip stores. */
+export function createBrowserContextValue(
+  browserStore: BrowserStoreInstance,
+  trackStore: TrackStoreInstance,
+  isPanDragging: () => boolean,
+): BrowserContextValue {
+  return {
+    browserStore,
+    trackStore,
+    contextMenuStore: createContextMenuStore(),
+    settingsStore: createSettingsStore(),
+    tooltipStore: createTooltipStore(),
+    isPanDragging,
+  };
+}
 
 function useBrowserContext(hook: string) {
   const context = use(BrowserContext);

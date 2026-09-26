@@ -7,10 +7,8 @@ import {
   type TrackResources,
 } from "@weng-lab/genomebrowser";
 import { rulerModule, type RulerData } from "@weng-lab/genomebrowser-tracks/ruler";
-import {
-  BrowserProvider,
-  createBrowserContextValue,
-} from "../../../core/src/browser/state/BrowserContext";
+import { BrowserProvider } from "../../../core/src/browser/state/BrowserContext";
+import { createBrowserContextValue } from "../../../core/src/browser/state/browserContextState";
 import { tickStep } from "../../src/ruler/helpers";
 const { read, createFile } = vi.hoisted(() => ({ read: vi.fn(), createFile: vi.fn() }));
 vi.mock("../../src/ruler/useRulerHoverHighlight", () => ({

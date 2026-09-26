@@ -15,7 +15,8 @@ import {
   useTooltip,
   type GenomeBrowserStores,
 } from "../../src/lib";
-import { BrowserProvider, createBrowserContextValue } from "../../src/browser/state/BrowserContext";
+import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;

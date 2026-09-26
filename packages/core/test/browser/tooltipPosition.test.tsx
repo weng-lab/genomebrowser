@@ -3,7 +3,8 @@
 import { act, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { BrowserProvider, createBrowserContextValue } from "../../src/browser/state/BrowserContext";
+import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { BrowserSvgProvider } from "../../src/browser/svg/BrowserSvgContext";

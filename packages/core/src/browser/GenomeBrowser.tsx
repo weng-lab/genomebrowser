@@ -14,9 +14,13 @@ import {
 } from "./data/trackDataController";
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { BrowserSvgProvider } from "./svg/BrowserSvgContext";
-import { BrowserProvider, createBrowserContextValue } from "./state/BrowserContext";
+import { BrowserProvider } from "./state/BrowserContext";
 import type { BrowserStore, BrowserStoreInstance } from "./state/browserStore";
-import { useGenomeBrowser, useIsInteractionBlocked } from "./state/browserContextState";
+import {
+  createBrowserContextValue,
+  useGenomeBrowser,
+  useIsInteractionBlocked,
+} from "./state/browserContextState";
 import type { TrackStoreInstance } from "./state/trackStore";
 import { InteractionShield } from "./overlays/InteractionShield";
 import { Highlights } from "./overlays/Highlights";

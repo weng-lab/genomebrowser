@@ -2,7 +2,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Highlights } from "../../src/browser/overlays/Highlights";
-import { BrowserProvider, createBrowserContextValue } from "../../src/browser/state/BrowserContext";
+import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 

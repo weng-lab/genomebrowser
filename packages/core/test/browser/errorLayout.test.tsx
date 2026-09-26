@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createBrowserStore, createTrackStore, defineTrackModule, hg38 } from "../../src/lib";
 import type { TrackStoreInstance } from "../../src/lib";
-import { BrowserProvider, createBrowserContextValue } from "../../src/browser/state/BrowserContext";
+import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { TrackContent } from "../../src/browser/track-row/TrackContent";
 
 // Preserve these existing layout guards until real-browser tests verify scrolling

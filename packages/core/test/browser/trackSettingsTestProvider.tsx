@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { BrowserProvider, createBrowserContextValue } from "../../src/browser/state/BrowserContext";
+import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import type { TrackStoreInstance } from "../../src/browser/state/trackStore";

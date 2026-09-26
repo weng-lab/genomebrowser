@@ -3,10 +3,8 @@ import { act, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
 import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
-import {
-  BrowserProvider,
-  createBrowserContextValue,
-} from "../../../core/src/browser/state/BrowserContext";
+import { BrowserProvider } from "../../../core/src/browser/state/BrowserContext";
+import { createBrowserContextValue } from "../../../core/src/browser/state/browserContextState";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 import { RulerSettings } from "../../src/ruler/settings";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
