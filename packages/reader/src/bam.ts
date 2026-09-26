@@ -1,7 +1,8 @@
 // Adapted from weng-lab/bigwig-reader src/bam (MIT, Copyright 2018 weng-lab).
 import type { GenomicFile, GenomicRecord, ReadOptions } from "./genomicFile";
 import { throwIfAborted } from "./internal/abort";
-import { BamBgzfReader, BamHeaderReader, joinBamBytes } from "./internal/bamBgzf";
+import { BamBgzfReader, BamHeaderReader } from "./internal/bamBgzf";
+import { readBamChunks } from "./internal/bamChunkReader";
 import { bamChunks, parseBamIndex, type BamIndex } from "./internal/bamIndex";
 import { decodeBamRecords } from "./internal/bamDecoder";
 import type { ExactRangeMetadata } from "./internal/httpRange";
@@ -65,7 +66,6 @@ export function createBamFile(options: BamFileOptions): BamFile {
       if (region.end > 2 ** 29) throw new RangeError("BAI regions must end at or before 2^29");
       const signal = options?.signal;
       throwIfAborted(signal);
-      const bgzf = new BamBgzfReader(new RequestRangeReader(url, { signal, metadata }));
       const { references } = await loadHeader(signal);
       throwIfAborted(signal);
       let refId = references.findIndex((ref) => ref.name === region.chromosome);
@@ -93,30 +93,19 @@ export function createBamFile(options: BamFileOptions): BamFile {
       const outputReferences = references.map((ref, id) =>
         id === refId ? { ...ref, name: region.chromosome } : ref,
       );
-      const records: BamRecord[] = [];
-      for (const chunk of bamChunks(
+      const chunks = bamChunks(
         index[refId],
         region.start,
         Math.min(region.end, references[refId].length),
-      )) {
-        const parts: Uint8Array[] = [];
-        let offset = chunk.start >> 16n;
-        const lastBlock = chunk.end >> 16n;
-        while (offset < lastBlock || (offset === lastBlock && (chunk.end & 65535n) !== 0n)) {
-          throwIfAborted(signal);
-          const block = await bgzf.block(offset);
-          const start = offset === chunk.start >> 16n ? Number(chunk.start & 65535n) : 0;
-          const end = offset === lastBlock ? Number(chunk.end & 65535n) : block.bytes.length;
-          if (start > end || end > block.bytes.length || block.bytes.length === 0)
-            throw new Error("Invalid BAM chunk virtual offset");
-          parts.push(block.bytes.subarray(start, end));
-          if (offset < lastBlock && block.next > lastBlock)
-            throw new Error("BAI chunk does not end at a BGZF boundary");
-          offset = block.next;
-        }
-        for (const record of decodeBamRecords(joinBamBytes(parts), outputReferences, refId, region))
-          records.push(record);
-      }
+      );
+      const records = (
+        await readBamChunks(
+          url,
+          chunks,
+          (bytes) => decodeBamRecords(bytes, outputReferences, refId, region),
+          { signal, metadata },
+        )
+      ).flat();
       throwIfAborted(signal);
       return records.sort((a, b) => a.start - b.start || a.end - b.end);
     },
