@@ -22,7 +22,9 @@
     "doctor": "pnpm exec react-doctor . --verbose",
     "publish:dry-run": "pnpm publish -r --tag latest --dry-run --no-git-checks",
     "publish:stable": "pnpm publish -r --tag latest",
-    "test:browser": "turbo run test:e2e --filter=@weng-lab/genomebrowser-tracks"
+    "test:browser": "turbo run test:e2e --filter=@weng-lab/genomebrowser-browser-tests",
+    "browser": "pnpm --filter @weng-lab/genomebrowser-browser-tests",
+    "browser:dev": "turbo run dev --filter=@weng-lab/genomebrowser-browser-tests"
   },
   "devDependencies": {
     "oxfmt": "catalog:",

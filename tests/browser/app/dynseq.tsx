@@ -36,6 +36,11 @@ function App() {
   const setRegion = useBrowserStore((state) => state.setRegion);
   return (
     <>
+      <nav>
+        <a href="/">Signal and navigation</a>
+        {" | "}
+        <a href="/dynseq.html">Dynseq</a>
+      </nav>
       <button onClick={() => setRegion({ chromosome: "chr1", start: 0, end: 12000 })}>Wide</button>
       <button onClick={() => setRegion({ chromosome: "chr1", start: 190, end: 290 })}>
         Sequence

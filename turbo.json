@@ -47,6 +47,15 @@
     "test:e2e": {
       "dependsOn": ["build"],
       "cache": false
+    },
+    "@weng-lab/genomebrowser-browser-tests#dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "@weng-lab/genomebrowser-browser-tests#build": {
+      "dependsOn": ["^build"],
+      "outputs": []
     }
   }
 }

@@ -1,0 +1,26 @@
+{
+  "name": "@weng-lab/genomebrowser-browser-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "dev": "node server.mjs",
+    "test:e2e": "playwright test",
+    "lint": "oxlint .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@weng-lab/genomebrowser": "workspace:*",
+    "@weng-lab/genomebrowser-tracks": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "typescript": "catalog:native",
+    "vite": "catalog:"
+  }
+}

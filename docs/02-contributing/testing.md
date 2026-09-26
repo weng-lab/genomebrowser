@@ -29,14 +29,14 @@ Core owns generic browser and module contract tests; tracks owns first-party tra
 ## Browser workflows
 
 Run `pnpm test:browser` for the deterministic Chromium workflows. Install the browser
-first with `pnpm tracks exec agent-browser install --with-deps`. The command builds
+first with `pnpm browser exec playwright install --with-deps chromium`. The command builds
 workspace dependencies and runs real fixture loading, pointer navigation, and the
 existing dynseq scenarios. CI runs it in the separate `Browser workflows` job and
 uploads screenshots and traces on failure.
 
-See the [browser test guide](../../packages/tracks/test/browser/README.md) for setup,
-fixture ownership, failure artifacts, and adding scenarios. Keep detailed data and
-async edge cases in fast integration tests. Preserve gesture and geometry tests until
+See the [browser test guide](../../tests/browser/README.md) for setup,
+watching tests in Playwright UI mode, manual exploration, failure artifacts, and adding
+scenarios. Keep detailed data and async edge cases in fast integration tests. Preserve gesture and geometry tests until
 equivalent browser coverage passes.
 
 ## Exceptions and maintenance

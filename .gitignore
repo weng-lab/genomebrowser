@@ -48,3 +48,4 @@ coverage/
 
 # Browser failure artifacts
 test-results/
+playwright-report/

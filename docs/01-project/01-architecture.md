@@ -29,4 +29,8 @@ Core coordinates the viewport, track data requests, rendering, and browser inter
 
 Core and reader provide independent foundations. Tracks combines their capabilities; UI supplies controls around the browser. Applications choose the modules and controls that fit their workflows. The standalone app is one such application, not the source of every shared component's requirements.
 
+The private `tests/browser` workspace holds browser workflows spanning these packages.
+It uses their public exports; package-owned integration and render-budget tests remain
+with their packages. See the [browser test guide](../../tests/browser/README.md).
+
 For decisions about extending these parts, see [Where features belong](02-feature-placement.md).

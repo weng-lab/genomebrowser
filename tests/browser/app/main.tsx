@@ -22,6 +22,11 @@ function App() {
   const region = useBrowserStore((state) => state.region);
   return (
     <>
+      <nav>
+        <a href="/">Signal and navigation</a>
+        {" | "}
+        <a href="/dynseq.html">Dynseq</a>
+      </nav>
       <output aria-label="Visible region">
         {region.chromosome}:{region.start}-{region.end}
       </output>
