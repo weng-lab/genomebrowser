@@ -1,14 +1,11 @@
-import { BasePairDetailContext } from "../../../core/src/browser/viewport/basePairDetail";
 // @vitest-environment jsdom
 import { act, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
-import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
-import { BrowserProvider } from "../../../core/src/browser/state/BrowserContext";
-import { createBrowserContextValue } from "../../../core/src/browser/state/browserContextState";
+import { createBrowserStore } from "@weng-lab/genomebrowser";
+import { TestBrowser } from "../testBrowser";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 import { RulerSettings } from "../../src/ruler/settings";
-const detailStatus = { reason: "viewport" as const, zoomTargetBases: 100, maxReadableBases: 125 };
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 it("exposes config fields and preserves host ownership", () => {
@@ -20,23 +17,8 @@ it("exposes config fields and preserves host ownership", () => {
     region: { chromosome: "chr1", start: 1000, end: 2000 },
     trackWidth: 1000,
   });
-  const context = createBrowserContextValue(
-    useBrowserStore,
-    createTrackStore({ modules: [], tracks: [] }),
-    () => false,
-  );
   const render = (children: ReactNode) =>
-    root.render(
-      <BasePairDetailContext
-        value={{
-          subscribe: () => () => {},
-          getBasePairDetail: () => false,
-          getBasePairDetailStatus: () => detailStatus,
-        }}
-      >
-        <BrowserProvider value={context}>{children}</BrowserProvider>
-      </BasePairDetailContext>,
-    );
+    root.render(<TestBrowser browserStore={useBrowserStore}>{children}</TestBrowser>);
   const updateTrack = vi.fn(() => ({ ok: true as const }));
   try {
     const track = rulerModule.create({

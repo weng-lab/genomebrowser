@@ -16,6 +16,7 @@ import {
   type GenomeBrowserStores,
 } from "../../src/lib";
 import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { idleDataSource } from "./idleDataSource";
 import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
@@ -93,6 +94,7 @@ describe("useGenomeBrowser", () => {
     const extras = createBrowserContextValue(
       first.useBrowserStore,
       first.useTrackStore,
+      idleDataSource,
       () => false,
     );
     const view = (stores: GenomeBrowserStores) => (

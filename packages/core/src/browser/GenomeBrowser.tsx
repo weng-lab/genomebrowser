@@ -1,4 +1,3 @@
-import { BasePairDetailContext } from "./viewport/basePairDetail";
 import {
   useLayoutEffect,
   useMemo,
@@ -8,11 +7,7 @@ import {
   type SetStateAction,
 } from "react";
 import { useShallow } from "zustand/react/shallow";
-import {
-  createTrackDataController,
-  PAN_OVERSCAN_MULTIPLIER,
-  type TrackDataController,
-} from "./data/trackDataController";
+import { createTrackDataController, PAN_OVERSCAN_MULTIPLIER } from "./data/trackDataController";
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { BrowserSvgProvider } from "./svg/BrowserSvgContext";
 import { BrowserProvider } from "./state/BrowserContext";
@@ -155,39 +150,35 @@ function GenomeBrowserRuntime({
   // The value never changes after mount, so components subscribe to changing
   // state through store selectors.
   const [browserContextValue] = useState(() =>
-    createBrowserContextValue(browserStore, trackStore, panDrag.isDragging),
+    createBrowserContextValue(browserStore, trackStore, dataController, panDrag.isDragging),
   );
 
   return (
-    <BasePairDetailContext value={dataController}>
-      <BrowserProvider value={browserContextValue}>
-        <BrowserSvgProvider svg={svg}>
-          <BrowserView
-            dataController={dataController}
-            svg={svg}
-            setSvg={setSvg}
-            browserWidth={browserWidth}
-            scale={scale}
-            totalHeight={totalHeight}
-            marginWidth={marginWidth}
-            trackWidth={trackWidth}
-            region={region}
-            setRegion={setRegion}
-            registerContentGroup={registerContentGroup}
-            onPanCommit={commitPan}
-            setContentOffset={setContentOffset}
-            panDrag={panDrag}
-            titleSize={titleSize}
-            trackLayouts={trackLayouts}
-          />
-        </BrowserSvgProvider>
-      </BrowserProvider>
-    </BasePairDetailContext>
+    <BrowserProvider value={browserContextValue}>
+      <BrowserSvgProvider svg={svg}>
+        <BrowserView
+          svg={svg}
+          setSvg={setSvg}
+          browserWidth={browserWidth}
+          scale={scale}
+          totalHeight={totalHeight}
+          marginWidth={marginWidth}
+          trackWidth={trackWidth}
+          region={region}
+          setRegion={setRegion}
+          registerContentGroup={registerContentGroup}
+          onPanCommit={commitPan}
+          setContentOffset={setContentOffset}
+          panDrag={panDrag}
+          titleSize={titleSize}
+          trackLayouts={trackLayouts}
+        />
+      </BrowserSvgProvider>
+    </BrowserProvider>
   );
 }
 
 function BrowserView({
-  dataController,
   svg,
   setSvg,
   browserWidth,
@@ -204,7 +195,6 @@ function BrowserView({
   titleSize,
   trackLayouts,
 }: {
-  dataController: TrackDataController;
   svg: SVGSVGElement | null;
   setSvg: Dispatch<SetStateAction<SVGSVGElement | null>>;
   browserWidth: number;
@@ -263,7 +253,6 @@ function BrowserView({
           />
           <g>
             <TrackStack
-              dataController={dataController}
               trackLayouts={trackLayouts}
               visibleRegion={region}
               marginWidth={marginWidth}

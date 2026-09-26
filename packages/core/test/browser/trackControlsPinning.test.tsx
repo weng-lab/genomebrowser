@@ -5,6 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, it } from "vitest";
 import { z } from "zod";
 import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { idleDataSource } from "./idleDataSource";
 import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
@@ -43,7 +44,12 @@ it("disables pinned move controls and moves other tracks only within the unpinne
     assembly: { id: "test", chromosomes: { chr1: 1000 } },
     region: { chromosome: "chr1", start: 0, end: 100 },
   });
-  const context = createBrowserContextValue(browserStore, useTrackStore, () => false);
+  const context = createBrowserContextValue(
+    browserStore,
+    useTrackStore,
+    idleDataSource,
+    () => false,
+  );
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);

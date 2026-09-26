@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { idleDataSource } from "./idleDataSource";
 import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
@@ -27,6 +28,7 @@ export function TrackSettingsTestProvider({
             region: { chromosome: "chr1", start: 0, end: 10 },
           }),
           trackStore,
+          idleDataSource,
           () => false,
         ),
         settingsStore,

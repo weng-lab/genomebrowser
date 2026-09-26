@@ -6,12 +6,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { idleDataSource } from "./idleDataSource";
 import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { TrackFrame } from "../../src/browser/track-row/TrackFrame";
 import { TrackStackContext } from "../../src/browser/track-row/trackStackContext";
-import { createTrackDataController } from "../../src/browser/data/trackDataController";
 import { hg38 } from "../../src/genome/presets";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 
@@ -105,7 +105,6 @@ async function renderFrame({
   });
   const trackStore = createTrackStore({ modules: [module], tracks: [track] });
   const stack = {
-    dataController: createTrackDataController({ browserStore, trackStore, trackWidth }),
     marginWidth,
     trackWidth,
     titleSize: 12,
@@ -127,7 +126,7 @@ async function renderFrame({
     root?.render(
       <BrowserProvider
         value={{
-          ...createBrowserContextValue(browserStore, trackStore, () => false),
+          ...createBrowserContextValue(browserStore, trackStore, idleDataSource, () => false),
           settingsStore,
         }}
       >

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createBrowserStore, createTrackStore, defineTrackModule, hg38 } from "../../src/lib";
 import type { TrackStoreInstance } from "../../src/lib";
 import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { idleDataSource } from "./idleDataSource";
 import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { TrackContent } from "../../src/browser/track-row/TrackContent";
 
@@ -83,5 +84,5 @@ function browserContext(trackStore: TrackStoreInstance) {
     assembly: hg38,
     region: { chromosome: "chr1", start: 0, end: 10 },
   });
-  return createBrowserContextValue(browserStore, trackStore, () => false);
+  return createBrowserContextValue(browserStore, trackStore, idleDataSource, () => false);
 }

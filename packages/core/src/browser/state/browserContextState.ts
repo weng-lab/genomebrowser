@@ -1,5 +1,6 @@
 import { createContext, use } from "react";
 import type { TrackMutationResult } from "../../modules/types";
+import type { TrackDataController } from "../data/trackDataController";
 import type { TooltipStore } from "../tooltip/types";
 import { createTooltipStore, type TooltipStoreInstance } from "../tooltip/tooltipStore";
 import type { BrowserStoreInstance } from "./browserStore";
@@ -19,9 +20,17 @@ import type { TrackStoreInstance } from "./trackStore";
  * One mounted browser's stores and stable callbacks. The value never changes after
  * mount; components subscribe to changing state through the stores' selectors.
  */
+/** The parts of a browser's data controller that components subscribe to. */
+export type BrowserDataSource = Pick<
+  TrackDataController,
+  "subscribe" | "getTrack" | "getBasePairDetail" | "getBasePairDetailStatus"
+>;
+
 export type BrowserContextValue = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
+  /** Per-track results and the base-pair detail gate, read with `useSyncExternalStore`. */
+  dataController: BrowserDataSource;
   contextMenuStore: ContextMenuStoreInstance;
   settingsStore: SettingsStoreInstance;
   tooltipStore: TooltipStoreInstance;
@@ -35,11 +44,13 @@ export const BrowserContext = createContext<BrowserContextValue | null>(null);
 export function createBrowserContextValue(
   browserStore: BrowserStoreInstance,
   trackStore: TrackStoreInstance,
+  dataController: BrowserDataSource,
   isPanDragging: () => boolean,
 ): BrowserContextValue {
   return {
     browserStore,
     trackStore,
+    dataController,
     contextMenuStore: createContextMenuStore(),
     settingsStore: createSettingsStore(),
     tooltipStore: createTooltipStore(),
@@ -67,6 +78,10 @@ export type GenomeBrowserStores = {
 export function useGenomeBrowser(): GenomeBrowserStores {
   const context = useBrowserContext("useGenomeBrowser");
   return { useBrowserStore: context.browserStore, useTrackStore: context.trackStore };
+}
+
+export function useDataController() {
+  return useBrowserContext("useDataController").dataController;
 }
 
 export function useRegistry() {

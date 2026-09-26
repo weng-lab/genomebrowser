@@ -4,6 +4,7 @@ import { act, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { idleDataSource } from "./idleDataSource";
 import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
@@ -25,6 +26,7 @@ const browserContext = createBrowserContextValue(
     region: { chromosome: "chr1", start: 0, end: 100 },
   }),
   createTrackStore({ modules: [], tracks: [] }),
+  idleDataSource,
   () => false,
 );
 

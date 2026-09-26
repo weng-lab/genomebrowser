@@ -2,7 +2,7 @@ import { useSyncExternalStore, type ErrorInfo } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
 import type { GenomicRegion } from "../../genome/region";
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
-import { useGenomeBrowser } from "../state/browserContextState";
+import { useDataController, useGenomeBrowser } from "../state/browserContextState";
 import { getContentPlacement } from "../viewport/renderWindow";
 import { ErrorState } from "./ErrorState";
 import { SwapTrack } from "./SwapTrack";
@@ -30,7 +30,8 @@ export function TrackRow({
   onPreviewEnd: () => void;
 }) {
   const { useTrackStore } = useGenomeBrowser();
-  const { dataController, marginWidth, trackWidth } = useTrackStack();
+  const dataController = useDataController();
+  const { marginWidth, trackWidth } = useTrackStack();
   const track = useTrackStore((state) =>
     state.tracks[layout.index]?.base.id === layout.id ? state.tracks[layout.index] : undefined,
   );

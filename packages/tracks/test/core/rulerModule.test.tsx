@@ -1,15 +1,8 @@
-import { BasePairDetailContext } from "../../../core/src/browser/viewport/basePairDetail";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  createBrowserStore,
-  createTrackStore,
-  hg38,
-  type TrackResources,
-} from "@weng-lab/genomebrowser";
+import { createTrackStore, hg38, type TrackResources } from "@weng-lab/genomebrowser";
 import { rulerModule, type RulerData } from "@weng-lab/genomebrowser-tracks/ruler";
-import { BrowserProvider } from "../../../core/src/browser/state/BrowserContext";
-import { createBrowserContextValue } from "../../../core/src/browser/state/browserContextState";
+import { TestBrowser } from "../testBrowser";
 import { tickStep } from "../../src/ruler/helpers";
 const { read, createFile } = vi.hoisted(() => ({ read: vi.fn(), createFile: vi.fn() }));
 vi.mock("../../src/ruler/useRulerHoverHighlight", () => ({
@@ -49,36 +42,21 @@ function render(
   });
   const Renderer = rulerModule.render.full;
   return renderToStaticMarkup(
-    <BrowserProvider
-      value={createBrowserContextValue(
-        createBrowserStore({ assembly: hg38, region }),
-        createTrackStore({ modules: [rulerModule], tracks: [track] }),
-        () => false,
-      )}
+    <TestBrowser
+      basePairDetail
+      trackStore={createTrackStore({ modules: [rulerModule], tracks: [track] })}
     >
-      <BasePairDetailContext
-        value={{
-          subscribe: () => () => {},
-          getBasePairDetailStatus: () => ({
-            reason: "ready",
-            zoomTargetBases: 100,
-            maxReadableBases: 125,
-          }),
-          getBasePairDetail: () => true,
-        }}
-      >
-        <svg>
-          <Renderer
-            {...track.base}
-            config={track.config}
-            width={width}
-            region={{ ...region, end: region.start + viewportSpan }}
-            visibleRegion={{ ...region, end: region.start + viewportSpan }}
-            data={data}
-          />
-        </svg>
-      </BasePairDetailContext>
-    </BrowserProvider>,
+      <svg>
+        <Renderer
+          {...track.base}
+          config={track.config}
+          width={width}
+          region={{ ...region, end: region.start + viewportSpan }}
+          visibleRegion={{ ...region, end: region.start + viewportSpan }}
+          data={data}
+        />
+      </svg>
+    </TestBrowser>,
   );
 }
 describe("ruler module", () => {

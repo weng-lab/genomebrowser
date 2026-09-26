@@ -9,7 +9,6 @@ import { TrackStackContext, type TrackStackContextValue } from "./trackStackCont
 export function TrackStack({
   trackLayouts,
   visibleRegion,
-  dataController,
   marginWidth,
   trackWidth,
   titleSize,
@@ -20,8 +19,8 @@ export function TrackStack({
   visibleRegion: GenomicRegion;
 }) {
   const stack = useMemo(
-    () => ({ dataController, marginWidth, trackWidth, titleSize, registerContentGroup, panDrag }),
-    [dataController, marginWidth, trackWidth, titleSize, registerContentGroup, panDrag],
+    () => ({ marginWidth, trackWidth, titleSize, registerContentGroup, panDrag }),
+    [marginWidth, trackWidth, titleSize, registerContentGroup, panDrag],
   );
   const [swapPreview, setSwapPreview] = useState<SwapPreview | null>(null);
   const handlePreviewChange = useCallback((preview: SwapPreview) => {

@@ -1,4 +1,5 @@
-import { createContext, use, useSyncExternalStore } from "react";
+import { use, useSyncExternalStore } from "react";
+import { BrowserContext } from "../state/browserContextState";
 
 // Logical SVG units: text and cells scale together. A two-unit buffer prevents
 // small resizes near the boundary from repeatedly switching representations.
@@ -37,24 +38,16 @@ export function getBasePairDetailStatus(
   };
 }
 
-type BasePairDetailSource = {
-  subscribe: (listener: () => void) => () => void;
-  getBasePairDetail: () => boolean;
-  getBasePairDetailStatus: () => BasePairDetailStatus;
-};
-
-export const BasePairDetailContext = createContext<BasePairDetailSource | null>(null);
-
 /** The hosting browser's shared, width-buffered decision to draw base-pair detail. */
 export function useBasePairDetail(): boolean {
-  const source = use(BasePairDetailContext);
+  const source = use(BrowserContext)?.dataController;
   if (!source) throw new Error("useBasePairDetail must be used within a GenomeBrowser");
   return useSyncExternalStore(source.subscribe, source.getBasePairDetail, source.getBasePairDetail);
 }
 
 /** Explain the shared gate and obtain a zoom target using the actual mounted plot width. */
 export function useBasePairDetailStatus(): BasePairDetailStatus {
-  const source = use(BasePairDetailContext);
+  const source = use(BrowserContext)?.dataController;
   if (!source) throw new Error("useBasePairDetailStatus must be used within a GenomeBrowser");
   return useSyncExternalStore(
     source.subscribe,

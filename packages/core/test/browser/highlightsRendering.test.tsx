@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Highlights } from "../../src/browser/overlays/Highlights";
 import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { idleDataSource } from "./idleDataSource";
 import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
@@ -23,6 +24,7 @@ describe("highlight rendering", () => {
         value={createBrowserContextValue(
           browserStore,
           createTrackStore({ modules: [], tracks: [] }),
+          idleDataSource,
           () => false,
         )}
       >

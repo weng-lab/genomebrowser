@@ -1,17 +1,14 @@
-import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
-import { createBrowserContextValue } from "../../../core/src/browser/state/browserContextState";
-import { BrowserProvider } from "../../../core/src/browser/state/BrowserContext";
-import { BasePairDetailContext } from "../../../core/src/browser/viewport/basePairDetail";
+import { createTrackStore } from "@weng-lab/genomebrowser";
 // @vitest-environment jsdom
-import { act, type ReactNode } from "react";
+import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { bamModule, type BamRecord } from "@weng-lab/genomebrowser-tracks/bam";
 import { BamSettings } from "../../src/bam/settings";
 import type { BamConfig } from "../../src/bam/types";
+import { TestBrowser } from "../testBrowser";
 import { type TrackUpdate } from "@weng-lab/genomebrowser";
 
-const detailStatus = { reason: "viewport" as const, zoomTargetBases: 100, maxReadableBases: 125 };
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 let root: Root | undefined;
@@ -34,56 +31,19 @@ function setup(source: "host" | "user") {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  const context = createBrowserContextValue(
-    createBrowserStore({
-      assembly: { id: "test", chromosomes: { chr1: 10000 } },
-      region: { chromosome: "chr1", start: 0, end: 1000 },
-    }),
-    createTrackStore({ modules: [], tracks: [] }),
-    () => false,
-  );
   act(() =>
     root?.render(
-      <BasePairDetailContext
-        value={{
-          subscribe: () => () => {},
-          getBasePairDetail: () => false,
-          getBasePairDetailStatus: () => detailStatus,
-        }}
-      >
-        <BrowserProvider value={context}>
-          <BamSettings
-            track={track}
-            displayOptions={bamModule.displays}
-            updateTrack={update}
-            updateTracksOfType={() => ({ ok: true })}
-          />
-        </BrowserProvider>
-      </BasePairDetailContext>,
+      <TestBrowser>
+        <BamSettings
+          track={track}
+          displayOptions={bamModule.displays}
+          updateTrack={update}
+          updateTracksOfType={() => ({ ok: true })}
+        />
+      </TestBrowser>,
     ),
   );
   return update;
-}
-function TestBrowser({ children }: { children: ReactNode }) {
-  const context = createBrowserContextValue(
-    createBrowserStore({
-      assembly: { id: "test", chromosomes: { chr1: 10000 } },
-      region: { chromosome: "chr1", start: 0, end: 1000 },
-    }),
-    createTrackStore({ modules: [], tracks: [] }),
-    () => false,
-  );
-  return (
-    <BasePairDetailContext
-      value={{
-        subscribe: () => () => {},
-        getBasePairDetail: () => false,
-        getBasePairDetailStatus: () => detailStatus,
-      }}
-    >
-      <BrowserProvider value={context}>{children}</BrowserProvider>
-    </BasePairDetailContext>
-  );
 }
 function duplicatesCheckbox() {
   return [...container!.querySelectorAll("label")]
