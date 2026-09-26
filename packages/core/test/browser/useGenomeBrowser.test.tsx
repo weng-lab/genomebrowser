@@ -16,8 +16,8 @@ import {
   type GenomeBrowserStores,
 } from "../../src/lib";
 import { BrowserProvider } from "../../src/browser/state/BrowserContext";
-import { createContextMenuStore } from "../../src/browser/state/contextMenuStore";
-import { createSettingsStore } from "../../src/browser/state/settingsStore";
+import { idleDataSource } from "./idleDataSource";
+import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -91,10 +91,12 @@ describe("useGenomeBrowser", () => {
         </span>
       );
     }
-    const extras = {
-      contextMenuStore: createContextMenuStore(),
-      settingsStore: createSettingsStore(),
-    };
+    const extras = createBrowserContextValue(
+      first.useBrowserStore,
+      first.useTrackStore,
+      idleDataSource,
+      () => false,
+    );
     const view = (stores: GenomeBrowserStores) => (
       <BrowserProvider
         value={{

@@ -1,4 +1,3 @@
-import { BasePairDetailContext } from "../../../core/src/browser/viewport/basePairDetail";
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot } from "react-dom/client";
@@ -6,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { bamModule, type BamRecord, type BamData } from "@weng-lab/genomebrowser-tracks/bam";
 import { BamTooltip } from "../../src/bam/tooltip";
+import { TestBrowser } from "../testBrowser";
 
 const hooks = vi.hoisted(() => ({
   click: vi.fn(),
@@ -64,33 +64,14 @@ function markup(
   const Renderer = bamModule.render[display];
   const element = document.createElement("div");
   element.innerHTML = renderToStaticMarkup(
-    <BasePairDetailContext
-      value={{
-        subscribe: () => () => {},
-        getBasePairDetailStatus: () => ({
-          reason: "ready",
-          zoomTargetBases: 100,
-          maxReadableBases: 125,
-        }),
-        getBasePairDetail: () => basePairDetail,
-      }}
-    >
+    <TestBrowser basePairDetail={basePairDetail}>
       <svg>
         <Renderer {...props} {...overrides} data={data} />
       </svg>
-    </BasePairDetailContext>,
+    </TestBrowser>,
   );
   return element;
 }
-const detailSource = {
-  subscribe: () => () => {},
-  getBasePairDetail: () => true,
-  getBasePairDetailStatus: () => ({
-    reason: "ready" as const,
-    zoomTargetBases: 100,
-    maxReadableBases: 125,
-  }),
-};
 beforeEach(() => vi.clearAllMocks());
 const letters = (element: HTMLElement, op = "M") =>
   [...element.querySelectorAll(`[data-bases="${op}"]`)].map((node) => node.textContent).join("");
@@ -277,21 +258,11 @@ describe("BAM displays", () => {
     try {
       act(() =>
         root.render(
-          <BasePairDetailContext
-            value={{
-              subscribe: () => () => {},
-              getBasePairDetailStatus: () => ({
-                reason: "ready",
-                zoomTargetBases: 100,
-                maxReadableBases: 125,
-              }),
-              getBasePairDetail: () => true,
-            }}
-          >
+          <TestBrowser basePairDetail>
             <svg>
               <Renderer {...props} data={{ records: [record], reference: [] }} />
             </svg>
-          </BasePairDetailContext>,
+          </TestBrowser>,
         ),
       );
       const glyph = element.querySelector("[data-bam-read]")!;
@@ -475,7 +446,7 @@ describe("BAM sections", () => {
     const draw = (data: BamData, visibleStart: number) =>
       act(() =>
         root.render(
-          <BasePairDetailContext value={detailSource}>
+          <TestBrowser basePairDetail>
             <svg>
               <Renderer
                 {...props}
@@ -485,7 +456,7 @@ describe("BAM sections", () => {
                 data={data}
               />
             </svg>
-          </BasePairDetailContext>,
+          </TestBrowser>,
         ),
       );
     try {
@@ -575,11 +546,11 @@ describe("BAM sections", () => {
     const draw = (width: number, currentConfig = config) =>
       act(() =>
         root.render(
-          <BasePairDetailContext value={detailSource}>
+          <TestBrowser basePairDetail>
             <svg>
               <Renderer {...props} config={currentConfig} width={width} data={data} />
             </svg>
-          </BasePairDetailContext>,
+          </TestBrowser>,
         ),
       );
     try {
@@ -620,7 +591,7 @@ describe("BAM sections", () => {
     try {
       act(() =>
         root.render(
-          <BasePairDetailContext value={detailSource}>
+          <TestBrowser basePairDetail>
             <svg>
               <Renderer
                 {...props}
@@ -628,7 +599,7 @@ describe("BAM sections", () => {
                 data={data}
               />
             </svg>
-          </BasePairDetailContext>,
+          </TestBrowser>,
         ),
       );
       const overlay = element.querySelector<SVGRectElement>(

@@ -2,7 +2,7 @@ import { use, useEffect, useLayoutEffect, useRef, useState, type ErrorInfo } fro
 import { createPortal } from "react-dom";
 import { BrowserSvgContext } from "../svg/browserSvgState";
 import { RenderErrorBoundary } from "../RenderErrorBoundary";
-import { useInternalTooltipStore } from "./tooltipContextState";
+import { useTooltipStore } from "../state/browserContextState";
 
 const TOOLTIP_OFFSET = 10;
 const VIEWPORT_MARGIN = 4;
@@ -10,11 +10,11 @@ const tooltipRenderErrorPrefix = "[genomebrowser] Tooltip render error";
 
 export function TooltipOverlay({ width, height }: { width: number; height: number }) {
   const svg = use(BrowserSvgContext);
-  const hide = useInternalTooltipStore((state) => state.hide);
-  const content = useInternalTooltipStore((state) => state.content);
-  const isVisible = useInternalTooltipStore((state) => state.isVisible);
-  const anchor = useInternalTooltipStore((state) => state.anchor);
-  const owner = useInternalTooltipStore((state) => state.owner);
+  const hide = useTooltipStore((state) => state.hide);
+  const content = useTooltipStore((state) => state.content);
+  const isVisible = useTooltipStore((state) => state.isVisible);
+  const anchor = useTooltipStore((state) => state.anchor);
+  const owner = useTooltipStore((state) => state.owner);
   const ref = useRef<SVGGElement>(null);
   const [box, setBox] = useState<TooltipBox>(emptyBox);
 

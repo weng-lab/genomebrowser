@@ -1,9 +1,8 @@
-import { BasePairDetailContext } from "../../../core/src/browser/viewport/basePairDetail";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTrackStore, hg38, type TrackResources } from "@weng-lab/genomebrowser";
 import { rulerModule, type RulerData } from "@weng-lab/genomebrowser-tracks/ruler";
-import { TrackHeightContext } from "../../../core/src/browser/track-row/trackHeightContext";
+import { TestBrowser } from "../testBrowser";
 import { tickStep } from "../../src/ruler/helpers";
 const { read, createFile } = vi.hoisted(() => ({ read: vi.fn(), createFile: vi.fn() }));
 vi.mock("../../src/ruler/useRulerHoverHighlight", () => ({
@@ -43,30 +42,21 @@ function render(
   });
   const Renderer = rulerModule.render.full;
   return renderToStaticMarkup(
-    <TrackHeightContext value={{ getTrackHeight: () => 22, updateHeight: () => ({ ok: true }) }}>
-      <BasePairDetailContext
-        value={{
-          subscribe: () => () => {},
-          getBasePairDetailStatus: () => ({
-            reason: "ready",
-            zoomTargetBases: 100,
-            maxReadableBases: 125,
-          }),
-          getBasePairDetail: () => true,
-        }}
-      >
-        <svg>
-          <Renderer
-            {...track.base}
-            config={track.config}
-            width={width}
-            region={{ ...region, end: region.start + viewportSpan }}
-            visibleRegion={{ ...region, end: region.start + viewportSpan }}
-            data={data}
-          />
-        </svg>
-      </BasePairDetailContext>
-    </TrackHeightContext>,
+    <TestBrowser
+      basePairDetail
+      trackStore={createTrackStore({ modules: [rulerModule], tracks: [track] })}
+    >
+      <svg>
+        <Renderer
+          {...track.base}
+          config={track.config}
+          width={width}
+          region={{ ...region, end: region.start + viewportSpan }}
+          visibleRegion={{ ...region, end: region.start + viewportSpan }}
+          data={data}
+        />
+      </svg>
+    </TestBrowser>,
   );
 }
 describe("ruler module", () => {

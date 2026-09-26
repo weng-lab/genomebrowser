@@ -2,10 +2,10 @@ import { DefaultSettingsModal } from "../settings/DefaultSettingsModal";
 import type { ReadonlyTrackInstance, TrackSettingsComponent } from "../../modules/types";
 import {
   useSettingsStore,
+  useRegistry,
   useTrackMutationGate,
   useGenomeBrowser,
 } from "../state/browserContextState";
-import { useRegistry } from "../state/useRegistry";
 
 export function SettingsModalController() {
   const trackId = useSettingsStore((state) => state.trackId);

@@ -2,49 +2,39 @@ import { trackOverlayContext } from "../track-overlay/context";
 import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { AnyTrackInstance } from "../../modules/types";
 import { useContextMenuStore } from "../state/browserContextState";
-import type { RegisterContentGroup } from "../viewport/useContentTransform";
-import type { PanDragHandlers } from "../viewport/usePanDrag";
 import { PanTrack } from "./PanTrack";
 import { TrackControls } from "./TrackControls";
 import { getTrackTitleMargin, getTrackWrapperHeight } from "./trackLayout";
+import { useTrackStack } from "./trackStackContext";
 
 export function TrackFrame({
   track,
   y,
-  previewOffsetY = 0,
-  marginWidth,
-  trackWidth,
-  contentX = marginWidth,
-  contentWidth = trackWidth,
-  limitsDrag = false,
-  registerContentGroup,
-  panDrag,
+  previewOffsetY,
+  contentX,
+  contentWidth,
+  limitsDrag,
   onSwapPointerDown,
   swapping = false,
   isDragClone = false,
-  disableHover = false,
-  titleSize,
+  disableHover,
   children,
 }: {
   track: AnyTrackInstance;
   y: number;
-  previewOffsetY?: number;
-  marginWidth: number;
-  trackWidth: number;
+  previewOffsetY: number;
   /** Where the content group sits before any drag. */
-  contentX?: number;
-  contentWidth?: number;
+  contentX: number;
+  contentWidth: number;
   /** Whether the content is loaded data that a drag must not scroll past. */
-  limitsDrag?: boolean;
-  registerContentGroup?: RegisterContentGroup;
-  panDrag?: PanDragHandlers;
+  limitsDrag: boolean;
   onSwapPointerDown?: (event: React.PointerEvent<SVGRectElement>) => void;
   swapping?: boolean;
   isDragClone?: boolean;
-  disableHover?: boolean;
-  titleSize: number;
+  disableHover: boolean;
   children: React.ReactNode;
 }) {
+  const { marginWidth, trackWidth, titleSize, registerContentGroup, panDrag } = useTrackStack();
   const [overlayTarget, setOverlayTarget] = useState<SVGGElement | null>(null);
   const overlayContext = useMemo(
     () => ({ target: overlayTarget, width: trackWidth, height: track.base.height }),
@@ -61,7 +51,7 @@ export function TrackFrame({
   // Registration owns the content transform so drag frames can move it without
   // a render. A layout effect paints a new position in the same frame as its data.
   useLayoutEffect(() => {
-    if (isDragClone || !registerContentGroup || !contentGroupRef.current) return;
+    if (isDragClone || !contentGroupRef.current) return;
     return registerContentGroup(contentGroupRef.current, {
       x: contentX,
       width: limitsDrag ? contentWidth : undefined,
@@ -89,10 +79,7 @@ export function TrackFrame({
         onContextMenu={handleContextMenu}
       />
       <g clipPath={`url(#${contentClipId})`} onContextMenu={handleContextMenu}>
-        <g
-          ref={contentGroupRef}
-          transform={isDragClone || !registerContentGroup ? `translate(${contentX},0)` : undefined}
-        >
+        <g ref={contentGroupRef} transform={isDragClone ? `translate(${contentX},0)` : undefined}>
           <g transform={`translate(0,${titleMargin})`}>
             <PanTrack panDrag={panDrag} width={contentWidth} height={track.base.height}>
               <trackOverlayContext.Provider value={overlayContext}>

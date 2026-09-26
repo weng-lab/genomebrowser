@@ -3,7 +3,11 @@
 import { act, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { TooltipContextProvider } from "../../src/browser/tooltip/TooltipContext";
+import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { idleDataSource } from "./idleDataSource";
+import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
+import { createBrowserStore } from "../../src/browser/state/browserStore";
+import { createTrackStore } from "../../src/browser/state/trackStore";
 import { BrowserSvgProvider } from "../../src/browser/svg/BrowserSvgContext";
 import { TooltipOverlay } from "../../src/browser/tooltip/TooltipOverlay";
 import { createTooltipStore } from "../../src/browser/tooltip/tooltipStore";
@@ -16,6 +20,15 @@ let box = { x: 0, y: 0, width: 120, height: 60 };
 let container: HTMLDivElement;
 let root: Root;
 let store: ReturnType<typeof createTooltipStore>;
+const browserContext = createBrowserContextValue(
+  createBrowserStore({
+    assembly: { id: "test", chromosomes: { chr1: 1000 } },
+    region: { chromosome: "chr1", start: 0, end: 100 },
+  }),
+  createTrackStore({ modules: [], tracks: [] }),
+  idleDataSource,
+  () => false,
+);
 
 beforeEach(() => {
   box = { x: 0, y: 0, width: 120, height: 60 };
@@ -44,17 +57,13 @@ async function render(width = 500, height = 300, matrix = { a: 1, b: 0, e: 0, f:
   Object.defineProperty(svg, "getScreenCTM", { value: () => ({ c: 0, d: matrix.a, ...matrix }) });
   await act(async () => {
     root.render(
-      <TooltipContextProvider
-        store={store}
-        isDisabled={() => false}
-        getTooltipComponent={() => undefined}
-      >
+      <BrowserProvider value={{ ...browserContext, tooltipStore: store }}>
         <BrowserSvgProvider svg={svg}>
           <svg>
             <TooltipOverlay width={width} height={height} />
           </svg>
         </BrowserSvgProvider>
-      </TooltipContextProvider>,
+      </BrowserProvider>,
     );
   });
 }

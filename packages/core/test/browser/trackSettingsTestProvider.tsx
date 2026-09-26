@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { BrowserProvider } from "../../src/browser/state/BrowserContext";
+import { idleDataSource } from "./idleDataSource";
+import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
-import { createContextMenuStore } from "../../src/browser/state/contextMenuStore";
-import { RegistryProvider } from "../../src/browser/state/RegistryContext";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import type { TrackStoreInstance } from "../../src/browser/state/trackStore";
 import { hg38 } from "../../src/genome/presets";
@@ -22,16 +22,19 @@ export function TrackSettingsTestProvider({
   return (
     <BrowserProvider
       value={{
-        browserStore: createBrowserStore({
-          assembly: hg38,
-          region: { chromosome: "chr1", start: 0, end: 10 },
-        }),
-        contextMenuStore: createContextMenuStore(),
+        ...createBrowserContextValue(
+          createBrowserStore({
+            assembly: hg38,
+            region: { chromosome: "chr1", start: 0, end: 10 },
+          }),
+          trackStore,
+          idleDataSource,
+          () => false,
+        ),
         settingsStore,
-        trackStore,
       }}
     >
-      <RegistryProvider registry={trackStore.getState().registry}>{children}</RegistryProvider>
+      {children}
     </BrowserProvider>
   );
 }
