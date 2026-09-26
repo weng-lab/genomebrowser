@@ -40,6 +40,11 @@ function setup(source: "host" | "user") {
   );
   return update;
 }
+function duplicatesCheckbox() {
+  return [...container!.querySelectorAll("label")]
+    .find((label) => label.textContent === "Show duplicate reads")!
+    .querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+}
 describe("BAM settings", () => {
   it("commits the index URL explicitly and exposes filtering and display controls", () => {
     const update = setup("user");
@@ -68,7 +73,7 @@ describe("BAM settings", () => {
       container!.querySelector<HTMLButtonElement>('button[aria-label="Set BAI URL"]')!.click(),
     );
     expect(update).toHaveBeenCalledWith({ config: { indexUrl: "UPDATED_INDEX" } });
-    act(() => container!.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click());
+    act(() => duplicatesCheckbox().click());
     expect(update).toHaveBeenCalledWith({
       config: { filters: { ...defaults.filters, includeDuplicates: false } },
     });
@@ -78,9 +83,7 @@ describe("BAM settings", () => {
     const urls = container!.querySelectorAll<HTMLInputElement>('input[type="url"]');
     expect(urls).toHaveLength(3);
     expect([...urls].every((input) => input.disabled)).toBe(true);
-    expect(container!.querySelector<HTMLInputElement>('input[type="checkbox"]')!.disabled).toBe(
-      false,
-    );
+    expect(duplicatesCheckbox().disabled).toBe(false);
     expect(container!.querySelector('[role="combobox"]')?.getAttribute("aria-disabled")).not.toBe(
       "true",
     );
@@ -110,4 +113,40 @@ it("uses explicit strand controls and commits whole alignment groups for host tr
       config: { alignments: { ...defaults.alignments, ...expected } },
     });
   }
+});
+
+it("shows controls for enabled sections and keeps at least one section visible", () => {
+  const update = setup("user");
+  const text = container!.textContent;
+  expect(text).toContain("Coverage height");
+  expect(text).toContain("Row height");
+  expect(text).not.toContain("Minimum supporting alignments");
+  const switchFor = (name: string) =>
+    [...container!.querySelectorAll("label")]
+      .find((label) => label.textContent === name)!
+      .querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+  act(() => switchFor("Splice junctions").click());
+  expect(update).toHaveBeenLastCalledWith({
+    config: { junctions: { ...defaults.junctions, show: true } },
+  });
+  expect(switchFor("Coverage").disabled).toBe(false);
+
+  act(() => root?.unmount());
+  root = createRoot(container!);
+  const coverageOnly = bamModule.create({
+    base: { id: "bam", title: "BAM" },
+    config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE", alignments: { show: false } },
+  });
+  act(() =>
+    root?.render(
+      <BamSettings
+        track={coverageOnly}
+        displayOptions={bamModule.displays}
+        updateTrack={update}
+        updateTracksOfType={() => ({ ok: true })}
+      />,
+    ),
+  );
+  expect(switchFor("Coverage").disabled).toBe(true);
+  expect(container!.textContent).not.toContain("Row height");
 });

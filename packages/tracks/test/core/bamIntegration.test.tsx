@@ -130,7 +130,8 @@ describe("BAM hosted track", () => {
       ),
     );
     expect(container.querySelectorAll("[data-bam-read]")).toHaveLength(3);
-    expect(useTrackStore.getState().getTrack("bam")?.base.height).toBe(42);
+    // The default coverage section adds 60 px plus a 4 px gap above the reads.
+    expect(useTrackStore.getState().getTrack("bam")?.base.height).toBe(64 + 42);
     await settle(() =>
       container!
         .querySelector("[data-bam-read]")!
@@ -138,10 +139,10 @@ describe("BAM hosted track", () => {
     );
     expect(click.mock.calls[0][0]).toEqual(records[0]);
     for (const [display, height] of [
-      ["dense", 14],
-      ["squish", 14],
-      ["pack", 28],
-      ["full", 42],
+      ["dense", 64 + 14],
+      ["squish", 64 + 14],
+      ["pack", 64 + 28],
+      ["full", 64 + 42],
     ] as const) {
       await settle(() => {
         useTrackStore.getState().updateTrack("bam", { base: { display } });
@@ -162,7 +163,14 @@ describe("BAM hosted track", () => {
       });
     });
     expect(fetch).toHaveBeenCalledTimes(baseline);
-    expect(useTrackStore.getState().getTrack("bam")?.base.height).toBe(48);
+    expect(useTrackStore.getState().getTrack("bam")?.base.height).toBe(64 + 48);
+    await settle(() => {
+      useTrackStore.getState().updateTrack("bam", {
+        config: { coverage: { show: false }, junctions: { show: true } },
+      });
+    });
+    expect(fetch).toHaveBeenCalledTimes(baseline);
+    expect(useTrackStore.getState().getTrack("bam")?.base.height).toBe(100 + 4 + 48);
     const updates: Partial<BamConfig>[] = [
       { indexUrl: "SECOND_INDEX" },
       { url: "SECOND_BAM" },

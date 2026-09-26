@@ -174,6 +174,7 @@ const longreadRNATracks = {
         url: "https://users.wenglab.org/niship/ENCSR526TQU.ENCFF322UJU.K562.bam",
         indexUrl: "https://users.wenglab.org/niship/ENCSR526TQU.ENCFF322UJU.K562.bam.bai",
         sequenceUrl: "https://users.wenglab.org/niship/hg38.2bit",
+        junctions: { show: true },
       },
       metadata: {
         celltype: "K562",
@@ -192,6 +193,7 @@ const longreadRNATracks = {
         url: "https://users.wenglab.org/niship/ENCSR589FUJ.ENCFF504GVG.K562.bam",
         indexUrl: "https://users.wenglab.org/niship/ENCSR589FUJ.ENCFF504GVG.K562.bam.bai",
         sequenceUrl: "https://users.wenglab.org/niship/hg38.2bit",
+        junctions: { show: true },
       },
       metadata: {
         celltype: "K562",
