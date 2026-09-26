@@ -16,16 +16,13 @@ import {
 } from "./settingsStore";
 import type { TrackStoreInstance } from "./trackStore";
 
-/**
- * One mounted browser's stores and stable callbacks. The value never changes after
- * mount; components subscribe to changing state through the stores' selectors.
- */
 /** The parts of a browser's data controller that components subscribe to. */
 export type BrowserDataSource = Pick<
   TrackDataController,
   "subscribe" | "getTrack" | "getBasePairDetail" | "getBasePairDetailStatus"
 >;
 
+/** Stable between source replacements; state changes use selector subscriptions. */
 export type BrowserContextValue = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
@@ -85,19 +82,23 @@ export function useDataController() {
 }
 
 export function useRegistry() {
-  return useBrowserContext("useRegistry").trackStore((state) => state.registry);
+  const useTrackStore = useBrowserContext("useRegistry").trackStore;
+  return useTrackStore((state) => state.registry);
 }
 
 export function useContextMenuStore<T>(selector: (state: ContextMenuStore) => T): T {
-  return useBrowserContext("useContextMenuStore").contextMenuStore(selector);
+  const useStore = useBrowserContext("useContextMenuStore").contextMenuStore;
+  return useStore(selector);
 }
 
 export function useSettingsStore<T>(selector: (state: SettingsStore) => T): T {
-  return useBrowserContext("useSettingsStore").settingsStore(selector);
+  const useStore = useBrowserContext("useSettingsStore").settingsStore;
+  return useStore(selector);
 }
 
 export function useTooltipStore<T>(selector: (state: TooltipStore) => T): T {
-  return useBrowserContext("useTooltip").tooltipStore(selector);
+  const useStore = useBrowserContext("useTooltip").tooltipStore;
+  return useStore(selector);
 }
 
 export function useIsPanDragging() {
@@ -106,7 +107,8 @@ export function useIsPanDragging() {
 
 /** Whether pending track requests block pan, zoom, selection, reordering and settings. */
 export function useIsInteractionBlocked() {
-  return useBrowserContext("useIsInteractionBlocked").browserStore((state) => state.isLoading);
+  const useBrowserStore = useBrowserContext("useIsInteractionBlocked").browserStore;
+  return useBrowserStore((state) => state.isLoading);
 }
 
 export function useTrackMutationGate() {

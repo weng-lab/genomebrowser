@@ -114,14 +114,6 @@ function GenomeBrowserRuntime({
     useShallow((state) => state.tracks.map((track) => getTrackWrapperHeight(track, titleSize))),
   );
 
-  // One controller per mount gives each browser instance private track data
-  // and fetcher resources. It follows the stores itself once connected.
-  const [dataController] = useState(() =>
-    createTrackDataController({ browserStore, trackStore, trackWidth }),
-  );
-  useLayoutEffect(() => dataController.connect(), [dataController]);
-  useLayoutEffect(() => dataController.setTrackWidth(trackWidth), [dataController, trackWidth]);
-
   const browserWidth = marginWidth + trackWidth;
   const trackLayouts = useMemo(
     () => createTrackLayouts(trackIds, wrapperHeights, 0),
@@ -147,11 +139,39 @@ function GenomeBrowserRuntime({
     setRegion,
   });
 
-  // The value never changes after mount, so components subscribe to changing
-  // state through store selectors.
-  const [browserContextValue] = useState(() =>
-    createBrowserContextValue(browserStore, trackStore, dataController, panDrag.isDragging),
-  );
+  // Data belongs to the supplied stores; menu, settings, and tooltip state belong
+  // to this mount. Replace the data source before rendering children when the
+  // host supplies new stores, without resetting the private UI stores.
+  const [runtime, setRuntime] = useState(() => {
+    const dataController = createTrackDataController({ browserStore, trackStore, trackWidth });
+    return {
+      dataController,
+      context: createBrowserContextValue(
+        browserStore,
+        trackStore,
+        dataController,
+        panDrag.isDragging,
+      ),
+    };
+  });
+  const { dataController, context: browserContextValue } = runtime;
+  if (
+    browserContextValue.browserStore !== browserStore ||
+    browserContextValue.trackStore !== trackStore
+  ) {
+    const nextController = createTrackDataController({ browserStore, trackStore, trackWidth });
+    setRuntime({
+      dataController: nextController,
+      context: {
+        ...browserContextValue,
+        browserStore,
+        trackStore,
+        dataController: nextController,
+      },
+    });
+  }
+  useLayoutEffect(() => dataController.connect(), [dataController]);
+  useLayoutEffect(() => dataController.setTrackWidth(trackWidth), [dataController, trackWidth]);
 
   return (
     <BrowserProvider value={browserContextValue}>
