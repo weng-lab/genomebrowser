@@ -173,14 +173,19 @@ function CoverageSection({
 }) {
   const { height, color, scale, graph, aggregation } = config;
   const x = createGenomicXScale(region, width);
-  const bins = binCoverage(computeCoverageRuns(records, region), region, width);
-  // Automatic scaling ignores off-screen overscan so the peak matches what is visible.
-  let peak = 0;
-  for (const bin of bins) {
-    if (bin.end > visibleRegion.start && bin.start < visibleRegion.end)
-      peak = Math.max(peak, bin[aggregation]);
+  const runs = computeCoverageRuns(records, region);
+  const bins = binCoverage(runs, region, width);
+  let max = scale.mode === "fixed" ? scale.max : 1;
+  if (scale.mode === "auto") {
+    // Like BigWig, retain overscan for drawing but bin the viewport separately
+    // for scaling. A render bin can contain a peak just outside the viewport.
+    const regionSpan = region.end - region.start;
+    const visibleSpan = visibleRegion.end - visibleRegion.start;
+    const visibleWidth = regionSpan > 0 ? width * (visibleSpan / regionSpan) : width;
+    for (const bin of binCoverage(runs, visibleRegion, visibleWidth)) {
+      max = Math.max(max, bin[aggregation]);
+    }
   }
-  const max = scale.mode === "fixed" ? scale.max : Math.max(1, peak);
   const y = (value: number) => roundPixel(height - (Math.min(value, max) / max) * height);
   let path = "";
   if (bins.length > 0 && graph === "bars") {

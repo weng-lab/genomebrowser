@@ -520,6 +520,83 @@ describe("BAM sections", () => {
       act(() => root.unmount());
     }
   });
+  it.each(["mean", "max"] as const)(
+    "excludes partial off-screen bins from %s autoscaling",
+    (aggregation) => {
+      const config = withSections({ coverage: true });
+      config.coverage.aggregation = aggregation;
+      const records = [
+        read({
+          start: 0,
+          end: 100,
+          cigar: [{ op: "M", length: 100, sequenceOffset: 0, referenceOffset: 0 }],
+        }),
+        ...Array.from({ length: 9 }, (_, index) =>
+          read({
+            readName: `peak${index}`,
+            start: 5,
+            end: 15,
+          }),
+        ),
+      ];
+      const data = { records, reference: [] };
+      const draw = (start: number, scale = config.coverage.scale) =>
+        markup("pack", data, {
+          config: { ...config, coverage: { ...config.coverage, scale } },
+          width: 10,
+          visibleRegion: { chromosome: "chr1", start, end: start + 70 },
+        });
+      // The render bin [10,20) straddles the viewport edge at 15. Its hidden peak
+      // must not raise the scale, even though overscan remains ready for panning.
+      expect(
+        draw(15).querySelector('[data-bam-section="coverage"]')?.getAttribute("data-scale-max"),
+      ).toBe("1");
+      expect(
+        draw(5).querySelector('[data-bam-section="coverage"]')?.getAttribute("data-scale-max"),
+      ).toBe("10");
+      expect(
+        draw(15, { mode: "fixed", max: 3 })
+          .querySelector('[data-bam-section="coverage"]')
+          ?.getAttribute("data-scale-max"),
+      ).toBe("3");
+      expect(hooks.height).toHaveBeenLastCalledWith("bam", 60);
+    },
+  );
+  it("repacks colliding labels after resize and respects a reduced row limit", () => {
+    const element = document.createElement("div");
+    const root = createRoot(element);
+    const Renderer = bamModule.render.pack;
+    const config = withSections({ alignments: true });
+    const data = {
+      records: [
+        read({ readName: "long_read_name", start: 10, end: 20 }),
+        read({ readName: "next_read", start: 40, end: 50 }),
+      ],
+      reference: [],
+    };
+    const draw = (width: number, currentConfig = config) =>
+      act(() =>
+        root.render(
+          <svg>
+            <Renderer {...props} config={currentConfig} width={width} data={data} />
+          </svg>,
+        ),
+      );
+    try {
+      draw(1500);
+      expect(rowCount(element)).toBe(1);
+      // Keep data and config identities stable while labels outgrow the gap.
+      draw(200);
+      expect(rowCount(element)).toBe(2);
+      expect(element.querySelectorAll("[data-bam-read]")).toHaveLength(2);
+      draw(200, { ...config, alignments: { ...config.alignments, maxRows: 1 } });
+      expect(rowCount(element)).toBe(1);
+      expect(element.querySelectorAll("[data-bam-read]")).toHaveLength(1);
+      expect(element.querySelector("[data-bam-hidden]")?.getAttribute("data-bam-hidden")).toBe("1");
+    } finally {
+      act(() => root.unmount());
+    }
+  });
   it("draws at most maxRows alignment rows and discloses the rest while counting them", () => {
     const stacked = Array.from({ length: 5 }, (_, index) => read({ readName: `r${index}` }));
     const config = {

@@ -170,9 +170,10 @@ export function BamSettings({
               placeholder="No limit"
               value={config.junctions.maximumSpan?.toString() ?? ""}
               validate={(value) =>
-                value.trim() === "" || /^[1-9]\d*$/.test(value.trim())
+                value.trim() === "" ||
+                (/^[1-9]\d*$/.test(value.trim()) && Number.isSafeInteger(Number(value.trim())))
                   ? undefined
-                  : "Enter a positive integer, or leave blank for no limit."
+                  : `Enter an integer from 1 to ${Number.MAX_SAFE_INTEGER}, or leave blank for no limit.`
               }
               onCommit={(value) =>
                 updateJunctions({

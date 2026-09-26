@@ -2,9 +2,10 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { bamModule } from "@weng-lab/genomebrowser-tracks/bam";
+import { bamModule, type BamRecord } from "@weng-lab/genomebrowser-tracks/bam";
 import { BamSettings } from "../../src/bam/settings";
 import type { BamConfig } from "../../src/bam/types";
+import { createTrackStore, type TrackUpdate } from "@weng-lab/genomebrowser";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -149,4 +150,67 @@ it("shows controls for enabled sections and keeps at least one section visible",
   );
   expect(switchFor("Coverage").disabled).toBe(true);
   expect(container!.textContent).not.toContain("Row height");
+});
+
+it("rejects unsafe intron spans and allows a valid span to be cleared", () => {
+  const useTrackStore = createTrackStore({
+    modules: [bamModule],
+    tracks: [
+      bamModule.create({
+        base: { id: "bam", title: "BAM" },
+        config: {
+          url: "YOUR_URL_HERE",
+          indexUrl: "YOUR_URL_HERE",
+          junctions: { show: true, maximumSpan: 100 },
+        },
+      }),
+    ],
+  });
+  const update = vi.fn((patch: TrackUpdate<BamConfig, BamRecord>) =>
+    useTrackStore.getState().updateTrack("bam", patch),
+  );
+  function Settings() {
+    const track = useTrackStore((state) => state.getTrack("bam"))!;
+    return (
+      <BamSettings
+        track={bamModule.validate(track)}
+        displayOptions={bamModule.displays}
+        updateTrack={update}
+        updateTracksOfType={() => ({ ok: true })}
+      />
+    );
+  }
+  container = document.createElement("div");
+  document.body.appendChild(container);
+  root = createRoot(container);
+  act(() => root!.render(<Settings />));
+  const label = [...container.querySelectorAll("label")].find(
+    (label) => label.textContent === "Maximum intron span (bp)",
+  )!;
+  const input = document.getElementById(label.htmlFor) as HTMLInputElement;
+  const enter = (value: string) => {
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+  };
+  for (const invalid of ["9007199254740992", "9".repeat(400)]) {
+    enter(invalid);
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(update).not.toHaveBeenCalled();
+    expect(
+      bamModule.validate(useTrackStore.getState().getTrack("bam")).config.junctions.maximumSpan,
+    ).toBe(100);
+  }
+  enter(String(Number.MAX_SAFE_INTEGER));
+  expect(input.getAttribute("aria-invalid")).toBe("false");
+  expect(
+    bamModule.validate(useTrackStore.getState().getTrack("bam")).config.junctions.maximumSpan,
+  ).toBe(Number.MAX_SAFE_INTEGER);
+  enter("");
+  expect(input.getAttribute("aria-invalid")).toBe("false");
+  expect(
+    bamModule.validate(useTrackStore.getState().getTrack("bam")).config.junctions.maximumSpan,
+  ).toBeUndefined();
 });
