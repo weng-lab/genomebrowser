@@ -13,9 +13,13 @@ Shared library build and test tools also use the workspace catalog so their
 versions can be updated in one place. Each package must still declare the tools
 it directly uses; the catalog centralizes versions, not package ownership.
 
-The Next.js apps use `catalog:native` for TypeScript 7. The default
-TypeScript catalog entry retains the TypeScript 6 JavaScript compiler API
-needed by other workspace tools.
+Use TypeScript 7 wherever the tooling allows. Apps and packages whose tools
+only run `tsc` declare `"typescript": "catalog:native"`. TypeScript 7 does not
+provide a JavaScript compiler API, so packages with tools that import one, such
+as `vite-plugin-dts`, keep the default `typescript` catalog entry for the
+TypeScript 6 API. Those packages also declare `@typescript/native`, because the
+TypeScript 6 package installs its compiler as `tsc6` and their `tsc` scripts
+would otherwise fall back to a global installation.
 
 Keep the MUI and MUI X catalog versions within the peer ranges supported by
 `@weng-lab/ui-components`. Upgrade those major versions together when the
