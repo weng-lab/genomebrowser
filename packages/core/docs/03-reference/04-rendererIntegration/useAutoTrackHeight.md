@@ -18,7 +18,7 @@ export function RowHeight({ trackId, rowCount }: { trackId: string; rowCount: nu
 | `rowHeight` | `number` | `12`    | Logical SVG height of one row and the hook's return value. |
 | `minHeight` | `number` | `30`    | Minimum requested track height.                            |
 
-The hook requires a mounted browser height context and throws without it. A missing track ID produces no update. It uses the track store's validated update action but does not return mutation errors. Supply a finite row count and positive dimensions. The hook does not validate these inputs separately. Base updates do not themselves trigger a data request.
+The hook must run inside a `GenomeBrowser` and throws outside one. It subscribes to the track's current height, so if another update changes that height, the hook requests the derived height again. A missing track ID produces no update. It uses the track store's validated update action but does not return mutation errors. Supply a finite row count and positive dimensions. The hook does not validate these inputs separately. Base updates do not themselves trigger a data request.
 
 Pass the renderer's `id` as `trackId`, and call the hook unconditionally during rendering. For example, zero rows with the default options request 30 units, while four rows request 48 units. The height update is stored in the shared track store, so browsers sharing that store also share the resulting height.
 
