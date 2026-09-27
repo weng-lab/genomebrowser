@@ -209,6 +209,66 @@ describe("browser settings workflows", () => {
     expect(useTrackStore.getState().tracks.map((track) => track.base.height)).toEqual([40, 60, 30]);
   });
 
+  it("appends pins, unpins below remaining pins, and follows external pin changes", async () => {
+    const useTrackStore = createTrackStore({
+      modules: [signalModule],
+      tracks: ["first", "second", "third"].map((id) =>
+        signalModule.create({
+          base: { id, title: id },
+          config: { url: "YOUR_URL_HERE" },
+        }),
+      ),
+      pinnedTrackIds: ["reserved", "first"],
+    });
+    await mountBrowser(useTrackStore);
+    await openSettings("third");
+    const dialog = container?.querySelector("dialog");
+    await act(async () => setTextInput(colorInput(), "#112233"));
+    expect(pinButton().getAttribute("aria-pressed")).toBe("false");
+    await act(async () => pinButton().click());
+    expect(useTrackStore.getState().pinnedTrackIds).toEqual(["reserved", "first", "third"]);
+    expect(useTrackStore.getState().order).toEqual(["first", "third", "second"]);
+    expect(pinButton().getAttribute("aria-label")).toBe("Unpin track");
+    expect(pinButton().getAttribute("aria-pressed")).toBe("true");
+    expect(container?.querySelector("dialog")).toBe(dialog);
+    expect(colorInput().value).toBe("#112233");
+
+    await openSettings("second");
+    await act(async () => pinButton().click());
+    expect(useTrackStore.getState().pinnedTrackIds).toEqual([
+      "reserved",
+      "first",
+      "third",
+      "second",
+    ]);
+    await openSettings("third");
+    await act(async () => pinButton().click());
+    expect(useTrackStore.getState().pinnedTrackIds).toEqual(["reserved", "first", "second"]);
+    expect(useTrackStore.getState().order).toEqual(["first", "second", "third"]);
+    expect(pinButton().getAttribute("aria-pressed")).toBe("false");
+    await act(async () => pinButton().click());
+    expect(useTrackStore.getState().pinnedTrackIds).toEqual([
+      "reserved",
+      "first",
+      "second",
+      "third",
+    ]);
+
+    await act(async () => useTrackStore.getState().setPinnedTrackIds(["reserved"]));
+    expect(pinButton().getAttribute("aria-label")).toBe("Pin track");
+    expect(pinButton().getAttribute("aria-pressed")).toBe("false");
+    await blockInteractions();
+    expect(pinButton().disabled).toBe(true);
+    await act(async () => pinButton().click());
+    expect(useTrackStore.getState().pinnedTrackIds).toEqual(["reserved"]);
+    const closeButton = container?.querySelector<HTMLButtonElement>(
+      '[aria-label="Close settings"]',
+    );
+    expect(closeButton?.disabled).toBe(false);
+    await act(async () => closeButton?.click());
+    expect(container?.querySelector("dialog")).toBeNull();
+  });
+
   it("does not open an empty dialog for a module without settings", async () => {
     const module = { ...signalModule, settingsComponent: undefined };
     const track = module.create({
@@ -315,4 +375,10 @@ function acceptedColor(track: AnyTrackInstance | undefined) {
 function requireValue<T>(value: T | undefined, message: string): T {
   if (value === undefined) throw new Error(message);
   return value;
+}
+
+function pinButton() {
+  const button = container?.querySelector<HTMLButtonElement>("button[aria-pressed]");
+  if (!button) throw new Error("Pin button not found");
+  return button;
 }

@@ -20,6 +20,8 @@ During a pan, existing track content moves immediately. Each track has data load
 
 Drag the left margin to lift and reorder an unpinned track, then release to drop it. No long press is needed. The margin reserves touch gestures for reordering, and the desktop cursor stays in the grabbing state until the reorder ends.
 
+Open a track's settings and select the outlined **Pin track** button beside Close to place it below the existing pinned tracks. The pin fills when active. Select **Unpin track** to return the track to the beginning of the unpinned group. Pinning fixes track order, not scroll position; pinned tracks cannot be dragged or moved with the margin's ordering controls. The pin button is disabled while tracks load and is available for tracks with settings.
+
 ## Navigate to a region
 
 Use `setRegion` to jump to a known genomic region, such as a search result or a selected feature. The region must use the browser's assembly and zero-based, half-open coordinates.

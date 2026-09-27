@@ -1,5 +1,5 @@
 import { useEffect, useId } from "react";
-import { useGenomeBrowser } from "../state/browserContextState";
+import { useGenomeBrowser, useTrackMutationGate } from "../state/browserContextState";
 import {
   SETTINGS_MODAL_VIEWPORT_INSET,
   useDraggableSettingsModal,
@@ -57,7 +57,22 @@ function SettingsModalHeader({
   const { useTrackStore } = useGenomeBrowser();
   const title = useTrackStore((state) => state.getTrack(trackId)?.base.title);
   const color = useTrackStore((state) => state.getTrack(trackId)?.base.color);
+  const isPinned = useTrackStore((state) => state.pinnedTrackIds.includes(trackId));
+  const setPinnedTrackIds = useTrackStore((state) => state.setPinnedTrackIds);
+  const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   if (!title || !color) return null;
+
+  const togglePin = () => {
+    runTrackMutation(() => {
+      const { pinnedTrackIds } = useTrackStore.getState();
+      return setPinnedTrackIds(
+        pinnedTrackIds.includes(trackId)
+          ? pinnedTrackIds.filter((id) => id !== trackId)
+          : [...pinnedTrackIds, trackId],
+      );
+    });
+  };
+  const pinLabel = isPinned ? "Unpin track" : "Pin track";
 
   return (
     <div
@@ -70,28 +85,59 @@ function SettingsModalHeader({
       }}
     >
       <div id={titleId}>Configure {title}</div>
-      <button
-        type="button"
-        onClick={closeSettings}
-        onPointerDown={(event) => event.stopPropagation()}
-        aria-label="Close settings"
-        style={closeButtonStyle}
-      >
-        <svg
-          aria-hidden="true"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2.5"
+      <div style={{ display: "flex", alignItems: "center", gap: "4px", flexShrink: 0 }}>
+        <button
+          type="button"
+          onClick={togglePin}
+          onPointerDown={(event) => event.stopPropagation()}
+          aria-label={pinLabel}
+          aria-pressed={isPinned}
+          title={pinLabel}
+          disabled={isInteractionBlocked}
+          style={{
+            ...headerButtonStyle,
+            cursor: isInteractionBlocked ? "default" : "pointer",
+            opacity: isInteractionBlocked ? 0.5 : 1,
+          }}
         >
-          <path d="M18 6 6 18" />
-          <path d="m6 6 12 12" />
-        </svg>
-      </button>
+          <svg
+            aria-hidden="true"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+          >
+            <path d="M9 3h6l-1 7 4 4v2H6v-2l4-4z" fill={isPinned ? "currentColor" : "none"} />
+            <path d="M12 16v5" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={closeSettings}
+          onPointerDown={(event) => event.stopPropagation()}
+          aria-label="Close settings"
+          style={headerButtonStyle}
+        >
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
@@ -124,14 +170,14 @@ const modalHeaderStyle = {
   fontWeight: 700,
 } as const;
 
-const closeButtonStyle = {
+const headerButtonStyle = {
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
   flex: "0 0 auto",
   width: "28px",
   height: "28px",
-  margin: "-4px -4px -4px 0",
+  margin: "-4px 0",
   padding: 0,
   border: "none",
   borderRadius: "4px",
