@@ -1,4 +1,168 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "ignorePatterns": ["**/dist/**", "**/node_modules/**"]
+  "ignorePatterns": ["**/dist/**", "**/node_modules/**"],
+  "plugins": ["unicorn", "typescript", "oxc", "react", "jsx-a11y", "vitest"],
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/jsx-key": "error",
+    "react/jsx-no-duplicate-props": "error",
+    "no-debugger": "error",
+    "no-async-promise-executor": "error",
+    "no-unsafe-finally": "error",
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/aria-props": "error",
+    "jsx-a11y/aria-proptypes": "error",
+    "jsx-a11y/aria-role": "error",
+    "jsx-a11y/role-has-required-aria-props": "error",
+    "jsx-a11y/tabindex-no-positive": "error",
+    "vitest/no-focused-tests": "error"
+  },
+  "overrides": [
+    {
+      "files": ["packages/core/src/**"],
+      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@weng-lab/genomebrowser-standalone",
+                  "@weng-lab/genomebrowser-standalone/**",
+                  "@weng-lab/genomebrowser-playground",
+                  "@weng-lab/genomebrowser-playground/**",
+                  "@weng-lab/render-probe",
+                  "@weng-lab/render-probe/**",
+                  "@weng-lab/genomic-reader",
+                  "@weng-lab/genomic-reader/**",
+                  "@weng-lab/genomebrowser-tracks",
+                  "@weng-lab/genomebrowser-tracks/**",
+                  "@weng-lab/genomebrowser-ui",
+                  "@weng-lab/genomebrowser-ui/**"
+                ],
+                "message": "Core and reader are independent foundations; core must not depend on reader, higher-level packages, applications, or test utilities."
+              },
+              {
+                "regex": "(?:^|/)apps/|^(?:\\.\\./)+(?:packages/)?(?:reader|tracks|ui|render-probe)(?:/|$)",
+                "message": "Do not bypass package ownership with relative imports."
+              },
+              {
+                "regex": "^@weng-lab/[^/]+/(?:src|dist)(?:/|$)|^(?:\\.\\./)+(?:packages/)?(?:reader|tracks|ui)/(?:src|dist)(?:/|$)",
+                "message": "Import other libraries through their public package exports."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/reader/src/**"],
+      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@weng-lab/genomebrowser-standalone",
+                  "@weng-lab/genomebrowser-standalone/**",
+                  "@weng-lab/genomebrowser-playground",
+                  "@weng-lab/genomebrowser-playground/**",
+                  "@weng-lab/render-probe",
+                  "@weng-lab/render-probe/**",
+                  "@weng-lab/genomebrowser",
+                  "@weng-lab/genomebrowser/**",
+                  "@weng-lab/genomebrowser-tracks",
+                  "@weng-lab/genomebrowser-tracks/**",
+                  "@weng-lab/genomebrowser-ui",
+                  "@weng-lab/genomebrowser-ui/**",
+                  "react",
+                  "react/**",
+                  "react-dom",
+                  "react-dom/**"
+                ],
+                "message": "Reader source must not depend on higher-level packages, applications, or test utilities."
+              },
+              {
+                "regex": "(?:^|/)apps/|^(?:\\.\\./)+(?:packages/)?(?:core|tracks|ui|render-probe)(?:/|$)",
+                "message": "Do not bypass package ownership with relative imports."
+              },
+              {
+                "regex": "^@weng-lab/[^/]+/(?:src|dist)(?:/|$)|^(?:\\.\\./)+(?:packages/)?(?:core|tracks|ui)/(?:src|dist)(?:/|$)",
+                "message": "Import other libraries through their public package exports."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/tracks/src/**"],
+      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@weng-lab/genomebrowser-standalone",
+                  "@weng-lab/genomebrowser-standalone/**",
+                  "@weng-lab/genomebrowser-playground",
+                  "@weng-lab/genomebrowser-playground/**",
+                  "@weng-lab/render-probe",
+                  "@weng-lab/render-probe/**",
+                  "@weng-lab/genomebrowser-ui",
+                  "@weng-lab/genomebrowser-ui/**"
+                ],
+                "message": "Tracks source must not depend on higher-level packages, applications, or test utilities."
+              },
+              {
+                "regex": "(?:^|/)apps/|^(?:\\.\\./)+(?:packages/)?(?:ui|render-probe)(?:/|$)",
+                "message": "Do not bypass package ownership with relative imports."
+              },
+              {
+                "regex": "^@weng-lab/[^/]+/(?:src|dist)(?:/|$)|^(?:\\.\\./)+(?:packages/)?(?:core|reader|ui)/(?:src|dist)(?:/|$)",
+                "message": "Import other libraries through their public package exports."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/ui/src/**"],
+      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@weng-lab/genomebrowser-standalone",
+                  "@weng-lab/genomebrowser-standalone/**",
+                  "@weng-lab/genomebrowser-playground",
+                  "@weng-lab/genomebrowser-playground/**",
+                  "@weng-lab/render-probe",
+                  "@weng-lab/render-probe/**"
+                ],
+                "message": "UI source must not depend on higher-level packages, applications, or test utilities."
+              },
+              {
+                "regex": "(?:^|/)apps/|^(?:\\.\\./)+(?:packages/)?(?:render-probe)(?:/|$)",
+                "message": "Do not bypass package ownership with relative imports."
+              },
+              {
+                "regex": "^@weng-lab/[^/]+/(?:src|dist)(?:/|$)|^(?:\\.\\./)+(?:packages/)?(?:core|reader|tracks)/(?:src|dist)(?:/|$)",
+                "message": "Import other libraries through their public package exports."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }
