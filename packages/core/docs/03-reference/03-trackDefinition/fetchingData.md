@@ -55,7 +55,7 @@ Use resources for rebuildable values such as a file reader or a cache. Keys are 
 | `delete(key: string)`              | `void`             | Removes one key.                                                                   |
 | `clear()`                          | `void`             | Removes all values for this track.                                                 |
 
-Values persist across requests and demand/config changes. The fetcher decides when a source change requires replacing cached values. Core releases references when a track is removed or the browser unmounts; it provides no disposal callback or eviction policy. Store only values you can rebuild.
+Values persist across requests and demand/config changes. The fetcher decides when a source change requires replacing cached values. Core releases references when a track is removed, either supplied store is replaced, or the browser unmounts; it provides no disposal callback or eviction policy. Store only values you can rebuild.
 
 ## Requests and result lifetime
 
@@ -65,7 +65,7 @@ Core waits until width-only changes stop for 200 ms before requesting data. If a
 
 Each track requests its data separately and shows its result as soon as it arrives. A rejected fetch becomes that track's error result and does not affect other tracks. An error result is retried on the next region, assembly, width, or fetch-input change, never on a timer.
 
-When a newer request replaces one, or its track is removed, core aborts that request's `signal` and ignores its result.
+Core aborts a request's `signal` when a newer request replaces it, its track is removed, either supplied store is replaced, or the browser unmounts. It ignores results from aborted requests. Fetchers that do not forward the signal can continue running, but their results cannot update the browser.
 
 A pan that still leaves at least half a visible span of loaded data beyond each edge of the view does not request data. Otherwise the track requests the window around the new view and keeps displaying its existing data at the correct position until the result arrives. Each track can therefore show data for a different region. Renderers must use their supplied [render region and width](../04-rendererIntegration/trackRenderer.md), which can differ from the visible viewport and from other tracks.
 

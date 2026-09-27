@@ -115,7 +115,7 @@ The module using this fetcher must mark its URL field with `fetchOnChange`. This
 
 `resources` can cache any reusable value, including fetched data for entire genomic regions. Large data caches can consume substantial memory, so limit their size and remove entries that are no longer needed.
 
-Resource values survive demand and config changes, but removing the track or unmounting its browser releases core's references. There is no disposal callback or automatic eviction policy. Store values that can be rebuilt when needed. Two browsers sharing a track store still have separate resource storage.
+Resource values survive demand and config changes, but removing the track, replacing either supplied store, or unmounting the browser releases core's references. There is no disposal callback or automatic eviction policy. Store values that can be rebuilt when needed. Two browsers sharing a track store still have separate resource storage.
 
 ## Request timing and failures
 
@@ -123,7 +123,7 @@ When only the width changes, core waits until resizing has stopped for 200 ms be
 
 Each track fetches on its own and shows its result as soon as it arrives, so a slow track does not hold back the others. A failed track shows an error while successful tracks show their data. Core blocks pointer interactions until every track has a result for the current request.
 
-When a newer request replaces one, or the track is removed, core aborts the request's `signal` and ignores its result. Passing `signal` to the reader, as above, stops the download. Fetchers should return their result rather than directly mutating application state.
+Core aborts a request's `signal` when a newer request replaces it, its track is removed, either supplied store is replaced, or the browser unmounts. It ignores results from aborted requests. Passing `signal` to the reader, as above, stops the download. Fetchers should return their result rather than directly mutating application state.
 
 Resource writes must account for requests that can overlap. Store the reader in `resources` before awaiting its result, as above. Each request then keeps its own reader reference even if another request replaces the cached entry.
 

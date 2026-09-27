@@ -8,9 +8,9 @@ The browser starts in pan mode. Panning moves the view along the current chromos
 
 | Input                | Behavior                                                                                                         |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Mouse drag           | Drag anywhere on the track row to pan. Drag left toward higher coordinates or right toward lower coordinates.    |
+| Mouse drag           | Drag the track data or title area to pan. Drag left toward higher coordinates or right toward lower coordinates. |
 | Horizontal scrolling | Use a trackpad or side-scrolling mouse. Scroll right toward higher coordinates or left toward lower coordinates. |
-| Touch                | Swipe the track row horizontally to pan or vertically to scroll the page.                                        |
+| Touch                | Swipe the track data or title area horizontally to pan or vertically to scroll the page.                         |
 
 Trackpad gestures that move more vertically than horizontally scroll the page.
 

@@ -14,7 +14,9 @@ Let experience justify abstractions and shared features. Start with a concrete n
 
 An application composes the browser by creating its browser and track stores, registering track modules, and rendering the core browser. The browser store holds browser state such as the visible region; the track store holds the registered modules and track instances. Application controls and browser-hosted components use those stores to interact with the same browser.
 
-Core coordinates the viewport, track data requests, rendering, and browser interactions. A track module supplies the behavior for its visualization, including fetching, rendering, and configuration validation. This lets first-party and application-owned modules participate through the same contract while hiding their data and rendering details from core.
+Within core, `GenomeBrowser` owns public props and container sizing. `BrowserProvider` owns data-controller lifetime and keeps mount-private UI stores separate from the replaceable application stores. `BrowserCanvas` owns the SVG element, its hosting context, and paint order. Keep sizing changes, request cleanup, and layer composition with those owners so callers do not have to coordinate their lifetimes.
+
+A track module supplies the behavior for its visualization, including fetching, rendering, and configuration validation. This lets first-party and application-owned modules participate through the same contract while hiding their data and rendering details from core.
 
 | Part                    | Role                                                                                                                          |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------- |

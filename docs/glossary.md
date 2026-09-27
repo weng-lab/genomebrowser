@@ -85,7 +85,7 @@ The region and logical drawing width core asks a track's fetcher to satisfy. A d
 
 ### Track resources
 
-Reusable values retained between fetches for one track type and ID in one browser instance, such as a file reader or cache. Resources are separate from track configuration and the current fetch result. The fetcher manages their validity when sources change; removing the track or unmounting the browser releases core's references to them.
+Reusable values retained between fetches for one track type and ID in one browser instance, such as a file reader or cache. Resources are separate from track configuration and the current fetch result. The fetcher manages their validity when sources change; removing the track, replacing either application-owned store, or unmounting the browser releases core's references to them.
 
 ## Testing
 
