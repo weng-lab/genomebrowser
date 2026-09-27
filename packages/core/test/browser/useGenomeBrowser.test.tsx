@@ -14,10 +14,11 @@ import {
   useGenomeBrowser,
   useTooltip,
   type GenomeBrowserStores,
+  type TrackFetchContext,
 } from "../../src/lib";
 import { BrowserProvider } from "../../src/browser/state/BrowserContext";
-import { createContextMenuStore } from "../../src/browser/state/contextMenuStore";
-import { createSettingsStore } from "../../src/browser/state/settingsStore";
+import { idleDataSource } from "./idleDataSource";
+import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -91,10 +92,12 @@ describe("useGenomeBrowser", () => {
         </span>
       );
     }
-    const extras = {
-      contextMenuStore: createContextMenuStore(),
-      settingsStore: createSettingsStore(),
-    };
+    const extras = createBrowserContextValue(
+      first.useBrowserStore,
+      first.useTrackStore,
+      idleDataSource,
+      () => false,
+    );
     const view = (stores: GenomeBrowserStores) => (
       <BrowserProvider
         value={{
@@ -278,5 +281,145 @@ describe("useGenomeBrowser", () => {
     });
     expect(first.useBrowserStore.getState().region.start).toBe(100);
     expect(second.useBrowserStore.getState().region.start).toBe(500);
+  });
+
+  it.each(["browser", "track", "both"])(
+    "follows replacement %s stores through the mounted browser",
+    async (replacement) => {
+      let resolved: GenomeBrowserStores | undefined;
+      function Renderer({ id, data }: { id: string; data: string }) {
+        const stores = useGenomeBrowser();
+        const { useBrowserStore, useTrackStore } = stores;
+        const start = useBrowserStore((state) => state.region.start);
+        const title = useTrackStore((state) => state.getTrack(id)?.base.title);
+        resolved = stores;
+        return <text data-result>{`${id}:${title}:${start}:${data}`}</text>;
+      }
+      const module = defineTrackModule({
+        type: "replacement",
+        configSchema: z.object({}),
+        fetch: async ({ demand, track }: TrackFetchContext<Record<string, never>>) =>
+          `${demand.assembly.id}:${track.base.id}`,
+        render: { full: Renderer },
+      });
+      const first = createStores();
+      first.useTrackStore = createTrackStore({
+        modules: [module],
+        tracks: [module.create({ base: { id: "first", title: "First" }, config: {} })],
+      });
+      const second = {
+        useBrowserStore:
+          replacement === "track"
+            ? first.useBrowserStore
+            : createBrowserStore({
+                assembly: { id: "replacement", chromosomes: { chr1: 10000 } },
+                region: { chromosome: "chr1", start: 500, end: 600 },
+                trackWidth: 500,
+              }),
+        useTrackStore:
+          replacement === "browser"
+            ? first.useTrackStore
+            : createTrackStore({
+                modules: [module],
+                tracks: [module.create({ base: { id: "second", title: "Second" }, config: {} })],
+              }),
+      };
+      const view = ({ useBrowserStore, useTrackStore }: GenomeBrowserStores) => (
+        <GenomeBrowser sizing="fixed" browserStore={useBrowserStore} trackStore={useTrackStore} />
+      );
+      const result = () => container!.querySelector("[data-result]")?.textContent;
+      await render(view(first));
+      expect(result()).toBe("first:First:0:test:first");
+      await render(view(second));
+      const id = replacement === "browser" ? "first" : "second";
+      const title = replacement === "browser" ? "First" : "Second";
+      const start = replacement === "track" ? 0 : 500;
+      const assembly = replacement === "track" ? "test" : "replacement";
+      expect(result()).toBe(`${id}:${title}:${start}:${assembly}:${id}`);
+      expect(resolved?.useBrowserStore).toBe(second.useBrowserStore);
+      expect(resolved?.useTrackStore).toBe(second.useTrackStore);
+
+      await act(async () => {
+        second.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 1000, end: 1100 });
+        second.useTrackStore.getState().updateTrack(id, { base: { title: "Updated" } });
+      });
+      expect(result()).toBe(`${id}:Updated:1000:${assembly}:${id}`);
+      await act(async () => {
+        if (first.useBrowserStore !== second.useBrowserStore) {
+          first.useBrowserStore
+            .getState()
+            .setRegion({ chromosome: "chr1", start: 2000, end: 2100 });
+        }
+        if (first.useTrackStore !== second.useTrackStore) {
+          first.useTrackStore.getState().removeTrack("first");
+        }
+      });
+      expect(result()).toBe(`${id}:Updated:1000:${assembly}:${id}`);
+    },
+  );
+
+  it("cancels replaced-store requests while preserving open settings", async () => {
+    let finishOldRequest: ((data: string) => void) | undefined;
+    let oldSignal: AbortSignal | undefined;
+    function Renderer({ data }: { data: string }) {
+      return <text data-result>{data}</text>;
+    }
+    function Settings() {
+      const { useBrowserStore } = useGenomeBrowser();
+      const assembly = useBrowserStore((state) => state.assembly.id);
+      return <span data-settings>{assembly}</span>;
+    }
+    const module = defineTrackModule({
+      type: "pending-replacement",
+      configSchema: z.object({}),
+      fetch: async ({ demand, signal }: TrackFetchContext<Record<string, never>>) => {
+        if (demand.assembly.id === "test" && demand.visibleRegion.start === 1000) {
+          oldSignal = signal;
+          return new Promise<string>((resolve) => {
+            finishOldRequest = resolve;
+          });
+        }
+        return demand.assembly.id;
+      },
+      render: { full: Renderer },
+      settingsComponent: Settings,
+    });
+    const { useBrowserStore } = createStores();
+    const useTrackStore = createTrackStore({
+      modules: [module],
+      tracks: [module.create({ base: { id: "shared", title: "Shared" }, config: {} })],
+    });
+    const view = (browserStore: typeof useBrowserStore) => (
+      <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={useTrackStore} />
+    );
+    await render(view(useBrowserStore));
+    await act(async () => {
+      container!
+        .querySelector('[aria-label="Settings for Shared"]')!
+        .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(container!.querySelector("[data-settings]")?.textContent).toBe("test");
+    await act(async () => {
+      useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 1000, end: 1100 });
+    });
+    expect(container!.querySelector("fieldset")?.disabled).toBe(true);
+    expect(oldSignal?.aborted).toBe(false);
+
+    const useReplacementStore = createBrowserStore({
+      assembly: { id: "replacement", chromosomes: { chr1: 10000 } },
+      region: { chromosome: "chr1", start: 0, end: 100 },
+      trackWidth: 500,
+    });
+    await render(view(useReplacementStore));
+    expect(oldSignal?.aborted).toBe(true);
+    expect(useBrowserStore.getState().isLoading).toBe(false);
+    expect(container!.querySelector("fieldset")?.disabled).toBe(false);
+    expect(container!.querySelector("[data-settings]")?.textContent).toBe("replacement");
+    expect(container!.querySelector("[data-result]")?.textContent).toBe("replacement");
+
+    await act(async () => {
+      finishOldRequest!("obsolete");
+    });
+    expect(container!.querySelector("[data-result]")?.textContent).toBe("replacement");
   });
 });

@@ -5,6 +5,7 @@ import { svgPoint } from "../../modules/utils/svg";
 import { useTrackMutationGate, useGenomeBrowser } from "../state/browserContextState";
 import { useBrowserSvg } from "../svg/browserSvgState";
 import { getTrackWrapperHeight } from "./trackLayout";
+import { useTrackStack } from "./trackStackContext";
 import { getSwapOrder, getSwapPreview, isSameSwapPreview } from "./trackSwapMath";
 import type { SwapPreview, TrackFrameSwapProps } from "./swapTypes";
 
@@ -17,20 +18,19 @@ type DragSession = {
 
 export function useTrackSwap({
   track,
-  titleSize,
   disabled = false,
   onPreviewChange,
   onPreviewEnd,
   cloneRef,
 }: {
   track: AnyTrackInstance;
-  titleSize: number;
   disabled?: boolean;
   onPreviewChange: (preview: SwapPreview) => void;
   onPreviewEnd: () => void;
   cloneRef: RefObject<SVGGElement | null>;
 }) {
   const svg = useBrowserSvg();
+  const { titleSize } = useTrackStack();
   const { useTrackStore } = useGenomeBrowser();
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const isPinned = useTrackStore((state) => state.pinnedTrackIds.includes(track.base.id));

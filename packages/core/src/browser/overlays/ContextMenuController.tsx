@@ -1,10 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import {
   useContextMenuStore,
+  useRegistry,
   useTrackMutationGate,
   useGenomeBrowser,
 } from "../state/browserContextState";
-import { useRegistry } from "../state/useRegistry";
 
 export function ContextMenuController() {
   const registry = useRegistry();
