@@ -549,6 +549,27 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     `);
   });
 
+  // Change pins through the public store while the settings dialog is open.
+  it("updates pin state in an open settings header", async () => {
+    const { probe, trackStore } = await mountBrowser();
+    const button = document.querySelector('[aria-label="Settings for second"]');
+    if (!button) throw new Error("Expected a settings button");
+    await probe.measure(() => button.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+
+    const report = await probe.measure(() => trackStore.getState().setPinnedTrackIds(["second"]));
+    // Necessary: the header shows the new pin state. The modal and settings content
+    // also render through the existing BrowserView parent update on reorder; those
+    // renders are wasteful but unchanged by the pin button.
+    expect(report.pick("SettingsModalHeader", "DefaultSettingsModal", "TestSettings"))
+      .toMatchInlineSnapshot(`
+        {
+          "DefaultSettingsModal": 1,
+          "SettingsModalHeader": 1,
+          "TestSettings": 1,
+        }
+      `);
+  });
+
   // `useTooltip().show` and `hide` from a renderer's pointer events, which update the
   // browser's tooltip store after an animation frame.
   it("shows and hides a tooltip", async () => {
