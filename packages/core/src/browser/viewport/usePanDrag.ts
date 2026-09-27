@@ -1,14 +1,15 @@
 import { useCallback, useMemo, useRef, type MouseEvent, type PointerEvent } from "react";
 import { svgPoint } from "../../modules/utils/svg";
-
-const PAN_COMMIT_THRESHOLD_PX = 10;
+import { usePanGesture } from "./usePanGesture";
 
 export type PanDragHandlers = {
   isDragging: () => boolean;
+  subscribeEnd: (listener: () => void) => () => void;
   onPointerDown: (event: PointerEvent<SVGElement>) => boolean;
   onPointerMove: (event: PointerEvent<SVGElement>) => void;
   onPointerUp: (event: PointerEvent<SVGElement>) => void;
   onPointerCancel: (event: PointerEvent<SVGElement>) => void;
+  onLostPointerCapture: (event: PointerEvent<SVGElement>) => void;
   onClickCapture: (event: MouseEvent<SVGElement>) => void;
 };
 
@@ -16,7 +17,7 @@ type UsePanDragOptions = {
   disabled: boolean;
   svg: SVGSVGElement | null;
   getCurrentDelta: () => number;
-  setDelta: (deltaPx: number) => void;
+  setDelta: (deltaPx: number) => number;
   onCommit: (deltaPx: number) => void;
   onCancel: () => void;
 };
@@ -29,104 +30,52 @@ export function usePanDrag({
   onCommit,
   onCancel,
 }: UsePanDragOptions): PanDragHandlers {
-  const isDraggingRef = useRef(false);
   const activePointerId = useRef<number | null>(null);
-  const capturedPointerId = useRef<number | null>(null);
-  const startSvgX = useRef(0);
   const startDeltaPx = useRef(0);
   const suppressNextClick = useRef(false);
+  const endListeners = useRef(new Set<() => void>());
 
-  const getEventX = useCallback(
-    (event: PointerEvent<SVGElement>) => {
-      if (!svg) return null;
-      return svgPoint(svg, event.clientX, event.clientY)?.x ?? null;
-    },
-    [svg],
-  );
-
-  const releasePointer = useCallback((event: PointerEvent<SVGElement>) => {
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    if (capturedPointerId.current === event.pointerId) capturedPointerId.current = null;
-  }, []);
-
-  const resetPointer = useCallback(() => {
+  const endDrag = useCallback(() => {
     activePointerId.current = null;
-    capturedPointerId.current = null;
-    isDraggingRef.current = false;
+    for (const listener of endListeners.current) listener();
   }, []);
 
-  const capturePointer = useCallback((event: PointerEvent<SVGElement>) => {
-    if (capturedPointerId.current === event.pointerId) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
-    capturedPointerId.current = event.pointerId;
-  }, []);
-
-  const onPointerDown = useCallback(
-    (event: PointerEvent<SVGElement>) => {
-      if (disabled || !event.isPrimary || event.button !== 0) return false;
-      const x = getEventX(event);
-      if (x === null) return false;
-
-      activePointerId.current = event.pointerId;
-      startSvgX.current = x;
-      startDeltaPx.current = getCurrentDelta();
-      isDraggingRef.current = true;
-      return true;
-    },
-    [disabled, getCurrentDelta, getEventX],
-  );
-
-  const isDragging = useCallback(() => isDraggingRef.current, []);
-
-  const onPointerMove = useCallback(
-    (event: PointerEvent<SVGElement>) => {
-      if (activePointerId.current !== event.pointerId) return;
-      const x = getEventX(event);
-      if (x === null) return;
-
-      const deltaPx = startDeltaPx.current + x - startSvgX.current;
-      if (Math.abs(deltaPx) >= PAN_COMMIT_THRESHOLD_PX) {
-        event.preventDefault();
-        capturePointer(event);
-      }
-      setDelta(deltaPx);
-    },
-    [capturePointer, getEventX, setDelta],
-  );
-
-  const onPointerUp = useCallback(
-    (event: PointerEvent<SVGElement>) => {
-      if (activePointerId.current !== event.pointerId) return;
-
-      releasePointer(event);
-      resetPointer();
-
-      const deltaPx = getCurrentDelta();
-      if (Math.abs(deltaPx) < PAN_COMMIT_THRESHOLD_PX) {
-        suppressNextClick.current = false;
-        onCancel();
-        return;
-      }
-
-      event.preventDefault();
+  const gesture = usePanGesture({
+    readX: (event) => (svg ? (svgPoint(svg, event.clientX, event.clientY)?.x ?? null) : null),
+    preview: (deltaPx) => setDelta(startDeltaPx.current + deltaPx),
+    commit: (deltaPx) => {
+      endDrag();
       suppressNextClick.current = true;
       onCommit(deltaPx);
     },
-    [getCurrentDelta, onCancel, onCommit, releasePointer, resetPointer],
-  );
-
-  const onPointerCancel = useCallback(
-    (event: PointerEvent<SVGElement>) => {
-      if (activePointerId.current !== event.pointerId) return;
-
-      releasePointer(event);
-      resetPointer();
+    cancel: () => {
+      endDrag();
+      suppressNextClick.current = false;
       onCancel();
     },
-    [onCancel, releasePointer, resetPointer],
+  });
+
+  const onPointerDown = useCallback(
+    (event: PointerEvent<SVGElement>) => {
+      if (disabled || activePointerId.current !== null || !event.isPrimary || event.button !== 0) {
+        return false;
+      }
+      if (!svg || svgPoint(svg, event.clientX, event.clientY) === null) return false;
+      startDeltaPx.current = getCurrentDelta();
+      gesture.onPointerDown(event);
+      activePointerId.current = event.pointerId;
+      return true;
+    },
+    [disabled, getCurrentDelta, gesture, svg],
   );
+
+  const isDragging = useCallback(() => activePointerId.current !== null, []);
+  const subscribeEnd = useCallback((listener: () => void) => {
+    endListeners.current.add(listener);
+    return () => {
+      endListeners.current.delete(listener);
+    };
+  }, []);
 
   const onClickCapture = useCallback((event: MouseEvent<SVGElement>) => {
     if (!suppressNextClick.current) return;
@@ -138,12 +87,14 @@ export function usePanDrag({
   return useMemo(
     () => ({
       isDragging,
+      subscribeEnd,
       onPointerDown,
-      onPointerMove,
-      onPointerUp,
-      onPointerCancel,
+      onPointerMove: gesture.onPointerMove,
+      onPointerUp: gesture.onPointerUp,
+      onPointerCancel: gesture.onPointerCancel,
+      onLostPointerCapture: gesture.onLostPointerCapture,
       onClickCapture,
     }),
-    [isDragging, onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onClickCapture],
+    [isDragging, subscribeEnd, onPointerDown, gesture, onClickCapture],
   );
 }

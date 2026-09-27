@@ -271,6 +271,200 @@ describe("usePanController", () => {
     },
   );
 
+  it("uses the final release position and preserves a starting offset", async () => {
+    const interaction = createPanInteraction();
+    interaction.setContentOffset(5);
+    const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
+    await renderController({
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+    });
+
+    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    controller?.panDrag.onPointerMove(interaction.pointerEvent(20));
+    expect(interaction.getContentOffset()).toBe(15);
+    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(30)));
+    expect(setRegion).toHaveBeenCalledExactlyOnceWith({ chromosome: "chr1", start: 75, end: 175 });
+    expect(interaction.getContentOffset()).toBe(25);
+    expect(controller?.panDrag.isDragging()).toBe(false);
+  });
+
+  it.each(["pointercancel", "lostcapture", "blur"])(
+    "cancels a preview once on %s and accepts a fresh drag",
+    async (interruption) => {
+      const interaction = createPanInteraction();
+      const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
+      await renderController({
+        ...interaction,
+        region: { chromosome: "chr1", start: 100, end: 200 },
+        trackWidth: 100,
+        setRegion,
+      });
+      const event = interaction.pointerEvent(20);
+      expect(controller?.panDrag.onPointerDown(event)).toBe(true);
+      controller?.panDrag.onPointerMove(interaction.pointerEvent(40));
+      expect(interaction.getContentOffset()).toBe(20);
+      await act(async () => {
+        if (interruption === "pointercancel") controller?.panDrag.onPointerCancel(event);
+        else if (interruption === "lostcapture") controller?.panDrag.onLostPointerCapture(event);
+        else window.dispatchEvent(new Event("blur"));
+      });
+      expect(interaction.getContentOffset()).toBe(0);
+      expect(controller?.panDrag.isDragging()).toBe(false);
+      controller?.panDrag.onPointerUp(interaction.pointerEvent(40));
+      expect(setRegion).not.toHaveBeenCalled();
+      expect(controller?.panDrag.onPointerDown(event)).toBe(true);
+      await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(40)));
+      expect(setRegion).toHaveBeenCalledExactlyOnceWith({
+        chromosome: "chr1",
+        start: 80,
+        end: 180,
+      });
+    },
+  );
+
+  it.each([
+    [5, false],
+    [15, true],
+  ])("uses clamped applied offset %spx for commit eligibility", async (limit, commits) => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
+    const setContentOffset = (offset: number) =>
+      interaction.setContentOffset(Math.max(-limit, Math.min(limit, offset)));
+    await renderController({
+      ...interaction,
+      setContentOffset,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+    });
+    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    controller?.panDrag.onPointerMove(interaction.pointerEvent(50));
+    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(50)));
+    if (commits) {
+      expect(setRegion).toHaveBeenCalledExactlyOnceWith({
+        chromosome: "chr1",
+        start: 85,
+        end: 185,
+      });
+      expect(interaction.getContentOffset()).toBe(15);
+    } else {
+      expect(setRegion).not.toHaveBeenCalled();
+      expect(interaction.getContentOffset()).toBe(0);
+    }
+  });
+
+  it("commits the last valid preview when release coordinate conversion fails", async () => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
+    await renderController({
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+    });
+    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    controller?.panDrag.onPointerMove(interaction.pointerEvent(30));
+    Object.assign(interaction.svg, { getScreenCTM: () => null });
+    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(60)));
+    expect(setRegion).toHaveBeenCalledExactlyOnceWith({ chromosome: "chr1", start: 80, end: 180 });
+  });
+
+  it("commits once when release synchronously reports lost capture", async () => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
+    await renderController({
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+    });
+    Object.assign(interaction.svg, {
+      hasPointerCapture: () => true,
+      releasePointerCapture: () =>
+        controller?.panDrag.onLostPointerCapture(interaction.pointerEvent(40)),
+    });
+    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    controller?.panDrag.onPointerMove(interaction.pointerEvent(40));
+    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(40)));
+    expect(setRegion).toHaveBeenCalledExactlyOnceWith({ chromosome: "chr1", start: 70, end: 170 });
+    expect(interaction.getContentOffset()).toBe(30);
+  });
+
+  it("releases an active pan on unmount", async () => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn();
+    await renderController({
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+    });
+    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    controller?.panDrag.onPointerMove(interaction.pointerEvent(40));
+    const release = vi.spyOn(interaction.svg, "releasePointerCapture");
+    const removeListener = vi.spyOn(window, "removeEventListener");
+    await act(async () => root?.unmount());
+    root = undefined;
+    expect(release).toHaveBeenCalledWith(1);
+    expect(removeListener).toHaveBeenCalledWith("blur", expect.any(Function));
+    expect(interaction.getContentOffset()).toBe(0);
+    expect(setRegion).not.toHaveBeenCalled();
+    window.dispatchEvent(new Event("blur"));
+    expect(interaction.getContentOffset()).toBe(0);
+  });
+
+  it("releases implicit capture when blur interrupts a short drag", async () => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn();
+    await renderController({
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+    });
+    const release = vi.fn();
+    Object.assign(interaction.svg, {
+      hasPointerCapture: () => true,
+      releasePointerCapture: release,
+    });
+    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    controller?.panDrag.onPointerMove(interaction.pointerEvent(15));
+    await act(async () => window.dispatchEvent(new Event("blur")));
+    expect(release).toHaveBeenCalledExactlyOnceWith(1);
+    expect(interaction.getContentOffset()).toBe(0);
+    expect(setRegion).not.toHaveBeenCalled();
+  });
+
+  it("ignores another pointer and tolerates capture acquisition failure", async () => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
+    await renderController({
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+    });
+    Object.assign(interaction.svg, {
+      setPointerCapture: () => {
+        throw new Error("capture denied");
+      },
+    });
+    const other = { ...interaction.pointerEvent(10), pointerId: 2 };
+    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    expect(controller?.panDrag.onPointerDown(other)).toBe(false);
+    controller?.panDrag.onPointerMove({ ...other, clientX: 40 });
+    controller?.panDrag.onPointerCancel(other);
+    expect(interaction.getContentOffset()).toBe(0);
+    controller?.panDrag.onPointerMove(interaction.pointerEvent(40));
+    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(40)));
+    expect(setRegion).not.toHaveBeenCalled();
+    expect(interaction.getContentOffset()).toBe(0);
+    expect(controller?.panDrag.isDragging()).toBe(false);
+  });
+
   it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
     "does not begin or commit a pan with invalid track width %s",
     async (trackWidth) => {
