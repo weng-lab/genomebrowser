@@ -88,7 +88,6 @@ describe("BAM displays", () => {
     for (const display of bamModule.displays) {
       for (const end of [50000, 50001]) {
         const result = markup(display, data, { region, visibleRegion: { ...region, end } });
-        expect(result.textContent).toContain("Zoom in to see BAM track");
         expect(result.querySelectorAll("[data-bam-read]")).toHaveLength(0);
       }
       const visibleRegion = { ...region, end: 49999 };
@@ -100,7 +99,6 @@ describe("BAM displays", () => {
         visibleRegion,
         config: { ...props.config, maxWindow: 40000 },
       });
-      expect(result.textContent).toContain("Zoom in to see BAM track");
       expect(result.querySelectorAll("[data-bam-read]")).toHaveLength(0);
     }
   });
@@ -239,13 +237,8 @@ describe("BAM displays", () => {
     expect(rowCount(markup("squish", labels))).toBe(1);
     expect(rowCount(markup("pack", labels))).toBe(2);
   });
-  it("renders zoom and reference status messages without hiding alignments", () => {
-    expect(
-      markup("dense", { records: [], reference: [], message: "Zoom in to view alignments." })
-        .textContent,
-    ).toContain("Zoom in");
+  it("reserves space for a reference warning without hiding alignments", () => {
     const element = markup("squish", { records: [read()], reference: [], referenceError: "CORS" });
-    expect(element.textContent).toContain("Reference unavailable");
     expect(element.querySelector('[data-bam-row="0"]')?.getAttribute("transform")).toBe(
       "translate(0,14)",
     );
@@ -408,7 +401,6 @@ describe("BAM sections", () => {
       visibleRegion: { chromosome: "chr1", start: 0, end: 60_000 },
     });
     expect(zoomedOut.querySelector("[data-bam-section]")).toBeNull();
-    expect(zoomedOut.textContent).toContain("Zoom in");
   });
   it("scales coverage to the visible region, ignoring overscan", () => {
     const deep = Array.from({ length: 5 }, (_, index) =>
@@ -563,7 +555,6 @@ describe("BAM sections", () => {
       draw(200, { ...config, alignments: { ...config.alignments, maxRows: 1 } });
       expect(rowCount(element)).toBe(1);
       expect(element.querySelectorAll("[data-bam-read]")).toHaveLength(1);
-      expect(element.querySelector("[data-bam-hidden]")?.getAttribute("data-bam-hidden")).toBe("1");
     } finally {
       act(() => root.unmount());
     }
@@ -577,7 +568,6 @@ describe("BAM sections", () => {
     for (const display of ["pack", "full"]) {
       const element = markup(display, { records: stacked, reference: [] }, { config });
       expect(rowCount(element)).toBe(2);
-      expect(element.querySelector("[data-bam-hidden]")?.getAttribute("data-bam-hidden")).toBe("3");
       expect(hooks.height).toHaveBeenLastCalledWith("bam", 60 + 4 + 2 * 14 + 14);
       expect(
         element.querySelector('[data-bam-section="coverage"]')?.getAttribute("data-scale-max"),

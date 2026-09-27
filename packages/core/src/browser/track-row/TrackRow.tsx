@@ -60,13 +60,7 @@ export function TrackRow({
         >
           <RenderErrorBoundary
             fallback={
-              <ErrorState
-                x={0}
-                y={0}
-                width={placement.width}
-                height={track.base.height}
-                message={`Track unavailable: ${track.base.title || track.base.id}`}
-              />
+              <ErrorState message={`Track unavailable: ${track.base.title || track.base.id}`} />
             }
             onError={(error, info) => reportTrackRenderError(track, error, info)}
           >

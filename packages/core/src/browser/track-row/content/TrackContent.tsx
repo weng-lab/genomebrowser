@@ -34,13 +34,7 @@ export const TrackContent = memo(function TrackContent({
   }
   if (dataState.status === "error") {
     return (
-      <ErrorState
-        x={0}
-        y={0}
-        width={width}
-        height={height}
-        message={`Track "${track.base.title || track.base.id}": ${dataState.error}`}
-      />
+      <ErrorState message={`Track "${track.base.title || track.base.id}": ${dataState.error}`} />
     );
   }
 
@@ -50,13 +44,7 @@ export const TrackContent = memo(function TrackContent({
     | undefined;
   if (!Renderer) {
     return (
-      <ErrorState
-        x={0}
-        y={0}
-        width={width}
-        height={height}
-        message={`Display "${track.base.display}" is not supported by "${track.type}"`}
-      />
+      <ErrorState message={`Display "${track.base.display}" is not supported by "${track.type}"`} />
     );
   }
   return (

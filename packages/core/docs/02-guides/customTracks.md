@@ -266,6 +266,12 @@ To connect activation to navigation, pass the following object as the second arg
 
 Hover callbacks can run frequently as the pointer crosses features. Keep transient readout state in the component that displays it, and clear retained hover state on leave. Requests or other expensive work triggered by hover need application-level deduplication rather than assuming every renderer limits event frequency.
 
+## Track status messages
+
+Render status messages with [TrackLabel](../03-reference/04-rendererIntegration/TrackLabel.md) using `anchor="center" overflow="truncate"`. The label stays centered in the visible plot while genomic content pans. Long messages show an ellipsis and retain the full text in a hover title and accessible name. Core uses the same presentation for fetch and renderer errors.
+
+Use `y` with the centered anchor when a notice belongs in a reserved band alongside data, such as a reference warning above alignments. Its coordinates refer to the whole visible plot, including when the label is nested inside a translated group. Use [TrackOverlay](../03-reference/04-rendererIntegration/TrackOverlay.md) for custom stationary SVG content.
+
 ## Further reading
 
 - [Customize an existing track module](customizeTrackModules.md): change a module's schema, settings, or tooltip while reusing its fetcher and renderers.

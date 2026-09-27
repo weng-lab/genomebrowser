@@ -98,7 +98,9 @@ describe("track render error isolation", () => {
     expect(brokenFrame.querySelector('rect[x="120"][y="0"][height="81"]')).toBeTruthy();
     expect(brokenFrame.querySelectorAll('svg[viewBox="0 0 24 24"]')).toHaveLength(3);
     expect(brokenFrame.querySelector("g[clip-path]")?.contains(fallbackText)).toBe(true);
-    expect(fallbackText.closest("foreignObject")).toBeTruthy();
+    expect(fallbackText.tagName).toBe("text");
+    expect(fallbackText.getAttribute("x")).toBe("250");
+    expect(fallbackText.parentElement?.querySelector("rect")?.getAttribute("y")).toBe("25");
     expect(
       requiredText("Healthy track (full)")
         .closest('g[transform^="translate(0,"]')
@@ -144,7 +146,7 @@ async function render(children: React.ReactNode) {
 }
 
 function requiredText(content: string) {
-  const element = Array.from(container?.querySelectorAll('text, [role="region"]') ?? []).find(
+  const element = Array.from(container?.querySelectorAll("text") ?? []).find(
     (candidate) => candidate.textContent === content,
   );
   if (!element) throw new Error(`Text not found: ${content}`);

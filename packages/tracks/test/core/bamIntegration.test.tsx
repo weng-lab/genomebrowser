@@ -186,3 +186,76 @@ describe("BAM hosted track", () => {
     }
   });
 });
+
+it.each(bamModule.displays)(
+  "keeps %s status messages centered in their reserved bands",
+  async (display) => {
+    let data: BamData = { records, reference: [], referenceError: "Reference failed" };
+    const trackStore = createTrackStore({
+      modules: [{ ...bamModule, fetch: async () => data }],
+      tracks: [
+        bamModule.create({
+          base: { id: "bam", title: "BAM", display },
+          config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE", alignments: { maxRows: 1 } },
+        }),
+      ],
+    });
+    const browserStore = createBrowserStore({
+      assembly: { id: "test", chromosomes: { chr1: 1000000 } },
+      region: { chromosome: "chr1", start: 100, end: 220 },
+      trackWidth: 1000,
+    });
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await settle(() =>
+      root?.render(
+        <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+      ),
+    );
+    const label = (prefix: string) => {
+      const text = Array.from(container!.querySelectorAll("text")).find((text) =>
+        text.textContent?.startsWith(prefix),
+      )!;
+      expect(text).toBeTruthy();
+      expect(text.getAttribute("x")).toBe("500");
+      expect(text.closest("[data-bam-display]")).toBeNull();
+      return text;
+    };
+    expect(
+      label("Reference unavailable").parentElement?.querySelector("rect")?.getAttribute("y"),
+    ).toBe("0");
+    expect(container.querySelectorAll("[data-bam-read]").length).toBeGreaterThan(0);
+    const hiddenCount = records.length - container.querySelectorAll("[data-bam-read]").length;
+    const hidden = Array.from(container.querySelectorAll("text")).find((text) =>
+      text.textContent?.startsWith(`${hiddenCount} more alignments`),
+    );
+    const height = trackStore.getState().getTrack("bam")!.base.height;
+    expect(hidden?.parentElement?.querySelector("rect")?.getAttribute("y")).toBe(
+      hiddenCount > 0 ? String(height - 14) : undefined,
+    );
+    data = {
+      records,
+      reference: [],
+      message: "BAM data unavailable",
+      referenceError: "Reference failed",
+    };
+    await settle(() => {
+      trackStore.getState().updateTrack("bam", { config: { maxWindow: 100000 } });
+    });
+    label("BAM data unavailable");
+    expect(container.textContent).not.toContain("Reference unavailable");
+    expect(container.querySelector("[data-bam-section]")).toBeNull();
+    await settle(() => {
+      browserStore.getState().setRegion({ chromosome: "chr1", start: 100, end: 100100 });
+    });
+    label("Zoom in to see BAM track");
+    expect(container.textContent).not.toContain("BAM data unavailable");
+    data = { records, reference: [] };
+    await settle(() => {
+      browserStore.getState().setRegion({ chromosome: "chr1", start: 100, end: 220 });
+    });
+    expect(container.textContent).not.toContain("Zoom in");
+    expect(container.querySelectorAll("[data-bam-read]").length).toBeGreaterThan(0);
+  },
+);
