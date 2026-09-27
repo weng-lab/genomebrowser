@@ -1,13 +1,11 @@
+import { createBrowserContextValue } from "./createBrowserContextValue";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createBrowserStore, createTrackStore, defineTrackModule, hg38 } from "../../src/lib";
 import type { TrackStoreInstance } from "../../src/lib";
 import { idleDataSource } from "./idleDataSource";
-import {
-  BrowserContext,
-  createBrowserContextValue,
-} from "../../src/browser/state/browserContextState";
+import { BrowserContext } from "../../src/browser/state/browserContextState";
 import { TrackContent } from "../../src/browser/track-row/TrackContent";
 
 // Preserve these existing layout guards until real-browser tests verify scrolling

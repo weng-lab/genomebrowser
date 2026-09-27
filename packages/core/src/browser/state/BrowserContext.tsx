@@ -1,6 +1,9 @@
-import { useLayoutEffect, useState, type ReactNode } from "react";
+import { useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 import { createTrackDataController } from "../data/trackDataController";
-import { BrowserContext, createBrowserContextValue } from "./browserContextState";
+import { createTooltipStore } from "../tooltip/tooltipStore";
+import { BrowserContext } from "./browserContextState";
+import { createContextMenuStore } from "./contextMenuStore";
+import { createSettingsStore } from "./settingsStore";
 import type { BrowserStoreInstance } from "./browserStore";
 import type { TrackStoreInstance } from "./trackStore";
 
@@ -15,26 +18,30 @@ export function BrowserProvider({
   trackStore: TrackStoreInstance;
   trackWidth: number;
 }) {
-  const [runtime, setRuntime] = useState(() => {
-    const dataController = createTrackDataController({ browserStore, trackStore, trackWidth });
-    return {
-      dataController,
-      context: createBrowserContextValue(browserStore, trackStore, dataController),
-    };
-  });
-  const { dataController, context } = runtime;
+  // Private UI stores live for this mount, including across source replacement.
+  const [ui] = useState(() => ({
+    contextMenuStore: createContextMenuStore(),
+    settingsStore: createSettingsStore(),
+    tooltipStore: createTooltipStore(),
+  }));
+  const [source, setSource] = useState(() => ({
+    browserStore,
+    trackStore,
+    dataController: createTrackDataController({ browserStore, trackStore, trackWidth }),
+  }));
 
   // A new supplied store pair needs a new controller before descendants render.
-  // Keep this mount's menu, settings, and tooltip stores across replacement.
-  if (context.browserStore !== browserStore || context.trackStore !== trackStore) {
-    const nextController = createTrackDataController({ browserStore, trackStore, trackWidth });
-    setRuntime({
-      dataController: nextController,
-      context: { ...context, browserStore, trackStore, dataController: nextController },
+  if (source.browserStore !== browserStore || source.trackStore !== trackStore) {
+    setSource({
+      browserStore,
+      trackStore,
+      dataController: createTrackDataController({ browserStore, trackStore, trackWidth }),
     });
   }
 
+  const { dataController } = source;
   useLayoutEffect(() => dataController.connect(), [dataController]);
   useLayoutEffect(() => dataController.setTrackWidth(trackWidth), [dataController, trackWidth]);
+  const context = useMemo(() => ({ ...source, ...ui }), [source, ui]);
   return <BrowserContext.Provider value={context}>{children}</BrowserContext.Provider>;
 }

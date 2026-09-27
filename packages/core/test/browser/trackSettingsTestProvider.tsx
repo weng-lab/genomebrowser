@@ -1,9 +1,7 @@
+import { createBrowserContextValue } from "./createBrowserContextValue";
 import type { ReactNode } from "react";
 import { idleDataSource } from "./idleDataSource";
-import {
-  BrowserContext,
-  createBrowserContextValue,
-} from "../../src/browser/state/browserContextState";
+import { BrowserContext } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import type { TrackStoreInstance } from "../../src/browser/state/trackStore";

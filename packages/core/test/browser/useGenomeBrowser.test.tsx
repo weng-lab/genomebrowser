@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import { createBrowserContextValue } from "./createBrowserContextValue";
+
 import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -17,10 +19,7 @@ import {
   type TrackFetchContext,
 } from "../../src/lib";
 import { idleDataSource } from "./idleDataSource";
-import {
-  BrowserContext,
-  createBrowserContextValue,
-} from "../../src/browser/state/browserContextState";
+import { BrowserContext } from "../../src/browser/state/browserContextState";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;

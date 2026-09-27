@@ -1,3 +1,4 @@
+import { createBrowserContextValue } from "../../core/test/browser/createBrowserContextValue";
 import { useMemo, useState, type ReactNode } from "react";
 import {
   createBrowserStore,
@@ -5,10 +6,7 @@ import {
   type BrowserStoreInstance,
   type TrackStoreInstance,
 } from "@weng-lab/genomebrowser";
-import {
-  BrowserContext,
-  createBrowserContextValue,
-} from "../../core/src/browser/state/browserContextState";
+import { BrowserContext } from "../../core/src/browser/state/browserContextState";
 
 // Stable snapshots: useSyncExternalStore re-renders whenever a snapshot changes identity.
 const readyStatus = { reason: "ready", zoomTargetBases: 100, maxReadableBases: 125 } as const;

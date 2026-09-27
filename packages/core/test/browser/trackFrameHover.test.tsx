@@ -1,15 +1,14 @@
 // @vitest-environment jsdom
 
+import { createBrowserContextValue } from "./createBrowserContextValue";
+
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { idleDataSource } from "./idleDataSource";
-import {
-  BrowserContext,
-  createBrowserContextValue,
-} from "../../src/browser/state/browserContextState";
+import { BrowserContext } from "../../src/browser/state/browserContextState";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { TrackFrame } from "../../src/browser/track-row/TrackFrame";

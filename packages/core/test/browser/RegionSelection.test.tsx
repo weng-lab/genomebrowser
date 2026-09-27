@@ -1,13 +1,12 @@
 // @vitest-environment jsdom
 
+import { createBrowserContextValue } from "./createBrowserContextValue";
+
 import { act, useLayoutEffect, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RegionSelection } from "../../src/browser/viewport/RegionSelection";
-import {
-  BrowserContext,
-  createBrowserContextValue,
-} from "../../src/browser/state/browserContextState";
+import { BrowserContext } from "../../src/browser/state/browserContextState";
 import {
   createBrowserStore,
   type BrowserStoreInput,

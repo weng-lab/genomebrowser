@@ -1,12 +1,11 @@
 // @vitest-environment jsdom
+
+import { createBrowserContextValue } from "./createBrowserContextValue";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Highlights } from "../../src/browser/overlays/Highlights";
 import { idleDataSource } from "./idleDataSource";
-import {
-  BrowserContext,
-  createBrowserContextValue,
-} from "../../src/browser/state/browserContextState";
+import { BrowserContext } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 

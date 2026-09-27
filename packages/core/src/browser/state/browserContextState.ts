@@ -2,18 +2,10 @@ import { createContext, use } from "react";
 import type { TrackMutationResult } from "../../modules/types";
 import type { TrackDataController } from "../data/trackDataController";
 import type { TooltipStore } from "../tooltip/types";
-import { createTooltipStore, type TooltipStoreInstance } from "../tooltip/tooltipStore";
+import type { TooltipStoreInstance } from "../tooltip/tooltipStore";
 import type { BrowserStoreInstance } from "./browserStore";
-import {
-  createContextMenuStore,
-  type ContextMenuStore,
-  type ContextMenuStoreInstance,
-} from "./contextMenuStore";
-import {
-  createSettingsStore,
-  type SettingsStore,
-  type SettingsStoreInstance,
-} from "./settingsStore";
+import type { ContextMenuStore, ContextMenuStoreInstance } from "./contextMenuStore";
+import type { SettingsStore, SettingsStoreInstance } from "./settingsStore";
 import type { TrackStoreInstance } from "./trackStore";
 
 /** The parts of a browser's data controller that components subscribe to. */
@@ -34,22 +26,6 @@ export type BrowserContextValue = {
 };
 
 export const BrowserContext = createContext<BrowserContextValue | null>(null);
-
-/** Create one browser's context value with private menu, settings, and tooltip stores. */
-export function createBrowserContextValue(
-  browserStore: BrowserStoreInstance,
-  trackStore: TrackStoreInstance,
-  dataController: BrowserDataSource,
-): BrowserContextValue {
-  return {
-    browserStore,
-    trackStore,
-    dataController,
-    contextMenuStore: createContextMenuStore(),
-    settingsStore: createSettingsStore(),
-    tooltipStore: createTooltipStore(),
-  };
-}
 
 function useBrowserContext(hook: string) {
   const context = use(BrowserContext);
