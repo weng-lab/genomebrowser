@@ -1,6 +1,6 @@
 import { createContext, use } from "react";
 import type { RegisterContentGroup } from "../viewport/useContentTransform";
-import type { PanDragHandlers } from "../viewport/usePanDrag";
+import type { BrowserPan } from "../viewport/useBrowserPan";
 
 /**
  * What every track in the stack shares: the browser's frame geometry and its pan
@@ -13,7 +13,7 @@ export type TrackStackContextValue = {
   trackWidth: number;
   titleSize: number;
   registerContentGroup: RegisterContentGroup;
-  panDrag: PanDragHandlers;
+  panDrag: BrowserPan;
 };
 
 export const TrackStackContext = createContext<TrackStackContextValue | null>(null);

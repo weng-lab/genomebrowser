@@ -5,19 +5,6 @@ import { normalizeRegion } from "../../genome/region";
 /** How far beyond the visible region each request loads, as a multiple of the visible span. */
 export const PAN_OVERSCAN_MULTIPLIER = 3;
 
-export function expandRegion(region: GenomicRegion, multiplier: number): GenomicRegion | null {
-  const span = region.end - region.start;
-  if (!Number.isSafeInteger(span) || span <= 0 || !Number.isFinite(multiplier) || multiplier < 1) {
-    return null;
-  }
-  const sideBases = Math.floor((span * (multiplier - 1)) / 2);
-  const start = region.start - sideBases;
-  const end = region.end + sideBases;
-  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) return null;
-
-  return { chromosome: region.chromosome, start, end };
-}
-
 /**
  * The window a request loads: the visible region widened by `overscanMultiplier`
  * and clipped to the chromosome, with the pixel width it covers at the visible
@@ -58,5 +45,22 @@ export function getContentPlacement(
   return {
     x: marginWidth + (region.start - visibleRegion.start) * pxPerBase,
     width: (region.end - region.start) * pxPerBase,
+  };
+}
+
+export function expandRegion(region: GenomicRegion, multiplier: number): GenomicRegion | null {
+  const span = region.end - region.start;
+  if (!Number.isSafeInteger(span) || span <= 0 || !Number.isFinite(multiplier) || multiplier < 1) {
+    return null;
+  }
+  const sideBases = Math.floor((span * (multiplier - 1)) / 2);
+  const start = region.start - sideBases;
+  const end = region.end + sideBases;
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) return null;
+
+  return {
+    chromosome: region.chromosome,
+    start,
+    end,
   };
 }

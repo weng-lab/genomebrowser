@@ -113,10 +113,12 @@ async function renderFrame({
     registerContentGroup: () => () => {},
     panDrag: {
       isDragging: () => false,
+      subscribeEnd: () => () => {},
       onPointerDown: () => false,
       onPointerMove: () => {},
       onPointerUp: () => {},
       onPointerCancel: () => {},
+      onLostPointerCapture: () => {},
       onClickCapture: () => {},
     },
   };
@@ -128,9 +130,7 @@ async function renderFrame({
     root?.render(
       <BrowserContext.Provider
         value={{
-          ...createBrowserContextValue(browserStore, trackStore, idleDataSource, {
-            isDragging: false,
-          }),
+          ...createBrowserContextValue(browserStore, trackStore, idleDataSource),
           settingsStore,
         }}
       >

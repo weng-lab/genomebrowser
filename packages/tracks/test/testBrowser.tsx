@@ -47,7 +47,6 @@ export function TestBrowser({
           getBasePairDetail: () => basePairDetail,
           getBasePairDetailStatus: () => (basePairDetail ? readyStatus : viewportStatus),
         },
-        { isDragging: false },
       ),
     [basePairDetail, browserStore, defaultBrowserStore, emptyTrackStore, trackStore],
   );

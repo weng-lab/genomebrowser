@@ -86,5 +86,5 @@ function browserContext(trackStore: TrackStoreInstance) {
     assembly: hg38,
     region: { chromosome: "chr1", start: 0, end: 10 },
   });
-  return createBrowserContextValue(browserStore, trackStore, idleDataSource, { isDragging: false });
+  return createBrowserContextValue(browserStore, trackStore, idleDataSource);
 }

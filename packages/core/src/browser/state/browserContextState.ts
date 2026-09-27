@@ -22,8 +22,6 @@ export type BrowserDataSource = Pick<
   "subscribe" | "getTrack" | "getBasePairDetail" | "getBasePairDetailStatus"
 >;
 
-export type PanDragStatus = { isDragging: boolean };
-
 /** Replaced with the supplied store pair; store state uses selector subscriptions. */
 export type BrowserContextValue = {
   browserStore: BrowserStoreInstance;
@@ -33,8 +31,6 @@ export type BrowserContextValue = {
   contextMenuStore: ContextMenuStoreInstance;
   settingsStore: SettingsStoreInstance;
   tooltipStore: TooltipStoreInstance;
-  /** Whether a pan drag is in progress. Read at call time, not subscribed. */
-  panDragStatus: PanDragStatus;
 };
 
 export const BrowserContext = createContext<BrowserContextValue | null>(null);
@@ -44,7 +40,6 @@ export function createBrowserContextValue(
   browserStore: BrowserStoreInstance,
   trackStore: TrackStoreInstance,
   dataController: BrowserDataSource,
-  panDragStatus: PanDragStatus,
 ): BrowserContextValue {
   return {
     browserStore,
@@ -53,7 +48,6 @@ export function createBrowserContextValue(
     contextMenuStore: createContextMenuStore(),
     settingsStore: createSettingsStore(),
     tooltipStore: createTooltipStore(),
-    panDragStatus,
   };
 }
 
@@ -101,10 +95,6 @@ export function useSettingsStore<T>(selector: (state: SettingsStore) => T): T {
 export function useTooltipStore<T>(selector: (state: TooltipStore) => T): T {
   const useStore = useBrowserContext("useTooltip").tooltipStore;
   return useStore(selector);
-}
-
-export function usePanDragStatus() {
-  return useBrowserContext("usePanDragStatus").panDragStatus;
 }
 
 /** Whether pending track requests block pan, zoom, selection, reordering and settings. */

@@ -10,7 +10,8 @@ import { SvgShell } from "./svg/SvgShell";
 import { TrackStack } from "./track-row/TrackStack";
 import { useTrackLayout } from "./track-row/useTrackLayout";
 import { RegionSelection } from "./viewport/RegionSelection";
-import { usePanning } from "./viewport/usePanning";
+import { useContentTransform } from "./viewport/useContentTransform";
+import { PanStatusContext, useBrowserPan } from "./viewport/useBrowserPan";
 
 /** Owns the SVG layers and the layout shared by tracks and overlays. */
 export function BrowserCanvas({ trackWidth, scale }: { trackWidth: number; scale: number }) {
@@ -19,61 +20,65 @@ export function BrowserCanvas({ trackWidth, scale }: { trackWidth: number; scale
   const region = useBrowserStore((state) => state.region);
   const marginWidth = useBrowserStore((state) => state.marginWidth);
   const titleSize = useBrowserStore((state) => state.titleSize);
-  const setRegion = useBrowserStore((state) => state.setRegion);
   const { trackLayouts, totalHeight } = useTrackLayout(titleSize);
   const browserWidth = marginWidth + trackWidth;
-  const { panDrag, registerContentGroup, wheel } = usePanning({
-    svg,
+  const { getContentOffset, registerContentGroup, setContentOffset } = useContentTransform({
     region,
     marginWidth,
     trackWidth,
-    setRegion,
+  });
+  const panDrag = useBrowserPan({
+    svg,
+    browserStore: useBrowserStore,
+    trackWidth,
+    content: { getContentOffset, setContentOffset },
   });
 
   return (
-    <BrowserSvgProvider svg={svg}>
-      <SvgShell width={browserWidth} height={totalHeight} scale={scale} setSvg={setSvg}>
-        {wheel}
-        <RegionSelection
-          svg={svg}
-          marginWidth={marginWidth}
-          trackWidth={trackWidth}
-          totalHeight={totalHeight}
-          region={region}
-        >
-          <Highlights
-            type="filled"
-            region={region}
+    <PanStatusContext value={panDrag.isDragging}>
+      <BrowserSvgProvider svg={svg}>
+        <SvgShell width={browserWidth} height={totalHeight} scale={scale} setSvg={setSvg}>
+          <RegionSelection
+            svg={svg}
             marginWidth={marginWidth}
             trackWidth={trackWidth}
             totalHeight={totalHeight}
-            registerContentGroup={registerContentGroup}
-          />
-          <g>
-            <TrackStack
-              trackLayouts={trackLayouts}
-              visibleRegion={region}
+            region={region}
+          >
+            <Highlights
+              type="filled"
+              region={region}
               marginWidth={marginWidth}
               trackWidth={trackWidth}
+              totalHeight={totalHeight}
               registerContentGroup={registerContentGroup}
-              panDrag={panDrag}
-              titleSize={titleSize}
             />
-          </g>
-          <Highlights
-            type="outlined"
-            region={region}
-            marginWidth={marginWidth}
-            trackWidth={trackWidth}
-            totalHeight={totalHeight}
-            registerContentGroup={registerContentGroup}
-          />
-        </RegionSelection>
-        <TooltipOverlay width={browserWidth} height={totalHeight} />
-        <InteractionShield width={browserWidth} height={totalHeight} />
-      </SvgShell>
-      <ContextMenuController />
-      <SettingsModalController />
-    </BrowserSvgProvider>
+            <g>
+              <TrackStack
+                trackLayouts={trackLayouts}
+                visibleRegion={region}
+                marginWidth={marginWidth}
+                trackWidth={trackWidth}
+                registerContentGroup={registerContentGroup}
+                panDrag={panDrag}
+                titleSize={titleSize}
+              />
+            </g>
+            <Highlights
+              type="outlined"
+              region={region}
+              marginWidth={marginWidth}
+              trackWidth={trackWidth}
+              totalHeight={totalHeight}
+              registerContentGroup={registerContentGroup}
+            />
+          </RegionSelection>
+          <TooltipOverlay width={browserWidth} height={totalHeight} />
+          <InteractionShield width={browserWidth} height={totalHeight} />
+        </SvgShell>
+        <ContextMenuController />
+        <SettingsModalController />
+      </BrowserSvgProvider>
+    </PanStatusContext>
   );
 }

@@ -27,7 +27,6 @@ describe("highlight rendering", () => {
           browserStore,
           createTrackStore({ modules: [], tracks: [] }),
           idleDataSource,
-          { isDragging: false },
         )}
       >
         <svg>

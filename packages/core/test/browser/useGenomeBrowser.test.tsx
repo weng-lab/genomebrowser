@@ -98,7 +98,6 @@ describe("useGenomeBrowser", () => {
       first.useBrowserStore,
       first.useTrackStore,
       idleDataSource,
-      { isDragging: false },
     );
     const view = (stores: GenomeBrowserStores) => (
       <BrowserContext.Provider

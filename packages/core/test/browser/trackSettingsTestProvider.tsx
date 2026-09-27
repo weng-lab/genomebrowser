@@ -31,7 +31,6 @@ export function TrackSettingsTestProvider({
           }),
           trackStore,
           idleDataSource,
-          { isDragging: false },
         ),
         settingsStore,
       }}

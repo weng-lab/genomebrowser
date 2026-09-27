@@ -17,16 +17,15 @@ export function BrowserProvider({
 }) {
   const [runtime, setRuntime] = useState(() => {
     const dataController = createTrackDataController({ browserStore, trackStore, trackWidth });
-    const panDragStatus = { isDragging: false };
     return {
       dataController,
-      context: createBrowserContextValue(browserStore, trackStore, dataController, panDragStatus),
+      context: createBrowserContextValue(browserStore, trackStore, dataController),
     };
   });
   const { dataController, context } = runtime;
 
   // A new supplied store pair needs a new controller before descendants render.
-  // Keep this mount's menu, settings, tooltip, and drag status across replacement.
+  // Keep this mount's menu, settings, and tooltip stores across replacement.
   if (context.browserStore !== browserStore || context.trackStore !== trackStore) {
     const nextController = createTrackDataController({ browserStore, trackStore, trackWidth });
     setRuntime({

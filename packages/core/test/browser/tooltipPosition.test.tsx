@@ -29,7 +29,6 @@ const browserContext = createBrowserContextValue(
   }),
   createTrackStore({ modules: [], tracks: [] }),
   idleDataSource,
-  { isDragging: false },
 );
 
 beforeEach(() => {

@@ -229,6 +229,71 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     `);
   });
 
+  it("cancels a pan preview when the window loses focus", async () => {
+    const { probe, browserStore } = await mountBrowser();
+    const svg = document.querySelector<SVGSVGElement>("#browserSVG");
+    const panTarget = Array.from(svg?.querySelectorAll<SVGGElement>("g") ?? []).find(
+      (group) => group.style.cursor === "grab",
+    );
+    if (!svg || !panTarget) throw new Error("Expected a pannable track");
+    installSvgCoordinates(svg);
+    installPointerCapture(panTarget);
+
+    // Preview changes only the SVG transform. The active PanTrack renders once
+    // to show the grabbing cursor and once to restore it after interruption.
+    const started = await probe.measure(() =>
+      panTarget.dispatchEvent(pointerEvent("pointerdown", 500)),
+    );
+    const moved = await probe.measure(() =>
+      panTarget.dispatchEvent(pointerEvent("pointermove", 300)),
+    );
+    const interrupted = await probe.measure(() => window.dispatchEvent(new Event("blur")));
+    expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 0, end: 1_000 });
+    expect(panTarget.style.cursor).toBe("grab");
+    expect(budget(started)).toMatchInlineSnapshot(`
+      {
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
+        "Highlights": 0,
+        "PanTrack": 1,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+    expect(budget(moved)).toMatchInlineSnapshot(`
+      {
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
+        "Highlights": 0,
+        "PanTrack": 0,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+    expect(budget(interrupted)).toMatchInlineSnapshot(`
+      {
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
+        "Highlights": 0,
+        "PanTrack": 1,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+  });
+
   it("shows fast tracks before a slow track resolves", async () => {
     const { probe, browserStore } = await mountBrowser({ slowTrack: true });
     const requests: (() => void)[] = [];
