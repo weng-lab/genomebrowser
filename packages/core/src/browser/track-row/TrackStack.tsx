@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 import type { GenomicRegion } from "../../genome/region";
-import { isSameSwapPreview } from "./trackSwapMath";
-import type { SwapPreview } from "./swapTypes";
+import { isSameSwapPreview } from "./reorder/trackSwapMath";
+import type { SwapPreview } from "./reorder/swapTypes";
 import { TrackRow } from "./TrackRow";
-import type { TrackLayout } from "./trackLayout";
+import type { TrackLayout } from "./layout/trackLayout";
 import { TrackStackContext, type TrackStackContextValue } from "./trackStackContext";
 
 export function TrackStack({

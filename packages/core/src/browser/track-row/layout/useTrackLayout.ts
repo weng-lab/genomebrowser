@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useGenomeBrowser } from "../state/browserContextState";
+import { useGenomeBrowser } from "../../state/browserContextState";
 import { createTrackLayouts, getTrackWrapperHeight } from "./trackLayout";
 
 /** Derive ordered rows and the SVG height from the current track store. */

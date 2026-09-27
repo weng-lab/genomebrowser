@@ -10,7 +10,7 @@ import { idleDataSource } from "./idleDataSource";
 import { BrowserContext } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
-import { TrackControls } from "../../src/browser/track-row/TrackControls";
+import { TrackControls } from "../../src/browser/track-row/frame/TrackControls";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =

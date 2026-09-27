@@ -11,7 +11,7 @@ import { idleDataSource } from "./idleDataSource";
 import { BrowserContext } from "../../src/browser/state/browserContextState";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
-import { TrackFrame } from "../../src/browser/track-row/TrackFrame";
+import { TrackFrame } from "../../src/browser/track-row/frame/TrackFrame";
 import { TrackStackContext } from "../../src/browser/track-row/trackStackContext";
 import { hg38 } from "../../src/genome/presets";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";

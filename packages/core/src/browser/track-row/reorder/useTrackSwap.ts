@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent, RefObject } from "react";
-import type { AnyTrackInstance } from "../../modules/types";
-import { svgPoint } from "../../modules/utils/svg";
-import { useTrackMutationGate, useGenomeBrowser } from "../state/browserContextState";
-import { useBrowserSvg } from "../svg/browserSvgState";
-import { getTrackWrapperHeight } from "./trackLayout";
-import { useTrackStack } from "./trackStackContext";
+import type { AnyTrackInstance } from "../../../modules/types";
+import { svgPoint } from "../../../modules/utils/svg";
+import { useTrackMutationGate, useGenomeBrowser } from "../../state/browserContextState";
+import { useBrowserSvg } from "../../svg/browserSvgState";
+import { getTrackWrapperHeight } from "../layout/trackLayout";
+import { useTrackStack } from "../trackStackContext";
 import { getSwapOrder, getSwapPreview, isSameSwapPreview } from "./trackSwapMath";
 import type { SwapPreview, TrackFrameSwapProps } from "./swapTypes";
 

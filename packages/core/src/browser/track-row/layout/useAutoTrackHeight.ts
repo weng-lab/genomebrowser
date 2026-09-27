@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useGenomeBrowser } from "../state/browserContextState";
+import { useGenomeBrowser } from "../../state/browserContextState";
 
 export type AutoTrackHeightOptions = {
   rowHeight?: number;

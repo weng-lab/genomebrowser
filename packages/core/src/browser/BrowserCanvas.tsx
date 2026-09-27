@@ -7,7 +7,7 @@ import { Highlights } from "./overlays/Highlights";
 import { ContextMenuController } from "./overlays/ContextMenuController";
 import { SettingsModalController } from "./overlays/SettingsModalController";
 import { TrackStack } from "./track-row/TrackStack";
-import { useTrackLayout } from "./track-row/useTrackLayout";
+import { useTrackLayout } from "./track-row/layout/useTrackLayout";
 import { RegionSelection } from "./viewport/RegionSelection";
 import { useContentTransform } from "./viewport/useContentTransform";
 import { PanStatusContext, useBrowserPan } from "./viewport/useBrowserPan";

@@ -1,8 +1,8 @@
 import { memo, type ComponentType } from "react";
-import { TrackRuntimeProvider } from "../../modules/TrackRuntimeProvider";
-import type { AnyTrackInstance, TrackRendererProps } from "../../modules/types";
-import type { GenomicRegion } from "../../genome/region";
-import { useRegistry } from "../state/browserContextState";
+import { TrackRuntimeProvider } from "../../../modules/TrackRuntimeProvider";
+import type { AnyTrackInstance, TrackRendererProps } from "../../../modules/types";
+import type { GenomicRegion } from "../../../genome/region";
+import { useRegistry } from "../../state/browserContextState";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 

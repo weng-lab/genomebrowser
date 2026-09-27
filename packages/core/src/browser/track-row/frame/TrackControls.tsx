@@ -1,10 +1,10 @@
 import { useRef } from "react";
-import type { AnyTrackInstance } from "../../modules/types";
+import type { AnyTrackInstance } from "../../../modules/types";
 import {
   useSettingsStore,
   useTrackMutationGate,
   useGenomeBrowser,
-} from "../state/browserContextState";
+} from "../../state/browserContextState";
 import { BottomIcon, SettingsIcon, TopIcon } from "./icons";
 
 export function TrackControls({

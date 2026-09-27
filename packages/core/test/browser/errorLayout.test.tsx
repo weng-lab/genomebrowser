@@ -6,7 +6,7 @@ import { createBrowserStore, createTrackStore, defineTrackModule, hg38 } from ".
 import type { TrackStoreInstance } from "../../src/lib";
 import { idleDataSource } from "./idleDataSource";
 import { BrowserContext } from "../../src/browser/state/browserContextState";
-import { TrackContent } from "../../src/browser/track-row/TrackContent";
+import { TrackContent } from "../../src/browser/track-row/content/TrackContent";
 
 // Preserve these existing layout guards until real-browser tests verify scrolling
 // and short-track fit. Static markup checks cannot establish actual visual fit,

@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { useIsInteractionBlocked } from "../state/browserContextState";
-import type { BrowserPan } from "../viewport/useBrowserPan";
+import { useIsInteractionBlocked } from "../../state/browserContextState";
+import type { BrowserPan } from "../../viewport/useBrowserPan";
 
 export function PanTrack({
   panDrag,
