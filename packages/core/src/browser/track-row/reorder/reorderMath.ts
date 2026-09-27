@@ -1,8 +1,14 @@
 import type { AnyTrackInstance } from "../../../modules/types";
 import { getTrackWrapperHeight } from "../layout/trackLayout";
-import type { SwapPreview } from "./swapTypes";
+import type { TrackLayout } from "../layout/trackLayout";
 
-export function isSameSwapPreview(a: SwapPreview | null, b: SwapPreview) {
+export type ReorderPreview = {
+  draggedId: string;
+  currentIndex: number;
+  targetIndex: number;
+};
+
+export function isSameReorderPreview(a: ReorderPreview | null, b: ReorderPreview) {
   return (
     a?.draggedId === b.draggedId &&
     a.currentIndex === b.currentIndex &&
@@ -10,13 +16,13 @@ export function isSameSwapPreview(a: SwapPreview | null, b: SwapPreview) {
   );
 }
 
-export function getSwapPreview(
+export function getReorderPreview(
   id: string,
   tracks: AnyTrackInstance[],
   titleSize: number,
   deltaY: number,
   pinnedTrackIds: readonly string[] = [],
-): SwapPreview | null {
+): ReorderPreview | null {
   const currentIndex = tracks.findIndex((track) => track.base.id === id);
   if (currentIndex < 0 || pinnedTrackIds.includes(id)) return null;
   const pinned = new Set(pinnedTrackIds);
@@ -41,35 +47,36 @@ export function getSwapPreview(
   return { draggedId: id, currentIndex, targetIndex };
 }
 
-export function getSwapPreviewOffsetY(
-  index: number,
-  trackId: string,
-  tracks: AnyTrackInstance[],
-  titleSize: number,
-  preview: SwapPreview | null,
+export function getReorderPreviewOffsetY(
+  layout: TrackLayout,
+  trackLayouts: TrackLayout[],
+  preview: ReorderPreview | null,
 ) {
-  if (!preview || trackId === preview.draggedId) return 0;
-  const draggedTrack = tracks[preview.currentIndex];
-  if (!draggedTrack) return 0;
-  const draggedHeight = getTrackWrapperHeight(draggedTrack, titleSize);
+  if (!preview || layout.id === preview.draggedId) return 0;
+  const draggedHeight = trackLayouts[preview.currentIndex]?.wrapperHeight;
+  if (draggedHeight === undefined) return 0;
 
   if (preview.targetIndex > preview.currentIndex) {
-    return index > preview.currentIndex && index <= preview.targetIndex ? -draggedHeight : 0;
+    return layout.index > preview.currentIndex && layout.index <= preview.targetIndex
+      ? -draggedHeight
+      : 0;
   }
   if (preview.targetIndex < preview.currentIndex) {
-    return index >= preview.targetIndex && index < preview.currentIndex ? draggedHeight : 0;
+    return layout.index >= preview.targetIndex && layout.index < preview.currentIndex
+      ? draggedHeight
+      : 0;
   }
   return 0;
 }
 
-export function getSwapOrder(
+export function getReorderedTrackIds(
   id: string,
   tracks: AnyTrackInstance[],
   titleSize: number,
   deltaY: number,
   pinnedTrackIds: readonly string[] = [],
 ) {
-  const preview = getSwapPreview(id, tracks, titleSize, deltaY, pinnedTrackIds);
+  const preview = getReorderPreview(id, tracks, titleSize, deltaY, pinnedTrackIds);
   if (!preview) return null;
 
   const { currentIndex, targetIndex } = preview;

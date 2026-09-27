@@ -5,10 +5,10 @@ import { RenderErrorBoundary } from "../RenderErrorBoundary";
 import { useDataController, useGenomeBrowser } from "../state/browserContextState";
 import { getContentPlacement } from "../viewport/renderWindow";
 import { ErrorState } from "./content/ErrorState";
-import { SwapTrack } from "./reorder/SwapTrack";
+import { TrackReorder } from "./reorder/TrackReorder";
 import { TrackContent } from "./content/TrackContent";
 import { TrackFrame } from "./frame/TrackFrame";
-import type { SwapPreview } from "./reorder/swapTypes";
+import type { ReorderPreview } from "./reorder/reorderMath";
 import type { TrackLayout } from "./layout/trackLayout";
 import { useTrackStack } from "./trackStackContext";
 
@@ -26,7 +26,7 @@ export function TrackRow({
   visibleRegion: GenomicRegion;
   previewOffsetY: number;
   disableHover: boolean;
-  onPreviewChange: (preview: SwapPreview) => void;
+  onPreviewChange: (preview: ReorderPreview) => void;
   onPreviewEnd: () => void;
 }) {
   const { useTrackStore } = useGenomeBrowser();
@@ -46,7 +46,7 @@ export function TrackRow({
   const placement = getContentPlacement(region, visibleRegion, trackWidth, marginWidth);
 
   return (
-    <SwapTrack track={track} onPreviewChange={onPreviewChange} onPreviewEnd={onPreviewEnd}>
+    <TrackReorder track={track} onPreviewChange={onPreviewChange} onPreviewEnd={onPreviewEnd}>
       {(swapProps) => (
         <TrackFrame
           {...swapProps}
@@ -81,7 +81,7 @@ export function TrackRow({
           </RenderErrorBoundary>
         </TrackFrame>
       )}
-    </SwapTrack>
+    </TrackReorder>
   );
 }
 

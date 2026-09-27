@@ -398,7 +398,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // Necessary: the new row mounts once per component and renders again for its data,
     // and the view, stack, and Highlights render once for the taller browser. The three
     // existing rows do not move but still render once: createTrackLayouts returns new
-    // layout objects. The loading gate re-renders every SwapTrack's frame twice.
+    // layout objects. The loading gate re-renders every TrackReorder's frame twice.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
         "BrowserCanvas": 1,
@@ -706,6 +706,65 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "TrackContent": 0,
         "TrackControls": 3,
         "TrackFrame": 3,
+        "TrackRow": 3,
+        "TrackStack": 1,
+      }
+    `);
+  });
+
+  // Margin dragging previews sibling positions; cancellation restores the committed order.
+  it("budgets reorder preview and cancellation", async () => {
+    const { probe, trackStore } = await mountBrowser();
+    const svg = document.querySelector<SVGSVGElement>("#browserSVG")!;
+    installSvgCoordinates(svg);
+    const handle = svg.querySelector('rect[style*="cursor: grab"]')!;
+    const event = (type: string, clientY: number) => {
+      const pointer = new MouseEvent(type, { bubbles: true, cancelable: true, clientY });
+      Object.assign(pointer, { pointerId: 1, isPrimary: true });
+      return pointer;
+    };
+    const started = await probe.measure(() => handle.dispatchEvent(event("pointerdown", 10)));
+    const moved = await probe.measure(() => document.dispatchEvent(event("pointermove", 60)));
+    const cancelled = await probe.measure(() => document.dispatchEvent(event("pointercancel", 60)));
+    expect(trackStore.getState().order).toEqual(["first", "second", "third"]);
+    expect(document.head.textContent).not.toContain("cursor: grabbing");
+    const counts = (report: RenderReport) =>
+      report.pick(
+        "TrackReorder",
+        "TrackStack",
+        "TrackRow",
+        "TrackFrame",
+        "TrackContent",
+        "TestRenderer",
+      );
+    // Start mounts the floating frame; movement updates sibling placement; cancellation
+    // removes the clone and restores frames. Existing renderer data remains unchanged.
+    expect(counts(started)).toMatchInlineSnapshot(`
+      {
+        "TestRenderer": 1,
+        "TrackContent": 1,
+        "TrackFrame": 5,
+        "TrackReorder": 3,
+        "TrackRow": 3,
+        "TrackStack": 1,
+      }
+    `);
+    expect(counts(moved)).toMatchInlineSnapshot(`
+      {
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackFrame": 4,
+        "TrackReorder": 3,
+        "TrackRow": 3,
+        "TrackStack": 1,
+      }
+    `);
+    expect(counts(cancelled)).toMatchInlineSnapshot(`
+      {
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackFrame": 3,
+        "TrackReorder": 3,
         "TrackRow": 3,
         "TrackStack": 1,
       }

@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import type { GenomicRegion } from "../../genome/region";
-import { isSameSwapPreview } from "./reorder/trackSwapMath";
-import type { SwapPreview } from "./reorder/swapTypes";
+import {
+  isSameReorderPreview,
+  getReorderPreviewOffsetY,
+  type ReorderPreview,
+} from "./reorder/reorderMath";
 import { TrackRow } from "./TrackRow";
 import type { TrackLayout } from "./layout/trackLayout";
 import { TrackStackContext, type TrackStackContextValue } from "./trackStackContext";
@@ -22,12 +25,12 @@ export function TrackStack({
     () => ({ marginWidth, trackWidth, titleSize, registerContentGroup, panDrag }),
     [marginWidth, trackWidth, titleSize, registerContentGroup, panDrag],
   );
-  const [swapPreview, setSwapPreview] = useState<SwapPreview | null>(null);
-  const handlePreviewChange = useCallback((preview: SwapPreview) => {
-    setSwapPreview((current) => (isSameSwapPreview(current, preview) ? current : preview));
+  const [swapPreview, setReorderPreview] = useState<ReorderPreview | null>(null);
+  const handlePreviewChange = useCallback((preview: ReorderPreview) => {
+    setReorderPreview((current) => (isSameReorderPreview(current, preview) ? current : preview));
   }, []);
   const handlePreviewEnd = useCallback(() => {
-    setSwapPreview(null);
+    setReorderPreview(null);
   }, []);
   return (
     <TrackStackContext.Provider value={stack}>
@@ -37,33 +40,11 @@ export function TrackStack({
           layout={layout}
           visibleRegion={visibleRegion}
           disableHover={!!swapPreview}
-          previewOffsetY={getPreviewOffsetY(layout, trackLayouts, swapPreview)}
+          previewOffsetY={getReorderPreviewOffsetY(layout, trackLayouts, swapPreview)}
           onPreviewChange={handlePreviewChange}
           onPreviewEnd={handlePreviewEnd}
         />
       ))}
     </TrackStackContext.Provider>
   );
-}
-
-function getPreviewOffsetY(
-  layout: TrackLayout,
-  trackLayouts: TrackLayout[],
-  preview: SwapPreview | null,
-) {
-  if (!preview || layout.id === preview.draggedId) return 0;
-  const draggedHeight = trackLayouts[preview.currentIndex]?.wrapperHeight;
-  if (draggedHeight === undefined) return 0;
-
-  if (preview.targetIndex > preview.currentIndex) {
-    return layout.index > preview.currentIndex && layout.index <= preview.targetIndex
-      ? -draggedHeight
-      : 0;
-  }
-  if (preview.targetIndex < preview.currentIndex) {
-    return layout.index >= preview.targetIndex && layout.index < preview.currentIndex
-      ? draggedHeight
-      : 0;
-  }
-  return 0;
 }

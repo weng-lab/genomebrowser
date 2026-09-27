@@ -1,13 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import type { PointerEvent, RefObject } from "react";
+import { createPortal } from "react-dom";
+import type { PointerEvent, ReactNode } from "react";
 import type { AnyTrackInstance } from "../../../modules/types";
 import { svgPoint } from "../../../modules/utils/svg";
 import { useTrackMutationGate, useGenomeBrowser } from "../../state/browserContextState";
 import { useBrowserSvg } from "../../svg/browserSvgState";
 import { getTrackWrapperHeight } from "../layout/trackLayout";
 import { useTrackStack } from "../trackStackContext";
-import { getSwapOrder, getSwapPreview, isSameSwapPreview } from "./trackSwapMath";
-import type { SwapPreview, TrackFrameSwapProps } from "./swapTypes";
+import {
+  getReorderedTrackIds,
+  getReorderPreview,
+  isSameReorderPreview,
+  type ReorderPreview,
+} from "./reorderMath";
+type FrameDragState = {
+  onSwapPointerDown?: (event: PointerEvent<SVGRectElement>) => void;
+  swapping: boolean;
+  isDragClone: boolean;
+};
 
 type DragSession = {
   didEnd: () => boolean;
@@ -16,27 +26,27 @@ type DragSession = {
   handleCancel: (event: globalThis.PointerEvent) => void;
 };
 
-export function useTrackSwap({
+/** Owns the reorder gesture and its floating copy of the track frame. */
+export function TrackReorder({
   track,
-  disabled = false,
   onPreviewChange,
   onPreviewEnd,
-  cloneRef,
+  children,
 }: {
   track: AnyTrackInstance;
-  disabled?: boolean;
-  onPreviewChange: (preview: SwapPreview) => void;
+  onPreviewChange: (preview: ReorderPreview) => void;
   onPreviewEnd: () => void;
-  cloneRef: RefObject<SVGGElement | null>;
+  children: (drag: FrameDragState) => ReactNode;
 }) {
+  const cloneRef = useRef<SVGGElement>(null);
   const svg = useBrowserSvg();
   const { titleSize } = useTrackStack();
   const { useTrackStore } = useGenomeBrowser();
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
   const isPinned = useTrackStore((state) => state.pinnedTrackIds.includes(track.base.id));
   const [dragSession, setDragSession] = useState<DragSession | null>(null);
-  const isSwapping = dragSession !== null;
-  const previewRef = useRef<SwapPreview | null>(null);
+  const isDragging = dragSession !== null;
+  const previewRef = useRef<ReorderPreview | null>(null);
 
   useEffect(() => {
     if (!dragSession) return;
@@ -56,14 +66,7 @@ export function useTrackSwap({
   }, [dragSession, onPreviewEnd]);
 
   const handleSwapPointerDown = (event: PointerEvent<SVGRectElement>) => {
-    if (
-      disabled ||
-      isPinned ||
-      isInteractionBlocked ||
-      isSwapping ||
-      !event.isPrimary ||
-      event.button !== 0
-    )
+    if (isPinned || isInteractionBlocked || isDragging || !event.isPrimary || event.button !== 0)
       return;
     const pointerId = event.pointerId;
     const { tracks, pinnedTrackIds, reorderTracks } = useTrackStore.getState();
@@ -89,8 +92,8 @@ export function useTrackSwap({
     let isEnded = false;
 
     const updatePreview = (deltaY: number) => {
-      const preview = getSwapPreview(track.base.id, tracks, titleSize, deltaY, pinnedTrackIds);
-      if (!preview || isSameSwapPreview(previewRef.current, preview)) return;
+      const preview = getReorderPreview(track.base.id, tracks, titleSize, deltaY, pinnedTrackIds);
+      if (!preview || isSameReorderPreview(previewRef.current, preview)) return;
       previewRef.current = preview;
       onPreviewChange(preview);
     };
@@ -114,7 +117,7 @@ export function useTrackSwap({
       if (event.pointerId !== pointerId || isEnded) return;
       event.preventDefault();
       if (isCurrent() && Math.abs(latestDeltaY) > 5) {
-        const nextOrder = getSwapOrder(
+        const nextOrder = getReorderedTrackIds(
           track.base.id,
           tracks,
           titleSize,
@@ -148,18 +151,39 @@ export function useTrackSwap({
     updatePreview(0);
   };
 
-  const onSwapPointerDown =
-    disabled || isPinned || isInteractionBlocked ? undefined : handleSwapPointerDown;
-  const swapProps: TrackFrameSwapProps = {
+  const onSwapPointerDown = isPinned || isInteractionBlocked ? undefined : handleSwapPointerDown;
+  const frameProps: FrameDragState = {
     onSwapPointerDown,
-    swapping: isSwapping,
+    swapping: isDragging,
     isDragClone: false,
   };
-  const cloneSwapProps: TrackFrameSwapProps = {
+  const cloneFrameProps: FrameDragState = {
     onSwapPointerDown,
     swapping: true,
     isDragClone: true,
   };
 
-  return { svg, isSwapping, swapProps, cloneSwapProps };
+  return (
+    <>
+      <g opacity={isDragging ? 0 : 1} pointerEvents={isDragging ? "none" : undefined}>
+        {children(frameProps)}
+      </g>
+      {isDragging &&
+        svg &&
+        createPortal(
+          <g
+            ref={cloneRef}
+            transform="translate(0,0)"
+            style={{
+              cursor: "grabbing",
+              filter: "drop-shadow(2px 2px 2px gray)",
+              pointerEvents: "none",
+            }}
+          >
+            {children(cloneFrameProps)}
+          </g>,
+          svg,
+        )}
+    </>
+  );
 }
