@@ -466,6 +466,74 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     `);
   });
 
+  // Dragging the selection overlay previews locally, then commits a genomic region.
+  it("previews and commits a region selection without rendering tracks during the preview", async () => {
+    const { probe, browserStore } = await mountBrowser();
+    await probe.measure(() => browserStore.getState().setSelectionMode("zoom"));
+    const svg = document.querySelector<SVGSVGElement>("#browserSVG")!;
+    installSvgCoordinates(svg);
+    const hitArea = svg.querySelector("[data-selection-overlay]")!;
+
+    const started = await probe.measure(() =>
+      hitArea.dispatchEvent(pointerEvent("pointerdown", 300)),
+    );
+    const moved = await probe.measure(() =>
+      document.dispatchEvent(pointerEvent("pointermove", 700)),
+    );
+    const committed = await probe.measure(() =>
+      document.dispatchEvent(pointerEvent("pointerup", 700)),
+    );
+
+    expect(browserStore.getState().region).toEqual({ chromosome: "chr1", start: 200, end: 600 });
+    // Necessary: gesture start and preview update only RegionSelection. The commit
+    // moves the viewport, then the loading gate and data refresh update the tracks.
+    expect(budget(started, "RegionSelection")).toMatchInlineSnapshot(`
+      {
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
+        "Highlights": 0,
+        "PanTrack": 0,
+        "RegionSelection": 1,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+    expect(budget(moved, "RegionSelection")).toMatchInlineSnapshot(`
+      {
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
+        "Highlights": 0,
+        "PanTrack": 0,
+        "RegionSelection": 1,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+    expect(budget(committed, "RegionSelection")).toMatchInlineSnapshot(`
+      {
+        "BrowserCanvas": 1,
+        "BrowserProvider": 0,
+        "Highlights": 2,
+        "PanTrack": 12,
+        "RegionSelection": 2,
+        "TestRenderer": 3,
+        "TrackContent": 6,
+        "TrackControls": 6,
+        "TrackFrame": 6,
+        "TrackRow": 6,
+        "TrackStack": 1,
+      }
+    `);
+  });
+
   it("removes a track", async () => {
     const { probe, trackStore } = await mountBrowser();
 

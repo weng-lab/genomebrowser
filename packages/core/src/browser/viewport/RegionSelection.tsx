@@ -1,9 +1,35 @@
-import type { ReactNode } from "react";
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefObject,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import type { GenomicRegion } from "../../genome/region";
-import { useGenomeBrowser, useIsInteractionBlocked } from "../state/browserContextState";
-import { SelectRegion } from "./SelectRegion";
+import { svgPoint } from "../../modules/utils/svg";
+import type { BrowserSelectionMode, SelectionHighlightStyle } from "../state/browserStore";
 
-/** Connects the selection gesture to this browser's mode and highlight state. */
+import { createHighlightId } from "./createHighlightId";
+import { useGenomeBrowser, useIsInteractionBlocked } from "../state/browserContextState";
+
+type SelectionContext = {
+  region: GenomicRegion;
+  svg: SVGSVGElement | null;
+  marginWidth: number;
+  trackWidth: number;
+  totalHeight: number;
+  highlightStyle: SelectionHighlightStyle;
+};
+type Selection = {
+  start: number;
+  end: number;
+  mode: "zoom" | "highlight";
+  pointerId: number;
+  context: SelectionContext;
+  requestedModeFrom?: BrowserSelectionMode;
+};
 export function RegionSelection({
   svg,
   marginWidth,
@@ -19,31 +45,275 @@ export function RegionSelection({
   region: GenomicRegion;
   children: ReactNode;
 }) {
-  const isInteractionBlocked = useIsInteractionBlocked();
+  const disabled = useIsInteractionBlocked();
   const { useBrowserStore } = useGenomeBrowser();
   const setRegion = useBrowserStore((state) => state.setRegion);
-  const selectionMode = useBrowserStore((state) => state.selectionMode);
+  const mode = useBrowserStore((state) => state.selectionMode);
   const setSelectionMode = useBrowserStore((state) => state.setSelectionMode);
-  const selectionHighlight = useBrowserStore((state) => state.selectionHighlight);
+  const highlightStyle = useBrowserStore((state) => state.selectionHighlight);
   const addHighlight = useBrowserStore((state) => state.addHighlight);
   const highlights = useBrowserStore((state) => state.highlights);
 
-  return (
-    <SelectRegion
-      svg={svg}
-      marginWidth={marginWidth}
-      trackWidth={trackWidth}
-      totalHeight={totalHeight}
-      region={region}
-      setRegion={setRegion}
-      disabled={isInteractionBlocked}
-      mode={selectionMode}
-      onModeChange={setSelectionMode}
-      highlightStyle={selectionHighlight}
-      onHighlight={addHighlight}
-      highlights={highlights}
-    >
-      {children}
-    </SelectRegion>
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const session = useRef<Selection | null>(null);
+  const cleanup = useRef<(() => void) | null>(null);
+  const guide = useRef<SVGLineElement | null>(null);
+  const selectionActive = mode !== "pan" && !disabled;
+  const hasValidDimensions = [marginWidth, trackWidth, totalHeight].every(
+    (value) => Number.isFinite(value) && value > 0,
   );
+  const context: SelectionContext = {
+    region,
+    svg,
+    marginWidth,
+    trackWidth,
+    totalHeight,
+    highlightStyle,
+  };
+  const visibleSelection =
+    selection && isSelectionCurrent(selection, context, mode, disabled) ? selection : null;
+  // Discard obsolete state during render so it cannot return if props change back.
+  if (selection && !visibleSelection) setSelection(null);
+  else if (selection?.requestedModeFrom && selection.mode === mode) {
+    // A ruler drag requests Zoom before the store mode update has rendered.
+    setSelection({ ...selection, requestedModeFrom: undefined });
+  }
+
+  const detach = useCallback(() => {
+    cleanup.current?.();
+    cleanup.current = null;
+    session.current = null;
+  }, []);
+  const cancel = useCallback(() => {
+    detach();
+    setSelection(null);
+  }, [detach]);
+
+  // Native listeners must be gone before a changed context can receive input.
+  useLayoutEffect(() => {
+    if (session.current && !isSelectionCurrent(session.current, context, mode, disabled)) detach();
+    else if (session.current?.requestedModeFrom && session.current.mode === mode)
+      session.current = { ...session.current, requestedModeFrom: undefined };
+  });
+  useLayoutEffect(() => detach, [detach]);
+
+  const startSelection = (event: ReactPointerEvent<SVGGElement>, selectionMode = mode) => {
+    if (disabled || !hasValidDimensions || !svg || event.button !== 0 || event.isPrimary === false)
+      return;
+    if (selectionMode === "pan") return;
+    const point = svgPoint(svg, event.clientX, event.clientY);
+    if (
+      !point ||
+      !Number.isFinite(point.x) ||
+      point.x < marginWidth ||
+      point.x > marginWidth + trackWidth
+    )
+      return;
+    event.preventDefault();
+    event.stopPropagation();
+    cancel();
+    const start = point.x;
+    if (selectionMode !== mode) setSelectionMode(selectionMode);
+    session.current = {
+      start,
+      end: start,
+      mode: selectionMode,
+      pointerId: event.pointerId,
+      context,
+      requestedModeFrom: selectionMode !== mode ? mode : undefined,
+    };
+    setSelection(session.current);
+    cleanup.current = listenForSelection(session, setSelection, cancel, (current) => {
+      const selectedRegion = getSelectedRegion(current, region, marginWidth, trackWidth);
+      if (current.mode === "zoom") setRegion(selectedRegion);
+      else
+        addHighlight({
+          ...highlightStyle,
+          id: createHighlightId(selectedRegion, highlights),
+          region: selectedRegion,
+        });
+    });
+  };
+
+  return (
+    <g
+      onPointerDownCapture={(event) => {
+        if (mode !== "pan" || !(event.target instanceof Element)) return;
+        const target = event.target.closest('[data-genomebrowser-selection-mode="zoom"]');
+        if (target && event.currentTarget.contains(target)) startSelection(event, "zoom");
+      }}
+    >
+      <rect
+        fill="transparent"
+        pointerEvents="all"
+        width={hasValidDimensions ? trackWidth : 0}
+        height={hasValidDimensions ? totalHeight : 0}
+        x={hasValidDimensions ? marginWidth : 0}
+      />
+      {children}
+      {selectionActive && hasValidDimensions && (
+        <g>
+          <rect
+            data-selection-overlay=""
+            x={marginWidth}
+            width={trackWidth}
+            height={totalHeight}
+            fill="transparent"
+            pointerEvents="all"
+            style={{ cursor: "crosshair", touchAction: "none", userSelect: "none" }}
+            onPointerDown={(event) => startSelection(event)}
+            onPointerMove={(event) => {
+              if (!svg || !guide.current) return;
+              const point = svgPoint(svg, event.clientX, event.clientY);
+              if (!point || !Number.isFinite(point.x)) return;
+              guide.current.setAttribute("x1", String(point.x));
+              guide.current.setAttribute("x2", String(point.x));
+              guide.current.style.visibility = "visible";
+            }}
+            onPointerLeave={() => {
+              if (guide.current) guide.current.style.visibility = "hidden";
+            }}
+            onPointerCancel={() => {
+              if (guide.current) guide.current.style.visibility = "hidden";
+            }}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+            onContextMenu={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+          />
+          <line
+            ref={guide}
+            data-cursor-guide=""
+            y1={0}
+            y2={totalHeight}
+            stroke="currentColor"
+            strokeOpacity={0.6}
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+            pointerEvents="none"
+            style={{ visibility: "hidden", display: selection ? "none" : undefined }}
+          />
+        </g>
+      )}
+      {visibleSelection && <SelectionPreview selection={visibleSelection} />}
+    </g>
+  );
+}
+
+function SelectionPreview({ selection }: { selection: Selection }) {
+  const { region, marginWidth, trackWidth, totalHeight, highlightStyle } = selection.context;
+  const selectedRegion = getSelectedRegion(selection, region, marginWidth, trackWidth);
+  return (
+    <g pointerEvents="none">
+      <rect
+        data-region-selection=""
+        fill={selection.mode === "highlight" ? highlightStyle.color : "#2563eb"}
+        fillOpacity={0.18}
+        stroke={selection.mode === "highlight" ? highlightStyle.color : "#2563eb"}
+        strokeDasharray="4 3"
+        x={Math.min(selection.start, selection.end)}
+        y={0}
+        width={Math.abs(selection.end - selection.start)}
+        height={totalHeight}
+      />
+      <text x={Math.min(selection.start, selection.end) + 6} y={16} fontSize={12} fill="#172554">
+        {selection.mode === "zoom" ? "Zoom" : "Highlight"} ·{" "}
+        {(selectedRegion.end - selectedRegion.start).toLocaleString()} bp
+      </text>
+    </g>
+  );
+}
+
+function listenForSelection(
+  session: RefObject<Selection | null>,
+  onChange: (selection: Selection) => void,
+  cancel: () => void,
+  onComplete: (selection: Selection) => void,
+) {
+  const move = (event: PointerEvent) => {
+    const current = session.current;
+    if (!current || current.pointerId !== event.pointerId) return;
+    const { svg, marginWidth, trackWidth } = current.context;
+    if (!svg) return;
+    const point = svgPoint(svg, event.clientX, event.clientY);
+    if (!point || !Number.isFinite(point.x)) return;
+    session.current = {
+      ...current,
+      end: Math.max(marginWidth, Math.min(marginWidth + trackWidth, point.x)),
+    };
+    onChange(session.current);
+  };
+  const up = (event: PointerEvent) => {
+    if (session.current?.pointerId !== event.pointerId) return;
+    move(event);
+    const current = session.current;
+    cancel();
+    if (current && Math.abs(current.end - current.start) >= 4) onComplete(current);
+  };
+  const pointerCancel = (event: PointerEvent) => {
+    if (session.current?.pointerId === event.pointerId) cancel();
+  };
+  const keyDown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") cancel();
+  };
+  document.addEventListener("pointermove", move);
+  document.addEventListener("pointerup", up);
+  document.addEventListener("pointercancel", pointerCancel);
+  document.addEventListener("keydown", keyDown);
+  window.addEventListener("blur", cancel);
+  return () => {
+    document.removeEventListener("pointermove", move);
+    document.removeEventListener("pointerup", up);
+    document.removeEventListener("pointercancel", pointerCancel);
+    document.removeEventListener("keydown", keyDown);
+    window.removeEventListener("blur", cancel);
+  };
+}
+
+function isSelectionCurrent(
+  selection: Selection,
+  context: SelectionContext,
+  mode: BrowserSelectionMode,
+  disabled: boolean,
+) {
+  return (
+    !disabled &&
+    (selection.mode === mode || selection.requestedModeFrom === mode) &&
+    selection.context.region === context.region &&
+    selection.context.svg === context.svg &&
+    selection.context.marginWidth === context.marginWidth &&
+    selection.context.trackWidth === context.trackWidth &&
+    selection.context.totalHeight === context.totalHeight &&
+    selection.context.highlightStyle === context.highlightStyle
+  );
+}
+
+function getSelectedRegion(
+  selection: Selection,
+  region: GenomicRegion,
+  marginWidth: number,
+  trackWidth: number,
+): GenomicRegion {
+  const span = region.end - region.start;
+  const start = Math.max(
+    region.start,
+    Math.floor(
+      region.start + ((Math.min(selection.start, selection.end) - marginWidth) / trackWidth) * span,
+    ),
+  );
+  const end = Math.min(
+    region.end,
+    Math.max(
+      start + 1,
+      Math.ceil(
+        region.start +
+          ((Math.max(selection.start, selection.end) - marginWidth) / trackWidth) * span,
+      ),
+    ),
+  );
+  return { chromosome: region.chromosome, start, end };
 }

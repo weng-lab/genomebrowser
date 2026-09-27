@@ -261,6 +261,37 @@ describe("browser sizing", () => {
     },
   );
 
+  it("creates a configured highlight through the browser selection overlay", async () => {
+    const { props, useBrowserStore } = fixture();
+    useBrowserStore.getState().setSelectionMode("highlight");
+    useBrowserStore.getState().setSelectionHighlight({
+      color: "#ff0000",
+      opacity: 0.7,
+      type: "outlined",
+    });
+    await render(<GenomeBrowser {...props} sizing="fixed" />);
+    const element = svg();
+    installCoordinates(element, 1);
+    const hitArea = element.querySelector("[data-selection-overlay]")!;
+    await act(async () => hitArea.dispatchEvent(pointerEvent("pointerdown", 50 + 750 * 0.25)));
+    await act(async () => document.dispatchEvent(pointerEvent("pointerup", 50 + 750 * 0.75)));
+
+    expect(useBrowserStore.getState().region).toEqual({
+      chromosome: "chr1",
+      start: 1000,
+      end: 2000,
+    });
+    expect(useBrowserStore.getState().highlights).toEqual([
+      {
+        id: "chr1:1,250-1,750",
+        region: { chromosome: "chr1", start: 1250, end: 1750 },
+        color: "#ff0000",
+        opacity: 0.7,
+        type: "outlined",
+      },
+    ]);
+  });
+
   it.each([0.75, 1.25])("pans in SVG coordinates at scale %s", async (scale) => {
     const { props, useBrowserStore } = fixture();
     await render(<GenomeBrowser {...props} sizing="fixed" scale={scale} />);

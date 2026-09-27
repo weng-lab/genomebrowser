@@ -224,11 +224,12 @@ describe("pan commit inside loaded data", () => {
     // Budget: a higher number fails. Gene transcripts keep their glyphs, labels, and hit
     // targets across the pan; re-packed rows move by transform instead of remounting.
     // The ownership split measured 140 renders before integration; the merged pan
-    // handles wheel input without another mounted binding component.
+    // handles wheel input without another mounted binding component. Combining
+    // selection's store connection and gesture removes one more mounted component.
     expect({ renders: result.renders, mutations: result.mutations }).toMatchInlineSnapshot(`
       {
         "mutations": 93,
-        "renders": 139,
+        "renders": 138,
       }
     `);
   });
