@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useIsInteractionBlocked } from "../state/browserContextState";
-import type { PanDragHandlers } from "../viewport/usePanDrag";
+import type { BrowserPan } from "../viewport/useBrowserPan";
 
 export function PanTrack({
   panDrag,
@@ -8,7 +8,7 @@ export function PanTrack({
   height,
   children,
 }: {
-  panDrag: PanDragHandlers;
+  panDrag: BrowserPan;
   width: number;
   height: number;
   children: ReactNode;
@@ -20,7 +20,7 @@ export function PanTrack({
 
   const cursor = disabled ? "default" : isDragging ? "grabbing" : "grab";
 
-  const handlePointerDown: PanDragHandlers["onPointerDown"] = (event) => {
+  const handlePointerDown: BrowserPan["onPointerDown"] = (event) => {
     if (disabled) return false;
     const started = panDrag.onPointerDown(event);
     if (started) setIsDragging(true);

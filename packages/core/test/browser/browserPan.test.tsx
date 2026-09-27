@@ -1,34 +1,49 @@
 // @vitest-environment jsdom
 
-import { act, type PointerEvent as ReactPointerEvent } from "react";
+import { act, useLayoutEffect, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  expandRegion,
-  getPanCommitRegion,
-  usePanController,
-} from "../../src/browser/viewport/usePanController";
-import { usePanWheel } from "../../src/browser/viewport/usePanWheel";
-import { createBrowserStore } from "../../src/browser/state/browserStore";
+import { useBrowserPan } from "../../src/browser/viewport/useBrowserPan";
+import { createBrowserStore, type BrowserStore } from "../../src/browser/state/browserStore";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
 let container: HTMLDivElement | undefined;
 let root: Root | undefined;
-let controller: ReturnType<typeof usePanController> | undefined;
+let pan: ReturnType<typeof useBrowserPan> | undefined;
 
-type HarnessProps = Parameters<typeof usePanController>[0] & { wheelEnabled?: boolean };
+type HarnessProps = {
+  svg: SVGSVGElement;
+  region: BrowserStore["region"];
+  trackWidth: number;
+  setRegion: BrowserStore["setRegion"];
+  getContentOffset: () => number;
+  setContentOffset: (offset: number) => number;
+  selectionMode?: BrowserStore["selectionMode"];
+  isLoading?: boolean;
+};
 
 function Harness(props: HarnessProps) {
-  controller = usePanController(props);
-  usePanWheel({
+  const [browserStore] = useState(() =>
+    createBrowserStore({
+      assembly: { id: "test", chromosomes: { chr1: 10_000 } },
+      region: props.region,
+    }),
+  );
+  useLayoutEffect(() => {
+    browserStore.setState({
+      region: props.region,
+      setRegion: props.setRegion,
+      selectionMode: props.selectionMode ?? "pan",
+      isLoading: props.isLoading ?? false,
+    });
+  }, [browserStore, props.region, props.setRegion, props.selectionMode, props.isLoading]);
+  pan = useBrowserPan({
     svg: props.svg,
-    disabled: !props.wheelEnabled,
+    browserStore,
     trackWidth: props.trackWidth,
-    isDragging: controller.panDrag.isDragging,
-    setContentOffset: props.setContentOffset,
-    onCommit: controller.commitPan,
+    content: props,
   });
   return null;
 }
@@ -36,64 +51,14 @@ function Harness(props: HarnessProps) {
 afterEach(async () => {
   if (root) await act(async () => root?.unmount());
   vi.useRealTimers();
+  vi.restoreAllMocks();
   container?.remove();
   container = undefined;
-  controller = undefined;
+  pan = undefined;
   root = undefined;
 });
 
-describe("pan region math", () => {
-  it("expands a region evenly around the visible span", () => {
-    expect(expandRegion({ chromosome: "chr1", start: 100, end: 200 }, 3)).toEqual({
-      chromosome: "chr1",
-      start: 0,
-      end: 300,
-    });
-  });
-
-  it("commits a positive pan delta by shifting the region left", () => {
-    expect(getPanCommitRegion({ chromosome: "chr1", start: 100, end: 200 }, 100, 25)).toEqual({
-      chromosome: "chr1",
-      start: 75,
-      end: 175,
-    });
-  });
-
-  it("commits a negative pan delta by shifting the region right", () => {
-    expect(getPanCommitRegion({ chromosome: "chr1", start: 100, end: 200 }, 100, -25)).toEqual({
-      chromosome: "chr1",
-      start: 125,
-      end: 225,
-    });
-  });
-
-  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
-    "rejects invalid pan width %s before coordinate math",
-    (width) => {
-      expect(
-        getPanCommitRegion({ chromosome: "chr1", start: 100, end: 200 }, width, 25),
-      ).toBeNull();
-    },
-  );
-
-  it("rejects a non-finite pan delta before coordinate math", () => {
-    expect(
-      getPanCommitRegion(
-        { chromosome: "chr1", start: 100, end: 200 },
-        100,
-        Number.POSITIVE_INFINITY,
-      ),
-    ).toBeNull();
-  });
-
-  it.each([20, -20])("rejects pan delta %s when it cannot move by one base", (deltaPx) => {
-    expect(
-      getPanCommitRegion({ chromosome: "chr1", start: 100, end: 101 }, 1_000, deltaPx),
-    ).toBeNull();
-  });
-});
-
-describe("usePanController", () => {
+describe("browser panning", () => {
   it("commits an active drag against the latest region and width", async () => {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     let contentOffset = 0;
@@ -145,9 +110,9 @@ describe("usePanController", () => {
       ),
     );
 
-    expect(controller?.panDrag.onPointerDown(pointerEvent(10))).toBe(true);
-    expect(controller?.panDrag.isDragging()).toBe(true);
-    controller?.panDrag.onPointerMove(pointerEvent(30));
+    expect(pan?.onPointerDown(pointerEvent(10))).toBe(true);
+    expect(pan?.isDragging()).toBe(true);
+    pan?.onPointerMove(pointerEvent(30));
     expect(contentOffset).toBe(20);
 
     await act(async () =>
@@ -163,7 +128,7 @@ describe("usePanController", () => {
       ),
     );
 
-    await act(async () => controller?.panDrag.onPointerUp(pointerEvent(30)));
+    await act(async () => pan?.onPointerUp(pointerEvent(30)));
 
     expect(setRegion).toHaveBeenCalledWith({
       chromosome: "chr1",
@@ -197,7 +162,7 @@ describe("usePanController", () => {
       });
       const interaction = createPanInteraction();
 
-      await renderController({
+      await renderPan({
         svg: interaction.svg,
         region,
         trackWidth: 100,
@@ -206,11 +171,9 @@ describe("usePanController", () => {
         setRegion: store.getState().setRegion,
       });
 
-      expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(50))).toBe(true);
-      controller?.panDrag.onPointerMove(interaction.pointerEvent(50 + deltaPx));
-      await act(async () =>
-        controller?.panDrag.onPointerUp(interaction.pointerEvent(50 + deltaPx)),
-      );
+      expect(pan?.onPointerDown(interaction.pointerEvent(50))).toBe(true);
+      pan?.onPointerMove(interaction.pointerEvent(50 + deltaPx));
+      await act(async () => pan?.onPointerUp(interaction.pointerEvent(50 + deltaPx)));
 
       expect(store.getState().region).toEqual(expected);
       expect(interaction.getContentOffset()).toBe(deltaPx);
@@ -227,7 +190,7 @@ describe("usePanController", () => {
     const before = store.getState();
     const interaction = createPanInteraction();
 
-    await renderController({
+    await renderPan({
       svg: interaction.svg,
       region,
       trackWidth: 100,
@@ -236,9 +199,9 @@ describe("usePanController", () => {
       setRegion: store.getState().setRegion,
     });
 
-    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(500))).toBe(true);
-    controller?.panDrag.onPointerMove(interaction.pointerEvent(0));
-    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(0)));
+    expect(pan?.onPointerDown(interaction.pointerEvent(500))).toBe(true);
+    pan?.onPointerMove(interaction.pointerEvent(0));
+    await act(async () => pan?.onPointerUp(interaction.pointerEvent(0)));
 
     expect(store.getState()).toBe(before);
     expect(interaction.getContentOffset()).toBe(0);
@@ -250,7 +213,7 @@ describe("usePanController", () => {
       const interaction = createPanInteraction();
       const setRegion = vi.fn();
 
-      await renderController({
+      await renderPan({
         svg: interaction.svg,
         region: { chromosome: "chr1", start: 20, end: 21 },
         trackWidth: 1_000,
@@ -259,12 +222,10 @@ describe("usePanController", () => {
         setRegion,
       });
 
-      expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(50))).toBe(true);
-      controller?.panDrag.onPointerMove(interaction.pointerEvent(50 + deltaPx));
+      expect(pan?.onPointerDown(interaction.pointerEvent(50))).toBe(true);
+      pan?.onPointerMove(interaction.pointerEvent(50 + deltaPx));
       expect(interaction.getContentOffset()).toBe(deltaPx);
-      await act(async () =>
-        controller?.panDrag.onPointerUp(interaction.pointerEvent(50 + deltaPx)),
-      );
+      await act(async () => pan?.onPointerUp(interaction.pointerEvent(50 + deltaPx)));
 
       expect(setRegion).not.toHaveBeenCalled();
       expect(interaction.getContentOffset()).toBe(0);
@@ -275,20 +236,20 @@ describe("usePanController", () => {
     const interaction = createPanInteraction();
     interaction.setContentOffset(5);
     const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
-    await renderController({
+    await renderPan({
       ...interaction,
       region: { chromosome: "chr1", start: 100, end: 200 },
       trackWidth: 100,
       setRegion,
     });
 
-    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
-    controller?.panDrag.onPointerMove(interaction.pointerEvent(20));
+    expect(pan?.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    pan?.onPointerMove(interaction.pointerEvent(20));
     expect(interaction.getContentOffset()).toBe(15);
-    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(30)));
+    await act(async () => pan?.onPointerUp(interaction.pointerEvent(30)));
     expect(setRegion).toHaveBeenCalledExactlyOnceWith({ chromosome: "chr1", start: 75, end: 175 });
     expect(interaction.getContentOffset()).toBe(25);
-    expect(controller?.panDrag.isDragging()).toBe(false);
+    expect(pan?.isDragging()).toBe(false);
   });
 
   it.each(["pointercancel", "lostcapture", "blur"])(
@@ -296,27 +257,27 @@ describe("usePanController", () => {
     async (interruption) => {
       const interaction = createPanInteraction();
       const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
-      await renderController({
+      await renderPan({
         ...interaction,
         region: { chromosome: "chr1", start: 100, end: 200 },
         trackWidth: 100,
         setRegion,
       });
       const event = interaction.pointerEvent(20);
-      expect(controller?.panDrag.onPointerDown(event)).toBe(true);
-      controller?.panDrag.onPointerMove(interaction.pointerEvent(40));
+      expect(pan?.onPointerDown(event)).toBe(true);
+      pan?.onPointerMove(interaction.pointerEvent(40));
       expect(interaction.getContentOffset()).toBe(20);
       await act(async () => {
-        if (interruption === "pointercancel") controller?.panDrag.onPointerCancel(event);
-        else if (interruption === "lostcapture") controller?.panDrag.onLostPointerCapture(event);
+        if (interruption === "pointercancel") pan?.onPointerCancel(event);
+        else if (interruption === "lostcapture") pan?.onLostPointerCapture(event);
         else window.dispatchEvent(new Event("blur"));
       });
       expect(interaction.getContentOffset()).toBe(0);
-      expect(controller?.panDrag.isDragging()).toBe(false);
-      controller?.panDrag.onPointerUp(interaction.pointerEvent(40));
+      expect(pan?.isDragging()).toBe(false);
+      pan?.onPointerUp(interaction.pointerEvent(40));
       expect(setRegion).not.toHaveBeenCalled();
-      expect(controller?.panDrag.onPointerDown(event)).toBe(true);
-      await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(40)));
+      expect(pan?.onPointerDown(event)).toBe(true);
+      await act(async () => pan?.onPointerUp(interaction.pointerEvent(40)));
       expect(setRegion).toHaveBeenCalledExactlyOnceWith({
         chromosome: "chr1",
         start: 80,
@@ -333,16 +294,16 @@ describe("usePanController", () => {
     const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
     const setContentOffset = (offset: number) =>
       interaction.setContentOffset(Math.max(-limit, Math.min(limit, offset)));
-    await renderController({
+    await renderPan({
       ...interaction,
       setContentOffset,
       region: { chromosome: "chr1", start: 100, end: 200 },
       trackWidth: 100,
       setRegion,
     });
-    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
-    controller?.panDrag.onPointerMove(interaction.pointerEvent(50));
-    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(50)));
+    expect(pan?.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    pan?.onPointerMove(interaction.pointerEvent(50));
+    await act(async () => pan?.onPointerUp(interaction.pointerEvent(50)));
     if (commits) {
       expect(setRegion).toHaveBeenCalledExactlyOnceWith({
         chromosome: "chr1",
@@ -359,23 +320,23 @@ describe("usePanController", () => {
   it("commits the last valid preview when release coordinate conversion fails", async () => {
     const interaction = createPanInteraction();
     const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
-    await renderController({
+    await renderPan({
       ...interaction,
       region: { chromosome: "chr1", start: 100, end: 200 },
       trackWidth: 100,
       setRegion,
     });
-    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
-    controller?.panDrag.onPointerMove(interaction.pointerEvent(30));
+    expect(pan?.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    pan?.onPointerMove(interaction.pointerEvent(30));
     Object.assign(interaction.svg, { getScreenCTM: () => null });
-    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(60)));
+    await act(async () => pan?.onPointerUp(interaction.pointerEvent(60)));
     expect(setRegion).toHaveBeenCalledExactlyOnceWith({ chromosome: "chr1", start: 80, end: 180 });
   });
 
   it("commits once when release synchronously reports lost capture", async () => {
     const interaction = createPanInteraction();
     const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
-    await renderController({
+    await renderPan({
       ...interaction,
       region: { chromosome: "chr1", start: 100, end: 200 },
       trackWidth: 100,
@@ -383,27 +344,61 @@ describe("usePanController", () => {
     });
     Object.assign(interaction.svg, {
       hasPointerCapture: () => true,
-      releasePointerCapture: () =>
-        controller?.panDrag.onLostPointerCapture(interaction.pointerEvent(40)),
+      releasePointerCapture: () => pan?.onLostPointerCapture(interaction.pointerEvent(40)),
     });
-    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
-    controller?.panDrag.onPointerMove(interaction.pointerEvent(40));
-    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(40)));
+    expect(pan?.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    pan?.onPointerMove(interaction.pointerEvent(40));
+    await act(async () => pan?.onPointerUp(interaction.pointerEvent(40)));
     expect(setRegion).toHaveBeenCalledExactlyOnceWith({ chromosome: "chr1", start: 70, end: 170 });
     expect(interaction.getContentOffset()).toBe(30);
   });
 
+  it.each(["NotFoundError", "unexpected"])(
+    "finishes cancellation even when capture release throws %s",
+    async (failure) => {
+      const interaction = createPanInteraction();
+      const setRegion = vi.fn();
+      await renderPan({
+        ...interaction,
+        region: { chromosome: "chr1", start: 100, end: 200 },
+        trackWidth: 100,
+        setRegion,
+      });
+      pan!.onPointerDown(interaction.pointerEvent(10));
+      pan!.onPointerMove(interaction.pointerEvent(40));
+      const ended = vi.fn();
+      const unsubscribe = pan!.subscribeEnd(ended);
+      const error =
+        failure === "NotFoundError"
+          ? new DOMException("Pointer is no longer active", "NotFoundError")
+          : new Error("Unexpected browser integration failure");
+      Object.assign(interaction.svg, {
+        releasePointerCapture: () => {
+          throw error;
+        },
+      });
+      const cancel = () => pan!.onPointerCancel(interaction.pointerEvent(40));
+      if (failure === "NotFoundError") expect(cancel).not.toThrow();
+      else expect(cancel).toThrow(error);
+      expect(pan!.isDragging()).toBe(false);
+      expect(interaction.getContentOffset()).toBe(0);
+      expect(setRegion).not.toHaveBeenCalled();
+      expect(ended).toHaveBeenCalledOnce();
+      unsubscribe();
+    },
+  );
+
   it("releases an active pan on unmount", async () => {
     const interaction = createPanInteraction();
     const setRegion = vi.fn();
-    await renderController({
+    await renderPan({
       ...interaction,
       region: { chromosome: "chr1", start: 100, end: 200 },
       trackWidth: 100,
       setRegion,
     });
-    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
-    controller?.panDrag.onPointerMove(interaction.pointerEvent(40));
+    expect(pan?.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    pan?.onPointerMove(interaction.pointerEvent(40));
     const release = vi.spyOn(interaction.svg, "releasePointerCapture");
     const removeListener = vi.spyOn(window, "removeEventListener");
     await act(async () => root?.unmount());
@@ -419,7 +414,7 @@ describe("usePanController", () => {
   it("releases implicit capture when blur interrupts a short drag", async () => {
     const interaction = createPanInteraction();
     const setRegion = vi.fn();
-    await renderController({
+    await renderPan({
       ...interaction,
       region: { chromosome: "chr1", start: 100, end: 200 },
       trackWidth: 100,
@@ -430,8 +425,8 @@ describe("usePanController", () => {
       hasPointerCapture: () => true,
       releasePointerCapture: release,
     });
-    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
-    controller?.panDrag.onPointerMove(interaction.pointerEvent(15));
+    expect(pan?.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    pan?.onPointerMove(interaction.pointerEvent(15));
     await act(async () => window.dispatchEvent(new Event("blur")));
     expect(release).toHaveBeenCalledExactlyOnceWith(1);
     expect(interaction.getContentOffset()).toBe(0);
@@ -441,7 +436,7 @@ describe("usePanController", () => {
   it("ignores another pointer and tolerates capture acquisition failure", async () => {
     const interaction = createPanInteraction();
     const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
-    await renderController({
+    await renderPan({
       ...interaction,
       region: { chromosome: "chr1", start: 100, end: 200 },
       trackWidth: 100,
@@ -449,20 +444,20 @@ describe("usePanController", () => {
     });
     Object.assign(interaction.svg, {
       setPointerCapture: () => {
-        throw new Error("capture denied");
+        throw new DOMException("Pointer is no longer active", "NotFoundError");
       },
     });
     const other = { ...interaction.pointerEvent(10), pointerId: 2 };
-    expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(10))).toBe(true);
-    expect(controller?.panDrag.onPointerDown(other)).toBe(false);
-    controller?.panDrag.onPointerMove({ ...other, clientX: 40 });
-    controller?.panDrag.onPointerCancel(other);
+    expect(pan?.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    expect(pan?.onPointerDown(other)).toBe(false);
+    pan?.onPointerMove({ ...other, clientX: 40 });
+    pan?.onPointerCancel(other);
     expect(interaction.getContentOffset()).toBe(0);
-    controller?.panDrag.onPointerMove(interaction.pointerEvent(40));
-    await act(async () => controller?.panDrag.onPointerUp(interaction.pointerEvent(40)));
+    pan?.onPointerMove(interaction.pointerEvent(40));
+    await act(async () => pan?.onPointerUp(interaction.pointerEvent(40)));
     expect(setRegion).not.toHaveBeenCalled();
     expect(interaction.getContentOffset()).toBe(0);
-    expect(controller?.panDrag.isDragging()).toBe(false);
+    expect(pan?.isDragging()).toBe(false);
   });
 
   it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
@@ -471,7 +466,7 @@ describe("usePanController", () => {
       const interaction = createPanInteraction();
       const setRegion = vi.fn();
 
-      await renderController({
+      await renderPan({
         svg: interaction.svg,
         region: { chromosome: "chr1", start: 20, end: 40 },
         trackWidth,
@@ -480,7 +475,7 @@ describe("usePanController", () => {
         setRegion,
       });
 
-      expect(controller?.panDrag.onPointerDown(interaction.pointerEvent(20))).toBe(false);
+      expect(pan?.onPointerDown(interaction.pointerEvent(20))).toBe(false);
       expect(setRegion).not.toHaveBeenCalled();
     },
   );
@@ -527,7 +522,7 @@ function createPanInteraction() {
   };
 }
 
-async function renderController(props: HarnessProps) {
+async function renderPan(props: HarnessProps) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -535,6 +530,56 @@ async function renderController(props: HarnessProps) {
 }
 
 describe("horizontal wheel panning", () => {
+  it("hands a pending wheel preview over to a fresh pointer drag", async () => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
+    vi.useFakeTimers();
+    await renderPan({
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+    });
+    interaction.svg.dispatchEvent(new WheelEvent("wheel", { deltaX: 25 }));
+    expect(interaction.getContentOffset()).toBe(-25);
+    expect(pan!.onPointerDown(interaction.pointerEvent(10))).toBe(true);
+    expect(interaction.getContentOffset()).toBe(0);
+    pan!.onPointerMove(interaction.pointerEvent(30));
+    // Wheel input must not overwrite an active pointer preview.
+    interaction.svg.dispatchEvent(new WheelEvent("wheel", { deltaX: 50 }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
+    expect(interaction.getContentOffset()).toBe(20);
+    expect(setRegion).not.toHaveBeenCalled();
+    pan!.onPointerUp(interaction.pointerEvent(40));
+    expect(setRegion).toHaveBeenCalledExactlyOnceWith({ chromosome: "chr1", start: 70, end: 170 });
+  });
+
+  it.each(["blur", "loading"])("cancels pending wheel input on %s", async (reason) => {
+    const interaction = createPanInteraction();
+    const setRegion = vi.fn();
+    const props = {
+      ...interaction,
+      region: { chromosome: "chr1", start: 100, end: 200 },
+      trackWidth: 100,
+      setRegion,
+    };
+    vi.useFakeTimers();
+    await renderPan(props);
+    interaction.svg.dispatchEvent(new WheelEvent("wheel", { deltaX: 25 }));
+    expect(interaction.getContentOffset()).toBe(-25);
+    await act(async () => {
+      if (reason === "blur") window.dispatchEvent(new Event("blur"));
+      else root!.render(<Harness {...props} isLoading />);
+    });
+    expect(interaction.getContentOffset()).toBe(0);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(200);
+    });
+    expect(setRegion).not.toHaveBeenCalled();
+  });
+
   it.each([
     [25, 0, 125, 225],
     [-25, 0, 75, 175],
@@ -546,14 +591,14 @@ describe("horizontal wheel panning", () => {
       const { svg, getContentOffset, setContentOffset } = createPanInteraction();
       const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
       vi.useFakeTimers();
-      await renderController({
+      await renderPan({
         svg,
         region: { chromosome: "chr1", start: 100, end: 200 },
         trackWidth: 100,
         getContentOffset,
         setContentOffset,
         setRegion,
-        wheelEnabled: true,
+        selectionMode: "pan" as const,
       });
       const event = new WheelEvent("wheel", { deltaX, deltaMode, cancelable: true });
       svg.dispatchEvent(event);
@@ -571,12 +616,12 @@ describe("horizontal wheel panning", () => {
     const interaction = createPanInteraction();
     const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
     vi.useFakeTimers();
-    await renderController({
+    await renderPan({
       ...interaction,
       region: { chromosome: "chr1", start: 100, end: 110 },
       trackWidth: 100,
       setRegion,
-      wheelEnabled: true,
+      selectionMode: "pan" as const,
     });
     for (let i = 0; i < 10; i++) {
       interaction.svg.dispatchEvent(new WheelEvent("wheel", { deltaX: 1.5, cancelable: true }));
@@ -602,12 +647,12 @@ describe("horizontal wheel panning", () => {
     const interaction = createPanInteraction();
     const setRegion = vi.fn();
     vi.useFakeTimers();
-    await renderController({
+    await renderPan({
       ...interaction,
       region: { chromosome: "chr1", start: 100, end: 200 },
       trackWidth: 100,
       setRegion,
-      wheelEnabled: true,
+      selectionMode: "pan" as const,
     });
     const event = new WheelEvent("wheel", { ...init, cancelable: true });
     interaction.svg.dispatchEvent(event);
@@ -623,12 +668,12 @@ describe("horizontal wheel panning", () => {
     const interaction = createPanInteraction();
     const setRegion = vi.fn();
     vi.useFakeTimers();
-    await renderController({
+    await renderPan({
       ...interaction,
       region: { chromosome: "chr1", start: 100, end: 200 },
       trackWidth: 100,
       setRegion,
-      wheelEnabled: true,
+      selectionMode: "pan" as const,
     });
     interaction.svg.dispatchEvent(new WheelEvent("wheel", { deltaX: 25 }));
     expect(vi.getTimerCount()).toBe(1);
@@ -650,13 +695,13 @@ describe("horizontal wheel panning", () => {
       region: { chromosome: "chr1", start: 100, end: 200 },
       trackWidth: 100,
       setRegion,
-      wheelEnabled: true,
+      selectionMode: "pan" as const,
     };
     vi.useFakeTimers();
-    await renderController(props);
+    await renderPan(props);
     interaction.svg.dispatchEvent(new WheelEvent("wheel", { deltaX: 25 }));
     expect(interaction.getContentOffset()).toBe(-25);
-    await act(async () => root?.render(<Harness {...props} wheelEnabled={false} />));
+    await act(async () => root?.render(<Harness {...props} selectionMode="zoom" />));
     const event = new WheelEvent("wheel", { deltaX: 25, cancelable: true });
     interaction.svg.dispatchEvent(event);
     expect(event.defaultPrevented).toBe(false);

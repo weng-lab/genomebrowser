@@ -159,7 +159,7 @@ describe("track title panning", () => {
     Object.assign(group, {
       hasPointerCapture: () => false,
       setPointerCapture: () => {
-        throw new Error("capture denied");
+        throw new DOMException("Pointer is no longer active", "NotFoundError");
       },
       releasePointerCapture: vi.fn(),
     });

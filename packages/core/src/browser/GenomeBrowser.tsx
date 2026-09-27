@@ -32,10 +32,8 @@ import { TrackStack } from "./track-row/TrackStack";
 import { SelectRegion } from "./viewport/SelectRegion";
 import { getContentPlacement, getRenderWindow } from "./viewport/renderWindow";
 import { useContentTransform, type RegisterContentGroup } from "./viewport/useContentTransform";
-import { usePanController } from "./viewport/usePanController";
-import { usePanWheel } from "./viewport/usePanWheel";
+import { useBrowserPan, type BrowserPan } from "./viewport/useBrowserPan";
 import type { GenomicRegion } from "../genome/region";
-import type { PanDragHandlers } from "./viewport/usePanDrag";
 import { useContainerWidth } from "./viewport/useContainerWidth";
 
 export type GenomeBrowserProps = {
@@ -130,13 +128,11 @@ function GenomeBrowserRuntime({
     trackWidth,
   });
 
-  const { commitPan, panDrag } = usePanController({
+  const panDrag = useBrowserPan({
     svg,
-    region,
+    browserStore,
     trackWidth,
-    getContentOffset,
-    setContentOffset,
-    setRegion,
+    content: { getContentOffset, setContentOffset },
   });
 
   // Data belongs to the supplied stores; menu, settings, and tooltip state belong
@@ -187,8 +183,6 @@ function GenomeBrowserRuntime({
           region={region}
           setRegion={setRegion}
           registerContentGroup={registerContentGroup}
-          onPanCommit={commitPan}
-          setContentOffset={setContentOffset}
           panDrag={panDrag}
           titleSize={titleSize}
           trackLayouts={trackLayouts}
@@ -210,8 +204,6 @@ function BrowserView({
   setRegion,
   registerContentGroup,
   panDrag,
-  onPanCommit,
-  setContentOffset,
   titleSize,
   trackLayouts,
 }: {
@@ -225,9 +217,7 @@ function BrowserView({
   region: GenomicRegion;
   setRegion: BrowserStore["setRegion"];
   registerContentGroup: RegisterContentGroup;
-  panDrag: PanDragHandlers;
-  onPanCommit: (deltaPx: number) => void;
-  setContentOffset: (deltaPx: number) => number;
+  panDrag: BrowserPan;
   titleSize: number;
   trackLayouts: TrackLayout[];
 }) {
@@ -246,13 +236,6 @@ function BrowserView({
   return (
     <>
       <SvgShell width={browserWidth} height={totalHeight} scale={scale} setSvg={setSvg}>
-        <PanWheel
-          svg={svg}
-          trackWidth={trackWidth}
-          panDrag={panDrag}
-          setContentOffset={setContentOffset}
-          onCommit={onPanCommit}
-        />
         <GatedSelectRegion
           svg={svg}
           marginWidth={marginWidth}
@@ -304,33 +287,6 @@ function BrowserView({
 
 // The components below read the interaction gate themselves, so a change in
 // loading state renders them without re-rendering the track rows.
-
-function PanWheel({
-  svg,
-  trackWidth,
-  panDrag,
-  setContentOffset,
-  onCommit,
-}: {
-  svg: SVGSVGElement | null;
-  trackWidth: number;
-  panDrag: PanDragHandlers;
-  setContentOffset: (deltaPx: number) => number;
-  onCommit: (deltaPx: number) => void;
-}) {
-  const isInteractionBlocked = useIsInteractionBlocked();
-  const { useBrowserStore } = useGenomeBrowser();
-  const selectionMode = useBrowserStore((state) => state.selectionMode);
-  usePanWheel({
-    svg,
-    disabled: isInteractionBlocked || selectionMode !== "pan",
-    trackWidth,
-    isDragging: panDrag.isDragging,
-    setContentOffset,
-    onCommit,
-  });
-  return null;
-}
 
 function GatedSelectRegion({
   svg,
