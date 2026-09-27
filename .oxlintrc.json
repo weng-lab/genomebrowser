@@ -34,15 +34,17 @@
                   "@weng-lab/genomebrowser-playground/**",
                   "@weng-lab/render-probe",
                   "@weng-lab/render-probe/**",
+                  "@weng-lab/genomic-reader",
+                  "@weng-lab/genomic-reader/**",
                   "@weng-lab/genomebrowser-tracks",
                   "@weng-lab/genomebrowser-tracks/**",
                   "@weng-lab/genomebrowser-ui",
                   "@weng-lab/genomebrowser-ui/**"
                 ],
-                "message": "Core source must not depend on higher-level packages, applications, or test utilities."
+                "message": "Core and reader are independent foundations; core must not depend on reader, higher-level packages, applications, or test utilities."
               },
               {
-                "regex": "(?:^|/)apps/|^(?:\\.\\./)+(?:packages/)?(?:tracks|ui|render-probe)(?:/|$)",
+                "regex": "(?:^|/)apps/|^(?:\\.\\./)+(?:packages/)?(?:reader|tracks|ui|render-probe)(?:/|$)",
                 "message": "Do not bypass package ownership with relative imports."
               },
               {
