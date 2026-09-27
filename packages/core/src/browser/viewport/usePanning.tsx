@@ -1,6 +1,10 @@
 import { createElement } from "react";
 import type { GenomicRegion } from "../../genome/region";
-import { useGenomeBrowser, useIsInteractionBlocked } from "../state/browserContextState";
+import {
+  useGenomeBrowser,
+  useIsInteractionBlocked,
+  usePanDragStatus,
+} from "../state/browserContextState";
 import type { BrowserStore } from "../state/browserStore";
 import { useContentTransform } from "./useContentTransform";
 import { usePanController } from "./usePanController";
@@ -20,6 +24,7 @@ export function usePanning({
   trackWidth: number;
   setRegion: BrowserStore["setRegion"];
 }) {
+  const panDragStatus = usePanDragStatus();
   const { getContentOffset, registerContentGroup, setContentOffset } = useContentTransform({
     region,
     marginWidth,
@@ -32,6 +37,7 @@ export function usePanning({
     getContentOffset,
     setContentOffset,
     setRegion,
+    panDragStatus,
   });
 
   return {

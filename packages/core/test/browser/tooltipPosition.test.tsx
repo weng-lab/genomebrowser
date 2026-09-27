@@ -3,9 +3,11 @@
 import { act, useEffect } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { BrowserProvider } from "../../src/browser/state/BrowserContext";
 import { idleDataSource } from "./idleDataSource";
-import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
+import {
+  BrowserContext,
+  createBrowserContextValue,
+} from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { BrowserSvgProvider } from "../../src/browser/svg/BrowserSvgContext";
@@ -27,7 +29,7 @@ const browserContext = createBrowserContextValue(
   }),
   createTrackStore({ modules: [], tracks: [] }),
   idleDataSource,
-  () => false,
+  { isDragging: false },
 );
 
 beforeEach(() => {
@@ -57,13 +59,13 @@ async function render(width = 500, height = 300, matrix = { a: 1, b: 0, e: 0, f:
   Object.defineProperty(svg, "getScreenCTM", { value: () => ({ c: 0, d: matrix.a, ...matrix }) });
   await act(async () => {
     root.render(
-      <BrowserProvider value={{ ...browserContext, tooltipStore: store }}>
+      <BrowserContext.Provider value={{ ...browserContext, tooltipStore: store }}>
         <BrowserSvgProvider svg={svg}>
           <svg>
             <TooltipOverlay width={width} height={height} />
           </svg>
         </BrowserSvgProvider>
-      </BrowserProvider>,
+      </BrowserContext.Provider>,
     );
   });
 }

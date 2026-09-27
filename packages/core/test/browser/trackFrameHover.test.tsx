@@ -5,9 +5,11 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
-import { BrowserProvider } from "../../src/browser/state/BrowserContext";
 import { idleDataSource } from "./idleDataSource";
-import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
+import {
+  BrowserContext,
+  createBrowserContextValue,
+} from "../../src/browser/state/browserContextState";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
 import { TrackFrame } from "../../src/browser/track-row/TrackFrame";
@@ -124,9 +126,11 @@ async function renderFrame({
 
   await act(async () =>
     root?.render(
-      <BrowserProvider
+      <BrowserContext.Provider
         value={{
-          ...createBrowserContextValue(browserStore, trackStore, idleDataSource, () => false),
+          ...createBrowserContextValue(browserStore, trackStore, idleDataSource, {
+            isDragging: false,
+          }),
           settingsStore,
         }}
       >
@@ -153,7 +157,7 @@ async function renderFrame({
             </TrackFrame>
           </TrackStackContext.Provider>
         </svg>
-      </BrowserProvider>,
+      </BrowserContext.Provider>,
     ),
   );
 }

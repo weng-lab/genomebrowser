@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import type { GenomicRegion } from "../../genome/region";
 import type { BrowserRegionMutationResult } from "../state/browserStore";
+import type { PanDragStatus } from "../state/browserContextState";
 import { usePanDrag } from "./usePanDrag";
 
 export function getPanCommitRegion(
@@ -32,6 +33,7 @@ export function usePanController({
   getContentOffset,
   setContentOffset,
   setRegion,
+  panDragStatus,
 }: {
   svg: SVGSVGElement | null;
   region: GenomicRegion;
@@ -39,6 +41,7 @@ export function usePanController({
   getContentOffset: () => number;
   setContentOffset: (deltaPx: number) => number;
   setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
+  panDragStatus: PanDragStatus;
 }) {
   const hasValidTrackWidth = Number.isFinite(trackWidth) && trackWidth > 0;
 
@@ -61,6 +64,7 @@ export function usePanController({
     setDelta: setContentOffset,
     onCancel: cancelPan,
     onCommit: commitPan,
+    panDragStatus,
   });
 
   return {

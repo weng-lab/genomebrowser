@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createBrowserStore, createTrackStore, defineTrackModule, hg38 } from "../../src/lib";
 import type { TrackStoreInstance } from "../../src/lib";
-import { BrowserProvider } from "../../src/browser/state/BrowserContext";
 import { idleDataSource } from "./idleDataSource";
-import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
+import {
+  BrowserContext,
+  createBrowserContextValue,
+} from "../../src/browser/state/browserContextState";
 import { TrackContent } from "../../src/browser/track-row/TrackContent";
 
 // Preserve these existing layout guards until real-browser tests verify scrolling
@@ -25,7 +27,7 @@ describe("fetch error layout guards", () => {
     const useTrackStore = createTrackStore({ modules: [module], tracks: [track] });
 
     const markup = renderToStaticMarkup(
-      <BrowserProvider value={browserContext(useTrackStore)}>
+      <BrowserContext.Provider value={browserContext(useTrackStore)}>
         <TrackContent
           track={track}
           dataState={{ status: "error", error: "Failed to load" }}
@@ -34,7 +36,7 @@ describe("fetch error layout guards", () => {
           width={100}
           height={track.base.height}
         />
-      </BrowserProvider>,
+      </BrowserContext.Provider>,
     );
 
     expect(markup).toContain('<foreignObject x="0" y="0" width="100" height="60"');
@@ -61,7 +63,7 @@ describe("fetch error layout guards", () => {
     const useTrackStore = createTrackStore({ modules: [module], tracks: [track] });
 
     const markup = renderToStaticMarkup(
-      <BrowserProvider value={browserContext(useTrackStore)}>
+      <BrowserContext.Provider value={browserContext(useTrackStore)}>
         <TrackContent
           track={track}
           dataState={{ status: "error", error: "Failed to load" }}
@@ -70,7 +72,7 @@ describe("fetch error layout guards", () => {
           width={100}
           height={track.base.height}
         />
-      </BrowserProvider>,
+      </BrowserContext.Provider>,
     );
 
     expect(markup).not.toContain("<svg");
@@ -84,5 +86,5 @@ function browserContext(trackStore: TrackStoreInstance) {
     assembly: hg38,
     region: { chromosome: "chr1", start: 0, end: 10 },
   });
-  return createBrowserContextValue(browserStore, trackStore, idleDataSource, () => false);
+  return createBrowserContextValue(browserStore, trackStore, idleDataSource, { isDragging: false });
 }

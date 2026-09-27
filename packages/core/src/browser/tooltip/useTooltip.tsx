@@ -1,7 +1,7 @@
 import { createElement, useEffect, useEffectEvent, useId, useRef } from "react";
 import { useTrackRuntimeContext } from "../../modules/trackRuntimeState";
 import { useSvgPoint } from "../svg/useSvgPoint";
-import { useIsPanDragging, useRegistry, useTooltipStore } from "../state/browserContextState";
+import { usePanDragStatus, useRegistry, useTooltipStore } from "../state/browserContextState";
 import type { TrackTooltipComponent } from "../../modules/types";
 import type { MousePosition } from "./types";
 
@@ -9,7 +9,7 @@ export function useTooltip<Item, Config>() {
   const owner = useId();
   const showTooltip = useTooltipStore((state) => state.show);
   const hideTooltip = useTooltipStore((state) => state.hide);
-  const isDisabled = useIsPanDragging();
+  const panDragStatus = usePanDragStatus();
   const context = useTrackRuntimeContext<Config>();
   const Tooltip = useRegistry().get(context.type).tooltipComponent as
     | TrackTooltipComponent<Item, Config>
@@ -26,7 +26,7 @@ export function useTooltip<Item, Config>() {
   };
 
   const show = (item: Item, position: MousePosition) => {
-    if (isDisabled()) {
+    if (panDragStatus.isDragging) {
       hide();
       return;
     }

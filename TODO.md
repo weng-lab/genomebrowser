@@ -2,7 +2,7 @@
 
 Keep `GenomeBrowser` props and visible behavior unchanged. Move ownership in small steps; each step needs an independent review before it is committed. The current baseline is 396 core tests in 36 files and 16 render-budget tests in 3 files.
 
-Stage 2 implementation is ready for independent review: `usePanning` owns content offsets and pointer/wheel commits, while render-window geometry owns region expansion and overscan policy. The browser's provider lifetime and canvas ownership remain for the next stage.
+Stage 3 implementation is ready for independent review: `BrowserProvider` owns the mount-private UI stores, pan drag status, and current store pair's data controller. Store replacement preserves private UI state while replacing and cleaning up the controller before descendants render. Canvas ownership remains for the next stage.
 
 ## Behavior to protect
 

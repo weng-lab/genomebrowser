@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, type PointerEvent as ReactPointerEvent } from "react";
+import { act, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { getPanCommitRegion, usePanController } from "../../src/browser/viewport/usePanController";
@@ -15,10 +15,13 @@ let container: HTMLDivElement | undefined;
 let root: Root | undefined;
 let controller: ReturnType<typeof usePanController> | undefined;
 
-type HarnessProps = Parameters<typeof usePanController>[0] & { wheelEnabled?: boolean };
+type HarnessProps = Omit<Parameters<typeof usePanController>[0], "panDragStatus"> & {
+  wheelEnabled?: boolean;
+};
 
 function Harness(props: HarnessProps) {
-  controller = usePanController(props);
+  const panDragStatus = useRef({ isDragging: false });
+  controller = usePanController({ ...props, panDragStatus: panDragStatus.current });
   usePanWheel({
     svg: props.svg,
     disabled: !props.wheelEnabled,

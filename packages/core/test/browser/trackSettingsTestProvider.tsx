@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
-import { BrowserProvider } from "../../src/browser/state/BrowserContext";
 import { idleDataSource } from "./idleDataSource";
-import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
+import {
+  BrowserContext,
+  createBrowserContextValue,
+} from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createSettingsStore } from "../../src/browser/state/settingsStore";
 import type { TrackStoreInstance } from "../../src/browser/state/trackStore";
@@ -20,7 +22,7 @@ export function TrackSettingsTestProvider({
   settingsStore.getState().openSettings(trackId, { x: 0, y: 0 });
 
   return (
-    <BrowserProvider
+    <BrowserContext.Provider
       value={{
         ...createBrowserContextValue(
           createBrowserStore({
@@ -29,12 +31,12 @@ export function TrackSettingsTestProvider({
           }),
           trackStore,
           idleDataSource,
-          () => false,
+          { isDragging: false },
         ),
         settingsStore,
       }}
     >
       {children}
-    </BrowserProvider>
+    </BrowserContext.Provider>
   );
 }

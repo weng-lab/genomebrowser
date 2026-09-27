@@ -16,9 +16,11 @@ import {
   type GenomeBrowserStores,
   type TrackFetchContext,
 } from "../../src/lib";
-import { BrowserProvider } from "../../src/browser/state/BrowserContext";
 import { idleDataSource } from "./idleDataSource";
-import { createBrowserContextValue } from "../../src/browser/state/browserContextState";
+import {
+  BrowserContext,
+  createBrowserContextValue,
+} from "../../src/browser/state/browserContextState";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -96,10 +98,10 @@ describe("useGenomeBrowser", () => {
       first.useBrowserStore,
       first.useTrackStore,
       idleDataSource,
-      () => false,
+      { isDragging: false },
     );
     const view = (stores: GenomeBrowserStores) => (
-      <BrowserProvider
+      <BrowserContext.Provider
         value={{
           ...extras,
           browserStore: stores.useBrowserStore,
@@ -108,7 +110,7 @@ describe("useGenomeBrowser", () => {
       >
         <ContextConsumer />
         <SelectorConsumer />
-      </BrowserProvider>
+      </BrowserContext.Provider>
     );
     await render(view(first));
     expect(Object.keys(resolved!).sort()).toEqual(["useBrowserStore", "useTrackStore"]);
@@ -283,6 +285,78 @@ describe("useGenomeBrowser", () => {
     expect(second.useBrowserStore.getState().region.start).toBe(500);
   });
 
+  it("suppresses tooltips during a pan drag and restores them after cancellation", async () => {
+    function Renderer() {
+      const tooltip = useTooltip<string, Record<string, never>>();
+      return (
+        <rect
+          data-hover-target
+          width={50}
+          height={20}
+          onMouseOver={() => tooltip.show("item", { clientX: 10, clientY: 10 })}
+        />
+      );
+    }
+    const module = defineTrackModule({
+      type: "drag-tooltip",
+      configSchema: z.object({}),
+      fetch: async () => null,
+      render: { full: Renderer },
+      tooltipComponent: ({ item }) => <text data-tooltip>{String(item)}</text>,
+    });
+    const stores = createStores();
+    stores.useTrackStore = createTrackStore({
+      modules: [module],
+      tracks: [module.create({ base: { id: "drag", title: "Drag" }, config: {} })],
+    });
+    await render(
+      <GenomeBrowser
+        sizing="fixed"
+        browserStore={stores.useBrowserStore}
+        trackStore={stores.useTrackStore}
+      />,
+    );
+    Object.defineProperty(SVGElement.prototype, "getBBox", {
+      configurable: true,
+      value: () => ({ x: 0, y: 0, width: 20, height: 20 }),
+    });
+    const svg = container!.querySelector("svg")!;
+    const point = { x: 0, y: 0, matrixTransform: () => ({ x: point.x, y: point.y }) };
+    Object.assign(svg, {
+      createSVGPoint: () => point,
+      getScreenCTM: () => ({ inverse: () => ({}) }),
+    });
+    const panTarget = Array.from(svg.querySelectorAll<SVGGElement>("g")).find(
+      (group) => group.style.cursor === "grab",
+    )!;
+    Object.assign(panTarget, {
+      hasPointerCapture: () => false,
+      releasePointerCapture: vi.fn(),
+      setPointerCapture: vi.fn(),
+    });
+    const hoverTarget = container!.querySelector("[data-hover-target]")!;
+    const hover = async () => {
+      await act(async () =>
+        hoverTarget.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })),
+      );
+      await act(async () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+    };
+    const pointer = async (type: string) => {
+      const event = new MouseEvent(type, { bubbles: true, button: 0, clientX: 10 });
+      Object.assign(event, { pointerId: 1, isPrimary: true });
+      await act(async () => panTarget.dispatchEvent(event));
+    };
+
+    await hover();
+    expect(document.querySelector("[data-tooltip]")?.textContent).toBe("item");
+    await pointer("pointerdown");
+    await hover();
+    expect(document.querySelector("[data-tooltip]")).toBeNull();
+    await pointer("pointercancel");
+    await hover();
+    expect(document.querySelector("[data-tooltip]")?.textContent).toBe("item");
+  });
+
   it.each(["browser", "track", "both"])(
     "follows replacement %s stores through the mounted browser",
     async (replacement) => {
@@ -358,73 +432,107 @@ describe("useGenomeBrowser", () => {
     },
   );
 
-  it("cancels replaced-store requests while preserving open settings", async () => {
-    let finishOldRequest: ((data: string) => void) | undefined;
-    let oldSignal: AbortSignal | undefined;
-    let oldResources: TrackFetchContext<Record<string, never>>["resources"] | undefined;
-    function Renderer({ data }: { data: string }) {
-      return <text data-result>{data}</text>;
-    }
-    function Settings() {
-      const { useBrowserStore } = useGenomeBrowser();
-      const assembly = useBrowserStore((state) => state.assembly.id);
-      return <span data-settings>{assembly}</span>;
-    }
-    const module = defineTrackModule({
-      type: "pending-replacement",
-      configSchema: z.object({}),
-      fetch: async ({ demand, signal, resources }: TrackFetchContext<Record<string, never>>) => {
-        if (demand.assembly.id === "test" && demand.visibleRegion.start === 1000) {
-          oldSignal = signal;
-          oldResources = resources;
-          resources.set("reader", "old reader");
-          return new Promise<string>((resolve) => {
-            finishOldRequest = resolve;
-          });
-        }
-        return demand.assembly.id;
-      },
-      render: { full: Renderer },
-      settingsComponent: Settings,
-    });
-    const { useBrowserStore } = createStores();
-    const useTrackStore = createTrackStore({
-      modules: [module],
-      tracks: [module.create({ base: { id: "shared", title: "Shared" }, config: {} })],
-    });
-    const view = (browserStore: typeof useBrowserStore) => (
-      <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={useTrackStore} />
-    );
-    await render(view(useBrowserStore));
-    await act(async () => {
-      container!
-        .querySelector('[aria-label="Settings for Shared"]')!
-        .dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    });
-    expect(container!.querySelector("[data-settings]")?.textContent).toBe("test");
-    await act(async () => {
-      useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 1000, end: 1100 });
-    });
-    expect(container!.querySelector("fieldset")?.disabled).toBe(true);
-    expect(oldSignal?.aborted).toBe(false);
-    expect(oldResources?.get("reader")).toBe("old reader");
+  it.each(["browser", "track", "both"])(
+    "cancels pending requests on %s store replacement while preserving open settings",
+    async (replacement) => {
+      let finishOldRequest: ((data: string) => void) | undefined;
+      let oldSignal: AbortSignal | undefined;
+      let oldResources: TrackFetchContext<Record<string, never>>["resources"] | undefined;
+      function Renderer({ data }: { data: string }) {
+        return <text data-result>{data}</text>;
+      }
+      function Settings() {
+        const { useBrowserStore, useTrackStore } = useGenomeBrowser();
+        const assembly = useBrowserStore((state) => state.assembly.id);
+        const title = useTrackStore((state) => state.getTrack("shared")?.base.title);
+        return <span data-settings>{`${assembly}:${title}`}</span>;
+      }
+      const module = defineTrackModule({
+        type: "pending-replacement",
+        configSchema: z.object({ source: z.string() }),
+        fetch: async ({
+          demand,
+          track,
+          signal,
+          resources,
+        }: TrackFetchContext<{ source: string }>) => {
+          if (track.config.source === "old" && demand.visibleRegion.start === 1000) {
+            oldSignal = signal;
+            oldResources = resources;
+            resources.set("reader", "old reader");
+            return new Promise<string>((resolve) => {
+              finishOldRequest = resolve;
+            });
+          }
+          return `${demand.assembly.id}:${track.config.source}`;
+        },
+        render: { full: Renderer },
+        settingsComponent: Settings,
+      });
+      const { useBrowserStore } = createStores();
+      const useTrackStore = createTrackStore({
+        modules: [module],
+        tracks: [
+          module.create({ base: { id: "shared", title: "Old" }, config: { source: "old" } }),
+        ],
+      });
+      const view = (stores: GenomeBrowserStores) => (
+        <GenomeBrowser
+          sizing="fixed"
+          browserStore={stores.useBrowserStore}
+          trackStore={stores.useTrackStore}
+        />
+      );
+      await render(view({ useBrowserStore, useTrackStore }));
+      await act(async () => {
+        container!
+          .querySelector('[aria-label="Settings for Old"]')!
+          .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      });
+      expect(container!.querySelector("[data-settings]")?.textContent).toBe("test:Old");
+      await act(async () => {
+        useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 1000, end: 1100 });
+      });
+      expect(container!.querySelector("fieldset")?.disabled).toBe(true);
+      expect(oldSignal?.aborted).toBe(false);
+      expect(oldResources?.get("reader")).toBe("old reader");
 
-    const useReplacementStore = createBrowserStore({
-      assembly: { id: "replacement", chromosomes: { chr1: 10000 } },
-      region: { chromosome: "chr1", start: 0, end: 100 },
-      trackWidth: 500,
-    });
-    await render(view(useReplacementStore));
-    expect(oldSignal?.aborted).toBe(true);
-    expect(oldResources?.get("reader")).toBeUndefined();
-    expect(useBrowserStore.getState().isLoading).toBe(false);
-    expect(container!.querySelector("fieldset")?.disabled).toBe(false);
-    expect(container!.querySelector("[data-settings]")?.textContent).toBe("replacement");
-    expect(container!.querySelector("[data-result]")?.textContent).toBe("replacement");
+      const replacementBrowserStore = createBrowserStore({
+        assembly: { id: "replacement", chromosomes: { chr1: 10000 } },
+        region: { chromosome: "chr1", start: 0, end: 100 },
+        trackWidth: 500,
+      });
+      const replacementTrackStore = createTrackStore({
+        modules: [module],
+        tracks: [
+          module.create({ base: { id: "shared", title: "New" }, config: { source: "new" } }),
+        ],
+      });
+      const nextStores = {
+        useBrowserStore: replacement === "track" ? useBrowserStore : replacementBrowserStore,
+        useTrackStore: replacement === "browser" ? useTrackStore : replacementTrackStore,
+      };
+      await render(view(nextStores));
+      expect(oldSignal?.aborted).toBe(true);
+      expect(oldResources?.get("reader")).toBeUndefined();
+      expect(useBrowserStore.getState().isLoading).toBe(false);
+      expect(container!.querySelector("fieldset")?.disabled).toBe(false);
+      const nextAssembly = replacement === "track" ? "test" : "replacement";
+      const nextTitle = replacement === "browser" ? "Old" : "New";
+      expect(container!.querySelector("[data-settings]")?.textContent).toBe(
+        `${nextAssembly}:${nextTitle}`,
+      );
+      const nextSource = replacement === "browser" ? "old" : "new";
+      expect(container!.querySelector("[data-result]")?.textContent).toBe(
+        `${nextAssembly}:${nextSource}`,
+      );
 
-    await act(async () => {
-      finishOldRequest!("obsolete");
-    });
-    expect(container!.querySelector("[data-result]")?.textContent).toBe("replacement");
-  });
+      await act(async () => {
+        finishOldRequest!("obsolete");
+      });
+      expect(container!.querySelector("[data-result]")?.textContent).toBe(
+        `${nextAssembly}:${nextSource}`,
+      );
+    },
+  );
 });

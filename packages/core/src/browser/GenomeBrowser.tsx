@@ -1,22 +1,10 @@
-import {
-  useLayoutEffect,
-  useMemo,
-  useState,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
-} from "react";
+import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { createTrackDataController } from "./data/trackDataController";
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { BrowserSvgProvider } from "./svg/BrowserSvgContext";
 import { BrowserProvider } from "./state/BrowserContext";
 import type { BrowserStore, BrowserStoreInstance } from "./state/browserStore";
-import {
-  createBrowserContextValue,
-  useGenomeBrowser,
-  useIsInteractionBlocked,
-} from "./state/browserContextState";
+import { useGenomeBrowser, useIsInteractionBlocked } from "./state/browserContextState";
 import type { TrackStoreInstance } from "./state/trackStore";
 import { InteractionShield } from "./overlays/InteractionShield";
 import { Highlights } from "./overlays/Highlights";
@@ -86,12 +74,18 @@ export function GenomeBrowser({
       }}
     >
       {trackWidth !== null && (
-        <GenomeBrowserRuntime
+        <BrowserProvider
           browserStore={browserStore}
           trackStore={trackStore}
           trackWidth={trackWidth}
-          scale={scale}
-        />
+        >
+          <GenomeBrowserRuntime
+            browserStore={browserStore}
+            trackStore={trackStore}
+            trackWidth={trackWidth}
+            scale={scale}
+          />
+        </BrowserProvider>
       )}
     </div>
   );
@@ -135,61 +129,25 @@ function GenomeBrowserRuntime({
     setRegion,
   });
 
-  // Data belongs to the supplied stores; menu, settings, and tooltip state belong
-  // to this mount. Replace the data source before rendering children when the
-  // host supplies new stores, without resetting the private UI stores.
-  const [runtime, setRuntime] = useState(() => {
-    const dataController = createTrackDataController({ browserStore, trackStore, trackWidth });
-    return {
-      dataController,
-      context: createBrowserContextValue(
-        browserStore,
-        trackStore,
-        dataController,
-        panDrag.isDragging,
-      ),
-    };
-  });
-  const { dataController, context: browserContextValue } = runtime;
-  if (
-    browserContextValue.browserStore !== browserStore ||
-    browserContextValue.trackStore !== trackStore
-  ) {
-    const nextController = createTrackDataController({ browserStore, trackStore, trackWidth });
-    setRuntime({
-      dataController: nextController,
-      context: {
-        ...browserContextValue,
-        browserStore,
-        trackStore,
-        dataController: nextController,
-      },
-    });
-  }
-  useLayoutEffect(() => dataController.connect(), [dataController]);
-  useLayoutEffect(() => dataController.setTrackWidth(trackWidth), [dataController, trackWidth]);
-
   return (
-    <BrowserProvider value={browserContextValue}>
-      <BrowserSvgProvider svg={svg}>
-        <BrowserView
-          svg={svg}
-          setSvg={setSvg}
-          browserWidth={browserWidth}
-          scale={scale}
-          totalHeight={totalHeight}
-          marginWidth={marginWidth}
-          trackWidth={trackWidth}
-          region={region}
-          setRegion={setRegion}
-          registerContentGroup={registerContentGroup}
-          wheel={wheel}
-          panDrag={panDrag}
-          titleSize={titleSize}
-          trackLayouts={trackLayouts}
-        />
-      </BrowserSvgProvider>
-    </BrowserProvider>
+    <BrowserSvgProvider svg={svg}>
+      <BrowserView
+        svg={svg}
+        setSvg={setSvg}
+        browserWidth={browserWidth}
+        scale={scale}
+        totalHeight={totalHeight}
+        marginWidth={marginWidth}
+        trackWidth={trackWidth}
+        region={region}
+        setRegion={setRegion}
+        registerContentGroup={registerContentGroup}
+        wheel={wheel}
+        panDrag={panDrag}
+        titleSize={titleSize}
+        trackLayouts={trackLayouts}
+      />
+    </BrowserSvgProvider>
   );
 }
 
