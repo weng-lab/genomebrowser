@@ -10,7 +10,7 @@ import {
 } from "../../src/browser/state/browserContextState";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
-import { BrowserSvgProvider } from "../../src/browser/svg/BrowserSvgContext";
+import { BrowserSvgContext } from "../../src/browser/svg/browserSvgState";
 import { TooltipOverlay } from "../../src/browser/tooltip/TooltipOverlay";
 import { createTooltipStore } from "../../src/browser/tooltip/tooltipStore";
 
@@ -59,11 +59,11 @@ async function render(width = 500, height = 300, matrix = { a: 1, b: 0, e: 0, f:
   await act(async () => {
     root.render(
       <BrowserContext.Provider value={{ ...browserContext, tooltipStore: store }}>
-        <BrowserSvgProvider svg={svg}>
+        <BrowserSvgContext value={svg}>
           <svg>
             <TooltipOverlay width={width} height={height} />
           </svg>
-        </BrowserSvgProvider>
+        </BrowserSvgContext>
       </BrowserContext.Provider>,
     );
   });
