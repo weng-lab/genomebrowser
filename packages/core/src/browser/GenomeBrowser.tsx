@@ -7,7 +7,7 @@ import {
   type SetStateAction,
 } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { createTrackDataController, PAN_OVERSCAN_MULTIPLIER } from "./data/trackDataController";
+import { createTrackDataController } from "./data/trackDataController";
 import { TooltipOverlay } from "./tooltip/TooltipOverlay";
 import { BrowserSvgProvider } from "./svg/BrowserSvgContext";
 import { BrowserProvider } from "./state/BrowserContext";
@@ -30,10 +30,13 @@ import {
 } from "./track-row/trackLayout";
 import { TrackStack } from "./track-row/TrackStack";
 import { SelectRegion } from "./viewport/SelectRegion";
-import { getContentPlacement, getRenderWindow } from "./viewport/renderWindow";
-import { useContentTransform, type RegisterContentGroup } from "./viewport/useContentTransform";
-import { usePanController } from "./viewport/usePanController";
-import { usePanWheel } from "./viewport/usePanWheel";
+import {
+  getContentPlacement,
+  getRenderWindow,
+  PAN_OVERSCAN_MULTIPLIER,
+} from "./viewport/renderWindow";
+import type { RegisterContentGroup } from "./viewport/useContentTransform";
+import { usePanning } from "./viewport/usePanning";
 import type { GenomicRegion } from "../genome/region";
 import type { PanDragHandlers } from "./viewport/usePanDrag";
 import { useContainerWidth } from "./viewport/useContainerWidth";
@@ -124,18 +127,11 @@ function GenomeBrowserRuntime({
     wrapperHeights.reduce((total, height) => total + height, 0),
   );
 
-  const { getContentOffset, registerContentGroup, setContentOffset } = useContentTransform({
+  const { panDrag, registerContentGroup, wheel } = usePanning({
+    svg,
     region,
     marginWidth,
     trackWidth,
-  });
-
-  const { commitPan, panDrag } = usePanController({
-    svg,
-    region,
-    trackWidth,
-    getContentOffset,
-    setContentOffset,
     setRegion,
   });
 
@@ -187,8 +183,7 @@ function GenomeBrowserRuntime({
           region={region}
           setRegion={setRegion}
           registerContentGroup={registerContentGroup}
-          onPanCommit={commitPan}
-          setContentOffset={setContentOffset}
+          wheel={wheel}
           panDrag={panDrag}
           titleSize={titleSize}
           trackLayouts={trackLayouts}
@@ -210,8 +205,7 @@ function BrowserView({
   setRegion,
   registerContentGroup,
   panDrag,
-  onPanCommit,
-  setContentOffset,
+  wheel,
   titleSize,
   trackLayouts,
 }: {
@@ -226,8 +220,7 @@ function BrowserView({
   setRegion: BrowserStore["setRegion"];
   registerContentGroup: RegisterContentGroup;
   panDrag: PanDragHandlers;
-  onPanCommit: (deltaPx: number) => void;
-  setContentOffset: (deltaPx: number) => number;
+  wheel: ReactNode;
   titleSize: number;
   trackLayouts: TrackLayout[];
 }) {
@@ -246,13 +239,7 @@ function BrowserView({
   return (
     <>
       <SvgShell width={browserWidth} height={totalHeight} scale={scale} setSvg={setSvg}>
-        <PanWheel
-          svg={svg}
-          trackWidth={trackWidth}
-          panDrag={panDrag}
-          setContentOffset={setContentOffset}
-          onCommit={onPanCommit}
-        />
+        {wheel}
         <GatedSelectRegion
           svg={svg}
           marginWidth={marginWidth}
@@ -304,33 +291,6 @@ function BrowserView({
 
 // The components below read the interaction gate themselves, so a change in
 // loading state renders them without re-rendering the track rows.
-
-function PanWheel({
-  svg,
-  trackWidth,
-  panDrag,
-  setContentOffset,
-  onCommit,
-}: {
-  svg: SVGSVGElement | null;
-  trackWidth: number;
-  panDrag: PanDragHandlers;
-  setContentOffset: (deltaPx: number) => number;
-  onCommit: (deltaPx: number) => void;
-}) {
-  const isInteractionBlocked = useIsInteractionBlocked();
-  const { useBrowserStore } = useGenomeBrowser();
-  const selectionMode = useBrowserStore((state) => state.selectionMode);
-  usePanWheel({
-    svg,
-    disabled: isInteractionBlocked || selectionMode !== "pan",
-    trackWidth,
-    isDragging: panDrag.isDragging,
-    setContentOffset,
-    onCommit,
-  });
-  return null;
-}
 
 function GatedSelectRegion({
   svg,

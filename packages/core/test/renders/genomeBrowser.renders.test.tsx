@@ -378,6 +378,29 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     `);
   });
 
+  // setSelectionMode changes the wheel gate and selection overlay without changing tracks.
+  it("changes the selection mode without rendering the track tree", async () => {
+    const { probe, browserStore } = await mountBrowser();
+
+    const report = await probe.measure(() => browserStore.getState().setSelectionMode("highlight"));
+
+    // Necessary: only the gate subscribers update. None of the budgeted track tree renders.
+    expect(budget(report)).toMatchInlineSnapshot(`
+      {
+        "BrowserView": 0,
+        "GenomeBrowserRuntime": 0,
+        "Highlights": 0,
+        "PanTrack": 0,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+  });
+
   it("removes a track", async () => {
     const { probe, trackStore } = await mountBrowser();
 

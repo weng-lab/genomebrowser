@@ -3,11 +3,8 @@
 import { act, type PointerEvent as ReactPointerEvent } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  expandRegion,
-  getPanCommitRegion,
-  usePanController,
-} from "../../src/browser/viewport/usePanController";
+import { getPanCommitRegion, usePanController } from "../../src/browser/viewport/usePanController";
+import { expandRegion } from "../../src/browser/viewport/renderWindow";
 import { usePanWheel } from "../../src/browser/viewport/usePanWheel";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 
