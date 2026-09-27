@@ -111,10 +111,12 @@ async function renderFrame({
     registerContentGroup: () => () => {},
     panDrag: {
       isDragging: () => false,
+      subscribeEnd: () => () => {},
       onPointerDown: () => false,
       onPointerMove: () => {},
       onPointerUp: () => {},
       onPointerCancel: () => {},
+      onLostPointerCapture: () => {},
       onClickCapture: () => {},
     },
   };

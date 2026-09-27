@@ -1,7 +1,6 @@
 import type { AssemblyDefinition } from "../../genome/assembly";
 import type { GenomicRegion } from "../../genome/region";
 import { normalizeRegion } from "../../genome/region";
-import { expandRegion } from "./usePanController";
 
 /**
  * The window a request loads: the visible region widened by `overscanMultiplier`
@@ -43,5 +42,22 @@ export function getContentPlacement(
   return {
     x: marginWidth + (region.start - visibleRegion.start) * pxPerBase,
     width: (region.end - region.start) * pxPerBase,
+  };
+}
+
+function expandRegion(region: GenomicRegion, multiplier: number): GenomicRegion | null {
+  const span = region.end - region.start;
+  if (!Number.isSafeInteger(span) || span <= 0 || !Number.isFinite(multiplier) || multiplier < 1) {
+    return null;
+  }
+  const sideBases = Math.floor((span * (multiplier - 1)) / 2);
+  const start = region.start - sideBases;
+  const end = region.end + sideBases;
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) return null;
+
+  return {
+    chromosome: region.chromosome,
+    start,
+    end,
   };
 }

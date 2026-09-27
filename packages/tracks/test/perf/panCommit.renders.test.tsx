@@ -223,10 +223,11 @@ describe("pan commit inside loaded data", () => {
 
     // Budget: a higher number fails. Gene transcripts keep their glyphs, labels, and hit
     // targets across the pan; re-packed rows move by transform instead of remounting.
+    // Wheel listeners live inside useBrowserPan and require no separate render.
     expect({ renders: result.renders, mutations: result.mutations }).toMatchInlineSnapshot(`
       {
         "mutations": 93,
-        "renders": 143,
+        "renders": 142,
       }
     `);
   });
