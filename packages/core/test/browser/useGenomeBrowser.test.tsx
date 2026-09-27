@@ -361,6 +361,7 @@ describe("useGenomeBrowser", () => {
   it("cancels replaced-store requests while preserving open settings", async () => {
     let finishOldRequest: ((data: string) => void) | undefined;
     let oldSignal: AbortSignal | undefined;
+    let oldResources: TrackFetchContext<Record<string, never>>["resources"] | undefined;
     function Renderer({ data }: { data: string }) {
       return <text data-result>{data}</text>;
     }
@@ -372,9 +373,11 @@ describe("useGenomeBrowser", () => {
     const module = defineTrackModule({
       type: "pending-replacement",
       configSchema: z.object({}),
-      fetch: async ({ demand, signal }: TrackFetchContext<Record<string, never>>) => {
+      fetch: async ({ demand, signal, resources }: TrackFetchContext<Record<string, never>>) => {
         if (demand.assembly.id === "test" && demand.visibleRegion.start === 1000) {
           oldSignal = signal;
+          oldResources = resources;
+          resources.set("reader", "old reader");
           return new Promise<string>((resolve) => {
             finishOldRequest = resolve;
           });
@@ -404,6 +407,7 @@ describe("useGenomeBrowser", () => {
     });
     expect(container!.querySelector("fieldset")?.disabled).toBe(true);
     expect(oldSignal?.aborted).toBe(false);
+    expect(oldResources?.get("reader")).toBe("old reader");
 
     const useReplacementStore = createBrowserStore({
       assembly: { id: "replacement", chromosomes: { chr1: 10000 } },
@@ -412,6 +416,7 @@ describe("useGenomeBrowser", () => {
     });
     await render(view(useReplacementStore));
     expect(oldSignal?.aborted).toBe(true);
+    expect(oldResources?.get("reader")).toBeUndefined();
     expect(useBrowserStore.getState().isLoading).toBe(false);
     expect(container!.querySelector("fieldset")?.disabled).toBe(false);
     expect(container!.querySelector("[data-settings]")?.textContent).toBe("replacement");
