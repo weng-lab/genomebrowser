@@ -198,6 +198,6 @@ BAM must be coordinate-sorted, BGZF-compressed, and paired with its matching BAI
 
 The reader supports BAI, not CSI or CRAM. It decodes long CIGARs from the `CG` tag; when that tag is missing or inconsistent, the read keeps its span with no CIGAR operations. Regional coordinates must end at or before `2 ** 29`. Unmapped reads are omitted; secondary, supplementary, and quality-failed records remain visible and counted unless filtered by MAPQ or duplicate settings.
 
-BAM or index errors use core's track error display. Optional reference failures preserve alignments and add a status message. Missing BAM chromosomes return no alignments. See [Data source troubleshooting](../../04-troubleshooting.md).
+BAM or index errors use core's track error display. Optional reference failures preserve alignments and add a status message. The zoom prompt, reference warning, and row-limit notice stay horizontally centered in the visible plot during panning. Warnings and row-limit notices keep their reserved vertical bands. Long messages truncate with an ellipsis and expose their full text in a hover title and accessible name. Missing BAM chromosomes return no alignments. See [Data source troubleshooting](../../04-troubleshooting.md).
 
 Return to [Track modules](README.md) or [Tracks API reference](../README.md).

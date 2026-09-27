@@ -1,4 +1,4 @@
-import { useBasePairDetail } from "@weng-lab/genomebrowser";
+import { TrackLabel, useBasePairDetail } from "@weng-lab/genomebrowser";
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import type { BamRecord, TwoBitRecord } from "@weng-lab/genomic-reader";
 import { memo, useRef, useState, type MouseEvent } from "react";
@@ -110,14 +110,13 @@ function BamRenderer({
             (layout.hiddenCount > 0 ? STATUS_HEIGHT : 0),
       );
   useTrackHeight(id, trackHeight);
-  const x = createGenomicXScale(region, width);
   return (
     <g data-bam-display={display} style={{ userSelect: "none" }}>
       <rect width={width} height={trackHeight} fill="transparent" pointerEvents="none" />
       {status && (
-        <text x={Math.max(0, x(visibleRegion.start)) + 4} y={11} fontSize={11} fill="#475569">
+        <TrackLabel anchor="center" y={blocked ? undefined : STATUS_HEIGHT / 2} overflow="truncate">
           {status}
-        </text>
+        </TrackLabel>
       )}
       {coverageTop !== undefined && (
         <CoverageSection
@@ -145,7 +144,6 @@ function BamRenderer({
           config={config}
           reference={data.reference}
           region={region}
-          visibleRegion={visibleRegion}
           width={width}
           display={display}
           top={alignmentsTop}
@@ -376,7 +374,6 @@ function AlignmentSection({
   config,
   reference,
   region,
-  visibleRegion,
   width,
   display,
   top,
@@ -385,13 +382,11 @@ function AlignmentSection({
   config: BamConfig;
   reference: TwoBitRecord[];
   region: Props["region"];
-  visibleRegion: Props["visibleRegion"];
   width: number;
   display: BamDisplay;
   top: number;
 }) {
   const { rowHeight } = layout;
-  const x = createGenomicXScale(region, width);
   const interaction = useInteraction<BamRecord>();
   const tooltip = useTooltip<BamTooltipItem, BamConfig>();
   const hoveredRef = useRef<BamRecord | undefined>(undefined);
@@ -433,15 +428,13 @@ function AlignmentSection({
       }}
     >
       {layout.hiddenCount > 0 && (
-        <text
-          data-bam-hidden={layout.hiddenCount}
-          x={Math.max(0, x(visibleRegion.start)) + 4}
-          y={top + Math.max(1, layout.visibleRowCount) * rowHeight + 11}
-          fontSize={11}
-          fill="#475569"
+        <TrackLabel
+          anchor="center"
+          y={top + Math.max(1, layout.visibleRowCount) * rowHeight + STATUS_HEIGHT / 2}
+          overflow="truncate"
         >
           {`${layout.hiddenCount.toLocaleString("en-US")} more alignments not drawn (row limit ${config.alignments.maxRows}). Coverage and junctions include them.`}
-        </text>
+        </TrackLabel>
       )}
       {glyphs.map(({ glyph, rowIndex }) => {
         const { record } = glyph;

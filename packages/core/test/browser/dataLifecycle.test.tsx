@@ -174,24 +174,39 @@ describe("browser data lifecycle", () => {
     },
   );
 
-  it("shows escaped fetch errors and recovers on the next demand change", async () => {
-    const t = await mount();
-    const message = "<script>bad</script> " + "long details ".repeat(100);
-    await act(async () => t.latest().reject(new Error(message)));
-    await t.resolve("b");
-    expect(t.container.querySelector('[role="region"]')?.textContent).toContain(message);
-    expect(t.container.querySelector("script")).toBeNull();
-    expect(t.container.querySelector('[role="region"]')?.getAttribute("tabindex")).toBe("0");
-    expect(t.container.querySelector("dialog")).toBeNull();
-    expect(t.text("b")).toBe("b");
-    expect(t.useBrowserStore.getState().isLoading).toBe(false);
-    await t.pan(1_100);
-    expect(t.requests).toHaveLength(3);
-    await t.resolve("a", "recovered");
-    expect(t.text()).toBe("recovered");
-    expect(t.container.textContent).not.toContain(message);
-    expect(t.useBrowserStore.getState().isLoading).toBe(false);
-  });
+  it.each([10, 80])(
+    "shows escaped fetch errors in a %s-unit track and recovers on the next demand change",
+    async (height) => {
+      const t = await mount();
+      await act(async () => {
+        t.useTrackStore.getState().updateTrack("a", { base: { height } });
+      });
+      const message = "<script>bad</script> " + "long details ".repeat(100);
+      await act(async () => t.latest().reject(new Error(message)));
+      await t.resolve("b");
+      const label = t.container.querySelector<SVGTextElement>("text[aria-label]")!;
+      expect(label.getAttribute("aria-label")).toContain(message);
+      expect(label.textContent).toMatch(/…$/);
+      expect(label.parentElement?.querySelector("title")?.textContent).toContain(message);
+      expect(label.getAttribute("x")).toBe("500");
+      const background = label.parentElement?.querySelector("rect")!;
+      expect(Number(background.getAttribute("height"))).toBeLessThanOrEqual(height);
+      expect(Number(background.getAttribute("y"))).toBe(
+        (height - Number(background.getAttribute("height"))) / 2,
+      );
+      expect(t.container.querySelector("script")).toBeNull();
+      expect(t.container.querySelector("foreignObject")).toBeNull();
+      expect(t.container.querySelector("dialog")).toBeNull();
+      expect(t.text("b")).toBe("b");
+      expect(t.useBrowserStore.getState().isLoading).toBe(false);
+      await t.pan(1_100);
+      expect(t.requests).toHaveLength(3);
+      await t.resolve("a", "recovered");
+      expect(t.text()).toBe("recovered");
+      expect(t.container.textContent).not.toContain(message);
+      expect(t.useBrowserStore.getState().isLoading).toBe(false);
+    },
+  );
 
   it("debounces width changes, retains displayed data, and fetches the final resolution", async () => {
     vi.useFakeTimers();
