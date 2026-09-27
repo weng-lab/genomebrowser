@@ -126,8 +126,8 @@ function createTrack(id: string) {
 function budget(report: RenderReport, ...extra: string[]) {
   return report.pick(
     ...extra,
-    "GenomeBrowserRuntime",
-    "BrowserView",
+    "BrowserProvider",
+    "BrowserCanvas",
     "TrackStack",
     "TrackRow",
     "TrackFrame",
@@ -143,13 +143,13 @@ describe("GenomeBrowser render budgets with three tracks", () => {
   it("mounts", async () => {
     const { probe } = await mountBrowser();
 
-    // Necessary: one render per instance, so 1 each for the runtime, view, and stack, 3
+    // Necessary: one render for the provider, and two for the canvas and stack, 3
     // per row component, 6 PanTracks, and 2 Highlights, then 1 per row when its data
-    // arrives. Mounting still takes a second commit of the view for the SVG element.
+    // arrives. Mounting still takes a second canvas commit for the SVG element.
     expect(budget(probe.mounted)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 2,
-        "GenomeBrowserRuntime": 2,
+        "BrowserCanvas": 2,
+        "BrowserProvider": 1,
         "Highlights": 4,
         "PanTrack": 18,
         "TestRenderer": 3,
@@ -171,11 +171,11 @@ describe("GenomeBrowser render budgets with three tracks", () => {
 
     // Necessary: every row renders once for the new region; the pan keeps each track's
     // old data on screen and its new data arrives in the same commit. The view, stack,
-    // and both Highlights layers reposition once. The runtime reads the region.
+    // and both Highlights layers reposition once. The canvas reads the region.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 1,
-        "GenomeBrowserRuntime": 1,
+        "BrowserCanvas": 1,
+        "BrowserProvider": 0,
         "Highlights": 2,
         "PanTrack": 6,
         "TestRenderer": 3,
@@ -215,8 +215,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     });
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 1,
-        "GenomeBrowserRuntime": 1,
+        "BrowserCanvas": 1,
+        "BrowserProvider": 0,
         "Highlights": 2,
         "PanTrack": 6,
         "TestRenderer": 3,
@@ -243,8 +243,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     expect(requests).toHaveLength(1);
     expect(budget(commit)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 1,
-        "GenomeBrowserRuntime": 1,
+        "BrowserCanvas": 1,
+        "BrowserProvider": 0,
         "Highlights": 2,
         "PanTrack": 10,
         "TestRenderer": 5,
@@ -260,8 +260,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     const resolve = await probe.measure(() => requests[0]?.());
     expect(budget(resolve)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 0,
-        "GenomeBrowserRuntime": 0,
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
         "Highlights": 0,
         "PanTrack": 6,
         "TestRenderer": 1,
@@ -287,8 +287,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
 
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 1,
-        "GenomeBrowserRuntime": 1,
+        "BrowserCanvas": 1,
+        "BrowserProvider": 1,
         "Highlights": 2,
         "PanTrack": 18,
         "TestRenderer": 6,
@@ -311,8 +311,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // Necessary: only the updated row renders, once per component. Nothing is wasted.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 0,
-        "GenomeBrowserRuntime": 0,
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
         "Highlights": 0,
         "PanTrack": 2,
         "TestRenderer": 1,
@@ -336,8 +336,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // layout objects. The loading gate re-renders every SwapTrack's frame twice.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 1,
-        "GenomeBrowserRuntime": 1,
+        "BrowserCanvas": 1,
+        "BrowserProvider": 0,
         "Highlights": 2,
         "PanTrack": 18,
         "TestRenderer": 1,
@@ -364,8 +364,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // Necessary: only the two Highlights layers. Nothing is wasted.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 0,
-        "GenomeBrowserRuntime": 0,
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
         "Highlights": 2,
         "PanTrack": 0,
         "TestRenderer": 0,
@@ -387,8 +387,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // Necessary: only the gate subscribers update. None of the budgeted track tree renders.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 0,
-        "GenomeBrowserRuntime": 0,
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
         "Highlights": 0,
         "PanTrack": 0,
         "TestRenderer": 0,
@@ -411,8 +411,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // createTrackLayouts returns new layout objects.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 1,
-        "GenomeBrowserRuntime": 1,
+        "BrowserCanvas": 1,
+        "BrowserProvider": 0,
         "Highlights": 2,
         "PanTrack": 4,
         "TestRenderer": 0,
@@ -446,9 +446,9 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // renders.
     expect(budget(opened, "ContextMenuController")).toMatchInlineSnapshot(`
       {
-        "BrowserView": 0,
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
         "ContextMenuController": 1,
-        "GenomeBrowserRuntime": 0,
         "Highlights": 0,
         "PanTrack": 0,
         "TestRenderer": 0,
@@ -461,9 +461,9 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     `);
     expect(budget(closed, "ContextMenuController")).toMatchInlineSnapshot(`
       {
-        "BrowserView": 0,
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
         "ContextMenuController": 1,
-        "GenomeBrowserRuntime": 0,
         "Highlights": 0,
         "PanTrack": 0,
         "TestRenderer": 0,
@@ -491,8 +491,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // component renders.
     expect(budget(report, "SettingsModalController", "TestSettings")).toMatchInlineSnapshot(`
       {
-        "BrowserView": 0,
-        "GenomeBrowserRuntime": 0,
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
         "Highlights": 0,
         "PanTrack": 0,
         "SettingsModalController": 1,
@@ -534,10 +534,10 @@ describe("GenomeBrowser render budgets with three tracks", () => {
 
     // Necessary: the overlay renders the content, then again once it is measured.
     // Hiding renders only the overlay. No browser or track component renders.
-    const names = ["BrowserView", "TrackStack", "TrackRow", "TooltipRenderer", "TooltipOverlay"];
+    const names = ["BrowserCanvas", "TrackStack", "TrackRow", "TooltipRenderer", "TooltipOverlay"];
     expect(shown.pick(...names, "TestTooltip")).toMatchInlineSnapshot(`
       {
-        "BrowserView": 0,
+        "BrowserCanvas": 0,
         "TestTooltip": 1,
         "TooltipOverlay": 2,
         "TooltipRenderer": 0,
@@ -547,7 +547,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     `);
     expect(hidden.pick(...names)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 0,
+        "BrowserCanvas": 0,
         "TooltipOverlay": 1,
         "TooltipRenderer": 0,
         "TrackRow": 0,
@@ -565,8 +565,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // new pin state. The view and stack render once for the new layout.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 1,
-        "GenomeBrowserRuntime": 1,
+        "BrowserCanvas": 1,
+        "BrowserProvider": 0,
         "Highlights": 2,
         "PanTrack": 6,
         "TestRenderer": 0,
@@ -590,8 +590,8 @@ describe("GenomeBrowser render budgets with three tracks", () => {
     // for the new layout. Neither renderer data nor highlights change.
     expect(budget(report)).toMatchInlineSnapshot(`
       {
-        "BrowserView": 1,
-        "GenomeBrowserRuntime": 1,
+        "BrowserCanvas": 1,
+        "BrowserProvider": 0,
         "Highlights": 2,
         "PanTrack": 6,
         "TestRenderer": 0,

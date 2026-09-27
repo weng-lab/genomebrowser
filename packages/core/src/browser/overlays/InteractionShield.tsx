@@ -1,20 +1,14 @@
 import type { SyntheticEvent } from "react";
+import { useIsInteractionBlocked } from "../state/browserContextState";
 
 function handleBlockedEvent(event: SyntheticEvent<SVGGElement>) {
   event.preventDefault();
   event.stopPropagation();
 }
 
-export function InteractionShield({
-  active,
-  width,
-  height,
-}: {
-  active: boolean;
-  width: number;
-  height: number;
-}) {
-  if (!active) return null;
+export function InteractionShield({ width, height }: { width: number; height: number }) {
+  const isInteractionBlocked = useIsInteractionBlocked();
+  if (!isInteractionBlocked) return null;
 
   return (
     <g

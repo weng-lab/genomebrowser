@@ -223,10 +223,12 @@ describe("pan commit inside loaded data", () => {
 
     // Budget: a higher number fails. Gene transcripts keep their glyphs, labels, and hit
     // targets across the pan; re-packed rows move by transform instead of remounting.
+    // A fresh stage 3 run measured 142 renders (the committed budget was 143).
+    // Canvas composition and shield gate ownership remove two composition renders.
     expect({ renders: result.renders, mutations: result.mutations }).toMatchInlineSnapshot(`
       {
         "mutations": 93,
-        "renders": 143,
+        "renders": 140,
       }
     `);
   });

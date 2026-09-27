@@ -35,18 +35,14 @@ describe("highlight rendering", () => {
             type="filled"
             region={region}
             marginWidth={100}
-            renderWidth={1000}
-            contentX={100}
-            browserWidth={1100}
+            trackWidth={1000}
             totalHeight={200}
           />
           <Highlights
             type="outlined"
             region={region}
             marginWidth={100}
-            renderWidth={1000}
-            contentX={100}
-            browserWidth={1100}
+            trackWidth={1000}
             totalHeight={200}
           />
         </svg>

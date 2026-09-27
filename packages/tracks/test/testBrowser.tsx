@@ -5,8 +5,10 @@ import {
   type BrowserStoreInstance,
   type TrackStoreInstance,
 } from "@weng-lab/genomebrowser";
-import { BrowserProvider } from "../../core/src/browser/state/BrowserContext";
-import { createBrowserContextValue } from "../../core/src/browser/state/browserContextState";
+import {
+  BrowserContext,
+  createBrowserContextValue,
+} from "../../core/src/browser/state/browserContextState";
 
 // Stable snapshots: useSyncExternalStore re-renders whenever a snapshot changes identity.
 const readyStatus = { reason: "ready", zoomTargetBases: 100, maxReadableBases: 125 } as const;
@@ -45,9 +47,9 @@ export function TestBrowser({
           getBasePairDetail: () => basePairDetail,
           getBasePairDetailStatus: () => (basePairDetail ? readyStatus : viewportStatus),
         },
-        () => false,
+        { isDragging: false },
       ),
     [basePairDetail, browserStore, defaultBrowserStore, emptyTrackStore, trackStore],
   );
-  return <BrowserProvider value={context}>{children}</BrowserProvider>;
+  return <BrowserContext.Provider value={context}>{children}</BrowserContext.Provider>;
 }
