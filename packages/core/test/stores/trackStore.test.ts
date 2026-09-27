@@ -77,6 +77,70 @@ describe("createTrackStore", () => {
     expect(store.getState()).toBe(before);
   });
 
+  it("validates additions before checking missing removals or duplicate IDs", () => {
+    const store = createTrackStore({ modules: [signalModule], tracks: [signalTrack()] });
+    const state = store.getState();
+    const invalid = { ...signalTrack(), config: { url: "" } };
+
+    expect(state.addTrack(invalid)).toMatchObject({ ok: false, code: "INVALID_TRACK" });
+    expect(state.setTracks([signalTrack(), signalTrack(), invalid])).toMatchObject({
+      ok: false,
+      code: "INVALID_TRACK",
+    });
+    expect(state.applyTrackChanges({ add: [invalid], remove: ["missing"] })).toMatchObject({
+      ok: false,
+      code: "INVALID_TRACK",
+    });
+    expect(state.applyTrackChanges({ add: [signalTrack()], remove: ["missing"] })).toMatchObject({
+      ok: false,
+      code: "TRACK_NOT_FOUND",
+    });
+    expect(store.getState()).toBe(state);
+  });
+
+  it("preserves retained tracks and commits each membership change once", () => {
+    const store = createTrackStore({
+      modules: [signalModule],
+      tracks: [signalTrack("retained"), signalTrack("replaced")],
+      pinnedTrackIds: ["reserved"],
+    });
+    const retained = store.getState().getTrack("retained");
+    const subscriber = vi.fn();
+    store.subscribe(subscriber);
+
+    expect(store.getState().addTrack(signalTrack("added"))).toEqual({ ok: true });
+    expect(subscriber).toHaveBeenCalledTimes(1);
+    expect(store.getState().getTrack("retained")).toBe(retained);
+
+    expect(
+      store.getState().applyTrackChanges({
+        remove: ["replaced"],
+        add: [signalTrack("replaced"), signalTrack("reserved")],
+      }),
+    ).toEqual({ ok: true });
+    expect(subscriber).toHaveBeenCalledTimes(2);
+    expect(store.getState().getTrack("retained")).toBe(retained);
+    expect(store.getState().order).toEqual(["reserved", "retained", "added", "replaced"]);
+  });
+
+  it.each([
+    [undefined, ["pin", "a", "b", "added"]],
+    [0, ["pin", "added", "a", "b"]],
+    [-1, ["pin", "a", "added", "b"]],
+    [-100, ["pin", "added", "a", "b"]],
+    [100, ["pin", "a", "b", "added"]],
+  ])("applies insertion index %s before pin ordering", (index, order) => {
+    const store = createTrackStore({
+      modules: [signalModule],
+      tracks: ["pin", "a", "b"].map(signalTrack),
+      pinnedTrackIds: ["pin"],
+    });
+
+    expect(store.getState().addTrack(signalTrack("added"), index)).toEqual({ ok: true });
+    expect(store.getState().order).toEqual(order);
+    expect(store.getState().tracks.map((track) => track.base.id)).toEqual(order);
+  });
+
   it("pins tracks from any module in configured order and snapshots duplicate IDs", () => {
     const ids = ["interval", "b", "interval"];
     const store = createTrackStore({
