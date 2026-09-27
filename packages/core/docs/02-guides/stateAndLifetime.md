@@ -45,6 +45,8 @@ export function BrowserSession({ initialRegion }: { initialRegion: GenomicRegion
 
 To navigate an existing session, call its browser store's `setRegion` action. To start an entirely new session, remount `BrowserSession` with a different React key. That recreates both stores and the mounted browser together. Assembly definitions are fixed for a browser store's lifetime, so changing genomes also requires a new browser store and tracks appropriate to that genome.
 
+Replacing either store prop on an existing `GenomeBrowser` switches hosted components to the new stores and starts fresh data requests. Core aborts the old requests and releases their results and resource storage. The mounted browser retains its private UI stores, so an open settings dialog remains open if its track ID exists in the replacement track store and its module provides settings. Use a new React key when the change should also reset private UI state.
+
 ## Share state between views
 
 Passing the same store pair to two browsers links their region, highlights, track settings, and order. Each view still measures its own container and owns its own fetched data and resources. The two views can therefore have different drawing widths and make separate requests, even when they display the same region.
@@ -120,7 +122,7 @@ Resolving `useGenomeBrowser()` does not itself subscribe to state; calling one o
 
 Track renderers can unmount when their data or display becomes incompatible with the next request. Local renderer state is therefore suitable for temporary hover feedback, but persistent display settings belong in the track store. Updating the instance through `updateTrack` makes those settings available to the next renderer and to application controls.
 
-Unmounting `GenomeBrowser` discards its container measurement, displayed data, and track resources. Remounting it with the same application-owned stores retains the region and track configuration but fetches data again. A fetch already in flight can continue after unmounting; core ignores obsolete results rather than cancelling the underlying work.
+Unmounting `GenomeBrowser` discards its container measurement, displayed data, and track resources. Remounting it with the same application-owned stores retains the region and track configuration but fetches data again. Core aborts pending requests through their `AbortSignal` and ignores obsolete results. A fetcher must pass that signal to its network or reader calls to stop the underlying work.
 
 To save a session, store the values needed to recreate its browser and tracks, then validate them when loading. Do not serialize store hooks, callbacks, or reader objects. Cached fetch results are separate from session configuration.
 

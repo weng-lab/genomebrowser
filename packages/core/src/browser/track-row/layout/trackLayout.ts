@@ -1,4 +1,4 @@
-import type { AnyTrackInstance } from "../../modules/types";
+import type { AnyTrackInstance } from "../../../modules/types";
 
 export function getTrackWrapperHeight(track: AnyTrackInstance, titleSize: number) {
   return track.base.height + (track.base.title ? titleSize + 5 : 0);

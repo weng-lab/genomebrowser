@@ -47,6 +47,8 @@ The returned track store uses the general `TrackStoreInstance` type. The applica
 
 The hook throws `useGenomeBrowser must be used within a GenomeBrowser` outside a hosted component. Fetchers and module-definition code cannot call React hooks.
 
-Independent browsers resolve their own supplied stores; supplying the same stores shares state. Replacing a supplied store changes the store resolved by consumers. Unmounting the browser removes its context but does not discard application-owned stores. Clean up external subscriptions when the subscribing component unmounts.
+Independent browsers resolve their own supplied stores; supplying the same stores shares state. Replacing either supplied store updates the context before hosted components render with the new props. Unmounting the browser removes its context but does not discard application-owned stores. Clean up external subscriptions when the subscribing component unmounts.
+
+See [state and browser lifetime](../../02-guides/stateAndLifetime.md#choose-the-store-lifetime) for request cleanup and private UI state across replacement.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.

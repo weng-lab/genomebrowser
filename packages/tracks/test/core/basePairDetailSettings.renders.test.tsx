@@ -46,11 +46,11 @@ it("updates both settings controls without rendering track content for an unchan
   const report = await probe.measure(() =>
     browserStore.getState().setBasePairDetail({ maxVisibleBases: 200 }),
   );
-  expect(report.pick("BasePairDetailSettings", "TrackContent", "GenomeBrowserRuntime"))
+  expect(report.pick("BasePairDetailSettings", "TrackContent", "BrowserCanvas"))
     .toMatchInlineSnapshot(`
     {
       "BasePairDetailSettings": 2,
-      "GenomeBrowserRuntime": 0,
+      "BrowserCanvas": 0,
       "TrackContent": 0,
     }
   `);
@@ -83,13 +83,12 @@ it("updates the open dynseq letter control without rendering its settings or tra
   const report = await probe.measure(() =>
     browserStore.getState().setBasePairDetail({ maxVisibleBases: 75 }),
   );
-  expect(
-    report.pick("BasePairDetailSettings", "DynseqSettings", "TrackContent", "GenomeBrowserRuntime"),
-  ).toMatchInlineSnapshot(`
+  expect(report.pick("BasePairDetailSettings", "DynseqSettings", "TrackContent", "BrowserCanvas"))
+    .toMatchInlineSnapshot(`
     {
       "BasePairDetailSettings": 1,
+      "BrowserCanvas": 0,
       "DynseqSettings": 0,
-      "GenomeBrowserRuntime": 0,
       "TrackContent": 0,
     }
   `);

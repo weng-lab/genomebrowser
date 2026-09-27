@@ -223,11 +223,12 @@ describe("pan commit inside loaded data", () => {
 
     // Budget: a higher number fails. Gene transcripts keep their glyphs, labels, and hit
     // targets across the pan; re-packed rows move by transform instead of remounting.
-    // Wheel listeners live inside useBrowserPan and require no separate render.
+    // Before SVG consolidation this measured 138 renders. The canvas now owns
+    // the SVG directly, without SvgShell and BrowserSvgProvider renders.
     expect({ renders: result.renders, mutations: result.mutations }).toMatchInlineSnapshot(`
       {
         "mutations": 93,
-        "renders": 142,
+        "renders": 136,
       }
     `);
   });

@@ -2,18 +2,10 @@ import { createContext, use } from "react";
 import type { TrackMutationResult } from "../../modules/types";
 import type { TrackDataController } from "../data/trackDataController";
 import type { TooltipStore } from "../tooltip/types";
-import { createTooltipStore, type TooltipStoreInstance } from "../tooltip/tooltipStore";
+import type { TooltipStoreInstance } from "../tooltip/tooltipStore";
 import type { BrowserStoreInstance } from "./browserStore";
-import {
-  createContextMenuStore,
-  type ContextMenuStore,
-  type ContextMenuStoreInstance,
-} from "./contextMenuStore";
-import {
-  createSettingsStore,
-  type SettingsStore,
-  type SettingsStoreInstance,
-} from "./settingsStore";
+import type { ContextMenuStore, ContextMenuStoreInstance } from "./contextMenuStore";
+import type { SettingsStore, SettingsStoreInstance } from "./settingsStore";
 import type { TrackStoreInstance } from "./trackStore";
 
 /** The parts of a browser's data controller that components subscribe to. */
@@ -22,7 +14,7 @@ export type BrowserDataSource = Pick<
   "subscribe" | "getTrack" | "getBasePairDetail" | "getBasePairDetailStatus"
 >;
 
-/** Stable between source replacements; state changes use selector subscriptions. */
+/** Replaced with the supplied store pair; store state uses selector subscriptions. */
 export type BrowserContextValue = {
   browserStore: BrowserStoreInstance;
   trackStore: TrackStoreInstance;
@@ -31,29 +23,9 @@ export type BrowserContextValue = {
   contextMenuStore: ContextMenuStoreInstance;
   settingsStore: SettingsStoreInstance;
   tooltipStore: TooltipStoreInstance;
-  /** Whether a pan drag is in progress. Read at call time, not subscribed. */
-  isPanDragging: () => boolean;
 };
 
 export const BrowserContext = createContext<BrowserContextValue | null>(null);
-
-/** Create one browser's context value with private menu, settings, and tooltip stores. */
-export function createBrowserContextValue(
-  browserStore: BrowserStoreInstance,
-  trackStore: TrackStoreInstance,
-  dataController: BrowserDataSource,
-  isPanDragging: () => boolean,
-): BrowserContextValue {
-  return {
-    browserStore,
-    trackStore,
-    dataController,
-    contextMenuStore: createContextMenuStore(),
-    settingsStore: createSettingsStore(),
-    tooltipStore: createTooltipStore(),
-    isPanDragging,
-  };
-}
 
 function useBrowserContext(hook: string) {
   const context = use(BrowserContext);
@@ -99,10 +71,6 @@ export function useSettingsStore<T>(selector: (state: SettingsStore) => T): T {
 export function useTooltipStore<T>(selector: (state: TooltipStore) => T): T {
   const useStore = useBrowserContext("useTooltip").tooltipStore;
   return useStore(selector);
-}
-
-export function useIsPanDragging() {
-  return useBrowserContext("useTooltip").isPanDragging;
 }
 
 /** Whether pending track requests block pan, zoom, selection, reordering and settings. */

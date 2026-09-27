@@ -75,8 +75,8 @@ export type {
 } from "./modules/types";
 export { useInteraction } from "./modules/trackRuntimeState";
 export { useTooltip } from "./browser/tooltip/useTooltip";
-export { useAutoTrackHeight } from "./browser/track-row/useAutoTrackHeight";
-export type { AutoTrackHeightOptions } from "./browser/track-row/useAutoTrackHeight";
+export { useAutoTrackHeight } from "./browser/track-row/layout/useAutoTrackHeight";
+export type { AutoTrackHeightOptions } from "./browser/track-row/layout/useAutoTrackHeight";
 export { TrackOverlay } from "./browser/track-overlay/TrackOverlay";
 export type { TrackOverlayProps } from "./browser/track-overlay/TrackOverlay";
 export { TrackLabel } from "./browser/track-overlay/TrackLabel";

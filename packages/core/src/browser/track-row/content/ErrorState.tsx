@@ -1,6 +1,6 @@
 import { use } from "react";
 import { createPortal } from "react-dom";
-import { trackOverlayContext } from "../track-overlay/context";
+import { trackOverlayContext } from "../../track-overlay/context";
 
 export function ErrorState({
   x,

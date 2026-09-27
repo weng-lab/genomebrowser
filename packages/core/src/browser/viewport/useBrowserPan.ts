@@ -1,4 +1,6 @@
 import {
+  createContext,
+  use,
   useEffect,
   useLayoutEffect,
   useState,
@@ -14,6 +16,15 @@ import type { useContentTransform } from "./useContentTransform";
 const PAN_THRESHOLD = 10;
 const WHEEL_SETTLE_MS = 120;
 const LINE_HEIGHT_PX = 16;
+
+/** Tooltips read the owning browser's live gesture without subscribing to movement. */
+export const PanStatusContext = createContext<(() => boolean) | null>(null);
+
+export function usePanDragStatus() {
+  const isDragging = use(PanStatusContext);
+  if (!isDragging) throw new Error("usePanDragStatus must be used within a GenomeBrowser");
+  return isDragging;
+}
 
 type PanOptions = {
   svg: SVGSVGElement | null;

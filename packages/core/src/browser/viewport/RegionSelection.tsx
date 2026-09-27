@@ -9,14 +9,10 @@ import {
 } from "react";
 import type { GenomicRegion } from "../../genome/region";
 import { svgPoint } from "../../modules/utils/svg";
-import type {
-  BrowserRegionMutationResult,
-  BrowserSelectionMode,
-  Highlight,
-  SelectionHighlightStyle,
-} from "../state/browserStore";
+import type { BrowserSelectionMode, SelectionHighlightStyle } from "../state/browserStore";
 
 import { createHighlightId } from "./createHighlightId";
+import { useGenomeBrowser, useIsInteractionBlocked } from "../state/browserContextState";
 
 type SelectionContext = {
   region: GenomicRegion;
@@ -34,25 +30,12 @@ type Selection = {
   context: SelectionContext;
   requestedModeFrom?: BrowserSelectionMode;
 };
-const DEFAULT_HIGHLIGHT: SelectionHighlightStyle = {
-  color: "#f59e0b",
-  opacity: 0.25,
-  type: "filled",
-};
-
-export function SelectRegion({
+export function RegionSelection({
   svg,
   marginWidth,
   trackWidth,
   totalHeight,
   region,
-  setRegion,
-  disabled = false,
-  mode = "zoom",
-  onModeChange,
-  highlightStyle = DEFAULT_HIGHLIGHT,
-  onHighlight,
-  highlights = [],
   children,
 }: {
   svg: SVGSVGElement | null;
@@ -60,15 +43,17 @@ export function SelectRegion({
   trackWidth: number;
   totalHeight: number;
   region: GenomicRegion;
-  setRegion: (region: GenomicRegion) => BrowserRegionMutationResult;
-  disabled?: boolean;
-  mode?: BrowserSelectionMode;
-  onModeChange?: (mode: BrowserSelectionMode) => void;
-  highlightStyle?: SelectionHighlightStyle;
-  onHighlight?: (highlight: Highlight) => void;
-  highlights?: readonly Highlight[];
-  children?: ReactNode;
+  children: ReactNode;
 }) {
+  const disabled = useIsInteractionBlocked();
+  const { useBrowserStore } = useGenomeBrowser();
+  const setRegion = useBrowserStore((state) => state.setRegion);
+  const mode = useBrowserStore((state) => state.selectionMode);
+  const setSelectionMode = useBrowserStore((state) => state.setSelectionMode);
+  const highlightStyle = useBrowserStore((state) => state.selectionHighlight);
+  const addHighlight = useBrowserStore((state) => state.addHighlight);
+  const highlights = useBrowserStore((state) => state.highlights);
+
   const [selection, setSelection] = useState<Selection | null>(null);
   const session = useRef<Selection | null>(null);
   const cleanup = useRef<(() => void) | null>(null);
@@ -90,7 +75,7 @@ export function SelectRegion({
   // Discard obsolete state during render so it cannot return if props change back.
   if (selection && !visibleSelection) setSelection(null);
   else if (selection?.requestedModeFrom && selection.mode === mode) {
-    // A ruler drag requests Zoom while its parent still renders Pan.
+    // A ruler drag requests Zoom before the store mode update has rendered.
     setSelection({ ...selection, requestedModeFrom: undefined });
   }
 
@@ -128,7 +113,7 @@ export function SelectRegion({
     event.stopPropagation();
     cancel();
     const start = point.x;
-    if (selectionMode !== mode) onModeChange?.(selectionMode);
+    if (selectionMode !== mode) setSelectionMode(selectionMode);
     session.current = {
       start,
       end: start,
@@ -142,7 +127,7 @@ export function SelectRegion({
       const selectedRegion = getSelectedRegion(current, region, marginWidth, trackWidth);
       if (current.mode === "zoom") setRegion(selectedRegion);
       else
-        onHighlight?.({
+        addHighlight({
           ...highlightStyle,
           id: createHighlightId(selectedRegion, highlights),
           region: selectedRegion,
@@ -153,7 +138,7 @@ export function SelectRegion({
   return (
     <g
       onPointerDownCapture={(event) => {
-        if (mode !== "pan" || !onModeChange || !(event.target instanceof Element)) return;
+        if (mode !== "pan" || !(event.target instanceof Element)) return;
         const target = event.target.closest('[data-genomebrowser-selection-mode="zoom"]');
         if (target && event.currentTarget.contains(target)) startSelection(event, "zoom");
       }}

@@ -1,11 +1,11 @@
-import { trackOverlayContext } from "../track-overlay/context";
+import { trackOverlayContext } from "../../track-overlay/context";
 import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { AnyTrackInstance } from "../../modules/types";
-import { useContextMenuStore } from "../state/browserContextState";
+import type { AnyTrackInstance } from "../../../modules/types";
+import { useContextMenuStore } from "../../state/browserContextState";
 import { PanTrack } from "./PanTrack";
 import { TrackControls } from "./TrackControls";
-import { getTrackTitleMargin, getTrackWrapperHeight } from "./trackLayout";
-import { useTrackStack } from "./trackStackContext";
+import { getTrackTitleMargin, getTrackWrapperHeight } from "../layout/trackLayout";
+import { useTrackStack } from "../trackStackContext";
 
 export function TrackFrame({
   track,

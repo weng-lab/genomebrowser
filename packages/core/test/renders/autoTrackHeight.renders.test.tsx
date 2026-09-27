@@ -6,7 +6,7 @@ import { z } from "zod";
 import { GenomeBrowser } from "../../src/browser/GenomeBrowser";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
 import { createTrackStore } from "../../src/browser/state/trackStore";
-import { useAutoTrackHeight } from "../../src/browser/track-row/useAutoTrackHeight";
+import { useAutoTrackHeight } from "../../src/browser/track-row/layout/useAutoTrackHeight";
 import { defineTrackModule } from "../../src/modules/defineTrackModule";
 import type { TrackRendererProps } from "../../src/modules/types";
 

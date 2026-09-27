@@ -10,11 +10,9 @@ import type { ModuleRegistry } from "../../modules/registry";
 import type { AnyTrackInstance, TrackFetch } from "../../modules/types";
 import type { BrowserStoreInstance } from "../state/browserStore";
 import type { TrackStoreInstance } from "../state/trackStore";
-import { getRenderWindow } from "../viewport/renderWindow";
+import { getRenderWindow, PAN_OVERSCAN_MULTIPLIER } from "../viewport/renderWindow";
 import { createTrackResourceStore, type TrackResourceStoreInstance } from "./trackResourceStore";
 
-/** How far beyond the visible region each request loads, as a multiple of the visible span. */
-export const PAN_OVERSCAN_MULTIPLIER = 3;
 const WIDTH_DEBOUNCE_MS = 200;
 
 type TrackResultBase = {

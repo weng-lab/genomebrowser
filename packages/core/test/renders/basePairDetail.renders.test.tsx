@@ -56,17 +56,17 @@ it("budgets central setting and width changes", async () => {
   );
   expect(
     changed.pick(
-      "GenomeBrowserRuntime",
-      "BrowserView",
+      "BrowserProvider",
+      "BrowserCanvas",
       "TrackContent",
       "DetailConsumer",
       "UnrelatedConsumer",
     ),
   ).toMatchInlineSnapshot(`
     {
-      "BrowserView": 0,
+      "BrowserCanvas": 0,
+      "BrowserProvider": 0,
       "DetailConsumer": 4,
-      "GenomeBrowserRuntime": 0,
       "TrackContent": 3,
       "UnrelatedConsumer": 1,
     }
@@ -77,17 +77,17 @@ it("budgets central setting and width changes", async () => {
   );
   expect(
     unchanged.pick(
-      "GenomeBrowserRuntime",
-      "BrowserView",
+      "BrowserProvider",
+      "BrowserCanvas",
       "TrackContent",
       "DetailConsumer",
       "UnrelatedConsumer",
     ),
   ).toMatchInlineSnapshot(`
     {
-      "BrowserView": 0,
+      "BrowserCanvas": 0,
+      "BrowserProvider": 0,
       "DetailConsumer": 0,
-      "GenomeBrowserRuntime": 0,
       "TrackContent": 0,
       "UnrelatedConsumer": 0,
     }
@@ -98,17 +98,17 @@ it("budgets central setting and width changes", async () => {
   const resized = await probe.measure(() => browserStore.getState().setTrackWidth(599));
   expect(
     resized.pick(
-      "GenomeBrowserRuntime",
-      "BrowserView",
+      "BrowserProvider",
+      "BrowserCanvas",
       "TrackContent",
       "DetailConsumer",
       "UnrelatedConsumer",
     ),
   ).toMatchInlineSnapshot(`
     {
-      "BrowserView": 1,
+      "BrowserCanvas": 1,
+      "BrowserProvider": 1,
       "DetailConsumer": 4,
-      "GenomeBrowserRuntime": 1,
       "TrackContent": 3,
       "UnrelatedConsumer": 1,
     }
