@@ -111,8 +111,13 @@ function createPan(latest: { current: PanOptions }) {
     } finally {
       suppressNextClick = commit;
       try {
-        if (commit) commitOffset(active.appliedOffset);
-        else latest.current.content.setContentOffset(0);
+        if (commit) {
+          commitOffset(active.appliedOffset);
+        } else {
+          // The starting offset only preserves continuity during movement. Zero
+          // restores the committed region when temporary movement is discarded.
+          latest.current.content.setContentOffset(0);
+        }
       } finally {
         for (const listener of endListeners) listener();
       }

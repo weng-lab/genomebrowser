@@ -252,10 +252,11 @@ describe("browser panning", () => {
     expect(pan?.isDragging()).toBe(false);
   });
 
-  it.each(["pointercancel", "lostcapture", "blur"])(
-    "cancels a preview once on %s and accepts a fresh drag",
+  it.each(["pointercancel", "lostcapture", "blur", "short release"])(
+    "clears a nonzero starting offset on %s and accepts a fresh drag",
     async (interruption) => {
       const interaction = createPanInteraction();
+      interaction.setContentOffset(5);
       const setRegion = vi.fn((region) => ({ ok: true, region, clamped: false }) as const);
       await renderPan({
         ...interaction,
@@ -266,11 +267,12 @@ describe("browser panning", () => {
       const event = interaction.pointerEvent(20);
       expect(pan?.onPointerDown(event)).toBe(true);
       pan?.onPointerMove(interaction.pointerEvent(40));
-      expect(interaction.getContentOffset()).toBe(20);
+      expect(interaction.getContentOffset()).toBe(25);
       await act(async () => {
         if (interruption === "pointercancel") pan?.onPointerCancel(event);
         else if (interruption === "lostcapture") pan?.onLostPointerCapture(event);
-        else window.dispatchEvent(new Event("blur"));
+        else if (interruption === "blur") window.dispatchEvent(new Event("blur"));
+        else pan?.onPointerUp(interaction.pointerEvent(22));
       });
       expect(interaction.getContentOffset()).toBe(0);
       expect(pan?.isDragging()).toBe(false);
