@@ -36,17 +36,19 @@ Report failures, checks that could not run, and any remaining uncertainty about 
 
 The PR review workflow uses OpenCode and GPT-6 Luna through Vercel AI Gateway to review repository conformity, code quality, and PR scope. Add a Vercel AI Gateway API key as the `AI_GATEWAY_API_KEY` repository Actions secret to enable it. The agent must already exist on the PR's base branch, so the workflow can run after its initial setup is merged.
 
-Reviews run when a PR opens, receives commits, reopens, or becomes ready for review. Drafts, fork PRs, and Dependabot events are skipped. The agent uses Git and `gh` to inspect the contribution and manage its review comment, starting with instructions from the base revision.
+Reviews run when a PR opens, receives commits, reopens, or becomes ready for review. Drafts, fork PRs, and Dependabot events are skipped. The agent uses Git and `gh` to inspect the contribution and manage its review comments, starting with instructions from the base revision.
 
 The code reviewer never runs `pnpm verify` or other verification commands, installs dependencies, or triggers CI. It reviews source, tests, documentation, and existing CI evidence for code quality and repository conformity. Instructions to run checks in contribution guides and skills apply to implementation work, not the reviewer. Pending checks do not prevent the quality review.
 
-Findings appear in one bot comment that is updated on reruns and removed when a completed review has no findings. Blocking labels are recommendations for the team, not an automatic merge gate. Incomplete reviews are reported in the job output. Keep this job advisory rather than adding it to required branch checks.
+Findings appear as inline review comments when a specific code snippet helps explain the concern. Findings that do not need a snippet appear in one normal bot comment, updated on reruns and removed when no findings belong there. Every finding is labeled Blocking or Non-blocking. Reruns avoid duplicate findings and preserve inline discussions, including resolved threads. The agent does not automatically resolve or delete those threads.
+
+Blocking labels are recommendations for the team, not an automatic merge gate. Inline reviews use GitHub's comment-only review state. Incomplete reviews and publishing failures are reported in the job output. Keep this job advisory rather than adding it to required branch checks.
 
 To preview a review from a worktree containing the agent, authenticate `gh`, provide Vercel AI Gateway credentials to OpenCode, and run the following command with the PR number to review. Preview also works for closed or merged PRs and does not change GitHub comments.
 
 ```sh
 opencode run --standalone --auto --agent review --model vercel/openai/gpt-6-luna \
-  "Preview PR #123 in weng-lab/genomebrowser. Reply with the proposed comment; do not post or change anything on GitHub."
+  "Preview PR #123 in weng-lab/genomebrowser. Reply with the proposed comments and their locations; do not post or change anything on GitHub."
 ```
 
 ## Contribution clarity review
