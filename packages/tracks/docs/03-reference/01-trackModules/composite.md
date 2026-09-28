@@ -39,6 +39,8 @@ Stack height is the sum of child heights plus gaps. Overlay uses the configured 
 
 Use core's `groupTracks`, `extractTracks`, `ungroupTrack`, and `reorderChildren` actions to change structure. Child IDs and data lifetimes survive grouping and extraction when fetch inputs stay unchanged. Removal deletes the addressed track and releases its resources; removing a composite deletes all its children.
 
+Overlay tooltips show the child tracks' existing tooltip content in a vertical stack, with the topmost painted child first. Signal tracks resolve the value at the pointer; feature tracks contribute when a feature is under that same point. Click and hover callbacks still follow normal SVG pointer events. Stack layout keeps individual tooltips.
+
 ## Settings
 
 The MUI form uses the package's shared title, color, and numeric controls, including draft validation. It exposes layout, configured overlay height, gap, opacity, a child selector, and the selected child's registered settings. Child edits target the child's ID.

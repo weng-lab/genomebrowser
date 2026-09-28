@@ -52,6 +52,7 @@ export function FullBulkBed({
                   height={contentHeight}
                   fill={rect.color ?? color}
                   style={{ cursor: interaction?.onClick ? "pointer" : "default" }}
+                  ref={tooltip.target(() => row)}
                   onClick={() => interaction?.onClick?.(row)}
                   onMouseEnter={(event) => {
                     interaction?.onHover?.(row);

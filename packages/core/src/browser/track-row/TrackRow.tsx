@@ -1,4 +1,5 @@
 import { isCompositeTrack } from "../../modules/composite";
+import { CompositeTooltip } from "../tooltip/CompositeTooltip";
 import { TrackPlot } from "./content/TrackPlot";
 import { useRegistry } from "../state/browserContextState";
 
@@ -45,26 +46,29 @@ export function TrackRow({
           disableHover={disableHover}
         >
           {composite ? (
-            track.tracks.map((child, index) => {
-              const y =
-                track.base.display === "stack"
-                  ? track.tracks
-                      .slice(0, index)
-                      .reduce((sum, previous) => sum + previous.base.height + track.config.gap, 0)
-                  : 0;
-              const height = track.base.display === "stack" ? child.base.height : track.base.height;
-              return (
-                <TrackPlot
-                  key={child.base.id}
-                  trackId={child.base.id}
-                  visibleRegion={visibleRegion}
-                  y={y}
-                  height={height}
-                  opacity={track.base.display === "overlay" ? track.config.opacity : 1}
-                  isDragClone={swapProps.isDragClone}
-                />
-              );
-            })
+            <CompositeTooltip enabled={track.base.display === "overlay"} tracks={track.tracks}>
+              {track.tracks.map((child, index) => {
+                const y =
+                  track.base.display === "stack"
+                    ? track.tracks
+                        .slice(0, index)
+                        .reduce((sum, previous) => sum + previous.base.height + track.config.gap, 0)
+                    : 0;
+                const height =
+                  track.base.display === "stack" ? child.base.height : track.base.height;
+                return (
+                  <TrackPlot
+                    key={child.base.id}
+                    trackId={child.base.id}
+                    visibleRegion={visibleRegion}
+                    y={y}
+                    height={height}
+                    opacity={track.base.display === "overlay" ? track.config.opacity : 1}
+                    isDragClone={swapProps.isDragClone}
+                  />
+                );
+              })}
+            </CompositeTooltip>
           ) : (
             <TrackPlot
               trackId={track.base.id}

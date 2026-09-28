@@ -76,19 +76,22 @@ function CaveHoverOverlay({
   const interactionItemRef = useRef<CaveTooltipItem | undefined>(undefined);
   const interaction = useInteraction<CaveTooltipItem>();
   const tooltip = useTooltip<CaveTooltipItem, CaveConfig>();
+  const itemAt = (clientX: number, element: SVGRectElement) => {
+    const mouseX = clientXToTrackX(clientX, element.getBoundingClientRect(), width);
+    const top = getPointAtMouseX(topPoints, mouseX, width);
+    const bottom = getPointAtMouseX(bottomPoints, mouseX, width);
+    return top || bottom ? { x: Math.round(mouseX), top, bottom } : undefined;
+  };
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
-    const box = event.currentTarget.getBoundingClientRect();
-    const mouseX = clientXToTrackX(event.clientX, box, width);
-    const topPixel = getPointAtMouseX(topPoints, mouseX, width);
-    const bottomPixel = getPointAtMouseX(bottomPoints, mouseX, width);
-    if (!topPixel && !bottomPixel) {
+    const tooltipItem = itemAt(event.clientX, event.currentTarget);
+    if (!tooltipItem) {
       if (interactionItemRef.current) interaction?.onLeave?.(interactionItemRef.current);
       interactionItemRef.current = undefined;
       if (hoveredX !== undefined) setHoveredX(undefined);
       tooltip.hide();
       return;
     }
-    const x = Math.round(mouseX);
+    const { x, top: topPixel, bottom: bottomPixel } = tooltipItem;
     const top = hasBigWigData(topPixel) ? topPixel : undefined;
     const bottom = hasBigWigData(bottomPixel) ? bottomPixel : undefined;
     const item = top || bottom ? { x, top, bottom } : undefined;
@@ -96,7 +99,7 @@ function CaveHoverOverlay({
     interactionItemRef.current = item;
     if (hoveredX !== x) setHoveredX(x);
     if (item) interaction?.onHover?.(item);
-    tooltip.show({ x, top: topPixel, bottom: bottomPixel }, event);
+    tooltip.show(tooltipItem, event);
   };
   const handleMouseOut = () => {
     if (interactionItemRef.current) interaction?.onLeave?.(interactionItemRef.current);
@@ -122,6 +125,9 @@ function CaveHoverOverlay({
         height={height}
         fill="transparent"
         pointerEvents="all"
+        ref={tooltip.target<SVGRectElement>((position, element) =>
+          itemAt(position.clientX, element),
+        )}
         onMouseMove={handleMouseMove}
         onMouseOut={handleMouseOut}
       />

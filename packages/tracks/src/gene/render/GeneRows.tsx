@@ -84,6 +84,8 @@ export function GeneRows({
   const clickable = Boolean(interaction?.onClick);
   const interactionProps = useCallback(
     (target: GeneInteractionTarget) => ({
+      ref: (element: SVGRectElement | null) =>
+        handlersRef.current.tooltip.target(() => target)(element),
       style: { cursor: clickable ? "pointer" : "default" },
       onClick: () => handlersRef.current.interaction?.onClick?.(target),
       onMouseEnter: (event: React.MouseEvent<SVGElement>) => {
@@ -136,6 +138,7 @@ export function GeneRows({
               height={rowHeight}
               fill="transparent"
               pointerEvents="all"
+              ref={featureInteractionProps.ref}
               style={featureInteractionProps.style}
               onClick={featureInteractionProps.onClick}
               onMouseEnter={featureInteractionProps.onMouseEnter}

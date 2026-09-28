@@ -104,6 +104,7 @@ function SequenceDynseq({ config, data, region, visibleRegion, width, height }: 
             width={cellWidth}
             height={height}
             fill="transparent"
+            ref={tooltip.target(() => point)}
             onMouseEnter={(event) => {
               tooltip.show(point, event);
               interaction?.onHover?.(point);

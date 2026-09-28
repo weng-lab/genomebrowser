@@ -53,7 +53,7 @@ Stack plot height equals the sum of child heights plus gaps. It does not overwri
 
 Each child receives its own data and render region. Pending children and failures do not hide completed siblings. Grouping, extraction, child reordering, and composite layout changes preserve requests, results, and resources when child fetch inputs are unchanged. Removing a child releases its resources normally. Browser loading gates still apply.
 
-Children handle pointer events in normal SVG paint order. Each child has its own stationary overlays, callbacks, and tooltip behavior. There is no active-child interaction mode, shared numerical scale, or combined tooltip. Render errors are isolated per child and retried when that child's track instance or displayed data state changes.
+Children handle pointer events in normal SVG paint order. Each child has its own stationary overlays and callbacks. Overlay tooltips stack each child's content at the same pointer position, with the last-painted child first. Custom renderers participate by registering hit targets through [useTooltip](../04-rendererIntegration/useTooltip.md#overlay-composite-tooltips). There is no active-child interaction mode or shared numerical scale. Render errors are isolated per child and retried when that child's track instance or displayed data state changes.
 
 ## Settings
 

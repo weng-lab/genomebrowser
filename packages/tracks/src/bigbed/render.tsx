@@ -26,6 +26,7 @@ export function DenseBigBed<
           height={rowHeight * 0.6}
           fill={rect.color ?? color}
           style={{ cursor: interaction?.onClick ? "pointer" : "default" }}
+          ref={tooltip.target(() => rect.row)}
           onClick={() => interaction?.onClick?.(rect.row)}
           onMouseEnter={(event) => {
             interaction?.onHover?.(rect.row);
@@ -65,6 +66,7 @@ export function SquishBigBed<
               height={rowHeight * 0.6}
               fill={rect.color ?? color}
               style={{ cursor: interaction?.onClick ? "pointer" : "default" }}
+              ref={tooltip.target(() => rect.row)}
               onClick={() => interaction?.onClick?.(rect.row)}
               onMouseEnter={(event) => {
                 interaction?.onHover?.(rect.row);

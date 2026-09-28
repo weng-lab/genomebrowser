@@ -234,16 +234,15 @@ function CoverageHover({
   const [hovered, setHovered] = useState<BamCoverageBin>();
   const tooltip = useTooltip<BamTooltipItem, BamConfig>();
   const x = createGenomicXScale(region, width);
-  const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
-    const trackX = clientXToTrackX(
-      event.clientX,
-      event.currentTarget.getBoundingClientRect(),
-      width,
-    );
-    const bin = findCoverageBin(
+  const binAt = (clientX: number, element: SVGRectElement) => {
+    const trackX = clientXToTrackX(clientX, element.getBoundingClientRect(), width);
+    return findCoverageBin(
       bins,
       Math.floor(region.start + (trackX / width) * (region.end - region.start)),
     );
+  };
+  const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
+    const bin = binAt(event.clientX, event.currentTarget);
     if (bin === hovered) return;
     setHovered(bin);
     if (bin) tooltip.show(bin, event);
@@ -266,6 +265,9 @@ function CoverageHover({
         height={height}
         fill="transparent"
         pointerEvents="all"
+        ref={tooltip.target<SVGRectElement>((position, element) =>
+          binAt(position.clientX, element),
+        )}
         onMouseMove={handleMouseMove}
         onMouseOut={() => {
           setHovered(undefined);
@@ -328,6 +330,7 @@ function JunctionArcShape({
   const dark = darkenBamColor(color);
   return (
     <g
+      ref={tooltip.target(() => junction)}
       data-junction={`${junction.start}-${junction.end}`}
       data-support={junction.support}
       onMouseEnter={(event) => {
@@ -408,6 +411,7 @@ function AlignmentSection({
   };
   return (
     <g
+      ref={tooltip.target((_position, _element, hit) => recordAt(hit))}
       data-bam-section="alignments"
       style={{ cursor: interaction?.onClick ? "pointer" : "default" }}
       onClick={(event) => {

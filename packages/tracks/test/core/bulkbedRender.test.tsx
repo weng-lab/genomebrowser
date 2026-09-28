@@ -13,7 +13,7 @@ const layout = vi.hoisted(() => ({
 vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
   useInteraction: () => null,
-  useTooltip: () => ({ hide: vi.fn(), show: vi.fn() }),
+  useTooltip: () => ({ target: () => () => undefined, hide: vi.fn(), show: vi.fn() }),
 }));
 
 vi.mock("../../src/shared/layout", async (importOriginal) => ({

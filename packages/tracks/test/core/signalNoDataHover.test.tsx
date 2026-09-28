@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
-  useTooltip: () => ({ hide: mocks.hide, show: mocks.show }),
+  useTooltip: () => ({ target: () => () => undefined, hide: mocks.hide, show: mocks.show }),
   useInteraction: () => ({ onHover: mocks.onHover, onLeave: mocks.onLeave }),
 }));
 

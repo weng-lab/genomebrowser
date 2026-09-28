@@ -3,6 +3,7 @@ import type { GeneInteractionTarget } from "../interactions";
 import type { PreparedGeneGlyph } from "./glyph/preparation";
 
 export type GeneInteractionProps = (target: GeneInteractionTarget) => {
+  ref: React.RefCallback<SVGRectElement>;
   style: { cursor: string };
   onClick: () => void;
   onMouseEnter: (event: React.MouseEvent<SVGElement>) => void;
@@ -43,6 +44,7 @@ export const GenePartHitTargets = memo(function GenePartHitTargets({
         height={rowHeight}
         fill="transparent"
         pointerEvents="all"
+        ref={handlers.ref}
         style={handlers.style}
         onClick={handlers.onClick}
         onMouseEnter={handlers.onMouseEnter}

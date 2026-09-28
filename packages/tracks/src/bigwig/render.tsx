@@ -117,9 +117,14 @@ function BigWigHoverOverlay({
   const interactionPointRef = useRef<SignalPoint | undefined>(undefined);
   const interaction = useInteraction<SignalPoint>();
   const tooltip = useTooltip<SignalPoint, BigWigConfig>();
+  const pointAt = (clientX: number, element: SVGRectElement) =>
+    getPointAtMouseX(
+      points,
+      clientXToTrackX(clientX, element.getBoundingClientRect(), width),
+      width,
+    );
   const handleMouseMove = (event: MouseEvent<SVGRectElement>) => {
-    const box = event.currentTarget.getBoundingClientRect();
-    const point = getPointAtMouseX(points, clientXToTrackX(event.clientX, box, width), width);
+    const point = pointAt(event.clientX, event.currentTarget);
     if (!point) {
       if (!hoveredPointRef.current) return;
       if (interactionPointRef.current) interaction?.onLeave?.(interactionPointRef.current);
@@ -163,6 +168,9 @@ function BigWigHoverOverlay({
         height={height}
         fill="transparent"
         pointerEvents="all"
+        ref={tooltip.target<SVGRectElement>((position, element) =>
+          pointAt(position.clientX, element),
+        )}
         onMouseMove={handleMouseMove}
         onMouseOut={handleMouseOut}
       />

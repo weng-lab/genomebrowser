@@ -25,7 +25,11 @@ vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
     onHover: runtime.onHover,
     onLeave: runtime.onLeave,
   }),
-  useTooltip: () => ({ hide: runtime.tooltipHide, show: runtime.tooltipShow }),
+  useTooltip: () => ({
+    target: () => () => undefined,
+    hide: runtime.tooltipHide,
+    show: runtime.tooltipShow,
+  }),
 }));
 
 vi.mock("../../src/shared/layout", async (importOriginal) => ({

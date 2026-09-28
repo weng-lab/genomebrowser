@@ -22,6 +22,15 @@ export function TooltipOverlay({ width, height }: { width: number; height: numbe
   // derived from this DOM measurement rather than synchronized through another effect.
   useLayoutEffect(() => {
     if (!isVisible || !content || !ref.current) return;
+    if (Array.isArray(content)) {
+      let top = 0;
+      for (const child of ref.current.children) {
+        const element = child as SVGGElement;
+        const bounds = element.getBBox();
+        element.setAttribute("transform", `translate(${-bounds.x},${top - bounds.y})`);
+        top += bounds.height + 4;
+      }
+    }
     const next = measureTooltip(ref.current, svg);
     setBox((previous) =>
       (Object.keys(next) as (keyof typeof next)[]).every((key) => previous[key] === next[key])
@@ -65,13 +74,26 @@ export function TooltipOverlay({ width, height }: { width: number; height: numbe
       }}
     >
       <g ref={ref} style={{ pointerEvents: "none" }}>
-        <RenderErrorBoundary
-          key={owner}
-          fallback={<TooltipErrorFallback />}
-          onError={reportTooltipRenderError}
-        >
-          {content}
-        </RenderErrorBoundary>
+        {Array.isArray(content) ? (
+          content.map((entry) => (
+            <g key={entry.trackId} data-tooltip-track={entry.trackId}>
+              <RenderErrorBoundary
+                fallback={<TooltipErrorFallback />}
+                onError={reportTooltipRenderError}
+              >
+                {entry.content}
+              </RenderErrorBoundary>
+            </g>
+          ))
+        ) : (
+          <RenderErrorBoundary
+            key={owner}
+            fallback={<TooltipErrorFallback />}
+            onError={reportTooltipRenderError}
+          >
+            {content}
+          </RenderErrorBoundary>
+        )}
       </g>
     </svg>,
     svg.ownerDocument.body,

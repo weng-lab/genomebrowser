@@ -8,7 +8,7 @@ vi.mock("@weng-lab/genomebrowser", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@weng-lab/genomebrowser")>()),
   TrackLabel: ({ children, y }: { children: string; y: number }) => <text y={y}>{children}</text>,
   useInteraction: () => null,
-  useTooltip: () => ({ hide: vi.fn(), show: vi.fn() }),
+  useTooltip: () => ({ target: () => () => undefined, hide: vi.fn(), show: vi.fn() }),
 }));
 
 const region = { chromosome: "chr1", start: 0, end: 300 };
