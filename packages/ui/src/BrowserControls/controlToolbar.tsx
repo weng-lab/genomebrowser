@@ -13,6 +13,7 @@ export function ControlToolbar({
   search,
   onManageHighlights,
   onSelectTracks,
+  onSortTracks,
   navigationActions,
   managementActions,
 }: ControlToolbarProps) {
@@ -33,6 +34,7 @@ export function ControlToolbar({
       <ManagementControls
         onManageHighlights={onManageHighlights}
         onSelectTracks={onSelectTracks}
+        onSortTracks={onSortTracks}
         managementActions={managementActions}
       />
     </Box>

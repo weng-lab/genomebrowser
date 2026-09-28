@@ -63,6 +63,7 @@ Start with [Add browser controls](docs/01-gettingStarted/01-addBrowserControls.m
 - [Track selection](docs/02-guides/trackSelection.md): browse collections, set defaults, and save selections.
 - [Track interactions](docs/02-guides/trackInteractions.md): attach application callbacks to collection tracks.
 - [Chromosome overview](docs/02-guides/chromosomeOverview.md): connect cytobands and highlights to a browser.
+- [TrackSortDialog](docs/03-reference/06-trackSorting/TrackSortDialog.md): reorder tracks by prioritized application metadata.
 - [Troubleshooting](docs/04-troubleshooting.md): diagnose setup and integration problems.
 - [API reference](docs/03-reference/README.md): component props, helpers, and types.
 

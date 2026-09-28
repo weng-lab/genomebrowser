@@ -10,6 +10,7 @@ The application owns runtime stores, collection data, and dialog visibility. Sto
 - [Highlights](02-highlights/README.md): Manage browser highlights.
 - [Track selection](03-trackSelection/README.md): Browse collections, customize columns, and attach application callbacks.
 - [Chromosome overview](04-chromosomeOverview/README.md): Display cytobands, the viewport, and interactive highlights.
+- [Track sorting](06-trackSorting/README.md): Reorder tracks by prioritized application metadata.
 
 - [Shared UI](05-sharedUI/README.md): Labeled outlines for custom content.
 
@@ -30,6 +31,8 @@ Every current public export has one canonical destination below.
 | Browser controls    | `SelectionControls`, `SelectionControlsProps`             | [Selection controls](01-browserControls/SelectionControls.md#selectioncontrolsprops)                                  |
 | Highlights          | `HighlightDialog`, `HighlightDialogProps`                 | [Highlight dialog](02-highlights/HighlightDialog.md#highlightdialogprops)                                             |
 | Chromosome overview | `Cytobands`, `CytobandsProps`                             | [Cytobands](04-chromosomeOverview/Cytobands.md#cytobandsprops)                                                        |
+| Track sorting       | `TrackSortDialog`, `TrackSortDialogProps`                 | [TrackSortDialog](06-trackSorting/TrackSortDialog.md#tracksortdialogprops)                                            |
+| Track sorting       | `TrackSortOption`                                         | [Sort options](06-trackSorting/TrackSortDialog.md#tracksortoption)                                                    |
 | Chromosome overview | `CytobandColors`                                          | [Stain colors](04-chromosomeOverview/Cytobands.md#cytobandcolors)                                                     |
 | Track selection     | `TrackSelect`, `TrackSelectProps`                         | [TrackSelect](03-trackSelection/TrackSelect.md#trackselectprops)                                                      |
 | Track selection     | `TrackSelectColumnOverride`, `TrackSelectColumnOverrides` | [Column overrides](03-trackSelection/columnCustomization.md#trackselectcolumnoverride-and-trackselectcolumnoverrides) |

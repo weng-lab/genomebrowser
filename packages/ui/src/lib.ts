@@ -27,6 +27,11 @@ export type { LabeledGroupProps } from "./LabeledGroup/labeledGroup";
 export { HighlightDialog } from "./HighlightDialog/HighlightDialog";
 export type { HighlightDialogProps } from "./HighlightDialog/HighlightDialog";
 
+// Track Sort
+export { TrackSortDialog } from "./TrackSort/TrackSortDialog";
+export type { TrackSortDialogProps } from "./TrackSort/TrackSortDialog";
+export type { TrackSortOption } from "./TrackSort/trackSortOrder";
+
 // Cytoband
 export { Cytobands } from "./cytobands/cytobands";
 export type { CytobandColors, CytobandsProps } from "./cytobands/cytobands";

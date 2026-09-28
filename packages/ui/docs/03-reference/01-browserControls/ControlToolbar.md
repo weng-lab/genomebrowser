@@ -32,7 +32,7 @@ Supply a GraphQL endpoint compatible with Weng Lab `GenomeSearch`. The package d
 
 ## Examples
 
-Add `onManageHighlights={() => setHighlightsOpen(true)}` and `onSelectTracks={() => setTracksOpen(true)}` to connect your application's dialogs. Each action appears only when its callback is supplied; the Manage group is absent when neither callbacks nor custom actions are supplied. Dialog state and rendering remain with the host application.
+Add `onManageHighlights={() => setHighlightsOpen(true)}`, `onSelectTracks={() => setTracksOpen(true)}`, and `onSortTracks={() => setSortOpen(true)}` to connect your application's dialogs, such as [TrackSortDialog](../06-trackSorting/TrackSortDialog.md) for Sort. Each action appears only when its callback is supplied; the Manage group is absent when neither callbacks nor custom actions are supplied. Dialog state and rendering remain with the host application.
 
 ### Add application actions
 
@@ -92,6 +92,7 @@ Use [LabeledGroup](../05-sharedUI/LabeledGroup.md) to give custom controls the s
 | `search.queries`     | `ResultType[]` from `@weng-lab/ui-components` | Required | Enabled GenomeSearch query categories, such as `Gene`, `SNP`, `cCRE`, and `Coordinate`.                         |
 | `onManageHighlights` | `() => void`                                  | Omitted  | Runs when Highlights is clicked.                                                                                |
 | `onSelectTracks`     | `() => void`                                  | Omitted  | Runs when Tracks is clicked.                                                                                    |
+| `onSortTracks`       | `() => void`                                  | Omitted  | Runs when Sort is clicked.                                                                                      |
 | `navigationActions`  | `ReactNode`                                   | Omitted  | Appends application controls after the pan and zoom controls.                                                   |
 | `managementActions`  | `ReactNode`                                   | Omitted  | Appends application controls after the built-in management actions and can display the Manage group on its own. |
 
@@ -134,13 +135,14 @@ Renders the Manage fieldset with application callbacks. It renders nothing when 
 | -------------------- | ------------ | ------- | --------------------------------------------------------------------------------------------------------- |
 | `onManageHighlights` | `() => void` | Omitted | Shows Highlights and runs when it is clicked.                                                             |
 | `onSelectTracks`     | `() => void` | Omitted | Shows Tracks and runs when it is clicked.                                                                 |
+| `onSortTracks`       | `() => void` | Omitted | Shows Sort and runs when it is clicked.                                                                   |
 | `managementActions`  | `ReactNode`  | Omitted | Appends application controls after the built-in actions. The group can contain only these custom actions. |
 
 Use `<ManagementControls onSelectTracks={() => setTracksOpen(true)} />` to expose only track management. The host owns dialog state and rendering.
 
 ## Accessibility
 
-The controls form a named group with fieldset legends. Icon actions have accessible names. Navigate tooltips describe pan and zoom actions and their magnitude selectors; Interaction tooltips explain each drag mode. Manage tooltips identify the highlights and tracks actions. Magnitude tooltips hide while their dropdown is open so the options remain visible. The region display has a tooltip inviting you to search for a new region. Clicking the region opens an autofocus search input; Escape or Cancel closes it and restores focus to the region button. Rejected regions keep search open and display the store validation error without clearing the draft. Escape is intercepted only while search is open. A successful search also restores focus; clicking outside closes search without moving focus back. Pan and zoom each place their magnitude selector between two borderless action buttons. Vertical dividers separate pan, zoom, and any application navigation actions, and separate management actions. The region field grows up to 440px and contracts before groups wrap on narrow screens; long coordinates truncate in the display and remain available by opening search.
+The controls form a named group with fieldset legends. Icon actions have accessible names. Navigate tooltips describe pan and zoom actions and their magnitude selectors; Interaction tooltips explain each drag mode. Manage tooltips identify the highlights, tracks, and sort actions. Magnitude tooltips hide while their dropdown is open so the options remain visible. The region display has a tooltip inviting you to search for a new region. Clicking the region opens an autofocus search input; Escape or Cancel closes it and restores focus to the region button. Rejected regions keep search open and display the store validation error without clearing the draft. Escape is intercepted only while search is open. A successful search also restores focus; clicking outside closes search without moving focus back. Pan and zoom each place their magnitude selector between two borderless action buttons. Vertical dividers separate pan, zoom, and any application navigation actions, and separate management actions. The region field grows up to 440px and contracts before groups wrap on narrow screens; long coordinates truncate in the display and remain available by opening search.
 
 ## Notes
 
