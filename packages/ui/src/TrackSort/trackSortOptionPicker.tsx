@@ -15,7 +15,8 @@ export function TrackSortOptionPicker({
 }) {
   // Clear the search after each pick so several options can be added in a row.
   const [inputValue, setInputValue] = useState("");
-  const available = options.filter(({ id }) => !includedIds.includes(id));
+  const included = new Set(includedIds);
+  const available = options.filter(({ id }) => !included.has(id));
 
   return (
     <Autocomplete

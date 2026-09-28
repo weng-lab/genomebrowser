@@ -10,20 +10,22 @@ export function TrackSortOptionChips({
   includedIds: readonly string[];
   onToggle: (id: string) => void;
 }) {
+  const included = new Set(includedIds);
+
   return (
     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1.5 }}>
       {options.map(({ id, label }) => {
-        const included = includedIds.includes(id);
+        const isIncluded = included.has(id);
 
         return (
           <Chip
             key={id}
             label={label}
-            aria-pressed={included}
+            aria-pressed={isIncluded}
             onClick={() => onToggle(id)}
-            variant={included ? "filled" : "outlined"}
-            color={included ? "primary" : "default"}
-            sx={{ textDecoration: included ? "none" : "line-through" }}
+            variant={isIncluded ? "filled" : "outlined"}
+            color={isIncluded ? "primary" : "default"}
+            sx={{ textDecoration: isIncluded ? "none" : "line-through" }}
           />
         );
       })}
