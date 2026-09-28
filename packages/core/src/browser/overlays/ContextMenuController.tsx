@@ -65,7 +65,8 @@ export function ContextMenuController() {
 
   let displayOptions: string[] = [];
   try {
-    displayOptions = Object.keys(registry.get(track.type).render);
+    const module = registry.get(track.type);
+    displayOptions = module.kind === "track" ? Object.keys(module.render) : module.displays;
   } catch {
     displayOptions = [];
   }

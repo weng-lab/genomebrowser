@@ -143,9 +143,9 @@ describe("GenomeBrowser render budgets with three tracks", () => {
   it("mounts", async () => {
     const { probe } = await mountBrowser();
 
-    // Necessary: one render for the provider, and two for the canvas and stack, 3
-    // per row component, 6 PanTracks, and 2 Highlights, then 1 per row when its data
-    // arrives. Mounting still takes a second canvas commit for the SVG element.
+    // Necessary: provider and canvas setup plus each plot mounting and receiving data.
+    // Data completion updates TrackPlot rather than TrackRow; loading-gate changes
+    // still update frame controls. Mounting takes a second canvas commit for the SVG.
     expect(budget(probe.mounted)).toMatchInlineSnapshot(`
       {
         "BrowserCanvas": 2,
@@ -156,7 +156,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "TrackContent": 6,
         "TrackControls": 9,
         "TrackFrame": 9,
-        "TrackRow": 9,
+        "TrackRow": 6,
         "TrackStack": 2,
       }
     `);
@@ -301,7 +301,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
 
     // setRegion commits a region outside the loaded window. The two fast tracks
     // resolve at once and the third track's request stays pending. Necessary: every
-    // row renders once for the new region, then each fast row once for its data.
+    // row renders once for the new region, then each fast plot once for its data.
     const commit = await probe.measure(() =>
       browserStore.getState().setRegion({ chromosome: "chr1", start: 3_000, end: 4_000 }),
     );
@@ -311,17 +311,18 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "BrowserCanvas": 1,
         "BrowserProvider": 0,
         "Highlights": 2,
-        "PanTrack": 10,
+        "PanTrack": 8,
         "TestRenderer": 5,
         "TrackContent": 5,
-        "TrackControls": 5,
-        "TrackFrame": 5,
-        "TrackRow": 5,
+        "TrackControls": 3,
+        "TrackFrame": 3,
+        "TrackRow": 3,
         "TrackStack": 1,
       }
     `);
 
-    // Necessary: only the slow row renders for its data. Nothing else changes.
+    // Necessary: only the slow plot renders for its data. The loading gate also
+    // enables controls and pan targets on all rows; TrackRow itself does not render.
     const resolve = await probe.measure(() => requests[0]?.());
     expect(budget(resolve)).toMatchInlineSnapshot(`
       {
@@ -333,7 +334,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "TrackContent": 1,
         "TrackControls": 3,
         "TrackFrame": 3,
-        "TrackRow": 1,
+        "TrackRow": 0,
         "TrackStack": 0,
       }
     `);
@@ -360,7 +361,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "TrackContent": 6,
         "TrackControls": 9,
         "TrackFrame": 9,
-        "TrackRow": 6,
+        "TrackRow": 3,
         "TrackStack": 1,
       }
     `);
@@ -404,12 +405,12 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "BrowserCanvas": 1,
         "BrowserProvider": 0,
         "Highlights": 2,
-        "PanTrack": 18,
+        "PanTrack": 17,
         "TestRenderer": 1,
         "TrackContent": 2,
-        "TrackControls": 9,
-        "TrackFrame": 9,
-        "TrackRow": 5,
+        "TrackControls": 8,
+        "TrackFrame": 8,
+        "TrackRow": 4,
         "TrackStack": 1,
       }
     `);
@@ -528,7 +529,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "TrackContent": 6,
         "TrackControls": 6,
         "TrackFrame": 6,
-        "TrackRow": 6,
+        "TrackRow": 3,
         "TrackStack": 1,
       }
     `);
@@ -547,7 +548,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "BrowserCanvas": 1,
         "BrowserProvider": 0,
         "Highlights": 2,
-        "PanTrack": 4,
+        "PanTrack": 2,
         "TestRenderer": 0,
         "TrackContent": 0,
         "TrackControls": 2,
@@ -722,7 +723,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "BrowserCanvas": 1,
         "BrowserProvider": 0,
         "Highlights": 2,
-        "PanTrack": 6,
+        "PanTrack": 3,
         "TestRenderer": 0,
         "TrackContent": 0,
         "TrackControls": 3,
@@ -764,7 +765,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
       {
         "TestRenderer": 1,
         "TrackContent": 1,
-        "TrackFrame": 5,
+        "TrackFrame": 4,
         "TrackReorder": 3,
         "TrackRow": 3,
         "TrackStack": 1,
@@ -806,7 +807,7 @@ describe("GenomeBrowser render budgets with three tracks", () => {
         "BrowserCanvas": 1,
         "BrowserProvider": 0,
         "Highlights": 2,
-        "PanTrack": 6,
+        "PanTrack": 3,
         "TestRenderer": 0,
         "TrackContent": 0,
         "TrackControls": 3,

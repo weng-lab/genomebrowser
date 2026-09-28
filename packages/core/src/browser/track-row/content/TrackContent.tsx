@@ -39,6 +39,7 @@ export const TrackContent = memo(function TrackContent({
   }
 
   const module = registry.get(track.type);
+  if (module.kind !== "track") return null;
   const Renderer = module.render[track.base.display] as
     | ComponentType<TrackRendererProps<unknown, unknown>>
     | undefined;

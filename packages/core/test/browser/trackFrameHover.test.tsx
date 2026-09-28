@@ -139,9 +139,6 @@ async function renderFrame({
               track={track}
               y={0}
               previewOffsetY={0}
-              contentX={marginWidth}
-              contentWidth={trackWidth}
-              limitsDrag={false}
               swapping={false}
               isDragClone={false}
               disableHover={disableHover}

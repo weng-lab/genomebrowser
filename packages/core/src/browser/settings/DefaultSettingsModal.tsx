@@ -57,6 +57,7 @@ function SettingsModalHeader({
   const { useTrackStore } = useGenomeBrowser();
   const title = useTrackStore((state) => state.getTrack(trackId)?.base.title);
   const color = useTrackStore((state) => state.getTrack(trackId)?.base.color);
+  const isChild = useTrackStore((state) => !state.order.includes(trackId));
   const isPinned = useTrackStore((state) => state.pinnedTrackIds.includes(trackId));
   const setPinnedTrackIds = useTrackStore((state) => state.setPinnedTrackIds);
   const { isInteractionBlocked, runTrackMutation } = useTrackMutationGate();
@@ -93,7 +94,7 @@ function SettingsModalHeader({
           aria-label={pinLabel}
           aria-pressed={isPinned}
           title={pinLabel}
-          disabled={isInteractionBlocked}
+          disabled={isInteractionBlocked || isChild}
           style={{
             ...headerButtonStyle,
             cursor: isInteractionBlocked ? "default" : "pointer",

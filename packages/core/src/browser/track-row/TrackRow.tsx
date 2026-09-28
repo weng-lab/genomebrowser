@@ -1,18 +1,16 @@
-import { useSyncExternalStore, type ErrorInfo } from "react";
-import type { AnyTrackInstance } from "../../modules/types";
+import { isCompositeTrack } from "../../modules/composite";
+import { TrackPlot } from "./content/TrackPlot";
+import { useRegistry } from "../state/browserContextState";
+
 import type { GenomicRegion } from "../../genome/region";
-import { RenderErrorBoundary } from "../RenderErrorBoundary";
-import { useDataController, useGenomeBrowser } from "../state/browserContextState";
-import { getContentPlacement } from "../viewport/renderWindow";
-import { ErrorState } from "./content/ErrorState";
+
+import { useGenomeBrowser } from "../state/browserContextState";
+
 import { TrackReorder } from "./reorder/TrackReorder";
-import { TrackContent } from "./content/TrackContent";
+
 import { TrackFrame } from "./frame/TrackFrame";
 import type { ReorderPreview } from "./reorder/reorderMath";
 import type { TrackLayout } from "./layout/trackLayout";
-import { useTrackStack } from "./trackStackContext";
-
-const trackRenderErrorPrefix = "[genomebrowser] Track render error";
 
 export function TrackRow({
   layout,
@@ -30,21 +28,12 @@ export function TrackRow({
   onPreviewEnd: () => void;
 }) {
   const { useTrackStore } = useGenomeBrowser();
-  const dataController = useDataController();
-  const { marginWidth, trackWidth } = useTrackStack();
+  const registry = useRegistry();
   const track = useTrackStore((state) =>
     state.tracks[layout.index]?.base.id === layout.id ? state.tracks[layout.index] : undefined,
   );
-  // Each row subscribes to its own entry, so one track's result renders only its row.
-  const getDataState = () => dataController.getTrack(layout.id);
-  const dataState = useSyncExternalStore(dataController.subscribe, getDataState, getDataState);
-
   if (!track) return null;
-
-  // Each track is placed from the region its own data covers.
-  const region = dataState.status === "loading" ? visibleRegion : dataState.region;
-  const placement = getContentPlacement(region, visibleRegion, trackWidth, marginWidth);
-
+  const composite = isCompositeTrack(track, registry);
   return (
     <TrackReorder track={track} onPreviewChange={onPreviewChange} onPreviewEnd={onPreviewEnd}>
       {(swapProps) => (
@@ -53,41 +42,39 @@ export function TrackRow({
           track={track}
           y={layout.y}
           previewOffsetY={previewOffsetY}
-          contentX={placement.x}
-          contentWidth={placement.width}
-          limitsDrag={dataState.status !== "loading"}
           disableHover={disableHover}
         >
-          <RenderErrorBoundary
-            fallback={
-              <ErrorState message={`Track unavailable: ${track.base.title || track.base.id}`} />
-            }
-            onError={(error, info) => reportTrackRenderError(track, error, info)}
-          >
-            <TrackContent
-              track={track}
-              dataState={dataState}
+          {composite ? (
+            track.tracks.map((child, index) => {
+              const y =
+                track.base.display === "stack"
+                  ? track.tracks
+                      .slice(0, index)
+                      .reduce((sum, previous) => sum + previous.base.height + track.config.gap, 0)
+                  : 0;
+              const height = track.base.display === "stack" ? child.base.height : track.base.height;
+              return (
+                <TrackPlot
+                  key={child.base.id}
+                  trackId={child.base.id}
+                  visibleRegion={visibleRegion}
+                  y={y}
+                  height={height}
+                  opacity={track.base.display === "overlay" ? track.config.opacity : 1}
+                  isDragClone={swapProps.isDragClone}
+                />
+              );
+            })
+          ) : (
+            <TrackPlot
+              trackId={track.base.id}
               visibleRegion={visibleRegion}
-              region={region}
-              width={placement.width}
               height={track.base.height}
+              isDragClone={swapProps.isDragClone}
             />
-          </RenderErrorBoundary>
+          )}
         </TrackFrame>
       )}
     </TrackReorder>
   );
-}
-
-function reportTrackRenderError(track: AnyTrackInstance, error: unknown, info: ErrorInfo) {
-  console.error(trackRenderErrorPrefix, {
-    track: {
-      id: track.base.id,
-      type: track.type,
-      display: track.base.display,
-      ...(track.base.title ? { title: track.base.title } : {}),
-    },
-    error,
-    ...(info.componentStack ? { componentStack: info.componentStack } : {}),
-  });
 }

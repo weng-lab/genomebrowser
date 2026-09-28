@@ -12,7 +12,8 @@ export function useTooltip<Item, Config>() {
   const hideTooltip = useTooltipStore((state) => state.hide);
   const panDragStatus = usePanDragStatus();
   const context = useTrackRuntimeContext<Config>();
-  const Tooltip = useRegistry().get(context.type).tooltipComponent as
+  const module = useRegistry().get(context.type);
+  const Tooltip = (module.kind === "track" ? module.tooltipComponent : undefined) as
     | TrackTooltipComponent<Item, Config>
     | undefined;
   const getSvgPoint = useSvgPoint();

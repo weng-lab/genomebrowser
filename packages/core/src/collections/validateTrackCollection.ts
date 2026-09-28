@@ -62,11 +62,13 @@ export function validateTrackCollection<const Modules extends readonly AnyTrackM
   const errors: string[] = [];
 
   const trackIds = new Set<string>();
-  collection.tracks.forEach((track, index) => {
-    if (trackIds.has(track.base.id))
-      errors.push(`tracks.${index}.base.id duplicates "${track.base.id}"`);
-    trackIds.add(track.base.id);
-  });
+  collection.tracks
+    .flatMap((track) => [track, ...("tracks" in track ? track.tracks : [])])
+    .forEach((track, index) => {
+      if (trackIds.has(track.base.id))
+        errors.push(`tracks.${index}.base.id duplicates "${track.base.id}"`);
+      trackIds.add(track.base.id);
+    });
   const viewIds = new Set<string>();
   collection.views?.forEach((view) => {
     if (viewIds.has(view.id)) errors.push(`views contains duplicate id "${view.id}"`);

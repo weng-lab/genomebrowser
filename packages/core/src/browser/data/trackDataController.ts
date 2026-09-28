@@ -1,3 +1,4 @@
+import { getDataTracks } from "../../modules/composite";
 import {
   basePairDetailVisible,
   getBasePairDetailStatus,
@@ -211,7 +212,9 @@ export function createTrackDataController({
 
     const run = async (): Promise<TrackResult> => {
       try {
-        const fetchTrack = registry.get(track.type).fetch as TrackFetch<unknown, unknown>;
+        const module = registry.get(track.type);
+        if (module.kind !== "track") throw new Error("Composite tracks do not fetch data");
+        const fetchTrack = module.fetch as TrackFetch<unknown, unknown>;
         const data = await fetchTrack({
           track: {
             base: { id: trackId, display: track.base.display },
@@ -250,12 +253,13 @@ export function createTrackDataController({
   const update = () => {
     if (!connected) return;
     const detailChanged = updateDetail();
-    const { tracks, registry } = trackStore.getState();
+    const { tracks: rows, registry } = trackStore.getState();
+    const tracks = getDataTracks(rows, registry);
     const demand = getDemand();
     const chromosomeLength = demand.assembly.chromosomes[demand.view.chromosome] ?? 0;
 
-    if (tracks !== retainedTracks) {
-      retainedTracks = tracks;
+    if (rows !== retainedTracks) {
+      retainedTracks = rows;
       const trackIds = new Set(tracks.map((track) => track.base.id));
       for (const [trackId, entry] of entries) {
         if (trackIds.has(trackId)) continue;

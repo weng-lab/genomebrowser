@@ -1,3 +1,4 @@
+import type { CompositeTrackModule } from "./composite";
 import type { MutationFailure } from "../mutation";
 import type { ComponentType } from "react";
 import type { z } from "zod";
@@ -183,6 +184,7 @@ export type TrackModule<
   Item = unknown,
   Display extends string = string,
 > = {
+  kind: "track";
   type: Type;
   displays: Display[];
   configSchema: ConfigSchema;
@@ -198,7 +200,9 @@ export type TrackModule<
   tooltipComponent?: TrackTooltipComponent<Item, z.output<ConfigSchema>>;
 };
 
-export type AnyTrackModule = {
+export type AnyTrackModule = OrdinaryTrackModule | CompositeTrackModule;
+export type OrdinaryTrackModule = {
+  kind: "track";
   type: string;
   displays: string[];
   configSchema: z.ZodObject;
@@ -216,6 +220,7 @@ export type AnyTrackInstance = {
   config: Record<string, unknown>;
   source: TrackSource;
   interaction?: AnyTrackInteraction;
+  tracks?: AnyTrackInstance[];
 };
 export type ModuleCreateInput<M extends AnyTrackModule> = z.input<M["createInputSchema"]>;
 export type ModuleInstance<M extends AnyTrackModule> = M extends AnyTrackModule

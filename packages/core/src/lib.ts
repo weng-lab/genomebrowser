@@ -91,3 +91,6 @@ export type {
   TrackCollectionColumn,
   TrackMetadata,
 } from "./collections/collectionSchema";
+
+export { createCompositeModule } from "./modules/composite";
+export type { CompositeInput, CompositeTrack, CompositeTrackModule } from "./modules/composite";

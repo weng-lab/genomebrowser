@@ -42,12 +42,25 @@ export function createTrackCollectionSchema(modules: readonly AnyTrackModule[]) 
     types.add(module.type);
   }
 
-  const entries = modules.map((module) =>
-    module.createInputSchema.omit({ source: true }).extend({
+  const ordinaryEntries = modules
+    .filter((module) => module.kind === "track")
+    .map((module) =>
+      (module.createInputSchema as z.ZodObject).omit({ source: true }).extend({
+        type: z.literal(module.type),
+        metadata: z.record(z.string(), TrackMetadataValueSchema).optional(),
+      }),
+    );
+  const entries = modules.map((module) => {
+    const entry = (module.createInputSchema as z.ZodObject).omit({ source: true }).extend({
       type: z.literal(module.type),
       metadata: z.record(z.string(), TrackMetadataValueSchema).optional(),
-    }),
-  );
+    });
+    return module.kind === "track"
+      ? entry
+      : entry.extend({
+          tracks: z.array(ordinaryEntries.length ? z.union(ordinaryEntries) : z.never()).min(1),
+        });
+  });
 
   return TrackCollectionBaseSchema.extend({
     tracks: z.array(
@@ -63,10 +76,13 @@ export type TrackCollectionColumn = z.infer<typeof TrackCollectionColumnSchema>;
 export type TrackCollectionView = z.infer<typeof TrackCollectionViewSchema>;
 export type TrackMetadata = Record<string, string | number | boolean | null>;
 type CollectionTrack<Module extends AnyTrackModule> = Module extends AnyTrackModule
-  ? Omit<ModuleCreateInput<Module>, "source"> & {
-      type: Module["type"];
-      metadata?: TrackMetadata;
-    }
+  ? Omit<ModuleCreateInput<Module>, "source" | "tracks"> &
+      (Module extends { kind: "composite" }
+        ? { tracks: CollectionTrack<Extract<AnyTrackModule, { kind: "track" }>>[] }
+        : {}) & {
+        type: Module["type"];
+        metadata?: TrackMetadata;
+      }
   : never;
 
 export type TrackCollection<Modules extends readonly AnyTrackModule[] = readonly AnyTrackModule[]> =

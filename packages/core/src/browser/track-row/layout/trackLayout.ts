@@ -1,7 +1,7 @@
 import type { AnyTrackInstance } from "../../../modules/types";
 
 export function getTrackWrapperHeight(track: AnyTrackInstance, titleSize: number) {
-  return track.base.height + (track.base.title ? titleSize + 5 : 0);
+  return getTrackPlotHeight(track) + (track.base.title ? titleSize + 5 : 0);
 }
 
 export function getTrackTitleMargin(track: AnyTrackInstance, titleSize: number) {
@@ -23,4 +23,14 @@ export function createTrackLayouts(ids: string[], wrapperHeights: number[], star
     y += wrapperHeight;
     return layout;
   });
+}
+
+export function getTrackPlotHeight(track: AnyTrackInstance): number {
+  if (track.tracks && track.base.display === "stack") {
+    return (
+      track.tracks.reduce((height, child) => height + child.base.height, 0) +
+      Math.max(0, track.tracks.length - 1) * Number(track.config.gap)
+    );
+  }
+  return track.base.height;
 }

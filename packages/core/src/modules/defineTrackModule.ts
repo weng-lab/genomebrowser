@@ -137,6 +137,7 @@ function createTrackModule<
   validateModuleDefaults(definition.type, definition.defaults, defaultDisplay, fullBaseSchema);
 
   return {
+    kind: "track" as const,
     type: definition.type,
     displays,
     configSchema,

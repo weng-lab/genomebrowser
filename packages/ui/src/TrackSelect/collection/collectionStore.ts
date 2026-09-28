@@ -1,9 +1,13 @@
-import type { TrackStore } from "@weng-lab/genomebrowser";
+import type { AnyTrackInstance, TrackCollection, TrackStore } from "@weng-lab/genomebrowser";
 import {
   adaptTrackSelectInteraction,
   type TrackSelectInteractionResolver,
 } from "./collectionInteraction";
-import type { CompiledTrackCollections } from "./collectionCompilation";
+import {
+  getCollectionTrackId,
+  type CompiledTrackCollections,
+  type CollectionTrackEntry,
+} from "./collectionCompilation";
 
 export function getReconciledTracks({
   compiledCollections,
@@ -29,27 +33,12 @@ export function getReconciledTracks({
     const existingTrack = existingTracksById.get(id);
     const entry = collectionTracksById.get(id)!;
     const track = {
-      ...(existingTrack ??
-        registry.get(entry.track.type).create({
-          base: { ...entry.track.base, id },
-          config: entry.track.config,
-        })),
+      ...(existingTrack ?? createCollectionTrack(entry.track, entry.collectionId, registry)),
       source: "host" as const,
     };
-    if (!resolveTrackInteraction) return track;
-
-    const resolvedInteraction = resolveTrackInteraction(entry);
-    const { interaction: _interaction, ...trackWithoutInteraction } = track;
-    if (resolvedInteraction === undefined) return trackWithoutInteraction;
-
-    return {
-      ...trackWithoutInteraction,
-      interaction: adaptTrackSelectInteraction(resolvedInteraction, {
-        collectionId: entry.collectionId,
-        authoredTrackId: entry.track.base.id,
-        metadata: entry.track.metadata ?? {},
-      }),
-    };
+    return resolveTrackInteraction
+      ? bindCollectionInteraction(track, entry, resolveTrackInteraction)
+      : track;
   });
 
   return [...nonCollectionTracks, ...selectedTracks];
@@ -80,4 +69,70 @@ function assertValidSelectedTrackIds(
     if (!collectionTracksById.has(id)) throw new Error(`Unknown track selection id: ${id}`);
     seen.add(id);
   }
+}
+
+function createCollectionTrack(
+  track: TrackCollection["tracks"][number],
+  collectionId: string,
+  registry: TrackStore["registry"],
+): AnyTrackInstance {
+  const module = registry.get(track.type);
+  const input = {
+    base: { ...track.base, id: getCollectionTrackId(collectionId, track.base.id) },
+    config: track.config,
+    source: "host" as const,
+  };
+  if (module.kind === "composite") {
+    if (!("tracks" in track)) throw new Error("Composite collection entry requires child tracks");
+    return module.create({
+      ...input,
+      base: { ...input.base, display: track.base.display as "stack" | "overlay" | undefined },
+      tracks: track.tracks.map((child) => createCollectionTrack(child, collectionId, registry)),
+    });
+  }
+  return module.create(input);
+}
+
+function bindCollectionInteraction(
+  track: AnyTrackInstance,
+  entry: CollectionTrackEntry,
+  resolve: TrackSelectInteractionResolver,
+): AnyTrackInstance {
+  if (track.tracks && "tracks" in entry.track) {
+    const definitions = new Map(
+      entry.track.tracks.map((child) => [
+        getCollectionTrackId(entry.collectionId, child.base.id),
+        child,
+      ]),
+    );
+    return {
+      ...track,
+      tracks: track.tracks.map((child) => {
+        const definition = definitions.get(child.base.id);
+        return definition
+          ? bindCollectionInteraction(
+              child,
+              {
+                collectionId: entry.collectionId,
+                qualifiedTrackId: child.base.id,
+                track: definition,
+              },
+              resolve,
+            )
+          : child;
+      }),
+    };
+  }
+  const interaction = resolve(entry);
+  const { interaction: _interaction, ...withoutInteraction } = track;
+  return interaction === undefined
+    ? withoutInteraction
+    : {
+        ...withoutInteraction,
+        interaction: adaptTrackSelectInteraction(interaction, {
+          collectionId: entry.collectionId,
+          authoredTrackId: entry.track.base.id,
+          metadata: entry.track.metadata ?? {},
+        }),
+      };
 }

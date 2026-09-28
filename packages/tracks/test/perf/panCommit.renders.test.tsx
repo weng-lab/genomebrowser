@@ -223,12 +223,12 @@ describe("pan commit inside loaded data", () => {
 
     // Budget: a higher number fails. Gene transcripts keep their glyphs, labels, and hit
     // targets across the pan; re-packed rows move by transform instead of remounting.
-    // Before SVG consolidation this measured 138 renders. The canvas now owns
-    // the SVG directly, without SvgShell and BrowserSvgProvider renders.
+    // Seven TrackPlot hosts each render once for the changed visible region.
+    // They share placement and data hosting with composite children; DOM writes stay at 93.
     expect({ renders: result.renders, mutations: result.mutations }).toMatchInlineSnapshot(`
       {
         "mutations": 93,
-        "renders": 136,
+        "renders": 143,
       }
     `);
   });

@@ -3,6 +3,7 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 type RenderErrorBoundaryProps = {
   children: ReactNode;
   fallback: ReactNode;
+  resetKeys?: readonly unknown[];
   onError?: (error: unknown, info: ErrorInfo) => void;
 };
 
@@ -22,6 +23,15 @@ export class RenderErrorBoundary extends Component<
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
     this.props.onError?.(error, info);
+  }
+
+  componentDidUpdate(previous: RenderErrorBoundaryProps) {
+    if (
+      this.state.hasError &&
+      this.props.resetKeys?.some((key, index) => key !== previous.resetKeys?.[index])
+    ) {
+      this.setState({ hasError: false });
+    }
   }
 
   render() {
