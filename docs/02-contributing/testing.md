@@ -14,7 +14,7 @@ Verify the complete outcome claimed by the test. A track URL workflow should est
 
 ## Design for testability
 
-Prefer deep modules: small, stable public interfaces that own substantial behavior. Callers and tests should request an operation and observe its result without coordinating internal helpers.
+Follow [module design](../01-project/module-design.md) when choosing an owner and its interface. Callers and tests should request an operation and observe its result without coordinating internal helpers.
 
 Elaborate setup, private state access, or extensive internal mocking can signal a design problem. Consider a small refactor to clarify ownership, make inputs explicit, or separate network and clock access from logic. Keep changes useful to production callers; avoid test-only exports, switches, and abstractions for every helper. If a test has no meaningful failure to detect, omit it. If valuable behavior is hard to exercise, improve its boundary.
 

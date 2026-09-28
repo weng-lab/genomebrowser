@@ -8,6 +8,8 @@ Repository skills let users and agents start common workflows. Keep each skill s
 
 Put shared reference material in the repository documentation rather than inside a skill's references directory. These skills are specific to this repository; they do not need to carry a portable copy of its policies. Developers should be able to find and follow the same guidance without invoking a skill.
 
+Personal skills may supplement an individual's workflow. Repository docs and skills must work without skills installed on a contributor's computer. When a principle becomes a project expectation, document it in the repository so maintainers and agents can follow the same guidance.
+
 Skill descriptions already make these workflows discoverable to the agent. Do not repeat skill routing in AGENTS.md or other documents unless a specific edge case needs it.
 
 ## AGENTS.md supplies essential context
