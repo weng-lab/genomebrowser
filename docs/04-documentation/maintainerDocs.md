@@ -4,13 +4,14 @@ Maintainer docs help people and agents decide where a feature belongs, how to ap
 
 ## Ordering and navigation
 
-Use `01-project`, `02-contributing`, `03-tooling`, and `04-documentation` for the maintainer sections. Keep a `README.md` in each folder with its purpose, page links, and a parent link. Number the project reading path as architecture, feature placement, then interface design. Other maintainer pages remain unnumbered and follow their index order.
+Use `01-project`, `02-contributing`, `03-tooling`, and `04-documentation` for the maintainer sections. Keep a `README.md` in each folder with its purpose, page links, and a parent link. Number the project reading path as architecture, feature placement, then interface design. Other maintainer pages, including module design, remain unnumbered and follow their index order.
 
 ## Give each page a clear purpose
 
 - `docs/README.md` provides the starting point, reading order, and document authority.
 - `docs/01-project/01-architecture.md` explains the project's audience, design philosophy, major parts, and how they fit together. Keep the system overview high-level.
 - `docs/01-project/02-feature-placement.md` helps maintainers decide where new capabilities belong. Use examples to illustrate judgment rather than prescribe speculative designs.
+- `docs/01-project/module-design.md` explains how to assign a module's responsibility and choose interfaces and seams within a package.
 - `docs/02-contributing/` covers contributions, testing, and verification.
 - `docs/03-tooling/` covers build maintenance, dependencies, schemas, and releases.
 - `docs/04-documentation/` holds shared writing guidance and reference material.

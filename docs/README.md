@@ -8,7 +8,7 @@ These docs contain repository guidance for maintainers and agents. Repository-lo
 
 [Project guidance](01-project/README.md) provides the suggested reading order.
 
-Start with [architecture](01-project/01-architecture.md) for the project's purpose and structure. Use [feature placement](01-project/02-feature-placement.md) to decide where a change belongs and [interface design](01-project/03-design.md) for shared UI expectations.
+Start with [architecture](01-project/01-architecture.md) for the project's purpose and structure. Use [feature placement](01-project/02-feature-placement.md) to decide where a change belongs and [interface design](01-project/03-design.md) for shared UI expectations. Use [module design](01-project/module-design.md) for responsibilities and interfaces within a package.
 
 ## Contribute a change
 
