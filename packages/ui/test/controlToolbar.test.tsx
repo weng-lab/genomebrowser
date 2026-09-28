@@ -95,9 +95,12 @@ it("omits management controls without callbacks", () => {
 
 it("shows only supplied management actions and calls the host", () => {
   const onSelectTracks = vi.fn();
-  mount({ onSelectTracks });
+  const onSortTracks = vi.fn();
+  mount({ onSelectTracks, onSortTracks });
   click("Tracks");
   expect(onSelectTracks).toHaveBeenCalledOnce();
+  click("Sort");
+  expect(onSortTracks).toHaveBeenCalledOnce();
   expect(container.textContent).not.toContain("Highlights");
 });
 

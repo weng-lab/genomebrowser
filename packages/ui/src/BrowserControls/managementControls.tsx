@@ -2,20 +2,23 @@ import type { ReactNode } from "react";
 import { Button, Divider, Stack, Tooltip } from "@mui/material";
 import HighlightIcon from "@mui/icons-material/Highlight";
 import LayersIcon from "@mui/icons-material/Layers";
+import SortIcon from "@mui/icons-material/Sort";
 import { LabeledGroup } from "../LabeledGroup/labeledGroup";
 
 export type ManagementControlsProps = {
   onManageHighlights?: () => void;
   onSelectTracks?: () => void;
+  onSortTracks?: () => void;
   managementActions?: ReactNode;
 };
 
 export function ManagementControls({
   onManageHighlights,
   onSelectTracks,
+  onSortTracks,
   managementActions,
 }: ManagementControlsProps) {
-  if (!onManageHighlights && !onSelectTracks && !managementActions) return null;
+  if (!onManageHighlights && !onSelectTracks && !onSortTracks && !managementActions) return null;
   return (
     <LabeledGroup title="Manage">
       <Stack
@@ -44,6 +47,13 @@ export function ManagementControls({
               onClick={onSelectTracks}
             >
               Tracks
+            </Button>
+          </Tooltip>
+        ) : null}
+        {onSortTracks ? (
+          <Tooltip title="Click to sort tracks" describeChild>
+            <Button size="small" startIcon={<SortIcon fontSize="small" />} onClick={onSortTracks}>
+              Sort
             </Button>
           </Tooltip>
         ) : null}
