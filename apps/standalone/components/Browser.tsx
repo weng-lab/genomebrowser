@@ -1,14 +1,11 @@
 "use client";
 
+import { compositeModule } from "@weng-lab/genomebrowser-tracks/composite";
+
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 
 import Box from "@mui/material/Box";
-import {
-  GenomeBrowser,
-  createBrowserStore,
-  createTrackStore,
-  createCompositeModule,
-} from "@weng-lab/genomebrowser";
+import { GenomeBrowser, createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
@@ -28,10 +25,8 @@ const useBrowserStore = createBrowserStore({
   region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
 });
 
-const compositeModule = createCompositeModule();
-
 const useTrackStore = createTrackStore({
-  modules: [...firstPartyTrackModules, compositeModule],
+  modules: firstPartyTrackModules,
   tracks: [
     rulerModule.create({
       base: {

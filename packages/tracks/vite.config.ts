@@ -15,6 +15,7 @@ const trackEntries = {
   bigbed: path.resolve(__dirname, "src/bigbed/index.ts"),
   bigwig: path.resolve(__dirname, "src/bigwig/index.ts"),
   bulkbed: path.resolve(__dirname, "src/bulkbed/index.ts"),
+  composite: path.resolve(__dirname, "src/composite/index.ts"),
   cave: path.resolve(__dirname, "src/cave/index.ts"),
   ccre: path.resolve(__dirname, "src/ccre/index.ts"),
   gene: path.resolve(__dirname, "src/gene/index.ts"),

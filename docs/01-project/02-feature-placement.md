@@ -42,4 +42,4 @@ The standalone app owns its interface and application-specific components. It ma
 
 ## Composite tracks belong to core
 
-Composite tracks change row layout, store structure, and how ordinary child tracks participate in the browser. Core owns this coordination and hosts every child's existing module behavior. The composite module has creation, validation, and settings but no fetcher or ordinary renderer. Specialized multi-dataset visualizations such as BulkBed remain ordinary modules when they own their data processing and drawing.
+Composite tracks change row layout, store structure, and how ordinary child tracks participate in the browser. Core owns this coordination and hosts every child's existing module behavior. Core supplies the composite factory, validation, and hosting without a fetcher or ordinary renderer. Tracks exports the ready-to-use composite module with MUI settings, using core's settings-component injection. Specialized multi-dataset visualizations such as BulkBed remain ordinary modules when they own their data processing and drawing.

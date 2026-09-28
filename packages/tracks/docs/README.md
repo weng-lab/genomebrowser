@@ -32,6 +32,6 @@ The [reference index](03-reference/README.md) maps public exports and package su
 
 Core owns the browser component, stores, module contracts, and renderer hooks. Tracks supplies the first-party implementations and reusable components documented here. Optional application controls, such as collection-based track selection, belong to `@weng-lab/genomebrowser-ui`.
 
-Import an individual module from its track subpath, such as `@weng-lab/genomebrowser-tracks/bigwig`. The package root exports `firstPartyTrackModules` and loads all nine modules. The `/shared` entry exports reusable utilities and components without loading any first-party modules. Internal files are not public import paths.
+Import an individual module from its track subpath, such as `@weng-lab/genomebrowser-tracks/bigwig`. The package root exports `firstPartyTrackModules` and loads all first-party modules. The `/shared` entry exports reusable utilities and components without loading any first-party modules. Internal files are not public import paths.
 
 Return to [Package overview](../README.md).

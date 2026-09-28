@@ -1,3 +1,4 @@
+import { compositeModule } from "@weng-lab/genomebrowser-tracks/composite";
 import { bamModule } from "@weng-lab/genomebrowser-tracks/bam";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { validateTrackCollection, type TrackInteraction } from "@weng-lab/genomebrowser";
@@ -53,7 +54,7 @@ import {
 import { condenseSignalRecords, type SignalPoint } from "@weng-lab/genomebrowser-tracks/shared";
 
 describe("first-party track package", () => {
-  it("exports all nine pre-bound modules as a ready-made collection", () => {
+  it("exports all pre-bound modules as a ready-made collection", () => {
     expect(firstPartyTrackModules).toEqual([
       rulerModule,
       dynseqModule,
@@ -65,6 +66,7 @@ describe("first-party track package", () => {
       geneModule,
       methylCModule,
       bamModule,
+      compositeModule,
     ]);
     expect(firstPartyTrackModules.map((module) => module.type)).toEqual([
       "ruler",
@@ -77,12 +79,14 @@ describe("first-party track package", () => {
       "gene",
       "methylc",
       "bam",
+      "composite",
     ]);
     for (const module of firstPartyTrackModules) {
       expect(module.configSchema).toBeDefined();
       expect(module.createInputSchema).toBeDefined();
       expect(module.settingsComponent).toBeTypeOf("function");
-      if (module !== rulerModule) expect(module.tooltipComponent).toBeTypeOf("function");
+      if (module.kind === "track" && module !== rulerModule)
+        expect(module.tooltipComponent).toBeTypeOf("function");
     }
   });
 

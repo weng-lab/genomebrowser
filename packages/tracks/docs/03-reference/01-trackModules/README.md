@@ -1,10 +1,14 @@
 # Track modules
 
-Choose a track by the source you already have. Each module includes a renderer, settings panel, and configuration schema. Data tracks also provide tooltips.
+Choose a track by the source you already have. Ordinary modules include renderers, settings, configuration schemas, and optional tooltips. The composite module provides settings and delegates child rendering to core.
 
 ## Using modules
 
-[Create and validate tracks](trackCreation.md) covers registration, creation input, and schemas shared by all first-party modules. Import individual modules from their track subpaths, or use [firstPartyTrackModules](../02-collectionsAndSchemas/firstPartyTrackModules.md) to register all nine.
+[Create and validate tracks](trackCreation.md) covers registration, creation input, and schemas shared by all first-party modules. Import individual modules from their track subpaths, or use [firstPartyTrackModules](../02-collectionsAndSchemas/firstPartyTrackModules.md) to register all modules.
+
+## Composite tracks
+
+- [Composite](composite.md) places ordinary child tracks in one row using stack or overlay layout.
 
 ## BAM files
 

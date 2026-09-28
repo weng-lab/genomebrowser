@@ -60,3 +60,17 @@ Unexpected exceptions from a patch callback or custom schema code propagate.
 The browser supplies every prop in the table. `InteractionItem` defaults to `unknown`. Use `track.source` when your form needs to distinguish host-owned sources from user-editable sources; core does not identify or protect source config fields. Hosted controls sit inside a disabled fieldset while browser interactions are blocked. The callbacks also return `INTERACTION_BLOCKED` during that period.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.
+
+## TrackSettings
+
+`TrackSettings({ trackId: string })` renders the registered settings form for a standalone, composite, or child track. It requires a hosting `GenomeBrowser`, such as when called inside a module's settings component. It subscribes to the selected track and binds the normal settings props and validated update callbacks. Missing tracks and modules without settings render nothing.
+
+```tsx
+import { TrackSettings } from "@weng-lab/genomebrowser";
+
+export function ChildSettings({ childId }: { childId: string }) {
+  return <TrackSettings trackId={childId} />;
+}
+```
+
+This component does not open a dialog or provide UI styling. Its mutation callbacks honor the browser loading gate. A containing form can disable controls while loading, as core's settings dialog does. `updateTracksOfType` includes ordinary children inside composites and commits through the same store validation.

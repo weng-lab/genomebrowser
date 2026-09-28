@@ -16,8 +16,10 @@ const trackNames = [
   "gene",
   "methylc",
   "ruler",
+  "composite",
 ];
 const expectedRuntimeExports = new Map([
+  ["./composite", ["compositeModule"]],
   ["./bam", ["bamModule"]],
   ["./ruler", ["rulerModule"]],
   ["./bigbed", ["bigBedModule", "fetchBigBedRows"]],

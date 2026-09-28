@@ -27,4 +27,4 @@ The root layout wraps the application in MUI's `AppRouterCacheProvider` so strea
 
 The initial browser includes **H3K4me3 + H3K27ac**, a user-sourced composite with two BigWig child tracks. Open its settings from the margin gear or context menu. Change Layout between overlay and stack, adjust opacity, and choose a child to edit its normal BigWig settings. Extract or ungroup to keep the children as standalone rows. Reload the page to restore the example.
 
-The example is created in `components/Browser.tsx` with `createCompositeModule()` and registered alongside the first-party modules. Overlay scales remain independent.
+The example is created in `components/Browser.tsx` with `compositeModule` from `@weng-lab/genomebrowser-tracks/composite`, included in `firstPartyTrackModules`. Overlay scales remain independent.

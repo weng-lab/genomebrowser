@@ -1,5 +1,5 @@
 import { DefaultSettingsModal } from "../settings/DefaultSettingsModal";
-import { BoundModuleSettings } from "../settings/BoundModuleSettings";
+import { TrackSettings } from "../settings/TrackSettings";
 import {
   useSettingsStore,
   useRegistry,
@@ -37,11 +37,7 @@ export function SettingsModalController() {
             padding: 0,
           }}
         >
-          <BoundModuleSettings
-            trackId={trackId}
-            component={ModuleSettingsComponent}
-            displayOptions={module.kind === "track" ? Object.keys(module.render) : module.displays}
-          />
+          <TrackSettings trackId={trackId} />
         </fieldset>
       </DefaultSettingsModal>
     );

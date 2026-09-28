@@ -1,6 +1,6 @@
 # createCompositeModule
 
-A composite track displays ordinary child tracks in one track row with one shared margin. Register `createCompositeModule()` alongside the child modules. Core hosts each child's normal fetching, rendering, settings, callbacks, and tooltips.
+A composite track displays ordinary child tracks in one track row with one shared margin. Register `createCompositeModule()` alongside the child modules. The factory has no default settings UI. For a ready-to-use module with MUI settings, import `compositeModule` from `@weng-lab/genomebrowser-tracks/composite`. Core hosts each child's normal fetching, rendering, settings, callbacks, and tooltips.
 
 ## Usage
 
@@ -30,7 +30,7 @@ Replace each URL with the corresponding BigWig source. `tracks` contains runtime
 
 ## CompositeInput and CompositeTrack
 
-`createCompositeModule(): CompositeTrackModule` returns a module with `kind: "composite"`, `type: "composite"`, creation and validation schemas, and a settings component. It has no fetcher or ordinary data renderer. Ordinary modules created by `defineTrackModule` have `kind: "track"` automatically. Dispatch on `kind` when handling registered modules.
+`createCompositeModule(options?): CompositeTrackModule` returns a module with `kind: "composite"`, `type: "composite"`, and creation and validation schemas. The optional `options.settingsComponent` accepts a `TrackSettingsComponent<CompositeTrack["config"]>` and defaults to `undefined`. It has no fetcher or ordinary data renderer. Ordinary modules created by `defineTrackModule` have `kind: "track"` automatically. Dispatch on `kind` when handling registered modules.
 
 `create(input: CompositeInput): CompositeTrack` applies defaults and validates the structure. `validate(input: unknown): CompositeTrack` validates a complete instance. Both throw for invalid input. Store insertion additionally validates each child through its registered module and checks global IDs and pinning.
 
@@ -57,6 +57,8 @@ Children handle pointer events in normal SVG paint order. Each child has its own
 
 ## Settings
 
-Composite settings expose title, margin color, layout, overlay height, gap, opacity, a child selector, and each selected child's module settings. Child changes target its ID. Structural controls extract the selected child, move it earlier, or ungroup the composite. Those controls are disabled for host-sourced composites. Pin the composite to pin its entire row; children cannot be pinned.
+Supply `settingsComponent` to use your own form. Core supplies the normal settings props and validated updates. Use `<TrackSettings trackId={childId} />` to embed a child's registered settings inside the form; see [TrackSettings](trackSettings.md#tracksettings).
+
+The first-party tracks package supplies `compositeModule` with MUI controls for base settings, composite layout, and child settings. Core does not depend on that package or MUI.
 
 Return to [Track definition](README.md).

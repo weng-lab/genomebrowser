@@ -214,36 +214,6 @@ it("aborts removed pending children and releases all resources when deleting a c
   expect(contexts.get("c")!.signal!.aborted).toBe(false);
 });
 
-it("binds child settings by ID and disables structural UI for host composites", async () => {
-  const { store, pending } = await setup();
-  await act(async () => {
-    store
-      .getState()
-      .groupTracks({ id: "group", title: "Group", trackIds: ["a", "b"], source: "host" });
-    pending.forEach((request) => request.resolve(null));
-  });
-  await act(async () => {
-    container
-      .querySelector('[aria-label="Settings for Group"]')!
-      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
-  });
-  const button = (text: string) =>
-    Array.from(container.querySelectorAll("button")).find((button) => button.textContent === text)!;
-  expect(button("Extract child track").closest("fieldset")!.disabled).toBe(true);
-  await act(async () => button("Color child").click());
-  expect(store.getState().getTrack("a")!.base.color).toBe("#123456");
-  expect(store.getState().getTrack("b")!.base.color).toBe("#000000");
-  const selector = Array.from(container.querySelectorAll("select")).find((select) =>
-    Array.from(select.options).some((option) => option.value === "b"),
-  )!;
-  await act(async () => {
-    selector.value = "b";
-    selector.dispatchEvent(new Event("change", { bubbles: true }));
-  });
-  await act(async () => button("Color child").click());
-  expect(store.getState().getTrack("b")!.base.color).toBe("#123456");
-});
-
 it("retries a failed child renderer when new data arrives", async () => {
   vi.spyOn(console, "error").mockImplementation(() => {});
   let fail = true;

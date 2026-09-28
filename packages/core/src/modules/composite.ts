@@ -1,8 +1,12 @@
 import { z } from "zod";
 import { parsePublicInput, trackBaseSchema } from "./schemas";
-import type { AnyTrackInstance, TrackBaseInput, TrackSource } from "./types";
+import type {
+  AnyTrackInstance,
+  TrackBaseInput,
+  TrackSource,
+  TrackSettingsComponent,
+} from "./types";
 import type { ModuleRegistry } from "./registry";
-import { CompositeSettings } from "../browser/settings/CompositeSettings";
 
 const configSchema = z.strictObject({
   gap: z.number().nonnegative().default(4),
@@ -72,7 +76,11 @@ export type CompositeInput = {
 export type CompositeTrack = z.output<typeof instanceSchema>;
 export type CompositeTrackModule = ReturnType<typeof createCompositeModule>;
 
-export function createCompositeModule() {
+export function createCompositeModule(
+  options: {
+    settingsComponent?: TrackSettingsComponent<CompositeTrack["config"]>;
+  } = {},
+) {
   return {
     kind: "composite" as const,
     type: "composite" as const,
@@ -90,7 +98,7 @@ export function createCompositeModule() {
     validate(input: unknown): CompositeTrack {
       return parsePublicInput(instanceSchema, input, "composite instance");
     },
-    settingsComponent: CompositeSettings,
+    settingsComponent: options.settingsComponent,
   };
 }
 

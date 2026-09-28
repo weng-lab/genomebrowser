@@ -71,6 +71,10 @@
     "./bam": {
       "types": "./dist/src/bam/index.d.ts",
       "import": "./dist/bam.js"
+    },
+    "./composite": {
+      "types": "./dist/src/composite/index.d.ts",
+      "import": "./dist/composite.js"
     }
   },
   "publishConfig": {

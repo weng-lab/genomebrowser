@@ -55,6 +55,7 @@ Look up an export below to find its documentation. Store methods and module memb
 | `TrackInstance`, `TrackBase`, `ReadonlyTrackInstance`                                                             | [TrackInstance and TrackBase](03-trackDefinition/trackInstances.md#trackinstance-and-trackbase)                 |
 | `TrackFetch`, `TrackFetchContext`, `TrackFetchTrack`, `TrackFetchDemand`                                          | [Fetching data](03-trackDefinition/fetchingData.md#fetching-data)                                               |
 | `TrackResources`                                                                                                  | [TrackResources](03-trackDefinition/fetchingData.md#trackresources)                                             |
+| `TrackSettings`                                                                                                   | [TrackSettings](03-trackDefinition/trackSettings.md#tracksettings)                                              |
 | `TrackSettingsComponent`, `TrackSettingsProps`                                                                    | [Settings](03-trackDefinition/trackSettings.md#settings)                                                        |
 | `fetchOnChange`                                                                                                   | [fetchOnChange](03-trackDefinition/fetchOnChange.md#fetchonchange)                                              |
 

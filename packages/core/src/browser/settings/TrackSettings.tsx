@@ -1,23 +1,20 @@
 import type { ReadonlyTrackInstance, TrackSettingsComponent } from "../../modules/types";
 import { useGenomeBrowser, useTrackMutationGate } from "../state/browserContextState";
 
-export function BoundModuleSettings({
-  trackId,
-  component,
-  displayOptions,
-}: {
-  trackId: string;
-  component: unknown;
-  displayOptions: readonly string[];
-}) {
+/** Renders a registered track's settings within its hosting browser. */
+export function TrackSettings({ trackId }: { trackId: string }) {
   const { useTrackStore } = useGenomeBrowser();
   const track = useTrackStore((state) => state.getTrack(trackId));
+  const registry = useTrackStore((state) => state.registry);
   const updateStoredTrack = useTrackStore((state) => state.updateTrack);
   const { runTrackMutation } = useTrackMutationGate();
 
   if (!track) return null;
+  const module = registry.get(track.type);
+  if (!module.settingsComponent) return null;
+  const displayOptions = module.kind === "track" ? Object.keys(module.render) : module.displays;
 
-  const ModuleSettingsComponent = component as TrackSettingsComponent<
+  const ModuleSettingsComponent = module.settingsComponent as TrackSettingsComponent<
     Record<string, unknown>,
     unknown
   >;

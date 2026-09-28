@@ -94,3 +94,5 @@ export type {
 
 export { createCompositeModule } from "./modules/composite";
 export type { CompositeInput, CompositeTrack, CompositeTrackModule } from "./modules/composite";
+
+export { TrackSettings } from "./browser/settings/TrackSettings";
