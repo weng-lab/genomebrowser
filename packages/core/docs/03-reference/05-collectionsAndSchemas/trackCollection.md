@@ -160,3 +160,9 @@ Views describe ways a collection UI can organize tracks. Core validates their st
 These are schema defaults. Label fallbacks, column sizing, and visibility behavior depend on the UI component.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.
+
+## Composite entries
+
+Register the composite module and every child module when validating or loading a collection. A composite entry uses `type: "composite"` and nests ordinary creation definitions under `tracks`. Each child has its own `type`, `base`, and `config`; omit `source` as for other collection entries. Validation checks child module schemas and ID uniqueness across the whole collection. Nested composites are rejected.
+
+TrackSelect qualifies both parent and child IDs with the collection ID, such as `signals::atac`. A child ID does not include its parent's ID, so extraction preserves its identity. Collection-loaded parents and children have source `"host"`.

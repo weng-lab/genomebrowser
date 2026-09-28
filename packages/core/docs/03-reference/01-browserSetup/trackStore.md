@@ -58,7 +58,7 @@ Construction throws for duplicate module types, duplicate track IDs, unknown tra
 
 ### getTrack
 
-`getTrack(id: string): AnyTrackInstance | undefined` finds an instance by `base.id`. It returns `undefined` when the ID is absent. It returns the stored instance, not a detached copy; edit it with `updateTrack`.
+`getTrack(id: string): AnyTrackInstance | undefined` finds a standalone, composite, or child instance by `base.id`. It returns `undefined` when the ID is absent. It returns the stored instance, not a detached copy; edit it with `updateTrack`.
 
 To display a track property in React, perform the lookup inside the selector so the component subscribes to its result:
 
@@ -227,3 +227,38 @@ Components rendered inside `GenomeBrowser` use [useGenomeBrowser](useGenomeBrows
 To access the hosting browser's module registry, select `state.registry` from the resolved `useTrackStore`. The local factory result in Usage accesses a particular application-owned store and can be used outside a mounted browser.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.
+
+## Composite operations
+
+Register [createCompositeModule](../03-trackDefinition/createCompositeModule.md) to use composites. Top-level `tracks` and `order` determine track-row order. Composite `tracks` arrays hold their children and determine stack and paint order. IDs are unique across every row and child. All structural actions validate before committing, publish one state update on success, and leave state unchanged on failure.
+
+These examples run outside React:
+
+```ts
+useTrackStore.getState().groupTracks({
+  id: "signals",
+  title: "Signals",
+  trackIds: ["atac", "histone"],
+  base: { display: "overlay", height: 150 },
+  config: { opacity: 0.6 },
+});
+useTrackStore.getState().reorderChildren("signals", ["histone", "atac"]);
+useTrackStore.getState().updateTrack("atac", { base: { color: "#527ac7" } });
+useTrackStore.getState().extractTracks("signals", ["atac"]);
+useTrackStore.getState().ungroupTrack("signals");
+```
+
+| Action                                                          | Behavior                                                                                                                                                                                                                                          |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `groupTracks({ id, title, trackIds, base?, config?, source? })` | Moves selected standalone tracks into a composite at the first selected row. Uses current row order regardless of selection order. `base` accepts composite display, height, and color. Other optional values follow composite creation defaults. |
+| `extractTracks(compositeId, childIds)`                          | Moves selected children immediately after their parent in child order. Removes the parent when all children are extracted.                                                                                                                        |
+| `ungroupTrack(compositeId)`                                     | Replaces the composite with all its children.                                                                                                                                                                                                     |
+| `reorderChildren(compositeId, childIds)`                        | Reorders children. The list must contain every current child ID exactly once.                                                                                                                                                                     |
+
+Grouping rejects empty or duplicate selections, missing IDs, existing composites, child tracks, pinned tracks, and global ID collisions. Extract children and ungroup composites before grouping them again. Extraction rejects empty or duplicate selections and IDs outside the specified composite. Invalid structural input returns `INVALID_TRACK`; invalid child ordering returns `INVALID_TRACK_ORDER`.
+
+`getTrack` and `updateTrack` address children as well as rows. Child edits preserve unaffected child references. `reorderTracks` accepts only top-level row IDs and moves a composite as one row. `setPinnedTrackIds` rejects child IDs, including reserved pins when a later insertion would make the ID a child. Pinning a composite is allowed. `base.pinned` is not a supported setting.
+
+`removeTrack` deletes a standalone track, deletes a child and its parent if empty, or deletes a composite and all its children. `applyTrackChanges` accepts child IDs for removal with the same behavior. A mounted browser releases removed ordinary tracks' requests and resources. Extraction and ungrouping preserve tracks and data lifetimes.
+
+The store applies no source-based restrictions to these operations. Composite settings use `source` to disable structural UI for host-sourced tracks.

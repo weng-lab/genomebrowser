@@ -3,7 +3,12 @@
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 
 import Box from "@mui/material/Box";
-import { GenomeBrowser, createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
+import {
+  GenomeBrowser,
+  createBrowserStore,
+  createTrackStore,
+  createCompositeModule,
+} from "@weng-lab/genomebrowser";
 import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import type { CcreBigBedConfig, CcreBigBedRow } from "@weng-lab/genomebrowser-tracks/ccre";
@@ -23,8 +28,10 @@ const useBrowserStore = createBrowserStore({
   region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
 });
 
+const compositeModule = createCompositeModule();
+
 const useTrackStore = createTrackStore({
-  modules: firstPartyTrackModules,
+  modules: [...firstPartyTrackModules, compositeModule],
   tracks: [
     rulerModule.create({
       base: {
@@ -33,15 +40,20 @@ const useTrackStore = createTrackStore({
       },
       config: { sequenceUrl: "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.2bit" },
     }),
-    bigWigModule.create({
-      base: {
-        id: "user-source-example",
-        title: "User-sourced BigWig",
-      },
+    compositeModule.create({
+      base: { id: "histone-signals", title: "H3K4me3 + H3K27ac", display: "overlay", height: 150 },
       source: "user",
-      config: {
-        url: "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw",
-      },
+      config: { opacity: 0.6, gap: 8 },
+      tracks: [
+        bigWigModule.create({
+          base: { id: "histone-h3k4me3", title: "H3K4me3", color: "#527ac7", height: 90 },
+          config: { url: "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw" },
+        }),
+        bigWigModule.create({
+          base: { id: "histone-h3k27ac", title: "H3K27ac", color: "#d2693c", height: 90 },
+          config: { url: "https://downloads.wenglab.org/H3K27ac_All_ENCODE_MAR20_2024_merged.bw" },
+        }),
+      ],
     }),
   ],
 });

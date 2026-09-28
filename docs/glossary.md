@@ -34,6 +34,8 @@ The system used to express positions and sizes. **Genomic coordinates** locate b
 
 One configured visualization in the browser. **Track instance** specifically means its runtime object, with an ID, type, configuration, and optional interaction callbacks. One track can contain several internal rows or combine several datasets. A **pinned track** is excluded from ordinary drag reordering; pinning does not mean sticky scrolling.
 
+A **standalone track** occupies its own **track row**, the frame containing the margin and plot. A **composite track** contains ordinary **child tracks** in one track row. The parent manages layout and configuration for its child tracks. **Composite layout** is stack or overlay; **row layout** arranges features inside an individual track. **Group** combines standalone tracks, **extract** moves children into standalone rows, and **ungroup** dissolves a composite while preserving its children. **Remove** deletes tracks.
+
 ### Track module
 
 The reusable implementation of a track type. Its **fetcher** produces data for a request, and its **renderers** draw that data. The module also defines configuration validation and can provide settings and tooltips. Fetchers can return local data without a network request. The **module registry** maps registered type identifiers to their modules. Several track instances can use the same module.

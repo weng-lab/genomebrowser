@@ -48,6 +48,7 @@ Look up an export below to find its documentation. Store methods and module memb
 
 | Exports                                                                                                           | Reference                                                                                                       |
 | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `createCompositeModule`, `CompositeInput`, `CompositeTrack`, `CompositeTrackModule`                               | [Composite tracks](03-trackDefinition/createCompositeModule.md)                                                 |
 | `defineTrackModule`                                                                                               | [defineTrackModule](03-trackDefinition/defineTrackModule.md#definetrackmodule)                                  |
 | `TrackModule`, `ModuleCreateInput`, `ModuleInstance`, `AnyTrackModule`, `AnyTrackInstance`, `AnyTrackInteraction` | [TrackModule and inferred types](03-trackDefinition/defineTrackModule.md#trackmodule-and-inferred-types)        |
 | `TrackCreateInput`, `TrackBaseInput`, `TrackSource`                                                               | [TrackCreateInput and TrackBaseInput](03-trackDefinition/trackInstances.md#trackcreateinput-and-trackbaseinput) |

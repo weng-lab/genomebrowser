@@ -40,8 +40,6 @@ UI provides navigation, track selection, and other browser controls for embeddin
 
 The standalone app owns its interface and application-specific components. It may use UI components when they fit, but is not required to. Add components to UI when they are useful to embedding applications, not merely to place standalone components in a shared package.
 
-## Example of an open placement decision: grouped tracks
+## Composite tracks belong to core
 
-BulkBed combines multiple BigBed datasets within one track. Suppose an application asks to generalize that idea into a group accepting different registered track modules. Should that group be another track module, or should core coordinate the grouped tracks?
-
-This is an unresolved design question, not an established feature or placement rule. The answer depends on what grouping means for the requested workflow and which responsibilities it changes. If existing browser capabilities are sufficient, a module may own the composition. If grouping requires new browser coordination, identify that general capability separately from the grouped visualization. BulkBed provides a starting example, not a decision about the broader design.
+Composite tracks change row layout, store structure, and how ordinary child tracks participate in the browser. Core owns this coordination and hosts every child's existing module behavior. The composite module has creation, validation, and settings but no fetcher or ordinary renderer. Specialized multi-dataset visualizations such as BulkBed remain ordinary modules when they own their data processing and drawing.

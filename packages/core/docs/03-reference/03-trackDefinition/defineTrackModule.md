@@ -99,7 +99,7 @@ The default display is the first renderer key. If supplied, `defaults.display` m
 
 `ModuleCreateInput<M>` extracts input from a module's `createInputSchema`. `ModuleInstance<M>` extracts the return type of its `validate` method. Use these to retain a particular module's config and interaction types in application code.
 
-`AnyTrackModule` and `AnyTrackInstance` describe heterogeneous registries and track lists. The instance has `config: Record<string, unknown>`; the module exposes its callable creation/validation methods while its fetch and component values are broadly typed. `AnyTrackInteraction` is `TrackInteraction<never, never>`. Use these types for lists containing different track or module types. Use a specific module's types when defining or calling its callbacks.
+`AnyTrackModule` is a union distinguished by `kind`: ordinary modules have `kind: "track"` and [composite modules](createCompositeModule.md) have `kind: "composite"`. `defineTrackModule` supplies `kind: "track"` automatically. `AnyTrackInstance` describes heterogeneous track lists and has optional `tracks` for composite children. The instance has `config: Record<string, unknown>`; modules expose callable creation/validation methods, while ordinary modules also expose broadly typed fetchers and renderers. `AnyTrackInteraction` is `TrackInteraction<never, never>`. Use these types for lists containing different track or module types. Use a specific module's types when defining or calling its callbacks.
 
 ## Related contracts
 

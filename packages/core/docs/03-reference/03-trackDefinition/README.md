@@ -3,6 +3,7 @@
 Define modules, create instances, fetch data, and supply settings forms.
 
 - [defineTrackModule](defineTrackModule.md): Define a track type with inferred config, data, and display types.
+- [createCompositeModule](createCompositeModule.md): Display child tracks together in stack or overlay layout.
 - [Track instances](trackInstances.md): Create and validate runtime instances and understand source ownership.
 - [Fetching track data](fetchingData.md): Implement fetchers and manage track-local resources.
 - [Track settings](trackSettings.md): Supply a settings form with validated individual and batch updates.
