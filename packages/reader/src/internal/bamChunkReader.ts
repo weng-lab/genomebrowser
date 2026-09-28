@@ -17,6 +17,28 @@ const MAX_MERGED_CHUNK_GAP = FINAL_BLOCK_SLACK;
 const MAX_BGZF_BLOCK_SIZE = 65536n;
 /** Dense regions resolve to many ranges; overlapping their round trips stays within browser connection limits. */
 const MAX_CONCURRENT_RANGES = 8;
+/** How much compressed range data one file keeps before evicting the least recently used. */
+const MAX_CACHED_RANGE_BYTES = 64 * 1024 * 1024;
+
+/**
+ * Compressed range bytes already read from one file.
+ *
+ * A browser overscans its viewport, so panning lands inside the span already fetched and the index
+ * resolves it to the same chunks and the same ranges. Without this, every pan re-requests bytes it
+ * just had.
+ *
+ * Holding compressed bytes rather than inflated blocks keeps the cache several times smaller, and
+ * re-inflating costs far less than the round trip it saves.
+ *
+ * This assumes a BAM at a URL does not change. The reader already assumes that: the BAI index is
+ * cached for the lifetime of the file, and a rewritten BAM would leave those offsets pointing at
+ * unrelated bytes. Reload to read a file that has been replaced.
+ */
+export type BamRangeCache = { bytes: Map<string, Uint8Array>; size: number };
+
+export function createBamRangeCache(): BamRangeCache {
+  return { bytes: new Map(), size: 0 };
+}
 
 /** Compressed offsets from the first chunk's first block to the last chunk's final block. */
 type BamRange = { start: bigint; end: bigint; chunks: BamChunk[] };
@@ -30,6 +52,7 @@ export async function readBamChunks<T>(
   chunks: BamChunk[],
   decode: (bytes: Uint8Array) => T,
   options: ExactRangeOptions,
+  cache?: BamRangeCache,
 ): Promise<T[]> {
   const ranges: BamRange[] = [];
   for (const chunk of chunks) {
@@ -51,7 +74,7 @@ export async function readBamChunks<T>(
       Array.from({ length: Math.min(MAX_CONCURRENT_RANGES, ranges.length) }, async () => {
         for (let index = next++; index < ranges.length; index = next++) {
           const range = ranges[index];
-          const bytes = await readRange(reader, range);
+          const bytes = await readCachedRange(reader, range, cache);
           decoded[index] = range.chunks.map((chunk) =>
             decode(chunkBytes(bytes, range.start, chunk)),
           );
@@ -65,6 +88,38 @@ export async function readBamChunks<T>(
     options.signal?.removeEventListener("abort", abort);
   }
   return decoded.flat();
+}
+
+/**
+ * The bytes a range needs, from the cache when they are already held.
+ *
+ * Keyed by the first block read and the final chunk's virtual offset, which together decide both
+ * the span requested and whether the final block is read at all.
+ */
+async function readCachedRange(
+  reader: RequestRangeReader,
+  range: BamRange,
+  cache: BamRangeCache | undefined,
+): Promise<Uint8Array> {
+  if (!cache) return readRange(reader, range);
+  const key = `${range.start}:${range.chunks.at(-1)!.end}`;
+  const cached = cache.bytes.get(key);
+  if (cached !== undefined) {
+    // Map iterates in insertion order, so reinserting marks this the most recently used.
+    cache.bytes.delete(key);
+    cache.bytes.set(key, cached);
+    return cached;
+  }
+  const bytes = await readRange(reader, range);
+  cache.bytes.set(key, bytes);
+  cache.size += bytes.byteLength;
+  while (cache.size > MAX_CACHED_RANGE_BYTES) {
+    const oldest = cache.bytes.keys().next();
+    if (oldest.done) break;
+    cache.size -= cache.bytes.get(oldest.value)?.byteLength ?? 0;
+    cache.bytes.delete(oldest.value);
+  }
+  return bytes;
 }
 
 async function readRange(reader: RequestRangeReader, range: BamRange): Promise<Uint8Array> {

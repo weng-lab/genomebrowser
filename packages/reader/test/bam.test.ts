@@ -470,6 +470,16 @@ describe("BAM chunk requests", () => {
     );
     expect(mock.mock.calls.filter(([input]) => input === url)).toHaveLength(1);
   });
+  it("repeats a read from cached range bytes without requesting them again", async () => {
+    const { bam, bai } = spacedFixture(20);
+    const mock = mockFiles(bam, bai);
+    const file = createBamFile({ url, indexUrl });
+    const first = await file.read(spacedRegion);
+    mock.mockClear();
+    const second = await file.read(spacedRegion);
+    expect(second).toEqual(first);
+    expect(mock.mock.calls.filter(([input]) => input === url)).toHaveLength(0);
+  });
   it("reads distant chunks concurrently, at most eight at a time", async () => {
     // About 60 KB apart: merging these would download more than separate requests.
     const { bam, bai } = spacedFixture(20, { fillerBlocks: 1 });

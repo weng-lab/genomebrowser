@@ -2,7 +2,7 @@
 import type { GenomicFile, GenomicRecord, ReadOptions } from "./genomicFile";
 import { throwIfAborted } from "./internal/abort";
 import { BamBgzfReader, BamHeaderReader } from "./internal/bamBgzf";
-import { readBamChunks } from "./internal/bamChunkReader";
+import { createBamRangeCache, readBamChunks } from "./internal/bamChunkReader";
 import { bamChunks, parseBamIndex, type BamIndex } from "./internal/bamIndex";
 import { decodeBamRecords } from "./internal/bamDecoder";
 import type { ExactRangeMetadata } from "./internal/httpRange";
@@ -43,6 +43,7 @@ export function createBamFile(options: BamFileOptions): BamFile {
   const metadata: ExactRangeMetadata = {};
   let header: BamHeader | undefined;
   let index: BamIndex | undefined;
+  const rangeCache = createBamRangeCache();
   async function loadHeader(signal?: AbortSignal): Promise<BamHeader> {
     throwIfAborted(signal);
     const loaded =
@@ -104,6 +105,7 @@ export function createBamFile(options: BamFileOptions): BamFile {
           chunks,
           (bytes) => decodeBamRecords(bytes, outputReferences, refId, region),
           { signal, metadata },
+          rangeCache,
         )
       ).flat();
       throwIfAborted(signal);
