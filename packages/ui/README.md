@@ -9,7 +9,7 @@ The application owns the browser and track stores. Pass those stores to the cont
 In a React application, install UI and its peer dependencies:
 
 ```sh
-pnpm add @weng-lab/genomebrowser-ui@2.0.0 @weng-lab/genomebrowser@2.0.0 @emotion/react@11 @emotion/styled@11 @mui/material@7 @mui/icons-material@7 @mui/x-data-grid-premium@8 @mui/x-license@8 @mui/x-tree-view@8 @weng-lab/ui-components@^3.1.4
+pnpm add @weng-lab/genomebrowser-ui@2.1.0 @weng-lab/genomebrowser@2.0.0 @emotion/react@11 @emotion/styled@11 @mui/material@7 @mui/icons-material@7 @mui/x-data-grid-premium@8 @mui/x-license@8 @mui/x-tree-view@8 @weng-lab/ui-components@^3.1.4
 ```
 
 Supported versions are React and React DOM 19.2+, Emotion 11, MUI 7, MUI X 8, and Weng Lab UI components 3.1.4 within major version 3. Check your package manager's peer-dependency output when installing. Add `@weng-lab/genomebrowser-tracks@2.0.0` for first-party track modules and `@weng-lab/genomic-reader@2.0.0` when importing its cytoband reader.
