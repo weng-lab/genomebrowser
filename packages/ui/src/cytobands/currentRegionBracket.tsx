@@ -1,9 +1,8 @@
-import type { GenomicRegion } from "@weng-lab/genomebrowser";
+import { formatDisplayRegion, type GenomicRegion } from "@weng-lab/genomebrowser";
 
 const bracketColor = "#1976d2";
 const minimumBracketWidth = 8;
 const maximumCapWidth = 3;
-const coordinateFormatter = new Intl.NumberFormat("en-US");
 
 type currentRegionBracketProps = {
   chromosome: string;
@@ -35,7 +34,7 @@ export function currentRegionBracket({
   const { left, right, top, bottom, capWidth } = geometry;
   return (
     <g
-      aria-label={`Current region ${formatRegion(currentRegion)}`}
+      aria-label={`Current region ${formatDisplayRegion(currentRegion)}`}
       data-testid="current-region-bracket"
       pointerEvents="none"
       role="img"
@@ -102,8 +101,4 @@ function getBracketGeometry({
     bottom,
     capWidth: Math.min(maximumCapWidth, bracketWidth / 2),
   };
-}
-
-function formatRegion(region: GenomicRegion) {
-  return `${region.chromosome}: ${coordinateFormatter.format(region.start)}–${coordinateFormatter.format(region.end)}`;
 }

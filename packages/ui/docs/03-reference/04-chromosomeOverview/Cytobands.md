@@ -147,7 +147,7 @@ genomic position.
 
 ## Application-owned tooltip data
 
-Rendered highlights show a coordinate tooltip on pointer hover. Use
+Rendered highlights show a one-based coordinate tooltip on pointer hover, formatted by `formatDisplayRegion`. Use
 `renderHighlightTooltip` to replace it with SVG-compatible content. The
 application handles lookup, caching, loading, errors, authentication, and
 cleanup for its tooltip data:

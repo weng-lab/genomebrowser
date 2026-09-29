@@ -1,4 +1,4 @@
-import type { Highlight } from "@weng-lab/genomebrowser";
+import { formatDisplayRegion, type Highlight } from "@weng-lab/genomebrowser";
 import { useTheme } from "@mui/material/styles";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -195,8 +195,6 @@ function sameBounds(left: tooltipBounds, right: tooltipBounds) {
   );
 }
 
-const coordinateFormatter = new Intl.NumberFormat("en-US");
-
 export function formatHighlightCoordinates({ chromosome, highlight }: renderedHighlight) {
-  return `${chromosome}: ${coordinateFormatter.format(highlight.region.start)}–${coordinateFormatter.format(highlight.region.end)}`;
+  return formatDisplayRegion({ ...highlight.region, chromosome });
 }

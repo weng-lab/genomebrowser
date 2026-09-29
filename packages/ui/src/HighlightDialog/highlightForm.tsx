@@ -5,9 +5,13 @@ import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
-import type { BrowserStoreInstance, Highlight } from "@weng-lab/genomebrowser";
+import {
+  formatDisplayRegion,
+  type BrowserStoreInstance,
+  type Highlight,
+} from "@weng-lab/genomebrowser";
 import { useReducer, type SyntheticEvent } from "react";
-import { formatRegion, parseHighlightRegion, resolveHighlightRegion } from "./highlightRegion";
+import { parseHighlightRegion, resolveHighlightRegion } from "./highlightRegion";
 
 const defaultColor = "#3366cc";
 
@@ -84,7 +88,9 @@ export function HighlightForm({
     initialHighlight
       ? {
           name: initialHighlight.id,
-          region: formatRegion(resolveHighlightRegion(initialHighlight, currentRegion.chromosome)),
+          region: formatDisplayRegion(
+            resolveHighlightRegion(initialHighlight, currentRegion.chromosome),
+          ),
           color: initialHighlight.color,
           opacity: String(
             (initialHighlight.opacity ?? (initialHighlight.type === "outlined" ? 1 : 0.2)) * 100,
@@ -96,7 +102,7 @@ export function HighlightForm({
   );
 
   function handleUseCurrentRegion() {
-    dispatch({ type: "fieldChanged", field: "region", value: formatRegion(currentRegion) });
+    dispatch({ type: "fieldChanged", field: "region", value: formatDisplayRegion(currentRegion) });
   }
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {

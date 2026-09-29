@@ -1,6 +1,6 @@
 import {
   normalizeRegion,
-  parseRegion,
+  parseDisplayRegion,
   type AssemblyDefinition,
   type GenomicRegion,
   type Highlight,
@@ -16,7 +16,7 @@ export function parseHighlightRegion(
 ): ParseHighlightRegionResult {
   let parsedRegion: GenomicRegion;
   try {
-    parsedRegion = parseRegion(input);
+    parsedRegion = parseDisplayRegion(input);
   } catch {
     return { ok: false, error: 'Enter a region like "chr12:53,372,922-53,423,700".' };
   }
@@ -38,8 +38,4 @@ export function resolveHighlightRegion(
     start: highlight.region.start,
     end: highlight.region.end,
   };
-}
-
-export function formatRegion(region: GenomicRegion) {
-  return `${region.chromosome}:${region.start.toLocaleString("en-US")}-${region.end.toLocaleString("en-US")}`;
 }

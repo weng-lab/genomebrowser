@@ -72,10 +72,10 @@ describe("HighlightDialog", () => {
 
     clickButton("Edit Original");
     expect(getInput("ID").value).toBe("Original");
-    expect(getInput("Region").value).toBe("chr1:100-200");
+    expect(getInput("Region").value).toBe("chr1:101-200");
     expect(getInput("Opacity (%)").value).toBe("20");
     setTextInput("ID", "Renamed");
-    setTextInput("Region", "chr2:300-450");
+    setTextInput("Region", "chr2:301-450");
     setTextInput("Color", "#00aa66");
     const select = document.body.querySelector('[role="combobox"]')!;
     act(() => select.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })));
@@ -117,7 +117,7 @@ describe("HighlightDialog", () => {
     clickButton("Edit Original");
     expect(getInput("Opacity (%)").value).toBe("100");
     setTextInput("ID", "Other");
-    setTextInput("Region", "chr2:2000-3000");
+    setTextInput("Region", "chr2:2001-3000");
     clickButton("Save changes");
     expect(document.body.textContent).toContain("Highlight IDs must be unique.");
     expect(document.body.textContent).toContain("Region does not overlap chromosome");
@@ -126,7 +126,7 @@ describe("HighlightDialog", () => {
     clickButton("Cancel");
     clickButton("Edit Original");
     expect(getInput("ID").value).toBe("Original");
-    expect(getInput("Region").value).toBe("chr1:100-200");
+    expect(getInput("Region").value).toBe("chr1:101-200");
     clickButton("Cancel");
     clickButton("Edit Other");
     expect(getInput("ID").value).toBe("Other");
@@ -138,7 +138,7 @@ describe("HighlightDialog", () => {
 
     clickButton("Add New Highlight");
     setTextInput("ID", "Focus region");
-    setTextInput("Region", "chr2:1,200-1,500");
+    setTextInput("Region", "chr2:1,201-1,500");
     setTextInput("Opacity (%)", "65");
     clickButton("Add Highlight");
 
@@ -151,7 +151,7 @@ describe("HighlightDialog", () => {
         type: "filled",
       },
     ]);
-    expect(document.body.textContent).toContain("chr2:1,200-1,500");
+    expect(document.body.textContent).toContain("chr2:1,201-1,500");
     expect(getInput("Opacity (%)").value).toBe("20");
   });
 
@@ -180,7 +180,7 @@ describe("HighlightDialog", () => {
 
     clickButton("Add New Highlight");
     setTextInput("ID", "Invalid region");
-    setTextInput("Region", "chr2:2000-3000");
+    setTextInput("Region", "chr2:2001-3000");
     clickButton("Add Highlight");
 
     expect(browserStore.getState().highlights).toEqual([]);
@@ -198,7 +198,7 @@ describe("HighlightDialog", () => {
 
     clickButton("Add New Highlight");
     clickButton("Use Current Region");
-    expect(getInput("Region").value).toBe("chr1:100-200");
+    expect(getInput("Region").value).toBe("chr1:101-200");
 
     clickButton("Remove Existing");
     expect(browserStore.getState().highlights).toEqual([]);

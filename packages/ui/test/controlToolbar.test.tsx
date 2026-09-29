@@ -77,7 +77,7 @@ it("connects pan and search to the provided store and forwards host search confi
   const store = mount();
   click("Pan right");
   expect(store.getState().region).toEqual({ chromosome: "chr1", start: 25, end: 45 });
-  click("Edit region chr1:25-45");
+  click("Edit region chr1:26-45");
   expect(searchProps.current).toMatchObject({
     assembly: "mm10",
     graphqlUrl: "/custom-search",
@@ -85,7 +85,23 @@ it("connects pan and search to the provided store and forwards host search confi
   });
   click("Submit test result");
   expect(store.getState().region).toEqual({ chromosome: "chr1", start: 40, end: 60 });
-  expect(container.textContent).toContain("chr1:40-60");
+  expect(container.textContent).toContain("chr1:41-60");
+});
+
+it("displays and copies the region as one-based text", async () => {
+  const writeText = vi.fn<(text: string) => Promise<void>>().mockResolvedValue();
+  Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+  try {
+    mount();
+    expect(container.textContent).toContain("chr1:21-40");
+    const copy = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Copy current region"]',
+    );
+    await act(async () => copy!.click());
+    expect(writeText).toHaveBeenCalledWith("chr1:21-40");
+  } finally {
+    Reflect.deleteProperty(navigator, "clipboard");
+  }
 });
 
 it("omits management controls without callbacks", () => {
@@ -167,7 +183,7 @@ it("composes standalone sections without a toolbar and isolates stores", () => {
   click("Highlight");
   expect(first.getState().selectionMode).toBe("highlight");
   expect(second.getState().selectionMode).toBe("pan");
-  click("Edit region chr1:60-80");
+  click("Edit region chr1:61-80");
   click("Submit test result");
   expect(second.getState().region).toEqual({ chromosome: "chr1", start: 40, end: 60 });
   expect(first.getState().region).toEqual({ chromosome: "chr1", start: 25, end: 45 });
@@ -196,7 +212,7 @@ it("places host actions inside navigation and management groups", () => {
 
 it("keeps rejected searches open and reports the validation error", () => {
   const store = mount();
-  click("Edit region chr1:20-40");
+  click("Edit region chr1:21-40");
   const editor = container.querySelector("[aria-label='Cancel region search']");
   const domain = { chromosome: "chrUnknown", start: 40, end: 60 };
   const rejected = store.getState().setRegion(domain);
@@ -233,7 +249,7 @@ it("lets Escape reach the host when closed and consumes it only while editing", 
       });
       expect(hostKeyDown).toHaveBeenCalledOnce();
       expect(document.activeElement).toBe(copy);
-      click("Edit region chr1:20-40");
+      click("Edit region chr1:21-40");
       const cancel = container.querySelector<HTMLButtonElement>(
         "[aria-label='Cancel region search']",
       )!;
@@ -246,7 +262,7 @@ it("lets Escape reach the host when closed and consumes it only while editing", 
       });
       expect(hostKeyDown).toHaveBeenCalledOnce();
       expect(container.querySelector("[aria-label='Cancel region search']")).toBeNull();
-      expect(document.activeElement?.getAttribute("aria-label")).toBe("Edit region chr1:20-40");
+      expect(document.activeElement?.getAttribute("aria-label")).toBe("Edit region chr1:21-40");
     } finally {
       document.removeEventListener("keydown", hostKeyDown);
     }
