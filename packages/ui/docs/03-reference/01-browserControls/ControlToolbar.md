@@ -100,7 +100,7 @@ Pan magnitude starts at ¼ viewport, with ½ and 1 viewport options. The selecto
 
 ### RegionControls
 
-Displays the current coordinates and span, opens region search, and copies coordinates. Displayed and copied coordinates are one-based and inclusive, as in the UCSC Genome Browser, so `{ start: 100, end: 200 }` appears as `chr1:101-200`. Copied text omits thousands separators. `RegionControlsProps` is exported from the package root.
+Displays the current coordinates and span, opens region search, and copies coordinates. Displayed and copied coordinates are one-based and inclusive, as in the UCSC Genome Browser. A store region with `{ start: 100, end: 200 }` appears as `chr1:101-200`, and typing `chr1:101-200` selects that region. Gene, SNP, and other feature results retain their supplied zero-based domains. Copied text omits thousands separators. `RegionControlsProps` is exported from the package root.
 
 | Prop           | Type                            | Default  | Description                                                            |
 | -------------- | ------------------------------- | -------- | ---------------------------------------------------------------------- |

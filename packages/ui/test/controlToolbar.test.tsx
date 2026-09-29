@@ -24,9 +24,10 @@ vi.mock("@weng-lab/ui-components", () => ({
     return (
       <button
         onClick={() =>
-          props.onSearchSubmit({ domain: { chromosome: "chr1", start: 40, end: 60 } } as Parameters<
-            typeof props.onSearchSubmit
-          >[0])
+          props.onSearchSubmit({
+            type: "Gene",
+            domain: { chromosome: "chr1", start: 40, end: 60 },
+          } as Parameters<typeof props.onSearchSubmit>[0])
         }
       >
         Submit test result
@@ -46,7 +47,7 @@ afterEach(() => {
 
 function mount(props: Partial<ControlToolbarProps> = {}) {
   const browserStore = createBrowserStore({
-    assembly: { id: "test", chromosomes: { chr1: 100 } },
+    assembly: { id: "test", chromosomes: { chr1: 1000 } },
     region: { chromosome: "chr1", start: 20, end: 40 },
     trackWidth: 500,
   });
@@ -102,6 +103,28 @@ it("displays and copies the region as one-based text", async () => {
   } finally {
     Reflect.deleteProperty(navigator, "clipboard");
   }
+});
+
+it("converts coordinate search positions while preserving feature result domains", () => {
+  const store = mount();
+  click("Edit region chr1:21-40");
+  act(() =>
+    searchProps.current!.onSearchSubmit({
+      type: "Coordinate",
+      domain: { chromosome: "chr1", start: 101, end: 200 },
+    }),
+  );
+  expect(store.getState().region).toEqual({ chromosome: "chr1", start: 100, end: 200 });
+  expect(container.textContent).toContain("chr1:101-200");
+
+  click("Edit region chr1:101-200");
+  act(() =>
+    searchProps.current!.onSearchSubmit({
+      type: "SNP",
+      domain: { chromosome: "chr1", start: 300, end: 301 },
+    }),
+  );
+  expect(store.getState().region).toEqual({ chromosome: "chr1", start: 300, end: 301 });
 });
 
 it("omits management controls without callbacks", () => {

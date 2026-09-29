@@ -34,7 +34,11 @@ export function RegionControls({ browserStore: useBrowserStore, search }: Region
   }
   function submit(result: Result) {
     if (!result.domain) return;
-    const mutation = useBrowserStore.getState().setRegion(result.domain);
+    const domain =
+      result.type === "Coordinate"
+        ? { ...result.domain, start: result.domain.start - 1 }
+        : result.domain;
+    const mutation = useBrowserStore.getState().setRegion(domain);
     if (!mutation.ok) {
       setMessage(mutation.error);
       return;
