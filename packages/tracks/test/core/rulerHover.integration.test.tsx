@@ -48,7 +48,7 @@ it("owns hover highlights and clears them without removing user or other ruler h
   const root = createRoot(container);
   const highlights = () => browserStore.getState().highlights;
   const point = async (ruler: number, position: number, type = "pointerover", buttons = 0) => {
-    const base = container.querySelectorAll(`[aria-label="chr1:${position} A"]`)[ruler];
+    const base = container.querySelectorAll(`[aria-label="chr1:${position + 1} A"]`)[ruler];
     expect(base).toBeDefined();
     await act(async () => {
       base!.dispatchEvent(

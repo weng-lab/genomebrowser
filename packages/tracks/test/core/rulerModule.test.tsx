@@ -86,13 +86,13 @@ describe("ruler module", () => {
   });
   it("renders uppercase bases at equal resolution across viewport widths", () => {
     const data = { records: [{ ...region, sequence: "ACGTNacgtn" }] };
-    expect(render(120, data)).toContain('aria-label="chr1:100 A"');
-    expect(render(120, data)).toContain('aria-label="chr1:105 A"');
+    expect(render(120, data)).toContain('aria-label="chr1:101 A"');
+    expect(render(120, data)).toContain('aria-label="chr1:106 A"');
     const masked = render(120, data, url, 10, true);
-    expect(masked).toContain('aria-label="chr1:105 a"');
-    expect(masked).toContain('aria-label="chr1:100 A"');
+    expect(masked).toContain('aria-label="chr1:106 a"');
+    expect(masked).toContain('aria-label="chr1:101 A"');
     expect(masked).toContain('fill="#228b22"');
-    expect(render(120, data)).toContain('aria-label="chr1:109 N"');
+    expect(render(120, data)).toContain('aria-label="chr1:110 N"');
     expect(render(120, { records: [], error: "CORS" })).toContain("Reference sequence unavailable");
   });
   it("avoids broad sequence reads, caches the reader and changes sources", async () => {

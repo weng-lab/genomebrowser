@@ -12,7 +12,7 @@ export const DynseqTooltip: TrackTooltipComponent<DynseqItem, DynseqConfig> = ({
     <TrackTooltip
       title={item.base.toUpperCase()}
       rows={[
-        { label: "Position", value: item.position.toLocaleString("en-US") },
+        { label: "Position", value: (item.position + 1).toLocaleString("en-US") },
         { label: "Score", value: item.score.toFixed(4) },
       ]}
     />

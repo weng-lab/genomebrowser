@@ -153,7 +153,7 @@ The **Sequence letters** section shares its setting with all participating track
 
 ## Tooltip and interactions
 
-Coverage and junction tooltips are described under [Sections](#sections). The alignment tooltip shows read name, zero-based half-open location, strand, MAPQ, sequence length, reference span, CIGAR, numeric and decoded SAM flags, mate location and orientation, signed template length, mean base quality, and stored sequence. MAPQ 255, absent qualities, and empty CIGARs are labeled unavailable. Tooltip values wrap into lines of at most 32 characters, preferring spaces where available. CIGAR and sequence previews remain shortened after 80 characters.
+Coverage and junction tooltips are described under [Sections](#sections). The alignment tooltip shows read name, location, strand, MAPQ, sequence length, reference span, CIGAR, numeric and decoded SAM flags, mate location and orientation, signed template length, mean base quality, and stored sequence. Its locations, including the mate's, are one-based. MAPQ 255, absent qualities, and empty CIGARs are labeled unavailable. Tooltip values wrap into lines of at most 32 characters, preferring spaces where available. CIGAR and sequence previews remain shortened after 80 characters.
 
 Click, hover, and leave callbacks fire for alignments only and receive the complete `BamRecord` and core's track context. Coverage bins and junction arcs show tooltips without calling interaction callbacks. Their records retain full sequences and CIGAR operations even when tooltip previews are shortened.
 

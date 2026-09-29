@@ -314,12 +314,12 @@ describe("BAM displays", () => {
       </svg>,
     );
     for (const text of [
-      "chr1:10–20",
+      "chr1:11–20",
       "10M",
       "Unavailable",
       "duplicate",
       "first in pair",
-      "chr2:123 (-)",
+      "chr2:124 (-)",
       "-400",
       "AAAAAAAAAA",
     ])

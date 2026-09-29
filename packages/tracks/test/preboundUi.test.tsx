@@ -50,7 +50,7 @@ describe("pre-bound module UI", () => {
       </svg>,
     );
 
-    expect(text()).toEqual(["Location", "chr1:10–20", "Score", "2.5"]);
+    expect(text()).toEqual(["Location", "chr1:11–20", "Score", "2.5"]);
   });
 
   it("uses the formatted signal tooltip", () => {
@@ -92,7 +92,7 @@ describe("pre-bound module UI", () => {
         />
       </svg>,
     );
-    expect(text()).toEqual(["Sample", "Location", "chr2:30–40"]);
+    expect(text()).toEqual(["Sample", "Location", "chr2:31–40"]);
 
     rerender(
       <svg>

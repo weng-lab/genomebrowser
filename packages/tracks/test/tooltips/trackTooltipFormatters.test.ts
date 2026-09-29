@@ -27,8 +27,9 @@ describe("track tooltip formatters", () => {
     expect(formatOptionalBedValue(Number.NaN)).toBeUndefined();
   });
 
-  it("uses one deterministic genomic interval convention", () => {
-    expect(formatGenomicInterval(1234, 56789, "chr2")).toBe("chr2:1,234–56,789");
-    expect(formatGenomicInterval(1234, 56789)).toBe("1,234–56,789");
+  it("shows zero-based, half-open intervals as one-based positions", () => {
+    expect(formatGenomicInterval(1233, 56789, "chr2")).toBe("chr2:1,234–56,789");
+    expect(formatGenomicInterval(1233, 56789)).toBe("1,234–56,789");
+    expect(formatGenomicInterval(0, 1, "chr1")).toBe("chr1:1–1");
   });
 });

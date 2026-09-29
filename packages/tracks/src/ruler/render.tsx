@@ -68,7 +68,7 @@ export function Ruler({
                 return (
                   <g
                     key={position}
-                    aria-label={`${region.chromosome}:${position} ${base}`}
+                    aria-label={`${region.chromosome}:${(position + 1).toLocaleString("en-US")} ${base}`}
                     pointerEvents="all"
                     onPointerEnter={(event) => hoverHighlight.hover(position, event.buttons)}
                     onPointerMove={(event) => hoverHighlight.hover(position, event.buttons)}
