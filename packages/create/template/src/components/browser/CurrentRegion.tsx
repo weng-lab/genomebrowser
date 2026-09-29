@@ -1,12 +1,13 @@
 import { useState } from "react";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Button, Snackbar } from "@mui/material";
+import { formatDisplayRegion } from "@weng-lab/genomebrowser";
 import { useBrowserStore } from "../../stores";
 
 export default function CurrentRegion() {
   const region = useBrowserStore((state) => state.region);
   const [message, setMessage] = useState<string | null>(null);
-  const coordinates = `${region.chromosome}:${region.start}-${region.end}`;
+  const coordinates = formatDisplayRegion(region, { grouping: false });
 
   async function copyRegion() {
     try {
