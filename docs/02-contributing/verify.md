@@ -34,7 +34,7 @@ Report failures, checks that could not run, and any remaining uncertainty about 
 
 ## Automated PR review
 
-The PR review workflow uses OpenCode and GPT-6 Luna through Vercel AI Gateway to review repository conformity, code quality, and PR scope. Add a Vercel AI Gateway API key as the `AI_GATEWAY_API_KEY` repository Actions secret to enable it. The agent must already exist on the PR's base branch, so the workflow can run after its initial setup is merged.
+The PR review workflow uses OpenCode and GPT-6.1 Sol through Vercel AI Gateway to review repository conformity, code quality, and PR scope. Add a Vercel AI Gateway API key as the `AI_GATEWAY_API_KEY` repository Actions secret to enable it. The agent must already exist on the PR's base branch, so the workflow can run after its initial setup is merged.
 
 Reviews run when a PR opens, receives commits, reopens, or becomes ready for review. Drafts, fork PRs, and Dependabot events are skipped. The agent uses Git and `gh` to inspect the contribution and manage its review comments, starting with instructions from the base revision.
 
@@ -47,7 +47,7 @@ Blocking labels are recommendations for the team, not an automatic merge gate. I
 To preview a review from a worktree containing the agent, authenticate `gh`, provide Vercel AI Gateway credentials to OpenCode, and run the following command with the PR number to review. Preview also works for closed or merged PRs and does not change GitHub comments.
 
 ```sh
-opencode run --standalone --auto --agent review --model vercel/openai/gpt-6-luna \
+opencode run --standalone --auto --agent review --model vercel/openai/gpt-6.1-sol \
   "Preview PR #123 in weng-lab/genomebrowser. Reply with the proposed comments and their locations; do not post or change anything on GitHub."
 ```
 
@@ -57,4 +57,4 @@ The separate contribution review workflow checks whether issues and PRs provide 
 
 It runs on opening, editing, or reopening an issue or PR, and when a draft PR becomes ready. Bot events, draft PRs, and fork PRs are skipped. Label changes, comments, and new commits alone do not trigger it. An edit to the title or body triggers a fresh review that also considers the discussion. The agent updates one advisory comment and removes it when clarification is no longer needed.
 
-It uses the same `AI_GATEWAY_API_KEY` secret as the code reviewer. The issue workflow must exist on the default branch, and the agent must exist in the checked-out default or PR base revision. To preview locally, use `--agent contribution-review` in the command above and specify an issue or PR number.
+It uses GPT-6 Luna and the same `AI_GATEWAY_API_KEY` secret as the code reviewer. The issue workflow must exist on the default branch, and the agent must exist in the checked-out default or PR base revision. To preview locally, use `--agent contribution-review --model vercel/openai/gpt-6-luna` in the command above and specify an issue or PR number.

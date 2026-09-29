@@ -51,5 +51,5 @@ jobs:
         run: |
           opencode run --standalone --auto \
             --agent review \
-            --model vercel/openai/gpt-6-luna \
+            --model vercel/openai/gpt-6.1-sol \
             "Review PR #$PR_NUMBER in $GH_REPO and publish your findings according to your instructions."
