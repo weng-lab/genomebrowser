@@ -34,7 +34,7 @@ export function applyFillWithZero(points: SignalPoint[]) {
 export function getPointAtMouseX(points: SignalPoint[], mouseX: number, width: number) {
   if (points.length === 0 || width <= 0) return undefined;
   return points[
-    Math.max(0, Math.min(points.length - 1, Math.round(mouseX * (points.length / width))))
+    Math.max(0, Math.min(points.length - 1, Math.floor(mouseX * (points.length / width))))
   ];
 }
 export function hasBigWigData(point: SignalPoint | undefined) {

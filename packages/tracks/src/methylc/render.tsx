@@ -140,7 +140,7 @@ function MethylCHoverOverlay({
   const move = (event: MouseEvent<SVGRectElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
     const localX = clientXToTrackX(event.clientX, box, width);
-    const next = Math.max(0, Math.min(Math.max(0, Math.floor(width) - 1), Math.round(localX)));
+    const next = Math.max(0, Math.min(Math.max(0, Math.floor(width) - 1), Math.floor(localX)));
     const item = { tooltipValues: data.map((channel) => channel[next]), showRows };
     setIndex(next);
     interaction?.onHover?.(item);
