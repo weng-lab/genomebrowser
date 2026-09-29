@@ -84,6 +84,16 @@ describe("ruler module", () => {
     expect(render(1000, { records: [] }, null)).toContain("100");
     expect(render(1000, { records: [] }, null)).not.toContain("Zoom in");
   });
+  it("labels ticks with one-based positions over the centers of their bases", () => {
+    const markup = render(120, { records: [{ ...region, sequence: "ACGTNacgtn" }] });
+    const tickLabels = [...markup.matchAll(/<text x="([\d.]+)" y="9"[^>]*>([\d,]+)<\/text>/g)];
+    // The 10-base view [100, 110) shows positions 101-110, so its only step-10 label is 110.
+    expect(tickLabels.map(([, x, label]) => [label, x])).toEqual([["110", "114"]]);
+    const lastBase = /aria-label="chr1:110 N"[^>]*><g><rect[^>]*><\/rect><text x="([\d.]+)"/.exec(
+      markup,
+    );
+    expect(lastBase?.[1]).toBe("114");
+  });
   it("renders uppercase bases at equal resolution across viewport widths", () => {
     const data = { records: [{ ...region, sequence: "ACGTNacgtn" }] };
     expect(render(120, data)).toContain('aria-label="chr1:101 A"');
