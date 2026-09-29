@@ -65,7 +65,7 @@ it("switches ruler, BAM and dynseq together and reuses sequence through width-on
   document.body.appendChild(container);
   const root = createRoot(container);
   const letters = (visible: boolean) => {
-    expect(!!container.querySelector('[aria-label="chr1:0 A"]')).toBe(visible);
+    expect(!!container.querySelector('[aria-label="chr1:1 A"]')).toBe(visible);
     expect(!!container.querySelector('[data-bam-display] [data-bases="M"]')).toBe(visible);
     expect(
       [...container.querySelectorAll("g[transform]")].some(
@@ -113,7 +113,7 @@ it("switches ruler, BAM and dynseq together and reuses sequence through width-on
       trackStore.getState().updateTrack("dynseq", { base: { display: "dense" } });
       trackStore.getState().updateTrack("bam", { base: { display: "squish" } });
     });
-    expect(!!container.querySelector('[aria-label="chr1:0 A"]')).toBe(true);
+    expect(!!container.querySelector('[aria-label="chr1:1 A"]')).toBe(true);
     expect(container.querySelector('[data-bam-display] [data-bases="M"]')).toBeNull();
     expect(
       [...container.querySelectorAll("g[transform]")].some(

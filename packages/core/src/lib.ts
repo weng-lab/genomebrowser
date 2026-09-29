@@ -29,7 +29,12 @@ export type { GenomeBrowserStores } from "./browser/state/browserContextState";
 export { createAssemblyDefinition } from "./genome/assembly";
 export type { AssemblyDefinition } from "./genome/assembly";
 export { hg38, mm10, ce11, dm6, tair10 } from "./genome/presets";
-export { parseRegion, normalizeRegion } from "./genome/region";
+export {
+  formatDisplayRegion,
+  normalizeRegion,
+  parseDisplayRegion,
+  parseRegion,
+} from "./genome/region";
 export type { GenomicRegion, RegionErrorCode, RegionResult } from "./genome/region";
 
 // Track definition

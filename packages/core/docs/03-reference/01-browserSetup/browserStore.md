@@ -86,15 +86,19 @@ Two browsers mounted with the same browser store both write `isLoading`, so the 
 
 `setRegion(region: GenomicRegion): BrowserRegionMutationResult` validates and commits a region using the store's assembly. It intersects partial overlaps with chromosome bounds, rejects non-overlapping regions, and leaves state unchanged on failure.
 
-For text input, handle parsing errors separately from mutation results. Using the store from Usage:
+For text input, handle parsing errors separately from mutation results. This example reads one-based text typed by a person, using the store from Usage:
 
 ```ts
-import { parseRegion, type GenomicRegion } from "@weng-lab/genomebrowser";
+import {
+  formatDisplayRegion,
+  parseDisplayRegion,
+  type GenomicRegion,
+} from "@weng-lab/genomebrowser";
 
 function goToRegion(input: string) {
   let region: GenomicRegion;
   try {
-    region = parseRegion(input);
+    region = parseDisplayRegion(input);
   } catch (error) {
     console.error(error instanceof Error ? error.message : "Invalid region");
     return;
@@ -104,7 +108,7 @@ function goToRegion(input: string) {
   if (!result.ok) {
     console.error(result.error);
   } else if (result.clamped) {
-    console.info(`Showing ${result.region.chromosome}:${result.region.start}-${result.region.end}`);
+    console.info(`Showing ${formatDisplayRegion(result.region)}`);
   }
 }
 

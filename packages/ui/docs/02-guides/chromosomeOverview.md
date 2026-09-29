@@ -77,7 +77,7 @@ In the [controls tutorial](../01-gettingStarted/01-addBrowserControls.md), impor
 
 The example displays browser-store highlights. An application may instead pass its own array of highlighted regions without adding them to the browser store. The viewport bracket and highlight overlays are independent.
 
-Coordinates are zero-based and half-open. A highlight without a chromosome uses the displayed chromosome. Highlights on another chromosome do not render. Narrow regions receive a visible marker and a wider pointer target; the bracket itself is non-interactive.
+Region objects use zero-based, half-open coordinates; the coordinate tooltip and accessible labels show them one-based, as `formatDisplayRegion` does. A highlight without a chromosome uses the displayed chromosome. Highlights on another chromosome do not render. Narrow regions receive a visible marker and a wider pointer target; the bracket itself is non-interactive.
 
 Supplying `onHighlightClick` makes valid highlights keyboard-focusable and activatable with Enter or Space. Pointer hover shows a coordinate tooltip. To display a label supplied by the application, add this prop to the component:
 

@@ -31,7 +31,7 @@ export function BrowserWithHighlights() {
 }
 ```
 
-The region field accepts the formats supported by `parseRegion`, including `chr12:53,372,922-53,423,700` and `chr12 53372922 53423700`. Coordinates are zero-based and half-open, so the start is included and the end is excluded. The region must fit within the browser store's assembly. Highlight IDs must be unique in that store.
+The region field accepts the formats supported by `parseDisplayRegion`. Positions such as `chr12:53,372,922-53,423,700` or `chr12:53,372,922` are one-based and inclusive, as in the UCSC Genome Browser. Three whitespace-delimited fields such as `chr12 53372921 53423700` are zero-based BED coordinates. Both examples select the same bases. The dialog shows existing highlights in the one-based form, while the browser store keeps zero-based, half-open regions. The region must fit within the browser store's assembly. Highlight IDs must be unique in that store.
 
 **Clear** resets the add form and its validation messages to the default values without changing existing highlights.
 

@@ -12,7 +12,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CloseIcon from "@mui/icons-material/Close";
-import type { BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import { formatDisplayRegion, type BrowserStoreInstance } from "@weng-lab/genomebrowser";
 import { type Result, GenomeSearch } from "@weng-lab/ui-components";
 import { LabeledGroup } from "../LabeledGroup/labeledGroup";
 
@@ -26,7 +26,7 @@ export function RegionControls({ browserStore: useBrowserStore, search }: Region
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState("");
   const displayRef = useRef<HTMLButtonElement>(null);
-  const coordinates = `${region.chromosome}:${region.start.toLocaleString("en-US")}-${region.end.toLocaleString("en-US")}`;
+  const coordinates = formatDisplayRegion(region);
   const span = `${(region.end - region.start).toLocaleString("en-US")} bp`;
   function closeEditor(restoreFocus: boolean) {
     setEditing(false);
@@ -34,7 +34,11 @@ export function RegionControls({ browserStore: useBrowserStore, search }: Region
   }
   function submit(result: Result) {
     if (!result.domain) return;
-    const mutation = useBrowserStore.getState().setRegion(result.domain);
+    const domain =
+      result.type === "Coordinate"
+        ? { ...result.domain, start: result.domain.start - 1 }
+        : result.domain;
+    const mutation = useBrowserStore.getState().setRegion(domain);
     if (!mutation.ok) {
       setMessage(mutation.error);
       return;
@@ -44,7 +48,7 @@ export function RegionControls({ browserStore: useBrowserStore, search }: Region
   }
   async function copy() {
     try {
-      await navigator.clipboard.writeText(`${region.chromosome}:${region.start}-${region.end}`);
+      await navigator.clipboard.writeText(formatDisplayRegion(region, { grouping: false }));
       setMessage("Region copied");
     } catch {
       setMessage("Could not copy. Click the region to edit or select coordinates.");

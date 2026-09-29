@@ -59,7 +59,7 @@ Import `TrackTooltipProps` and `TrackTooltipRow` from `@weng-lab/genomebrowser-t
 
 Use the hovered feature or dataset name as the title. Omit the title when the rows identify the item, and avoid repeating it as a row. Put identity or location first, followed by measurements and metadata. Keep channel order stable as values change. Labels should name the value and include units when needed.
 
-Use [formatSignalValue](formatters.md) for measurements whose missing state should remain visible. It returns "No data" for nullish or non-finite input. For optional BED metadata, use `formatOptionalBedValue` and omit the row when it returns `undefined`. Format other values before passing them in; labels and values must be strings.
+Use [formatSignalValue](formatters.md) for measurements whose missing state should remain visible. It returns "No data" for nullish or non-finite input. For optional BED metadata, use `formatOptionalBedValue` and omit the row when it returns `undefined`. Show locations with `formatGenomicInterval` so they appear as one-based positions, like the rest of the browser. Format other values before passing them in; labels and values must be strings.
 
 An empty `rows` array draws a blank box with a minimum height. Supply a row such as `{ label: "Channels", value: "None enabled" }` when there is nothing to list.
 

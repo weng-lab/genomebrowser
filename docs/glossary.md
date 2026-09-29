@@ -26,7 +26,11 @@ The extra genomic coverage prepared beyond the viewport’s edges, allowing exis
 
 ### Coordinate space
 
-The system used to express positions and sizes. **Genomic coordinates** locate bases, **logical SVG coordinates** position the drawing before UI scale is applied, and **screen pixels** describe its displayed size. Specify the space when discussing widths, pointer movement, or alignment. Genomic regions in this project use zero-based, half-open coordinates.
+The system used to express positions and sizes. **Genomic coordinates** locate bases, **logical SVG coordinates** position the drawing before UI scale is applied, and **screen pixels** describe its displayed size. Specify the space when discussing widths, pointer movement, or alignment.
+
+Inside the browser, genomic regions are zero-based and half-open: `[100, 200)` starts at the 101st base and excludes position 200. Stores, track fetchers, renderers, and interaction callbacks all use this convention. **Display coordinates** are the one-based, inclusive positions people read and type, as in the UCSC Genome Browser, so the same region appears as `chr1:101-200`. Convert only where positions meet people, using `formatDisplayRegion` and `parseDisplayRegion`.
+
+File readers must return zero-based, half-open records whatever convention the format uses. Current readers need no conversion. A reader for a one-based format, such as SAM text, VCF, or GTF, must convert its positions before returning them.
 
 ## Tracks and presentation
 

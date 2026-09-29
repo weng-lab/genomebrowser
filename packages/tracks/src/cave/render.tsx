@@ -88,7 +88,7 @@ function CaveHoverOverlay({
       tooltip.hide();
       return;
     }
-    const x = Math.round(mouseX);
+    const x = Math.floor(mouseX);
     const top = hasBigWigData(topPixel) ? topPixel : undefined;
     const bottom = hasBigWigData(bottomPixel) ? bottomPixel : undefined;
     const item = top || bottom ? { x, top, bottom } : undefined;

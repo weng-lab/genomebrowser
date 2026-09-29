@@ -71,7 +71,7 @@ an array of 2bit records. Sequence is empty outside the bp cutoff and in dense d
 `DynseqItem` is `SignalPoint | DynseqPoint`. `DynseqPoint` has `{ position, score, base }`;
 position is zero-based and base is uppercase. Hover and leave callbacks receive a signal
 point in signal displays and a nucleotide point in sequence view. Check `"base" in item`
-to distinguish them. Tooltips show the signal value or the nucleotide's position and score.
+to distinguish them. Tooltips show the signal value or the nucleotide's one-based position and score.
 
 `DynseqInteraction` types those callbacks. `DynseqDisplay` is `"full" | "dense"`.
 `DynseqCreateInput` and `DynseqConfig` describe creation input and resolved configuration.

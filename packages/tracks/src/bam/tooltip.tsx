@@ -95,7 +95,7 @@ function AlignmentTooltip({ item }: { item: BamRecord }) {
         {
           label: "Mate",
           value: item.mate
-            ? `${item.mate.chromosome}:${item.mate.start < 0 ? "unknown" : item.mate.start.toLocaleString()} (${item.mate.strand}${item.mate.unmapped ? ", unmapped" : ""})`
+            ? `${item.mate.chromosome}:${item.mate.start < 0 ? "unknown" : (item.mate.start + 1).toLocaleString()} (${item.mate.strand}${item.mate.unmapped ? ", unmapped" : ""})`
             : "Unavailable",
         },
         { label: "Template", value: String(item.templateLength) },

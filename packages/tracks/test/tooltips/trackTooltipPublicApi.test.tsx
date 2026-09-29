@@ -35,6 +35,6 @@ describe("public track tooltip authoring API", () => {
 
     expect(formatSignalValue(null)).toBe("No data");
     expect(formatOptionalBedValue(".")).toBeUndefined();
-    expect(formatGenomicInterval(1_000, 2_000, "chr1")).toBe("chr1:1,000–2,000");
+    expect(formatGenomicInterval(1_000, 2_000, "chr1")).toBe("chr1:1,001–2,000");
   });
 });

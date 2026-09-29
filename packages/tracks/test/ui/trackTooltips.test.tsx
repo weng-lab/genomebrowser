@@ -94,7 +94,7 @@ describe("track tooltips", () => {
       />,
     );
 
-    expect(tooltipText()).toEqual(["Location", "chr1:10–20"]);
+    expect(tooltipText()).toEqual(["Location", "chr1:11–20"]);
   });
 
   it("shows genomic reader chromosome coordinates for bulk BigBed tracks", () => {
@@ -114,7 +114,7 @@ describe("track tooltips", () => {
       />,
     );
 
-    expect(tooltipText()).toEqual(["Sample", "Location", "chr2:30–40"]);
+    expect(tooltipText()).toEqual(["Sample", "Location", "chr2:31–40"]);
   });
 
   it("shows both the transcript name and identifier", () => {
@@ -134,7 +134,7 @@ describe("track tooltips", () => {
     expect(tooltipText()).toEqual([
       "GENE1",
       "Location",
-      "chr1:100–180",
+      "chr1:101–180",
       "Strand",
       "+",
       "Transcript Name",
@@ -174,7 +174,7 @@ describe("track tooltips", () => {
       "Part",
       "Intron",
       "Location",
-      "chr1:120–150",
+      "chr1:121–150",
       "Length",
       "30 bp",
       "Transcript Name",
@@ -237,7 +237,7 @@ describe("track tooltips", () => {
       "Part",
       "CDS",
       "Location",
-      "chr1:100–120",
+      "chr1:101–120",
       "Length",
       "20 bp",
       "Supported by",

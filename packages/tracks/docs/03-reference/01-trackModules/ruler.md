@@ -49,7 +49,7 @@ Changing the URL requests sequence again. Highlight color and masking changes up
 
 ## Sequence display and fetching
 
-Ticks adapt to region width and use zero-based coordinates. Each base letter is centered over its half-open genomic region. Letter size follows the available space.
+Ticks adapt to region width and label one-based positions, as in the UCSC Genome Browser. The tick for position 101 sits over the center of the base in the zero-based region `[100, 101)`, the same base the region control shows as `chr1:101-101`. Each base letter is centered over its half-open genomic region, and its accessible label gives its one-based position. Letter size follows the available space.
 
 The host sets `basePairDetail.maxVisibleBases` in `createBrowserStore`, or changes it with `setBasePairDetail`. The default is 100 visible bp, inclusive. Core's `useBasePairDetail()` enables letters at 8 logical SVG units per base and keeps them visible down to 6. Overscan does not affect the gate; resizing uses the actual plot width. Responsive UI scale changes logical width, while fixed sizing scale leaves the gate unchanged.
 

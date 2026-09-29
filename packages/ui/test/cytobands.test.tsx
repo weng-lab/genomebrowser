@@ -300,7 +300,7 @@ describe("Cytobands highlights", () => {
     expect(onPointerEnter.mock.calls[0]?.[0]).toBe(item);
     expect(onPointerEnter.mock.calls[0]?.[1].type).toBe("pointerenter");
     expect(getTooltip().textContent).toBe(
-      `${chromosome}: ${coordinate(item.region.start)}–${coordinate(item.region.end)}`,
+      `${chromosome}:${coordinate(item.region.start + 1)}-${coordinate(item.region.end)}`,
     );
     expect(getTooltip().namespaceURI).toBe("http://www.w3.org/2000/svg");
     const tooltipId = getTooltip().id;
@@ -528,7 +528,7 @@ describe("Cytobands current region", () => {
     let bracket = getCurrentRegionBracket();
     expect(bracket.getAttribute("pointer-events")).toBe("none");
     expect(bracket.getAttribute("role")).toBe("img");
-    expect(bracket.getAttribute("aria-label")).toBe(`Current region ${chromosome}: 10–30`);
+    expect(bracket.getAttribute("aria-label")).toBe(`Current region ${chromosome}:11-30`);
     expect(bracket.closest("svg")?.getAttribute("role")).toBe("group");
     expectBoundaryPoints("left", "23,0 20,0 20,20 23,20");
     expectBoundaryPoints("right", "57,0 60,0 60,20 57,20");

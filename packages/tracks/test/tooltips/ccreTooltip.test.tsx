@@ -37,6 +37,6 @@ describe("cCRE BigBed tooltip", () => {
     expect(markup).toContain("EH38E4064164");
     expect(markup).toContain("Classification");
     expect(markup).toContain("pELS");
-    expect(markup).toContain("chr12:53,322,309–53,322,659");
+    expect(markup).toContain("chr12:53,322,310–53,322,659");
   });
 });

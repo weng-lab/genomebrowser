@@ -1,7 +1,9 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   createAssemblyDefinition,
+  formatDisplayRegion,
   normalizeRegion,
+  parseDisplayRegion,
   parseRegion,
   type GenomicRegion,
   type RegionResult,
@@ -61,6 +63,73 @@ describe("parseRegion", () => {
       start: 0,
       end: Number.POSITIVE_INFINITY,
     });
+  });
+});
+
+describe("display regions", () => {
+  it.each([
+    ["first base", { chromosome: "chr1", start: 0, end: 1 }, "chr1:1-1"],
+    ["one hundred bases", { chromosome: "chr1", start: 100, end: 200 }, "chr1:101-200"],
+    [
+      "grouped digits",
+      { chromosome: "chr12", start: 53372921, end: 53423700 },
+      "chr12:53,372,922-53,423,700",
+    ],
+  ])("round-trips %s through one-based text", (_name, region, text) => {
+    expect(formatDisplayRegion(region)).toBe(text);
+    expect(parseDisplayRegion(text)).toEqual(region);
+  });
+
+  it("formats without digit grouping on request", () => {
+    expect(
+      formatDisplayRegion(
+        { chromosome: "chr12", start: 53372921, end: 53423700 },
+        { grouping: false },
+      ),
+    ).toBe("chr12:53372922-53423700");
+  });
+
+  it.each([
+    ["a single position", "chr1:101"],
+    ["an equal start and end", "chr1:101-101"],
+  ])("selects exactly one base from %s", (_name, input) => {
+    expect(parseDisplayRegion(input)).toEqual({ chromosome: "chr1", start: 100, end: 101 });
+  });
+
+  it("reads three whitespace-delimited fields as zero-based BED coordinates", () => {
+    expect(parseDisplayRegion("chr12\t53372922\t53423700")).toEqual({
+      chromosome: "chr12",
+      start: 53372922,
+      end: 53423700,
+    });
+  });
+
+  it("selects whole chromosomes that normalize without clamping", () => {
+    const assembly = createAssemblyDefinition({ id: "test", chromosomes: { chr1: 100 } });
+    expect(normalizeRegion(parseDisplayRegion("chr1:1-100"), assembly)).toEqual({
+      ok: true,
+      region: { chromosome: "chr1", start: 0, end: 100 },
+      clamped: false,
+    });
+    expect(normalizeRegion(parseDisplayRegion("chr1:100"), assembly)).toMatchObject({
+      ok: true,
+      region: { start: 99, end: 100 },
+    });
+    expect(normalizeRegion(parseDisplayRegion("chr1:101"), assembly)).toMatchObject({
+      ok: false,
+      code: "OUTSIDE_CHROMOSOME",
+    });
+  });
+
+  it.each([
+    ["a zero start", "chr1:0-100", /positions start at 1/],
+    ["a zero position", "chr1:0", /positions start at 1/],
+    ["a reversed interval", "chr1:200-100", /end must not precede start/],
+    ["a signed start", "chr1:-10-20", /expected "chromosome:start-end"/],
+    ["a missing end", "chr1:100-", /expected "chromosome:start-end"/],
+    ["a malformed thousands separator", "chr1:1,00-2,000", /expected "chromosome:start-end"/],
+  ])("rejects %s", (_name, input, message) => {
+    expect(() => parseDisplayRegion(input)).toThrow(message);
   });
 });
 

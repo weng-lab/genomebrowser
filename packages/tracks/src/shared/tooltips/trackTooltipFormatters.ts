@@ -30,8 +30,11 @@ export function formatOptionalBedValue(value: number | string | undefined) {
   return text && text !== "." ? text : undefined;
 }
 
-/** Formats a genomic interval using the package's tooltip coordinate convention. */
+/**
+ * Formats a zero-based, half-open interval as one-based, inclusive positions, as the UCSC Genome
+ * Browser displays them: `[100, 200)` becomes `101–200`.
+ */
 export function formatGenomicInterval(start: number, end: number, chromosome?: string) {
-  const interval = `${coordinateFormatter.format(start)}–${coordinateFormatter.format(end)}`;
+  const interval = `${coordinateFormatter.format(start + 1)}–${coordinateFormatter.format(end)}`;
   return chromosome ? `${chromosome}:${interval}` : interval;
 }

@@ -1,6 +1,6 @@
 # Regions
 
-Use `parseRegion` to read text and `normalizeRegion` to validate a region against an assembly. Both use the same coordinate convention as the browser.
+Use `parseRegion` to read text and `normalizeRegion` to validate a region against an assembly. Both use the same coordinate convention as the browser. For positions that people read or type, use `formatDisplayRegion` and `parseDisplayRegion`, which use one-based coordinates.
 
 ## Coordinates
 
@@ -23,6 +23,25 @@ const fields = parseRegion("  chr12\t53372922\t53423700  ");
 The parser trims surrounding whitespace, permits whitespace around `:` and `-`, and accepts signed integers with optional correctly grouped thousands separators. It preserves sequence-name case. Decimal coordinates, malformed comma groups, extra fields, and mixed syntax throw an `Error`; non-string input also throws.
 
 Parsing checks text structure only. It does not validate safe-integer range, ordering, assembly membership, or bounds, and does not clamp. A successfully parsed region can still be invalid. Pass the result to `normalizeRegion` or the browser store's `setRegion` before using it as a viewport.
+
+## Display regions
+
+People usually read and type genomic positions as one-based and inclusive, as in the UCSC Genome Browser: `chr1:101-200` names 100 bases, and `chr1:1-1` names the first base. The same bases are the zero-based, half-open region `{ chromosome: "chr1", start: 100, end: 200 }`. Only the start differs by one; the end is unchanged.
+
+`formatDisplayRegion(region: GenomicRegion, options?: { grouping?: boolean }): string` formats a region as one-based text. Digits are grouped with commas by default; pass `{ grouping: false }` for text meant to be pasted into other tools.
+
+`parseDisplayRegion(input: string): GenomicRegion` reads one-based text and returns a zero-based, half-open region:
+
+```ts
+import { formatDisplayRegion, parseDisplayRegion } from "@weng-lab/genomebrowser";
+
+parseDisplayRegion("chr1:101-200"); // { chromosome: "chr1", start: 100, end: 200 }
+parseDisplayRegion("chr1:101"); // { chromosome: "chr1", start: 100, end: 101 }
+parseDisplayRegion("chr1 100 200"); // { chromosome: "chr1", start: 100, end: 200 }
+formatDisplayRegion({ chromosome: "chr1", start: 100, end: 200 }); // "chr1:101-200"
+```
+
+A single position or an equal start and end selects one base. Three whitespace-delimited fields are BED coordinates and are read unchanged, as by `parseRegion`. The parser accepts the same whitespace and thousands separators as `parseRegion`, but not signs. A start of 0, an end before the start, and malformed text throw an `Error`. As with `parseRegion`, pass the result to `normalizeRegion` or `setRegion` to check it against an assembly.
 
 ## normalizeRegion
 

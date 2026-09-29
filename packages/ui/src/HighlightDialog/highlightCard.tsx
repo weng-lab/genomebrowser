@@ -6,8 +6,7 @@ import IconButton from "@mui/material/IconButton";
 import Paper from "@mui/material/Paper";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import type { GenomicRegion, Highlight } from "@weng-lab/genomebrowser";
-import { formatRegion } from "./highlightRegion";
+import { formatDisplayRegion, type GenomicRegion, type Highlight } from "@weng-lab/genomebrowser";
 
 type HighlightCardProps = {
   highlight: Highlight;
@@ -46,7 +45,7 @@ export function HighlightCard({
           {highlight.id}
         </Typography>
         <Typography color="text.secondary" variant="caption">
-          {formatRegion(region)} · {highlight.type === "outlined" ? "Outlined" : "Filled"}
+          {formatDisplayRegion(region)} · {highlight.type === "outlined" ? "Outlined" : "Filled"}
         </Typography>
       </Box>
       <Box sx={{ alignItems: "center", display: "flex", flex: "0 0 auto", gap: 0.25 }}>

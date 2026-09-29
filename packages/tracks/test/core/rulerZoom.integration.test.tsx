@@ -61,10 +61,11 @@ it.each([
     expect(ticks.length).toBeGreaterThan(0);
     expect(ticks.length).toBeLessThan(30);
     expect(container.querySelectorAll("svg *").length).toBeLessThan(250);
-    expect(Math.min(...ticks)).toBeGreaterThanOrEqual(next.start - 50);
-    expect(Math.min(...ticks)).toBeLessThan(next.start);
+    // Tick labels are one-based, so the bases [start, end) are labeled start + 1 through end.
+    expect(Math.min(...ticks)).toBeGreaterThan(next.start - 50);
+    expect(Math.min(...ticks)).toBeLessThanOrEqual(next.start);
     expect(Math.max(...ticks)).toBeGreaterThan(next.end);
-    expect(Math.max(...ticks)).toBeLessThan(next.end + 50);
+    expect(Math.max(...ticks)).toBeLessThanOrEqual(next.end + 50);
   } finally {
     await act(async () => root.unmount());
     container.remove();
