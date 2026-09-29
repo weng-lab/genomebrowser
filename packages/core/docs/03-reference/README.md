@@ -41,6 +41,7 @@ Look up an export below to find its documentation. Store methods and module memb
 | `hg38`, `mm10`, `ce11`, `dm6`, `tair10`          | [Built-in assemblies](02-assembliesAndRegions/assemblies.md#built-in-assemblies)             |
 | `GenomicRegion`                                  | [Coordinates](02-assembliesAndRegions/regions.md#coordinates)                                |
 | `parseRegion`                                    | [String parsing](02-assembliesAndRegions/regions.md#parseregion)                             |
+| `formatDisplayRegion`, `parseDisplayRegion`      | [Display regions](02-assembliesAndRegions/regions.md#display-regions)                        |
 | `normalizeRegion`                                | [Region normalization](02-assembliesAndRegions/regions.md#normalizeregion)                   |
 | `RegionResult`, `RegionErrorCode`                | [Normalization results](02-assembliesAndRegions/regions.md#regionresult-and-regionerrorcode) |
 

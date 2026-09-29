@@ -43,7 +43,7 @@ function showRegion() {
 
 A region partly outside the chromosome is clipped to its bounds and returns `clamped: true`. An unknown chromosome or an invalid region is rejected, leaving the view unchanged. A successful result means the region was committed; the resulting track requests may still be loading.
 
-For coordinates supplied as text, `parseRegion` converts a string such as `"chr1:1,010,000-1,025,000"` into the object accepted by `setRegion`. Parsing checks the text format and can throw; `setRegion` performs the assembly validation. The [region reference](../03-reference/02-assembliesAndRegions/regions.md) covers parsing and coordinate rules.
+For coordinates supplied as text, `parseRegion` converts a zero-based string such as `"chr1:1,010,000-1,025,000"` into the object accepted by `setRegion`. For text a person types, use `parseDisplayRegion`, which reads one-based positions such as `"chr1:1,010,001-1,025,000"` for the same bases. Parsing checks the text format and can throw; `setRegion` performs the assembly validation. The [region reference](../03-reference/02-assembliesAndRegions/regions.md) covers parsing and coordinate rules.
 
 ## Zoom in or out
 

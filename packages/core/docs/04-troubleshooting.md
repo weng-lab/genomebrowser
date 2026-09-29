@@ -34,7 +34,7 @@ Settings-dialog callbacks can also return `INTERACTION_BLOCKED` while browser in
 
 The browser store validates regions against its assembly. Coordinates must be safe integers with `start < end`, and the chromosome must match a key in `assembly.chromosomes`. A region partly overlapping a chromosome is accepted with `clamped: true`; a region entirely outside it is rejected.
 
-For text input, `parseRegion` handles syntax and produces an object, then `setRegion` checks that object against the assembly. A successful parse does not prove that the chromosome exists or the region is valid. Both use zero-based, half-open coordinates, and parsing does not subtract one from the start. [Navigate to a region](01-gettingStarted/03-navigationAndSelection.md#navigate-to-a-region) explains how parsing and navigation work together.
+For text input, `parseRegion` handles syntax and produces an object, then `setRegion` checks that object against the assembly. A successful parse does not prove that the chromosome exists or the region is valid. Both use zero-based, half-open coordinates, and `parseRegion` does not subtract one from the start. If the text comes from a person or from the UCSC Genome Browser, use `parseDisplayRegion`, which reads one-based positions. [Navigate to a region](01-gettingStarted/03-navigationAndSelection.md#navigate-to-a-region) explains how parsing and navigation work together.
 
 ## Configuration changes without another request
 
