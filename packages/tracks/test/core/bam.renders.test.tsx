@@ -23,8 +23,9 @@ const records: BamRecord[] = [1100, 1120].map((start, index) => ({
   mate: null,
   templateLength: 0,
 }));
+let readerRecords = records;
 vi.mock("@weng-lab/genomic-reader", () => ({
-  createBamFile: () => ({ read: async () => records }),
+  createBamFile: () => ({ read: async () => readerRecords }),
 }));
 
 let probe: Probe | undefined;
@@ -217,4 +218,90 @@ it("budgets BAM viewport, display, and section changes through the stores", asyn
       "JunctionSection": 0,
     }
   `);
+});
+
+it("budgets clearing a hovered strand removed by minimumSupport while its group remains", async () => {
+  readerRecords = [
+    records[0],
+    { ...records[0], readName: "forward2" },
+    { ...records[0], readName: "reverse", flags: 16, strand: "-" },
+  ];
+  onTestFinished(() => {
+    readerRecords = records;
+    Reflect.deleteProperty(SVGElement.prototype, "getBBox");
+  });
+  const browserStore = createBrowserStore({
+    assembly: { id: "test", chromosomes: { chr1: 10000 } },
+    region: { chromosome: "chr1", start: 1000, end: 1500 },
+    trackWidth: 600,
+  });
+  const trackStore = createTrackStore({
+    modules: [bamModule],
+    tracks: [
+      bamModule.create({
+        base: { id: "bam", title: "BAM", display: "pack" },
+        config: {
+          url: "YOUR_URL_HERE",
+          indexUrl: "YOUR_URL_HERE",
+          junctions: { show: true, minimumSupport: 1 },
+        },
+      }),
+    ],
+  });
+  probe = await renderWithProbe(
+    <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+  );
+  const svg = document.querySelector<SVGSVGElement>("#browserSVG")!;
+  const svgPoint = { x: 0, y: 0, matrixTransform: () => ({ x: svgPoint.x, y: svgPoint.y }) };
+  const matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, inverse: () => matrix };
+  Object.assign(svg, { createSVGPoint: () => svgPoint, getScreenCTM: () => matrix });
+  Object.defineProperty(SVGElement.prototype, "getBBox", {
+    configurable: true,
+    value: () => ({ x: 0, y: 0, width: 120, height: 30 }),
+  });
+  const group = document.querySelector<SVGGElement>("[data-junction-group]")!;
+  group.getScreenCTM = () => matrix as DOMMatrix;
+  const target = group.querySelector('[data-strand="-"] path[pointer-events="stroke"]')!;
+  const [x1, y1, controlX, controlY, x2, y2] = target
+    .getAttribute("d")!
+    .match(/-?[\d.]+/g)!
+    .map(Number);
+  await probe.measure(async () => {
+    target.dispatchEvent(
+      new MouseEvent("mousemove", {
+        bubbles: true,
+        clientX: 0.25 * x1 + 0.5 * controlX + 0.25 * x2,
+        clientY: 0.25 * y1 + 0.5 * controlY + 0.25 * y2,
+      }),
+    );
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  });
+  const overlay = document.querySelector("[data-genomebrowser-tooltip-overlay]");
+  expect(overlay?.textContent).toContain("- (reverse)");
+  expect(overlay?.textContent).toContain("1 alignments");
+
+  // updateTrack excludes the hovered reverse strand, retaining the forward
+  // strand at the same boundaries and therefore the same mounted group.
+  const removal = await probe.measure(() => {
+    trackStore
+      .getState()
+      .updateTrack("bam", { config: { junctions: { show: true, minimumSupport: 2 } } });
+  });
+  expect(document.querySelector("[data-junction-group]")).toBe(group);
+  expect(group.querySelector('[data-strand="-"]')).toBeNull();
+  expect(group.querySelector('[data-strand="+"]')?.getAttribute("data-support")).toBe("2");
+  expect(document.querySelector("[data-genomebrowser-tooltip-overlay]")).toBeNull();
+  // Necessary: configuration redraws the renderer, section, group, and surviving
+  // shape once. The group commits again to clear its removed hover selection.
+  // The memoized surviving shape skips that second commit because its output
+  // is unchanged.
+  expect(removal.pick("BamRenderer", "JunctionSection", "JunctionArcGroup", "JunctionArcShape"))
+    .toMatchInlineSnapshot(`
+      {
+        "BamRenderer": 1,
+        "JunctionArcGroup": 2,
+        "JunctionArcShape": 1,
+        "JunctionSection": 1,
+      }
+    `);
 });

@@ -1,7 +1,7 @@
 import { TrackLabel, useBasePairDetail } from "@weng-lab/genomebrowser";
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import type { BamRecord, TwoBitRecord } from "@weng-lab/genomic-reader";
-import { memo, useRef, useState, type MouseEvent } from "react";
+import { memo, useEffect, useEffectEvent, useRef, useState, type MouseEvent } from "react";
 import { clientXToTrackX, createGenomicXScale } from "../shared/coordinates";
 import { useTrackHeight } from "../shared/layout";
 import { ValueLabels } from "../shared/ValueLabels";
@@ -404,6 +404,17 @@ function JunctionArcGroup({
   const [hovered, setHovered] = useState<BamRecord["strand"]>();
   const hoveredItem = useRef<JunctionArc["junction"] | undefined>(undefined);
   const tooltip = useTooltip<BamTooltipItem, BamConfig>();
+  const clearHover = () => {
+    hoveredItem.current = undefined;
+    setHovered(undefined);
+    tooltip.hide();
+  };
+  const clearRemovedHover = useEffectEvent(clearHover);
+  useEffect(() => {
+    if (hovered !== undefined && !arcs.some((arc) => arc.junction.strand === hovered)) {
+      clearRemovedHover();
+    }
+  }, [arcs, hovered]);
   const handleMouseMove = (event: MouseEvent<SVGGElement>) => {
     const matrix = event.currentTarget.getScreenCTM()?.inverse();
     if (!matrix) return;
@@ -433,11 +444,7 @@ function JunctionArcGroup({
       data-junction-group={`${arcs[0].junction.start}-${arcs[0].junction.end}`}
       onMouseEnter={handleMouseMove}
       onMouseMove={handleMouseMove}
-      onMouseLeave={() => {
-        hoveredItem.current = undefined;
-        setHovered(undefined);
-        tooltip.hide();
-      }}
+      onMouseLeave={clearHover}
     >
       {arcs.map((arc) => (
         <JunctionArcShape
@@ -452,7 +459,7 @@ function JunctionArcGroup({
   );
 }
 
-function JunctionArcShape({
+const JunctionArcShape = memo(function JunctionArcShape({
   arc,
   baseline,
   color,
@@ -500,7 +507,7 @@ function JunctionArcShape({
       )}
     </g>
   );
-}
+});
 
 function AlignmentSection({
   layout,

@@ -669,6 +669,78 @@ describe("BAM sections", () => {
     expect(threshold.querySelectorAll("[data-junction]")).toHaveLength(1);
     expect(threshold.querySelector("[data-junction]")?.getAttribute("data-strand")).toBe("+");
   });
+  it("clears a hovered junction when its strand falls below minimum support", () => {
+    const config = withSections({ junctions: true });
+    const mixed = {
+      ...data,
+      records: [...data.records, { ...spliced, readName: "reverse", strand: "-" as const }],
+    };
+    const element = document.createElement("div");
+    const root = createRoot(element);
+    const Renderer = bamModule.render.pack;
+    const draw = (minimumSupport: number) =>
+      act(() =>
+        root.render(
+          <TestBrowser basePairDetail>
+            <svg>
+              <Renderer
+                {...props}
+                config={{ ...config, junctions: { ...config.junctions, minimumSupport } }}
+                data={mixed}
+              />
+            </svg>
+          </TestBrowser>,
+        ),
+      );
+    try {
+      draw(1);
+      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+      stubJunctionCoordinates(group);
+      const reverse = group.querySelector('[data-strand="-"]')!;
+      const reverseColor = reverse.querySelector("path")!.getAttribute("stroke");
+      act(() =>
+        reverse
+          .querySelector('path[pointer-events="stroke"]')!
+          .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...junctionPoint(reverse) })),
+      );
+      expect(hooks.show).toHaveBeenLastCalledWith(
+        expect.objectContaining({ kind: "junction", strand: "-", support: 1 }),
+        expect.anything(),
+      );
+      expect(reverse.querySelector("path")!.getAttribute("stroke")).not.toBe(reverseColor);
+      hooks.show.mockClear();
+      hooks.hide.mockClear();
+
+      // The forward arc keeps the same group mounted while the pointer stays still.
+      draw(2);
+      expect(element.querySelector("[data-junction-group]")).toBe(group);
+      expect(group.querySelector('[data-strand="-"]')).toBeNull();
+      expect(group.querySelector('[data-strand="+"]')).not.toBeNull();
+      expect(hooks.hide).toHaveBeenCalledTimes(1);
+      expect(hooks.show).not.toHaveBeenCalled();
+
+      // Restoring the strand must not restore its old hover selection.
+      draw(1);
+      expect(group.querySelector('[data-strand="-"] path')!.getAttribute("stroke")).toBe(
+        reverseColor,
+      );
+      expect(hooks.show).not.toHaveBeenCalled();
+
+      draw(2);
+      const forward = group.querySelector('[data-strand="+"]')!;
+      act(() =>
+        forward
+          .querySelector('path[pointer-events="stroke"]')!
+          .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...junctionPoint(forward) })),
+      );
+      expect(hooks.show).toHaveBeenLastCalledWith(
+        expect.objectContaining({ kind: "junction", strand: "+", support: 2 }),
+        expect.anything(),
+      );
+    } finally {
+      act(() => root.unmount());
+    }
+  });
   it.each([10, 23, 100])(
     "selects the nearer coincident junction at height %i regardless of the hit target",
     (height) => {
