@@ -181,7 +181,7 @@ describe("BAM module public contract", () => {
   it.each([5, 10])("does not fetch visible regions at or above the limit %i", async (maxWindow) => {
     const result = await bamModule.fetch(context(resources(), { maxWindow }));
     expect(result.records).toEqual([]);
-    expect(result.message).toContain("Zoom in");
+    expect(result.message).toBe(`Zoom below ${maxWindow} bp to see reads`);
     expect(mocks.createBamFile).not.toHaveBeenCalled();
   });
   it("loads reference independently of letter visibility, caches it, and keeps reads on reference failure", async () => {

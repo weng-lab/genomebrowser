@@ -14,7 +14,7 @@ export async function fetchBam({
     return {
       records: [],
       reference: [],
-      message: "Zoom in to see BAM track",
+      message: `Zoom below ${config.maxWindow.toLocaleString("en-US")} bp to see reads`,
     };
   }
   let cached = resources.get<{ url: string; indexUrl: string; file: BamFile }>("bam-file");

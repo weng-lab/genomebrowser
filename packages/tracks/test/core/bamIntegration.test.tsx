@@ -92,7 +92,7 @@ describe("BAM hosted track", () => {
         });
         if (span >= 50000) {
           expect(readers.read).toHaveBeenCalledTimes(before);
-          expect(container.textContent).toContain("Zoom in to see BAM track");
+          expect(container.textContent).toContain("Zoom below 50,000 bp to see reads");
           expect(container.querySelectorAll("[data-bam-read]")).toHaveLength(0);
         } else {
           expect(readers.read.mock.calls.length).toBeGreaterThan(before);
@@ -250,13 +250,13 @@ it.each(bamModule.displays)(
     await settle(() => {
       browserStore.getState().setRegion({ chromosome: "chr1", start: 100, end: 100100 });
     });
-    label("Zoom in to see BAM track");
+    label("Zoom below 100,000 bp to see reads");
     expect(container.textContent).not.toContain("BAM data unavailable");
     data = { records, reference: [] };
     await settle(() => {
       browserStore.getState().setRegion({ chromosome: "chr1", start: 100, end: 220 });
     });
-    expect(container.textContent).not.toContain("Zoom in");
+    expect(container.textContent).not.toContain("Zoom below");
     expect(container.querySelectorAll("[data-bam-read]").length).toBeGreaterThan(0);
   },
 );

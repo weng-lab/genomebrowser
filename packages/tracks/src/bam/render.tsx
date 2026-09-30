@@ -37,7 +37,10 @@ const SECTION_GAP = 4;
 /** The status line, if any, and whether it replaces every section. */
 function bamStatus(config: BamConfig, data: BamData, visibleRegion: Props["visibleRegion"]) {
   if (visibleRegion.end - visibleRegion.start >= config.maxWindow)
-    return { status: "Zoom in to see BAM track", blocked: true };
+    return {
+      status: `Zoom below ${config.maxWindow.toLocaleString("en-US")} bp to see reads`,
+      blocked: true,
+    };
   if (data.message !== undefined) return { status: data.message, blocked: true };
   if (data.referenceError)
     return {
