@@ -94,15 +94,15 @@ describe("BAM settings", () => {
   });
 });
 
-it("uses explicit strand controls and commits whole alignment groups for host tracks", () => {
+it("uses explicit strand controls and commits whole strand color groups for host tracks", () => {
   const update = setup("host");
   const labels = [...container!.querySelectorAll("label")];
   expect(labels.some((label) => label.textContent?.replace(/\s*\*$/, "").trim() === "Color")).toBe(
     false,
   );
   for (const [name, value, expected] of [
-    ["Forward color", "#123456", { forwardColor: "#123456" }],
-    ["Reverse color", "#654321", { reverseColor: "#654321" }],
+    ["Forward color", "#123456", { forward: "#123456" }],
+    ["Reverse color", "#654321", { reverse: "#654321" }],
   ] as const) {
     const label = labels.find((label) => label.textContent?.replace(/\s*\*$/, "").trim() === name)!;
     const input = document.getElementById(label.htmlFor) as HTMLInputElement;
@@ -113,7 +113,7 @@ it("uses explicit strand controls and commits whole alignment groups for host tr
     });
     act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
     expect(update).toHaveBeenLastCalledWith({
-      config: { alignments: { ...defaults.alignments, ...expected } },
+      config: { strandColors: { ...defaults.strandColors, ...expected } },
     });
   }
 });
@@ -154,6 +154,11 @@ it("shows controls for enabled sections and keeps at least one section visible",
   );
   expect(switchFor("Coverage").disabled).toBe(true);
   expect(container!.textContent).not.toContain("Row height");
+  expect(container!.textContent).toContain("Strand colors");
+  expect(container!.textContent).toContain("Forward color");
+  expect(container!.textContent).toContain("Reverse color");
+  expect(container!.textContent).not.toContain("Coverage color");
+  expect(container!.textContent).not.toContain("Junction color");
   expect(container!.textContent).toContain("Enable Alignments above");
   expect(container!.textContent).not.toContain("Show letters ·");
 });

@@ -10,12 +10,16 @@ const records: BamRecord[] = [1100, 1120].map((start, index) => ({
   start,
   end: start + 100,
   readName: `read${index}`,
-  flags: 0,
-  strand: "+",
+  flags: index === 0 ? 0 : 16,
+  strand: index === 0 ? "+" : "-",
   mappingQuality: 60,
   sequence: "A".repeat(100),
   phredQualities: null,
-  cigar: [{ op: "M", length: 100, sequenceOffset: 0, referenceOffset: 0 }],
+  cigar: [
+    { op: "M", length: 30, sequenceOffset: 0, referenceOffset: 0 },
+    { op: "N", length: 40, sequenceOffset: 30, referenceOffset: 30 },
+    { op: "M", length: 30, sequenceOffset: 30, referenceOffset: 70 },
+  ],
   mate: null,
   templateLength: 0,
 }));
@@ -92,6 +96,38 @@ it("budgets BAM viewport, display, and section changes through the stores", asyn
       "AlignmentGlyph": 2,
       "AlignmentSection": 2,
       "BamRenderer": 2,
+    }
+  `);
+  // Mount both aggregate sections before measuring a palette-only update.
+  await probe.measure(() => {
+    trackStore
+      .getState()
+      .updateTrack("bam", { config: { coverage: { show: true }, junctions: { show: true } } });
+  });
+  // updateTrack changes the shared strand palette. Every visible section and
+  // both read glyphs must redraw once to show the new colors.
+  const palette = await probe.measure(() => {
+    trackStore
+      .getState()
+      .updateTrack("bam", { config: { strandColors: { forward: "#228844", reverse: "#8844cc" } } });
+  });
+  expect(
+    palette.pick(
+      "BamRenderer",
+      "CoverageSection",
+      "JunctionSection",
+      "JunctionArcShape",
+      "AlignmentSection",
+      "AlignmentGlyph",
+    ),
+  ).toMatchInlineSnapshot(`
+    {
+      "AlignmentGlyph": 2,
+      "AlignmentSection": 1,
+      "BamRenderer": 1,
+      "CoverageSection": 1,
+      "JunctionArcShape": 2,
+      "JunctionSection": 1,
     }
   `);
 });

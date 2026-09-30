@@ -32,6 +32,8 @@ export function BamSettings({
 }: TrackSettingsProps<BamConfig, BamRecord>) {
   const config = track.config;
   // Track patches are shallow, so nested groups are sent whole.
+  const updateStrandColors = (strandColors: Partial<BamConfig["strandColors"]>) =>
+    updateTrack({ config: { strandColors: { ...config.strandColors, ...strandColors } } });
   const updateAlignments = (alignments: Partial<BamConfig["alignments"]>) =>
     updateTrack({
       config: { alignments: { ...config.alignments, ...alignments } },
@@ -85,6 +87,20 @@ export function BamSettings({
           )}
         </TrackSettingsFieldRow>
       </TrackSettingsSection>
+      <TrackSettingsSection title="Strand colors">
+        <TrackSettingsFieldRow>
+          <TrackSettingsColorField
+            label="Forward color"
+            value={config.strandColors.forward}
+            onCommit={(forward) => updateStrandColors({ forward })}
+          />
+          <TrackSettingsColorField
+            label="Reverse color"
+            value={config.strandColors.reverse}
+            onCommit={(reverse) => updateStrandColors({ reverse })}
+          />
+        </TrackSettingsFieldRow>
+      </TrackSettingsSection>
       {config.coverage.show && (
         <TrackSettingsSection title="Coverage">
           <TrackSettingsFieldRow>
@@ -94,11 +110,6 @@ export function BamSettings({
               value={config.coverage.height}
               validate={validateSectionHeight}
               onCommit={(height) => updateCoverage({ height })}
-            />
-            <TrackSettingsColorField
-              label="Coverage color"
-              value={config.coverage.color}
-              onCommit={(color) => updateCoverage({ color })}
             />
           </TrackSettingsFieldRow>
           <TrackSettingsFieldRow>
@@ -147,11 +158,6 @@ export function BamSettings({
               value={config.junctions.height}
               validate={validateSectionHeight}
               onCommit={(height) => updateJunctions({ height })}
-            />
-            <TrackSettingsColorField
-              label="Junction color"
-              value={config.junctions.color}
-              onCommit={(color) => updateJunctions({ color })}
             />
           </TrackSettingsFieldRow>
           <TrackSettingsFieldRow>
@@ -204,16 +210,6 @@ export function BamSettings({
               value={config.alignments.rowHeight}
               validate={(value) => (value >= 1 ? undefined : "Enter at least 1 pixel.")}
               onCommit={(rowHeight) => updateAlignments({ rowHeight })}
-            />
-            <TrackSettingsColorField
-              label="Forward color"
-              value={config.alignments.forwardColor}
-              onCommit={(forwardColor) => updateAlignments({ forwardColor })}
-            />
-            <TrackSettingsColorField
-              label="Reverse color"
-              value={config.alignments.reverseColor}
-              onCommit={(reverseColor) => updateAlignments({ reverseColor })}
             />
           </TrackSettingsFieldRow>
           <TrackSettingsFieldRow>

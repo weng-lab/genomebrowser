@@ -54,14 +54,17 @@ describe("BAM module public contract", () => {
   it("defaults omitted and partial groups and replaces nested groups in updates", () => {
     const defaults = bamModule.create(input).config;
     expect(
-      bamModule.create({ ...input, config: { ...input.config, alignments: {}, filters: {} } })
-        .config,
+      bamModule.create({
+        ...input,
+        config: { ...input.config, alignments: {}, filters: {}, strandColors: {} },
+      }).config,
     ).toEqual(defaults);
     const track = bamModule.create({
       ...input,
       config: {
         ...input.config,
         alignments: { rowHeight: 24 },
+        strandColors: { reverse: "#654321" },
         filters: { minimumMappingQuality: 20 },
       },
     });
@@ -69,7 +72,8 @@ describe("BAM module public contract", () => {
     expect(
       store.getState().updateTrack("bam", {
         config: {
-          alignments: { forwardColor: "#123456" },
+          strandColors: { forward: "#123456" },
+          alignments: { maxRows: 50 },
           filters: { includeDuplicates: false },
         },
       }).ok,
@@ -77,7 +81,8 @@ describe("BAM module public contract", () => {
     // Patches are shallow: omitted fields in a supplied group return to their defaults.
     expect(store.getState().getTrack("bam")?.config).toEqual({
       ...defaults,
-      alignments: { ...defaults.alignments, forwardColor: "#123456" },
+      strandColors: { ...defaults.strandColors, forward: "#123456" },
+      alignments: { ...defaults.alignments, maxRows: 50 },
       filters: { ...defaults.filters, includeDuplicates: false },
     });
     expect(
@@ -94,9 +99,8 @@ describe("BAM module public contract", () => {
       config: {
         alignments: {
           rowHeight: 14,
-          forwardColor: "#3366cc",
-          reverseColor: "#cc3333",
         },
+        strandColors: { forward: "#3366cc", reverse: "#cc3333" },
         filters: { minimumMappingQuality: 0, includeDuplicates: true },
         maxWindow: 50000,
       },

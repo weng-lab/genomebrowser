@@ -404,7 +404,7 @@ describe("BAM sections", () => {
   });
   it("scales coverage to the visible region, ignoring overscan", () => {
     const deep = Array.from({ length: 5 }, (_, index) =>
-      read({ start: 80, end: 90, readName: `deep${index}` }),
+      read({ start: 80, end: 90, readName: `deep${index}`, strand: "-" }),
     );
     const config = withSections({ coverage: true });
     const scaleMax = (visibleRegion: typeof props.visibleRegion) =>
@@ -423,6 +423,122 @@ describe("BAM sections", () => {
         ?.getAttribute("data-scale-max"),
     ).toBe("3");
   });
+  it.each(["bars", "line"] as const)(
+    "draws %s coverage on a symmetric strand scale and clips both sides equally",
+    (graph) => {
+      const config = withSections({ coverage: true });
+      config.coverage.graph = graph;
+      const mixed = {
+        records: [read(), read({ readName: "b" }), read({ readName: "reverse", strand: "-" })],
+        reference: [],
+      };
+      const depthYs = (element: HTMLElement, strand: "+" | "-") => {
+        const path = element
+          .querySelector(`[data-bam-section="coverage"] path[data-strand="${strand}"]`)!
+          .getAttribute("d")!;
+        return graph === "bars"
+          ? [...path.matchAll(/V ([\d.]+)/g)].map((match) => Number(match[1]))
+          : [...path.matchAll(/[ML] [\d.]+ ([\d.]+)/g)].map((match) => Number(match[1]));
+      };
+      const auto = markup("pack", mixed, { config, width: 100 });
+      const coverage = auto.querySelector('[data-bam-section="coverage"]')!;
+      expect(coverage.getAttribute("data-scale-max")).toBe("2");
+      expect(coverage.querySelector("line")?.getAttribute("y1")).toBe("30");
+      expect(Math.min(...depthYs(auto, "+"))).toBe(0);
+      expect(Math.max(...depthYs(auto, "-"))).toBe(45);
+      const fixed = markup("pack", mixed, {
+        config: { ...config, coverage: { ...config.coverage, scale: { mode: "fixed", max: 1 } } },
+        width: 100,
+      });
+      expect(Math.min(...depthYs(fixed, "+"))).toBe(0);
+      expect(Math.max(...depthYs(fixed, "-"))).toBe(60);
+      const empty = markup("pack", { records: [], reference: [] }, { config, width: 100 });
+      expect(new Set(depthYs(empty, "+"))).toEqual(new Set([30]));
+      expect(new Set(depthYs(empty, "-"))).toEqual(new Set([30]));
+    },
+  );
+  it("shares strand colors across sections and keeps coincident junction support separate", () => {
+    const config = {
+      ...withSections({ coverage: true, junctions: true, alignments: true }),
+      strandColors: { forward: "#228844", reverse: "#8844cc" },
+    };
+    const reverse = { ...spliced, readName: "reverse", strand: "-" as const };
+    const mixed = { ...data, records: [...data.records, reverse] };
+    const element = markup("pack", mixed, { config });
+    for (const [strand, color, support, name] of [
+      ["+", "#228844", "2", "a"],
+      ["-", "#8844cc", "1", "reverse"],
+    ]) {
+      expect(
+        element
+          .querySelector(`[data-bam-section="coverage"] path[data-strand="${strand}"]`)
+          ?.getAttribute("fill"),
+      ).toBe(color);
+      const junction = element.querySelector(`[data-junction="15-35"][data-strand="${strand}"]`)!;
+      expect(junction.getAttribute("data-support")).toBe(support);
+      expect(junction.querySelector("text")?.textContent).toBe(support);
+      expect(junction.querySelector("path")?.getAttribute("stroke")).toBe(color);
+      expect(
+        element.querySelector(`[data-bam-read="${name}"] [data-cigar="M"]`)?.getAttribute("stroke"),
+      ).toBe(color);
+    }
+    const arcs = [...element.querySelectorAll('[data-junction="15-35"] path:first-child')].map(
+      (path) => path.getAttribute("d"),
+    );
+    expect(new Set(arcs).size).toBe(2);
+    const labels = [...element.querySelectorAll('[data-junction="15-35"] text')].map(
+      (label) => `${label.getAttribute("x")},${label.getAttribute("y")}`,
+    );
+    expect(new Set(labels).size).toBe(2);
+    const threshold = markup("pack", mixed, {
+      config: { ...config, junctions: { ...config.junctions, minimumSupport: 2 } },
+    });
+    expect(threshold.querySelectorAll("[data-junction]")).toHaveLength(1);
+    expect(threshold.querySelector("[data-junction]")?.getAttribute("data-strand")).toBe("+");
+  });
+  it.each([10, 23, 100])(
+    "keeps both coincident junction hover targets reachable at height %i",
+    (height) => {
+      const config = withSections({ junctions: true });
+      config.junctions.height = height;
+      const element = markup(
+        "pack",
+        {
+          ...data,
+          records: [...data.records, { ...spliced, readName: "reverse", strand: "-" }],
+        },
+        { config },
+      );
+      const baseline = Number(
+        element.querySelector('[data-bam-section="junctions"] line')!.getAttribute("y1"),
+      );
+      const arcs = [...element.querySelectorAll('[data-junction="15-35"]')].map((arc) => {
+        const curve = arc.querySelector('path[stroke]:not([stroke="transparent"])')!;
+        const target = arc.querySelector('path[pointer-events="stroke"]')!;
+        expect(target.getAttribute("d")).toBe(curve.getAttribute("d"));
+        const [startX, startY, controlX, controlY, endX, endY] = curve
+          .getAttribute("d")!
+          .match(/-?[\d.]+/g)!
+          .map(Number);
+        expect(startY).toBe(baseline);
+        expect(endY).toBe(baseline);
+        expect(controlX).toBe((startX + endX) / 2);
+        // A quadratic Bezier's center is one quarter of each endpoint plus
+        // half its control point. The paired hit areas must leave each
+        // curve's center reachable even when the section is only 10px tall.
+        const peakY = (startY + 2 * controlY + endY) / 4;
+        expect(peakY).toBeGreaterThanOrEqual(0);
+        expect(peakY).toBeLessThan(baseline);
+        return { peakY, hitRadius: Number(target.getAttribute("stroke-width")) / 2 };
+      });
+      expect(arcs).toHaveLength(2);
+      const distance = Math.abs(arcs[0].peakY - arcs[1].peakY);
+      for (const arc of arcs) {
+        expect(arc.hitRadius).toBeGreaterThan(0);
+        expect(arc.hitRadius).toBeLessThan(distance);
+      }
+    },
+  );
   it("keeps packed reads on their rows while panning and when new data loads", () => {
     const element = document.createElement("div");
     const root = createRoot(element);
@@ -586,29 +702,48 @@ describe("BAM sections", () => {
               <Renderer
                 {...props}
                 config={withSections({ coverage: true, junctions: true })}
-                data={data}
+                data={{
+                  ...data,
+                  records: [...data.records, { ...spliced, strand: "-", readName: "reverse" }],
+                }}
               />
             </svg>
           </TestBrowser>,
         ),
       );
-      const overlay = element.querySelector<SVGRectElement>(
-        '[data-bam-section="coverage"] rect[pointer-events="all"]',
-      )!;
-      overlay.getBoundingClientRect = () => ({ left: 0, width: 1500 }) as DOMRect;
+      const overlays = [
+        ...element.querySelectorAll<SVGRectElement>(
+          '[data-bam-section="coverage"] rect[pointer-events="all"]',
+        ),
+      ];
+      for (const overlay of overlays)
+        overlay.getBoundingClientRect = () => ({ left: 0, width: 1500 }) as DOMRect;
       act(() => {
-        overlay.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 160 }));
-        element
-          .querySelector("[data-junction]")!
-          .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+        for (const overlay of overlays)
+          overlay.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 160 }));
+        for (const strand of ["+", "-"])
+          element
+            .querySelector(`[data-junction][data-strand="${strand}"]`)!
+            .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
       });
       expect(hooks.show.mock.calls[0][0]).toMatchObject({
         kind: "coverage",
+        strand: "+",
         start: 10,
         end: 11,
         max: 2,
       });
-      expect(hooks.show.mock.calls[1][0]).toMatchObject({ kind: "junction", support: 2 });
+      expect(hooks.show.mock.calls[1][0]).toMatchObject({ kind: "coverage", strand: "-", max: 1 });
+      expect(hooks.show.mock.calls[2][0]).toMatchObject({
+        kind: "junction",
+        strand: "+",
+        support: 2,
+      });
+      expect(hooks.show.mock.calls[3][0]).toMatchObject({
+        kind: "junction",
+        strand: "-",
+        support: 1,
+      });
       expect(hooks.hover).not.toHaveBeenCalled();
     } finally {
       act(() => root.unmount());
@@ -621,15 +756,41 @@ describe("BAM sections", () => {
           <BamTooltip item={item} />
         </svg>,
       );
-    const base = { kind: "coverage", chromosome: "chr1", start: 10, mean: 2, max: 2 } as const;
+    const base = {
+      kind: "coverage",
+      strand: "+",
+      chromosome: "chr1",
+      start: 10,
+      mean: 2,
+      max: 2,
+    } as const;
     expect(tooltip({ ...base, end: 11 })).toContain("Depth");
+    expect(tooltip({ ...base, end: 11 })).toContain("+ (forward)");
+    expect(tooltip({ ...base, end: 11, strand: "-" })).toContain("- (reverse)");
+    expect(
+      tooltip({
+        kind: "junction",
+        strand: "-",
+        chromosome: "chr1",
+        start: 15,
+        end: 35,
+        support: 1,
+      }),
+    ).toContain("- (reverse)");
     expect(tooltip({ ...base, end: 11 })).not.toContain("Mean depth");
     const summary = tooltip({ ...base, end: 20, mean: 1.25 });
     expect(summary).toContain("Coverage across 10 bases");
     expect(summary).toContain("Mean depth");
     expect(summary).toContain("1.25");
     expect(
-      tooltip({ kind: "junction", chromosome: "chr1", start: 15, end: 35, support: 2 }),
+      tooltip({
+        kind: "junction",
+        strand: "+",
+        chromosome: "chr1",
+        start: 15,
+        end: 35,
+        support: 2,
+      }),
     ).toContain("2 alignments");
   });
 });

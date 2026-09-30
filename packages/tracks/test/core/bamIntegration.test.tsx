@@ -157,7 +157,8 @@ describe("BAM hosted track", () => {
     await settle(() => {
       useTrackStore.getState().updateTrack("bam", {
         config: {
-          alignments: { reverseColor: "#aa0000", rowHeight: 16 },
+          strandColors: { reverse: "#aa0000" },
+          alignments: { rowHeight: 16 },
           filters: { minimumMappingQuality: 20, includeDuplicates: false },
         },
       });

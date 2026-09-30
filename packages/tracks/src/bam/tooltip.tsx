@@ -34,6 +34,7 @@ function CoverageTooltip({ item }: { item: BamCoverageBin }) {
         title="Coverage"
         rows={[
           { label: "Location", value: location },
+          { label: "Strand", value: item.strand === "+" ? "+ (forward)" : "- (reverse)" },
           { label: "Depth", value: `${item.max.toLocaleString()} alignments` },
         ]}
       />
@@ -43,6 +44,7 @@ function CoverageTooltip({ item }: { item: BamCoverageBin }) {
       title={`Coverage across ${bases.toLocaleString()} bases`}
       rows={[
         { label: "Location", value: location },
+        { label: "Strand", value: item.strand === "+" ? "+ (forward)" : "- (reverse)" },
         { label: "Mean depth", value: depthFormatter.format(item.mean) },
         { label: "Max depth", value: item.max.toLocaleString() },
       ]}
@@ -56,6 +58,7 @@ function JunctionTooltip({ item }: { item: BamJunction }) {
       title="Splice junction"
       rows={[
         { label: "Intron", value: formatGenomicInterval(item.start, item.end, item.chromosome) },
+        { label: "Strand", value: item.strand === "+" ? "+ (forward)" : "- (reverse)" },
         { label: "Span", value: `${(item.end - item.start).toLocaleString()} bp` },
         { label: "Support", value: `${item.support.toLocaleString()} alignments` },
       ]}

@@ -4,6 +4,7 @@ import type { BamConfig } from "./types";
 /** One distinct splice junction and the number of alignments that support it. */
 export type BamJunction = {
   kind: "junction";
+  strand: BamRecord["strand"];
   chromosome: string;
   /** First skipped reference base, zero-based. */
   start: number;
@@ -13,7 +14,7 @@ export type BamJunction = {
 };
 
 /**
- * Tallies CIGAR `N` operations by chromosome and splice boundaries.
+ * Tallies CIGAR `N` operations by chromosome, strand, and splice boundaries.
  *
  * An alignment reaches every junction it contains, so a junction's count is
  * complete whenever any part of it lies in the loaded region.
@@ -25,12 +26,13 @@ export function computeJunctions(records: readonly BamRecord[]): BamJunction[] {
       if (operation.op !== "N" || operation.length === 0) continue;
       const start = record.start + operation.referenceOffset;
       const end = start + operation.length;
-      const key = `${record.chromosome}:${start}:${end}`;
+      const key = `${record.chromosome}:${start}:${end}:${record.strand}`;
       const junction = junctions.get(key);
       if (junction) junction.support++;
       else
         junctions.set(key, {
           kind: "junction",
+          strand: record.strand,
           chromosome: record.chromosome,
           start,
           end,
@@ -42,7 +44,8 @@ export function computeJunctions(records: readonly BamRecord[]): BamJunction[] {
     (left, right) =>
       left.chromosome.localeCompare(right.chromosome) ||
       left.start - right.start ||
-      left.end - right.end,
+      left.end - right.end ||
+      left.strand.localeCompare(right.strand),
   );
 }
 
@@ -65,6 +68,7 @@ export type JunctionArc = {
   controlY: number;
   peakY: number;
   strokeWidth: number;
+  hitStrokeWidth: number;
   label?: { x: number; y: number };
 };
 
@@ -105,18 +109,34 @@ export function layoutJunctionArcs(
     widest = Math.max(widest, pixelSpan(junction));
     peakSupport = Math.max(peakSupport, junction.support);
   }
+  // Separate coincident opposite-strand arcs without changing their baseline.
+  const coincident = new Set<string>();
+  const seen = new Set<string>();
+  for (const junction of junctions) {
+    const key = `${junction.chromosome}:${junction.start}:${junction.end}`;
+    if (seen.has(key)) coincident.add(key);
+    seen.add(key);
+  }
   const arcs = junctions.map((junction): JunctionArc => {
     // Square root keeps short junctions from flattening onto the baseline.
     const share = widest > 0 ? Math.sqrt(pixelSpan(junction) / widest) : 1;
-    const arcHeight = ARC_MIN_HEIGHT + (maxArcHeight - ARC_MIN_HEIGHT) * share;
+    const desiredHeight = ARC_MIN_HEIGHT + (maxArcHeight - ARC_MIN_HEIGHT) * share;
+    const paired = coincident.has(`${junction.chromosome}:${junction.start}:${junction.end}`);
+    const separation = Math.min(14, desiredHeight / 2);
+    const arcHeight =
+      paired && junction.strand === "-" ? desiredHeight - separation : desiredHeight;
+    const strokeWidth =
+      peakSupport > 1 ? 1 + (Math.log(junction.support) / Math.log(peakSupport)) * 4 : 1;
+    const hitStrokeWidth = Math.max(8, strokeWidth + 6);
     return {
       junction,
       x1: x(junction.start),
       x2: x(junction.end),
       controlY: baseline - arcHeight * 2,
       peakY: baseline - arcHeight,
-      strokeWidth:
-        peakSupport > 1 ? 1 + (Math.log(junction.support) / Math.log(peakSupport)) * 4 : 1,
+      strokeWidth,
+      // Keep both coincident curves reachable even in short sections.
+      hitStrokeWidth: paired ? Math.min(hitStrokeWidth, separation) : hitStrokeWidth,
     };
   });
   if (!showCounts) return arcs;

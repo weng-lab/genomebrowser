@@ -53,7 +53,7 @@ describe("BAM coverage", () => {
       ...region,
       end: 8,
     });
-    const perBase = binCoverage(runs, { ...region, end: 8 }, 800);
+    const perBase = binCoverage(runs, { ...region, end: 8 }, 800, "+");
     expect(perBase.map((bin) => [bin.start, bin.end, bin.max])).toEqual([
       [0, 1, 1],
       [1, 2, 1],
@@ -64,7 +64,7 @@ describe("BAM coverage", () => {
       [6, 7, 0],
       [7, 8, 0],
     ]);
-    const summarized = binCoverage(runs, { ...region, end: 8 }, 2);
+    const summarized = binCoverage(runs, { ...region, end: 8 }, 2, "+");
     expect(summarized).toMatchObject([
       { start: 0, end: 4, mean: 1.5, max: 2 },
       { start: 4, end: 8, mean: 0, max: 0 },

@@ -122,6 +122,7 @@ function BamRenderer({
         <CoverageSection
           records={records}
           config={config.coverage}
+          colors={config.strandColors}
           region={region}
           visibleRegion={visibleRegion}
           width={width}
@@ -133,6 +134,7 @@ function BamRenderer({
         <JunctionSection
           records={records}
           config={config.junctions}
+          colors={config.strandColors}
           region={region}
           width={width}
           top={junctionsTop}
@@ -156,6 +158,7 @@ function BamRenderer({
 function CoverageSection({
   records,
   config,
+  colors,
   region,
   visibleRegion,
   width,
@@ -164,16 +167,23 @@ function CoverageSection({
 }: {
   records: BamRecord[];
   config: BamConfig["coverage"];
+  colors: BamConfig["strandColors"];
   region: Props["region"];
   visibleRegion: Props["visibleRegion"];
   width: number;
   top: number;
   trackHeight: number;
 }) {
-  const { height, color, scale, graph, aggregation } = config;
+  const { height, scale, graph, aggregation } = config;
+  const baseline = height / 2;
   const x = createGenomicXScale(region, width);
-  const runs = computeCoverageRuns(records, region);
-  const bins = binCoverage(runs, region, width);
+  const series = (["+", "-"] as const).map((strand) => {
+    const runs = computeCoverageRuns(
+      records.filter((record) => record.strand === strand),
+      region,
+    );
+    return { strand, runs, bins: binCoverage(runs, region, width, strand) };
+  });
   let max = scale.mode === "fixed" ? scale.max : 1;
   if (scale.mode === "auto") {
     // Like BigWig, retain overscan for drawing but bin the viewport separately
@@ -181,38 +191,65 @@ function CoverageSection({
     const regionSpan = region.end - region.start;
     const visibleSpan = visibleRegion.end - visibleRegion.start;
     const visibleWidth = regionSpan > 0 ? width * (visibleSpan / regionSpan) : width;
-    for (const bin of binCoverage(runs, visibleRegion, visibleWidth)) {
-      max = Math.max(max, bin[aggregation]);
+    for (const { runs, strand } of series) {
+      for (const bin of binCoverage(runs, visibleRegion, visibleWidth, strand)) {
+        max = Math.max(max, bin[aggregation]);
+      }
     }
   }
-  const y = (value: number) => roundPixel(height - (Math.min(value, max) / max) * height);
-  let path = "";
-  if (bins.length > 0 && graph === "bars") {
-    path = `M ${roundPixel(x(bins[0].start))} ${height}`;
-    for (const bin of bins) path += ` V ${y(bin[aggregation])} H ${roundPixel(x(bin.end))}`;
-    path += ` V ${height} Z`;
-  } else if (bins.length > 0) {
-    path = bins
-      .map(
-        (bin, index) =>
-          `${index === 0 ? "M" : "L"} ${roundPixel((x(bin.start) + x(bin.end)) / 2)} ${y(bin[aggregation])}`,
-      )
-      .join(" ");
-  }
+  const paths = series.map(({ strand, bins }) => {
+    const direction = strand === "+" ? -1 : 1;
+    const y = (value: number) =>
+      roundPixel(baseline + direction * (Math.min(value, max) / max) * baseline);
+    let path = "";
+    if (bins.length > 0 && graph === "bars") {
+      path = `M ${roundPixel(x(bins[0].start))} ${baseline}`;
+      for (const bin of bins) path += ` V ${y(bin[aggregation])} H ${roundPixel(x(bin.end))}`;
+      path += ` V ${baseline} Z`;
+    } else if (bins.length > 0) {
+      path = bins
+        .map(
+          (bin, index) =>
+            `${index === 0 ? "M" : "L"} ${roundPixel((x(bin.start) + x(bin.end)) / 2)} ${y(bin[aggregation])}`,
+        )
+        .join(" ");
+    }
+    return { strand, path, color: strand === "+" ? colors.forward : colors.reverse };
+  });
   return (
     <g data-bam-section="coverage" data-scale-max={max} transform={`translate(0,${top})`}>
-      <line x1={0} x2={width} y1={height} y2={height} stroke="#dddddd" strokeWidth={1} />
-      {graph === "bars" ? (
-        <path d={path} fill={color} />
-      ) : (
-        <path d={path} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
+      <line x1={0} x2={width} y1={baseline} y2={baseline} stroke="#dddddd" strokeWidth={1} />
+      {paths.map(({ strand, path, color }) =>
+        graph === "bars" ? (
+          <path key={strand} data-strand={strand} d={path} fill={color} />
+        ) : (
+          <path
+            key={strand}
+            data-strand={strand}
+            d={path}
+            fill="none"
+            stroke={color}
+            strokeWidth={1.5}
+            strokeLinejoin="round"
+          />
+        ),
       )}
-      <CoverageHover bins={bins} region={region} width={width} height={height} />
+      {series.map(({ strand, bins }) => (
+        <CoverageHover
+          key={strand}
+          bins={bins}
+          region={region}
+          width={width}
+          height={baseline}
+          top={strand === "+" ? 0 : baseline}
+        />
+      ))}
       <ValueLabels
         height={trackHeight}
         ticks={[
           { value: max, y: top + 7 },
-          { value: 0, y: top + height - 7 },
+          { value: 0, y: top + baseline },
+          { value: max, y: top + height - 7 },
         ]}
       />
     </g>
@@ -222,11 +259,13 @@ function CoverageSection({
 /** Hover state lives here so moving the pointer does not recompute coverage. */
 function CoverageHover({
   bins,
+  top,
   region,
   width,
   height,
 }: {
   bins: BamCoverageBin[];
+  top: number;
   region: Props["region"];
   width: number;
   height: number;
@@ -253,6 +292,7 @@ function CoverageHover({
     <>
       {hovered && (
         <rect
+          y={top}
           x={x(hovered.start)}
           width={Math.max(1, x(hovered.end) - x(hovered.start))}
           height={height}
@@ -262,6 +302,7 @@ function CoverageHover({
         />
       )}
       <rect
+        y={top}
         width={width}
         height={height}
         fill="transparent"
@@ -279,17 +320,19 @@ function CoverageHover({
 function JunctionSection({
   records,
   config,
+  colors,
   region,
   width,
   top,
 }: {
   records: BamRecord[];
   config: BamConfig["junctions"];
+  colors: BamConfig["strandColors"];
   region: Props["region"];
   width: number;
   top: number;
 }) {
-  const { height, color, showCounts } = config;
+  const { height, showCounts } = config;
   const x = createGenomicXScale(region, width);
   const arcs = layoutJunctionArcs(filterJunctions(computeJunctions(records), config), {
     x,
@@ -302,10 +345,10 @@ function JunctionSection({
       <line x1={0} x2={width} y1={height - 1} y2={height - 1} stroke="#dddddd" strokeWidth={1} />
       {arcs.map((arc) => (
         <JunctionArcShape
-          key={`${arc.junction.start}:${arc.junction.end}`}
+          key={`${arc.junction.start}:${arc.junction.end}:${arc.junction.strand}`}
           arc={arc}
           baseline={height - 1}
-          color={color}
+          color={arc.junction.strand === "+" ? colors.forward : colors.reverse}
         />
       ))}
     </g>
@@ -330,6 +373,7 @@ function JunctionArcShape({
     <g
       data-junction={`${junction.start}-${junction.end}`}
       data-support={junction.support}
+      data-strand={junction.strand}
       onMouseEnter={(event) => {
         setHovered(true);
         tooltip.show(junction, event);
@@ -350,7 +394,7 @@ function JunctionArcShape({
         d={d}
         fill="none"
         stroke="transparent"
-        strokeWidth={Math.max(8, arc.strokeWidth + 6)}
+        strokeWidth={arc.hitStrokeWidth}
         pointerEvents="stroke"
       />
       {arc.label && (
@@ -456,9 +500,7 @@ function AlignmentSection({
             width={width}
             rowHeight={rowHeight}
             color={
-              record.strand === "+"
-                ? config.alignments.forwardColor
-                : config.alignments.reverseColor
+              record.strand === "+" ? config.strandColors.forward : config.strandColors.reverse
             }
             showBases={showBases}
           />

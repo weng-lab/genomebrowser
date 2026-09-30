@@ -22,12 +22,16 @@ export const bamConfigSchema = z
         includeDuplicates: z.boolean().default(true),
       })
       .prefault({}),
+    strandColors: z
+      .object({
+        forward: hexColorSchema.default("#3366cc"),
+        reverse: hexColorSchema.default("#cc3333"),
+      })
+      .prefault({}),
     alignments: z
       .object({
         show: z.boolean().default(true),
         rowHeight: rowHeightSchema.default(14),
-        forwardColor: hexColorSchema.default("#3366cc"),
-        reverseColor: hexColorSchema.default("#cc3333"),
         maxRows: z.number().int().min(1).max(10_000).default(100),
       })
       .prefault({}),
@@ -35,7 +39,6 @@ export const bamConfigSchema = z
       .object({
         show: z.boolean().default(true),
         height: sectionHeightSchema.default(60),
-        color: hexColorSchema.default("#808080"),
         scale: bamCoverageScaleSchema.default({ mode: "auto" }),
         graph: z.enum(["bars", "line"]).default("bars"),
         aggregation: z.enum(["mean", "max"]).default("mean"),
@@ -45,7 +48,6 @@ export const bamConfigSchema = z
       .object({
         show: z.boolean().default(false),
         height: sectionHeightSchema.default(100),
-        color: hexColorSchema.default("#808080"),
         minimumSupport: z.number().int().min(1).default(1),
         maximumSpan: z.number().int().min(1).optional(),
         showCounts: z.boolean().default(true),
