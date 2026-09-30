@@ -48,6 +48,7 @@ export function layoutBam(
     const end = Math.min(width, Math.max(start + 1, x(record.end)));
     const glyph: BamGlyph = { key: repeat ? `${id}:${repeat}` : id, record, start, end };
     // Labels always sit to the right so a read's footprint does not change with the viewport.
+    // The renderer fits the inherited font to this reserved width using SVG textLength.
     if (labeled)
       glyph.label = { x: end + 5, end: end + 5 + record.readName.length * fontSize * 0.65 };
     return glyph;
