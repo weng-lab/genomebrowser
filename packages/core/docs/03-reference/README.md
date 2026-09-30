@@ -16,6 +16,8 @@ Look up an export below to find its documentation. Store methods and module memb
 
 ### Browser setup
 
+Image downloads: [`useTrackDownload`, `TrackDownload`, `TrackDownloadOptions`, `TrackImageFormat`](01-browserSetup/useTrackDownload.md#api).
+
 | Exports                                                                             | Reference                                                                                                            |
 | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `GenomeBrowser`, `GenomeBrowserProps`                                               | [GenomeBrowser](01-browserSetup/GenomeBrowser.md)                                                                    |

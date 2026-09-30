@@ -75,7 +75,9 @@ describe("TrackBaseSettings", () => {
     const display = getSelect("Display mode");
     const height = getInput("Height");
     const controls = Array.from(
-      container?.querySelectorAll('input:not(.MuiSelect-nativeInput), [role="combobox"]') ?? [],
+      title
+        .closest("fieldset")
+        ?.querySelectorAll('input:not(.MuiSelect-nativeInput), [role="combobox"]') ?? [],
     );
 
     expect(controls).toEqual([title, color, display, height]);

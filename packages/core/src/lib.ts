@@ -25,6 +25,13 @@ export type { ModuleRegistry } from "./modules/registry";
 export { useGenomeBrowser } from "./browser/state/browserContextState";
 export type { GenomeBrowserStores } from "./browser/state/browserContextState";
 
+export { useTrackDownload } from "./browser/download/useTrackDownload";
+export type {
+  TrackDownload,
+  TrackDownloadOptions,
+  TrackImageFormat,
+} from "./browser/download/useTrackDownload";
+
 // Assemblies and regions
 export { createAssemblyDefinition } from "./genome/assembly";
 export type { AssemblyDefinition } from "./genome/assembly";

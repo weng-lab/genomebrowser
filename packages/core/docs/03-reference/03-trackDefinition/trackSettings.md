@@ -47,7 +47,7 @@ Set `settingsComponent: SignalSettings` in a module whose parsed config matches 
 
 The module supplies the complete form, including base controls. The browser opens the form in a dialog. Check mutation results to explain rejected edits in the form. Keep batch-update callbacks free of side effects because validation can reject the batch.
 
-A module without `settingsComponent` has no settings button. Use native form elements to group custom controls, or the reusable MUI settings controls supplied by the tracks package.
+Every track has a settings button. The download section uses MUI buttons and an unchecked **Include ruler** checkbox; the checkbox requires a displayed ruler. The shared dialog supplies SVG and PNG [image downloads](../01-browserSetup/useTrackDownload.md), even when the module has no `settingsComponent`. Use native form elements to group custom controls, or the reusable MUI settings controls supplied by the tracks package.
 
 ## Mutation behavior
 

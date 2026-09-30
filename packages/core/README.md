@@ -68,7 +68,7 @@ Before writing or changing an integration, read `node_modules/@weng-lab/genomebr
 
 ## Runtime requirements
 
-Genome Browser v2 runs in React 19.2+ client applications. It uses SVG, pointer events, and remote data requests. Responsive sizing also requires `ResizeObserver`. Render it on the client rather than on the server.
+Genome Browser v2 runs in React 19.2+ client applications. Core's settings controls require MUI 7 and Emotion 11, supplied as peer dependencies so they share the host application's theme. It uses SVG, pointer events, and remote data requests. Responsive sizing also requires `ResizeObserver`. Render it on the client rather than on the server.
 
 Coordinate rulers are regular tracks supplied by `@weng-lab/genomebrowser-tracks/ruler`. Add one explicitly if needed. [Region selection modes](docs/01-gettingStarted/03-navigationAndSelection.md#select-a-region-by-dragging) work across the browser independently of the ruler.
 
