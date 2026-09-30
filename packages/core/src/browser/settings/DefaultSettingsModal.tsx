@@ -157,7 +157,6 @@ const modalStyle = {
   background: "#ffffff",
   border: "1px solid #cccccc",
   boxShadow: "0 8px 24px rgba(0, 0, 0, 0.18)",
-  fontFamily: "system-ui, sans-serif",
   fontSize: "14px",
 } as const;
 

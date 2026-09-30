@@ -67,7 +67,7 @@ An empty `rows` array draws a blank box with a minimum height. Supply a row such
 
 Use `titleColor` to match the title swatch to the feature. Set a row's `color` when that color identifies its series in the track. The row receives a tinted label background and a solid leading mark. Text must also identify the series so color is not the only distinction.
 
-Colors must be valid CSS strings. Choose them for readable contrast, and omit colors on ordinary metadata. The module supplies these colors; the active MUI theme supplies typography, background, dividers, shape, and text colors.
+Colors must be valid CSS strings. Choose them for readable contrast, and omit colors on ordinary metadata. The module supplies these colors; the active MUI theme supplies background, dividers, shape, and text colors. Text inherits its font family, weight, and style from the hosting SVG. In `GenomeBrowser`, apply shared font rules to `.genomebrowser` to style the drawing and its tooltip portals together.
 
 ## Accessibility
 

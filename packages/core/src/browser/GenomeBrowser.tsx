@@ -3,6 +3,7 @@ import { BrowserProvider } from "./state/BrowserContext";
 import type { BrowserStoreInstance } from "./state/browserStore";
 import type { TrackStoreInstance } from "./state/trackStore";
 import { useContainerWidth } from "./viewport/useContainerWidth";
+import type { CSSProperties } from "react";
 
 export type GenomeBrowserProps = {
   browserStore: BrowserStoreInstance;
@@ -11,6 +12,8 @@ export type GenomeBrowserProps = {
   sizing?: "responsive" | "fixed";
   /** Magnification of the entire SVG. Must be finite and positive. */
   scale?: number;
+  className?: string;
+  style?: CSSProperties;
 };
 
 export function GenomeBrowser({
@@ -18,6 +21,8 @@ export function GenomeBrowser({
   trackStore,
   sizing = "responsive",
   scale = 1,
+  className,
+  style,
 }: GenomeBrowserProps) {
   const useBrowserStore = browserStore;
   const marginWidth = useBrowserStore((state) => state.marginWidth);
@@ -37,6 +42,7 @@ export function GenomeBrowser({
 
   return (
     <div
+      className={className ? `genomebrowser ${className}` : "genomebrowser"}
       ref={containerRef}
       style={{
         width: sizing === "fixed" ? (marginWidth + configuredTrackWidth) * scale + 2 : "100%",
@@ -46,8 +52,10 @@ export function GenomeBrowser({
         boxSizing: "border-box",
         border: "1px solid #ccc",
         overflowX: "auto",
+        ...style,
       }}
     >
+      <style>{":where(.genomebrowser) { font-family: system-ui, sans-serif; }"}</style>
       {trackWidth !== null && (
         <BrowserProvider
           browserStore={browserStore}

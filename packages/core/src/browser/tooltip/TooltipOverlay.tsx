@@ -51,6 +51,7 @@ export function TooltipOverlay({ width, height }: { width: number; height: numbe
   const { left, top } = getTooltipPlacement(box, anchor, width, height);
   return createPortal(
     <svg
+      className="genomebrowser"
       data-genomebrowser-tooltip-overlay=""
       width={box.width * box.scale}
       height={box.height * box.scale}

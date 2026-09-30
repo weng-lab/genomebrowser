@@ -54,9 +54,7 @@ export function TrackTooltip({ title, titleColor, rows }: TrackTooltipProps) {
               y={1}
               fill={theme.palette.text.primary}
               dominantBaseline="hanging"
-              fontFamily={theme.typography.fontFamily}
               fontSize={12}
-              fontWeight={theme.typography.fontWeightMedium}
             >
               {title}
             </text>
@@ -94,7 +92,6 @@ export function TrackTooltip({ title, titleColor, rows }: TrackTooltipProps) {
                   y={y}
                   fill={theme.palette.text.secondary}
                   dominantBaseline="middle"
-                  fontFamily={theme.typography.fontFamily}
                   fontSize={11}
                 >
                   {row.label}
@@ -104,9 +101,7 @@ export function TrackTooltip({ title, titleColor, rows }: TrackTooltipProps) {
                   y={y}
                   fill={theme.palette.text.primary}
                   dominantBaseline="middle"
-                  fontFamily={theme.typography.fontFamily}
                   fontSize={11}
-                  fontWeight={theme.typography.fontWeightMedium}
                 >
                   {row.value}
                 </text>

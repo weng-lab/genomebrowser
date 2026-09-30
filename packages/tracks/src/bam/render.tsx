@@ -536,7 +536,6 @@ const AlignmentGlyph = memo(function AlignmentGlyph({
           dominantBaseline="central"
           textAnchor="start"
           fontSize={fontSize}
-          fontFamily="monospace"
           fill={darkenBamColor(color)}
         >
           {record.readName}
