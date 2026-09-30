@@ -42,9 +42,20 @@ jobs:
       - name: Install OpenCode
         run: npm install --global @opencode/cli@2.0.16
 
+      - name: Download model catalog
+        run: |
+          curl --fail --silent --show-error --location \
+            --retry 3 --connect-timeout 10 --max-time 60 \
+            https://models.opencode.ai/api.json \
+            -o "$RUNNER_TEMP/opencode-models.json"
+
+          jq --exit-status '.vercel.models["openai/gpt-6.1-sol"]' \
+            "$RUNNER_TEMP/opencode-models.json" > /dev/null
+
       - name: Review PR
         env:
           AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
+          OPENCODE_MODELS_PATH: ${{ runner.temp }}/opencode-models.json
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
