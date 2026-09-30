@@ -82,6 +82,8 @@ Coverage and junction support count alignment records, not unique molecules or f
 
 `base.display` arranges the alignments section only. Hiding the alignments keeps the selected layout for when they are shown again. Names appear when the row height is at least 10 pixels.
 
+Read names inherit the browser's font family, weight, and style. Each name reserves a width based on its character count and font size; SVG fits the text to that width so wide letters do not overlap the next alignment. This can compress wide names or expand narrow names horizontally. Font changes do not remeasure or repack reads.
+
 In squish and pack, a read's row does not depend on the viewport, so reads stay on their rows while panning. When a pan loads new data, reads that remain keep their rows where possible and new reads take the first free row. Zooming, or changing the display, repacks every read. Because rows are not reordered for the viewport, a visible read can sit below rows that are empty in view.
 
 The initial base height is `14`. The renderer replaces it with the sum of the visible sections: the configured coverage and junction heights, plus the alignment rows down to the lowest row with a read in the visible viewport. Overscan reads remain available for panning without increasing that height. An empty alignments section retains one row. Status messages add a 14-pixel line above the sections.

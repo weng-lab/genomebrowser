@@ -66,6 +66,21 @@ The drawing is 800 logical units wide and displays at 1000 CSS pixels. At `scale
 
 Outside React, `useFixedBrowserStore.getState().setTrackWidth(950)` changes the fixed track width. Inside a component, select `state.setTrackWidth` from `useFixedBrowserStore` and call that action from the control's event handler. The width excludes the margin and is expressed in logical SVG units before scale is applied.
 
+### Typography
+
+The browser wrapper and its SVG tooltip portals have the `genomebrowser` class. Ordinary text inherits its font family, weight, and style. The default family is `system-ui, sans-serif`; override it with application CSS:
+
+```css
+.genomebrowser {
+  font-family: Arial, sans-serif;
+  font-weight: 400;
+}
+```
+
+`className` adds a class to the browser wrapper, and `style` sets its inline styles. Tooltip portals are attached to the document body, so wrapper-specific classes, inline styles, and ancestor selectors do not reach them. Use `.genomebrowser` for font rules shared by the drawing and its tooltips.
+
+Renderers retain SVG font-size attributes for their existing layout. CSS rules targeting text, such as `.genomebrowser text { font-size: 12px; }`, override those attributes. Layout does not remeasure or repack in response to font changes, so larger or wider text can overlap or be clipped. Use `scale` to enlarge text and geometry together. [TrackLabel](../04-rendererIntegration/TrackLabel.md) retains monospace text because its background sizing and truncation assume fixed-width characters. Native sequence letters retain monospace defaults and sizes that fit their base positions; sequence glyphs drawn as paths keep their renderer-controlled geometry.
+
 ## API
 
 | Prop           | Type                      | Default        | Description                                                                                                             |
@@ -74,6 +89,8 @@ Outside React, `useFixedBrowserStore.getState().setTrackWidth(950)` changes the 
 | `trackStore`   | `TrackStoreInstance`      | Required       | Stable store for registered modules, tracks, and ordering.                                                              |
 | `sizing`       | `"responsive" \| "fixed"` | `"responsive"` | Follow the wrapper's content width, or use the browser store's configured track width. Can change while mounted.        |
 | `scale`        | `number`                  | `1`            | Finite positive magnification factor for the entire SVG. Invalid values throw a `RangeError`. Can change while mounted. |
+| `className`    | `string`                  | None           | Additional CSS class on the outer `div`, alongside `genomebrowser`.                                                     |
+| `style`        | `CSSProperties`           | None           | Inline styles on the outer `div`, merged after the default wrapper styles.                                              |
 
 `GenomeBrowserProps` is exported from `@weng-lab/genomebrowser`.
 

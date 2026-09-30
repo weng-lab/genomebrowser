@@ -448,6 +448,7 @@ function AlignmentSection({
             start={glyph.start}
             end={glyph.end}
             labelX={glyph.label?.x}
+            labelWidth={glyph.label ? glyph.label.end - glyph.label.x : undefined}
             fontSize={layout.fontSize}
             reference={reference}
             regionStart={region.start}
@@ -479,6 +480,7 @@ const AlignmentGlyph = memo(function AlignmentGlyph({
   start,
   end,
   labelX,
+  labelWidth,
   fontSize,
   reference,
   regionStart,
@@ -495,6 +497,7 @@ const AlignmentGlyph = memo(function AlignmentGlyph({
   start: number;
   end: number;
   labelX: number | undefined;
+  labelWidth: number | undefined;
   fontSize: number;
   reference: TwoBitRecord[];
   regionStart: number;
@@ -536,7 +539,8 @@ const AlignmentGlyph = memo(function AlignmentGlyph({
           dominantBaseline="central"
           textAnchor="start"
           fontSize={fontSize}
-          fontFamily="monospace"
+          textLength={labelWidth}
+          lengthAdjust="spacingAndGlyphs"
           fill={darkenBamColor(color)}
         >
           {record.readName}

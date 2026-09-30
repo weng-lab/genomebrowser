@@ -153,6 +153,9 @@ const menuStyle = {
 } satisfies CSSProperties;
 
 const buttonStyle = {
+  fontFamily: "inherit",
+  fontWeight: "inherit",
+  fontStyle: "inherit",
   display: "block",
   width: "100%",
   padding: "5px",
