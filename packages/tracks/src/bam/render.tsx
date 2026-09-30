@@ -340,15 +340,78 @@ function JunctionSection({
     height,
     showCounts,
   }).filter((arc) => arc.x2 >= 0 && arc.x1 <= width);
+  const groups = new Map<string, JunctionArc[]>();
+  for (const arc of arcs) {
+    const key = `${arc.junction.start}:${arc.junction.end}`;
+    const group = groups.get(key);
+    if (group) group.push(arc);
+    else groups.set(key, [arc]);
+  }
   return (
     <g data-bam-section="junctions" transform={`translate(0,${top})`}>
       <line x1={0} x2={width} y1={height - 1} y2={height - 1} stroke="#dddddd" strokeWidth={1} />
+      {[...groups].map(([key, group]) => (
+        <JunctionArcGroup key={key} arcs={group} baseline={height - 1} colors={colors} />
+      ))}
+    </g>
+  );
+}
+
+/** Coincident arcs share hover ownership so SVG paint order cannot choose the strand. */
+function JunctionArcGroup({
+  arcs,
+  baseline,
+  colors,
+}: {
+  arcs: JunctionArc[];
+  baseline: number;
+  colors: BamConfig["strandColors"];
+}) {
+  const [hovered, setHovered] = useState<BamRecord["strand"]>();
+  const hoveredItem = useRef<JunctionArc["junction"] | undefined>(undefined);
+  const tooltip = useTooltip<BamTooltipItem, BamConfig>();
+  const handleMouseMove = (event: MouseEvent<SVGGElement>) => {
+    const matrix = event.currentTarget.getScreenCTM()?.inverse();
+    if (!matrix) return;
+    const mouseX = matrix.a * event.clientX + matrix.c * event.clientY + matrix.e;
+    const mouseY = matrix.b * event.clientX + matrix.d * event.clientY + matrix.f;
+    let nearest: JunctionArc | undefined;
+    let distance = Infinity;
+    for (const arc of arcs) {
+      const t = Math.max(0, Math.min(1, (mouseX - arc.x1) / (arc.x2 - arc.x1)));
+      const curveY = baseline + 2 * t * (1 - t) * (arc.controlY - baseline);
+      const gap = Math.abs(mouseY - curveY);
+      if (
+        gap < distance - 1e-9 ||
+        (Math.abs(gap - distance) <= 1e-9 && arc.junction.strand === "+")
+      ) {
+        distance = gap;
+        nearest = arc;
+      }
+    }
+    if (!nearest || nearest.junction === hoveredItem.current) return;
+    hoveredItem.current = nearest.junction;
+    setHovered(nearest.junction.strand);
+    tooltip.show(nearest.junction, event);
+  };
+  return (
+    <g
+      data-junction-group={`${arcs[0].junction.start}-${arcs[0].junction.end}`}
+      onMouseEnter={handleMouseMove}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => {
+        hoveredItem.current = undefined;
+        setHovered(undefined);
+        tooltip.hide();
+      }}
+    >
       {arcs.map((arc) => (
         <JunctionArcShape
-          key={`${arc.junction.start}:${arc.junction.end}:${arc.junction.strand}`}
+          key={arc.junction.strand}
           arc={arc}
-          baseline={height - 1}
+          baseline={baseline}
           color={arc.junction.strand === "+" ? colors.forward : colors.reverse}
+          hovered={hovered === arc.junction.strand}
         />
       ))}
     </g>
@@ -359,13 +422,13 @@ function JunctionArcShape({
   arc,
   baseline,
   color,
+  hovered,
 }: {
   arc: JunctionArc;
   baseline: number;
   color: string;
+  hovered: boolean;
 }) {
-  const [hovered, setHovered] = useState(false);
-  const tooltip = useTooltip<BamTooltipItem, BamConfig>();
   const { junction } = arc;
   const d = `M ${arc.x1} ${baseline} Q ${(arc.x1 + arc.x2) / 2} ${arc.controlY} ${arc.x2} ${baseline}`;
   const dark = darkenBamColor(color);
@@ -374,14 +437,6 @@ function JunctionArcShape({
       data-junction={`${junction.start}-${junction.end}`}
       data-support={junction.support}
       data-strand={junction.strand}
-      onMouseEnter={(event) => {
-        setHovered(true);
-        tooltip.show(junction, event);
-      }}
-      onMouseLeave={() => {
-        setHovered(false);
-        tooltip.hide();
-      }}
     >
       <path
         d={d}
@@ -394,7 +449,7 @@ function JunctionArcShape({
         d={d}
         fill="none"
         stroke="transparent"
-        strokeWidth={arc.hitStrokeWidth}
+        strokeWidth={Math.max(8, arc.strokeWidth + 6)}
         pointerEvents="stroke"
       />
       {arc.label && (

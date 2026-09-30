@@ -81,6 +81,22 @@ const rowCount = (element: HTMLElement) =>
       node.getAttribute("data-bam-row"),
     ),
   ).size;
+function junctionPoint(arc: Element, x?: number) {
+  const curve = arc.querySelector('path[stroke]:not([stroke="transparent"])')!;
+  const [x1, y1, controlX, controlY, x2, y2] = curve
+    .getAttribute("d")!
+    .match(/-?[\d.]+/g)!
+    .map(Number);
+  const t = x === undefined ? 0.5 : (x - x1) / (x2 - x1);
+  return {
+    clientX: (1 - t) ** 2 * x1 + 2 * (1 - t) * t * controlX + t ** 2 * x2,
+    clientY: (1 - t) ** 2 * y1 + 2 * (1 - t) * t * controlY + t ** 2 * y2,
+  };
+}
+function stubJunctionCoordinates(group: SVGGElement) {
+  group.getScreenCTM = () =>
+    ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) }) as DOMMatrix;
+}
 describe("BAM displays", () => {
   it("uses the visible span for the exclusive configurable zoom limit in every display", () => {
     const data = { records: [read()], reference: [] };
@@ -497,48 +513,134 @@ describe("BAM sections", () => {
     expect(threshold.querySelector("[data-junction]")?.getAttribute("data-strand")).toBe("+");
   });
   it.each([10, 23, 100])(
-    "keeps both coincident junction hover targets reachable at height %i",
+    "selects the nearer coincident junction at height %i regardless of the hit target",
     (height) => {
       const config = withSections({ junctions: true });
       config.junctions.height = height;
-      const element = markup(
-        "pack",
-        {
-          ...data,
-          records: [...data.records, { ...spliced, readName: "reverse", strand: "-" }],
-        },
-        { config },
-      );
-      const baseline = Number(
-        element.querySelector('[data-bam-section="junctions"] line')!.getAttribute("y1"),
-      );
-      const arcs = [...element.querySelectorAll('[data-junction="15-35"]')].map((arc) => {
-        const curve = arc.querySelector('path[stroke]:not([stroke="transparent"])')!;
-        const target = arc.querySelector('path[pointer-events="stroke"]')!;
-        expect(target.getAttribute("d")).toBe(curve.getAttribute("d"));
-        const [startX, startY, controlX, controlY, endX, endY] = curve
-          .getAttribute("d")!
-          .match(/-?[\d.]+/g)!
-          .map(Number);
-        expect(startY).toBe(baseline);
-        expect(endY).toBe(baseline);
-        expect(controlX).toBe((startX + endX) / 2);
-        // A quadratic Bezier's center is one quarter of each endpoint plus
-        // half its control point. The paired hit areas must leave each
-        // curve's center reachable even when the section is only 10px tall.
-        const peakY = (startY + 2 * controlY + endY) / 4;
-        expect(peakY).toBeGreaterThanOrEqual(0);
-        expect(peakY).toBeLessThan(baseline);
-        return { peakY, hitRadius: Number(target.getAttribute("stroke-width")) / 2 };
-      });
-      expect(arcs).toHaveLength(2);
-      const distance = Math.abs(arcs[0].peakY - arcs[1].peakY);
-      for (const arc of arcs) {
-        expect(arc.hitRadius).toBeGreaterThan(0);
-        expect(arc.hitRadius).toBeLessThan(distance);
+      const element = document.createElement("div");
+      const root = createRoot(element);
+      const Renderer = bamModule.render.pack;
+      const draw = (currentConfig = config) =>
+        act(() =>
+          root.render(
+            <TestBrowser basePairDetail>
+              <svg>
+                <Renderer
+                  {...props}
+                  config={currentConfig}
+                  data={{
+                    ...data,
+                    records: [...data.records, { ...spliced, readName: "reverse", strand: "-" }],
+                  }}
+                />
+              </svg>
+            </TestBrowser>,
+          ),
+        );
+      try {
+        draw();
+        const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+        stubJunctionCoordinates(group);
+        for (const strand of ["+", "-"]) {
+          const arc = group.querySelector(`[data-strand="${strand}"]`)!;
+          // Either overlapping hit path can receive the event. Its strand must
+          // not override the curve nearest the actual pointer coordinates.
+          const other = group.querySelector(
+            `[data-strand="${strand === "+" ? "-" : "+"}"] path[pointer-events="stroke"]`,
+          )!;
+          act(() =>
+            other.dispatchEvent(
+              new MouseEvent("mousemove", {
+                bubbles: true,
+                ...junctionPoint(arc),
+              }),
+            ),
+          );
+          expect(hooks.show).toHaveBeenLastCalledWith(
+            expect.objectContaining({ kind: "junction", strand, support: strand === "+" ? 2 : 1 }),
+            expect.anything(),
+          );
+        }
+        // Rebuilding the arc geometry on a palette update must retain the
+        // stationary pointer's chosen strand highlight.
+        const palette = { ...config, strandColors: { ...config.strandColors, reverse: "#3366cc" } };
+        draw(palette);
+        const reversePath = group.querySelector('[data-strand="-"] path')!;
+        expect(reversePath.getAttribute("stroke")).toBe("#1f3d7a");
+        act(() => group.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+        expect(hooks.hide).toHaveBeenCalled();
+      } finally {
+        act(() => root.unmount());
       }
     },
   );
+  it("selects visible curves whose peaks are offscreen and prefers forward at the shared endpoint", () => {
+    const element = document.createElement("div");
+    const root = createRoot(element);
+    const Renderer = bamModule.render.pack;
+    const long = read({
+      start: 0,
+      end: 10010,
+      cigar: [
+        { op: "M", length: 5, sequenceOffset: 0, referenceOffset: 0 },
+        { op: "N", length: 10000, sequenceOffset: 5, referenceOffset: 5 },
+        { op: "M", length: 5, sequenceOffset: 5, referenceOffset: 10005 },
+      ],
+    });
+    const region = { chromosome: "chr1", start: 5, end: 105 };
+    try {
+      act(() =>
+        root.render(
+          <TestBrowser basePairDetail>
+            <svg>
+              <Renderer
+                {...props}
+                region={region}
+                visibleRegion={region}
+                width={1000}
+                config={withSections({ junctions: true })}
+                data={{
+                  records: [long, { ...long, readName: "reverse", strand: "-" }],
+                  reference: [],
+                }}
+              />
+            </svg>
+          </TestBrowser>,
+        ),
+      );
+      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+      stubJunctionCoordinates(group);
+      const forward = group.querySelector('[data-strand="+"]')!;
+      const reverse = group.querySelector('[data-strand="-"]')!;
+      const forwardPoint = junctionPoint(forward, 500);
+      const reversePoint = junctionPoint(reverse, 500);
+      // Their peaks are far outside the viewport; at the visible midpoint
+      // these curves are less than one pixel apart and their hit areas overlap.
+      expect(Math.abs(forwardPoint.clientY - reversePoint.clientY)).toBeLessThan(1);
+      for (const [arc, point, strand] of [
+        [reverse, forwardPoint, "+"],
+        [forward, reversePoint, "-"],
+        [
+          reverse,
+          { clientX: 500, clientY: (forwardPoint.clientY + reversePoint.clientY) / 2 },
+          "+",
+        ],
+        [reverse, { clientX: 0, clientY: 99 }, "+"],
+      ] as const) {
+        act(() =>
+          arc
+            .querySelector('path[pointer-events="stroke"]')!
+            .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point })),
+        );
+        expect(hooks.show).toHaveBeenLastCalledWith(
+          expect.objectContaining({ kind: "junction", strand, support: 1 }),
+          expect.anything(),
+        );
+      }
+    } finally {
+      act(() => root.unmount());
+    }
+  });
   it("keeps packed reads on their rows while panning and when new data loads", () => {
     const element = document.createElement("div");
     const root = createRoot(element);
@@ -721,11 +823,25 @@ describe("BAM sections", () => {
       act(() => {
         for (const overlay of overlays)
           overlay.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 160 }));
-        for (const strand of ["+", "-"])
-          element
-            .querySelector(`[data-junction][data-strand="${strand}"]`)!
-            .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
       });
+      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+      // The junction section starts below the coverage section. The inverse
+      // screen transform converts pointer coordinates into its local space.
+      group.getScreenCTM = () =>
+        ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: -64 }) }) as DOMMatrix;
+      for (const strand of ["+", "-"]) {
+        const arc = group.querySelector(`[data-strand="${strand}"]`)!;
+        const point = junctionPoint(arc);
+        act(() =>
+          arc.querySelector('path[pointer-events="stroke"]')!.dispatchEvent(
+            new MouseEvent("mousemove", {
+              bubbles: true,
+              clientX: point.clientX,
+              clientY: point.clientY + 64,
+            }),
+          ),
+        );
+      }
       expect(hooks.show.mock.calls[0][0]).toMatchObject({
         kind: "coverage",
         strand: "+",

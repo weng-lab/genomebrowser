@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, expect, it, onTestFinished, vi } from "vitest";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { GenomeBrowser, createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
 import { bamModule, type BamRecord } from "@weng-lab/genomebrowser-tracks/bam";
@@ -116,6 +116,7 @@ it("budgets BAM viewport, display, and section changes through the stores", asyn
       "BamRenderer",
       "CoverageSection",
       "JunctionSection",
+      "JunctionArcGroup",
       "JunctionArcShape",
       "AlignmentSection",
       "AlignmentGlyph",
@@ -126,8 +127,70 @@ it("budgets BAM viewport, display, and section changes through the stores", asyn
       "AlignmentSection": 1,
       "BamRenderer": 1,
       "CoverageSection": 1,
+      "JunctionArcGroup": 2,
       "JunctionArcShape": 2,
       "JunctionSection": 1,
+    }
+  `);
+
+  // Hover changes only the chosen junction group's highlight and tooltip.
+  // Pointer movement along the same curve should not redraw any BAM section.
+  const svg = document.querySelector<SVGSVGElement>("#browserSVG")!;
+  const svgPoint = { x: 0, y: 0, matrixTransform: () => ({ x: svgPoint.x, y: svgPoint.y }) };
+  const matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, inverse: () => matrix };
+  Object.assign(svg, { createSVGPoint: () => svgPoint, getScreenCTM: () => matrix });
+  Object.defineProperty(SVGElement.prototype, "getBBox", {
+    configurable: true,
+    value: () => ({ x: 0, y: 0, width: 120, height: 30 }),
+  });
+  onTestFinished(() => {
+    Reflect.deleteProperty(SVGElement.prototype, "getBBox");
+  });
+  const group = document.querySelector<SVGGElement>("[data-junction-group]")!;
+  group.getScreenCTM = () =>
+    ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) }) as DOMMatrix;
+  const target = group.querySelector('path[pointer-events="stroke"]')!;
+  const [x1, y1, controlX, controlY, x2, y2] = target
+    .getAttribute("d")!
+    .match(/-?[\d.]+/g)!
+    .map(Number);
+  const point = (t: number) => ({
+    clientX: (1 - t) ** 2 * x1 + 2 * (1 - t) * t * controlX + t ** 2 * x2,
+    clientY: (1 - t) ** 2 * y1 + 2 * (1 - t) * t * controlY + t ** 2 * y2,
+  });
+  const names = ["BamRenderer", "JunctionSection", "JunctionArcGroup", "JunctionArcShape"];
+  const hover = await probe.measure(async () => {
+    target.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point(0.5) }));
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  });
+  expect(hover.pick(...names)).toMatchInlineSnapshot(`
+    {
+      "BamRenderer": 0,
+      "JunctionArcGroup": 1,
+      "JunctionArcShape": 1,
+      "JunctionSection": 0,
+    }
+  `);
+  const move = await probe.measure(() =>
+    target.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point(0.6) })),
+  );
+  expect(move.pick(...names)).toMatchInlineSnapshot(`
+    {
+      "BamRenderer": 0,
+      "JunctionArcGroup": 0,
+      "JunctionArcShape": 0,
+      "JunctionSection": 0,
+    }
+  `);
+  const leave = await probe.measure(() =>
+    group.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })),
+  );
+  expect(leave.pick(...names)).toMatchInlineSnapshot(`
+    {
+      "BamRenderer": 0,
+      "JunctionArcGroup": 1,
+      "JunctionArcShape": 1,
+      "JunctionSection": 0,
     }
   `);
 });

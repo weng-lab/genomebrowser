@@ -68,7 +68,6 @@ export type JunctionArc = {
   controlY: number;
   peakY: number;
   strokeWidth: number;
-  hitStrokeWidth: number;
   label?: { x: number; y: number };
 };
 
@@ -127,7 +126,6 @@ export function layoutJunctionArcs(
       paired && junction.strand === "-" ? desiredHeight - separation : desiredHeight;
     const strokeWidth =
       peakSupport > 1 ? 1 + (Math.log(junction.support) / Math.log(peakSupport)) * 4 : 1;
-    const hitStrokeWidth = Math.max(8, strokeWidth + 6);
     return {
       junction,
       x1: x(junction.start),
@@ -135,8 +133,6 @@ export function layoutJunctionArcs(
       controlY: baseline - arcHeight * 2,
       peakY: baseline - arcHeight,
       strokeWidth,
-      // Keep both coincident curves reachable even in short sections.
-      hitStrokeWidth: paired ? Math.min(hitStrokeWidth, separation) : hitStrokeWidth,
     };
   });
   if (!showCounts) return arcs;
