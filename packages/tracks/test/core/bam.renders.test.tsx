@@ -133,6 +133,30 @@ it("budgets BAM viewport, display, and section changes through the stores", asyn
     }
   `);
 
+  // updateTrack fixes the coverage scale and changes clamp visibility. Coverage
+  // must redraw; unchanged alignment glyphs still bail out. Section parents
+  // currently redraw once when any track config changes.
+  const coverageLimits = await probe.measure(() => {
+    trackStore.getState().updateTrack("bam", {
+      config: {
+        coverage: {
+          scale: { mode: "fixed", forwardMax: 0.5, reverseMax: 0.5 },
+          showClampIndicators: false,
+        },
+      },
+    });
+  });
+  expect(
+    coverageLimits.pick("BamRenderer", "CoverageSection", "AlignmentSection", "AlignmentGlyph"),
+  ).toMatchInlineSnapshot(`
+    {
+      "AlignmentGlyph": 0,
+      "AlignmentSection": 1,
+      "BamRenderer": 1,
+      "CoverageSection": 1,
+    }
+  `);
+
   // Hover changes only the chosen junction group's highlight and tooltip.
   // Pointer movement along the same curve should not redraw any BAM section.
   const svg = document.querySelector<SVGSVGElement>("#browserSVG")!;

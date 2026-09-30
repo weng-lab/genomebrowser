@@ -184,8 +184,8 @@ function CoverageSection({
     );
     return { strand, runs, bins: binCoverage(runs, region, width, strand) };
   });
-  let max = scale.mode === "fixed" ? scale.max : 1;
-  if (scale.mode === "auto") {
+  let autoMax = 1;
+  if (scale.mode === "auto" || scale.forwardMax === undefined || scale.reverseMax === undefined) {
     // Like BigWig, retain overscan for drawing but bin the viewport separately
     // for scaling. A render bin can contain a peak just outside the viewport.
     const regionSpan = region.end - region.start;
@@ -193,11 +193,14 @@ function CoverageSection({
     const visibleWidth = regionSpan > 0 ? width * (visibleSpan / regionSpan) : width;
     for (const { runs, strand } of series) {
       for (const bin of binCoverage(runs, visibleRegion, visibleWidth, strand)) {
-        max = Math.max(max, bin[aggregation]);
+        autoMax = Math.max(autoMax, bin[aggregation]);
       }
     }
   }
+  const forwardMax = scale.mode === "fixed" ? (scale.forwardMax ?? autoMax) : autoMax;
+  const reverseMax = scale.mode === "fixed" ? (scale.reverseMax ?? autoMax) : autoMax;
   const paths = series.map(({ strand, bins }) => {
+    const max = strand === "+" ? forwardMax : reverseMax;
     const direction = strand === "+" ? -1 : 1;
     const y = (value: number) =>
       roundPixel(baseline + direction * (Math.min(value, max) / max) * baseline);
@@ -214,10 +217,23 @@ function CoverageSection({
         )
         .join(" ");
     }
-    return { strand, path, color: strand === "+" ? colors.forward : colors.reverse };
+    const edge = strand === "+" ? 0 : height;
+    const clampPath = bins
+      .filter((bin) => bin[aggregation] > max)
+      .map(
+        (bin) =>
+          `M ${roundPixel((x(bin.start) + x(bin.end)) / 2)} ${edge} l 0 ${strand === "+" ? 2 : -2}`,
+      )
+      .join(" ");
+    return { strand, path, clampPath, color: strand === "+" ? colors.forward : colors.reverse };
   });
   return (
-    <g data-bam-section="coverage" data-scale-max={max} transform={`translate(0,${top})`}>
+    <g
+      data-bam-section="coverage"
+      data-scale-forward-max={forwardMax}
+      data-scale-reverse-max={reverseMax}
+      transform={`translate(0,${top})`}
+    >
       <line x1={0} x2={width} y1={baseline} y2={baseline} stroke="#dddddd" strokeWidth={1} />
       {paths.map(({ strand, path, color }) =>
         graph === "bars" ? (
@@ -234,6 +250,21 @@ function CoverageSection({
           />
         ),
       )}
+      {config.showClampIndicators &&
+        paths.map(({ strand, clampPath }) =>
+          clampPath ? (
+            <path
+              key={strand}
+              data-bam-clamp="true"
+              data-strand={strand}
+              d={clampPath}
+              stroke={config.clampIndicatorColor}
+              strokeWidth={1}
+              fill="none"
+              pointerEvents="none"
+            />
+          ) : null,
+        )}
       {series.map(({ strand, bins }) => (
         <CoverageHover
           key={strand}
@@ -247,9 +278,9 @@ function CoverageSection({
       <ValueLabels
         height={trackHeight}
         ticks={[
-          { value: max, y: top + 7 },
+          { value: forwardMax, y: top + 7 },
           { value: 0, y: top + baseline },
-          { value: max, y: top + height - 7 },
+          { value: reverseMax, y: top + height - 7 },
         ]}
       />
     </g>

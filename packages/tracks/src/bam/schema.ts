@@ -7,7 +7,15 @@ const sectionHeightSchema = z.number().int().min(10).max(1000);
 
 export const bamCoverageScaleSchema = z.discriminatedUnion("mode", [
   z.object({ mode: z.literal("auto") }),
-  z.object({ mode: z.literal("fixed"), max: z.number().finite().positive() }),
+  z
+    .object({
+      mode: z.literal("fixed"),
+      forwardMax: z.number().finite().positive().optional(),
+      reverseMax: z.number().finite().positive().optional(),
+    })
+    .refine((scale) => scale.forwardMax !== undefined || scale.reverseMax !== undefined, {
+      message: "Set at least one coverage maximum",
+    }),
 ]);
 
 export const bamConfigSchema = z
@@ -42,6 +50,8 @@ export const bamConfigSchema = z
         scale: bamCoverageScaleSchema.default({ mode: "auto" }),
         graph: z.enum(["bars", "line"]).default("bars"),
         aggregation: z.enum(["mean", "max"]).default("mean"),
+        showClampIndicators: z.boolean().default(true),
+        clampIndicatorColor: hexColorSchema.default("#ff0000"),
       })
       .prefault({}),
     junctions: z

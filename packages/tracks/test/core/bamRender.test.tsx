@@ -426,17 +426,20 @@ describe("BAM sections", () => {
     const scaleMax = (visibleRegion: typeof props.visibleRegion) =>
       markup("pack", { records: [read(), ...deep], reference: [] }, { config, visibleRegion })
         .querySelector('[data-bam-section="coverage"]')
-        ?.getAttribute("data-scale-max");
+        ?.getAttribute("data-scale-forward-max");
     expect(scaleMax({ chromosome: "chr1", start: 0, end: 50 })).toBe("1");
     expect(scaleMax({ chromosome: "chr1", start: 0, end: 100 })).toBe("5");
     const fixed = {
       ...config,
-      coverage: { ...config.coverage, scale: { mode: "fixed" as const, max: 3 } },
+      coverage: {
+        ...config.coverage,
+        scale: { mode: "fixed" as const, forwardMax: 3, reverseMax: 3 },
+      },
     };
     expect(
       markup("pack", { records: deep, reference: [] }, { config: fixed })
         .querySelector('[data-bam-section="coverage"]')
-        ?.getAttribute("data-scale-max"),
+        ?.getAttribute("data-scale-forward-max"),
     ).toBe("3");
   });
   it.each(["bars", "line"] as const)(
@@ -458,12 +461,15 @@ describe("BAM sections", () => {
       };
       const auto = markup("pack", mixed, { config, width: 100 });
       const coverage = auto.querySelector('[data-bam-section="coverage"]')!;
-      expect(coverage.getAttribute("data-scale-max")).toBe("2");
+      expect(coverage.getAttribute("data-scale-forward-max")).toBe("2");
       expect(coverage.querySelector("line")?.getAttribute("y1")).toBe("30");
       expect(Math.min(...depthYs(auto, "+"))).toBe(0);
       expect(Math.max(...depthYs(auto, "-"))).toBe(45);
       const fixed = markup("pack", mixed, {
-        config: { ...config, coverage: { ...config.coverage, scale: { mode: "fixed", max: 1 } } },
+        config: {
+          ...config,
+          coverage: { ...config.coverage, scale: { mode: "fixed", forwardMax: 1, reverseMax: 1 } },
+        },
         width: 100,
       });
       expect(Math.min(...depthYs(fixed, "+"))).toBe(0);
@@ -473,6 +479,157 @@ describe("BAM sections", () => {
       expect(new Set(depthYs(empty, "-"))).toEqual(new Set([30]));
     },
   );
+  it.each(["bars", "line"] as const)(
+    "marks only overflowing %s coverage bins at both strand limits",
+    (graph) => {
+      const config = withSections({ coverage: true });
+      const mixed = {
+        records: [
+          read(),
+          read({ readName: "forward2" }),
+          read({ readName: "reverse1", strand: "-" }),
+          read({ readName: "reverse2", strand: "-" }),
+          read({ readName: "atLimit", start: 30, end: 40 }),
+        ],
+        reference: [],
+      };
+      const fixed = {
+        ...config,
+        coverage: {
+          ...config.coverage,
+          graph,
+          height: 80,
+          scale: { mode: "fixed" as const, forwardMax: 1, reverseMax: 1 },
+        },
+      };
+      const result = markup("pack", mixed, { config: fixed, width: 100 });
+      expect(result.querySelectorAll('[data-bam-clamp="true"]')).toHaveLength(2);
+      for (const [strand, edge, inward] of [
+        ["+", 0, 2],
+        ["-", 80, 78],
+      ] as const) {
+        const indicator = result.querySelector(
+          `path[data-bam-clamp="true"][data-strand="${strand}"]`,
+        )!;
+        expect(indicator.getAttribute("stroke")).toBe("#ff0000");
+        const ticks = [
+          ...indicator.getAttribute("d")!.matchAll(/M\s*([\d.]+)\s+([\d.]+)\s*l\s*0\s+(-?[\d.]+)/g),
+        ].map((match) => [Number(match[1]), Number(match[2]), Number(match[2]) + Number(match[3])]);
+        expect(ticks).toEqual(
+          Array.from({ length: 10 }, (_, index) => [10.5 + index, edge, inward]),
+        );
+      }
+      expect(
+        markup("pack", mixed, { config, width: 100 }).querySelector('[data-bam-clamp="true"]'),
+      ).toBeNull();
+      const hidden = { ...fixed, coverage: { ...fixed.coverage, showClampIndicators: false } };
+      expect(
+        markup("pack", mixed, { config: hidden, width: 100 }).querySelector(
+          '[data-bam-clamp="true"]',
+        ),
+      ).toBeNull();
+      const custom = { ...fixed, coverage: { ...fixed.coverage, clampIndicatorColor: "#123456" } };
+      const customIndicators = markup("pack", mixed, {
+        config: custom,
+        width: 100,
+      }).querySelectorAll('[data-bam-clamp="true"]');
+      expect([...customIndicators].map((indicator) => indicator.getAttribute("stroke"))).toEqual([
+        "#123456",
+        "#123456",
+      ]);
+    },
+  );
+  it.each(["bars", "line"] as const)("scales %s coverage independently by strand", (graph) => {
+    const config = withSections({ coverage: true });
+    const mixed = {
+      records: [
+        read(),
+        read({ readName: "forward2" }),
+        read({ readName: "reverse1", strand: "-" }),
+        read({ readName: "reverse2", strand: "-" }),
+      ],
+      reference: [],
+    };
+    const draw = (reverseMax?: number) =>
+      markup("pack", mixed, {
+        width: 100,
+        config: {
+          ...config,
+          coverage: {
+            ...config.coverage,
+            graph,
+            scale: {
+              mode: "fixed",
+              forwardMax: 1,
+              ...(reverseMax === undefined ? {} : { reverseMax }),
+            },
+          },
+        },
+      });
+    const result = draw(4);
+    const coverage = result.querySelector('[data-bam-section="coverage"]')!;
+    expect(coverage.getAttribute("data-scale-forward-max")).toBe("1");
+    expect(coverage.getAttribute("data-scale-reverse-max")).toBe("4");
+    const depths = (strand: "+" | "-") => {
+      const path = coverage
+        .querySelector(`path[data-strand="${strand}"]:not([data-bam-clamp])`)!
+        .getAttribute("d")!;
+      return graph === "bars"
+        ? [...path.matchAll(/V ([\d.]+)/g)].map((match) => Number(match[1]))
+        : [...path.matchAll(/[ML] [\d.]+ ([\d.]+)/g)].map((match) => Number(match[1]));
+    };
+    expect(Math.min(...depths("+"))).toBe(0);
+    expect(Math.max(...depths("-"))).toBe(45);
+    expect(coverage.querySelectorAll('[data-bam-clamp="true"]')).toHaveLength(1);
+    expect(coverage.querySelector('[data-bam-clamp="true"]')?.getAttribute("data-strand")).toBe(
+      "+",
+    );
+    const automaticReverse = draw().querySelector('[data-bam-section="coverage"]')!;
+    expect(automaticReverse.getAttribute("data-scale-forward-max")).toBe("1");
+    expect(automaticReverse.getAttribute("data-scale-reverse-max")).toBe("2");
+    expect(automaticReverse.querySelector('[data-bam-clamp="true"][data-strand="-"]')).toBeNull();
+  });
+  it("uses the selected coverage summary when deciding whether a bin is clamped", () => {
+    const config = withSections({ coverage: true });
+    const summarized = {
+      records: [
+        read({
+          start: 10,
+          end: 15,
+          cigar: [{ op: "M" as const, length: 5, sequenceOffset: 0, referenceOffset: 0 }],
+        }),
+        read({
+          readName: "peak",
+          start: 10,
+          end: 15,
+          cigar: [{ op: "M" as const, length: 5, sequenceOffset: 0, referenceOffset: 0 }],
+        }),
+      ],
+      reference: [],
+    };
+    const draw = (aggregation: "mean" | "max") =>
+      markup("pack", summarized, {
+        width: 10,
+        config: {
+          ...config,
+          coverage: {
+            ...config.coverage,
+            aggregation,
+            scale: { mode: "fixed", forwardMax: 1, reverseMax: 1 },
+          },
+        },
+      });
+    // The [10,20) bin has mean depth 1 and maximum depth 2.
+    expect(draw("mean").querySelector('[data-bam-clamp="true"]')).toBeNull();
+    const indicator = draw("max").querySelector('[data-bam-clamp="true"]')!;
+    expect(indicator.getAttribute("data-strand")).toBe("+");
+    expect(
+      indicator
+        .getAttribute("d")!
+        .match(/-?[\d.]+/g)!
+        .map(Number),
+    ).toEqual([1.5, 0, 0, 2]);
+  });
   it("shares strand colors across sections and keeps coincident junction support separate", () => {
     const config = {
       ...withSections({ coverage: true, junctions: true, alignments: true }),
@@ -728,15 +885,19 @@ describe("BAM sections", () => {
       // The render bin [10,20) straddles the viewport edge at 15. Its hidden peak
       // must not raise the scale, even though overscan remains ready for panning.
       expect(
-        draw(15).querySelector('[data-bam-section="coverage"]')?.getAttribute("data-scale-max"),
+        draw(15)
+          .querySelector('[data-bam-section="coverage"]')
+          ?.getAttribute("data-scale-forward-max"),
       ).toBe("1");
       expect(
-        draw(5).querySelector('[data-bam-section="coverage"]')?.getAttribute("data-scale-max"),
+        draw(5)
+          .querySelector('[data-bam-section="coverage"]')
+          ?.getAttribute("data-scale-forward-max"),
       ).toBe("10");
       expect(
-        draw(15, { mode: "fixed", max: 3 })
+        draw(15, { mode: "fixed", forwardMax: 3, reverseMax: 3 })
           .querySelector('[data-bam-section="coverage"]')
-          ?.getAttribute("data-scale-max"),
+          ?.getAttribute("data-scale-forward-max"),
       ).toBe("3");
       expect(hooks.height).toHaveBeenLastCalledWith("bam", 60);
     },
@@ -788,7 +949,9 @@ describe("BAM sections", () => {
       expect(rowCount(element)).toBe(2);
       expect(hooks.height).toHaveBeenLastCalledWith("bam", 60 + 4 + 2 * 14 + 14);
       expect(
-        element.querySelector('[data-bam-section="coverage"]')?.getAttribute("data-scale-max"),
+        element
+          .querySelector('[data-bam-section="coverage"]')
+          ?.getAttribute("data-scale-forward-max"),
       ).toBe("5");
     }
   });

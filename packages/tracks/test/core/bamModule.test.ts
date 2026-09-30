@@ -51,6 +51,33 @@ function context(
 }
 beforeEach(() => vi.resetAllMocks());
 describe("BAM module public contract", () => {
+  it("validates independent positive coverage limits and clamp defaults", () => {
+    expect(bamModule.create(input).config.coverage).toMatchObject({
+      scale: { mode: "auto" },
+      showClampIndicators: true,
+      clampIndicatorColor: "#ff0000",
+    });
+    for (const scale of [
+      { mode: "fixed" as const, forwardMax: 3 },
+      { mode: "fixed" as const, reverseMax: 7 },
+      { mode: "fixed" as const, forwardMax: 3, reverseMax: 7 },
+    ]) {
+      expect(
+        bamModule.create({ ...input, config: { ...input.config, coverage: { scale } } }).config
+          .coverage.scale,
+      ).toEqual(scale);
+    }
+    for (const scale of [
+      { mode: "fixed" as const },
+      { mode: "fixed" as const, forwardMax: 0 },
+      { mode: "fixed" as const, reverseMax: -1 },
+      { mode: "fixed" as const, forwardMax: Infinity },
+    ]) {
+      expect(() =>
+        bamModule.create({ ...input, config: { ...input.config, coverage: { scale } } }),
+      ).toThrow();
+    }
+  });
   it("defaults omitted and partial groups and replaces nested groups in updates", () => {
     const defaults = bamModule.create(input).config;
     expect(

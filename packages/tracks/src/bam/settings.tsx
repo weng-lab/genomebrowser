@@ -19,6 +19,7 @@ import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorFi
 import { TrackSettingsNumberField } from "../shared/settings/trackSettingsNumberField";
 import { TrackSettingsTextField } from "../shared/settings/trackSettingsTextField";
 import type { BamConfig } from "./types";
+import { parseFiniteNumber } from "../shared/settings/draftInput";
 
 const validateSectionHeight = (value: number) =>
   Number.isInteger(value) && value >= 10 && value <= 1000
@@ -102,52 +103,7 @@ export function BamSettings({
         </TrackSettingsFieldRow>
       </TrackSettingsSection>
       {config.coverage.show && (
-        <TrackSettingsSection title="Coverage">
-          <TrackSettingsFieldRow>
-            <TrackSettingsNumberField
-              label="Coverage height"
-              min={10}
-              value={config.coverage.height}
-              validate={validateSectionHeight}
-              onCommit={(height) => updateCoverage({ height })}
-            />
-          </TrackSettingsFieldRow>
-          <TrackSettingsFieldRow>
-            <SelectField
-              label="Graph"
-              value={config.coverage.graph}
-              options={["bars", "line"]}
-              onChange={(graph) => updateCoverage({ graph })}
-            />
-            <SelectField
-              label="Summarize each pixel by"
-              value={config.coverage.aggregation}
-              options={["mean", "max"]}
-              onChange={(aggregation) => updateCoverage({ aggregation })}
-            />
-          </TrackSettingsFieldRow>
-          <TrackSettingsFieldRow>
-            <SelectField
-              label="Scale"
-              value={config.coverage.scale.mode}
-              options={["auto", "fixed"]}
-              onChange={(mode) =>
-                updateCoverage({
-                  scale: mode === "auto" ? { mode } : { mode, max: fixedScaleDefault(config) },
-                })
-              }
-            />
-            {config.coverage.scale.mode === "fixed" && (
-              <TrackSettingsNumberField
-                label="Scale maximum"
-                min={0}
-                value={config.coverage.scale.max}
-                validate={(value) => (value > 0 ? undefined : "Enter a positive number.")}
-                onCommit={(max) => updateCoverage({ scale: { mode: "fixed", max } })}
-              />
-            )}
-          </TrackSettingsFieldRow>
-        </TrackSettingsSection>
+        <CoverageSettings coverage={config.coverage} updateCoverage={updateCoverage} />
       )}
       {config.junctions.show && (
         <TrackSettingsSection title="Splice junctions">
@@ -313,9 +269,88 @@ export function BamSettings({
   );
 }
 
-/** A fixed scale starts from the previous fixed maximum, or a round default. */
-function fixedScaleDefault(config: BamConfig) {
-  return config.coverage.scale.mode === "fixed" ? config.coverage.scale.max : 100;
+function CoverageSettings({
+  coverage,
+  updateCoverage,
+}: {
+  coverage: BamConfig["coverage"];
+  updateCoverage: (patch: Partial<BamConfig["coverage"]>) => TrackMutationResult;
+}) {
+  return (
+    <TrackSettingsSection title="Coverage">
+      <TrackSettingsFieldRow>
+        <TrackSettingsNumberField
+          label="Coverage height"
+          min={10}
+          value={coverage.height}
+          validate={validateSectionHeight}
+          onCommit={(height) => updateCoverage({ height })}
+        />
+      </TrackSettingsFieldRow>
+      <TrackSettingsFieldRow>
+        <SelectField
+          label="Graph"
+          value={coverage.graph}
+          options={["bars", "line"]}
+          onChange={(graph) => updateCoverage({ graph })}
+        />
+        <SelectField
+          label="Summarize each pixel by"
+          value={coverage.aggregation}
+          options={["mean", "max"]}
+          onChange={(aggregation) => updateCoverage({ aggregation })}
+        />
+      </TrackSettingsFieldRow>
+      <TrackSettingsFieldRow>
+        {(["forwardMax", "reverseMax"] as const).map((bound) => (
+          <TrackSettingsTextField
+            key={bound}
+            label={bound === "forwardMax" ? "Forward maximum" : "Reverse maximum"}
+            placeholder="Auto"
+            value={coverage.scale.mode === "fixed" ? String(coverage.scale[bound] ?? "") : ""}
+            validate={(value) => {
+              if (value.trim() === "") return undefined;
+              const parsed = parseFiniteNumber(value);
+              return parsed.ok && parsed.value > 0
+                ? undefined
+                : "Enter a positive number, or leave blank for automatic scaling.";
+            }}
+            onCommit={(value) => {
+              const limits = {
+                ...(coverage.scale.mode === "fixed" ? coverage.scale : {}),
+                [bound]: value.trim() === "" ? undefined : Number(value),
+              };
+              return updateCoverage({
+                scale:
+                  limits.forwardMax === undefined && limits.reverseMax === undefined
+                    ? { mode: "auto" }
+                    : { ...limits, mode: "fixed" },
+              });
+            }}
+          />
+        ))}
+      </TrackSettingsFieldRow>
+      <TrackSettingsFieldRow>
+        <FormControlLabel
+          label="Show clamp indicators"
+          sx={{ m: 0 }}
+          control={
+            <Switch
+              size="small"
+              checked={coverage.showClampIndicators}
+              onChange={(_, showClampIndicators) => updateCoverage({ showClampIndicators })}
+            />
+          }
+        />
+        <TrackSettingsColorField
+          label="Clamp indicator color"
+          value={coverage.clampIndicatorColor}
+          disabled={!coverage.showClampIndicators}
+          onCommit={(clampIndicatorColor) => updateCoverage({ clampIndicatorColor })}
+        />
+      </TrackSettingsFieldRow>
+    </TrackSettingsSection>
+  );
 }
 
 function SelectField<Option extends string>({

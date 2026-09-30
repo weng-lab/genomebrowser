@@ -1186,12 +1186,16 @@
                                 "type": "string",
                                 "const": "fixed"
                               },
-                              "max": {
+                              "forwardMax": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "reverseMax": {
                                 "type": "number",
                                 "exclusiveMinimum": 0
                               }
                             },
-                            "required": ["mode", "max"]
+                            "required": ["mode"]
                           }
                         ]
                       },
@@ -1204,6 +1208,15 @@
                         "default": "mean",
                         "type": "string",
                         "enum": ["mean", "max"]
+                      },
+                      "showClampIndicators": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "clampIndicatorColor": {
+                        "default": "#ff0000",
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
                       }
                     }
                   },
