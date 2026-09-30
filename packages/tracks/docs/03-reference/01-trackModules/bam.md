@@ -1,6 +1,6 @@
 # BAM alignments
 
-Use `bamModule` for coordinate-sorted BAM files with matching BAI indexes. One track shows up to three sections from the same loaded alignments: a coverage graph of per-base depth, splice-junction arcs labeled with their supporting alignment counts, and individual strand-colored alignments with CIGAR blocks and read tooltips.
+Use `bamModule` for coordinate-sorted BAM files with matching BAI indexes. One track shows up to three sections from the same loaded alignments: a strand-separated coverage graph of per-base depth, strand-colored splice-junction arcs labeled with their supporting alignment counts, and individual strand-colored alignments with CIGAR blocks and read tooltips.
 
 ## Usage
 
@@ -51,21 +51,25 @@ Every section draws from the same loaded records after the same filters, so cove
 
 ### Coverage
 
-Coverage is per-base depth: the number of filtered alignments with an aligned base at each reference position. Only CIGAR `M`, `=`, and `X` blocks add depth. Deletions (`D`) and skipped reference regions (`N`) do not, so an intron reads as uncovered. Insertions and clips consume no reference positions and add no depth.
+Coverage is per-base depth: the number of filtered alignments with an aligned base at each reference position, counted separately for forward and reverse alignment strands. Only CIGAR `M`, `=`, and `X` blocks add depth. Deletions (`D`) and skipped reference regions (`N`) do not, so an intron reads as uncovered. Insertions and clips consume no reference positions and add no depth.
 
 When the visible region has fewer bases than the track has pixels, each base is plotted on its own. Otherwise each pixel summarizes the whole bases it covers using `coverage.aggregation`: `mean` plots average depth and `max` plots the deepest base. The summary changes only what is plotted; it never changes the underlying per-base counts. `coverage.graph` draws `bars`, a filled step graph, or `line`, which connects bin centers.
 
-The graph baseline is always zero. With `coverage.scale` set to `{ mode: "auto" }`, the top of the graph is the largest plotted value within the visible region, ignoring off-screen overscan, with a minimum of 1. With `{ mode: "fixed", max }`, values above `max` are drawn at the top of the graph. Scale labels show the maximum and zero.
+The zero baseline is at the center of the section. Forward-strand depth appears above zero and reverse-strand depth below it, using `strandColors.forward` and `strandColors.reverse`. By default both strands share a symmetric scale, so equal depths have equal heights. Separate maximum overrides can give each strand its own magnitude limit. Counts remain nonnegative; the direction below zero identifies reverse-strand coverage.
 
-Hovering the graph highlights one plotted bin. For a single base, the tooltip shows its location and depth. For a summarized bin, the tooltip titles the number of bases and shows mean and maximum depth across them.
+With `coverage.scale` set to `{ mode: "auto" }`, the automatic maximum is the largest plotted value on either strand within the visible region, ignoring off-screen overscan, with a minimum of 1. With `{ mode: "fixed", forwardMax, reverseMax }`, each strand uses its positive magnitude limit, and larger values are clipped at the corresponding graph edge. Either limit can be omitted to use the automatic maximum on that side. Scale labels show the depth magnitude at both extremes and zero at the center. In Coverage settings, enter a positive Forward maximum or Reverse maximum, or clear an input to restore automatic scaling for that strand.
+
+Clipped plotted values have 2-pixel marks at the top or bottom edge, matching BigWig clamp indicators. `coverage.showClampIndicators` defaults to `true`, and `coverage.clampIndicatorColor` defaults to `#ff0000`. The marks follow the selected mean or max summary; tooltips retain the unclipped depth.
+
+Hovering above zero selects a forward-strand bin; hovering below zero selects a reverse-strand bin. The tooltip shows the selected strand and nonnegative counts. For a single base, it shows location and depth. For a summarized bin, it titles the number of bases and shows mean and maximum depth across them.
 
 ### Splice junctions
 
-A splice junction is a distinct CIGAR `N` operation, identified by its chromosome, start, and end. Its support is the number of filtered alignments containing that exact skipped region. Junctions with less support than `junctions.minimumSupport`, or with a span longer than `junctions.maximumSpan` when that is set, are hidden. An alignment reaches every junction it contains, so a junction's support does not change as the view moves, provided any part of the junction lies in the loaded region.
+A splice junction is a distinct CIGAR `N` operation, identified by its chromosome, start, end, and alignment strand. Its support is the number of filtered alignments on that strand containing that exact skipped region. Opposite-strand alignments at the same boundaries have separate support counts, and `junctions.minimumSupport` applies to each strand independently. When `junctions.maximumSpan` is set, junctions with a longer span are hidden. An alignment reaches every junction it contains, so a junction's support does not change as the view moves, provided any part of the junction lies in the loaded region.
 
-Each junction draws one arc above a shared baseline. Arc thickness grows with the logarithm of support, relative to the best-supported junction shown. Arc height grows with the arc's on-screen width, so nested junctions stay distinct. With `junctions.showCounts`, labels show support above each arc. They are placed highest support first, and any label that would overlap one already placed is omitted. Hovering an arc shows its skipped region, span, and support whether or not it has a label.
+Each junction draws one arc above a shared baseline, using its alignment strand color. Arc thickness grows with the logarithm of support, relative to the best-supported junction shown. Arc height grows with the arc's on-screen width, so nested junctions stay distinct. Opposite-strand arcs at identical coordinates have slightly different heights so both remain visible. With `junctions.showCounts`, labels show support above each arc, with separate label positions for an identical-coordinate pair. They are placed highest support first, and any label that would overlap one already placed is omitted. Hovering an arc shows its skipped region, alignment strand, span, and strand-specific support whether or not it has a label. Coincident opposite-strand arcs share one tooltip, selected by the nearest curve at the pointer's genomic position; equal distances select forward.
 
-Arcs do not indicate transcript strand. Alignment orientation depends on library preparation, so the track does not infer strand from it.
+Strand throughout the track is `BamRecord.strand`, the alignment orientation encoded in the BAM record. The track does not infer transcript strand from library preparation or splice tags.
 
 ### What the counts measure
 
@@ -90,7 +94,7 @@ The initial base height is `14`. The renderer replaces it with the sum of the vi
 
 Squish, pack, and full draw at most `alignments.maxRows` rows (100 by default). Long reads that each span most of the view can otherwise need one row per read. Reads that do not fit are not drawn, and a line below the alignments reports how many visible alignments were left out. Coverage and junction counts always include every filtered alignment. Dense draws a single row and is not limited.
 
-`config.alignments.forwardColor`, default `#3366cc`, colors forward-strand reads. `config.alignments.reverseColor`, default `#cc3333`, colors reverse-strand reads. Both use darker interiors for aligned blocks, with strand-colored outlines and direction marks. These conventions are inspired by [UCSC BAM strand coloring](https://www.genome.ucsc.edu/goldenPath/help/hgBamTrackHelp), rather than implementing every UCSC BAM setting.
+`config.strandColors.forward`, default `#3366cc`, colors forward-strand coverage, junctions, and reads. `config.strandColors.reverse`, default `#cc3333`, colors the reverse strand in all three sections. Aligned blocks use darker interiors, with strand-colored outlines and direction marks. These conventions are inspired by [UCSC BAM strand coloring](https://www.genome.ucsc.edu/goldenPath/help/hgBamTrackHelp), rather than implementing every UCSC BAM setting.
 
 ### Alignment structure and bases
 
@@ -114,29 +118,29 @@ Each alignment is rendered separately. Mate coordinates appear in tooltips; the 
 | `maxWindow`                     | `number`             | `50000`            | Exclusive visible-span limit for display and fetching, independent of overscan. Integer from 1 through 100000. At or above the limit, shows a zoom-in message. Changing it requests data. |
 | `filters.minimumMappingQuality` | `number`             | `0`                | Integer from 0 through 254, applied to every section. Zero includes unavailable MAPQ 255; positive thresholds exclude unavailable MAPQ.                                                   |
 | `filters.includeDuplicates`     | `boolean`            | `true`             | Whether records with SAM duplicate flag 0x400 appear in every section.                                                                                                                    |
+| `strandColors.forward`          | `string`             | `#3366cc`          | Six-digit hexadecimal color for forward-strand coverage, junctions, and alignments. Independent of the generic base color.                                                                |
+| `strandColors.reverse`          | `string`             | `#cc3333`          | Six-digit hexadecimal color for reverse-strand coverage, junctions, and alignments.                                                                                                       |
 | `coverage.show`                 | `boolean`            | `true`             | Whether the coverage section appears.                                                                                                                                                     |
 | `coverage.height`               | `number`             | `60`               | Coverage section height in pixels. Integer from 10 through 1000.                                                                                                                          |
-| `coverage.color`                | `string`             | `#808080`          | Six-digit hexadecimal color for the graph.                                                                                                                                                |
-| `coverage.scale`                | `BamCoverageScale`   | `{ mode: "auto" }` | `{ mode: "auto" }` scales to the visible peak. `{ mode: "fixed", max }` uses a positive finite maximum.                                                                                   |
+| `coverage.scale`                | `BamCoverageScale`   | `{ mode: "auto" }` | `{ mode: "auto" }` scales both strands to the largest visible peak. `{ mode: "fixed", forwardMax?, reverseMax? }` overrides either or both strand limits with positive finite magnitudes. |
+| `coverage.showClampIndicators`  | `boolean`            | `true`             | Show edge marks where plotted coverage exceeds the scale maximum.                                                                                                                         |
+| `coverage.clampIndicatorColor`  | `string`             | `#ff0000`          | Six-digit hexadecimal color for clamp indicators.                                                                                                                                         |
 | `coverage.graph`                | `"bars"` or `"line"` | `"bars"`           | Filled step graph or connected line.                                                                                                                                                      |
 | `coverage.aggregation`          | `"mean"` or `"max"`  | `"mean"`           | How a pixel summarizes the bases it covers when zoomed out.                                                                                                                               |
 | `junctions.show`                | `boolean`            | `false`            | Whether the splice-junction section appears.                                                                                                                                              |
 | `junctions.height`              | `number`             | `100`              | Junction section height in pixels. Integer from 10 through 1000.                                                                                                                          |
-| `junctions.color`               | `string`             | `#808080`          | Six-digit hexadecimal arc color. Labels and hovered arcs use a darker shade.                                                                                                              |
-| `junctions.minimumSupport`      | `number`             | `1`                | Integer of at least 1. Hides junctions with fewer supporting alignments.                                                                                                                  |
+| `junctions.minimumSupport`      | `number`             | `1`                | Integer of at least 1. Hides junctions with fewer supporting alignments on their strand.                                                                                                  |
 | `junctions.maximumSpan`         | `number`             | Unset              | Positive integer. When set, hides junctions whose skipped region is longer, in bp.                                                                                                        |
 | `junctions.showCounts`          | `boolean`            | `true`             | Whether support labels appear above arcs.                                                                                                                                                 |
 | `alignments.show`               | `boolean`            | `true`             | Whether the alignments section appears.                                                                                                                                                   |
 | `alignments.rowHeight`          | `number`             | `14`               | Complete row slot in pixels, finite and at least 1. Squish uses half this value.                                                                                                          |
-| `alignments.forwardColor`       | `string`             | `#3366cc`          | Forward-strand color, a six-digit hex value. Independent of the generic base color.                                                                                                       |
-| `alignments.reverseColor`       | `string`             | `#cc3333`          | Six-digit hexadecimal color for reverse-strand alignments.                                                                                                                                |
 | `alignments.maxRows`            | `number`             | `100`              | Maximum alignment rows drawn in squish, pack, and full. Integer from 1 through 10000. Undrawn reads still count toward coverage and junctions.                                            |
 
 The fetcher retains one BAM reader keyed by both source URLs and one optional reference reader keyed by its URL, using resources scoped to the mounted track. It does not retain alignment regions. Render-only changes such as section visibility, colors, heights, scale, junction thresholds, row height, mapping-quality filtering, and duplicate filtering reuse current records.
 
 The region limit controls genomic span, not read count. The row limit bounds how many reads are drawn. Each drawn read uses a fixed number of SVG elements, whatever its CIGAR length, because operations closer than a pixel are merged.
 
-`BamConfigInput` accepts optional `filters`, `coverage`, `junctions`, and `alignments` objects. Omitted groups, empty groups, and omitted fields receive the defaults above. `BamConfig` is the fully parsed configuration. Track patches are shallow, so a patched group replaces the current group, and its omitted fields return to their defaults. Supply every field you want to keep:
+`BamConfigInput` accepts optional `filters`, `strandColors`, `coverage`, `junctions`, and `alignments` objects. Omitted groups, empty groups, and omitted fields receive the defaults above. `BamConfig` is the fully parsed configuration. Track patches are shallow, so a patched group replaces the current group, and its omitted fields return to their defaults. Supply every field you want to keep:
 
 ```ts
 const result = useTrackStore.getState().updateTrack("alignments", {
@@ -147,7 +151,7 @@ if (!result.ok) console.error(result.error);
 
 ## Settings
 
-The form edits title, display mode, section visibility, the settings of each shown section, mapping-quality threshold, duplicate visibility, all three source URLs, and the visible-span limit. Controls for a hidden section are removed from the form, and its settings are kept for when it is shown again. The switch for the last shown section is disabled. URL drafts apply only when Set is activated. Host-owned tracks disable all source URL fields while keeping presentation controls available. Height is calculated from the shown sections; edit a section height, Row height, or Maximum rows to resize the track.
+The form edits title, display mode, section visibility, the settings of each shown section, mapping-quality threshold, duplicate visibility, all three source URLs, and the visible-span limit. The shared forward and reverse strand color controls remain available for every section combination. Controls for a hidden section are removed from the form, and its settings are kept for when it is shown again. The switch for the last shown section is disabled. URL drafts apply only when Set is activated. Host-owned tracks disable all source URL fields while keeping presentation controls available. Height is calculated from the shown sections; edit a section height, Row height, or Maximum rows to resize the track.
 
 The **Sequence letters** section shares its setting with all participating tracks. Its slider runs from larger letters to more bases and edits the browser's `basePairDetail.maxVisibleBases` cutoff immediately. The displayed span and slider range account for the mounted plot width; an existing preference above that range is preserved until the user moves the slider. The sample bases illustrate density and are not reference data.
 
@@ -182,9 +186,9 @@ const track = bamModule.create(
 | Export             | Contract                                                                                                                                   |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `BamCreateInput`   | Input to `bamModule.create`, with optional defaulted config values.                                                                        |
-| `BamConfigInput`   | Authored configuration with optional alignment and filter groups.                                                                          |
+| `BamConfigInput`   | Authored configuration with optional filter, strand color, and section groups.                                                             |
 | `BamConfig`        | Parsed config with the defaults above applied.                                                                                             |
-| `BamCoverageScale` | `{ mode: "auto" }` or `{ mode: "fixed"; max: number }`, the type of `coverage.scale`.                                                      |
+| `BamCoverageScale` | `{ mode: "auto" }` or `{ mode: "fixed"; forwardMax?: number; reverseMax?: number }`, the type of `coverage.scale`.                         |
 | `BamDisplay`       | `"dense" \| "squish" \| "pack" \| "full"`, the alignment layout.                                                                           |
 | `BamData`          | Fetch result: `records: BamRecord[]`, `reference: TwoBitRecord[]`, optional `message` for the region limit, and optional `referenceError`. |
 | `BamInteraction`   | Core interaction callbacks for `BamRecord` and `BamConfig`.                                                                                |

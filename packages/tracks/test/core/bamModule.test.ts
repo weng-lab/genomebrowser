@@ -51,17 +51,47 @@ function context(
 }
 beforeEach(() => vi.resetAllMocks());
 describe("BAM module public contract", () => {
+  it("validates independent positive coverage limits and clamp defaults", () => {
+    expect(bamModule.create(input).config.coverage).toMatchObject({
+      scale: { mode: "auto" },
+      showClampIndicators: true,
+      clampIndicatorColor: "#ff0000",
+    });
+    for (const scale of [
+      { mode: "fixed" as const, forwardMax: 3 },
+      { mode: "fixed" as const, reverseMax: 7 },
+      { mode: "fixed" as const, forwardMax: 3, reverseMax: 7 },
+    ]) {
+      expect(
+        bamModule.create({ ...input, config: { ...input.config, coverage: { scale } } }).config
+          .coverage.scale,
+      ).toEqual(scale);
+    }
+    for (const scale of [
+      { mode: "fixed" as const },
+      { mode: "fixed" as const, forwardMax: 0 },
+      { mode: "fixed" as const, reverseMax: -1 },
+      { mode: "fixed" as const, forwardMax: Infinity },
+    ]) {
+      expect(() =>
+        bamModule.create({ ...input, config: { ...input.config, coverage: { scale } } }),
+      ).toThrow();
+    }
+  });
   it("defaults omitted and partial groups and replaces nested groups in updates", () => {
     const defaults = bamModule.create(input).config;
     expect(
-      bamModule.create({ ...input, config: { ...input.config, alignments: {}, filters: {} } })
-        .config,
+      bamModule.create({
+        ...input,
+        config: { ...input.config, alignments: {}, filters: {}, strandColors: {} },
+      }).config,
     ).toEqual(defaults);
     const track = bamModule.create({
       ...input,
       config: {
         ...input.config,
         alignments: { rowHeight: 24 },
+        strandColors: { reverse: "#654321" },
         filters: { minimumMappingQuality: 20 },
       },
     });
@@ -69,7 +99,8 @@ describe("BAM module public contract", () => {
     expect(
       store.getState().updateTrack("bam", {
         config: {
-          alignments: { forwardColor: "#123456" },
+          strandColors: { forward: "#123456" },
+          alignments: { maxRows: 50 },
           filters: { includeDuplicates: false },
         },
       }).ok,
@@ -77,7 +108,8 @@ describe("BAM module public contract", () => {
     // Patches are shallow: omitted fields in a supplied group return to their defaults.
     expect(store.getState().getTrack("bam")?.config).toEqual({
       ...defaults,
-      alignments: { ...defaults.alignments, forwardColor: "#123456" },
+      strandColors: { ...defaults.strandColors, forward: "#123456" },
+      alignments: { ...defaults.alignments, maxRows: 50 },
       filters: { ...defaults.filters, includeDuplicates: false },
     });
     expect(
@@ -94,9 +126,8 @@ describe("BAM module public contract", () => {
       config: {
         alignments: {
           rowHeight: 14,
-          forwardColor: "#3366cc",
-          reverseColor: "#cc3333",
         },
+        strandColors: { forward: "#3366cc", reverse: "#cc3333" },
         filters: { minimumMappingQuality: 0, includeDuplicates: true },
         maxWindow: 50000,
       },
@@ -150,7 +181,7 @@ describe("BAM module public contract", () => {
   it.each([5, 10])("does not fetch visible regions at or above the limit %i", async (maxWindow) => {
     const result = await bamModule.fetch(context(resources(), { maxWindow }));
     expect(result.records).toEqual([]);
-    expect(result.message).toContain("Zoom in");
+    expect(result.message).toBe(`Zoom below ${maxWindow} bp to see reads`);
     expect(mocks.createBamFile).not.toHaveBeenCalled();
   });
   it("loads reference independently of letter visibility, caches it, and keeps reads on reference failure", async () => {

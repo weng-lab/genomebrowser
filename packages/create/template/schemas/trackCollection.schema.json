@@ -1287,6 +1287,22 @@
                       }
                     }
                   },
+                  "strandColors": {
+                    "default": {},
+                    "type": "object",
+                    "properties": {
+                      "forward": {
+                        "default": "#3366cc",
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                      },
+                      "reverse": {
+                        "default": "#cc3333",
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                      }
+                    }
+                  },
                   "alignments": {
                     "default": {},
                     "type": "object",
@@ -1299,16 +1315,6 @@
                         "default": 14,
                         "type": "number",
                         "minimum": 1
-                      },
-                      "forwardColor": {
-                        "default": "#3366cc",
-                        "type": "string",
-                        "pattern": "^#[0-9a-f]{6}$"
-                      },
-                      "reverseColor": {
-                        "default": "#cc3333",
-                        "type": "string",
-                        "pattern": "^#[0-9a-f]{6}$"
                       },
                       "maxRows": {
                         "default": 100,
@@ -1331,11 +1337,6 @@
                         "type": "integer",
                         "minimum": 10,
                         "maximum": 1000
-                      },
-                      "color": {
-                        "default": "#808080",
-                        "type": "string",
-                        "pattern": "^#[0-9a-f]{6}$"
                       },
                       "scale": {
                         "default": {
@@ -1361,14 +1362,17 @@
                                 "type": "string",
                                 "const": "fixed"
                               },
-                              "max": {
+                              "forwardMax": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "reverseMax": {
                                 "type": "number",
                                 "exclusiveMinimum": 0
                               }
                             },
                             "required": [
-                              "mode",
-                              "max"
+                              "mode"
                             ]
                           }
                         ]
@@ -1388,6 +1392,15 @@
                           "mean",
                           "max"
                         ]
+                      },
+                      "showClampIndicators": {
+                        "default": true,
+                        "type": "boolean"
+                      },
+                      "clampIndicatorColor": {
+                        "default": "#ff0000",
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
                       }
                     }
                   },
@@ -1404,11 +1417,6 @@
                         "type": "integer",
                         "minimum": 10,
                         "maximum": 1000
-                      },
-                      "color": {
-                        "default": "#808080",
-                        "type": "string",
-                        "pattern": "^#[0-9a-f]{6}$"
                       },
                       "minimumSupport": {
                         "default": 1,

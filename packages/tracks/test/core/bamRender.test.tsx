@@ -81,6 +81,22 @@ const rowCount = (element: HTMLElement) =>
       node.getAttribute("data-bam-row"),
     ),
   ).size;
+function junctionPoint(arc: Element, x?: number) {
+  const curve = arc.querySelector('path[stroke]:not([stroke="transparent"])')!;
+  const [x1, y1, controlX, controlY, x2, y2] = curve
+    .getAttribute("d")!
+    .match(/-?[\d.]+/g)!
+    .map(Number);
+  const t = x === undefined ? 0.5 : (x - x1) / (x2 - x1);
+  return {
+    clientX: (1 - t) ** 2 * x1 + 2 * (1 - t) * t * controlX + t ** 2 * x2,
+    clientY: (1 - t) ** 2 * y1 + 2 * (1 - t) * t * controlY + t ** 2 * y2,
+  };
+}
+function stubJunctionCoordinates(group: SVGGElement) {
+  group.getScreenCTM = () =>
+    ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) }) as DOMMatrix;
+}
 describe("BAM displays", () => {
   it("uses the visible span for the exclusive configurable zoom limit in every display", () => {
     const data = { records: [read()], reference: [] };
@@ -404,24 +420,455 @@ describe("BAM sections", () => {
   });
   it("scales coverage to the visible region, ignoring overscan", () => {
     const deep = Array.from({ length: 5 }, (_, index) =>
-      read({ start: 80, end: 90, readName: `deep${index}` }),
+      read({ start: 80, end: 90, readName: `deep${index}`, strand: "-" }),
     );
     const config = withSections({ coverage: true });
     const scaleMax = (visibleRegion: typeof props.visibleRegion) =>
       markup("pack", { records: [read(), ...deep], reference: [] }, { config, visibleRegion })
         .querySelector('[data-bam-section="coverage"]')
-        ?.getAttribute("data-scale-max");
+        ?.getAttribute("data-scale-forward-max");
     expect(scaleMax({ chromosome: "chr1", start: 0, end: 50 })).toBe("1");
     expect(scaleMax({ chromosome: "chr1", start: 0, end: 100 })).toBe("5");
     const fixed = {
       ...config,
-      coverage: { ...config.coverage, scale: { mode: "fixed" as const, max: 3 } },
+      coverage: {
+        ...config.coverage,
+        scale: { mode: "fixed" as const, forwardMax: 3, reverseMax: 3 },
+      },
     };
     expect(
       markup("pack", { records: deep, reference: [] }, { config: fixed })
         .querySelector('[data-bam-section="coverage"]')
-        ?.getAttribute("data-scale-max"),
+        ?.getAttribute("data-scale-forward-max"),
     ).toBe("3");
+  });
+  it.each(["bars", "line"] as const)(
+    "draws %s coverage on a symmetric strand scale and clips both sides equally",
+    (graph) => {
+      const config = withSections({ coverage: true });
+      config.coverage.graph = graph;
+      const mixed = {
+        records: [read(), read({ readName: "b" }), read({ readName: "reverse", strand: "-" })],
+        reference: [],
+      };
+      const depthYs = (element: HTMLElement, strand: "+" | "-") => {
+        const path = element
+          .querySelector(`[data-bam-section="coverage"] path[data-strand="${strand}"]`)!
+          .getAttribute("d")!;
+        return graph === "bars"
+          ? [...path.matchAll(/V ([\d.]+)/g)].map((match) => Number(match[1]))
+          : [...path.matchAll(/[ML] [\d.]+ ([\d.]+)/g)].map((match) => Number(match[1]));
+      };
+      const auto = markup("pack", mixed, { config, width: 100 });
+      const coverage = auto.querySelector('[data-bam-section="coverage"]')!;
+      expect(coverage.getAttribute("data-scale-forward-max")).toBe("2");
+      expect(coverage.querySelector("line")?.getAttribute("y1")).toBe("30");
+      expect(Math.min(...depthYs(auto, "+"))).toBe(0);
+      expect(Math.max(...depthYs(auto, "-"))).toBe(45);
+      const fixed = markup("pack", mixed, {
+        config: {
+          ...config,
+          coverage: { ...config.coverage, scale: { mode: "fixed", forwardMax: 1, reverseMax: 1 } },
+        },
+        width: 100,
+      });
+      expect(Math.min(...depthYs(fixed, "+"))).toBe(0);
+      expect(Math.max(...depthYs(fixed, "-"))).toBe(60);
+      const empty = markup("pack", { records: [], reference: [] }, { config, width: 100 });
+      expect(new Set(depthYs(empty, "+"))).toEqual(new Set([30]));
+      expect(new Set(depthYs(empty, "-"))).toEqual(new Set([30]));
+    },
+  );
+  it.each(["bars", "line"] as const)(
+    "marks only overflowing %s coverage bins at both strand limits",
+    (graph) => {
+      const config = withSections({ coverage: true });
+      const mixed = {
+        records: [
+          read(),
+          read({ readName: "forward2" }),
+          read({ readName: "reverse1", strand: "-" }),
+          read({ readName: "reverse2", strand: "-" }),
+          read({ readName: "atLimit", start: 30, end: 40 }),
+        ],
+        reference: [],
+      };
+      const fixed = {
+        ...config,
+        coverage: {
+          ...config.coverage,
+          graph,
+          height: 80,
+          scale: { mode: "fixed" as const, forwardMax: 1, reverseMax: 1 },
+        },
+      };
+      const result = markup("pack", mixed, { config: fixed, width: 100 });
+      expect(result.querySelectorAll('[data-bam-clamp="true"]')).toHaveLength(2);
+      for (const [strand, edge, inward] of [
+        ["+", 0, 2],
+        ["-", 80, 78],
+      ] as const) {
+        const indicator = result.querySelector(
+          `path[data-bam-clamp="true"][data-strand="${strand}"]`,
+        )!;
+        expect(indicator.getAttribute("stroke")).toBe("#ff0000");
+        const ticks = [
+          ...indicator.getAttribute("d")!.matchAll(/M\s*([\d.]+)\s+([\d.]+)\s*l\s*0\s+(-?[\d.]+)/g),
+        ].map((match) => [Number(match[1]), Number(match[2]), Number(match[2]) + Number(match[3])]);
+        expect(ticks).toEqual(
+          Array.from({ length: 10 }, (_, index) => [10.5 + index, edge, inward]),
+        );
+      }
+      expect(
+        markup("pack", mixed, { config, width: 100 }).querySelector('[data-bam-clamp="true"]'),
+      ).toBeNull();
+      const hidden = { ...fixed, coverage: { ...fixed.coverage, showClampIndicators: false } };
+      expect(
+        markup("pack", mixed, { config: hidden, width: 100 }).querySelector(
+          '[data-bam-clamp="true"]',
+        ),
+      ).toBeNull();
+      const custom = { ...fixed, coverage: { ...fixed.coverage, clampIndicatorColor: "#123456" } };
+      const customIndicators = markup("pack", mixed, {
+        config: custom,
+        width: 100,
+      }).querySelectorAll('[data-bam-clamp="true"]');
+      expect([...customIndicators].map((indicator) => indicator.getAttribute("stroke"))).toEqual([
+        "#123456",
+        "#123456",
+      ]);
+    },
+  );
+  it.each(["bars", "line"] as const)("scales %s coverage independently by strand", (graph) => {
+    const config = withSections({ coverage: true });
+    const mixed = {
+      records: [
+        read(),
+        read({ readName: "forward2" }),
+        read({ readName: "reverse1", strand: "-" }),
+        read({ readName: "reverse2", strand: "-" }),
+      ],
+      reference: [],
+    };
+    const draw = (reverseMax?: number) =>
+      markup("pack", mixed, {
+        width: 100,
+        config: {
+          ...config,
+          coverage: {
+            ...config.coverage,
+            graph,
+            scale: {
+              mode: "fixed",
+              forwardMax: 1,
+              ...(reverseMax === undefined ? {} : { reverseMax }),
+            },
+          },
+        },
+      });
+    const result = draw(4);
+    const coverage = result.querySelector('[data-bam-section="coverage"]')!;
+    expect(coverage.getAttribute("data-scale-forward-max")).toBe("1");
+    expect(coverage.getAttribute("data-scale-reverse-max")).toBe("4");
+    const depths = (strand: "+" | "-") => {
+      const path = coverage
+        .querySelector(`path[data-strand="${strand}"]:not([data-bam-clamp])`)!
+        .getAttribute("d")!;
+      return graph === "bars"
+        ? [...path.matchAll(/V ([\d.]+)/g)].map((match) => Number(match[1]))
+        : [...path.matchAll(/[ML] [\d.]+ ([\d.]+)/g)].map((match) => Number(match[1]));
+    };
+    expect(Math.min(...depths("+"))).toBe(0);
+    expect(Math.max(...depths("-"))).toBe(45);
+    expect(coverage.querySelectorAll('[data-bam-clamp="true"]')).toHaveLength(1);
+    expect(coverage.querySelector('[data-bam-clamp="true"]')?.getAttribute("data-strand")).toBe(
+      "+",
+    );
+    const automaticReverse = draw().querySelector('[data-bam-section="coverage"]')!;
+    expect(automaticReverse.getAttribute("data-scale-forward-max")).toBe("1");
+    expect(automaticReverse.getAttribute("data-scale-reverse-max")).toBe("2");
+    expect(automaticReverse.querySelector('[data-bam-clamp="true"][data-strand="-"]')).toBeNull();
+  });
+  it("uses the selected coverage summary when deciding whether a bin is clamped", () => {
+    const config = withSections({ coverage: true });
+    const summarized = {
+      records: [
+        read({
+          start: 10,
+          end: 15,
+          cigar: [{ op: "M" as const, length: 5, sequenceOffset: 0, referenceOffset: 0 }],
+        }),
+        read({
+          readName: "peak",
+          start: 10,
+          end: 15,
+          cigar: [{ op: "M" as const, length: 5, sequenceOffset: 0, referenceOffset: 0 }],
+        }),
+      ],
+      reference: [],
+    };
+    const draw = (aggregation: "mean" | "max") =>
+      markup("pack", summarized, {
+        width: 10,
+        config: {
+          ...config,
+          coverage: {
+            ...config.coverage,
+            aggregation,
+            scale: { mode: "fixed", forwardMax: 1, reverseMax: 1 },
+          },
+        },
+      });
+    // The [10,20) bin has mean depth 1 and maximum depth 2.
+    expect(draw("mean").querySelector('[data-bam-clamp="true"]')).toBeNull();
+    const indicator = draw("max").querySelector('[data-bam-clamp="true"]')!;
+    expect(indicator.getAttribute("data-strand")).toBe("+");
+    expect(
+      indicator
+        .getAttribute("d")!
+        .match(/-?[\d.]+/g)!
+        .map(Number),
+    ).toEqual([1.5, 0, 0, 2]);
+  });
+  it("shares strand colors across sections and keeps coincident junction support separate", () => {
+    const config = {
+      ...withSections({ coverage: true, junctions: true, alignments: true }),
+      strandColors: { forward: "#228844", reverse: "#8844cc" },
+    };
+    const reverse = { ...spliced, readName: "reverse", strand: "-" as const };
+    const mixed = { ...data, records: [...data.records, reverse] };
+    const element = markup("pack", mixed, { config });
+    for (const [strand, color, support, name] of [
+      ["+", "#228844", "2", "a"],
+      ["-", "#8844cc", "1", "reverse"],
+    ]) {
+      expect(
+        element
+          .querySelector(`[data-bam-section="coverage"] path[data-strand="${strand}"]`)
+          ?.getAttribute("fill"),
+      ).toBe(color);
+      const junction = element.querySelector(`[data-junction="15-35"][data-strand="${strand}"]`)!;
+      expect(junction.getAttribute("data-support")).toBe(support);
+      expect(junction.querySelector("text")?.textContent).toBe(support);
+      expect(junction.querySelector("path")?.getAttribute("stroke")).toBe(color);
+      expect(
+        element.querySelector(`[data-bam-read="${name}"] [data-cigar="M"]`)?.getAttribute("stroke"),
+      ).toBe(color);
+    }
+    const arcs = [...element.querySelectorAll('[data-junction="15-35"] path:first-child')].map(
+      (path) => path.getAttribute("d"),
+    );
+    expect(new Set(arcs).size).toBe(2);
+    const labels = [...element.querySelectorAll('[data-junction="15-35"] text')].map(
+      (label) => `${label.getAttribute("x")},${label.getAttribute("y")}`,
+    );
+    expect(new Set(labels).size).toBe(2);
+    const threshold = markup("pack", mixed, {
+      config: { ...config, junctions: { ...config.junctions, minimumSupport: 2 } },
+    });
+    expect(threshold.querySelectorAll("[data-junction]")).toHaveLength(1);
+    expect(threshold.querySelector("[data-junction]")?.getAttribute("data-strand")).toBe("+");
+  });
+  it("clears a hovered junction when its strand falls below minimum support", () => {
+    const config = withSections({ junctions: true });
+    const mixed = {
+      ...data,
+      records: [...data.records, { ...spliced, readName: "reverse", strand: "-" as const }],
+    };
+    const element = document.createElement("div");
+    const root = createRoot(element);
+    const Renderer = bamModule.render.pack;
+    const draw = (minimumSupport: number) =>
+      act(() =>
+        root.render(
+          <TestBrowser basePairDetail>
+            <svg>
+              <Renderer
+                {...props}
+                config={{ ...config, junctions: { ...config.junctions, minimumSupport } }}
+                data={mixed}
+              />
+            </svg>
+          </TestBrowser>,
+        ),
+      );
+    try {
+      draw(1);
+      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+      stubJunctionCoordinates(group);
+      const reverse = group.querySelector('[data-strand="-"]')!;
+      const reverseColor = reverse.querySelector("path")!.getAttribute("stroke");
+      act(() =>
+        reverse
+          .querySelector('path[pointer-events="stroke"]')!
+          .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...junctionPoint(reverse) })),
+      );
+      expect(hooks.show).toHaveBeenLastCalledWith(
+        expect.objectContaining({ kind: "junction", strand: "-", support: 1 }),
+        expect.anything(),
+      );
+      expect(reverse.querySelector("path")!.getAttribute("stroke")).not.toBe(reverseColor);
+      hooks.show.mockClear();
+      hooks.hide.mockClear();
+
+      // The forward arc keeps the same group mounted while the pointer stays still.
+      draw(2);
+      expect(element.querySelector("[data-junction-group]")).toBe(group);
+      expect(group.querySelector('[data-strand="-"]')).toBeNull();
+      expect(group.querySelector('[data-strand="+"]')).not.toBeNull();
+      expect(hooks.hide).toHaveBeenCalledTimes(1);
+      expect(hooks.show).not.toHaveBeenCalled();
+
+      // Restoring the strand must not restore its old hover selection.
+      draw(1);
+      expect(group.querySelector('[data-strand="-"] path')!.getAttribute("stroke")).toBe(
+        reverseColor,
+      );
+      expect(hooks.show).not.toHaveBeenCalled();
+
+      draw(2);
+      const forward = group.querySelector('[data-strand="+"]')!;
+      act(() =>
+        forward
+          .querySelector('path[pointer-events="stroke"]')!
+          .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...junctionPoint(forward) })),
+      );
+      expect(hooks.show).toHaveBeenLastCalledWith(
+        expect.objectContaining({ kind: "junction", strand: "+", support: 2 }),
+        expect.anything(),
+      );
+    } finally {
+      act(() => root.unmount());
+    }
+  });
+  it.each([10, 23, 100])(
+    "selects the nearer coincident junction at height %i regardless of the hit target",
+    (height) => {
+      const config = withSections({ junctions: true });
+      config.junctions.height = height;
+      const element = document.createElement("div");
+      const root = createRoot(element);
+      const Renderer = bamModule.render.pack;
+      const draw = (currentConfig = config) =>
+        act(() =>
+          root.render(
+            <TestBrowser basePairDetail>
+              <svg>
+                <Renderer
+                  {...props}
+                  config={currentConfig}
+                  data={{
+                    ...data,
+                    records: [...data.records, { ...spliced, readName: "reverse", strand: "-" }],
+                  }}
+                />
+              </svg>
+            </TestBrowser>,
+          ),
+        );
+      try {
+        draw();
+        const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+        stubJunctionCoordinates(group);
+        for (const strand of ["+", "-"]) {
+          const arc = group.querySelector(`[data-strand="${strand}"]`)!;
+          // Either overlapping hit path can receive the event. Its strand must
+          // not override the curve nearest the actual pointer coordinates.
+          const other = group.querySelector(
+            `[data-strand="${strand === "+" ? "-" : "+"}"] path[pointer-events="stroke"]`,
+          )!;
+          act(() =>
+            other.dispatchEvent(
+              new MouseEvent("mousemove", {
+                bubbles: true,
+                ...junctionPoint(arc),
+              }),
+            ),
+          );
+          expect(hooks.show).toHaveBeenLastCalledWith(
+            expect.objectContaining({ kind: "junction", strand, support: strand === "+" ? 2 : 1 }),
+            expect.anything(),
+          );
+        }
+        // Rebuilding the arc geometry on a palette update must retain the
+        // stationary pointer's chosen strand highlight.
+        const palette = { ...config, strandColors: { ...config.strandColors, reverse: "#3366cc" } };
+        draw(palette);
+        const reversePath = group.querySelector('[data-strand="-"] path')!;
+        expect(reversePath.getAttribute("stroke")).toBe("#1f3d7a");
+        act(() => group.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })));
+        expect(hooks.hide).toHaveBeenCalled();
+      } finally {
+        act(() => root.unmount());
+      }
+    },
+  );
+  it("selects visible curves whose peaks are offscreen and prefers forward at the shared endpoint", () => {
+    const element = document.createElement("div");
+    const root = createRoot(element);
+    const Renderer = bamModule.render.pack;
+    const long = read({
+      start: 0,
+      end: 10010,
+      cigar: [
+        { op: "M", length: 5, sequenceOffset: 0, referenceOffset: 0 },
+        { op: "N", length: 10000, sequenceOffset: 5, referenceOffset: 5 },
+        { op: "M", length: 5, sequenceOffset: 5, referenceOffset: 10005 },
+      ],
+    });
+    const region = { chromosome: "chr1", start: 5, end: 105 };
+    try {
+      act(() =>
+        root.render(
+          <TestBrowser basePairDetail>
+            <svg>
+              <Renderer
+                {...props}
+                region={region}
+                visibleRegion={region}
+                width={1000}
+                config={withSections({ junctions: true })}
+                data={{
+                  records: [long, { ...long, readName: "reverse", strand: "-" }],
+                  reference: [],
+                }}
+              />
+            </svg>
+          </TestBrowser>,
+        ),
+      );
+      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+      stubJunctionCoordinates(group);
+      const forward = group.querySelector('[data-strand="+"]')!;
+      const reverse = group.querySelector('[data-strand="-"]')!;
+      const forwardPoint = junctionPoint(forward, 500);
+      const reversePoint = junctionPoint(reverse, 500);
+      // Their peaks are far outside the viewport; at the visible midpoint
+      // these curves are less than one pixel apart and their hit areas overlap.
+      expect(Math.abs(forwardPoint.clientY - reversePoint.clientY)).toBeLessThan(1);
+      for (const [arc, point, strand] of [
+        [reverse, forwardPoint, "+"],
+        [forward, reversePoint, "-"],
+        [
+          reverse,
+          { clientX: 500, clientY: (forwardPoint.clientY + reversePoint.clientY) / 2 },
+          "+",
+        ],
+        [reverse, { clientX: 0, clientY: 99 }, "+"],
+      ] as const) {
+        act(() =>
+          arc
+            .querySelector('path[pointer-events="stroke"]')!
+            .dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point })),
+        );
+        expect(hooks.show).toHaveBeenLastCalledWith(
+          expect.objectContaining({ kind: "junction", strand, support: 1 }),
+          expect.anything(),
+        );
+      }
+    } finally {
+      act(() => root.unmount());
+    }
   });
   it("keeps packed reads on their rows while panning and when new data loads", () => {
     const element = document.createElement("div");
@@ -510,15 +957,19 @@ describe("BAM sections", () => {
       // The render bin [10,20) straddles the viewport edge at 15. Its hidden peak
       // must not raise the scale, even though overscan remains ready for panning.
       expect(
-        draw(15).querySelector('[data-bam-section="coverage"]')?.getAttribute("data-scale-max"),
+        draw(15)
+          .querySelector('[data-bam-section="coverage"]')
+          ?.getAttribute("data-scale-forward-max"),
       ).toBe("1");
       expect(
-        draw(5).querySelector('[data-bam-section="coverage"]')?.getAttribute("data-scale-max"),
+        draw(5)
+          .querySelector('[data-bam-section="coverage"]')
+          ?.getAttribute("data-scale-forward-max"),
       ).toBe("10");
       expect(
-        draw(15, { mode: "fixed", max: 3 })
+        draw(15, { mode: "fixed", forwardMax: 3, reverseMax: 3 })
           .querySelector('[data-bam-section="coverage"]')
-          ?.getAttribute("data-scale-max"),
+          ?.getAttribute("data-scale-forward-max"),
       ).toBe("3");
       expect(hooks.height).toHaveBeenLastCalledWith("bam", 60);
     },
@@ -570,7 +1021,9 @@ describe("BAM sections", () => {
       expect(rowCount(element)).toBe(2);
       expect(hooks.height).toHaveBeenLastCalledWith("bam", 60 + 4 + 2 * 14 + 14);
       expect(
-        element.querySelector('[data-bam-section="coverage"]')?.getAttribute("data-scale-max"),
+        element
+          .querySelector('[data-bam-section="coverage"]')
+          ?.getAttribute("data-scale-forward-max"),
       ).toBe("5");
     }
   });
@@ -586,29 +1039,62 @@ describe("BAM sections", () => {
               <Renderer
                 {...props}
                 config={withSections({ coverage: true, junctions: true })}
-                data={data}
+                data={{
+                  ...data,
+                  records: [...data.records, { ...spliced, strand: "-", readName: "reverse" }],
+                }}
               />
             </svg>
           </TestBrowser>,
         ),
       );
-      const overlay = element.querySelector<SVGRectElement>(
-        '[data-bam-section="coverage"] rect[pointer-events="all"]',
-      )!;
-      overlay.getBoundingClientRect = () => ({ left: 0, width: 1500 }) as DOMRect;
+      const overlays = [
+        ...element.querySelectorAll<SVGRectElement>(
+          '[data-bam-section="coverage"] rect[pointer-events="all"]',
+        ),
+      ];
+      for (const overlay of overlays)
+        overlay.getBoundingClientRect = () => ({ left: 0, width: 1500 }) as DOMRect;
       act(() => {
-        overlay.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 160 }));
-        element
-          .querySelector("[data-junction]")!
-          .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+        for (const overlay of overlays)
+          overlay.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 160 }));
       });
+      const group = element.querySelector<SVGGElement>("[data-junction-group]")!;
+      // The junction section starts below the coverage section. The inverse
+      // screen transform converts pointer coordinates into its local space.
+      group.getScreenCTM = () =>
+        ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: -64 }) }) as DOMMatrix;
+      for (const strand of ["+", "-"]) {
+        const arc = group.querySelector(`[data-strand="${strand}"]`)!;
+        const point = junctionPoint(arc);
+        act(() =>
+          arc.querySelector('path[pointer-events="stroke"]')!.dispatchEvent(
+            new MouseEvent("mousemove", {
+              bubbles: true,
+              clientX: point.clientX,
+              clientY: point.clientY + 64,
+            }),
+          ),
+        );
+      }
       expect(hooks.show.mock.calls[0][0]).toMatchObject({
         kind: "coverage",
+        strand: "+",
         start: 10,
         end: 11,
         max: 2,
       });
-      expect(hooks.show.mock.calls[1][0]).toMatchObject({ kind: "junction", support: 2 });
+      expect(hooks.show.mock.calls[1][0]).toMatchObject({ kind: "coverage", strand: "-", max: 1 });
+      expect(hooks.show.mock.calls[2][0]).toMatchObject({
+        kind: "junction",
+        strand: "+",
+        support: 2,
+      });
+      expect(hooks.show.mock.calls[3][0]).toMatchObject({
+        kind: "junction",
+        strand: "-",
+        support: 1,
+      });
       expect(hooks.hover).not.toHaveBeenCalled();
     } finally {
       act(() => root.unmount());
@@ -621,15 +1107,41 @@ describe("BAM sections", () => {
           <BamTooltip item={item} />
         </svg>,
       );
-    const base = { kind: "coverage", chromosome: "chr1", start: 10, mean: 2, max: 2 } as const;
+    const base = {
+      kind: "coverage",
+      strand: "+",
+      chromosome: "chr1",
+      start: 10,
+      mean: 2,
+      max: 2,
+    } as const;
     expect(tooltip({ ...base, end: 11 })).toContain("Depth");
+    expect(tooltip({ ...base, end: 11 })).toContain("+ (forward)");
+    expect(tooltip({ ...base, end: 11, strand: "-" })).toContain("- (reverse)");
+    expect(
+      tooltip({
+        kind: "junction",
+        strand: "-",
+        chromosome: "chr1",
+        start: 15,
+        end: 35,
+        support: 1,
+      }),
+    ).toContain("- (reverse)");
     expect(tooltip({ ...base, end: 11 })).not.toContain("Mean depth");
     const summary = tooltip({ ...base, end: 20, mean: 1.25 });
     expect(summary).toContain("Coverage across 10 bases");
     expect(summary).toContain("Mean depth");
     expect(summary).toContain("1.25");
     expect(
-      tooltip({ kind: "junction", chromosome: "chr1", start: 15, end: 35, support: 2 }),
+      tooltip({
+        kind: "junction",
+        strand: "+",
+        chromosome: "chr1",
+        start: 15,
+        end: 35,
+        support: 2,
+      }),
     ).toContain("2 alignments");
   });
 });

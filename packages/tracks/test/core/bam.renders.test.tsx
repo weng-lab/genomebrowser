@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, expect, it, onTestFinished, vi } from "vitest";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
 import { GenomeBrowser, createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
 import { bamModule, type BamRecord } from "@weng-lab/genomebrowser-tracks/bam";
@@ -10,17 +10,22 @@ const records: BamRecord[] = [1100, 1120].map((start, index) => ({
   start,
   end: start + 100,
   readName: `read${index}`,
-  flags: 0,
-  strand: "+",
+  flags: index === 0 ? 0 : 16,
+  strand: index === 0 ? "+" : "-",
   mappingQuality: 60,
   sequence: "A".repeat(100),
   phredQualities: null,
-  cigar: [{ op: "M", length: 100, sequenceOffset: 0, referenceOffset: 0 }],
+  cigar: [
+    { op: "M", length: 30, sequenceOffset: 0, referenceOffset: 0 },
+    { op: "N", length: 40, sequenceOffset: 30, referenceOffset: 30 },
+    { op: "M", length: 30, sequenceOffset: 30, referenceOffset: 70 },
+  ],
   mate: null,
   templateLength: 0,
 }));
+let readerRecords = records;
 vi.mock("@weng-lab/genomic-reader", () => ({
-  createBamFile: () => ({ read: async () => records }),
+  createBamFile: () => ({ read: async () => readerRecords }),
 }));
 
 let probe: Probe | undefined;
@@ -94,4 +99,209 @@ it("budgets BAM viewport, display, and section changes through the stores", asyn
       "BamRenderer": 2,
     }
   `);
+  // Mount both aggregate sections before measuring a palette-only update.
+  await probe.measure(() => {
+    trackStore
+      .getState()
+      .updateTrack("bam", { config: { coverage: { show: true }, junctions: { show: true } } });
+  });
+  // updateTrack changes the shared strand palette. Every visible section and
+  // both read glyphs must redraw once to show the new colors.
+  const palette = await probe.measure(() => {
+    trackStore
+      .getState()
+      .updateTrack("bam", { config: { strandColors: { forward: "#228844", reverse: "#8844cc" } } });
+  });
+  expect(
+    palette.pick(
+      "BamRenderer",
+      "CoverageSection",
+      "JunctionSection",
+      "JunctionArcGroup",
+      "JunctionArcShape",
+      "AlignmentSection",
+      "AlignmentGlyph",
+    ),
+  ).toMatchInlineSnapshot(`
+    {
+      "AlignmentGlyph": 2,
+      "AlignmentSection": 1,
+      "BamRenderer": 1,
+      "CoverageSection": 1,
+      "JunctionArcGroup": 2,
+      "JunctionArcShape": 2,
+      "JunctionSection": 1,
+    }
+  `);
+
+  // updateTrack fixes the coverage scale and changes clamp visibility. Coverage
+  // must redraw; unchanged alignment glyphs still bail out. Section parents
+  // currently redraw once when any track config changes.
+  const coverageLimits = await probe.measure(() => {
+    trackStore.getState().updateTrack("bam", {
+      config: {
+        coverage: {
+          scale: { mode: "fixed", forwardMax: 0.5, reverseMax: 0.5 },
+          showClampIndicators: false,
+        },
+      },
+    });
+  });
+  expect(
+    coverageLimits.pick("BamRenderer", "CoverageSection", "AlignmentSection", "AlignmentGlyph"),
+  ).toMatchInlineSnapshot(`
+    {
+      "AlignmentGlyph": 0,
+      "AlignmentSection": 1,
+      "BamRenderer": 1,
+      "CoverageSection": 1,
+    }
+  `);
+
+  // Hover changes only the chosen junction group's highlight and tooltip.
+  // Pointer movement along the same curve should not redraw any BAM section.
+  const svg = document.querySelector<SVGSVGElement>("#browserSVG")!;
+  const svgPoint = { x: 0, y: 0, matrixTransform: () => ({ x: svgPoint.x, y: svgPoint.y }) };
+  const matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, inverse: () => matrix };
+  Object.assign(svg, { createSVGPoint: () => svgPoint, getScreenCTM: () => matrix });
+  Object.defineProperty(SVGElement.prototype, "getBBox", {
+    configurable: true,
+    value: () => ({ x: 0, y: 0, width: 120, height: 30 }),
+  });
+  onTestFinished(() => {
+    Reflect.deleteProperty(SVGElement.prototype, "getBBox");
+  });
+  const group = document.querySelector<SVGGElement>("[data-junction-group]")!;
+  group.getScreenCTM = () =>
+    ({ inverse: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }) }) as DOMMatrix;
+  const target = group.querySelector('path[pointer-events="stroke"]')!;
+  const [x1, y1, controlX, controlY, x2, y2] = target
+    .getAttribute("d")!
+    .match(/-?[\d.]+/g)!
+    .map(Number);
+  const point = (t: number) => ({
+    clientX: (1 - t) ** 2 * x1 + 2 * (1 - t) * t * controlX + t ** 2 * x2,
+    clientY: (1 - t) ** 2 * y1 + 2 * (1 - t) * t * controlY + t ** 2 * y2,
+  });
+  const names = ["BamRenderer", "JunctionSection", "JunctionArcGroup", "JunctionArcShape"];
+  const hover = await probe.measure(async () => {
+    target.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point(0.5) }));
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  });
+  expect(hover.pick(...names)).toMatchInlineSnapshot(`
+    {
+      "BamRenderer": 0,
+      "JunctionArcGroup": 1,
+      "JunctionArcShape": 1,
+      "JunctionSection": 0,
+    }
+  `);
+  const move = await probe.measure(() =>
+    target.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, ...point(0.6) })),
+  );
+  expect(move.pick(...names)).toMatchInlineSnapshot(`
+    {
+      "BamRenderer": 0,
+      "JunctionArcGroup": 0,
+      "JunctionArcShape": 0,
+      "JunctionSection": 0,
+    }
+  `);
+  const leave = await probe.measure(() =>
+    group.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })),
+  );
+  expect(leave.pick(...names)).toMatchInlineSnapshot(`
+    {
+      "BamRenderer": 0,
+      "JunctionArcGroup": 1,
+      "JunctionArcShape": 1,
+      "JunctionSection": 0,
+    }
+  `);
+});
+
+it("budgets clearing a hovered strand removed by minimumSupport while its group remains", async () => {
+  readerRecords = [
+    records[0],
+    { ...records[0], readName: "forward2" },
+    { ...records[0], readName: "reverse", flags: 16, strand: "-" },
+  ];
+  onTestFinished(() => {
+    readerRecords = records;
+    Reflect.deleteProperty(SVGElement.prototype, "getBBox");
+  });
+  const browserStore = createBrowserStore({
+    assembly: { id: "test", chromosomes: { chr1: 10000 } },
+    region: { chromosome: "chr1", start: 1000, end: 1500 },
+    trackWidth: 600,
+  });
+  const trackStore = createTrackStore({
+    modules: [bamModule],
+    tracks: [
+      bamModule.create({
+        base: { id: "bam", title: "BAM", display: "pack" },
+        config: {
+          url: "YOUR_URL_HERE",
+          indexUrl: "YOUR_URL_HERE",
+          junctions: { show: true, minimumSupport: 1 },
+        },
+      }),
+    ],
+  });
+  probe = await renderWithProbe(
+    <GenomeBrowser sizing="fixed" browserStore={browserStore} trackStore={trackStore} />,
+  );
+  const svg = document.querySelector<SVGSVGElement>("#browserSVG")!;
+  const svgPoint = { x: 0, y: 0, matrixTransform: () => ({ x: svgPoint.x, y: svgPoint.y }) };
+  const matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, inverse: () => matrix };
+  Object.assign(svg, { createSVGPoint: () => svgPoint, getScreenCTM: () => matrix });
+  Object.defineProperty(SVGElement.prototype, "getBBox", {
+    configurable: true,
+    value: () => ({ x: 0, y: 0, width: 120, height: 30 }),
+  });
+  const group = document.querySelector<SVGGElement>("[data-junction-group]")!;
+  group.getScreenCTM = () => matrix as DOMMatrix;
+  const target = group.querySelector('[data-strand="-"] path[pointer-events="stroke"]')!;
+  const [x1, y1, controlX, controlY, x2, y2] = target
+    .getAttribute("d")!
+    .match(/-?[\d.]+/g)!
+    .map(Number);
+  await probe.measure(async () => {
+    target.dispatchEvent(
+      new MouseEvent("mousemove", {
+        bubbles: true,
+        clientX: 0.25 * x1 + 0.5 * controlX + 0.25 * x2,
+        clientY: 0.25 * y1 + 0.5 * controlY + 0.25 * y2,
+      }),
+    );
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  });
+  const overlay = document.querySelector("[data-genomebrowser-tooltip-overlay]");
+  expect(overlay?.textContent).toContain("- (reverse)");
+  expect(overlay?.textContent).toContain("1 alignments");
+
+  // updateTrack excludes the hovered reverse strand, retaining the forward
+  // strand at the same boundaries and therefore the same mounted group.
+  const removal = await probe.measure(() => {
+    trackStore
+      .getState()
+      .updateTrack("bam", { config: { junctions: { show: true, minimumSupport: 2 } } });
+  });
+  expect(document.querySelector("[data-junction-group]")).toBe(group);
+  expect(group.querySelector('[data-strand="-"]')).toBeNull();
+  expect(group.querySelector('[data-strand="+"]')?.getAttribute("data-support")).toBe("2");
+  expect(document.querySelector("[data-genomebrowser-tooltip-overlay]")).toBeNull();
+  // Necessary: configuration redraws the renderer, section, group, and surviving
+  // shape once. The group commits again to clear its removed hover selection.
+  // The memoized surviving shape skips that second commit because its output
+  // is unchanged.
+  expect(removal.pick("BamRenderer", "JunctionSection", "JunctionArcGroup", "JunctionArcShape"))
+    .toMatchInlineSnapshot(`
+      {
+        "BamRenderer": 1,
+        "JunctionArcGroup": 2,
+        "JunctionArcShape": 1,
+        "JunctionSection": 1,
+      }
+    `);
 });

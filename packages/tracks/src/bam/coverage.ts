@@ -7,6 +7,7 @@ export type BamCoverageRun = { start: number; end: number; depth: number };
 /** Depth summarized over the bases one plotted bin covers. */
 export type BamCoverageBin = {
   kind: "coverage";
+  strand: BamRecord["strand"];
   chromosome: string;
   start: number;
   end: number;
@@ -65,6 +66,7 @@ export function binCoverage(
   runs: readonly BamCoverageRun[],
   region: GenomicRegion,
   width: number,
+  strand: BamRecord["strand"],
 ): BamCoverageBin[] {
   const span = region.end - region.start;
   const count = Math.min(span, Math.max(1, Math.floor(width)));
@@ -83,6 +85,7 @@ export function binCoverage(
     }
     bins.push({
       kind: "coverage",
+      strand,
       chromosome: region.chromosome,
       start,
       end,

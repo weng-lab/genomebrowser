@@ -20,11 +20,11 @@ afterEach(() => {
   container = undefined;
 });
 let defaults: BamConfig;
-function setup(source: "host" | "user") {
+function setup(source: "host" | "user", coverage?: Partial<BamConfig["coverage"]>) {
   const track = bamModule.create({
     source,
     base: { id: "bam", title: "BAM" },
-    config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE" },
+    config: { url: "YOUR_URL_HERE", indexUrl: "YOUR_URL_HERE", coverage },
   });
   const update = vi.fn(() => ({ ok: true as const }));
   defaults = track.config;
@@ -94,15 +94,15 @@ describe("BAM settings", () => {
   });
 });
 
-it("uses explicit strand controls and commits whole alignment groups for host tracks", () => {
+it("uses explicit strand controls and commits whole strand color groups for host tracks", () => {
   const update = setup("host");
   const labels = [...container!.querySelectorAll("label")];
   expect(labels.some((label) => label.textContent?.replace(/\s*\*$/, "").trim() === "Color")).toBe(
     false,
   );
   for (const [name, value, expected] of [
-    ["Forward color", "#123456", { forwardColor: "#123456" }],
-    ["Reverse color", "#654321", { reverseColor: "#654321" }],
+    ["Forward color", "#123456", { forward: "#123456" }],
+    ["Reverse color", "#654321", { reverse: "#654321" }],
   ] as const) {
     const label = labels.find((label) => label.textContent?.replace(/\s*\*$/, "").trim() === name)!;
     const input = document.getElementById(label.htmlFor) as HTMLInputElement;
@@ -113,7 +113,7 @@ it("uses explicit strand controls and commits whole alignment groups for host tr
     });
     act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
     expect(update).toHaveBeenLastCalledWith({
-      config: { alignments: { ...defaults.alignments, ...expected } },
+      config: { strandColors: { ...defaults.strandColors, ...expected } },
     });
   }
 });
@@ -154,6 +154,11 @@ it("shows controls for enabled sections and keeps at least one section visible",
   );
   expect(switchFor("Coverage").disabled).toBe(true);
   expect(container!.textContent).not.toContain("Row height");
+  expect(container!.textContent).toContain("Strand colors");
+  expect(container!.textContent).toContain("Forward color");
+  expect(container!.textContent).toContain("Reverse color");
+  expect(container!.textContent).not.toContain("Coverage color");
+  expect(container!.textContent).not.toContain("Junction color");
   expect(container!.textContent).toContain("Enable Alignments above");
   expect(container!.textContent).not.toContain("Show letters ·");
 });
@@ -225,4 +230,80 @@ it("rejects unsafe intron spans and allows a valid span to be cleared", () => {
   expect(
     bamModule.validate(useTrackStore.getState().getTrack("bam")).config.junctions.maximumSpan,
   ).toBeUndefined();
+});
+
+it("accepts a positive coverage maximum, rejects invalid limits, and clears to auto", () => {
+  const update = setup("user");
+  const label = [...container!.querySelectorAll("label")].find(
+    (label) => label.textContent === "Forward maximum",
+  )!;
+  const input = document.getElementById(label.htmlFor) as HTMLInputElement;
+  expect(input.value).toBe("");
+  expect(input.placeholder).toBe("Auto");
+  const enter = (value: string) => {
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+  };
+  for (const invalid of ["0", "-1", "Infinity", "oops"]) {
+    enter(invalid);
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(update).not.toHaveBeenCalled();
+  }
+  enter("2.5");
+  expect(update).toHaveBeenLastCalledWith({
+    config: { coverage: { ...defaults.coverage, scale: { mode: "fixed", forwardMax: 2.5 } } },
+  });
+  update.mockClear();
+  enter(" ");
+  expect(input.getAttribute("aria-invalid")).toBe("false");
+  expect(update).toHaveBeenLastCalledWith({
+    config: { coverage: { ...defaults.coverage, scale: { mode: "auto" } } },
+  });
+  const toggle = [...container!.querySelectorAll("label")]
+    .find((label) => label.textContent === "Show clamp indicators")!
+    .querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+  expect(toggle.checked).toBe(true);
+  act(() => toggle.click());
+  expect(update).toHaveBeenLastCalledWith({
+    config: { coverage: { ...defaults.coverage, showClampIndicators: false } },
+  });
+});
+
+it("edits or clears one strand limit while preserving the other", () => {
+  const update = setup("user", { scale: { mode: "fixed", forwardMax: 3, reverseMax: 7 } });
+  const inputFor = (name: string) => {
+    const label = [...container!.querySelectorAll("label")].find(
+      (label) => label.textContent === name,
+    )!;
+    return document.getElementById(label.htmlFor) as HTMLInputElement;
+  };
+  const forward = inputFor("Forward maximum");
+  const reverse = inputFor("Reverse maximum");
+  expect(forward.value).toBe("3");
+  expect(reverse.value).toBe("7");
+  const enter = (input: HTMLInputElement, value: string) => {
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    act(() => input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+  };
+  enter(forward, "");
+  expect(update).toHaveBeenLastCalledWith({
+    config: {
+      coverage: {
+        ...defaults.coverage,
+        scale: { mode: "fixed", forwardMax: undefined, reverseMax: 7 },
+      },
+    },
+  });
+  enter(reverse, "9");
+  expect(update).toHaveBeenLastCalledWith({
+    config: {
+      coverage: { ...defaults.coverage, scale: { mode: "fixed", forwardMax: 3, reverseMax: 9 } },
+    },
+  });
 });
