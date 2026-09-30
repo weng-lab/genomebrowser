@@ -79,7 +79,7 @@ The browser wrapper and its SVG tooltip portals have the `genomebrowser` class. 
 
 `className` adds a class to the browser wrapper, and `style` sets its inline styles. Tooltip portals are attached to the document body, so wrapper-specific classes, inline styles, and ancestor selectors do not reach them. Use `.genomebrowser` for font rules shared by the drawing and its tooltips.
 
-Renderers retain SVG font-size attributes for their existing layout. CSS rules targeting text, such as `.genomebrowser text { font-size: 12px; }`, override those attributes. Layout does not remeasure or repack in response to font changes, so larger or wider text can overlap or be clipped. Use `scale` to enlarge text and geometry together. Native sequence letters retain monospace defaults and sizes that fit their base positions; sequence glyphs drawn as paths keep their renderer-controlled geometry.
+Renderers retain SVG font-size attributes for their existing layout. CSS rules targeting text, such as `.genomebrowser text { font-size: 12px; }`, override those attributes. Layout does not remeasure or repack in response to font changes, so larger or wider text can overlap or be clipped. Use `scale` to enlarge text and geometry together. [TrackLabel](../04-rendererIntegration/TrackLabel.md) retains monospace text because its background sizing and truncation assume fixed-width characters. Native sequence letters retain monospace defaults and sizes that fit their base positions; sequence glyphs drawn as paths keep their renderer-controlled geometry.
 
 ## API
 

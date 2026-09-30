@@ -60,6 +60,7 @@ export function TrackLabel({ children, anchor, y, inset = 4, overflow = "hide" }
               textAnchor="middle"
               fontSize={fontSize}
               fill="#111"
+              fontFamily="monospace"
             >
               {displayed}
             </text>

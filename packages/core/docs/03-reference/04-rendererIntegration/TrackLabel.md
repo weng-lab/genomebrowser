@@ -69,6 +69,8 @@ Labels are SVG text with no keyboard interaction. Ordinary labels let pointer ev
 
 ## Notes
 
+The monospace font is a layout exception: background width and truncation use a fixed character-width estimate. `TrackLabel` does not inherit the browser's font family. CSS targeting the text can override it, but a proportional font can make text overflow its background or plot because the layout does not measure glyph widths.
+
 `TrackLabel` uses [TrackOverlay](TrackOverlay.md) and requires a mounted track renderer. Its coordinates refer to the visible plot rather than the content retained outside the viewport for panning. Corner labels sit against the top or bottom edge. Their values still update when the renderer's data changes.
 
 See [this reference area](README.md) or the [complete export index](../README.md#public-export-index) for related APIs.
