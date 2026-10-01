@@ -1,7 +1,7 @@
 import { useBasePairDetail } from "@weng-lab/genomebrowser";
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
-import { DenseBigWig, FullBigWig, getViewportRange } from "../bigwig/render";
-import { createYScale } from "../bigwig/helpers";
+import { DenseBigWig, FullBigWig } from "../bigwig/render";
+import { createYScale, getViewportRange } from "../bigwig/helpers";
 import { createGenomicXScale } from "../shared/coordinates";
 import { ValueLabels } from "../shared/ValueLabels";
 import { NUCLEOTIDE_COLORS, NUCLEOTIDE_GLYPHS } from "./glyphs";
@@ -63,19 +63,7 @@ function SequenceDynseq({ config, data, region, visibleRegion, width, height }: 
   const baseline = y(clamp(0));
   const toX = createGenomicXScale(region, width);
   const cellWidth = width / (region.end - region.start);
-  const points: DynseqPoint[] = [];
-  for (const record of data.signal) {
-    if (record.kind !== "value" || record.chromosome !== region.chromosome) continue;
-    for (const sequence of data.sequence) {
-      if (sequence.chromosome !== region.chromosome) continue;
-      const start = Math.max(record.start, sequence.start, region.start);
-      const end = Math.min(record.end, sequence.end, region.end);
-      for (let position = start; position < end; position++) {
-        const base = sequence.sequence[position - sequence.start]?.toUpperCase();
-        if (base && NUCLEOTIDE_GLYPHS[base]) points.push({ position, score: record.value, base });
-      }
-    }
-  }
+  const points = getSequencePoints(data, region);
   return (
     <g>
       <line x1={0} y1={baseline} x2={width} y2={baseline} stroke="#dddddd" strokeWidth={1} />
@@ -125,4 +113,21 @@ function SequenceDynseq({ config, data, region, visibleRegion, width, height }: 
       />
     </g>
   );
+}
+
+function getSequencePoints(data: DynseqData, region: Props["region"]) {
+  const points: DynseqPoint[] = [];
+  for (const record of data.signal) {
+    if (record.kind !== "value" || record.chromosome !== region.chromosome) continue;
+    for (const sequence of data.sequence) {
+      if (sequence.chromosome !== region.chromosome) continue;
+      const start = Math.max(record.start, sequence.start, region.start);
+      const end = Math.min(record.end, sequence.end, region.end);
+      for (let position = start; position < end; position++) {
+        const base = sequence.sequence[position - sequence.start]?.toUpperCase();
+        if (base && NUCLEOTIDE_GLYPHS[base]) points.push({ position, score: record.value, base });
+      }
+    }
+  }
+  return points;
 }

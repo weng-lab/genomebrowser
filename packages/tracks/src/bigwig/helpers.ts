@@ -1,5 +1,6 @@
-import type { SignalPoint } from "../shared/signal";
-import type { YRange, YRangeOverride } from "./types";
+import type { GenomicRegion } from "@weng-lab/genomebrowser";
+import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
+import type { BigWigConfig, BigWigData, YRange, YRangeOverride } from "./types";
 
 export function getBigWigRange(points: SignalPoint[]): YRange {
   let min = Infinity;
@@ -63,4 +64,29 @@ export function lighten(color: string, amount: number) {
       .padStart(2, "0");
   }
   return next;
+}
+
+export function getRenderedPoints(
+  config: BigWigConfig,
+  data: BigWigData,
+  region: GenomicRegion,
+  width: number,
+) {
+  const points = condenseSignalRecords(data, region, width);
+  if (config.fillWithZero) applyFillWithZero(points);
+  return points;
+}
+
+export function getViewportRange(
+  config: BigWigConfig,
+  data: BigWigData,
+  visibleRegion: GenomicRegion,
+  region: GenomicRegion,
+  width: number,
+) {
+  const regionSpan = region.end - region.start;
+  const visibleSpan = visibleRegion.end - visibleRegion.start;
+  const visibleWidth = regionSpan > 0 ? width * (visibleSpan / regionSpan) : width;
+  const points = getRenderedPoints(config, data, visibleRegion, visibleWidth);
+  return resolveBigWigRange(getBigWigRange(points), config.yRange);
 }
