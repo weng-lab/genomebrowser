@@ -122,9 +122,10 @@ export async function svgToPng(
   signal: AbortSignal,
 ): Promise<Blob> {
   signal.throwIfAborted();
-  const url = URL.createObjectURL(svg.blob);
   const image = new Image();
+  let url = "";
   try {
+    url = URL.createObjectURL(svg.blob);
     await new Promise<void>((resolve, reject) => {
       const cleanup = () => {
         image.onload = null;
@@ -163,7 +164,7 @@ export async function svgToPng(
     signal.throwIfAborted();
     return blob;
   } finally {
-    URL.revokeObjectURL(url);
+    if (url) URL.revokeObjectURL(url);
   }
 }
 

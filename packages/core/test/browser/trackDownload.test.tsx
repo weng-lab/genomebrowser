@@ -361,6 +361,24 @@ describe("track image downloads through the public hook and settings", () => {
     expect(api.isDownloading).toBe(false);
   });
 
+  it("does not allocate a source URL when image construction fails", async () => {
+    await mount();
+    vi.stubGlobal(
+      "Image",
+      class {
+        constructor() {
+          throw new Error("Image unavailable");
+        }
+      },
+    );
+    await act(async () => {
+      expect(await api.download("png")).toBe(false);
+    });
+    expect(api.error).toContain("Image unavailable");
+    expect(blobs).toHaveLength(0);
+    expect(saved).toHaveLength(0);
+    expect(api.isDownloading).toBe(false);
+  });
   it("reports decode failures and permits retry without leaking the source URL", async () => {
     installPngBoundary();
     await mount();
