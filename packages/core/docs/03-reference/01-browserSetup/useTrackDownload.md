@@ -69,7 +69,7 @@ Images include the visible plot, its title, and track overlays on a white backgr
 
 When included, the ruler appears directly above the selected track with its current title, coordinate labels, and any displayed sequence bases. Intervening tracks are omitted. Both plots retain their genomic alignment and clipping.
 
-SVG dimensions use logical track width and the sum of the included plots' and titles' heights. PNG rounds those dimensions up to whole pixels. Browser magnification through `GenomeBrowser.scale` does not change export dimensions. Change the track's width or height before exporting to change the image size.
+SVG dimensions use the current logical track width and the sum of the included plots' and titles' heights. PNG rounds those dimensions up to whole pixels. With fixed sizing, logical width is independent of `GenomeBrowser.scale`. With responsive sizing, logical width changes with the available container width and `scale`, so export width changes too.
 
 Core copies SVG definitions and computed presentation styles into the image. First-party SVG renderers work without module-specific export code. Custom renderers using external images, web fonts, or HTML inside `foreignObject` can depend on resources unavailable to a standalone SVG or the browser's PNG decoder. Such resources are not embedded by this API.
 

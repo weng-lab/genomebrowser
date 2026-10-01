@@ -11,6 +11,7 @@ import {
   defineTrackModule,
   useTrackDownload,
   TrackOverlay,
+  type AnyTrackModule,
   type TrackDownload,
   type TrackRendererProps,
   type TrackSettingsProps,
@@ -103,7 +104,12 @@ afterEach(async () => {
   vi.useRealTimers();
 });
 
-async function mount(title = "Selected / track", id = 'selected["x"]', withRuler = false) {
+async function mount(
+  title = "Selected / track",
+  id = 'selected["x"]',
+  withRuler = false,
+  selectedModule: AnyTrackModule = module,
+) {
   const useBrowserStore = createBrowserStore({
     assembly: { id: "test", chromosomes: { chr1: 10000 } },
     region: { chromosome: "chr1", start: 1000, end: 2000 },
@@ -112,11 +118,11 @@ async function mount(title = "Selected / track", id = 'selected["x"]', withRuler
     titleSize: 10,
   });
   const useTrackStore = createTrackStore({
-    modules: [module, rulerModule],
+    modules: [module, rulerModule, ...(selectedModule === module ? [] : [selectedModule])],
     tracks: [
       ...(withRuler ? [makeRuler()] : []),
       module.create({ base: { id: "other", title: "Other", height: 40 }, config: {} }),
-      module.create({ base: { id, title, height: 60, color: "#123456" }, config: {} }),
+      selectedModule.create({ base: { id, title, height: 60, color: "#123456" }, config: {} }),
     ],
   });
   const container = document.createElement("div");
@@ -175,6 +181,50 @@ function installPngBoundary(height = 75) {
 }
 
 describe("track image downloads through the public hook and settings", () => {
+  it("preserves stylesheet geometry and transforms while repositioning the selected frame", async () => {
+    const styledModule = defineTrackModule({
+      type: "styled-export",
+      configSchema: z.object({}),
+      fetch: async () => null,
+      render: {
+        full: () => (
+          <g className="export-position">
+            <rect className="export-geometry" x={10} y={5} width={20} height={15} />
+          </g>
+        ),
+      },
+      settingsComponent: Controls,
+    });
+    const { container } = await mount("Styled track", "styled", true, styledModule);
+    const stylesheet = document.createElement("style");
+    stylesheet.textContent = `
+      .export-position { transform: translateX(40px); transform-origin: 5px 10px; transform-box: fill-box; }
+      .export-geometry { width: 60px; }
+      [data-track-id="styled"] { transform: translateY(100px); }
+    `;
+    // Host-page CSS is outside the captured track, just as in an embedding app.
+    container.prepend(stylesheet);
+    await act(async () => {
+      expect(await api.download("svg", { includeRuler: true })).toBe(true);
+    });
+    const exported = new DOMParser().parseFromString(await text(blobs[0]), "image/svg+xml");
+    for (const [selector, properties] of [
+      [".export-position", ["transform", "transform-origin", "transform-box"]],
+      [".export-geometry", ["width"]],
+    ] as const) {
+      const source = container.querySelector(selector)!;
+      const copy = exported.querySelector<SVGElement>(selector)!;
+      for (const property of properties) {
+        const expected = getComputedStyle(source).getPropertyValue(property);
+        expect(expected).not.toBe("");
+        expect(copy.style.getPropertyValue(property)).toBe(expected);
+      }
+    }
+    const frame = exported.querySelector<SVGGElement>('[data-track-id="styled"]')!;
+    expect(frame.getAttribute("transform")).toBe("translate(0,45)");
+    expect(frame.style.transform).toBe("");
+  });
+
   it("keeps the ruler unchecked by default and stacks it directly above the selected track when checked", async () => {
     const { container, id } = await mount(undefined, undefined, true);
     const checkbox = container.querySelector<HTMLInputElement>('input[type="checkbox"]')!;

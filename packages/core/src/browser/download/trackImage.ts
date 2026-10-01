@@ -39,6 +39,19 @@ const presentationProperties = [
   "marker-start",
   "marker-mid",
   "marker-end",
+  "transform",
+  "transform-origin",
+  "transform-box",
+  "x",
+  "y",
+  "width",
+  "height",
+  "cx",
+  "cy",
+  "r",
+  "rx",
+  "ry",
+  "d",
 ];
 
 function cloneWithPresentation(source: Element): Element {
@@ -101,9 +114,11 @@ export function createTrackSvg(browser: SVGSVGElement, trackIds: readonly string
 
   let y = 0;
   for (const { frame, height: frameHeight } of frames) {
-    const track = cloneWithPresentation(frame);
+    const track = cloneWithPresentation(frame) as SVGGElement;
     // Position complete frames next to each other, irrespective of intervening tracks.
     track.removeAttribute("transform");
+    // Computed CSS transforms override the attribute used for export placement.
+    track.style.removeProperty("transform");
     if (y) track.setAttribute("transform", `translate(0,${y})`);
     image.append(track);
     y += frameHeight;
