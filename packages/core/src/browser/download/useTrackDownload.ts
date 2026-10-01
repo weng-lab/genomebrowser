@@ -28,15 +28,25 @@ export function useTrackDownload(trackId: string): TrackDownload {
   const { useBrowserStore, useTrackStore } = useGenomeBrowser();
   const rulerTrackId = useTrackStore((state) => findRulerTrack(state, trackId));
   const dataController = useDataController();
-  const active = useRef<AbortController | null>(null);
+  const active = useRef<{
+    controller: AbortController;
+    tracks: NonNullable<ReturnType<TrackStore["getTrack"]>>[];
+  } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setIsDownloading(false);
     setError(null);
+    const unsubscribe = useTrackStore.subscribe((next) => {
+      const request = active.current;
+      if (request?.tracks.some((track) => next.getTrack(track.base.id) !== track)) {
+        request.controller.abort();
+      }
+    });
     return () => {
-      active.current?.abort();
+      unsubscribe();
+      active.current?.controller.abort();
       active.current = null;
     };
   }, [trackId, svg, useBrowserStore, useTrackStore]);
@@ -44,10 +54,9 @@ export function useTrackDownload(trackId: string): TrackDownload {
   const download = async (format: TrackImageFormat, options: TrackDownloadOptions = {}) => {
     if (active.current) return false;
     const controller = new AbortController();
-    active.current = controller;
+    active.current = { controller, tracks: [] };
     setIsDownloading(true);
     setError(null);
-    let unsubscribe: (() => void) | undefined;
     try {
       if (format !== "svg" && format !== "png") throw new Error("Choose SVG or PNG.");
       const state = useTrackStore.getState();
@@ -57,7 +66,7 @@ export function useTrackDownload(trackId: string): TrackDownload {
       if (options.includeRuler && !rulerId)
         throw new Error("Add a ruler track before including it in the image.");
       const ids = rulerId && rulerId !== trackId ? [rulerId, trackId] : [trackId];
-      const tracks = ids.map((id) => state.getTrack(id)!);
+      active.current.tracks = ids.map((id) => state.getTrack(id)!);
       if (
         useBrowserStore.getState().isLoading ||
         ids.some((id) => dataController.getTrack(id).status === "loading")
@@ -67,11 +76,6 @@ export function useTrackDownload(trackId: string): TrackDownload {
       if (ids.some((id) => dataController.getTrack(id).status === "error")) {
         throw new Error("Resolve the track data error before downloading.");
       }
-      // Either included track changing invalidates a pending PNG.
-      unsubscribe = useTrackStore.subscribe((next) => {
-        if (tracks.some((included) => next.getTrack(included.base.id) !== included))
-          controller.abort();
-      });
       const { chromosome, start, end } = useBrowserStore.getState().region;
       const snapshot = createTrackSvg(svg, ids);
       const blob = format === "svg" ? snapshot.blob : await svgToPng(snapshot, controller.signal);
@@ -87,11 +91,10 @@ export function useTrackDownload(trackId: string): TrackDownload {
       }
       return false;
     } finally {
-      unsubscribe?.();
-      if (active.current === controller) {
+      if (active.current?.controller === controller) {
         active.current = null;
-        setIsDownloading(false);
       }
+      setIsDownloading(active.current !== null);
     }
   };
 

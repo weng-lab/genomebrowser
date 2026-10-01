@@ -391,6 +391,7 @@ describe("track image downloads through the public hook and settings", () => {
       expect(await result!).toBe(false);
     });
     expect(api.error).toContain("could not be converted");
+    expect(api.isDownloading).toBe(false);
     expect(saved).toHaveLength(0);
     expect(revoke).toHaveBeenCalledWith("blob:export-1");
     await act(async () => {
@@ -432,6 +433,45 @@ describe("track image downloads through the public hook and settings", () => {
     expect(revoke).toHaveBeenCalledWith("blob:export-1");
   });
 
+  it("releases settings subscriptions before a cancelled PNG finishes encoding", async () => {
+    installPngBoundary();
+    const { container, useTrackStore } = await mount("Pending track");
+    const closeSettings = () =>
+      container.querySelector<HTMLButtonElement>('[aria-label="Close settings"]')!.click();
+    await act(async () => closeSettings());
+
+    const subscribe = useTrackStore.subscribe;
+    const cleanups: ReturnType<typeof vi.fn>[] = [];
+    vi.spyOn(useTrackStore, "subscribe").mockImplementation((listener) => {
+      const cleanup = vi.fn(subscribe(listener));
+      cleanups.push(cleanup);
+      return cleanup;
+    });
+    await act(async () =>
+      container
+        .querySelector('[aria-label="Settings for Pending track"]')!
+        .dispatchEvent(new MouseEvent("click", { bubbles: true })),
+    );
+    let finishEncoding!: BlobCallback;
+    vi.mocked(HTMLCanvasElement.prototype.toBlob).mockImplementation((callback) => {
+      finishEncoding = callback;
+    });
+    let result!: Promise<boolean>;
+    await act(async () => {
+      result = api.download("png");
+    });
+    await act(async () => image.onload?.(new Event("load")));
+    expect(api.isDownloading).toBe(true);
+    await act(async () => closeSettings());
+    expect(cleanups.length).toBeGreaterThan(0);
+    for (const cleanup of cleanups) expect(cleanup).toHaveBeenCalledOnce();
+    await act(async () => {
+      finishEncoding(new Blob(["png"], { type: "image/png" }));
+      expect(await result).toBe(false);
+    });
+    expect(saved).toHaveLength(0);
+    expect(revoke).toHaveBeenCalledWith("blob:export-1");
+  });
   it("reports a loading track without downloading and uses native settings buttons", async () => {
     const { container, useBrowserStore } = await mount();
     await act(async () => useBrowserStore.setState({ isLoading: true }));
