@@ -37,7 +37,6 @@ export function SettingsModalController() {
             padding: 0,
           }}
         >
-          <TrackDownloadControls trackId={trackId} />
           {ModuleSettingsComponent ? (
             <BoundModuleSettings
               trackId={trackId}
@@ -45,6 +44,7 @@ export function SettingsModalController() {
               displayOptions={Object.keys(module.render)}
             />
           ) : null}
+          <TrackDownloadControls trackId={trackId} />
         </fieldset>
       </DefaultSettingsModal>
     );

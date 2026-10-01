@@ -2,7 +2,7 @@ import { useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import ButtonGroup from "@mui/material/ButtonGroup";
+import SvgIcon from "@mui/material/SvgIcon";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Stack from "@mui/material/Stack";
@@ -54,25 +54,28 @@ export function TrackDownloadControls({ trackId }: { trackId: string }) {
               />
             }
           />
-          <ButtonGroup
-            variant="outlined"
-            size="small"
-            aria-label="Image format"
-            disabled={disabled}
-          >
+          <Stack direction="row" spacing={1}>
             <Button
+              variant="outlined"
+              size="small"
+              disabled={disabled}
+              startIcon={<DownloadIcon />}
               aria-label="Download track as SVG"
               onClick={() => void download("svg", { includeRuler })}
             >
               SVG
             </Button>
             <Button
+              variant="outlined"
+              size="small"
+              disabled={disabled}
+              startIcon={<DownloadIcon />}
               aria-label="Download track as PNG"
               onClick={() => void download("png", { includeRuler })}
             >
               PNG
             </Button>
-          </ButtonGroup>
+          </Stack>
         </Stack>
         {!hasRuler && (
           <Typography variant="caption" color="text.secondary">
@@ -96,5 +99,13 @@ export function TrackDownloadControls({ trackId }: { trackId: string }) {
         )}
       </Stack>
     </Box>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <SvgIcon>
+      <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v3h14v-3H5z" />
+    </SvgIcon>
   );
 }
