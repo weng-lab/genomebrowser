@@ -1,10 +1,7 @@
 import type { Highlight } from "@weng-lab/genomebrowser";
 import { useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import type { CytobandsProps } from "./cytobandsTypes";
-import {
-  formatHighlightCoordinates,
-  highlightTooltip as HighlightTooltip,
-} from "./highlightTooltip";
+import { formatHighlightCoordinates, HighlightTooltip } from "./highlightTooltip";
 
 import { HighlightInterval } from "./HighlightInterval";
 

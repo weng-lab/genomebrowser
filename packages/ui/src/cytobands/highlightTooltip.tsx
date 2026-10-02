@@ -20,11 +20,11 @@ type highlightTooltipProps = {
   renderHighlightTooltip?: (highlight: Highlight) => ReactNode;
 };
 
-export function highlightTooltip(props: highlightTooltipProps) {
-  return <HighlightTooltip {...props} />;
-}
-
-function HighlightTooltip({ rendered, anchor, renderHighlightTooltip }: highlightTooltipProps) {
+export function HighlightTooltip({
+  rendered,
+  anchor,
+  renderHighlightTooltip,
+}: highlightTooltipProps) {
   const theme = useTheme();
   const id = `cytobands-highlight-tooltip-${useId().replaceAll(":", "")}`;
   const contentRef = useRef<SVGGElement>(null);
