@@ -16,9 +16,9 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { bigBedModule } from "../../src/bigbed";
-import type { BigBedConfig } from "../../src/bigbed/types";
+import type { BigBedConfig } from "../../src/bigbed/schema";
 import { bulkBedModule } from "../../src/bulkbed";
-import type { BulkBedConfig } from "../../src/bulkbed/types";
+import type { BulkBedConfig } from "../../src/bulkbed/schema";
 import { TrackHeightSettings } from "../../src/shared/settings/trackHeightSettings";
 import { TrackBaseSettings } from "../../src/shared/settings/trackBaseSettings";
 
@@ -75,7 +75,9 @@ describe("TrackBaseSettings", () => {
     const display = getSelect("Display mode");
     const height = getInput("Height");
     const controls = Array.from(
-      container?.querySelectorAll('input:not(.MuiSelect-nativeInput), [role="combobox"]') ?? [],
+      title
+        .closest("fieldset")
+        ?.querySelectorAll('input:not(.MuiSelect-nativeInput), [role="combobox"]') ?? [],
     );
 
     expect(controls).toEqual([title, color, display, height]);

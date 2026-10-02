@@ -1,7 +1,8 @@
 import { TrackTooltip } from "../shared/tooltips";
 import { BigWigTooltip } from "../bigwig/tooltip";
 import type { TrackTooltipComponent } from "@weng-lab/genomebrowser";
-import type { DynseqConfig, DynseqItem } from "./types";
+import type { DynseqItem } from "./types";
+import type { DynseqConfig } from "./schema";
 
 export const DynseqTooltip: TrackTooltipComponent<DynseqItem, DynseqConfig> = ({
   item,

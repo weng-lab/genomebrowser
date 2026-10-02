@@ -18,7 +18,7 @@ export const bamCoverageScaleSchema = z.discriminatedUnion("mode", [
     }),
 ]);
 
-export const bamConfigSchema = z
+export const configSchema = z
   .object({
     url: fetchOnChange(z.string().min(1)),
     indexUrl: fetchOnChange(z.string().min(1)),
@@ -67,6 +67,6 @@ export const bamConfigSchema = z
   .refine((config) => config.alignments.show || config.coverage.show || config.junctions.show, {
     message: "Show at least one of coverage, junctions, or alignments",
   });
-export type BamConfigInput = z.input<typeof bamConfigSchema>;
-export type BamConfig = z.output<typeof bamConfigSchema>;
-export type BamCoverageScale = z.output<typeof bamCoverageScaleSchema>;
+export type BamConfigInput = z.input<typeof configSchema>;
+export type BamConfig = z.output<typeof configSchema>;
+export type BamCoverageScale = BamConfig["coverage"]["scale"];

@@ -18,7 +18,7 @@ import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField"
 import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorField";
 import { TrackSettingsNumberField } from "../shared/settings/trackSettingsNumberField";
 import { TrackSettingsTextField } from "../shared/settings/trackSettingsTextField";
-import type { BamConfig } from "./types";
+import type { BamConfig } from "./schema";
 import { parseFiniteNumber } from "../shared/settings/draftInput";
 
 const validateSectionHeight = (value: number) =>

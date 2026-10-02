@@ -1,6 +1,7 @@
 import type { GenomicRegion } from "@weng-lab/genomebrowser";
 import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
-import type { BigWigConfig, BigWigData, YRange, YRangeOverride } from "./types";
+import type { BigWigData, YRange } from "./types";
+import type { BigWigConfig, YRangeOverride } from "./schema";
 
 export function getBigWigRange(points: SignalPoint[]): YRange {
   let min = Infinity;

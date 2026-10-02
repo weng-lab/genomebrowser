@@ -4,7 +4,8 @@ import {
   formatGenomicInterval,
   formatOptionalBedValue,
 } from "../shared/tooltips/trackTooltipFormatters";
-import type { BulkBedConfig, BulkBedRect } from "./types";
+import type { BulkBedRect } from "./types";
+import type { BulkBedConfig } from "./schema";
 
 export const BulkBedTooltip: TrackTooltipComponent<BulkBedRect, BulkBedConfig> = ({
   item,

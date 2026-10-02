@@ -1,21 +1,11 @@
-import { bedSchemaKeySchema } from "../shared/bedSchemas";
-import type { ModuleCreateInput, ModuleInstance } from "@weng-lab/genomebrowser";
-import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser";
-import { z } from "zod";
-import { defaultRowHeight, rowHeightSchema } from "../shared/layout/rowLayout";
+import { configSchema } from "./schema";
+import type { ModuleCreateInput } from "@weng-lab/genomebrowser";
+import { defineTrackModule } from "@weng-lab/genomebrowser";
 import { fetchBulkBed } from "./fetch";
 import { FullBulkBed } from "./render";
 import { BulkBedSettings } from "./settings";
 import { BulkBedTooltip } from "./tooltip";
 import type { BulkBedRect } from "./types";
-
-const datasetSchema = z.object({ name: z.string().min(1), url: fetchOnChange(z.string().min(1)) });
-const configSchema = z.object({
-  bedSchema: fetchOnChange(bedSchemaKeySchema.optional()),
-  datasets: z.array(datasetSchema).min(1),
-  gap: z.number().nonnegative().optional(),
-  rowHeight: rowHeightSchema.default(defaultRowHeight),
-});
 
 export const bulkBedModule = defineTrackModule<BulkBedRect>()({
   type: "bulkbed",
@@ -28,11 +18,7 @@ export const bulkBedModule = defineTrackModule<BulkBedRect>()({
 });
 
 export type BulkBedCreateInput = ModuleCreateInput<typeof bulkBedModule>;
-export type BulkBedConfig = ModuleInstance<typeof bulkBedModule>["config"];
-export type {
-  BulkBedData,
-  BulkBedDataset,
-  BulkBedDisplay,
-  BulkBedInteraction,
-  BulkBedRect,
-} from "./types";
+export type { BulkBedData, BulkBedInteraction, BulkBedRect } from "./types";
+
+export type BulkBedDisplay = (typeof bulkBedModule)["displays"][number];
+export type { BulkBedConfig, BulkBedDataset } from "./schema";

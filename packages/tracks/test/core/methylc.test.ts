@@ -12,7 +12,7 @@ vi.mock("@weng-lab/genomic-reader", () => ({
 }));
 
 import { fetchMethylC } from "../../src/methylc/fetch";
-import type { MethylCConfig } from "../../src/methylc/types";
+import type { MethylCConfig } from "../../src/methylc/schema";
 
 describe("MethylC track fetching", () => {
   beforeEach(() => {

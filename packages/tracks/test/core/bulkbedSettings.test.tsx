@@ -12,7 +12,8 @@ import {
 } from "@weng-lab/genomebrowser";
 import { bulkBedModule } from "../../src/bulkbed";
 import { BulkBedSettings } from "../../src/bulkbed/settings";
-import type { BulkBedConfig, BulkBedDataset, BulkBedRect } from "../../src/bulkbed/types";
+import type { BulkBedRect } from "../../src/bulkbed/types";
+import type { BulkBedConfig, BulkBedDataset } from "../../src/bulkbed/schema";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;

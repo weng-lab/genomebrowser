@@ -1,6 +1,7 @@
 import type { TrackRendererProps } from "@weng-lab/genomebrowser";
 import { useMemo } from "react";
-import type { GeneConfig, GeneData } from "../types";
+import type { GeneData } from "../types";
+import type { GeneConfig } from "../schema";
 import { findTranscriptTagColor, groupTranscriptsByGene } from "./features";
 import { GeneRows } from "./GeneRows";
 

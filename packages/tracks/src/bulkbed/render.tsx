@@ -3,7 +3,8 @@ import { renderDenseBigBedData } from "../bigbed/helpers";
 import { createGenomicXScale } from "../shared/coordinates";
 import { useRowLayout } from "../shared/layout";
 import { intersectsVisibleRegion } from "../shared/viewport";
-import type { BulkBedConfig, BulkBedData, BulkBedRect } from "./types";
+import type { BulkBedData, BulkBedRect } from "./types";
+import type { BulkBedConfig } from "./schema";
 
 export function FullBulkBed({
   id,

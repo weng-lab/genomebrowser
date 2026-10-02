@@ -29,7 +29,7 @@ import {
 } from "../data/datasets";
 import type { GeneInteractionTarget } from "../interactions";
 import { reorderTagColors } from "./reorderTagColors";
-import type { GeneConfig, GeneTagColor } from "../types";
+import type { GeneConfig, GeneTagColor } from "../schema";
 
 type GeneSettingsProps = TrackSettingsProps<GeneConfig, GeneInteractionTarget>;
 

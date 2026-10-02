@@ -1,7 +1,7 @@
 import type { GenomicRegion } from "@weng-lab/genomebrowser";
 import type { BamRecord } from "@weng-lab/genomic-reader";
 import { intersectsVisibleRegion } from "../shared/viewport";
-import type { BamConfig } from "./types";
+import type { BamConfig } from "./schema";
 
 /**
  * Alignments in the region that pass the configured filters. Coverage,

@@ -15,7 +15,7 @@ vi.mock("@weng-lab/genomic-reader", () => ({
 
 import { dynseqModule } from "../../src/dynseq";
 import { fetchDynseq } from "../../src/dynseq/fetch";
-import type { DynseqConfig } from "../../src/dynseq/types";
+import type { DynseqConfig } from "../../src/dynseq/schema";
 
 function createResources(): TrackResources {
   const map = new Map<string, unknown>();

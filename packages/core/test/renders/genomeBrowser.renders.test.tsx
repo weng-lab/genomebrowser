@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { renderWithProbe, type Probe, type RenderReport } from "@weng-lab/render-probe";
-import { afterEach, describe, expect, it, onTestFinished } from "vitest";
+import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { z } from "zod";
 import { GenomeBrowser } from "../../src/browser/GenomeBrowser";
 import { createBrowserStore } from "../../src/browser/state/browserStore";
@@ -65,6 +65,14 @@ const tooltipModule = defineTrackModule<string>()({
   tooltipComponent: TestTooltip,
 });
 
+const rulerModule = defineTrackModule({
+  type: "budget-ruler",
+  isRuler: true,
+  configSchema: z.object({}),
+  fetch: async () => null,
+  render: { full: TestRenderer },
+});
+
 let probe: Probe | undefined;
 
 afterEach(() => {
@@ -85,7 +93,7 @@ async function mountBrowser({
     titleSize: 10,
   });
   const trackStore = createTrackStore({
-    modules: [module, slowModule, tooltipModule],
+    modules: [module, slowModule, tooltipModule, rulerModule],
     tracks: [
       ...(slowTrack || tooltipTrack ? ["first", "second"] : ["first", "second", "third"]).map(
         createTrack,
@@ -140,6 +148,145 @@ function budget(report: RenderReport, ...extra: string[]) {
 }
 
 describe("GenomeBrowser render budgets with three tracks", () => {
+  // Download settings update locally; exporting must not render the track tree.
+  it("downloads a track without rendering the browser or track tree", async () => {
+    const { probe } = await mountBrowser();
+    const createObjectURL = vi.fn<(blob: Blob) => string>(() => "blob:track-export");
+    vi.stubGlobal(
+      "URL",
+      class extends URL {
+        static createObjectURL = createObjectURL;
+        static revokeObjectURL = vi.fn<(url: string) => void>();
+      },
+    );
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    onTestFinished(() => {
+      vi.restoreAllMocks();
+      vi.unstubAllGlobals();
+    });
+    await probe.measure(() =>
+      document
+        .querySelector<SVGGElement>('[aria-label="Settings for second"]')!
+        .dispatchEvent(new MouseEvent("click", { bubbles: true })),
+    );
+    const report = await probe.measure(async () => {
+      document.querySelector<HTMLButtonElement>('[aria-label="Download track as SVG"]')!.click();
+      await Promise.resolve();
+    });
+    expect(createObjectURL).toHaveBeenCalledOnce();
+    // Necessary: only local progress updates. No browser or track component renders.
+    expect(budget(report)).toMatchInlineSnapshot(`
+      {
+        "BrowserCanvas": 0,
+        "BrowserProvider": 0,
+        "Highlights": 0,
+        "PanTrack": 0,
+        "TestRenderer": 0,
+        "TrackContent": 0,
+        "TrackControls": 0,
+        "TrackFrame": 0,
+        "TrackRow": 0,
+        "TrackStack": 0,
+      }
+    `);
+  });
+
+  it("keeps PNG preparation and failure updates inside the download controls", async () => {
+    const { probe } = await mountBrowser();
+    let image: HTMLImageElement;
+    vi.stubGlobal(
+      "Image",
+      class {
+        src = "";
+        onload = null;
+        onerror: (() => void) | null = null;
+        constructor() {
+          image = this as unknown as HTMLImageElement;
+        }
+      },
+    );
+    vi.stubGlobal(
+      "URL",
+      class extends URL {
+        static createObjectURL = vi.fn<(blob: Blob) => string>(() => "blob:pending-png");
+        static revokeObjectURL = vi.fn<(url: string) => void>();
+      },
+    );
+    onTestFinished(() => {
+      vi.unstubAllGlobals();
+    });
+    await probe.measure(() =>
+      document
+        .querySelector<SVGGElement>('[aria-label="Settings for second"]')!
+        .dispatchEvent(new MouseEvent("click", { bubbles: true })),
+    );
+    // The button calls the core hook. Starting conversion only shows local progress.
+    const started = await probe.measure(() =>
+      document.querySelector<HTMLButtonElement>('[aria-label="Download track as PNG"]')!.click(),
+    );
+    expect(document.querySelector("output")?.textContent).toBe("Preparing image…");
+    const failed = await probe.measure(async () => {
+      image.onerror?.(new Event("error"));
+      await Promise.resolve();
+    });
+    expect(document.querySelector('[role="alert"]')?.textContent).toContain(
+      "could not be converted",
+    );
+    // Necessary: one local render to show progress and one to show the error.
+    // The settings shell and track tree show no changed values and do not render.
+    expect(
+      started.pick("TrackDownloadControls", "SettingsModalController", "TrackRow", "TestRenderer"),
+    ).toMatchInlineSnapshot(`
+        {
+          "SettingsModalController": 0,
+          "TestRenderer": 0,
+          "TrackDownloadControls": 1,
+          "TrackRow": 0,
+        }
+      `);
+    expect(
+      failed.pick("TrackDownloadControls", "SettingsModalController", "TrackRow", "TestRenderer"),
+    ).toMatchInlineSnapshot(`
+        {
+          "SettingsModalController": 0,
+          "TestRenderer": 0,
+          "TrackDownloadControls": 1,
+          "TrackRow": 0,
+        }
+      `);
+  });
+
+  // A local checkbox changes export composition without mutating either store.
+  it("toggles the ruler option without rendering the track tree", async () => {
+    const { probe, trackStore } = await mountBrowser();
+    await probe.measure(() =>
+      trackStore
+        .getState()
+        .addTrack(
+          rulerModule.create({ base: { id: "ruler", title: "Ruler", height: 22 }, config: {} }),
+        ),
+    );
+    await probe.measure(() =>
+      document
+        .querySelector<SVGGElement>('[aria-label="Settings for second"]')!
+        .dispatchEvent(new MouseEvent("click", { bubbles: true })),
+    );
+    const checkbox = document.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+    expect(checkbox.checked).toBe(false);
+    const report = await probe.measure(() => checkbox.click());
+    expect(checkbox.checked).toBe(true);
+    // Necessary: only the controls render to show the changed checkbox.
+    expect(
+      report.pick("TrackDownloadControls", "SettingsModalController", "TrackRow", "TestRenderer"),
+    ).toMatchInlineSnapshot(`
+        {
+          "SettingsModalController": 0,
+          "TestRenderer": 0,
+          "TrackDownloadControls": 1,
+          "TrackRow": 0,
+        }
+      `);
+  });
   it("mounts", async () => {
     const { probe } = await mountBrowser();
 

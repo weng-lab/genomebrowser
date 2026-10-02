@@ -4,7 +4,8 @@ import {
   formatGenomicInterval,
   formatOptionalBedValue,
 } from "../shared/tooltips/trackTooltipFormatters";
-import type { BigBedConfig, BigBedRow } from "./types";
+import type { BigBedRow } from "./types";
+import type { BigBedConfig } from "./schema";
 
 export function BigBedTooltip<
   Row extends BigBedRow = BigBedRow,

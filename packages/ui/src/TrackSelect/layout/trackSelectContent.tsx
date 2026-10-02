@@ -3,8 +3,7 @@ import type { TrackSelectColumnOverrides } from "../collection/collectionColumns
 import type { CompiledTrackCollections } from "../collection/collectionCompilation";
 import type { TrackSelectInteractionResolver } from "../collection/collectionInteraction";
 import { ConfirmDialog } from "../dialogs/confirmDialog";
-import { useTrackSelect } from "../session/trackSelectContext";
-import { TrackSelectProvider } from "../session/TrackSelectProvider";
+import { TrackSelectContext, useTrackSelect } from "../session/trackSelectContext";
 import { useTrackSelectState } from "../session/useTrackSelectState";
 import { TrackSelectActionBar } from "./trackSelectActionBar";
 import { TrackSelectBody } from "./trackSelectBody";
@@ -28,13 +27,13 @@ export function TrackSelectContent(props: TrackSelectContentProps) {
   const trackSelect = useTrackSelectState(props);
 
   return (
-    <TrackSelectProvider value={trackSelect}>
+    <TrackSelectContext value={trackSelect}>
       <TrackSelectToolbar />
       <TrackSelectBody columnOverrides={props.columnOverrides} />
       <TrackSelectSubmitError />
       <TrackSelectActionBar />
       <TrackSelectLimitDialog />
-    </TrackSelectProvider>
+    </TrackSelectContext>
   );
 }
 

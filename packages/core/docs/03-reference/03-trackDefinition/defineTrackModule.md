@@ -76,6 +76,8 @@ Register the module and add the instance to a [track store](../01-browserSetup/t
 | `settingsComponent` | `TrackSettingsComponent<Config, Item>`                  | None      | Complete settings form for an instance.                                                                              |
 | `tooltipComponent`  | `TrackTooltipComponent<Item, Config>`                   | None      | SVG content shown by the runtime tooltip hook.                                                                       |
 
+The optional `isRuler: boolean` definition option defaults to `false`. Set it to `true` for a coordinate ruler that can accompany other tracks in [image downloads](../01-browserSetup/useTrackDownload.md). Core uses this flag rather than a module type name.
+
 `Config` is the schema's parsed output type. `Data` is inferred from the fetch promise.
 
 The default display is the first renderer key. If supplied, `defaults.display` must match a key. Default height is `80` logical SVG units and default color is `"#000000"`. Put module-specific config defaults in the Zod schema. Invalid displays or base defaults throw during module definition.
@@ -96,6 +98,8 @@ The default display is the first renderer key. If supplied, `defaults.display` m
 | `render`                      | Renderer map.                                                                          |
 | `settingsComponent`           | Optional settings component.                                                           |
 | `tooltipComponent`            | Optional tooltip component.                                                            |
+
+The returned module's `isRuler` field contains the supplied flag, defaulting to `false`. It does not change fetching or rendering.
 
 `ModuleCreateInput<M>` extracts input from a module's `createInputSchema`. `ModuleInstance<M>` extracts the return type of its `validate` method. Use these to retain a particular module's config and interaction types in application code.
 

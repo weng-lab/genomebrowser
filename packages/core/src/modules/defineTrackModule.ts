@@ -45,6 +45,7 @@ type TrackModuleDefinition<
   Item,
 > = {
   type: Type;
+  isRuler?: boolean;
   defaults?: ModuleDefaults<DisplayKey<Renderers>>;
   configSchema: ConfigSchema;
   fetch: Fetch;
@@ -138,6 +139,7 @@ function createTrackModule<
 
   return {
     type: definition.type,
+    isRuler: definition.isRuler ?? false,
     displays,
     configSchema,
     createInputSchema,

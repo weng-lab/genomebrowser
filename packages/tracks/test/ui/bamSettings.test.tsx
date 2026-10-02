@@ -5,7 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { bamModule, type BamRecord } from "@weng-lab/genomebrowser-tracks/bam";
 import { BamSettings } from "../../src/bam/settings";
-import type { BamConfig } from "../../src/bam/types";
+import type { BamConfig } from "../../src/bam/schema";
 import { TestBrowser } from "../testBrowser";
 import { type TrackUpdate } from "@weng-lab/genomebrowser";
 

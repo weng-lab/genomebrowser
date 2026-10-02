@@ -23,7 +23,7 @@ The generated application already includes the browser dependencies and setup. C
 
 ### Option 2: Use an existing application
 
-For an existing React application, core provides the browser component and its state, while the tracks package supplies the ruler and BigWig implementations. The track settings also depend on Emotion and MUI. Install these packages together:
+For an existing React application, core provides the browser component and its state, while the tracks package supplies the ruler and BigWig implementations. Core's download controls and the track settings depend on Emotion and MUI. Install these packages together:
 
 ```sh
 pnpm add @weng-lab/genomebrowser@2.0.0 @weng-lab/genomebrowser-tracks@2.0.0 @emotion/react@11 @emotion/styled@11 @mui/material@7

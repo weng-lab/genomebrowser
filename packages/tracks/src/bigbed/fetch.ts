@@ -3,7 +3,8 @@ import type { BigBedFileOptions, BigBedRecord } from "@weng-lab/genomic-reader";
 import type { z } from "zod";
 import { readCachedBigBedRows } from "../shared/cachedFiles";
 import { readBedPreset } from "../shared/readBedPreset";
-import type { BigBedConfig, BigBedData } from "./types";
+import type { BigBedData } from "./types";
+import type { BigBedConfig } from "./schema";
 
 export async function fetchBigBed({
   track: { config },

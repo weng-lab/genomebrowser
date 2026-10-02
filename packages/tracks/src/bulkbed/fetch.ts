@@ -1,6 +1,7 @@
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
 import { readBedPreset } from "../shared/readBedPreset";
-import type { BulkBedConfig, BulkBedData } from "./types";
+import type { BulkBedData } from "./types";
+import type { BulkBedConfig } from "./schema";
 
 export async function fetchBulkBed({
   track: { config },

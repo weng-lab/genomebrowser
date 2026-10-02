@@ -15,7 +15,8 @@ import {
   type JunctionArc,
 } from "./junctions";
 import { darkenBamColor, layoutBam, type BamRowAssignment } from "./layout";
-import type { BamConfig, BamData, BamDisplay, BamTooltipItem } from "./types";
+import type { BamData, BamDisplay, BamTooltipItem } from "./types";
+import type { BamConfig } from "./schema";
 
 type Props = TrackRendererProps<BamConfig, BamData>;
 export function DenseBam(props: Props) {

@@ -1,19 +1,13 @@
-import type { ModuleCreateInput, ModuleInstance, TrackFetchContext } from "@weng-lab/genomebrowser";
-import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser";
-import { z } from "zod";
+import { configSchema } from "./schema";
+import type { ModuleCreateInput, TrackFetchContext } from "@weng-lab/genomebrowser";
+import { defineTrackModule } from "@weng-lab/genomebrowser";
 import { readCachedBigBedRows } from "../shared/cachedFiles";
 import { DenseBigBed, SquishBigBed } from "../bigbed/render";
 import { BigBedSettings } from "../bigbed/settings";
-import type { BigBedConfig } from "../bigbed/types";
-import { defaultRowHeight, rowHeightSchema } from "../shared/layout/rowLayout";
+import type { BigBedConfig } from "../bigbed/schema";
 import { bedSchemas } from "../shared/bedSchemas";
 import type { CcreBigBedRow } from "./types";
 import { CcreBigBedTooltip } from "./tooltip";
-
-const configSchema = z.object({
-  url: fetchOnChange(z.string().min(1)),
-  rowHeight: rowHeightSchema.default(defaultRowHeight),
-});
 
 async function fetchCcreBigBed({
   track: { config },
@@ -34,5 +28,5 @@ export const ccreBigBedModule = defineTrackModule<CcreBigBedRow>()({
 });
 
 export type CcreBigBedCreateInput = ModuleCreateInput<typeof ccreBigBedModule>;
-export type CcreBigBedConfig = ModuleInstance<typeof ccreBigBedModule>["config"];
 export type { CcreBigBedRow } from "./types";
+export type { CcreBigBedConfig } from "./schema";

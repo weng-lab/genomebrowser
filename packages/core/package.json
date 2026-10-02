@@ -51,6 +51,9 @@
     "zustand": "catalog:"
   },
   "devDependencies": {
+    "@emotion/react": "catalog:",
+    "@emotion/styled": "catalog:",
+    "@mui/material": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
@@ -67,6 +70,9 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
+    "@emotion/react": "^11.0.0",
+    "@emotion/styled": "^11.0.0",
+    "@mui/material": "^7.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

@@ -5,7 +5,8 @@ import { createYScale, getViewportRange } from "../bigwig/helpers";
 import { createGenomicXScale } from "../shared/coordinates";
 import { ValueLabels } from "../shared/ValueLabels";
 import { NUCLEOTIDE_COLORS, NUCLEOTIDE_GLYPHS } from "./glyphs";
-import type { DynseqConfig, DynseqData, DynseqPoint } from "./types";
+import type { DynseqData, DynseqPoint } from "./types";
+import type { DynseqConfig } from "./schema";
 
 type Props = TrackRendererProps<DynseqConfig, DynseqData>;
 

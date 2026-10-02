@@ -10,7 +10,8 @@ import {
 import { TrackHeightSettings } from "../shared/settings/trackHeightSettings";
 import { SignalSettings } from "../bigwig/signalSettings";
 import { BasePairDetailSettings } from "../shared/settings/basePairDetailSettings";
-import type { DynseqConfig, DynseqItem } from "./types";
+import type { DynseqItem } from "./types";
+import type { DynseqConfig } from "./schema";
 
 type Props = TrackSettingsProps<DynseqConfig, DynseqItem>;
 

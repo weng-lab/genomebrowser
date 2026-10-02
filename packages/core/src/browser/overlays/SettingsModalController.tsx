@@ -1,3 +1,4 @@
+import { TrackDownloadControls } from "../download/TrackDownloadControls";
 import { DefaultSettingsModal } from "../settings/DefaultSettingsModal";
 import type { ReadonlyTrackInstance, TrackSettingsComponent } from "../../modules/types";
 import {
@@ -21,7 +22,6 @@ export function SettingsModalController() {
   try {
     const module = registry.get(trackType);
     const ModuleSettingsComponent = module.settingsComponent;
-    if (!ModuleSettingsComponent) return null;
 
     return (
       <DefaultSettingsModal trackId={trackId} position={position} closeSettings={closeSettings}>
@@ -37,11 +37,14 @@ export function SettingsModalController() {
             padding: 0,
           }}
         >
-          <BoundModuleSettings
-            trackId={trackId}
-            component={ModuleSettingsComponent}
-            displayOptions={Object.keys(module.render)}
-          />
+          {ModuleSettingsComponent ? (
+            <BoundModuleSettings
+              trackId={trackId}
+              component={ModuleSettingsComponent}
+              displayOptions={Object.keys(module.render)}
+            />
+          ) : null}
+          <TrackDownloadControls trackId={trackId} />
         </fieldset>
       </DefaultSettingsModal>
     );
