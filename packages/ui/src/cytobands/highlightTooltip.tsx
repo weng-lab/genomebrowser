@@ -35,7 +35,10 @@ export function HighlightTooltip({
     width: 0,
     height: fallbackTextHeight,
   });
-  const label = formatHighlightCoordinates(rendered);
+  const label = formatDisplayRegion({
+    ...rendered.highlight.region,
+    chromosome: rendered.chromosome,
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -193,8 +196,4 @@ function sameBounds(left: tooltipBounds, right: tooltipBounds) {
     left.width === right.width &&
     left.height === right.height
   );
-}
-
-export function formatHighlightCoordinates({ chromosome, highlight }: renderedHighlight) {
-  return formatDisplayRegion({ ...highlight.region, chromosome });
 }

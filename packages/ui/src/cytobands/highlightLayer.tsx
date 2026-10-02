@@ -1,7 +1,7 @@
-import type { Highlight } from "@weng-lab/genomebrowser";
+import { formatDisplayRegion, type Highlight } from "@weng-lab/genomebrowser";
 import { useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
 import type { CytobandsProps } from "./cytobandsTypes";
-import { formatHighlightCoordinates, HighlightTooltip } from "./highlightTooltip";
+import { HighlightTooltip } from "./highlightTooltip";
 
 import { HighlightInterval } from "./HighlightInterval";
 
@@ -147,7 +147,7 @@ function HighlightGlyph({
 
   return (
     <g
-      aria-label={formatHighlightCoordinates(rendered)}
+      aria-label={formatDisplayRegion({ ...highlight.region, chromosome: rendered.chromosome })}
       data-highlight-id={highlight.id}
       data-highlight-shape={rendered.narrow ? "marker" : "interval"}
       onClick={onClick}
