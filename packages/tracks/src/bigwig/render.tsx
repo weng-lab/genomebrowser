@@ -1,17 +1,16 @@
 import { useInteraction, useTooltip, type TrackRendererProps } from "@weng-lab/genomebrowser";
 import { useRef, useState, type MouseEvent } from "react";
 import {
-  applyFillWithZero,
   createYScale,
-  getBigWigRange,
   getPointAtMouseX,
   hasBigWigData,
   lighten,
-  resolveBigWigRange,
+  getRenderedPoints,
+  getViewportRange,
 } from "./helpers";
 import { ValueLabels } from "../shared/ValueLabels";
 import { clientXToTrackX } from "../shared/coordinates";
-import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
+import type { SignalPoint } from "../shared/signal";
 import type { BigWigData, YRange } from "./types";
 import type { BigWigConfig } from "./schema";
 
@@ -169,31 +168,6 @@ function BigWigHoverOverlay({
       />
     </>
   );
-}
-
-function getRenderedPoints(
-  config: BigWigConfig,
-  data: BigWigData,
-  region: TrackRendererProps<BigWigConfig, BigWigData>["region"],
-  width: number,
-) {
-  const points = condenseSignalRecords(data, region, width);
-  if (config.fillWithZero) applyFillWithZero(points);
-  return points;
-}
-
-export function getViewportRange(
-  config: BigWigConfig,
-  data: BigWigData,
-  visibleRegion: TrackRendererProps<BigWigConfig, BigWigData>["visibleRegion"],
-  region: TrackRendererProps<BigWigConfig, BigWigData>["region"],
-  width: number,
-) {
-  const regionSpan = region.end - region.start;
-  const visibleSpan = visibleRegion.end - visibleRegion.start;
-  const visibleWidth = regionSpan > 0 ? width * (visibleSpan / regionSpan) : width;
-  const points = getRenderedPoints(config, data, visibleRegion, visibleWidth);
-  return resolveBigWigRange(getBigWigRange(points), config.yRange);
 }
 
 function createSignalPaths(points: SignalPoint[], range: YRange, height: number) {
