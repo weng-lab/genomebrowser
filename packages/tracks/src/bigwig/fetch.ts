@@ -1,6 +1,7 @@
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
 import { readCachedBigWigRecords } from "../shared/cachedFiles";
-import type { BigWigConfig, BigWigData } from "./types";
+import type { BigWigData } from "./types";
+import type { BigWigConfig } from "./schema";
 
 export async function fetchBigWig({
   track: { config },

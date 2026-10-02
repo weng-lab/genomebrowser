@@ -5,7 +5,8 @@ import type {
   GeneExonPart,
   GeneIntronPart,
 } from "./render/glyph/geometry";
-import type { GeneConfig, GeneTranscript, GroupedGene } from "./types";
+import type { GeneTranscript, GroupedGene } from "./types";
+import type { GeneConfig } from "./schema";
 
 export type GeneTranscriptPart = (GeneIntronPart | GeneExonPart) & {
   source: "transcript";

@@ -14,7 +14,6 @@ export type BamData = {
 export type BamInteraction = TrackInteraction<BamRecord, BamConfig>;
 /** Hover targets across sections. Only alignments reach interaction callbacks. */
 export type BamTooltipItem = BamRecord | BamCoverageBin | BamJunction;
-export type { BamConfig, BamConfigInput, BamCoverageScale } from "./schema";
 export type { BamCoverageBin } from "./coverage";
 export type { BamJunction } from "./junctions";
 export type { BamRecord } from "@weng-lab/genomic-reader";

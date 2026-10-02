@@ -7,7 +7,7 @@ import type { TrackMutationResult, TrackUpdate } from "@weng-lab/genomebrowser";
 import { bigWigModule } from "../../src/bigwig";
 import { BigWigSettings } from "../../src/bigwig/settings";
 import type { SignalPoint } from "../../src/shared/signal";
-import type { BigWigConfig } from "../../src/bigwig/types";
+import type { BigWigConfig } from "../../src/bigwig/schema";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;

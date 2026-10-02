@@ -7,11 +7,11 @@ import type {
   BigGenePredPlusV1Source,
   BigGenePredSource,
   GeneAttributes,
-  GeneConfig,
   GeneData,
   GeneExon,
   GeneTranscript,
 } from "../types";
+import type { GeneConfig } from "../schema";
 
 type BigGenePredRecord = BigBedRecord<typeof bigGenePredSchema>;
 

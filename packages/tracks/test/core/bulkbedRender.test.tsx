@@ -22,7 +22,8 @@ vi.mock("../../src/shared/layout", async (importOriginal) => ({
 }));
 
 import { FullBulkBed } from "../../src/bulkbed/render";
-import type { BulkBedConfig, BulkBedData } from "../../src/bulkbed/types";
+import type { BulkBedData } from "../../src/bulkbed/types";
+import type { BulkBedConfig } from "../../src/bulkbed/schema";
 
 const data: BulkBedData = [
   [{ chromosome: "chr1", start: 0, end: 20, fields: [], datasetName: "Dataset A" }],

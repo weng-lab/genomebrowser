@@ -7,7 +7,8 @@ import type {
   GeneTranscriptPart,
   MergedGenePart,
 } from "./interactions";
-import type { GeneConfig, GeneTranscript } from "./types";
+import type { GeneTranscript } from "./types";
+import type { GeneConfig } from "./schema";
 
 export const GeneTooltip: TrackTooltipComponent<GeneInteractionTarget, GeneConfig> = ({ item }) => {
   const feature = item.feature;

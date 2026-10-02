@@ -6,7 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TrackMutationResult, TrackUpdate } from "@weng-lab/genomebrowser";
 import { caveModule } from "../../src/cave";
 import { CaveSettings } from "../../src/cave/settings";
-import type { CaveConfig, CaveTooltipItem } from "../../src/cave/types";
+import type { CaveTooltipItem } from "../../src/cave/types";
+import type { CaveConfig } from "../../src/cave/schema";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;

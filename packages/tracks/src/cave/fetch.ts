@@ -1,6 +1,7 @@
 import type { TrackFetchContext } from "@weng-lab/genomebrowser";
 import { readCachedBigWigRecords } from "../shared/cachedFiles";
-import type { CaveConfig, CaveData } from "./types";
+import type { CaveData } from "./types";
+import type { CaveConfig } from "./schema";
 const base =
   "https://users.wenglab.org/phanh/PsychENCODE/hg38/data/brainome/Methylation_BS_OXBS_bw/";
 export async function fetchCave({

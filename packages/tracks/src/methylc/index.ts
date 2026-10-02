@@ -1,37 +1,11 @@
-import type { ModuleCreateInput, ModuleInstance } from "@weng-lab/genomebrowser";
-import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser";
-import { z } from "zod";
-import { hexColorSchema } from "../shared/schemas";
+import { configSchema } from "./schema";
+import type { ModuleCreateInput } from "@weng-lab/genomebrowser";
+import { defineTrackModule } from "@weng-lab/genomebrowser";
 import { fetchMethylC } from "./fetch";
 import { SplitMethylC } from "./render";
 import { MethylCSettings } from "./settings";
 import { MethylCTooltip } from "./tooltip";
 import type { MethylCTooltipItem } from "./types";
-
-const colors = { cpg: "#648bd8", chg: "#ff944d", chh: "#ff00ff", depth: "#525252" };
-const rangeSchema = z
-  .object({ min: z.number(), max: z.number() })
-  .refine((range) => range.min < range.max, { error: "min must be less than max", path: ["min"] });
-const channelSchema = z.object({ url: fetchOnChange(z.string()) });
-const strandSchema = z.object({
-  cpg: channelSchema,
-  chg: channelSchema,
-  chh: channelSchema,
-  depth: channelSchema,
-});
-const configSchema = z.object({
-  urls: z.object({ plusStrand: strandSchema, minusStrand: strandSchema }),
-  colors: z
-    .object({
-      cpg: hexColorSchema.default(colors.cpg),
-      chg: hexColorSchema.default(colors.chg),
-      chh: hexColorSchema.default(colors.chh),
-      depth: hexColorSchema.default(colors.depth),
-    })
-    .default(colors),
-  maskCpgByCoverage: z.boolean().default(false),
-  range: rangeSchema.optional(),
-});
 
 export const methylCModule = defineTrackModule<MethylCTooltipItem>()({
   type: "methylc",
@@ -44,14 +18,7 @@ export const methylCModule = defineTrackModule<MethylCTooltipItem>()({
 });
 
 export type MethylCCreateInput = ModuleCreateInput<typeof methylCModule>;
-export type MethylCConfig = ModuleInstance<typeof methylCModule>["config"];
-export type {
-  MethylCColors,
-  MethylCData,
-  MethylCDisplay,
-  MethylCInteraction,
-  MethylCShowRows,
-  MethylCStrandUrls,
-  MethylCTooltipItem,
-  MethylCUrls,
-} from "./types";
+export type { MethylCData, MethylCInteraction, MethylCShowRows, MethylCTooltipItem } from "./types";
+
+export type MethylCDisplay = (typeof methylCModule)["displays"][number];
+export type { MethylCConfig, MethylCColors, MethylCUrls, MethylCStrandUrls } from "./schema";

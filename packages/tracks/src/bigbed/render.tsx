@@ -3,7 +3,8 @@ import { createGenomicXScale } from "../shared/coordinates";
 import { useRowLayout } from "../shared/layout";
 import { intersectsVisibleRegion } from "../shared/viewport";
 import { renderDenseBigBedData, renderSquishBigBedData } from "./helpers";
-import type { BigBedConfig, BigBedRow } from "./types";
+import type { BigBedRow } from "./types";
+import type { BigBedConfig } from "./schema";
 
 export function DenseBigBed<
   Row extends BigBedRow = BigBedRow,

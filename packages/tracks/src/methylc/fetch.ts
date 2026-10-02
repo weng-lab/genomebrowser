@@ -1,7 +1,8 @@
 import type { GenomicRegion, TrackFetchContext } from "@weng-lab/genomebrowser";
 import type { BigWigRecord } from "@weng-lab/genomic-reader";
 import { readCachedBigWigRecords } from "../shared/cachedFiles";
-import type { MethylCConfig, MethylCData } from "./types";
+import type { MethylCData } from "./types";
+import type { MethylCConfig } from "./schema";
 
 export async function fetchMethylC({
   track: { config },

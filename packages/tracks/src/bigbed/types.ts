@@ -1,9 +1,6 @@
-import type { BedSchemaKey } from "../shared/bedSchemas";
+import type { BigBedConfig } from "./schema";
 import type { TrackInteraction } from "@weng-lab/genomebrowser";
-import type { RowLayoutConfig } from "../shared/layout";
 
-export type BigBedDisplay = "dense" | "squish";
-export type BigBedConfig = RowLayoutConfig & { bedSchema?: BedSchemaKey; url: string };
 export type BigBedData = BigBedRow[];
 export type BigBedRow = {
   chromosome: string;

@@ -1,4 +1,4 @@
-import type { ModuleCreateInput, ModuleInstance } from "@weng-lab/genomebrowser";
+import type { ModuleCreateInput } from "@weng-lab/genomebrowser";
 import { defineTrackModule } from "@weng-lab/genomebrowser";
 import { fetchDynseq } from "./fetch";
 import { DenseDynseq, FullDynseq } from "./render";
@@ -24,12 +24,8 @@ export const dynseqModule = defineTrackModule<DynseqItem>()({
 });
 
 export type DynseqCreateInput = ModuleCreateInput<typeof dynseqModule>;
-export type DynseqConfig = ModuleInstance<typeof dynseqModule>["config"];
 export { NUCLEOTIDE_COLORS, NUCLEOTIDE_GLYPHS } from "./glyphs";
-export type {
-  DynseqData,
-  DynseqPoint,
-  DynseqItem,
-  DynseqInteraction,
-  DynseqDisplay,
-} from "./types";
+export type { DynseqData, DynseqPoint, DynseqItem, DynseqInteraction } from "./types";
+
+export type DynseqDisplay = (typeof dynseqModule)["displays"][number];
+export type { DynseqConfig } from "./schema";

@@ -8,7 +8,8 @@ import {
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
-import type { BigBedConfig, BigBedRow } from "./types";
+import type { BigBedRow } from "./types";
+import type { BigBedConfig } from "./schema";
 
 export function BigBedSettings<Row extends BigBedRow = BigBedRow>({
   track,

@@ -15,7 +15,8 @@ import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsTextField } from "../shared/settings/trackSettingsTextField";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import { useRef, useState } from "react";
-import type { BulkBedConfig, BulkBedDataset, BulkBedRect } from "./types";
+import type { BulkBedRect } from "./types";
+import type { BulkBedConfig, BulkBedDataset } from "./schema";
 
 type DatasetField = keyof BulkBedDataset;
 

@@ -12,7 +12,8 @@ import {
 import { ValueLabels } from "../shared/ValueLabels";
 import { clientXToTrackX } from "../shared/coordinates";
 import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
-import type { BigWigConfig, BigWigData, YRange } from "./types";
+import type { BigWigData, YRange } from "./types";
+import type { BigWigConfig } from "./schema";
 
 export function FullBigWig({
   config,

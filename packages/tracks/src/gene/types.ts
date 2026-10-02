@@ -1,16 +1,3 @@
-import type { RowLayoutConfig } from "../shared/layout";
-
-export type GeneDisplay = "full" | "merged" | "tagged";
-export type GeneTagColor = {
-  tag: string;
-  color: string;
-};
-export type GeneConfig = RowLayoutConfig & {
-  url: string;
-  geneName?: string;
-  tagColors: GeneTagColor[];
-  highlightColor: string;
-};
 export type GeneStrand = "+" | "-";
 export type BigGenePredCdsStatus = "none" | "unk" | "incmpl" | "cmpl";
 export type GeneAttributeValue = string | string[];

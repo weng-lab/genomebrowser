@@ -1,5 +1,5 @@
 import type { BamRecord } from "@weng-lab/genomic-reader";
-import type { BamConfig } from "./types";
+import type { BamConfig } from "./schema";
 
 /** One distinct splice junction and the number of alignments that support it. */
 export type BamJunction = {

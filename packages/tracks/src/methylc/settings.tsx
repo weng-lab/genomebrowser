@@ -10,7 +10,8 @@ import { TrackSettingsRangeFields } from "../shared/settings/trackSettingsRangeF
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
 import { TrackSettingsUrlField } from "../shared/settings/trackSettingsUrlField";
 import { useRef, useState } from "react";
-import type { MethylCConfig, MethylCTooltipItem } from "./types";
+import type { MethylCTooltipItem } from "./types";
+import type { MethylCConfig } from "./schema";
 
 type Strand = keyof MethylCConfig["urls"];
 type Channel = keyof MethylCConfig["urls"]["plusStrand"];
