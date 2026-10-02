@@ -15,3 +15,6 @@ export const configSchema = z.object({
   showClampIndicators: z.boolean().default(true),
   clampIndicatorColor: hexColorSchema.default("#ff0000"),
 });
+
+export type BigWigConfig = z.output<typeof configSchema>;
+export type YRangeOverride = NonNullable<BigWigConfig["yRange"]>;

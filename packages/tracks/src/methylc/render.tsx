@@ -9,7 +9,8 @@ import {
 import { MirroredValueLabels } from "./MirroredValueLabels";
 import { clientXToTrackX } from "../shared/coordinates";
 import type { SignalPoint } from "../shared/signal";
-import type { MethylCConfig, MethylCData, MethylCShowRows, MethylCTooltipItem } from "./types";
+import type { MethylCData, MethylCShowRows, MethylCTooltipItem } from "./types";
+import type { MethylCConfig } from "./schema";
 
 export function SplitMethylC({
   id,

@@ -10,7 +10,7 @@ import {
 } from "../shared/settings/trackSettingsFieldGrid";
 import { TrackSettingsRangeFields } from "../shared/settings/trackSettingsRangeFields";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
-import type { BigWigConfig } from "./types";
+import type { BigWigConfig } from "./schema";
 
 export function SignalSettings({
   config,

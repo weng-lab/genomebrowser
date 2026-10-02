@@ -7,7 +7,8 @@ import { TrackSettingsColorField } from "../shared/settings/trackSettingsColorFi
 import { TrackSettingsFieldRow } from "../shared/settings/trackSettingsFieldGrid";
 import { TrackSettingsLayout } from "../shared/settings/trackSettingsLayout";
 import { TrackSettingsSection } from "../shared/settings/trackSettingsSection";
-import type { CaveAge, CaveConfig, CaveNeurotransmitter, CaveTooltipItem } from "./types";
+import type { CaveTooltipItem } from "./types";
+import type { CaveAge, CaveConfig, CaveNeurotransmitter } from "./schema";
 
 const neurotransmitterOptions = [
   { label: "GABA", value: "GABA" },

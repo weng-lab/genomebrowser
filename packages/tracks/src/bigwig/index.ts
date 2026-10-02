@@ -1,4 +1,4 @@
-import type { ModuleCreateInput, ModuleInstance } from "@weng-lab/genomebrowser";
+import type { ModuleCreateInput } from "@weng-lab/genomebrowser";
 import { defineTrackModule } from "@weng-lab/genomebrowser";
 import { configSchema } from "./schema";
 import { fetchBigWig } from "./fetch";
@@ -18,5 +18,7 @@ export const bigWigModule = defineTrackModule<SignalPoint>()({
 });
 
 export type BigWigCreateInput = ModuleCreateInput<typeof bigWigModule>;
-export type BigWigConfig = ModuleInstance<typeof bigWigModule>["config"];
-export type { BigWigData, BigWigDisplay, BigWigInteraction, YRange, YRangeOverride } from "./types";
+export type { BigWigData, BigWigInteraction, YRange } from "./types";
+
+export type BigWigDisplay = (typeof bigWigModule)["displays"][number];
+export type { BigWigConfig, YRangeOverride } from "./schema";

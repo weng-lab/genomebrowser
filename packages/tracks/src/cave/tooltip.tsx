@@ -1,7 +1,8 @@
 import type { TrackTooltipComponent } from "@weng-lab/genomebrowser";
 import { TrackTooltip, type TrackTooltipRow } from "../shared/tooltips/trackTooltip";
 import { formatSignalValue } from "../shared/tooltips/trackTooltipFormatters";
-import type { CaveConfig, CaveTooltipItem } from "./types";
+import type { CaveTooltipItem } from "./types";
+import type { CaveConfig } from "./schema";
 export const CaveTooltip: TrackTooltipComponent<CaveTooltipItem, CaveConfig> = ({
   item,
   context,

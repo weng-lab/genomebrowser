@@ -1,7 +1,8 @@
 import type { TrackTooltipComponent } from "@weng-lab/genomebrowser";
 import { TrackTooltip, type TrackTooltipRow } from "../shared/tooltips/trackTooltip";
 import { formatSignalValue } from "../shared/tooltips/trackTooltipFormatters";
-import type { MethylCConfig, MethylCShowRows, MethylCTooltipItem } from "./types";
+import type { MethylCShowRows, MethylCTooltipItem } from "./types";
+import type { MethylCConfig } from "./schema";
 const rows: readonly {
   key: keyof MethylCShowRows;
   label: string;

@@ -1,5 +1,6 @@
 import type { SignalPoint } from "../shared/signal";
-import type { YRange, YRangeOverride } from "./types";
+import type { YRange } from "./types";
+import type { YRangeOverride } from "./schema";
 
 export function getBigWigRange(points: SignalPoint[]): YRange {
   let min = Infinity;

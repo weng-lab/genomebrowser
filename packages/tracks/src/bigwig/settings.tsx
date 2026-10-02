@@ -9,7 +9,7 @@ import {
 } from "../shared/settings";
 import { TrackHeightSettings } from "../shared/settings/trackHeightSettings";
 import type { SignalPoint } from "../shared/signal";
-import type { BigWigConfig } from "./types";
+import type { BigWigConfig } from "./schema";
 import { SignalSettings } from "./signalSettings";
 
 type Props = TrackSettingsProps<BigWigConfig, SignalPoint>;

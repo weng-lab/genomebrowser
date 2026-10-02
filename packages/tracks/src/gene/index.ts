@@ -1,36 +1,12 @@
-import type { ModuleCreateInput, ModuleInstance } from "@weng-lab/genomebrowser";
-import { defineTrackModule, fetchOnChange } from "@weng-lab/genomebrowser";
-import { z } from "zod";
-import { defaultRowHeight, rowHeightSchema } from "../shared/layout/rowLayout";
-import { hexColorSchema } from "../shared/schemas";
+import { defaultRowHeight } from "../shared/layout/rowLayout";
+import { configSchema } from "./schema";
+import type { ModuleCreateInput } from "@weng-lab/genomebrowser";
+import { defineTrackModule } from "@weng-lab/genomebrowser";
 import { fetchGene } from "./data/fetch";
 import { FullGene, MergedGene, TaggedGene } from "./render/renderers";
 import { GeneSettings } from "./settings/GeneSettings";
 import { GeneTooltip } from "./tooltip";
 import type { GeneInteractionTarget } from "./interactions";
-
-const configSchema = z.object({
-  url: fetchOnChange(z.string().min(1)),
-  geneName: z.string().optional(),
-  tagColors: z
-    .array(
-      z.object({
-        tag: z.string().trim().min(1),
-        color: hexColorSchema,
-      }),
-    )
-    .transform((tagColors) => {
-      const seen = new Set<string>();
-      return tagColors.filter(({ tag }) => {
-        if (seen.has(tag)) return false;
-        seen.add(tag);
-        return true;
-      });
-    })
-    .default([{ tag: "MANE_Select", color: "#000000" }]),
-  highlightColor: hexColorSchema.default("#000000"),
-  rowHeight: rowHeightSchema.default(defaultRowHeight),
-});
 
 export const geneModule = defineTrackModule<GeneInteractionTarget>()({
   type: "gene",
@@ -43,9 +19,11 @@ export const geneModule = defineTrackModule<GeneInteractionTarget>()({
 });
 
 export type GeneCreateInput = ModuleCreateInput<typeof geneModule>;
-export type GeneConfig = ModuleInstance<typeof geneModule>["config"];
-export type { GeneData, GeneDisplay, GeneTagColor, GeneTranscript, GroupedGene } from "./types";
+export type { GeneData, GeneTranscript, GroupedGene } from "./types";
 export type { GeneInteraction, GeneInteractionTarget } from "./interactions";
 
 export { getGeneDatasetsForAssembly, getGeneDatasetTitle } from "./data/datasets";
 export type { GeneDataset } from "./data/datasets";
+
+export type GeneDisplay = (typeof geneModule)["displays"][number];
+export type { GeneConfig, GeneTagColor } from "./schema";

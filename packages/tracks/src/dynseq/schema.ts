@@ -6,3 +6,5 @@ export const configSchema = bigWigConfigSchema.extend({
   /** Reference sequence, supplying the letters drawn when zoomed in. */
   twoBitUrl: fetchOnChange(z.string().min(1)),
 });
+
+export type DynseqConfig = z.output<typeof configSchema>;

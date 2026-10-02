@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { methylCModule } from "../../src/methylc";
-import type { MethylCUrls } from "../../src/methylc/types";
+import type { MethylCUrls } from "../../src/methylc/schema";
 
 describe("MethylC module", () => {
   it("creates a split-display methylc config with defaults", () => {

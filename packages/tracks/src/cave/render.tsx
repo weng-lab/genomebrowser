@@ -5,7 +5,8 @@ import { ValueLabels } from "../shared/ValueLabels";
 import { clientXToTrackX } from "../shared/coordinates";
 import { condenseSignalRecords, type SignalPoint } from "../shared/signal";
 import type { YRange } from "../bigwig/types";
-import type { CaveConfig, CaveData, CaveTooltipItem } from "./types";
+import type { CaveData, CaveTooltipItem } from "./types";
+import type { CaveConfig } from "./schema";
 const range: YRange = { min: 0, max: 1 };
 
 export function FullCave({

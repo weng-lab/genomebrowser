@@ -2,7 +2,8 @@ import type { GenomicRegion } from "@weng-lab/genomebrowser";
 import type { BamRecord } from "@weng-lab/genomic-reader";
 import { createGenomicXScale } from "../shared/coordinates";
 import { intersectsVisibleRegion } from "../shared/viewport";
-import type { BamConfig, BamDisplay } from "./types";
+import type { BamDisplay } from "./types";
+import type { BamConfig } from "./schema";
 
 export type BamGlyph = {
   /** Identifies the read across fetches, so it can keep its row. */
