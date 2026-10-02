@@ -184,6 +184,8 @@ export type TrackModule<
   Display extends string = string,
 > = {
   type: Type;
+  /** Marks a coordinate ruler that can accompany track image downloads. */
+  isRuler?: boolean;
   displays: Display[];
   configSchema: ConfigSchema;
   createInputSchema: TrackCreateInputSchema<ConfigSchema, Display>;
@@ -200,6 +202,7 @@ export type TrackModule<
 
 export type AnyTrackModule = {
   type: string;
+  isRuler?: boolean;
   displays: string[];
   configSchema: z.ZodObject;
   createInputSchema: TrackCreateInputSchema<z.ZodObject, string>;

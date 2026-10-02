@@ -269,7 +269,7 @@ describe("browser settings workflows", () => {
     expect(container?.querySelector("dialog")).toBeNull();
   });
 
-  it("does not open an empty dialog for a module without settings", async () => {
+  it("offers image downloads for a module without custom settings", async () => {
     const module = { ...signalModule, settingsComponent: undefined };
     const track = module.create({
       base: { id: "plain", title: "Plain" },
@@ -277,8 +277,9 @@ describe("browser settings workflows", () => {
     });
     const useTrackStore = createTrackStore({ modules: [module], tracks: [track] });
     await mountBrowser(useTrackStore);
-    expect(container?.querySelector('[aria-label="Settings for Plain"]')).toBeNull();
-    expect(container?.querySelector("dialog")).toBeNull();
+    await openSettings("Plain");
+    expect(container?.querySelector('[aria-label="Download track as SVG"]')).not.toBeNull();
+    expect(container?.querySelector('[aria-label="Download track as PNG"]')).not.toBeNull();
   });
 
   it("does not carry a draft into another same-type track with the same accepted color", async () => {

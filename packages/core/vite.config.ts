@@ -30,6 +30,8 @@ export default defineConfig({
     rollupOptions: {
       external: (id) =>
         id.startsWith("node:") ||
+        id.startsWith("@mui/") ||
+        id.startsWith("@emotion/") ||
         id === "jiti" ||
         id === "react" ||
         id === "react-dom" ||

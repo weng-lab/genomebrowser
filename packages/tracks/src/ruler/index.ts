@@ -6,6 +6,7 @@ import { RulerSettings } from "./settings";
 
 export const rulerModule = defineTrackModule({
   type: "ruler",
+  isRuler: true,
   defaults: { height: 22, color: "#475569" },
   configSchema: rulerConfigSchema,
   fetch: fetchRuler,

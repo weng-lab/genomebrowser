@@ -64,7 +64,13 @@ export function TrackFrame({
   };
 
   return (
-    <g transform={`translate(0,${y + previewOffsetY})`}>
+    <g
+      data-track-id={isDragClone ? undefined : track.base.id}
+      data-track-width={trackWidth}
+      data-track-height={wrapperHeight}
+      data-track-margin={marginWidth}
+      transform={`translate(0,${y + previewOffsetY})`}
+    >
       <defs>
         <clipPath id={contentClipId}>
           <rect x={marginWidth} y={titleMargin} width={trackWidth} height={track.base.height} />
@@ -109,6 +115,7 @@ export function TrackFrame({
         </PanTrack>
       </g>
       <g
+        data-track-export-exclude=""
         onMouseEnter={() => {
           if (!disableHover) setHover(true);
         }}
@@ -140,6 +147,7 @@ export function TrackFrame({
       </g>
       {showHover && (
         <rect
+          data-track-export-exclude=""
           width={marginWidth + trackWidth}
           height={wrapperHeight}
           fill={track.base.color}

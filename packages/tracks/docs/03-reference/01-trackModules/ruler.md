@@ -25,6 +25,8 @@ This draws coordinates without fetching sequence. To add DNA bases, set `config.
 
 `rulerModule.create(input, interaction?)` returns a track with `type: "ruler"`. Register `rulerModule` with the track store before adding its instances. See [Create and validate tracks](trackCreation.md) for required base fields, source ownership, schemas, and validation errors.
 
+The module declares `isRuler: true`, allowing the browser's **Include ruler** download option to place this displayed ruler above another track in a single SVG or PNG image.
+
 The module uses core's shared zoom selection and handles base hover highlights internally. It supplies no tooltip component. [firstPartyTrackModules](../02-collectionsAndSchemas/firstPartyTrackModules.md) includes the ruler.
 
 ## Displays and base defaults
