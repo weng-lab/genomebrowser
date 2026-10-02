@@ -20,11 +20,11 @@ type highlightTooltipProps = {
   renderHighlightTooltip?: (highlight: Highlight) => ReactNode;
 };
 
-export function highlightTooltip(props: highlightTooltipProps) {
-  return <HighlightTooltip {...props} />;
-}
-
-function HighlightTooltip({ rendered, anchor, renderHighlightTooltip }: highlightTooltipProps) {
+export function HighlightTooltip({
+  rendered,
+  anchor,
+  renderHighlightTooltip,
+}: highlightTooltipProps) {
   const theme = useTheme();
   const id = `cytobands-highlight-tooltip-${useId().replaceAll(":", "")}`;
   const contentRef = useRef<SVGGElement>(null);
@@ -35,7 +35,10 @@ function HighlightTooltip({ rendered, anchor, renderHighlightTooltip }: highligh
     width: 0,
     height: fallbackTextHeight,
   });
-  const label = formatHighlightCoordinates(rendered);
+  const label = formatDisplayRegion({
+    ...rendered.highlight.region,
+    chromosome: rendered.chromosome,
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -193,8 +196,4 @@ function sameBounds(left: tooltipBounds, right: tooltipBounds) {
     left.width === right.width &&
     left.height === right.height
   );
-}
-
-export function formatHighlightCoordinates({ chromosome, highlight }: renderedHighlight) {
-  return formatDisplayRegion({ ...highlight.region, chromosome });
 }

@@ -6,7 +6,7 @@ export const TrackSelectContext = createContext<TrackSelectState | undefined>(un
 export function useTrackSelect() {
   const trackSelect = use(TrackSelectContext);
   if (!trackSelect) {
-    throw new Error("TrackSelect components must be rendered inside TrackSelectProvider");
+    throw new Error("TrackSelect components must be rendered inside TrackSelectContext");
   }
   return trackSelect;
 }
