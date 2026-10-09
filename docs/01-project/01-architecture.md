@@ -25,6 +25,8 @@ A track module supplies the behavior for its visualization, including fetching, 
 | `packages/reader`       | Genomic file reading, usable independently of the browser.                                                                    |
 | `packages/ui`           | Navigation, track selection, highlight controls, and chromosome overviews for embedding the browser in existing websites.     |
 | `apps/standalone`       | The browser as its own product, with application-specific components and optional reuse of UI-package controls.               |
+| `apps/workspace`        | Generic app frame: layout, page contract, and theme, with no genome browser code. Used from source.                           |
+| `apps/local`            | The local `gb` app: genome browser pages and routing, rendered with the workspace.                                            |
 | `apps/playground`       | Experiments and custom browser compositions used during development.                                                          |
 | `packages/create`       | A starter generator for developers building a browser application.                                                            |
 | `packages/render-probe` | Internal test utility that measures React render counts for render budgets. Private and unpublished.                          |

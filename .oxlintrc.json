@@ -163,6 +163,26 @@
           }
         ]
       }
+    },
+    {
+      "files": ["apps/workspace/src/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@weng-lab/*", "!@weng-lab/workspace"],
+                "message": "The workspace is a generic app frame; genome browser packages and pages belong to the apps that use it."
+              },
+              {
+                "group": ["next", "next/*"],
+                "message": "The workspace renders in any React shell; Next.js imports belong to apps/cloud."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }
