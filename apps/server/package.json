@@ -1,0 +1,30 @@
+{
+  "name": "@weng-lab/browser-server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./protocol": "./src/protocol.ts"
+  },
+  "scripts": {
+    "dev": "node --watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:native",
+    "vitest": "catalog:"
+  }
+}

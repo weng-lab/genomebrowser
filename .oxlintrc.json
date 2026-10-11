@@ -1,7 +1,17 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "ignorePatterns": ["**/dist/**", "**/node_modules/**"],
-  "plugins": ["unicorn", "typescript", "oxc", "react", "jsx-a11y", "vitest"],
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/node_modules/**"
+  ],
+  "plugins": [
+    "unicorn",
+    "typescript",
+    "oxc",
+    "react",
+    "jsx-a11y",
+    "vitest"
+  ],
   "rules": {
     "react/rules-of-hooks": "error",
     "react/jsx-key": "error",
@@ -19,8 +29,14 @@
   },
   "overrides": [
     {
-      "files": ["packages/core/src/**"],
-      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      "files": [
+        "packages/core/src/**"
+      ],
+      "excludeFiles": [
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/__tests__/**"
+      ],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -57,8 +73,14 @@
       }
     },
     {
-      "files": ["packages/reader/src/**"],
-      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      "files": [
+        "packages/reader/src/**"
+      ],
+      "excludeFiles": [
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/__tests__/**"
+      ],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -99,8 +121,14 @@
       }
     },
     {
-      "files": ["packages/tracks/src/**"],
-      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      "files": [
+        "packages/tracks/src/**"
+      ],
+      "excludeFiles": [
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/__tests__/**"
+      ],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -133,8 +161,14 @@
       }
     },
     {
-      "files": ["packages/ui/src/**"],
-      "excludeFiles": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      "files": [
+        "packages/ui/src/**"
+      ],
+      "excludeFiles": [
+        "**/*.test.*",
+        "**/*.spec.*",
+        "**/__tests__/**"
+      ],
       "rules": {
         "no-restricted-imports": [
           "error",
@@ -165,19 +199,23 @@
       }
     },
     {
-      "files": ["apps/workspace/src/**"],
+      "files": [
+        "apps/web/components/workspace/**"
+      ],
       "rules": {
         "no-restricted-imports": [
           "error",
           {
             "patterns": [
               {
-                "group": ["@weng-lab/*", "!@weng-lab/workspace"],
-                "message": "The workspace is a generic app frame; genome browser packages and pages belong to the apps that use it."
+                "group": [
+                  "@weng-lab/*"
+                ],
+                "message": "Workspace components own presentation; product behavior belongs in pages, session, and commands."
               },
               {
-                "group": ["next", "next/*"],
-                "message": "The workspace renders in any React shell; Next.js imports belong to apps/cloud."
+                "regex": "(?:^|/)(?:app|session|commands|server)(?:/|$)",
+                "message": "Keep the workspace shell independent of domain pages, session state, and server implementation."
               }
             ]
           }

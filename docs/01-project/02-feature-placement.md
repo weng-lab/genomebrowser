@@ -38,7 +38,19 @@ Reader could eventually expose additional caching capabilities, such as a region
 
 UI provides navigation, track selection, and other browser controls for embedding applications such as SCREEN, PsychSCREEN, and Factorbook.
 
-The standalone app owns its interface and application-specific components. It may use UI components when they fit, but is not required to. Add components to UI when they are useful to embedding applications, not merely to place standalone components in a shared package.
+The web app owns its interface and application-specific components. It may use UI components when they fit, but is not required to. Add components to UI when they are useful to embedding applications, not merely to place product components in a shared package.
+
+## Product behavior belongs in the web app
+
+Put browser-product pages and workflows in `apps/web`. Each route's `page.tsx` composes `WorkspacePage` with domain components colocated in that route folder. `components/workspace/` owns generic layout, sizing, panel controls, motion, and theme. It must not import domain components or genome browser state.
+
+Add a route and a link in `navigation.tsx` for a new page. Navigation entries contain only `href`, `label`, `icon`, and optional `placement`. Keep page titles and panel content in the route, without a central page registry or package exports.
+
+The shared route layout keeps `AppProviders` and `Workspace` above route children. Put browser and track store lifetime in `session/BrowserSession.tsx` and connect the command relay through `AppProviders`. Keep page-specific state with its page unless it must survive navigation or be shared across routes.
+
+`apps/server` owns the command protocol and persistent relay. Put browser-safe schemas in its `protocol` export and server transport in its Node.js implementation. The web app's command adapter validates messages and invokes existing browser-store actions. Keep live genome state in the browser; the relay only tracks streams and commands awaiting replies. The Next.js API proxy forwards requests to that service.
+
+Storage and multi-user authentication are future integration work. Local development and cloud hosting use the same Next.js app, with a separately hosted persistent relay where necessary. The [web app guide](../../apps/web/README.md#change-the-product) explains how to add routes and commands.
 
 ## Example of an open placement decision: grouped tracks
 

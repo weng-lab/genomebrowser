@@ -1,8 +1,22 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "cacheDir": ".turbo/cache",
-  "globalPassThroughEnv": ["CI", "NEXT_TELEMETRY_DISABLED"],
+  "globalPassThroughEnv": [
+    "CI",
+    "NEXT_TELEMETRY_DISABLED",
+    "GB_API_TOKEN",
+    "GB_SERVER_URL",
+    "GB_SERVER_HOST",
+    "GB_SERVER_PORT",
+    "GB_ALLOWED_ORIGINS",
+    "PORT"
+  ],
   "tasks": {
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
     "transit": {
       "dependsOn": ["^transit"]
     },

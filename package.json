@@ -5,10 +5,10 @@
     "core": "pnpm --filter @weng-lab/genomebrowser",
     "tracks": "pnpm --filter @weng-lab/genomebrowser-tracks",
     "ui": "pnpm --filter @weng-lab/genomebrowser-ui",
-    "standalone": "pnpm --filter @weng-lab/genomebrowser-standalone",
-    "playground": "pnpm --filter @weng-lab/genomebrowser-playground",
     "reader": "pnpm --filter @weng-lab/genomic-reader",
-    "dev": "pnpm --filter @weng-lab/genomebrowser-playground dev",
+    "web": "pnpm --filter @weng-lab/web",
+    "server": "pnpm --filter @weng-lab/browser-server",
+    "dev": "turbo run dev --filter=@weng-lab/web --filter=@weng-lab/browser-server",
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
@@ -21,7 +21,9 @@
     "verify": "turbo run format:check lint build test //#format:check:root",
     "doctor": "pnpm exec react-doctor . --verbose",
     "publish:dry-run": "pnpm publish -r --tag latest --dry-run --no-git-checks",
-    "publish:stable": "pnpm publish -r --tag latest"
+    "publish:stable": "pnpm publish -r --tag latest",
+    "dev:web": "turbo run dev --filter=@weng-lab/web",
+    "dev:server": "turbo run dev --filter=@weng-lab/browser-server"
   },
   "devDependencies": {
     "oxfmt": "catalog:",

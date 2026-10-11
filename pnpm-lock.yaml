@@ -176,6 +176,9 @@ catalogs:
     '@dnd-kit/utilities':
       specifier: ^3.2.2
       version: 3.2.2
+    '@emotion/cache':
+      specifier: 11.14.0
+      version: 11.14.0
     '@emotion/react':
       specifier: 11.14.0
       version: 11.14.0
@@ -188,6 +191,9 @@ catalogs:
     '@mui/material':
       specifier: 7.3.11
       version: 7.3.11
+    '@mui/material-nextjs':
+      specifier: 7.3.10
+      version: 7.3.10
     '@mui/x-license':
       specifier: 8.29.3
       version: 8.29.3
@@ -270,99 +276,8 @@ importers:
         specifier: 2.10.11
         version: 2.10.11
 
-  apps/local:
+  apps/server:
     dependencies:
-      '@emotion/react':
-        specifier: 'catalog:'
-        version: 11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1)
-      '@emotion/styled':
-        specifier: 'catalog:'
-        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1)
-      '@mui/icons-material':
-        specifier: 'catalog:'
-        version: 7.3.11(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react@19.3.0)(react@19.3.0)
-      '@mui/material':
-        specifier: 'catalog:'
-        version: 7.3.11(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@weng-lab/genomebrowser':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@weng-lab/genomebrowser-tracks':
-        specifier: workspace:*
-        version: link:../../packages/tracks
-      '@weng-lab/workspace':
-        specifier: workspace:*
-        version: link:../workspace
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
-    devDependencies:
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
-      '@vitejs/plugin-react':
-        specifier: 'catalog:'
-        version: 6.1.1(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
-      jsdom:
-        specifier: 'catalog:'
-        version: 26.1.0(supports-color@8.1.1)
-      oxfmt:
-        specifier: 'catalog:'
-        version: 0.61.0
-      oxlint:
-        specifier: 'catalog:'
-        version: 1.76.0
-      typescript:
-        specifier: catalog:native
-        version: 7.0.2
-      vite:
-        specifier: 'catalog:'
-        version: 8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1)
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(@vitest/coverage-v8@5.0.1)(jsdom@26.1.0(supports-color@8.1.1))(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
-
-  apps/playground:
-    dependencies:
-      '@emotion/react':
-        specifier: 'catalog:'
-        version: 11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1)
-      '@emotion/styled':
-        specifier: 'catalog:'
-        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1)
-      '@mui/icons-material':
-        specifier: 'catalog:'
-        version: 7.3.11(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react@19.3.0)(react@19.3.0)
-      '@mui/material':
-        specifier: 'catalog:'
-        version: 7.3.11(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@weng-lab/genomebrowser':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@weng-lab/genomebrowser-tracks':
-        specifier: workspace:*
-        version: link:../../packages/tracks
-      '@weng-lab/genomebrowser-ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      '@weng-lab/genomic-reader':
-        specifier: workspace:*
-        version: link:../../packages/reader
-      next:
-        specifier: 'catalog:'
-        version: 16.3.3(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(babel-plugin-macros@3.1.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
       zod:
         specifier: 'catalog:'
         version: 4.4.3
@@ -370,12 +285,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.2
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
       oxfmt:
         specifier: 'catalog:'
         version: 0.61.0
@@ -385,11 +294,14 @@ importers:
       typescript:
         specifier: catalog:native
         version: 7.0.2
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(@vitest/coverage-v8@5.0.1)(jsdom@26.1.0(supports-color@8.1.1))(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
 
-  apps/standalone:
+  apps/web:
     dependencies:
       '@emotion/cache':
-        specifier: 11.14.0
+        specifier: 'catalog:'
         version: 11.14.0
       '@emotion/react':
         specifier: 'catalog:'
@@ -404,29 +316,20 @@ importers:
         specifier: 'catalog:'
         version: 7.3.11(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@mui/material-nextjs':
-        specifier: 7.3.10
-        version: 7.3.10(@emotion/cache@11.14.0)(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(next@16.3.3(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(babel-plugin-macros@3.1.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
-      '@mui/x-license':
         specifier: 'catalog:'
-        version: 8.29.3(@types/react@19.3.0)(react@19.3.0)
-      '@vercel/analytics':
-        specifier: ^2.0.1
-        version: 2.0.1(next@16.3.3(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(babel-plugin-macros@3.1.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+        version: 7.3.10(@emotion/cache@11.14.0)(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(next@16.3.3(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(babel-plugin-macros@3.1.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+      '@tanstack/react-hotkeys':
+        specifier: ^0.13.0
+        version: 0.13.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@weng-lab/browser-server':
+        specifier: workspace:*
+        version: link:../server
       '@weng-lab/genomebrowser':
         specifier: workspace:*
         version: link:../../packages/core
       '@weng-lab/genomebrowser-tracks':
         specifier: workspace:*
         version: link:../../packages/tracks
-      '@weng-lab/genomebrowser-ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      '@weng-lab/genomic-reader':
-        specifier: workspace:*
-        version: link:../../packages/reader
-      '@weng-lab/ui-components':
-        specifier: 'catalog:'
-        version: 3.3.0(59bfb49a3883a6dad5009e1152269108)
       next:
         specifier: 'catalog:'
         version: 16.3.3(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(babel-plugin-macros@3.1.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -436,6 +339,9 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.3.0(react@19.3.0)
+      zustand:
+        specifier: 'catalog:'
+        version: 5.0.15(@types/react@19.3.0)(react@19.3.0)(use-sync-external-store@1.7.0(react@19.3.0))
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -446,37 +352,9 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.3.0(@types/react@19.3.0)
-      oxfmt:
-        specifier: 'catalog:'
-        version: 0.61.0
-      oxlint:
-        specifier: 'catalog:'
-        version: 1.76.0
-      typescript:
-        specifier: catalog:native
-        version: 7.0.2
-
-  apps/workspace:
-    dependencies:
-      '@tanstack/react-hotkeys':
-        specifier: ^0.13.0
-        version: 0.13.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-    devDependencies:
-      '@emotion/react':
-        specifier: 'catalog:'
-        version: 11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1)
-      '@emotion/styled':
-        specifier: 'catalog:'
-        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1)
-      '@mui/material':
-        specifier: 'catalog:'
-        version: 7.3.11(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@types/react':
-        specifier: 'catalog:'
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.3.0(@types/react@19.3.0)
+      '@weng-lab/render-probe':
+        specifier: workspace:*
+        version: link:../../packages/render-probe
       jsdom:
         specifier: 'catalog:'
         version: 26.1.0(supports-color@8.1.1)
@@ -486,18 +364,12 @@ importers:
       oxlint:
         specifier: 'catalog:'
         version: 1.76.0
-      react:
-        specifier: 'catalog:'
-        version: 19.3.0
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.3.0(react@19.3.0)
       typescript:
         specifier: catalog:native
         version: 7.0.2
       vitest:
         specifier: 'catalog:'
-        version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(@vitest/coverage-v8@5.0.1)(jsdom@26.1.0(supports-color@8.1.1))(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
+        version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(@vitest/coverage-v8@5.0.1)(jsdom@26.1.0(supports-color@8.1.1))(vite@8.3.0(@types/node@26.6.2)(jiti@2.7.0))
 
   packages/core:
     dependencies:
@@ -2831,35 +2703,6 @@ packages:
   '@typescript/typescript6@6.0.2':
     resolution: {integrity: sha512-mbCddXd+jm7hfx7w2YU64/Av4/NqqeG3GoRZgxPcgoTxYjhrcfJRw9ULch71SS4G+Q3bOXFhRvPqjguN0Hyp5w==}
     hasBin: true
-
-  '@vercel/analytics@2.0.1':
-    resolution: {integrity: sha512-MTQG6V9qQrt1tsDeF+2Uoo5aPjqbVPys1xvnIftXSJYG2SrwXRHnqEvVoYID7BTruDz4lCd2Z7rM1BdkUehk2g==}
-    peerDependencies:
-      '@remix-run/react': ^2
-      '@sveltejs/kit': ^1 || ^2
-      next: '>= 13'
-      nuxt: '>= 3'
-      react: ^18 || ^19 || ^19.0.0-rc
-      svelte: '>= 4'
-      vue: ^3
-      vue-router: ^4
-    peerDependenciesMeta:
-      '@remix-run/react':
-        optional: true
-      '@sveltejs/kit':
-        optional: true
-      next:
-        optional: true
-      nuxt:
-        optional: true
-      react:
-        optional: true
-      svelte:
-        optional: true
-      vue:
-        optional: true
-      vue-router:
-        optional: true
 
   '@vitejs/plugin-react@6.1.1':
     resolution: {integrity: sha512-yxLaQV9gkhS8ezJqCM6+ndU7mDY6gqAg75NQ+0IjwEI8IYOmQCgkRwHKVSfWXW076DsqMo0Dk+0FK1U+M5RgFw==}
@@ -5939,11 +5782,6 @@ snapshots:
     dependencies:
       '@typescript/old': typescript@6.0.3
 
-  '@vercel/analytics@2.0.1(next@16.3.3(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(babel-plugin-macros@3.1.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)':
-    optionalDependencies:
-      next: 16.3.3(@babel/core@7.29.7(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(babel-plugin-macros@3.1.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react: 19.3.0
-
   '@vitejs/plugin-react@6.1.1(vite@8.3.0(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
@@ -5989,6 +5827,15 @@ snapshots:
       magic-string: 1.4.1
     optionalDependencies:
       vite: 8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1)
+
+  '@vitest/mocker@5.0.1(vite@8.3.0(@types/node@26.6.2)(jiti@2.7.0))':
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
+      '@vitest/spy': 5.0.1
+      estree-walker: 3.0.3
+      magic-string: 1.4.1
+    optionalDependencies:
+      vite: 8.3.0(@types/node@26.6.2)(jiti@2.7.0)
 
   '@vitest/spy@5.0.1': {}
 
@@ -7440,6 +7287,18 @@ snapshots:
       tsx: 4.23.13
       yaml: 2.9.1
 
+  vite@8.3.0(@types/node@26.6.2)(jiti@2.7.0):
+    dependencies:
+      lightningcss: 1.33.0
+      picomatch: 4.0.7
+      postcss: 8.5.28
+      rolldown: 1.2.9
+      tinyglobby: 0.2.17
+    optionalDependencies:
+      '@types/node': 26.6.2
+      fsevents: 2.3.3
+      jiti: 2.7.0
+
   vitest@5.0.1(@opentelemetry/api@1.9.1)(@types/node@26.1.2)(@vitest/coverage-v8@5.0.1)(jsdom@26.1.0(supports-color@8.1.1))(vite@8.3.0(@types/node@26.1.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
@@ -7479,6 +7338,30 @@ snapshots:
       tinyexec: 1.3.0
       tinyglobby: 0.2.17
       vite: 8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1)
+      why-is-node-running: 2.3.0
+    optionalDependencies:
+      '@opentelemetry/api': 1.9.1
+      '@types/node': 26.6.2
+      '@vitest/coverage-v8': 5.0.1(vitest@5.0.1)
+      jsdom: 26.1.0(supports-color@8.1.1)
+    transitivePeerDependencies:
+      - msw
+
+  vitest@5.0.1(@opentelemetry/api@1.9.1)(@types/node@26.6.2)(@vitest/coverage-v8@5.0.1)(jsdom@26.1.0(supports-color@8.1.1))(vite@8.3.0(@types/node@26.6.2)(jiti@2.7.0)):
+    dependencies:
+      '@types/chai': 5.2.3
+      '@vitest/mocker': 5.0.1(vite@8.3.0(@types/node@26.6.2)(jiti@2.7.0))
+      chai: 6.2.2
+      es-module-lexer: 2.3.2
+      expect-type: 1.4.0
+      magic-string: 1.4.1
+      obug: 2.2.1
+      picomatch: 4.0.7
+      std-env: 4.2.0
+      tinybench: 6.1.4
+      tinyexec: 1.3.0
+      tinyglobby: 0.2.17
+      vite: 8.3.0(@types/node@26.6.2)(jiti@2.7.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@opentelemetry/api': 1.9.1

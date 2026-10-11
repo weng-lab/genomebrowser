@@ -24,13 +24,21 @@ A track module supplies the behavior for its visualization, including fetching, 
 | `packages/tracks`       | First-party modules and shared track-specific presentation. Modules use core's public contracts and reader for genomic files. |
 | `packages/reader`       | Genomic file reading, usable independently of the browser.                                                                    |
 | `packages/ui`           | Navigation, track selection, highlight controls, and chromosome overviews for embedding the browser in existing websites.     |
-| `apps/standalone`       | The browser as its own product, with application-specific components and optional reuse of UI-package controls.               |
-| `apps/workspace`        | Generic app frame: layout, page contract, and theme, with no genome browser code. Used from source.                           |
-| `apps/local`            | The local `gb` app: genome browser pages and routing, rendered with the workspace.                                            |
-| `apps/playground`       | Experiments and custom browser compositions used during development.                                                          |
+| `apps/web`              | Next.js product routes, browser session, generic workspace layout, and command proxy.                                                    |
+| `apps/server`           | Persistent Node.js command relay and browser-safe protocol schemas.                                                           |
 | `packages/create`       | A starter generator for developers building a browser application.                                                            |
 | `packages/render-probe` | Internal test utility that measures React render counts for render budgets. Private and unpublished.                          |
 
-Core and reader provide independent foundations. Tracks combines their capabilities; UI supplies controls around the browser. Applications choose the modules and controls that fit their workflows. The standalone app is one such application, not the source of every shared component's requirements.
+Core and reader provide independent foundations. Tracks combines their capabilities; UI supplies controls around the browser. Applications choose the modules and controls that fit their workflows. The web app is one such application, not the source of every shared component's requirements.
+
+The archived playground and standalone applications live in `legacy/playground` and `legacy/standalone`. They are excluded from the pnpm workspace. Ongoing product development belongs in `apps/web` and `apps/server`.
+
+The web app owns concrete Next.js routes for `/browser`, `/collections`, and `/settings`; its root redirects to `/browser`, and unknown routes return 404. Domain components live beside their route's `page.tsx`. Generic layout and panel components in `components/workspace/` do not import domain components or browser state.
+
+The shared route layout composes `AppProviders`, `Workspace`, and route children. `AppProviders` owns the browser session and command connection above the routes. `Workspace` owns navigation and panel preferences, while each route supplies its title, panels, and center content through `WorkspacePage`. Navigation entries contain links and labels, not page components. The shared layout preserves the session and panel preferences across route changes; page-local component state may reset. Refreshing creates a new in-memory browser session.
+
+The persistent browser server relays commands to connected tabs. It owns connection IDs and pending replies, while the web app executes commands against the same browser stores as the UI. Live genome state stays in the browser. Next.js proxies `/api/browser` to the relay and forwards caller credentials without supplying an administrative token. The protocol export contains browser-safe Zod schemas; Node.js server code stays out of the frontend.
+
+The command API uses one shared operator token for a trusted instance. Tenant authentication, storage, saved sessions, ACP, and Eve integrations are not implemented. See the [web app guide](../../apps/web/README.md) for development and deployment instructions.
 
 For decisions about extending these parts, see [Where features belong](02-feature-placement.md).
