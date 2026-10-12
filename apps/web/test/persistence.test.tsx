@@ -174,11 +174,11 @@ it("waits for restoration again when switching sessions, including returning to 
   await act(async () => loaded(savedSnapshot()));
   const original = Stream.opened[0];
   load = deferred();
-  await probe.rerender(<Shell sessionId="other" />);
+  await act(async () => probe.rerender(<Shell sessionId="other" />));
   expect(original.close).toHaveBeenCalled();
   expect(Stream.opened).toHaveLength(1);
   load = deferred();
-  await probe.rerender(<Shell />);
+  await act(async () => probe.rerender(<Shell />));
   expect(Stream.opened).toHaveLength(1);
   await act(async () => loaded(savedSnapshot()));
   expect(Stream.opened).toHaveLength(2);
