@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     useTypeScriptCli: true,
   },
   transpilePackages: ["@weng-lab/browser-server"],
+  agentRules: false,
 };
 
 export default nextConfig;
