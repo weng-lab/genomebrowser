@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
 import { useBrowserSession } from "./BrowserSession";
@@ -38,6 +38,7 @@ export function BrowserServer({
   );
   const [enabled, setEnabled] = useState(true);
   const [state, setState] = useState<RemoteControlState>("off");
+  const remoteControl = useMemo(() => ({ state, enabled, setEnabled }), [state, enabled]);
   const sessionUrl = endpoint && `${endpoint.replace(/\/$/, "")}/sessions/${sessionId}`;
 
   useEffect(() => {
@@ -51,7 +52,7 @@ export function BrowserServer({
 
   return (
     <SessionIdContext value={sessionId}>
-      <RemoteControlContext value={{ state, enabled, setEnabled }}>
+      <RemoteControlContext value={remoteControl}>
         <SessionSaveContext value={sessionUrl ? saveStore : disabledSaveStore}>
           {children}
         </SessionSaveContext>
