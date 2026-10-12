@@ -29,7 +29,7 @@
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "react-doctor": "^0.9.14",
-    "turbo": "2.10.11"
+    "turbo": "2.11.7"
   },
   "packageManager": "pnpm@12.4.2"
 }
