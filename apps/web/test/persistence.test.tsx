@@ -14,22 +14,28 @@ import { BrowserView } from "../app/(workspace)/browser/BrowserView";
 
 // Only the network transports are replaced; the browser, stores and persistence remain real.
 class Stream extends EventTarget {
+  static opened: Stream[] = [];
   onerror: (() => void) | null = null;
   close = vi.fn<() => void>();
+  constructor(readonly url: string) {
+    super();
+    Stream.opened.push(this);
+  }
 }
 let session: BrowserSession;
 let probe: Probe;
 let load: ReturnType<typeof deferred>;
 const save = vi.fn<typeof fetch>();
 const loads = vi.fn<typeof fetch>();
+const post = vi.fn<typeof fetch>();
 function Controls() {
   session = useBrowserSession();
   return null;
 }
-function Shell() {
+function Shell({ sessionId = "local" }: { sessionId?: string }) {
   return (
     <BrowserSessionProvider>
-      <BrowserServer endpoint="/api" sessionId="local">
+      <BrowserServer endpoint="/api" sessionId={sessionId}>
         <Controls />
         <BrowserView />
       </BrowserServer>
@@ -90,12 +96,18 @@ function deferred() {
 }
 beforeEach(async () => {
   vi.useFakeTimers();
+  Stream.opened = [];
   load = deferred();
+  post.mockReset().mockResolvedValue(Response.json({ ok: true }));
   save.mockReset().mockResolvedValue(new Response("{}"));
   loads.mockReset().mockImplementation(() => load.promise);
   vi.stubGlobal("EventSource", Stream);
   vi.stubGlobal("fetch", (url: string, init?: RequestInit) =>
-    init?.method === "PUT" ? save(url, init) : loads(url, init),
+    init?.method === "PUT"
+      ? save(url, init)
+      : init?.method === "POST"
+        ? post(url, init)
+        : loads(url, init),
   );
   vi.stubGlobal(
     "ResizeObserver",
@@ -113,6 +125,64 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
   vi.useRealTimers();
+});
+
+it("waits for a successful delayed restoration before accepting commands and keeps the stream through saves", async () => {
+  expect(Stream.opened).toHaveLength(0);
+  await act(async () => load.resolve(new Response("{}", { status: 503 })));
+  expect(Stream.opened).toHaveLength(0);
+  load = deferred();
+  await advance(2000);
+  expect(Stream.opened).toHaveLength(0);
+  await act(async () => loaded(savedSnapshot()));
+  expect(Stream.opened).toHaveLength(1);
+  const stream = Stream.opened[0];
+  expect(stream.url).toBe("/api/sessions/local/rpc");
+  expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
+    "chr2:1,001-2,000",
+  );
+  const region = { chromosome: "chr3", start: 2000, end: 3000 };
+  await act(async () =>
+    stream.dispatchEvent(
+      new MessageEvent("command", {
+        data: JSON.stringify({
+          commandId: "e376d6ef-36c9-4d01-ad52-9847bad99f3c",
+          name: "set_region",
+          expiresAt: Date.now() + 5000,
+          params: { region },
+        }),
+      }),
+    ),
+  );
+  expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
+    "chr3:2,001-3,000",
+  );
+  expect(JSON.parse(post.mock.calls[0][1]!.body as string).result.state.browser.region).toEqual(
+    region,
+  );
+  save.mockResolvedValueOnce(new Response("{}", { status: 503 }));
+  await advance(200);
+  expect(status()).toBe("Not saved. Retrying…");
+  await advance(2000);
+  expect(status()).toBe("Saved");
+  expect(body().browser.region).toEqual(region);
+  expect(Stream.opened).toHaveLength(1);
+  expect(stream.close).not.toHaveBeenCalled();
+});
+
+it("waits for restoration again when switching sessions, including returning to an earlier session", async () => {
+  await act(async () => loaded(savedSnapshot()));
+  const original = Stream.opened[0];
+  load = deferred();
+  await probe.rerender(<Shell sessionId="other" />);
+  expect(original.close).toHaveBeenCalled();
+  expect(Stream.opened).toHaveLength(1);
+  load = deferred();
+  await probe.rerender(<Shell />);
+  expect(Stream.opened).toHaveLength(1);
+  await act(async () => loaded(savedSnapshot()));
+  expect(Stream.opened).toHaveLength(2);
+  expect(Stream.opened[1].url).toBe("/api/sessions/local/rpc");
 });
 
 it("restores browser settings, highlights and tracks before editing, then persists serializable settings", async () => {

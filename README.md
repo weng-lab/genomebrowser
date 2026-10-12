@@ -61,11 +61,10 @@ pnpm install --frozen-lockfile
 Use Node.js 24 or newer for the browser server. Start the web app and persistent command relay together:
 
 ```sh
-export GB_API_TOKEN=$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("hex"))')
 pnpm dev
 ```
 
-Open `http://localhost:3000/browser`. `pnpm dev:web` and `pnpm dev:server` start each process separately. Keep the same token when restarting the relay or calling its API. The [web app guide](apps/web/README.md) covers local setup, remote control, adding pages and commands, and cloud hosting.
+Open `http://localhost:3000/browser`. `pnpm dev:web` and `pnpm dev:server` start each process separately. Local access requires no token or login. Session IDs select sessions and are not credentials. The [web app guide](apps/web/README.md) covers local setup, remote control, adding pages and commands, and cloud hosting.
 
 The workspace packages use the root Oxlint and Oxfmt installations and pin
 their framework and TypeScript dependencies in their own manifests.

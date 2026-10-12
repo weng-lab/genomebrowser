@@ -40,15 +40,28 @@ export function BrowserServer({
   const [state, setState] = useState<RemoteControlState>("off");
   const remoteControl = useMemo(() => ({ state, enabled, setEnabled }), [state, enabled]);
   const sessionUrl = endpoint && `${endpoint.replace(/\/$/, "")}/sessions/${sessionId}`;
+  const restoration = useMemo(() => ({ sessionUrl, session }), [sessionUrl, session]);
+  const [restored, setRestored] = useState<typeof restoration | null>(null);
+  const ready = restored === restoration;
 
   useEffect(() => {
-    if (sessionUrl)
-      return persistBrowserSession(sessionUrl, session, (status) => saveStore.setState({ status }));
-  }, [sessionUrl, session, saveStore]);
+    const { sessionUrl, session } = restoration;
+    if (!sessionUrl) return;
+    let loaded = false;
+    return persistBrowserSession(sessionUrl, session, (status) => {
+      saveStore.setState({ status });
+      // Both restored sessions and new sessions (404) reach saved/saving only after loading.
+      if (!loaded && (status === "saved" || status === "saving")) {
+        loaded = true;
+        setRestored(restoration);
+      }
+    });
+  }, [restoration, saveStore]);
 
   useEffect(() => {
-    if (sessionUrl && enabled) return connectRemoteControl(`${sessionUrl}/rpc`, session, setState);
-  }, [sessionUrl, enabled, session]);
+    if (sessionUrl && enabled && ready)
+      return connectRemoteControl(`${sessionUrl}/rpc`, session, setState);
+  }, [sessionUrl, enabled, ready, session]);
 
   return (
     <SessionIdContext value={sessionId}>
