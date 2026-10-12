@@ -78,6 +78,8 @@ pnpm --filter @weng-lab/browser-server start
 
 Run Next.js and the browser server as separate processes. Set `GB_SERVER_URL` before `next build` if the server is not at `http://127.0.0.1:3001`. For an HPC deployment reached through an SSH tunnel, forwarding web port 3000 is sufficient because the rewrites reach the server on loopback. Set `GB_ALLOWED_ORIGINS` if the browser uses a different web origin.
 
+For Vercel, set the project's Root Directory to `apps/web` and enable access to files outside that directory so workspace dependencies are included. The app's `vercel.json` selects Next.js and builds through Turbo from the repository root, which builds workspace dependencies before the app. A frontend preview can build without a running browser server; session loading, saving, and MCP still require the separate server.
+
 Cloud deployment requires your system's authentication and ownership checks for connections and sessions, including tab streams and MCP. The server intentionally rejects non-loopback hosts. Add those controls before changing the local-only policy. Clerk, generated API keys, multi-user isolation, ACP, and Eve integrations are not implemented.
 
 The server needs a persistent process for long-lived SSE streams and pending commands. SQLite needs persistent storage. A future remote database can implement the existing session repository interface.
