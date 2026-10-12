@@ -1,12 +1,12 @@
 # Web app glossary
 
-Terms for the Next.js browser product and its generic workspace layout. The [project glossary](../../docs/glossary.md) covers browser and track terms.
+Terms for the Next.js browser product, command relay, and generic workspace layout. The [project glossary](../../docs/glossary.md) covers browser and track terms.
 
 ## Application and session
 
 ### Workspace
 
-The generic full-window layout in `components/workspace/`. It renders navigation and owns panel preferences and the theme. It does not import domain components or browser state.
+The generic full-window layout in `components/workspace/`. It renders navigation and owns panel state and the theme. It does not import domain components or browser state.
 
 ### WorkspacePage
 
@@ -18,11 +18,49 @@ The shared client provider composition above routes. It owns browser-only initia
 
 ### Browser session
 
-The browser and track stores shared through `session/BrowserSession.tsx`. They survive client navigation within the shared layout. Refreshing creates a new in-memory session; saved sessions are not implemented.
+The live browser and track stores shared through `browser/BrowserSession.tsx`. They survive client navigation within the shared layout. A session snapshot is the serializable form used for saving and restoration. See [Shared session](README.md#shared-session) for persistence behavior.
 
 ### Product pages
 
-The browser route at `/browser` has a session panel on the left and a disconnected agent placeholder on the right. Collections at `/collections` and settings at `/settings` have center content only. Settings is in the bottom sidebar group.
+The browser route at `/browser` has a Shared session panel on the left and an Agent panel on the right. The Agent panel sends region commands through the relay to the same tab. Collections at `/collections` and settings at `/settings` have center content only. Settings is in the bottom sidebar group.
+
+## Commands and persistence
+
+### Command relay
+
+The persistent Hono server in `apps/server`. It sends commands to connected browser tabs over server-sent events, or SSE, and waits for their replies. It also loads and saves the shared session through a session repository. It does not fetch genomic track files or own the live browser stores.
+
+### API proxy
+
+The Next.js `/api/browser` route that forwards HTTP requests and SSE responses to the relay. It checks allowed paths, loopback hosts, and origins. The local API requires no credentials.
+
+### Browser connection
+
+One live SSE connection between a mounted web session and the relay. Its `clientId`, displayed as the Browser connection ID, selects the target tab. The ID changes after reconnection. It selects a tab without authenticating a user and is distinct from the shared saved session.
+
+### Local access
+
+The web app and relay run on loopback without tokens or login. Host and origin checks restrict browser access to the local setup. Any local caller can control a connected tab or save the shared session. Account authentication, API keys, and ownership checks are left to the host system for cloud deployment.
+
+### Command and acknowledgement
+
+A command requests a browser-store action. The implemented command is `region.set`. Each command has a `commandId` and an `expiresAt` deadline. An acknowledgement is the tab's reply identifying the command and reporting the store's result. Success means applied to the store, not finished loading track data or saved to the database.
+
+A **pending command** has been registered for a browser and is waiting for a reply. The per-browser pending-command tracker owns timeout, cancellation, and completion cleanup. Pending commands live in memory and are not replayed.
+
+### Session snapshot
+
+The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. One **shared session** is the last snapshot saved to SQLite by any connected tab. Last save wins; tabs do not receive each other's edits.
+
+### Session repository
+
+The server's injected `SessionRepository`, with asynchronous `load()` and `save(snapshot)` operations. SQLite is the current implementation. Postgres is a planned alternative, not an implemented adapter.
+
+### Save status
+
+The client indicator at the top left of the browser center panel. It reports restoration, saving, successful persistence, or failure and retry. Command acknowledgement and save completion are separate events.
+
+See [Architecture and data flow](docs/02-guides/dataFlow.md) for the paths connecting these terms.
 
 ## Frame
 
@@ -42,7 +80,7 @@ A transparent bar floating over the top of the workspace. It holds the left pane
 
 The top row of each panel, under the header: a side panel's title or the center panel's title. The rows share one height so their bottom borders form a single line. A row's content area is exactly the header's height, with its border drawn below, so title text and the header's toggles share one vertical center. Pages supply a side panel's title, not its title row.
 
-**Toggle clearance** is the extra padding the frame adds to a title row that sits under a header toggle. The left panel's title row always clears the left toggle; when the left panel is collapsed, the center panel's title clear it instead. The right edge works the same way. When a toggle collapses or reopens a panel, the padding animates with it, so content slides out from under the toggle rather than jumping.
+**Toggle clearance** is the extra padding the frame adds to a title row that sits under a header toggle. The left panel's title row always clears the left toggle; when the left panel is collapsed, the center panel's title clears it instead. The right edge works the same way. When a toggle collapses or reopens a panel, the padding animates with it, so content slides out from under the toggle rather than jumping.
 
 ### Text trimming
 
@@ -70,13 +108,13 @@ A side panel is **absent** when the current page does not supply one, and **coll
 
 ### Side panel slot
 
-The frame's position for one side panel, implemented by `SidePanelSlot`. The slot is open only when the page supplies a panel on that side and it is not collapsed. Widths live in the shared workspace preferences, so they survive route changes independently of panel content. Route-local panel content may unmount and reset its state.
+The frame's position for one side panel, managed by `SidePanel`. The slot is open only when the page supplies a panel on that side and it is not collapsed. Widths live in the shared panel state, so they survive route changes independently of panel content. Route-local panel content may unmount and reset its state.
 
 Only the panel toggle animates a side panel. Changing pages swaps panels instantly, even when the new page opens or closes a side, so moving between pages never shows a panel sliding.
 
 ### Side panel state
 
-Whether each side panel is collapsed, and its width. The preferences store inside `Workspace` owns each side's open state and width. Both carry across pages: a panel collapsed or resized on one page stays that way on the next page that has it.
+Whether each side panel is collapsed, and its width. The panel state store inside `Workspace` owns each side's collapsed state and width. Both carry across pages: a panel collapsed or resized on one page stays that way on the next page that has it. This state is local to the workspace mount and resets on refresh; it is not part of the session snapshot.
 
 ### Panel toggle
 
@@ -90,7 +128,7 @@ The border of a side panel that faces the center panel. Drag it to resize the pa
 
 ### Navigation entry
 
-A sidebar link in `navigation.tsx` containing `href`, `label`, `icon`, and optional `placement`. Entries contain no page or panel components. Next.js owns routes, redirects, and unknown-route 404s.
+A sidebar link in `app/(workspace)/navigation.tsx` containing `href`, `label`, `icon`, and optional `placement`. Entries contain no page or panel components. Next.js owns routes, redirects, and unknown-route 404s.
 
 ### Route
 

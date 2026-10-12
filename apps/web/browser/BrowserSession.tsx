@@ -2,6 +2,8 @@
 
 import { createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
+import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
+import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 export type BrowserSession = {
@@ -19,8 +21,20 @@ export function BrowserSessionProvider({ children }: { children: ReactNode }) {
       region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
     }),
     useTrackStore: createTrackStore({
-      modules: [rulerModule],
-      tracks: [rulerModule.create({ base: { id: "ruler", title: "Coordinates" }, config: {} })],
+      modules: [rulerModule, geneModule, ccreBigBedModule],
+      tracks: [
+        rulerModule.create({ base: { id: "ruler", title: "Coordinates" }, config: {} }),
+        geneModule.create({
+          base: { id: "genes", title: "GENCODE 50 basic", display: "merged" },
+          config: {
+            url: "https://users.wenglab.org/niship/gencodefiles/human.gencode.v50.basic.annotation.bb",
+          },
+        }),
+        ccreBigBedModule.create({
+          base: { id: "ccres", title: "Human cCREs" },
+          config: { url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed" },
+        }),
+      ],
     }),
   }));
 

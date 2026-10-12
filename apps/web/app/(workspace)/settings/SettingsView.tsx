@@ -2,7 +2,7 @@
 
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import { useCommandConnection } from "../../../commands/BrowserCommands";
+import { useCommandConnection } from "../../../browser/BrowserCommands";
 
 export function SettingsView() {
   const connection = useCommandConnection();

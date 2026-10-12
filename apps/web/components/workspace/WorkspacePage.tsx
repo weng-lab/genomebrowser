@@ -7,9 +7,9 @@ import type { ReactNode } from "react";
 import { Header } from "./frame/Header";
 import { PageTitleRow } from "./frame/PageTitleRow";
 import { PanelToggleButton } from "./panels/PanelToggleButton";
-import { SidePanelSlot } from "./panels/SidePanelSlot";
-import { useTransitionEnabled } from "./motion/useTransitionEnabled";
-import { useWorkspacePreferences } from "./preferences";
+import { SidePanel } from "./panels/SidePanel";
+import { useTransitionEnabled } from "./useTransitionEnabled";
+import { usePanelState } from "./panels/panelState";
 import type { WorkspacePanel } from "./types";
 
 export type WorkspacePageProps = {
@@ -20,9 +20,9 @@ export type WorkspacePageProps = {
   children: ReactNode;
 };
 export function WorkspacePage({ title, subtitle, left, right, children }: WorkspacePageProps) {
-  const leftOpen = useWorkspacePreferences((state) => state.leftOpen);
-  const rightOpen = useWorkspacePreferences((state) => state.rightOpen);
-  const toggle = useWorkspacePreferences((state) => state.toggle);
+  const leftOpen = usePanelState((state) => state.leftOpen);
+  const rightOpen = usePanelState((state) => state.rightOpen);
+  const toggle = usePanelState((state) => state.toggle);
   const toggleLeft = () => toggle("left");
   const toggleRight = () => toggle("right");
   const transitionEnabled = useTransitionEnabled(usePathname());
@@ -67,7 +67,7 @@ export function WorkspacePage({ title, subtitle, left, right, children }: Worksp
           )
         }
       />
-      <SidePanelSlot side="left" panel={left} open={leftOpen} animate={transitionEnabled} />
+      <SidePanel side="left" panel={left} open={leftOpen} animate={transitionEnabled} />
       <Box sx={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0 }}>
         <PageTitleRow
           label={title}
@@ -80,7 +80,7 @@ export function WorkspacePage({ title, subtitle, left, right, children }: Worksp
           {children}
         </Box>
       </Box>
-      <SidePanelSlot side="right" panel={right} open={rightOpen} animate={transitionEnabled} />
+      <SidePanel side="right" panel={right} open={rightOpen} animate={transitionEnabled} />
     </Box>
   );
 }

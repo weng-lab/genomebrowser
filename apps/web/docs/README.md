@@ -6,6 +6,8 @@ These guides are for maintainers of the Next.js browser application.
 
 ## Guides
 
+- [Architecture and data flow](02-guides/dataFlow.md): trace commands, autosave, restoration, and genomic data requests.
+
 - [Pages and panels](02-guides/pages.md): add a route and compose its content.
 - [Routing](02-guides/routing.md): keep providers and layout stable across navigation.
 - [Styling and text](02-guides/styling.md): theme, icon colors, and text trimming.
@@ -13,6 +15,6 @@ These guides are for maintainers of the Next.js browser application.
 ## Reference
 
 - [Workspace components](03-reference.md): route composition and panel behavior.
-- [Glossary](../glossary.md): app layout and session terms.
+- [Glossary](../glossary.md): app layout, connection, command, and persistence terms.
 
 [Back to the app README](../README.md)

@@ -1,5 +1,5 @@
 import type { BrowserCommand, RegionResult } from "@weng-lab/browser-server/protocol";
-import type { BrowserSession } from "../session/BrowserSession";
+import type { BrowserSession } from "./BrowserSession";
 
 /** Execute validated commands against the same stores used by the application UI. */
 export function executeBrowserCommand(

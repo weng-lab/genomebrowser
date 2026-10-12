@@ -4,8 +4,8 @@ import { StrictMode, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Workspace } from "../components/workspace/Workspace";
-import { BrowserSessionProvider } from "../session/BrowserSession";
-import { BrowserCommands } from "../commands/BrowserCommands";
+import { BrowserSessionProvider } from "../browser/BrowserSession";
+import { BrowserCommands } from "../browser/BrowserCommands";
 import BrowserPage from "../app/(workspace)/browser/page";
 import SettingsPage from "../app/(workspace)/settings/page";
 
@@ -64,9 +64,7 @@ beforeEach(async () => {
   document.body.append(container);
   root = createRoot(container);
   await act(async () => root.render(<TestShell />));
-  act(() =>
-    Stream.opened.at(-1)!.send("connected", { clientId, resultToken: "connection-result-token" }),
-  );
+  act(() => Stream.opened.at(-1)!.send("connected", { clientId, snapshot: null }));
 });
 
 afterEach(() => {
@@ -93,7 +91,7 @@ it("applies an external region command in the real browser UI and acknowledges i
   expect(post).toHaveBeenCalledTimes(1);
   const [url, init] = post.mock.calls[0];
   expect(url).toBe(`/api/browser/clients/${clientId}/results`);
-  expect(init!.headers).toMatchObject({ Authorization: "Bearer connection-result-token" });
+  expect(init!.headers).toMatchObject({ "Content-Type": "application/json" });
   expect(JSON.parse(init!.body as string)).toEqual({
     commandId,
     result: { ok: true, region, clamped: false },
@@ -141,7 +139,7 @@ it("reconnects after the server becomes available again", async () => {
   await act(async () => vi.advanceTimersByTimeAsync(1000));
   const current = Stream.opened.at(-1)!;
   expect(current).not.toBe(previous);
-  act(() => current.send("connected", { clientId, resultToken: "fresh-result-token" }));
+  act(() => current.send("connected", { clientId, snapshot: null }));
   await act(async () =>
     current.send("command", {
       commandId,
@@ -154,7 +152,7 @@ it("reconnects after the server becomes available again", async () => {
     "chr2:2,001-3,000",
   );
   expect(post.mock.calls[0][1]!.headers).toMatchObject({
-    Authorization: "Bearer fresh-result-token",
+    "Content-Type": "application/json",
   });
 });
 

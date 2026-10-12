@@ -10,7 +10,7 @@ import { setTestPathname } from "./workspaceFixture";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
 
-it("retains preferences across page remounts and resets them with the workspace", () => {
+it("retains panel state across page remounts and resets them with the workspace", () => {
   function Center() {
     return <p>Main content</p>;
   }

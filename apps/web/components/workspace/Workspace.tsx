@@ -5,7 +5,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
 import type { ReactNode } from "react";
 import { SideBar } from "./frame/SideBar";
-import { WorkspacePreferences } from "./preferences";
+import { PanelStateProvider } from "./panels/panelState";
 import { theme } from "./theme";
 import type { WorkspaceNavigationItem } from "./types";
 
@@ -18,12 +18,12 @@ export function Workspace({ navigation, children, footer }: WorkspaceProps) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <WorkspacePreferences>
+      <PanelStateProvider>
         <Box sx={{ position: "relative", display: "flex", height: "100dvh", overflow: "hidden" }}>
           <SideBar navigation={navigation} footer={footer} />
           <Box sx={{ display: "flex", flexGrow: 1, minWidth: 0 }}>{children}</Box>
         </Box>
-      </WorkspacePreferences>
+      </PanelStateProvider>
     </ThemeProvider>
   );
 }

@@ -4,8 +4,8 @@
   "globalPassThroughEnv": [
     "CI",
     "NEXT_TELEMETRY_DISABLED",
-    "GB_API_TOKEN",
     "GB_SERVER_URL",
+    "GB_DATABASE_PATH",
     "GB_SERVER_HOST",
     "GB_SERVER_PORT",
     "GB_ALLOWED_ORIGINS",

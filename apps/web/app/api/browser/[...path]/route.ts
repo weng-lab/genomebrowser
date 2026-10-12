@@ -1,4 +1,4 @@
-import { proxyBrowserApi } from "../../../../server/browserApi";
+import { proxyBrowserApi } from "./proxy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

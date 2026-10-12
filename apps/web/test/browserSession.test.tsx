@@ -5,11 +5,11 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { Workspace } from "../components/workspace/Workspace";
-import { BrowserSessionProvider } from "../session/BrowserSession";
+import { BrowserSessionProvider } from "../browser/BrowserSession";
 import BrowserPage from "../app/(workspace)/browser/page";
 import CollectionsPage from "../app/(workspace)/collections/page";
 import SettingsPage from "../app/(workspace)/settings/page";
-import { navigation } from "../navigation";
+import { navigation } from "../app/(workspace)/navigation";
 
 const route = vi.hoisted(() => ({ pathname: "/browser", navigate: (_href: string) => {} }));
 vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
@@ -85,6 +85,8 @@ it("retains browser edits across pages and starts fresh on a new Workspace mount
   await act(async () => root!.render(<TestShell />));
   const initialText = browserText();
   expect(initialText).toContain("Coordinates");
+  expect(initialText).toContain("GENCODE 50 basic");
+  expect(initialText).toContain("Human cCREs");
 
   await act(async () =>
     container!

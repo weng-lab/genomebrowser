@@ -7,7 +7,7 @@ export default function BrowserPage() {
   return (
     <WorkspacePage
       title="Browser"
-      subtitle="Untitled session"
+      subtitle="Shared session"
       left={{ title: "Sessions", children: <SessionPanel /> }}
       right={{ title: "Agent", children: <AgentPanel /> }}
     >

@@ -4,7 +4,7 @@ These components are internal to `apps/web`, not a published package API. The sh
 
 ## `AppProviders`
 
-Owns browser-only initialization, the browser session, and the command relay connection above route pages. `session/BrowserSession.tsx` keeps browser and track stores stable for that provider lifetime. The relay connection uses the Next.js `/api/browser` proxy; administrative credentials never belong in client props.
+Owns browser-only initialization, the browser session, and the command relay connection above route pages. `browser/BrowserSession.tsx` keeps browser and track stores stable for that provider lifetime. The relay connection uses the local Next.js `/api/browser` proxy. `BrowserCommands` owns restoration and autosave for the same lifetime. Its connection ID selects the tab for commands and session writes without token setup. The browser view waits for initial restoration; `SaveStatus` at the top left of the browser center panel reports save state. See [Shared session](../README.md#shared-session) for the persistence contract.
 
 ## `Workspace`
 
@@ -37,7 +37,7 @@ type WorkspacePageProps = {
 
 Drag a panel's interior edge to resize it. With the edge focused, Left and Right arrow keys resize it by 16 pixels, Home sets the minimum, and End sets the maximum. Double-click restores the default width.
 
-Header toggles collapse and reopen panels with a short width animation; reduced-motion settings disable it. Route changes update panels instantly. A collapsed panel keeps its current content mounted but inert and hidden from assistive technology. Route navigation can unmount that content. Widths and collapsed preferences last for the shared workspace mount and are not saved across refreshes.
+Header toggles collapse and reopen panels with a short width animation; reduced-motion settings disable it. Route changes update panels instantly. A collapsed panel keeps its current content mounted but inert and hidden from assistive technology. Route navigation can unmount that content. Widths and collapsed state last for the shared workspace mount and are not saved across refreshes.
 
 Panel toggles reference `left-panel` and `right-panel` with `aria-controls`. Render one workspace per document.
 

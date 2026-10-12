@@ -1,0 +1,273 @@
+// @vitest-environment jsdom
+
+import { act } from "react";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
+import { sessionSnapshotSchema, type SessionSnapshot } from "@weng-lab/browser-server/protocol";
+import {
+  BrowserSessionProvider,
+  useBrowserSession,
+  type BrowserSession,
+} from "../browser/BrowserSession";
+import { BrowserCommands } from "../browser/BrowserCommands";
+import { BrowserView } from "../app/(workspace)/browser/BrowserView";
+
+// Only the network transports are replaced; the browser, stores and persistence remain real.
+class Stream extends EventTarget {
+  static opened: Stream[] = [];
+  onerror: (() => void) | null = null;
+  close = vi.fn<() => void>();
+  constructor(readonly url: string) {
+    super();
+    Stream.opened.push(this);
+  }
+  send(type: string, data: unknown) {
+    this.dispatchEvent(new MessageEvent(type, { data: JSON.stringify(data) }));
+  }
+}
+const clientId = "ae2bf290-6942-4df0-baf2-5e6bd4b5c41f";
+let session: BrowserSession;
+let probe: Probe;
+const post = vi.fn<typeof fetch>();
+function Controls() {
+  session = useBrowserSession();
+  return null;
+}
+function Shell() {
+  return (
+    <BrowserSessionProvider>
+      <BrowserCommands endpoint="/api/browser">
+        <Controls />
+        <BrowserView />
+      </BrowserCommands>
+    </BrowserSessionProvider>
+  );
+}
+function status() {
+  return document.querySelector('[role="status"]')!.textContent;
+}
+function connected(snapshot: SessionSnapshot | null) {
+  Stream.opened.at(-1)!.send("connected", { clientId, snapshot });
+}
+function savedSnapshot(): SessionSnapshot {
+  const browser = session.useBrowserStore.getState();
+  return sessionSnapshotSchema.parse({
+    version: 1,
+    browser: {
+      assembly: "hg38",
+      region: { chromosome: "chr2", start: 1000, end: 2000 },
+      basePairDetail: { maxVisibleBases: 250 },
+      marginWidth: 130,
+      trackWidth: 1000,
+      fontSize: 15,
+      titleSize: 17,
+      highlights: [
+        {
+          id: "saved-highlight",
+          region: { chromosome: "chr2", start: 1100, end: 1200 },
+          color: "#123456",
+        },
+      ],
+      selectionMode: "highlight",
+      selectionHighlight: browser.selectionHighlight,
+    },
+    tracks: session.useTrackStore.getState().tracks.map(({ type, base, config, source }) => ({
+      type,
+      base: { ...base, title: "Restored coordinates" },
+      config,
+      source,
+    })),
+    pinnedTrackIds: ["ruler"],
+  });
+}
+async function advance(ms: number) {
+  await act(async () => vi.advanceTimersByTimeAsync(ms));
+}
+function body(index = 0) {
+  return JSON.parse(post.mock.calls[index][1]!.body as string);
+}
+function deferred() {
+  let resolve!: (response: Response) => void;
+  const promise = new Promise<Response>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
+beforeEach(async () => {
+  vi.useFakeTimers();
+  Stream.opened = [];
+  post.mockReset().mockResolvedValue(new Response("{}"));
+  vi.stubGlobal("EventSource", Stream);
+  vi.stubGlobal("fetch", post);
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+  vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(1000);
+  probe = await renderWithProbe(<Shell />);
+});
+afterEach(() => {
+  probe?.unmount();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
+
+it("restores browser settings, highlights and tracks before editing, then persists serializable settings", async () => {
+  expect(document.querySelector('[aria-label="Visible region"]')).toBeNull();
+  const snapshot = savedSnapshot();
+  await act(async () => connected(snapshot));
+  expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
+    "chr2:1,001-2,000",
+  );
+  expect(session.useBrowserStore.getState()).toMatchObject({
+    ...snapshot.browser,
+    assembly: { id: "hg38" },
+  });
+  expect(session.useTrackStore.getState()).toMatchObject({
+    tracks: snapshot.tracks,
+    pinnedTrackIds: ["ruler"],
+  });
+  expect(status()).toBe("Saved");
+  await advance(200);
+  expect(post).not.toHaveBeenCalled();
+  act(() => {
+    session.useBrowserStore.getState().setBasePairDetail({ maxVisibleBases: 500 });
+    session.useBrowserStore.getState().setRegion({ chromosome: "chr3", start: 2000, end: 3000 });
+    session.useTrackStore
+      .getState()
+      .updateTrack("ruler", { base: { title: "Edited coordinates", color: "#abcdef" } });
+  });
+  expect(status()).toBe("Saving");
+  await advance(200);
+  expect(post).toHaveBeenCalledTimes(1);
+  expect(post.mock.calls[0][0]).toBe(`/api/browser/clients/${clientId}/session`);
+  expect(post.mock.calls[0][1]).toMatchObject({
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  const persisted = sessionSnapshotSchema.parse(body());
+  expect(persisted.browser).toMatchObject({
+    region: { chromosome: "chr3", start: 2000, end: 3000 },
+    basePairDetail: { maxVisibleBases: 500 },
+    highlights: snapshot.browser.highlights,
+  });
+  expect(persisted.tracks[0].base).toMatchObject({ title: "Edited coordinates", color: "#abcdef" });
+  expect(body().browser).not.toHaveProperty("isLoading");
+  expect(body()).not.toHaveProperty("registry");
+  expect(body().tracks[0]).not.toHaveProperty("module");
+  expect(status()).toBe("Saved");
+});
+
+it("continues saving after clearing an optional track setting", async () => {
+  await act(async () => connected(savedSnapshot()));
+  act(() => {
+    expect(
+      session.useTrackStore.getState().updateTrack("ruler", {
+        config: { sequenceUrl: "https://example.test/reference.2bit" },
+      }).ok,
+    ).toBe(true);
+  });
+  await advance(200);
+  expect(body().tracks[0].config.sequenceUrl).toBe("https://example.test/reference.2bit");
+  expect(status()).toBe("Saved");
+  const region = { chromosome: "chr6", start: 3000, end: 4000 };
+  act(() => {
+    expect(
+      session.useTrackStore.getState().updateTrack("ruler", {
+        config: { sequenceUrl: undefined },
+      }).ok,
+    ).toBe(true);
+    session.useBrowserStore.getState().setRegion(region);
+  });
+  await advance(200);
+  expect(post).toHaveBeenCalledTimes(2);
+  const persisted = sessionSnapshotSchema.parse(body(1));
+  expect(persisted.tracks[0].config).not.toHaveProperty("sequenceUrl");
+  expect(persisted.browser.region).toEqual(region);
+  expect(status()).toBe("Saved");
+});
+
+it("serializes saves and keeps newer edits unsaved until their own acknowledgement", async () => {
+  await act(async () => connected(savedSnapshot()));
+  const first = deferred();
+  const second = deferred();
+  post.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+  act(() =>
+    session.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 100, end: 200 }),
+  );
+  await advance(200);
+  act(() =>
+    session.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 300, end: 400 }),
+  );
+  await advance(200);
+  expect(post).toHaveBeenCalledTimes(1);
+  await act(async () => first.resolve(new Response("{}")));
+  expect(status()).toBe("Saving");
+  await advance(0);
+  expect(post).toHaveBeenCalledTimes(2);
+  expect(body(0).browser.region.start).toBe(100);
+  expect(body(1).browser.region.start).toBe(300);
+  await act(async () => second.resolve(new Response("{}")));
+  expect(status()).toBe("Saved");
+  await advance(2000);
+  expect(post).toHaveBeenCalledTimes(2);
+});
+
+it("retries failed saves and preserves dirty local edits across reconnect", async () => {
+  const snapshot = savedSnapshot();
+  await act(async () => connected(snapshot));
+  post.mockResolvedValueOnce(new Response("{}", { status: 503 }));
+  act(() =>
+    session.useBrowserStore.getState().setRegion({ chromosome: "chr4", start: 500, end: 600 }),
+  );
+  await advance(200);
+  expect(status()).toBe("Not saved. Retrying…");
+  await advance(1999);
+  expect(post).toHaveBeenCalledTimes(1);
+  await advance(1);
+  expect(post).toHaveBeenCalledTimes(2);
+  expect(body(1)).toEqual(body(0));
+  expect(status()).toBe("Saved");
+  act(() => Stream.opened.at(-1)!.onerror!());
+  act(() =>
+    session.useBrowserStore.getState().setRegion({ chromosome: "chr5", start: 700, end: 800 }),
+  );
+  await advance(1000);
+  await act(async () => connected(snapshot));
+  expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe("chr5:701-800");
+  expect(status()).toBe("Saving");
+  await advance(200);
+  expect(body(2).browser.region.chromosome).toBe("chr5");
+  expect(status()).toBe("Saved");
+});
+
+// A save acknowledgement changes status only; browser configuration and data are unchanged.
+// Necessary: SaveStatus renders once because its selected save state changes.
+// BrowserView and BrowserContent have no new data and must not render.
+// BrowserContent encloses GenomeBrowser, whose distributed component name is minified.
+it("limits save acknowledgement renders to the save indicator", async () => {
+  await act(async () => connected(savedSnapshot()));
+  const pending = deferred();
+  post.mockReturnValueOnce(pending.promise);
+  act(() =>
+    session.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 100, end: 200 }),
+  );
+  await advance(200);
+  const report = await probe.measure(() => pending.resolve(new Response("{}")));
+  expect(report.why("SaveStatus")).toEqual([
+    expect.objectContaining({ renders: 1, because: ["state"] }),
+  ]);
+  expect(report.pick("SaveStatus", "BrowserView", "BrowserContent")).toMatchInlineSnapshot(`
+    {
+      "BrowserContent": 0,
+      "BrowserView": 0,
+      "SaveStatus": 1,
+    }
+  `);
+  expect(status()).toBe("Saved");
+});

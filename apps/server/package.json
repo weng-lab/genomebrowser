@@ -18,6 +18,8 @@
     "format:check": "oxfmt . --check"
   },
   "dependencies": {
+    "@hono/node-server": "^2.1.4",
+    "hono": "^4.13.13",
     "zod": "catalog:"
   },
   "devDependencies": {

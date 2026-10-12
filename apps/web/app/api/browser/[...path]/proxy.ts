@@ -1,7 +1,7 @@
-/** Forward the browser protocol to the persistent relay without exposing server credentials. */
+/** Forward the local browser protocol to the persistent relay. */
 export async function proxyBrowserApi(request: Request, path: string[]) {
   const route = path.join("/");
-  if (!/^(events|clients|clients\/[0-9a-f-]+\/(region|results))$/.test(route)) {
+  if (!/^(events|clients|clients\/[0-9a-f-]+\/(region|results|session))$/.test(route)) {
     return Response.json({ error: "Unknown browser API route" }, { status: 404 });
   }
 
@@ -21,6 +21,11 @@ export async function proxyBrowserApi(request: Request, path: string[]) {
       expectedOrigin = null;
     }
   }
+  const hostname = expectedOrigin ? new URL(expectedOrigin).hostname : null;
+  if (!hostname || !["localhost", "127.0.0.1", "[::1]"].includes(hostname)) {
+    return Response.json({ error: "Browser API is local-only" }, { status: 403 });
+  }
+
   if (origin !== null && origin !== expectedOrigin) {
     return Response.json(
       { error: "Cross-origin browser API requests are not allowed" },
@@ -31,7 +36,7 @@ export async function proxyBrowserApi(request: Request, path: string[]) {
   const serverUrl = process.env.GB_SERVER_URL ?? "http://127.0.0.1:3001";
   const target = new URL(`/api/browser/${route}`, serverUrl);
   const headers = new Headers();
-  for (const name of ["authorization", "content-type", "origin"]) {
+  for (const name of ["content-type", "origin"]) {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }

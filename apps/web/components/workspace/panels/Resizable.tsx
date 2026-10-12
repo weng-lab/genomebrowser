@@ -8,9 +8,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { useTransitionEnabled } from "../motion/useTransitionEnabled";
+import { useTransitionEnabled } from "../useTransitionEnabled";
 
-type ResizablePanelProps = {
+type ResizableProps = {
   id: string;
   /** Which edge of the workspace the panel is anchored to. The handle sits on the opposite edge. */
   side: "left" | "right";
@@ -61,7 +61,7 @@ function endDrag(drag: RefObject<Drag | null>) {
  * on that edge. Opening and closing animate its width when `animate` is set. A closed panel stays mounted so its
  * contents keep their state, but it is inert and hidden from assistive technology.
  */
-export function ResizablePanel({
+export function Resizable({
   id,
   side,
   open,
@@ -73,7 +73,7 @@ export function ResizablePanel({
   maxWidth,
   resizeLabel,
   children,
-}: ResizablePanelProps) {
+}: ResizableProps) {
   const [resizing, setResizing] = useState(false);
   const widthTransitionEnabled = useTransitionEnabled(width);
   const drag = useRef<Drag | null>(null);

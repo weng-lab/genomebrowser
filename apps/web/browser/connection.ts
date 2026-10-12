@@ -3,8 +3,9 @@ import {
   connectedEventSchema,
   type ConnectedEvent,
 } from "@weng-lab/browser-server/protocol";
-import type { BrowserSession } from "../session/BrowserSession";
+import type { BrowserSession } from "./BrowserSession";
 import { executeBrowserCommand } from "./execute";
+import { persistBrowserSession, type SessionSaveState } from "./persistence";
 
 export type CommandConnectionState =
   | { status: "disabled" | "connecting" }
@@ -15,9 +16,11 @@ export function connectBrowserCommands(
   endpoint: string,
   session: BrowserSession,
   onState: (state: CommandConnectionState) => void,
+  onSaveState: (state: SessionSaveState) => void,
 ) {
   const base = endpoint.replace(/\/$/, "");
   const abort = new AbortController();
+  const persistence = persistBrowserSession(base, session, onSaveState);
   let source: EventSource;
   let retry: ReturnType<typeof setTimeout> | undefined;
 
@@ -31,6 +34,7 @@ export function connectBrowserCommands(
     function restart() {
       if (abort.signal.aborted || source !== current) return;
       current.close();
+      persistence.disconnected();
       connection = undefined;
       onState({ status: "connecting" });
       clearTimeout(retry);
@@ -38,16 +42,23 @@ export function connectBrowserCommands(
     }
 
     current.addEventListener("connected", (event: MessageEvent<string>) => {
+      if (abort.signal.aborted || source !== current) return;
       try {
-        connection = connectedEventSchema.parse(JSON.parse(event.data));
-        onState({ status: "connected", clientId: connection.clientId });
+        const connected = connectedEventSchema.parse(JSON.parse(event.data));
+        persistence.connected(connected);
+        connection = connected;
+        onState({
+          status: "connected",
+          clientId: connected.clientId,
+        });
       } catch {
+        onSaveState("load-error");
         restart();
       }
     });
 
     current.addEventListener("command", (event: MessageEvent<string>) => {
-      if (!connection || abort.signal.aborted) return;
+      if (!connection || abort.signal.aborted || source !== current) return;
       try {
         const command = browserCommandSchema.parse(JSON.parse(event.data));
         if (Date.now() >= command.expiresAt) return;
@@ -57,7 +68,6 @@ export function connectBrowserCommands(
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${connection.resultToken}`,
           },
           body: JSON.stringify({ commandId: command.commandId, result }),
           signal: abort.signal,
@@ -76,6 +86,7 @@ export function connectBrowserCommands(
 
   open();
   return () => {
+    persistence.dispose();
     abort.abort();
     clearTimeout(retry);
     source.close();

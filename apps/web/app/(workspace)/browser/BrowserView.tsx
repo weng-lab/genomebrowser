@@ -3,16 +3,27 @@
 import { formatDisplayRegion, GenomeBrowser } from "@weng-lab/genomebrowser";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { useBrowserSession } from "../../../session/BrowserSession";
+import { SaveStatus } from "./SaveStatus";
+import { useSessionLoading } from "../../../browser/BrowserCommands";
+import { useBrowserSession } from "../../../browser/BrowserSession";
 
 export function BrowserView() {
-  const { useBrowserStore, useTrackStore } = useBrowserSession();
-
+  const loading = useSessionLoading();
   return (
     <Box>
+      <SaveStatus />
+      {!loading && <BrowserContent />}
+    </Box>
+  );
+}
+
+function BrowserContent() {
+  const { useBrowserStore, useTrackStore } = useBrowserSession();
+  return (
+    <>
       <VisibleRegion />
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
-    </Box>
+    </>
   );
 }
 
