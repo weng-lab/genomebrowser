@@ -1,6 +1,7 @@
 {
   "$schema": "https://v2-11-7.turborepo.dev/schema.json",
   "cacheDir": ".turbo/cache",
+  "agentGuidance": false,
   "globalPassThroughEnv": [
     "CI",
     "NEXT_TELEMETRY_DISABLED",
