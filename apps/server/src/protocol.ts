@@ -8,23 +8,6 @@ export const regionSchema = z
   })
   .refine((region) => region.end > region.start, "end must exceed start");
 
-export const regionResultSchema = z.discriminatedUnion("ok", [
-  z.strictObject({ ok: z.literal(true), region: regionSchema, clamped: z.boolean() }),
-  z.strictObject({
-    ok: z.literal(false),
-    code: z.enum([
-      "INVALID_REGION",
-      "UNKNOWN_CHROMOSOME",
-      "INVALID_COORDINATE",
-      "REVERSED_REGION",
-      "ZERO_WIDTH_REGION",
-      "OUTSIDE_CHROMOSOME",
-      "INVALID_ZOOM_FACTOR",
-      "INVALID_ZOOM_CENTER",
-    ]),
-    error: z.string(),
-  }),
-]);
 const highlightStyleSchema = z.strictObject({
   color: z.string().min(1),
   opacity: z.number().min(0).max(1).optional(),
@@ -73,22 +56,26 @@ export const sessionSnapshotSchema = z.strictObject({
 });
 export type SessionSnapshot = z.infer<typeof sessionSnapshotSchema>;
 
-export const connectedEventSchema = z.strictObject({
-  clientId: z.uuid(),
-  snapshot: sessionSnapshotSchema.nullable(),
-});
-export const browserCommandSchema = z.strictObject({
+export const sessionIdSchema = z.string().regex(/^[\w-]{1,64}$/, "Invalid session ID");
+
+/** A command sent to the tab over SSE. The tab looks up `name` and validates `params`. */
+export const commandMessageSchema = z.strictObject({
   commandId: z.uuid(),
-  type: z.literal("region.set"),
+  name: z.string(),
+  params: z.unknown(),
   expiresAt: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
-  region: regionSchema,
 });
+
+/** Every command returns the whole session state on success. */
+export const commandResultSchema = z.discriminatedUnion("ok", [
+  z.strictObject({ ok: z.literal(true), state: sessionSnapshotSchema }),
+  z.strictObject({ ok: z.literal(false), code: z.string(), error: z.string() }),
+]);
 export const commandReplySchema = z.strictObject({
   commandId: z.uuid(),
-  result: regionResultSchema,
+  result: commandResultSchema,
 });
 export type Region = z.infer<typeof regionSchema>;
-export type RegionResult = z.infer<typeof regionResultSchema>;
-export type ConnectedEvent = z.infer<typeof connectedEventSchema>;
-export type BrowserCommand = z.infer<typeof browserCommandSchema>;
+export type CommandMessage = z.infer<typeof commandMessageSchema>;
+export type CommandResult = z.infer<typeof commandResultSchema>;
 export type CommandReply = z.infer<typeof commandReplySchema>;

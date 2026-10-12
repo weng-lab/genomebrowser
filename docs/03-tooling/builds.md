@@ -14,8 +14,8 @@ Collection schemas are generated from module definitions. Change the inputs and 
 
 The active applications are `apps/web` and `apps/server`. Archived applications in `legacy/playground` and `legacy/standalone` are excluded from the pnpm workspace and Turbo tasks.
 
-Run `pnpm dev` for the Next.js frontend on port 3000 and the persistent browser relay on loopback port 3001. The relay requires `GB_API_TOKEN`. Use `pnpm dev:web` or `pnpm dev:server` to run either process separately. These filtered Turbo `dev` tasks depend on `^build`, so a clean checkout builds dependency outputs first. Development tasks are persistent and uncached.
+Run `pnpm dev` for the Next.js frontend on port 3000 and the persistent browser server on loopback port 3001. Use `pnpm dev:web` or `pnpm dev:server` to run either process separately. These filtered Turbo `dev` tasks depend on `^build`, so a clean checkout builds dependency outputs first. Development tasks are persistent and uncached.
 
 Build with `pnpm exec turbo run build --filter=@weng-lab/web` or `pnpm exec turbo run build --filter=@weng-lab/browser-server`. See the [web guide](../../apps/web/README.md) for configuration, commands, and deployment, and the [server README](../../apps/server/README.md) for runtime requirements.
 
-The web app contains its workspace layout and domain pages directly. It has no separate workspace application dependency. Local and cloud deployments build the same Next.js app; the relay remains an independent persistent process.
+The web app contains its workspace layout and domain pages directly. It has no separate workspace application dependency. Local and cloud deployments build the same Next.js app; the browser server remains an independent persistent process.

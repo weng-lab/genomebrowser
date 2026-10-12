@@ -1,8 +1,8 @@
 # Browser server
 
-`@weng-lab/browser-server` is a private persistent Node.js relay. It sends commands to connected browser tabs and waits for their replies. Live browser and track state remain in the web app. The server saves serializable snapshots as one shared SQLite session.
+`@weng-lab/browser-server` is a private persistent Node.js server. It saves browser sessions in SQLite, exposes browser commands to agents over MCP, and delivers each command to the browser tab that has that session open. Live browser and track state remain in the tab.
 
-Use Node.js 24 or newer. From the repository root, run `pnpm dev:server`, or run `pnpm dev` to start web and server together. See the [web app guide](../web/README.md) for complete setup, curl examples, session behavior, and deployment instructions.
+Use Node.js 24 or newer. From the repository root, run `pnpm dev:server`, or run `pnpm dev` to start web and server together. See the [web app guide](../web/README.md) for complete setup, MCP examples, session behavior, and deployment instructions.
 
 | Environment variable | Default                                       | Purpose                                                      |
 | -------------------- | --------------------------------------------- | ------------------------------------------------------------ |
@@ -11,7 +11,16 @@ Use Node.js 24 or newer. From the repository root, run `pnpm dev:server`, or run
 | `GB_DATABASE_PATH`   | `./data/browser.sqlite`                       | SQLite file, relative to the server working directory.       |
 | `GB_ALLOWED_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000` | Comma-separated browser origins.                             |
 
-The local relay requires no tokens or login. It binds to loopback, rejects non-loopback Host values, and rejects browser origins outside the configured list. Client IDs select connected tabs; they are not credentials. Authentication and ownership checks for cloud deployment belong to the host system and are not implemented here.
+The local server requires no tokens or login. It binds to loopback, rejects non-loopback Host values, and rejects browser origins outside the configured list. Session IDs select a session; they are not credentials. Authentication and ownership checks for cloud deployment are not implemented here.
+
+| Route                        | Purpose                                                                                                       |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `GET /api/sessions/:id`      | Load a saved snapshot, or 404 when none is saved.                                                             |
+| `PUT /api/sessions/:id`      | Validate and save a snapshot of up to 1 MB.                                                                   |
+| `GET /api/sessions/:id/rpc`  | SSE stream of commands for the tab that has the session open. A second tab for the same session receives 409. |
+| `POST /api/sessions/:id/rpc` | The tab's reply to a command.                                                                                 |
+| `/mcp`                       | MCP endpoint (Streamable HTTP). Every browser command is a tool that takes a `sessionId`.                     |
+| `GET /health`                | Liveness check.                                                                                               |
 
 For the end-to-end paths, see [architecture and data flow](../web/docs/02-guides/dataFlow.md). Shared application terms live in the [app glossary](../web/glossary.md#commands-and-persistence).
 
@@ -20,36 +29,54 @@ For the end-to-end paths, see [architecture and data flow](../web/docs/02-guides
 ```text
 src/
   main.ts                       # Environment, database, listen, shutdown
-  server.ts                     # Wire the relay, routes, and Node listener
-  protocol.ts                   # Shared browser-safe messages and schemas
-  relay.ts                      # Connected browsers and SSE delivery
-  pendingCommands.ts            # Reply tracking, timeouts, cancellation, cleanup
+  server.ts                     # Wire routes, tab connections, MCP, and the Node listener
+  protocol.ts                   # Shared browser-safe schemas for sessions and tab messages
   commands/
-    setRegion.ts                # Validate a region request and dispatch it
+    command.ts                  # The Command type and defineCommand
+    setRegion.ts                # One file per command
+    index.ts                    # The command registry
+  mcp.ts                        # One MCP tool per registered command
+  tabs.ts                       # Open tabs by session ID and SSE delivery
+  pendingCommands.ts            # Reply tracking, timeouts, cancellation, cleanup
   http/
-    routes.ts                   # Explicit endpoint registration
+    routes.ts                   # Session, tab stream, and MCP routes
     middleware.ts               # Local hosts, origins, and request limits
-    connections.ts              # Open SSE connections and receive replies
-    session.ts                  # Validate and save snapshots
   storage/
-    sessionRepository.ts        # Async load/save interface
+    sessionRepository.ts        # Async load/save by session ID
     sqlite.ts                   # SQLite implementation
 ```
 
-Command handlers request dispatch through the relay. They do not manage connection maps, heartbeat timers, pending replies, or cancellation. The relay owns connections and gives each browser a pending-command tracker. That tracker registers replies before sending and cleans up on acknowledgement, timeout, cancellation, or disconnect. Routes select connection checks and request limits from `http/middleware.ts`; database setup stays in the entry point.
+Only the first tab to open a session's stream receives its commands; later tabs are rejected until it disconnects. Several tabs may still save the same session, and the last save wins. `pendingCommands.ts` registers each reply before sending and cleans up on reply, timeout, cancellation, or disconnect. Every command replies with the whole session snapshot on success, or a `{ ok: false, code, error }` failure.
 
-`@weng-lab/browser-server/protocol` exports browser-safe Zod schemas and inferred types directly from source. Frontend consumers must never import the Node.js implementation.
+`@weng-lab/browser-server/protocol` and `@weng-lab/browser-server/commands` are browser-safe and export directly from source; the web app uses both. Frontend consumers must never import the Node.js implementation. Command files only import types from `@weng-lab/genomebrowser`, so the server never loads the browser library.
 
 ## Add a command
 
-1. Define its validated message and result in `src/protocol.ts`.
-2. Add a handler under `src/commands/`, following `setRegion.ts`. Validate the request and dispatch the command through the relay.
-3. Register its HTTP method and path in `src/http/routes.ts`, with the appropriate connection check and body limit.
-4. Allow the new path through the web app's `app/api/browser/[...path]/proxy.ts`, and handle the message in `browser/execute.ts`. Update reply handling if the result contract changes.
-5. Extend the HTTP/SSE tests to send the request and acknowledge the result, then verify the real browser-store action in the web tests.
+Each command is one file under `src/commands/` that holds everything about it:
 
-Keep registration explicit. A command succeeds only after the browser applies it and replies. Reuse the relay's timeout and cleanup behavior rather than adding it to individual command files.
+```ts
+// src/commands/setRegion.ts
+export const setRegion = defineCommand({
+  name: "set_region",
+  description: "Move the genome browser to a region. ...",
+  params: z.strictObject({ region: regionSchema }),
+  run: (stores, { region }) => stores.useBrowserStore.getState().setRegion(region),
+});
+```
 
-To change storage, implement `SessionRepository` and supply it in `main.ts`. Routes and command handlers do not depend on SQLite.
+- `name` is the MCP tool name, in snake_case.
+- `description` is what agents read to decide when and how to call it.
+- `params` is a Zod object. The MCP tool adds `sessionId`, so do not include it.
+- `run` executes in the browser tab with the same stores as the UI. Call an existing store action and return its result, `{ ok: true }` or `{ ok: false, code, error }`. Do not reimplement validation the store already does.
 
-Build with `pnpm exec turbo run build --filter=@weng-lab/browser-server`, then run `pnpm --filter @weng-lab/browser-server start`. Host one persistent relay instance. Commands are not replayed, and tenant authentication is not implemented. Session persistence is supplied through an asynchronous repository interface; SQLite is the current adapter.
+To add a command:
+
+1. Create `src/commands/<name>.ts` with `defineCommand`, following `setRegion.ts`.
+2. Add it to the `commands` array in `src/commands/index.ts`. The MCP tool and the tab's executor both read that list; nothing else needs registering.
+3. Add a web test that sends the command to a tab and checks the store change, following `apps/web/test/commands.test.tsx`.
+
+A command succeeds only after the tab applies it and replies with the whole session snapshot. The server's timeout and cleanup apply to every command.
+
+To change storage, implement `SessionRepository` and supply it in `main.ts`. Routes do not depend on SQLite.
+
+Build with `pnpm exec turbo run build --filter=@weng-lab/browser-server`, then run `pnpm --filter @weng-lab/browser-server start`. Host one persistent server instance. Commands are not replayed, and tenant authentication is not implemented. Session persistence is supplied through an asynchronous repository interface; SQLite is the current adapter.

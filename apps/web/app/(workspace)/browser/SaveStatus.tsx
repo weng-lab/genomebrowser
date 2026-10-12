@@ -5,7 +5,7 @@ import CloudOff from "@mui/icons-material/CloudOff";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
-import { useSessionSaveState } from "../../../browser/BrowserCommands";
+import { useSessionSaveState } from "../../../browser/BrowserServer";
 
 const messages = {
   loading: "Loading session",

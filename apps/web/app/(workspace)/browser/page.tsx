@@ -1,17 +1,9 @@
-import { WorkspacePage } from "../../../components/workspace/WorkspacePage";
-import { BrowserView } from "./BrowserView";
-import { SessionPanel } from "./SessionPanel";
-import { AgentPanel } from "./AgentPanel";
+"use client";
 
-export default function BrowserPage() {
-  return (
-    <WorkspacePage
-      title="Browser"
-      subtitle="Shared session"
-      left={{ title: "Sessions", children: <SessionPanel /> }}
-      right={{ title: "Agent", children: <AgentPanel /> }}
-    >
-      <BrowserView />
-    </WorkspacePage>
-  );
+import { redirect } from "next/navigation";
+import { useSessionId } from "../../../browser/BrowserServer";
+
+/** Return to the session viewed last, so the sidebar link does not switch sessions. */
+export default function BrowserIndexPage() {
+  redirect(`/browser/${useSessionId()}`);
 }

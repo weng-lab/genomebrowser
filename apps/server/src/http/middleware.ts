@@ -22,19 +22,15 @@ export function createHttpMiddleware(options: { allowedOrigins?: readonly string
     await next();
   };
 
-  const limitCommandBody = bodyLimit({
-    maxSize: 16_384,
-    onError: (c) => c.json({ error: "Invalid JSON request" }, 400),
-  });
-  const limitSessionBody = bodyLimit({
+  // Session saves and command replies both carry a full session snapshot.
+  const limitSnapshotBody = bodyLimit({
     maxSize: 1_048_576,
-    onError: (c) => c.json({ error: "Session is too large" }, 400),
+    onError: (c) => c.json({ error: "Request body is too large" }, 413),
   });
 
   return {
     checkLocalRequest,
-    limitCommandBody,
-    limitSessionBody,
+    limitSnapshotBody,
   };
 }
 

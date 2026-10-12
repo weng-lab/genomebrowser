@@ -9,26 +9,19 @@ import {
   useBrowserSession,
   type BrowserSession,
 } from "../browser/BrowserSession";
-import { BrowserCommands } from "../browser/BrowserCommands";
+import { BrowserServer } from "../browser/BrowserServer";
 import { BrowserView } from "../app/(workspace)/browser/BrowserView";
 
 // Only the network transports are replaced; the browser, stores and persistence remain real.
 class Stream extends EventTarget {
-  static opened: Stream[] = [];
   onerror: (() => void) | null = null;
   close = vi.fn<() => void>();
-  constructor(readonly url: string) {
-    super();
-    Stream.opened.push(this);
-  }
-  send(type: string, data: unknown) {
-    this.dispatchEvent(new MessageEvent(type, { data: JSON.stringify(data) }));
-  }
 }
-const clientId = "ae2bf290-6942-4df0-baf2-5e6bd4b5c41f";
 let session: BrowserSession;
 let probe: Probe;
-const post = vi.fn<typeof fetch>();
+let load: ReturnType<typeof deferred>;
+const save = vi.fn<typeof fetch>();
+const loads = vi.fn<typeof fetch>();
 function Controls() {
   session = useBrowserSession();
   return null;
@@ -36,18 +29,20 @@ function Controls() {
 function Shell() {
   return (
     <BrowserSessionProvider>
-      <BrowserCommands endpoint="/api/browser">
+      <BrowserServer endpoint="/api" sessionId="local">
         <Controls />
         <BrowserView />
-      </BrowserCommands>
+      </BrowserServer>
     </BrowserSessionProvider>
   );
 }
 function status() {
   return document.querySelector('[role="status"]')!.textContent;
 }
-function connected(snapshot: SessionSnapshot | null) {
-  Stream.opened.at(-1)!.send("connected", { clientId, snapshot });
+function loaded(snapshot: SessionSnapshot | null) {
+  load.resolve(
+    snapshot ? Response.json(snapshot) : Response.json({ error: "Not found" }, { status: 404 }),
+  );
 }
 function savedSnapshot(): SessionSnapshot {
   const browser = session.useBrowserStore.getState();
@@ -84,7 +79,7 @@ async function advance(ms: number) {
   await act(async () => vi.advanceTimersByTimeAsync(ms));
 }
 function body(index = 0) {
-  return JSON.parse(post.mock.calls[index][1]!.body as string);
+  return JSON.parse(save.mock.calls[index][1]!.body as string);
 }
 function deferred() {
   let resolve!: (response: Response) => void;
@@ -95,10 +90,13 @@ function deferred() {
 }
 beforeEach(async () => {
   vi.useFakeTimers();
-  Stream.opened = [];
-  post.mockReset().mockResolvedValue(new Response("{}"));
+  load = deferred();
+  save.mockReset().mockResolvedValue(new Response("{}"));
+  loads.mockReset().mockImplementation(() => load.promise);
   vi.stubGlobal("EventSource", Stream);
-  vi.stubGlobal("fetch", post);
+  vi.stubGlobal("fetch", (url: string, init?: RequestInit) =>
+    init?.method === "PUT" ? save(url, init) : loads(url, init),
+  );
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -120,7 +118,7 @@ afterEach(() => {
 it("restores browser settings, highlights and tracks before editing, then persists serializable settings", async () => {
   expect(document.querySelector('[aria-label="Visible region"]')).toBeNull();
   const snapshot = savedSnapshot();
-  await act(async () => connected(snapshot));
+  await act(async () => loaded(snapshot));
   expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
     "chr2:1,001-2,000",
   );
@@ -134,7 +132,7 @@ it("restores browser settings, highlights and tracks before editing, then persis
   });
   expect(status()).toBe("Saved");
   await advance(200);
-  expect(post).not.toHaveBeenCalled();
+  expect(save).not.toHaveBeenCalled();
   act(() => {
     session.useBrowserStore.getState().setBasePairDetail({ maxVisibleBases: 500 });
     session.useBrowserStore.getState().setRegion({ chromosome: "chr3", start: 2000, end: 3000 });
@@ -144,10 +142,11 @@ it("restores browser settings, highlights and tracks before editing, then persis
   });
   expect(status()).toBe("Saving");
   await advance(200);
-  expect(post).toHaveBeenCalledTimes(1);
-  expect(post.mock.calls[0][0]).toBe(`/api/browser/clients/${clientId}/session`);
-  expect(post.mock.calls[0][1]).toMatchObject({
-    method: "POST",
+  expect(save).toHaveBeenCalledTimes(1);
+  expect(loads.mock.calls[0][0]).toBe("/api/sessions/local");
+  expect(save.mock.calls[0][0]).toBe("/api/sessions/local");
+  expect(save.mock.calls[0][1]).toMatchObject({
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
   });
   const persisted = sessionSnapshotSchema.parse(body());
@@ -164,7 +163,7 @@ it("restores browser settings, highlights and tracks before editing, then persis
 });
 
 it("continues saving after clearing an optional track setting", async () => {
-  await act(async () => connected(savedSnapshot()));
+  await act(async () => loaded(savedSnapshot()));
   act(() => {
     expect(
       session.useTrackStore.getState().updateTrack("ruler", {
@@ -185,7 +184,7 @@ it("continues saving after clearing an optional track setting", async () => {
     session.useBrowserStore.getState().setRegion(region);
   });
   await advance(200);
-  expect(post).toHaveBeenCalledTimes(2);
+  expect(save).toHaveBeenCalledTimes(2);
   const persisted = sessionSnapshotSchema.parse(body(1));
   expect(persisted.tracks[0].config).not.toHaveProperty("sequenceUrl");
   expect(persisted.browser.region).toEqual(region);
@@ -193,10 +192,10 @@ it("continues saving after clearing an optional track setting", async () => {
 });
 
 it("serializes saves and keeps newer edits unsaved until their own acknowledgement", async () => {
-  await act(async () => connected(savedSnapshot()));
+  await act(async () => loaded(savedSnapshot()));
   const first = deferred();
   const second = deferred();
-  post.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+  save.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
   act(() =>
     session.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 100, end: 200 }),
   );
@@ -205,44 +204,49 @@ it("serializes saves and keeps newer edits unsaved until their own acknowledgeme
     session.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 300, end: 400 }),
   );
   await advance(200);
-  expect(post).toHaveBeenCalledTimes(1);
+  expect(save).toHaveBeenCalledTimes(1);
   await act(async () => first.resolve(new Response("{}")));
   expect(status()).toBe("Saving");
   await advance(0);
-  expect(post).toHaveBeenCalledTimes(2);
+  expect(save).toHaveBeenCalledTimes(2);
   expect(body(0).browser.region.start).toBe(100);
   expect(body(1).browser.region.start).toBe(300);
   await act(async () => second.resolve(new Response("{}")));
   expect(status()).toBe("Saved");
   await advance(2000);
-  expect(post).toHaveBeenCalledTimes(2);
+  expect(save).toHaveBeenCalledTimes(2);
 });
 
-it("retries failed saves and preserves dirty local edits across reconnect", async () => {
-  const snapshot = savedSnapshot();
-  await act(async () => connected(snapshot));
-  post.mockResolvedValueOnce(new Response("{}", { status: 503 }));
+it("retries failed saves", async () => {
+  await act(async () => loaded(savedSnapshot()));
+  save.mockResolvedValueOnce(new Response("{}", { status: 503 }));
   act(() =>
     session.useBrowserStore.getState().setRegion({ chromosome: "chr4", start: 500, end: 600 }),
   );
   await advance(200);
   expect(status()).toBe("Not saved. Retrying…");
   await advance(1999);
-  expect(post).toHaveBeenCalledTimes(1);
+  expect(save).toHaveBeenCalledTimes(1);
   await advance(1);
-  expect(post).toHaveBeenCalledTimes(2);
+  expect(save).toHaveBeenCalledTimes(2);
   expect(body(1)).toEqual(body(0));
   expect(status()).toBe("Saved");
-  act(() => Stream.opened.at(-1)!.onerror!());
-  act(() =>
-    session.useBrowserStore.getState().setRegion({ chromosome: "chr5", start: 700, end: 800 }),
+});
+
+it("starts from defaults without a saved session and retries a failed load", async () => {
+  await act(async () => load.resolve(new Response("{}", { status: 503 })));
+  expect(status()).toBe("Could not load session. Retrying…");
+  expect(document.querySelector('[aria-label="Visible region"]')).toBeNull();
+  load = deferred();
+  await advance(2000);
+  await act(async () => loaded(null));
+  expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
+    "chr12:53,372,923-53,423,700",
   );
-  await advance(1000);
-  await act(async () => connected(snapshot));
-  expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe("chr5:701-800");
+  // Defaults are unsaved until the first write.
   expect(status()).toBe("Saving");
   await advance(200);
-  expect(body(2).browser.region.chromosome).toBe("chr5");
+  expect(body().browser.region.chromosome).toBe("chr12");
   expect(status()).toBe("Saved");
 });
 
@@ -251,9 +255,9 @@ it("retries failed saves and preserves dirty local edits across reconnect", asyn
 // BrowserView and BrowserContent have no new data and must not render.
 // BrowserContent encloses GenomeBrowser, whose distributed component name is minified.
 it("limits save acknowledgement renders to the save indicator", async () => {
-  await act(async () => connected(savedSnapshot()));
+  await act(async () => loaded(savedSnapshot()));
   const pending = deferred();
-  post.mockReturnValueOnce(pending.promise);
+  save.mockReturnValueOnce(pending.promise);
   act(() =>
     session.useBrowserStore.getState().setRegion({ chromosome: "chr1", start: 100, end: 200 }),
   );

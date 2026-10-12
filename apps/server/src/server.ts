@@ -2,9 +2,10 @@ import { createServer } from "node:http";
 import { getRequestListener } from "@hono/node-server";
 import { Hono } from "hono";
 import { createHttpMiddleware } from "./http/middleware.ts";
-import { registerBrowserRoutes } from "./http/routes.ts";
-import { createBrowserRelay } from "./relay.ts";
+import { registerRoutes } from "./http/routes.ts";
+import { createMcpEndpoint } from "./mcp.ts";
 import type { SessionRepository } from "./storage/sessionRepository.ts";
+import { createTabConnections } from "./tabs.ts";
 
 export type BrowserServerOptions = {
   sessions: SessionRepository;
@@ -13,16 +14,18 @@ export type BrowserServerOptions = {
   heartbeatIntervalMs?: number;
 };
 
-/** Compose HTTP routing, the live command relay, and Node server lifetime. */
+/** Compose HTTP routing, tab connections, MCP, and Node server lifetime. */
 export function createBrowserServer(options: BrowserServerOptions) {
-  const relay = createBrowserRelay(options);
+  const tabs = createTabConnections(options);
+  const mcp = createMcpEndpoint(tabs);
   const app = new Hono();
   const middleware = createHttpMiddleware(options);
-  registerBrowserRoutes(app, { relay, middleware, sessions: options.sessions });
+  registerRoutes(app, { tabs, mcp, middleware, sessions: options.sessions });
   const server = createServer(getRequestListener(app.fetch));
   const close = server.close.bind(server);
   server.close = (callback) => {
-    relay.close();
+    tabs.close();
+    void mcp.close();
     return close(callback);
   };
   return server;

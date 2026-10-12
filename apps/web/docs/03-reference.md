@@ -4,7 +4,7 @@ These components are internal to `apps/web`, not a published package API. The sh
 
 ## `AppProviders`
 
-Owns browser-only initialization, the browser session, and the command relay connection above route pages. `browser/BrowserSession.tsx` keeps browser and track stores stable for that provider lifetime. The relay connection uses the local Next.js `/api/browser` proxy. `BrowserCommands` owns restoration and autosave for the same lifetime. Its connection ID selects the tab for commands and session writes without token setup. The browser view waits for initial restoration; `SaveStatus` at the top left of the browser center panel reports save state. See [Shared session](../README.md#shared-session) for the persistence contract.
+Owns browser-only initialization, the browser session, and its server connection above route pages. `browser/BrowserSession.tsx` keeps browser and track stores stable for that provider lifetime. `BrowserServer` owns restoration, autosave, and remote control for the same lifetime, for the session in the URL and the `/api` rewrite to the browser server. A different session ID remounts the stores. `useSessionId()` returns the current ID, and `useRemoteControl()` exposes the connection state and the Settings toggle. The browser view waits for initial restoration; `SaveStatus` at the top left of the browser center panel reports save state. See [Shared session](../README.md#shared-session) for the persistence contract.
 
 ## `Workspace`
 

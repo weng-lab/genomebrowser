@@ -1,12 +1,15 @@
 import { expect, test } from "vitest";
 import { createPendingCommands } from "../src/pendingCommands.ts";
-import type { BrowserCommand } from "../src/protocol.ts";
+import type { CommandMessage } from "../src/protocol.ts";
 
 const region = { chromosome: "chr1", start: 10, end: 100 };
-const command = { type: "region.set" as const, region };
+const command = { name: "set_region" as const, params: { region } };
 
 function reply(commandId: string) {
-  return { commandId, result: { ok: true as const, region, clamped: false } };
+  return {
+    commandId,
+    result: { ok: false as const, code: "REPLIED", error: "Reply from the tab" },
+  };
 }
 
 test("registers a pending command before sending so an immediate reply resolves it", async () => {
@@ -17,12 +20,12 @@ test("registers a pending command before sending so an immediate reply resolves 
       expect(pending.acknowledge(reply(message.commandId))).toBe(false);
     },
   });
-  const response = await pending.sendAndWait(command, new AbortController().signal);
-  expect(response.status).toBe(200);
+  const response = pending.sendAndWait(command, new AbortController().signal);
+  expect(await response).toMatchObject({ code: "REPLIED" });
 });
 
 test("cancellation completes even when the stream write is stalled", async () => {
-  let sent!: BrowserCommand;
+  let sent!: CommandMessage;
   const pending = createPendingCommands({
     timeoutMs: 100,
     send(message) {
@@ -33,7 +36,7 @@ test("cancellation completes even when the stream write is stalled", async () =>
   const caller = new AbortController();
   const response = pending.sendAndWait(command, caller.signal);
   caller.abort();
-  expect((await response).status).toBe(499);
+  expect(await response).toMatchObject({ ok: false, code: "CANCELLED" });
   expect(pending.acknowledge(reply(sent.commandId))).toBe(false);
 });
 
@@ -47,7 +50,10 @@ test("a failed stream write rejects pending and subsequent commands", async () =
   const signal = new AbortController().signal;
   const first = pending.sendAndWait(command, signal);
   const second = pending.sendAndWait(command, signal);
-  expect((await first).status).toBe(409);
-  expect((await second).status).toBe(409);
-  expect((await pending.sendAndWait(command, signal)).status).toBe(409);
+  expect(await first).toMatchObject({ ok: false, code: "NOT_CONNECTED" });
+  expect(await second).toMatchObject({ ok: false, code: "NOT_CONNECTED" });
+  expect(await pending.sendAndWait(command, signal)).toMatchObject({
+    ok: false,
+    code: "NOT_CONNECTED",
+  });
 });

@@ -1,43 +1,71 @@
-import type { Hono, MiddlewareHandler } from "hono";
-import { setRegion } from "../commands/setRegion.ts";
-import type { BrowserRelay } from "../relay.ts";
+import type { Context, Hono, MiddlewareHandler } from "hono";
+import { streamSSE } from "hono/streaming";
+import { commandReplySchema, sessionIdSchema, sessionSnapshotSchema } from "../protocol.ts";
 import type { SessionRepository } from "../storage/sessionRepository.ts";
-import { openConnection, acknowledgeCommand } from "./connections.ts";
+import type { TabConnections } from "../tabs.ts";
 import { handleHttpError, type HttpMiddleware } from "./middleware.ts";
-import { saveSession } from "./session.ts";
 
-export function registerBrowserRoutes(
+export function registerRoutes(
   app: Hono,
   dependencies: {
-    relay: BrowserRelay;
+    tabs: TabConnections;
     sessions: SessionRepository;
+    mcp: { fetch: (request: Request) => Promise<Response> };
     middleware: HttpMiddleware;
   },
 ) {
-  const { relay, sessions, middleware: access } = dependencies;
+  const { tabs, sessions, mcp, middleware: access } = dependencies;
 
-  const requireBrowser: MiddlewareHandler = async (c, next) => {
-    if (!relay.hasBrowser(c.req.param("clientId") ?? "")) {
-      return c.json({ error: "Browser is not connected" }, 404);
+  const requireSessionId: MiddlewareHandler = async (c, next) => {
+    if (!sessionIdSchema.safeParse(c.req.param("sessionId")).success) {
+      return c.json({ error: "Invalid session ID" }, 400);
     }
     return next();
   };
+  const sessionId = (c: Context) => c.req.param("sessionId")!;
 
   app.use("*", access.checkLocalRequest);
   app.onError(handleHttpError);
   app.notFound((c) => c.json({ error: "Not found" }, 404));
 
   app.get("/health", (c) => c.json({ ok: true }));
-  app.get("/api/browser/events", (c) => openConnection(c, relay, sessions));
-  app.get("/api/browser/clients", (c) => c.json({ clients: relay.listBrowsers() }));
+  app.all("/mcp", (c) => mcp.fetch(c.req.raw));
 
-  app.post("/api/browser/clients/:clientId/region", requireBrowser, access.limitCommandBody, (c) =>
-    setRegion(c, relay),
-  );
-  app.post("/api/browser/clients/:clientId/results", requireBrowser, access.limitCommandBody, (c) =>
-    acknowledgeCommand(c, relay),
-  );
-  app.post("/api/browser/clients/:clientId/session", requireBrowser, access.limitSessionBody, (c) =>
-    saveSession(c, sessions),
+  app.get("/api/sessions/:sessionId", requireSessionId, async (c) => {
+    const snapshot = await sessions.load(sessionId(c));
+    return snapshot ? c.json(snapshot) : c.json({ error: "Session not found" }, 404);
+  });
+
+  app.put("/api/sessions/:sessionId", requireSessionId, access.limitSnapshotBody, async (c) => {
+    const parsed = sessionSnapshotSchema.safeParse(await c.req.json());
+    if (!parsed.success) return c.json({ error: "Invalid session snapshot" }, 400);
+    await sessions.save(sessionId(c), parsed.data);
+    return c.json({ ok: true });
+  });
+
+  // A tab opens this stream to accept remote commands. The first tab keeps the session.
+  app.get("/api/sessions/:sessionId/rpc", requireSessionId, (c) => {
+    const id = sessionId(c);
+    if (tabs.isConnected(id)) {
+      return c.json({ error: "The session is already connected in another tab" }, 409);
+    }
+    c.header("X-Accel-Buffering", "no");
+    const response = streamSSE(c, (stream) => tabs.connect(id, stream));
+    response.headers.set("Cache-Control", "no-cache, no-transform");
+    return response;
+  });
+
+  app.post(
+    "/api/sessions/:sessionId/rpc",
+    requireSessionId,
+    access.limitSnapshotBody,
+    async (c) => {
+      const parsed = commandReplySchema.safeParse(await c.req.json());
+      if (!parsed.success) return c.json({ error: "Invalid command result" }, 400);
+      if (!tabs.acknowledge(sessionId(c), parsed.data)) {
+        return c.json({ error: "Command is not pending for this session" }, 409);
+      }
+      return c.json({ ok: true });
+    },
   );
 }

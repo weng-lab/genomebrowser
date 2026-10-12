@@ -1,6 +1,6 @@
 # Web app glossary
 
-Terms for the Next.js browser product, command relay, and generic workspace layout. The [project glossary](../../docs/glossary.md) covers browser and track terms.
+Terms for the Next.js browser product, browser server, and generic workspace layout. The [project glossary](../../docs/glossary.md) covers browser and track terms.
 
 ## Application and session
 
@@ -14,7 +14,7 @@ The route composition component. Each route supplies a title, optional subtitle 
 
 ### AppProviders
 
-The shared client provider composition above routes. It owns browser-only initialization, the browser session, and the command relay connection.
+The shared client provider composition above routes. It owns browser-only initialization, the browser session, and `BrowserServer`, which saves the session and runs remote control.
 
 ### Browser session
 
@@ -22,43 +22,39 @@ The live browser and track stores shared through `browser/BrowserSession.tsx`. T
 
 ### Product pages
 
-The browser route at `/browser` has a Shared session panel on the left and an Agent panel on the right. The Agent panel sends region commands through the relay to the same tab. Collections at `/collections` and settings at `/settings` have center content only. Settings is in the bottom sidebar group.
+The browser route at `/browser/[sessionId]` has a Sessions panel on the left and an Agent panel on the right. The Agent panel shows whether this tab accepts remote commands. Collections at `/collections` and settings at `/settings` have center content only. Settings is in the bottom sidebar group.
 
 ## Commands and persistence
 
-### Command relay
+### Browser server
 
-The persistent Hono server in `apps/server`. It sends commands to connected browser tabs over server-sent events, or SSE, and waits for their replies. It also loads and saves the shared session through a session repository. It does not fetch genomic track files or own the live browser stores.
+The persistent Hono server in `apps/server`. It loads and saves sessions through a session repository, exposes browser commands to agents over MCP, and sends each command to the tab that has the session open over server-sent events, or SSE. It does not fetch genomic track files or own the live browser stores. Next.js rewrites `/api/*` and `/mcp` to it.
 
-### API proxy
+### Remote control
 
-The Next.js `/api/browser` route that forwards HTTP requests and SSE responses to the relay. It checks allowed paths, loopback hosts, and origins. The local API requires no credentials.
-
-### Browser connection
-
-One live SSE connection between a mounted web session and the relay. Its `clientId`, displayed as the Browser connection ID, selects the target tab. The ID changes after reconnection. It selects a tab without authenticating a user and is distinct from the shared saved session.
+A tab's SSE stream for one session, opened at `/api/sessions/:id/rpc`. Only the first tab to connect receives the session's commands; later tabs are rejected and retry until it disconnects. It is on by default and can be turned off in Settings. Saving does not depend on it.
 
 ### Local access
 
-The web app and relay run on loopback without tokens or login. Host and origin checks restrict browser access to the local setup. Any local caller can control a connected tab or save the shared session. Account authentication, API keys, and ownership checks are left to the host system for cloud deployment.
+The web app and server run on loopback without tokens or login. Host and origin checks restrict browser access to the local setup. Any local caller can control a connected tab or save a session. Account authentication and ownership checks are future work.
 
-### Command and acknowledgement
+### Command and reply
 
-A command requests a browser-store action. The implemented command is `region.set`. Each command has a `commandId` and an `expiresAt` deadline. An acknowledgement is the tab's reply identifying the command and reporting the store's result. Success means applied to the store, not finished loading track data or saved to the database.
+A command requests a browser-store action. Each command is one file in `apps/server/src/commands/` that defines its name, description, parameters, and the store action it runs. The registry in `commands/index.ts` makes each one an MCP tool of the same name. The implemented command is `set_region`. Each delivered command has a `commandId` and an `expiresAt` deadline. The tab's reply is the whole session snapshot on success, or the store's failure. Success means applied to the store, not finished loading track data or saved to the database.
 
-A **pending command** has been registered for a browser and is waiting for a reply. The per-browser pending-command tracker owns timeout, cancellation, and completion cleanup. Pending commands live in memory and are not replayed.
+A **pending command** has been sent to a tab and is waiting for its reply. The per-tab pending-command tracker owns timeout, cancellation, and completion cleanup. Pending commands live in memory and are not replayed.
 
 ### Session snapshot
 
-The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. One **shared session** is the last snapshot saved to SQLite by any connected tab. Last save wins; tabs do not receive each other's edits.
+The versioned JSON representation of browser settings, region, highlights, selection settings, track configurations and order, source ownership, and pinned track IDs. It excludes fetched data, loading state, resources, module implementations, and functions. A **session** is a snapshot saved in SQLite under a session ID. The URL `/browser/[sessionId]` selects it; `local` is the default until there is a session picker. Every tab with the session open saves to it; the last save wins, and tabs do not receive each other's edits.
 
 ### Session repository
 
-The server's injected `SessionRepository`, with asynchronous `load()` and `save(snapshot)` operations. SQLite is the current implementation. Postgres is a planned alternative, not an implemented adapter.
+The server's injected `SessionRepository`, with asynchronous `load(id)` and `save(id, snapshot)` operations. SQLite is the current implementation.
 
 ### Save status
 
-The client indicator at the top left of the browser center panel. It reports restoration, saving, successful persistence, or failure and retry. Command acknowledgement and save completion are separate events.
+The client indicator at the top left of the browser center panel. It reports restoration, saving, successful persistence, or failure and retry. A command reply and save completion are separate events.
 
 See [Architecture and data flow](docs/02-guides/dataFlow.md) for the paths connecting these terms.
 

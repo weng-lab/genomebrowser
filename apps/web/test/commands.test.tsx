@@ -5,8 +5,8 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Workspace } from "../components/workspace/Workspace";
 import { BrowserSessionProvider } from "../browser/BrowserSession";
-import { BrowserCommands } from "../browser/BrowserCommands";
-import BrowserPage from "../app/(workspace)/browser/page";
+import { BrowserServer } from "../browser/BrowserServer";
+import { BrowserPage } from "../app/(workspace)/browser/BrowserPage";
 import SettingsPage from "../app/(workspace)/settings/page";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/browser" }));
@@ -15,9 +15,11 @@ function TestShell({ settings = false }: { settings?: boolean }) {
   return (
     <StrictMode>
       <BrowserSessionProvider>
-        <BrowserCommands endpoint="/api/browser">
-          <Workspace navigation={[]}>{settings ? <SettingsPage /> : <BrowserPage />}</Workspace>
-        </BrowserCommands>
+        <BrowserServer endpoint="/api" sessionId="local">
+          <Workspace navigation={[]}>
+            {settings ? <SettingsPage /> : <BrowserPage sessionId="local" />}
+          </Workspace>
+        </BrowserServer>
       </BrowserSessionProvider>
     </StrictMode>
   );
@@ -30,6 +32,7 @@ function TestShell({ settings = false }: { settings?: boolean }) {
 class Stream extends EventTarget {
   static opened: Stream[] = [];
   onerror: (() => void) | null = null;
+  onopen: (() => void) | null = null;
   close = vi.fn<() => void>();
   constructor(readonly url: string) {
     super();
@@ -40,7 +43,6 @@ class Stream extends EventTarget {
   }
 }
 
-const clientId = "ae2bf290-6942-4df0-baf2-5e6bd4b5c41f";
 const commandId = "e376d6ef-36c9-4d01-ad52-9847bad99f3c";
 let container: HTMLDivElement;
 let root: Root;
@@ -50,7 +52,12 @@ beforeEach(async () => {
   Stream.opened = [];
   post.mockReset().mockResolvedValue(new Response(JSON.stringify({ ok: true })));
   vi.stubGlobal("EventSource", Stream);
-  vi.stubGlobal("fetch", post);
+  // No saved session; command replies go to `post`.
+  vi.stubGlobal("fetch", (url: string, init?: RequestInit) =>
+    init?.method === "POST"
+      ? post(url, init)
+      : Promise.resolve(Response.json({ error: "Not found" }, { status: 404 })),
+  );
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -64,7 +71,7 @@ beforeEach(async () => {
   document.body.append(container);
   root = createRoot(container);
   await act(async () => root.render(<TestShell />));
-  act(() => Stream.opened.at(-1)!.send("connected", { clientId, snapshot: null }));
+  act(() => Stream.opened.at(-1)!.onopen!());
 });
 
 afterEach(() => {
@@ -75,14 +82,14 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-it("applies an external region command in the real browser UI and acknowledges its outcome", async () => {
+it("applies an external region command in the real browser UI and replies with the whole session state", async () => {
   const region = { chromosome: "chr1", start: 1000, end: 2000 };
   await act(async () =>
     Stream.opened.at(-1)!.send("command", {
       commandId,
-      type: "region.set",
+      name: "set_region",
       expiresAt: Date.now() + 5000,
-      region,
+      params: { region },
     }),
   );
   expect(container.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
@@ -90,12 +97,17 @@ it("applies an external region command in the real browser UI and acknowledges i
   );
   expect(post).toHaveBeenCalledTimes(1);
   const [url, init] = post.mock.calls[0];
-  expect(url).toBe(`/api/browser/clients/${clientId}/results`);
+  expect(url).toBe("/api/sessions/local/rpc");
   expect(init!.headers).toMatchObject({ "Content-Type": "application/json" });
-  expect(JSON.parse(init!.body as string)).toEqual({
-    commandId,
-    result: { ok: true, region, clamped: false },
-  });
+  const reply = JSON.parse(init!.body as string);
+  expect(reply).toMatchObject({ commandId, result: { ok: true } });
+  // The reply carries the whole session state after the command.
+  expect(reply.result.state.browser.region).toEqual(region);
+  expect(reply.result.state.tracks.map(({ base }: { base: { id: string } }) => base.id)).toEqual([
+    "ruler",
+    "genes",
+    "ccres",
+  ]);
   act(() => root.unmount());
   expect(Stream.opened.every((stream) => stream.close.mock.calls.length > 0)).toBe(true);
 });
@@ -105,9 +117,9 @@ it("returns the store's rejection without changing the visible region", async ()
   await act(async () =>
     Stream.opened.at(-1)!.send("command", {
       commandId,
-      type: "region.set",
+      name: "set_region",
       expiresAt: Date.now() + 5000,
-      region: { chromosome: "not-a-chromosome", start: 1000, end: 2000 },
+      params: { region: { chromosome: "not-a-chromosome", start: 1000, end: 2000 } },
     }),
   );
   expect(container.querySelector('[aria-label="Visible region"]')!.textContent).toBe(before);
@@ -122,9 +134,9 @@ it("does not apply commands that expired while the browser was suspended", async
   await act(async () =>
     Stream.opened.at(-1)!.send("command", {
       commandId,
-      type: "region.set",
+      name: "set_region",
       expiresAt: Date.now() - 1000,
-      region: { chromosome: "chr1", start: 1000, end: 2000 },
+      params: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
     }),
   );
   expect(container.querySelector('[aria-label="Visible region"]')!.textContent).toBe(before);
@@ -139,13 +151,13 @@ it("reconnects after the server becomes available again", async () => {
   await act(async () => vi.advanceTimersByTimeAsync(1000));
   const current = Stream.opened.at(-1)!;
   expect(current).not.toBe(previous);
-  act(() => current.send("connected", { clientId, snapshot: null }));
+  act(() => current.onopen!());
   await act(async () =>
     current.send("command", {
       commandId,
-      type: "region.set",
+      name: "set_region",
       expiresAt: Date.now() + 5000,
-      region: { chromosome: "chr2", start: 2000, end: 3000 },
+      params: { region: { chromosome: "chr2", start: 2000, end: 3000 } },
     }),
   );
   expect(container.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
@@ -165,9 +177,9 @@ it("keeps one connection and accepts commands while the browser page is unmounte
   await act(async () =>
     stream.send("command", {
       commandId,
-      type: "region.set",
+      name: "set_region",
       expiresAt: Date.now() + 5000,
-      region: { chromosome: "chr3", start: 3000, end: 4000 },
+      params: { region: { chromosome: "chr3", start: 3000, end: 4000 } },
     }),
   );
   await act(async () => root.render(<TestShell />));

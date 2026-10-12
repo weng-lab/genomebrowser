@@ -1,67 +1,15 @@
-import { createBrowserStore, createTrackStore } from "@weng-lab/genomebrowser";
-import {
-  sessionSnapshotSchema,
-  type SessionSnapshot,
-  type ConnectedEvent,
-} from "@weng-lab/browser-server/protocol";
+import { sessionSnapshotSchema } from "@weng-lab/browser-server/protocol";
 import type { BrowserSession } from "./BrowserSession";
+import { restore, snapshot } from "./snapshot";
 
 export type SessionSaveState = "loading" | "load-error" | "saving" | "saved" | "error" | "disabled";
 
-function snapshot(session: BrowserSession): SessionSnapshot {
-  const browser = session.useBrowserStore.getState();
-  const tracks = session.useTrackStore.getState();
-  const values = {
-    version: 1,
-    browser: {
-      assembly: browser.assembly.id,
-      region: browser.region,
-      basePairDetail: browser.basePairDetail,
-      marginWidth: browser.marginWidth,
-      trackWidth: browser.trackWidth,
-      fontSize: browser.fontSize,
-      titleSize: browser.titleSize,
-      highlights: browser.highlights,
-      selectionMode: browser.selectionMode,
-      selectionHighlight: browser.selectionHighlight,
-    },
-    tracks: tracks.tracks.map(({ type, base, config, source }) => ({ type, base, config, source })),
-    pinnedTrackIds: tracks.pinnedTrackIds,
-  };
-  // Optional settings can be explicitly cleared to undefined. JSON omits those
-  // keys, matching the payload sent to storage and the module defaults on restore.
-  return sessionSnapshotSchema.parse(JSON.parse(JSON.stringify(values)));
-}
-
-function restore(session: BrowserSession, saved: SessionSnapshot) {
-  // Validate both stores before changing either live store. Runtime actions and
-  // registered modules stay local; only serializable session values are restored.
-  const browser = createBrowserStore({
-    ...saved.browser,
-    assembly: session.useBrowserStore.getState().assembly,
-  }).getState();
-  const tracks = createTrackStore({
-    modules: session.useTrackStore.getState().registry.modules,
-    tracks: saved.tracks,
-    pinnedTrackIds: saved.pinnedTrackIds,
-  }).getState();
-  const { assembly: _assembly, ...values } = saved.browser;
-  session.useBrowserStore.setState({ ...values, region: browser.region });
-  session.useTrackStore.setState({
-    tracks: tracks.tracks,
-    order: tracks.order,
-    pinnedTrackIds: tracks.pinnedTrackIds,
-  });
-}
-
-/** Restore once, then serialize writes so an older request cannot overwrite a newer edit. */
+/** Load the saved session once, then serialize writes so an older request cannot overwrite a newer edit. */
 export function persistBrowserSession(
-  endpoint: string,
+  sessionUrl: string,
   session: BrowserSession,
   onState: (state: SessionSaveState) => void,
 ) {
-  let connection: ConnectedEvent | undefined;
-  let initialized = false;
   let stopped = false;
   let writing = false;
   let latest = "";
@@ -72,7 +20,7 @@ export function persistBrowserSession(
 
   function schedule(delay = 200) {
     clearTimeout(timer);
-    if (!stopped && connection && latest !== saved) timer = setTimeout(() => void write(), delay);
+    if (!stopped && latest !== saved) timer = setTimeout(() => void write(), delay);
   }
 
   function changed() {
@@ -88,17 +36,14 @@ export function persistBrowserSession(
   }
 
   async function write() {
-    if (stopped || writing || !connection || latest === saved) return;
+    if (stopped || writing || latest === saved) return;
     writing = true;
     const body = latest;
-    const current = connection;
     onState("saving");
     try {
-      const response = await fetch(`${endpoint}/clients/${current.clientId}/session`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch(sessionUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body,
         signal: abort.signal,
       });
@@ -113,31 +58,35 @@ export function persistBrowserSession(
     }
   }
 
-  return {
-    connected(next: ConnectedEvent) {
-      connection = next;
-      if (!initialized) {
-        if (next.snapshot) restore(session, next.snapshot);
-        latest = JSON.stringify(snapshot(session));
-        saved = next.snapshot ? latest : "";
-        initialized = true;
-        unsubscribe.push(
-          session.useBrowserStore.subscribe(changed),
-          session.useTrackStore.subscribe(changed),
-        );
-      }
+  async function load() {
+    onState("loading");
+    try {
+      const response = await fetch(sessionUrl, { signal: abort.signal });
+      if (!response.ok && response.status !== 404) throw new Error("Session load failed");
+      const restored =
+        response.status === 404 ? null : sessionSnapshotSchema.parse(await response.json());
+      if (stopped) return;
+      if (restored) restore(session, restored);
+      latest = JSON.stringify(snapshot(session));
+      saved = restored ? latest : "";
+      unsubscribe.push(
+        session.useBrowserStore.subscribe(changed),
+        session.useTrackStore.subscribe(changed),
+      );
       onState(latest === saved ? "saved" : "saving");
       schedule();
-    },
-    disconnected() {
-      connection = undefined;
-      clearTimeout(timer);
-    },
-    dispose() {
-      stopped = true;
-      clearTimeout(timer);
-      abort.abort();
-      unsubscribe.forEach((stop) => stop());
-    },
+    } catch {
+      if (stopped) return;
+      onState("load-error");
+      timer = setTimeout(() => void load(), 2000);
+    }
+  }
+
+  void load();
+  return () => {
+    stopped = true;
+    clearTimeout(timer);
+    abort.abort();
+    unsubscribe.forEach((stop) => stop());
   };
 }

@@ -6,7 +6,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { Workspace } from "../components/workspace/Workspace";
 import { BrowserSessionProvider } from "../browser/BrowserSession";
-import BrowserPage from "../app/(workspace)/browser/page";
+import { BrowserPage } from "../app/(workspace)/browser/BrowserPage";
+import { BrowserServer } from "../browser/BrowserServer";
 import CollectionsPage from "../app/(workspace)/collections/page";
 import SettingsPage from "../app/(workspace)/settings/page";
 import { navigation } from "../app/(workspace)/navigation";
@@ -40,15 +41,17 @@ function TestShell() {
   route.navigate = setPathname;
   return (
     <BrowserSessionProvider>
-      <Workspace navigation={navigation}>
-        {pathname === "/browser" ? (
-          <BrowserPage />
-        ) : pathname === "/collections" ? (
-          <CollectionsPage />
-        ) : (
-          <SettingsPage />
-        )}
-      </Workspace>
+      <BrowserServer sessionId="local">
+        <Workspace navigation={navigation}>
+          {pathname === "/browser" ? (
+            <BrowserPage sessionId="local" />
+          ) : pathname === "/collections" ? (
+            <CollectionsPage />
+          ) : (
+            <SettingsPage />
+          )}
+        </Workspace>
+      </BrowserServer>
     </BrowserSessionProvider>
   );
 }

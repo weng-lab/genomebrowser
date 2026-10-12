@@ -1,14 +1,11 @@
-import type { Context } from "hono";
+import { z } from "zod";
 import { regionSchema } from "../protocol.ts";
-import type { BrowserRelay } from "../relay.ts";
+import { defineCommand } from "./command.ts";
 
-/** Validate the command input and ask the relay to await the browser's result. */
-export async function setRegion(c: Context, relay: BrowserRelay) {
-  const parsed = regionSchema.safeParse(await c.req.json());
-  if (!parsed.success) return c.json({ error: "Invalid region" }, 400);
-  return relay.dispatchCommand(
-    c.req.param().clientId,
-    { type: "region.set", region: parsed.data },
-    c.req.raw.signal,
-  );
-}
+export const setRegion = defineCommand({
+  name: "set_region",
+  description:
+    "Move the genome browser to a region. Coordinates are zero-based and half-open; the browser clamps them to the chromosome.",
+  params: z.strictObject({ region: regionSchema }),
+  run: (stores, { region }) => stores.useBrowserStore.getState().setRegion(region),
+});

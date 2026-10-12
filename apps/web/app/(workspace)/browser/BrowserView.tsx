@@ -4,7 +4,7 @@ import { formatDisplayRegion, GenomeBrowser } from "@weng-lab/genomebrowser";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { SaveStatus } from "./SaveStatus";
-import { useSessionLoading } from "../../../browser/BrowserCommands";
+import { useSessionLoading } from "../../../browser/BrowserServer";
 import { useBrowserSession } from "../../../browser/BrowserSession";
 
 export function BrowserView() {

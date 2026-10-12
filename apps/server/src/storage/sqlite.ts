@@ -5,19 +5,19 @@ import type { SessionRepository } from "./sessionRepository.ts";
 export function createSqliteSessionRepository(path: string): SessionRepository & { close(): void } {
   const database = new DatabaseSync(path);
   database.exec(
-    "CREATE TABLE IF NOT EXISTS session (id INTEGER PRIMARY KEY CHECK (id = 1), snapshot TEXT NOT NULL)",
+    "CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, snapshot TEXT NOT NULL)",
   );
-  const read = database.prepare("SELECT snapshot FROM session WHERE id = 1");
+  const read = database.prepare("SELECT snapshot FROM sessions WHERE id = ?");
   const write = database.prepare(
-    "INSERT INTO session (id, snapshot) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET snapshot = excluded.snapshot",
+    "INSERT INTO sessions (id, snapshot) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET snapshot = excluded.snapshot",
   );
   return {
-    async load() {
-      const row = read.get();
+    async load(id) {
+      const row = read.get(id);
       return row ? sessionSnapshotSchema.parse(JSON.parse(String(row.snapshot))) : null;
     },
-    async save(snapshot) {
-      write.run(JSON.stringify(sessionSnapshotSchema.parse(snapshot)));
+    async save(id, snapshot) {
+      write.run(id, JSON.stringify(sessionSnapshotSchema.parse(snapshot)));
     },
     close() {
       database.close();
