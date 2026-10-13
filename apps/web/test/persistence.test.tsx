@@ -9,7 +9,7 @@ import {
   useBrowserSession,
   type BrowserSession,
 } from "../browser/BrowserSession";
-import { BrowserServer } from "../browser/BrowserServer";
+import { BrowserServer, useDeleteSession } from "../browser/BrowserServer";
 import { BrowserView } from "../app/(workspace)/browser/BrowserView";
 
 // Only the network transports are replaced; the browser, stores and persistence remain real.
@@ -23,6 +23,7 @@ class Stream extends EventTarget {
   }
 }
 let session: BrowserSession;
+let deleteSession: (id: string) => Promise<void>;
 let probe: Probe;
 let load: ReturnType<typeof deferred>;
 const save = vi.fn<typeof fetch>();
@@ -30,6 +31,7 @@ const loads = vi.fn<typeof fetch>();
 const post = vi.fn<typeof fetch>();
 function Controls() {
   session = useBrowserSession();
+  deleteSession = useDeleteSession();
   return null;
 }
 function Shell({ sessionId = "local" }: { sessionId?: string }) {
@@ -344,4 +346,45 @@ it("limits save acknowledgement renders to the save indicator", async () => {
     }
   `);
   expect(status()).toBe("Saved");
+});
+
+it("keeps retrying restoration without autosaving after deletion fails on an unsupported saved track", async () => {
+  const saved = savedSnapshot();
+  saved.tracks[0].type = "unregistered-track";
+  expect(sessionSnapshotSchema.safeParse(saved).success).toBe(true);
+  const remove = vi.fn(async () => Response.json({ error: "Unavailable" }, { status: 503 }));
+  loads.mockImplementation(async () => Response.json(saved));
+  vi.stubGlobal("fetch", (url: string, init?: RequestInit) =>
+    init?.method === "DELETE"
+      ? remove()
+      : init?.method === "PUT"
+        ? save(url, init)
+        : init?.method === "POST"
+          ? post(url, init)
+          : loads(url, init),
+  );
+  await act(async () => probe.rerender(<Shell sessionId="unsupported" />));
+  expect(status()).toBe("Could not load session. Retrying…");
+  const reads = loads.mock.calls.length;
+  await act(async () => {
+    await expect(deleteSession("unsupported")).rejects.toThrow("Session deletion failed");
+  });
+  expect(remove).toHaveBeenCalledTimes(1);
+  expect(loads).toHaveBeenCalledTimes(reads + 1);
+  expect(status()).toBe("Could not load session. Retrying…");
+  expect(document.querySelector('[aria-label="Visible region"]')).toBeNull();
+  act(() =>
+    session.useBrowserStore.getState().setRegion({
+      chromosome: "chr1",
+      start: 100,
+      end: 200,
+    }),
+  );
+  await advance(200);
+  expect(save).not.toHaveBeenCalled();
+  await advance(1800);
+  expect(loads).toHaveBeenCalledTimes(reads + 2);
+  expect(status()).toBe("Could not load session. Retrying…");
+  expect(save).not.toHaveBeenCalled();
+  expect(Stream.opened).toHaveLength(0);
 });

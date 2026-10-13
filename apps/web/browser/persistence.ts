@@ -73,7 +73,6 @@ export function persistBrowserSession(
       const restored =
         response.status === 404 ? null : sessionSnapshotSchema.parse(await response.json());
       if (stopped || deleting) return;
-      initialized = true;
       if (restored) restore(session, restored);
       latest = JSON.stringify(snapshot(session));
       saved = restored ? latest : "";
@@ -81,6 +80,7 @@ export function persistBrowserSession(
         session.useBrowserStore.subscribe(changed),
         session.useTrackStore.subscribe(changed),
       );
+      initialized = true;
       onState(latest === saved ? "saved" : "saving");
       schedule();
     } catch {
