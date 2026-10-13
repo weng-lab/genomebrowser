@@ -196,6 +196,30 @@ test("saves and loads sessions by ID, independent of tab connections", async () 
   expect((await send("PUT", "/bad%20id", snapshot)).status).toBe(400);
 });
 
+test("lists saved sessions alphabetically without duplicates or unsaved connections", async () => {
+  expect(await (await fetch(base)).json()).toEqual([]);
+  await connectedTab("unsaved");
+  await send("PUT", "/testsession", snapshot);
+  await send("PUT", "/niship", snapshot);
+  await send("PUT", "/testsession", snapshot);
+  const response = await fetch(base);
+  expect(response.status).toBe(200);
+  expect(response.headers.get("Cache-Control")).toBe("no-store");
+  expect(await response.json()).toEqual(["niship", "testsession"]);
+});
+
+test("deletes a saved session while protecting local and validating IDs", async () => {
+  await send("PUT", "/local", snapshot);
+  await send("PUT", "/niship", snapshot);
+  expect((await fetch(`${base}/local`, { method: "DELETE" })).status).toBe(403);
+  expect(await (await fetch(`${base}/local`)).json()).toEqual(snapshot);
+  expect((await fetch(`${base}/niship`, { method: "DELETE" })).status).toBe(200);
+  expect((await fetch(`${base}/niship`)).status).toBe(404);
+  expect(await (await fetch(base)).json()).toEqual(["local"]);
+  expect((await fetch(`${base}/niship`, { method: "DELETE" })).status).toBe(200);
+  expect((await fetch(`${base}/bad%20id`, { method: "DELETE" })).status).toBe(400);
+});
+
 test("session saves accept large track configuration up to 1 MB", async () => {
   const withConfig = (length: number): SessionSnapshot => ({
     ...snapshot,
@@ -217,6 +241,7 @@ test("SQLite keeps sessions after closing and reopening the file", async () => {
   const reopened = createSqliteSessionRepository(path);
   try {
     expect(await reopened.load("local")).toEqual(snapshot);
+    expect(await reopened.list()).toEqual(["local"]);
     expect(await reopened.load("other")).toBeNull();
   } finally {
     reopened.close();

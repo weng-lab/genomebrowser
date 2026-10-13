@@ -12,6 +12,9 @@ export function persistBrowserSession(
 ) {
   let stopped = false;
   let writing = false;
+  let deleting = false;
+  let initialized = false;
+  let pendingWrite: Promise<void> | undefined;
   let latest = "";
   let saved = "";
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -20,10 +23,14 @@ export function persistBrowserSession(
 
   function schedule(delay = 200) {
     clearTimeout(timer);
-    if (!stopped && latest !== saved) timer = setTimeout(() => void write(), delay);
+    if (!stopped && !deleting && latest !== saved)
+      timer = setTimeout(() => {
+        if (!writing) pendingWrite = write();
+      }, delay);
   }
 
   function changed() {
+    if (stopped || deleting) return;
     try {
       const next = JSON.stringify(snapshot(session));
       if (next === latest) return;
@@ -36,7 +43,7 @@ export function persistBrowserSession(
   }
 
   async function write() {
-    if (stopped || writing || latest === saved) return;
+    if (stopped || deleting || writing || latest === saved) return;
     writing = true;
     const body = latest;
     onState("saving");
@@ -49,12 +56,12 @@ export function persistBrowserSession(
       });
       if (!response.ok) throw new Error("Session save failed");
       saved = body;
-      if (!stopped) onState(latest === saved ? "saved" : "saving");
+      if (!stopped && !deleting) onState(latest === saved ? "saved" : "saving");
     } catch {
-      if (!stopped) onState("error");
+      if (!stopped && !deleting) onState("error");
     } finally {
       writing = false;
-      if (!stopped) schedule(latest === body ? 2000 : 0);
+      if (!stopped && !deleting) schedule(latest === body ? 2000 : 0);
     }
   }
 
@@ -65,7 +72,8 @@ export function persistBrowserSession(
       if (!response.ok && response.status !== 404) throw new Error("Session load failed");
       const restored =
         response.status === 404 ? null : sessionSnapshotSchema.parse(await response.json());
-      if (stopped) return;
+      if (stopped || deleting) return;
+      initialized = true;
       if (restored) restore(session, restored);
       latest = JSON.stringify(snapshot(session));
       saved = restored ? latest : "";
@@ -76,17 +84,44 @@ export function persistBrowserSession(
       onState(latest === saved ? "saved" : "saving");
       schedule();
     } catch {
-      if (stopped) return;
+      if (stopped || deleting) return;
       onState("load-error");
       timer = setTimeout(() => void load(), 2000);
     }
   }
 
-  void load();
-  return () => {
+  function stop() {
     stopped = true;
     clearTimeout(timer);
     abort.abort();
-    unsubscribe.forEach((stop) => stop());
-  };
+    unsubscribe.forEach((unsubscribe) => unsubscribe());
+  }
+
+  async function remove() {
+    deleting = true;
+    clearTimeout(timer);
+    try {
+      // Let a save already accepted by the server finish before deleting its snapshot.
+      await pendingWrite;
+      if (stopped) throw new Error("Session closed before deletion");
+      const response = await fetch(sessionUrl, { method: "DELETE", signal: abort.signal });
+      if (!response.ok) throw new Error("Session deletion failed");
+      stop();
+    } catch (error) {
+      deleting = false;
+      if (!stopped) {
+        if (initialized) {
+          changed();
+          onState(latest === saved ? "saved" : "saving");
+          schedule();
+        } else {
+          void load();
+        }
+      }
+      throw error;
+    }
+  }
+
+  void load();
+  return { stop, remove };
 }

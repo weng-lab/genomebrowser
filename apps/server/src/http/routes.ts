@@ -31,6 +31,11 @@ export function registerRoutes(
   app.get("/health", (c) => c.json({ ok: true }));
   app.all("/mcp", (c) => mcp.fetch(c.req.raw));
 
+  app.get("/api/sessions", async (c) => {
+    c.header("Cache-Control", "no-store");
+    return c.json(await sessions.list());
+  });
+
   app.get("/api/sessions/:sessionId", requireSessionId, async (c) => {
     const snapshot = await sessions.load(sessionId(c));
     return snapshot ? c.json(snapshot) : c.json({ error: "Session not found" }, 404);
@@ -40,6 +45,13 @@ export function registerRoutes(
     const parsed = sessionSnapshotSchema.safeParse(await c.req.json());
     if (!parsed.success) return c.json({ error: "Invalid session snapshot" }, 400);
     await sessions.save(sessionId(c), parsed.data);
+    return c.json({ ok: true });
+  });
+
+  app.delete("/api/sessions/:sessionId", requireSessionId, async (c) => {
+    const id = sessionId(c);
+    if (id === "local") return c.json({ error: "The local session cannot be deleted" }, 403);
+    await sessions.remove(id);
     return c.json({ ok: true });
   });
 

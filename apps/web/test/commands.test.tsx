@@ -9,7 +9,10 @@ import { BrowserServer } from "../browser/BrowserServer";
 import { BrowserPage } from "../app/(workspace)/browser/BrowserPage";
 import SettingsPage from "../app/(workspace)/settings/page";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/browser" }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/browser",
+  useRouter: () => ({ replace: vi.fn() }),
+}));
 
 function TestShell({ settings = false }: { settings?: boolean }) {
   return (
