@@ -19,8 +19,10 @@ This pnpm monorepo contains independently versioned packages for the Weng Lab Ge
 
 Private applications live under `apps/`:
 
-- [Standalone app](apps/standalone/README.md) (`apps/standalone`, `@weng-lab/genomebrowser-standalone`) is the deployed web application. Its README covers SCREEN search and environment configuration.
-- `apps/playground` (`@weng-lab/genomebrowser-playground`) contains experiments and custom browser setups. It resolves workspace package imports directly to source; preserved package demos under `examples/` are intentionally not routed.
+- [Web app](apps/web/README.md) (`@weng-lab/web`) owns the browser, collections, and settings routes, browser session, workspace layout, and command proxy.
+- [Browser server](apps/server/README.md) (`@weng-lab/browser-server`) relays commands to connected browser tabs.
+
+Archived applications live in `legacy/playground` and `legacy/standalone`. They are excluded from the pnpm workspace and its development and verification commands.
 
 See the [maintainer docs](docs/README.md) and [contribution guide](docs/02-contributing/README.md) for repository guidance.
 
@@ -55,6 +57,14 @@ dependencies from the repository root:
 ```sh
 pnpm install --frozen-lockfile
 ```
+
+Use Node.js 24 or newer for the browser server. Start the web app and persistent command relay together:
+
+```sh
+pnpm dev
+```
+
+Open `http://localhost:3000/browser`. `pnpm dev:web` and `pnpm dev:server` start each process separately. Local access requires no token or login. Session IDs select sessions and are not credentials. The [web app guide](apps/web/README.md) covers local setup, remote control, adding pages and commands, and cloud hosting.
 
 The workspace packages use the root Oxlint and Oxfmt installations and pin
 their framework and TypeScript dependencies in their own manifests.

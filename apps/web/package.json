@@ -1,41 +1,43 @@
 {
-  "name": "@weng-lab/genomebrowser-standalone",
+  "name": "@weng-lab/web",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
-    "typecheck": "tsc --noEmit",
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "next typegen && tsc --noEmit",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt .",
-    "format:check": "oxfmt . --check"
+    "format:check": "oxfmt . --check",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@emotion/cache": "11.14.0",
+    "@emotion/cache": "catalog:",
     "@emotion/react": "catalog:",
     "@emotion/styled": "catalog:",
     "@mui/icons-material": "catalog:",
     "@mui/material": "catalog:",
-    "@mui/material-nextjs": "7.3.10",
-    "@mui/x-license": "catalog:",
-    "@vercel/analytics": "^2.0.1",
+    "@mui/material-nextjs": "catalog:",
+    "@tanstack/react-hotkeys": "^0.13.0",
+    "@weng-lab/browser-server": "workspace:*",
     "@weng-lab/genomebrowser": "workspace:*",
     "@weng-lab/genomebrowser-tracks": "workspace:*",
-    "@weng-lab/genomebrowser-ui": "workspace:*",
-    "@weng-lab/genomic-reader": "workspace:*",
-    "@weng-lab/ui-components": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@weng-lab/render-probe": "workspace:*",
+    "jsdom": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
-    "typescript": "catalog:native"
+    "typescript": "catalog:native",
+    "vitest": "catalog:"
   }
 }

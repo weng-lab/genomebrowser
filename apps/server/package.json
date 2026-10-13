@@ -1,0 +1,36 @@
+{
+  "name": "@weng-lab/browser-server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./protocol": "./src/protocol.ts",
+    "./commands": "./src/commands/index.ts"
+  },
+  "scripts": {
+    "dev": "node --watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "format": "oxfmt .",
+    "format:check": "oxfmt . --check"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.4",
+    "@modelcontextprotocol/server": "^2.3.1",
+    "hono": "^4.13.13",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.3.1",
+    "@types/node": "catalog:",
+    "@weng-lab/genomebrowser": "workspace:*",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:native",
+    "vitest": "catalog:"
+  }
+}

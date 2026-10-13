@@ -94,7 +94,11 @@ export async function renderWithProbe(ui: ReactNode): Promise<Probe> {
   const settle = async () => {
     for (let round = 0; round < SETTLE_ROUNDS; round++) {
       const before = commits;
+      // Each round must finish before comparing commits and deciding whether to stop.
+      // eslint-disable-next-line react-doctor/async-await-in-loop
       await act(async () => {
+        // Yield sequentially so chained promise continuations can settle before act flushes.
+        // eslint-disable-next-line react-doctor/async-await-in-loop
         for (let i = 0; i < MICROTASKS_PER_ROUND; i++) await Promise.resolve();
       });
       if (commits === before) return;

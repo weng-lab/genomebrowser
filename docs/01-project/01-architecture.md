@@ -24,11 +24,21 @@ A track module supplies the behavior for its visualization, including fetching, 
 | `packages/tracks`       | First-party modules and shared track-specific presentation. Modules use core's public contracts and reader for genomic files. |
 | `packages/reader`       | Genomic file reading, usable independently of the browser.                                                                    |
 | `packages/ui`           | Navigation, track selection, highlight controls, and chromosome overviews for embedding the browser in existing websites.     |
-| `apps/standalone`       | The browser as its own product, with application-specific components and optional reuse of UI-package controls.               |
-| `apps/playground`       | Experiments and custom browser compositions used during development.                                                          |
+| `apps/web`              | Next.js product routes, browser session, generic workspace layout, and command proxy.                                         |
+| `apps/server`           | Persistent Node.js server: SQLite sessions, MCP, command delivery to tabs, and browser-safe protocol schemas.                 |
 | `packages/create`       | A starter generator for developers building a browser application.                                                            |
 | `packages/render-probe` | Internal test utility that measures React render counts for render budgets. Private and unpublished.                          |
 
-Core and reader provide independent foundations. Tracks combines their capabilities; UI supplies controls around the browser. Applications choose the modules and controls that fit their workflows. The standalone app is one such application, not the source of every shared component's requirements.
+Core and reader provide independent foundations. Tracks combines their capabilities; UI supplies controls around the browser. Applications choose the modules and controls that fit their workflows. The web app is one such application, not the source of every shared component's requirements.
+
+The archived playground and standalone applications live in `legacy/playground` and `legacy/standalone`. They are excluded from the pnpm workspace. Ongoing product development belongs in `apps/web` and `apps/server`.
+
+The web app owns concrete Next.js routes for `/browser/[sessionId]`, `/collections`, and `/settings`; its root and `/browser` redirect to the current or default session, and unknown routes return 404. Domain components live beside their route's `page.tsx`. Generic layout and panel components in `components/workspace/` do not import domain components or browser state.
+
+The shared route layout composes `AppProviders`, `Workspace`, and route children. `AppProviders` owns the browser session and command connection above the routes. `Workspace` owns navigation and panel state, while each route supplies its title, panels, and center content through `WorkspacePage`. Navigation entries contain links and labels, not page components. The shared layout preserves the session and panel state across route changes; page-local component state may reset. Refreshing creates new stores and restores the shared saved hg38 session before the browser view appears.
+
+The persistent browser server uses Hono on Node.js. It saves sessions, exposes browser commands to agents as MCP tools, and delivers each command over SSE to the tab that has the session open. `server.ts` wires the routes, tab connections, and MCP endpoint together. Commands are listed once in the protocol export, which also defines their MCP tools; the web app executes them against the same browser stores as the UI. Open tabs and pending replies live in memory, keyed by session ID, and only the first tab to connect receives a session's commands. Live genome state stays in the browser; serializable snapshots of browser settings, highlights, and ordered track configurations persist in SQLite by session ID through an injected asynchronous session repository. Next.js rewrites `/api/*` and `/mcp` to the server. The protocol export contains browser-safe Zod schemas; Node.js server code stays out of the frontend.
+
+The local server requires no credentials. The last saved snapshot wins across tabs. Authentication, conflict resolution, ACP, and Eve integrations are not implemented. See the [web app guide](../../apps/web/README.md) for development and deployment instructions.
 
 For decisions about extending these parts, see [Where features belong](02-feature-placement.md).

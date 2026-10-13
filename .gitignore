@@ -45,3 +45,4 @@ storybook-static
 
 # Generated test coverage
 coverage/
+apps/server/data/
