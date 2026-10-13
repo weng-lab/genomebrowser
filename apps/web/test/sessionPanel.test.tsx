@@ -9,6 +9,8 @@ import { AppProviders } from "../app/(workspace)/AppProviders";
 import { useSessionId } from "../browser/BrowserServer";
 import { useBrowserSession, type BrowserSession } from "../browser/BrowserSession";
 import { snapshot } from "../browser/snapshot";
+import { PanelStateProvider, usePanelState } from "../components/workspace/panels/panelState";
+import { SidePanel } from "../components/workspace/panels/SidePanel";
 import { SessionPanel } from "../app/(workspace)/browser/SessionPanel";
 
 const route = vi.hoisted(() => ({
@@ -38,15 +40,23 @@ vi.mock("next/link", () => ({
 let probe: Probe | undefined;
 let session: BrowserSession;
 let ids: string[];
+let togglePanel: (side: "left" | "right") => void;
 let listResponse: () => Promise<Response>;
 let deleteResponse: (url: string) => Promise<Response>;
 
 function SessionControls() {
   session = useBrowserSession();
+  togglePanel = usePanelState((state) => state.toggle);
+  const open = usePanelState((state) => state.leftOpen);
   return (
     <>
       <output>{useSessionId()}</output>
-      <SessionPanel />
+      <SidePanel
+        side="left"
+        open={open}
+        animate={false}
+        panel={{ title: "Sessions", children: <SessionPanel /> }}
+      />
     </>
   );
 }
@@ -62,9 +72,11 @@ function TestApp() {
   route.navigate = (href) => setSessionId(href.split("/").at(-1)!);
   return (
     <SWRConfig value={swr}>
-      <AppProviders>
-        <SessionControls />
-      </AppProviders>
+      <PanelStateProvider>
+        <AppProviders>
+          <SessionControls />
+        </AppProviders>
+      </PanelStateProvider>
     </SWRConfig>
   );
 }
@@ -303,4 +315,30 @@ it("keeps the active session and resumes autosave after deletion fails", async (
   );
   await act(async () => vi.advanceTimersByTimeAsync(200));
   expect(saves).toEqual(["/api/sessions/testsession"]);
+});
+
+// Reopening through the workspace store refreshes external additions and removals without remounting.
+it("refreshes saved sessions when the mounted Sessions panel reopens", async () => {
+  const readList = vi.fn(async () => Response.json(ids));
+  listResponse = readList;
+  probe = await renderWithProbe(<TestApp />);
+  const list = document.querySelector('[aria-label="Browser sessions"]');
+  const initialReads = readList.mock.calls.length;
+  await probe.measure(() => togglePanel("left"));
+  ids = ["local", "newsession", "testsession"];
+  expect(readList).toHaveBeenCalledTimes(initialReads);
+  const report = await probe.measure(() => togglePanel("left"));
+  expect(report.why("SessionPanel")).toEqual([
+    expect.objectContaining({ renders: 2, because: ["state"] }),
+  ]);
+  expect(readList).toHaveBeenCalledTimes(initialReads + 1);
+  expect(document.querySelector('[aria-label="Browser sessions"]')).toBe(list);
+  expect(document.querySelector('a[href="/browser/niship"]')).toBeNull();
+  expect(document.querySelector('a[href="/browser/newsession"]')).not.toBeNull();
+  // One render observes reopening; one displays the refreshed names.
+  expect(report.pick("SessionPanel")).toMatchInlineSnapshot(`
+    {
+      "SessionPanel": 2,
+    }
+  `);
 });

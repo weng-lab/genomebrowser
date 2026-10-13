@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
+import { usePanelState } from "../../../components/workspace/panels/panelState";
 import { sessionListSchema } from "@weng-lab/browser-server/protocol";
 import { useDeleteSession, useSessionId } from "../../../browser/BrowserServer";
 
@@ -34,6 +35,14 @@ export function SessionPanel() {
   } = useSWR("/api/sessions", fetchSessions, {
     revalidateOnMount: true,
   });
+
+  const open = usePanelState((state) => state.leftOpen);
+  const wasOpen = useRef(open);
+  useEffect(() => {
+    // Closed workspace panels remain mounted, so mount revalidation cannot refresh reopening.
+    if (open && !wasOpen.current) void mutate();
+    wasOpen.current = open;
+  }, [open, mutate]);
 
   async function handleDelete(id: string) {
     if (id === "local" || deleting) return;
