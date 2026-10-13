@@ -55,7 +55,12 @@ export function SessionPanel() {
   const ids = [...new Set([...savedIds, sessionId])].sort();
   return (
     <>
-      <List component="nav" aria-label="Browser sessions" dense sx={{ px: 1 }}>
+      <List
+        component="nav"
+        aria-label="Browser sessions"
+        dense
+        sx={{ px: 1, flex: 1, minHeight: 0, overflowY: "auto" }}
+      >
         {ids.map((id) => (
           <Box key={id} sx={{ display: "flex", alignItems: "center" }}>
             <ListItemButton
@@ -86,7 +91,7 @@ export function SessionPanel() {
         ))}
       </List>
       {deleteError && (
-        <Typography role="alert" variant="body2" color="error" sx={{ p: 1.5 }}>
+        <Typography role="alert" variant="body2" color="error" sx={{ p: 1.5, flexShrink: 0 }}>
           {deleteError}
         </Typography>
       )}
@@ -94,7 +99,7 @@ export function SessionPanel() {
         variant="body2"
         color={error ? "error" : "text.secondary"}
         role={error ? "alert" : "status"}
-        sx={{ p: 1.5 }}
+        sx={{ p: 1.5, flexShrink: 0 }}
       >
         {error
           ? "Could not load saved sessions. Refresh this page to try again."
