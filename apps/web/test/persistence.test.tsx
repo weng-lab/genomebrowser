@@ -388,3 +388,71 @@ it("keeps retrying restoration without autosaving after deletion fails on an uns
   expect(save).not.toHaveBeenCalled();
   expect(Stream.opened).toHaveLength(0);
 });
+
+it("keeps one pending load after failed deletion so a delayed response cannot discard edits", async () => {
+  const first = deferred();
+  const second = deferred();
+  loads.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+  const remove = vi.fn(async () => Response.json({}, { status: 503 }));
+  vi.stubGlobal("fetch", (url: string, init?: RequestInit) =>
+    init?.method === "DELETE"
+      ? remove()
+      : init?.method === "PUT"
+        ? save(url, init)
+        : init?.method === "POST"
+          ? post(url, init)
+          : loads(url, init),
+  );
+  await act(async () => probe.rerender(<Shell sessionId="pending" />));
+  const reads = loads.mock.calls.length;
+  const saved = savedSnapshot();
+  await act(async () => {
+    await expect(deleteSession("pending")).rejects.toThrow("Session deletion failed");
+  });
+  await act(async () => first.resolve(Response.json(saved)));
+  expect(status()).toBe("Saved");
+  const edited = { chromosome: "chr7", start: 100, end: 200 };
+  act(() => session.useBrowserStore.getState().setRegion(edited));
+  await act(async () => second.resolve(Response.json(saved)));
+  expect(session.useBrowserStore.getState().region).toEqual(edited);
+  expect(loads).toHaveBeenCalledTimes(reads);
+  await advance(200);
+  expect(save).toHaveBeenCalledTimes(1);
+  expect(body().browser.region).toEqual(edited);
+});
+
+it("reloads after a read finishes during a deletion that later fails", async () => {
+  const first = deferred();
+  const recovery = deferred();
+  const removal = deferred();
+  loads.mockReturnValueOnce(first.promise).mockReturnValueOnce(recovery.promise);
+  vi.stubGlobal("fetch", (url: string, init?: RequestInit) =>
+    init?.method === "DELETE"
+      ? removal.promise
+      : init?.method === "PUT"
+        ? save(url, init)
+        : init?.method === "POST"
+          ? post(url, init)
+          : loads(url, init),
+  );
+  await act(async () => probe.rerender(<Shell sessionId="pending" />));
+  const reads = loads.mock.calls.length;
+  const saved = savedSnapshot();
+  let failed!: Promise<void>;
+  await act(async () => {
+    failed = deleteSession("pending").catch(() => {});
+  });
+  await act(async () => first.resolve(Response.json(saved)));
+  expect(document.querySelector('[aria-label="Visible region"]')).toBeNull();
+  await act(async () => {
+    removal.resolve(Response.json({}, { status: 503 }));
+    await failed;
+  });
+  expect(loads).toHaveBeenCalledTimes(reads + 1);
+  await act(async () => recovery.resolve(Response.json(saved)));
+  expect(status()).toBe("Saved");
+  expect(session.useBrowserStore.getState().region).toEqual(saved.browser.region);
+  await advance(2000);
+  expect(loads).toHaveBeenCalledTimes(reads + 1);
+  expect(save).not.toHaveBeenCalled();
+});

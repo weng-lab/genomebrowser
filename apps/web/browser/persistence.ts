@@ -14,6 +14,7 @@ export function persistBrowserSession(
   let writing = false;
   let deleting = false;
   let initialized = false;
+  let loading = false;
   let pendingWrite: Promise<void> | undefined;
   let latest = "";
   let saved = "";
@@ -66,6 +67,9 @@ export function persistBrowserSession(
   }
 
   async function load() {
+    // Deletion recovery reuses an outstanding read instead of restoring twice.
+    if (stopped || deleting || initialized || loading) return;
+    loading = true;
     onState("loading");
     try {
       const response = await fetch(sessionUrl, { signal: abort.signal });
@@ -87,6 +91,8 @@ export function persistBrowserSession(
       if (stopped || deleting) return;
       onState("load-error");
       timer = setTimeout(() => void load(), 2000);
+    } finally {
+      loading = false;
     }
   }
 
