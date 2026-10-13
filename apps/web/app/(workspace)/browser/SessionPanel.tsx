@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
@@ -13,43 +14,26 @@ import Typography from "@mui/material/Typography";
 import { sessionListSchema } from "@weng-lab/browser-server/protocol";
 import { useDeleteSession, useSessionId } from "../../../browser/BrowserServer";
 
+async function fetchSessions(url: string) {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Session list failed");
+  return sessionListSchema.parse(await response.json());
+}
+
 export function SessionPanel() {
   const sessionId = useSessionId();
   const deleteSession = useDeleteSession();
   const router = useRouter();
-  const listVersion = useRef(0);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [saved, setSaved] = useState<{ ids: string[]; status: "loading" | "ready" | "error" }>({
-    ids: [],
-    status: "loading",
+  const {
+    data: savedIds = [],
+    error,
+    isLoading,
+    mutate,
+  } = useSWR("/api/sessions", fetchSessions, {
+    revalidateOnMount: true,
   });
-
-  useEffect(() => {
-    let request: AbortController | undefined;
-    async function refresh() {
-      request?.abort();
-      const version = ++listVersion.current;
-      const abort = new AbortController();
-      request = abort;
-      try {
-        const response = await fetch("/api/sessions", { signal: abort.signal, cache: "no-store" });
-        if (!response.ok) throw new Error("Session list failed");
-        const ids = sessionListSchema.parse(await response.json());
-        if (!abort.signal.aborted && version === listVersion.current)
-          setSaved({ ids, status: "ready" });
-      } catch {
-        if (!abort.signal.aborted && version === listVersion.current)
-          setSaved((previous) => ({ ...previous, status: "error" }));
-      }
-    }
-    void refresh();
-    window.addEventListener("focus", refresh);
-    return () => {
-      request?.abort();
-      window.removeEventListener("focus", refresh);
-    };
-  }, []);
 
   async function handleDelete(id: string) {
     if (id === "local" || deleting) return;
@@ -57,12 +41,8 @@ export function SessionPanel() {
     setDeleteError(null);
     try {
       await deleteSession(id);
-      // Ignore list requests that started before deletion completed.
-      ++listVersion.current;
-      setSaved((previous) => ({
-        ...previous,
-        ids: previous.ids.filter((savedId) => savedId !== id),
-      }));
+      // Updating the cache also invalidates list reads started before deletion completed.
+      void mutate((ids) => (ids ?? []).filter((savedId) => savedId !== id), { revalidate: false });
       if (id === sessionId) router.replace("/browser/local");
     } catch {
       setDeleteError(`Could not delete ${id}. Try again.`);
@@ -72,7 +52,7 @@ export function SessionPanel() {
   }
 
   // Show the active session even before its first autosave creates a saved snapshot.
-  const ids = [...new Set([...saved.ids, sessionId])].sort();
+  const ids = [...new Set([...savedIds, sessionId])].sort();
   return (
     <>
       <List component="nav" aria-label="Browser sessions" dense sx={{ px: 1 }}>
@@ -112,14 +92,14 @@ export function SessionPanel() {
       )}
       <Typography
         variant="body2"
-        color={saved.status === "error" ? "error" : "text.secondary"}
-        role={saved.status === "error" ? "alert" : "status"}
+        color={error ? "error" : "text.secondary"}
+        role={error ? "alert" : "status"}
         sx={{ p: 1.5 }}
       >
-        {saved.status === "loading"
-          ? "Loading saved sessions..."
-          : saved.status === "error"
-            ? "Could not load saved sessions. Refresh this page to try again."
+        {error
+          ? "Could not load saved sessions. Refresh this page to try again."
+          : isLoading
+            ? "Loading saved sessions..."
             : "Sessions save automatically."}
       </Typography>
     </>

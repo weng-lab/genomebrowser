@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { SWRConfig } from "swr";
 import { act, useState } from "react";
 import type { ReactNode } from "react";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
@@ -50,13 +51,21 @@ function SessionControls() {
   );
 }
 function TestApp() {
+  const [swr] = useState(() => ({
+    provider: () => new Map(),
+    dedupingInterval: 0,
+    focusThrottleInterval: 0,
+    shouldRetryOnError: false,
+  }));
   const [sessionId, setSessionId] = useState("testsession");
   route.params = { sessionId };
   route.navigate = (href) => setSessionId(href.split("/").at(-1)!);
   return (
-    <AppProviders>
-      <SessionControls />
-    </AppProviders>
+    <SWRConfig value={swr}>
+      <AppProviders>
+        <SessionControls />
+      </AppProviders>
+    </SWRConfig>
   );
 }
 
@@ -140,7 +149,10 @@ it("includes the current unsaved session and refreshes saved names on window foc
   probe = await renderWithProbe(<TestApp />);
   expect(document.body.querySelectorAll("a")).toHaveLength(1);
   ids = ["niship", "testsession"];
-  await probe.measure(() => window.dispatchEvent(new Event("focus")));
+  await probe.measure(async () => {
+    window.dispatchEvent(new Event("focus"));
+    await new Promise((done) => setTimeout(done, 0));
+  });
   expect(document.body.querySelectorAll("a")).toHaveLength(2);
 });
 
@@ -150,7 +162,10 @@ it("keeps the current session usable when the saved list fails and recovers on f
   expect(document.body.querySelector('[role="alert"]')?.textContent).toContain("Could not load");
   expect(document.body.querySelector("a")?.getAttribute("href")).toBe("/browser/testsession");
   listResponse = async () => Response.json(ids);
-  await probe.measure(() => window.dispatchEvent(new Event("focus")));
+  await probe.measure(async () => {
+    window.dispatchEvent(new Event("focus"));
+    await new Promise((done) => setTimeout(done, 0));
+  });
   expect(document.body.querySelector('[role="alert"]')).toBeNull();
   expect(document.body.querySelectorAll("a")).toHaveLength(3);
 });
@@ -172,20 +187,22 @@ it("budgets the render when saved session names arrive", async () => {
   `);
 });
 
-it("aborts an outstanding list request when the panel unmounts", async () => {
-  let signal: AbortSignal | undefined;
-  vi.stubGlobal("fetch", (url: string, init?: RequestInit) => {
-    if (url === "/api/sessions") {
-      signal = init?.signal ?? undefined;
-      return new Promise<Response>(() => {});
-    }
-    return Promise.resolve(Response.json({}, { status: 404 }));
-  });
+it("does not restore a deleted session when an older list response arrives", async () => {
   probe = await renderWithProbe(<TestApp />);
-  expect(signal?.aborted).toBe(false);
-  await act(async () => probe!.unmount());
-  probe = undefined;
-  expect(signal?.aborted).toBe(true);
+  let resolve!: (response: Response) => void;
+  listResponse = () =>
+    new Promise<Response>((done) => {
+      resolve = done;
+    });
+  await probe.measure(async () => {
+    window.dispatchEvent(new Event("focus"));
+    await new Promise((done) => setTimeout(done, 0));
+  });
+  await probe.measure(() =>
+    document.querySelector<HTMLButtonElement>('[aria-label="Delete session niship"]')!.click(),
+  );
+  await probe.measure(() => resolve(Response.json(["local", "niship", "testsession"])));
+  expect(document.querySelector('a[href="/browser/niship"]')).toBeNull();
 });
 
 it("deletes another session without navigating and never offers deletion for local", async () => {
