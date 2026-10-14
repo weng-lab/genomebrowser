@@ -123,12 +123,10 @@ export function RegionControls({ browserStore: useBrowserStore, search }: Region
                   >
                     <Typography
                       variant="body2"
+                      noWrap
                       sx={{
                         fontWeight: 600,
                         fontVariantNumeric: "tabular-nums",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
                       }}
                     >
                       {coordinates}

@@ -95,9 +95,9 @@ it("applies an external region command in the real browser UI and replies with t
       params: { region },
     }),
   );
-  expect(container.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
-    "chr1:1,001-2,000",
-  );
+  expect(
+    container.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')!.textContent,
+  ).toBe("chr1:1,001-2,000");
   expect(post).toHaveBeenCalledTimes(1);
   const [url, init] = post.mock.calls[0];
   expect(url).toBe("/api/sessions/local/rpc");
@@ -116,7 +116,9 @@ it("applies an external region command in the real browser UI and replies with t
 });
 
 it("returns the store's rejection without changing the visible region", async () => {
-  const before = container.querySelector('[aria-label="Visible region"]')!.textContent;
+  const before = container.querySelector(
+    '[aria-label^="Edit region"] .MuiTypography-body2',
+  )!.textContent;
   await act(async () =>
     Stream.opened.at(-1)!.send("command", {
       commandId,
@@ -125,7 +127,9 @@ it("returns the store's rejection without changing the visible region", async ()
       params: { region: { chromosome: "not-a-chromosome", start: 1000, end: 2000 } },
     }),
   );
-  expect(container.querySelector('[aria-label="Visible region"]')!.textContent).toBe(before);
+  expect(
+    container.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')!.textContent,
+  ).toBe(before);
   expect(JSON.parse(post.mock.calls[0][1]!.body as string).result).toMatchObject({
     ok: false,
     code: "UNKNOWN_CHROMOSOME",
@@ -133,7 +137,9 @@ it("returns the store's rejection without changing the visible region", async ()
 });
 
 it("does not apply commands that expired while the browser was suspended", async () => {
-  const before = container.querySelector('[aria-label="Visible region"]')!.textContent;
+  const before = container.querySelector(
+    '[aria-label^="Edit region"] .MuiTypography-body2',
+  )!.textContent;
   await act(async () =>
     Stream.opened.at(-1)!.send("command", {
       commandId,
@@ -142,7 +148,9 @@ it("does not apply commands that expired while the browser was suspended", async
       params: { region: { chromosome: "chr1", start: 1000, end: 2000 } },
     }),
   );
-  expect(container.querySelector('[aria-label="Visible region"]')!.textContent).toBe(before);
+  expect(
+    container.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')!.textContent,
+  ).toBe(before);
   expect(post).not.toHaveBeenCalled();
 });
 
@@ -163,9 +171,9 @@ it("reconnects after the server becomes available again", async () => {
       params: { region: { chromosome: "chr2", start: 2000, end: 3000 } },
     }),
   );
-  expect(container.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
-    "chr2:2,001-3,000",
-  );
+  expect(
+    container.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')!.textContent,
+  ).toBe("chr2:2,001-3,000");
   expect(post.mock.calls[0][1]!.headers).toMatchObject({
     "Content-Type": "application/json",
   });
@@ -176,7 +184,7 @@ it("keeps one connection and accepts commands while the browser page is unmounte
   const stream = Stream.opened.at(-1)!;
   const opened = Stream.opened.length;
   await act(async () => root.render(<TestShell settings />));
-  expect(container.querySelector('[aria-label="Visible region"]')).toBeNull();
+  expect(container.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')).toBeNull();
   await act(async () =>
     stream.send("command", {
       commandId,
@@ -188,8 +196,8 @@ it("keeps one connection and accepts commands while the browser page is unmounte
   await act(async () => root.render(<TestShell />));
   expect(Stream.opened).toHaveLength(opened);
   expect(stream.close).not.toHaveBeenCalled();
-  expect(container.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
-    "chr3:3,001-4,000",
-  );
+  expect(
+    container.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')!.textContent,
+  ).toBe("chr3:3,001-4,000");
   expect(JSON.parse(post.mock.calls[0][1]!.body as string).result.ok).toBe(true);
 });
