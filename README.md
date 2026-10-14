@@ -7,8 +7,8 @@ This pnpm monorepo contains independently versioned packages for the Weng Lab Ge
 - `packages/core` (`@weng-lab/genomebrowser`) is the embeddable React runtime.
   It renders genomic tracks and owns the browser state and extension APIs.
 - `packages/tracks` (`@weng-lab/genomebrowser-tracks`) provides the
-  MUI-based BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Gene
-  modules.
+  MUI-based BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, Gene, BAM,
+  dynseq, and Ruler modules.
 - `packages/ui` (`@weng-lab/genomebrowser-ui`) provides optional, higher-level
   application controls that depend on the runtime. Applications that only need
   the browser do not need this package.
