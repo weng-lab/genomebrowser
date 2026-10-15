@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
 import { act } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
@@ -455,4 +456,25 @@ it("reloads after a read finishes during a deletion that later fails", async () 
   await advance(2000);
   expect(loads).toHaveBeenCalledTimes(reads + 1);
   expect(save).not.toHaveBeenCalled();
+});
+
+it("restores saved user BigBed tracks after the temporary add-track control is removed", async () => {
+  const saved = savedSnapshot();
+  const track = bigBedModule.create({
+    base: { id: "saved-bigbed", title: "Saved user track" },
+    config: { url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed" },
+    source: "user",
+  });
+  saved.tracks.push({
+    type: track.type,
+    base: track.base,
+    config: track.config,
+    source: track.source,
+  });
+  await act(async () => loaded(saved));
+  expect(status()).toBe("Saved");
+  expect(session.useTrackStore.getState().tracks.at(-1)).toMatchObject(saved.tracks.at(-1)!);
+  await advance(2000);
+  expect(save).not.toHaveBeenCalled();
+  expect(Stream.opened).toHaveLength(1);
 });
