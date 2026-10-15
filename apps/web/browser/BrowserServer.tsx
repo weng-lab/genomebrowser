@@ -12,6 +12,7 @@ import {
 } from "react";
 import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
+import { WorkspaceNavigationDisabledContext } from "../components/workspace/navigationState";
 import { useBrowserSession } from "./BrowserSession";
 import { persistBrowserSession, type SessionSaveState } from "./persistence";
 import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
@@ -48,6 +49,7 @@ export function BrowserServer({
   const [saveStore] = useState(() =>
     createStore<{ status: SessionSaveState }>(() => ({ status: "loading" })),
   );
+  const [deletingActiveSession, setDeletingActiveSession] = useState(false);
   const [enabled, setEnabled] = useState(true);
   const [state, setState] = useState<RemoteControlState>("off");
   const remoteControl = useMemo(() => ({ state, enabled, setEnabled }), [state, enabled]);
@@ -86,7 +88,12 @@ export function BrowserServer({
       if (!endpoint) throw new Error("Session server is not configured");
       if (id === sessionId) {
         if (!persistence.current) throw new Error("Session is not ready");
-        await persistence.current.remove();
+        setDeletingActiveSession(true);
+        try {
+          await persistence.current.remove();
+        } finally {
+          setDeletingActiveSession(false);
+        }
       } else {
         const response = await fetch(`${endpoint.replace(/\/$/, "")}/sessions/${id}`, {
           method: "DELETE",
@@ -104,17 +111,19 @@ export function BrowserServer({
   }, [endpoint]);
 
   return (
-    <SessionFlushContext value={flushSession}>
-      <SessionDeletionContext value={deleteSession}>
-        <SessionIdContext value={sessionId}>
-          <RemoteControlContext value={remoteControl}>
-            <SessionSaveContext value={sessionUrl ? saveStore : disabledSaveStore}>
-              {children}
-            </SessionSaveContext>
-          </RemoteControlContext>
-        </SessionIdContext>
-      </SessionDeletionContext>
-    </SessionFlushContext>
+    <WorkspaceNavigationDisabledContext value={deletingActiveSession}>
+      <SessionFlushContext value={flushSession}>
+        <SessionDeletionContext value={deleteSession}>
+          <SessionIdContext value={sessionId}>
+            <RemoteControlContext value={remoteControl}>
+              <SessionSaveContext value={sessionUrl ? saveStore : disabledSaveStore}>
+                {children}
+              </SessionSaveContext>
+            </RemoteControlContext>
+          </SessionIdContext>
+        </SessionDeletionContext>
+      </SessionFlushContext>
+    </WorkspaceNavigationDisabledContext>
   );
 }
 

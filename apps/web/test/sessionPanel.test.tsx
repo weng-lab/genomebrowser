@@ -11,14 +11,18 @@ import { useBrowserSession, type BrowserSession } from "../browser/BrowserSessio
 import { snapshot } from "../browser/snapshot";
 import { PanelStateProvider, usePanelState } from "../components/workspace/panels/panelState";
 import { SidePanel } from "../components/workspace/panels/SidePanel";
+import { SideBar } from "../components/workspace/frame/SideBar";
+import { navigation } from "../app/(workspace)/navigation";
 import { SessionPanel } from "../app/(workspace)/browser/SessionPanel";
 
 const route = vi.hoisted(() => ({
   params: { sessionId: "testsession" },
+  pathname: "/browser/testsession",
   navigate: (_href: string) => {},
 }));
 vi.mock("next/navigation", () => ({
   useParams: () => route.params,
+  usePathname: () => route.pathname,
   useRouter: () => ({ replace: route.navigate }),
 }));
 // Replace only Next's navigation boundary; session selection, persistence and stores stay real.
@@ -76,7 +80,7 @@ function SessionControls() {
     </>
   );
 }
-function TestApp() {
+function TestApp({ showSidebar = false }: { showSidebar?: boolean }) {
   const [swr] = useState(() => ({
     provider: () => new Map(),
     dedupingInterval: 0,
@@ -86,6 +90,7 @@ function TestApp() {
   const [sessionId, setSessionId] = useState("testsession");
   const [pathname, setPathname] = useState("/browser/testsession");
   route.params = { sessionId };
+  route.pathname = pathname;
   route.navigate = (href) => {
     setPathname(href);
     if (href.startsWith("/browser/")) setSessionId(href.split("/").at(-1)!);
@@ -94,6 +99,7 @@ function TestApp() {
     <SWRConfig value={swr}>
       <PanelStateProvider>
         <AppProviders>
+          {showSidebar && <SideBar navigation={navigation} />}
           {pathname.startsWith("/browser/") ? <SessionControls /> : <main>Settings</main>}
         </AppProviders>
       </PanelStateProvider>
@@ -526,5 +532,33 @@ it.each(["unsupported track", "failed GET"])(
     expect(document.querySelector("output")?.textContent).toBe("testsession");
     expect(document.querySelector('[data-testid="save-state"]')?.textContent).toBe("load-error");
     expect(writes).toEqual([]);
+  },
+);
+
+it.each([true, false])(
+  "blocks Settings navigation during active-session deletion (success: %s)",
+  async (success) => {
+    probe = await renderWithProbe(<TestApp showSidebar />);
+    let complete!: (response: Response) => void;
+    deleteResponse = () =>
+      new Promise<Response>((resolve) => {
+        complete = resolve;
+      });
+    await probe.measure(() =>
+      document
+        .querySelector<HTMLButtonElement>('[aria-label="Delete session testsession"]')!
+        .click(),
+    );
+    const settings = document.querySelector<HTMLAnchorElement>('[aria-label="Settings"]')!;
+    expect(settings.getAttribute("aria-disabled")).toBe("true");
+    await probe.measure(() => settings.click());
+    expect(document.querySelector("main")).toBeNull();
+    expect(document.querySelector("output")?.textContent).toBe("testsession");
+    await probe.measure(() => complete(Response.json({}, { status: success ? 200 : 503 })));
+    expect(document.querySelector("output")?.textContent).toBe(success ? "local" : "testsession");
+    const enabledSettings = document.querySelector<HTMLAnchorElement>('[aria-label="Settings"]')!;
+    expect(enabledSettings.getAttribute("aria-disabled")).not.toBe("true");
+    await probe.measure(() => enabledSettings.click());
+    expect(document.querySelector("main")?.textContent).toBe("Settings");
   },
 );
