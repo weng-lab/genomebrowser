@@ -84,7 +84,7 @@ afterEach(() => {
 });
 
 function browserText() {
-  return [...container!.querySelectorAll("main svg")].map((svg) => svg.textContent).join("");
+  return container!.querySelector("main svg")!.textContent;
 }
 
 it("retains browser edits across pages and starts fresh on a new Workspace mount", async () => {
@@ -119,9 +119,7 @@ it("retains browser edits across pages and starts fresh on a new Workspace mount
   expect(browserText()).toContain("Retained coordinates");
 
   // jsdom lacks SVG coordinate and pointer capture APIs; supply the browser API contracts.
-  const svg = [...container!.querySelectorAll<SVGSVGElement>("main svg")].find((svg) =>
-    svg.textContent?.includes("Retained coordinates"),
-  )!;
+  const svg = container!.querySelector<SVGSVGElement>("main svg")!;
   const point = { x: 0, y: 0, matrixTransform: () => ({ x: point.x, y: point.y }) };
   Object.assign(svg, {
     createSVGPoint: () => point,
