@@ -229,23 +229,56 @@ it("budgets the render when saved session names arrive", async () => {
   `);
 });
 
-it("does not restore a deleted session when an older list response arrives", async () => {
-  probe = await renderWithProbe(<TestApp />);
-  let resolve!: (response: Response) => void;
-  listResponse = () =>
-    new Promise<Response>((done) => {
-      resolve = done;
+// Deleting during a list refresh must start an authoritative read. Only the
+// fresh response needs one render; an older response must not change the list.
+it.each(["stale-first", "fresh-first"])(
+  "refetches sessions after deletion and ignores an older refresh (%s)",
+  async (order) => {
+    ids.push("removed-elsewhere");
+    probe = await renderWithProbe(<TestApp />);
+    const staleIds = [...ids];
+    const reads: ((response: Response) => void)[] = [];
+    const readList = vi.fn(() => new Promise<Response>((resolve) => reads.push(resolve)));
+    listResponse = readList;
+    await probe.measure(async () => {
+      window.dispatchEvent(new Event("focus"));
+      await new Promise((done) => setTimeout(done, 0));
     });
-  await probe.measure(async () => {
-    window.dispatchEvent(new Event("focus"));
-    await new Promise((done) => setTimeout(done, 0));
-  });
-  await probe.measure(() =>
-    document.querySelector<HTMLButtonElement>('[aria-label="Delete session niship"]')!.click(),
-  );
-  await probe.measure(() => resolve(Response.json(["local", "niship", "testsession"])));
-  expect(document.querySelector('a[href="/browser/niship"]')).toBeNull();
-});
+    expect(readList).toHaveBeenCalledTimes(1);
+    ids = ["local", "newsession", "niship", "testsession"];
+    await probe.measure(() =>
+      document.querySelector<HTMLButtonElement>('[aria-label="Delete session niship"]')!.click(),
+    );
+    expect(document.querySelector('a[href="/browser/niship"]')).toBeNull();
+    expect(readList).toHaveBeenCalledTimes(2);
+    expect(document.querySelector('a[href="/browser/removed-elsewhere"]')).not.toBeNull();
+    for (const response of order === "stale-first" ? ["stale", "fresh"] : ["fresh", "stale"]) {
+      const report = await probe.measure(() =>
+        response === "stale" ? reads[0](Response.json(staleIds)) : reads[1](Response.json(ids)),
+      );
+      expect(document.querySelector('a[href="/browser/niship"]')).toBeNull();
+      if (response === "fresh") {
+        expect(report.pick("SessionPanel")).toMatchInlineSnapshot(`
+          {
+            "SessionPanel": 1,
+          }
+        `);
+      } else {
+        expect(report.pick("SessionPanel")).toMatchInlineSnapshot(`
+          {
+            "SessionPanel": 0,
+          }
+        `);
+      }
+    }
+    expect(
+      [...document.querySelectorAll<HTMLAnchorElement>('[aria-label="Browser sessions"] a')].map(
+        (link) => link.getAttribute("href"),
+      ),
+    ).toEqual(["/browser/local", "/browser/newsession", "/browser/testsession"]);
+    expect(document.querySelector("output")?.textContent).toBe("testsession");
+  },
+);
 
 it("deletes another session without navigating and never offers deletion for local", async () => {
   probe = await renderWithProbe(<TestApp />);

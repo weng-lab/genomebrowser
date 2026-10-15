@@ -84,8 +84,8 @@ export function SessionPanel() {
     setDeleteError(null);
     try {
       await deleteSession(id);
-      // Updating the cache also invalidates list reads started before deletion completed.
-      void mutate((ids) => (ids ?? []).filter((savedId) => savedId !== id), { revalidate: false });
+      // Invalidate older list reads, remove the deleted name, and fetch the current list.
+      void mutate((ids) => (ids ?? []).filter((savedId) => savedId !== id), { revalidate: true });
       if (id === sessionId) router.replace("/browser/local");
     } catch {
       setDeleteError(`Could not delete ${id}. Try again.`);

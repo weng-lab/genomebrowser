@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
+import { caveModule } from "@weng-lab/genomebrowser-tracks/cave";
 import { act } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { renderWithProbe, type Probe } from "@weng-lab/render-probe";
@@ -458,13 +459,28 @@ it("reloads after a read finishes during a deletion that later fails", async () 
   expect(save).not.toHaveBeenCalled();
 });
 
-it("restores saved user BigBed tracks after the temporary add-track control is removed", async () => {
+it.each([
+  {
+    type: "BigBed",
+    create: () =>
+      bigBedModule.create({
+        base: { id: "saved-bigbed", title: "Saved user track" },
+        config: { url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed" },
+        source: "user",
+      }),
+  },
+  {
+    type: "CAVE",
+    create: () =>
+      caveModule.create({
+        base: { id: "saved-cave", title: "Saved CAVE track" },
+        config: { neurotransmitter: "GABA", age: "Infancy" },
+        source: "host",
+      }),
+  },
+])("restores saved $type tracks without overwriting the snapshot", async ({ create }) => {
   const saved = savedSnapshot();
-  const track = bigBedModule.create({
-    base: { id: "saved-bigbed", title: "Saved user track" },
-    config: { url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed" },
-    source: "user",
-  });
+  const track = create();
   saved.tracks.push({
     type: track.type,
     base: track.base,
