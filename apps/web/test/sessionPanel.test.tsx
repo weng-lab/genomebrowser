@@ -63,6 +63,10 @@ let togglePanel: (side: "left" | "right") => void;
 let listResponse: () => Promise<Response>;
 let deleteResponse: (url: string) => Promise<Response>;
 
+function SaveStateOutput() {
+  return <output data-testid="save-state">{useSessionSaveState()}</output>;
+}
+
 function SessionControls() {
   session = useBrowserSession();
   togglePanel = usePanelState((state) => state.toggle);
@@ -70,7 +74,7 @@ function SessionControls() {
   return (
     <>
       <output>{useSessionId()}</output>
-      <output data-testid="save-state">{useSessionSaveState()}</output>
+      <SaveStateOutput />
       <SidePanel
         side="left"
         open={open}
@@ -562,3 +566,12 @@ it.each([true, false])(
     expect(document.querySelector("main")?.textContent).toBe("Settings");
   },
 );
+
+// A save acknowledgement changes the test status output, not the session list.
+it("isolates the session-panel render budget from autosave status updates", async () => {
+  vi.useFakeTimers();
+  probe = await renderWithProbe(<TestApp />);
+  const report = await probe.measure(async () => vi.advanceTimersByTimeAsync(200));
+  expect(document.querySelector('[data-testid="save-state"]')?.textContent).toBe("saved");
+  expect(report.pick("SessionPanel")).toEqual({ SessionPanel: 0 });
+});
