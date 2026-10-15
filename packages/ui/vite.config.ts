@@ -9,6 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   envPrefix: ["VITE_", "NEXT_PUBLIC_"],
   test: {
+    setupFiles: ["@weng-lab/render-probe/setup"],
     server: {
       deps: { inline: ["@weng-lab/ui-components", "@mui/x-data-grid", "@mui/x-data-grid-premium"] },
     },

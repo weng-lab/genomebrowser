@@ -35,7 +35,7 @@ The server receives an asynchronous `SessionRepository` with `load(id)` and `sav
 
 Agents control the browser through MCP. Each browser command is an MCP tool that takes a `sessionId` and returns the whole session snapshot after the tab applies it. Only the first tab to open a session receives its commands. Later tabs keep retrying and take over when that tab closes.
 
-Remote control is on by default. Turn it off under **Remote control** in Settings to close the tab's command stream; MCP calls for the session then fail. The Agent panel on the Browser page shows the connection state.
+Remote control is on by default. Turn it off under **Remote control** in Settings to close the tab's command stream; MCP calls for the session then fail. The Browser page's right panel has an **Active Tracks** tab followed by an **Agent** tab showing the connection state. The right panel starts collapsed; opening it shows Active Tracks initially. Panel visibility is retained while navigating within the workspace. Active Tracks shows the current session's loaded tracks using the Collections tree grouping, with uncataloged tracks under Other tracks. Rulers remain in the browser and are excluded from this list and its count. Removing a track or group updates the browser immediately and uses the session autosave. The list waits for session restoration, and its catalog loads only when the tab is opened.
 
 Connect an MCP client to `http://localhost:3000/mcp`, or to `http://127.0.0.1:3001/mcp` to skip Next.js. For example, with Claude Code:
 
@@ -94,4 +94,4 @@ The default GENCODE 50 basic track is recognized in Reference annotations, and t
 
 The picker waits for session restoration before allowing edits. Submitted tracks use the existing autosave; wait for **Saved** before refreshing or closing the tab. All first-party track modules are registered so catalog tracks can be restored with their saved settings.
 
-Catalog JSON files live in `app/(workspace)/collections/data/`. They are owned by this app; the route has no runtime imports from legacy applications. Only the selected collection's full data is sent to the client. Set `NEXT_PUBLIC_MUI_X_LICENSE_KEY` for the shared grid's MUI X Premium license.
+Catalog JSON files live in `app/(workspace)/collections/data/`. They are owned by this app; the route has no runtime imports from legacy applications. Collection routes send the selected collection's data to the client. The browser's Active Tracks tab loads the complete catalog lazily to resolve all loaded tracks. Set `NEXT_PUBLIC_MUI_X_LICENSE_KEY` for the shared grid's MUI X Premium license.

@@ -34,6 +34,7 @@ Every current public export has one canonical destination below.
 | Track sorting       | `TrackSortDialog`, `TrackSortDialogProps`                 | [TrackSortDialog](06-trackSorting/TrackSortDialog.md#tracksortdialogprops)                                            |
 | Track sorting       | `TrackSortOption`                                         | [Sort options](06-trackSorting/TrackSortDialog.md#tracksortoption)                                                    |
 | Chromosome overview | `CytobandColors`                                          | [Stain colors](04-chromosomeOverview/Cytobands.md#cytobandcolors)                                                     |
+| Track selection     | `ActiveTracks`, `ActiveTracksProps`                       | [Loaded track tree](03-trackSelection/ActiveTracks.md#activetracksprops)                                              |
 | Track selection     | `TrackSelect`, `TrackSelectProps`                         | [TrackSelect](03-trackSelection/TrackSelect.md#trackselectprops)                                                      |
 | Track selection     | `TrackSelectColumnOverride`, `TrackSelectColumnOverrides` | [Column overrides](03-trackSelection/columnCustomization.md#trackselectcolumnoverride-and-trackselectcolumnoverrides) |
 | Track selection     | `withValueMarkers`                                        | [Value markers](03-trackSelection/columnCustomization.md#withvaluemarkers)                                            |

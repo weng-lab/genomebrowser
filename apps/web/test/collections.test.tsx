@@ -15,7 +15,7 @@ import {
 } from "../app/(workspace)/collections/catalog";
 import { CollectionsWorkspace } from "../app/(workspace)/collections/CollectionsWorkspace";
 import CollectionPage from "../app/(workspace)/collections/[collectionId]/page";
-import { BrowserView } from "../app/(workspace)/browser/BrowserView";
+import { BrowserPage } from "../app/(workspace)/browser/BrowserPage";
 import { useBrowserSession, type BrowserSession } from "../browser/BrowserSession";
 import { useSessionId } from "../browser/BrowserServer";
 import { snapshot } from "../browser/snapshot";
@@ -66,7 +66,7 @@ function TestApp() {
         {pathname.startsWith("/collections") ? (
           <CollectionsWorkspace collection={getTrackCollection(id)!} />
         ) : (
-          <BrowserView />
+          <BrowserPage sessionId={id} />
         )}
       </Workspace>
     </AppProviders>
@@ -308,4 +308,111 @@ it("marks default gene and aggregate cCRE tracks active without duplicating or r
   expect(session.useTrackStore.getState().tracks.some((track) => track.base.id === "ccres")).toBe(
     true,
   );
+}, 15000);
+
+// Opening Active Tracks reads the session's track store. Region edits must not
+// render the tree; a removal must update both the browser and its saved snapshot.
+it("shows loaded tracks in the right-panel tree, excludes rulers, and persists removals per session", async () => {
+  probe = await renderWithProbe(<TestApp />);
+  await selectTrack("reference-annotations::gencode-v29-basic");
+  await button("Submit");
+  await advance();
+  await probe!.measure(() => {
+    const state = session.useTrackStore.getState();
+    const custom = state.registry.get("bigbed").create({
+      base: { id: "custom-annotation", title: "Custom annotation" },
+      config: { url: state.tracks.find((track) => track.base.id === "ccres")!.config.url },
+    });
+    state.setTracks([
+      ...state.tracks.map((track) =>
+        track.base.id === "genes"
+          ? { ...track, base: { ...track.base, title: "Custom genes" } }
+          : track,
+      ),
+      custom,
+    ]);
+  });
+  const toggle = document.querySelector<HTMLButtonElement>('button[aria-controls="right-panel"]')!;
+  expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  expect(
+    [...document.querySelectorAll('#right-panel [role="tab"]')].map((tab) => tab.textContent),
+  ).toEqual(["Active Tracks", "Agent"]);
+  async function openTools() {
+    await act(async () => {
+      document.querySelector<HTMLButtonElement>('button[aria-controls="right-panel"]')!.click();
+      await import("../app/(workspace)/browser/BrowserActiveTracks");
+    });
+  }
+  await openTools();
+  const panel = () => document.querySelector('#right-panel [role="tabpanel"]:not([hidden])')!;
+  expect(panel().textContent).toContain("Reference annotations");
+  expect(panel().textContent).toContain("Human Biosamples");
+  expect(panel().textContent).toContain("Other tracks");
+  expect(panel().textContent).not.toContain("Coordinates");
+  const report = await probe!.measure(() =>
+    session.useBrowserStore.getState().setRegion({
+      chromosome: "chr1",
+      start: 100,
+      end: 200,
+    }),
+  );
+  expect(report.pick("BrowserActiveTracks", "LoadedTracks")).toMatchInlineSnapshot(`
+    {
+      "BrowserActiveTracks": 0,
+      "LoadedTracks": 0,
+    }
+  `);
+  async function expand(label: string) {
+    const text = [...panel().querySelectorAll("p")].find((node) => node.textContent === label)!;
+    expect(text).toBeDefined();
+    await probe!.measure(() => text.click());
+  }
+  await expand("Reference annotations");
+  expect(panel().textContent).toContain("Custom genes");
+  expect(panel().textContent).toContain("GENCODE 29 basic");
+  await expand("Other tracks");
+  expect(panel().textContent).toContain("Custom annotation");
+  await probe!.measure(() =>
+    panel().querySelector<HTMLButtonElement>('[aria-label="Remove Custom genes"]')!.click(),
+  );
+  await probe!.measure(() =>
+    panel().querySelector<HTMLButtonElement>('[aria-label="Remove Custom annotation"]')!.click(),
+  );
+  const ids = () => session.useTrackStore.getState().tracks.map((track) => track.base.id);
+  expect(ids()).not.toContain("genes");
+  expect(ids()).not.toContain("custom-annotation");
+  expect(ids()).toContain("ruler");
+  expect(ids()).toContain("ccres");
+  expect(ids()).toContain("reference-annotations::gencode-v29-basic");
+  await advance();
+  expect(saved.get("/api/sessions/local")!.tracks.map((track) => track.base.id)).toEqual(ids());
+  const remaining = ids();
+  const previousLoad = load;
+  let completeLoad!: (response: Response) => void;
+  load = (url) =>
+    url.endsWith("/other")
+      ? new Promise<Response>((resolve) => {
+          completeLoad = resolve;
+        })
+      : previousLoad(url);
+  await probe!.measure(() => route.navigate("/browser/other"));
+  await openTools();
+  expect(panel().textContent).toContain("Loading active tracks...");
+  expect(panel().querySelector('[role="tree"]')).toBeNull();
+  await probe!.measure(() => completeLoad(Response.json({}, { status: 404 })));
+  expect(ids()).toEqual(["ruler", "genes", "ccres"]);
+  expect(panel().textContent).toContain("Reference annotations");
+  expect(panel().textContent).not.toContain("Other tracks");
+  await advance();
+  await probe!.measure(() => route.navigate("/browser/local"));
+  await openTools();
+  expect(ids()).toEqual(remaining);
+  expect(panel().textContent).not.toContain("Coordinates");
+  await probe!.measure(() =>
+    session.useTrackStore
+      .getState()
+      .setTracks(session.useTrackStore.getState().tracks.filter((track) => track.type === "ruler")),
+  );
+  expect(panel().textContent).toContain("No selected tracks.");
+  expect(ids()).toEqual(["ruler"]);
 }, 15000);

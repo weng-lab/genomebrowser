@@ -53,3 +53,6 @@ export type {
   TrackSelectInteraction,
   TrackSelectInteractionResolver,
 } from "./TrackSelect/collection/collectionInteraction";
+
+export { ActiveTracks } from "./TrackSelect/ActiveTracks";
+export type { ActiveTracksProps } from "./TrackSelect/ActiveTracks";

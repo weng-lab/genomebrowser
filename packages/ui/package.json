@@ -63,6 +63,7 @@
     "@types/react-dom": "catalog:",
     "@typescript/native": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "@weng-lab/render-probe": "workspace:*",
     "@weng-lab/ui-components": "catalog:",
     "jsdom": "catalog:",
     "react": "catalog:",

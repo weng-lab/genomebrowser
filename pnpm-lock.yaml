@@ -724,6 +724,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: 'catalog:'
         version: 6.1.1(vite@8.3.0(@types/node@26.6.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13)(yaml@2.9.1))
+      '@weng-lab/render-probe':
+        specifier: workspace:*
+        version: link:../render-probe
       '@weng-lab/ui-components':
         specifier: 'catalog:'
         version: 3.3.0(59bfb49a3883a6dad5009e1152269108)

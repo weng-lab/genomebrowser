@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { resolveDefaultCollectionTrackId } from "./trackIdentity";
 import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -58,17 +59,8 @@ function CollectionTrackPicker({ collection }: { collection: TrackCollection }) 
   const router = useRouter();
   const trackCollections = useMemo(() => [collection], [collection]);
   const resolveCollectionTrackId: TrackSelectTrackIdResolver = useCallback(
-    (track) => {
-      const isDefault =
-        (track.base.id === "genes" && track.type === "gene") ||
-        (track.base.id === "ccres" && track.type === "ccre-bigbed");
-      if (!isDefault || typeof track.config.url !== "string") return;
-      const matches = collection.tracks.filter(
-        (entry) => entry.type === track.type && entry.config.url === track.config.url,
-      );
-      if (matches.length === 1) return `${collection.id}::${matches[0].base.id}`;
-    },
-    [collection],
+    (track) => resolveDefaultCollectionTrackId(track, trackCollections),
+    [trackCollections],
   );
   return (
     <TrackSelect

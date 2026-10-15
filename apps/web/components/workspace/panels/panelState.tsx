@@ -16,7 +16,7 @@ type PanelState = {
 function createPanelState() {
   return createStore<PanelState>((set) => ({
     leftOpen: true,
-    rightOpen: true,
+    rightOpen: false,
     leftWidth: 240,
     rightWidth: 360,
     toggle: (side) =>

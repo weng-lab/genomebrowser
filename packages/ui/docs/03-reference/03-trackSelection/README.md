@@ -1,5 +1,6 @@
 # Track selection
 
+- [ActiveTracks](ActiveTracks.md): Display and remove loaded tracks in a grouped tree.
 - [TrackSelect](TrackSelect.md): Browse collections and commit a draft selection.
 - [Column customization](columnCustomization.md): Customize grid columns and colored value markers.
 - [Track interactions](trackInteractions.md): Attach callbacks to collection tracks.

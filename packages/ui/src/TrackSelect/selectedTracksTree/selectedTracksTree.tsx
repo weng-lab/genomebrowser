@@ -16,6 +16,7 @@ type SelectedTracksTreeProps = {
   selectedByCollection: SelectedByCollection;
   activeViewIdByCollection: Map<string, string>;
   selectedCount: number;
+  height?: number | string;
   onRemoveTrackIds: (trackIds: string[]) => void;
 };
 
@@ -24,6 +25,7 @@ export function SelectedTracksTree({
   selectedByCollection,
   activeViewIdByCollection,
   selectedCount,
+  height = trackSelectPanelHeight,
   onRemoveTrackIds,
 }: SelectedTracksTreeProps) {
   const trees = useMemo(
@@ -39,7 +41,8 @@ export function SelectedTracksTree({
   return (
     <Paper
       sx={{
-        height: trackSelectPanelHeight,
+        height,
+        minHeight: 0,
         width: "100%",
         border: "10px solid",
         borderColor: "grey.200",

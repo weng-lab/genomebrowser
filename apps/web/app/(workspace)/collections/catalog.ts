@@ -19,3 +19,8 @@ export const defaultCollectionId = reference.id;
 export function getTrackCollection(id: string): TrackCollection | undefined {
   return collections.find((collection) => collection.id === id);
 }
+
+// The browser's active-track tree loads this catalog lazily when its tab is opened.
+export function getTrackCollections(): TrackCollection[] {
+  return collections;
+}

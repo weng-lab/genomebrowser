@@ -44,6 +44,12 @@ it("renders native navigation and page-owned title, content, and panels", () => 
 });
 it("collapses independently and restores panels through accessible controls", () => {
   setup();
+  const rightToggle = container.querySelector<HTMLButtonElement>(
+    'button[aria-controls="right-panel"]',
+  )!;
+  expect(rightToggle.getAttribute("aria-expanded")).toBe("false");
+  expect(container.querySelector("#right-panel")?.hasAttribute("inert")).toBe(true);
+  act(() => rightToggle.click());
   const toggle = container.querySelector<HTMLButtonElement>('button[aria-controls="left-panel"]')!;
   act(() => toggle.click());
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
@@ -128,7 +134,7 @@ it("toggles panels with keyboard shortcuts and ignores input fields", () => {
   key(document, true);
   expect(
     container.querySelector('button[aria-controls="right-panel"]')?.getAttribute("aria-expanded"),
-  ).toBe("false");
+  ).toBe("true");
   const input = document.createElement("input");
   container.append(input);
   input.focus();
@@ -139,5 +145,5 @@ it("toggles panels with keyboard shortcuts and ignores input fields", () => {
   ).toBe("false");
   expect(
     container.querySelector('button[aria-controls="right-panel"]')?.getAttribute("aria-expanded"),
-  ).toBe("false");
+  ).toBe("true");
 });

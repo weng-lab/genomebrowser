@@ -1,7 +1,7 @@
 import { WorkspacePage } from "../../../components/workspace/WorkspacePage";
 import { BrowserView } from "./BrowserView";
 import { SessionPanel } from "./SessionPanel";
-import { AgentPanel } from "./AgentPanel";
+import { BrowserRightPanel } from "./BrowserRightPanel";
 
 export function BrowserPage({ sessionId }: { sessionId: string }) {
   return (
@@ -9,7 +9,7 @@ export function BrowserPage({ sessionId }: { sessionId: string }) {
       title="Browser"
       subtitle={`Session ${sessionId}`}
       left={{ title: "Sessions", children: <SessionPanel /> }}
-      right={{ title: "Agent", children: <AgentPanel /> }}
+      right={{ title: "Browser tools", children: <BrowserRightPanel /> }}
     >
       <BrowserView />
     </WorkspacePage>
