@@ -367,11 +367,18 @@ it("navigates and changes interaction mode through the browser controls", async 
   await act(async () =>
     document.querySelector<HTMLButtonElement>('[aria-label="Zoom out"]')!.click(),
   );
+  await act(async () => document.querySelector<HTMLButtonElement>('button[value="pan"]')!.click());
+  expect(session.useBrowserStore.getState().selectionMode).toBe("pan");
+  await advance(200);
+  expect(save).toHaveBeenCalledTimes(1);
+  expect(body(0).browser.selectionMode).toBe("pan");
+
   await act(async () =>
     document.querySelector<HTMLButtonElement>('button[value="highlight"]')!.click(),
   );
   expect(session.useBrowserStore.getState().selectionMode).toBe("highlight");
   await advance(200);
-  expect(body().browser.selectionMode).toBe("highlight");
+  expect(save).toHaveBeenCalledTimes(2);
+  expect(body(1).browser.selectionMode).toBe("highlight");
   expect(document.querySelector('[aria-label^="Edit region"]')).not.toBeNull();
 });
