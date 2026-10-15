@@ -28,6 +28,14 @@ export function SessionPanel() {
   const flushSession = useFlushSession();
   const [switching, setSwitching] = useState(false);
   const switchPending = useRef(false);
+  const selectionGeneration = useRef(0);
+  useEffect(
+    () => () => {
+      // Saving outlives this panel when the user visits another workspace page.
+      selectionGeneration.current += 1;
+    },
+    [],
+  );
   const [switchError, setSwitchError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -50,17 +58,23 @@ export function SessionPanel() {
 
   async function openSession(id: string) {
     if (id === sessionId || deleting || switchPending.current) return;
+    const generation = selectionGeneration.current;
     switchPending.current = true;
     setSwitching(true);
     setSwitchError(null);
     try {
       await flushSession();
-      router.replace(`/browser/${id}`);
+      if (generation === selectionGeneration.current) router.replace(`/browser/${id}`);
     } catch {
-      setSwitchError("Could not save this session. Stay here and try selecting the session again.");
+      if (generation === selectionGeneration.current)
+        setSwitchError(
+          "Could not save this session. Stay here and try selecting the session again.",
+        );
     } finally {
-      switchPending.current = false;
-      setSwitching(false);
+      if (generation === selectionGeneration.current) {
+        switchPending.current = false;
+        setSwitching(false);
+      }
     }
   }
 

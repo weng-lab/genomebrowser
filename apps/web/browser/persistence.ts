@@ -100,7 +100,10 @@ export function persistBrowserSession(
   }
 
   async function flush() {
-    if (stopped || deleting || !initialized) throw new Error("Session is not ready to save");
+    if (stopped || deleting) throw new Error("Session is not ready to save");
+    // Before restoration succeeds, these stores are defaults, not unsaved user edits.
+    // Leave the original snapshot untouched and allow selection of a working session.
+    if (!initialized) return;
     clearTimeout(timer);
     if (writing) {
       await pendingWrite;
