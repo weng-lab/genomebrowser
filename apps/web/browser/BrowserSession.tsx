@@ -2,6 +2,7 @@
 
 import { createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
+import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
 import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
 import { createContext, useContext, useState, type ReactNode } from "react";

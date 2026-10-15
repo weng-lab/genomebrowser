@@ -1,8 +1,12 @@
 "use client";
 
-import { formatDisplayRegion, GenomeBrowser } from "@weng-lab/genomebrowser";
+import { GenomeBrowser } from "@weng-lab/genomebrowser";
+import {
+  RegionControls,
+  NavigationControls,
+  InteractionControls,
+} from "@weng-lab/genomebrowser-ui";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import { SaveStatus } from "./SaveStatus";
 import { useSessionLoading } from "../../../browser/BrowserServer";
 import { useBrowserSession } from "../../../browser/BrowserSession";
@@ -21,23 +25,23 @@ function BrowserContent() {
   const { useBrowserStore, useTrackStore } = useBrowserSession();
   return (
     <>
-      <VisibleRegion />
+      <Box
+        role="group"
+        aria-label="Genome browser controls"
+        sx={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 1, mb: 2 }}
+      >
+        <RegionControls
+          browserStore={useBrowserStore}
+          search={{
+            assembly: "GRCh38",
+            graphqlUrl: "/api/screen-graphql",
+            queries: ["Coordinate"],
+          }}
+        />
+        <NavigationControls browserStore={useBrowserStore} />
+        <InteractionControls browserStore={useBrowserStore} />
+      </Box>
       <GenomeBrowser browserStore={useBrowserStore} trackStore={useTrackStore} />
     </>
-  );
-}
-
-function VisibleRegion() {
-  const { useBrowserStore } = useBrowserSession();
-  const region = useBrowserStore((state) => state.region);
-  return (
-    <Typography
-      component="output"
-      aria-label="Visible region"
-      variant="body2"
-      sx={{ display: "block", mb: 1 }}
-    >
-      {formatDisplayRegion(region)}
-    </Typography>
   );
 }
