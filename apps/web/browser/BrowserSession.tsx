@@ -22,7 +22,7 @@ export function BrowserSessionProvider({ children }: { children: ReactNode }) {
       region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
     }),
     useTrackStore: createTrackStore({
-      modules: [rulerModule, geneModule, ccreBigBedModule, bigBedModule],
+      modules: [rulerModule, geneModule, ccreBigBedModule],
       tracks: [
         rulerModule.create({ base: { id: "ruler", title: "Coordinates" }, config: {} }),
         geneModule.create({
