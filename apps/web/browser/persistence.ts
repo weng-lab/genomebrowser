@@ -12,6 +12,7 @@ export function persistBrowserSession(
 ) {
   let stopped = false;
   let writing = false;
+  let writeFailed = false;
   let deleting = false;
   let initialized = false;
   let loading = false;
@@ -46,6 +47,7 @@ export function persistBrowserSession(
   async function write() {
     if (stopped || deleting || writing || latest === saved) return;
     writing = true;
+    writeFailed = false;
     const body = latest;
     onState("saving");
     try {
@@ -59,6 +61,7 @@ export function persistBrowserSession(
       saved = body;
       if (!stopped && !deleting) onState(latest === saved ? "saved" : "saving");
     } catch {
+      writeFailed = true;
       if (!stopped && !deleting) onState("error");
     } finally {
       writing = false;
@@ -96,6 +99,26 @@ export function persistBrowserSession(
     }
   }
 
+  async function flush() {
+    if (stopped || deleting || !initialized) throw new Error("Session is not ready to save");
+    clearTimeout(timer);
+    if (writing) {
+      await pendingWrite;
+      if (writeFailed) throw new Error("Session save failed");
+    }
+    // Capture edits made while an earlier write was outstanding, too.
+    while (!stopped && !deleting) {
+      latest = JSON.stringify(snapshot(session));
+      clearTimeout(timer);
+      if (latest === saved) return;
+      const body = latest;
+      pendingWrite = write();
+      await pendingWrite;
+      if (saved !== body) throw new Error("Session save failed");
+    }
+    throw new Error("Session closed before saving");
+  }
+
   function stop() {
     stopped = true;
     clearTimeout(timer);
@@ -129,5 +152,5 @@ export function persistBrowserSession(
   }
 
   void load();
-  return { stop, remove };
+  return { stop, remove, flush };
 }

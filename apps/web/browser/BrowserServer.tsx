@@ -19,6 +19,7 @@ import { connectRemoteControl, type RemoteControlState } from "./remoteControl";
 const disabledSaveStore = createStore<{ status: SessionSaveState }>(() => ({ status: "disabled" }));
 const SessionSaveContext = createContext(disabledSaveStore);
 const SessionDeletionContext = createContext<((id: string) => Promise<void>) | null>(null);
+const SessionFlushContext = createContext<(() => Promise<void>) | null>(null);
 const SessionIdContext = createContext<string | null>(null);
 
 type RemoteControl = {
@@ -96,16 +97,24 @@ export function BrowserServer({
     [endpoint, sessionId],
   );
 
+  const flushSession = useCallback(async () => {
+    if (!endpoint) return;
+    if (!persistence.current) throw new Error("Session is not ready");
+    await persistence.current.flush();
+  }, [endpoint]);
+
   return (
-    <SessionDeletionContext value={deleteSession}>
-      <SessionIdContext value={sessionId}>
-        <RemoteControlContext value={remoteControl}>
-          <SessionSaveContext value={sessionUrl ? saveStore : disabledSaveStore}>
-            {children}
-          </SessionSaveContext>
-        </RemoteControlContext>
-      </SessionIdContext>
-    </SessionDeletionContext>
+    <SessionFlushContext value={flushSession}>
+      <SessionDeletionContext value={deleteSession}>
+        <SessionIdContext value={sessionId}>
+          <RemoteControlContext value={remoteControl}>
+            <SessionSaveContext value={sessionUrl ? saveStore : disabledSaveStore}>
+              {children}
+            </SessionSaveContext>
+          </RemoteControlContext>
+        </SessionIdContext>
+      </SessionDeletionContext>
+    </SessionFlushContext>
   );
 }
 
@@ -136,4 +145,11 @@ export function useDeleteSession() {
   const deleteSession = useContext(SessionDeletionContext);
   if (!deleteSession) throw new Error("useDeleteSession must be used within BrowserServer");
   return deleteSession;
+}
+
+/** Finish autosaves before replacing the current session's stores. */
+export function useFlushSession() {
+  const flush = useContext(SessionFlushContext);
+  if (!flush) throw new Error("useFlushSession must be used within BrowserServer");
+  return flush;
 }

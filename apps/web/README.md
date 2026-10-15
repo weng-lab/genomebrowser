@@ -27,6 +27,8 @@ Sessions are saved in SQLite by the session ID in the URL. IDs are 1–64 letter
 
 The tab loads the saved snapshot with `GET /api/sessions/:id` and restores it before showing the browser view. With no saved snapshot (404), it starts with the default hg38 region, coordinate ruler, GENCODE 50 basic genes in merged display, and human cCREs. The snapshot includes the viewport region, browser settings, highlights, selection settings, ordered track configurations and source ownership, and pinned track IDs. Runtime loading state, fetched data, track resources, registered modules, and functions stay local.
 
+Selecting another session in the Sessions panel finishes pending autosaves before switching stores. If saving fails, the current session stays open with its edits and an error; select the destination again to retry.
+
 Changes autosave with `PUT /api/sessions/:id` after 200 ms of inactivity. Each tab sends one save request at a time and retries a failed save after two seconds. A failed load retries after two seconds. Saving does not depend on remote control. Wait for **Saved** at the top left of the browser center panel before refreshing or closing the tab; closing does not flush pending edits.
 
 Every tab that opens the session saves to it. The last save wins, and tabs do not receive each other's edits. There are no per-user sessions, tenant isolation, or conflict resolution. A new tab or refresh restores the last successfully saved snapshot.

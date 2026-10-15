@@ -13,7 +13,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import { usePanelState } from "../../../components/workspace/panels/panelState";
 import { sessionListSchema } from "@weng-lab/browser-server/protocol";
-import { useDeleteSession, useSessionId } from "../../../browser/BrowserServer";
+import { useDeleteSession, useFlushSession, useSessionId } from "../../../browser/BrowserServer";
 
 async function fetchSessions(url: string) {
   const response = await fetch(url, { cache: "no-store" });
@@ -25,6 +25,10 @@ export function SessionPanel() {
   const sessionId = useSessionId();
   const deleteSession = useDeleteSession();
   const router = useRouter();
+  const flushSession = useFlushSession();
+  const [switching, setSwitching] = useState(false);
+  const switchPending = useRef(false);
+  const [switchError, setSwitchError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const {
@@ -44,8 +48,24 @@ export function SessionPanel() {
     wasOpen.current = open;
   }, [open, mutate]);
 
+  async function openSession(id: string) {
+    if (id === sessionId || deleting || switchPending.current) return;
+    switchPending.current = true;
+    setSwitching(true);
+    setSwitchError(null);
+    try {
+      await flushSession();
+      router.replace(`/browser/${id}`);
+    } catch {
+      setSwitchError("Could not save this session. Stay here and try selecting the session again.");
+    } finally {
+      switchPending.current = false;
+      setSwitching(false);
+    }
+  }
+
   async function handleDelete(id: string) {
-    if (id === "local" || deleting) return;
+    if (id === "local" || deleting || switchPending.current) return;
     setDeleting(id);
     setDeleteError(null);
     try {
@@ -75,8 +95,12 @@ export function SessionPanel() {
             <ListItemButton
               component={Link}
               href={`/browser/${id}`}
+              onNavigate={(event: { preventDefault(): void }) => {
+                event.preventDefault();
+                void openSession(id);
+              }}
               selected={id === sessionId}
-              disabled={deleting !== null}
+              disabled={deleting !== null || switching}
               aria-current={id === sessionId ? "page" : undefined}
               sx={{ borderRadius: 1, flex: 1, minWidth: 0 }}
             >
@@ -90,7 +114,7 @@ export function SessionPanel() {
                 aria-label={`Delete session ${id}`}
                 title={`Delete session ${id}`}
                 size="small"
-                disabled={deleting !== null}
+                disabled={deleting !== null || switching}
                 onClick={() => void handleDelete(id)}
               >
                 <DeleteOutline fontSize="small" />
@@ -99,6 +123,11 @@ export function SessionPanel() {
           </Box>
         ))}
       </List>
+      {switchError && (
+        <Typography role="alert" variant="body2" color="error" sx={{ p: 1.5, flexShrink: 0 }}>
+          {switchError}
+        </Typography>
+      )}
       {deleteError && (
         <Typography role="alert" variant="body2" color="error" sx={{ p: 1.5, flexShrink: 0 }}>
           {deleteError}

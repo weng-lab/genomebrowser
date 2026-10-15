@@ -23,13 +23,28 @@ vi.mock("next/navigation", () => ({
 }));
 // Replace only Next's navigation boundary; session selection, persistence and stores stay real.
 vi.mock("next/link", () => ({
-  default: ({ href, children, ...props }: { href: string; children: ReactNode }) => (
+  default: ({
+    href,
+    children,
+    onNavigate,
+    ...props
+  }: {
+    href: string;
+    children: ReactNode;
+    onNavigate?: (event: { preventDefault: () => void }) => void;
+  }) => (
     <a
       {...props}
       href={href}
       onClick={(event) => {
         event.preventDefault();
-        route.navigate(href);
+        let prevented = false;
+        onNavigate?.({
+          preventDefault: () => {
+            prevented = true;
+          },
+        });
+        if (!prevented) route.navigate(href);
       }}
     >
       {children}
@@ -342,3 +357,98 @@ it("refreshes saved sessions when the mounted Sessions panel reopens", async () 
     }
   `);
 });
+
+it.each(["queued", "in-flight"])(
+  "saves %s edits before switching sessions and restores them on return",
+  async (phase) => {
+    probe = await renderWithProbe(<TestApp />);
+    vi.useFakeTimers();
+    const originalFetch = fetch;
+    const writes: { body: string; resolve: (response: Response) => void }[] = [];
+    let saved: string | undefined;
+    vi.stubGlobal("fetch", (url: string, init?: RequestInit) => {
+      if (url === "/api/sessions/testsession" && init?.method === "PUT") {
+        return new Promise<Response>((resolve) => {
+          writes.push({
+            body: init.body as string,
+            resolve: (response) => {
+              if (response.ok) saved = init.body as string;
+              resolve(response);
+            },
+          });
+        });
+      }
+      if (url === "/api/sessions/testsession" && !init?.method && saved) {
+        return Promise.resolve(
+          new Response(saved, { headers: { "Content-Type": "application/json" } }),
+        );
+      }
+      return originalFetch(url, init);
+    });
+    const originalSession = session;
+    const edited = { chromosome: "chr1", start: 100, end: 200 };
+    await probe.measure(() => session.useBrowserStore.getState().setRegion(edited));
+    if (phase === "in-flight") await act(async () => vi.advanceTimersByTimeAsync(200));
+    const report = await probe.measure(() =>
+      document.querySelector<HTMLAnchorElement>('a[href="/browser/niship"]')!.click(),
+    );
+    // One render disables navigation while the save is pending.
+    expect(report.pick("SessionPanel")).toMatchInlineSnapshot(`
+      {
+        "SessionPanel": 1,
+      }
+    `);
+    expect(writes).toHaveLength(1);
+    expect(document.querySelector("output")?.textContent).toBe("testsession");
+    expect(session).toBe(originalSession);
+    // An edit arriving during the outstanding PUT must get its own acknowledgement.
+    const newer = { chromosome: "chr1", start: 300, end: 400 };
+    await probe.measure(() => session.useBrowserStore.getState().setRegion(newer));
+    await probe.measure(() => writes[0].resolve(Response.json({ ok: true })));
+    expect(writes).toHaveLength(2);
+    expect(session).toBe(originalSession);
+    await probe.measure(() => writes[1].resolve(Response.json({ ok: true })));
+    expect(document.querySelector("output")?.textContent).toBe("niship");
+    expect(JSON.parse(saved!).browser.region).toEqual(newer);
+    await probe.measure(() =>
+      document.querySelector<HTMLAnchorElement>('a[href="/browser/testsession"]')!.click(),
+    );
+    expect(document.querySelector("output")?.textContent).toBe("testsession");
+    expect(session.useBrowserStore.getState().region).toEqual(newer);
+  },
+);
+
+it.each(["queued", "in-flight"])(
+  "keeps the current session and edits when a %s save fails during switching",
+  async (phase) => {
+    probe = await renderWithProbe(<TestApp />);
+    vi.useFakeTimers();
+    const originalFetch = fetch;
+    let complete!: (response: Response) => void;
+    vi.stubGlobal("fetch", (url: string, init?: RequestInit) =>
+      init?.method === "PUT"
+        ? new Promise<Response>((resolve) => {
+            complete = resolve;
+          })
+        : originalFetch(url, init),
+    );
+    const originalSession = session;
+    const edited = { chromosome: "chr1", start: 100, end: 200 };
+    await probe.measure(() => session.useBrowserStore.getState().setRegion(edited));
+    if (phase === "in-flight") await act(async () => vi.advanceTimersByTimeAsync(200));
+    await probe.measure(() =>
+      document.querySelector<HTMLAnchorElement>('a[href="/browser/niship"]')!.click(),
+    );
+    await probe.measure(() => complete(Response.json({}, { status: 503 })));
+    expect(document.querySelector("output")?.textContent).toBe("testsession");
+    expect(session).toBe(originalSession);
+    expect(session.useBrowserStore.getState().region).toEqual(edited);
+    expect(document.querySelector('[role="alert"]')?.textContent).toContain("Could not save");
+    // A second selection retries saving instead of discarding the unsaved edit.
+    await probe.measure(() =>
+      document.querySelector<HTMLAnchorElement>('a[href="/browser/niship"]')!.click(),
+    );
+    await probe.measure(() => complete(Response.json({ ok: true })));
+    expect(document.querySelector("output")?.textContent).toBe("niship");
+  },
+);
