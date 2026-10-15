@@ -83,3 +83,15 @@ For Vercel, set the project's Root Directory to `apps/web` and enable access to 
 Cloud deployment requires your system's authentication and ownership checks for connections and sessions, including tab streams and MCP. The server intentionally rejects non-loopback hosts. Add those controls before changing the local-only policy. Clerk, generated API keys, multi-user isolation, ACP, and Eve integrations are not implemented.
 
 The server needs a persistent process for long-lived SSE streams and pending commands. SQLite needs persistent storage. A future remote database can implement the existing session repository interface.
+
+## Collections
+
+Open **Collections** to browse the bundled hg38 catalogs. The left panel lists Reference annotations, ChromHMM comparison, cCRE comparisons, CAVE developmental methylation, Human Biosamples, and long-read RNA-seq. Selecting a name opens `/collections/[collectionId]` and displays the shared TrackSelect picker in the center pane.
+
+Use the grid's views, grouping, filters, and pagination to find tracks. Check the tracks you want, then choose **Submit** to update the current session and return to its browser. Existing tracks from other collections are preserved. Unchecking a previously added track removes it from that collection on Submit. **Cancel** discards the draft and returns to the browser; changing collections also discards an unsubmitted draft. The selection limit is 50 tracks within the displayed collection.
+
+The default GENCODE 50 basic track is recognized in Reference annotations, and the default aggregate cCRE track in Human Biosamples. Matching uses each default track's type and data URL, so they appear selected and in Active Tracks. Submit preserves their existing IDs and settings without adding duplicates.
+
+The picker waits for session restoration before allowing edits. Submitted tracks use the existing autosave; wait for **Saved** before refreshing or closing the tab. All first-party track modules are registered so catalog tracks can be restored with their saved settings.
+
+Catalog JSON files live in `app/(workspace)/collections/data/`. They are owned by this app; the route has no runtime imports from legacy applications. Only the selected collection's full data is sent to the client. Set `NEXT_PUBLIC_MUI_X_LICENSE_KEY` for the shared grid's MUI X Premium license.

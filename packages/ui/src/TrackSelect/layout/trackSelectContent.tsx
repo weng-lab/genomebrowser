@@ -1,3 +1,4 @@
+import type { TrackSelectTrackIdResolver } from "../collection/collectionTypes";
 import type { TrackStore } from "@weng-lab/genomebrowser";
 import type { TrackSelectColumnOverrides } from "../collection/collectionColumns";
 import type { CompiledTrackCollections } from "../collection/collectionCompilation";
@@ -21,6 +22,7 @@ type TrackSelectContentProps = {
   onClose: () => void;
   columnOverrides?: TrackSelectColumnOverrides;
   resolveTrackInteraction?: TrackSelectInteractionResolver;
+  resolveCollectionTrackId?: TrackSelectTrackIdResolver;
 };
 
 export function TrackSelectContent(props: TrackSelectContentProps) {

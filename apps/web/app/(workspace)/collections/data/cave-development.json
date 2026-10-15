@@ -1,0 +1,124 @@
+{
+  "assembly": "hg38",
+  "id": "cave-development",
+  "label": "CAVE developmental methylation",
+  "description": "GABA hmC and OXBS tracks across six developmental ages.",
+  "views": [
+    {
+      "id": "default",
+      "label": "Developmental age",
+      "columns": [
+        {
+          "field": "developmentalAge",
+          "label": "Developmental age"
+        }
+      ],
+      "grouping": [],
+      "leaf": "developmentalAge"
+    }
+  ],
+  "tracks": [
+    {
+      "base": {
+        "id": "gaba-infancy",
+        "title": "CAVE GABA Infancy",
+        "color": "#B99768"
+      },
+      "type": "cave",
+      "config": {
+        "neurotransmitter": "GABA",
+        "age": "Infancy",
+        "topColor": "#EEC085",
+        "bottomColor": "#B99768"
+      },
+      "metadata": {
+        "developmentalAge": "Infancy"
+      }
+    },
+    {
+      "base": {
+        "id": "gaba-early_childhood",
+        "title": "CAVE GABA Early Childhood",
+        "color": "#B86B3A"
+      },
+      "type": "cave",
+      "config": {
+        "neurotransmitter": "GABA",
+        "age": "Early_Childhood",
+        "topColor": "#FACB9E",
+        "bottomColor": "#B86B3A"
+      },
+      "metadata": {
+        "developmentalAge": "Early Childhood"
+      }
+    },
+    {
+      "base": {
+        "id": "gaba-late_childhood",
+        "title": "CAVE GABA Late Childhood",
+        "color": "#B35C2C"
+      },
+      "type": "cave",
+      "config": {
+        "neurotransmitter": "GABA",
+        "age": "Late_Childhood",
+        "topColor": "#FCC18A",
+        "bottomColor": "#B35C2C"
+      },
+      "metadata": {
+        "developmentalAge": "Late Childhood"
+      }
+    },
+    {
+      "base": {
+        "id": "gaba-adolescence",
+        "title": "CAVE GABA Adolescence",
+        "color": "#D2614D"
+      },
+      "type": "cave",
+      "config": {
+        "neurotransmitter": "GABA",
+        "age": "Adolescence",
+        "topColor": "#F5C5BD",
+        "bottomColor": "#D2614D"
+      },
+      "metadata": {
+        "developmentalAge": "Adolescence"
+      }
+    },
+    {
+      "base": {
+        "id": "gaba-early_adulthood",
+        "title": "CAVE GABA Early Adulthood",
+        "color": "#9D4255"
+      },
+      "type": "cave",
+      "config": {
+        "neurotransmitter": "GABA",
+        "age": "Early_Adulthood",
+        "topColor": "#D9A1AD",
+        "bottomColor": "#9D4255"
+      },
+      "metadata": {
+        "developmentalAge": "Early Adulthood"
+      }
+    },
+    {
+      "base": {
+        "id": "gaba-adulthood",
+        "title": "CAVE GABA Adulthood",
+        "color": "#593135"
+      },
+      "type": "cave",
+      "config": {
+        "neurotransmitter": "GABA",
+        "age": "Adulthood",
+        "topColor": "#BBA0A3",
+        "bottomColor": "#593135"
+      },
+      "metadata": {
+        "developmentalAge": "Adulthood"
+      }
+    }
+  ]
+}

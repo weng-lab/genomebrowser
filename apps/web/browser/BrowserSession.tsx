@@ -1,6 +1,7 @@
 "use client";
 
 import { createBrowserStore, createTrackStore, hg38 } from "@weng-lab/genomebrowser";
+import { firstPartyTrackModules } from "@weng-lab/genomebrowser-tracks";
 import { rulerModule } from "@weng-lab/genomebrowser-tracks/ruler";
 import { geneModule } from "@weng-lab/genomebrowser-tracks/gene";
 import { ccreBigBedModule } from "@weng-lab/genomebrowser-tracks/ccre";
@@ -21,7 +22,7 @@ export function BrowserSessionProvider({ children }: { children: ReactNode }) {
       region: { chromosome: "chr12", start: 53_372_922, end: 53_423_700 },
     }),
     useTrackStore: createTrackStore({
-      modules: [rulerModule, geneModule, ccreBigBedModule],
+      modules: firstPartyTrackModules,
       tracks: [
         rulerModule.create({ base: { id: "ruler", title: "Coordinates" }, config: {} }),
         geneModule.create({

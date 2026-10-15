@@ -1,3 +1,5 @@
+import { resolveStoreCollectionTrackId } from "./collectionSelection";
+import type { TrackSelectTrackIdResolver } from "./collectionTypes";
 import type { TrackStore } from "@weng-lab/genomebrowser";
 import {
   adaptTrackSelectInteraction,
@@ -12,6 +14,7 @@ export function getReconciledTracks({
   registry,
   maxTracks,
   resolveTrackInteraction,
+  resolveCollectionTrackId,
 }: {
   compiledCollections: CompiledTrackCollections;
   tracks: TrackStore["tracks"];
@@ -19,12 +22,18 @@ export function getReconciledTracks({
   registry: TrackStore["registry"];
   maxTracks: number;
   resolveTrackInteraction?: TrackSelectInteractionResolver;
+  resolveCollectionTrackId?: TrackSelectTrackIdResolver;
 }): TrackStore["tracks"] {
   const collectionTracksById = compiledCollections.tracksById;
   assertValidSelectedTrackIds(selectedTrackIds, collectionTracksById, maxTracks);
 
-  const existingTracksById = new Map(tracks.map((track) => [track.base.id, track]));
-  const nonCollectionTracks = tracks.filter((track) => !collectionTracksById.has(track.base.id));
+  const existingTracksById = new Map<string, TrackStore["tracks"][number]>();
+  const nonCollectionTracks: TrackStore["tracks"] = [];
+  for (const track of tracks) {
+    const id = resolveStoreCollectionTrackId(compiledCollections, track, resolveCollectionTrackId);
+    if (!id) nonCollectionTracks.push(track);
+    else if (!existingTracksById.has(id)) existingTracksById.set(id, track);
+  }
   const selectedTracks = selectedTrackIds.map((id) => {
     const existingTrack = existingTracksById.get(id);
     const entry = collectionTracksById.get(id)!;

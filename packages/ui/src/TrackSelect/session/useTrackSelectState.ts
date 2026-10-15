@@ -1,3 +1,4 @@
+import type { TrackSelectTrackIdResolver } from "../collection/collectionTypes";
 import type { TrackStore } from "@weng-lab/genomebrowser";
 import { useMemo, useState } from "react";
 import type { CompiledTrackCollections } from "../collection/collectionCompilation";
@@ -24,6 +25,7 @@ type TrackSelectStateOptions = {
   maxTracks: number;
   onClose: () => void;
   resolveTrackInteraction?: TrackSelectInteractionResolver;
+  resolveCollectionTrackId?: TrackSelectTrackIdResolver;
 };
 
 export type TrackSelectState = ReturnType<typeof useTrackSelectState>;
@@ -38,6 +40,7 @@ export function useTrackSelectState({
   maxTracks,
   onClose,
   resolveTrackInteraction,
+  resolveCollectionTrackId,
 }: TrackSelectStateOptions) {
   const collections = compiledCollections.records;
   const [screen, setScreen] = useState<TrackSelectScreen>(() =>
@@ -48,7 +51,7 @@ export function useTrackSelectState({
     getInitialViewIds(collections),
   );
   const [selectedTrackIds, setSelectedTrackIds] = useState(() =>
-    createOrderedSelectionFromTracks(compiledCollections, tracks),
+    createOrderedSelectionFromTracks(compiledCollections, tracks, resolveCollectionTrackId),
   );
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string>();
@@ -134,6 +137,7 @@ export function useTrackSelectState({
         registry,
         maxTracks,
         resolveTrackInteraction,
+        resolveCollectionTrackId,
       });
     } catch (error) {
       setSubmitError(getErrorMessage(error));

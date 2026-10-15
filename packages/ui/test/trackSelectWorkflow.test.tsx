@@ -875,3 +875,54 @@ describe("TrackSelect initialization", () => {
     expect(setTracks).toHaveBeenCalledTimes(2);
   });
 });
+
+it("embeds the existing selection workflow inline without a modal and respects open", async () => {
+  const store = createStore(["fixed"]);
+  const onClose = vi.fn();
+  const props = { trackCollections: collections, useTrackStore: store, onClose };
+  await renderUi(<TrackSelect {...props} variant="inline" open title="Embedded tracks" />);
+  expect(container?.querySelector('[role="region"][aria-label="Embedded tracks"]')).not.toBeNull();
+  expect(document.querySelector('[role="dialog"]')).toBeNull();
+  await act(async () => {
+    trackSelectContentProbe.current!.actions.selectCollection("alpha");
+    trackSelectContentProbe.current!.actions.selectActiveCollectionTracks(new Set(["alpha::one"]));
+  });
+  await act(async () => trackSelectContentProbe.current!.actions.submitSelection());
+  expect(store.getState().tracks.map((track) => track.base.id)).toEqual(["fixed", "alpha::one"]);
+  expect(onClose).toHaveBeenCalledOnce();
+  await rerenderUi(<TrackSelect {...props} variant="inline" open={false} />);
+  expect(container?.querySelector('[role="region"]')).toBeNull();
+});
+
+it("recognizes an application-owned track by a supplied collection identity and reuses it on submit", async () => {
+  const existing = signalModule.create({
+    base: { id: "application-track", title: "Custom title", height: 77 },
+    config: { url: "custom" },
+  });
+  const outside = createTrack("outside");
+  const store = createStore([], [outside, existing]);
+  const resolveCollectionTrackId = (track: TrackStore["tracks"][number]) =>
+    track.base.id === "application-track" ? "alpha::one" : "beta::one";
+  const props = {
+    trackCollections: [collections[0]],
+    useTrackStore: store,
+    onClose: vi.fn(),
+    resolveCollectionTrackId,
+  };
+  await renderUi(<TrackSelect {...props} variant="inline" open />);
+  expect(trackSelectContentProbe.current!.state.selectedByCollection.get("alpha")).toEqual(
+    new Set(["alpha::one"]),
+  );
+  await act(async () => trackSelectContentProbe.current!.actions.submitSelection());
+  expect(store.getState().tracks).toEqual([outside, { ...existing, source: "host" }]);
+  await rerenderUi(<TrackSelect {...props} variant="inline" open={false} />);
+  await rerenderUi(<TrackSelect {...props} variant="inline" open />);
+  expect(trackSelectContentProbe.current!.state.selectedByCollection.get("alpha")).toEqual(
+    new Set(["alpha::one"]),
+  );
+  await act(async () =>
+    trackSelectContentProbe.current!.actions.selectActiveCollectionTracks(new Set()),
+  );
+  await act(async () => trackSelectContentProbe.current!.actions.submitSelection());
+  expect(store.getState().tracks).toEqual([outside]);
+});

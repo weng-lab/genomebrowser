@@ -38,6 +38,7 @@ Every current public export has one canonical destination below.
 | Track selection     | `TrackSelectColumnOverride`, `TrackSelectColumnOverrides` | [Column overrides](03-trackSelection/columnCustomization.md#trackselectcolumnoverride-and-trackselectcolumnoverrides) |
 | Track selection     | `withValueMarkers`                                        | [Value markers](03-trackSelection/columnCustomization.md#withvaluemarkers)                                            |
 | Track selection     | `ValueMarkerConfig`, `ValueMarkerMap`                     | [Marker configuration](03-trackSelection/columnCustomization.md#valuemarkerconfig-and-valuemarkermap)                 |
+| Track selection     | `TrackSelectTrackIdResolver`                              | [Existing-track matching](03-trackSelection/TrackSelect.md#trackselecttrackidresolver)                                |
 | Track selection     | `TrackSelectInteractionResolver`                          | [Interaction resolver](03-trackSelection/trackInteractions.md#trackselectinteractionresolver)                         |
 | Track selection     | `TrackSelectInteraction`, `AnyTrackSelectInteraction`     | [Interaction callbacks](03-trackSelection/trackInteractions.md#trackselectinteraction-and-anytrackselectinteraction)  |
 | Track selection     | `TrackSelectCollectionContext`                            | [Collection context](03-trackSelection/trackInteractions.md#trackselectcollectioncontext)                             |

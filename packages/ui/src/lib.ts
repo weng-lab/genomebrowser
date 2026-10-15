@@ -38,6 +38,7 @@ export type { CytobandColors, CytobandsProps } from "./cytobands/cytobands";
 
 // Track Select
 export { default as TrackSelect } from "./TrackSelect/TrackSelect";
+export type { TrackSelectTrackIdResolver } from "./TrackSelect/collection/collectionTypes";
 export type { TrackSelectProps } from "./TrackSelect/TrackSelect";
 export { withValueMarkers } from "./TrackSelect/collection/collectionColumns";
 export type {

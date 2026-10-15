@@ -1,10 +1,6 @@
-import { WorkspacePage } from "../../../components/workspace/WorkspacePage";
-import { CollectionsView } from "./CollectionsView";
+import { defaultCollectionId, getTrackCollection } from "./catalog";
+import { CollectionsWorkspace } from "./CollectionsWorkspace";
 
 export default function CollectionsPage() {
-  return (
-    <WorkspacePage title="Collections">
-      <CollectionsView />
-    </WorkspacePage>
-  );
+  return <CollectionsWorkspace collection={getTrackCollection(defaultCollectionId)!} />;
 }

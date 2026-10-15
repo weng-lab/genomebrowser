@@ -12,13 +12,33 @@ function createEmptySelection(collections: TrackSelectCollectionRecord[]) {
   return new Map(collections.map((collection) => [collection.id, new Set<string>()]));
 }
 
-export function createOrderedSelectionFromTracks(
+export function resolveStoreCollectionTrackId<Track extends CollectionStoreTrack>(
   compiledCollections: CompiledTrackCollections,
-  tracks: CollectionStoreTrack[],
+  track: Track,
+  resolveCollectionTrackId?: (track: Track) => string | undefined,
 ) {
-  return tracks.flatMap((track) =>
-    compiledCollections.tracksById.has(track.base.id) ? [track.base.id] : [],
-  );
+  if (compiledCollections.tracksById.has(track.base.id)) return track.base.id;
+  const id = resolveCollectionTrackId?.(track);
+  return id && compiledCollections.tracksById.has(id) ? id : undefined;
+}
+
+export function createOrderedSelectionFromTracks<Track extends CollectionStoreTrack>(
+  compiledCollections: CompiledTrackCollections,
+  tracks: Track[],
+  resolveCollectionTrackId?: (track: Track) => string | undefined,
+) {
+  return [
+    ...new Set(
+      tracks.flatMap((track) => {
+        const id = resolveStoreCollectionTrackId(
+          compiledCollections,
+          track,
+          resolveCollectionTrackId,
+        );
+        return id ? [id] : [];
+      }),
+    ),
+  ];
 }
 
 export function createSelectionByCollection(

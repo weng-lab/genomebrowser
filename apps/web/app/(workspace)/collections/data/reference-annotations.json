@@ -1,0 +1,204 @@
+{
+  "assembly": "hg38",
+  "id": "reference-annotations",
+  "label": "Reference annotations",
+  "description": "Reference gene annotations for the current genome assembly.",
+  "views": [
+    {
+      "id": "default",
+      "label": "Tracks",
+      "columns": [
+        {
+          "field": "title",
+          "label": "Track"
+        }
+      ],
+      "grouping": [],
+      "leaf": "title"
+    }
+  ],
+  "tracks": [
+    {
+      "base": {
+        "id": "gencode-v29-basic",
+        "title": "GENCODE 29 basic",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v29.basic.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v29-comprehensive",
+        "title": "GENCODE 29 comprehensive",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v29.comprehensive.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v40-basic",
+        "title": "GENCODE 40 basic",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v40.basic.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v40-comprehensive",
+        "title": "GENCODE 40 comprehensive",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v40.comprehensive.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v46-basic",
+        "title": "GENCODE 46 basic",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v46.basic.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v46-comprehensive",
+        "title": "GENCODE 46 comprehensive",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v46.comprehensive.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v47-basic",
+        "title": "GENCODE 47 basic",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v47.basic.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v47-comprehensive",
+        "title": "GENCODE 47 comprehensive",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v47.comprehensive.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v48-basic",
+        "title": "GENCODE 48 basic",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v48.basic.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v48-comprehensive",
+        "title": "GENCODE 48 comprehensive",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v48.comprehensive.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v49-basic",
+        "title": "GENCODE 49 basic",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v49.basic.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v49-comprehensive",
+        "title": "GENCODE 49 comprehensive",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v49.comprehensive.annotation.bb"
+      },
+      "metadata": {}
+    },
+    {
+      "base": {
+        "id": "gencode-v50-basic",
+        "title": "GENCODE 50 basic",
+        "display": "merged",
+        "height": 60,
+        "color": "#444444"
+      },
+      "type": "gene",
+      "config": {
+        "url": "https://users.wenglab.org/niship/gencodefiles/human.gencode.v50.basic.annotation.bb"
+      },
+      "metadata": {}
+    }
+  ]
+}

@@ -180,21 +180,40 @@ See [Track interactions](trackInteractions.md) for resolver timing, callback typ
 
 ## API
 
-### TrackSelectProps
+### Embedded picker
 
-| Prop                      | Type                                    | Default          | Description                                                                                                                                                       |
-| ------------------------- | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `open`                    | `boolean`                               | Required         | Controls whether the dialog is open.                                                                                                                              |
-| `onClose`                 | `() => void`                            | Required         | Runs after Cancel, the close button, a normal MUI dialog dismissal, or a successful Submit. The host must update `open`.                                          |
-| `trackCollections`        | `unknown[]`                             | Required         | Supplies collections to validate against the track-store registry. Keep the array identity stable to avoid reparsing unchanged collections.                       |
-| `useTrackStore`           | `TrackStoreInstance`                    | Required         | Provides the runtime track store and module registry used for validation, initialization, and submission. Pass the same hook used by `GenomeBrowser`.             |
-| `title`                   | `string`                                | `"Track Select"` | Sets the visible dialog title.                                                                                                                                    |
-| `maxTracks`               | `number`                                | `50`             | Limits the total draft selection across all supplied collections. It does not count tracks outside those collections.                                             |
-| `initialTrackIds`         | `readonly string[]`                     | `undefined`      | Sets the ordered collection selection during initialization. It takes precedence over `defaultTrackIds` but does not change the Reset target.                     |
-| `defaultTrackIds`         | `readonly string[]`                     | `undefined`      | Sets the ordered collection selection used for initialization when `initialTrackIds` is absent and restored by Reset. Without it, Reset clears collection tracks. |
-| `onCommittedTrackIds`     | `(trackIds: readonly string[]) => void` | `undefined`      | Runs after a successful Submit with all selected collection-qualified IDs in browser order.                                                                       |
-| `columnOverrides`         | `TrackSelectColumnOverrides`            | `undefined`      | Applies host-only MUI Data Grid column options by collection ID and field. The `field` option cannot be overridden.                                               |
-| `resolveTrackInteraction` | `TrackSelectInteractionResolver`        | `undefined`      | Resolves application callbacks for selected collection tracks when initialization or Submit updates selected collection tracks in the store.                      |
+Use `variant="inline"` to render the same picker inside a page or panel. Using the collection, store, and visibility state from the example above, the host supplies the surrounding page layout and handles `onClose` after Submit or Cancel.
+
+```tsx
+<TrackSelect
+  variant="inline"
+  open={open}
+  title="Select collection tracks"
+  trackCollections={trackCollections}
+  useTrackStore={useTrackStore}
+  onClose={() => setOpen(false)}
+/>
+```
+
+The inline picker uses a named region instead of a modal dialog. It keeps the draft-selection, validation, limits, and Submit/Cancel behavior described below. With `open={false}`, its content unmounts. Passing one collection opens that collection's grid directly; tracks outside the supplied collections are preserved when submitting.
+
+## TrackSelectProps
+
+| Prop                       | Type                                    | Default          | Description                                                                                                                                                       |
+| -------------------------- | --------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `variant`                  | `"dialog" \| "inline"`                  | `"dialog"`       | Chooses a modal dialog or embedded page region.                                                                                                                   |
+| `open`                     | `boolean`                               | Required         | Controls whether the dialog is open.                                                                                                                              |
+| `onClose`                  | `() => void`                            | Required         | Runs after Cancel, the close button, a normal MUI dialog dismissal, or a successful Submit. The host must update `open`.                                          |
+| `trackCollections`         | `unknown[]`                             | Required         | Supplies collections to validate against the track-store registry. Keep the array identity stable to avoid reparsing unchanged collections.                       |
+| `useTrackStore`            | `TrackStoreInstance`                    | Required         | Provides the runtime track store and module registry used for validation, initialization, and submission. Pass the same hook used by `GenomeBrowser`.             |
+| `title`                    | `string`                                | `"Track Select"` | Sets the visible dialog title, or the inline region's accessible name.                                                                                            |
+| `maxTracks`                | `number`                                | `50`             | Limits the total draft selection across all supplied collections. It does not count tracks outside those collections.                                             |
+| `initialTrackIds`          | `readonly string[]`                     | `undefined`      | Sets the ordered collection selection during initialization. It takes precedence over `defaultTrackIds` but does not change the Reset target.                     |
+| `defaultTrackIds`          | `readonly string[]`                     | `undefined`      | Sets the ordered collection selection used for initialization when `initialTrackIds` is absent and restored by Reset. Without it, Reset clears collection tracks. |
+| `onCommittedTrackIds`      | `(trackIds: readonly string[]) => void` | `undefined`      | Runs after a successful Submit with all selected collection-qualified IDs in browser order.                                                                       |
+| `columnOverrides`          | `TrackSelectColumnOverrides`            | `undefined`      | Applies host-only MUI Data Grid column options by collection ID and field. The `field` option cannot be overridden.                                               |
+| `resolveCollectionTrackId` | `TrackSelectTrackIdResolver`            | `undefined`      | Matches an existing runtime track to a supplied collection entry without changing its runtime ID.                                                                 |
+| `resolveTrackInteraction`  | `TrackSelectInteractionResolver`        | `undefined`      | Resolves application callbacks for selected collection tracks when initialization or Submit updates selected collection tracks in the store.                      |
 
 ### Dialog actions
 
@@ -205,7 +224,7 @@ Clear and Reset change only the draft; Submit applies it to the store.
 - **Cancel**, the close button, and normal dialog dismissal discard the current draft and call `onClose`.
 - **Submit** creates additions through the track-store registry and applies collection additions and removals as one store update. A successful Submit calls `onCommittedTrackIds`, then `onClose`. If the commit callback throws, `onClose` still runs; the accepted store update is not rolled back.
 
-If track creation, interaction validation, or the store update fails, the store remains unchanged and the dialog stays open with an error.
+If track creation, interaction validation, or the store update fails, the store remains unchanged and the picker stays open with an error.
 
 ### Collections
 
@@ -219,9 +238,15 @@ The public qualified ID format is `${collectionId}::${trackId}`. Use it in `init
 
 TrackSelect treats any store track whose ID matches a supplied collection entry as collection-owned. Initialization and Submit set both new and reused collection tracks to `source: "host"`, regardless of their previous source. Give fixed or non-collection tracks IDs outside that reserved set. If application code inserts a different track with a reserved ID, initialization or Submit may reuse or remove it when applying the selection.
 
+### TrackSelectTrackIdResolver
+
+Pass `resolveCollectionTrackId` to recognize existing application tracks whose runtime IDs differ from their collection-qualified IDs. The callback receives an `AnyTrackInstance` and returns a qualified ID or `undefined`. Match the track's type and data source using application-owned rules, and keep the callback identity stable.
+
+A runtime ID already matching a supplied entry takes precedence. Returned IDs outside the supplied collections are ignored. Matching tracks appear selected when the picker opens. Submit reuses their runtime IDs and settings, with `source: "host"`; deselecting them removes them on Submit. If several runtime tracks resolve to the same entry, the first is reused and the others are removed on Submit. Tracks without a match remain outside the collection selection.
+
 ## Accessibility
 
-- TrackSelect renders a MUI modal dialog and inherits its focus management and Escape-key dismissal behavior. The host must close the controlled dialog when `onClose` runs.
+- The default dialog inherits MUI focus management and Escape-key dismissal. Inline presentation uses a named region and the surrounding page's normal focus order. The host handles `onClose` for both presentations.
 - The close icon button has the accessible name `Close track select`. Clear, Reset, Cancel, Submit, and collection navigation use text-labeled buttons.
 - Removing a selected node uses an accessible name in the form `Remove {track label}`.
 - Collection selection and view controls use MUI X Data Grid Premium, MUI Select, and MUI X Tree View keyboard and focus behavior.

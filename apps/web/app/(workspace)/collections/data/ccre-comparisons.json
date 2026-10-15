@@ -1,0 +1,47 @@
+{
+  "assembly": "hg38",
+  "id": "ccre-comparisons",
+  "label": "cCRE comparisons",
+  "description": "Compare aggregate and tissue-specific candidate cis-regulatory elements.",
+  "views": [
+    {
+      "id": "default",
+      "label": "Tracks",
+      "columns": [
+        {
+          "field": "title",
+          "label": "Track"
+        }
+      ],
+      "grouping": [],
+      "leaf": "title"
+    }
+  ],
+  "tracks": [
+    {
+      "base": {
+        "id": "aggregate-and-adipose-ccres",
+        "title": "Aggregate and adipose cCREs",
+        "display": "full",
+        "height": 36,
+        "color": "#4b9560"
+      },
+      "type": "bulkbed",
+      "config": {
+        "datasets": [
+          {
+            "name": "ENCODE cCRE aggregate",
+            "url": "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed"
+          },
+          {
+            "name": "Adipose tissue cCREs",
+            "url": "https://downloads.wenglab.org/Registry-V4/ENCFF922YMQ.bigBed"
+          }
+        ],
+        "gap": 2,
+        "rowHeight": 18
+      },
+      "metadata": {}
+    }
+  ]
+}
