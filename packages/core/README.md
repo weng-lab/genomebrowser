@@ -55,7 +55,7 @@ Start with this package when you need to render or control a genome browser.
 
 Add `@weng-lab/genomebrowser-ui@2.0.0` for controls such as track selection from collections or cytoband navigation. The optional UI package and `GenomeBrowser` can share the same track store.
 
-Add `@weng-lab/genomebrowser-tracks@2.0.0` for the BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, and Gene modules. Core does not export first-party track implementations.
+Add `@weng-lab/genomebrowser-tracks@2.0.0` for the BigBed, BigWig, BulkBed, CAVE, cCRE BigBed, MethylC, Gene, BAM, dynseq, and Ruler modules. Core does not export first-party track implementations.
 
 ## Documentation
 
