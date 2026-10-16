@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { bigBedModule } from "@weng-lab/genomebrowser-tracks/bigbed";
+import { bigWigModule } from "@weng-lab/genomebrowser-tracks/bigwig";
 import { caveModule } from "@weng-lab/genomebrowser-tracks/cave";
 import { act } from "react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -467,6 +468,15 @@ it.each([
         base: { id: "saved-bigbed", title: "Saved user track" },
         config: { url: "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed" },
         source: "user",
+      }),
+  },
+  {
+    type: "BigWig",
+    create: () =>
+      bigWigModule.create({
+        base: { id: "saved-bigwig", title: "Saved DNase signal" },
+        config: { url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw" },
+        source: "host",
       }),
   },
   {
