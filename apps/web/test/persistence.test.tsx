@@ -142,9 +142,9 @@ it("waits for a successful delayed restoration before accepting commands and kee
   expect(Stream.opened).toHaveLength(1);
   const stream = Stream.opened[0];
   expect(stream.url).toBe("/api/sessions/local/rpc");
-  expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
-    "chr2:1,001-2,000",
-  );
+  expect(
+    document.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')!.textContent,
+  ).toBe("chr2:1,001-2,000");
   const region = { chromosome: "chr3", start: 2000, end: 3000 };
   await act(async () =>
     stream.dispatchEvent(
@@ -158,9 +158,9 @@ it("waits for a successful delayed restoration before accepting commands and kee
       }),
     ),
   );
-  expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
-    "chr3:2,001-3,000",
-  );
+  expect(
+    document.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')!.textContent,
+  ).toBe("chr3:2,001-3,000");
   expect(JSON.parse(post.mock.calls[0][1]!.body as string).result.state.browser.region).toEqual(
     region,
   );
@@ -190,12 +190,12 @@ it("waits for restoration again when switching sessions, including returning to 
 });
 
 it("restores browser settings, highlights and tracks before editing, then persists serializable settings", async () => {
-  expect(document.querySelector('[aria-label="Visible region"]')).toBeNull();
+  expect(document.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')).toBeNull();
   const snapshot = savedSnapshot();
   await act(async () => loaded(snapshot));
-  expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
-    "chr2:1,001-2,000",
-  );
+  expect(
+    document.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')!.textContent,
+  ).toBe("chr2:1,001-2,000");
   expect(session.useBrowserStore.getState()).toMatchObject({
     ...snapshot.browser,
     assembly: { id: "hg38" },
@@ -310,13 +310,13 @@ it("retries failed saves", async () => {
 it("starts from defaults without a saved session and retries a failed load", async () => {
   await act(async () => load.resolve(new Response("{}", { status: 503 })));
   expect(status()).toBe("Could not load session. Retrying…");
-  expect(document.querySelector('[aria-label="Visible region"]')).toBeNull();
+  expect(document.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')).toBeNull();
   load = deferred();
   await advance(2000);
   await act(async () => loaded(null));
-  expect(document.querySelector('[aria-label="Visible region"]')!.textContent).toBe(
-    "chr12:53,372,923-53,423,700",
-  );
+  expect(
+    document.querySelector('[aria-label^="Edit region"] .MuiTypography-body2')!.textContent,
+  ).toBe("chr12:53,372,923-53,423,700");
   // Defaults are unsaved until the first write.
   expect(status()).toBe("Saving");
   await advance(200);
@@ -493,4 +493,41 @@ it.each([
   await advance(2000);
   expect(save).not.toHaveBeenCalled();
   expect(Stream.opened).toHaveLength(1);
+});
+
+it("navigates and changes interaction mode through the browser controls", async () => {
+  await act(async () => loaded(savedSnapshot()));
+  const original = session.useBrowserStore.getState().region;
+  await act(async () =>
+    document.querySelector<HTMLButtonElement>('[aria-label="Pan right"]')!.click(),
+  );
+  expect(session.useBrowserStore.getState().region.start).toBeGreaterThan(original.start);
+  await act(async () =>
+    document.querySelector<HTMLButtonElement>('[aria-label="Pan left"]')!.click(),
+  );
+  const span =
+    session.useBrowserStore.getState().region.end - session.useBrowserStore.getState().region.start;
+  await act(async () =>
+    document.querySelector<HTMLButtonElement>('[aria-label="Zoom in"]')!.click(),
+  );
+  expect(
+    session.useBrowserStore.getState().region.end - session.useBrowserStore.getState().region.start,
+  ).toBeLessThan(span);
+  await act(async () =>
+    document.querySelector<HTMLButtonElement>('[aria-label="Zoom out"]')!.click(),
+  );
+  await act(async () => document.querySelector<HTMLButtonElement>('button[value="pan"]')!.click());
+  expect(session.useBrowserStore.getState().selectionMode).toBe("pan");
+  await advance(200);
+  expect(save).toHaveBeenCalledTimes(1);
+  expect(body(0).browser.selectionMode).toBe("pan");
+
+  await act(async () =>
+    document.querySelector<HTMLButtonElement>('button[value="highlight"]')!.click(),
+  );
+  expect(session.useBrowserStore.getState().selectionMode).toBe("highlight");
+  await advance(200);
+  expect(save).toHaveBeenCalledTimes(2);
+  expect(body(1).browser.selectionMode).toBe("highlight");
+  expect(document.querySelector('[aria-label^="Edit region"]')).not.toBeNull();
 });
